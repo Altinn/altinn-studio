@@ -342,7 +342,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
     {
         string layoutFilePath = GetPathToLayoutFile(layoutSetId, pageId);
         EnsureLayoutWriteIsAllowed(layoutSetId, pageId);
-        await WriteObjectByRelativePathAsync(layoutFilePath, altinnPageLayout.Structure);
+        await WriteObjectByRelativePathAsync(layoutFilePath, altinnPageLayout.Structure, createDirectory: true);
     }
 
     /// <summary>
@@ -465,23 +465,22 @@ public class AltinnAppGitRepository : AltinnGitRepository
     /// </summary>
     /// <param name="layoutSetName">The name of the layout set where the layout belong</param>
     /// <returns>An array with the name of all layout files under the specific layout set</returns>
+    /// <exception cref="FileNotFoundException">
+    /// Thrown if a layout set is named and no layout set folder of exactly that name exists
+    /// </exception>
     public string[] GetLayoutNames(string layoutSetName)
     {
-        string layoutSetPath = GetPathToLayoutSet(layoutSetName);
-        if (!DirectoryExistsByRelativePath(layoutSetPath) && AppUsesLayoutSets())
+        EnsureSafeLayoutSetName(layoutSetName);
+        if (!string.IsNullOrEmpty(layoutSetName) && !LayoutSetFolderExistsByExactName(layoutSetName))
         {
-            throw new FileNotFoundException();
+            throw new FileNotFoundException("The layout set does not exist.");
         }
-        List<string> layoutNames = new();
-        if (DirectoryExistsByRelativePath(layoutSetPath))
+        string layoutsFolderPath = GetPathToLayoutSet(layoutSetName);
+        if (!DirectoryExistsByRelativePath(layoutsFolderPath))
         {
-            foreach (string layoutPath in GetFilesByRelativeDirectory(layoutSetPath))
-            {
-                layoutNames.Add(Path.GetFileNameWithoutExtension(layoutPath));
-            }
+            return [];
         }
-
-        return layoutNames.ToArray();
+        return [.. GetFilesByRelativeDirectory(layoutsFolderPath).Select(Path.GetFileNameWithoutExtension)];
     }
 
     /// <exception cref="FileNotFoundException">
@@ -528,11 +527,6 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
     private async Task CreateLayoutSettings(string layoutSetName)
     {
-        string layoutSetPath = GetPathToLayoutSet(layoutSetName);
-        if (!DirectoryExistsByRelativePath(layoutSetPath))
-        {
-            Directory.CreateDirectory(layoutSetPath);
-        }
         string[] layoutNames = MakePageOrder(GetLayoutNames(layoutSetName));
         JsonNode layoutSettings = InitialLayoutSettings;
         JsonArray layoutNamesArray = new JsonArray();

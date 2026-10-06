@@ -63,6 +63,7 @@ export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2P
           baseComponentId={targetBaseComponentId}
           overrideId={`attachment-summary2-${targetBaseComponentId}`}
           renderLabelAs='span'
+          hideIndicators
           className={classes.summaryLabelMargin}
           weight='regular'
         />

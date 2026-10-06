@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -26,7 +28,7 @@ type RenderProps = {
   initialValue?: SlackChannel;
   availableEnvironments?: string[];
   editingId?: string | null;
-  onClose?: jest.Mock;
+  onClose?: Mock;
 };
 
 const renderSlackChannelDialog = (
@@ -34,7 +36,7 @@ const renderSlackChannelDialog = (
     initialValue = defaultChannel,
     availableEnvironments = ['tt02', 'production'],
     editingId = null,
-    onClose = jest.fn(),
+    onClose = vi.fn(),
   }: RenderProps = {},
   queries: Parameters<typeof renderWithProviders>[1]['queries'] = {},
 ) =>
@@ -54,15 +56,15 @@ const getSaveButton = () => screen.getByRole('button', { name: textMock('general
 const getCancelButton = () => screen.getByRole('button', { name: textMock('general.cancel') });
 const getChannelNameInput = () =>
   screen.getByRole('textbox', {
-    name: `${textMock('settings.orgs.contact_points.field_channel_name')} ${textMock('general.required')}`,
+    name: `${textMock('settings.orgs.contact_points.field_channel_name')}${textMock('general.required')}`,
   });
 const getWebhookUrlInput = () =>
   screen.getByRole('textbox', {
-    name: `${textMock('settings.orgs.contact_points.field_webhook_url')} ${textMock('general.required')}`,
+    name: `${textMock('settings.orgs.contact_points.field_webhook_url')}${textMock('general.required')}`,
   });
 
 describe('SlackChannelDialog', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('renders the add title when not editing', () => {
     renderSlackChannelDialog();
@@ -167,7 +169,7 @@ describe('SlackChannelDialog', () => {
   });
 
   it('calls onClose when cancel is clicked', async () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const user = userEvent.setup();
     renderSlackChannelDialog({ onClose });
     await user.click(getCancelButton());
@@ -203,8 +205,8 @@ describe('SlackChannelDialog', () => {
   });
 
   it('does not call onClose when cancel is clicked while saving', async () => {
-    const addContactPoint = jest.fn(() => new Promise<never>(() => {})); // never resolves
-    const onClose = jest.fn();
+    const addContactPoint = vi.fn(() => new Promise<never>(() => {})); // never resolves
+    const onClose = vi.fn();
     const user = userEvent.setup();
     renderSlackChannelDialog({ initialValue: validChannel, onClose }, { addContactPoint });
     await user.click(getAddButton());
@@ -213,7 +215,7 @@ describe('SlackChannelDialog', () => {
   });
 
   it('calls onClose when cancel is clicked while not saving', async () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const user = userEvent.setup();
     renderSlackChannelDialog({ onClose });
     await user.click(getCancelButton());

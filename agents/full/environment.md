@@ -6,7 +6,14 @@ External Altinn app repositories belong under `/home/agent/code/apps`; LocalTest
 `studioctl` is logged in to each configured production, staging or development Studio environment at boot with a
 host-mediated API key.
 `typos` and `hunspell` for the repository spell check (`yarn spell:quick`, `yarn spell:check`).
-`cargo-machete` for the Rust workspaces' unused-dependency check (`make deps-check`).
+`cargo-machete` for the Rust workspaces' unused-dependency check (`make deps-check`) and `cargo-deny` for the
+root `deny.toml`.
+Python 3 with `venv` and `pip`; create a virtual environment per project, as the system interpreter is externally
+managed.
+`yq`, `actionlint` and `shellcheck` for manifests, workflows and shell scripts. `psql`, `unzip`, `zip`, `rsync` and
+`file`.
+Debugging and profiling: `dotnet-trace`, `dotnet-counters` and `dotnet-dump` alongside `perf`, `lldb` and `strace`;
+`hyperfine` for benchmarks; `btop`, `lsof`, `tcpdump`, `socat`, `nc` and `dig`.
 
 Podman with `docker` and `/run/docker.sock` as compatibility surfaces, kind, kubectl, Helm and Flux.
 

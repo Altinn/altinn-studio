@@ -23,7 +23,6 @@ const texts: TextResourceInputTexts = {
   search: 'Søk',
   clearSelection: 'Fjern valg',
   textResourcePickerLabel: 'Velg tekstressurs',
-  noTextResourceOptionLabel: 'Ikke oppgitt',
   valueLabel: 'Tekstverdi',
 };
 const currentId = 'land.NO';
@@ -136,7 +135,7 @@ describe('StudioTextResourceInput', () => {
     await user.tab();
     await waitFor(() => expect(onChangeCurrentId).toHaveBeenCalled());
 
-    expect(onChangeCurrentId).toHaveBeenCalledTimes(2); // u-combobox 2.1.4 → 2.1.5 in DS v1.23, makes it call twice, one at clear and one at blur
+    expect(onChangeCurrentId).toHaveBeenCalledTimes(1);
     expect(onChangeCurrentId).toHaveBeenCalledWith(null);
   });
 

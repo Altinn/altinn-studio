@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router-dom';
@@ -14,7 +15,7 @@ import type {
 
 const originalWindowLocation = window.location;
 
-jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: {}, isPending: false }),
 }));
 
@@ -79,13 +80,13 @@ describe('StudioctlAuth', () => {
       configurable: true,
       value: {
         ...originalWindowLocation,
-        assign: jest.fn(),
+        assign: vi.fn(),
       },
     });
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     Object.defineProperty(window, 'location', {
       configurable: true,
       value: originalWindowLocation,
@@ -118,9 +119,7 @@ describe('StudioctlAuth', () => {
 
   it('confirms and redirects to the callback URL', async () => {
     const user = userEvent.setup();
-    const confirmStudioctlAuthRequest = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve(callback));
+    const confirmStudioctlAuthRequest = vi.fn().mockImplementation(() => Promise.resolve(callback));
     renderStudioctlAuth({ queries: { confirmStudioctlAuthRequest } });
 
     await user.click(
@@ -133,9 +132,7 @@ describe('StudioctlAuth', () => {
 
   it('cancels and redirects to the callback URL', async () => {
     const user = userEvent.setup();
-    const cancelStudioctlAuthRequest = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve(callback));
+    const cancelStudioctlAuthRequest = vi.fn().mockImplementation(() => Promise.resolve(callback));
     renderStudioctlAuth({ queries: { cancelStudioctlAuthRequest } });
 
     await user.click(
@@ -149,7 +146,7 @@ describe('StudioctlAuth', () => {
   it('renders a spinner while user data is loading', () => {
     renderStudioctlAuth({
       seedUser: false,
-      queries: { getUser: jest.fn().mockImplementation(() => new Promise(() => {})) },
+      queries: { getUser: vi.fn().mockImplementation(() => new Promise(() => {})) },
     });
 
     expect(screen.getByRole('img', { name: textMock('general.loading') })).toBeInTheDocument();
@@ -158,7 +155,7 @@ describe('StudioctlAuth', () => {
   it('renders a page error when user data cannot be loaded', async () => {
     renderStudioctlAuth({
       seedUser: false,
-      queries: { getUser: jest.fn().mockImplementation(() => Promise.reject(new Error())) },
+      queries: { getUser: vi.fn().mockImplementation(() => Promise.reject(new Error())) },
     });
 
     expect(
@@ -167,7 +164,7 @@ describe('StudioctlAuth', () => {
   });
 
   it('renders not found when the request id is missing', async () => {
-    const getStudioctlAuthRequest = jest.fn();
+    const getStudioctlAuthRequest = vi.fn();
     renderStudioctlAuth({
       initialEntries: [`/${owner}/studioctl-auth`],
       seedAuthRequest: false,
@@ -181,7 +178,7 @@ describe('StudioctlAuth', () => {
   });
 
   it('renders not found when the route owner is not the logged-in user', async () => {
-    const getStudioctlAuthRequest = jest.fn();
+    const getStudioctlAuthRequest = vi.fn();
     renderStudioctlAuth({
       initialEntries: [`/other-user/studioctl-auth?requestId=${requestId}`],
       seedAuthRequest: false,
@@ -198,7 +195,7 @@ describe('StudioctlAuth', () => {
     renderStudioctlAuth({
       seedAuthRequest: false,
       queries: {
-        getStudioctlAuthRequest: jest.fn().mockImplementation(() => Promise.reject(new Error())),
+        getStudioctlAuthRequest: vi.fn().mockImplementation(() => Promise.reject(new Error())),
       },
     });
 

@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 
-import { getLabelId, RequiredIndicator } from '@app/form-component';
+import { getLabelId, OptionalIndicator, RequiredIndicator } from '@app/form-component';
 import { LayoutStyle } from '@app/layout-contract/generated/common.generated';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Label, Radio, Table } from '@digdir/designsystemet-react';
@@ -51,6 +51,7 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
     config.textResourceBindings?.title,
     Expressions.LikertItem.textResourceBindings.title,
   );
+  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const parent = layoutLookups.componentToParent[baseComponentId];
@@ -75,6 +76,11 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
           <span>
             <Lang id={title} />
             <RequiredIndicator required={required} />
+            <OptionalIndicator
+              required={required}
+              readOnly={readOnly}
+              showOptionalMarking={labelSettings?.optionalIndicator !== false}
+            />
           </span>
         </Label>
         <ComponentValidations

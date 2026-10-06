@@ -4,11 +4,18 @@ import { screen } from '@testing-library/react';
 import { RequiredIndicator } from './RequiredIndicator';
 
 describe('RequiredIndicator', () => {
-  it('renders the required marker with text for screen readers when required', () => {
+  it('renders the required marker as a tag when required', () => {
     renderWithTranslations(<RequiredIndicator required />);
 
-    expect(screen.getByText('*')).toHaveAttribute('aria-hidden', 'true');
-    expect(screen.getByText('Required')).toHaveClass('sr-only');
+    const tag = screen.getByText('Required');
+    expect(tag).toHaveClass('ds-tag');
+    expect(tag).toHaveAttribute('data-color', 'warning');
+  });
+
+  it('uses the Norwegian wording recommended by Designsystemet', () => {
+    renderWithTranslations(<RequiredIndicator required />, { language: 'nb' });
+
+    expect(screen.getByText('Må fylles ut')).toBeInTheDocument();
   });
 
   it('renders nothing when not required', () => {
