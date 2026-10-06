@@ -206,7 +206,7 @@ export function OrganizationLookupComponent({
               pattern='[0-9]{9}'
             />
             {invalidSearchOrgNr && (
-              <ValidationMessage>
+              <ValidationMessage data-size='sm'>
                 <Lang id='organization_lookup.validation_error_orgnr' />
               </ValidationMessage>
             )}
@@ -237,6 +237,14 @@ export function OrganizationLookupComponent({
               )}
             </div>
           )}
+          {lookupFailure && (
+            <ValidationMessage
+              data-size='sm'
+              className={classes.apiError}
+            >
+              <Lang id={organizationLookupFailureMessages[lookupFailure]} />
+            </ValidationMessage>
+          )}
           {hasSuccessfullyFetched && orgName && (
             <div
               className={classes.orgname}
@@ -245,11 +253,6 @@ export function OrganizationLookupComponent({
             >
               <Paragraph data-size='sm'>{orgName}</Paragraph>
             </div>
-          )}
-          {lookupFailure && (
-            <ValidationMessage className={classes.apiError}>
-              <Lang id={organizationLookupFailureMessages[lookupFailure]} />
-            </ValidationMessage>
           )}
         </div>
         <div

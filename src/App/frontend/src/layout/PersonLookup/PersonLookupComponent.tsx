@@ -282,7 +282,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
           )}
           <div className={classes.apiError}>
             {lookupFailure && (
-              <ValidationMessage>
+              <ValidationMessage data-size='sm'>
                 <Lang id={personLookupFailureMessages[lookupFailure]} />
               </ValidationMessage>
             )}
