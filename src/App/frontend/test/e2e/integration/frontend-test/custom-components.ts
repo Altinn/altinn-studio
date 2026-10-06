@@ -43,11 +43,29 @@ describe('Custom web components', () => {
     simple().should('have.prop', 'texts').and('deep.equal', {
       title: 'Egendefinert felt',
       shortName: 'Ekstra ledetekst',
+      galaxyCaption: 'Ekstra ledetekst',
     });
     cy.get(appFrontend.languageSelector).click();
     cy.findByRole('menuitemradio', { name: 'Engelsk' }).click();
     simple().shadow().find('[data-title]').should('have.text', 'Custom field');
     simple().shadow().find('[data-caption]').should('have.text', 'Extra caption');
+  });
+
+  it('passes arbitrary configuration values and evaluates arbitrary text binding expressions', () => {
+    const metadata = { answer: 42, enabled: true, choices: ['red', 'blue'], empty: null };
+    simple().should('have.attr', 'fixturemetadata', JSON.stringify(metadata));
+    simple().should('have.attr', 'fixturecount', '42');
+    simple().should('have.attr', 'fixtureenabled', '');
+    simple().should('have.attr', 'fixturechoices', JSON.stringify(['red', 'blue']));
+    simple().should('have.attr', 'fixtureempty', 'null');
+    simple().shadow().find('[data-caption]').should('have.text', 'Ekstra ledetekst');
+    summary().shadow().find('[data-caption]').should('have.text', 'Ekstra ledetekst');
+    cy.findByRole('radio', { name: 'Skrivebeskyttet' }).check();
+    simple().shadow().find('[data-caption]').should('have.text', 'Skrivebeskyttet ledetekst');
+    summary().shadow().find('[data-caption]').should('have.text', 'Skrivebeskyttet ledetekst');
+    cy.findByRole('radio', { name: 'Redigerbar' }).check();
+    simple().shadow().find('[data-caption]').should('have.text', 'Ekstra ledetekst');
+    summary().shadow().find('[data-caption]').should('have.text', 'Ekstra ledetekst');
   });
 
   it('renders legacy summaries and the web component in Summary2 mode with live values', () => {
