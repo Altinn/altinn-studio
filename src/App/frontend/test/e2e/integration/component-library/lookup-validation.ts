@@ -175,6 +175,16 @@ describe('Lookup validation', { testIsolation: false }, () => {
             for (const field of scenario.fields) {
               cy.findByText(backendMessages[field]).should('be.visible');
             }
+            cy.get(`[data-validation="${componentId}"]`)
+              .should('have.length', 1)
+              .and('have.id', `${componentId}-validations`);
+            if (scenario.type === 'PersonLookup') {
+              for (const name of [scenario.numberLabel, /Navn/i]) {
+                cy.findByRole('textbox', { name })
+                  .invoke('attr', 'aria-describedby')
+                  .should('include', `${componentId}-validations`);
+              }
+            }
             cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.attr', 'aria-invalid', 'true');
             cy.findByRole('button', { name: /Fjern/i }).should('be.visible');
           });
