@@ -47,6 +47,7 @@ from agents.core import (
 from agents.core.tools.git_tool import unverified_changed_files
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
+from agents.services.llm.recent_turns import truncate_to_history_limit
 from shared.utils.langfuse_utils import get_current_trace_id
 from shared.utils.logging_utils import get_logger
 from shared.utils.spotlight import defang_delimiter
@@ -149,7 +150,6 @@ _DEFAULT_MAX_TURNS = int(os.getenv("AGENTIC_LOOP_MAX_TURNS", "40"))
 
 
 _HISTORY_MAX_MESSAGES = 12
-_HISTORY_MAX_CHARS_PER_MESSAGE = 6000
 
 
 CURRENT_REQUEST_TAG = "current_request"
@@ -173,8 +173,7 @@ def _history_messages(state: AgentState) -> list:
         content = (entry.content or "").strip()
         if not content:
             continue
-        if len(content) > _HISTORY_MAX_CHARS_PER_MESSAGE:
-            content = content[:_HISTORY_MAX_CHARS_PER_MESSAGE] + "\n…[truncated]"
+        content = truncate_to_history_limit(content)
         content = defang_delimiter(content, CURRENT_REQUEST_TAG)
         if entry.role == "assistant":
             messages.append(AssistantMessage(content=[TextBlock(text=content)]))
