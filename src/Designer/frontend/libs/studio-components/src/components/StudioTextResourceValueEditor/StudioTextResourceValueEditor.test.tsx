@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import type { StudioTextResourceValueEditorProps } from './StudioTextResourceValueEditor';
 import { StudioTextResourceValueEditor } from './StudioTextResourceValueEditor';
@@ -9,7 +10,7 @@ const textResourceId = '1';
 const textResourceValue = 'Text 1';
 const ariaLabel = 'Edit text resource';
 const idLabel = 'ID:';
-const mockOnTextChange = jest.fn();
+const mockOnTextChange = vi.fn();
 const defaultProps: StudioTextResourceValueEditorProps = {
   textResourceId,
   ariaLabel,
@@ -19,7 +20,7 @@ const defaultProps: StudioTextResourceValueEditorProps = {
 
 describe('StudioTextResourceValueEditor', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('Displays textbox with given value', () => {

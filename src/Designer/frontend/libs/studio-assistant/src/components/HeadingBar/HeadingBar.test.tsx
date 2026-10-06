@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HeadingBar } from './HeadingBar';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -6,11 +7,11 @@ import { mockTexts } from '../../mocks/mockTexts';
 import { ToolColumnMode } from '../../types/ToolColumnMode';
 
 // Test data
-const onModeChange = jest.fn();
+const onModeChange = vi.fn();
 
 describe('HeadingBar', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render the heading', () => {

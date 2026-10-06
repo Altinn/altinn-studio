@@ -1,10 +1,11 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { DigdirLogoLink, type DigdirLogoLinkProps } from './DigdirLogoLink';
 import { StudioPageHeaderContext } from '../../context';
 import { type StudioPageHeaderContextProps } from '../../context/StudioPageHeaderContext';
 
 describe('DigdirLogoLink', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render the DigdirLogo', () => {
     renderDigdirLogoLink({ providerProps: { variant: 'regular' } });

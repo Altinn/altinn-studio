@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { CodeListsPage } from './CodeListsPage';
@@ -13,11 +14,11 @@ import { RouterContextProvider } from '../../../ContentLibrary/RouterContext';
 import { PageName } from '../../../types/PageName';
 
 // Test data:
-const onPublish = jest.fn();
-const onSave = jest.fn<Promise<void>, [CodeListFile[]]>(async () => {});
+const onPublish = vi.fn();
+const onSave = vi.fn<Promise<void>, [CodeListFile[]]>(async () => {});
 const defaultProps: CodeListsPageProps = {
   codeLists,
-  isPublishing: jest.fn().mockReturnValue(false),
+  isPublishing: vi.fn().mockReturnValue(false),
   onPublish,
   onSave,
   publishedCodeLists: [],
@@ -127,8 +128,8 @@ describe('CodeListsPage', () => {
 
   it('Displays an error message when the saving request fails', async () => {
     const user = userEvent.setup();
-    const failingOnSave = jest.fn<Promise<void>, [CodeListFile[]]>(async () => Promise.reject());
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const failingOnSave = vi.fn<Promise<void>, [CodeListFile[]]>(async () => Promise.reject());
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     renderCodeListPage({ onSave: failingOnSave });
 
     const nameField = getNameField(FileNameUtils.removeExtension(colorsFile.name));
@@ -150,8 +151,8 @@ function renderCodeListPage(props?: Partial<CodeListsPageProps>): RenderResult {
       <RouterContextProvider
         value={{
           location: PageName.LandingPage,
-          navigate: jest.fn(),
-          renderLink: jest.fn(),
+          navigate: vi.fn(),
+          renderLink: vi.fn(),
           contactPagePath: '/contact/',
         }}
         {...p}

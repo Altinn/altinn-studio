@@ -1,11 +1,12 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioDropdownContextProvider, useStudioDropdownContext } from './StudioDropdownContext';
 
-const setOpen = jest.fn();
+const setOpen = vi.fn();
 
 describe('StudioDropdownContext', () => {
-  beforeEach(jest.clearAllMocks);
+  beforeEach(vi.clearAllMocks);
 
   it('should render children', () => {
     render(

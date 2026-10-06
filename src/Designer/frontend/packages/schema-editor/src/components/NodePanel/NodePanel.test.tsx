@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import type { SchemaEditorAppContextProps } from '../../contexts/SchemaEditorAppContext';
 import { NodePanel } from './';
@@ -16,9 +17,9 @@ import userEvent from '@testing-library/user-event';
 
 const initialModel = SchemaModel.fromArray(uiSchemaNodesMock);
 const createSchemaModel = () => initialModel.deepClone();
-const setSelectedUniquePointer = jest.fn();
-const setSelectedTypePointer = jest.fn();
-const save = jest.fn();
+const setSelectedUniquePointer = vi.fn();
+const setSelectedTypePointer = vi.fn();
+const save = vi.fn();
 const name = 'Test';
 
 const defaultProps: NodePanelProps = {
@@ -34,20 +35,20 @@ const defaultAppContextProps: SchemaEditorAppContextProps = {
   save,
   name,
   prefillConfig: {},
-  savePrefillConfig: jest.fn(),
+  savePrefillConfig: vi.fn(),
 };
 
 const defaultDragAndDropTreeProviderProps: Omit<
   StudioDragAndDropTreeProviderProps<string>,
   'children'
 > = {
-  onAdd: jest.fn(),
-  onMove: jest.fn(),
+  onAdd: vi.fn(),
+  onMove: vi.fn(),
   rootId: ROOT_POINTER,
 };
 
 describe('NodePanel', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('When the root node is selected', () => {
     it('Renders the name as the heading', () => {

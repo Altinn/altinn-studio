@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import {
   horizontal,
@@ -9,7 +10,7 @@ import type React from 'react';
 describe('useStudioResizableLayoutMouseMovement', () => {
   it('should return onMouseDown', () => {
     const { result } = renderHook(() =>
-      useStudioResizableLayoutMouseMovement(horizontal, jest.fn(), jest.fn()),
+      useStudioResizableLayoutMouseMovement(horizontal, vi.fn(), vi.fn()),
     );
     expect(result.current).toHaveProperty('onMouseDown');
   });
@@ -17,9 +18,9 @@ describe('useStudioResizableLayoutMouseMovement', () => {
   it.each([horizontal, vertical])(
     'should call onMousePosChange when mouse is moved in a %p layout',
     (orientation) => {
-      const onMousePosChange = jest.fn();
+      const onMousePosChange = vi.fn();
       const { result } = renderHook(() =>
-        useStudioResizableLayoutMouseMovement(orientation, onMousePosChange, jest.fn()),
+        useStudioResizableLayoutMouseMovement(orientation, onMousePosChange, vi.fn()),
       );
 
       act(() => {
@@ -32,9 +33,9 @@ describe('useStudioResizableLayoutMouseMovement', () => {
   );
 
   it('should not start resizing if mouse button is not 0/LMB', () => {
-    const onMousePosChange = jest.fn();
+    const onMousePosChange = vi.fn();
     const { result } = renderHook(() =>
-      useStudioResizableLayoutMouseMovement(horizontal, onMousePosChange, jest.fn()),
+      useStudioResizableLayoutMouseMovement(horizontal, onMousePosChange, vi.fn()),
     );
 
     act(() => {
@@ -74,11 +75,11 @@ const mockMouseEvent: React.MouseEvent<HTMLDivElement> = {
   eventPhase: 0,
   isTrusted: false,
   timeStamp: 0,
-  stopPropagation: jest.fn(),
-  preventDefault: jest.fn(),
-  isDefaultPrevented: jest.fn(),
-  isPropagationStopped: jest.fn(),
-  persist: jest.fn(),
-  getModifierState: jest.fn(),
+  stopPropagation: vi.fn(),
+  preventDefault: vi.fn(),
+  isDefaultPrevented: vi.fn(),
+  isPropagationStopped: vi.fn(),
+  persist: vi.fn(),
+  getModifierState: vi.fn(),
   // Add other properties as needed
 } as unknown as React.MouseEvent<HTMLDivElement>;

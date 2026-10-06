@@ -1,5 +1,5 @@
+import { expect, test } from 'vitest';
 import { createNodeBase } from '../utils';
-import { expect } from '@jest/globals';
 import { sortNodesByChildren } from './sort-nodes';
 import { ROOT_POINTER } from '../constants';
 

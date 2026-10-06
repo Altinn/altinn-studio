@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
 import { getDefaultValueOfType } from './getDefaultValueOfType';
 

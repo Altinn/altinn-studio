@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { expressionToString } from './expressionToString';
 import type { Expression } from '../../StudioExpression/types/Expression';
 import { GeneralRelationOperator } from '../../StudioExpression/enums/GeneralRelationOperator';

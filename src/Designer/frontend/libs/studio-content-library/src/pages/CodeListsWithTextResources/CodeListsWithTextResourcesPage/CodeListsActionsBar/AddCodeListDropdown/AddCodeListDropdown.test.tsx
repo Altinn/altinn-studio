@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
@@ -8,12 +9,12 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { UserEvent } from '@testing-library/user-event';
 import { externalResources } from '../../../../../test-data/externalResources';
 
-const onUploadCodeListMock = jest.fn();
+const onUploadCodeListMock = vi.fn();
 const codeListName1 = 'codeListName1';
 const codeListName2 = 'codeListName2';
 
 describe('AddCodeListDropdown', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('opens the create new code list modal when clicking on the add new code list button', async () => {
     const user = userEvent.setup();
@@ -123,10 +124,10 @@ const uploadFileWithFileName = async (
 
 const defaultCodeListActionBarProps: AddCodeListDropdownProps = {
   onUploadCodeList: onUploadCodeListMock,
-  onCreateCodeList: jest.fn(),
-  onCreateTextResource: jest.fn(),
-  onImportCodeListFromOrg: jest.fn(),
-  onUpdateTextResource: jest.fn(),
+  onCreateCodeList: vi.fn(),
+  onCreateTextResource: vi.fn(),
+  onImportCodeListFromOrg: vi.fn(),
+  onUpdateTextResource: vi.fn(),
   codeListNames: [codeListName1, codeListName2],
 };
 

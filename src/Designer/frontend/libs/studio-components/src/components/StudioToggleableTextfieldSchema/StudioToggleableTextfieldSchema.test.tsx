@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { JsonSchema } from '../../types/JSONSchema';
 
 import {
@@ -36,15 +37,15 @@ const defaultProps: StudioToggleableTextfieldSchemaProps = {
   label,
   layoutSchema: defaultLayoutSchemaMock,
   relatedSchemas: [],
-  onBlur: jest.fn(),
-  onChange: jest.fn(),
-  onError: jest.fn(),
+  onBlur: vi.fn(),
+  onChange: vi.fn(),
+  onError: vi.fn(),
   value,
   propertyPath: 'definitions/component/properties/id',
 };
 
 describe('StudioToggleableTextfieldSchema', () => {
-  beforeEach(jest.clearAllMocks);
+  beforeEach(vi.clearAllMocks);
 
   it('should toggle to edit mode when clicking edit', async () => {
     const user = userEvent.setup();

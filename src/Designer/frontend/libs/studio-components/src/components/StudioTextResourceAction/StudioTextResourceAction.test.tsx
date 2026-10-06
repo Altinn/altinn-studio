@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { StudioTextResourceActionProps } from './StudioTextResourceAction';
@@ -15,7 +16,7 @@ describe('StudioTextResourceAction', () => {
   const getOption = (name: string | RegExp): HTMLElement =>
     screen.getByRole('option', { name, hidden: true });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('uses selected text resource id', async () => {
     const user = userEvent.setup();
@@ -52,10 +53,10 @@ describe('StudioTextResourceAction', () => {
   });
 });
 
-const onSetIsOpen = jest.fn();
-const onHandleIdChange = jest.fn();
-const onHandleValueChange = jest.fn();
-const onHandleRemoveTextResource = jest.fn();
+const onSetIsOpen = vi.fn();
+const onHandleIdChange = vi.fn();
+const onHandleValueChange = vi.fn();
+const onHandleRemoveTextResource = vi.fn();
 
 const textResources: TextResource[] = [
   { id: 'text-1', value: 'Text 1' },

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NumberRestrictionsError } from '@altinn/schema-editor/types';
 import {
   validateMinMax,
@@ -30,7 +31,7 @@ const defaultState: NumberRestrictionsReducerState = {
   numberRestrictionsError: NumberRestrictionsError.NoError,
 };
 
-const changeCallback = jest.fn();
+const changeCallback = vi.fn();
 const dispatchAction = (
   action: NumberRestrictionsReducerAction,
   state?: Partial<NumberRestrictionsReducerState>,
@@ -43,7 +44,7 @@ const dispatchAction = (
 };
 
 describe('NumberRestrictionsReducer', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
   describe('setRestriction', () => {
     it('Updates state correctly', () => {
       const value = 2;

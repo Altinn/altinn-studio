@@ -1,3 +1,4 @@
+import { describe, expect, it, test } from 'vitest';
 import { SchemaModel } from './SchemaModel';
 import {
   allOfNodeChildMock,
@@ -26,7 +27,6 @@ import {
   unusedDefinitionMock,
   simpleArrayItemsMock,
 } from '../../../test/uiSchemaMock';
-import { expect } from '@jest/globals';
 import { validateTestUiSchema } from '../../../test/validateTestUiSchema';
 import type { NodePosition, UiSchemaNodes } from '../../types';
 import { CombinationKind, FieldType, ObjectKind } from '../../types';

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, test, vi } from 'vitest';
 import type { TextRowProps } from './TextRow';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
@@ -44,7 +45,7 @@ describe('TextRow', () => {
 
   test('upsertEntry should be called when changing text', async () => {
     const user = userEvent.setup();
-    const upsertTextResource = jest.fn();
+    const upsertTextResource = vi.fn();
     renderTextRow({ upsertTextResource });
     const valueInput = screen.getByRole('textbox', {
       name: textMock('text_editor.table_row_input_label', {
@@ -89,7 +90,7 @@ describe('TextRow', () => {
 
   test('that the user is warned if an illegal character is used', async () => {
     const user = userEvent.setup();
-    const updateEntryId = jest.fn();
+    const updateEntryId = vi.fn();
     renderTextRow({ updateEntryId });
     const toggleKeyEditButton = screen.getByRole('button', {
       name: textMock('text_editor.toggle_edit_mode', { textKey }),
@@ -112,7 +113,7 @@ describe('TextRow', () => {
 
   it('should not stop a call to upsertEntry to update key when new text key is equal the original but with some uppercase', async () => {
     const user = userEvent.setup();
-    const updateEntryId = jest.fn();
+    const updateEntryId = vi.fn();
     renderTextRow({ updateEntryId });
     const toggleKeyEditButton = screen.getByRole('button', {
       name: textMock('text_editor.toggle_edit_mode', { textKey }),
@@ -146,7 +147,7 @@ describe('TextRow', () => {
   });
 
   describe('Delete confirmation dialog', () => {
-    afterEach(jest.clearAllMocks);
+    afterEach(vi.clearAllMocks);
 
     it('should open the confirmation dialog when clicking the delete button', async () => {
       const user = userEvent.setup();
@@ -172,7 +173,7 @@ describe('TextRow', () => {
 
     it('should confirm and close the dialog when clicking the confirm button', async () => {
       const user = userEvent.setup();
-      const removeEntry = jest.fn();
+      const removeEntry = vi.fn();
       renderTextRow({ removeEntry });
 
       const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
@@ -189,7 +190,7 @@ describe('TextRow', () => {
 
     it('should close the confirmation dialog when clicking the cancel button', async () => {
       const user = userEvent.setup();
-      const removeEntry = jest.fn();
+      const removeEntry = vi.fn();
       renderTextRow({ removeEntry });
 
       const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
@@ -204,7 +205,7 @@ describe('TextRow', () => {
 
     it('should close when clicking outside the popover', async () => {
       const user = userEvent.setup();
-      const removeEntry = jest.fn();
+      const removeEntry = vi.fn();
       renderTextRow({ removeEntry });
 
       const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
