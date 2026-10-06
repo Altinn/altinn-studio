@@ -27,8 +27,6 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// </summary>
 public class ApplicationMetadataService : IApplicationMetadataService
 {
-    private const string EnableFileScanPropertyName = "enableFileScan";
-
     private readonly ILogger<ApplicationMetadataService> _logger;
     private readonly IAltinnStorageAppMetadataClient _storageAppMetadataClient;
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
@@ -196,19 +194,11 @@ public class ApplicationMetadataService : IApplicationMetadataService
     /// <inheritdoc/>
     public async Task AddMetadataForAttachment(string org, string app, string applicationMetadata)
     {
-        DataType attachmentDataType = DeserializeNewAttachmentDataType(applicationMetadata);
+        DataType formMetadata = JsonConvert.DeserializeObject<DataType>(applicationMetadata);
         ApplicationMetadata existingApplicationMetadata = await GetApplicationMetadataFromRepository(org, app);
-        existingApplicationMetadata.DataTypes.Add(attachmentDataType);
+        existingApplicationMetadata.DataTypes.Add(formMetadata);
 
         await UpdateApplicationMetaDataLocally(org, app, existingApplicationMetadata);
-    }
-
-    private static DataType DeserializeNewAttachmentDataType(string attachmentMetadataJson)
-    {
-        JObject attachmentMetadata = JObject.Parse(attachmentMetadataJson);
-
-        attachmentMetadata[EnableFileScanPropertyName] = GetEnableFileScanOrDefault(attachmentMetadata);
-        return attachmentMetadata.ToObject<DataType>();
     }
 
     /// <inheritdoc/>
@@ -218,8 +208,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
         string attachmentId = attachmentMetadata.GetValue("id")!.Value<string>();
         ApplicationMetadata existingApplicationMetadata = await GetApplicationMetadataFromRepository(org, app);
         DataType applicationForm =
-            existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId)
-            ?? new DataType { EnableFileScan = GetEnableFileScanOrDefault(attachmentMetadata) };
+            existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId) ?? new DataType();
         applicationForm.AllowedContentTypes = [];
 
         if (attachmentMetadata.GetValue("fileType") != null)
@@ -242,10 +231,6 @@ public class ApplicationMetadataService : IApplicationMetadataService
         string metadataAsJson = JsonConvert.SerializeObject(applicationForm);
         await AddMetadataForAttachment(org, app, metadataAsJson);
     }
-
-    private static bool GetEnableFileScanOrDefault(JObject attachmentMetadata) =>
-        attachmentMetadata.GetValue(EnableFileScanPropertyName, StringComparison.OrdinalIgnoreCase)?.Value<bool?>()
-        ?? true;
 
     /// <inheritdoc/>
     public async Task<bool> DeleteMetadataForAttachment(string org, string app, string id)

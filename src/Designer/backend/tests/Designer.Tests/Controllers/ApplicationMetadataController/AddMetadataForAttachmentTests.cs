@@ -64,49 +64,6 @@ public class AddMetadataForAttachmentTests
         Assert.Equal(payload.MinCount, attachmentDataType.MinCount);
     }
 
-    [Theory]
-    [InlineData(
-        @"{ ""id"": ""testId"", ""taskId"": ""Task_1"", ""maxCount"": 1, ""minCount"": 1, ""maxSize"": 25 }",
-        true
-    )]
-    [InlineData(
-        @"{ ""id"": ""testId"", ""taskId"": ""Task_1"", ""maxCount"": 1, ""minCount"": 1, ""maxSize"": 25, ""enableFileScan"": false }",
-        false
-    )]
-    [InlineData(
-        @"{ ""id"": ""testId"", ""taskId"": ""Task_1"", ""maxCount"": 1, ""minCount"": 1, ""maxSize"": 25, ""enableFileScan"": true }",
-        true
-    )]
-    [InlineData(
-        @"{ ""id"": ""testId"", ""taskId"": ""Task_1"", ""maxCount"": 1, ""minCount"": 1, ""maxSize"": 25, ""enableFileScan"": null }",
-        true
-    )]
-    public async Task AddMetadataForAttachment_ShouldEnableFileScanUnlessPayloadDisablesIt(
-        string payload,
-        bool expectedEnableFileScan
-    )
-    {
-        string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest("ttd", "hvem-er-hvem", "testUser", targetRepository);
-
-        string url = $"{VersionPrefix("ttd", targetRepository)}/attachment-component";
-        using var payloadContent = new StringContent(payload, Encoding.UTF8, MediaTypeNames.Application.Json);
-        using var response = await HttpClient.PostAsync(url, payloadContent);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        string applicationMetadataFile = await File.ReadAllTextAsync(
-            Path.Combine(TestRepoPath, "App", "config", "applicationmetadata.json")
-        );
-        var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
-            applicationMetadataFile,
-            JsonSerializerOptions
-        );
-
-        var attachmentDataType = applicationMetadata.DataTypes.Single(x => x.Id == "testId");
-        Assert.Equal(expectedEnableFileScan, attachmentDataType.EnableFileScan);
-    }
-
     /// <summary>
     /// Only 4 parameters are expected in a theory for payload
     /// </summary>
