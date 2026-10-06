@@ -415,7 +415,7 @@ BEHAVIORS = (
             kind="coverage",
             title="Agreement with our own labels is not the same as being right",
             task=(
-                "1. The set is thirty-four items, balanced seventeen safe and seventeen unsafe, so one "
+                "1. The set is thirty-six items, balanced eighteen safe and eighteen unsafe, so one "
                 "item is worth about 0.03 of the score. That is still above the noise floor, "
                 "so grow it further when the cheap items run out.\n"
                 "2. Keep the safe and unsafe halves balanced, and pair items that share a "
