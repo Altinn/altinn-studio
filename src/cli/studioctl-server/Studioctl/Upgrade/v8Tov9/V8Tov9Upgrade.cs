@@ -216,6 +216,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await CheckAppSettingsRemovedKeys(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveGeneralSettingsHostName(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckAppFileNameCase(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -1032,6 +1035,29 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error checking the appsettings files for removed keys", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes GeneralSettings:HostName from the appsettings files: the platform and studioctl set it for a v9 app,
+    /// so a value in the file only goes stale.
+    /// </summary>
+    static async Task<int> RemoveGeneralSettingsHostName(string projectFile)
+    {
+        UpgradeConsole.BeginStep("GeneralSettings host name");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = await new GeneralSettingsHostNameMigration(appFolder).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No GeneralSettings:HostName in the appsettings files",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing GeneralSettings:HostName from the appsettings files", ex);
         }
     }
 
