@@ -24,13 +24,32 @@ See its [README](https://github.com/digdir/digdir-agents/blob/main/agentctl/READ
 1. Install `agentctl` and run `agentctl claude login`. If your `agentctl` was installed from an altinn-studio
    release, install it again from digdir-agents to keep receiving updates.
 2. Copy the chosen Agent's `.env.sample` to `.env` and fill it in (see [Credentials](#credentials)).
-3. Run `agentctl tui` from this checkout and press `c` to create an Agent: pick the Agent and variant, and it
-   provisions it. Press `n` for a new Session and `o` to open the Agent in a shell, an editor or, for `desktop`, a
-   VNC viewer.
+3. Run `agentctl tui` from this checkout. The footer lists the keys for what is selected; the common ones:
+   - `c` creates an Agent: pick the Agent and variant, and it is provisioned.
+   - `n` starts a new Session on the selected Agent, and `enter` attaches to a Session. Detach with `Ctrl-b d`.
+   - `o` opens the selected Agent or Session: `e` a shell, `c` VS Code (Remote-SSH), `z` Zed, `s` an SSH shell, and
+     `y` copies the SSH alias. For `desktop`, `w` opens the desktop in the browser and `v` in a VNC client.
+   - `a` archives a Session, keeping its conversation, and unarchives it again.
+   - `d` deletes the selected Session or Agent.
+   - `x` stops or starts the selected Agent.
 
 The `worktree` variants mount this checkout into the Agent, and `agentctl` rejects a checkout that contains a `.env`
 file. Keep that variant's env file outside the checkout, for example `~/.agent/altinn-worktree.env`, and select it in
 the create form.
+
+## External harnesses
+
+You can also work in an Agent's Sandbox from a harness outside `agentctl`, through any app that runs its sessions
+on a remote host over SSH. Apps known to work include:
+
+- ChatGPT desktop app
+- Claude desktop app
+- T3 Code
+- VS Code Insiders, in the Agents window
+
+Connect the app to the Agent's SSH alias, `agentctl-<name>`, for example `agentctl-altinn-full`. Choose **Set up SSH** in
+the TUI's `o` menu once, or run `agentctl ssh-config install`, so OpenSSH resolves the alias; `y` in the same menu
+copies it.
 
 ## Credentials
 
