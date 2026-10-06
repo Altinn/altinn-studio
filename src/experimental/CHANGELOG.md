@@ -14,7 +14,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Added
 
-- The full and desktop Altinn Agents can create Python virtual environments and include more development tools, such as `yq`, `actionlint`, `shellcheck`, `cargo-deny`, `psql`, `dotnet-trace`, `dotnet-counters`, `dotnet-dump`, `hyperfine`, `btop`, `htop` and `tcpdump`. ([#20959](https://github.com/Altinn/altinn-studio/pull/20959))
+- The full and desktop Altinn Agents can create Python virtual environments and include more development tools, such as `yq`, `actionlint`, `shellcheck`, `cargo-deny`, `psql`, `dotnet-trace`, `dotnet-counters`, `dotnet-dump`, `hyperfine`, `btop`, `htop` and `tcpdump`. ([#20959](https://github.com/Altinn/altinn-studio/pull/20959), [#20975](https://github.com/Altinn/altinn-studio/pull/20975))
 
 ## [0.1.0-preview.9] - 2026-10-02
 
