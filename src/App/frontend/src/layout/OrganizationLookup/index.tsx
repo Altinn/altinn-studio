@@ -7,7 +7,6 @@ import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeVa
 import { OrganizationLookupDef } from 'src/layout/OrganizationLookup/config.def.generated';
 import { OrganizationLookupComponent } from 'src/layout/OrganizationLookup/OrganizationLookupComponent';
 import { OrganizationLookupSummary } from 'src/layout/OrganizationLookup/OrganizationLookupSummary';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
@@ -19,13 +18,7 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 export class OrganizationLookup extends OrganizationLookupDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'OrganizationLookup'>>(
     function LayoutComponentOrganizationLookupRender(props, _): JSX.Element | null {
-      const indexedId = useIndexedId(props.baseComponentId);
-      return (
-        <OrganizationLookupComponent
-          key={indexedId}
-          {...props}
-        />
-      );
+      return <OrganizationLookupComponent {...props} />;
     },
   );
 
