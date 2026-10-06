@@ -1,118 +1,138 @@
 {
-  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
-  "data": {
-    "hidden": false,
-    "layout": [
-      {
-        "id": "OrganisationLookupPage-NavigationBar",
-        "type": "NavigationBar"
-      },
-      {
-        "id": "organisationLookup-required",
-        "type": "RadioButtons",
-        "dataModelBindings": {
-          "simpleBinding": "LookupRequired"
-        },
-        "textResourceBindings": {
-          "title": "lookup.required"
-        },
-        "options": [
-          {
-            "label": "lookup.required.yes",
-            "value": "yes"
-          },
-          {
-            "label": "lookup.required.no",
-            "value": "no"
-          }
-        ],
-        "preselectedOptionIndex": 1
-      },
-      {
-        "id": "organisationLookup-backend-validation",
-        "type": "Checkboxes",
-        "dataModelBindings": {
-          "simpleBinding": "LookupBackendValidation"
-        },
-        "textResourceBindings": {
-          "title": "lookup.validation.title",
-          "description": "lookup.validation.description"
-        },
-        "options": [
-          {
-            "label": "lookup.validation.enable",
-            "value": "yes"
-          }
+    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+    "data": {
+        "hidden": false,
+        "layout": [
+            {
+                "id": "OrganisationLookupPage-NavigationBar",
+                "type": "NavigationBar"
+            },
+            {
+                "id": "organisationLookup-required",
+                "type": "RadioButtons",
+                "dataModelBindings": {
+                    "simpleBinding": "LookupRequired"
+                },
+                "textResourceBindings": {
+                    "title": "lookup.required"
+                },
+                "options": [
+                    {
+                        "label": "lookup.required.yes",
+                        "value": "yes"
+                    },
+                    {
+                        "label": "lookup.required.no",
+                        "value": "no"
+                    }
+                ],
+                "preselectedOptionIndex": 1
+            },
+            {
+                "id": "organisationLookup-backend-validation",
+                "type": "Checkboxes",
+                "dataModelBindings": {
+                    "simpleBinding": "LookupBackendValidation"
+                },
+                "textResourceBindings": {
+                    "title": "lookup.validation.title",
+                    "description": "lookup.validation.description"
+                },
+                "options": [
+                    {
+                        "label": "lookup.validation.enable",
+                        "value": "yes"
+                    }
+                ]
+            },
+            {
+                "id": "organisationLookup",
+                "type": "OrganizationLookup",
+                "dataModelBindings": {
+                    "orgnr": "OrganizationLookup.OrgNr",
+                    "name": "OrganizationLookup.Name"
+                },
+                "textResourceBindings": {
+                    "title": "Legg til virksomhet",
+                    "description": "lookup.organization.description",
+                    "help": "Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene"
+                },
+                "required": [
+                    "equals",
+                    [
+                        "dataModel",
+                        "LookupRequired"
+                    ],
+                    "yes"
+                ]
+            },
+            {
+                "id": "OrganisationLookup-Header-Summary2",
+                "type": "Heading",
+                "textResourceBindings": {
+                    "title": "Header.Summary2"
+                },
+                "size": "h3"
+            },
+            {
+                "id": "organisation-lookup-summary-on-organisation-lookup-page",
+                "type": "Summary2",
+                "target": {
+                    "type": "component",
+                    "id": "organisationLookup"
+                }
+            },
+            {
+                "id": "organisationLookup-group",
+                "type": "RepeatingGroup",
+                "children": [
+                    "organisationLookup-repeated"
+                ],
+                "dataModelBindings": {
+                    "group": "OrganizationLookups"
+                },
+                "textResourceBindings": {
+                    "title": "lookup.organization.group"
+                },
+                "validateOnSaveRow": [
+                    "All"
+                ]
+            },
+            {
+                "id": "organisationLookup-repeated",
+                "type": "OrganizationLookup",
+                "dataModelBindings": {
+                    "orgnr": "OrganizationLookups.OrgNr",
+                    "name": "OrganizationLookups.Name"
+                },
+                "textResourceBindings": {
+                    "title": "Legg til virksomhet",
+                    "description": "lookup.organization.description",
+                    "help": "Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene"
+                },
+                "required": [
+                    "equals",
+                    [
+                        "dataModel",
+                        "LookupRequired"
+                    ],
+                    "yes"
+                ]
+            },
+            {
+                "id": "OrganisationLookupPage-NavigationButtons",
+                "type": "NavigationButtons",
+                "textResourceBindings": {
+                    "next": "Neste",
+                    "back": "Forrige"
+                },
+                "validateOnNext": {
+                    "page": "current",
+                    "show": [
+                        "All"
+                    ]
+                }
+            }
         ]
-      },
-      {
-        "id": "organisationLookup",
-        "type": "OrganizationLookup",
-        "dataModelBindings": {
-          "orgnr": "OrganizationLookup.OrgNr",
-          "name": "OrganizationLookup.Name"
-        },
-        "textResourceBindings": {
-          "title": "Legg til virksomhet",
-          "description": "lookup.organization.description",
-          "help": "Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene"
-        },
-        "required": ["equals", ["dataModel", "LookupRequired"], "yes"]
-      },
-      {
-        "id": "OrganisationLookup-Header-Summary2",
-        "type": "Heading",
-        "textResourceBindings": {
-          "title": "Header.Summary2"
-        },
-        "size": "h3"
-      },
-      {
-        "id": "organisation-lookup-summary-on-organisation-lookup-page",
-        "type": "Summary2",
-        "target": {
-          "type": "component",
-          "id": "organisationLookup"
-        }
-      },
-      {
-        "id": "organisationLookup-group",
-        "type": "RepeatingGroup",
-        "children": ["organisationLookup-repeated"],
-        "dataModelBindings": {
-          "group": "OrganizationLookups"
-        },
-        "textResourceBindings": {
-          "title": "lookup.organization.group"
-        },
-        "validateOnSaveRow": ["All"]
-      },
-      {
-        "id": "organisationLookup-repeated",
-        "type": "OrganizationLookup",
-        "dataModelBindings": {
-          "orgnr": "OrganizationLookups.OrgNr",
-          "name": "OrganizationLookups.Name"
-        },
-        "textResourceBindings": {
-          "title": "Legg til virksomhet",
-          "description": "lookup.organization.description",
-          "help": "Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene"
-        },
-        "required": ["equals", ["dataModel", "LookupRequired"], "yes"]
-      },
-      {
-        "id": "OrganisationLookupPage-NavigationButtons",
-        "type": "NavigationButtons",
-        "textResourceBindings": {
-          "next": "Neste",
-          "back": "Forrige"
-        },
-        "validateOnNext": {
-          "page": "current",
-          "show": ["All"]
-        }
-      }
-    ]
-  }
+    }
 }
