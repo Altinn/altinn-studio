@@ -17,7 +17,6 @@ import { usePersonLookup } from 'src/core/queries/lookup';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -280,17 +279,14 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               )}
             </div>
           )}
-          <div className={classes.apiError}>
-            {lookupFailure && (
-              <ValidationMessage data-size='sm'>
-                <Lang id={personLookupFailureMessages[lookupFailure]} />
-              </ValidationMessage>
-            )}
-            <ComponentValidations
-              validations={validations}
-              baseComponentId={baseComponentId}
-            />
-          </div>
+          {lookupFailure && (
+            <ValidationMessage
+              data-size='sm'
+              className={classes.apiError}
+            >
+              <Lang id={personLookupFailureMessages[lookupFailure]} />
+            </ValidationMessage>
+          )}
         </div>
       </ComponentStructureWrapper>
     </Fieldset>

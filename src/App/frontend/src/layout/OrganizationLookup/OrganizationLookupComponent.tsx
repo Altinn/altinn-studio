@@ -20,13 +20,13 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/OrganizationLookup/OrganizationLookupComponent.module.css';
 import { checkValidOrgnNr } from 'src/layout/OrganizationLookup/validation';
 import utilClasses from 'src/styles/utils.module.css';
+import { buildAriaDescribedBy } from 'src/utils/inputUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
@@ -185,7 +185,13 @@ export function OrganizationLookupComponent({
           <Field className={classes.orgnr}>
             <NumericInput
               id={`${componentId}_orgnr`}
-              aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${componentId}_orgnr`) : undefined}
+              aria-describedby={buildAriaDescribedBy({
+                hasTitle: true,
+                hasDescription: hasSuccessfullyFetched,
+                descriptionId: getDescriptionId(`${componentId}_orgnr`),
+                hasValidations: validations.length > 0,
+                validationsId: `${componentId}-validations`,
+              })}
               aria-label={langAsString('organization_lookup.orgnr_label')}
               value={hasSuccessfullyFetched ? orgnr : tempOrgNr}
               required={required}
@@ -210,10 +216,6 @@ export function OrganizationLookupComponent({
                 <Lang id='organization_lookup.validation_error_orgnr' />
               </ValidationMessage>
             )}
-            <ComponentValidations
-              validations={validations}
-              baseComponentId={baseComponentId}
-            />
           </Field>
           {!readOnly && (
             <div className={classes.submit}>

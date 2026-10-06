@@ -66,10 +66,6 @@ export class PersonLookup extends PersonLookupDef {
     return <PersonLookupSummary {...props} />;
   }
 
-  renderDefaultValidations(): boolean {
-    return false;
-  }
-
   validateEmptyField(ctx: ComponentValidationContext<'PersonLookup'>): ComponentValidation[] {
     return validateEmptyFieldOnlyOneBinding(ctx, 'ssn');
   }
