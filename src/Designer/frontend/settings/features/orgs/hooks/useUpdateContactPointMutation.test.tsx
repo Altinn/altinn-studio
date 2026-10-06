@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -27,7 +28,7 @@ describe('useUpdateContactPointMutation', () => {
 
   it('invalidates the contact points query on success', async () => {
     const queryClient = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     const { result } = renderUseUpdateContactPointMutation(queryClient);
     await result.current.mutateAsync({ id: contactPointId, payload });
     expect(invalidateQueriesSpy).toHaveBeenCalledWith(

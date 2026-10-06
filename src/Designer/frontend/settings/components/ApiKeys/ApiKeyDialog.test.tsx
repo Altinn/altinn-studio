@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -5,9 +7,9 @@ import { renderWithProviders } from '../../testing/mocks';
 import { ApiKeyDialog, formatLocalDate, computeMaxExpiresAt } from './ApiKeyDialog';
 import { toast } from 'react-toastify';
 
-jest.mock('react-toastify', () => ({
-  ...jest.requireActual('react-toastify'),
-  toast: { success: jest.fn(), error: jest.fn() },
+vi.mock('react-toastify', async () => ({
+  ...(await vi.importActual('react-toastify')),
+  toast: { success: vi.fn(), error: vi.fn() },
 }));
 
 const today = formatLocalDate(new Date());
@@ -15,17 +17,17 @@ const maxDate = computeMaxExpiresAt();
 
 type RenderProps = {
   newApiKey?: string | null;
-  onSave?: jest.Mock;
-  onClose?: jest.Mock;
+  onSave?: Mock;
+  onClose?: Mock;
   isSaving?: boolean;
-  onNameChange?: jest.Mock;
+  onNameChange?: Mock;
   isDuplicateName?: (name: string) => boolean;
 };
 
 const renderApiKeyDialog = ({
   newApiKey = null,
-  onSave = jest.fn(),
-  onClose = jest.fn(),
+  onSave = vi.fn(),
+  onClose = vi.fn(),
   isSaving = false,
   onNameChange,
   isDuplicateName,
@@ -49,7 +51,7 @@ const getAddButton = () => screen.getByRole('button', { name: textMock('general.
 const getCancelButton = () => screen.getByRole('button', { name: textMock('general.cancel') });
 
 describe('ApiKeyDialog', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   describe('form state (no newApiKey)', () => {
     it('renders the dialog title', () => {
@@ -93,7 +95,7 @@ describe('ApiKeyDialog', () => {
     });
 
     it('calls onSave with trimmed name and expiresAt when form is valid', async () => {
-      const onSave = jest.fn();
+      const onSave = vi.fn();
       const user = userEvent.setup();
       renderApiKeyDialog({ onSave });
       await user.type(getNameInput(), '  My Key  ');
@@ -102,7 +104,7 @@ describe('ApiKeyDialog', () => {
     });
 
     it('does not call onSave when name is empty', async () => {
-      const onSave = jest.fn();
+      const onSave = vi.fn();
       const user = userEvent.setup();
       renderApiKeyDialog({ onSave });
       await user.click(getAddButton());
@@ -110,7 +112,7 @@ describe('ApiKeyDialog', () => {
     });
 
     it('does not call onSave when isDuplicateName returns true', async () => {
-      const onSave = jest.fn();
+      const onSave = vi.fn();
       const user = userEvent.setup();
       renderApiKeyDialog({ onSave, isDuplicateName: () => true });
       await user.type(getNameInput(), 'Existing Key');
@@ -129,7 +131,7 @@ describe('ApiKeyDialog', () => {
     });
 
     it('calls onNameChange when name input changes', async () => {
-      const onNameChange = jest.fn();
+      const onNameChange = vi.fn();
       const user = userEvent.setup();
       renderApiKeyDialog({ onNameChange });
       await user.type(getNameInput(), 'a');
@@ -137,7 +139,7 @@ describe('ApiKeyDialog', () => {
     });
 
     it('resets form state and calls onClose when cancel is clicked', async () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       const user = userEvent.setup();
       renderApiKeyDialog({ onClose });
       await user.type(getNameInput(), 'My Key');
@@ -148,7 +150,7 @@ describe('ApiKeyDialog', () => {
     });
 
     it('resets submitted state when cancel is clicked (no lingering errors)', async () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       const user = userEvent.setup();
       renderApiKeyDialog({ onClose });
       await user.click(getAddButton());
@@ -186,7 +188,7 @@ describe('ApiKeyDialog', () => {
     });
 
     it('calls onClose when the close button is clicked', async () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       const user = userEvent.setup();
       renderApiKeyDialog({ newApiKey: newKey, onClose });
       await user.click(screen.getByRole('button', { name: textMock('general.close') }));
@@ -194,9 +196,9 @@ describe('ApiKeyDialog', () => {
     });
 
     it('copies the key and shows success toast when copy button is clicked', async () => {
-      const writeText = jest.fn().mockResolvedValue(undefined);
-      jest.spyOn(navigator.clipboard, 'writeText').mockImplementation(writeText);
-      const onClose = jest.fn();
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      vi.spyOn(navigator.clipboard, 'writeText').mockImplementation(writeText);
+      const onClose = vi.fn();
       const user = userEvent.setup();
       renderApiKeyDialog({ newApiKey: newKey, onClose });
       await user.click(screen.getByRole('button', { name: textMock('settings.api_keys.copy') }));
@@ -209,9 +211,7 @@ describe('ApiKeyDialog', () => {
     });
 
     it('shows error toast when clipboard write fails', async () => {
-      jest
-        .spyOn(navigator.clipboard, 'writeText')
-        .mockRejectedValue(new Error('Permission denied'));
+      vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('Permission denied'));
       const user = userEvent.setup();
       renderApiKeyDialog({ newApiKey: newKey });
       await user.click(screen.getByRole('button', { name: textMock('settings.api_keys.copy') }));
@@ -222,8 +222,8 @@ describe('ApiKeyDialog', () => {
     });
 
     it('does not copy when newApiKey is null (handleCopy guard)', () => {
-      const writeText = jest.fn();
-      jest.spyOn(navigator.clipboard, 'writeText').mockImplementation(writeText);
+      const writeText = vi.fn();
+      vi.spyOn(navigator.clipboard, 'writeText').mockImplementation(writeText);
       // Render form state (newApiKey = null), copy button does not exist
       renderApiKeyDialog({ newApiKey: null });
       expect(
