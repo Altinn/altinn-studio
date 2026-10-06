@@ -49,9 +49,8 @@ export const EditNameAction = ({
   const defaultLanguageTextResources =
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE)(textResources);
 
-  const [textResourceId, setTextResourceId] = useState<string>(
-    task?.name ?? createNewTextResourceId(task),
-  );
+  const [newTextResourceId] = useState<string>(() => createNewTextResourceId(task));
+  const [textResourceId, setTextResourceId] = useState<string>(task?.name ?? newTextResourceId);
   const taskName = getResolvedTaskName(task?.name);
   const [currentValue, setCurrentValue] = useState(taskName);
   const [openDialog, setOpenDialog] = useState(false);
@@ -77,7 +76,7 @@ export const EditNameAction = ({
   };
 
   const handleReferenceChange = (id?: string) => {
-    setTextResourceId(id ?? '');
+    setTextResourceId(id ?? newTextResourceId);
     setCurrentValue(getResolvedTaskName(id ?? ''));
   };
 
