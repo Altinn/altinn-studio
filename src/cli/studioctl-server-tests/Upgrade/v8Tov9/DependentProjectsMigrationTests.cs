@@ -297,6 +297,9 @@ public sealed class DependentProjectsMigrationTests : IDisposable
     [InlineData(
         "<TestFramework>net8.0</TestFramework>\n    <TargetFramework>$(TestFramework)</TargetFramework>\n    <TestFramework>net10.0</TestFramework>"
     )]
+    [InlineData(
+        "<TestFramework>net8.0</TestFramework>\n    <TargetFramework>$(TestFramework)</TargetFramework>\n    <TestFramework>net9.0</TestFramework>"
+    )]
     public async Task Migrate_WhenTheEditWouldNotTakeEffect_AsksForManualFollowUpInsteadOfReportingAMove(
         string properties
     )
@@ -374,7 +377,7 @@ public sealed class DependentProjectsMigrationTests : IDisposable
     }
 
     [Fact]
-    public async Task Migrate_EditingASharedDirectoryBuildProps_NamesTheOtherProjectsItMoves()
+    public async Task Migrate_EditingASharedDirectoryBuildProps_NamesTheOtherProjectsUsingIt()
     {
         var props = WriteFile(
             "Directory.Build.props",
@@ -394,7 +397,7 @@ public sealed class DependentProjectsMigrationTests : IDisposable
         Assert.Equal(0, exitCode);
         Assert.Contains("<TargetFramework>net10.0</TargetFramework>", await ReadFile(props), StringComparison.Ordinal);
         Assert.EndsWith(
-            $"(set in Directory.Build.props, which also moves {Path.Combine("Tools", "Tools.csproj")})",
+            $"(set in Directory.Build.props, also used by {Path.Combine("Tools", "Tools.csproj")})",
             Assert.Single(messages).Text,
             StringComparison.Ordinal
         );
@@ -428,5 +431,41 @@ public sealed class DependentProjectsMigrationTests : IDisposable
 
         Assert.Equal(3, exitCode);
         Assert.Equal(UpgradeMessageStatus.Todo, Assert.Single(messages).Status);
+    }
+
+    [Fact]
+    public async Task Migrate_OnAProjectFileItCannotWrite_AsksForManualFollowUp()
+    {
+        var content = TestProject("<TargetFramework>net8.0</TargetFramework>");
+        var tests = WriteFile(Path.Combine("Tests", "Tests.csproj"), content);
+        File.SetAttributes(tests, FileAttributes.ReadOnly);
+        try
+        {
+            var (exitCode, messages) = await Migrate();
+
+            Assert.Equal(3, exitCode);
+            Assert.Equal(content, await ReadFile(tests));
+            var message = Assert.Single(messages);
+            Assert.Equal(UpgradeMessageStatus.Todo, message.Status);
+            Assert.Contains("could not write Tests.csproj", message.Text, StringComparison.Ordinal);
+        }
+        finally
+        {
+            File.SetAttributes(tests, FileAttributes.Normal);
+        }
+    }
+
+    [Fact]
+    public async Task Migrate_AcceptsAnUppercaseFrameworkName()
+    {
+        var tests = WriteFile(
+            Path.Combine("Tests", "Tests.csproj"),
+            TestProject("<TargetFramework>NET8.0</TargetFramework>")
+        );
+
+        var (exitCode, _) = await Migrate();
+
+        Assert.Equal(0, exitCode);
+        Assert.Equal(TestProject("<TargetFramework>net10.0</TargetFramework>"), await ReadFile(tests));
     }
 }

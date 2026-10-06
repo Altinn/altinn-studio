@@ -38,7 +38,7 @@ internal static class DependentProjectsMigration
     // The "netX.Y" part of a framework, leaving any platform suffix such as "-windows".
     private static readonly Regex _netVersionPattern = new(
         @"^net\d+\.\d+",
-        RegexOptions.CultureInvariant,
+        RegexOptions.CultureInvariant | RegexOptions.IgnoreCase,
         TimeSpan.FromSeconds(1)
     );
 
@@ -178,31 +178,58 @@ internal static class DependentProjectsMigration
         }
 
         var applied = new HashSet<Definition>();
+        var writeErrors = new Dictionary<Definition, string>();
         foreach (var definition in moves.Select(move => move.Definition).Distinct())
         {
-            if (await ReplaceValue(definition, Retarget(definition.Value, appFramework)))
+            var (replaced, error) = await TryReplaceValue(definition, Retarget(definition.Value, appFramework));
+            if (replaced)
                 applied.Add(definition);
+            else if (error is not null)
+                writeErrors[definition] = error;
         }
 
         // Evaluate again rather than trust the edit: a later definition, a condition or markup the edit
         // could not see would otherwise leave the project behind while the step reports it moved.
         using var updated = new ProjectCollection();
-        foreach (var move in moves)
+        var results = moves
+            .Select(move =>
+                (
+                    Move: move,
+                    Moved: applied.Contains(move.Definition)
+                        && Reevaluate(updated, move.Project.FullPath) is { } version
+                        && version >= target
+                )
+            )
+            .ToList();
+
+        // An edit that moved none of its projects is undone, so a failed move leaves the files as they were.
+        var leftChanged = new HashSet<Definition>();
+        foreach (var definition in applied.Where(d => !results.Any(r => r.Moved && r.Move.Definition == d)))
         {
-            var now = applied.Contains(move.Definition) ? Reevaluate(updated, move.Project.FullPath) : null;
-            if (now is { } version && version >= target)
+            var edited = definition with { Value = Retarget(definition.Value, appFramework) };
+            if (!(await TryReplaceValue(edited, definition.Value)).Replaced)
+                leftChanged.Add(definition);
+        }
+
+        foreach (var (move, moved) in results)
+        {
+            if (moved)
             {
                 UpgradeConsole.Ok(
                     $"{move.Name} moved from {move.From} to {Retarget(move.From, appFramework)}{move.Note}"
                 );
+                continue;
             }
-            else
-            {
-                UpgradeConsole.Todo(
-                    $"{move.Name} targets {move.From} and could not be changed automatically. Make it target {appFramework}, as it depends on the app project."
-                );
-                returnCode = 3;
-            }
+
+            var detail = "";
+            if (writeErrors.TryGetValue(move.Definition, out var error))
+                detail = $" ({error})";
+            else if (leftChanged.Contains(move.Definition))
+                detail = $", but {Path.GetRelativePath(root, move.Definition.File)} was changed anyway, so check it";
+            UpgradeConsole.Todo(
+                $"{move.Name} targets {move.From} and could not be changed automatically{detail}. Make it target {appFramework}, as it depends on the app project."
+            );
+            returnCode = 3;
         }
 
         return returnCode;
@@ -333,8 +360,9 @@ internal static class DependentProjectsMigration
     }
 
     /// <summary>
-    /// Names the other projects a change to a shared file such as <c>Directory.Build.props</c> moves too,
-    /// so that nothing changes without the report saying so.
+    /// Names the other projects found that take their framework from the same element in a shared file such
+    /// as <c>Directory.Build.props</c>, so the report says the change reaches beyond the dependent project.
+    /// Projects the search does not load, or that only build on the value, are not named.
     /// </summary>
     private static string DescribeSharedDefinition(
         Definition definition,
@@ -354,9 +382,7 @@ internal static class DependentProjectsMigration
             .Order(StringComparer.Ordinal)
             .ToList();
         var file = Path.GetRelativePath(root, definition.File);
-        return others.Count == 0
-            ? $" (set in {file})"
-            : $" (set in {file}, which also moves {string.Join(", ", others)})";
+        return others.Count == 0 ? $" (set in {file})" : $" (set in {file}, also used by {string.Join(", ", others)})";
     }
 
     /// <summary>Swaps the <c>netX.Y</c> part and keeps a platform suffix: net8.0-windows becomes net10.0-windows.</summary>
@@ -367,7 +393,22 @@ internal static class DependentProjectsMigration
     /// Edits only the value of the one element MSBuild located, in the file's own encoding, so the rest of
     /// a file the service owner wrote stays as it was.
     /// </summary>
-    /// <returns>Whether the value was found where MSBuild placed it and replaced.</returns>
+    /// <returns>
+    /// Whether the value was found where MSBuild placed it and replaced, and why not when the file could
+    /// not be written.
+    /// </returns>
+    private static async Task<(bool Replaced, string? Error)> TryReplaceValue(Definition definition, string to)
+    {
+        try
+        {
+            return (await ReplaceValue(definition, to), null);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return (false, $"could not write {Path.GetFileName(definition.File)}: {ex.Message}");
+        }
+    }
+
     private static async Task<bool> ReplaceValue(Definition definition, string to)
     {
         var bytes = await File.ReadAllBytesAsync(definition.File);
@@ -426,7 +467,7 @@ internal static class DependentProjectsMigration
         foreach (
             var encoding in new Encoding[]
             {
-                new UTF8Encoding(true),
+                new UTF8Encoding(true, throwOnInvalidBytes: true),
                 new UnicodeEncoding(bigEndian: false, byteOrderMark: true),
                 new UnicodeEncoding(bigEndian: true, byteOrderMark: true),
             }
