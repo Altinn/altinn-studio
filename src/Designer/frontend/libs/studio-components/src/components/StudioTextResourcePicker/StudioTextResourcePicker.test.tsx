@@ -14,12 +14,10 @@ import type { TextResource } from '@studio/pure-functions';
 // Test data:
 const textResources = textResourcesMock;
 const onValueChange = jest.fn();
-const noTextResourceOptionLabel = 'Unset';
 const clearButtonLabel = 'Clear selection';
 const defaultProps: StudioTextResourcePickerProps = {
   onValueChange,
   textResources,
-  noTextResourceOptionLabel,
   clearButtonLabel,
   emptyText: '',
   label: 'Text Resource',
@@ -88,31 +86,35 @@ describe('StudioTextResourcePicker', () => {
     expect(getInput()).toHaveValue(pickedTextResource.value);
   });
 
-  it('Displays the no text resource option when the user clicks', async () => {
+  it('Displays only the text resources as options when the user clicks', async () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
-    renderTextResourcePicker();
+    const testTextResources: TextResource[] = [
+      { id: '1', value: 'Test 1' },
+      { id: '2', value: 'Test 2' },
+    ];
+    renderTextResourcePicker({ textResources: testTextResources });
     await user.click(getInput());
-    const options = screen.getAllByRole('option', { hidden: true });
-    expect(options.some((opt) => opt.getAttribute('value') === '')).toBe(true);
+    const options = screen
+      .getAllByRole('option', { hidden: true })
+      .filter((option) => !option.hasAttribute('data-empty'));
+    expect(options.map((option) => option.getAttribute('value'))).toEqual(['1', '2']);
   });
 
-  it('Does not display the no text resource option when the user clicks and the text resource is required', async () => {
+  it('Renders with no option selected by default', async () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
-    renderTextResourcePicker({ required: true });
-    await user.click(getInput());
-    const noTextResourceOption = screen.queryByRole('option', { name: noTextResourceOptionLabel });
-    expect(noTextResourceOption).not.toBeInTheDocument();
-  });
-
-  it('Renders with the no text resource option selected by default', () => {
     renderTextResourcePicker();
     expect(getInput()).toHaveValue('');
+    await user.click(getInput());
+    expect(screen.queryByRole('option', { selected: true, hidden: true })).not.toBeInTheDocument();
   });
 
-  it('Renders with no text resource option as selected when the given id does not exist', () => {
+  it('Renders with no option selected when the given id does not exist', async () => {
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     const nonExistentId = 'non-existent-id';
     renderTextResourcePicker({ value: nonExistentId });
     expect(getInput()).toHaveValue('');
+    await user.click(getInput());
+    expect(screen.queryByRole('option', { selected: true, hidden: true })).not.toBeInTheDocument();
   });
 
   it('Does not apply other changes to the textfield than the ones triggered by the user when the user changes from a valid to an invalid value', async () => {
@@ -133,7 +135,7 @@ describe('StudioTextResourcePicker', () => {
   });
 
   it('Renders without error when the text props are undefined', () => {
-    renderTextResourcePicker({ emptyLabel: undefined, noTextResourceOptionLabel: undefined });
+    renderTextResourcePicker();
     expect(getInput()).toBeInTheDocument();
   });
 
@@ -158,6 +160,17 @@ describe('StudioTextResourcePicker', () => {
     await user.click(screen.getByRole('button', { name: clearButtonLabel }));
     await user.tab();
     await waitFor(() => expect(onValueChange).toHaveBeenCalledWith(null));
+  });
+
+  it('Keeps the selection cleared when the parent updates the value after the selection is cleared', async () => {
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    const pickedTextResource = textResources[arbitraryTextResourceIndex];
+    const { rerender } = renderTextResourcePicker({ value: pickedTextResource.id });
+    await user.click(screen.getByRole('button', { name: clearButtonLabel }));
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledWith(null));
+    rerender(<StudioTextResourcePicker {...defaultProps} value={undefined} />);
+    await user.tab();
+    expect(getInput()).toHaveValue('');
   });
 
   it('Displays the ID as label when text resource value is not found', () => {

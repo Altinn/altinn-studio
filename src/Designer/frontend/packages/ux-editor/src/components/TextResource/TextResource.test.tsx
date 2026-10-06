@@ -99,16 +99,16 @@ describe('TextResource', () => {
     const combobox = screen.getByRole('combobox');
     expect(combobox).toBeInTheDocument();
     await user.click(combobox);
-    expect(screen.getAllByRole('option')).toHaveLength(textResources.length + 1); // + 1 because of the "none" option
+    await user.clear(combobox);
+    expect(screen.getAllByRole('option')).toHaveLength(textResources.length);
   });
 
   it('Calls handleIdChange when selection in search section is changed and saved', async () => {
     await renderAndOpenSearchSection();
 
-    await user.selectOptions(
-      screen.getByRole('combobox'),
-      screen.getByRole('option', { name: textResources[1].id }),
-    );
+    await user.click(screen.getByRole('combobox'));
+    await user.clear(screen.getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: RegExp(textResources[1].value) }));
     await user.click(getSaveButton());
 
     expect(handleIdChange).toHaveBeenCalledTimes(1);

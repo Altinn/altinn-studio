@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { slackChannelToPayload, contactPointToSlackChannel } from './slackChannelUtils';
 import type { SlackChannel } from './SlackChannelDialog/SlackChannelDialog';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
