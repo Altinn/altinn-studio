@@ -24,7 +24,7 @@ import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/OrganizationLookup/OrganizationLookupComponent.module.css';
-import { checkValidOrgnNr } from 'src/layout/OrganizationLookup/validation';
+import { validateOrgnr } from 'src/layout/OrganizationLookup/validation';
 import utilClasses from 'src/styles/utils.module.css';
 import { buildAriaDescribedBy } from 'src/utils/inputUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -33,6 +33,7 @@ import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
 
 const LIVE_REGION_RESET_DELAY_MS = 100;
+
 export function OrganizationLookupComponent({
   baseComponentId,
   overrideDisplay,
@@ -48,8 +49,7 @@ export function OrganizationLookupComponent({
     overrideDisplay,
   });
   const [tempOrgNr, setTempOrgNr] = useState('');
-  const [lookupAttempted, setLookupAttempted] = useState(false);
-  const invalidSearchOrgNr = lookupAttempted && !checkValidOrgnNr(tempOrgNr);
+  const [orgNrErrors, setOrgNrErrors] = useState<string[]>();
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const [statusMessage, setStatusMessage] = useState('');
   const statusRef = useRef<HTMLDivElement>(null);
@@ -105,13 +105,24 @@ export function OrganizationLookupComponent({
     announceStatusMessage(parts.join(', '));
   }
 
-  async function handleSubmit() {
-    if (readOnly || isFetching || orgnr) {
-      return;
+  function handleValidateOrgnr(orgNr: string): string[] | undefined {
+    if (!validateOrgnr({ orgNr })) {
+      const errors = validateOrgnr.errors
+        ?.filter((error) => error.instancePath === '/orgNr')
+        .map((error) => error.message)
+        .filter((it) => it != null);
+      setOrgNrErrors(errors);
+      return errors;
     }
-    setLookupAttempted(true);
-    if (!checkValidOrgnNr(tempOrgNr)) {
-      announceStatusMessage(langAsString('organization_lookup.validation_error_orgnr'));
+    setOrgNrErrors(undefined);
+    return undefined;
+  }
+
+  async function handleSubmit() {
+    const validationErrors = handleValidateOrgnr(tempOrgNr);
+
+    if (validationErrors?.length) {
+      announceStatusMessage(langAsString(validationErrors.join(' ')));
       return;
     }
 
@@ -119,7 +130,6 @@ export function OrganizationLookupComponent({
     if (org) {
       setValue('orgnr', org.orgNr);
       dataModelBindings.name && setValue('name', org.name);
-      clearSearch();
       await waitForSave(true);
       announceOrgDetails(org.orgNr);
     } else if (error) {
@@ -127,21 +137,17 @@ export function OrganizationLookupComponent({
     }
   }
 
-  function clearSearch() {
-    setTempOrgNr('');
-    setLookupAttempted(false);
-  }
-
   function handleClear() {
     setValue('orgnr', '');
     dataModelBindings.name && setValue('name', '');
-    clearSearch();
+    setTempOrgNr('');
+    setOrgNrErrors(undefined);
     setStatusMessage('');
   }
 
   const hasSuccessfullyFetched = !!orgnr;
 
-  const invalid = invalidSearchOrgNr || !!lookupError || hasValidationErrors(validations);
+  const invalid = (orgNrErrors?.length && orgNrErrors?.length > 0) || !!lookupError || hasValidationErrors(validations);
 
   return (
     <Fieldset
@@ -183,9 +189,10 @@ export function OrganizationLookupComponent({
               value={hasSuccessfullyFetched ? orgnr : tempOrgNr}
               required={required}
               readOnly={hasSuccessfullyFetched || isFetching || readOnly}
-              error={invalid}
+              error={!!invalid}
               onValueChange={(e) => {
                 setTempOrgNr(e.value);
+                setOrgNrErrors(undefined);
                 setStatusMessage('');
               }}
               onKeyDown={async (ev) => {
@@ -197,9 +204,9 @@ export function OrganizationLookupComponent({
               inputMode='numeric'
               pattern='[0-9]{9}'
             />
-            {invalidSearchOrgNr && (
+            {orgNrErrors?.length && (
               <ValidationMessage data-size='sm'>
-                <Lang id='organization_lookup.validation_error_orgnr' />
+                <Lang id={orgNrErrors.join(' ')} />
               </ValidationMessage>
             )}
           </Field>

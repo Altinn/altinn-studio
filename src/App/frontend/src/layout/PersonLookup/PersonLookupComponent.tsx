@@ -21,13 +21,12 @@ import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/PersonLookup/PersonLookupComponent.module.css';
-import { checkValidSsn } from 'src/layout/PersonLookup/validation';
+import { validateSsn } from 'src/layout/PersonLookup/validation';
 import { buildAriaDescribedBy } from 'src/utils/inputUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
-import type { Person } from 'src/core/queries/lookup';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function PersonLookupComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'PersonLookup'>) {
@@ -43,9 +42,9 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
   });
   const [tempSsn, setTempSsn] = useState('');
   const [tempName, setTempName] = useState('');
-  const [lookupAttempted, setLookupAttempted] = useState(false);
-  const invalidSearchSsn = lookupAttempted && !checkValidSsn(tempSsn);
-  const invalidSearchName = lookupAttempted && !tempName.trim();
+  const [ssnErrors, setSsnErrors] = useState<string[]>();
+  const [nameError, setNameError] = useState<string>();
+
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const ssnValidations = validations.filter((v) => 'bindingKey' in v && v.bindingKey === 'ssn');
   const nameValidations = validations.filter((v) => 'bindingKey' in v && v.bindingKey !== 'ssn');
@@ -58,12 +57,34 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
 
   const { error: lookupError, lookup: performLookup, isFetching } = usePersonLookup(tempSsn, tempName);
 
-  async function handleSubmit() {
-    if (readOnly || isFetching || ssn) {
-      return;
+  function handleValidateName(name: string) {
+    if (name.length < 1) {
+      setNameError('person_lookup.validation_error_name_too_short');
+      return false;
     }
-    setLookupAttempted(true);
-    if (!checkValidSsn(tempSsn) || !tempName.trim()) {
+    setNameError(undefined);
+    return true;
+  }
+
+  function handleValidateSsn(ssn: string) {
+    if (!validateSsn({ ssn })) {
+      const ssnErrors = validateSsn.errors
+        ?.filter((error) => error.instancePath === '/ssn')
+        .map((error) => error.message)
+        .filter((it) => it != null);
+
+      setSsnErrors(ssnErrors);
+      return false;
+    }
+
+    setSsnErrors(undefined);
+    return true;
+  }
+
+  async function handleSubmit() {
+    const isNameValid = handleValidateName(tempName);
+    const isSsnValid = handleValidateSsn(tempSsn);
+    if (!isNameValid || !isSsnValid) {
       return;
     }
 
@@ -84,18 +105,11 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
       if (dataModelBindings.fullName) {
         setValue('fullName', composeFullName(person));
       }
-      clearSearch();
     }
   }
 
-  function composeFullName({ firstName, middleName, lastName }: Person) {
+  function composeFullName({ firstName, middleName, lastName }) {
     return middleName ? `${firstName} ${middleName} ${lastName}` : `${firstName} ${lastName}`;
-  }
-
-  function clearSearch() {
-    setTempSsn('');
-    setTempName('');
-    setLookupAttempted(false);
   }
 
   function handleClear() {
@@ -115,7 +129,10 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
       setValue('fullName', '');
     }
 
-    clearSearch();
+    setTempName('');
+    setTempSsn('');
+    setSsnErrors(undefined);
+    setNameError(undefined);
   }
 
   const displayName = useMemo(() => {
@@ -129,8 +146,8 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
 
   const hasSuccessfullyFetched = !!ssn;
 
-  const invalidSsn = invalidSearchSsn || hasValidationErrors(ssnValidations);
-  const invalidName = invalidSearchName || hasValidationErrors(nameValidations);
+  const invalidSsn = (ssnErrors?.length && ssnErrors?.length > 0) || hasValidationErrors(ssnValidations);
+  const invalidName = !!nameError || hasValidationErrors(nameValidations);
 
   return (
     <Fieldset
@@ -175,6 +192,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               error={invalidSsn}
               onValueChange={(e) => {
                 setTempSsn(e.value);
+                setSsnErrors(undefined);
               }}
               onKeyDown={async (ev) => {
                 if (ev.key === 'Enter' && !readOnly) {
@@ -186,9 +204,9 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               pattern='[0-9]{11}'
               autoComplete='off'
             />
-            {invalidSearchSsn && (
+            {ssnErrors?.length && (
               <ValidationMessage>
-                <Lang id='person_lookup.validation_error_ssn' />
+                <Lang id={ssnErrors.join(' ')} />
               </ValidationMessage>
             )}
           </Field>
@@ -228,6 +246,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               error={invalidName}
               onChange={(e) => {
                 setTempName(e.target.value);
+                setNameError(undefined);
               }}
               onKeyDown={async (ev) => {
                 if (ev.key === 'Enter' && !readOnly) {
@@ -236,9 +255,9 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               }}
               autoComplete='family-name'
             />
-            {invalidSearchName && (
+            {nameError && (
               <ValidationMessage>
-                <Lang id='person_lookup.validation_error_name_too_short' />
+                <Lang id={nameError} />
               </ValidationMessage>
             )}
           </Field>
