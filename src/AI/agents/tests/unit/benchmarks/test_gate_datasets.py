@@ -149,14 +149,14 @@ class TestTheUploadedInputMatchesProduction:
 
     def test_renders_the_conversation_of_a_follow_up_item(self):
         safety = next(d for d in DATASETS if d.name == "Gates/intent-safety")
-        item = next(i for i in safety.items if i["id"] == "safety-followup-accepts-offer")
+        item = next(i for i in safety.items if i["id"] == "safety-followup-long-reply-unsafe-middle")
 
         rendered = render_input(safety, item)
 
         assert rendered["user_message"] == build_intent_parse_message(
             item["input"]["goal"], conversation=item["input"]["conversation"]
         )
-        assert "Vil du at jeg gjør det?" in rendered["user_message"]
+        assert "Gitea-tokenet" in rendered["user_message"]
 
     @pytest.mark.parametrize("dataset", DATASETS, ids=lambda d: d.name)
     def test_every_item_renders(self, dataset):
