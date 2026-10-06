@@ -57,9 +57,15 @@ describe('CodeListsWithTextResourcesPage', () => {
     expect(codeListCounterMessage).toBeInTheDocument();
   });
 
-  it('renders code list actions', () => {
+  it('renders code list actions', async () => {
+    const user = userEvent.setup();
     renderCodeListsWithTextResourcesPage();
     const codeListSearchField = screen.getByRole('searchbox');
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('app_content_library.code_lists_with_text_resources.add_new_code_list'),
+      }),
+    );
     const codeListCreatButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists_with_text_resources.create_new_code_list'),
     });
@@ -350,6 +356,10 @@ const renderCodeListsWithTextResourcesPage = (
   render(<CodeListsWithTextResourcesPage {...defaultCodeListPageProps} {...props} />);
 
 const openCreateDialog = async (user: UserEvent): Promise<HTMLElement> => {
+  const addButtonLabel = textMock(
+    'app_content_library.code_lists_with_text_resources.add_new_code_list',
+  );
+  await user.click(screen.getByRole('button', { name: addButtonLabel }));
   const createButtonLabel = textMock(
     'app_content_library.code_lists_with_text_resources.create_new_code_list',
   );

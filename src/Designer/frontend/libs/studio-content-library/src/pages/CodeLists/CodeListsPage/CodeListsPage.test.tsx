@@ -15,7 +15,7 @@ import { PageName } from '../../../types/PageName';
 
 // Test data:
 const onPublish = vi.fn();
-const onSave = vi.fn<Promise<void>, [CodeListFile[]]>(async () => {});
+const onSave = vi.fn<(data: CodeListFile[]) => Promise<void>>(async () => {});
 const defaultProps: CodeListsPageProps = {
   codeLists,
   isPublishing: vi.fn().mockReturnValue(false),
@@ -128,7 +128,9 @@ describe('CodeListsPage', () => {
 
   it('Displays an error message when the saving request fails', async () => {
     const user = userEvent.setup();
-    const failingOnSave = vi.fn<Promise<void>, [CodeListFile[]]>(async () => Promise.reject());
+    const failingOnSave = vi.fn<(data: CodeListFile[]) => Promise<void>>(async () =>
+      Promise.reject(),
+    );
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     renderCodeListPage({ onSave: failingOnSave });
 

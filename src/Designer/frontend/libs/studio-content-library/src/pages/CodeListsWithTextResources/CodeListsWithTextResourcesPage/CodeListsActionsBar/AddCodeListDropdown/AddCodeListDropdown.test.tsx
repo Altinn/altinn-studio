@@ -92,6 +92,11 @@ describe('AddCodeListDropdown', () => {
   it('opens the import code list dialog when clicking on the import menu button', async () => {
     const user = userEvent.setup();
     renderAddCodeListDropdown({ externalResources });
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('app_content_library.code_lists_with_text_resources.add_new_code_list'),
+      }),
+    );
     const importCodeListButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists_with_text_resources.import_from_org_library'),
     });

@@ -19,7 +19,7 @@ describe('FilesChangedList', () => {
   it('renders a button with the file name and directory', () => {
     renderFilesChangedList();
 
-    const fileButton = screen.getByRole('button', { name: `${fileName} ${directory}` });
+    const fileButton = screen.getByRole('button', { name: `${fileName}${directory}` });
     expect(fileButton).toBeInTheDocument();
   });
 

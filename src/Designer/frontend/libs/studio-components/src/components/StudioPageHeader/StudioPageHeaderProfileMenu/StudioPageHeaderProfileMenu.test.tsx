@@ -174,7 +174,7 @@ describe('StudioProfileMenu', () => {
     await user.click(triggerButton);
   });
 
-  it('should not close the dropdown when a link item is clicked and openInNewTab is true', async () => {
+  it('should close the dropdown when a link item is clicked and openInNewTab is true', async () => {
     const user = userEvent.setup();
     renderStudioProfileMenu();
 
@@ -184,7 +184,7 @@ describe('StudioProfileMenu', () => {
     const link = screen.getByRole('menuitem', { name: menuItem3 });
     await user.click(link);
 
-    expect(screen.getByRole('menuitemradio', { name: menuItem1 })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitemradio', { name: menuItem1 })).not.toBeInTheDocument();
   });
 
   it('should not set target or rel attributes if openInNewTab is false', async () => {

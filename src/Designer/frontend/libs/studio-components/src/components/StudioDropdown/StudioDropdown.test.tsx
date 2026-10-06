@@ -132,6 +132,7 @@ describe('StudioDropdown', () => {
 
     const input = screen.getByLabelText(fileUploaderWithoutOnClick);
     input.click = onFileUpload;
+    await openDropdown(user);
     await user.click(screen.getByRole('button', { name: fileUploaderWithoutOnClick }));
     expect(onFileUpload).toHaveBeenCalledTimes(1);
   });

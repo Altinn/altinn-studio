@@ -240,7 +240,7 @@ describe('StudioExpression', () => {
     expect(input).toHaveValue(typedString);
     rerender(
       <StudioExpression
-        expression={onChange.mock.lastCall[0]}
+        expression={onChange.mock.lastCall?.[0]}
         onChange={onChange}
         dataLookupOptions={dataLookupOptions}
         texts={texts}

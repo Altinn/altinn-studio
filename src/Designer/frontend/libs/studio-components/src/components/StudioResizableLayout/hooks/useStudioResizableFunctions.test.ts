@@ -29,7 +29,7 @@ const makeChild = (
   ) as ResizableChildElement;
 
 describe('useStudioResizableLayoutFunctions', () => {
-  let setContainerSize: Mock<void, [number, number]>;
+  let setContainerSize: Mock<(index: number, size: number) => void>;
   let elementRefs: React.MutableRefObject<HTMLDivElement[]>;
   let children: ResizableChildElement[];
 
@@ -76,7 +76,7 @@ describe('useStudioResizableLayoutFunctions', () => {
 function renderFunctionsHook(
   elementRefs: React.MutableRefObject<HTMLDivElement[]>,
   children: ResizableChildElement[],
-  setContainerSize: Mock<void, [number, number]>,
+  setContainerSize: Mock<(index: number, size: number) => void>,
 ): { result: { current: HookReturn } } {
   return renderHook(() =>
     useStudioResizableLayoutFunctions(horizontal, elementRefs, children, setContainerSize),

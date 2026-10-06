@@ -12,6 +12,6 @@
   },
   "scripts": {
     "sort": "node ./sort-keys.js",
-    "test": "jest"
+    "test": "yarn workspace studio-designer-frontend vitest run language/"
   }
 }
