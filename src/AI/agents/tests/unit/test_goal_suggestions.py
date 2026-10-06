@@ -37,7 +37,8 @@ def _confidences(**by_goal):
 
 
 async def _suggest_after_two_choices() -> MagicMock:
-    """Stand in for the model only. The suggestion call is sync and the gate call is async."""
+    """Use a mock for the model only. The suggestion call is synchronous, and the
+    gate call is asynchronous."""
     client = MagicMock()
     client.call_sync = MagicMock(return_value=CHOICE_SUGGESTION)
     client.call_async = AsyncMock(return_value='{"action":"remove","safe":true,"confidence":0.9}')
@@ -159,8 +160,8 @@ class TestEventLoop:
 
 
 class TestTheConversation:
-    """After "go ahead" to two choices, a suggestion can name a choice only when
-    it sees the offer."""
+    """After "go ahead" to an offer with two choices, a suggestion must select one
+    choice. The model can do this only when it gets the offer."""
 
     async def test_sends_the_conversation_to_the_suggestion_prompt(self):
         client = await _suggest_after_two_choices()

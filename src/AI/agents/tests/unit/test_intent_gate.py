@@ -63,7 +63,8 @@ def _classifier(**verdict):
 
 @contextmanager
 def _classifier_answering(response: str) -> Iterator[MagicMock]:
-    """Stand in for the model only, so every step from the runner to the prompt runs."""
+    """Use a mock for the model only. Then all the steps from the runner to the
+    prompt run."""
     client = MagicMock()
     client.call_async = AsyncMock(return_value=response)
     with (
@@ -220,8 +221,8 @@ class TestTheGateBeingDownIsNotTheUsersFault:
 
 
 class TestTheGateSeesTheConversation:
-    """A short follow-up names its object through the earlier turns. Without them,
-    "ja, fiks det" was too unclear to start."""
+    """A short follow-up is clear only with the earlier turns. Without these turns,
+    the gate rejected "ja, fiks det" because it was not clear."""
 
     def test_puts_the_recent_turns_before_the_goal(self):
         message = build_intent_parse_message(FOLLOW_UP_GOAL, conversation=OFFER_CONVERSATION)

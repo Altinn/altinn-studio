@@ -1,4 +1,5 @@
-"""Prepends the last turns of a session to a gate message, so the gate can resolve what a follow-up refers to."""
+"""Puts the last turns of a session before a gate message. A short follow-up,
+such as "ja, fiks det", is clear only with these turns."""
 
 import json
 from collections.abc import Sequence
@@ -30,8 +31,8 @@ def truncate_to_history_limit(text: str) -> str:
 
 
 def _select_recent_turns(conversation: Sequence[Any] | None) -> list[dict[str, str]]:
-    """The newest assistant turn keeps the length that the agent loop reads, so the
-    gate approves the same offer that the loop then acts on."""
+    """The last assistant turn has the same length limit as in the agent loop. This
+    makes sure that the gate and the agent loop read the same offer."""
     turns = [_read_turn(entry) for entry in list(conversation or [])[-CONTEXT_TURNS:]]
     turns = [turn for turn in turns if turn["role"] and turn["content"]]
     answered_turn = _find_newest_assistant_turn(turns)
@@ -46,7 +47,8 @@ def _find_newest_assistant_turn(turns: list[dict[str, str]]) -> dict[str, str] |
 
 
 def _shorten(text: str) -> str:
-    """A reply tells what it did first and what it offers last, and a follow-up can continue either part."""
+    """A reply starts with what the assistant did and ends with an offer. A follow-up
+    can be about the start or the end."""
     if len(text) <= CONTEXT_CHARS_PER_TURN:
         return text
     half = CONTEXT_CHARS_PER_TURN // 2
