@@ -1,8 +1,3 @@
-import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
-import { lookupValidation } from 'src/layout/lookupValidation';
-import type { ComponentValidation } from 'src/features/validation';
-import type { ComponentValidationContext } from 'src/layout';
-
 export function checkValidSsn(ssn: string): boolean {
   // Check that we have 11 characters and that they are all digits
   if (ssn.length !== 11 || !/^\d{11}$/.test(ssn)) {
@@ -42,14 +37,3 @@ export function checkValidSsn(ssn: string): boolean {
 }
 
 const modularAdditiveInverse = (value: number, base: number): number => base - (value % base);
-
-export function validatePersonLookup(ctx: ComponentValidationContext<'PersonLookup'>): ComponentValidation[] {
-  const bindings = ctx.component.dataModelBindings;
-  const savedSsn = readDataFromState(ctx.formState, bindings?.ssn);
-  const validations: ComponentValidation[] = [];
-  if (savedSsn && !checkValidSsn(String(savedSsn))) {
-    validations.push(lookupValidation('person_lookup.validation_error_ssn', 'ssn'));
-  }
-
-  return validations;
-}

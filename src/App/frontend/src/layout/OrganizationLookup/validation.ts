@@ -1,8 +1,3 @@
-import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
-import { lookupValidation } from 'src/layout/lookupValidation';
-import type { ComponentValidation } from 'src/features/validation';
-import type { ComponentValidationContext } from 'src/layout';
-
 export function checkValidOrgnNr(orgNr: string): boolean {
   if (orgNr.length !== 9 || !/^\d{9}$/.test(orgNr)) {
     return false;
@@ -24,16 +19,3 @@ export function checkValidOrgnNr(orgNr: string): boolean {
 }
 
 const modularAdditiveInverse = (value: number, base: number): number => base - (value % base);
-
-export function validateOrganizationLookup(
-  ctx: ComponentValidationContext<'OrganizationLookup'>,
-): ComponentValidation[] {
-  const bindings = ctx.component.dataModelBindings;
-  const savedOrgNr = readDataFromState(ctx.formState, bindings?.orgnr);
-  const validations: ComponentValidation[] = [];
-  if (savedOrgNr && !checkValidOrgnNr(String(savedOrgNr))) {
-    validations.push(lookupValidation('organization_lookup.validation_error_orgnr', 'orgnr'));
-  }
-
-  return validations;
-}
