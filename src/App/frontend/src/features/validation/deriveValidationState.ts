@@ -155,7 +155,6 @@ function makeComponentValidationContext(
   return {
     baseComponentId: node.baseId,
     indexedId: node.id,
-    rowIds: node.rowIds,
     component,
     formState: state,
     instanceData,

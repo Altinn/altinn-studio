@@ -40,7 +40,6 @@ import {
   useSelectFromInstanceData,
 } from 'src/features/instance/InstanceContext';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
-import { createLookupSlice } from 'src/features/lookup/LookupStore';
 import { RunOptionsEffects } from 'src/features/options/RunOptionsEffects';
 import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
 import { PaymentInformationProvider } from 'src/features/payment/PaymentInformationProvider';
@@ -239,7 +238,6 @@ function createFormStore({
       readOnly,
       data: createFormDataWriteSlice(data, set),
       attachments: createAttachmentsSlice(set),
-      lookup: createLookupSlice(set),
       validation: createValidationSlice(processBootstrap(bootstrap), set),
       layoutDiagnostics: createLayoutDiagnosticsSlice(set),
       pageNavigation: createPageNavigationSlice(set),
