@@ -56,14 +56,14 @@ public sealed class GeneralSettingsHostNameMigrationTests : IDisposable
     {
         _app.Write(
             "appsettings.Development.json",
-            "{\r\n  \"generalSettings\": {\r\n    \"A\": 1,\r\n    \"hostname\": \"local.altinn.cloud\" // old localtest\r\n  }\r\n}\r\n"
+            "{\r\n  \"generalSettings\": {\r\n    \"A\": 1, // a\r\n    // the host\r\n    \"hostname\": \"local.altinn.cloud\" // old localtest\r\n  }\r\n}\r\n"
         );
 
         var result = await Migrate();
 
         Assert.False(result.RequiresManualFollowUp);
         Assert.Equal(
-            "{\r\n  \"generalSettings\": {\r\n    \"A\": 1\r\n  }\r\n}\r\n",
+            "{\r\n  \"generalSettings\": {\r\n    \"A\": 1 // a\r\n    // the host\r\n  }\r\n}\r\n",
             _app.Read("appsettings.Development.json")
         );
     }
@@ -93,6 +93,7 @@ public sealed class GeneralSettingsHostNameMigrationTests : IDisposable
             """;
         _app.Write("appsettings.json", content);
         _app.Write("appsettings.Staging.json", "not json");
+        _app.Write("appsettings.Test.json", """{ "AppSettings": { "A": 1 }, "AppSettings": { "A": 2 } }""");
 
         Assert.Empty((await Migrate()).Messages);
         Assert.Equal(content, _app.Read("appsettings.json"));

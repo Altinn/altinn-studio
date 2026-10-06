@@ -8,9 +8,10 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 /// <summary>
 /// Removes <c>GeneralSettings:HostName</c> from the app's appsettings files. The platform sets it in every Altinn
 /// environment and studioctl for a local run, both overriding the file, and the default is <c>local.altinn.cloud</c>,
-/// so a value in the file only goes stale, often as the old localtest host <c>altinn3local.no</c>. The line is removed
-/// in place to keep formatting and comments, and the edit is kept only when the file then holds the same
-/// configuration without the key.
+/// so a value in the file only goes stale, often as the old localtest host <c>altinn3local.no</c>. The exception is
+/// <c>appsettings.Local.json</c>, which overrides both - a stale value there is the one that matters most, so it goes
+/// too. The line is removed in place to keep formatting and comments, and the edit is kept only when the file then
+/// holds the same configuration without the key.
 /// </summary>
 internal static partial class GeneralSettingsHostNameMigration
 {
@@ -18,10 +19,15 @@ internal static partial class GeneralSettingsHostNameMigration
     {
         AllowTrailingCommas = true,
         CommentHandling = JsonCommentHandling.Skip,
+        // Fail the parse instead of the first lookup, which throws an ArgumentException rather than a JsonException.
+        AllowDuplicateProperties = false,
     };
 
     [GeneratedRegex("""^\s*"HostName"\s*:\s*"[^"]*"\s*(,?)\s*(//.*)?$""", RegexOptions.IgnoreCase)]
     private static partial Regex HostNameLine();
+
+    [GeneratedRegex(@",(?=\s*(//.*)?$)")]
+    private static partial Regex TrailingComma();
 
     public static async Task<MigrationResult> Migrate(string appFolder)
     {
@@ -51,8 +57,8 @@ internal static partial class GeneralSettingsHostNameMigration
             else
             {
                 messages.Todo(
-                    $"Remove GeneralSettings:HostName from {name}: the platform and studioctl set it, but it is not on "
-                        + "a line of its own."
+                    $"Remove GeneralSettings:HostName from {name}: the platform and studioctl set it, but it could not "
+                        + "be removed automatically."
                 );
             }
         }
@@ -101,14 +107,16 @@ internal static partial class GeneralSettingsHostNameMigration
             kept.RemoveAt(i);
             // Without a comma of its own the line closed its object, so the property before it loses its comma.
             var previous = i - 1;
-            while (previous >= 0 && string.IsNullOrWhiteSpace(kept[previous]))
+            while (
+                previous >= 0
+                && (
+                    string.IsNullOrWhiteSpace(kept[previous])
+                    || kept[previous].TrimStart().StartsWith("//", StringComparison.Ordinal)
+                )
+            )
                 previous--;
             if (match.Groups[1].Length == 0 && previous >= 0)
-            {
-                var content = kept[previous].TrimEnd();
-                if (content.EndsWith(','))
-                    kept[previous] = content[..^1] + kept[previous][content.Length..];
-            }
+                kept[previous] = TrailingComma().Replace(kept[previous], "", 1);
 
             var candidate = string.Join('\n', kept);
             try
