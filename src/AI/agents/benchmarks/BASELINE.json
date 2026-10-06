@@ -1,7 +1,7 @@
 {
   "axes": {
     "actor_prompt": "333710f2f15b",
-    "code": "6639ed0 clean",
+    "code": "8a69954 clean",
     "dataset": "116 items 90d5f6e70f83",
     "environment": "local",
     "evaluators": "not recorded",
@@ -9,10 +9,10 @@
     "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "8a2b7b582165"
+    "tools": "36867ddc0e3f"
   },
-  "check_id": "20261006T112107Z-intent-gate-reads-the-conversation-6639ed0bf5-9b60",
-  "label": "intent gate reads the conversation 6639ed0bf5",
-  "recorded_at": "2026-10-06T11:26:16+00:00",
-  "why": "The intent gate reads the recent conversation (#20951). New intent_check prompt and follow-up items. No regressions with e2e. The two-choices follow-up passed in 2 of 3 runs."
+  "check_id": "20261006T171623Z-remove-the-v9-upgrade-tool-rerun-1-8a699541ee-05ff",
+  "label": "remove the v9 upgrade tool rerun-1 8a699541ee",
+  "recorded_at": "2026-10-06T17:21:03+00:00",
+  "why": "Removes the v9 upgrade tool from #20721, which moves the tools digest. No regressions with e2e."
 }
