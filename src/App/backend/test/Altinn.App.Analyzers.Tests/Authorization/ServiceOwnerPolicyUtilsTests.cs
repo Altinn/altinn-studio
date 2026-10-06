@@ -41,58 +41,14 @@ public class ServiceOwnerPolicyUtilsTests
     [InlineData("signing")]
     [InlineData("confirmation")]
     [InlineData("pdfIfRequested")]
-    public void Any_Task_Type_Needs_Nothing_Beyond_Write_To_Advance(string taskType)
+    public void No_Task_Needs_A_Task_Specific_Action(string taskType)
     {
-        // Storage accepts 'write' from the app owner for a transition out of any task type.
-        // Demanding 'pay', 'sign', 'confirm' or a custom task-type action would be a false positive.
+        // Storage always allows the app owner to commit a process transition, abandoning the task
+        // included. Demanding 'pay', 'sign', 'confirm', 'reject' or a custom task-type action would
+        // be a false positive.
         var diagnostics = Collect(
             PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules),
-            ProcessFixtures.Process(new ProcessTask("Task_1", taskType))
-        );
-
-        Assert.Empty(diagnostics);
-    }
-
-    [Fact]
-    public async Task A_Task_Declaring_Reject_Needs_The_Reject_Action()
-    {
-        var diagnostics = Collect(
-            PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules),
-            ProcessFixtures.Process(new ProcessTask("Task_2", "payment", Actions: ["confirm", "pay", "reject"]))
-        );
-
-        Assert.Equal(["reject"], Actions(diagnostics, MissingGrant));
-        await Verify(diagnostics);
-    }
-
-    [Fact]
-    public void A_Reject_Grant_Scoped_To_The_Rejecting_Task_Is_Enough()
-    {
-        var diagnostics = Collect(
-            PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules, PolicyFixtures.OrgRule(["reject"], task: "Task_2")),
-            ProcessFixtures.Process(new ProcessTask("Task_2", "data", Actions: ["reject"]))
-        );
-
-        Assert.Empty(diagnostics);
-    }
-
-    [Fact]
-    public void A_Reject_Grant_Scoped_To_Another_Task_Is_Not()
-    {
-        var diagnostics = Collect(
-            PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules, PolicyFixtures.OrgRule(["reject"], task: "Task_9")),
-            ProcessFixtures.Process(new ProcessTask("Task_2", "data", Actions: ["reject"]))
-        );
-
-        Assert.Equal(["reject"], Actions(diagnostics, MissingGrant));
-    }
-
-    [Fact]
-    public void A_Server_Action_Named_Reject_Is_Not_A_Process_Transition()
-    {
-        var diagnostics = Collect(
-            PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules),
-            ProcessFixtures.Process(new ProcessTask("Task_1", "data", ServerActions: ["reject", "somethingElse"]))
+            ProcessFixtures.Process(new ProcessTask("Task_1", taskType, Actions: ["reject"]))
         );
 
         Assert.Empty(diagnostics);
@@ -306,27 +262,6 @@ public class ServiceOwnerPolicyUtilsTests
     }
 
     [Fact]
-    public void A_Task_Scope_Declared_With_An_Unmodelled_Match_Function_Is_Inconclusive()
-    {
-        // A regular-expression task match could well cover Task_2; this analysis cannot tell, so it
-        // must not report the grant as missing.
-        var diagnostics = Collect(
-            PolicyFixtures.Policy(
-                PolicyFixtures.StandardOrgRules,
-                PolicyFixtures.OrgRule(
-                    ["reject"],
-                    task: "Task_.*",
-                    taskMatchId: "urn:oasis:names:tc:xacml:1.0:function:string-regexp-match"
-                )
-            ),
-            ProcessFixtures.Process(new ProcessTask("Task_2", "data", Actions: ["reject"]))
-        );
-
-        Assert.All(diagnostics, d => Assert.Equal(NotVerifiable, d.Id));
-        Assert.Equal(["reject"], Actions(diagnostics, NotVerifiable));
-    }
-
-    [Fact]
     public void An_End_Event_Scope_Declared_With_An_Unmodelled_Match_Function_Is_Inconclusive()
     {
         var diagnostics = Collect(
@@ -349,9 +284,8 @@ public class ServiceOwnerPolicyUtilsTests
     public void Process_Elements_Outside_The_Altinn_And_Bpmn_Namespaces_Are_Ignored()
     {
         // Every element here has the right local name in the wrong namespace, so the app runtime
-        // (which binds to these namespaces) reads none of it. Honouring it would invent a
-        // 'someVendorType' requirement, a reject requirement and an end-event scope out of a vendor
-        // extension.
+        // (which binds to these namespaces) reads none of it. Honouring it would invent a 'complete'
+        // requirement for an eFormidling task and an end-event scope out of a vendor extension.
         var diagnostics = Collect(
             PolicyFixtures.Policy(PolicyFixtures.OrgRule(["read", "write"])),
             """
@@ -366,7 +300,7 @@ public class ServiceOwnerPolicyUtilsTests
                       <altinn:taskType>data</altinn:taskType>
                     </altinn:taskExtension>
                     <foo:taskExtension>
-                      <foo:taskType>someVendorType</foo:taskType>
+                      <foo:taskType>eFormidling</foo:taskType>
                       <foo:actions><foo:action>reject</foo:action></foo:actions>
                     </foo:taskExtension>
                   </bpmn:extensionElements>
@@ -378,41 +312,6 @@ public class ServiceOwnerPolicyUtilsTests
         );
 
         Assert.Empty(diagnostics);
-    }
-
-    [Fact]
-    public void A_Task_Without_An_Id_Does_Not_Borrow_The_Process_Id_As_Its_Scope()
-    {
-        // The policy grants 'reject' scoped to the enclosing process id. That must not satisfy a
-        // rejecting task's requirement - and equally must not be reported as definitely missing,
-        // since there is no task id to compare a scope against at all.
-        var diagnostics = Collect(
-            PolicyFixtures.Policy(
-                PolicyFixtures.StandardOrgRules,
-                PolicyFixtures.OrgRule(["reject"], task: "Process_1")
-            ),
-            """
-            <?xml version="1.0" encoding="UTF-8"?>
-            <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                              xmlns:altinn="http://altinn.no/process">
-              <bpmn:process id="Process_1">
-                <bpmn:task>
-                  <bpmn:extensionElements>
-                    <altinn:taskExtension>
-                      <altinn:taskType>data</altinn:taskType>
-                      <altinn:actions><altinn:action>reject</altinn:action></altinn:actions>
-                    </altinn:taskExtension>
-                  </bpmn:extensionElements>
-                </bpmn:task>
-                <bpmn:endEvent id="EndEvent_1" />
-              </bpmn:process>
-            </bpmn:definitions>
-            """
-        );
-
-        var diagnostic = Assert.Single(diagnostics);
-        Assert.Equal(NotVerifiable, diagnostic.Id);
-        Assert.Equal(["reject"], Actions(diagnostics, NotVerifiable));
     }
 
     [Fact]

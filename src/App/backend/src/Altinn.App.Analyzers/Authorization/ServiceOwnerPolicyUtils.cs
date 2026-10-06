@@ -111,7 +111,7 @@ internal static class ServiceOwnerPolicyUtils
         var endEventIds = process?.EndEventIds;
         foreach (var requirement in requirements)
         {
-            var result = policy.Evaluate(org, app, requirement.AnyOfActions, requirement.TaskScope, endEventIds);
+            var result = policy.Evaluate(org, app, requirement.AnyOfActions, endEventIds);
             switch (result)
             {
                 case GrantResult.Missing:
@@ -153,30 +153,15 @@ internal static class ServiceOwnerPolicyUtils
     {
         var requirements = new List<Requirement>
         {
-            new(ServiceOwnerActions.Read, TaskScope: null, "reads instance data"),
-            new(ServiceOwnerActions.Write, TaskScope: null, "writes instance data and persists process transitions"),
+            new(ServiceOwnerActions.Read, "reads instance data"),
+            new(ServiceOwnerActions.Write, "writes instance data"),
         };
 
-        var needsComplete = false;
-        foreach (var task in process?.Tasks ?? [])
-        {
-            var scope = task.Id is null ? null : new HashSet<string>(StringComparer.Ordinal) { task.Id };
-            var taskLabel = task.Id is null ? $"a '{task.TaskType}' task" : $"the '{task.TaskType}' task '{task.Id}'";
-
-            if (task.AllowsReject)
-            {
-                requirements.Add(new Requirement(ServiceOwnerActions.Reject, scope, $"abandons {taskLabel} on reject"));
-            }
-
-            needsComplete |= ServiceOwnerActions.MarksInstanceComplete(task.TaskType);
-        }
-
-        if (needsComplete)
+        if (process?.TaskTypes.Any(ServiceOwnerActions.MarksInstanceComplete) == true)
         {
             requirements.Add(
                 new Requirement(
                     ServiceOwnerActions.Complete,
-                    TaskScope: null,
                     "can mark the instance complete after shipping it to eFormidling or fiks arkiv"
                 )
             );
@@ -187,33 +172,12 @@ internal static class ServiceOwnerPolicyUtils
             requirements.Add(
                 new Requirement(
                     ServiceOwnerActions.Delete,
-                    TaskScope: null,
                     "deletes the instance at process end (autoDeleteOnProcessEnd)"
                 )
             );
         }
 
-        return Deduplicate(requirements);
-    }
-
-    /// <summary>
-    /// Collapses requirements that ask the same question - several tasks of the same type, for
-    /// example - keeping the first one's wording.
-    /// </summary>
-    private static List<Requirement> Deduplicate(List<Requirement> requirements)
-    {
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        var result = new List<Requirement>(requirements.Count);
-        foreach (var requirement in requirements)
-        {
-            var scope = requirement.TaskScope is null ? "" : string.Join(",", requirement.TaskScope.OrderBy(t => t));
-            if (seen.Add($"{string.Join(",", requirement.AnyOfActions)}|{scope}"))
-            {
-                result.Add(requirement);
-            }
-        }
-
-        return result;
+        return requirements;
     }
 
     private static string AllActions(List<Requirement> requirements) =>
@@ -279,10 +243,6 @@ internal static class ServiceOwnerPolicyUtils
         FileLocationHelper.GetXmlElementLocation(policyFile, content, policy.RootLineInfo);
 
     /// <param name="AnyOfActions">The app owner needs at least one of these.</param>
-    /// <param name="TaskScope">
-    /// The task(s) a grant may be scoped to and still cover this requirement, or null when the app
-    /// needs the action in any process state.
-    /// </param>
     /// <param name="Reason">What the app does as the service owner, phrased to follow "the app ...".</param>
-    private sealed record Requirement(IReadOnlyList<string> AnyOfActions, HashSet<string>? TaskScope, string Reason);
+    private sealed record Requirement(IReadOnlyList<string> AnyOfActions, string Reason);
 }

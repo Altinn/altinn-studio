@@ -8,8 +8,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// Recognizes the one failure that looks like an infrastructure problem but is really a
 /// configuration one: Altinn Authorization denying the app while it acts as the service owner.
 ///
-/// The app persists process transitions and instance data to Storage as the service owner rather
-/// than as the end user, and Storage authorizes those calls against the app's own
+/// While it moves the process on, the app reads and writes instance data in Storage as the service
+/// owner rather than as the end user, and Storage authorizes those calls against the app's own
 /// <c>config/authorization/policy.xml</c> with <c>urn:altinn:org</c> as the subject. A policy that
 /// only grants the end user - the common shape of a v8 policy - therefore yields a bare HTTP 403
 /// somewhere inside a workflow command, which says nothing about whose rights were missing. This
@@ -62,7 +62,7 @@ internal static class ServiceOwnerAuthorizationDiagnostics
         string appId = appMetadata.Id;
 
         return $"A platform call was rejected with HTTP 403 while executing a workflow command. If it was one the "
-            + $"app makes on its own behalf - persisting process state, or reading or writing instance data - then "
+            + $"app makes on its own behalf - reading or writing instance data - then "
             + $"Altinn Authorization denied the app owner '{org}', and this is what a missing service-owner grant "
             + $"in config/authorization/policy.xml looks like rather than a transient platform failure: the app "
             + $"performs those operations as the service owner, not as the end user. Check that the policy permits "
