@@ -3,12 +3,13 @@ import { DeploymentContainer } from './DeploymentContainer';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithProviders } from 'app-development/test/mocks';
-import { environment, pipelineDeployment } from 'app-shared/mocks/mocks';
+import { appRelease, environment, pipelineDeployment } from 'app-shared/mocks/mocks';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import { org } from '@studio/testing/testids';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { BuildResult } from 'app-shared/types/Build';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import userEvent from '@testing-library/user-event';
 
 describe('DeploymentContainer', () => {
   it('renders a spinner while loading data', () => {
@@ -145,6 +146,49 @@ describe('DeploymentContainer', () => {
 
     expect(screen.getByText('v1.0.0')).toBeInTheDocument();
     expect(screen.getByText('v2.0.0')).toBeInTheDocument();
+  });
+
+  it('preselects the app status from the previous deploy to the environment in the deploy dialog', async () => {
+    const user = userEvent.setup();
+    const envName = 'tt02';
+    const previousDeployment: PipelineDeployment = {
+      ...pipelineDeployment,
+      envName,
+      tagName: 'v1.0.0',
+      appStatus: 'Completed',
+      build: { ...pipelineDeployment.build, result: BuildResult.succeeded },
+    };
+
+    render({
+      getEnvironments: jest.fn().mockResolvedValue([{ ...environment, name: envName }]),
+      getOrgList: jest
+        .fn()
+        .mockResolvedValue({ orgs: { [org]: { name: { nb: org }, environments: [envName] } } }),
+      getDeployments: jest.fn().mockResolvedValue({
+        pipelineDeploymentList: [previousDeployment],
+        kubernetesDeploymentList: [],
+      }),
+      getDeployPermissions: jest.fn().mockResolvedValue([envName]),
+      getAppReleases: jest.fn().mockResolvedValue({
+        results: [
+          {
+            ...appRelease,
+            tagName: 'v2.0.0',
+            build: { ...appRelease.build, result: BuildResult.succeeded },
+          },
+        ],
+      }),
+    });
+
+    await user.click(await screen.findByLabelText(textMock('app_deployment.choose_version')));
+    await user.click(screen.getByRole('option'));
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_deployment.btn_deploy_new_version') }),
+    );
+
+    expect(
+      screen.getByRole('radio', { name: textMock('app_deployment.app_status_completed') }),
+    ).toBeChecked();
   });
 });
 
