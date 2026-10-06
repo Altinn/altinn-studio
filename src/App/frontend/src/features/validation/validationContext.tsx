@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
+import { useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import type { Draft } from 'immer';
 
 import { useGetCachedInitialValidations, useRefetchInitialValidations } from 'src/core/queries/backendValidation';
-import { useQueryClient } from 'src/core/queries/reactQuery';
 import { hasPendingAttachments, waitForAttachments } from 'src/features/attachments/utils';
 import { FormStore } from 'src/features/form/FormContext';
 import { useInstanceDataQuery, useSelectFromInstanceData } from 'src/features/instance/InstanceContext';
