@@ -1,3 +1,35 @@
+import { Ajv, type JSONSchemaType } from 'ajv';
+import adderrors from 'ajv-errors';
+
+import type { Organization } from 'src/core/queries/lookup';
+
+const ajv = new Ajv({ allErrors: true });
+adderrors(ajv);
+
+ajv.addKeyword({
+  keyword: 'isValidOrgNr',
+  type: 'string',
+  validate: (_, data: string) => {
+    if (typeof data !== 'string') {
+      return false;
+    }
+
+    return checkValidOrgnNr(data);
+  },
+});
+
+const orgNrSchema: JSONSchemaType<Pick<Organization, 'orgNr'>> = {
+  type: 'object',
+  properties: {
+    orgNr: {
+      type: 'string',
+      isValidOrgNr: true,
+      errorMessage: 'organization_lookup.validation_error_orgnr',
+    },
+  },
+  required: ['orgNr'],
+};
+
 export function checkValidOrgnNr(orgNr: string): boolean {
   if (orgNr.length !== 9 || !/^\d{9}$/.test(orgNr)) {
     return false;
@@ -17,5 +49,7 @@ export function checkValidOrgnNr(orgNr: string): boolean {
 
   return calculated_k1 === k1;
 }
+
+export const validateOrgnr = ajv.compile(orgNrSchema);
 
 const modularAdditiveInverse = (value: number, base: number): number => base - (value % base);

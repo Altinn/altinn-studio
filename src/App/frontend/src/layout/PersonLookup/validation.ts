@@ -1,3 +1,35 @@
+import { Ajv, type JSONSchemaType } from 'ajv';
+import addErrors from 'ajv-errors';
+
+import type { Person } from 'src/core/queries/lookup';
+
+const ajv = new Ajv({ allErrors: true });
+addErrors(ajv);
+
+ajv.addKeyword({
+  keyword: 'isValidSsn',
+  type: 'string',
+  validate: (_, data: string) => {
+    if (typeof data !== 'string') {
+      return false;
+    }
+
+    return checkValidSsn(data);
+  },
+});
+
+const ssnSchema: JSONSchemaType<Pick<Person, 'ssn'>> = {
+  type: 'object',
+  properties: {
+    ssn: {
+      type: 'string',
+      isValidSsn: true,
+      errorMessage: 'person_lookup.validation_error_ssn',
+    },
+  },
+  required: ['ssn'],
+};
+
 export function checkValidSsn(ssn: string): boolean {
   // Check that we have 11 characters and that they are all digits
   if (ssn.length !== 11 || !/^\d{11}$/.test(ssn)) {
@@ -37,3 +69,5 @@ export function checkValidSsn(ssn: string): boolean {
 }
 
 const modularAdditiveInverse = (value: number, base: number): number => base - (value % base);
+
+export const validateSsn = ajv.compile(ssnSchema);
