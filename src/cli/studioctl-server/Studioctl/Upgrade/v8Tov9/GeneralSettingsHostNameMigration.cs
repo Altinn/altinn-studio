@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -27,7 +28,17 @@ internal static partial class GeneralSettingsHostNameMigration
         var messages = new List<UpgradeMessage>();
         foreach (var file in Directory.EnumerateFiles(appFolder, "appsettings*.json").Order(StringComparer.Ordinal))
         {
-            var (text, hadBom) = Utf8TextFile.Decode(await File.ReadAllBytesAsync(file));
+            string text;
+            bool hadBom;
+            try
+            {
+                (text, hadBom) = Utf8TextFile.Decode(await File.ReadAllBytesAsync(file));
+            }
+            catch (DecoderFallbackException)
+            {
+                continue; // Not UTF-8, so not ours to rewrite.
+            }
+
             if (WithoutHostName(text) is not { } expected)
                 continue;
 

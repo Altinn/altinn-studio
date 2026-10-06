@@ -97,4 +97,14 @@ public sealed class GeneralSettingsHostNameMigrationTests : IDisposable
         Assert.Empty((await Migrate()).Messages);
         Assert.Equal(content, _app.Read("appsettings.json"));
     }
+
+    [Fact]
+    public async Task Skips_a_file_that_is_not_utf8()
+    {
+        byte[] content = [.. "{ \"GeneralSettings\": { \"HostName\": \""u8, 0xFF, .. "\" } }"u8];
+        _app.WriteBytes("appsettings.json", content);
+
+        Assert.Empty((await Migrate()).Messages);
+        Assert.Equal(content, _app.ReadBytes("appsettings.json"));
+    }
 }
