@@ -32,7 +32,7 @@ export const OnBehalfOfChooser = ({
       legend={<Lang id='signing.submit_panel_radio_group_legend' />}
       description={<Lang id='signing.submit_panel_radio_group_description' />}
       required={true}
-      requiredIndicator={<RequiredIndicator />}
+      requiredIndicator={<RequiredIndicator required />}
       aria-describedby={errorId}
     >
       {currentUserSignee && (

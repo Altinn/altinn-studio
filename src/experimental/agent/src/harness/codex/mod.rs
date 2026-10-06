@@ -191,7 +191,10 @@ pub(super) fn input_ready_without_report(cursor_line: &str, title: &str) -> bool
 
 pub(super) fn launch_linux(request: &LaunchRequest<'_>) -> ProcessLaunch {
     let config = format!("{}/.codex", request.home);
-    let flags = "--dangerously-bypass-approvals-and-sandbox --dangerously-bypass-hook-trust";
+    // Run Codex inside the Session's pane rather than on the shared background server
+    // Codex starts by default; launch overrides would otherwise fall back to embedded
+    // mode with a startup warning.
+    let flags = "--dangerously-bypass-approvals-and-sandbox --dangerously-bypass-hook-trust --no-daemon";
     // Launch-only overrides keep adapter-owned authentication and the fixed
     // Session root non-interactive without overwriting builder config.toml.
     // Inline rendering lets tmux retain conversation output in pane history.
@@ -297,6 +300,18 @@ mod tests {
             for command in commands {
                 assert_eq!(command.matches("tui.alternate_screen=\"never\"").count(), 1);
                 assert!(!command.contains("raw_output_mode"));
+            }
+        }
+    }
+
+    #[test]
+    fn every_executed_launch_runs_without_the_shared_server() {
+        for resume in [None, Some("160cdb4b-5997-464c-9d22-602786eb45d4")] {
+            let launch = super::launch_linux(&request(resume, None));
+            let commands = launch.command.split("codex ").skip(1).collect::<Vec<_>>();
+            assert_eq!(commands.len(), if resume.is_some() { 2 } else { 1 });
+            for command in commands {
+                assert_eq!(command.matches("--no-daemon").count(), 1);
             }
         }
     }

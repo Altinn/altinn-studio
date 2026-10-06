@@ -17,7 +17,7 @@ class _NoOpArgs(BaseModel):
     flavor: str = "noop"
 
 
-class _DefaultsTool(Tool):
+class _DefaultsTool(Tool[_NoOpArgs]):
     name = "defaults"
     description = "stub"
     input_schema = _NoOpArgs
@@ -26,7 +26,7 @@ class _DefaultsTool(Tool):
         return ToolResult(content="")
 
 
-class _ClassAttrTool(Tool):
+class _ClassAttrTool(Tool[_NoOpArgs]):
     """Sets the class attrs only — no method override."""
 
     name = "class_attr"
@@ -39,7 +39,7 @@ class _ClassAttrTool(Tool):
         return ToolResult(content="")
 
 
-class _PerInputTool(Tool):
+class _PerInputTool(Tool[_NoOpArgs]):
     """Classifies safety per input — like a future shell tool."""
 
     name = "per_input"

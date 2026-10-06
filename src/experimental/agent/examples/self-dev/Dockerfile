@@ -1,5 +1,9 @@
 FROM ubuntu:26.04@sha256:2260313b31c8c011cd2eebe728008efac1b3982be73eb71348ea2648d2c0e09b
 
+# The repository's rust-toolchain.toml selects the toolchain inside a checkout, and Renovate moves
+# this ARG together with it. The agent user (the image's ubuntu user until it is renamed below)
+# owns RUSTUP_HOME, so a checkout pinned ahead of this image installs its toolchain on first use
+# instead of failing.
 ARG RUST_VERSION=1.97.1
 ARG CARGO_MACHETE_VERSION=0.9.2
 
@@ -47,7 +51,8 @@ RUN apt-get update \
     && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt \
     && CARGO_HOME=/usr/local/cargo cargo install cargo-machete --version "${CARGO_MACHETE_VERSION}" --locked \
     && rm -rf /usr/local/cargo/registry /usr/local/cargo/git \
-    && chmod -R a+rX /usr/local/cargo /usr/local/rustup
+    && chmod -R a+rX /usr/local/cargo \
+    && chown -R ubuntu:ubuntu /usr/local/rustup
 
 COPY nvim-sysinit.vim /etc/xdg/nvim/sysinit.vim
 
@@ -111,8 +116,8 @@ RUN case "${TARGETARCH}" in \
 # host-mediated token.
 RUN git config --system credential.https://github.com.helper '!/usr/local/bin/gh auth git-credential'
 
-ARG CODEX_VERSION=0.156.0
-ARG CLAUDE_CODE_VERSION=2.1.280
+ARG CODEX_VERSION=0.159.3
+ARG CLAUDE_CODE_VERSION=2.1.286
 
 # Node ignores the system trust store, and Buildah drops default environment from build stages,
 # so a build inside an Agent needs the system store selected per step for npm to trust mediation.
@@ -179,7 +184,6 @@ RUN install -d /etc/systemd/system/init.scope.d \
 # not share target state with the host and a fresh checkout keeps reusable artifacts outside Git.
 ENV CARGO_HOME=/home/agent/.cargo
 ENV CARGO_TARGET_DIR=/home/agent/.cache/cargo-target
-ENV RUSTUP_TOOLCHAIN=${RUST_VERSION}
 # The Sandbox Image Backend speaks the Docker Engine API; point it at the Podman socket the
 # platform enables and grants to the agent user.
 ENV DOCKER_HOST=unix:///run/podman/podman.sock

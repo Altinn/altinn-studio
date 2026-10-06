@@ -12,24 +12,51 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+## [0.1.0-preview.9] - 2026-10-02
+
+### Added
+
+- `agentctl tui` opens an Agent with `o`:
+  - in a shell, VS Code, Zed or SSH, offering to add the `Include` to `~/.ssh/config` first ([#20762](https://github.com/Altinn/altinn-studio/pull/20762))
+  - on its desktop, in the browser or a VNC client ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
+  - through a forward, from the forwards view ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
+- `agentctl ssh-info` reports the directory editors open, as `workingDirectory` in JSON. ([#20762](https://github.com/Altinn/altinn-studio/pull/20762))
+- `agentctl stop` and `agentctl start`, or `x` in `agentctl tui`, stop an Agent's VM and start it again on the same disk, also one that stopped responding. Its Sessions go Idle and resume when attached after the start, and re-applying keeps a stopped Agent stopped. ([#20807](https://github.com/Altinn/altinn-studio/issues/20807))
+
 ### Changed
 
-- Agents run on a newer sandbox runtime, which `agentd` installs by itself; running Agents move to it when they restart. Once the new `agentd` has started, earlier releases cannot read Agent state, so you cannot downgrade. ([#20831](https://github.com/Altinn/altinn-studio/pull/20831))
-- On macOS, Agents resolve names through the host's system resolver, so VPN split DNS and `/etc/resolver` domains work
-  inside an Agent as they do on the host.
-- `.local` names, reverse lookups of private network addresses and names with non-ASCII characters are no longer
-  resolved through the host, so an Agent cannot discover devices on the host's local network. Names in the Agent's own
-  `/etc/hosts` still resolve.
+- Altinn, self-development, minimal and worktree Agents install Claude Code 2.1.286. ([#20886](https://github.com/Altinn/altinn-studio/pull/20886))
+- Altinn, self-development and worktree Agents install Codex CLI 0.159.3. ([#20886](https://github.com/Altinn/altinn-studio/pull/20886))
+- `agentctl tui` port forwards: ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
+  - `q` asks before quitting would close them
+  - they close when their Agent is deleted or re-created
 
 ### Fixed
 
-- Agents keep resolving names after the host changes networks, for example when a laptop moves between Wi-Fi networks,
-  without restarting the Agent.
-- An Agent started while the host has no network connection resolves names once the host is back online.
-- `agentd` gives back the memory it used to prepare an Agent image once the image is ready.
-- Pressing Ctrl-Z in an attached Session no longer freezes it.
-- Agents with a direct root filesystem, such as the full Altinn Agent, start again after their VM stops, instead of
-  failing with `VMDK missing` until the Agent is deleted. ([#20831](https://github.com/Altinn/altinn-studio/pull/20831))
+- Windows Agents remain responsive after startup, so commands, SSH and Sessions keep working. Restart running Agents to apply the runtime update. ([#20911](https://github.com/Altinn/altinn-studio/pull/20911), [martinothamar/microsandbox#9](https://github.com/martinothamar/microsandbox/pull/9))
+- Windows Agents can mount host directories. ([#20911](https://github.com/Altinn/altinn-studio/pull/20911), [martinothamar/microsandbox#10](https://github.com/martinothamar/microsandbox/pull/10))
+- On Windows, files in shared directories remain accessible after their parent directory is renamed. ([#20911](https://github.com/Altinn/altinn-studio/pull/20911), [martinothamar/microsandbox#14](https://github.com/martinothamar/microsandbox/pull/14))
+- On macOS and Linux, stopping an Agent no longer risks corrupting Sandbox state. ([#20911](https://github.com/Altinn/altinn-studio/pull/20911), [martinothamar/microsandbox#12](https://github.com/martinothamar/microsandbox/pull/12))
+- In Altinn, self-development and worktree Agents, Rust commands in an Altinn Studio checkout no longer fail with `Permission denied` or need a manual `rustup` update: they use the toolchain the checkout pins, installing it on first use when the image is older. ([#20909](https://github.com/Altinn/altinn-studio/pull/20909))
+- Old Agent images no longer fill the disk: `agentd` removes an image 3 days after its last Agent is deleted, so recreating an Agent does not download it again. Images from earlier releases are removed once every Agent has started. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
+- An Agent whose first start failed no longer fails with `image manifest digest … is not present in this Microsandbox cache` after its image tag, such as `:latest`, moves to a newer version. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
+- Interrupted commands that wait for an Agent, such as an editor retrying its SSH connection to an Agent that cannot start, no longer make `agentd` stop answering every other command. ([#20884](https://github.com/Altinn/altinn-studio/pull/20884))
+- An Agent whose Sandbox stops responding, for example after the host wakes from sleep, shows `SandboxUnresponsive` in `agentctl get agents` and `Unresponsive` in `agentctl tui`. `agentctl exec`, `attach`, `ssh`, `prompt`, `turns` and Session creation then fail instead of hanging, and `agentctl delete` completes. ([#20868](https://github.com/Altinn/altinn-studio/pull/20868))
+
+## [0.1.0-preview.8] - 2026-09-30
+
+### Changed
+
+- Agents run on a newer sandbox runtime, which `agentd` installs by itself; running Agents move to it when they restart. Once the new `agentd` has started, earlier releases cannot read Agent state, so you cannot downgrade. ([#20831](https://github.com/Altinn/altinn-studio/pull/20831))
+- On macOS, Agents resolve names through the host's system resolver, so VPN split DNS and `/etc/resolver` domains work inside an Agent as they do on the host. ([#20792](https://github.com/Altinn/altinn-studio/pull/20792))
+- `.local` names, reverse lookups of private network addresses and names with non-ASCII characters are no longer resolved through the host, so an Agent cannot discover devices on the host's local network. Names in the Agent's own `/etc/hosts` still resolve. ([#20792](https://github.com/Altinn/altinn-studio/pull/20792))
+
+### Fixed
+
+- Agents resolve names again, without a restart, after the host changes networks or comes back online, for example when a laptop moves between Wi-Fi networks or an Agent was started while the host was offline. ([#20792](https://github.com/Altinn/altinn-studio/pull/20792))
+- `agentd` gives back the memory it used to prepare an Agent image once the image is ready. ([#20799](https://github.com/Altinn/altinn-studio/pull/20799))
+- Pressing Ctrl-Z in an attached Session no longer freezes it. ([#20830](https://github.com/Altinn/altinn-studio/pull/20830))
+- Agents with a direct root filesystem, such as the full Altinn Agent, start again after their VM stops, instead of failing with `VMDK missing` until the Agent is deleted. ([#20831](https://github.com/Altinn/altinn-studio/pull/20831))
 
 ### Security
 

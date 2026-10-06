@@ -57,7 +57,9 @@ public sealed record Actor
     public string? SystemUserName { get; init; }
 
     /// <summary>
-    /// The language preference of the actor.
+    /// The language the actor chose for the transition: the <c>language</c> process/next or instantiation was called
+    /// with, or their profile language without one (nb for anyone but a user). Every callback's data mutator has this
+    /// language.
     /// </summary>
     [JsonPropertyName("language")]
     public string? Language { get; init; }

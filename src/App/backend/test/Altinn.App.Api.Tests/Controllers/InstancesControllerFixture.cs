@@ -51,7 +51,8 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
         int instanceOwnerPartyId,
         HttpClient client,
         string token,
-        Dictionary<string, string>? prefill = null
+        Dictionary<string, string>? prefill = null,
+        string? language = null
     )
     {
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
@@ -70,7 +71,8 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
         using var content = new StringContent(body, Encoding.UTF8, "application/json");
 
         // Create instance
-        using var createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
+        string query = language is null ? "" : $"?language={Uri.EscapeDataString(language)}";
+        using var createResponse = await client.PostAsync($"{org}/{app}/instances/create{query}", content);
         var createResponseContent = await createResponse.Content.ReadAsStringAsync();
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created, createResponseContent);
 

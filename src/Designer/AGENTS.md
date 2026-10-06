@@ -9,10 +9,10 @@ https://docs.altinn.studio/
 
 ## Two halves
 
-| Folder     | What it is                                                                                                                                                                                                                                                                                                 | Stack                                                                                         | Docs                                     |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `backend`  | ASP.NET Core Web API. Three projects: `src/Designer` (the API — Controllers/Services/Repository/Hubs/Migrations), `src/DataModeling` (JSON Schema ↔ XSD ↔ C#), `PolicyAdmin` (XACML policy).                                                                                                               | .NET (ASP.NET Core), EF Core + Postgres, SignalR, MediatR, Redis, Quartz, LibGit2Sharp | [backend/AGENTS.md](backend/AGENTS.md)   |
-| `frontend` | React/TS SPA. Multiple packages: feature apps (`app-development`, `dashboard`, `app-preview`, `admin`, `resourceadm`), editors under `packages/` (`ux-editor`, `schema-editor`, `process-editor`, `policy-editor`, `text-editor`), and shared libs under `libs/` (`studio-components`, `studio-hooks`, …). | Yarn, Vite, TypeScript, React, Tanstack Query, Jest + Playwright, Designsystemet              | [frontend/AGENTS.md](frontend/AGENTS.md) |
+| Folder     | What it is                                                                                                                                                                                                                                                                                                 | Stack                                                                                     | Docs                                     |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `backend`  | ASP.NET Core Web API. Three projects: `src/Designer` (the API — Controllers/Services/Repository/Hubs/Migrations), `src/DataModeling` (JSON Schema ↔ XSD ↔ C#), `PolicyAdmin` (XACML policy).                                                                                                               | .NET (ASP.NET Core), EF Core + Postgres, SignalR, MediatR, Redis, Quartz, LibGit2Sharp    | [backend/AGENTS.md](backend/AGENTS.md)   |
+| `frontend` | React/TS SPA. Multiple packages: feature apps (`app-development`, `dashboard`, `app-preview`, `admin`, `resourceadm`), editors under `packages/` (`ux-editor`, `schema-editor`, `process-editor`, `policy-editor`, `text-editor`), and shared libs under `libs/` (`studio-components`, `studio-hooks`, …). | Yarn, Vite, TypeScript, React, Tanstack Query, Vitest + Jest + Playwright, Designsystemet | [frontend/AGENTS.md](frontend/AGENTS.md) |
 
 Supporting dirs: `development/` (local setup: `setup.js`, Gitea provisioning, mock services — DB,
 `fake-ansattporten`, `azure-devops-mock`), `testdata/` (fixtures for backend/data-modeling tests), and
@@ -43,7 +43,7 @@ changes) to build and copy it in. The full docker stack already includes it via 
 
 - **Backend** (`src/Designer/backend`): `dotnet build`, `dotnet run --project src/Designer` (or
   `dotnet watch`), `dotnet test`. Details + testing guidelines in [backend/AGENTS.md](backend/AGENTS.md).
-- **Frontend** (`src/Designer/frontend`): `yarn build`, `yarn test` (Jest), `yarn lint`, `yarn typecheck`,
+- **Frontend** (`src/Designer/frontend`): `yarn build`, `yarn test` (Jest and Vitest), `yarn lint`, `yarn typecheck`,
   and `yarn start-<package>` dev servers (`start-app-development`, `start-dashboard`, …). Details +
   API/query and testing patterns in [frontend/AGENTS.md](frontend/AGENTS.md).
 

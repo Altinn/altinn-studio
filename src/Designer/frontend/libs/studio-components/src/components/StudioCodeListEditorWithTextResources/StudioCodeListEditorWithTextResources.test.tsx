@@ -101,24 +101,15 @@ describe('StudioCodeListEditorWithTextResources', () => {
     });
   });
 
-  it('Does not display the unset option for labels', async () => {
-    const user = userEvent.setup();
-    renderCodeListEditor();
-    const firstLabelCoords: TextPropertyCoords = [1, CodeListItemTextProperty.Label];
-    await switchToSearchMode(user, firstLabelCoords);
-    await openTextResourcePicker(user, firstLabelCoords);
-    expect(hasUnsetTextResourceOption()).toBe(false);
-  });
-
-  it.each([CodeListItemTextProperty.Description, CodeListItemTextProperty.HelpText])(
-    `Displays the unset option for %ss`,
+  it.each(Object.values(CodeListItemTextProperty))(
+    'Does not display an unset option for %ss',
     async (property) => {
       const user = userEvent.setup();
       renderCodeListEditor();
       const propertyCoords: TextPropertyCoords = [1, property];
       await switchToSearchMode(user, propertyCoords);
       await openTextResourcePicker(user, propertyCoords);
-      expect(hasUnsetTextResourceOption()).toBe(true);
+      expect(hasUnsetTextResourceOption()).toBe(false);
     },
   );
 
@@ -194,7 +185,7 @@ describe('StudioCodeListEditorWithTextResources', () => {
       await switchToSearchMode(user, propertyCoords);
       await openTextResourcePicker(user, propertyCoords);
       await user.click(await getTextResourceOption(label4Resource));
-      await waitFor(expect(onUpdateCodeList).toHaveBeenCalled);
+      await waitFor(() => expect(onUpdateCodeList).toHaveBeenCalled());
       expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
       expect(onUpdateCodeList).toHaveBeenLastCalledWith([
         { ...codeListWithStrings[0], label: label4Resource.id },
@@ -210,7 +201,7 @@ describe('StudioCodeListEditorWithTextResources', () => {
       await switchToSearchMode(user, propertyCoords);
       await openTextResourcePicker(user, propertyCoords);
       await user.click(await getTextResourceOption(description4Resource));
-      await waitFor(expect(onUpdateCodeList).toHaveBeenCalled);
+      await waitFor(() => expect(onUpdateCodeList).toHaveBeenCalled());
       expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
       expect(onUpdateCodeList).toHaveBeenLastCalledWith([
         { ...codeListWithStrings[0], description: description4Resource.id },
@@ -226,7 +217,7 @@ describe('StudioCodeListEditorWithTextResources', () => {
       await switchToSearchMode(user, propertyCoords);
       await openTextResourcePicker(user, propertyCoords);
       await user.click(await getTextResourceOption(helpText4Resource));
-      await waitFor(expect(onUpdateCodeList).toHaveBeenCalled);
+      await waitFor(() => expect(onUpdateCodeList).toHaveBeenCalled());
       expect(onUpdateCodeList).toHaveBeenCalledTimes(1);
       expect(onUpdateCodeList).toHaveBeenLastCalledWith([
         { ...codeListWithStrings[0], helpText: helpText4Resource.id },

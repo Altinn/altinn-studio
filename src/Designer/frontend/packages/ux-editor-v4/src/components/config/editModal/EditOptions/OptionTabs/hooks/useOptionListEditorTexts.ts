@@ -49,10 +49,10 @@ function useTextResourceTexts(): (
     emptyTextResourceList: t(`${prefix}.empty_list`),
     emptyResourceList: t(`${prefix}.empty_list`),
     idLabel: t(`${prefix}.id_label`),
+    modeToggle: t(`${prefix}.${property}.mode_toggle`, { number }),
     search: t(`${prefix}.${property}.search_mode`, { number }),
     textResourcePickerLabel: t(`${prefix}.${property}.select`, { number }),
     clearSelection: t('general.clear_selection'),
-    noTextResourceOptionLabel: t(`${prefix}.no_text_resource_option_label`),
     valueLabel: t(`${prefix}.${property}.value`, { number }),
   });
 }

@@ -26,7 +26,7 @@ class SkillArgs(BaseModel):
     )
 
 
-class SkillTool(Tool):
+class SkillTool(Tool[SkillArgs]):
     """Load a skill's full instructions into the conversation."""
 
     name = "skill"

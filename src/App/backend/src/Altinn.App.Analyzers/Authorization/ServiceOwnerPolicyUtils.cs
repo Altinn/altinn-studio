@@ -1,4 +1,3 @@
-using System.Xml;
 using Altinn.App.Analyzers.Utils;
 using NanoJsonReader;
 
@@ -287,48 +286,8 @@ internal static class ServiceOwnerPolicyUtils
     /// Anchors the diagnostics on the policy's root element. The problem is an absent rule, so
     /// there is nothing narrower to point at, and the document element is where a reader starts.
     /// </summary>
-    private static Location PolicyLocation(AdditionalText policyFile, string content, XacmlPolicy policy)
-    {
-        var lineInfo = policy.RootLineInfo;
-        if (!lineInfo.HasLineInfo())
-        {
-            return FileLocationHelper.GetLocation(policyFile, 0, null);
-        }
-
-        var offset = OffsetOf(content, lineInfo.LineNumber, lineInfo.LinePosition);
-        if (offset < 0)
-        {
-            return FileLocationHelper.GetLocation(policyFile, 0, null);
-        }
-
-        // The reported position is the element name, one character past the '<' that opens the tag.
-        var start = Math.Max(0, offset - 1);
-        var end = start;
-        while (end < content.Length && content[end] != '>' && !char.IsWhiteSpace(content[end]))
-        {
-            end++;
-        }
-
-        return FileLocationHelper.GetLocation(policyFile, start, end);
-    }
-
-    /// <summary>Translates a 1-based <see cref="IXmlLineInfo"/> position into a character offset.</summary>
-    private static int OffsetOf(string content, int lineNumber, int linePosition)
-    {
-        var line = 1;
-        var index = 0;
-        while (line < lineNumber && index < content.Length)
-        {
-            if (content[index] == '\n')
-            {
-                line++;
-            }
-
-            index++;
-        }
-
-        return line == lineNumber ? Math.Min(content.Length, index + linePosition - 1) : -1;
-    }
+    private static Location PolicyLocation(AdditionalText policyFile, string content, XacmlPolicy policy) =>
+        FileLocationHelper.GetXmlElementLocation(policyFile, content, policy.RootLineInfo);
 
     /// <param name="AnyOfActions">The app owner needs at least one of these.</param>
     /// <param name="TaskScope">

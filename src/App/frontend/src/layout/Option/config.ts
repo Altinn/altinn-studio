@@ -21,9 +21,6 @@ export const Config = asOptionsComponent(
       renderInCards: true,
       renderInCardsMedia: false,
     },
-    functionality: {
-      customExpressions: true,
-    },
   }),
   { supportsPreselection: false },
 )
@@ -34,6 +31,7 @@ export const Config = asOptionsComponent(
     new CG.prop(
       'value',
       new CG.expr(ExprVal.String)
+        .setFallback('')
         .setTitle('Selected value', 'Valgt verdi')
         .setDescription('The value represented by the option.', 'Verdien alternativet representerer.'),
     ),

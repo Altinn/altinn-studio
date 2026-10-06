@@ -6,5 +6,7 @@ import type { SchemaModel } from '@altinn/schema-model';
  * @param callIndex The index of the call to get the saved model from. Defaults to 0.
  * @returns The UiSchemaNodes model that the saveDataModel mock has been called with.
  */
-export const getSavedModel = (saveDataModelMock: jest.Mock, callIndex: number = 0): SchemaModel =>
-  saveDataModelMock.mock.calls[callIndex][0];
+export const getSavedModel = (
+  saveDataModelMock: { mock: { calls: unknown[][] } },
+  callIndex: number = 0,
+): SchemaModel => saveDataModelMock.mock.calls[callIndex][0] as SchemaModel;

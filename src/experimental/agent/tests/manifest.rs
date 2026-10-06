@@ -114,6 +114,23 @@ fn decodes_the_minimal_manifest() {
     );
 }
 
+#[test]
+fn a_manifest_may_set_the_run_state_and_omits_it_by_default() {
+    let minimal = include_str!("../examples/minimal/agent.yaml");
+    let agent = manifest::decode(minimal.as_bytes()).expect("minimal manifest should decode");
+    assert_eq!(agent.spec.run_state, None);
+    assert!(!agent.spec.is_stopped());
+
+    let stopped = minimal.replacen("spec:\n", "spec:\n  runState: Stopped\n", 1);
+    let agent = manifest::decode(stopped.as_bytes()).expect("a Stopped run state should decode");
+    assert_eq!(agent.spec.run_state, Some(agent::RunState::Stopped));
+    let encoded = serde_yaml_ng::to_string(&agent).expect("encode");
+    assert!(encoded.contains("runState: Stopped"), "{encoded}");
+
+    let paused = minimal.replacen("spec:\n", "spec:\n  runState: Paused\n", 1);
+    manifest::decode(paused.as_bytes()).expect_err("only Running and Stopped exist");
+}
+
 /// The image owns the harness version, so a manifest that repeats it only creates a second place
 /// to forget. The examples are what people copy, so none of them may pin one.
 #[test]

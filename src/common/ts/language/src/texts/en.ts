@@ -119,8 +119,7 @@ export function en() {
     'form_filler.placeholder_receipt_header': 'The form has been submitted',
     'form_filler.placeholder_user': 'OLA PRIVATPERSON',
     'form_filler.radiobutton_alert_label': 'Are you sure you want to change from {0}?',
-    'form_filler.required_description': 'Required fields are marked with *',
-    'form_filler.required_label': '*',
+    'form_filler.required_label': 'Required',
     'form_filler.summary_item_change': 'Change',
     'form_filler.summary_go_to_correct_page': 'Go to the correct page in the form',
     'form_filler.address': 'Street Address',
@@ -220,6 +219,9 @@ export function en() {
     'general.part_of_form_completed':
       "This part of the form is not currently available. You can't change it.",
     'general.invalid_task_id': 'This part of the form does not exist.',
+    'general.unsupported_task_type': "This part of the form can't be shown.",
+    'general.unsupported_task_type_details':
+      "The process step {0} has the type {1}, which the app can't show.",
     'general.navigate_to_current_process': 'Navigate to the current process step',
     'group.row_error':
       'One of the rows is incorrectly filled out. This has to bee fixed before the schema can be submitted.',

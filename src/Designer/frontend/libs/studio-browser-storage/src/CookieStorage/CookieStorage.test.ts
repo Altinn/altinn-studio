@@ -83,7 +83,7 @@ describe('CookieStorage', () => {
     });
 
     test('setItem should log warning and not store cookie when value is undefined', () => {
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
       CookieStorage.setItem('undefinedKey', undefined);
       const result = CookieStorage.getItem<string>('undefinedKey');
       expect(result).toBeNull();
@@ -94,7 +94,7 @@ describe('CookieStorage', () => {
     });
 
     test('setItem should log warning and not store cookie when value is null', () => {
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
       CookieStorage.setItem('nullKey', null);
       const result = CookieStorage.getItem<string>('nullKey');
       expect(result).toBeNull();
@@ -197,7 +197,7 @@ describe('CookieStorage', () => {
     test('getItem should return null and log warning when cookie value is malformed JSON', () => {
       document.cookie = 'malformedKey=not-valid-json; path=/';
 
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
       const result = CookieStorage.getItem<string>('malformedKey');
 
       expect(result).toBeNull();
@@ -210,7 +210,7 @@ describe('CookieStorage', () => {
     });
 
     test('setItem should throw TypeError and log error when value contains circular reference', () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
       interface CircularObject {
         a: number;

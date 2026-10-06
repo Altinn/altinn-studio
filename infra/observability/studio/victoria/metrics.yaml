@@ -1,0 +1,241 @@
+# Metrics storage. Two independent VMSingle instances, one per observability
+# node, each holding a full copy. VMSingle is single-node by definition, so a
+# pair is two objects rather than one object with two replicas.
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMSingle
+metadata:
+  name: metrics-a
+  annotations:
+    # Flux must never delete a storage object. The operator keeps a VMSingle's
+    # volume claim when the object is deleted, but VLSingle and VTSingle do not
+    # (their finalizers leave the claim owned by the object, so it is garbage
+    # collected with it), so all six are protected the same way. Removing one of
+    # these objects from Git then leaves it running until it is deleted by hand.
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  # Strict security makes the operator apply its hardened pod and container
+  # security context: non-root, RuntimeDefault seccomp, read-only root
+  # filesystem, no privilege escalation and all capabilities dropped. The
+  # read-only root filesystem is safe because every path written at runtime is
+  # volume backed: -storageDataPath on the storage volume, and each agent's
+  # queue directory on its stateful volume.
+  useStrictSecurity: true
+  # Storage never calls the Kubernetes API, so the pod gets no token.
+  disableAutomountServiceAccountToken: true
+  image:
+    repository: victoriametrics/victoria-metrics
+    tag: v1.153.0
+  # The operator's default port is 8429, the vmagent port, with 8428 only as a
+  # Service alias. Setting it serves the binary's own port directly, on the
+  # container and the Service alike.
+  port: "8428"
+  # Metrics are time-bound rather than disk-bound: VictoriaMetrics stops
+  # accepting writes when the disk fills instead of dropping old data, so the
+  # retention period has to be chosen to stay inside the volume and the free
+  # space floor is only a backstop.
+  retentionPeriod: 90d
+  # Mounted at /etc/vm/secrets/observability-backend-auth-key/, as the file key.
+  secrets:
+    - observability-backend-auth-key
+  extraArgs:
+    storage.minFreeDiskSpaceBytes: 100GiB
+    # New series per hour and per day are counted, and samples of new series beyond
+    # these limits are dropped, so a cardinality blow-up cannot exhaust memory or disk.
+    # The limiter's filter is sized for its limit, 16 bits a series, so the limit itself
+    # costs memory: -1, its maximum, would take 4 GiB each.
+    storage.maxHourlySeries: "4000000"
+    storage.maxDailySeries: "8000000"
+    # Delivery is at-least-once, so a retried export writes the same samples
+    # again. 1ms removes those exact duplicates and nothing else, provided the
+    # sources send cumulative metrics: with delta temporality it would drop
+    # real samples.
+    dedup.minScrapeInterval: 1ms
+    # A heavy query is rejected rather than taking the instance down, which
+    # would move every read, the same query's retry included, to its twin:
+    # at most 8 queries at a time, 1GiB each, inside the 16Gi memory limit.
+    search.maxConcurrentRequests: "8"
+    search.maxMemoryPerQuery: 1GiB
+    # Every admin endpoint is open unless its auth key is set, so without these
+    # anything that can reach this port in the cluster could delete series or
+    # take snapshots. All of them use the same key, read from the mounted Secret
+    # with file:// rather than put on the command line, where it would show in
+    # the pod spec; the binary re-reads the file every few seconds, so a rotated
+    # key takes effect without a restart, and a missing file leaves the
+    # endpoint locked with a random key rather than open. The read-only
+    # -metricsAuthKey, -flagsAuthKey and -configAuthKey stay unset: -flags masks
+    # secret values, -config has no scrape config to show here, and a key on
+    # /metrics would have to be given to any future scraper.
+    deleteAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    snapshotAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    reloadAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    search.resetCacheAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    logNewSeriesAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    metricNamesStatsResetAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: studio-observability-premium-v2
+    resources:
+      requests:
+        storage: 512Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 8Gi
+    limits:
+      memory: 16Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  # One copy per zone, here and for every pair and agent in this directory.
+  # Each zone's pool has one node, so hostname would do the same today, but a
+  # node upgrade surges a second node into the zone for a while, and a copy
+  # scheduled then could land beside its partner and, its disk being zonal,
+  # stay there.
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmsingle
+          topologyKey: topology.kubernetes.io/zone
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMSingle
+metadata:
+  name: metrics-b
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  useStrictSecurity: true
+  disableAutomountServiceAccountToken: true
+  image:
+    repository: victoriametrics/victoria-metrics
+    tag: v1.153.0
+  port: "8428"
+  retentionPeriod: 90d
+  secrets:
+    - observability-backend-auth-key
+  extraArgs:
+    storage.minFreeDiskSpaceBytes: 100GiB
+    storage.maxHourlySeries: "4000000"
+    storage.maxDailySeries: "8000000"
+    dedup.minScrapeInterval: 1ms
+    search.maxConcurrentRequests: "8"
+    search.maxMemoryPerQuery: 1GiB
+    deleteAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    snapshotAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    reloadAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    search.resetCacheAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    logNewSeriesAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    metricNamesStatsResetAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: studio-observability-premium-v2
+    resources:
+      requests:
+        storage: 512Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 8Gi
+    limits:
+      memory: 16Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmsingle
+          topologyKey: topology.kubernetes.io/zone
+---
+# Accepts OTLP metrics and replicates them to both instances, buffering to disk
+# when one is unreachable. Ingest-only mode makes it purely an ingest and fan-out
+# tier: the operator generates no scrape configuration, runs no config-reloader
+# sidecar and creates no Role or RoleBinding, so nothing in the pod needs the
+# Kubernetes API.
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAgent
+metadata:
+  name: metrics
+spec:
+  # One replica per node, so a voluntary disruption may only take one at a time.
+  podDisruptionBudget:
+    maxUnavailable: 1
+  useStrictSecurity: true
+  ingestOnlyMode: true
+  # disableAutomountServiceAccountToken does not remove the token from vmagent:
+  # the operator then mounts a projected token into the vmagent container
+  # itself. A service account that opts out of automounting does, and naming one
+  # also stops the operator creating its own.
+  serviceAccountName: vmagent-metrics-no-api-access
+  replicaCount: 2
+  # The operator's own Service for an agent is headless, as a StatefulSet needs, so a
+  # client resolving it connects to the first pod DNS returns. This second Service,
+  # vmagent-metrics-additional-service, has a cluster IP instead, so each new connection
+  # to it is placed on one of the replicas, and writes spread across them.
+  serviceSpec:
+    spec:
+      type: ClusterIP
+  image:
+    repository: victoriametrics/vmagent
+    tag: v1.153.0
+  statefulMode: true
+  statefulStorage:
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: studio-observability-premium-v2
+        resources:
+          requests:
+            storage: 50Gi
+  remoteWrite:
+    - url: http://vmsingle-metrics-a.observability.svc.cluster.local:8428/api/v1/write
+    - url: http://vmsingle-metrics-b.observability.svc.cluster.local:8428/api/v1/write
+  remoteWriteSettings:
+    maxDiskUsagePerURL: 20GiB
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+          topologyKey: topology.kubernetes.io/zone
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vmagent-metrics-no-api-access
+automountServiceAccountToken: false

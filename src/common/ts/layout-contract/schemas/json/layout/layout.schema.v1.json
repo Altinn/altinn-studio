@@ -1841,6 +1841,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -1937,6 +1938,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -2462,6 +2464,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -2668,6 +2671,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -2861,6 +2865,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -3083,6 +3088,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -3201,6 +3207,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -3774,6 +3781,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -3885,6 +3893,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -4144,6 +4153,9 @@
           "$ref": "#/definitions/FormComponentProps"
         },
         {
+          "$ref": "#/definitions/LabeledComponentProps"
+        },
+        {
           "$ref": "#/definitions/ILikertColumnProperties"
         },
         {
@@ -4222,6 +4234,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -4257,6 +4270,7 @@
             "readOnly": true,
             "required": true,
             "showValidations": true,
+            "labelSettings": true,
             "columns": true,
             "type": true,
             "textResourceBindings": true,
@@ -4405,6 +4419,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -4566,6 +4581,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -4689,6 +4705,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -5097,6 +5114,9 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
+          "$ref": "#/definitions/LabeledComponentProps"
+        },
+        {
           "title": "CompOrganizationLookupExternal",
           "type": "object",
           "properties": {
@@ -5154,6 +5174,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -5191,6 +5212,7 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
+            "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
             "removeWhenHidden": true,
@@ -5562,6 +5584,9 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
+          "$ref": "#/definitions/LabeledComponentProps"
+        },
+        {
           "title": "CompPersonLookupExternal",
           "type": "object",
           "properties": {
@@ -5619,6 +5644,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -5642,6 +5668,7 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
+            "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
             "removeWhenHidden": true,
@@ -5762,6 +5789,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -5960,6 +5988,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -6437,6 +6466,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -6573,6 +6603,7 @@
                     "tableEditButton": {
                       "title": "Table edit button",
                       "description": "The text for the \"Edit\" button in the table rows",
+                      "default": "general.edit",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -6954,6 +6985,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -7145,6 +7177,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -8839,6 +8872,7 @@
         "colSpan": {
           "title": "Column span",
           "description": "Number of columns this cell should span. Defaults to 1 if not set.",
+          "default": 1,
           "$ref": "expression.schema.v1.json#/definitions/number"
         }
       },
@@ -9087,7 +9121,8 @@
       "properties": {
         "optionalIndicator": {
           "title": "Optional indicator",
-          "description": "Show optional indicator on label",
+          "description": "Show the optional indicator on the label of non-required fields. Enabled by default.",
+          "default": true,
           "type": "boolean"
         }
       },
@@ -9595,6 +9630,7 @@
         "optionFilter": {
           "title": "Filter options (using an expression)",
           "description": "Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use [\"value\"]. You can also use [\"value\", \"label\"] to get the label text resource id, likewise also \"description\" and \"helpText\".",
+          "default": true,
           "$ref": "expression.schema.v1.json#/definitions/boolean"
         }
       }
@@ -10277,6 +10313,7 @@
       "type": "object",
       "properties": {
         "thousandSeparator": {
+          "default": false,
           "anyOf": [
             {
               "$ref": "expression.schema.v1.json#/definitions/boolean"
@@ -10287,6 +10324,7 @@
           ]
         },
         "decimalSeparator": {
+          "default": ".",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "allowedDecimalSeparators": {

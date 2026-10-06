@@ -60,6 +60,23 @@ internal sealed class ProcessNextRequestFactory
     internal const string ProcessNextInstanceGuidLabel = "processNextInstanceGuid";
 
     /// <summary>
+    /// <strong>Step</strong> label (the others here are workflow labels): the bare id of the BPMN element
+    /// whose lifecycle this step runs — the task being left on a task-end/abandon step, the task being
+    /// entered on a task-start step, and the end event on a process-end step. A transition's step list
+    /// spans two elements, so the element is a per-step fact and cannot be read off the workflow's own
+    /// labels; this is what lets a consumer attribute a step to an element without knowing what any
+    /// command is called.
+    ///
+    /// Carried only by the pre-commit lifecycle steps, which is exactly the run the dashboard brackets
+    /// under one element name. The transition-level steps around them (<c>AcquireProcessingStatus</c>,
+    /// <c>MutateProcessState</c>, <c>CommitProcessState</c>, <c>EnqueueSideEffectsWorkflow</c>) belong to
+    /// the transition rather than to either element and stay unlabeled, and so do the post-commit and
+    /// side-effect steps: labeling those would draw the entering element's name a second time, after the
+    /// commit, around work the first bracket already named.
+    /// </summary>
+    internal const string ProcessNextElementLabel = "processNextElement";
+
+    /// <summary>
     /// OperationId prefix for the Main process-next workflow (the visible collection head carrying
     /// the pre-commit, commit, and post-commit steps).
     /// </summary>
@@ -118,6 +135,7 @@ internal sealed class ProcessNextRequestFactory
     /// Creates a WorkflowEnqueueEnvelope from the process state change.
     /// The bundle contains the request body plus the metadata (namespace, idempotency key,
     /// collection key) that must be sent via URL path and HTTP headers.
+    /// <paramref name="language"/> is the language the instance was created with (see <see cref="ExtractActor"/>).
     /// </summary>
     public Task<WorkflowEnqueueEnvelope> CreateChainInitiating(
         Instance instance,
@@ -126,7 +144,8 @@ internal sealed class ProcessNextRequestFactory
         string? state = null,
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
-        InstantiationNotification? notification = null
+        InstantiationNotification? notification = null,
+        string? language = null
     ) =>
         Create(
             instance,
@@ -135,6 +154,7 @@ internal sealed class ProcessNextRequestFactory
             state,
             isInstantiation,
             actor: null,
+            language,
             dependsOn: null,
             prefill,
             notification,
@@ -144,22 +164,24 @@ internal sealed class ProcessNextRequestFactory
     /// <summary>
     /// Claims the instance before the callback computes and enqueues the transition's steps.
     /// Only the source task is known until acquisition succeeds and the callback computes the transition.
+    /// <paramref name="language"/> is the language process/next was called with (see <see cref="ExtractActor"/>).
     /// </summary>
     public async Task<WorkflowEnqueueEnvelope> CreateAcquire(
         Instance instance,
         string? action,
         string state,
-        string idempotencyKey
+        string idempotencyKey,
+        string? language
     )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         InstanceIdentifier instanceId = new(instance);
-        Actor actor = await ExtractActor();
+        Actor actor = await ExtractActor(language);
         List<WorkflowRequest> workflows =
         [
             new WorkflowRequest
             {
-                OperationId = $"{MainOperationIdPrefix} acquire",
+                OperationId = $"{MainOperationIdPrefix} Mark instance as processing",
                 Steps = [CreateCommand(AcquireProcessingStatus.Key, new AcquireProcessingStatusPayload(action))],
                 State = state,
             },
@@ -211,6 +233,7 @@ internal sealed class ProcessNextRequestFactory
             state,
             isInstantiation: false,
             actor,
+            language: null,
             dependsOn,
             prefill: null,
             notification: null,
@@ -224,6 +247,7 @@ internal sealed class ProcessNextRequestFactory
         string? state,
         bool isInstantiation,
         Actor? actor,
+        string? language,
         IEnumerable<WorkflowRef>? dependsOn,
         Dictionary<string, string>? prefill,
         InstantiationNotification? notification,
@@ -248,7 +272,7 @@ internal sealed class ProcessNextRequestFactory
             ?? processStateChange.NewProcessState?.EndEvent
             ?? "End event";
 
-        Actor resolvedActor = actor ?? await ExtractActor();
+        Actor resolvedActor = actor ?? await ExtractActor(language);
         InstanceIdentifier instanceId = new(instance);
 
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
@@ -412,19 +436,29 @@ internal sealed class ProcessNextRequestFactory
                 // ShouldRunForTask at execute time, so resolving the handler here yields the same match.
                 string? eventTaskId = instanceEvent.ProcessInfo?.CurrentTask?.ElementId;
 
+                // The BPMN element these commands run for, which is the task for every event that has one
+                // and the end event for process end — where CurrentTask is deliberately null, the ended
+                // state having no current task. Options resolution stays keyed on the task alone: an end
+                // event is not a task and configures none of the per-task step options.
+                string? eventElementId = eventTaskId ?? instanceEvent.ProcessInfo?.EndEvent;
+
                 // Task-end/abandon commands go in the first group (they need OLD CurrentTask).
                 // Task-start and process-end commands go in the second group (they need NEW CurrentTask).
                 // MutateProcessState is inserted between the two groups to transition in-memory state.
                 if (instanceEventType is InstanceEventType.process_EndTask or InstanceEventType.process_AbandonTask)
                 {
                     taskEndSteps.AddRange(
-                        workflowCommands.Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                        workflowCommands
+                            .Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                            .WithProcessElement(eventElementId)
                     );
                 }
                 else
                 {
                     taskStartSteps.AddRange(
-                        workflowCommands.Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                        workflowCommands
+                            .Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                            .WithProcessElement(eventElementId)
                     );
                 }
 
@@ -527,23 +561,31 @@ internal sealed class ProcessNextRequestFactory
         instanceEvent.ProcessInfo?.CurrentTask?.ElementId
         ?? throw new InvalidOperationException($"Workflow event {eventType} is missing current task information.");
 
-    private async Task<Actor> ExtractActor()
+    /// <summary>
+    /// The actor the chain's callbacks run on behalf of, from the current request's authentication.
+    /// </summary>
+    /// <param name="language">
+    /// The language the caller chose in the app, sent with process/next or instantiation, or null when the request
+    /// has none. Every callback of the chain restores its data mutator in the actor's language, so the caller's
+    /// profile language (nb for anyone but a user) is only the fallback. Like the rest of the actor it
+    /// rides in the context, outside the engine's idempotency hash and the callback token's actor hash.
+    /// </param>
+    private async Task<Actor> ExtractActor(string? language)
     {
         Authenticated currentAuth = _authenticationContext.Current;
         if (currentAuth is Authenticated.User user)
         {
             Authenticated.User.Details details = await user.LoadDetails(validateSelectedParty: true);
-            string? userLanguage = await currentAuth.GetLanguage();
             return new Actor
             {
                 UserId = user.UserId,
                 AuthenticationLevel = user.AuthenticationLevel,
                 NationalIdentityNumber = details.Profile.Party.SSN,
-                Language = userLanguage,
+                Language = await currentAuth.GetLanguage(language),
             };
         }
 
-        string? resolvedLanguage = await currentAuth.GetLanguage();
+        string resolvedLanguage = await currentAuth.GetLanguage(language);
         return currentAuth switch
         {
             // Organization authentication currently emits an empty PlatformUser in process events.

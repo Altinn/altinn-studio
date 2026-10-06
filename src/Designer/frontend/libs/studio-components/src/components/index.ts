@@ -91,7 +91,6 @@ export * from './StudioTextResourceAction';
 export * from './StudioTextResourceEditor';
 export * from './StudioTextResourceInput';
 export * from './StudioTextResourcePicker';
-export * from './StudioTextResourcePicker2';
 export * from './StudioTextResourceValueEditor';
 export * from './StudioTreeView';
 export * from './StudioToggleGroup';

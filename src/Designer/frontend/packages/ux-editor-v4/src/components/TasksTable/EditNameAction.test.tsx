@@ -70,11 +70,9 @@ describe('EditNameAction', () => {
     });
     await user.click(textResourcesTab);
 
-    const combobox = screen.getByRole('combobox');
-    const textResorceId2Option = screen.getByRole('option', {
-      name: textResorceId2,
-    });
-    await user.selectOptions(combobox, textResorceId2Option);
+    await user.click(screen.getByRole('combobox'));
+    await user.clear(screen.getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: RegExp(textResorceId2) }));
 
     const textInputTab = screen.getByRole('tab', {
       name: textMock('ux_editor.text_resource_binding_write'),

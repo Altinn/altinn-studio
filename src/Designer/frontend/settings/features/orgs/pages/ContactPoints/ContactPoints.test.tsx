@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -13,13 +14,13 @@ const RoutedContactPoints = () => (
   </Routes>
 );
 
-jest.mock('./components/PersonsList/PersonsList', () => ({
+vi.mock('./components/PersonsList/PersonsList', () => ({
   PersonsList: ({ persons }: { persons: ContactPoint[] }) => (
     <div>PersonsList ({persons.length})</div>
   ),
 }));
 
-jest.mock('./components/SlackChannelsList/SlackChannelsList', () => ({
+vi.mock('./components/SlackChannelsList/SlackChannelsList', () => ({
   SlackChannelsList: ({ channels }: { channels: ContactPoint[] }) => (
     <div>SlackChannelsList ({channels.length})</div>
   ),
@@ -62,7 +63,7 @@ describe('ContactPoints', () => {
 
   it('renders the error message when query fails', async () => {
     const queryClient = createQueryClientMock();
-    const getContactPoints = jest.fn().mockRejectedValue(new Error('Failed'));
+    const getContactPoints = vi.fn().mockRejectedValue(new Error('Failed'));
     renderWithProviders(<RoutedContactPoints />, {
       queries: { getContactPoints },
       queryClient,

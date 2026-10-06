@@ -101,6 +101,7 @@ internal static class V8Tov9Upgrade
             : await CreateSourceScanner(projectFolder, projectFile, options);
 
         var returnCode = 0;
+        string? appPackageVersion = null;
         options.CancellationToken.ThrowIfCancellationRequested();
         if (!options.SkipCsprojUpgrade)
         {
@@ -123,6 +124,7 @@ internal static class V8Tov9Upgrade
                         options.CancellationToken
                     );
                     returnCode = await UpgradeProjectFile(projectFile, targetVersion, options.TargetFramework);
+                    appPackageVersion = targetVersion;
                 }
             }
 
@@ -223,6 +225,11 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, layoutOutcome.ExitCode);
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateRequiredIndicatorTexts(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateOptionalIndicatorSettings(projectFolder));
+
         var dataProcessorOutcome = await GenerateDataProcessors(projectFolder);
         returnCode = CombineExitCodes(returnCode, dataProcessorOutcome.ExitCode);
 
@@ -264,6 +271,12 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateFiksArkivSettings(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateAllowedContributors(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateSchemaRefs(projectFolder, appPackageVersion));
 
         // All source writers must finish first, including generated data processors and their Program.cs
         // registrations. Detection keeps the v8 view; spelling decisions use the actual upgraded project.
@@ -1045,6 +1058,84 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    static async Task<int> MigrateRequiredIndicatorTexts(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Required field marker texts");
+        try
+        {
+            var result = await RequiredIndicatorTextMigration.Migrate(projectFolder);
+            foreach (var warning in result.Warnings)
+            {
+                UpgradeConsole.Warning(warning);
+            }
+
+            if (result.AsteriskOverridesRemoved > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Removed {result.AsteriskOverridesRemoved} override(s) of form_filler.required_label that repeated the old '*' marker"
+                );
+            }
+
+            if (result.DescriptionOverridesRemoved > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Removed {result.DescriptionOverridesRemoved} override(s) of form_filler.required_description, which is no longer shown"
+                );
+            }
+
+            if (result.FilesChanged == 0 && result.Warnings.Count == 0)
+            {
+                UpgradeConsole.Skip("No overrides of the required field marker texts found");
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating required field marker texts", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes <c>labelSettings.optionalIndicator: true</c> from layouts, which is the default in v9, and
+    /// tells the developer about the new default markers for required and optional fields.
+    /// </summary>
+    static async Task<int> MigrateOptionalIndicatorSettings(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Required and optional field markers");
+        try
+        {
+            var result = await OptionalIndicatorLayoutMigration.Migrate(projectFolder);
+            foreach (var warning in result.Warnings)
+            {
+                UpgradeConsole.Warning(warning);
+            }
+
+            if (result.PropertiesRemoved > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Removed {result.PropertiesRemoved} redundant labelSettings.optionalIndicator setting(s) from {result.FilesChanged} layout file(s)"
+                );
+            }
+            else if (result.Warnings.Count == 0)
+            {
+                UpgradeConsole.Skip("No redundant labelSettings.optionalIndicator settings found");
+            }
+
+            UpgradeConsole.Info(
+                "Following Designsystemet, required fields are now marked with a 'Må fylles ut' tag instead of '*', "
+                    + "and fields that are not required are marked 'Valgfritt' by default. Set "
+                    + "labelSettings.optionalIndicator to false on a component to hide the optional marker."
+            );
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating required and optional field marker settings", ex);
+        }
+    }
+
     static async Task<int> ConvertToProjectReferences(
         string projectFolder,
         string projectFile,
@@ -1596,6 +1687,69 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Fiks Arkiv settings", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 13: rename the misspelled allowedContributers property on the data types in applicationmetadata.json
+    /// to allowedContributors, the only spelling the application metadata schema accepts.
+    /// </summary>
+    static async Task<int> MigrateAllowedContributors(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("allowedContributors spelling");
+        try
+        {
+            var result = await AllowedContributorsMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No allowedContributers to rename",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error renaming allowedContributers", ex);
+        }
+    }
+
+    /// <summary>
+    /// Points the app's schema references at the app frontend distribution matching the Altinn.App package
+    /// version this run set in the project file. A run that set none (a rerun, or project references) warns instead.
+    /// </summary>
+    static async Task<int> MigrateSchemaRefs(string projectFolder, string? appPackageVersion)
+    {
+        UpgradeConsole.BeginStep("Schema references");
+        if (appPackageVersion is null)
+        {
+            UpgradeConsole.Warning(
+                "Kept schema references: no Altinn.App package version was set in this run. Point any $schema still "
+                    + "on altinncdn.no at https://altinn.studio/designer/app-dist/<version>/schemas/json/... manually."
+            );
+            return ExitSuccess;
+        }
+
+        try
+        {
+            var result = await SchemaRefMigration.Migrate(projectFolder, appPackageVersion);
+            if (result.ReferencesUpdated > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Updated {result.ReferencesUpdated} schema reference(s) to {SchemaRefMigration.AppDistUrl(appPackageVersion)}"
+                );
+            }
+            else if (result.Warnings.Count == 0)
+            {
+                UpgradeConsole.Skip("No altinncdn.no schema references to update");
+            }
+
+            foreach (var warning in result.Warnings)
+                UpgradeConsole.Warning(warning);
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error updating schema references", ex);
         }
     }
 

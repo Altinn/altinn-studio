@@ -193,7 +193,10 @@ description (see the review gates). It contains:
 - one row per downstream commit: subject, decision (`keep`, `adapt`, `drop`), the upstream commits
   that motivate the decision, and for `adapt` the new upstream API or file location to target;
 - the upstream commits in the narrowed list that touch no downstream patch but change behavior the
-  stack relies on, such as protocol, guest agent or firmware changes; and
+  stack relies on, such as protocol, guest agent or firmware changes, or the image catalog semantics
+  that `sandbox-microsandbox` image removal relies on: `Image::remove_local` removes a manifest
+  with its last reference and refuses while a runtime pins it, `Image::persist` refreshes a
+  reference's last use, and `Image::prune_local` keeps pinned images (see `image_cache.rs`); and
 - upstream refactors that moved or deleted files a patch touches, since `git rebase` reports those
   as delete/modify conflicts and the patch must be re-applied by hand at the new location.
 

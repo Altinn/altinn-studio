@@ -568,6 +568,7 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsBefore[].cells[].cellStyle.colSpan">rowsBefore[].cells[].cellStyle.colSpan</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
+            <span class="component-property-default">Default: <span class="component-property-value">1</span></span>
             <span class="component-property-type" title="number | expression&lt;number&gt;">Type: <span class="component-property-value">number | expression&lt;number&gt;</span></span>
           </span>
         </summary>
@@ -776,6 +777,7 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsBefore[].cells[].cellStyle.colSpan">rowsBefore[].cells[].cellStyle.colSpan</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
+            <span class="component-property-default">Default: <span class="component-property-value">1</span></span>
             <span class="component-property-type" title="number | expression&lt;number&gt;">Type: <span class="component-property-value">number | expression&lt;number&gt;</span></span>
           </span>
         </summary>
@@ -972,6 +974,7 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsBefore[].cells[].cellStyle.colSpan">rowsBefore[].cells[].cellStyle.colSpan</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
+            <span class="component-property-default">Default: <span class="component-property-value">1</span></span>
             <span class="component-property-type" title="number | expression&lt;number&gt;">Type: <span class="component-property-value">number | expression&lt;number&gt;</span></span>
           </span>
         </summary>
@@ -1304,6 +1307,7 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsAfter[].cells[].cellStyle.colSpan">rowsAfter[].cells[].cellStyle.colSpan</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
+            <span class="component-property-default">Default: <span class="component-property-value">1</span></span>
             <span class="component-property-type" title="number | expression&lt;number&gt;">Type: <span class="component-property-value">number | expression&lt;number&gt;</span></span>
           </span>
         </summary>
@@ -1512,6 +1516,7 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsAfter[].cells[].cellStyle.colSpan">rowsAfter[].cells[].cellStyle.colSpan</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
+            <span class="component-property-default">Default: <span class="component-property-value">1</span></span>
             <span class="component-property-type" title="number | expression&lt;number&gt;">Type: <span class="component-property-value">number | expression&lt;number&gt;</span></span>
           </span>
         </summary>
@@ -1708,6 +1713,7 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsAfter[].cells[].cellStyle.colSpan">rowsAfter[].cells[].cellStyle.colSpan</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
+            <span class="component-property-default">Default: <span class="component-property-value">1</span></span>
             <span class="component-property-type" title="number | expression&lt;number&gt;">Type: <span class="component-property-value">number | expression&lt;number&gt;</span></span>
           </span>
         </summary>
@@ -1724,6 +1730,7 @@ The component also supports the [common component properties](../common-properti
     <span class="component-property-name" title="removeWhenHidden">removeWhenHidden</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Optional</span>
+      <span class="component-property-default">Default: <span class="component-property-value">true</span></span>
       <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
     </span>
   </summary>
@@ -2053,10 +2060,11 @@ The component also supports the [common component properties](../common-properti
     <span class="component-property-name" title="labelSettings.optionalIndicator">labelSettings.optionalIndicator</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Optional</span>
+      <span class="component-property-default">Default: <span class="component-property-value">true</span></span>
       <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show optional indicator on label</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the optional indicator on the label of non-required fields. Enabled by default.</div></div>
 </details>
 
 <details class="component-property-group" id="addbutton">

@@ -29,8 +29,6 @@ export function useHasGroupedNavigation() {
   return Boolean(!isReceiptPage && (pageGroups?.length || taskGroups.length));
 }
 
-export const SIDEBAR_BREAKPOINT = 1341;
-
 export function useVisiblePages(order: string[]) {
   const hiddenPages = useHiddenPages();
   return useMemo(() => order.filter((page) => !hiddenPages.has(page)), [order, hiddenPages]);

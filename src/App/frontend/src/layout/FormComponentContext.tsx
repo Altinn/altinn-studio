@@ -1,8 +1,9 @@
-import type { IGrid } from '@app/layout-contract/generated/common.generated';
+import type { FormComponentProps, IGrid, LabeledComponentProps } from '@app/layout-contract/generated/common.generated';
 
 import type { PropsFromGenericComponent } from '.';
 
 import { createContext } from 'src/core/contexts/context';
+import type { ExprResolved } from 'src/features/expressions/types';
 
 export interface GenericComponentOverrideDisplay {
   directRender?: true;
@@ -16,7 +17,8 @@ export interface IFormComponentContext {
   baseComponentId: string | undefined;
   grid?: IGrid;
   overrideDisplay?: GenericComponentOverrideDisplay;
-  overrideItemProps?: PropsFromGenericComponent['overrideItemProps'];
+  overrideItemProps?: PropsFromGenericComponent['overrideItemProps'] &
+    Partial<ExprResolved<FormComponentProps & LabeledComponentProps>>;
 }
 
 const { Provider, useCtx } = createContext<IFormComponentContext | undefined>({

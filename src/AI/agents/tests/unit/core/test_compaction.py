@@ -5,6 +5,7 @@ from __future__ import annotations
 from agents.core import (
     AssistantMessage,
     CompactionConfig,
+    Message,
     TextBlock,
     ToolResultBlock,
     ToolUseBlock,
@@ -107,7 +108,7 @@ class TestCompactIfNeeded:
 
 class TestTotalChars:
     def test_sums_messages(self):
-        msgs = [
+        msgs: list[Message] = [
             UserMessage(content="a" * 10),
             UserMessage(content="b" * 20),
         ]
