@@ -40,14 +40,31 @@
         },
         "textResourceBindings": {
           "title": "customComponent.title",
-          "shortName": "customComponent.caption"
+          "shortName": "customComponent.caption",
+          "galaxyCaption": [
+            "if",
+            ["equals", ["dataModel", "CustomMode"], "readonly"],
+            "customComponent.readOnlyCaption",
+            "else",
+            "customComponent.caption"
+          ]
         },
         "readOnly": ["equals", ["dataModel", "CustomMode"], "readonly"],
         "hidden": ["equals", ["dataModel", "CustomMode"], "hidden"],
         "required": true,
         "grid": {
           "xs": 12
-        }
+        },
+        "fixtureMetadata": {
+          "answer": 42,
+          "enabled": true,
+          "choices": ["red", "blue"],
+          "empty": null
+        },
+        "fixtureCount": 42,
+        "fixtureEnabled": true,
+        "fixtureChoices": ["red", "blue"],
+        "fixtureEmpty": null
       },
       {
         "id": "custom-named",
@@ -59,14 +76,31 @@
         },
         "textResourceBindings": {
           "title": "customComponent.title",
-          "shortName": "customComponent.caption"
+          "shortName": "customComponent.caption",
+          "galaxyCaption": [
+            "if",
+            ["equals", ["dataModel", "CustomMode"], "readonly"],
+            "customComponent.readOnlyCaption",
+            "else",
+            "customComponent.caption"
+          ]
         },
         "readOnly": ["equals", ["dataModel", "CustomMode"], "readonly"],
         "hidden": ["equals", ["dataModel", "CustomMode"], "hidden"],
         "required": true,
         "grid": {
           "xs": 12
-        }
+        },
+        "fixtureMetadata": {
+          "answer": 42,
+          "enabled": true,
+          "choices": ["red", "blue"],
+          "empty": null
+        },
+        "fixtureCount": 42,
+        "fixtureEnabled": true,
+        "fixtureChoices": ["red", "blue"],
+        "fixtureEmpty": null
       },
       {
         "id": "custom-mirror-simple",

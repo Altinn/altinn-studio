@@ -414,6 +414,10 @@
     {
       "id": "custom-components",
       "value": "custom-components"
+    },
+    {
+      "id": "customComponent.readOnlyCaption",
+      "value": "Skrivebeskyttet ledetekst"
     }
   ]
 }

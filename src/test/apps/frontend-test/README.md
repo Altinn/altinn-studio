@@ -8,4 +8,5 @@ loaded by the app backend. It renders inputs in a shadow root, receives the
 In summary mode it renders outputs instead of inputs.
 
 The `custom-components.ts` Cypress spec checks bindings in both directions,
-persistence, translations, legacy summaries, Summary2, and component visibility.
+persistence, translations, arbitrary configuration values, expression-based text
+bindings, legacy summaries, Summary2, and component visibility.

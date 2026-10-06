@@ -86,7 +86,7 @@ class TestBindingComponent extends HTMLElement {
     const title = this.shadowRoot.querySelector('[data-title]');
     const caption = this.shadowRoot.querySelector('[data-caption]');
     if (title) title.textContent = this.getAttribute('text') ?? '';
-    if (caption) caption.textContent = this._texts.shortName ?? '';
+    if (caption) caption.textContent = this._texts.galaxyCaption ?? '';
   }
 
   updateValues() {

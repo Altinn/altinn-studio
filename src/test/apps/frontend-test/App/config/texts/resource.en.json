@@ -389,6 +389,10 @@
     {
       "id": "custom-components",
       "value": "custom-components"
+    },
+    {
+      "id": "customComponent.readOnlyCaption",
+      "value": "Read-only caption"
     }
   ]
 }
