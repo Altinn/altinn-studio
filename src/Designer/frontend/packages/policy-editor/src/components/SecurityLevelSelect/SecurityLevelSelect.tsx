@@ -39,7 +39,7 @@ export const SecurityLevelSelect = ({
           href={URL_TO_SECURITY_LEVEL_PAGE}
           target='_blank'
           rel='noopener noreferrer'
-          icon={<ExternalLinkIcon />}
+          icon={<ExternalLinkIcon title={t('general.link_opens_in_new_tab')} />}
           iconPlacement='right'
         >
           {t('policy_editor.security_level_read_more')}
