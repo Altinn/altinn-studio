@@ -223,9 +223,11 @@ describe('Lookup validation', { testIsolation: false }, () => {
           cy.get('@lookup.all').should('have.length', 0);
 
           cy.findByRole('textbox', { name: scenario.numberLabel }).type('123');
+          cy.findByText(scenario.invalid, { selector: 'span' }).should('not.exist');
+          cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.attr', 'aria-invalid', 'false');
+          cy.findByRole('button', { name: /Hent opplysninger/i }).click();
           cy.findByText(scenario.invalid, { selector: 'span' }).should('be.visible');
           cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.attr', 'aria-invalid', 'true');
-          cy.findByRole('button', { name: /Hent opplysninger/i }).click();
           if (scenario.type === 'OrganizationLookup') {
             cy.findByTestId('organization-lookup-status').should('have.focus');
           }
