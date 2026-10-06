@@ -12,7 +12,6 @@ import { retrieveSelectedValues } from './utils';
 
 export type StudioTextResourcePickerProps = Override<
   {
-    emptyLabel?: string;
     onValueChange: (id: string | null) => void;
     required?: boolean;
     textResources: TextResource[];
@@ -22,7 +21,7 @@ export type StudioTextResourcePickerProps = Override<
 >;
 
 export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextResourcePickerProps>(
-  ({ emptyLabel = '', onValueChange, textResources, value, ...rest }, ref) => {
+  ({ onValueChange, textResources, value, ...rest }, ref) => {
     const handleSelectedChange = (item: StudioSuggestionItem): void =>
       onValueChange(item?.value ?? null);
 
