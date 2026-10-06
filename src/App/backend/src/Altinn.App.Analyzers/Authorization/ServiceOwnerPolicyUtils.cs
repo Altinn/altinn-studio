@@ -44,8 +44,8 @@ internal static class ServiceOwnerPolicyUtils
     {
         var (metadataOrg, metadataApp, autoDeleteOnProcessEnd) = ReadMetadata(metadataFile, token);
 
-        // Without a process there is nothing to derive task-specific requirements from, but the
-        // baseline still applies - every app reads and writes instance data.
+        // Without a process there is no way to tell whether a task marks the instance complete, but
+        // the baseline still applies - every app reads and writes instance data.
         var processContent = processFile?.GetText(token)?.ToString();
         var process = processContent is null ? null : ProcessInfo.TryParse(processContent);
         var requirements = BuildRequirements(process, autoDeleteOnProcessEnd);
