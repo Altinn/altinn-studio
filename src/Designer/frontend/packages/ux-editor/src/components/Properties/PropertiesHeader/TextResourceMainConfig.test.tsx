@@ -42,10 +42,8 @@ describe('TextBindingMainConfig', () => {
     });
     await user.click(searchButton);
 
-    await user.selectOptions(
-      screen.getByRole('combobox'),
-      screen.getByRole('option', { name: textResources[1].id }),
-    );
+    await user.click(screen.getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: RegExp(textResources[1].value) }));
     await user.click(screen.getByRole('button', { name: textMock('general.save') }));
     expect(mockHandleComponentUpdate).toHaveBeenCalledWith({
       ...component1Mock,
