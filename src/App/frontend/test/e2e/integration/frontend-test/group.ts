@@ -926,8 +926,8 @@ describe('Group', () => {
     cy.get('[data-testid="summary-repeating-row"]').should('have.length', 2);
 
     function assertGroupLabelAsFieldSet(insideGroup: string, rowLength: number, addButtonVisbible = true) {
-      cy.findByRole('caption', { name: 'Group title' }).should('not.exist');
-      cy.findByRole('table', { name: 'Group title' }).should('not.exist');
+      cy.findByRole('caption', { name: /^Group title\s*Valgfritt$/ }).should('not.exist');
+      cy.findByRole('table', { name: /^Group title\s*Valgfritt$/ }).should('not.exist');
       cy.findByRole('group', { name: 'Group title' }).find(insideGroup).should('have.length', rowLength);
       if (addButtonVisbible) {
         cy.findByRole('group', { name: 'Group title' }).find(appFrontend.group.addNewItem).should('be.visible');
@@ -939,18 +939,24 @@ describe('Group', () => {
     function assertGroupLabelAsCaption(numRows: number) {
       cy.findByRole('group', { name: 'Group title' }).should('not.exist');
 
-      cy.findByRole('table', { name: 'Group title' })
+      cy.findByRole('table', { name: /^Group title\s*Valgfritt$/ })
         .find(appFrontend.group.mainGroupTableBody)
         .find('tr')
         .should('have.length', numRows);
 
       // The caption itself is a role inside the table, but it does not 'contain' the table rows themselves
-      cy.findByRole('caption', { name: 'Group title' }).find(appFrontend.group.mainGroupTableBody).should('not.exist');
+      cy.findByRole('caption', { name: /^Group title\s*Valgfritt$/ })
+        .find(appFrontend.group.mainGroupTableBody)
+        .should('not.exist');
 
       // The caption and table roles does not cover the add button (maybe it should? the add button is not a part of the
       // table, but it is a part of the group component)
-      cy.findByRole('caption', { name: 'Group title' }).find(appFrontend.group.addNewItem).should('not.exist');
-      cy.findByRole('table', { name: 'Group title' }).find(appFrontend.group.addNewItem).should('not.exist');
+      cy.findByRole('caption', { name: /^Group title\s*Valgfritt$/ })
+        .find(appFrontend.group.addNewItem)
+        .should('not.exist');
+      cy.findByRole('table', { name: /^Group title\s*Valgfritt$/ })
+        .find(appFrontend.group.addNewItem)
+        .should('not.exist');
 
       // But the button should be visible outside the table
       cy.get(appFrontend.group.addNewItem).should('be.visible');
@@ -1081,15 +1087,15 @@ describe('Group', () => {
     cy.get(appFrontend.group.mainGroup)
       .findByRole('button', { name: /Neste side/ })
       .click();
-    cy.findByRole('presentation', { name: 'Last opp alle vedlegg med kilde Altinn her' }).should('not.exist');
-    cy.findByRole('presentation', { name: 'Multi uploader in repeating group' }).should('exist');
+    cy.findByRole('presentation', { name: /^Last opp alle vedlegg med kilde Altinn her/ }).should('not.exist');
+    cy.findByRole('presentation', { name: /^Multi uploader in repeating group\s*Valgfritt$/ }).should('exist');
     cy.get(appFrontend.group.mainGroup)
       .findByRole('button', { name: /Neste side/ })
       .click();
-    cy.findByRole('table', { name: 'Nested group' }).should('exist');
+    cy.findByRole('table', { name: /^Nested group\s*Valgfritt$/ }).should('exist');
     cy.get(appFrontend.group.mainGroup)
       .findByRole('button', { name: /Forrige side/ })
       .click();
-    cy.findByRole('presentation', { name: 'Multi uploader in repeating group' }).should('exist');
+    cy.findByRole('presentation', { name: /^Multi uploader in repeating group\s*Valgfritt$/ }).should('exist');
   });
 });

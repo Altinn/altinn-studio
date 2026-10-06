@@ -30,14 +30,20 @@ describe('LabelComponent', () => {
     expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
-  it('shows the optional marking when enabled and not required', () => {
-    render({ showOptionalMarking: true });
-    expect(screen.getByText(/\(optional\)/i)).toBeInTheDocument();
+  it('shows the optional marking by default when not required', () => {
+    render({ required: false });
+    expect(screen.getByText('Optional')).toBeInTheDocument();
   });
 
-  it('does not show the optional marking when required', () => {
-    render({ required: true, showOptionalMarking: true });
-    expect(screen.queryByText(/\(optional\)/i)).not.toBeInTheDocument();
+  it('hides the optional marking when disabled', () => {
+    render({ required: false, showOptionalMarking: false });
+    expect(screen.queryByText('Optional')).not.toBeInTheDocument();
+  });
+
+  it('shows the required marking instead of the optional one when required', () => {
+    render({ required: true });
+    expect(screen.getByText('Required')).toBeInTheDocument();
+    expect(screen.queryByText('Optional')).not.toBeInTheDocument();
   });
 
   it('renders the help text button and description when given', () => {

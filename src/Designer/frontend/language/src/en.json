@@ -413,7 +413,6 @@
   "process_editor.configuration_panel_pdf_create_button": "Create",
   "process_editor.configuration_panel_pdf_filename_description": "Enter filename for the PDF, without file extension. If no filename is provided, the application name is used as the filename.",
   "process_editor.configuration_panel_pdf_filename_label": "Filename",
-  "process_editor.configuration_panel_pdf_filename_no_text_resource": "None",
   "process_editor.configuration_panel_pdf_filename_search_label": "Search for text resource",
   "process_editor.configuration_panel_pdf_filename_tab_search": "Search",
   "process_editor.configuration_panel_pdf_filename_tab_write": "Write text",

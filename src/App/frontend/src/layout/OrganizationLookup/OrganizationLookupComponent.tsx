@@ -7,6 +7,7 @@ import {
   getDescriptionId,
   Label,
   NumericInput,
+  OptionalIndicator,
   RequiredIndicator,
 } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -88,6 +89,7 @@ export function OrganizationLookupComponent({
     baseComponentId,
     overrideDisplay,
   });
+  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
   const [tempOrgNr, setTempOrgNr] = useState('');
   const [orgNrErrors, setOrgNrErrors] = useState<string[]>();
   const [statusMessage, setStatusMessage] = useState('');
@@ -204,6 +206,13 @@ export function OrganizationLookupComponent({
               label={langAsString('organization_lookup.orgnr_label')}
               required={required}
               requiredIndicator={<RequiredIndicator required={required} />}
+              optionalIndicator={
+                <OptionalIndicator
+                  required={required}
+                  readOnly={readOnly}
+                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                />
+              }
               description={
                 hasSuccessfullyFetched ? (
                   <Description

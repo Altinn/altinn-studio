@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -7,7 +8,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { BotAccountsList } from './BotAccountsList';
 import type { BotAccount } from 'app-shared/types/BotAccount';
 
-jest.mock('../BotAccountApiKeys/BotAccountApiKeys', () => ({
+vi.mock('../BotAccountApiKeys/BotAccountApiKeys', () => ({
   BotAccountApiKeys: ({ botAccountId }: { botAccountId: string }) => (
     <div>BotAccountApiKeys ({botAccountId})</div>
   ),
@@ -40,10 +41,10 @@ const anotherBotAccount: BotAccount = {
 const defaultProps = {
   org: testOrg,
   botAccounts: [] as BotAccount[],
-  onEdit: jest.fn(),
+  onEdit: vi.fn(),
   highlightId: undefined as string | undefined,
   expandedId: null as string | null,
-  onToggleExpanded: jest.fn(),
+  onToggleExpanded: vi.fn(),
 };
 
 const renderBotAccountsList = (
@@ -58,7 +59,7 @@ const renderBotAccountsList = (
 };
 
 describe('BotAccountsList', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('renders table column headers', () => {
     renderBotAccountsList();
@@ -87,7 +88,7 @@ describe('BotAccountsList', () => {
 
   it('calls onToggleExpanded when expand button is clicked', async () => {
     const user = userEvent.setup();
-    const onToggleExpanded = jest.fn();
+    const onToggleExpanded = vi.fn();
     renderBotAccountsList({ botAccounts: [activeBotAccount], onToggleExpanded });
     const expandButton = screen.getByRole('button', {
       name: textMock('settings.orgs.bot_accounts.expand_aria_label', {
@@ -120,7 +121,7 @@ describe('BotAccountsList', () => {
   });
 
   it('calls deactivateBotAccount when delete is confirmed', async () => {
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     const user = userEvent.setup();
     renderBotAccountsList({ botAccounts: [activeBotAccount] });
     const deleteButton = screen.getByRole('button', {
@@ -131,7 +132,7 @@ describe('BotAccountsList', () => {
   });
 
   it('calls onEdit when edit button is clicked', async () => {
-    const onEdit = jest.fn();
+    const onEdit = vi.fn();
     const user = userEvent.setup();
     renderBotAccountsList({ botAccounts: [activeBotAccount], onEdit });
     await user.click(
@@ -145,7 +146,7 @@ describe('BotAccountsList', () => {
   });
 
   it('calls onToggleExpanded when a row is clicked (non-interactive area)', async () => {
-    const onToggleExpanded = jest.fn();
+    const onToggleExpanded = vi.fn();
     const user = userEvent.setup();
     renderBotAccountsList({ botAccounts: [activeBotAccount], onToggleExpanded });
     await user.click(screen.getByText(activeBotAccount.username));

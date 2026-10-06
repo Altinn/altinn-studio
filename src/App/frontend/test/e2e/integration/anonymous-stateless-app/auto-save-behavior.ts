@@ -27,7 +27,7 @@ describe('Auto save behavior', () => {
     cy.wait('@putFormData').then(() => {
       expect(postFormDataCounter).to.be.eq(1);
     });
-    cy.findByRole('radiogroup', { name: 'Velg kjønn' }).within(() => {
+    cy.findByRole('radiogroup', { name: /^Velg kjønn\s*Valgfritt$/ }).within(() => {
       cy.findByRole('radio', { name: 'mann' }).check();
     });
     cy.wait('@putFormData').then(() => {
@@ -61,7 +61,7 @@ describe('Auto save behavior', () => {
     cy.wait(1000).then(() => {
       expect(postFormDataCounter).to.be.eq(0);
     });
-    cy.findByRole('radiogroup', { name: 'Velg kjønn' }).within(() => {
+    cy.findByRole('radiogroup', { name: /^Velg kjønn\s*Valgfritt$/ }).within(() => {
       cy.findByRole('radio', { name: 'mann' }).check();
     });
     cy.findByRole('button', { name: 'Neste' }).click();
