@@ -25,3 +25,13 @@
   bottom: 0;
   background-color: #fff;
 }
+
+.altinn2RolesAlert {
+  margin-left: auto;
+}
+
+.subject {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+}

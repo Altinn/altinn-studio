@@ -7,7 +7,10 @@ import {
 } from '@altinn/policy-editor';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { useGetAltinn2ResourcePoliciesQuery } from '../../hooks/queries/useGetAltinn2ResourcePoliciesQuery';
-import { getDeprecatedAltinn2SubjectsFromRules } from 'app-shared/utils/altinn2RoleUtils';
+import {
+  deprecatedAltinn2Roles,
+  getDeprecatedAltinn2SubjectsFromRules,
+} from 'app-shared/utils/altinn2RoleUtils';
 import classes from './Altinn2ResourcePoliciesPage.module.css';
 import {
   StudioAlert,
@@ -29,6 +32,7 @@ import { usePublishResourcePolicyMutation } from '../../hooks/mutations/usePubli
 import { getResourceDashboardURL } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { PackageIcon, PersonTallShortIcon } from '@navikt/aksel-icons';
 
 const ALTINN_APP = 'AltinnApp';
 const MIGRATED_APP = 'MigratedApp';
@@ -194,9 +198,13 @@ export const ResourcePolicyTable = ({
   isOnlyA2Roles: boolean;
   onPolicyUpdated: (data: ResourcePolicyData) => void;
 }) => {
+  const { org, app } = useUrlParams();
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [selectedPolicy, setSelectedPolicy] = useState<TableRowData | null>(null);
+
+  const { data: subjectData } = useResourcePolicySubjectsQuery(org, app);
+  const { data: accessPackages } = useResourceAccessPackagesQuery(org, app);
 
   const onCloseDialog = () => {
     setSelectedPolicy(null);
@@ -216,12 +224,10 @@ export const ResourcePolicyTable = ({
           {
             accessor: 'a2Roles',
             heading: t('resourceadm.altinn2policy_column_a2_roles'),
-            sortable: true,
           },
           {
             accessor: 'otherRoles',
             heading: t('resourceadm.altinn2policy_column_other_roles'),
-            sortable: true,
           },
           {
             accessor: 'actions',
@@ -232,8 +238,43 @@ export const ResourcePolicyTable = ({
           return {
             id: x.identifier,
             identifier: x.identifier,
-            a2Roles: x.a2Roles.join(', '),
-            otherRoles: x.otherRoles.join(', '),
+            a2Roles: (
+              <div>
+                {x.a2Roles.map((role) => (
+                  <div key={role} className={classes.subject}>
+                    <PersonTallShortIcon />
+                    {deprecatedAltinn2Roles[role] || role}
+                  </div>
+                ))}
+              </div>
+            ),
+            otherRoles: (
+              <div>
+                {x.otherRoles.map((role) => {
+                  const roleName = subjectData?.find((s) => s.legacyUrn === role)?.name;
+                  const accessPackageName = accessPackages
+                    ?.flatMap((ap) => ap.areas)
+                    .flatMap((area) => area.packages)
+                    .find((ap) => ap.urn === role)?.name;
+
+                  if (accessPackageName) {
+                    return (
+                      <div key={role} className={classes.subject}>
+                        <PackageIcon />
+                        {accessPackageName || role}
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div key={roleName ?? role} className={classes.subject}>
+                        <PersonTallShortIcon />
+                        {roleName ?? role}
+                      </div>
+                    );
+                  }
+                })}
+              </div>
+            ),
             actions: (
               <div>
                 {x.resourceType !== ALTINN_APP && !x.existsInGitea && (
@@ -330,6 +371,10 @@ export const LocalPolicyEditor = ({
     return <StudioSpinner aria-label={t('resourceadm.altinn2policy_policy_spinner')} />;
   }
 
+  const numberOfAltinn2Roles = getDeprecatedAltinn2SubjectsFromRules(
+    updatedPolicy.rules || [],
+  ).length;
+
   return (
     <>
       <StudioDialog.Block>
@@ -356,6 +401,12 @@ export const LocalPolicyEditor = ({
             {t('resourceadm.altinn2policy_publish_error')}
           </StudioAlert>
         )}
+        <StudioAlert
+          data-color={numberOfAltinn2Roles === 0 ? 'success' : 'warning'}
+          className={classes.altinn2RolesAlert}
+        >
+          {t('resourceadm.altinn2policy_number_of_roles', { roles: numberOfAltinn2Roles })}
+        </StudioAlert>
       </StudioDialog.Block>
     </>
   );
