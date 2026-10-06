@@ -2626,6 +2626,9 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
+          "$ref": "#/definitions/LabeledComponentProps"
+        },
+        {
           "title": "CompCustomExternal",
           "type": "object",
           "properties": {
@@ -2664,7 +2667,9 @@
                     "summaryAccessibleTitle": true,
                     "title": true
                   },
-                  "additionalProperties": false
+                  "additionalProperties": {
+                    "$ref": "expression.schema.v1.json#/definitions/string"
+                  }
                 }
               ]
             },
@@ -2700,6 +2705,7 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
+            "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
             "removeWhenHidden": true,
@@ -2711,7 +2717,7 @@
             "type",
             "tagName"
           ],
-          "additionalProperties": false
+          "additionalProperties": true
         }
       ]
     },

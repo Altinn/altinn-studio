@@ -10,7 +10,7 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression, useEvalExpressionMap } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalExpressionDictionary } from 'src/utils/layout/useEvalExpression';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -57,7 +57,10 @@ export function CustomWebComponent({
   const readOnly = useEvalExpression(config.readOnly, Expressions.Custom.readOnly);
   const required = useEvalExpression(config.required, Expressions.Custom.required);
   const forceShowInSummary = useEvalExpression(config.forceShowInSummary, Expressions.Custom.forceShowInSummary);
-  const texts = useEvalExpressionMap(config.textResourceBindings, Expressions.Custom.textResourceBindings);
+  const texts = useEvalExpressionDictionary(
+    config.textResourceBindings,
+    Expressions.Custom.textResourceBindings.additionalProperties,
+  );
   const { containerDivRef: _unused, ...restFromGeneric } = passThroughPropsFromGenericComponent;
 
   const passThroughProps: IPassedOnProps = {

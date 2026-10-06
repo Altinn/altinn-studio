@@ -5618,6 +5618,7 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
+        labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
           value: 'Custom',
@@ -5647,7 +5648,7 @@ const generatedContract = {
               required: false,
             },
           },
-          additionalProperties: false,
+          additionalProperties: { type: 'string', expression: true },
           title: { en: 'Text resources', nb: 'Tekstressurser' },
           description: {
             en: 'Connects component texts to text resources or expressions.',

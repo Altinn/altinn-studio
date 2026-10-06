@@ -3,6 +3,7 @@ import {
   ComponentBase,
   FormComponentProps,
   IRawDataModelBinding,
+  LabeledComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
@@ -14,13 +15,18 @@ export interface IDataModelBindingsForCustom {
 
 export type CompCustomSerialized = {
   type: 'Custom';
-  textResourceBindings?: { title?: ExprValToActualOrExpr<ExprVal.String> } & TRBFormComp &
+  textResourceBindings?: {
+    title?: ExprValToActualOrExpr<ExprVal.String>;
+    [key: string]: ExprValToActualOrExpr<ExprVal.String> | undefined;
+  } & TRBFormComp &
     TRBSummarizable;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForCustom;
   tagName: string;
+  [key: string]: unknown;
 } & ComponentBase &
   FormComponentProps &
-  SummarizableComponentProps;
+  SummarizableComponentProps &
+  LabeledComponentProps;
 
-// Source hash: beef386cfee9c593c42901a0201997587ba651314fb2d78a295b43981138d79b
+// Source hash: a0fd17f966547e57c0a36fa2c555512248801127f3ec1366f25a78d6fc7f7786
