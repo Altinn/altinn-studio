@@ -257,6 +257,7 @@ COPY common/nvim-sysinit.vim /etc/xdg/nvim/sysinit.vim
 RUN systemctl mask ssh.service ssh.socket \
     && rm -f /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
 COPY --chown=agent:agent --chmod=0600 common/claude-state.json /home/agent/.claude/.claude.json
+COPY --chown=agent:agent common/claude-settings.json /home/agent/.claude/settings.json
 
 # Microsandbox Executions and harnesses inherit init.scope. Keep the kernel pid
 # limit as their task boundary instead of systemd's much lower default.

@@ -12,6 +12,10 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+### Added
+
+- New Altinn Agents turn on Claude Code agent teams, so Claude can start teammates that work at the same time. A team uses more tokens. To turn it off, set `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` to `0` in `~/.claude/settings.json`. ([Claude Code agent teams](https://code.claude.com/docs/en/agent-teams), [#PR](https://github.com/Altinn/altinn-studio/pull/PR))
+
 ## [0.1.0-preview.9] - 2026-10-02
 
 ### Added
