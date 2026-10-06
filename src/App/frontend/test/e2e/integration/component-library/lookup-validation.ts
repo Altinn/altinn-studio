@@ -146,12 +146,6 @@ describe('Lookup validation', { testIsolation: false }, () => {
       for (const repeated of [false, true]) {
         it(`shows backend errors for every binding after ${repeated ? 'a row' : 'a standalone'} lookup`, () => {
           cy.intercept({ method: scenario.method, url: scenario.url, times: 1 }, scenario.success).as('lookup');
-          // The lookup's own gate must reveal errors without showValidations configuration.
-          cy.changeLayout((component) => {
-            if (component.type === scenario.type) {
-              component.showValidations = [];
-            }
-          });
           if (repeated) {
             cy.findByRole('button', { name: /Legg til ny/ }).click();
           }
