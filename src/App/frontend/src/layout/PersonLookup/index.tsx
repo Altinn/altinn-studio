@@ -5,6 +5,7 @@ import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeVa
 import { PersonLookupDef } from 'src/layout/PersonLookup/config.def.generated';
 import { PersonLookupComponent } from 'src/layout/PersonLookup/PersonLookupComponent';
 import { PersonLookupSummary } from 'src/layout/PersonLookup/PersonLookupSummary';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
@@ -54,7 +55,13 @@ export class PersonLookup extends PersonLookupDef {
 
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'PersonLookup'>>(
     function LayoutComponentPersonLookupRender(props, _): JSX.Element | null {
-      return <PersonLookupComponent {...props} />;
+      const indexedId = useIndexedId(props.baseComponentId);
+      return (
+        <PersonLookupComponent
+          key={indexedId}
+          {...props}
+        />
+      );
     },
   );
 
