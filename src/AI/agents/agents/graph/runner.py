@@ -243,12 +243,14 @@ async def _validate_intent(state: AgentState):
 
     if not parsed.safe:
         _log.warning("Unsafe goal rejected for session %s: %s", state.session_id, parsed.reason)
-        suggestions = await suggest_goal_correction(state.user_goal, parsed.reason)
+        suggestions = await suggest_goal_correction(
+            state.user_goal, parsed.reason, conversation=state.conversation_history
+        )
         raise GoalRejected(_UNSAFE_GOAL_MESSAGE, suggestions)
 
     if parsed.confidence < MINIMUM_INTENT_CONFIDENCE:
         _log.warning("Low confidence goal rejected for session %s: %s", state.session_id, parsed.confidence)
-        suggestions = await suggest_goal_correction(state.user_goal)
+        suggestions = await suggest_goal_correction(state.user_goal, conversation=state.conversation_history)
         raise GoalRejected(_UNCLEAR_GOAL_MESSAGE, suggestions)
 
     _log.info(

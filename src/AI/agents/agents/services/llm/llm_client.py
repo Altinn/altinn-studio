@@ -577,7 +577,8 @@ async def parse_intent_with_llm(
 ) -> dict[str, Any]:
     """Parse user intent using LLM."""
     system_prompt, lf_prompt = get_prompt_with_langfuse("intent_check", local_path="intent_security")
-    user_prompt = build_intent_parse_message(goal, [a.name for a in attachments] if attachments else None, conversation)
+    attachment_names = [attachment.name for attachment in attachments or []]
+    user_prompt = build_intent_parse_message(goal, attachment_names, conversation=conversation)
 
     client = get_llm_client()
     response = await client.call_async(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
@@ -610,7 +611,11 @@ async def parse_intent_with_llm(
         }
 
 
-def suggest_goals_with_llm(rejected_goal: str, rejection_reason: str | None = None) -> list[str]:
+def suggest_goals_with_llm(
+    rejected_goal: str,
+    rejection_reason: str | None = None,
+    conversation: Sequence[Any] | None = None,
+) -> list[str]:
     """Generate goal suggestions using LLM"""
     system_prompt, lf_prompt = get_prompt_with_langfuse("goal_suggestions")
 
@@ -624,6 +629,7 @@ def suggest_goals_with_llm(rejected_goal: str, rejection_reason: str | None = No
     )
     # The chips sit next to a rejection written in the user's language.
     user_prompt += "\nWrite them in the same language as the goal above.\nOne goal per line, no numbering."
+    user_prompt = prepend_recent_turns(user_prompt, conversation)
 
     try:
         client = get_llm_client()

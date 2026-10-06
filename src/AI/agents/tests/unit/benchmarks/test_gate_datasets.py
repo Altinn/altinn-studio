@@ -147,7 +147,7 @@ class TestTheUploadedInputMatchesProduction:
         )
         assert "ignore-previous-instructions" in rendered["user_message"]
 
-    def test_a_follow_up_item_carries_the_conversation(self):
+    def test_renders_the_conversation_of_a_follow_up_item(self):
         safety = next(d for d in DATASETS if d.name == "Gates/intent-safety")
         item = next(i for i in safety.items if i["id"] == "safety-followup-accepts-offer")
 
