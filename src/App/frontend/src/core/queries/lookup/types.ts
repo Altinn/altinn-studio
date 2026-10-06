@@ -1,9 +1,8 @@
 export type Person = {
-  ssn: string;
-  name: string;
   firstName: string;
-  middleName: string;
   lastName: string;
+  middleName: string;
+  ssn: string;
 };
 
 export type Organization = { orgNr: string; name: string };
@@ -12,5 +11,5 @@ export type PersonLookupResponse = { success: false; personDetails: null } | { s
 export type OrganizationLookupResponse =
   { success: false; organisationDetails: null } | { success: true; organisationDetails: Organization };
 
-export type LookupFailure = 'notFound' | 'invalidResponse' | 'forbidden' | 'tooManyRequests' | 'unknown';
-export type LookupResult<T> = { data: T; failure?: never } | { data: null; failure: LookupFailure };
+export type PersonLookupResult = { person: Person; error: null } | { person: null; error: string };
+export type OrganizationLookupResult = { org: Organization; error: null } | { org: null; error: string };

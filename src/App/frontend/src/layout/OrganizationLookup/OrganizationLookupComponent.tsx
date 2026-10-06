@@ -31,17 +31,8 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
-import type { LookupFailure } from 'src/core/queries/lookup';
 
 const LIVE_REGION_RESET_DELAY_MS = 100;
-const organizationLookupFailureMessages: Record<LookupFailure, string> = {
-  notFound: 'organization_lookup.validation_error_not_found',
-  invalidResponse: 'organization_lookup.validation_invalid_response_from_server',
-  forbidden: 'organization_lookup.unknown_error',
-  tooManyRequests: 'organization_lookup.unknown_error',
-  unknown: 'organization_lookup.unknown_error',
-};
-
 export function OrganizationLookupComponent({
   baseComponentId,
   overrideDisplay,
@@ -58,7 +49,6 @@ export function OrganizationLookupComponent({
   });
   const [tempOrgNr, setTempOrgNr] = useState('');
   const [lookupAttempted, setLookupAttempted] = useState(false);
-  const [lookupFailure, setLookupFailure] = useState<LookupFailure>();
   const invalidSearchOrgNr = lookupAttempted && !checkValidOrgnNr(tempOrgNr);
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const [statusMessage, setStatusMessage] = useState('');
@@ -75,7 +65,7 @@ export function OrganizationLookupComponent({
   const pickFormValue = FormStore.data.useCurrentSelector();
   const waitForSave = FormStore.data.useWaitForSave();
 
-  const { lookup: performLookup, isFetching } = useOrganizationLookup(tempOrgNr);
+  const { error: lookupError, lookup: performLookup, isFetching } = useOrganizationLookup(tempOrgNr);
 
   function announceStatusMessage(message: string) {
     setStatusMessage('');
@@ -120,29 +110,26 @@ export function OrganizationLookupComponent({
       return;
     }
     setLookupAttempted(true);
-    setLookupFailure(undefined);
     if (!checkValidOrgnNr(tempOrgNr)) {
       announceStatusMessage(langAsString('organization_lookup.validation_error_orgnr'));
       return;
     }
 
-    const { data, failure } = await performLookup();
-    if (data) {
-      setValue('orgnr', data.orgNr);
-      dataModelBindings.name && setValue('name', data.name);
+    const { org, error } = await performLookup();
+    if (org) {
+      setValue('orgnr', org.orgNr);
+      dataModelBindings.name && setValue('name', org.name);
       clearSearch();
       await waitForSave(true);
-      announceOrgDetails(data.orgNr);
-    } else {
-      setLookupFailure(failure);
-      announceStatusMessage(langAsString(organizationLookupFailureMessages[failure]));
+      announceOrgDetails(org.orgNr);
+    } else if (error) {
+      announceStatusMessage(langAsString(error));
     }
   }
 
   function clearSearch() {
     setTempOrgNr('');
     setLookupAttempted(false);
-    setLookupFailure(undefined);
   }
 
   function handleClear() {
@@ -154,7 +141,7 @@ export function OrganizationLookupComponent({
 
   const hasSuccessfullyFetched = !!orgnr;
 
-  const invalid = invalidSearchOrgNr || !!lookupFailure || hasValidationErrors(validations);
+  const invalid = invalidSearchOrgNr || !!lookupError || hasValidationErrors(validations);
 
   return (
     <Fieldset
@@ -199,7 +186,6 @@ export function OrganizationLookupComponent({
               error={invalid}
               onValueChange={(e) => {
                 setTempOrgNr(e.value);
-                setLookupFailure(undefined);
                 setStatusMessage('');
               }}
               onKeyDown={async (ev) => {
@@ -239,12 +225,12 @@ export function OrganizationLookupComponent({
               )}
             </div>
           )}
-          {lookupFailure && (
+          {lookupError && (
             <ValidationMessage
               data-size='sm'
               className={classes.apiError}
             >
-              <Lang id={organizationLookupFailureMessages[lookupFailure]} />
+              <Lang id={lookupError} />
             </ValidationMessage>
           )}
           {hasSuccessfullyFetched && orgName && (

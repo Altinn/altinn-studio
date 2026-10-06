@@ -27,16 +27,8 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
-import type { LookupFailure, Person } from 'src/core/queries/lookup';
+import type { Person } from 'src/core/queries/lookup';
 import type { PropsFromGenericComponent } from 'src/layout';
-
-const personLookupFailureMessages: Record<LookupFailure, string> = {
-  notFound: 'person_lookup.validation_error_not_found',
-  invalidResponse: 'person_lookup.validation_invalid_response_from_server',
-  forbidden: 'person_lookup.validation_error_forbidden',
-  tooManyRequests: 'person_lookup.validation_error_too_many_requests',
-  unknown: 'person_lookup.unknown_error',
-};
 
 export function PersonLookupComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'PersonLookup'>) {
   const config = useComponentConfig(baseComponentId, 'PersonLookup');
@@ -52,7 +44,6 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
   const [tempSsn, setTempSsn] = useState('');
   const [tempName, setTempName] = useState('');
   const [lookupAttempted, setLookupAttempted] = useState(false);
-  const [lookupFailure, setLookupFailure] = useState<LookupFailure>();
   const invalidSearchSsn = lookupAttempted && !checkValidSsn(tempSsn);
   const invalidSearchName = lookupAttempted && !tempName.trim();
   const validations = useUnifiedValidationsForNode(baseComponentId);
@@ -65,38 +56,35 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
     setValue,
   } = useDataModelBindings(dataModelBindings);
 
-  const { lookup: performLookup, isFetching } = usePersonLookup(tempSsn, tempName);
+  const { error: lookupError, lookup: performLookup, isFetching } = usePersonLookup(tempSsn, tempName);
 
   async function handleSubmit() {
     if (readOnly || isFetching || ssn) {
       return;
     }
     setLookupAttempted(true);
-    setLookupFailure(undefined);
     if (!checkValidSsn(tempSsn) || !tempName.trim()) {
       return;
     }
 
-    const { data, failure } = await performLookup();
-    if (data) {
+    const { person } = await performLookup();
+    if (person) {
       if (dataModelBindings.ssn) {
-        setValue('ssn', data.ssn);
+        setValue('ssn', person.ssn);
       }
       if (dataModelBindings.firstName) {
-        setValue('firstName', data.firstName);
+        setValue('firstName', person.firstName);
       }
       if (dataModelBindings.lastName) {
-        setValue('lastName', data.lastName);
+        setValue('lastName', person.lastName);
       }
       if (dataModelBindings.middleName) {
-        setValue('middleName', data.middleName || '');
+        setValue('middleName', person.middleName || '');
       }
       if (dataModelBindings.fullName) {
-        setValue('fullName', composeFullName(data));
+        setValue('fullName', composeFullName(person));
       }
       clearSearch();
-    } else {
-      setLookupFailure(failure);
     }
   }
 
@@ -108,7 +96,6 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
     setTempSsn('');
     setTempName('');
     setLookupAttempted(false);
-    setLookupFailure(undefined);
   }
 
   function handleClear() {
@@ -188,7 +175,6 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               error={invalidSsn}
               onValueChange={(e) => {
                 setTempSsn(e.value);
-                setLookupFailure(undefined);
               }}
               onKeyDown={async (ev) => {
                 if (ev.key === 'Enter' && !readOnly) {
@@ -242,7 +228,6 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               error={invalidName}
               onChange={(e) => {
                 setTempName(e.target.value);
-                setLookupFailure(undefined);
               }}
               onKeyDown={async (ev) => {
                 if (ev.key === 'Enter' && !readOnly) {
@@ -279,12 +264,12 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               )}
             </div>
           )}
-          {lookupFailure && (
+          {lookupError && (
             <ValidationMessage
               data-size='sm'
               className={classes.apiError}
             >
-              <Lang id={personLookupFailureMessages[lookupFailure]} />
+              <Lang id={lookupError} />
             </ValidationMessage>
           )}
         </div>

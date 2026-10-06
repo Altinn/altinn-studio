@@ -5,11 +5,10 @@ import { isAxiosError } from 'axios';
 import { httpGet, httpPost } from 'src/utils/network/networking';
 import { appPath } from 'src/utils/urls/appUrlHelper';
 import type {
-  LookupResult,
-  Organization,
   OrganizationLookupResponse,
-  Person,
+  OrganizationLookupResult,
   PersonLookupResponse,
+  PersonLookupResult,
 } from 'src/core/queries/lookup/types';
 
 const ajv = new Ajv({ allErrors: true });
@@ -75,51 +74,73 @@ const organizationLookupResponseSchema: JSONSchemaType<OrganizationLookupRespons
 
 const validateOrganizationLookupResponse = ajv.compile(organizationLookupResponseSchema);
 
-async function fetchPerson(ssn: string, lastName: string): Promise<LookupResult<Person>> {
+async function fetchPerson(ssn: string, name: string): Promise<PersonLookupResult> {
+  if (!ssn || !name) {
+    throw new Error('Missing ssn or name');
+  }
+  const body = { socialSecurityNumber: ssn, lastName: name };
+  const url = `${appPath}/api/v1/lookup/person`;
+
   try {
-    const response = await httpPost(`${appPath}/api/v1/lookup/person`, undefined, {
-      socialSecurityNumber: ssn,
-      lastName,
-    });
-    if (!validatePersonLookupResponse(response.data)) {
-      return { data: null, failure: 'invalidResponse' };
+    const response = await httpPost(url, undefined, body);
+    const data = response.data;
+
+    if (!validatePersonLookupResponse(data)) {
+      return { person: null, error: 'person_lookup.validation_invalid_response_from_server' };
     }
-    return response.data.success ? { data: response.data.personDetails } : { data: null, failure: 'notFound' };
+
+    if (!data.success) {
+      return { person: null, error: 'person_lookup.validation_error_not_found' };
+    }
+
+    return { person: data.personDetails, error: null };
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 403) {
-      return { data: null, failure: 'forbidden' };
+      return { person: null, error: 'person_lookup.validation_error_forbidden' };
     }
     if (isAxiosError(error) && error.response?.status === 429) {
-      return { data: null, failure: 'tooManyRequests' };
+      return { person: null, error: 'person_lookup.validation_error_too_many_requests' };
     }
-    return { data: null, failure: 'unknown' };
+
+    return { person: null, error: 'person_lookup.unknown_error' };
   }
 }
 
-async function fetchOrganization(orgNr: string): Promise<LookupResult<Organization>> {
+async function fetchOrg(orgNr: string): Promise<OrganizationLookupResult> {
+  if (!orgNr) {
+    throw new Error('orgNr is required');
+  }
+  const url = `${appPath}/api/v1/lookup/organisation/${orgNr}`;
+
   try {
-    const response = await httpGet(`${appPath}/api/v1/lookup/organisation/${orgNr}`);
+    const response = await httpGet(url);
+
     if (!validateOrganizationLookupResponse(response)) {
-      return { data: null, failure: 'invalidResponse' };
+      return { org: null, error: 'organization_lookup.validation_invalid_response_from_server' };
     }
-    return response.success ? { data: response.organisationDetails } : { data: null, failure: 'notFound' };
+
+    if (!response.success || !response.organisationDetails) {
+      return { org: null, error: 'organization_lookup.validation_error_not_found' };
+    }
+
+    return { org: response.organisationDetails, error: null };
   } catch {
-    return { data: null, failure: 'unknown' };
+    return { org: null, error: 'organization_lookup.unknown_error' };
   }
 }
 
-export const personLookupQuery = (ssn: string, lastName: string) =>
+export const personLookupQuery = (ssn: string, name: string) =>
   queryOptions({
-    queryKey: [{ scope: 'personLookup', appPath, ssn, lastName }],
-    queryFn: () => fetchPerson(ssn, lastName),
+    queryKey: [{ scope: 'personLookup', ssn, name }],
+    queryFn: () => fetchPerson(ssn, name),
     enabled: false,
     gcTime: 0,
   });
 
 export const organizationLookupQuery = (orgNr: string) =>
   queryOptions({
-    queryKey: [{ scope: 'organizationLookup', appPath, orgNr }],
-    queryFn: () => fetchOrganization(orgNr),
+    queryKey: [{ scope: 'organizationLookup', orgNr }],
+    queryFn: () => fetchOrg(orgNr),
     enabled: false,
     gcTime: 0,
   });
