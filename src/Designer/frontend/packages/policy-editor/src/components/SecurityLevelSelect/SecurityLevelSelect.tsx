@@ -3,7 +3,7 @@ import classes from './SecurityLevelSelect.module.css';
 import { StudioSelect, StudioLink, StudioHeading, StudioParagraph } from '@studio/components';
 import { ExternalLinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import type { RequiredAuthLevel } from '../../types';
+import type { RemovedAuthLevel, RequiredAuthLevel } from '../../types';
 
 const URL_TO_SECURITY_LEVEL_PAGE: string =
   'https://info.altinn.no/hjelp/innlogging/diverse-om-innlogging/hva-er-sikkerhetsniva/';
@@ -15,7 +15,7 @@ export const authlevelOptions = [
 ];
 
 export type SecurityLevelSelectProps = {
-  requiredAuthenticationLevelEndUser: RequiredAuthLevel;
+  requiredAuthenticationLevelEndUser: RequiredAuthLevel | RemovedAuthLevel;
   onSave: (authLevel: RequiredAuthLevel) => void;
 };
 
@@ -24,6 +24,9 @@ export const SecurityLevelSelect = ({
   onSave,
 }: SecurityLevelSelectProps): ReactNode => {
   const { t } = useTranslation();
+  const hasRemovedAuthLevel: boolean = !authlevelOptions.some(
+    (option) => option.value === requiredAuthenticationLevelEndUser,
+  );
 
   return (
     <div>
@@ -45,11 +48,19 @@ export const SecurityLevelSelect = ({
       <StudioSelect
         className={classes.select}
         label={t('policy_editor.select_auth_level_label')}
+        error={hasRemovedAuthLevel && t('policy_editor.auth_level_removed_error')}
         onChange={(event) => {
           onSave(event.target.value as RequiredAuthLevel);
         }}
         value={requiredAuthenticationLevelEndUser}
       >
+        {hasRemovedAuthLevel && (
+          <StudioSelect.Option value={requiredAuthenticationLevelEndUser} disabled>
+            {t('policy_editor.auth_level_option_removed', {
+              level: requiredAuthenticationLevelEndUser,
+            })}
+          </StudioSelect.Option>
+        )}
         {authlevelOptions.map((option) => (
           <StudioSelect.Option key={option.value} value={option.value}>
             {t(option.label)}

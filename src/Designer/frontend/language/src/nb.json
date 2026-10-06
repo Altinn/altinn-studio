@@ -1099,6 +1099,8 @@
   "policy_editor.auth_level_option_0": "Lavt: Selvidentifisert bruker i Altinn",
   "policy_editor.auth_level_option_3": "Betydelig: MinID, Altinn Systembruker",
   "policy_editor.auth_level_option_4": "Høyt: BankID, Buypass, Commfides",
+  "policy_editor.auth_level_option_removed": "Nivå {{level}} (ikke lenger i bruk)",
+  "policy_editor.auth_level_removed_error": "Du må velge et nytt sikkerhetsnivå.",
   "policy_editor.card_button_text": "Legg til ekstra regelsett",
   "policy_editor.consent_resource_all_organizations": "Samtykketjenesten skal ikke begrenses av tilgangslister",
   "policy_editor.consent_resource_consent_description": "Velg hvilke roller og tilgangspakker som kan godkjenne en samtykkeforespørsel på vegne av en virksomhet",
