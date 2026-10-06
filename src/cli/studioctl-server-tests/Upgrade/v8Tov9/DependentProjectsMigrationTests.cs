@@ -261,4 +261,172 @@ public sealed class DependentProjectsMigrationTests : IDisposable
         Assert.Equal(3, exitCode);
         Assert.Equal(UpgradeMessageStatus.Todo, Assert.Single(messages).Status);
     }
+
+    [Fact]
+    public async Task Migrate_KeepsWindowsLineEndings()
+    {
+        var content = TestProject("<TargetFramework>net8.0</TargetFramework>").ReplaceLineEndings("\r\n");
+        var tests = WriteFile(Path.Combine("Tests", "Tests.csproj"), content);
+
+        var (exitCode, _) = await Migrate();
+
+        Assert.Equal(0, exitCode);
+        Assert.Equal(content.Replace("net8.0", "net10.0", StringComparison.Ordinal), await ReadFile(tests));
+    }
+
+    [Fact]
+    public async Task Migrate_EditsTheElementMSBuildReadsRatherThanACommentedOutCopy()
+    {
+        const string properties =
+            "<!-- <TargetFramework>net8.0</TargetFramework> --> <TargetFramework>net8.0</TargetFramework>";
+        var tests = WriteFile(Path.Combine("Tests", "Tests.csproj"), TestProject(properties));
+
+        var (exitCode, _) = await Migrate();
+
+        Assert.Equal(0, exitCode);
+        Assert.Equal(
+            TestProject(
+                "<!-- <TargetFramework>net8.0</TargetFramework> --> <TargetFramework>net10.0</TargetFramework>"
+            ),
+            await ReadFile(tests)
+        );
+    }
+
+    [Theory]
+    [InlineData("<TargetFramework><![CDATA[net8.0]]></TargetFramework>")]
+    [InlineData(
+        "<TestFramework>net8.0</TestFramework>\n    <TargetFramework>$(TestFramework)</TargetFramework>\n    <TestFramework>net10.0</TestFramework>"
+    )]
+    public async Task Migrate_WhenTheEditWouldNotTakeEffect_AsksForManualFollowUpInsteadOfReportingAMove(
+        string properties
+    )
+    {
+        var content = TestProject(properties);
+        var tests = WriteFile(Path.Combine("Tests", "Tests.csproj"), content);
+
+        var (exitCode, messages) = await Migrate();
+
+        Assert.Equal(3, exitCode);
+        Assert.Equal(content, await ReadFile(tests));
+        var message = Assert.Single(messages);
+        Assert.Equal(UpgradeMessageStatus.Todo, message.Status);
+        Assert.Contains("could not be changed automatically", message.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Migrate_KeepsADeclaredLatin1Encoding()
+    {
+        var latin1 = Encoding.Latin1;
+        var content =
+            "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\n<!-- Tester for bønder -->\n"
+            + TestProject("<TargetFramework>net8.0</TargetFramework>");
+        var tests = WriteFile(Path.Combine("Tests", "Tests.csproj"), "");
+        await File.WriteAllBytesAsync(tests, latin1.GetBytes(content), TestContext.Current.CancellationToken);
+
+        var (exitCode, _) = await Migrate();
+
+        Assert.Equal(0, exitCode);
+        var bytes = await File.ReadAllBytesAsync(tests, TestContext.Current.CancellationToken);
+        Assert.Equal(latin1.GetBytes(content.Replace("net8.0", "net10.0", StringComparison.Ordinal)), bytes);
+    }
+
+    [Fact]
+    public async Task Migrate_KeepsUtf16Encoding()
+    {
+        var utf16 = new UnicodeEncoding(bigEndian: false, byteOrderMark: true);
+        var content = TestProject("<TargetFramework>net8.0</TargetFramework>");
+        var tests = WriteFile(Path.Combine("Tests", "Tests.csproj"), "");
+        await File.WriteAllBytesAsync(
+            tests,
+            [.. utf16.GetPreamble(), .. utf16.GetBytes(content)],
+            TestContext.Current.CancellationToken
+        );
+
+        var (exitCode, _) = await Migrate();
+
+        Assert.Equal(0, exitCode);
+        byte[] expected =
+        [
+            .. utf16.GetPreamble(),
+            .. utf16.GetBytes(content.Replace("net8.0", "net10.0", StringComparison.Ordinal)),
+        ];
+        Assert.Equal(expected, await File.ReadAllBytesAsync(tests, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task Migrate_MovesProjectsThatReachTheAppThroughAnotherProject()
+    {
+        var utilities = WriteFile(
+            Path.Combine("TestUtils", "TestUtils.csproj"),
+            TestProject("<TargetFramework>net8.0</TargetFramework>")
+        );
+        var tests = WriteFile(
+            Path.Combine("Tests", "Tests.csproj"),
+            TestProject("<TargetFramework>net8.0</TargetFramework>", @"..\TestUtils\TestUtils.csproj")
+        );
+
+        var (exitCode, messages) = await Migrate();
+
+        Assert.Equal(0, exitCode);
+        Assert.Contains("net10.0", await ReadFile(utilities), StringComparison.Ordinal);
+        Assert.Contains("net10.0", await ReadFile(tests), StringComparison.Ordinal);
+        Assert.Equal(2, messages.Count(message => message.Status == UpgradeMessageStatus.Ok));
+    }
+
+    [Fact]
+    public async Task Migrate_EditingASharedDirectoryBuildProps_NamesTheOtherProjectsItMoves()
+    {
+        var props = WriteFile(
+            "Directory.Build.props",
+            """
+            <Project>
+              <PropertyGroup>
+                <TargetFramework>net8.0</TargetFramework>
+              </PropertyGroup>
+            </Project>
+            """
+        );
+        WriteFile(Path.Combine("Tests", "Tests.csproj"), TestProject(""));
+        WriteFile(Path.Combine("Tools", "Tools.csproj"), """<Project Sdk="Microsoft.NET.Sdk" />""");
+
+        var (exitCode, messages) = await Migrate();
+
+        Assert.Equal(0, exitCode);
+        Assert.Contains("<TargetFramework>net10.0</TargetFramework>", await ReadFile(props), StringComparison.Ordinal);
+        Assert.EndsWith(
+            $"(set in Directory.Build.props, which also moves {Path.Combine("Tools", "Tools.csproj")})",
+            Assert.Single(messages).Text,
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public async Task Migrate_KeepsThePlatformSuffix()
+    {
+        var tests = WriteFile(
+            Path.Combine("Tests", "Tests.csproj"),
+            TestProject("<TargetFramework>net8.0-windows</TargetFramework>")
+        );
+
+        var (exitCode, messages) = await Migrate();
+
+        Assert.Equal(0, exitCode);
+        Assert.Equal(TestProject("<TargetFramework>net10.0-windows</TargetFramework>"), await ReadFile(tests));
+        Assert.EndsWith(
+            "moved from net8.0-windows to net10.0-windows",
+            Assert.Single(messages).Text,
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public async Task Migrate_OnAnAppProjectItCannotRead_AsksForManualFollowUp()
+    {
+        _app.Write("App.csproj", """<Project Sdk="Missing.Sdk" />""");
+
+        var (exitCode, messages) = await Migrate();
+
+        Assert.Equal(3, exitCode);
+        Assert.Equal(UpgradeMessageStatus.Todo, Assert.Single(messages).Status);
+    }
 }
