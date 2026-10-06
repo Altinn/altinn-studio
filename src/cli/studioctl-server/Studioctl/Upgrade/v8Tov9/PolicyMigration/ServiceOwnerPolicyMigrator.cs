@@ -19,9 +19,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PolicyMigration;
 /// whose policy lacks the equivalent grants and inserts a single rule with the missing actions,
 /// using a minimal textual diff.
 ///
-/// Advancing a task needs nothing extra: Storage accepts <c>write</c> from the app owner for a
-/// transition out of any task type. The task-specific <c>reject</c> is intentionally not granted
-/// automatically - the migrator scans the process and warns when a task can be abandoned.
+/// Process transitions need nothing task-specific: Storage always allows the app owner to commit
+/// them, whatever the task's type and including a transition that abandons the task.
 ///
 /// The same requirements are checked at build time by the ALTINNAPP0800 analyzer in
 /// Altinn.App.Analyzers, which is where the authoritative reasoning lives.
@@ -34,7 +33,6 @@ internal sealed class ServiceOwnerPolicyMigrator
     private const string ActionAttributeId = "urn:oasis:names:tc:xacml:1.0:action:action-id";
     private const string OrgAttributeId = "urn:altinn:org";
     private const string AppAttributeId = "urn:altinn:app";
-    private const string TaskAttributeId = "urn:altinn:task";
     private const string EndEventAttributeId = "urn:altinn:end-event";
 
     /// <summary>
@@ -116,38 +114,28 @@ internal sealed class ServiceOwnerPolicyMigrator
         // "already granted" conclusion would be unreliable. Hand the analysis to the developer.
         if (HasDenyRules(root))
         {
-            var actionsToVerify = RequiredActions
-                .Concat(processInfo?.TaskSpecificActions.Select(a => a.Action) ?? [])
-                .Distinct(StringComparer.OrdinalIgnoreCase);
             _messages.Todo(
                 "policy.xml contains one or more Deny rules, which this migration cannot evaluate "
                     + "statically; the analysis of the app owner's rights is inconclusive and no rule was "
                     + $"inserted. Please verify manually that the app owner '{orgValue}' is permitted (and "
-                    + $"not denied) the action(s) [{string.Join(", ", actionsToVerify)}] on "
+                    + $"not denied) the action(s) [{string.Join(", ", RequiredActions)}] on "
                     + $"{orgValue}/{appValue}, as the v9 workflow engine requires."
             );
             return Result();
         }
 
-        if (processInfo is null && PolicyScopesByTaskOrEndEvent(root))
+        if (processInfo is null && PolicyScopesByEndEvent(root))
         {
             _messages.Todo(
-                "Could not read config/process/process.bpmn, so task- and end-event-scoped grants in "
-                    + "policy.xml could not be verified against the process and were not counted when "
-                    + "checking the app owner's rights."
+                "Could not read config/process/process.bpmn, so end-event-scoped grants in policy.xml "
+                    + "could not be verified against the process and were not counted when checking the "
+                    + "app owner's rights."
             );
         }
 
         var missingActions = RequiredActions
             .Where(action =>
-                !IsActionGrantedToOrg(
-                    root,
-                    orgValue,
-                    appValue,
-                    action,
-                    taskScopeIds: null,
-                    endEventIds: processInfo?.EndEventIds
-                )
+                !IsActionGrantedToOrg(root, orgValue, appValue, action, endEventIds: processInfo?.EndEventIds)
             )
             .ToList();
 
@@ -160,20 +148,16 @@ internal sealed class ServiceOwnerPolicyMigrator
                 _messages.Warn(
                     $"Added a policy rule granting the app owner '{orgValue}' the action(s) "
                         + $"[{string.Join(", ", missingActions)}] on {orgValue}/{appValue} in any process state. "
-                        + "The v9 workflow engine persists process transitions to Storage as the service owner, "
-                        + "so these rights are required for the process to advance. Please review the new rule."
+                        + "The v9 workflow engine reads and writes the instance as the service owner while it moves "
+                        + "the process on, so these rights are required for the process to advance. Please review "
+                        + "the new rule."
                 );
-                // Re-parse so the task-specific check below sees the inserted rule too. InsertOrgRule
-                // already validated that the updated text parses.
-                root = XDocument.Parse(updatedText).Root ?? root;
             }
             else
             {
                 _messages.Todo("Grant is still missing and must be added by hand. See warning above.");
             }
         }
-
-        CheckTaskSpecificActions(root, orgValue, appValue, processInfo);
 
         return Result();
     }
@@ -275,10 +259,8 @@ internal sealed class ServiceOwnerPolicyMigrator
     /// Checks whether some Permit rule grants <paramref name="action"/> to the org subject for this
     /// app's resources, by evaluating each rule's Target with proper XACML semantics against a
     /// simulated engine request (AND over AnyOf, OR over AllOf, AND over Match). Rules scoped to a
-    /// specific task (<c>urn:altinn:task</c>) only count when <paramref name="taskScopeIds"/> is
-    /// non-null and the Match names one of those tasks: task-scoped grants work for transitions
-    /// inside that task, but not as the state-independent baseline the engine needs for read/write.
-    /// End-event scoping counts for <c>complete</c> when the Match names an end event that actually
+    /// specific task (<c>urn:altinn:task</c>) never count: the engine needs every required action
+    /// in any process state. End-event scoping counts for <c>complete</c> when the Match names an end event that actually
     /// exists in the process (<paramref name="endEventIds"/>), since that action is only used at end
     /// events (this is how the standard template grants it).
     /// </summary>
@@ -287,7 +269,6 @@ internal sealed class ServiceOwnerPolicyMigrator
         string orgValue,
         string appValue,
         string action,
-        IReadOnlySet<string>? taskScopeIds,
         IReadOnlySet<string>? endEventIds
     )
     {
@@ -316,7 +297,7 @@ internal sealed class ServiceOwnerPolicyMigrator
                                 allOf
                                     .Elements()
                                     .Where(e => e.Name.LocalName == "Match")
-                                    .All(m => MatchSatisfied(m, orgValue, appValue, action, taskScopeIds, endEventIds))
+                                    .All(m => MatchSatisfied(m, orgValue, appValue, action, endEventIds))
                             )
                     );
 
@@ -338,7 +319,6 @@ internal sealed class ServiceOwnerPolicyMigrator
         string orgValue,
         string appValue,
         string action,
-        IReadOnlySet<string>? taskScopeIds,
         IReadOnlySet<string>? endEventIds
     )
     {
@@ -356,13 +336,6 @@ internal sealed class ServiceOwnerPolicyMigrator
             (ResourceCategory, OrgAttributeId) => ValueIs(orgValue),
             (ResourceCategory, AppAttributeId) => ValueIs(appValue),
             (ActionCategory, ActionAttributeId) => ValueIs(action),
-            // A task constraint is satisfied only when task-scoped grants are acceptable for this
-            // check and the Match names one of the tasks the action can be performed in. A grant
-            // scoped to a task id that does not exist in the process (e.g. after a rename) never
-            // matches an actual request.
-            (ResourceCategory, TaskAttributeId) => taskScopeIds is not null
-                && MatchValue(match) is { } taskId
-                && taskScopeIds.Contains(taskId),
             // 'complete' only happens at an end event, so end-event scoping does not narrow it -
             // but only when the Match names an end event the process actually has.
             (ResourceCategory, EndEventAttributeId) => string.Equals(
@@ -559,49 +532,6 @@ internal sealed class ServiceOwnerPolicyMigrator
         return sb.ToString();
     }
 
-    /// <summary>
-    /// Adds a to-do for task-specific actions (reject) whose transitions the engine replays with a
-    /// dedicated action but the policy does not grant the org.
-    /// Grants scoped to the task(s) of the relevant type count here, since these transitions happen
-    /// inside those tasks.
-    /// </summary>
-    private void CheckTaskSpecificActions(
-        XElement policyRoot,
-        string orgValue,
-        string appValue,
-        ProcessInfo? processInfo
-    )
-    {
-        if (processInfo is null)
-            return;
-
-        var missing = processInfo
-            .TaskSpecificActions.Where(a =>
-                !IsActionGrantedToOrg(
-                    policyRoot,
-                    orgValue,
-                    appValue,
-                    a.Action,
-                    taskScopeIds: a.TaskIds,
-                    endEventIds: null
-                )
-            )
-            .ToList();
-
-        if (missing.Count > 0)
-        {
-            _messages.Todo(
-                "The process contains tasks whose transitions the v9 workflow engine replays with a "
-                    + "dedicated action, and the policy does not grant the app owner these: "
-                    + string.Join(
-                        ", ",
-                        missing.Select(m => $"'{m.Action}' (from {string.Join("/", m.TaskTypes)} task)")
-                    )
-                    + ". Grant them to the org subject in policy.xml, or those tasks will fail to advance."
-            );
-        }
-    }
-
     /// <summary>Whether the policy contains any rule with Effect="Deny".</summary>
     private static bool HasDenyRules(XElement root) =>
         root.Elements()
@@ -610,20 +540,16 @@ internal sealed class ServiceOwnerPolicyMigrator
                 && string.Equals(e.Attribute("Effect")?.Value, "Deny", StringComparison.OrdinalIgnoreCase)
             );
 
-    /// <summary>Whether any Match in the policy scopes by task or end event.</summary>
-    private static bool PolicyScopesByTaskOrEndEvent(XElement root) =>
+    /// <summary>Whether any Match in the policy scopes by end event.</summary>
+    private static bool PolicyScopesByEndEvent(XElement root) =>
         root.Descendants()
             .Where(e => e.Name.LocalName == "Match")
-            .Any(m =>
-                MatchTargets(m, TaskAttributeId, ResourceCategory)
-                || MatchTargets(m, EndEventAttributeId, ResourceCategory)
-            );
+            .Any(m => MatchTargets(m, EndEventAttributeId, ResourceCategory));
 
     /// <summary>
-    /// Loads the facts about the process that the grant evaluation needs: the end-event ids (to
-    /// verify end-event-scoped 'complete' grants against real end events) and, per task-specific
-    /// action, which task type(s) and task id(s) need it. Returns null when the process file is
-    /// missing or unreadable.
+    /// Loads the facts about the process that the grant evaluation needs: the end-event ids, to
+    /// verify end-event-scoped 'complete' grants against real end events. Returns null when the
+    /// process file is missing or unreadable.
     /// </summary>
     private ProcessInfo? TryLoadProcessInfo()
     {
@@ -648,74 +574,9 @@ internal sealed class ServiceOwnerPolicyMigrator
             .OfType<string>()
             .ToHashSet(StringComparer.Ordinal);
 
-        var actions = new Dictionary<string, (HashSet<string> TaskTypes, HashSet<string> TaskIds)>(
-            StringComparer.OrdinalIgnoreCase
-        );
-        foreach (var taskType in processDoc.Descendants().Where(e => e.Name.LocalName == "taskType"))
-        {
-            var type = taskType.Value.Trim();
-            if (type.Length == 0)
-                continue;
-
-            // The taskType extension element lives inside the task element, which carries the id.
-            var taskElement = taskType.Ancestors().FirstOrDefault(a => a.Attribute("id") is not null);
-            var taskId = taskElement?.Attribute("id")?.Value;
-
-            var needed = new List<string>();
-
-            // Storage accepts 'write' from the app owner for a transition out of any task type, so
-            // advancing a task needs nothing beyond the required baseline.
-
-            // A task that declares 'reject' can be abandoned, and Storage authorizes an abandoning
-            // transition with 'reject' regardless of the task's type. A 'serverAction' of the same
-            // name is a user-triggered action, not a process transition, so it does not count.
-            if (taskElement is not null && DeclaresRejectProcessAction(taskElement))
-                needed.Add("reject");
-
-            foreach (var action in needed)
-            {
-                if (!actions.TryGetValue(action, out var entry))
-                {
-                    entry = (new HashSet<string>(StringComparer.Ordinal), new HashSet<string>(StringComparer.Ordinal));
-                    actions[action] = entry;
-                }
-
-                entry.TaskTypes.Add(type);
-                if (taskId is not null)
-                    entry.TaskIds.Add(taskId);
-            }
-        }
-
-        return new ProcessInfo(
-            endEventIds,
-            actions.Select(kvp => new TaskSpecificAction(kvp.Key, kvp.Value.TaskTypes, kvp.Value.TaskIds)).ToList()
-        );
+        return new ProcessInfo(endEventIds);
     }
 
-    /// <summary>
-    /// Whether the task declares <c>reject</c> in its <c>altinn:actions</c> list as a process action.
-    /// A <c>type="serverAction"</c> entry is a user-triggered server action rather than a process
-    /// transition, so it never reaches the abandon flow Storage authorizes with <c>reject</c>.
-    /// </summary>
-    private static bool DeclaresRejectProcessAction(XElement taskElement) =>
-        taskElement
-            .Descendants()
-            .Where(e => e.Name.LocalName == "action" && e.Parent?.Name.LocalName == "actions")
-            .Any(action =>
-                string.Equals(action.Value.Trim(), "reject", StringComparison.OrdinalIgnoreCase)
-                && action.Attributes().All(a => a.Name.LocalName != "type" || a.Value == "processAction")
-            );
-
-    /// <summary>A task-specific action the org needs, with the task type(s) and task id(s) that need it.</summary>
-    private sealed record TaskSpecificAction(
-        string Action,
-        IReadOnlySet<string> TaskTypes,
-        IReadOnlySet<string> TaskIds
-    );
-
-    /// <summary>Facts from process.bpmn needed to evaluate task- and end-event-scoped grants.</summary>
-    private sealed record ProcessInfo(
-        IReadOnlySet<string> EndEventIds,
-        IReadOnlyList<TaskSpecificAction> TaskSpecificActions
-    );
+    /// <summary>Facts from process.bpmn needed to evaluate end-event-scoped grants.</summary>
+    private sealed record ProcessInfo(IReadOnlySet<string> EndEventIds);
 }

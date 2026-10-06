@@ -319,9 +319,9 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
     [InlineData("pdfIfRequested")]
     public async Task AnyTaskType_NeedsNothingBeyondTheBaseline(string taskType)
     {
-        // Storage accepts 'write' from the app owner for a transition out of any task type (see
-        // ProcessAuthorizer). With the baseline in place, asking the app owner for 'sign', 'pay',
-        // 'confirm' or a custom task-type action would be noise.
+        // Storage always allows the app owner to commit a process transition (see ProcessAuthorizer),
+        // abandoning the task included. Asking the app owner for 'sign', 'pay', 'confirm', 'reject'
+        // or a custom task-type action would be noise.
         var policy = Policy(
             Rule(
                 "1",
@@ -334,61 +334,8 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
             "config/process/process.bpmn",
             BpmnBuilder.Process(
                 BpmnBuilder.Task("Task_1", "data"),
-                BpmnBuilder.Task("Task_2", taskType),
+                BpmnBuilder.Task("Task_2", taskType, actions: ["reject"]),
                 BpmnBuilder.Flow("Flow_1", "Task_1", "Task_2")
-            )
-        );
-
-        var result = await MigrateResult(policy);
-
-        Assert.Empty(result.Warnings);
-        Assert.Empty(result.Todos);
-    }
-
-    [Fact]
-    public async Task TaskDeclaringReject_IsWarnedAboutRegardlessOfItsType()
-    {
-        // A task that declares 'reject' can be abandoned, and Storage authorizes the abandoning
-        // transition with 'reject' whatever the task's type is.
-        var policy = Policy(
-            Rule(
-                "1",
-                AnyOf(AllOf(SubjectOrg("ttd"))),
-                AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"))),
-                AnyOf(AllOf(Action("read")), AllOf(Action("write")), AllOf(Action("complete")))
-            )
-        );
-        _app.Write(
-            "config/process/process.bpmn",
-            BpmnBuilder.Process(
-                BpmnBuilder.Task("Task_1", "data", actions: ["write", "reject"]),
-                BpmnBuilder.Flow("Flow_1", "Task_1", "EndEvent_1"),
-                BpmnBuilder.EndEvent("EndEvent_1")
-            )
-        );
-
-        var todos = await MigrateTodos(policy);
-
-        Assert.Contains(todos, t => t.Contains("'reject'", StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public async Task ServerActionNamedReject_IsNotAProcessTransition()
-    {
-        var policy = Policy(
-            Rule(
-                "1",
-                AnyOf(AllOf(SubjectOrg("ttd"))),
-                AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"))),
-                AnyOf(AllOf(Action("read")), AllOf(Action("write")), AllOf(Action("complete")))
-            )
-        );
-        _app.Write(
-            "config/process/process.bpmn",
-            BpmnBuilder.Process(
-                BpmnBuilder.Task("Task_1", "data", serverActions: ["reject"]),
-                BpmnBuilder.Flow("Flow_1", "Task_1", "EndEvent_1"),
-                BpmnBuilder.EndEvent("EndEvent_1")
             )
         );
 
@@ -552,68 +499,5 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
                 w.Contains("Added a policy rule", StringComparison.Ordinal)
                 && w.Contains("[complete]", StringComparison.Ordinal)
         );
-    }
-
-    [Fact]
-    public async Task RejectGrantScopedToAnotherTask_DoesNotSatisfyTheRejectingTask()
-    {
-        var policy = Policy(
-            Rule(
-                "1",
-                AnyOf(AllOf(SubjectOrg("ttd"))),
-                AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"))),
-                AnyOf(AllOf(Action("read")), AllOf(Action("write")), AllOf(Action("complete")))
-            ),
-            Rule(
-                "2",
-                AnyOf(AllOf(SubjectOrg("ttd"))),
-                AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"), ResourceTask("Task_1"))),
-                AnyOf(AllOf(Action("reject")))
-            )
-        );
-        _app.Write(
-            "config/process/process.bpmn",
-            BpmnBuilder.Process(
-                BpmnBuilder.Task("Task_1", "data"),
-                BpmnBuilder.Task("Task_2", "data", actions: ["write", "reject"]),
-                BpmnBuilder.Flow("Flow_1", "Task_1", "Task_2")
-            )
-        );
-
-        var todos = await MigrateTodos(policy);
-
-        Assert.Contains(todos, t => t.Contains("'reject'", StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public async Task RejectGrantScopedToTheRejectingTask_Satisfies()
-    {
-        var policy = Policy(
-            Rule(
-                "1",
-                AnyOf(AllOf(SubjectOrg("ttd"))),
-                AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"))),
-                AnyOf(AllOf(Action("read")), AllOf(Action("write")), AllOf(Action("complete")))
-            ),
-            Rule(
-                "2",
-                AnyOf(AllOf(SubjectOrg("ttd"))),
-                AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"), ResourceTask("Task_2"))),
-                AnyOf(AllOf(Action("reject")))
-            )
-        );
-        _app.Write(
-            "config/process/process.bpmn",
-            BpmnBuilder.Process(
-                BpmnBuilder.Task("Task_1", "data"),
-                BpmnBuilder.Task("Task_2", "data", actions: ["write", "reject"]),
-                BpmnBuilder.Flow("Flow_1", "Task_1", "Task_2")
-            )
-        );
-
-        var result = await MigrateResult(policy);
-
-        Assert.Empty(result.Warnings);
-        Assert.Empty(result.Todos);
     }
 }
