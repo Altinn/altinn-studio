@@ -71,6 +71,20 @@ public sealed class DependentProjectsMigrationTests : IDisposable
     }
 
     [Fact]
+    public async Task Migrate_OnAnAppWithOnlyTheAppProject_SkipsTheStepAndChangesNothing()
+    {
+        var appProject = _app.Read("App.csproj");
+
+        var (exitCode, messages) = await Migrate();
+
+        Assert.Equal(0, exitCode);
+        Assert.Equal(appProject, _app.Read("App.csproj"));
+        var message = Assert.Single(messages);
+        Assert.Equal(UpgradeMessageStatus.Skip, message.Status);
+        Assert.Equal("No other projects reference the app project", message.Text);
+    }
+
+    [Fact]
     public async Task Migrate_MovesTestProjectToTheAppsTargetFramework()
     {
         var tests = WriteFile(
