@@ -54,8 +54,8 @@ describe('Organization lookup', () => {
     cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).type('043871668');
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();
     cy.wait('@failedFetchOrganisation');
-    cy.get('[data-componentid="organisationLookup"] [data-validation="organisationLookup"]')
-      .findByText(/Organisasjonsnummeret ble ikke funnet i enhetsregisteret/i)
+    cy.get('[data-componentid="organisationLookup"]')
+      .findByText(/Organisasjonsnummeret ble ikke funnet i enhetsregisteret/i, { selector: 'span' })
       .should('exist');
 
     // Add interceptor for failed fetch due to server error
@@ -66,16 +66,16 @@ describe('Organization lookup', () => {
     // Fetch organization with server error
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();
     cy.wait('@failedFetchOrganisationServerError');
-    cy.get('[data-componentid="organisationLookup"] [data-validation="organisationLookup"]')
-      .findByText(/Ukjent feil. Vennligst prøv igjen senere/i)
+    cy.get('[data-componentid="organisationLookup"]')
+      .findByText(/Ukjent feil. Vennligst prøv igjen senere/i, { selector: 'span' })
       .should('exist');
 
     // Type invalid orgNr
     cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).numberFormatClear();
     cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).type('123456789');
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();
-    cy.get('[data-componentid="organisationLookup"] [data-validation="organisationLookup"]')
-      .findByText(/Organisasjonsnummeret er ugyldig/i)
+    cy.get('[data-componentid="organisationLookup"]')
+      .findByText(/Organisasjonsnummeret er ugyldig/i, { selector: 'span' })
       .should('exist');
 
     cy.findByRole('radio', { name: 'Ja' }).check();

@@ -68,7 +68,15 @@ describe('Lookup validation', { testIsolation: false }, () => {
     describe(`${scenario.type} validation gates`, () => {
       beforeEach(() => {
         cy.gotoNavPage(scenario.page);
-        // Keep one instance, but reset the model, pending drafts and layout between cases.
+        // Keep one instance, but reset the layout and model between cases.
+        cy.changeLayout((component) => {
+          if (component.type === 'RepeatingGroup' && component.id === `${scenario.id}-group`) {
+            component.edit = undefined;
+          }
+          if (component.type === scenario.type) {
+            component.showValidations = undefined;
+          }
+        });
         cy.findByRole('checkbox', { name: 'Vis feil fra serveren' }).uncheck();
         cy.findByRole('radio', { name: 'Nei' }).check();
         cy.get(`[data-componentid="${scenario.id}-group"]`).then(($group) => {
@@ -86,11 +94,6 @@ describe('Lookup validation', { testIsolation: false }, () => {
           }
         });
         cy.waitUntilSaved();
-        cy.changeLayout((component) => {
-          if (component.type === scenario.type) {
-            component.showValidations = undefined;
-          }
-        });
       });
 
       function fill() {
@@ -106,6 +109,7 @@ describe('Lookup validation', { testIsolation: false }, () => {
         cy.get(`[data-componentid="${scenario.id}"]`)
           .findByRole('textbox', { name: scenario.numberLabel })
           .should('have.attr', 'required');
+        cy.get(`[data-componentid="${scenario.id}"]`).within(fill);
         cy.findByRole('button', { name: 'Neste' }).click();
         cy.get(`[data-componentid="${scenario.id}"]`).findByText(scenario.required).should('be.visible');
         cy.findByRole('radio', { name: 'Nei' }).check();
@@ -124,6 +128,10 @@ describe('Lookup validation', { testIsolation: false }, () => {
           cy.findByRole('button', { name: /Lagre og lukk/ }).click();
           cy.findByText(scenario.required).should('be.visible');
           cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.attr', 'aria-invalid', 'true');
+          fill();
+          cy.findByRole('button', { name: /Lagre og lukk/ }).click();
+          cy.findByText(scenario.required).should('be.visible');
+          cy.findByRole('button', { name: /Hent opplysninger/i }).should('be.visible');
         });
         // The row gate must not reveal required errors on the standalone lookup.
         cy.get(`[data-componentid="${scenario.id}"]`).findByText(scenario.required).should('not.exist');
@@ -193,7 +201,7 @@ describe('Lookup validation', { testIsolation: false }, () => {
         });
       }
 
-      it('validates optional search inputs at row save and before requesting a lookup', () => {
+      it('validates optional search inputs before requesting a lookup', () => {
         cy.intercept({ method: scenario.method, url: scenario.url, times: 1 }, scenario.success).as('lookup');
         cy.changeLayout((component) => {
           if (component.type === scenario.type) {
@@ -204,81 +212,117 @@ describe('Lookup validation', { testIsolation: false }, () => {
         cy.findByRole('button', { name: /Legg til ny/ }).click();
         cy.get('[data-testid="group-edit-container"]').within(() => {
           cy.findByRole('button', { name: /Hent opplysninger/i }).click();
-          cy.findByText(scenario.invalid, { selector: '[data-validation] span' }).should('be.visible');
+          cy.findByText(scenario.invalid, { selector: 'span' }).should('be.visible');
+          if (scenario.type === 'OrganizationLookup') {
+            cy.findByTestId('organization-lookup-status').should('have.focus');
+          }
           cy.get('@lookup.all').should('have.length', 0);
 
           cy.findByRole('textbox', { name: scenario.numberLabel }).type('123');
-          cy.findByRole('button', { name: /Lagre og lukk/ }).click();
-          cy.findByText(scenario.invalid, { selector: '[data-validation] span' }).should('be.visible');
+          cy.findByText(scenario.invalid, { selector: 'span' }).should('be.visible');
           cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.attr', 'aria-invalid', 'true');
           cy.findByRole('button', { name: /Hent opplysninger/i }).click();
+          if (scenario.type === 'OrganizationLookup') {
+            cy.findByTestId('organization-lookup-status').should('have.focus');
+          }
           cy.get('@lookup.all').should('have.length', 0);
 
           cy.findByRole('textbox', { name: scenario.numberLabel }).type('{moveToEnd}{backspace}{backspace}{backspace}');
           cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.value', '');
           fill();
-          cy.findByText(scenario.invalid, { selector: '[data-validation] span' }).should('not.exist');
+          cy.findByText(scenario.invalid, { selector: 'span' }).should('not.exist');
           cy.findByRole('button', { name: /Hent opplysninger/i }).click();
           cy.wait('@lookup');
           cy.findByRole('button', { name: /Fjern/i }).should('be.visible');
           cy.findByRole('button', { name: /Lagre og lukk/ }).click();
         });
         cy.get('[data-testid="group-edit-container"]').should('not.exist');
+        cy.get(`[data-componentid="${scenario.id}-group"]`)
+          .findByRole('button', { name: /Rediger/ })
+          .click();
+        cy.get('[data-testid="group-edit-container"]').within(() => {
+          cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.value', scenario.number);
+          cy.findByRole('button', { name: /Fjern/i }).should('be.visible');
+          cy.findByRole('button', { name: /Lagre og lukk/ }).click();
+        });
         cy.get('@lookup.all').should('have.length', 1);
       });
 
-      it('keeps pending lookup errors with their row when an earlier row is deleted', () => {
-        cy.intercept({ method: scenario.method, url: scenario.url, times: 1 }, scenario.failure).as('lookup');
-        cy.findByRole('radio', { name: 'Nei' }).check();
-        cy.findByRole('button', { name: /Legg til ny/ }).click();
-        cy.get('[data-testid="group-edit-container"]').within(() => {
-          cy.findByRole('button', { name: /Lagre og lukk/ }).click();
+      it('discards unfinished inputs when navigating away', () => {
+        cy.intercept({ method: scenario.method, url: scenario.url, times: 1 }, scenario.success).as('lookup');
+        cy.get(`[data-componentid="${scenario.id}"]`).within(() => {
+          fill();
+          cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.value', scenario.number);
+          if (scenario.type === 'PersonLookup') {
+            cy.findByRole('textbox', { name: /Etternavn/i }).should('have.value', 'Forelder');
+          }
         });
+        cy.gotoNavPage(scenario.type === 'PersonLookup' ? 'OrganisationLookupPage' : 'PersonLookupPage');
+        cy.get(`[data-componentid="${scenario.id}"]`).should('not.exist');
+        cy.gotoNavPage(scenario.page);
+        cy.get(`[data-componentid="${scenario.id}"]`).within(() => {
+          cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.value', '');
+          if (scenario.type === 'PersonLookup') {
+            cy.findByRole('textbox', { name: /Etternavn/i }).should('have.value', '');
+          }
+        });
+        cy.get('@lookup.all').should('have.length', 0);
+      });
+
+      it('discards invalid optional inputs when switching edited rows', () => {
+        cy.changeLayout((component) => {
+          if (component.type === 'RepeatingGroup' && component.id === `${scenario.id}-group`) {
+            component.edit = { mode: 'hideTable', saveAndNextButton: true };
+          }
+        });
+        for (let row = 0; row < 2; row++) {
+          cy.findByRole('button', { name: /Legg til ny/ }).click();
+          cy.get('[data-testid="group-edit-container"]')
+            .findByRole('button', { name: /Lagre og lukk/ })
+            .click();
+        }
+        cy.get(`[data-componentid="${scenario.id}-group"]`)
+          .findAllByRole('button', { name: /Rediger/ })
+          .first()
+          .click();
+        cy.get('[data-testid="group-edit-container"]').within(() => {
+          cy.findByRole('textbox', { name: scenario.numberLabel }).type('123');
+          cy.findByRole('button', { name: /Hent opplysninger/i }).click();
+          cy.findByText(scenario.invalid, { selector: 'span' }).should('be.visible');
+          cy.findByRole('button', { name: /Lagre og åpne neste/ }).click();
+        });
+        cy.get(`[data-componentid="${scenario.id}-repeated-1"]`).within(() => {
+          cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.value', '');
+          cy.findByText(scenario.invalid, { selector: 'span' }).should('not.exist');
+        });
+        cy.get('[data-testid="group-edit-container"]')
+          .findByRole('button', { name: /Lagre og lukk/ })
+          .click();
+      });
+
+      it('allows discarding a failed optional lookup by closing its row', () => {
+        cy.intercept({ method: scenario.method, url: scenario.url, times: 1 }, scenario.failure).as('lookup');
         cy.findByRole('button', { name: /Legg til ny/ }).click();
         cy.get('[data-testid="group-edit-container"]').within(() => {
           fill();
           cy.findByRole('button', { name: /Hent opplysninger/i }).click();
           cy.wait('@lookup');
-          cy.findByText(/ikke funnet|Ingen person er registrert/i, { selector: '[data-validation] span' }).should(
-            'be.visible',
-          );
+          cy.findByText(/ikke funnet|Ingen person er registrert/i, { selector: 'span' }).should('be.visible');
+          cy.findByRole('button', { name: /Lagre og lukk/ }).click();
         });
-
-        cy.get(`#group-${scenario.id}-group-table-body > tr[data-row-num="0"]`)
-          .findByRole('button', { name: /Slett/ })
-          .click();
-        cy.get(`[data-componentid="${scenario.id}-repeated-0"]`).within(() => {
-          cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.value', scenario.number);
-          cy.findByText(/ikke funnet|Ingen person er registrert/i, { selector: '[data-validation] span' }).should(
-            'be.visible',
-          );
-        });
-
-        cy.get(`[data-componentid="${scenario.id}-group"]`).findByRole('button', { name: /Slett/ }).click();
         cy.get('[data-testid="group-edit-container"]').should('not.exist');
-        cy.findByRole('button', { name: /Legg til ny/ }).click();
+        cy.get(`[data-componentid="${scenario.id}-group"]`)
+          .findByRole('button', { name: /Rediger/ })
+          .click();
         cy.get('[data-testid="group-edit-container"]').within(() => {
           cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.value', '');
-          cy.findByText(/ikke funnet|Ingen person er registrert/i, { selector: '[data-validation] span' }).should(
-            'not.exist',
-          );
+          if (scenario.type === 'PersonLookup') {
+            cy.findByRole('textbox', { name: /Etternavn/i }).should('have.value', '');
+          }
+          cy.findByText(/ikke funnet|Ingen person er registrert/i, { selector: 'span' }).should('not.exist');
           cy.findByRole('button', { name: /Lagre og lukk/ }).click();
         });
-        cy.get('[data-testid="group-edit-container"]').should('not.exist');
         cy.get('@lookup.all').should('have.length', 1);
-      });
-
-      it('prevents saving a failed optional lookup', () => {
-        cy.intercept({ method: scenario.method, url: scenario.url, times: 1 }, scenario.failure).as('lookup');
-        cy.findByRole('radio', { name: 'Nei' }).check();
-        cy.findByRole('button', { name: /Legg til ny/ }).click();
-        cy.get('[data-testid="group-edit-container"]').within(() => {
-          fill();
-          cy.findByRole('button', { name: /Hent opplysninger/i }).click();
-          cy.wait('@lookup');
-          cy.findByRole('button', { name: /Lagre og lukk/ }).click();
-          cy.findByRole('button', { name: /Hent opplysninger/i }).should('be.visible');
-        });
       });
     });
   }
