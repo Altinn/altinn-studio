@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import classes from './SecurityLevelSelect.module.css';
 import { StudioSelect, StudioLink, StudioHeading, StudioParagraph } from '@studio/components';
 import { ExternalLinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
@@ -42,6 +43,7 @@ export const SecurityLevelSelect = ({
         </StudioLink>
       </StudioParagraph>
       <StudioSelect
+        className={classes.select}
         label={t('policy_editor.select_auth_level_label')}
         onChange={(event) => {
           onSave(event.target.value as RequiredAuthLevel);
