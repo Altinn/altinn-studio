@@ -10,7 +10,7 @@ import {
   RequiredIndicator,
 } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Field, Paragraph } from '@digdir/designsystemet-react';
+import { Field, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
 
 import type { PropsFromGenericComponent } from '..';
 
@@ -20,21 +20,28 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useLookupInput } from 'src/features/lookup/LookupStore';
-import { ValidationMask } from 'src/features/validation';
 import { useOnComponentValidation } from 'src/features/validation/callbacks/onComponentValidation';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/OrganizationLookup/OrganizationLookupComponent.module.css';
+import { checkValidOrgnNr } from 'src/layout/OrganizationLookup/validation';
 import utilClasses from 'src/styles/utils.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
+import type { LookupFailure } from 'src/core/queries/lookup';
 
 const LIVE_REGION_RESET_DELAY_MS = 100;
+const organizationLookupFailureMessages: Record<LookupFailure, string> = {
+  notFound: 'organization_lookup.validation_error_not_found',
+  invalidResponse: 'organization_lookup.validation_invalid_response_from_server',
+  forbidden: 'organization_lookup.unknown_error',
+  tooManyRequests: 'organization_lookup.unknown_error',
+  unknown: 'organization_lookup.unknown_error',
+};
 
 export function OrganizationLookupComponent({
   baseComponentId,
@@ -50,8 +57,10 @@ export function OrganizationLookupComponent({
     baseComponentId,
     overrideDisplay,
   });
-  const { input, setInput, clearInput } = useLookupInput(baseComponentId);
-  const tempOrgNr = input?.type === 'OrganizationLookup' ? input.orgNr : '';
+  const [tempOrgNr, setTempOrgNr] = useState('');
+  const [lookupAttempted, setLookupAttempted] = useState(false);
+  const [lookupFailure, setLookupFailure] = useState<LookupFailure>();
+  const invalidSearchOrgNr = lookupAttempted && !checkValidOrgnNr(tempOrgNr);
   const validate = useOnComponentValidation(baseComponentId);
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const [statusMessage, setStatusMessage] = useState('');
@@ -111,10 +120,10 @@ export function OrganizationLookupComponent({
     if (readOnly || isFetching || orgnr) {
       return;
     }
-    setInput({ type: 'OrganizationLookup', orgNr: tempOrgNr });
-    const errors = await validate(ValidationMask.Component);
-    if (errors.length) {
-      announceStatusMessage(errors.map((error) => langAsString(error.message.key)).join(' '));
+    setLookupAttempted(true);
+    setLookupFailure(undefined);
+    if (!checkValidOrgnNr(tempOrgNr)) {
+      announceStatusMessage(langAsString('organization_lookup.validation_error_orgnr'));
       return;
     }
 
@@ -122,26 +131,31 @@ export function OrganizationLookupComponent({
     if (data) {
       setValue('orgnr', data.orgNr);
       dataModelBindings.name && setValue('name', data.name);
-      clearInput();
+      clearSearch();
       await validate();
       announceOrgDetails(data.orgNr);
     } else {
-      setInput({ type: 'OrganizationLookup', orgNr: tempOrgNr, failure });
-      const errors = await validate(ValidationMask.Component);
-      announceStatusMessage(errors.map((error) => langAsString(error.message.key)).join(' '));
+      setLookupFailure(failure);
+      announceStatusMessage(langAsString(organizationLookupFailureMessages[failure]));
     }
+  }
+
+  function clearSearch() {
+    setTempOrgNr('');
+    setLookupAttempted(false);
+    setLookupFailure(undefined);
   }
 
   function handleClear() {
     setValue('orgnr', '');
     dataModelBindings.name && setValue('name', '');
-    clearInput();
+    clearSearch();
     setStatusMessage('');
   }
 
   const hasSuccessfullyFetched = !!orgnr;
 
-  const invalid = hasValidationErrors(validations);
+  const invalid = invalidSearchOrgNr || !!lookupFailure || hasValidationErrors(validations);
 
   return (
     <Fieldset
@@ -179,11 +193,8 @@ export function OrganizationLookupComponent({
               readOnly={hasSuccessfullyFetched || isFetching || readOnly}
               error={invalid}
               onValueChange={(e) => {
-                if (e.value) {
-                  setInput({ type: 'OrganizationLookup', orgNr: e.value });
-                } else {
-                  clearInput();
-                }
+                setTempOrgNr(e.value);
+                setLookupFailure(undefined);
                 setStatusMessage('');
               }}
               onKeyDown={async (ev) => {
@@ -195,6 +206,11 @@ export function OrganizationLookupComponent({
               inputMode='numeric'
               pattern='[0-9]{9}'
             />
+            {invalidSearchOrgNr && (
+              <ValidationMessage>
+                <Lang id='organization_lookup.validation_error_orgnr' />
+              </ValidationMessage>
+            )}
             <ComponentValidations
               validations={validations}
               baseComponentId={baseComponentId}
@@ -230,6 +246,11 @@ export function OrganizationLookupComponent({
             >
               <Paragraph data-size='sm'>{orgName}</Paragraph>
             </div>
+          )}
+          {lookupFailure && (
+            <ValidationMessage className={classes.apiError}>
+              <Lang id={organizationLookupFailureMessages[lookupFailure]} />
+            </ValidationMessage>
           )}
         </div>
         <div

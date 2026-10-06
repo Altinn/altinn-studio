@@ -1,7 +1,5 @@
 import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
 import { lookupValidation } from 'src/layout/lookupValidation';
-import { getComponentStateKey } from 'src/utils/layout/rowContext';
-import type { LookupFailure } from 'src/core/queries/lookup';
 import type { ComponentValidation } from 'src/features/validation';
 import type { ComponentValidationContext } from 'src/layout';
 
@@ -27,14 +25,6 @@ export function checkValidOrgnNr(orgNr: string): boolean {
 
 const modularAdditiveInverse = (value: number, base: number): number => base - (value % base);
 
-const failureMessages: Record<LookupFailure, string> = {
-  notFound: 'organization_lookup.validation_error_not_found',
-  invalidResponse: 'organization_lookup.validation_invalid_response_from_server',
-  forbidden: 'organization_lookup.unknown_error',
-  tooManyRequests: 'organization_lookup.unknown_error',
-  unknown: 'organization_lookup.unknown_error',
-};
-
 export function validateOrganizationLookup(
   ctx: ComponentValidationContext<'OrganizationLookup'>,
 ): ComponentValidation[] {
@@ -45,14 +35,5 @@ export function validateOrganizationLookup(
     validations.push(lookupValidation('organization_lookup.validation_error_orgnr', 'orgnr'));
   }
 
-  const input = ctx.formState.lookup.inputs[getComponentStateKey(ctx.baseComponentId, ctx.rowIds)];
-  if (input?.type === 'OrganizationLookup' && !savedOrgNr) {
-    if (!checkValidOrgnNr(input.orgNr)) {
-      validations.push(lookupValidation('organization_lookup.validation_error_orgnr', 'orgnr'));
-    }
-    if (input.failure) {
-      validations.push(lookupValidation(failureMessages[input.failure]));
-    }
-  }
   return validations;
 }

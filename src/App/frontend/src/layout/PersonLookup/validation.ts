@@ -1,7 +1,5 @@
 import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
 import { lookupValidation } from 'src/layout/lookupValidation';
-import { getComponentStateKey } from 'src/utils/layout/rowContext';
-import type { LookupFailure } from 'src/core/queries/lookup';
 import type { ComponentValidation } from 'src/features/validation';
 import type { ComponentValidationContext } from 'src/layout';
 
@@ -45,14 +43,6 @@ export function checkValidSsn(ssn: string): boolean {
 
 const modularAdditiveInverse = (value: number, base: number): number => base - (value % base);
 
-const failureMessages: Record<LookupFailure, string> = {
-  notFound: 'person_lookup.validation_error_not_found',
-  invalidResponse: 'person_lookup.validation_invalid_response_from_server',
-  forbidden: 'person_lookup.validation_error_forbidden',
-  tooManyRequests: 'person_lookup.validation_error_too_many_requests',
-  unknown: 'person_lookup.unknown_error',
-};
-
 export function validatePersonLookup(ctx: ComponentValidationContext<'PersonLookup'>): ComponentValidation[] {
   const bindings = ctx.component.dataModelBindings;
   const savedSsn = readDataFromState(ctx.formState, bindings?.ssn);
@@ -61,17 +51,5 @@ export function validatePersonLookup(ctx: ComponentValidationContext<'PersonLook
     validations.push(lookupValidation('person_lookup.validation_error_ssn', 'ssn'));
   }
 
-  const input = ctx.formState.lookup.inputs[getComponentStateKey(ctx.baseComponentId, ctx.rowIds)];
-  if (input?.type === 'PersonLookup' && !savedSsn) {
-    if (!checkValidSsn(input.ssn)) {
-      validations.push(lookupValidation('person_lookup.validation_error_ssn', 'ssn'));
-    }
-    if (!input.lastName.trim()) {
-      validations.push(lookupValidation('person_lookup.validation_error_name_too_short', 'fullName'));
-    }
-    if (input.failure) {
-      validations.push(lookupValidation(failureMessages[input.failure]));
-    }
-  }
   return validations;
 }
