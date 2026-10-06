@@ -20,7 +20,6 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useOnComponentValidation } from 'src/features/validation/callbacks/onComponentValidation';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
@@ -61,7 +60,6 @@ export function OrganizationLookupComponent({
   const [lookupAttempted, setLookupAttempted] = useState(false);
   const [lookupFailure, setLookupFailure] = useState<LookupFailure>();
   const invalidSearchOrgNr = lookupAttempted && !checkValidOrgnNr(tempOrgNr);
-  const validate = useOnComponentValidation(baseComponentId);
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const [statusMessage, setStatusMessage] = useState('');
   const statusRef = useRef<HTMLDivElement>(null);
@@ -132,7 +130,6 @@ export function OrganizationLookupComponent({
       setValue('orgnr', data.orgNr);
       dataModelBindings.name && setValue('name', data.name);
       clearSearch();
-      await validate();
       announceOrgDetails(data.orgNr);
     } else {
       setLookupFailure(failure);
