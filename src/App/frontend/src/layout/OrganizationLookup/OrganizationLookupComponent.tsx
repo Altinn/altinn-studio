@@ -73,6 +73,7 @@ export function OrganizationLookupComponent({
   const currentLanguage = useCurrentLanguage();
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const pickFormValue = FormStore.data.useCurrentSelector();
+  const waitForSave = FormStore.data.useWaitForSave();
 
   const { lookup: performLookup, isFetching } = useOrganizationLookup(tempOrgNr);
 
@@ -130,6 +131,7 @@ export function OrganizationLookupComponent({
       setValue('orgnr', data.orgNr);
       dataModelBindings.name && setValue('name', data.name);
       clearSearch();
+      await waitForSave(true);
       announceOrgDetails(data.orgNr);
     } else {
       setLookupFailure(failure);
