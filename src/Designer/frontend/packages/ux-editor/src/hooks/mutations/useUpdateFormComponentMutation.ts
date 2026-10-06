@@ -1,5 +1,5 @@
 import type { IInternalLayout } from '../../types/global';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
@@ -12,8 +12,8 @@ import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
 import { updateDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { isItemChildOfContainer } from '../../utils/formLayoutUtils';
-import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import { useAppMetadataQuery } from 'app-shared/hooks/queries';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import { imageUploadDefaultDataType } from './useAddItemToLayoutMutation';
 
@@ -106,7 +106,7 @@ type UseHandleFileUploadComponentUpdateParams = {
 const useHandleFileUploadComponentUpdate = (org: string, app: string, layoutSetName: string) => {
   const moveAttachmentDataType = useMoveAttachmentDataType(org, app);
   const updateAppAttachmentMetadata = useUpdateAppAttachmentMetadataMutation(org, app);
-  const getAttachmentDataType = useGetAttachmentDataType(org, app);
+  const { data: appMetadata } = useAppMetadataQuery(org, app);
   const taskId = useSelectedTaskId(layoutSetName);
 
   return async ({
@@ -114,7 +114,7 @@ const useHandleFileUploadComponentUpdate = (org: string, app: string, layoutSetN
     oldId,
     updatedLayout,
   }: UseHandleFileUploadComponentUpdateParams): Promise<void> => {
-    const oldDataType = await getAttachmentDataType(oldId);
+    const oldDataType = findAttachmentDataType(appMetadata, oldId);
     const metadataParams = buildDataTypeForFileUpload(
       updatedComponent,
       updatedLayout,
@@ -144,11 +144,11 @@ type UseHandleImageUploadComponentIdChangeParams = {
 
 const useHandleImageUploadComponentIdChange = (org: string, app: string, layoutSetName: string) => {
   const moveAttachmentDataType = useMoveAttachmentDataType(org, app);
-  const getAttachmentDataType = useGetAttachmentDataType(org, app);
+  const { data: appMetadata } = useAppMetadataQuery(org, app);
   const taskId = useSelectedTaskId(layoutSetName);
 
   return async ({ oldId, newId }: UseHandleImageUploadComponentIdChangeParams): Promise<void> => {
-    const oldDataType = await getAttachmentDataType(oldId);
+    const oldDataType = findAttachmentDataType(appMetadata, oldId);
 
     await moveAttachmentDataType(oldId, {
       ...imageUploadDefaultDataType,
@@ -159,20 +159,13 @@ const useHandleImageUploadComponentIdChange = (org: string, app: string, layoutS
   };
 };
 
-const useGetAttachmentDataType = (org: string, app: string) => {
-  const queryClient = useQueryClient();
-  const { getAppMetadata } = useServicesContext();
-
-  return async (dataTypeId: string): Promise<ApplicationAttachmentMetadata | undefined> => {
-    const appMetadata = await queryClient.ensureQueryData({
-      queryKey: [QueryKey.AppMetadata, org, app],
-      queryFn: () => getAppMetadata(org, app),
-    });
-    return appMetadata?.dataTypes?.find(
-      (dataType) => dataType.id === dataTypeId,
-    ) as ApplicationAttachmentMetadata;
-  };
-};
+const findAttachmentDataType = (
+  appMetadata: ApplicationMetadata | undefined,
+  dataTypeId: string,
+): ApplicationAttachmentMetadata | undefined =>
+  appMetadata?.dataTypes?.find(
+    (dataType) => dataType.id === dataTypeId,
+  ) as ApplicationAttachmentMetadata;
 
 const useMoveAttachmentDataType = (org: string, app: string) => {
   const addAppAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);

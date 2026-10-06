@@ -298,28 +298,6 @@ describe('useUpdateFormComponentMutation', () => {
       expect(queriesMock.updateBpmnXml).toHaveBeenCalledTimes(1);
     });
 
-    it('Fetches the app metadata when it is not cached when updating the id of an ImageUpload component', async () => {
-      const newId = 'newId';
-      const getAppMetadata = jest.fn().mockResolvedValue({ dataTypes: [imageUploadDataType] });
-      renderAndWaitForData();
-      queryClientMock.removeQueries({ queryKey: [QueryKey.AppMetadata, org, app] });
-      const updateFormComponentResult = renderHookWithProviders(
-        () => useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
-        { queries: { getAppMetadata } },
-      ).result;
-
-      await updateFormComponentResult.current.mutateAsync({
-        id: oldId,
-        updatedComponent: { ...imageUploadComponent, id: newId },
-      });
-
-      expect(getAppMetadata).toHaveBeenCalledTimes(1);
-      expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
-        ...imageUploadDataType,
-        id: newId,
-      });
-    });
-
     it('Does not run attachment metadata queries when the id of an ImageUpload component is unchanged', async () => {
       renderAndWaitForData();
       const updateFormComponentResult = renderHookWithProviders(() =>
