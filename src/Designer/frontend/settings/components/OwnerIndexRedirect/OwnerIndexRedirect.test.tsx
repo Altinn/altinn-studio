@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
 import { OwnerIndexRedirect } from './OwnerIndexRedirect';
@@ -9,9 +10,9 @@ import { RoutePaths as OrgRoutePaths } from '../../features/orgs/routes/RoutePat
 
 const userWithLogin = { ...userMock, login: 'testuser' };
 
-const mockUseUserQuery = jest.fn();
-jest.mock('app-shared/hooks/queries', () => ({
-  ...jest.requireActual('app-shared/hooks/queries'),
+const mockUseUserQuery = vi.fn();
+vi.mock('app-shared/hooks/queries', async () => ({
+  ...(await vi.importActual('app-shared/hooks/queries')),
   useUserQuery: () => mockUseUserQuery(),
 }));
 
@@ -31,7 +32,7 @@ describe('OwnerIndexRedirect', () => {
     mockUseUserQuery.mockReturnValue({ isPending: false, isError: false, data: userWithLogin });
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('redirects to the api-keys page when owner matches the logged-in user', () => {
     renderOwnerIndexRedirect('/testuser');

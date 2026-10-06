@@ -22,6 +22,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- `studioctl app upgrade v9` prepares apps for the new "Må fylles ut" and "Valgfritt" field markers: it removes `form_filler.required_label` overrides that only repeated the old `*`, removes the retired `form_filler.required_description` text, and drops `labelSettings.optionalIndicator: true` from layouts, since it is now the default. A custom required label is kept and reported. ([#16612](https://github.com/Altinn/altinn-studio/issues/16612))
 - The PDF and eFormidling service tasks that `studioctl app upgrade v9` adds to the process are named "Lag PDF" and "Send med eFormidling", the names Studio gives new tasks of those types.
 
 ### Fixed

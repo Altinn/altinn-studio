@@ -686,7 +686,12 @@ public class RepositoryServiceTests
             new GiteaContentLibraryService(giteaClientMock, loggerMock.Object)
         );
 
-        TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService, optionsService);
+        TextsService textsService = new(
+            altinnGitRepositoryFactory,
+            applicationInformationService,
+            optionsService,
+            new AppVersionService(altinnGitRepositoryFactory)
+        );
 
         IResourceRegistry resourceRegistryService = new Mock<IResourceRegistry>().Object;
         IAuthorizationPolicyService authorizationPolicyServiceMock = new Mock<IAuthorizationPolicyService>().Object;

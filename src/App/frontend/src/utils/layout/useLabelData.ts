@@ -1,6 +1,7 @@
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { getRequired } from 'src/utils/layout/getRequired';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import type { GenericComponentOverrideDisplay } from 'src/layout/FormComponentContext';
@@ -30,16 +31,17 @@ export function useLabelData({
     'readOnly' in config ? config.readOnly : undefined,
     CommonExpressions.FormComponentProps.readOnly,
   );
-  const required = useEvalExpression(
+  const evaluatedRequired = useEvalExpression(
     'required' in config ? config.required : undefined,
     CommonExpressions.FormComponentProps.required,
   );
+  const required = getRequired(config.type, evaluatedRequired);
   const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
   const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);
   const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);
 
   const componentId = useIndexedId(baseComponentId);
-  const showOptionalMarking = 'labelSettings' in config && !!config.labelSettings?.optionalIndicator;
+  const showOptionalMarking = !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
 
   const shouldShowLabel =
     (overrideDisplay?.renderLabel ?? true) && overrideDisplay?.renderedInTable !== true && !!title;
