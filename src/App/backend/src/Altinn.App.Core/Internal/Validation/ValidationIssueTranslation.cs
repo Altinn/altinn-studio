@@ -17,13 +17,7 @@ internal static class ValidationIssueTranslation
     {
         foreach (var issue in issues)
         {
-            issue.Description = await Translate(
-                translationService,
-                issue.Description,
-                issue.CustomTextKey,
-                issue.CustomTextParameters,
-                language
-            );
+            await Translate(translationService, issue, language);
         }
     }
 
@@ -35,29 +29,31 @@ internal static class ValidationIssueTranslation
     {
         foreach (var issue in issues)
         {
-            issue.Description = await Translate(
-                translationService,
-                issue.Description,
-                issue.CustomTextKey,
-                issue.CustomTextParameters,
-                language
-            );
+            await Translate(translationService, issue, language);
         }
     }
 
-    private static async Task<string?> Translate(
+    private static async Task Translate(ITranslationService translationService, ValidationIssue issue, string? language)
+    {
+        if (string.IsNullOrEmpty(issue.Description) && !string.IsNullOrEmpty(issue.CustomTextKey))
+        {
+            issue.Description =
+                await translationService.TranslateTextKey(issue.CustomTextKey, language, issue.CustomTextParameters)
+                ?? issue.Description;
+        }
+    }
+
+    private static async Task Translate(
         ITranslationService translationService,
-        string? description,
-        string? customTextKey,
-        Dictionary<string, string>? customTextParameters,
+        ValidationIssueWithSource issue,
         string? language
     )
     {
-        if (!string.IsNullOrEmpty(description) || string.IsNullOrEmpty(customTextKey))
+        if (string.IsNullOrEmpty(issue.Description) && !string.IsNullOrEmpty(issue.CustomTextKey))
         {
-            return description;
+            issue.Description =
+                await translationService.TranslateTextKey(issue.CustomTextKey, language, issue.CustomTextParameters)
+                ?? issue.Description;
         }
-
-        return await translationService.TranslateTextKey(customTextKey, language, customTextParameters) ?? description;
     }
 }

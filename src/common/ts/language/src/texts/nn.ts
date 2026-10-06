@@ -4,6 +4,8 @@ export function nn() {
   return {
     'dateTime.am': 'a.m.',
     'dateTime.pm': 'p.m.',
+    'altinn.standard_validation.file_content_type_not_allowed':
+      'Det ser ut som du prøver å lasta opp ein filtype som ikkje er tillaten. Sjekk at fila faktisk er av den typen han gir seg ut for å vera.',
     'actions.sign': 'Signer',
     'actions.confirm': 'Bekreft',
     'actions.reject': 'Avslå',

@@ -2,6 +2,8 @@ export function en() {
   return {
     'dateTime.am': 'AM',
     'dateTime.pm': 'PM',
+    'altinn.standard_validation.file_content_type_not_allowed':
+      'It looks like you are trying to upload a file type that is not allowed. Please make sure that the file is actually the type it claims to be.',
     'actions.sign': 'Sign',
     'actions.confirm': 'Confirm',
     'actions.reject': 'Reject',

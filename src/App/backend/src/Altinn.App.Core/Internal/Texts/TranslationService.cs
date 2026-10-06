@@ -346,14 +346,14 @@ internal sealed class TranslationService : ITranslationService
                         },
                     ],
                 };
-            case "backend.validation_errors.content_type_not_allowed":
+            case "altinn.standard_validation.file_content_type_not_allowed":
                 return Localized(
                     key,
                     language,
                     nb: "Det ser ut som du prøver å laste opp en filtype som ikke er tillatt. Sjekk at filen faktisk er av den typen den utgir seg for å være. Tillatte filtyper er: {0}.",
                     nn: "Det ser ut som du prøver å lasta opp ein filtype som ikkje er tillaten. Sjekk at fila faktisk er av den typen han gir seg ut for å vera. Tillatne filtypar er: {0}.",
                     en: "It looks like you are trying to upload a file type that is not allowed. Please make sure that the file is actually the type it claims to be. Allowed file types are: {0}.",
-                    "allowedContentTypes"
+                    customTextParameterKeys: ["allowedContentTypes"]
                 );
             case "backend.validation_errors.missing_content_type":
                 return Localized(
@@ -370,7 +370,7 @@ internal sealed class TranslationService : ITranslationService
                     nb: "Filen er for stor. Største tillatte filstørrelse er {0} MB.",
                     nn: "Fila er for stor. Største tillatne filstorleik er {0} MB.",
                     en: "The file is too large. The maximum file size is {0} MB.",
-                    "maxSize"
+                    customTextParameterKeys: ["maxSize"]
                 );
             case "backend.validation_errors.file_infected":
                 return Localized(
@@ -395,8 +395,7 @@ internal sealed class TranslationService : ITranslationService
                     nb: "Det er lagt til flere enn {0} elementer av typen {1}.",
                     nn: "Det er lagt til fleire enn {0} element av typen {1}.",
                     en: "More than {0} items of type {1} have been added.",
-                    "maxCount",
-                    "dataType"
+                    customTextParameterKeys: ["maxCount", "dataType"]
                 );
             case "backend.validation_errors.too_few_data_elements":
                 return Localized(
@@ -405,8 +404,7 @@ internal sealed class TranslationService : ITranslationService
                     nb: "Det må legges til minst {0} elementer av typen {1}.",
                     nn: "Det må leggjast til minst {0} element av typen {1}.",
                     en: "At least {0} items of type {1} must be added.",
-                    "minCount",
-                    "dataType"
+                    customTextParameterKeys: ["minCount", "dataType"]
                 );
             case "backend.validation_errors.missing_signatures":
                 return Localized(
@@ -430,7 +428,7 @@ internal sealed class TranslationService : ITranslationService
     }
 
     /// <summary>
-    /// Builds a built-in text in the requested language. Each name in <paramref name="customTextParameters"/>
+    /// Builds a built-in text in the requested language. Each key in <paramref name="customTextParameterKeys"/>
     /// fills the placeholder at its position ({0}, {1}, ...) from the issue's customTextParameters.
     /// </summary>
     private static TextResourceElement Localized(
@@ -439,7 +437,7 @@ internal sealed class TranslationService : ITranslationService
         string nb,
         string nn,
         string en,
-        params string[] customTextParameters
+        string[]? customTextParameterKeys = null
     )
     {
         return new TextResourceElement()
@@ -451,7 +449,7 @@ internal sealed class TranslationService : ITranslationService
                 LanguageConst.Nn => nn,
                 _ => en,
             },
-            Variables = customTextParameters
+            Variables = (customTextParameterKeys ?? [])
                 .Select(parameter => new TextResourceVariable()
                 {
                     DataSource = "customTextParameters",

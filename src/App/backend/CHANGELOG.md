@@ -37,9 +37,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
 - The workflow that marks an instance as processing at the start of a process next is named `Process next: Mark instance as processing` instead of `Process next: acquire`.
-- Breaking: built-in validation messages, such as a file type that is not allowed or missing signatures, now use `backend.validation_errors.*` text keys. They appear in the user's language, and apps can change the wording by adding the key to their texts.
+- Breaking: built-in validation messages, such as a file that is too large or missing signatures, now use `backend.validation_errors.*` text keys. They appear in the user's language, and apps can change the wording by adding the key to their texts.
 - Breaking: for clients calling the API directly, `description` on built-in validation issues is now translated text instead of the issue code or an English message. Use `code` to tell issues apart.
-- Breaking: the frontend text key `altinn.standard_validation.file_content_type_not_allowed` is removed. Apps that override it should use `backend.validation_errors.content_type_not_allowed` instead.
 
 ### Fixed
 

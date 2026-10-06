@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- The "file type not allowed" message from the MIME type validator now appears in the user's language and names the allowed file types. Apps can change it with the text key `backend.validation_errors.content_type_not_allowed`. Needs Altinn.App.Core 9.0.0-preview.7 or later.
+- The "file type not allowed" message from the MIME type validator now names the allowed file types for clients calling the API, in the user's language. Needs Altinn.App.Core 9.0.0-preview.7 or later.
 
 ## [9.0.0-preview.1] - 2026-09-09
 

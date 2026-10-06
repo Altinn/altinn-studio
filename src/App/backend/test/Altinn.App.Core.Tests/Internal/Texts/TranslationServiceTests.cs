@@ -303,7 +303,7 @@ public class TranslationServiceTests
         var translationService = provider.GetRequiredService<ITranslationService>();
 
         var result = await translationService.TranslateTextKey(
-            "backend.validation_errors.content_type_not_allowed",
+            "altinn.standard_validation.file_content_type_not_allowed",
             LanguageConst.En,
             new() { ["allowedContentTypes"] = "application/pdf, image/png" }
         );

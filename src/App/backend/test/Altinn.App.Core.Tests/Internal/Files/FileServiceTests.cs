@@ -348,7 +348,7 @@ public class FileServiceTests
                 Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                 Severity = ValidationIssueSeverity.Error,
                 Description = null,
-                CustomTextKey = "backend.validation_errors.content_type_not_allowed",
+                CustomTextKey = "altinn.standard_validation.file_content_type_not_allowed",
                 Source = ValidationIssueSources.File,
             },
             new()
@@ -368,7 +368,7 @@ public class FileServiceTests
             .Setup(x => x.Validate(dataType, It.IsAny<List<FileAnalysisResult>>()))
             .ReturnsAsync((false, validationIssues));
         translationService
-            .Setup(x => x.TranslateTextKey("backend.validation_errors.content_type_not_allowed", "nn", null))
+            .Setup(x => x.TranslateTextKey("altinn.standard_validation.file_content_type_not_allowed", "nn", null))
             .ReturnsAsync("Filtypen er ikkje tillaten");
 
         // Act

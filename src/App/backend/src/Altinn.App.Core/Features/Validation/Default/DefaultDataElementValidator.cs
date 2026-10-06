@@ -54,7 +54,7 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
                         DataElementId = dataElement.Id,
                         Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                         Severity = ValidationIssueSeverity.Error,
-                        CustomTextKey = "backend.validation_errors.content_type_not_allowed",
+                        CustomTextKey = "altinn.standard_validation.file_content_type_not_allowed",
                         CustomTextParameters = new Dictionary<string, string>
                         {
                             ["allowedContentTypes"] = string.Join(", ", dataType.AllowedContentTypes),
