@@ -25,9 +25,6 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
     private async Task<IReadOnlyList<string>> Migrate(string policy, string? metadata = Metadata) =>
         (await MigrateResult(policy, metadata)).Warnings;
 
-    private async Task<IReadOnlyList<string>> MigrateTodos(string policy, string? metadata = Metadata) =>
-        (await MigrateResult(policy, metadata)).Todos;
-
     private string PolicyAfter() => _app.Read("config/authorization/policy.xml");
 
     [Fact]
