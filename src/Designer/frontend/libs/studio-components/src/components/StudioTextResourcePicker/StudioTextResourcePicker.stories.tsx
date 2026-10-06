@@ -13,7 +13,6 @@ type Story = StoryObj<typeof StudioTextResourcePicker>;
 
 export const Preview: Story = {
   args: {
-    emptyLabel: 'Ingen mulige alternativer',
     label: 'Velg tekst',
     textResources: textResourcesMock,
     onValueChange: (id: string | null) => console.log(id),

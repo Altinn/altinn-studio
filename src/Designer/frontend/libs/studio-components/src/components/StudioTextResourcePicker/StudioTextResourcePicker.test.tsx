@@ -135,7 +135,7 @@ describe('StudioTextResourcePicker', () => {
   });
 
   it('Renders without error when the text props are undefined', () => {
-    renderTextResourcePicker({ emptyLabel: undefined });
+    renderTextResourcePicker();
     expect(getInput()).toBeInTheDocument();
   });
 
