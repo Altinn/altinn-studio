@@ -27,6 +27,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- Canceling a request to a locally running app no longer breaks the shared connection and causes other requests to fail with HTTP 502. ([#20970](https://github.com/Altinn/altinn-studio/pull/20970))
 - `studioctl app upgrade v9` no longer stops with a folder collision when a subform's layout set also lists a task in `layout-sets.json`. Sets used by a Subform component or marked `"type": "subform"` keep their own folder, since v9 does not bind subforms to tasks. A task that only such a set lists gets a TODO.
 - `studioctl app upgrade v9` and `studioctl app upgrade frontend-v4` now convert `saveWhileTyping` values set to `true` or `false`, which the frontend has ignored since v4. `true` is removed, and `false` becomes 4000 milliseconds, with a warning.
 - `studioctl app upgrade v9` keeps custom PDF layouts (`pdfLayoutName`) when it replaces `enablePdfCreation` with a PDF service task. The PDF service task gets its own layout set with the PDF layout, and legacy `Summary` components become `Summary2`. When this cannot be done automatically, the upgrade reports a TODO and keeps `enablePdfCreation` until it is run again.
