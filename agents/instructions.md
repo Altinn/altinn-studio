@@ -78,7 +78,12 @@ and rerun the evidence that demonstrates the outcome. Benchmark and profile perf
 is impractical, run the lightest meaningful check and state exactly what remains unverified. Say “I am not sure” or
 “I cannot confirm” instead of guessing.
 
-Before using a nested Agent to develop the platform, run `make user-install` in `src/experimental` to get an updated version of `agentctl`.
+- **Subagents** are your harness's own delegated workers, such as Claude Code's Agent tool or Codex subagents. They run
+  inside this Sandbox and need no extra setup; use them for reviews, research and parallel work.
+- **Nested Agents** are separate Agents with their own Sandbox VM, started from inside this one with `agentctl apply`,
+  such as the `nested` and `nested-build` variants under `agents/`. Only before starting one, check for `agentctl` with
+  `command -v agentctl`; if it is missing, install it with
+  `curl -fsSL https://raw.githubusercontent.com/digdir/digdir-agents/main/agentctl/install.sh | sh`.
 
 ## Pull requests
 

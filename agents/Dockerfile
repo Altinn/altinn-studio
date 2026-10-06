@@ -368,9 +368,9 @@ RUN apt-get update \
     && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt \
     && chown -R agent:agent /usr/local/rustup
 
-# The Rust workspaces' `make deps-check` (src/experimental, src/ci/github-runner/coordinator) runs
-# cargo-machete. The release binary is published per architecture, so the digests are pinned here;
-# the version matches the CI workflows that install it and must move together with them.
+# The Rust workspace's `make deps-check` (src/ci/github-runner/coordinator) runs cargo-machete. The
+# release binary is published per architecture, so the digests are pinned here; the version matches
+# the CI workflows that install it and must move together with them.
 ARG CARGO_MACHETE_VERSION=0.9.2
 
 RUN case "${TARGETARCH}" in \
