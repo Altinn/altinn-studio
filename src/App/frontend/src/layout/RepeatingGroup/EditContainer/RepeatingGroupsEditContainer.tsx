@@ -44,7 +44,7 @@ export function RepeatingGroupsEditContainer({ editId, ...props }: IRepeatingGro
   }
 
   return (
-    <RepeatingGroupEditRowProvider>
+    <RepeatingGroupEditRowProvider key={editId}>
       <RepeatingGroupsEditContainerInternal
         editId={editId}
         row={row}
