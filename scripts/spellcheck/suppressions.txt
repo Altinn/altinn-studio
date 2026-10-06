@@ -83,7 +83,7 @@ Elipsis
 Labelled
 
 # BuildKit SolveStatus field name
-@paths src/Runtime/devenv/pkg/container/dockerapi/** src/experimental/sandbox-microsandbox/src/image.rs
+@paths src/Runtime/devenv/pkg/container/dockerapi/**
 Vertexes
 vertexes
 
