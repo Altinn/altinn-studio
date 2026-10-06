@@ -1048,7 +1048,7 @@ internal static class V8Tov9Upgrade
         try
         {
             var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
-            var result = await new GeneralSettingsHostNameMigration(appFolder).Migrate();
+            var result = await GeneralSettingsHostNameMigration.Migrate(appFolder);
             return ReportMigrationResult(
                 result,
                 cleanText: "No GeneralSettings:HostName in the appsettings files",
