@@ -22,7 +22,6 @@ import {
 } from 'src/features/validation/deriveValidationState';
 import { useAllNavigationParams } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
-import { getComponentStateKey } from 'src/utils/layout/rowContext';
 import type { AnyValidation, NodeRefValidation, NodeVisibility, ValidationSeverity } from 'src/features/validation';
 import type {
   DerivedValidationStateInputs,
@@ -264,33 +263,19 @@ export function usePageHasVisibleRequiredValidations(pageKey: string | undefined
 }
 
 /**
- * Returns a callback that removes form, page, row, and component visibility masks after
+ * Returns a callback that removes form, page, and row visibility masks after
  * the validations they revealed have been resolved.
  */
 export function usePruneValidationMasks() {
   const derived = useCompleteValidationSnapshot();
-  const [formMask, pageMasks, rowMasks, componentMasks] = FormStore.raw.useShallowSelector((state) => [
+  const [formMask, pageMasks, rowMasks] = FormStore.raw.useShallowSelector((state) => [
     state.validation.formMask,
     state.validation.pageMasks,
     state.validation.rowMasks,
-    state.validation.componentMasks,
   ]);
   const setFormMask = FormStore.validation.useSetFormValidationMask();
   const setPageMask = FormStore.validation.useSetPageValidationMask();
   const setRowMask = FormStore.validation.useSetRowValidationMask();
-
-  const setComponentMask = FormStore.validation.useSetComponentValidationMask();
-  const nodeIdsByComponentKey = new Map(
-    derived.nodes.map((node) => [getComponentStateKey(node.baseId, node.rowIds), node.id]),
-  );
-  const staleComponents = useShallowMemo(
-    Object.entries(componentMasks)
-      .filter(([componentKey, mask]) => {
-        const nodeId = nodeIdsByComponentKey.get(componentKey);
-        return !nodeId || !getValidationsForNode(derived, nodeId, mask, 'error').length;
-      })
-      .map(([componentKey]) => componentKey),
-  );
 
   const hasFormErrors =
     !formMask || derived.nodes.some((node) => getValidationsForNode(derived, node.id, formMask, 'error').length > 0);
@@ -321,16 +306,5 @@ export function usePruneValidationMasks() {
     }
     stalePages.forEach((pageKey) => setPageMask(pageKey, undefined));
     staleRows.forEach((rowId) => setRowMask(rowId, undefined));
-    staleComponents.forEach((key) => setComponentMask(key, undefined));
-  }, [
-    formMask,
-    hasFormErrors,
-    setFormMask,
-    setPageMask,
-    setRowMask,
-    stalePages,
-    staleRows,
-    staleComponents,
-    setComponentMask,
-  ]);
+  }, [formMask, hasFormErrors, setFormMask, setPageMask, setRowMask, stalePages, staleRows]);
 }
