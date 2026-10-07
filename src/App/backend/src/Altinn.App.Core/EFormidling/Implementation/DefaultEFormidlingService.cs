@@ -1,24 +1,20 @@
 using System.Diagnostics;
-using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.EFormidling.Configuration;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.EFormidling.Models;
+using Altinn.App.Core.EFormidling.Models.SBD;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
-using Altinn.Common.AccessTokenClient.Services;
-using Altinn.Common.EFormidlingClient;
-using Altinn.Common.EFormidlingClient.Models;
-using Altinn.Common.EFormidlingClient.Models.SBD;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Arkivmelding = Altinn.Common.EFormidlingClient.Models.SBD.Arkivmelding;
 
 namespace Altinn.App.Core.EFormidling.Implementation;
 
@@ -39,36 +35,50 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
     private static readonly TimeSpan _shipmentLifetime = TimeSpan.FromHours(2);
 
     private readonly ILogger<DefaultEFormidlingService> _logger;
-    private readonly IAccessTokenGenerator? _tokenGenerator;
-    private readonly IUserTokenProvider _userTokenProvider;
     private readonly AppSettings? _appSettings;
-    private readonly PlatformSettings? _platformSettings;
     private readonly IEFormidlingClient? _eFormidlingClient;
     private readonly IAppMetadata _appMetadata;
     private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly EFormidlingClientSettings? _clientSettings;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultEFormidlingService"/> class.
     /// </summary>
     public DefaultEFormidlingService(
         ILogger<DefaultEFormidlingService> logger,
-        IUserTokenProvider userTokenProvider,
         IAppMetadata appMetadata,
         IServiceProvider sp,
         IOptions<AppSettings>? appSettings = null,
-        IOptions<PlatformSettings>? platformSettings = null,
         IEFormidlingClient? eFormidlingClient = null,
-        IAccessTokenGenerator? tokenGenerator = null
+        IOptions<EFormidlingClientSettings>? clientSettings = null
     )
     {
         _logger = logger;
-        _tokenGenerator = tokenGenerator;
         _appSettings = appSettings?.Value;
-        _platformSettings = platformSettings?.Value;
-        _userTokenProvider = userTokenProvider;
         _eFormidlingClient = eFormidlingClient;
         _appMetadata = appMetadata;
         _appImplementationFactory = sp.GetRequiredService<AppImplementationFactory>();
+        _clientSettings = clientSettings?.Value;
+    }
+
+    // Custom IEFormidlingService implementations create their own shipments. Only the built-in service
+    // requires these registrations.
+    internal IEnumerable<string> ValidateConfiguration(HostingEnvironment environment)
+    {
+        if (_appImplementationFactory.Get<IEFormidlingMetadata>() is null)
+        {
+            yield return $"eFormidling is enabled for this environment ({environment}), but no "
+                + $"{nameof(IEFormidlingMetadata)} is registered. Complete the registration with "
+                + "AddEFormidling().WithMetadata<T>(), or disable the task with <altinn:disabled>.";
+        }
+
+        if (string.IsNullOrWhiteSpace(_clientSettings?.BaseUrl))
+        {
+            yield return $"eFormidling is enabled for this environment ({environment}), but "
+                + $"{nameof(EFormidlingClientSettings)}.{nameof(EFormidlingClientSettings.BaseUrl)} is not "
+                + "set. Add it to the EFormidlingClientSettings configuration section, or supply it with "
+                + "AddEFormidling().WithMetadata<T>().WithConfig(...).";
+        }
     }
 
     /// <inheritdoc />
@@ -79,34 +89,14 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
     )
     {
         var metadata = _appImplementationFactory.Get<IEFormidlingMetadata>();
-        if (
-            _eFormidlingClient == null
-            || _tokenGenerator == null
-            || metadata == null
-            || _appSettings == null
-            || _platformSettings == null
-        )
+        if (_eFormidlingClient == null || metadata == null || _appSettings == null)
         {
             throw new EntryPointNotFoundException(
-                "eFormidling support has not been correctly configured in App.cs. "
-                    + "Ensure that IEformidlingClient and IAccessTokenGenerator are included in the base constructor."
+                "eFormidling support has not been correctly configured. Register it with "
+                    + "services.AddEFormidling().WithMetadata<T>(), naming the IEFormidlingMetadata "
+                    + "implementation that generates your arkivmelding."
             );
         }
-
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
-
-        string userToken = _userTokenProvider.GetUserToken();
-        string platformAccessToken = _tokenGenerator.GenerateAccessToken(
-            applicationMetadata.Org,
-            applicationMetadata.AppIdentifier.App
-        );
-
-        var requestHeaders = new Dictionary<string, string>
-        {
-            { "Authorization", $"{AuthorizationSchemes.Bearer} {userToken}" },
-            { General.EFormidlingAccessTokenHeaderName, platformAccessToken },
-            { General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey },
-        };
 
         Instance instance = dataAccessor.Instance;
         string instanceGuid = instance.Id.Split("/")[1];
@@ -124,17 +114,15 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         // steps the earlier attempt did not complete.
         bool resumingExistingMessage = false;
 
-        // Safe to abandon between calls, for the same reason: a created-but-unsent message is exactly
-        // what the recovery above resumes. The client takes no token, so these seams are as fine-grained
-        // as cancellation gets.
-        cancellationToken.ThrowIfCancellationRequested();
+        // Safe to abandon mid-shipment, for the same reason: a created-but-unsent message is exactly
+        // what the recovery above resumes.
         try
         {
-            await _eFormidlingClient.CreateMessage(sbd, requestHeaders);
+            await _eFormidlingClient.CreateMessage(sbd, cancellationToken);
         }
-        catch (WebException e) when (IsMessageAlreadyExistsError(e))
+        catch (PlatformHttpException e) when (IsMessageAlreadyExistsError(e))
         {
-            Statuses statuses = await _eFormidlingClient.GetMessageStatusById(instanceGuid, requestHeaders);
+            Statuses statuses = await _eFormidlingClient.GetMessageStatusById(instanceGuid, cancellationToken);
             if (EFormidlingStatusReader.HasLeftOutbox(statuses))
             {
                 _logger.LogInformation(
@@ -160,9 +148,9 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         {
             try
             {
-                await _eFormidlingClient.UploadAttachment(stream, instanceGuid, metadataFilename, requestHeaders);
+                await _eFormidlingClient.UploadAttachment(stream, instanceGuid, metadataFilename, cancellationToken);
             }
-            catch (WebException e) when (resumingExistingMessage)
+            catch (PlatformHttpException e) when (resumingExistingMessage)
             {
                 _logger.LogWarning(
                     e,
@@ -175,17 +163,15 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
 
         await SendInstanceData(
             dataAccessor,
-            requestHeaders,
             metadataFilename,
             configuration,
             resumingExistingMessage,
             cancellationToken
         );
 
-        cancellationToken.ThrowIfCancellationRequested();
         try
         {
-            await _eFormidlingClient.SendMessage(instanceGuid, requestHeaders);
+            await _eFormidlingClient.SendMessage(instanceGuid, cancellationToken);
         }
         catch
         {
@@ -201,20 +187,11 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         CancellationToken cancellationToken = default
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(_eFormidlingClient);
-        ArgumentNullException.ThrowIfNull(_platformSettings);
 
         string instanceGuid = dataAccessor.Instance.Id.Split("/")[1];
 
-        // Only the subscription key, matching what the status query has always sent: this is a read
-        // through the platform gateway, not an operation on the instance's behalf.
-        var requestHeaders = new Dictionary<string, string>
-        {
-            { General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey },
-        };
-
-        Statuses statuses = await _eFormidlingClient.GetMessageStatusById(instanceGuid, requestHeaders);
+        Statuses statuses = await _eFormidlingClient.GetMessageStatusById(instanceGuid, cancellationToken);
         EFormidlingShipmentStatus status = EFormidlingStatusReader.Classify(statuses);
 
         _logger.LogInformation(
@@ -222,7 +199,7 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
             instanceGuid,
             status.State,
             status.Status,
-            string.Join(",", statuses?.Content?.Select(s => s.Status) ?? [])
+            string.Join(",", statuses.Content?.Select(s => s.Status) ?? [])
         );
 
         return status;
@@ -288,48 +265,50 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         StandardBusinessDocument sbd = new StandardBusinessDocument
         {
             StandardBusinessDocumentHeader = sbdHeader,
-            Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = config.SecurityLevel },
+            Arkivmelding = new ArkivmeldingMetadata { Sikkerhetsnivaa = config.SecurityLevel },
         };
 
         if (!string.IsNullOrEmpty(config.DpfShipmentType))
         {
-            sbd.Arkivmelding.DPF = new() { ForsendelsesType = config.DpfShipmentType };
+            sbd.Arkivmelding.Dpf = new() { ForsendelsesType = config.DpfShipmentType };
         }
 
         return sbd;
     }
 
     /// <summary>
-    /// Identifies the integrasjonspunkt's duplicate-message error. The eFormidling client wraps the
-    /// error response in a <see cref="WebException"/> with the JSON body interpolated into the
-    /// message, so the structured <c>exception</c> field has to be dug out of the string.
+    /// Identifies the integrasjonspunkt's duplicate-message error from the captured response body.
     /// </summary>
-    internal static bool IsMessageAlreadyExistsError(WebException exception)
+    /// <remarks>
+    /// The body is normally a JSON object naming the Java exception in an <c>exception</c> field. The
+    /// substring fallback covers a body that is not JSON, or one the snapshot truncated.
+    /// </remarks>
+    internal static bool IsMessageAlreadyExistsError(PlatformHttpException exception)
     {
-        string message = exception.Message;
-        int start = message.IndexOf('{');
-        int end = message.LastIndexOf('}');
-        if (start >= 0 && end > start)
+        string body = exception.Response.Content;
+        if (string.IsNullOrEmpty(body))
         {
-            try
-            {
-                using var body = JsonDocument.Parse(message[start..(end + 1)]);
-                if (
-                    body.RootElement.TryGetProperty("exception", out JsonElement exceptionName)
-                    && exceptionName.GetString()
-                        == "no.difi.meldingsutveksling.exceptions.MessageAlreadyExistsException"
-                )
-                {
-                    return true;
-                }
-            }
-            catch (JsonException)
-            {
-                // Not a JSON body - fall through to the substring match.
-            }
+            return false;
         }
 
-        return message.Contains("MessageAlreadyExistsException", StringComparison.Ordinal);
+        try
+        {
+            using var document = JsonDocument.Parse(body);
+            if (
+                document.RootElement.ValueKind is JsonValueKind.Object
+                && document.RootElement.TryGetProperty("exception", out JsonElement exceptionName)
+                && exceptionName.GetString() == "no.difi.meldingsutveksling.exceptions.MessageAlreadyExistsException"
+            )
+            {
+                return true;
+            }
+        }
+        catch (JsonException)
+        {
+            // Not a JSON body - fall through to the substring match.
+        }
+
+        return body.Contains("MessageAlreadyExistsException", StringComparison.Ordinal);
     }
 
     private static void ThrowIfMessageFailed(Statuses statuses, string messageId)
@@ -344,27 +323,25 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
     }
 
     /// <param name="dataAccessor">Reads the shipped instance and its data element content from the current unit of work.</param>
-    /// <param name="requestHeaders">Headers for the eFormidling client calls.</param>
     /// <param name="eformidlingMetadataFilename">Filename already claimed by the metadata document.</param>
     /// <param name="config">The validated eFormidling configuration for the task.</param>
     /// <param name="tolerateUploadFailures">
     /// Set when resuming a message created by an earlier attempt, where re-uploading an attachment
-    /// that already exists may be rejected. Known blind spot: a <see cref="WebException"/> here
-    /// cannot be told apart from a transient failure, so a resume could in principle proceed to
+    /// that already exists may be rejected. Known blind spot: a <see cref="PlatformHttpException"/>
+    /// here cannot be told apart from a transient failure, so a resume could in principle proceed to
     /// send with an attachment missing - the integrasjonspunkt's duplicate-upload behavior is
     /// unverified. Hence the loud warning per skipped attachment rather than silence.
     /// </param>
     /// <param name="cancellationToken">Checked before each attachment; see the caller's remarks on why abandoning here is safe.</param>
     private async Task SendInstanceData(
         IInstanceDataAccessor dataAccessor,
-        Dictionary<string, string> requestHeaders,
         string eformidlingMetadataFilename,
         ValidAltinnEFormidlingConfiguration config,
         bool tolerateUploadFailures = false,
         CancellationToken cancellationToken = default
     )
     {
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
 
         Instance instance = dataAccessor.Instance;
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
@@ -408,33 +385,22 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
             );
 
             Debug.Assert(_eFormidlingClient is not null, "This is validated before use");
-            bool successful;
             try
             {
-                successful = await _eFormidlingClient.UploadAttachment(
+                await _eFormidlingClient.UploadAttachment(
                     stream,
                     instanceGuid.ToString(),
                     uniqueFileName,
-                    requestHeaders
+                    cancellationToken
                 );
             }
-            catch (WebException e) when (tolerateUploadFailures)
+            catch (PlatformHttpException e) when (tolerateUploadFailures)
             {
                 _logger.LogWarning(
                     e,
                     "Re-upload of eFormidling attachment {Filename} failed while resuming message {MessageId}; assuming it was uploaded by the earlier attempt.",
                     uniqueFileName,
                     instanceGuid
-                );
-                continue;
-            }
-
-            if (!successful)
-            {
-                _logger.LogError(
-                    "// AppBase // SendInstanceData // DataElement {DataElementId} was not sent with shipment for instance {InstanceId} failed",
-                    dataElement.Id,
-                    instance.Id
                 );
             }
         }

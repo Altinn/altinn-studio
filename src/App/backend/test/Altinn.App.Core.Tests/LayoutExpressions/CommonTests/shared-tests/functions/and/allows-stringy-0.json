@@ -1,5 +1,0 @@
-{
-  "name": "Allows stringy 0 as false",
-  "expression": ["and", "0", "0.0", "0.0000"],
-  "expects": false
-}

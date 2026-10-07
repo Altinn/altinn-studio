@@ -30,7 +30,7 @@ export const uploadFileWithTagAndVerify = (fileName: string, fileType: string) =
     .find('input[type="file"]')
     .selectFile(makeTestFile(fileName), { force: true });
   cy.contains('label', 'Filtype').click();
-  cy.dsSelect('[data-componentid="FileUploadWithTag-UvbEiL"] u-combobox', fileType);
+  cy.dsSelect('[data-componentid="FileUploadWithTag-UvbEiL"] input.ds-input', fileType);
   cy.get('button[id^=attachment-save-tag-button]').click();
 
   cy.get('[data-testid="tagFile-summary"]').first().should('be.visible');

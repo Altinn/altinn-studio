@@ -10,6 +10,7 @@ import { useAddXsdMutation } from '../../../hooks/mutations/useAddXsdMutation';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useCanUseFeatureQuery } from '../../../hooks/queries/useCanUseFeatureQuery';
 import { FeatureName } from 'app-shared/enums/CanUseFeature';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export interface SchemaEditorWithToolbarProps {
   createPathOption?: boolean;
@@ -24,7 +25,12 @@ export const SchemaEditorWithToolbar = ({
   const [selectedOption, setSelectedOption] = useState<MetadataOption | undefined>(undefined);
   const [schemaGenerationErrorMessages, setSchemaGenerationErrorMessages] = useState<string[]>([]);
   const { mutate: addXsdFromRepo } = useAddXsdMutation();
-  const { data: uploadDataModelFeature } = useCanUseFeatureQuery(FeatureName.UploadDataModel);
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: uploadDataModelFeature } = useCanUseFeatureQuery(
+    org,
+    app,
+    FeatureName.UploadDataModel,
+  );
 
   const existingSelectedOption = dataModels.some(
     (model) => model.fileName === selectedOption?.value.fileName,

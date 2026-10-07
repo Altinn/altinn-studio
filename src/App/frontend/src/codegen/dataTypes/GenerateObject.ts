@@ -1,11 +1,14 @@
+import type { PropertyDefinition, PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
 import { DescribableCodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
 import { getSourceForCommon } from 'src/codegen/Common';
 import { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
+import { prefixExpressionDescriptors } from 'src/codegen/ExpressionDescriptors';
 import type { CodeGenerator, CodeGeneratorWithProperties, Extract } from 'src/codegen/CodeGenerator';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
+import type { ExpressionDescriptorEntry } from 'src/codegen/ExpressionDescriptors';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Props = GenerateProperty<any>[];
@@ -146,6 +149,70 @@ export class GenerateObject<P extends Props>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getProperties(): GenerateProperty<any>[] {
     return this.properties;
+  }
+
+  /** Returns the effective properties, including inherited common/object properties and local overrides. */
+  getAllProperties(seen = new Set<object>()): GenerateProperty<CodeGenerator<unknown>>[] {
+    if (seen.has(this)) {
+      return [];
+    }
+    seen.add(this);
+
+    const properties = new Map<string, GenerateProperty<CodeGenerator<unknown>>>();
+    for (const extended of this._extends) {
+      const source = extended instanceof GenerateCommonImport ? getSourceForCommon(extended.key) : extended;
+      if (source instanceof GenerateObject) {
+        for (const property of source.getAllProperties(seen)) {
+          properties.set(property.name, property);
+        }
+      }
+    }
+    for (const property of this.properties) {
+      properties.set(property.name, property);
+    }
+    return [...properties.values()];
+  }
+
+  getAdditionalProperties(): CodeGenerator<unknown> | false {
+    return this._additionalProperties;
+  }
+
+  expressionDescriptors(): ExpressionDescriptorEntry[] {
+    const properties = this.getAllProperties().flatMap((property) =>
+      prefixExpressionDescriptors(property.name, property.type.expressionDescriptors()),
+    );
+    const additional = this._additionalProperties
+      ? prefixExpressionDescriptors('additionalProperties', this._additionalProperties.expressionDescriptors())
+      : [];
+    return [...properties, ...additional];
+  }
+
+  componentCatalogProperties(): Readonly<Record<string, PropertyDefinition>> {
+    const properties: Record<string, PropertyDefinition> = {};
+    for (const extended of this._extends) {
+      const definition = extended.toComponentCatalog();
+      if (definition.type !== 'object') {
+        throw new Error(`Cannot inherit catalogue properties from non-object '${extended.getName()}'`);
+      }
+      Object.assign(properties, definition.properties);
+    }
+    for (const property of this.properties) {
+      if (!property.shouldOmitInSchema()) {
+        properties[property.name] = property.toComponentCatalog();
+      }
+    }
+    return properties;
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    const additionalProperties =
+      this._additionalProperties === false ? false : this._additionalProperties.toComponentCatalog();
+    return {
+      type: 'object',
+      properties: this.componentCatalogProperties(),
+      additionalProperties,
+      ...this.componentCatalogMetadata(),
+    };
   }
 
   private ensureExtendsHaveNames() {

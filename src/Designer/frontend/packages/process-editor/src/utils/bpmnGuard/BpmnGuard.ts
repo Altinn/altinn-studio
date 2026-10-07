@@ -1,4 +1,5 @@
 import type { Element } from 'bpmn-js/lib/model/Types';
+import { TaskUtils } from '../taskUtils';
 
 export enum GuardErrorMessage {
   MissingSignature = 'Missing signature config in BPMN extension element',
@@ -10,7 +11,7 @@ export class BpmnGuard {
   public static ensureHasSignatureConfig(element: Element): void {
     BpmnGuard.ensureExtensionElementBusinessObject(element);
 
-    const signatureConfig = element.businessObject.extensionElements.values[0]?.signatureConfig;
+    const signatureConfig = TaskUtils.getTaskExtension(element)?.signatureConfig;
     if (!signatureConfig) {
       throw new Error(GuardErrorMessage.MissingSignature);
     }

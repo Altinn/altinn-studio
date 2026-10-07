@@ -1,16 +1,20 @@
 import React, { useMemo } from 'react';
 import ReactDOMServer from 'react-dom/server';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import dot from 'dot-object';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression, useEvalExpressionMap } from 'src/utils/layout/useEvalExpression';
+import type { ExprResolved } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { CompInternal, ITextResourceBindings } from 'src/layout/layout';
+import type { CompExternal, ITextResourceBindings } from 'src/layout/layout';
 
 export type ICustomComponentProps = PropsFromGenericComponent<'Custom'> & {
   [key: string]: string | number | boolean | object | null | undefined;
@@ -21,7 +25,7 @@ export type IPassedOnProps = Omit<
   PropsFromGenericComponent<'Custom'>,
   'baseComponentId' | 'componentValidations' | 'containerDivRef'
 > &
-  Omit<CompInternal<'Custom'>, 'tagName' | 'textResourceBindings'> & {
+  Omit<ExprResolved<CompExternal<'Custom'>>, 'tagName' | 'textResourceBindings' | 'pageBreak' | 'removeWhenHidden'> & {
     [key: string]: string | number | boolean | object | null | undefined;
     text: string | undefined;
     getTextResourceAsString: (textResource: string | undefined) => string;
@@ -36,22 +40,39 @@ export function CustomWebComponent({
   const langTools = useLanguage();
   const langAsString = langTools.langAsString;
   const legacyLanguage = useLegacyNestedTexts();
-  const { tagName, textResourceBindings, dataModelBindings, ...passThroughPropsFromNode } = useItemWhenType(
-    baseComponentId,
-    'Custom',
-  );
+  const config = useComponentConfig(baseComponentId, 'Custom');
+  const componentId = useIndexedId(baseComponentId);
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Custom');
+  const {
+    tagName: _tagName,
+    dataModelBindings: _bindings,
+    id: _id,
+    hidden: _hidden,
+    pageBreak: _pageBreak,
+    removeWhenHidden: _removeWhenHidden,
+    textResourceBindings: _texts,
+    ...passThroughPropsFromConfig
+  } = config;
 
+  const readOnly = useEvalExpression(config.readOnly, Expressions.Custom.readOnly);
+  const required = useEvalExpression(config.required, Expressions.Custom.required);
+  const forceShowInSummary = useEvalExpression(config.forceShowInSummary, Expressions.Custom.forceShowInSummary);
+  const texts = useEvalExpressionMap(config.textResourceBindings, Expressions.Custom.textResourceBindings);
   const { containerDivRef: _unused, ...restFromGeneric } = passThroughPropsFromGenericComponent;
 
   const passThroughProps: IPassedOnProps = {
     ...restFromGeneric,
-    ...passThroughPropsFromNode,
-    text: langAsString(textResourceBindings?.title),
+    ...passThroughPropsFromConfig,
+    id: componentId,
+    readOnly,
+    required,
+    forceShowInSummary,
+    text: langAsString(texts?.title),
     getTextResourceAsString: (textResource: string) => langAsString(textResource),
     summaryMode,
   };
 
-  const HtmlTag = tagName;
+  const HtmlTag = config.tagName;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wcRef = React.useRef<any>(null);
   const { formData, setValue } = useDataModelBindings(dataModelBindings);
@@ -83,11 +104,11 @@ export function CustomWebComponent({
   React.useLayoutEffect(() => {
     const { current } = wcRef;
     if (current) {
-      current.texts = getTextsForComponent(textResourceBindings, langTools);
+      current.texts = getTextsForComponent(texts, langTools);
       current.dataModelBindings = dataModelBindings;
       current.language = legacyLanguage;
     }
-  }, [wcRef, textResourceBindings, dataModelBindings, langTools, legacyLanguage]);
+  }, [wcRef, texts, dataModelBindings, langTools, legacyLanguage]);
 
   React.useLayoutEffect(() => {
     const { current } = wcRef;
@@ -118,7 +139,7 @@ export function CustomWebComponent({
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <HtmlTag
         ref={wcRef}
-        data-testid={tagName}
+        data-testid={config.tagName}
         {...propsAsAttributes}
       />
     </ComponentStructureWrapper>

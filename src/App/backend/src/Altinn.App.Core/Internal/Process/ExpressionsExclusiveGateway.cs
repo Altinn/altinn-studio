@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Internal.Process;
 /// <summary>
 /// Class implementing <see cref="IProcessExclusiveGateway" /> for evaluating expressions on flows connected to a gateway
 /// </summary>
-public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
+internal sealed class ExpressionsExclusiveGateway : IProcessExclusiveGateway
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -92,7 +92,9 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
                 }
             }
             var expression = GetExpressionFromCondition(sequenceFlow.ConditionExpression);
-            DataElementIdentifier? dataElement = instance.Data.Find(d => d.DataType == dataTypeId);
+            // While an instance is created, a gateway after the start event sees the instance template, which has no
+            // data list yet.
+            DataElementIdentifier? dataElement = instance.Data?.Find(d => d.DataType == dataTypeId);
 
             var componentContext = new ComponentContext(
                 state.DataAccessor,

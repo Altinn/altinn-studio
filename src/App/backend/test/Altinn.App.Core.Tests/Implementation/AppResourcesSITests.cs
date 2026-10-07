@@ -1,287 +1,38 @@
 using System.Text;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
-using Altinn.App.Core.Tests.TestUtils;
+using Altinn.App.Core.Tests.Internal.App;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Microsoft.FeatureManagement;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Implementation;
 
 public class AppResourcesSITests
 {
-    private readonly string _appBasePath =
-        Path.Join(PathUtils.GetCoreTestsPath(), "Implementation", "TestData") + Path.DirectorySeparatorChar;
-    private readonly TelemetrySink _telemetry = new();
-
-    [Fact]
-    public void GetApplication_desrializes_file_from_disk()
-    {
-        AppSettings appSettings = GetAppSettings("AppMetadata", "default.applicationmetadata.json");
-        var settings = Options.Create(appSettings);
-        IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
-        AppResourcesSI appResources = new(
-            settings,
-            appMetadata,
-            null!,
-            new NullLogger<AppResourcesSI>(),
-            _telemetry.Object
-        );
-        Application expected = new()
+    private const string ApplicationMetadataJson = """
         {
-            Id = "tdd/bestilling",
-            Org = "tdd",
-            Created = DateTime.Parse("2019-09-16T22:22:22"),
-            CreatedBy = "username",
-            Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
-            DataTypes = new List<DataType>()
-            {
-                new()
-                {
-                    Id = "vedlegg",
-                    AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
-                    MinCount = 0,
-                    TaskId = "Task_1",
-                },
-                new()
-                {
-                    Id = "ref-data-as-pdf",
-                    AllowedContentTypes = ["application/pdf"],
-                    MinCount = 1,
-                    TaskId = "Task_1",
-                },
-            },
-            PartyTypesAllowed = new PartyTypesAllowed()
-            {
-                BankruptcyEstate = true,
-                Organisation = true,
-                Person = true,
-                SubUnit = true,
-            },
-            OnEntry = new OnEntry() { Show = "select-instance" },
-        };
-        var actual = appResources.GetApplication();
-        actual.Should().NotBeNull();
-        actual.Should().BeEquivalentTo(expected);
-    }
+            "id": "ttd/app",
+            "org": "ttd",
+            "dataTypes": [
+                { "id": "main", "appLogic": { "classRef": "Model.Main" } }
+            ]
+        }
+        """;
 
-    [Fact]
-    public void GetApplication_sets_default_value_when_onEntry_null()
+    private AppResourcesSI CreateAppResources(DirectoryInfo appDir)
     {
-        AppSettings appSettings = GetAppSettings("AppMetadata", "no-on-entry.applicationmetadata.json");
-        var settings = Options.Create(appSettings);
-        IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
-        AppResourcesSI appResources = new(
-            settings,
-            appMetadata,
-            null!,
-            new NullLogger<AppResourcesSI>(),
-            _telemetry.Object
-        );
-        Application expected = new Application()
+        if (!File.Exists(Path.Join(appDir.FullName, "config", "applicationmetadata.json")))
         {
-            Id = "tdd/bestilling",
-            Org = "tdd",
-            Created = DateTime.Parse("2019-09-16T22:22:22"),
-            CreatedBy = "username",
-            Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
-            OnEntry = new OnEntry { Show = "new-instance" },
-            DataTypes =
-            [
-                new()
-                {
-                    Id = "vedlegg",
-                    AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
-                    MinCount = 0,
-                    TaskId = "Task_1",
-                },
-                new()
-                {
-                    Id = "ref-data-as-pdf",
-                    AllowedContentTypes = ["application/pdf"],
-                    MinCount = 1,
-                    TaskId = "Task_1",
-                },
-            ],
-            PartyTypesAllowed = new PartyTypesAllowed()
-            {
-                BankruptcyEstate = true,
-                Organisation = true,
-                Person = true,
-                SubUnit = true,
-            },
-        };
-        var actual = appResources.GetApplication();
-        actual.Should().NotBeNull();
-        actual.Should().BeEquivalentTo(expected);
-    }
-
-    [Fact]
-    public void GetApplication_second_read_from_cache()
-    {
-        AppSettings appSettings = GetAppSettings("AppMetadata", "default.applicationmetadata.json");
-        Mock<IFrontendFeatures> appFeaturesMock = new();
-        appFeaturesMock
-            .Setup(af => af.GetFrontendFeatures())
-            .ReturnsAsync(new Dictionary<string, bool>() { { "footer", true } });
-        var settings = Options.Create(appSettings);
-        IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings), appFeaturesMock.Object);
-        AppResourcesSI appResources = new(
-            settings,
-            appMetadata,
-            null!,
-            new NullLogger<AppResourcesSI>(),
-            _telemetry.Object
-        );
-        Application expected = new()
-        {
-            Id = "tdd/bestilling",
-            Org = "tdd",
-            Created = DateTime.Parse("2019-09-16T22:22:22"),
-            CreatedBy = "username",
-            Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
-            DataTypes = new List<DataType>()
-            {
-                new()
-                {
-                    Id = "vedlegg",
-                    AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
-                    MinCount = 0,
-                    TaskId = "Task_1",
-                },
-                new()
-                {
-                    Id = "ref-data-as-pdf",
-                    AllowedContentTypes = ["application/pdf"],
-                    MinCount = 1,
-                    TaskId = "Task_1",
-                },
-            },
-            PartyTypesAllowed = new PartyTypesAllowed()
-            {
-                BankruptcyEstate = true,
-                Organisation = true,
-                Person = true,
-                SubUnit = true,
-            },
-            OnEntry = new OnEntry() { Show = "select-instance" },
-        };
-        var actual = appResources.GetApplication();
-        var actual2 = appResources.GetApplication();
-        appFeaturesMock.Verify(af => af.GetFrontendFeatures());
-        appFeaturesMock.VerifyAll();
-        actual.Should().NotBeNull();
-        actual.Should().BeEquivalentTo(expected);
-        actual2.Should().BeEquivalentTo(expected);
-    }
-
-    [Fact]
-    public void GetApplicationMetadata_throws_ApplicationConfigException_if_file_not_found()
-    {
-        AppSettings appSettings = GetAppSettings("AppMetadata", "notfound.applicationmetadata.json");
-        var settings = Options.Create(appSettings);
-        IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
-        IAppResources appResources = new AppResourcesSI(
-            settings,
-            appMetadata,
-            null!,
-            new NullLogger<AppResourcesSI>(),
-            _telemetry.Object
-        );
-        Assert.Throws<ApplicationConfigException>(() => appResources.GetApplication());
-    }
-
-    [Fact]
-    public void GetApplicationMetadata_throws_ApplicationConfigException_if_deserialization_fails()
-    {
-        AppSettings appSettings = GetAppSettings("AppMetadata", "invalid.applicationmetadata.json");
-        var settings = Options.Create(appSettings);
-        IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
-        IAppResources appResources = new AppResourcesSI(
-            settings,
-            appMetadata,
-            null!,
-            new NullLogger<AppResourcesSI>(),
-            _telemetry.Object
-        );
-        Assert.Throws<ApplicationConfigException>(() => appResources.GetApplication());
-    }
-
-    [Fact]
-    public void GetApplicationXACMLPolicy_return_policyfile_as_string()
-    {
-        AppSettings appSettings = GetAppSettings(subfolder: "AppPolicy", policyFilename: "policy.xml");
-        var settings = Options.Create(appSettings);
-        IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
-        IAppResources appResources = new AppResourcesSI(
-            settings,
-            appMetadata,
-            null!,
-            new NullLogger<AppResourcesSI>(),
-            _telemetry.Object
-        );
-        string expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" + Environment.NewLine + "<root>policy</root>";
-        var actual = appResources.GetApplicationXACMLPolicy();
-        actual.Should().BeEquivalentTo(expected);
-    }
-
-    [Fact]
-    public void GetApplicationXACMLPolicy_return_null_if_file_not_found()
-    {
-        AppSettings appSettings = GetAppSettings(subfolder: "AppPolicy", policyFilename: "notfound.xml");
-        var settings = Options.Create(appSettings);
-        IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
-        IAppResources appResources = new AppResourcesSI(
-            settings,
-            appMetadata,
-            null!,
-            new NullLogger<AppResourcesSI>(),
-            _telemetry.Object
-        );
-        var actual = appResources.GetApplicationXACMLPolicy();
-        actual.Should().BeNull();
-    }
-
-    [Fact]
-    public void GetApplicationBPMNProcess_return_process_as_string()
-    {
-        AppSettings appSettings = GetAppSettings(subfolder: "AppProcess", bpmnFilename: "process.bpmn");
-        var settings = Options.Create(appSettings);
-        IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
-        IAppResources appResources = new AppResourcesSI(
-            settings,
-            appMetadata,
-            null!,
-            new NullLogger<AppResourcesSI>(),
-            _telemetry.Object
-        );
-        string expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" + Environment.NewLine + "<root>process</root>";
-        var actual = appResources.GetApplicationBPMNProcess();
-        actual.Should().BeEquivalentTo(expected);
-    }
-
-    [Fact]
-    public void GetApplicationBPMNProcess_return_null_if_file_not_found()
-    {
-        AppSettings appSettings = GetAppSettings(subfolder: "AppProcess", policyFilename: "notfound.xml");
-        var settings = Options.Create(appSettings);
-        IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
-        IAppResources appResources = new AppResourcesSI(
-            settings,
-            appMetadata,
-            null!,
-            new NullLogger<AppResourcesSI>(),
-            _telemetry.Object
-        );
-        var actual = appResources.GetApplicationBPMNProcess();
-        actual.Should().BeNull();
+            WriteApplicationMetadata(appDir);
+        }
+        var appFiles = TestAppFiles.Load(appDir.FullName);
+        var frontendFeatures = new Mock<IFrontendFeatures>();
+        frontendFeatures.Setup(f => f.GetDictionary()).Returns(new Dictionary<string, bool>());
+        return new AppResourcesSI(appFiles, new AppMetadata(appFiles, frontendFeatures.Object));
     }
 
     [Fact]
@@ -301,31 +52,7 @@ public class AppResourcesSITests
             File.WriteAllText(Path.Join(uiDir, "subform", "Settings.json"), """{ "pages": { "order": ["sub1"] } }""");
             File.WriteAllText(Path.Join(uiDir, "Settings.json"), """{ "showProgress": true }""");
 
-            var appSettings = new AppSettings { AppBasePath = tempDir.FullName, UiFolder = "ui" };
-            var appMetadata = new Mock<IAppMetadata>();
-            appMetadata
-                .Setup(m => m.GetApplicationMetadata())
-                .ReturnsAsync(
-                    new ApplicationMetadata("ttd/app")
-                    {
-                        DataTypes =
-                        [
-                            new()
-                            {
-                                Id = "main",
-                                AppLogic = new() { ClassRef = "Model.Main" },
-                            },
-                        ],
-                    }
-                );
-
-            AppResourcesSI appResources = new(
-                Options.Create(appSettings),
-                appMetadata.Object,
-                null!,
-                new NullLogger<AppResourcesSI>(),
-                _telemetry.Object
-            );
+            AppResourcesSI appResources = CreateAppResources(tempDir);
 
             UiConfiguration ui =
                 appResources.GetUiConfiguration()
@@ -348,8 +75,8 @@ public class AppResourcesSITests
         var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-LayoutModel-");
         try
         {
+            WriteApplicationMetadata(tempDir);
             var uiDir = Path.Join(tempDir.FullName, "ui");
-            Directory.CreateDirectory(Path.Join(uiDir, "Task_1"));
             Directory.CreateDirectory(Path.Join(uiDir, "Task_1", "layouts"));
 
             File.WriteAllText(
@@ -358,35 +85,88 @@ public class AppResourcesSITests
             );
             File.WriteAllText(Path.Join(uiDir, "Task_1", "layouts", "page1.json"), """{ "data": [] }""");
 
-            var appSettings = new AppSettings { AppBasePath = tempDir.FullName, UiFolder = "ui" };
-            var appMetadata = new Mock<IAppMetadata>();
-            appMetadata
-                .Setup(m => m.GetApplicationMetadata())
-                .ReturnsAsync(
-                    new ApplicationMetadata("ttd/app")
-                    {
-                        DataTypes =
-                        [
-                            new()
-                            {
-                                Id = "main",
-                                AppLogic = new() { ClassRef = "Model.Main" },
-                            },
-                        ],
-                    }
-                );
-
-            AppResourcesSI appResources = new(
-                Options.Create(appSettings),
-                appMetadata.Object,
-                null!,
-                new NullLogger<AppResourcesSI>(),
-                _telemetry.Object
-            );
+            AppResourcesSI appResources = CreateAppResources(tempDir);
 
             var model = appResources.GetLayoutModelForFolder("Task_PDF_Auto");
 
             model.Should().BeNull();
+        }
+        finally
+        {
+            Directory.Delete(tempDir.FullName, true);
+        }
+    }
+
+    [Fact]
+    public void GetLayoutModelForFolder_reads_data_types_from_application_metadata()
+    {
+        var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-LayoutModel-");
+        try
+        {
+            WriteApplicationMetadata(tempDir);
+            var uiDir = Path.Join(tempDir.FullName, "ui");
+            Directory.CreateDirectory(Path.Join(uiDir, "Task_1", "layouts"));
+
+            File.WriteAllText(
+                Path.Join(uiDir, "Task_1", "Settings.json"),
+                """{ "defaultDataType": "main", "pages": { "order": ["page1"] } }"""
+            );
+            File.WriteAllText(Path.Join(uiDir, "Task_1", "layouts", "page1.json"), """{ "data": { "layout": [] } }""");
+
+            AppResourcesSI appResources = CreateAppResources(tempDir);
+
+            var model = appResources.GetLayoutModelForFolder("Task_1");
+
+            model.Should().NotBeNull();
+            model!.DefaultDataType.Id.Should().Be("main");
+            appResources.GetClassRefForLogicDataType("main").Should().Be("Model.Main");
+            appResources.GetClassRefForLogicDataType("missing").Should().BeEmpty();
+        }
+        finally
+        {
+            Directory.Delete(tempDir.FullName, true);
+        }
+    }
+
+    [Fact]
+    public void GetLayoutModelForFolder_finds_a_data_type_the_apps_own_IAppMetadata_adds()
+    {
+        var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-LayoutModel-");
+        try
+        {
+            WriteApplicationMetadata(tempDir);
+            var uiDir = Path.Join(tempDir.FullName, "ui");
+            Directory.CreateDirectory(Path.Join(uiDir, "Task_1", "layouts"));
+
+            File.WriteAllText(
+                Path.Join(uiDir, "Task_1", "Settings.json"),
+                """{ "defaultDataType": "added", "pages": { "order": ["page1"] } }"""
+            );
+            File.WriteAllText(Path.Join(uiDir, "Task_1", "layouts", "page1.json"), """{ "data": { "layout": [] } }""");
+
+            var appFiles = TestAppFiles.Load(tempDir.FullName);
+            var appMetadata = new Mock<IAppMetadata>();
+            appMetadata
+                .Setup(m => m.ApplicationMetadata)
+                .Returns(
+                    new ApplicationMetadata("ttd/app")
+                    {
+                        DataTypes =
+                        [
+                            new DataType
+                            {
+                                Id = "added",
+                                AppLogic = new() { ClassRef = "Model.Added" },
+                            },
+                        ],
+                    }
+                );
+            var appResources = new AppResourcesSI(appFiles, appMetadata.Object);
+
+            var model = appResources.GetLayoutModelForFolder("Task_1");
+
+            model.Should().NotBeNull();
+            model!.DefaultDataType.Id.Should().Be("added");
         }
         finally
         {
@@ -400,6 +180,7 @@ public class AppResourcesSITests
         var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-Bom-");
         try
         {
+            WriteApplicationMetadata(tempDir);
             var uiDir = Path.Join(tempDir.FullName, "ui");
             Directory.CreateDirectory(Path.Join(uiDir, "Task_1", "layouts"));
 
@@ -412,31 +193,7 @@ public class AppResourcesSITests
                 """{ "data": { "layout": [] } }"""
             );
 
-            var appSettings = new AppSettings { AppBasePath = tempDir.FullName, UiFolder = "ui" };
-            var appMetadata = new Mock<IAppMetadata>();
-            appMetadata
-                .Setup(m => m.GetApplicationMetadata())
-                .ReturnsAsync(
-                    new ApplicationMetadata("ttd/app")
-                    {
-                        DataTypes =
-                        [
-                            new()
-                            {
-                                Id = "main",
-                                AppLogic = new() { ClassRef = "Model.Main" },
-                            },
-                        ],
-                    }
-                );
-
-            AppResourcesSI appResources = new(
-                Options.Create(appSettings),
-                appMetadata.Object,
-                null!,
-                new NullLogger<AppResourcesSI>(),
-                _telemetry.Object
-            );
+            AppResourcesSI appResources = CreateAppResources(tempDir);
 
             var model = appResources.GetLayoutModelForFolder("Task_1");
 
@@ -461,13 +218,7 @@ public class AppResourcesSITests
                 """{ "language": "nb", "resources": [{ "id": "some.id", "value": "Bokmål" }] }"""
             );
 
-            AppResourcesSI appResources = new(
-                Options.Create(new AppSettings { AppBasePath = tempDir.FullName }),
-                Mock.Of<IAppMetadata>(),
-                null!,
-                new NullLogger<AppResourcesSI>(),
-                _telemetry.Object
-            );
+            AppResourcesSI appResources = CreateAppResources(tempDir);
 
             TextResource? textResource = await appResources.GetTexts("ttd", "app", "nb");
 
@@ -490,13 +241,7 @@ public class AppResourcesSITests
             Directory.CreateDirectory(textsDir);
             WriteAllTextWithBom(Path.Join(textsDir, "resource.nb.json"), """{ "language": "nb" }""");
 
-            AppResourcesSI appResources = new(
-                Options.Create(new AppSettings { AppBasePath = tempDir.FullName }),
-                Mock.Of<IAppMetadata>(),
-                null!,
-                new NullLogger<AppResourcesSI>(),
-                _telemetry.Object
-            );
+            AppResourcesSI appResources = CreateAppResources(tempDir);
 
             byte[] text = appResources.GetText("ttd", "app", "resource.nb.json");
 
@@ -509,45 +254,13 @@ public class AppResourcesSITests
         }
     }
 
+    private static void WriteApplicationMetadata(DirectoryInfo appDir)
+    {
+        var configDir = Path.Join(appDir.FullName, "config");
+        Directory.CreateDirectory(configDir);
+        File.WriteAllText(Path.Join(configDir, "applicationmetadata.json"), ApplicationMetadataJson);
+    }
+
     private static void WriteAllTextWithBom(string path, string contents) =>
         File.WriteAllText(path, contents, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
-
-    private AppSettings GetAppSettings(
-        string subfolder,
-        string appMetadataFilename = "",
-        string bpmnFilename = "",
-        string policyFilename = ""
-    )
-    {
-        AppSettings appSettings = new AppSettings()
-        {
-            AppBasePath = _appBasePath,
-            ConfigurationFolder = subfolder + Path.DirectorySeparatorChar,
-            AuthorizationFolder = string.Empty,
-            ProcessFolder = string.Empty,
-            ApplicationMetadataFileName = appMetadataFilename,
-            ProcessFileName = bpmnFilename,
-            ApplicationXACMLPolicyFileName = policyFilename,
-        };
-        return appSettings;
-    }
-
-    private static IAppMetadata SetupAppMetadata(
-        IOptions<AppSettings> appsettings,
-        IFrontendFeatures? frontendFeatures = null
-    )
-    {
-        var featureManagerMock = new Mock<IFeatureManager>();
-        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
-        var serviceProvider = new ServiceCollection()
-            .AddSingleton(Mock.Of<IExternalApiFactory>())
-            .BuildStrictServiceProvider();
-
-        if (frontendFeatures == null)
-        {
-            return new AppMetadata(appsettings, new FrontendFeatures(featureManagerMock.Object), serviceProvider);
-        }
-
-        return new AppMetadata(appsettings, frontendFeatures, serviceProvider);
-    }
 }

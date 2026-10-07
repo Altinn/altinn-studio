@@ -47,6 +47,11 @@ describe('HeadingBar', () => {
     expect(fileBrowserToggle).toBeInTheDocument();
   });
 
+  it('should give the toggle group an accessible name', () => {
+    renderHeadingBar({ selectedToolColumnMode: ToolColumnMode.Preview, onModeChange });
+    expect(screen.getByRole('group', { name: mockTexts.toolColumnMode })).toBeInTheDocument();
+  });
+
   it('should call onModeChange with correct mode when file browser toggle is clicked', async () => {
     const user = userEvent.setup();
     renderHeadingBar({ selectedToolColumnMode: ToolColumnMode.Preview, onModeChange });

@@ -5,9 +5,7 @@ on:
     paths:
       - 'Cargo.lock'
       - 'Cargo.toml'
-      - 'src/experimental/sandbox/**'
-      - 'src/experimental/sandbox-authorization/**'
-      - 'src/experimental/sandbox-microsandbox/**'
+      - 'rust-toolchain.toml'
       - 'src/ci/github-runner/**'
       - 'src/tools/releaser/go.mod'
       - '.github/workflows/deploy-github-runners.yaml'
@@ -101,7 +99,7 @@ jobs:
       - name: Resolve Rust version
         id: rust-version
         run: |
-          RUST_VERSION="$(sed -n 's/^rust-version = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/Cargo.toml")"
+          RUST_VERSION="$(sed -n 's/^channel = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/rust-toolchain.toml")"
           test -n "${RUST_VERSION}"
           echo "version=${RUST_VERSION}" >> "$GITHUB_OUTPUT"
 

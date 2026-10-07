@@ -43,6 +43,7 @@ describe('externalLayoutToInternal', () => {
     };
     const expectedResult: IInternalLayout = {
       ...createEmptyLayout(),
+      $schema: layoutSchemaUrl(),
       customRootProperties: {
         customProperty1,
         customProperty2,
@@ -69,6 +70,7 @@ describe('externalLayoutToInternal', () => {
     };
     const expectedResult: IInternalLayout = {
       ...createEmptyLayout(),
+      $schema: layoutSchemaUrl(),
       customRootProperties: {
         rootCustomProperty1,
         rootCustomProperty2,

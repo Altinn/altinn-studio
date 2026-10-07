@@ -4,7 +4,6 @@ import { isStringValidAsExpression } from '../StudioExpression/validators/isStri
 import { expressionToString, stringToExpression } from './converters';
 import { StudioTextarea } from '../StudioTextarea';
 import classes from './StudioManualExpression.module.css';
-import { usePropState } from '@studio/hooks';
 import type { ExpressionTexts } from '../StudioExpression';
 
 export type StudioManualExpressionProps = {
@@ -20,9 +19,9 @@ export const StudioManualExpression = ({
   onValidityChange,
   texts,
 }: StudioManualExpressionProps): React.ReactElement => {
-  const initialExpressionString = expressionToString(givenExpression);
-  const isInitiallyValid = isStringValidAsExpression(initialExpressionString);
-  const [expressionString, setExpressionString] = usePropState<string>(initialExpressionString);
+  const givenExpressionString = expressionToString(givenExpression);
+  const isInitiallyValid = isStringValidAsExpression(givenExpressionString);
+  const [expressionString, setExpressionString] = useState<string>(givenExpressionString);
   const [isValid, setIsValid] = useState<boolean>(isInitiallyValid);
 
   const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {

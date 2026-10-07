@@ -29,7 +29,16 @@ internal sealed class WorkflowEntity
 
     public DateTimeOffset? UpdatedAt { get; set; }
 
+    public DateTimeOffset? ExecutionStartedAt { get; set; }
+
+    /// <summary>
+    /// When the workflow was last resumed, directly or by a cascade. Null until the first resume.
+    /// </summary>
+    public DateTimeOffset? ResumedAt { get; set; }
+
     public DateTimeOffset? BackoffUntil { get; set; }
+
+    public DateTimeOffset? ThrottledUntil { get; set; }
 
     public DateTimeOffset? HeartbeatAt { get; set; }
 
@@ -81,7 +90,9 @@ internal sealed class WorkflowEntity
             CreatedAt = workflow.CreatedAt,
             StartAt = workflow.StartAt,
             UpdatedAt = workflow.UpdatedAt,
+            ExecutionStartedAt = workflow.ExecutionStartedAt,
             BackoffUntil = workflow.BackoffUntil,
+            ThrottledUntil = workflow.ThrottledUntil,
             HeartbeatAt = workflow.HeartbeatAt,
             ReclaimCount = workflow.ReclaimCount,
             LeaseToken = workflow.LeaseToken,
@@ -126,7 +137,9 @@ internal sealed class WorkflowEntity
             CreatedAt = CreatedAt,
             StartAt = StartAt,
             UpdatedAt = UpdatedAt,
+            ExecutionStartedAt = ExecutionStartedAt,
             BackoffUntil = BackoffUntil,
+            ThrottledUntil = ThrottledUntil,
             HeartbeatAt = HeartbeatAt,
             ReclaimCount = ReclaimCount,
             LeaseToken = LeaseToken,

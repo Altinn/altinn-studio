@@ -97,7 +97,13 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
             }
         );
         using var readPatchResponse = await patchResponse.Read<DataPatchResponseMultiple>();
-        await verifier.Verify(readPatchResponse, snapshotName: "PatchFormData", scrubbers: scrubbers);
+        // The patch mints a new blob version, so the instantiation-time scrubber cannot scrub it.
+        var patchedInstance = readPatchResponse.Data.Model?.Instance ?? instance;
+        await verifier.Verify(
+            readPatchResponse,
+            snapshotName: "PatchFormData",
+            scrubbers: new Scrubbers(StringScrubber: Scrubbers.InstanceStringScrubber(patchedInstance))
+        );
 
         using var processNextResponse = await fixture.Instances.ProcessNext(token, readInstantiationResponse);
         using var readProcessNextResponse = await processNextResponse.Read<AppProcessState>();
@@ -148,6 +154,26 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
 
         var hostedServices = await fixture.HostedServices.Get();
         await VerifyJson(hostedServices);
+    }
+
+    [Fact]
+    public async Task BuildOutput_IncludesModelXsd()
+    {
+        await using var fixtureScope = await _classFixture.Get(_output, TestApps.Basic);
+        var fixture = fixtureScope.Fixture;
+
+        // The XSD validator reads models/*.xsd at runtime, so Altinn.App.Api.targets must copy them to the
+        // build/publish output (what ends up in the Docker image), not just leave them in the project folder.
+        var binDirectory = Path.Join(fixture.AppProjectDirectory, "bin");
+        var assembly = Assert.Single(
+            Directory.GetFiles(
+                binDirectory,
+                "Altinn.Application.For.IntegrationTesting.dll",
+                SearchOption.AllDirectories
+            )
+        );
+        var xsdPath = Path.Join(Path.GetDirectoryName(assembly), "models", "model.xsd");
+        Assert.True(File.Exists(xsdPath), $"Expected {xsdPath} in the build output");
     }
 
     private static async Task<AppFixture.ApiResponse> CreateInstance(
@@ -207,7 +233,12 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
         Assert.NotNull(port);
         var response = await fixture.Connectivity.Pdf();
         await Verify(response).AddScrubber(sb => sb.Replace(port, "<pdfPort>"));
-        Assert.True(response.Success); // Connectivity is a prereq, so we fail hard here
+        if (!response.Success)
+        {
+            _output.WriteLine(response.ResponseContent ?? "null");
+            _output.WriteLine(response.Exception ?? "null");
+            Assert.True(response.Success); // Connectivity is a prereq, so we fail hard here
+        }
     }
 
     [Fact]

@@ -1,5 +1,6 @@
+import type { CompRepeatingGroupExternal } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
+
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
-import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 
 export const getMultiPageGroupMock = (overrides: Partial<CompRepeatingGroupExternal>): CompRepeatingGroupExternal => ({
   id: 'myMultiPageGroup',

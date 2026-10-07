@@ -9,7 +9,9 @@ public class EventsClientMock : IEventsClient
     public Task<string> AddEvent(
         string eventType,
         Instance instance,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        Guid? idempotencyKey = null,
+        CancellationToken cancellationToken = default
     )
     {
         throw new NotImplementedException();

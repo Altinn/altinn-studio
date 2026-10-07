@@ -72,7 +72,7 @@ public static class LayoutTestUtils
             ],
         };
 
-        appMetadata.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        appMetadata.Setup(am => am.ApplicationMetadata).Returns(applicationMetadata);
         var appModel = new Mock<IAppModel>(MockBehavior.Strict);
         appModel.Setup(am => am.GetModelType(modelTypeFullName)).Returns(modelType);
 

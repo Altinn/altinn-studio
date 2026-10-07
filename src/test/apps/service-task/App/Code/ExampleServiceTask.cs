@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Altinn.App.Core.Features.Process;
+﻿using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Models;
 using Altinn.App.Models.model;
 using Altinn.Platform.Storage.Interface.Models;
@@ -13,7 +12,9 @@ public class ExampleServiceTask : IServiceTask
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
         Instance instance = context.InstanceDataMutator.Instance;
-        DataElement dataElement = instance.Data.Find(x => x.DataType == "model");
+        DataElement dataElement =
+            instance.Data.Find(x => x.DataType == "model")
+            ?? throw new InvalidOperationException("Expected a 'model' data element on the instance.");
 
         var formData = (model)
             await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement));

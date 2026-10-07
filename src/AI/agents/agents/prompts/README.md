@@ -1,49 +1,53 @@
-# System Prompts
+# System prompts
 
-This directory contains all LLM system and user prompts used throughout the agent workflow.
+This directory contains the system prompts and user prompts for these parts:
+
+- the pre-graph gates
+- the intake pipeline
+- the spec pipeline.
+
+The system prompt of the agentic loop is not in this directory. `agents/core/context.py` makes it in code.
 
 ## Structure
 
 ```
 prompts/
 ├── README.md
-├── loader.py                    # Prompt loading utilities
+├── loader.py                    # Functions that load prompts
 ├── __init__.py
 ├── intake_planning.md           # System prompts (static)
 ├── spec_extraction.md
-├── semantic_query_extraction.md
 ├── intent_security.md
 ├── goal_suggestions.md
 ├── scope_check.md
-├── llm-as-a-judge/              # Langfuse-managed evaluator prompts
+├── retired.json                 # Prompts deleted from Langfuse, kept here as text
+├── llm-as-a-judge/              # Evaluator prompts that Langfuse manages
 └── templates/                   # User prompts (with variables)
     ├── intake_planning_user.md
-    ├── spec_extraction_user.md
-    └── semantic_query_user.md
+    └── spec_extraction_user.md
 ```
 
 ## Format
 
-### System Prompts
+### System prompts
 
-Stored as **Markdown files with YAML frontmatter** (no variables):
+A system prompt is a **Markdown file with YAML frontmatter**. It has no variables.
 
 ```markdown
 ---
 name: Prompt Name
-role: planner # LLM role to use
+role: planner # The LLM role to use
 version: '1.0'
 ---
 
-Your actual prompt content here...
-Can span multiple lines.
-Uses markdown formatting.
-Much easier to read and edit!
+The prompt content.
+It can have many lines.
+It uses Markdown format.
 ```
 
-### User Prompt Templates
+### User prompt templates
 
-Stored in `templates/` subdirectory with **variable placeholders** using `{{variable}}` syntax (same as Langfuse):
+User prompt templates are in the `templates/` subdirectory. They have **placeholders for variables** with the `{{variable}}` syntax. Langfuse uses the same syntax.
 
 ```markdown
 USER GOAL:
@@ -57,16 +61,16 @@ Return JSON with:
 
 ## Usage
 
-### Load System Prompts
+### Load a system prompt
 
 ```python
-from agents.prompts import get_prompt_content
+from agents.prompts import get_prompt_with_langfuse
 
-system_prompt = get_prompt_content("intake_planning")
-# Returns the content as a string
+system_prompt, langfuse_prompt = get_prompt_with_langfuse("intake_planning")
+# Returns the content as a string, and the Langfuse prompt object (None if Langfuse did not serve it)
 ```
 
-### Render User Templates
+### Render a user template
 
 ```python
 from agents.prompts import render_template
@@ -75,63 +79,68 @@ user_prompt = render_template(
     "intake_planning_user",
     user_goal="Add a new field",
 )
-# Returns rendered template with variables substituted
+# Returns the template with the values of the variables
 ```
 
-## Langfuse Prompt Management
+## Langfuse prompt management
 
-When `LANGFUSE_ENABLED=true`, the loader automatically tries to fetch prompts from Langfuse **before** falling back to local `.md` files. No additional flag is needed.
+When `LANGFUSE_ENABLED=true`, the loader tries to get the prompt from Langfuse first. If this fails, it uses the local `.md` file. You do not set a different flag.
 
-### How It Works
+### How it works
 
-1. **`get_prompt_content("intake_planning")`** — Tries Langfuse `client.get_prompt("intake_planning", type="text")`, falls back to `intake_planning.md`
-2. **`render_template("intake_planning_user", user_goal=...)`** — Tries Langfuse `client.get_prompt("intake_planning_user", type="text").compile(user_goal=...)`, falls back to `templates/intake_planning_user.md`
+1. **`get_prompt_with_langfuse("intake_planning")`** calls `client.get_prompt("intake_planning", type="text")` in Langfuse. If this fails, it uses `intake_planning.md`.
+2. **`render_template("intake_planning_user", user_goal=...)`** calls `client.get_prompt("intake_planning_user", type="text").compile(user_goal=...)` in Langfuse. If this fails, it uses `templates/intake_planning_user.md`.
 
-If Langfuse is down or a prompt doesn't exist there, it silently falls back to local files.
+If Langfuse is not available, or the prompt is not in Langfuse, the loader uses the local file. It does not show an error.
 
-### Setting Up Prompts in Langfuse
+### Add or change a prompt
 
-To use a prompt from Langfuse instead of the local file:
+Edit or add the file in this directory, and merge the change. Do not edit the prompt in the Langfuse UI. `.github/workflows/assistant-prompts.yaml` does these steps:
 
-1. **Go to your Langfuse dashboard** (e.g. `https://langfuse.digdir.cloud`)
-2. **Navigate to Prompts** in the sidebar
-3. **Create a new prompt** with these settings:
-   - **Name**: Must match the local filename without `.md` (e.g. `intake_planning`); see the naming table below. Evaluator prompts under `llm-as-a-judge/` are set up separately as Langfuse evaluators (see [LLM-as-a-judge prompts](#llm-as-a-judge-prompts)).
-   - **Type**: `Text` (not Chat)
-   - **Content**: Paste the prompt content (without YAML frontmatter for system prompts)
-4. **Label it `production`** — By default, `get_prompt()` fetches the version labeled `production`. If no version has this label, the fetch will fail and fall back to local.
+- On each pull request that changes `agents/prompts/`, it runs `--diff`. Thus, you see the differences before the merge.
+- On each merge to main, it runs `--push`. This publishes each changed prompt as a new version with the label `production`. If the prompt is not in Langfuse, `--push` makes it. The commit message of the version is the URL of the merge commit.
 
-### Prompt Naming Reference
+`--push` does not run unless `ALLOW_PROMPT_PUSH=1` is set. CI sets it. Do not set it on a laptop.
 
-The Langfuse prompt name is the local filename without its `.md` extension and
-without any folder prefix. This holds for every prompt loaded by application
-code, whether it is a system prompt in `prompts/` or a user template in
-`templates/`:
+A change in the Langfuse UI does not show in a code review. The workflow shows it as a difference on the next pull request. When `--diff` shows a difference, read it before you do an action. The local file can be older than the Langfuse version.
+
+```bash
+python -m scripts.sync_prompts --diff                    # all prompts, repository and Langfuse
+python -m scripts.sync_prompts --diff spec_extraction    # one prompt
+python -m scripts.sync_prompts --promote spec_extraction --version 1   # go back to an earlier version
+```
+
+### Prompt names
+
+The Langfuse prompt name is the local file name without the `.md` extension and without the directory. This rule applies to all prompts that the application code loads. It applies to the system prompts in `prompts/` and to the user templates in `templates/`:
 
 ```python
 get_prompt_with_langfuse("intake_planning")
 ```
 
-| Local file                          | Langfuse prompt name        |
-| ----------------------------------- | --------------------------- |
-| `intake_planning.md`                | `intake_planning`           |
-| `spec_extraction.md`                | `spec_extraction`           |
-| `semantic_query_extraction.md`      | `semantic_query_extraction` |
-| `intent_security.md`                | `intent_security`           |
-| `goal_suggestions.md`               | `goal_suggestions`          |
-| `scope_check.md`                    | `scope_check`               |
-| `templates/intake_planning_user.md` | `intake_planning_user`      |
-| `templates/spec_extraction_user.md` | `spec_extraction_user`      |
-| `templates/semantic_query_user.md`  | `semantic_query_user`       |
+| Local file                          | Langfuse prompt name   | Purpose                                                          |
+| ----------------------------------- | ---------------------- | ---------------------------------------------------------------- |
+| `intake_planning.md`                | `intake_planning`      | Makes the first high-level plan from the user request.           |
+| `spec_extraction.md`                | `spec_extraction`      | Gets a structured spec from the attachments.                     |
+| `intent_security.md`                | `intent_check`         | Parses the intent, with a focus on security. Workflow mode only. |
+| `goal_suggestions.md`               | `goal_suggestions`     | Makes clear examples of goals when the input is not clear.       |
+| `scope_check.md`                    | `scope_check`          | Decides if a request is about Altinn app development.            |
+| `templates/intake_planning_user.md` | `intake_planning_user` | User goal → high-level plan                                      |
+| `templates/spec_extraction_user.md` | `spec_extraction_user` | User goal → structured spec                                      |
+
+`intent_security.md` is the only file with a name that is different from its prompt. When the two names are different, give `local_path` to the loader. Also add the pair to `SERVED_FROM` in `scripts/sync_prompts.py`, so that the drift report finds the file.
+
+### Retired prompts
+
+When you delete a prompt file, the prompt stays in Langfuse. It continues to serve its last version. If you add the name again later, the agent serves this old text, and nobody sees it.
+
+`scripts/sync_prompts.py --diff` shows each Langfuse prompt that has no file. `--retire` writes all versions of the prompt to `retired.json`. Then it deletes the prompt in Langfuse. You cannot undo a deletion. Thus, the command runs only when `ALLOW_PROMPT_DELETE=1` is set.
 
 ### LLM-as-a-judge prompts
 
-The files under `llm-as-a-judge/` are NOT loaded by application code.
-Evaluation runs as **Langfuse-managed evaluators** (Evaluation → Evaluators
-in the UI), triggered by trace observations — not from this service. The
-local files are kept as the version-controlled source of the evaluator
-prompts: edit the file here, then paste the update into the corresponding
-evaluator in the Langfuse UI.
+The application code does not load the files in `llm-as-a-judge/`. The evaluations run as **evaluators that Langfuse manages** (Evaluation → Evaluators in the UI). Trace observations start them. This service does not start them.
+
+The local files are the version-controlled source of the evaluator prompts. To change an evaluator, edit the file here. Then paste the new text into the evaluator in the Langfuse UI.
 
 | Local file                                  | Langfuse evaluator        |
 | ------------------------------------------- | ------------------------- |
@@ -140,42 +149,6 @@ evaluator in the Langfuse UI.
 | `llm-as-a-judge/faithful_summary.md`        | `faithful_summary`        |
 | `llm-as-a-judge/no_irrelevant_responses.md` | `no_irrelevant_responses` |
 
-### Required Environment Variables
+### Cache
 
-```bash
-LANGFUSE_ENABLED=true                          # Enables both tracing AND prompt fetching
-LANGFUSE_SECRET_KEY=sk-lf-...                  # Your Langfuse secret key
-LANGFUSE_PUBLIC_KEY=pk-lf-...                  # Your Langfuse public key
-LANGFUSE_BASE_URL=https://langfuse.digdir.cloud  # Your Langfuse host
-```
-
-### Caching
-
-The Langfuse SDK caches prompts internally (default 60s TTL). You can override this per-call via `fetch_langfuse_prompt(name, cache_ttl_seconds=300)`.
-
-## Benefits
-
-- **Readable**: Multi-line format with proper formatting
-- **Maintainable**: Easy to edit without escaping characters or concatenating strings
-- **Versionable**: Clear version tracking via frontmatter
-- **Organized**: One file per prompt, separate system vs user
-- **Type-safe**: Frontmatter provides metadata
-- **No Inline Strings**: All prompts external to code
-- **Remote Management**: Edit prompts via Langfuse UI without code changes or redeployment
-
-## Prompt Files
-
-### System Prompts
-
-- `intake_planning.md` - Initial high-level plan from user request
-- `spec_extraction.md` - Extract a structured spec from attachments
-- `semantic_query_extraction.md` - Extract technical concepts for semantic search
-- `intent_security.md` - Security-focused intent parsing
-- `goal_suggestions.md` - Generate clear goal examples from unclear input
-- `scope_check.md` - Pre-gate classifier: is a Q&A question in scope for Altinn app development
-
-### User Templates
-
-- `templates/intake_planning_user.md` - User goal → High-level plan
-- `templates/spec_extraction_user.md` - User goal → Structured spec
-- `templates/semantic_query_user.md` - User input → Semantic search query
+The Langfuse SDK keeps prompts in a cache. The default time to live is 60 seconds.

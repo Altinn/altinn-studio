@@ -1,3 +1,4 @@
+using Altinn.Studio.Cli.Upgrade;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -6,9 +7,9 @@ namespace Studioctl.Tests.Upgrade.v8Tov9;
 
 /// <summary>
 /// Covers the usability gates that decide between exact semantic detection and the syntax fallback
-/// (<see cref="V8CompilationLoader.EvaluateCompilation"/>). The restore/design-time-build plumbing
-/// around them needs a real SDK and network and is exercised manually; the gates are what encode the
-/// "graceful fallback" contract, so they are pinned offline here.
+/// (<see cref="V8CompilationLoader.EvaluateCompilation"/>), and how the outcome is reported into the
+/// upgrade run. The restore/design-time-build plumbing needs a real SDK and network and is exercised
+/// manually; the gates are what encode the "graceful fallback" contract, so they are pinned offline here.
 /// </summary>
 public sealed class V8CompilationLoaderTests
 {
@@ -110,5 +111,78 @@ public sealed class V8CompilationLoaderTests
 
         Assert.NotNull(result.Compilation);
         Assert.Null(result.UnavailableReason);
+    }
+
+    [Fact]
+    public async Task LoadAsync_ReportsUsableCompilation_AsOkOnItsOwnStep()
+    {
+        var report = new UpgradeReport();
+        var compilation = Compile(ProbeTypeSource);
+
+        SemanticAnalysis result;
+        using (UpgradeConsole.Use(report, TextWriter.Null))
+        {
+            result = await V8CompilationLoader.LoadAsync(() =>
+                Task.FromResult(new SemanticAnalysis(compilation, null))
+            );
+        }
+
+        Assert.Same(compilation, result.Compilation);
+        var step = Assert.Single(report.Steps);
+        Assert.Equal("Semantic analysis", step.Name);
+        var message = Assert.Single(step.Messages);
+        Assert.Equal(UpgradeMessageStatus.Ok, message.Status);
+        Assert.Contains("exact symbol information", message.Text);
+    }
+
+    [Fact]
+    public async Task LoadAsync_ReportsUnavailableAnalysis_AsWarningWithTheReason()
+    {
+        var report = new UpgradeReport();
+
+        SemanticAnalysis result;
+        using (UpgradeConsole.Use(report, TextWriter.Null))
+        {
+            result = await V8CompilationLoader.LoadAsync(() =>
+                Task.FromResult(SemanticAnalysis.Unavailable("the project produced no compilation"))
+            );
+        }
+
+        Assert.Null(result.Compilation);
+        var message = Assert.Single(Assert.Single(report.Steps).Messages);
+        Assert.Equal(UpgradeMessageStatus.Warning, message.Status);
+        Assert.Contains("falling back to syntax-based detection", message.Text);
+        Assert.Contains("the project produced no compilation", message.Text);
+    }
+
+    [Fact]
+    public async Task LoadAsync_ReportsLoadFailure_AsWarningInsteadOfThrowing()
+    {
+        var report = new UpgradeReport();
+
+        SemanticAnalysis result;
+        using (UpgradeConsole.Use(report, TextWriter.Null))
+        {
+            result = await V8CompilationLoader.LoadAsync(() =>
+                throw new InvalidOperationException("MSBuild could not be located")
+            );
+        }
+
+        Assert.Null(result.Compilation);
+        Assert.Equal("MSBuild could not be located", result.UnavailableReason);
+        var message = Assert.Single(Assert.Single(report.Steps).Messages);
+        Assert.Equal(UpgradeMessageStatus.Warning, message.Status);
+        Assert.Contains("MSBuild could not be located", message.Text);
+    }
+
+    [Fact]
+    public async Task LoadAsync_PropagatesCancellation()
+    {
+        using (UpgradeConsole.Use(new UpgradeReport(), TextWriter.Null))
+        {
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                V8CompilationLoader.LoadAsync(() => throw new OperationCanceledException())
+            );
+        }
     }
 }

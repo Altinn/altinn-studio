@@ -19,7 +19,6 @@ COPY src/Designer/frontend/language/package.json ./src/Designer/frontend/languag
 COPY src/Designer/frontend/libs/studio-assistant/package.json ./src/Designer/frontend/libs/studio-assistant/
 COPY src/Designer/frontend/libs/studio-browser-storage/package.json ./src/Designer/frontend/libs/studio-browser-storage/
 COPY src/Designer/frontend/libs/studio-components/package.json ./src/Designer/frontend/libs/studio-components/
-COPY src/Designer/frontend/libs/studio-components-legacy/package.json ./src/Designer/frontend/libs/studio-components-legacy/
 COPY src/Designer/frontend/libs/studio-content-library/package.json ./src/Designer/frontend/libs/studio-content-library/
 COPY src/Designer/frontend/libs/studio-feature-flags/package.json ./src/Designer/frontend/libs/studio-feature-flags/
 COPY src/Designer/frontend/libs/studio-feedback-form/package.json ./src/Designer/frontend/libs/studio-feedback-form/
@@ -30,6 +29,7 @@ COPY src/Designer/frontend/libs/studio-pure-functions/package.json ./src/Designe
 COPY src/Designer/frontend/libs/studio-ui-test/package.json ./src/Designer/frontend/libs/studio-ui-test/
 COPY src/Designer/frontend/packages/policy-editor/package.json ./src/Designer/frontend/packages/policy-editor/
 COPY src/Designer/frontend/packages/process-editor/package.json ./src/Designer/frontend/packages/process-editor/
+COPY src/Designer/frontend/packages/process-editor-v8/package.json ./src/Designer/frontend/packages/process-editor-v8/
 COPY src/Designer/frontend/packages/schema-editor/package.json ./src/Designer/frontend/packages/schema-editor/
 COPY src/Designer/frontend/packages/schema-model/package.json ./src/Designer/frontend/packages/schema-model/
 COPY src/Designer/frontend/packages/shared/package.json ./src/Designer/frontend/packages/shared/
@@ -39,20 +39,24 @@ COPY src/Designer/frontend/packages/ux-editor-v3/package.json ./src/Designer/fro
 COPY src/Designer/frontend/resourceadm/package.json ./src/Designer/frontend/resourceadm/
 COPY src/Designer/frontend/resourceadm/testing/playwright/package.json ./src/Designer/frontend/resourceadm/testing/playwright/
 COPY src/Designer/frontend/studio-root/package.json ./src/Designer/frontend/studio-root/
-COPY src/Designer/frontend/testing/cypress/package.json ./src/Designer/frontend/testing/cypress/
 COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/frontend/testing/playwright/
 COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
 COPY src/common/ts/package.json ./src/common/ts/
 COPY src/common/ts/form-component/package.json ./src/common/ts/form-component/
 COPY src/common/ts/form-engine/package.json ./src/common/ts/form-engine/
 COPY src/common/ts/language/package.json ./src/common/ts/language/
+COPY src/common/ts/layout-contract/package.json ./src/common/ts/layout-contract/
 
 ARG CYPRESS_INSTALL_BINARY=0
 ARG PUPPETEER_SKIP_DOWNLOAD=true
 ENV CYPRESS_INSTALL_BINARY=${CYPRESS_INSTALL_BINARY}
 ENV PUPPETEER_SKIP_DOWNLOAD=${PUPPETEER_SKIP_DOWNLOAD}
 
-RUN yarn --immutable
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    yarn --immutable
 
 COPY . .
 RUN cd src/Designer/frontend && yarn build
@@ -64,6 +68,9 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:d8ee39817ca03a3757288e83c37
 ARG DESIGNER_VERSION=''
 WORKDIR /build
 COPY src/common/dotnet/Altinn.Studio.Common ./src/common/dotnet/Altinn.Studio.Common
+COPY src/cli/.editorconfig src/cli/Directory.Build.props src/cli/Directory.Packages.props ./src/cli/
+COPY src/cli/common/dotnet/.editorconfig src/cli/common/dotnet/Directory.Build.props ./src/cli/common/dotnet/
+COPY src/cli/common/dotnet/Altinn.Studio.AppDist ./src/cli/common/dotnet/Altinn.Studio.AppDist
 COPY src/Designer/backend ./src/Designer/backend
 RUN dotnet publish src/Designer/backend/src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json

@@ -21,6 +21,7 @@ import { org, app } from '@studio/testing/testids';
 import { renderWithProviders } from '../../../testing/mocks';
 import type { AppContextProps } from '../../../AppContext';
 import { ItemType } from '../ItemType';
+import * as editFormComponentModule from '../../config/EditFormComponent';
 
 const editFormComponentTestId = 'content';
 const textTestId = 'text';
@@ -47,10 +48,7 @@ jest.mock('../DataModelBindings', () => ({
   DataModelBindings: () => <div data-testid={DataModelBindingsTestId} />,
 }));
 
-const editFormComponentSpy = jest.spyOn(
-  require('../../config/EditFormComponent'),
-  'EditFormComponent',
-);
+const editFormComponentSpy = jest.spyOn(editFormComponentModule, 'EditFormComponent');
 
 const expressionsTestId = 'expressions';
 

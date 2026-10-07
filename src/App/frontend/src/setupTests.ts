@@ -46,9 +46,12 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-Object.defineProperty(document, 'fonts', {
-  value: { ready: Promise.resolve({}) },
-});
+if (!document.fonts) {
+  Object.defineProperty(document, 'fonts', {
+    configurable: true,
+    value: { ready: Promise.resolve({}) },
+  });
+}
 
 if (!window.localStorage) {
   const values = new Map<string, string>();
@@ -126,6 +129,7 @@ window.scrollTo = () => {};
 document.getAnimations = () => [];
 
 vi.mock('axios', async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- importOriginal needs the module namespace shape
   const actual = await importOriginal<typeof import('axios')>();
   const pendingRequest = vi.fn(() => new Promise(() => undefined));
   const mockAxios = Object.assign(vi.fn(), {

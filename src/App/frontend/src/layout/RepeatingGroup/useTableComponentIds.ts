@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 
+import { CompCategory } from '@app/layout-contract';
+
 import { FormStore } from 'src/features/form/FormContext';
 import { getComponentDef } from 'src/layout';
-import { CompCategory } from 'src/layout/common';
 import { getRepeatingChildBaseId } from 'src/utils/layout/plugins/claimRepeatingChildren';
 import type { CompTypes } from 'src/layout/layout';
 

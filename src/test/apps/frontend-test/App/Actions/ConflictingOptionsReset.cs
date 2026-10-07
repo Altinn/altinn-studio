@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Models;
 
@@ -15,7 +11,10 @@ public class ConflictingOptionsReset : IUserAction
     {
         var originalDataElements = context.DataMutator.GetDataElementsForType("ServiceModel-test");
         var originalData = await context.DataMutator.GetFormData(originalDataElements.First());
-        var data = originalData as Skjema;
+        var data =
+            originalData as Skjema
+            ?? throw new InvalidOperationException(
+                "Expected the 'ServiceModel-test' data element to hold a Skjema model");
 
         SetDefaultData(data);
 

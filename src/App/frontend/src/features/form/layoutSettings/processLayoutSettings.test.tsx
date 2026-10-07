@@ -1,7 +1,8 @@
+import type { ILayoutSettings, NavigationPageGroup } from '@app/layout-contract/generated/common.generated';
+
 import { processLayoutSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { defaultGlobalUiSettings } from 'src/features/form/ui';
 import { NavigationReceipt, NavigationTask } from 'src/features/form/ui/types';
-import type { ILayoutSettings, NavigationPageGroup } from 'src/layout/common.generated';
 
 describe('processLayoutSettings', () => {
   const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;

@@ -1,6 +1,10 @@
+using System.Globalization;
 using System.Net;
+using System.Text.Json;
+using WorkflowEngine.App.Commands.AppCommand;
 using WorkflowEngine.App.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.App.Tests.Integration;
 
@@ -12,10 +16,7 @@ public sealed partial class AppCommandIntegrationTests
     public async Task Response_Enqueue_SingleAppCommandWorkflow_ReturnsAcceptedShape()
     {
         var step = AppTestHelpers.CreateAppCommandStep("/enqueue-shape");
-        var request = AppTestHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf-1", [step]),
-            lockToken: InstanceLockToken
-        );
+        var request = AppTestHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf-1", [step]));
 
         using var response = await _client.EnqueueRaw(request);
 
@@ -26,10 +27,22 @@ public sealed partial class AppCommandIntegrationTests
     }
 
     [Fact]
-    public async Task Response_Enqueue_AppCommandWithoutLockToken_Returns400WithProblemDetails()
+    public async Task Response_Enqueue_AppCommandWithoutCallbackToken_Returns400WithProblemDetails()
     {
-        var step = AppTestHelpers.CreateAppCommandStep("/no-lock");
-        var request = AppTestHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf-1", [step]), lockToken: null);
+        var step = AppTestHelpers.CreateAppCommandStep("/no-callback-token");
+        var request = AppTestHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf-1", [step])) with
+        {
+            Context = JsonSerializer.SerializeToElement(
+                new
+                {
+                    Actor = new Actor { OrgId = "test-user" },
+                    Org = EngineAppFixture.DefaultOrg,
+                    App = EngineAppFixture.DefaultApp,
+                    InstanceOwnerPartyId = int.Parse(EngineAppFixture.DefaultPartyId, CultureInfo.InvariantCulture),
+                    InstanceGuid = EngineAppFixture.DefaultInstanceGuid,
+                }
+            ),
+        };
 
         using var response = await _client.EnqueueRaw(request);
 
@@ -45,10 +58,7 @@ public sealed partial class AppCommandIntegrationTests
     public async Task Response_GetWorkflow_CompletedAppCommand_ReturnsFullDetailsShape()
     {
         var step = AppTestHelpers.CreateAppCommandStep("/details-shape");
-        var request = AppTestHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf-1", [step]),
-            lockToken: InstanceLockToken
-        );
+        var request = AppTestHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf-1", [step]));
         var accepted = await _client.Enqueue(request);
         var workflowId = accepted.Workflows.Single().DatabaseId;
 
@@ -71,10 +81,7 @@ public sealed partial class AppCommandIntegrationTests
             AppTestHelpers.CreateAppCommandStep("/multi-step-2"),
             AppTestHelpers.CreateAppCommandStep("/multi-step-3"),
         };
-        var request = AppTestHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf-1", steps),
-            lockToken: InstanceLockToken
-        );
+        var request = AppTestHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf-1", steps));
         var accepted = await _client.Enqueue(request);
         var workflowId = accepted.Workflows.Single().DatabaseId;
 
@@ -94,10 +101,7 @@ public sealed partial class AppCommandIntegrationTests
     public async Task Response_AppCommandCallback_PayloadShape()
     {
         var step = AppTestHelpers.CreateAppCommandStep("/snapshot-callback", payload: "test-payload");
-        var request = AppTestHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf-1", [step]),
-            lockToken: InstanceLockToken
-        );
+        var request = AppTestHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf-1", [step]));
         var accepted = await _client.Enqueue(request);
         var workflowId = accepted.Workflows.Single().DatabaseId;
 

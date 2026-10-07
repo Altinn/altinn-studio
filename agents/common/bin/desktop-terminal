@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Opens a terminal on the Agent's desktop, for a person watching it or taking over.
+#
+# A program started from the desktop inherits the desktop session's environment, which lacks what
+# agentd gives a Session: CONTAINER_HOST, the manifest's variables and the placeholders for mediated
+# secrets. SSH access writes that environment to ~/.ssh/environment, so the terminal loads it when
+# it is there. The shell is not a login shell, so /etc/profile.d cannot override those values.
+set -eu
+
+environment=${AGENT_DESKTOP_ENVIRONMENT:-$HOME/.ssh/environment}
+if [ -r "$environment" ]; then
+    while IFS= read -r line || [ -n "$line" ]; do
+        case $line in
+            '' | '#'*) ;;
+            *=*) export "${line%%=*}=${line#*=}" ;;
+        esac
+    done <"$environment"
+fi
+
+# sakura runs $SHELL. A Session does not export it (bash sets its own copy unexported), and
+# without it sakura starts no shell at all, so the user's login shell is exported here.
+SHELL=${SHELL:-$(getent passwd "$(id -u)" | cut -d: -f7)}
+export SHELL="${SHELL:-/bin/bash}"
+
+directory=$HOME/code
+[ -d "$directory" ] || directory=$HOME
+exec sakura --working-directory "$directory" "$@"

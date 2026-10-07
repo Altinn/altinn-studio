@@ -1,7 +1,7 @@
+import type { GridCellLabelFrom } from '@app/layout-contract/generated/common.generated';
+
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-
-import type { GridCellLabelFrom } from 'src/layout/common.generated';
 
 const appFrontend = new AppFrontend();
 
@@ -174,7 +174,7 @@ describe('Grid component', () => {
     cy.get(appFrontend.helpText.alert).should('contain.text', 'Help text');
 
     cy.findByRole('cell', {
-      name: /prosentandel av gjeld i studielån dette er en beskrivende tekst/i,
+      name: /prosentandel av gjeld i studielån\s*valgfritt\s*dette er en beskrivende tekst/i,
     }).should('exist');
     cy.findByRole('button', { name: /Hjelpetekst for Prosentandel av gjeld i studielån/i }).click();
     cy.focused().should('have.attr', 'aria-label', 'Hjelpetekst for Prosentandel av gjeld i studielån');

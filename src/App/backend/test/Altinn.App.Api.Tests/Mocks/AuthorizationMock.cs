@@ -10,20 +10,21 @@ namespace Altinn.App.Api.Tests.Mocks;
 
 public class AuthorizationMock : IAuthorizationClient
 {
-    public Task<List<Party>?> GetPartyList(int userId, StorageAuthenticationMethod? authenticationMethod = null)
+    public Task<List<Party>?> GetPartyList(
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         return Task.FromResult<List<Party>?>([]);
     }
 
     public Task<bool?> ValidateSelectedParty(
-        int userId,
         int partyId,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
-        bool? isvalid = userId != 1;
-
-        return Task.FromResult(isvalid);
+        return Task.FromResult<bool?>(true);
     }
 
     /// <summary>
@@ -41,7 +42,8 @@ public class AuthorizationMock : IAuthorizationClient
         InstanceIdentifier instanceIdentifier,
         ClaimsPrincipal user,
         string action,
-        string? taskId = null
+        string? taskId = null,
+        CancellationToken cancellationToken = default
     )
     {
         await Task.CompletedTask;
@@ -56,7 +58,8 @@ public class AuthorizationMock : IAuthorizationClient
     public async Task<Dictionary<string, bool>> AuthorizeActions(
         Instance instance,
         ClaimsPrincipal user,
-        List<string> actions
+        List<string> actions,
+        CancellationToken cancellationToken = default
     )
     {
         await Task.CompletedTask;
@@ -91,7 +94,11 @@ public class AuthorizationMock : IAuthorizationClient
         );
     }
 
-    public Task<List<string>> GetKeyRoleOrganizationParties(int userId, List<string> orgNumbers)
+    public Task<List<string>> GetKeyRoleOrganizationParties(
+        int userId,
+        List<string> orgNumbers,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }

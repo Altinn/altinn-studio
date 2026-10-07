@@ -1,6 +1,5 @@
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
@@ -27,6 +26,7 @@ namespace Altinn.App.Api.Controllers;
 public class SigningController : ControllerBase
 {
     private readonly IInstanceClient _instanceClient;
+    private readonly IInstanceClientWithStorageMetadata _instanceClientWithStorageMetadata;
     private readonly IProcessReader _processReader;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly ILogger<SigningController> _logger;
@@ -51,6 +51,7 @@ public class SigningController : ControllerBase
         _authenticationContext = authenticationContext;
         _logger = logger;
         _signingService = serviceProvider.GetRequiredService<ISigningService>();
+        _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
     }
 
@@ -61,24 +62,25 @@ public class SigningController : ControllerBase
     /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
-    /// <param name="ct">Cancellation token, populated by the framework</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     /// <param name="taskId">If data should be loaded from a different task than the current one.</param>
     /// <returns>An object containing updated signee state</returns>
     [HttpGet]
     [ProducesResponseType(typeof(SigningStateResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> GetSigneesState(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
-        CancellationToken ct,
+        CancellationToken cancellationToken,
         [FromQuery] string? language = null,
         [FromQuery] string? taskId = null
     )
     {
-        Instance instance = await _instanceClient.GetInstance(
+        var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
             app,
             org,
             instanceOwnerPartyId,
@@ -86,6 +88,7 @@ public class SigningController : ControllerBase
             authenticationMethod: null,
             CancellationToken.None
         );
+        Instance instance = fetchedInstance.Instance;
 
         _logger.LogInformation(
             "Getting signees state for org {Org} with instance {InstanceGuid} of app {App} for party {PartyId}",
@@ -101,8 +104,9 @@ public class SigningController : ControllerBase
             return NotSigningTask();
         }
 
-        IInstanceDataAccessor instanceDataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
+        var instanceDataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
             instance,
+            fetchedInstance.Metadata,
             finalTaskId,
             language
         );
@@ -114,7 +118,7 @@ public class SigningController : ControllerBase
         List<SigneeContext> signeeContexts = await _signingService.GetSigneeContexts(
             instanceDataAccessor,
             signingConfiguration,
-            ct
+            cancellationToken
         );
 
         var response = new SigningStateResponse
@@ -174,7 +178,7 @@ public class SigningController : ControllerBase
     /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
-    /// <param name="ct">Cancellation token, populated by the framework</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     /// <param name="taskId">If data should be loaded from a different task than the current one.</param>
     /// <returns>An object containing a list of organizations that the user can sign on behalf of</returns>
@@ -182,17 +186,18 @@ public class SigningController : ControllerBase
     [ProducesResponseType(typeof(SigningAuthorizedOrganizationsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> GetAuthorizedOrganizations(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
-        CancellationToken ct,
+        CancellationToken cancellationToken,
         [FromQuery] string? language = null,
         [FromQuery] string? taskId = null
     )
     {
-        Instance instance = await _instanceClient.GetInstance(
+        var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
             app,
             org,
             instanceOwnerPartyId,
@@ -200,6 +205,7 @@ public class SigningController : ControllerBase
             authenticationMethod: null,
             CancellationToken.None
         );
+        Instance instance = fetchedInstance.Instance;
 
         string? finalTaskId = taskId ?? instance.Process?.CurrentTask?.ElementId;
         if (string.IsNullOrEmpty(finalTaskId) || !VerifyIsSigningTask(finalTaskId))
@@ -207,8 +213,9 @@ public class SigningController : ControllerBase
             return NotSigningTask();
         }
 
-        IInstanceDataAccessor instanceDataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
+        var instanceDataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
             instance,
+            fetchedInstance.Metadata,
             finalTaskId,
             language
         );
@@ -234,7 +241,7 @@ public class SigningController : ControllerBase
             instanceDataAccessor,
             signingConfiguration,
             userId.Value,
-            ct
+            cancellationToken
         );
 
         SigningAuthorizedOrganizationsResponse response = new()

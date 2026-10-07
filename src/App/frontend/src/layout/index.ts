@@ -1,15 +1,17 @@
 import type { ReactNode, RefObject } from 'react';
 
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { getComponentConfigs } from 'src/layout/components.generated';
 import type { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
 import type { DisplayData } from 'src/features/displayData';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
+import type { ExprResolved } from 'src/features/expressions/types';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { AnyValidation, BaseValidation, ComponentValidation } from 'src/features/validation';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
-import type { CompIntermediate, CompInternal, CompTypes } from 'src/layout/layout';
+import type { CompExternal, CompTypes } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
 import type { BaseRow } from 'src/utils/layout/types';
 
@@ -31,7 +33,7 @@ export interface IComponentProps {
 
 export interface PropsFromGenericComponent<T extends CompTypes = CompTypes> extends IComponentProps {
   baseComponentId: string;
-  overrideItemProps?: Partial<Omit<CompInternal<T>, 'id'>>;
+  overrideItemProps?: Partial<Omit<ExprResolved<CompExternal<T>>, 'id'>>;
   overrideDisplay?: IGenericComponentProps<T>['overrideDisplay'];
 }
 
@@ -65,6 +67,10 @@ export function getComponentBehaviors<T extends CompTypes>(type: T): ComponentCo
   return undefined as any;
 }
 
+export function isExternallyConfigurableComponent<T extends CompTypes>(type: T): boolean {
+  return getComponentConfigs()[type].availability === 'configurable';
+}
+
 export function implementsAnyValidation<Def extends CompDef>(
   def: Def,
 ): def is Def & (ValidateEmptyField | ValidateComponent) {
@@ -89,7 +95,8 @@ export function implementsValidateComponent<Def extends CompDef>(def: Def): def 
 
 export interface ComponentValidationContext<T extends CompTypes = CompTypes> {
   baseComponentId: string;
-  component: CompIntermediate<T>;
+  indexedId: string;
+  component: CompExternal<T>;
   formState: FormStoreState;
   instanceData: IData[];
   taskId: string | undefined;
@@ -126,11 +133,11 @@ export function implementsDisplayData<Def extends CompDef>(def: Def): def is Def
 
 export function implementsDataModelBindingValidation<T extends CompTypes>(
   def: CompDef<T>,
-  _item?: CompIntermediate<T>,
+  _item?: CompExternal<T>,
 ): def is CompDef<T> & {
   validateDataModelBindings: (
     baseComponentId: string,
-    bindings: CompIntermediate['dataModelBindings'],
+    bindings: CompExternal['dataModelBindings'],
     context: DataModelBindingValidationContext,
   ) => string[];
 } {

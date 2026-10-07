@@ -1,14 +1,13 @@
 import React from 'react';
 import { useText } from '../../../../hooks';
-import type { GridSize } from '@studio/components-legacy';
-import { StudioGridSelector } from '@studio/components-legacy';
+import type { GridSize } from '@studio/components';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import classes from './EditGridForGivenViewSize.module.css';
 import { ObjectUtils } from '@studio/pure-functions';
 import type { GridSizes } from './types/GridSizes';
 import type { ViewSize } from './types/ViewSize';
 import { findEffectiveGridSize } from './utils';
-import { StudioSwitch, StudioParagraph } from '@studio/components';
+import { StudioGridSelector, StudioSwitch, StudioParagraph } from '@studio/components';
 
 export interface EditGridForGivenViewSizeProps {
   handleUpdateGrid: (newGridValues: GridSizes) => void;

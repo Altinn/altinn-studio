@@ -1,5 +1,116 @@
 const BASE = '/api';
 
+export type InterfaceRow = {
+  name: string;
+  namespace: string;
+  assembly: string;
+  area: string;
+  group_name: string;
+  implementable_by_apps: boolean;
+  is_obsolete: boolean;
+  obsolete_message: string;
+  summary: string;
+  member_count: number;
+  apps_implementing: number;
+  apps_registering: number;
+  apps_injecting: number;
+  apps_using: number;
+  implementations: number;
+  adoption_pct: number;
+  implemented_pct: number;
+};
+
+export type InterfacesOverview = {
+  catalog_total: number;
+  implementable_total: number;
+  obsolete_total: number;
+  used_total: number;
+  implemented_total: number;
+  unused_total: number;
+  implementable_used: number;
+  implementable_unused: number;
+  obsolete_in_use: number;
+  outside_catalog_total: number;
+  total_apps: number;
+  apps_with_code: number;
+  apps_implementing: number;
+  adoption_buckets: Array<{ bucket: string; interfaces: number }>;
+  by_area: Array<{ area: string; total: number; used: number; implemented: number }>;
+  catalog: {
+    generated_at: string;
+    lib_version: string;
+    commit: string;
+    interface_count: number;
+    base_class_count: number;
+  };
+};
+
+export type InterfaceAppRow = {
+  app_id: string;
+  org: string;
+  app_name: string;
+  backend_version: string;
+  frontend_version: string;
+  usage_kinds: string[];
+  class_names: string[];
+  file_paths: string[];
+  via: string[];
+  gitea_url: string;
+};
+
+export type InterfaceDetail = {
+  name: string;
+  in_catalog: boolean;
+  catalog: Partial<{
+    name: string;
+    full_name: string;
+    namespace: string;
+    assembly: string;
+    area: string;
+    group_name: string;
+    implementable_by_apps: boolean;
+    is_obsolete: boolean;
+    obsolete_message: string;
+    summary: string;
+    members: string[];
+    member_count: number;
+    base_interfaces: string[];
+    source_path: string;
+  }>;
+  total_apps: number;
+  apps_implementing: number;
+  apps_registering: number;
+  apps_injecting: number;
+  apps_using: number;
+  implementations: number;
+  adoption_pct: number;
+  by_org: Array<{ org: string; apps: number }>;
+  by_backend: Array<{ backend_version: string; apps: number }>;
+  used_together_with: Array<{ name: string; apps: number }>;
+  apps: InterfaceAppRow[];
+  apps_truncated: boolean;
+};
+
+export type OutsideCatalogRow = {
+  interface_name: string;
+  apps_implementing: number;
+  apps_using: number;
+  sample_file: string;
+  adoption_pct: number;
+};
+
+export type InterfaceAppUsageRow = {
+  app_id: string;
+  org: string;
+  app_name: string;
+  backend_version: string;
+  cs_file_count: number;
+  implemented_interface_count: number;
+  app_interface_count: number;
+  gitea_url: string;
+};
+
+
 async function getJSON<T>(path: string): Promise<T> {
   const r = await fetch(`${BASE}${path}`);
   if (!r.ok) throw new Error(`${path} -> ${r.status}`);
@@ -218,6 +329,27 @@ export const api = {
         component_count: number;
       }>
     >(`/search?q=${encodeURIComponent(q)}`),
+  interfacesOverview: () => getJSON<InterfacesOverview>('/stats/interfaces/overview'),
+  interfaces: (
+    opts: { area?: string; implementable?: boolean; usage?: string; q?: string; limit?: number } = {},
+  ) => {
+    const p = new URLSearchParams();
+    if (opts.area) p.set('area', opts.area);
+    if (opts.implementable != null) p.set('implementable', String(opts.implementable));
+    if (opts.usage) p.set('usage', opts.usage);
+    if (opts.q) p.set('q', opts.q);
+    if (opts.limit != null) p.set('limit', String(opts.limit));
+    const qs = p.toString();
+    return getJSON<InterfaceRow[]>(`/stats/interfaces${qs ? `?${qs}` : ''}`);
+  },
+  interfaceDetail: (name: string) =>
+    getJSON<InterfaceDetail>(`/stats/interfaces/${encodeURIComponent(name)}`),
+  interfacesOutsideCatalog: (origin: 'unknown' | 'app' | 'dotnet' = 'unknown', limit = 100) =>
+    getJSON<OutsideCatalogRow[]>(
+      `/stats/interfaces/outside-catalog?origin=${origin}&limit=${limit}`,
+    ),
+  interfaceTopApps: (limit = 25) =>
+    getJSON<InterfaceAppUsageRow[]>(`/stats/interfaces/top-apps?limit=${limit}`),
   querySchema: () =>
     getJSON<
       Array<{

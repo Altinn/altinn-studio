@@ -373,7 +373,12 @@ public class TextsServiceTest : IDisposable
             altinnGitRepositoryFactory,
             new GiteaContentLibraryService(giteaClientMock, loggerMock.Object)
         );
-        TextsService textsService = new(altinnGitRepositoryFactory, applicationMetadataService, optionsService);
+        TextsService textsService = new(
+            altinnGitRepositoryFactory,
+            applicationMetadataService,
+            optionsService,
+            new AppVersionService(altinnGitRepositoryFactory)
+        );
 
         return textsService;
     }

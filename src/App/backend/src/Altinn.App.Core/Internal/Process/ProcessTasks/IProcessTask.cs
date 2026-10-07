@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
@@ -17,6 +18,16 @@ public interface IProcessTask
     /// The type is used to identify the correct task implementation for a given task type in the process config file.
     /// </summary>
     string Type { get; }
+
+    /// <summary>
+    /// Validates a BPMN task at app startup. Returns each configuration error, or an empty sequence if valid.
+    /// Must not read or change instance data.
+    /// </summary>
+    /// <remarks>
+    /// Added in v9. The default implementation accepts all configuration, so existing tasks need no override.
+    /// Runs synchronously in a dependency injection scope. Must not cause side effects.
+    /// </remarks>
+    IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context) => [];
 
     /// <summary>
     /// Any logic to be executed when a task is started should be put in this method.

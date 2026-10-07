@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
 using WorkflowEngine.TestKit;
@@ -83,6 +84,67 @@ public class OpenApiDocTests(EngineAppFixture<Program> fixture)
         }
 
         Assert.True(missing.Count == 0, $"Operations missing a technical-guide link: {string.Join(", ", missing)}");
+    }
+
+    [Fact]
+    public async Task EveryTechnicalGuideLink_ResolvesToARealHeading()
+    {
+        // The sibling test above proves a link exists, never that it points anywhere. A renamed
+        // endpoint whose anchor is updated to track the new route name rather than the heading it
+        // addresses therefore ships a dead fragment with CI green — which is exactly how
+        // trip-throttle and clear-throttle reached main pointing at nothing.
+        using var client = fixture.CreateEngineClient();
+        using var doc = await GetOpenApiDoc(client);
+
+        var headings = ReadGuideHeadingSlugs();
+        Assert.NotEmpty(headings);
+
+        var dead = new List<string>();
+        foreach (var path in doc.RootElement.GetProperty("paths").EnumerateObject())
+        {
+            foreach (var operation in path.Value.EnumerateObject())
+            {
+                if (!_httpMethods.Contains(operation.Name))
+                    continue;
+
+                var url = operation.Value.GetProperty("externalDocs").GetProperty("url").GetString()!;
+                var hash = url.IndexOf('#', StringComparison.Ordinal);
+                if (hash < 0)
+                    continue; // links to the guide as a whole
+
+                var fragment = url[(hash + 1)..];
+                if (!headings.Contains(fragment))
+                    dead.Add($"{operation.Name.ToUpperInvariant()} {path.Name} -> #{fragment}");
+            }
+        }
+
+        Assert.True(dead.Count == 0, $"technical-guide links with no matching heading: {string.Join(", ", dead)}");
+    }
+
+    /// <summary>
+    /// Every <c>##</c>-and-deeper heading in the technical guide, slugified the way GitHub renders
+    /// anchors: punctuation dropped, spaces to hyphens, matched case-insensitively.
+    /// </summary>
+    private static HashSet<string> ReadGuideHeadingSlugs()
+    {
+        var guidePath = Path.GetFullPath(
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "docs", "technical-guide.md")
+        );
+        Assert.True(File.Exists(guidePath), $"Could not find the technical guide at {guidePath}");
+
+        // Compared case-insensitively rather than lowercased: the anchors are lowercase, but
+        // normalising by casing down trips CA1308.
+        var slugs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var line in File.ReadLines(guidePath))
+        {
+            var match = Regex.Match(line, @"^#{2,6}\s+(.*)$");
+            if (!match.Success)
+                continue;
+
+            var slug = Regex.Replace(match.Groups[1].Value.Trim(), @"[^\w\s-]", "");
+            slugs.Add(Regex.Replace(slug, @"\s+", "-"));
+        }
+        return slugs;
     }
 
     private static readonly HashSet<string> _httpMethods = new(StringComparer.OrdinalIgnoreCase)

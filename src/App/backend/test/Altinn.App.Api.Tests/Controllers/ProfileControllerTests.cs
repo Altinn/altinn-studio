@@ -55,7 +55,13 @@ public class ProfileControllerTests(WebApplicationFactory<Program> factory, ITes
             services.AddTelemetrySink(additionalActivitySources: source => source.Name == "Microsoft.AspNetCore");
             var partyClientMock = new Mock<IAltinnPartyClient>();
             partyClientMock
-                .Setup(x => x.GetParty(It.Is<int>(n => n == selectedPartyId), It.IsAny<StorageAuthenticationMethod?>()))
+                .Setup(x =>
+                    x.GetParty(
+                        It.Is<int>(n => n == selectedPartyId),
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ThrowsAsync(new ServiceException(HttpStatusCode.Unauthorized, "Unauthorized for party"));
             services.AddSingleton(partyClientMock.Object);
         };

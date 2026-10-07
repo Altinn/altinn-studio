@@ -2,6 +2,7 @@ import React from 'react';
 
 import { screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { CompSummaryExternal } from '@app/layout-contract/generated/components/Summary/config.generated';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
@@ -11,7 +12,6 @@ import { TextResourceMap } from 'src/features/language/textResources';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal, ILayout } from 'src/layout/layout';
-import type { CompSummaryExternal } from 'src/layout/Summary/config.generated';
 
 let mockTextResourcesValue: TextResourceMap = {};
 

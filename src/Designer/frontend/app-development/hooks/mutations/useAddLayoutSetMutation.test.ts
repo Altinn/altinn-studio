@@ -52,7 +52,7 @@ describe('useAddLayoutSetMutation', () => {
     });
   });
 
-  it('Invalidates LayoutSetsExtended and LayoutSets caches on success', async () => {
+  it('Invalidates LayoutSetsExtended, LayoutSets, and AppValidation caches on success', async () => {
     const queryClientMock = createQueryClientMock();
     const invalidateQueriesSpy = jest.spyOn(queryClientMock, 'invalidateQueries');
     const addLayoutSetResult = renderHookWithProviders(
@@ -67,6 +67,9 @@ describe('useAddLayoutSetMutation', () => {
     });
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.LayoutSets, org, app],
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.AppValidation, org, app],
     });
   });
 });

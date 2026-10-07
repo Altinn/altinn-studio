@@ -4,12 +4,13 @@ import classes from './FilesChangedList.module.css';
 
 export type FilesChangedListProps = {
   filePaths: string[];
+  label: string;
 };
 
-export function FilesChangedList({ filePaths }: FilesChangedListProps): ReactElement {
+export function FilesChangedList({ filePaths, label }: FilesChangedListProps): ReactElement {
   return (
     <div className={classes.filesSection}>
-      <span className={classes.filesSectionTitle}>Files Modified</span>
+      <span className={classes.filesSectionTitle}>{label}</span>
       <div className={classes.fileCards}>
         {filePaths.map((filePath) => {
           const parts = filePath.split('/');

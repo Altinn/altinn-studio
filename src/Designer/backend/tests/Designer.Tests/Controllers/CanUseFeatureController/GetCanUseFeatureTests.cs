@@ -18,6 +18,11 @@ public class GetCanUseFeatureTests
     : DesignerEndpointsTestsBase<GetCanUseFeatureTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
+    private const string Org = "kari";
+    private const string App = "test-app";
+
+    private readonly Mock<ICanUseFeatureEvaluator> _evaluatorMock = new();
+
     public GetCanUseFeatureTests(WebApplicationFactory<Program> factory)
         : base(factory) { }
 
@@ -25,11 +30,10 @@ public class GetCanUseFeatureTests
     {
         base.ConfigureTestServices(services);
 
-        var evaluatorMock = new Mock<ICanUseFeatureEvaluator>();
-        evaluatorMock.Setup(e => e.Feature).Returns(CanUseFeatureEnum.UploadDataModel);
-        evaluatorMock.Setup(e => e.CanUseFeatureAsync()).ReturnsAsync(true);
+        _evaluatorMock.Setup(e => e.Feature).Returns(CanUseFeatureEnum.UploadDataModel);
+        _evaluatorMock.Setup(e => e.CanUseFeatureAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(true);
 
-        services.AddSingleton<IEnumerable<ICanUseFeatureEvaluator>>(new[] { evaluatorMock.Object });
+        services.AddSingleton<IEnumerable<ICanUseFeatureEvaluator>>(new[] { _evaluatorMock.Object });
         services.AddSingleton<CanUseFeatureEvaluatorRegistry>();
     }
 
@@ -60,5 +64,28 @@ public class GetCanUseFeatureTests
         Assert.Contains("Invalid feature name", responseBody);
     }
 
-    private static string ApiUrl(string featureName) => $"designer/api/CanUseFeature?featureName={featureName}";
+    [Fact]
+    public async Task CanUseFeature_PassesTheRepositoryToTheEvaluator()
+    {
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, ApiUrl("UploadDataModel"));
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        _evaluatorMock.Verify(e => e.CanUseFeatureAsync(Org, App), Times.Once);
+    }
+
+    [Fact]
+    public async Task CanUseFeature_Returns404NotFound_ForInvalidAppName()
+    {
+        using var httpRequestMessage = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"designer/api/{Org}/datamodels/CanUseFeature?featureName=UploadDataModel"
+        );
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    private static string ApiUrl(string featureName) =>
+        $"designer/api/{Org}/{App}/CanUseFeature?featureName={featureName}";
 }

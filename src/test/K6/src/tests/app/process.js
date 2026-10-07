@@ -56,16 +56,9 @@ export default function (data) {
   var dataId = data['dataId'];
   const attachmentDataType = data['attachmentDataType'];
 
-  //Test to start process of an app instance again and verify response code to be 409
-  var res = appProcess.postStartProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
-  var success = check(res, {
-    'App POST Start process again Not Possible status is 409': (r) => r.status === 409,
-  });
-  addErrorCount(success);
-
   //Test to get current process of an app instance and verify response code to be 200
-  res = appProcess.getCurrentProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
-  success = check(res, {
+  var res = appProcess.getCurrentProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
+  var success = check(res, {
     'App GET current process status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);

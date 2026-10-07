@@ -4,16 +4,21 @@ import { EditTaskId } from './EditTaskId';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
 import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
-import { mockModelerRef } from '../../../../../test/mocks/bpmnModelerMock';
+import { commandStackExecuteMock, mockModelerRef } from '../../../../../test/mocks/bpmnModelerMock';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 const task1IdMock = 'task_1';
-const setBpmnDetailsMock = jest.fn();
+const startEventIdMock = 'StartEvent_1';
+let mockLayoutSets: LayoutSets = [];
 jest.mock('../../../../contexts/BpmnContext', () => ({
   useBpmnContext: () => ({
     modelerRef: mockModelerRef,
-    setBpmnDetails: setBpmnDetailsMock,
     bpmnDetails: mockBpmnDetails,
   }),
+}));
+
+jest.mock('../../../../contexts/BpmnApiContext', () => ({
+  useBpmnApiContext: () => ({ layoutSets: mockLayoutSets }),
 }));
 
 jest.mock('../../../../contexts/BpmnConfigPanelContext', () => ({
@@ -26,11 +31,11 @@ jest.mock('../../../../contexts/BpmnConfigPanelContext', () => ({
 
 jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(() => {
+    StudioModeler: jest.fn().mockImplementation(function () {
       return {
-        getAllTasksByType: jest
+        getAllElementIds: jest
           .fn()
-          .mockReturnValue([{ id: task1IdMock }, { id: 'task_2' }, { id: 'task_3' }]),
+          .mockReturnValue([task1IdMock, 'task_2', 'task_3', startEventIdMock]),
       };
     }),
   };
@@ -39,6 +44,7 @@ jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
 describe('EditTaskId', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLayoutSets = [];
   });
   it('should render task id as view mode by default', () => {
     render(<EditTaskId />);
@@ -64,7 +70,7 @@ describe('EditTaskId', () => {
     ).toBeInTheDocument();
   });
 
-  it('should update metadataFromRef and updateId (implicitly calling setBpmnDetails) when changing task id', async () => {
+  it('updates task ID metadata and runs the rename command', async () => {
     const user = userEvent.setup();
     const newId = 'newId';
     const metadataFormRefMock = { current: undefined };
@@ -90,7 +96,10 @@ describe('EditTaskId', () => {
     expect(metadataFormRefMock.current).toEqual(
       expect.objectContaining({ taskIdChange: { newId: newId, oldId: mockBpmnDetails.id } }),
     );
-    expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
+    expect(commandStackExecuteMock).toHaveBeenCalledWith('updateTaskId', {
+      element: mockBpmnDetails.element,
+      newId,
+    });
   });
 
   describe('validation', () => {
@@ -108,6 +117,11 @@ describe('EditTaskId', () => {
       {
         description: 'is not unique (case-insensitive)',
         inputValue: task1IdMock.toUpperCase(),
+        expectedError: 'process_editor.validation_error.id_not_unique',
+      },
+      {
+        description: 'collides with a non-task element, since bpmn ids are unique per document',
+        inputValue: startEventIdMock,
         expectedError: 'process_editor.validation_error.id_not_unique',
       },
       {
@@ -159,6 +173,59 @@ describe('EditTaskId', () => {
 
         const errorMessage = await screen.findByText(textMock(expectedError, textArgs));
         expect(errorMessage).toBeInTheDocument();
+        expect(commandStackExecuteMock).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('when the task has a layout set named after it', () => {
+    const subformLayoutSetId = 'subformLayoutSet';
+    const idLongerThanLayoutSetNameLimit = 'a'.repeat(29);
+
+    beforeEach(() => {
+      mockLayoutSets = [{ id: mockBpmnDetails.id }, { id: subformLayoutSetId, type: 'subform' }];
+    });
+
+    const layoutSetNameTests = [
+      {
+        description: 'is longer than a layout set name can be',
+        inputValue: idLongerThanLayoutSetNameLimit,
+        expectedError: 'validation_errors.name_invalid',
+      },
+      {
+        description: 'is shorter than a layout set name can be',
+        inputValue: 'a',
+        expectedError:
+          'process_editor.configuration_panel_custom_receipt_layout_set_name_validation',
+      },
+      {
+        description: 'is the name of another layout set',
+        inputValue: subformLayoutSetId,
+        expectedError: 'process_editor.configuration_panel_layout_set_id_not_unique',
+      },
+    ];
+
+    layoutSetNameTests.forEach(({ description, inputValue, expectedError }) => {
+      it(`should display validation error and keep the task id when the new id ${description}`, async () => {
+        const user = userEvent.setup();
+        render(<EditTaskId />);
+
+        await changeTaskId(user, inputValue);
+
+        expect(await screen.findByText(textMock(expectedError))).toBeInTheDocument();
+        expect(commandStackExecuteMock).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should accept an id longer than a layout set name can be when the task has no layout set', async () => {
+      mockLayoutSets = [{ id: subformLayoutSetId, type: 'subform' }];
+      const user = userEvent.setup();
+      render(<EditTaskId />);
+
+      await changeTaskId(user, idLongerThanLayoutSetNameLimit);
+      expect(commandStackExecuteMock).toHaveBeenCalledWith('updateTaskId', {
+        element: mockBpmnDetails.element,
+        newId: idLongerThanLayoutSetNameLimit,
       });
     });
   });
@@ -186,6 +253,20 @@ describe('EditTaskId', () => {
     await user.tab();
 
     expect(metadataFormRefMock.current).toBeUndefined();
-    expect(setBpmnDetailsMock).not.toHaveBeenCalled();
+    expect(commandStackExecuteMock).not.toHaveBeenCalled();
   });
 });
+
+const changeTaskId = async (user: ReturnType<typeof userEvent.setup>, newId: string) => {
+  await user.click(
+    screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_change_task_id'),
+    }),
+  );
+  const input = screen.getByLabelText(
+    textMock('process_editor.configuration_panel_change_task_id'),
+  );
+  await user.clear(input);
+  await user.type(input, newId);
+  await user.tab();
+};

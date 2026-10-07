@@ -1,4 +1,4 @@
-#nullable disable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -16,17 +16,17 @@ namespace Altinn.App.Models.Bok
         [XmlElement("Tittel", Order = 1)]
         [JsonProperty("Tittel")]
         [JsonPropertyName("Tittel")]
-        public string Tittel { get; set; }
+        public string? Tittel { get; set; }
 
         [XmlElement("Forfatter", Order = 2)]
         [JsonProperty("Forfatter")]
         [JsonPropertyName("Forfatter")]
-        public string Forfatter { get; set; }
+        public string? Forfatter { get; set; }
 
         [XmlElement("Serie", Order = 3)]
         [JsonProperty("Serie")]
         [JsonPropertyName("Serie")]
-        public string Serie { get; set; }
+        public string? Serie { get; set; }
 
         [Range(Double.MinValue, Double.MaxValue)]
         [XmlElement("Publikasjonsaar", Order = 4)]
@@ -34,5 +34,17 @@ namespace Altinn.App.Models.Bok
         [JsonPropertyName("Publikasjonsaar")]
         [Required]
         public decimal? Publikasjonsaar { get; set; }
+
+        [XmlElement("PageCount", Order = 5)]
+        [JsonProperty("PageCount")]
+        [JsonPropertyName("PageCount")]
+        public int? PageCount { get; set; }
+
+        [RegularExpression(@"^[+-]?[0-9]+([.,]0+)?$")]
+        [Range(-999999999999999d, 999999999999999d)]
+        [XmlElement("CopyCount", Order = 6)]
+        [JsonProperty("CopyCount")]
+        [JsonPropertyName("CopyCount")]
+        public decimal? CopyCount { get; set; }
     }
 }

@@ -62,6 +62,11 @@ public class BlobRepository : IBlobRepository
         return _localPlatformSettings.LocalTestingStorageBasePath + _localPlatformSettings.BlobStorageFolder + fileName;
     }
 
+    public static string GetVersionedBlobPath(string appId, string instanceGuid, string versionId)
+    {
+        return $"{appId}/{instanceGuid}/data-elements/{versionId}";
+    }
+
     private static async Task<Stream> ReadFileAsStream(string path)
     {
         try

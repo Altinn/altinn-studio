@@ -1,19 +1,22 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
 import { type CodeGeneratorWithProperties, DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
-import { getSourceForCommon } from 'src/codegen/Common';
+import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
+import { getSourceForCommon, isSerializedCommonType } from 'src/codegen/Common';
 import { GenerateObject } from 'src/codegen/dataTypes/GenerateObject';
-import type { ValidCommonKeys } from 'src/codegen/Common';
+import type { CommonValue, ValidCommonKeys } from 'src/codegen/Common';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
+import type { ExpressionDescriptorEntry } from 'src/codegen/ExpressionDescriptors';
 
 /**
  * Generates an import statement for a common type (one of those defined in Common.ts).
  * In TypeScript, this is a regular import statement, and in JSON Schema, this is a reference to the definition.
+ * Val is the type of the value in a layout file, used to check defaults and examples.
  */
-export class GenerateCommonImport<T extends ValidCommonKeys>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  extends DescribableCodeGenerator<any>
+export class GenerateCommonImport<T extends ValidCommonKeys, Val = CommonValue<T>>
+  extends DescribableCodeGenerator<Val>
   implements CodeGeneratorWithProperties
 {
   public readonly realKey?: string;
@@ -67,18 +70,40 @@ export class GenerateCommonImport<T extends ValidCommonKeys>
     return [];
   }
 
+  expressionDescriptors(): ExpressionDescriptorEntry[] {
+    return getSourceForCommon(this.key).expressionDescriptors();
+  }
+
   toTypeScript(): string {
     return this.toTypeScriptDefinition();
   }
 
   toTypeScriptDefinition(): string {
+    const commonFile =
+      CodeGeneratorContext.isGeneratingSerializedTypeScript() && isSerializedCommonType(this.key)
+        ? 'serialized-common.generated'
+        : 'common.generated';
     const _import = new CG.import({
       import: this.realKey ?? this.key,
-      from: 'src/layout/common.generated',
+      from: `@app/layout-contract/generated/${commonFile}`,
     });
 
     this.freeze('toTypeScriptDefinition');
     return _import.toTypeScriptDefinition(undefined);
+  }
+
+  toComponentCatalog(): PropertyValueDefinition {
+    return {
+      ...getSourceForCommon(this.key, 'JsonSchema').toComponentCatalog(),
+      ...this.componentCatalogMetadata(),
+    };
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    return {
+      ...getSourceForCommon(this.key, 'JsonSchema').toComponentCatalogDefinition(),
+      ...this.componentCatalogMetadata(),
+    };
   }
 
   getName(respectVariationDifferences = true): string {

@@ -28,48 +28,18 @@ public interface IAppResources
     Task<TextResource?> GetTexts(string org, string app, string language);
 
     /// <summary>
-    /// Returns the json schema for the provided model id.
+    /// Returns the json schema for the data type.
     /// </summary>
-    /// <param name="modelId">Unique identifier for the model.</param>
-    /// <returns>The JSON schema for the model</returns>
-    string GetModelJsonSchema(string modelId);
-
-    /// <summary>
-    /// Returns the application metadata for an application.
-    /// </summary>
-    /// <returns>The application  metadata for an application.</returns>
-    [Obsolete(
-        "GetApplication is scheduled for removal. Use Altinn.App.Core.Internal.App.IAppMetadata.GetApplicationMetadata instead",
-        false
-    )]
-    Application GetApplication();
-
-    /// <summary>
-    /// Returns the application XACML policy for an application.
-    /// </summary>
-    /// <returns>The application  XACML policy for an application.</returns>
-    [Obsolete(
-        "GetApplication is scheduled for removal. Use Altinn.App.Core.Internal.App.IAppMetadata.GetApplicationXACMLPolicy instead",
-        false
-    )]
-    string? GetApplicationXACMLPolicy();
-
-    /// <summary>
-    /// Returns the application BPMN process for an application.
-    /// </summary>
-    /// <returns>The application  BPMN process for an application.</returns>
-    [Obsolete(
-        "GetApplication is scheduled for removal. Use Altinn.App.Core.Internal.App.IAppMetadata.GetApplicationBPMNProcess instead",
-        false
-    )]
-    string? GetApplicationBPMNProcess();
+    /// <param name="dataTypeId">The data type id, which is also the name of the files in the models folder.</param>
+    /// <returns>The JSON schema for the data type</returns>
+    string GetModelJsonSchema(string dataTypeId);
 
     /// <summary>
     /// Gets the prefill json file
     /// </summary>
-    /// <param name="dataModelName">the data model name</param>
+    /// <param name="dataTypeId">The data type id, which is also the name of the files in the models folder.</param>
     /// <returns>The prefill json file as a string</returns>
-    string? GetPrefillJson(string dataModelName = "ServiceModel");
+    string? GetPrefillJson(string dataTypeId = "ServiceModel");
 
     /// <summary>
     /// Get the class ref based on data type
@@ -182,8 +152,8 @@ public interface IAppResources
     /// <summary>
     /// Gets the xsd schema.
     /// </summary>
-    /// <param name="modelId">Unique identifier for the model.</param>
-    string? GetXsdSchema(string modelId);
+    /// <param name="dataTypeId">The data type id, which is also the name of the files in the models folder.</param>
+    string? GetXsdSchema(string dataTypeId);
 
     /// <summary>
     /// Gets the calculation configuration for a given data type

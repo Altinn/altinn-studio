@@ -3,19 +3,13 @@ import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 
-import { codegenWatchPlugin } from './scripts/vite/codegenWatchPlugin';
-import { devEntryPlugin } from './scripts/vite/devEntryPlugin';
+import { devEntryPlugin } from './scripts/vite/devEntryPlugin.ts';
+import { schemaPlugin } from './scripts/vite/schemaPlugin.ts';
 
-// eslint-disable-next-line import/no-default-export
 export default defineConfig(({ mode }) => {
   const isDevBuild = mode === 'development';
 
   return {
-    // Every codegen run rewrites *.generated.ts, which makes Vite log "page reload" - one of the
-    // messages it prints *after* clearing the screen. That would wipe the codegen output (errors
-    // included), which the subprocess writes straight to the terminal. No effect in CI, which
-    // Vite never clears.
-    clearScreen: false,
     define: {
       // The bundle is loaded directly by browsers (no downstream bundler), so this must be
       // statically replaced. Vite does not do it automatically in library mode.
@@ -26,14 +20,12 @@ export default defineConfig(({ mode }) => {
       babel({ presets: [reactCompilerPreset()] }),
       // Serves /altinn-app-frontend.js as a loader script that dynamically imports the real
       // app code, plus an empty /altinn-app-frontend.css so the backend HTML doesn't 404.
-      // The /schemas URLs need no plugin: the dev server serves project-root files statically,
-      // and `yarn copy-schemas` puts them next to the bundle in production builds.
       devEntryPlugin(),
-      // Runs codegen at startup, then re-runs it when component config files change.
-      codegenWatchPlugin(),
+      // Serve and publish schemas directly from the shared layout contract.
+      schemaPlugin(),
     ],
     resolve: {
-      // Resolves import aliases from tsconfig.json `paths` (src/*, test/*, schemas/*, ...),
+      // Resolves import aliases from tsconfig.json `paths` (src/*, test/*, ...),
       // including the @app/* packages' self-references through their own tsconfig files.
       tsconfigPaths: true,
       // See the shim for why bare `leaflet-draw` imports cannot be bundled directly.

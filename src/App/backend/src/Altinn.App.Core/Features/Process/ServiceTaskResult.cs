@@ -15,11 +15,10 @@ public abstract record ServiceTaskResult : ServiceTaskExchangeResult
     private protected ServiceTaskResult() { }
 
     /// <summary>
-    /// Creates a service task result representing successful execution.
-    /// The process will automatically advance to the next element.
+    /// Creates a successful result that completes the service task and advances the process.
     /// </summary>
     /// <param name="action">
-    /// Optional action to use when advancing (e.g. "reject").
+    /// Optional process action used to select the next transition (e.g. "reject").
     /// When null, the default BPMN transition is used.
     /// </param>
     /// <remarks>
@@ -27,13 +26,6 @@ public abstract record ServiceTaskResult : ServiceTaskExchangeResult
     /// downstream starts.
     /// </remarks>
     public static ServiceTaskSuccessResult Success(string? action = null) => new() { Action = action };
-
-    /// <summary>
-    /// Creates a service task result representing successful execution
-    /// without automatic process advancement. The instance will remain
-    /// at the service task until manually advanced.
-    /// </summary>
-    public static ServiceTaskSuccessResult SuccessWithoutAutoAdvance() => new() { AutoAdvanceProcess = false };
 
     /// <summary>
     /// Creates a retryable failure. The workflow engine will retry the step with backoff.
@@ -115,14 +107,8 @@ public sealed record ServiceTaskDeferredResult : ServiceTaskResult
 public sealed record ServiceTaskSuccessResult : ServiceTaskResult
 {
     /// <summary>
-    /// If true, the process will automatically advance to the next element after the service task completes.
-    /// Defaults to true.
-    /// </summary>
-    public bool AutoAdvanceProcess { get; init; } = true;
-
-    /// <summary>
-    /// Optional action to use when auto-advancing (e.g. "reject" to abandon the current task).
-    /// Only used when <see cref="AutoAdvanceProcess"/> is true. When null, the default BPMN transition is used.
+    /// Optional process action used to select the next transition (e.g. "reject").
+    /// When null, the default BPMN transition is used.
     /// </summary>
     public string? Action { get; init; }
 }

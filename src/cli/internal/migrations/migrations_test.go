@@ -2,15 +2,19 @@ package migrations_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
 
+	containerruntime "altinn.studio/devenv/pkg/container"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/migrations"
 )
+
+var errUnexpectedContainerConnection = errors.New("unexpected container connection")
 
 func TestRunAppliesPendingMigrationsOnce(t *testing.T) {
 	t.Parallel()
@@ -62,6 +66,44 @@ func TestRunRejectsInvalidMigration(t *testing.T) {
 	err := migrations.RunAll(t.Context(), testConfig(t), []migrations.Migration{{ID: "missing-up", Up: nil}})
 	if !errors.Is(err, migrations.ErrMigrationApplyRequired) {
 		t.Fatalf("RunAll() error = %v, want ErrMigrationApplyRequired", err)
+	}
+}
+
+func TestBaselineRecordsMigrationsWithoutRunningThem(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig(t)
+	runner := migrations.NewRunner(
+		migrations.WithContainerClient(func(context.Context) (containerruntime.ContainerClient, error) {
+			t.Fatal("Baseline() connected to a container runtime")
+			return nil, errUnexpectedContainerConnection
+		}),
+	)
+
+	if err := runner.Baseline(cfg); err != nil {
+		t.Fatalf("Baseline() error = %v", err)
+	}
+	if err := runner.Run(t.Context(), cfg); err != nil {
+		t.Fatalf("Run() after Baseline() error = %v", err)
+	}
+
+	raw, err := os.ReadFile(filepath.Join(cfg.Home, "migrations.json"))
+	if err != nil {
+		t.Fatalf("read state file: %v", err)
+	}
+	var state struct {
+		Applied []string `json:"applied"`
+	}
+	if err := json.Unmarshal(raw, &state); err != nil {
+		t.Fatalf("decode state file: %v", err)
+	}
+	registered := runner.RegisteredMigrations()
+	want := make([]string, 0, len(registered))
+	for _, migration := range registered {
+		want = append(want, migration.ID)
+	}
+	if !reflect.DeepEqual(state.Applied, want) {
+		t.Fatalf("applied = %+v, want %+v", state.Applied, want)
 	}
 }
 

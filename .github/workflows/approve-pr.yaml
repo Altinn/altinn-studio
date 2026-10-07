@@ -25,21 +25,45 @@ jobs:
             exit 0
           fi
 
-          if ! permission=$(gh api repos/${{ github.repository }}/collaborators/"$ACTOR"/permission --jq '.permission' 2>/dev/null); then
-            echo "should_approve=false" >> $GITHUB_OUTPUT
-            echo "Could not determine permission for $ACTOR"
-            exit 0
-          fi
-
-          case "$permission" in
-            admin|maintain|write)
-              ;;
-            *)
+          if [[ "$ACTOR_ID" == "$RENOVATE_BOT_USER_ID" && "$ACTOR" == "renovate[bot]" ]]; then
+            if [[ "$AUTHOR_ID" != "$RENOVATE_BOT_USER_ID" ]]; then
               echo "should_approve=false" >> $GITHUB_OUTPUT
-              echo "User $ACTOR cannot use the approve label: $permission"
+              echo "Renovate may only approve its own pull requests"
               exit 0
-              ;;
-          esac
+            fi
+
+            if [[ "$HEAD_REPOSITORY" != "${{ github.repository }}" ]]; then
+              echo "should_approve=false" >> $GITHUB_OUTPUT
+              echo "Renovate may only approve pull requests from branches in this repository"
+              exit 0
+            fi
+
+            changed_files=$(gh pr view ${{ github.event.pull_request.number }} --repo "${{ github.repository }}" --json changedFiles,files --jq 'if (.files | length) == .changedFiles then .files[].path else "<incomplete file listing>" end')
+            disallowed_files=$(grep -Fxv -f <(printf '%s\n' "$RENOVATE_APPROVABLE_FILES" | sed '/^$/d') <<<"$changed_files" || true)
+
+            if [ -n "$disallowed_files" ]; then
+              echo "should_approve=false" >> $GITHUB_OUTPUT
+              echo "Renovate may not approve changes outside the approvable files:"
+              echo "$disallowed_files"
+              exit 0
+            fi
+          else
+            if ! permission=$(gh api repos/${{ github.repository }}/collaborators/"$ACTOR"/permission --jq '.permission' 2>/dev/null); then
+              echo "should_approve=false" >> $GITHUB_OUTPUT
+              echo "Could not determine permission for $ACTOR"
+              exit 0
+            fi
+
+            case "$permission" in
+              admin|maintain|write)
+                ;;
+              *)
+                echo "should_approve=false" >> $GITHUB_OUTPUT
+                echo "User $ACTOR cannot use the approve label: $permission"
+                exit 0
+                ;;
+            esac
+          fi
 
           # Check if already approved by github-actions bot
           reviews=$(gh pr view ${{ github.event.pull_request.number }} --repo "${{ github.repository }}" --json reviews --jq '.reviews[] | select((.author.login == "github-actions" or .author.login == "github-actions[bot]") and .state == "APPROVED")')
@@ -52,6 +76,12 @@ jobs:
           fi
         env:
           ACTOR: ${{ github.event.sender.login }}
+          ACTOR_ID: ${{ github.event.sender.id }}
+          AUTHOR_ID: ${{ github.event.pull_request.user.id }}
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          RENOVATE_BOT_USER_ID: "29139614"
+          RENOVATE_APPROVABLE_FILES: |
+            agents/Dockerfile
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Auto approve PR

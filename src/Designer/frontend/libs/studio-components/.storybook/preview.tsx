@@ -3,7 +3,7 @@ import type { Preview } from '@storybook/react-vite';
 import { DocsContainer, Unstyled } from '@storybook/addon-docs/blocks';
 
 import '@digdir/designsystemet-css';
-import '@digdir/designsystemet-theme';
+import '@digdir/designsystemet-css/theme';
 import '../src/style/studio-variables.css';
 
 const preview: Preview = {

@@ -1,6 +1,6 @@
 import type { GridSizes } from './types/GridSizes';
 import { ViewSize } from './types/ViewSize';
-import type { GridSize } from '@studio/components-legacy';
+import type { GridSize } from '@studio/components';
 
 export const findEffectiveGridSize = (
   selectedViewSizes: GridSizes,

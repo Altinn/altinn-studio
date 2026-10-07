@@ -1,26 +1,35 @@
 import React, { createContext, useContext } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import type { ISummaryOverridesCommon } from '@app/layout-contract/generated/common.generated';
+import type { CompSummary2External } from '@app/layout-contract/generated/components/Summary2/config.generated';
+
 import { FormStore } from 'src/features/form/FormContext';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { ISummaryOverridesCommon } from 'src/layout/common.generated';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { CompSummaryOverrides, CompTypes } from 'src/layout/layout';
-import type { CompSummary2External } from 'src/layout/Summary2/config.generated';
 
 type Summary2State = Pick<
   CompSummary2External,
   'id' | 'hideEmptyFields' | 'showPageInAccordion' | 'overrides' | 'isCompact'
->;
+> & { nodeId: string };
 const StoreContext = createContext<Summary2State | null>(null);
 
 export function Summary2StoreProvider({ children, baseComponentId }: PropsWithChildren<{ baseComponentId: string }>) {
-  const { id, hideEmptyFields, showPageInAccordion, overrides, isCompact } = useItemWhenType(
-    baseComponentId,
-    'Summary2',
-  );
+  const config = useComponentConfig(baseComponentId, 'Summary2');
+  const nodeId = useIndexedId(baseComponentId);
 
   return (
-    <StoreContext.Provider value={{ id, hideEmptyFields, showPageInAccordion, overrides, isCompact }}>
+    <StoreContext.Provider
+      value={{
+        id: config.id,
+        nodeId,
+        hideEmptyFields: config.hideEmptyFields,
+        showPageInAccordion: config.showPageInAccordion,
+        overrides: config.overrides,
+        isCompact: config.isCompact,
+      }}
+    >
       {children}
     </StoreContext.Provider>
   );

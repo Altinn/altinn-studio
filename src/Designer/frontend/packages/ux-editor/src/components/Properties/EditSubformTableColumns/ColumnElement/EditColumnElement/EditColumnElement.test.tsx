@@ -77,7 +77,7 @@ describe('EditColumnElementComponentSelect', () => {
           'ux_editor.properties_panel.subform_table_columns.no_components_available_message',
         ),
       ),
-    ).not.toBeInTheDocument();
+    ).not.toBeVisible();
   });
 
   it('should render just components with labels and data model bindings', async () => {
@@ -220,10 +220,11 @@ describe('EditColumnElementComponentSelect', () => {
         name: textMock('ux_editor.text_resource_binding_search'),
       }),
     );
-    await user.selectOptions(
-      screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
-      textKeyMock,
-    );
+    const textResourcePicker = screen.getByRole('combobox', {
+      name: (name) => name.startsWith(textMock('ux_editor.search_text_resources_label')),
+    });
+    await user.click(textResourcePicker);
+    await user.click(screen.getByRole('option', { name: RegExp(textKeyMock) }));
     await user.click(
       screen.getAllByRole('button', {
         name: textMock('general.save'),

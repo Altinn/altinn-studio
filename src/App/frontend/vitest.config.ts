@@ -7,7 +7,6 @@ process.env.NODE_ENV = 'test';
 
 const repoNodeModules = path.resolve(import.meta.dirname, '../../..', 'node_modules');
 
-// eslint-disable-next-line import/no-default-export
 export default defineConfig({
   resolve: {
     tsconfigPaths: true,
@@ -16,6 +15,8 @@ export default defineConfig({
       { find: /^react-dom$/, replacement: path.join(repoNodeModules, 'react-dom') },
       { find: /^react\/jsx-runtime$/, replacement: path.join(repoNodeModules, 'react/jsx-runtime.js') },
       { find: /^react\/jsx-dev-runtime$/, replacement: path.join(repoNodeModules, 'react/jsx-dev-runtime.js') },
+      // The CommonJS bundle embeds its own Leaflet context. Use the ESM entry to share MapContainer's context.
+      { find: /^react-leaflet-draw$/, replacement: path.join(repoNodeModules, 'react-leaflet-draw/dist/esm/index.js') },
     ],
   },
   test: {
@@ -47,7 +48,7 @@ export default defineConfig({
     outputFile: process.env.CI ? { junit: 'junit.xml' } : undefined,
     execArgv: ['--no-experimental-webstorage'],
     pool: 'vmThreads',
-    setupFiles: ['./src/setupTests.ts'],
+    setupFiles: ['./src/setupTests.ts', '@app/form-component/test/popoverPolyfill'],
     testTimeout: Number.parseInt(process.env.VITEST_TIMEOUT ?? '20000', 10),
     vmMemoryLimit: '2GB',
     coverage: {

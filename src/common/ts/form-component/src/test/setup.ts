@@ -1,7 +1,7 @@
-import * as matchers from '@testing-library/jest-dom/matchers';
-import { expect, vi } from 'vitest';
+import '@testing-library/jest-dom/vitest';
+import './popoverPolyfill';
 
-expect.extend(matchers);
+import { vi } from 'vitest';
 
 document.getAnimations = vi.fn(() => []);
 

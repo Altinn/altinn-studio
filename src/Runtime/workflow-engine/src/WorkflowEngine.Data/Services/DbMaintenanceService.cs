@@ -6,9 +6,11 @@ using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Extensions;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
+
+// CA5394: retention jitter only spreads load, so a non-cryptographic source is the right tool.
+#pragma warning disable CA5394
 
 namespace WorkflowEngine.Data.Services;
 
@@ -30,7 +32,16 @@ internal sealed class DbMaintenanceService(
         maxDelay: TimeSpan.FromMinutes(2)
     );
 
-    private DateTimeOffset _lastRetentionRun = DateTimeOffset.MinValue;
+    /// <summary>
+    /// When retention last swept, or <c>null</c> until the first maintenance iteration anchors it.
+    /// Anchoring at a random point inside the retention interval - rather than at
+    /// <see cref="DateTimeOffset.MinValue"/>, which is immediately due - keeps a start from
+    /// scheduling a full drain on top of the requests the fresh instance is about to serve, and
+    /// de-synchronizes the replicas of a rollout that all start at once. The check is only evaluated
+    /// once per maintenance iteration, so the first sweep lands within one retention interval plus
+    /// one <see cref="EngineSettings.MaintenanceInterval"/> of startup.
+    /// </summary>
+    private DateTimeOffset? _lastRetentionRun;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -47,6 +58,8 @@ internal sealed class DbMaintenanceService(
             {
                 var now = timeProvider.GetUtcNow();
                 var settings = options.Value;
+
+                _lastRetentionRun ??= now - RandomStartupOffset(settings.Retention.Interval);
 
                 if (now - _lastRetentionRun >= settings.Retention.Interval)
                 {
@@ -86,6 +99,13 @@ internal sealed class DbMaintenanceService(
 
         logger.ShuttingDown();
     }
+
+    /// <summary>
+    /// A uniformly random offset in <c>[0, interval)</c>, used to place the first retention sweep
+    /// somewhere inside the interval instead of at startup.
+    /// </summary>
+    private static TimeSpan RandomStartupOffset(TimeSpan interval) =>
+        interval <= TimeSpan.Zero ? TimeSpan.Zero : Random.Shared.NextDouble() * interval;
 
     internal async Task PurgeExpiredWorkflows(DateTimeOffset now, RetentionSettings settings, CancellationToken ct)
     {
@@ -654,12 +674,15 @@ internal sealed class DbMaintenanceService(
             RETURNING is_head
             """;
 
+        // execution_started_at is cleared with the lease: the dead attempt is over, and a workflow
+        // back in Enqueued never carries a stamp (same rule as resume and dependency recovery).
         internal static readonly string ReclaimStaleWorkflows = $"""
             UPDATE engine.workflows
             SET status = {(int)PersistentItemStatus.Enqueued},
                 updated_at = @now,
                 heartbeat_at = NULL,
                 lease_token = NULL,
+                execution_started_at = NULL,
                 reclaim_count = reclaim_count + 1
             WHERE status = {(int)PersistentItemStatus.Processing}
               AND heartbeat_at IS NOT NULL
@@ -677,6 +700,7 @@ internal sealed class DbMaintenanceService(
                 backoff_until = NULL,
                 heartbeat_at = NULL,
                 lease_token = NULL,
+                execution_started_at = NULL,
                 reclaim_count = 0,
                 updated_at = @now
             WHERE w.status = {(int)PersistentItemStatus.DependencyFailed}

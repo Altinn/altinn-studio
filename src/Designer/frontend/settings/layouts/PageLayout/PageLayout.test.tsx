@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PageLayout } from './PageLayout';
@@ -12,23 +14,23 @@ import { useFeatureFlag } from '@studio/feature-flags';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { Route, Routes } from 'react-router-dom';
 
-const mockNavigate = jest.fn();
+const mockNavigate = vi.fn();
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   Outlet: () => <div>Outlet</div>,
   useNavigate: () => mockNavigate,
 }));
-jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
-  useEnvironmentConfig: jest.fn(() => ({ environment: {} })),
+vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: vi.fn(() => ({ environment: {} })),
 }));
-jest.mock('@studio/hooks', () => ({
-  ...jest.requireActual('@studio/hooks'),
-  useMediaQuery: jest.fn(),
+vi.mock('@studio/hooks', async () => ({
+  ...(await vi.importActual('@studio/hooks')),
+  useMediaQuery: vi.fn(),
 }));
-jest.mock('@studio/feature-flags', () => ({
-  ...jest.requireActual('@studio/feature-flags'),
-  useFeatureFlag: jest.fn(),
+vi.mock('@studio/feature-flags', async () => ({
+  ...(await vi.importActual('@studio/feature-flags')),
+  useFeatureFlag: vi.fn(),
 }));
 
 const userWithName = { ...userMock, login: 'test', full_name: 'test' };
@@ -62,21 +64,21 @@ const renderPageLayout = ({
 
 describe('PageLayout', () => {
   const mockEnvironmentConfig = () =>
-    jest.mocked(useEnvironmentConfig).mockReturnValue({
+    vi.mocked(useEnvironmentConfig).mockReturnValue({
       environment: {},
       isPending: false,
       error: null,
     });
 
   beforeEach(() => {
-    (useMediaQuery as jest.Mock).mockReturnValue(false);
-    (useFeatureFlag as jest.Mock).mockReturnValue(false);
+    (useMediaQuery as Mock).mockReturnValue(false);
+    (useFeatureFlag as Mock).mockReturnValue(false);
     mockEnvironmentConfig();
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('renders the app title in the header', () => {
@@ -222,7 +224,7 @@ describe('PageLayout', () => {
 
   it('shows settings when admin flag is enabled', async () => {
     const user = userEvent.setup();
-    (useFeatureFlag as jest.Mock).mockReturnValue(true);
+    (useFeatureFlag as Mock).mockReturnValue(true);
 
     renderPageLayout({ initialEntries: ['/test'] });
     await user.click(screen.getByRole('button', { name: userWithName.full_name }));

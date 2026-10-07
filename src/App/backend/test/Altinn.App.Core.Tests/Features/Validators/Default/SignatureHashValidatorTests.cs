@@ -391,7 +391,7 @@ public class SignatureHashValidatorTests
             .Setup(x => x.GetAltinnTaskExtension("signing-task"))
             .Returns(new AltinnTaskExtension { SignatureConfiguration = signingConfiguration });
 
-        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        _appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         _signingServiceMock
             .Setup(x =>

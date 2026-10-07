@@ -32,6 +32,7 @@ public static class ProcessStateExtensions
         }
 
         copyOfState.EndEvent = original.EndEvent;
+        copyOfState.Status = original.Status;
         copyOfState.Started = original.Started;
         copyOfState.Ended = original.Ended;
         copyOfState.StartEvent = original.StartEvent;

@@ -2,6 +2,7 @@
 set -eu
 
 destination=${AGENT_WORKSPACE_DESTINATION:-/home/agent/code/altinn-studio}
+mkdir -p /home/agent/code/apps
 
 if [ -d "$destination/.git" ]; then
     exit 0

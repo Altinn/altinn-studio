@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Models;
 
@@ -104,9 +103,9 @@ public sealed record EngineSettings
     /// Deliberately small — a step that has not resolved in two weeks should fail loudly rather than
     /// keep its instance pinned. Raising it also erodes a cross-component invariant: AppCommand
     /// callback tokens are minted once at enqueue and never refresh, valid until their signing
-    /// app-code expires. Under the operator's rotation policy (<c>appcodesync</c>: 186d acceptance,
-    /// 72d rotation) a token has ≥114d of validity left at enqueue, and the worst-case workflow
-    /// lifetime — a full wait, a resume at the retention edge (60d), and a second full wait, each
+    /// app-code expires. Under the operator's rotation policy (<c>appcodesync</c>: 365d acceptance,
+    /// 24d rotation) a token has ≥341d of validity left at enqueue, and the worst-case workflow
+    /// lifetime — a full wait, a resume at the retention edge (90d), and a second full wait, each
     /// resume replaying the original token — must stay below that floor.
     /// </remarks>
     [JsonPropertyName("maxStepWaitBudget")]
@@ -258,6 +257,12 @@ public sealed record EngineSettings
     /// </summary>
     [JsonPropertyName("pagination")]
     public PaginationSettings Pagination { get; set; } = new();
+
+    /// <summary>
+    /// Failure-storm throttling settings (per-namespace circuit breaker). Disabled by default.
+    /// </summary>
+    [JsonPropertyName("throttling")]
+    public ThrottlingSettings Throttling { get; set; } = new();
 }
 
 /// <summary>
@@ -370,6 +375,87 @@ public sealed record RetentionSettings
     /// </summary>
     [JsonPropertyName("interval")]
     public TimeSpan Interval { get; set; }
+}
+
+/// <summary>
+/// Settings for the per-namespace failure-storm circuit breaker (see the failure-throttling ADR).
+/// The feature ships dark: with <see cref="Enabled"/> left <c>false</c> the sweep does not run and
+/// the fetch query variant without the <c>throttled_until</c> predicate is selected at startup,
+/// making the schema fully inert. Configuration is restart-only.
+/// </summary>
+public sealed record ThrottlingSettings
+{
+    /// <summary>
+    /// Multiplier applied to a namespace's throttle window on every extension (window doubling).
+    /// Deliberately not configuration: it interacts multiplicatively with
+    /// <see cref="InitialWindow"/>, <see cref="MaxWindow"/>, and <see cref="ReleaseCohortGrowthFactor"/>,
+    /// and no operator can predict an altered combination's emergent behavior without reading the code.
+    /// </summary>
+    public const double WindowGrowthFactor = 2.0;
+
+    /// <summary>
+    /// Multiplier applied to the release cohort size on every sweep during recovery
+    /// (cohorts start at canary scale and double). Deliberately not configuration — see
+    /// <see cref="WindowGrowthFactor"/>.
+    /// </summary>
+    public const double ReleaseCohortGrowthFactor = 2.0;
+
+    /// <summary>
+    /// Fractional jitter (±20%) applied to every <c>throttled_until</c> stamp so parked
+    /// workflows do not wake in synchronized waves. Deliberately not configuration — see
+    /// <see cref="WindowGrowthFactor"/>.
+    /// </summary>
+    public const double JitterFraction = 0.2;
+
+    /// <summary>
+    /// Whether the namespace circuit breaker is enabled. Defaults to <c>false</c> (the feature
+    /// ships dark). When disabled the throttle sweep does not run and the workflow fetch query
+    /// ignores <c>throttled_until</c> entirely.
+    /// </summary>
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; }
+
+    /// <summary>
+    /// Absolute floor: a namespace must have at least this many workflows in <c>Requeued</c>
+    /// before it can trip the breaker. Keeps small-but-broken apps from tripping.
+    /// </summary>
+    [JsonPropertyName("minRequeuedWorkflows")]
+    public int MinRequeuedWorkflows { get; set; }
+
+    /// <summary>
+    /// Relative floor: the <c>Requeued</c> population must also exceed this fraction of the
+    /// namespace's active workflows before the breaker trips. Keeps large-but-noisy apps from
+    /// tripping. Must be greater than 0 and less than or equal to 1.
+    /// </summary>
+    [JsonPropertyName("minRequeuedRatio")]
+    public double MinRequeuedRatio { get; set; }
+
+    /// <summary>
+    /// Interval at which the throttle sweep runs (detect → throttle → probe → release).
+    /// </summary>
+    [JsonPropertyName("sweepInterval")]
+    public TimeSpan SweepInterval { get; set; }
+
+    /// <summary>
+    /// Number of canary workflows kept on the normal retry schedule while a namespace is
+    /// throttled, probing for recovery. Must be at least 1.
+    /// </summary>
+    [JsonPropertyName("canaryCount")]
+    public int CanaryCount { get; set; }
+
+    /// <summary>
+    /// The throttle window applied when a breaker first trips. Grows by
+    /// <see cref="WindowGrowthFactor"/> on every extension, capped at <see cref="MaxWindow"/>.
+    /// </summary>
+    [JsonPropertyName("initialWindow")]
+    public TimeSpan InitialWindow { get; set; }
+
+    /// <summary>
+    /// The largest throttle window a namespace can reach. Must be greater than or equal to
+    /// <see cref="InitialWindow"/>.
+    /// </summary>
+    [JsonPropertyName("maxWindow")]
+    public TimeSpan MaxWindow { get; set; }
 }
 
 /// <summary>

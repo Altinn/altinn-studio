@@ -3,18 +3,24 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Api.Controllers;
+using Altinn.App.Api.Infrastructure.Authentication;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -26,6 +32,8 @@ namespace Altinn.App.Api.Tests;
 /// directly per command while keeping an in-memory workflow store for polling and failure handling.
 /// </summary>
 /// <remarks>
+/// Each callback runs as a request of its own, as the engine sends it (see <see cref="WorkflowCallbackHttpContextAccessor"/>):
+/// it sees neither the query string nor the user of the request that enqueued its workflow.
 /// Time is compressed rather than simulated: a deferring step re-executes immediately with the
 /// requested delay added to a virtual elapsed wait, so a test of a long wait finishes in milliseconds.
 /// The consequence worth knowing is that a workflow never actually rests in
@@ -71,7 +79,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         string idempotencyKey,
         string? collectionKey,
         WorkflowEnqueueRequest request,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         string batchKey = CreateBatchKey(ns, idempotencyKey);
@@ -99,6 +107,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         foreach (WorkflowRequest workflow in request.Workflows)
         {
             Guid databaseId = Guid.NewGuid();
+            DateTimeOffset createdAt = DateTimeOffset.UtcNow;
             if (workflow.Ref is not null)
             {
                 refMap[workflow.Ref] = databaseId;
@@ -120,7 +129,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 }
             }
 
-            DateTimeOffset createdAt = DateTimeOffset.UtcNow;
             createdWorkflows.Add(
                 new StoredWorkflow
                 {
@@ -173,12 +181,16 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             UpdateCollectionHeads(ns, collectionKey, currentCollectionHeads, createdWorkflows);
         }
 
-        await ProcessAvailableWorkflows(ct);
+        await ProcessAvailableWorkflows(cancellationToken);
 
         return new WorkflowEnqueueResponse.Accepted { Workflows = createdWorkflows.Select(ToWorkflowResult).ToList() };
     }
 
-    public Task<WorkflowCollectionDetailResponse?> GetCollection(string ns, string key, CancellationToken ct = default)
+    public Task<WorkflowCollectionDetailResponse?> GetCollection(
+        string ns,
+        string key,
+        CancellationToken cancellationToken = default
+    )
     {
         if (!_collectionHeadsByKey.TryGetValue(CreateCollectionLookupKey(ns, key), out List<Guid>? headIds))
         {
@@ -221,12 +233,25 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         return Task.FromResult<WorkflowCollectionDetailResponse?>(collection);
     }
 
+    public Task<WorkflowStatusResponse?> GetWorkflow(
+        string ns,
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return Task.FromResult(
+            _workflows.TryGetValue(workflowId, out StoredWorkflow? workflow) && workflow.Namespace == ns
+                ? ToWorkflowStatusResponse(workflow)
+                : null
+        );
+    }
+
     public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
         string ns,
         string? collectionKey = null,
         Dictionary<string, string>? labels = null,
         IReadOnlyList<PersistentItemStatus>? statuses = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         IEnumerable<StoredWorkflow> matching = _workflows.Values.Where(workflow => workflow.Namespace == ns);
@@ -255,7 +280,11 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         return Task.FromResult(result);
     }
 
-    public Task<CancelWorkflowResponse> CancelWorkflow(string ns, Guid workflowId, CancellationToken ct = default)
+    public Task<CancelWorkflowResponse> CancelWorkflow(
+        string ns,
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    )
     {
         if (_workflows.TryGetValue(workflowId, out StoredWorkflow? workflow))
         {
@@ -270,7 +299,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         string ns,
         Guid workflowId,
         bool cascade = false,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         if (_workflows.TryGetValue(workflowId, out StoredWorkflow? workflow))
@@ -289,13 +318,13 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 }
             }
 
-            await ProcessAvailableWorkflows(ct);
+            await ProcessAvailableWorkflows(cancellationToken);
         }
 
         return new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []);
     }
 
-    public async Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default)
+    public async Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default)
     {
         bool abandoned = false;
         lock (_gate)
@@ -337,7 +366,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         if (abandoned)
         {
             // A workflow gated only by the abandoned one may have become runnable.
-            await ProcessAvailableWorkflows(ct);
+            await ProcessAvailableWorkflows(cancellationToken);
         }
 
         return abandoned;
@@ -347,7 +376,11 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     /// Mints idempotently on <c>(namespace, idempotencyKey)</c>, as the engine does. The fake models the
     /// address, not the rendezvous.
     /// </summary>
-    public Task<MailboxMintResult> MintMailbox(string ns, MailboxCreateRequest request, CancellationToken ct = default)
+    public Task<MailboxMintResult> MintMailbox(
+        string ns,
+        MailboxCreateRequest request,
+        CancellationToken cancellationToken = default
+    )
     {
         MailboxResponse mailbox = _mailboxesByIdempotencyKey.GetOrAdd(
             CreateBatchKey(ns, request.IdempotencyKey),
@@ -376,7 +409,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     /// <summary>
     /// Terminal and idempotent as the engine is; <c>null</c> for an unknown id (the engine's <c>404</c>).
     /// </summary>
-    public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default)
+    public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken cancellationToken = default)
     {
         foreach ((string key, MailboxResponse mailbox) in _mailboxesByIdempotencyKey)
         {
@@ -411,7 +444,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         string ns,
         Guid mailboxId,
         MailboxDeliveryRequest request,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         string deliveryKey = CreateBatchKey(mailboxId.ToString(), request.IdempotencyKey);
@@ -554,11 +587,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             _serviceProvider.GetRequiredService<ILogger<WorkflowEngineCallbackController>>(),
             _serviceProvider.GetService<Telemetry>()
         );
-        controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
-        if (!string.IsNullOrWhiteSpace(workflow.CollectionKey))
-        {
-            controller.HttpContext.Request.Headers["Collection-Key"] = workflow.CollectionKey;
-        }
 
         foreach (StoredStep step in workflow.Steps)
         {
@@ -596,7 +624,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     CommandKey = appCommandData.CommandKey,
                     Actor = workflow.Context.Actor,
                     Payload = appCommandData.Payload,
-                    LockToken = workflow.Context.LockToken,
                     State = currentState,
                     WorkflowId = workflow.DatabaseId,
                     StepId = step.DatabaseId,
@@ -615,14 +642,39 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                         : attemptStartedAt + ((step.WaitBudget ?? DefaultStepWaitBudget) - step.WaitElapsed),
                 };
 
-                IActionResult result = await controller.ExecuteCommand(
-                    workflow.Context.Org,
-                    workflow.Context.App,
-                    workflow.Context.InstanceOwnerPartyId,
-                    workflow.Context.InstanceGuid,
-                    appCommandData.CommandKey,
-                    payload,
-                    cancellationToken
+                if (await AuthenticateCallback(workflow.Context, appCommandData.CommandKey) is not { } principal)
+                {
+                    // What the engine does with a 401: a client error, so the step fails without retrying.
+                    step.ErrorHistory.Add(
+                        new ErrorEntry(
+                            DateTimeOffset.UtcNow,
+                            $"The app rejected the callback token for command '{appCommandData.CommandKey}'.",
+                            (int)HttpStatusCode.Unauthorized,
+                            WasRetryable: false
+                        )
+                    );
+                    step.Status = PersistentItemStatus.Failed;
+                    step.UpdatedAt = DateTimeOffset.UtcNow;
+                    workflow.Status = PersistentItemStatus.Failed;
+                    workflow.UpdatedAt = DateTimeOffset.UtcNow;
+                    return;
+                }
+                controller.ControllerContext = new ControllerContext
+                {
+                    HttpContext = CreateCallbackRequest(workflow, appCommandData.CommandKey, principal),
+                };
+                IActionResult result = await WorkflowCallbackHttpContextAccessor.RunCallback(
+                    controller.HttpContext,
+                    () =>
+                        controller.ExecuteCommand(
+                            workflow.Context.Org,
+                            workflow.Context.App,
+                            workflow.Context.InstanceOwnerPartyId,
+                            workflow.Context.InstanceGuid,
+                            appCommandData.CommandKey,
+                            payload,
+                            cancellationToken
+                        )
                 );
 
                 if (result is OkObjectResult { Value: AppCallbackResponse response })
@@ -876,6 +928,60 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             step.Status = PersistentItemStatus.Enqueued;
             step.UpdatedAt = DateTimeOffset.UtcNow;
         }
+    }
+
+    /// <summary>
+    /// Authenticates a callback with the app's own validator, as the callback scheme does for a real request,
+    /// so the controller sees the principal the engine's replayed token would give it. <c>null</c> when the app
+    /// would answer 401.
+    /// </summary>
+    private async Task<ClaimsPrincipal?> AuthenticateCallback(AppWorkflowContext context, string commandKey)
+    {
+        ValidatedWorkflowCallbackToken? validated = await _serviceProvider
+            .GetRequiredService<IWorkflowCallbackTokenValidator>()
+            .ValidateToken(context.CallbackToken, context.InstanceGuid, commandKey);
+        if (validated is null)
+            return null;
+        return new ClaimsPrincipal(
+            new ClaimsIdentity(
+                [
+                    new Claim(JwtClaimTypes.JwtId, context.InstanceGuid.ToString()),
+                    new Claim(JwtClaimTypes.WorkflowCallback.ActorHash, validated.ActorHash),
+                ],
+                WorkflowEngineCallbackDefaults.AuthenticationScheme
+            )
+        );
+    }
+
+    /// <summary>
+    /// The request a callback is: one of its own, as the engine sends it. It has no query string, is routed to the
+    /// callback endpoint and carries the callback token, so the app authenticates it as itself.
+    /// </summary>
+    private static DefaultHttpContext CreateCallbackRequest(
+        StoredWorkflow workflow,
+        string commandKey,
+        ClaimsPrincipal principal
+    )
+    {
+        AppWorkflowContext context = workflow.Context;
+        var httpContext = new DefaultHttpContext { User = principal };
+        httpContext.Request.Method = HttpMethods.Post;
+        httpContext.Request.Path =
+            $"/{context.Org}/{context.App}/instances/{context.InstanceOwnerPartyId}/{context.InstanceGuid}/workflow-engine-callbacks/{commandKey}";
+        httpContext.Request.RouteValues = new RouteValueDictionary
+        {
+            ["org"] = context.Org,
+            ["app"] = context.App,
+            ["instanceOwnerPartyId"] = context.InstanceOwnerPartyId,
+            ["instanceGuid"] = context.InstanceGuid,
+            ["commandKey"] = commandKey,
+        };
+        httpContext.Request.Headers.Authorization = $"Bearer {context.CallbackToken}";
+        if (!string.IsNullOrWhiteSpace(workflow.CollectionKey))
+        {
+            httpContext.Request.Headers["Collection-Key"] = workflow.CollectionKey;
+        }
+        return httpContext;
     }
 
     private static bool IsAltinnEventCommand(string commandKey) =>

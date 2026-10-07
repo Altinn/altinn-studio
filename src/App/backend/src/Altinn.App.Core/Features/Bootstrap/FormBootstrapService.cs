@@ -8,6 +8,8 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
@@ -21,7 +23,7 @@ namespace Altinn.App.Core.Features.Bootstrap;
 /// <summary>
 /// Aggregates all form bootstrap data into a single response.
 /// </summary>
-public sealed class FormBootstrapService
+internal sealed class FormBootstrapService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -77,6 +79,25 @@ public sealed class FormBootstrapService
         bool isPdf,
         string language,
         CancellationToken cancellationToken = default
+    ) =>
+        await GetInstanceFormBootstrap(
+            instance,
+            StorageVersionMetadata.Empty,
+            uiFolder,
+            dataElementIdOverride,
+            isPdf,
+            language,
+            cancellationToken
+        );
+
+    internal async Task<FormBootstrapResponse> GetInstanceFormBootstrap(
+        Instance instance,
+        StorageVersionMetadata versions,
+        string uiFolder,
+        string? dataElementIdOverride,
+        bool isPdf,
+        string language,
+        CancellationToken cancellationToken = default
     )
     {
         var defaultDataType = GetDefaultDataType(uiFolder);
@@ -100,7 +121,7 @@ public sealed class FormBootstrapService
         var taskId = instance.Process?.CurrentTask?.ElementId;
         var dataAccessor = await _serviceProvider
             .GetRequiredService<InstanceDataUnitOfWorkInitializer>()
-            .Init(instance, taskId, language);
+            .Init(instance, versions, taskId, language);
         var dataModels = await LoadInstanceDataModels(
             dataAccessor,
             referencedDataTypes,
@@ -202,7 +223,7 @@ public sealed class FormBootstrapService
     )
     {
         var result = new Dictionary<string, DataModelInfo>();
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
 
         var tasks = dataTypes.Select(async dataType =>
         {
@@ -287,7 +308,7 @@ public sealed class FormBootstrapService
     {
         _ = cancellationToken;
         var result = new Dictionary<string, DataModelInfo>();
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
         var instanceOwner = await GetStatelessInstanceOwner();
 
         foreach (var dataType in dataTypes)
@@ -582,13 +603,13 @@ public sealed class FormBootstrapService
 
     private static async Task PersistProcessDataReadChanges(InstanceDataUnitOfWork dataAccessor, bool isPdf)
     {
-        var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: false);
-        if (changes.AllChanges.Count == 0)
+        if (isPdf || !ProcessStatusHelper.IsIdle(dataAccessor.Instance))
         {
             return;
         }
 
-        if (isPdf)
+        var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: false);
+        if (changes.AllChanges.Count == 0)
         {
             return;
         }
@@ -604,8 +625,11 @@ public sealed class FormBootstrapService
         var filteredChanges = new DataElementChanges(persistableChanges);
         try
         {
-            await dataAccessor.UpdateInstanceData(filteredChanges);
             await dataAccessor.SaveChanges(filteredChanges);
+        }
+        catch (StorageProcessStatusConflictException)
+        {
+            // Workflow acquire won after this GET captured an idle instance. Keep the response read-only.
         }
         catch (PlatformHttpException e) when (e.Response.StatusCode is System.Net.HttpStatusCode.Forbidden)
         {

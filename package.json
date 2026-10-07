@@ -47,7 +47,6 @@
     "src/Designer/frontend/studio-root",
     "src/Designer/frontend/admin",
     "src/Designer/frontend/settings",
-    "src/Designer/frontend/testing/cypress",
     "src/Designer/frontend/testing/playwright",
     "src/Designer/frontend/packages/schema-editor",
     "src/Designer/frontend/packages/schema-model",
@@ -56,12 +55,16 @@
     "src/Designer/frontend/packages/ux-editor-v4",
     "src/Designer/frontend/packages/ux-editor-v3",
     "src/Designer/frontend/packages/process-editor",
+    "src/Designer/frontend/packages/process-editor-v8",
     "src/Designer/frontend/packages/policy-editor",
     "src/Designer/frontend/libs/**",
     "src/common/ts",
     "src/common/ts/**"
   ],
   "resolutions": {
-    "jsdom@npm:^26.1.0": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch"
+    "dom-accessibility-api@npm:^0.5.9": "patch:dom-accessibility-api@npm%3A0.5.16#~/.yarn/patches/dom-accessibility-api-npm-0.5.16-d3e2310666.patch",
+    "dom-accessibility-api@npm:^0.6.3": "patch:dom-accessibility-api@npm%3A0.6.3#~/.yarn/patches/dom-accessibility-api-npm-0.6.3-0345e4dede.patch",
+    "jsdom@npm:30.1.1": "patch:jsdom@npm%3A30.1.1#~/.yarn/patches/jsdom-npm-30.1.1-6cc9c69fd4.patch",
+    "qs": "6.16.0"
   }
 }

@@ -1,29 +1,31 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
+import layoutSchema from '@app/layout-contract/schemas/json/layout/layout.schema.v1.json';
 import { screen } from '@testing-library/react';
 import dotenv from 'dotenv';
-import layoutSchema from 'schemas/json/layout/layout.schema.v1.json';
+import path from 'node:path';
 import type { JSONSchema7 } from 'json-schema';
 
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { FormStore } from 'src/features/form/FormContext';
-import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ExternalAppUiFolder } from 'src/test/allApps';
 
-vi.mock('src/features/applicationMetadata');
-vi.mock('src/features/form/ui');
 vi.mock('src/queries/queries');
+vi.mock('src/features/options/useSourceOptions', () => ({
+  useSourceOptions: () => [{ label: 'Test option', value: 'test' }],
+}));
 
 const env = dotenv.config({ quiet: true });
 const ENV: 'prod' | 'all' = env.parsed?.ALTINN_ALL_APPS_ENV === 'prod' ? 'prod' : 'all';
 const MODE: 'critical' | 'all' = env.parsed?.ALTINN_ALL_APPS_MODE === 'critical' ? 'critical' : 'all';
+const RENDER_COMPONENTS = process.env.ALTINN_ALL_APPS_RENDER_COMPONENTS !== 'false';
 
 const ignoreLogAndErrors = [
   ...ignoredConsoleMessages,
@@ -58,13 +60,9 @@ function TestApp() {
   return <div data-testid='errors'>{JSON.stringify(filteredErrors)}</div>;
 }
 
-function RenderAllComponents() {
+function RenderPageComponents({ pageName }: { pageName: string }) {
   const state = FormStore.raw.useStore().getState();
-  const pageOrder = useRawPageOrder();
-  const pdfLayoutName = usePdfLayoutName();
-  const all = Object.entries(state.bootstrap.layoutLookups.topLevelComponents)
-    .filter(([pageKey]) => pageOrder.includes(pageKey) || pageKey === pdfLayoutName)
-    .flatMap(([, componentIds]) => componentIds ?? []);
+  const all = state.bootstrap.layoutLookups.topLevelComponents[pageName] ?? [];
 
   return (
     <>
@@ -91,8 +89,13 @@ const consoleLoggers = ['error', 'warn', 'log'];
 
 describe('All known UI folders should render successfully', () => {
   let pathnameWas: string;
+  let featureTogglesWere: typeof window.featureToggles;
+  let forceLayoutPropertiesValidationWas: typeof window.forceLayoutPropertiesValidation;
   beforeAll(() => {
+    forceLayoutPropertiesValidationWas = window.forceLayoutPropertiesValidation;
     window.forceLayoutPropertiesValidation = 'on';
+    featureTogglesWere = window.featureToggles;
+    window.featureToggles = { ...window.featureToggles, simpleTableEnabled: true };
     pathnameWas = window.location.pathname.toString();
     for (const func of windowLoggers) {
       vi
@@ -115,12 +118,13 @@ describe('All known UI folders should render successfully', () => {
   });
 
   afterAll(() => {
-    window.forceLayoutPropertiesValidation = 'off';
-    window.location.pathname = pathnameWas;
+    window.forceLayoutPropertiesValidation = forceLayoutPropertiesValidationWas;
+    window.featureToggles = featureTogglesWere;
+    window.history.replaceState({}, '', pathnameWas);
     vi.restoreAllMocks();
   });
 
-  const dir = ensureAppsDirIsSet();
+  const dir = ensureAppsDirIsSet(true, path.resolve(import.meta.dirname, '../../../../../test/apps'));
   if (!dir) {
     return;
   }
@@ -131,29 +135,47 @@ describe('All known UI folders should render successfully', () => {
     .map((app) => app.enableCompatibilityMode().getUiFolders())
     .flat()
     .filter((set) => set.isValid())
-    .map((set) => ({ appName: set.app.getName(), setName: set.getName(), set }));
+    .flatMap((set) => {
+      const settings = set.getSettings().pages;
+      const pages =
+        'order' in settings
+          ? settings.order
+          : settings.groups.filter((group) => 'order' in group).flatMap((group) => group.order);
+      const pageNames = RENDER_COMPONENTS
+        ? [...new Set([...pages, settings.pdfLayoutName].filter((pageName): pageName is string => !!pageName))]
+        : [''];
+      return pageNames.map((pageName) => ({ appName: set.app.getName(), setName: set.getName(), pageName, set }));
+    });
 
   // Randomize the order of the tests so we don't have to wait for the same first ones every time
   allSets.sort(() => Math.random() - 0.5);
 
-  async function testSet(uiFolder: ExternalAppUiFolder) {
-    const { pathname, mainFolder, subformComponent } = uiFolder.initialize();
-    window.location.pathname = pathname;
+  async function testSet(uiFolder: ExternalAppUiFolder, pageName: string) {
+    const initialized = uiFolder.initialize();
+    const { mainFolder, subformComponent } = initialized;
+    const isPdfPage = pageName === uiFolder.getSettings().pages.pdfLayoutName;
+    const initialPage = pageName && !isPdfPage ? pageName : initialized.initialPage;
+    const pathname = initialized.pathname.slice(0, initialized.pathname.lastIndexOf('/') + 1) + initialPage;
+    window.history.replaceState({}, '', pathname);
     const [org, app] = uiFolder.app.getOrgApp();
     window.org = org;
     window.app = app;
 
     window.altinnAppGlobalData.applicationMetadata = uiFolder.app.getAppMetadata();
     window.altinnAppGlobalData.ui = uiFolder.app.getUiConfig();
-    const children = env.parsed?.ALTINN_ALL_APPS_RENDER_COMPONENTS === 'true' ? <RenderAllComponents /> : <TestApp />;
+    const children = RENDER_COMPONENTS ? <RenderPageComponents pageName={pageName} /> : <TestApp />;
     await renderWithInstanceAndLayout({
       taskId: mainFolder.getTaskId(),
+      initialPath: pathname,
+      initialPage,
       renderer: () =>
         subformComponent ? <SubformTestWrapper baseId={subformComponent.id}>{children}</SubformTestWrapper> : children,
       queries: {
+        fetchFormData: async (url) => uiFolder.getModel({ url }).simulateDataModel(),
         fetchFormBootstrapForInstance: async (options) =>
           getFormBootstrapMock((obj) => {
             obj.layouts = uiFolder.app.getUiFolder(options.uiFolder).getLayouts();
+            obj.staticOptions = uiFolder.app.getStaticOptions();
             const models = uiFolder.app.getDataModelsFromMetaData();
             obj.dataModels = Object.fromEntries(
               models.map((model) => [
@@ -205,7 +227,7 @@ describe('All known UI folders should render successfully', () => {
     expect(alwaysFail).toBe(false);
   }
 
-  it.each(allSets)('$appName/$setName', async ({ set }) => testSet(set));
+  it.each(allSets)('$appName/$setName/$pageName', async ({ set, pageName }) => testSet(set, pageName));
 });
 
 function filterAndCleanMockCalls(mock: Mock): string[] {

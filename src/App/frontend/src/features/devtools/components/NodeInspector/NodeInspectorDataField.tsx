@@ -1,7 +1,9 @@
 import React from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import cn from 'classnames';
 import dot from 'dot-object';
+import type { ExpressionDescriptor } from '@app/layout-contract';
 
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
 import { useNodeInspectorContext } from 'src/features/devtools/components/NodeInspector/NodeInspectorContext';
@@ -10,9 +12,11 @@ import { DevToolsTab } from 'src/features/devtools/data/types';
 import { canBeExpression } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
-import { useIntermediateItem } from 'src/utils/layout/hooks';
+import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
-import type { GroupExpressions } from 'src/layout/RepeatingGroup/types';
+import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 
 interface NodeInspectorDataFieldParams {
   path: string[];
@@ -145,44 +149,76 @@ export function NodeInspectorDataField(props: NodeInspectorDataFieldParams) {
   return null;
 }
 
-function NodeInspectorDataFieldForFirstRow({
-  baseComponentId,
-  ...rest
-}: NodeInspectorDataFieldParams & { baseComponentId: string }) {
-  const firstRowExpr = RepGroupHooks.useRowWithExpressions(baseComponentId, 'first');
-
+function NodeInspectorDataFieldForFirstRow(props: NodeInspectorDataFieldParams & { baseComponentId: string }) {
+  const row = RepGroupHooks.useAllBaseRows(props.baseComponentId)[0];
+  const groupBinding = useDataModelBindingsFor(props.baseComponentId, 'RepeatingGroup').group;
+  const rowProperty =
+    props.path[0] === 'hiddenRow' ||
+    (props.path[0] === 'edit' &&
+      ['alertOnDelete', 'editButton', 'deleteButton', 'saveButton', 'saveAndNextButton'].includes(props.path[1])) ||
+    (props.path[0] === 'textResourceBindings' &&
+      [
+        'saveAndNextButton',
+        'saveButton',
+        'editButtonClose',
+        'editButtonOpen',
+        'multipageNextButton',
+        'multipageBackButton',
+      ].includes(props.path[1]));
+  if (!row || !rowProperty) {
+    return <NodeInspectorDataFieldInner {...props} />;
+  }
   return (
-    <NodeInspectorDataFieldInner
-      baseComponentId={baseComponentId}
-      firstRowExpr={firstRowExpr}
-      {...rest}
+    <DataModelLocationProvider
+      groupBinding={groupBinding}
+      rowIndex={row.index}
+    >
+      <NodeInspectorDataFieldInner
+        {...props}
+        firstRow={true}
+      />
+    </DataModelLocationProvider>
+  );
+}
+
+function NodeInspectorDataFieldInner(
+  props: NodeInspectorDataFieldParams & { baseComponentId: string; firstRow?: boolean },
+) {
+  const config = useComponentConfig(props.baseComponentId);
+  const descriptor = dot.pick(props.path.join('.'), Expressions[config.type]) as ExpressionDescriptor | undefined;
+  if (canBeExpression(props.value, true) && descriptor && 'returnType' in descriptor) {
+    return (
+      <NodeInspectorExpressionField
+        {...props}
+        descriptor={descriptor}
+      />
+    );
+  }
+  return <NodeInspectorFieldValue {...props} />;
+}
+
+function NodeInspectorExpressionField(
+  props: NodeInspectorDataFieldParams & { descriptor: ExpressionDescriptor; firstRow?: boolean },
+) {
+  const value = useEvalExpression(props.value as ExprValToActualOrExpr<ExprVal>, props.descriptor);
+  return (
+    <NodeInspectorFieldValue
+      {...props}
+      value={value}
+      wasExpression={props.value}
     />
   );
 }
 
-function NodeInspectorDataFieldInner({
-  baseComponentId,
-  firstRowExpr,
+function NodeInspectorFieldValue({
   path,
   property,
-  value: inputValue,
-}: NodeInspectorDataFieldParams & { baseComponentId: string; firstRowExpr?: GroupExpressions }) {
-  const itemWithExpressions = useIntermediateItem(baseComponentId);
-  let value = inputValue;
-  const preEvaluatedValue = dot.pick(path.join('.'), itemWithExpressions);
-  const isExpression =
-    (preEvaluatedValue !== value && Array.isArray(preEvaluatedValue) && !Array.isArray(value)) ||
-    canBeExpression(value, true);
-
-  let exprText = 'Ble evaluert til:';
-  if (isExpression && firstRowExpr) {
-    const realValue = dot.pick(path.join('.'), firstRowExpr);
-    if (realValue !== undefined) {
-      value = realValue;
-      exprText = 'Ble evaluert til (for første rad):';
-    }
-  }
-
+  value,
+  wasExpression,
+  firstRow,
+}: NodeInspectorDataFieldParams & { wasExpression?: unknown; firstRow?: boolean }) {
+  const isExpression = wasExpression !== undefined || canBeExpression(value, true);
+  const exprText = firstRow ? 'Ble evaluert til (for første rad):' : 'Ble evaluert til:';
   if (value === null) {
     return (
       <Value
@@ -247,7 +283,7 @@ function NodeInspectorDataFieldInner({
       <Value
         property={property}
         className={classes.typeString}
-        wasExpression={isExpression ? preEvaluatedValue : undefined}
+        wasExpression={wasExpression}
         exprText={exprText}
       >
         {value}
@@ -259,7 +295,7 @@ function NodeInspectorDataFieldInner({
     return (
       <Value
         property={property}
-        wasExpression={isExpression ? preEvaluatedValue : undefined}
+        wasExpression={wasExpression}
         exprText={exprText}
       >
         {value}
@@ -272,7 +308,7 @@ function NodeInspectorDataFieldInner({
       <Value
         property={property}
         className={classes.typeNumber}
-        wasExpression={isExpression ? preEvaluatedValue : undefined}
+        wasExpression={wasExpression}
         exprText={exprText}
       >
         {value}
@@ -285,7 +321,7 @@ function NodeInspectorDataFieldInner({
       <Value
         property={property}
         className={classes.typeBoolean}
-        wasExpression={isExpression ? preEvaluatedValue : undefined}
+        wasExpression={wasExpression}
         exprText={exprText}
       >
         {value ? 'true' : 'false'}

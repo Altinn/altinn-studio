@@ -15,6 +15,7 @@ func (b Backend) applyPulledImage(
 	backendCtx executor.BackendContext,
 	img *resource.PulledImage,
 ) (executor.Output, error) {
+	stale := false
 	_, err := b.client.ImageInspect(ctx, img.Ref)
 	imageExists := err == nil
 	if err != nil && !errors.Is(err, types.ErrImageNotFound) {
@@ -23,17 +24,28 @@ func (b Backend) applyPulledImage(
 
 	switch img.PullPolicy {
 	case resource.PullAlways:
-		if pullErr := b.client.ImagePullWithProgress(ctx, img.Ref, func(update types.ProgressUpdate) {
-			backendCtx.NotifyProgress(img.ID(), progressFromContainerUpdate(update))
-		}); pullErr != nil {
-			return nil, fmt.Errorf("pull image %s: %w", img.Ref, pullErr)
+		if pullErr := b.pullImage(ctx, backendCtx, img); pullErr != nil {
+			return nil, pullErr
+		}
+	case resource.PullAlwaysAllowStale:
+		if pullErr := b.pullImage(ctx, backendCtx, img); pullErr != nil {
+			// A cancelled run is the caller stopping, not a registry the caller cannot
+			// reach, and carrying on with an older image would defy the interrupt.
+			if !imageExists || ctx.Err() != nil {
+				return nil, pullErr
+			}
+			stale = true
+			backendCtx.NotifyProgress(img.ID(), executor.Progress{
+				Message:       "pull failed, using the local image: " + pullErr.Error(),
+				Current:       0,
+				Total:         0,
+				Indeterminate: true,
+			})
 		}
 	case resource.PullIfNotPresent:
 		if !imageExists {
-			if pullErr := b.client.ImagePullWithProgress(ctx, img.Ref, func(update types.ProgressUpdate) {
-				backendCtx.NotifyProgress(img.ID(), progressFromContainerUpdate(update))
-			}); pullErr != nil {
-				return nil, fmt.Errorf("pull image %s: %w", img.Ref, pullErr)
+			if pullErr := b.pullImage(ctx, backendCtx, img); pullErr != nil {
+				return nil, pullErr
 			}
 		}
 	case resource.PullNever:
@@ -49,7 +61,20 @@ func (b Backend) applyPulledImage(
 		return nil, fmt.Errorf("inspect image %s: %w", img.Ref, err)
 	}
 
-	return executor.ImageOutput{ImageID: info.ID}, nil
+	return executor.ImageOutput{ImageID: info.ID, Stale: stale}, nil
+}
+
+func (b Backend) pullImage(
+	ctx context.Context,
+	backendCtx executor.BackendContext,
+	img *resource.PulledImage,
+) error {
+	if err := b.client.ImagePullWithProgress(ctx, img.Ref, func(update types.ProgressUpdate) {
+		backendCtx.NotifyProgress(img.ID(), progressFromContainerUpdate(update))
+	}); err != nil {
+		return fmt.Errorf("pull image %s: %w", img.Ref, err)
+	}
+	return nil
 }
 
 func (b Backend) applyBuiltImage(
@@ -73,7 +98,7 @@ func (b Backend) applyBuiltImage(
 		return nil, fmt.Errorf("inspect built image %s: %w", img.Tag, err)
 	}
 
-	return executor.ImageOutput{ImageID: info.ID}, nil
+	return executor.ImageOutput{ImageID: info.ID, Stale: false}, nil
 }
 
 func (b Backend) applyPublishedImage(
@@ -98,7 +123,7 @@ func (b Backend) applyPublishedImage(
 		return nil, fmt.Errorf("inspect published image %s: %w", img.Ref, err)
 	}
 
-	return executor.ImageOutput{ImageID: info.ID}, nil
+	return executor.ImageOutput{ImageID: info.ID, Stale: false}, nil
 }
 
 func (b Backend) imageStatus(ctx context.Context, ref string) (executor.Status, error) {

@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
 from pydantic import ValidationError
 
+from agents.graph.state import AgentState
 from shared.models.experiment import (
     EXPERIMENT_DATASET_ID,
     EXPERIMENT_DESCRIPTION,
@@ -17,12 +20,12 @@ from shared.models.experiment import (
 
 
 def _context(**overrides) -> ExperimentContext:
-    base = dict(
-        experimentId="exp-1",
-        experimentName="nightly-2026-08-21",
-        datasetId="ds-1",
-        itemId="item-1",
-    )
+    base = {
+        "experimentId": "exp-1",
+        "experimentName": "nightly-2026-08-21",
+        "datasetId": "ds-1",
+        "itemId": "item-1",
+    }
     base.update(overrides)
     return ExperimentContext(**base)
 
@@ -59,13 +62,14 @@ class TestSpanAttributes:
 
     def test_the_identifying_fields_are_required(self):
         with pytest.raises(ValidationError):
-            ExperimentContext(experimentName="n", datasetId="d", itemId="i")
+            ExperimentContext.model_validate({"experimentName": "n", "datasetId": "d", "itemId": "i"})
 
 
 class TestRunnerWiring:
     def test_the_agent_stamps_the_attributes_on_the_root_span(self, monkeypatch):
         """Without this the trace is never part of the run."""
         from types import SimpleNamespace
+
         from agents.graph import runner
 
         recorded: dict[str, str] = {}
@@ -76,13 +80,14 @@ class TestRunnerWiring:
         monkeypatch.setattr(runner.otel_trace, "get_current_span", lambda: span)
 
         state = SimpleNamespace(experiment=_context())
-        runner._mark_as_experiment_item(state, SimpleNamespace(id="root-1"))
+        runner._mark_as_experiment_item(cast(AgentState, state), SimpleNamespace(id="root-1"))
 
         assert recorded[EXPERIMENT_NAME] == "nightly-2026-08-21"
         assert recorded[EXPERIMENT_ITEM_ROOT_OBSERVATION_ID] == "root-1"
 
     def test_an_ordinary_run_stamps_nothing(self, monkeypatch):
         from types import SimpleNamespace
+
         from agents.graph import runner
 
         recorded: dict[str, str] = {}
@@ -92,13 +97,14 @@ class TestRunnerWiring:
         )
         monkeypatch.setattr(runner.otel_trace, "get_current_span", lambda: span)
 
-        runner._mark_as_experiment_item(SimpleNamespace(experiment=None), SimpleNamespace(id="r"))
+        runner._mark_as_experiment_item(cast(AgentState, SimpleNamespace(experiment=None)), SimpleNamespace(id="r"))
 
         assert recorded == {}
 
     def test_run_once_actually_calls_it(self):
         """Guards the call site: the helper is useless if nothing invokes it."""
         import inspect
+
         from agents.graph import runner
 
         assert "_mark_as_experiment_item(state, root_span)" in inspect.getsource(runner.run_once)

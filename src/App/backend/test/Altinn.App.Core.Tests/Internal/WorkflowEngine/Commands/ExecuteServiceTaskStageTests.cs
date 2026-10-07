@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
@@ -75,7 +76,6 @@ public class ExecuteServiceTaskStageTests
             {
                 CommandKey = ExecuteServiceTask.Key,
                 Actor = new Actor { UserId = 1337 },
-                LockToken = Guid.NewGuid().ToString(),
                 ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
                 State = "{}",
                 WorkflowId = Guid.NewGuid(),
@@ -123,14 +123,14 @@ public class ExecuteServiceTaskStageTests
     }
 
     [Fact]
-    public async Task Stage_Completed_ReturnsSuccessWithoutAdvance()
+    public async Task Stage_Completed_DoesNotConcludeTheTask()
     {
         var command = CreateCommand(new ShippingTask());
 
         var result = await command.Execute(CreateContext(), Payload(0));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
     }
 
     [Fact]
@@ -174,15 +174,15 @@ public class ExecuteServiceTaskStageTests
     }
 
     [Fact]
-    public async Task ConclusionIndex_RunsTheFinally_AndAutoAdvances()
+    public async Task ConclusionIndex_RunsTheFinally_AndAdvancesTheProcess()
     {
         var command = CreateCommand(new ShippingTask());
 
         var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
-        Assert.Null(success.AutoAdvanceAction);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Null(success.ProcessNextContinuation?.Action);
     }
 
     [Fact]
@@ -197,23 +197,8 @@ public class ExecuteServiceTaskStageTests
         var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
-        Assert.Equal("reject", success.AutoAdvanceAction);
-    }
-
-    [Fact]
-    public async Task Finally_SuccessWithoutAutoAdvance_DoesNotAdvance()
-    {
-        var task = new ShippingTask
-        {
-            OnAwait = _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.SuccessWithoutAutoAdvance()),
-        };
-        var command = CreateCommand(task);
-
-        var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
-
-        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Equal("reject", success.ProcessNextContinuation?.Action);
     }
 
     [Fact]

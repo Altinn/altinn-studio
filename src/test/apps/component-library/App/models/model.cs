@@ -1,4 +1,4 @@
-#nullable disable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -15,113 +15,113 @@ namespace Altinn.App.Models.Model
     [XmlElement("inputfield", Order = 1)]
     [JsonProperty("inputfield")]
     [JsonPropertyName("inputfield")]
-    public string inputfield { get; set; }
+    public string? inputfield { get; set; }
 
     [XmlElement("shortAnswerInput", Order = 2)]
     [JsonProperty("shortAnswerInput")]
     [JsonPropertyName("shortAnswerInput")]
-    public string shortAnswerInput { get; set; }
+    public string? shortAnswerInput { get; set; }
 
     [XmlElement("longAnswerInput", Order = 3)]
     [JsonProperty("longAnswerInput")]
     [JsonPropertyName("longAnswerInput")]
-    public string longAnswerInput { get; set; }
+    public string? longAnswerInput { get; set; }
 
     [XmlElement("radioButtonInput", Order = 4)]
     [JsonProperty("radioButtonInput")]
     [JsonPropertyName("radioButtonInput")]
-    public string radioButtonInput { get; set; }
+    public string? radioButtonInput { get; set; }
 
     [RegularExpression(@"[A-Za-z,æøå]*(kjoringISkogen)[A-Za-z,æøå]*")]
     [XmlElement("checkboxesInput", Order = 5)]
     [JsonProperty("checkboxesInput")]
     [JsonPropertyName("checkboxesInput")]
-    public string checkboxesInput { get; set; }
+    public string? checkboxesInput { get; set; }
 
     [XmlElement("nestedInput", Order = 6)]
     [JsonProperty("nestedInput")]
     [JsonPropertyName("nestedInput")]
-    public string nestedInput { get; set; }
+    public string? nestedInput { get; set; }
 
     [XmlElement("nestedInput2", Order = 7)]
     [JsonProperty("nestedInput2")]
     [JsonPropertyName("nestedInput2")]
-    public string nestedInput2 { get; set; }
+    public string? nestedInput2 { get; set; }
 
     [XmlElement("nestedInput3", Order = 8)]
     [JsonProperty("nestedInput3")]
     [JsonPropertyName("nestedInput3")]
-    public string nestedInput3 { get; set; }
+    public string? nestedInput3 { get; set; }
 
     [XmlElement("streetnr", Order = 9)]
     [JsonProperty("streetnr")]
     [JsonPropertyName("streetnr")]
-    public string streetnr { get; set; }
+    public string? streetnr { get; set; }
 
     [XmlElement("postnr", Order = 10)]
     [JsonProperty("postnr")]
     [JsonPropertyName("postnr")]
-    public string postnr { get; set; }
+    public string? postnr { get; set; }
 
     [XmlElement("city", Order = 11)]
     [JsonProperty("city")]
     [JsonPropertyName("city")]
-    public string city { get; set; }
+    public string? city { get; set; }
 
     [XmlElement("co", Order = 12)]
     [JsonProperty("co")]
     [JsonPropertyName("co")]
-    public string co { get; set; }
+    public string? co { get; set; }
 
     [XmlElement("street", Order = 13)]
     [JsonProperty("street")]
     [JsonPropertyName("street")]
-    public string street { get; set; }
+    public string? street { get; set; }
 
     [XmlElement("GridExample", Order = 14)]
     [JsonProperty("GridExample")]
     [JsonPropertyName("GridExample")]
-    public GridExample GridExample { get; set; }
+    public GridExample? GridExample { get; set; }
 
     [XmlElement("dropdown", Order = 15)]
     [JsonProperty("dropdown")]
     [JsonPropertyName("dropdown")]
-    public string dropdown { get; set; }
+    public string? dropdown { get; set; }
 
     [XmlElement("multipleSelect", Order = 16)]
     [JsonProperty("multipleSelect")]
     [JsonPropertyName("multipleSelect")]
-    public string multipleSelect { get; set; }
+    public string? multipleSelect { get; set; }
 
     [XmlElement("repeatingGroup", Order = 17)]
     [JsonProperty("repeatingGroup")]
     [JsonPropertyName("repeatingGroup")]
-    public List<RepeatingGroupExample> repeatingGroup { get; set; }
+    public List<RepeatingGroupExample>? repeatingGroup { get; set; }
 
     [XmlElement("nestedRepeatingGroup", Order = 18)]
     [JsonProperty("nestedRepeatingGroup")]
     [JsonPropertyName("nestedRepeatingGroup")]
-    public List<RepeatingGroupWithNestedGroup> nestedRepeatingGroup { get; set; }
+    public List<RepeatingGroupWithNestedGroup>? nestedRepeatingGroup { get; set; }
 
     [XmlElement("list", Order = 19)]
     [JsonProperty("list")]
     [JsonPropertyName("list")]
-    public string list { get; set; }
+    public string? list { get; set; }
 
     [XmlElement("LikertExample", Order = 20)]
     [JsonProperty("LikertExample")]
     [JsonPropertyName("LikertExample")]
-    public List<LikertQuestion> LikertExample { get; set; }
+    public List<LikertQuestion>? LikertExample { get; set; }
 
     [XmlElement("DatepickerExample", Order = 21)]
     [JsonProperty("DatepickerExample")]
     [JsonPropertyName("DatepickerExample")]
-    public string DatepickerExample { get; set; }
+    public string? DatepickerExample { get; set; }
 
     [XmlElement("mapComponent", Order = 22)]
     [JsonProperty("mapComponent")]
     [JsonPropertyName("mapComponent")]
-    public string mapComponent { get; set; }
+    public string? mapComponent { get; set; }
 
     [Range(Double.MinValue, 100d)]
     [XmlElement("numberPercentage", Order = 23)]
@@ -141,52 +141,52 @@ namespace Altinn.App.Models.Model
     [XmlElement("checkboxForCard", Order = 25)]
     [JsonProperty("checkboxForCard")]
     [JsonPropertyName("checkboxForCard")]
-    public string checkboxForCard { get; set; }
+    public string? checkboxForCard { get; set; }
 
     [XmlElement("Numbers", Order = 26)]
     [JsonProperty("Numbers")]
     [JsonPropertyName("Numbers")]
-    public Numbers Numbers { get; set; }
+    public Numbers? Numbers { get; set; }
 
     [XmlElement("ListGroupExample", Order = 27)]
     [JsonProperty("ListGroupExample")]
     [JsonPropertyName("ListGroupExample")]
-    public List<ListGroupExample> ListGroupExample { get; set; }
+    public List<ListGroupExample>? ListGroupExample { get; set; }
 
     [XmlElement("checkboxesPersons", Order = 28)]
     [JsonProperty("checkboxesPersons")]
     [JsonPropertyName("checkboxesPersons")]
-    public string checkboxesPersons { get; set; }
+    public string? checkboxesPersons { get; set; }
 
     [XmlElement("Dates", Order = 29)]
     [JsonProperty("Dates")]
     [JsonPropertyName("Dates")]
-    public Dates Dates { get; set; }
+    public Dates? Dates { get; set; }
 
     [XmlElement("CheckboxesGroupExample", Order = 30)]
     [JsonProperty("CheckboxesGroupExample")]
     [JsonPropertyName("CheckboxesGroupExample")]
-    public List<CheckboxesGroupExample> CheckboxesGroupExample { get; set; }
+    public List<CheckboxesGroupExample>? CheckboxesGroupExample { get; set; }
 
     [XmlElement("MultiselectGroupExample", Order = 31)]
     [JsonProperty("MultiselectGroupExample")]
     [JsonPropertyName("MultiselectGroupExample")]
-    public List<MultiselectGroupExample> MultiselectGroupExample { get; set; }
+    public List<MultiselectGroupExample>? MultiselectGroupExample { get; set; }
 
     [XmlElement("DatepickerMaxDateExample", Order = 32)]
     [JsonProperty("DatepickerMaxDateExample")]
     [JsonPropertyName("DatepickerMaxDateExample")]
-    public string DatepickerMaxDateExample { get; set; }
+    public string? DatepickerMaxDateExample { get; set; }
 
     [XmlElement("DatepickerMinDateExample", Order = 33)]
     [JsonProperty("DatepickerMinDateExample")]
     [JsonPropertyName("DatepickerMinDateExample")]
-    public string DatepickerMinDateExample { get; set; }
+    public string? DatepickerMinDateExample { get; set; }
 
     [XmlElement("Geometries", Order = 34)]
     [JsonProperty("Geometries")]
     [JsonPropertyName("Geometries")]
-    public List<Geometries> Geometries { get; set; }
+    public List<Geometries>? Geometries { get; set; }
 
   }
 
@@ -195,68 +195,68 @@ namespace Altinn.App.Models.Model
     [XmlElement("ExampleDate", Order = 1)]
     [JsonProperty("ExampleDate")]
     [JsonPropertyName("ExampleDate")]
-    public string ExampleDate { get; set; }
+    public string? ExampleDate { get; set; }
 
     [XmlElement("ExampleDropdown", Order = 2)]
     [JsonProperty("ExampleDropdown")]
     [JsonPropertyName("ExampleDropdown")]
-    public string ExampleDropdown { get; set; }
+    public string? ExampleDropdown { get; set; }
 
     [XmlElement("ExampleMultiSelect", Order = 3)]
     [JsonProperty("ExampleMultiSelect")]
     [JsonPropertyName("ExampleMultiSelect")]
-    public string ExampleMultiSelect { get; set; }
+    public string? ExampleMultiSelect { get; set; }
 
     [XmlElement("ExampleTextArea", Order = 4)]
     [JsonProperty("ExampleTextArea")]
     [JsonPropertyName("ExampleTextArea")]
-    public string ExampleTextArea { get; set; }
+    public string? ExampleTextArea { get; set; }
 
     [MaxLength(7)]
     [XmlElement("ExampleInput", Order = 5)]
     [JsonProperty("ExampleInput")]
     [JsonPropertyName("ExampleInput")]
-    public string ExampleInput { get; set; }
+    public string? ExampleInput { get; set; }
 
     [XmlElement("ExampleRadio", Order = 6)]
     [JsonProperty("ExampleRadio")]
     [JsonPropertyName("ExampleRadio")]
-    public string ExampleRadio { get; set; }
+    public string? ExampleRadio { get; set; }
 
     [XmlElement("ExampleCheckbox", Order = 7)]
     [JsonProperty("ExampleCheckbox")]
     [JsonPropertyName("ExampleCheckbox")]
-    public string ExampleCheckbox { get; set; }
+    public string? ExampleCheckbox { get; set; }
 
     [XmlElement("ExampleInputTwo", Order = 8)]
     [JsonProperty("ExampleInputTwo")]
     [JsonPropertyName("ExampleInputTwo")]
-    public string ExampleInputTwo { get; set; }
+    public string? ExampleInputTwo { get; set; }
 
     [XmlElement("ExampleInputThree", Order = 9)]
     [JsonProperty("ExampleInputThree")]
     [JsonPropertyName("ExampleInputThree")]
-    public string ExampleInputThree { get; set; }
+    public string? ExampleInputThree { get; set; }
 
     [XmlElement("ExampleRadioTwo", Order = 10)]
     [JsonProperty("ExampleRadioTwo")]
     [JsonPropertyName("ExampleRadioTwo")]
-    public string ExampleRadioTwo { get; set; }
+    public string? ExampleRadioTwo { get; set; }
 
     [XmlElement("ExampleRadioThree", Order = 11)]
     [JsonProperty("ExampleRadioThree")]
     [JsonPropertyName("ExampleRadioThree")]
-    public string ExampleRadioThree { get; set; }
+    public string? ExampleRadioThree { get; set; }
 
     [XmlElement("ExampleCheckboxTwo", Order = 12)]
     [JsonProperty("ExampleCheckboxTwo")]
     [JsonPropertyName("ExampleCheckboxTwo")]
-    public string ExampleCheckboxTwo { get; set; }
+    public string? ExampleCheckboxTwo { get; set; }
 
     [XmlElement("ExampleCheckboxThree", Order = 13)]
     [JsonProperty("ExampleCheckboxThree")]
     [JsonPropertyName("ExampleCheckboxThree")]
-    public string ExampleCheckboxThree { get; set; }
+    public string? ExampleCheckboxThree { get; set; }
 
   }
 
@@ -273,7 +273,7 @@ namespace Altinn.App.Models.Model
     [XmlElement("name", Order = 1)]
     [JsonProperty("name")]
     [JsonPropertyName("name")]
-    public string name { get; set; }
+    public string? name { get; set; }
 
     [Range(Double.MinValue, 100d)]
     [XmlElement("points", Order = 2)]
@@ -287,7 +287,7 @@ namespace Altinn.App.Models.Model
     [XmlElement("date", Order = 3)]
     [JsonProperty("date")]
     [JsonPropertyName("date")]
-    public string date { get; set; }
+    public string? date { get; set; }
 
   }
 
@@ -304,7 +304,7 @@ namespace Altinn.App.Models.Model
     [XmlElement("name", Order = 1)]
     [JsonProperty("name")]
     [JsonPropertyName("name")]
-    public string name { get; set; }
+    public string? name { get; set; }
 
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("points", Order = 2)]
@@ -318,12 +318,12 @@ namespace Altinn.App.Models.Model
     [XmlElement("date", Order = 3)]
     [JsonProperty("date")]
     [JsonPropertyName("date")]
-    public string date { get; set; }
+    public string? date { get; set; }
 
     [XmlElement("cars", Order = 4)]
     [JsonProperty("cars")]
     [JsonPropertyName("cars")]
-    public List<NestedGroup> cars { get; set; }
+    public List<NestedGroup>? cars { get; set; }
 
   }
 
@@ -340,12 +340,12 @@ namespace Altinn.App.Models.Model
     [XmlElement("carBrand", Order = 1)]
     [JsonProperty("carBrand")]
     [JsonPropertyName("carBrand")]
-    public string carBrand { get; set; }
+    public string? carBrand { get; set; }
 
     [XmlElement("carModel", Order = 2)]
     [JsonProperty("carModel")]
     [JsonPropertyName("carModel")]
-    public string carModel { get; set; }
+    public string? carModel { get; set; }
 
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("modelYear", Order = 3)]
@@ -370,12 +370,12 @@ namespace Altinn.App.Models.Model
     [XmlElement("Id", Order = 1)]
     [JsonProperty("Id")]
     [JsonPropertyName("Id")]
-    public string Id { get; set; }
+    public string? Id { get; set; }
 
     [XmlElement("Answer", Order = 2)]
     [JsonProperty("Answer")]
     [JsonPropertyName("Answer")]
-    public string Answer { get; set; }
+    public string? Answer { get; set; }
 
   }
 
@@ -391,7 +391,7 @@ namespace Altinn.App.Models.Model
     [XmlElement("Gjeldsfordeling", Order = 2)]
     [JsonProperty("Gjeldsfordeling")]
     [JsonPropertyName("Gjeldsfordeling")]
-    public Gjeldsfordeling Gjeldsfordeling { get; set; }
+    public Gjeldsfordeling? Gjeldsfordeling { get; set; }
 
   }
 
@@ -435,22 +435,22 @@ namespace Altinn.App.Models.Model
     [XmlElement("profession", Order = 2)]
     [JsonProperty("profession")]
     [JsonPropertyName("profession")]
-    public string profession { get; set; }
+    public string? profession { get; set; }
 
     [XmlElement("surname", Order = 3)]
     [JsonProperty("surname")]
     [JsonPropertyName("surname")]
-    public string surname { get; set; }
+    public string? surname { get; set; }
 
     [XmlElement("Internal", Order = 4)]
     [JsonProperty("Internal")]
     [JsonPropertyName("Internal")]
-    public Internal Internal { get; set; }
+    public Internal? Internal { get; set; }
 
     [XmlElement("Name", Order = 5)]
     [JsonProperty("Name")]
     [JsonPropertyName("Name")]
-    public Name Name { get; set; }
+    public Name? Name { get; set; }
 
   }
 
@@ -470,7 +470,7 @@ namespace Altinn.App.Models.Model
     [XmlElement("firstname", Order = 1)]
     [JsonProperty("firstname")]
     [JsonPropertyName("firstname")]
-    public string firstname { get; set; }
+    public string? firstname { get; set; }
 
     [XmlElement("id", Order = 2)]
     [JsonProperty("id")]
@@ -486,12 +486,12 @@ namespace Altinn.App.Models.Model
     [XmlElement("SetDate", Order = 1)]
     [JsonProperty("SetDate")]
     [JsonPropertyName("SetDate")]
-    public string SetDate { get; set; }
+    public string? SetDate { get; set; }
 
     [XmlElement("String", Order = 2)]
     [JsonProperty("String")]
     [JsonPropertyName("String")]
-     public string String { get; set; }
+     public string? String { get; set; }
 
     [XmlElement("DateTime", Order = 3)]
     [JsonProperty("DateTime")]
@@ -508,17 +508,17 @@ namespace Altinn.App.Models.Model
     [XmlElement("FormatStringBackend", Order = 5)]
     [JsonProperty("FormatStringBackend")]
     [JsonPropertyName("FormatStringBackend")]
-    public string FormatStringBackend { get; set; }
+    public string? FormatStringBackend { get; set; }
 
     [XmlElement("FormatDateTimeBackend", Order = 6)]
     [JsonProperty("FormatDateTimeBackend")]
     [JsonPropertyName("FormatDateTimeBackend")]
-    public string FormatDateTimeBackend { get; set; }
+    public string? FormatDateTimeBackend { get; set; }
 
     [XmlElement("FormatDateOnlyBackend", Order = 7)]
     [JsonProperty("FormatDateOnlyBackend")]
     [JsonPropertyName("FormatDateOnlyBackend")]
-    public string FormatDateOnlyBackend { get; set; }
+    public string? FormatDateOnlyBackend { get; set; }
 
   }
 
@@ -543,22 +543,22 @@ namespace Altinn.App.Models.Model
     [XmlElement("profession", Order = 2)]
     [JsonProperty("profession")]
     [JsonPropertyName("profession")]
-    public string profession { get; set; }
+    public string? profession { get; set; }
 
     [XmlElement("surname", Order = 3)]
     [JsonProperty("surname")]
     [JsonPropertyName("surname")]
-    public string surname { get; set; }
+    public string? surname { get; set; }
 
     [XmlElement("Internal", Order = 4)]
     [JsonProperty("Internal")]
     [JsonPropertyName("Internal")]
-    public Internal Internal { get; set; }
+    public Internal? Internal { get; set; }
 
     [XmlElement("Name", Order = 5)]
     [JsonProperty("Name")]
     [JsonPropertyName("Name")]
-    public Name Name { get; set; }
+    public Name? Name { get; set; }
 
   }
 
@@ -583,22 +583,22 @@ namespace Altinn.App.Models.Model
     [XmlElement("profession", Order = 2)]
     [JsonProperty("profession")]
     [JsonPropertyName("profession")]
-    public string profession { get; set; }
+    public string? profession { get; set; }
 
     [XmlElement("surname", Order = 3)]
     [JsonProperty("surname")]
     [JsonPropertyName("surname")]
-    public string surname { get; set; }
+    public string? surname { get; set; }
 
     [XmlElement("Internal", Order = 4)]
     [JsonProperty("Internal")]
     [JsonPropertyName("Internal")]
-    public Internal Internal { get; set; }
+    public Internal? Internal { get; set; }
 
     [XmlElement("Name", Order = 5)]
     [JsonProperty("Name")]
     [JsonPropertyName("Name")]
-    public Name Name { get; set; }
+    public Name? Name { get; set; }
 
   }
 
@@ -615,12 +615,12 @@ namespace Altinn.App.Models.Model
     [XmlElement("Label", Order = 1)]
     [JsonProperty("Label")]
     [JsonPropertyName("Label")]
-    public string Label { get; set; }
+    public string? Label { get; set; }
 
     [XmlElement("Data", Order = 2)]
     [JsonProperty("Data")]
     [JsonPropertyName("Data")]
-    public string Data { get; set; }
+    public string? Data { get; set; }
 
     [XmlElement("Editable", Order = 3)]
     [JsonProperty("Editable")]

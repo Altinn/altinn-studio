@@ -94,13 +94,15 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
         );
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
-            Services.GetRequiredService<IWorkflowCallbackTokenGenerator>().GenerateToken(instanceGuid)
+            Services.GenerateCallbackToken(instanceGuid, commandKeys: [CarryProbeCommand.Key])
         );
         var signer = Services.GetRequiredService<WorkflowStateSigner>();
 
         var incoming = new WorkflowCallbackState
         {
             Instance = CreateInstance(instanceGuid),
+            InstanceVersion = 9,
+            ProcessStateVersion = 4,
             FormData = [],
             Mailboxes = incomingMailboxId is { } carried
                 ? new Dictionary<string, CarriedMailbox>
@@ -113,7 +115,6 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
         {
             CommandKey = CarryProbeCommand.Key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
             ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),

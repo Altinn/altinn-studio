@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestApp;
 using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
@@ -97,6 +98,18 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         Assert.True(totalCount.GetInt32() >= 1);
         Assert.True(doc.RootElement.TryGetProperty("workflows", out var workflows));
         Assert.True(workflows.GetArrayLength() >= 1);
+
+        // Timing is read from the database: the workflow and its step both carry when their attempt began,
+        // ordered enqueue → workflow start → step start → step write-back.
+        var workflow = workflows.EnumerateArray().Single(w => w.GetProperty("databaseId").GetGuid() == workflowId);
+        var workflowStartedAt = workflow.GetProperty("executionStartedAt").GetDateTimeOffset();
+        Assert.True(workflow.GetProperty("createdAt").GetDateTimeOffset() <= workflowStartedAt);
+        var step = Assert.Single(workflow.GetProperty("steps").EnumerateArray());
+        Assert.InRange(
+            step.GetProperty("executionStartedAt").GetDateTimeOffset(),
+            workflowStartedAt,
+            step.GetProperty("updatedAt").GetDateTimeOffset()
+        );
     }
 
     [Fact]
@@ -230,7 +243,102 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         Assert.True(doc.RootElement.TryGetProperty("idempotencyKey", out var id));
         Assert.Equal(stepId.ToString(), id.GetString());
         Assert.True(doc.RootElement.TryGetProperty("status", out _));
+
+        // The modal's "Execution Started" row and per-step duration hang off this field.
+        Assert.InRange(
+            doc.RootElement.GetProperty("executionStartedAt").GetDateTimeOffset(),
+            doc.RootElement.GetProperty("createdAt").GetDateTimeOffset(),
+            doc.RootElement.GetProperty("updatedAt").GetDateTimeOffset()
+        );
     }
+
+    [Fact]
+    public async Task Step_WaitingWorkflow_ReturnsDeferFields()
+    {
+        // Arrange
+        var wfRequest = _testHelpers.CreateWorkflow(
+            "wf-waiting",
+            [CreateDeferStep("dashboard-step-waiting", deferDelayMs: 600_000)]
+        );
+        var enqueueResponse = await _client.Enqueue(_testHelpers.CreateEnqueueRequest(wfRequest));
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+        var status = await _client.WaitForWorkflowStatus(
+            workflowId,
+            PersistentItemStatus.Waiting,
+            TimeSpan.FromSeconds(30)
+        );
+
+        var stepId = status.Steps[0].DatabaseId;
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var response = await client.GetAsync(
+            $"/dashboard/step?wf={workflowId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}&step={stepId}",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(json);
+        Assert.Equal("Waiting", doc.RootElement.GetProperty("status").GetString());
+        Assert.Equal(1, doc.RootElement.GetProperty("deferCount").GetInt32());
+        Assert.Equal("not ready yet", doc.RootElement.GetProperty("lastDeferReason").GetString());
+        Assert.True(doc.RootElement.TryGetProperty("firstDeferredAt", out _));
+        Assert.True(doc.RootElement.TryGetProperty("lastDeferredAt", out _));
+    }
+
+    [Fact]
+    public async Task Query_WaitingWorkflow_StepCarriesDeferReason()
+    {
+        // Arrange
+        var wfRequest = _testHelpers.CreateWorkflow(
+            "wf-waiting-query",
+            [CreateDeferStep("dashboard-query-waiting", deferDelayMs: 600_000)]
+        );
+        var enqueueResponse = await _client.Enqueue(_testHelpers.CreateEnqueueRequest(wfRequest));
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Waiting, TimeSpan.FromSeconds(30));
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var response = await client.GetAsync(
+            "/dashboard/query?status=Waiting",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(json);
+        var workflow = Assert.Single(doc.RootElement.GetProperty("workflows").EnumerateArray());
+        var step = Assert.Single(workflow.GetProperty("steps").EnumerateArray());
+        Assert.Equal("Waiting", step.GetProperty("status").GetString());
+        Assert.Equal(1, step.GetProperty("deferCount").GetInt32());
+        Assert.Equal("not ready yet", step.GetProperty("lastDeferReason").GetString());
+        Assert.True(step.TryGetProperty("firstDeferredAt", out _));
+    }
+
+    /// <summary>
+    /// A step that defers on every execution — a stand-in for a long poll whose outcome never arrives
+    /// within the test. The delay keeps it parked in <c>Waiting</c> for the assertions.
+    /// </summary>
+    private static StepRequest CreateDeferStep(string key, int deferDelayMs) =>
+        new()
+        {
+            OperationId = $"defer-{key}",
+            Command = CommandDefinition.Create(
+                "test-defer",
+                new DeferringCommandData
+                {
+                    Key = key,
+                    SucceedOnAttempt = int.MaxValue,
+                    DeferDelayMs = deferDelayMs,
+                }
+            ),
+        };
 
     [Fact]
     public async Task Step_NotFound_Returns404()

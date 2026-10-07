@@ -125,13 +125,12 @@
                                   Parent Relationship: Outer,
                                   Parallel Aware: {Scrubbed},
                                   Async Capable: {Scrubbed},
-                                  Index Name: ix_workflows_status,
+                                  Index Name: ix_workflows_namespace_status_incomplete,
                                   Startup Cost: {Scrubbed},
                                   Total Cost: {Scrubbed},
                                   Plan Rows: {Scrubbed},
                                   Plan Width: {Scrubbed},
-                                  Disabled: false,
-                                  Index Cond: (status = ANY ('{0,1,2,8,9}'::integer[]))
+                                  Disabled: false
                                 }
                               ]
                             }

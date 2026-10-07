@@ -10,7 +10,8 @@ public class InstanceEventClientMock : IInstanceEventClient
         object dataToSerialize,
         string org,
         string app,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         return Task.FromResult(Guid.NewGuid().ToString());
@@ -24,7 +25,8 @@ public class InstanceEventClientMock : IInstanceEventClient
         string[] eventTypes,
         string from,
         string to,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         throw new NotImplementedException();

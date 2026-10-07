@@ -2,11 +2,6 @@ using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Logic;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi;
 
 void RegisterCustomAppServices(
@@ -25,11 +20,6 @@ void RegisterCustomAppServices(
     // durability/options). The engine runs the pipeline as critical post-commit steps, so
     // delays/failures are frontend-observable (committed = the service task).
     services.AddTransient<IPipelineServiceTask, ScenarioServiceTask>();
-
-    // Background driver for the parkThenRelease lever: releases a parked service task after a few
-    // seconds via an ordinary authorized process/next, imitating an external callback.
-    services.AddSingleton<ParkedTaskReleaser>();
-    services.AddHttpClient();
 }
 
 // ###########################################################################

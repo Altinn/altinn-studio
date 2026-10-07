@@ -4,6 +4,7 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -84,7 +85,7 @@ internal class DataElementAccessChecker : IDataElementAccessChecker
     /// <inheritdoc />
     public async Task<ProblemDetails?> GetReaderProblem(Instance instance, DataElement dataElement)
     {
-        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata appMetadata = _appMetadata.ApplicationMetadata;
         DataType dataType =
             appMetadata.DataTypes.FirstOrDefault(x =>
                 x.Id.Equals(dataElement.DataType, StringComparison.OrdinalIgnoreCase)
@@ -156,6 +157,11 @@ internal class DataElementAccessChecker : IDataElementAccessChecker
                 Detail = "User is not a valid contributor to the data type",
                 Status = StatusCodes.Status403Forbidden,
             };
+        }
+
+        if (ProcessStatusHelper.GetMutationProblem(instance) is { } processStatusProblem)
+        {
+            return processStatusProblem;
         }
 
         return null;

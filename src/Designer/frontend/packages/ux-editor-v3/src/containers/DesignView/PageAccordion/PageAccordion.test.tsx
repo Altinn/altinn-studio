@@ -13,6 +13,7 @@ import {
 import { layout1NameMock, layout2NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
+import * as useDeleteLayoutModule from './useDeleteLayout';
 
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
@@ -97,8 +98,13 @@ describe('PageAccordion', () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
     jest
-      .spyOn(require('./useDeleteLayout'), 'useDeleteLayout')
-      .mockImplementation(() => ({ mutate: mockDeleteFormLayout, isPending: true }));
+      .spyOn(useDeleteLayoutModule, 'useDeleteLayout')
+      .mockImplementation(
+        () =>
+          ({ mutate: mockDeleteFormLayout, isPending: true }) as unknown as ReturnType<
+            typeof useDeleteLayoutModule.useDeleteLayout
+          >,
+      );
     await render();
     const deleteButton = screen.getByRole('button', {
       name: textMock('general.delete_item', { item: mockPageName1 }),

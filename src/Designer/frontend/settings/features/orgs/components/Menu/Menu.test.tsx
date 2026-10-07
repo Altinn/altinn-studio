@@ -1,13 +1,14 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Menu } from './Menu';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const mockNavigate = jest.fn();
+const mockNavigate = vi.fn();
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockNavigate,
 }));
 
@@ -25,7 +26,7 @@ const getBotAccountsTab = () =>
   });
 
 describe('Menu', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('renders the bot accounts tab', () => {
     renderMenu();

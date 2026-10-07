@@ -147,7 +147,6 @@ public class ExecuteServiceTaskMailboxTests
             {
                 CommandKey = ExecuteServiceTask.Key,
                 Actor = new Actor { UserId = 1337 },
-                LockToken = Guid.NewGuid().ToString(),
                 ExecutionReferenceTime = new DateTimeOffset(2026, 8, 19, 10, 0, 0, TimeSpan.Zero),
                 State = "{}",
                 WorkflowId = Guid.NewGuid(),
@@ -413,7 +412,7 @@ public class ExecuteServiceTaskMailboxTests
             .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
 
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
@@ -505,7 +504,7 @@ public class ExecuteServiceTaskMailboxTests
             .Execute(CreateContext(carry), Payload(SendStageIndex));
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
@@ -535,8 +534,8 @@ public class ExecuteServiceTaskMailboxTests
             .Execute(CreateContext(carry), Payload(SendStageIndex));
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
-        Assert.Equal("reject", success.AutoAdvanceAction);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Equal("reject", success.ProcessNextContinuation?.Action);
 
         MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(
             success.MailboxContinuation
@@ -586,7 +585,7 @@ public class ExecuteServiceTaskMailboxTests
             .Execute(CreateContext(carry), Payload(SendStageIndex));
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
+        Assert.NotNull(success.ProcessNextContinuation);
 
         MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(
             success.MailboxContinuation

@@ -25,14 +25,14 @@ public class FormDataWrapperGenerator : IIncrementalGenerator
 
     private static IEnumerable<string> ExtractRootClassesFromAppMetadata(
         AdditionalText additionalText,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
-        var result = FormDataWrapperUtils.ParseModelClassOrDiagnostic(additionalText, ct);
+        var result = FormDataWrapperUtils.ParseModelClassOrDiagnostic(additionalText, cancellationToken);
         return result.Select(t => t.classFullName);
     }
 
-    private static ModelPathNode? CreateNodeTree((string, Compilation) tuple, CancellationToken ct)
+    private static ModelPathNode? CreateNodeTree((string, Compilation) tuple, CancellationToken cancellationToken)
     {
         var (classFullName, compilation) = tuple;
 
