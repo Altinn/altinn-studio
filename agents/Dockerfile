@@ -189,8 +189,8 @@ RUN set -eu; \
     find /usr/local/share/dotnet-tools/.store -name '*.nupkg' -delete; \
     rm -rf "${scratch}" /tmp/dotnet-tools.json
 
-ARG CODEX_VERSION=0.159.3
-ARG CLAUDE_CODE_VERSION=2.1.286
+ARG CODEX_VERSION=0.160.1
+ARG CLAUDE_CODE_VERSION=2.1.292
 ARG STUDIOCTL_VERSION=v0.1.0-preview.26
 ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=41654173a78f09fdb9ed8bfc0e223169fba7158ef5e5a8401201133b5b1bad51
 
