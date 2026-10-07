@@ -126,9 +126,10 @@ def _verify_one(ctx: LoopContext, file_path: str) -> tuple[bool, list[str]]:
     """Return `(passed, notes)` for a single changed file."""
     full_path = Path(ctx.repo_path) / file_path
     if not full_path.exists():
-        # Only the v9 upgrade deletes files: the model has no delete tool, and
-        # `discard_file_changes` removes the entry from `changed_files`.
-        return True, [f"{file_path}: deleted, nothing to validate"]
+        # `discard_file_changes` removes the entry from `changed_files`,
+        # so reaching this branch means the file was deleted some other
+        # way — flag it rather than crash.
+        return False, [f"{file_path}: file does not exist on disk"]
 
     if _is_layout_file(file_path):
         return _validate_layout(file_path, full_path, ctx.app_version_profile.layout_schema_location)
