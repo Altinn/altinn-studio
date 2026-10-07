@@ -110,9 +110,6 @@ export function ReleaseContainer() {
         </StudioError>
       );
     }
-    if (!repoStatus) {
-      return null;
-    }
     if (!branchStatus) {
       return t('app_create_release.branch_not_shared');
     }

@@ -150,6 +150,19 @@ describe('ReleaseContainer', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('renders an option to build release when the local repository status cannot be fetched', async () => {
+    renderReleaseContainer({
+      getRepoStatus: jest.fn().mockImplementation(() => Promise.reject(new Error())),
+      getBranchStatus: jest
+        .fn()
+        .mockImplementation(() => Promise.resolve(createBranchStatus(featureCommitId))),
+    });
+
+    expect(
+      await screen.findByLabelText(textMock('app_create_release.release_version_number')),
+    ).toBeInTheDocument();
+  });
+
   it('renders that there are no changes when an earlier release was built from the latest commit on the branch', async () => {
     const mockGetAppReleases = jest.fn().mockImplementation(() =>
       Promise.resolve({
