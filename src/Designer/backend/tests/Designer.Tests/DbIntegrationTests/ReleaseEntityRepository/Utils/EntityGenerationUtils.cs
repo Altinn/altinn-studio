@@ -19,7 +19,8 @@ public static partial class EntityGenerationUtils
             string targetCommitish = null,
             string tagname = null,
             BuildStatus buildStatus = BuildStatus.Completed,
-            BuildResult buildResult = BuildResult.Succeeded
+            BuildResult buildResult = BuildResult.Succeeded,
+            string branch = "master"
         )
         {
             BuildEntity build = Build.GenerateBuildEntity(buildId, buildStatus, buildResult);
@@ -32,6 +33,7 @@ public static partial class EntityGenerationUtils
                 TagName = tagname ?? Guid.NewGuid().ToString(),
                 Created = DateTime.UtcNow,
                 TargetCommitish = targetCommitish ?? Guid.NewGuid().ToString(),
+                Branch = branch,
                 Body = body,
             };
         }

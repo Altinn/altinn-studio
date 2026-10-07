@@ -6,31 +6,22 @@ import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { CreateRelease } from '../components/CreateRelease';
 import { Release } from '../components/Release';
 import { UploadIcon, CheckmarkIcon } from '@studio/icons';
-import { gitCommitPath } from 'app-shared/api/paths';
-import {
-  StudioPopover,
-  StudioParagraph,
-  StudioSpinner,
-  StudioError,
-  StudioLink,
-} from '@studio/components';
+import { BuildSource } from '../components/BuildSource';
+import { StudioPopover, StudioSpinner } from '@studio/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { useGetSelectedScopesQuery } from '../../../hooks/queries/useGetSelectedScopesQuery';
 import { useOrgListQuery } from 'app-development/hooks/queries/useOrgListQuery';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-
-import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import { useCurrentBranchQuery, useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { isServiceOwnerOrg } from 'app-development/utils/serviceOwnerOrgUtils';
 
 export function ReleaseContainer() {
   const { org, app } = useStudioEnvironmentParams();
   const [popoverOpenClick, setPopoverOpenClick] = useState<boolean>(false);
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
-  const packagesRouter = new PackagesRouter({ app, org });
 
   const { data: releases = [] } = useAppReleasesQuery(org, app);
   const { data: repoStatus, isPending: isRepoStatusPending } = useRepoStatusQuery(org, app);
@@ -38,21 +29,29 @@ export function ReleaseContainer() {
   const isServiceOwnerApp = isServiceOwnerOrg(orgs, org);
   const { data: selectedMaskinportenScopes, isPending: selectedMaskinportenScopesIsPending } =
     useGetSelectedScopesQuery(isServiceOwnerApp);
-  const { data: masterBranchStatus, isPending: masterBranchStatusIsPending } = useBranchStatusQuery(
+  const { data: currentBranch, isPending: currentBranchIsPending } = useCurrentBranchQuery(
     org,
     app,
-    'master',
+  );
+  const branchName = currentBranch?.branchName;
+  const { data: branchStatus, isPending: branchStatusIsPending } = useBranchStatusQuery(
+    org,
+    app,
+    branchName,
   );
 
-  const latestRelease: AppReleaseType | null = releases && releases[0] ? releases[0] : null;
+  const releaseOfLatestCommit: AppReleaseType | undefined = branchStatus
+    ? releases.find((release) => release.targetCommitish === branchStatus.commit.id)
+    : undefined;
   const hasMaskinportenScopeChanges = hasMaskinportenScopesChanged(
-    latestRelease,
+    releaseOfLatestCommit,
     selectedMaskinportenScopes?.scopes.map(({ scope }) => scope),
     isServiceOwnerApp,
   );
   const isLoading =
     isRepoStatusPending ||
-    masterBranchStatusIsPending ||
+    currentBranchIsPending ||
+    branchStatusIsPending ||
     isOrgListPending ||
     (isServiceOwnerApp && selectedMaskinportenScopesIsPending);
   const { t } = useTranslation();
@@ -91,48 +90,31 @@ export function ReleaseContainer() {
         </>
       );
     }
-    if (!masterBranchStatus || !repoStatus) {
+    if (!repoStatus) {
       return null;
     }
-    if (!masterBranchStatus) {
-      return (
-        <StudioError>
-          <StudioParagraph>
-            <Trans
-              i18nKey={'app_create_release_errors.fetch_release_failed'}
-              components={{
-                a: <StudioLink href='/info/contact'> </StudioLink>,
-              }}
-            ></Trans>
-          </StudioParagraph>
-        </StudioError>
-      );
+    if (!branchStatus) {
+      return t('app_create_release.branch_not_shared');
     }
-    // Check if latest
     if (
-      latestRelease &&
-      latestRelease.targetCommitish === masterBranchStatus.commit.id &&
-      latestRelease.build.status === BuildStatus.completed &&
-      latestRelease.build.result === BuildResult.succeeded &&
+      releaseOfLatestCommit &&
+      releaseOfLatestCommit.build.status === BuildStatus.completed &&
+      releaseOfLatestCommit.build.result === BuildResult.succeeded &&
       !hasMaskinportenScopeChanges
     ) {
       return t('app_create_release.no_changes_on_current_release');
     }
-    if (
-      latestRelease &&
-      latestRelease.targetCommitish === masterBranchStatus.commit.id &&
-      latestRelease.build.status !== BuildStatus.completed
-    ) {
+    if (releaseOfLatestCommit && releaseOfLatestCommit.build.status !== BuildStatus.completed) {
       return t('app_create_release.still_building_release', {
-        version: latestRelease.targetCommitish,
+        version: releaseOfLatestCommit.tagName,
       });
     }
-    return <CreateRelease />;
+    return <CreateRelease branchName={branchName} />;
   }
 
   function renderStatusIcon() {
     if (
-      !masterBranchStatus ||
+      !branchStatus ||
       !repoStatus?.contentStatus ||
       !repoStatus?.contentStatus.length ||
       !releases.length
@@ -147,62 +129,18 @@ export function ReleaseContainer() {
 
   function renderStatusMessage() {
     if (
-      !masterBranchStatus ||
+      !branchStatus ||
       !repoStatus?.contentStatus ||
       !repoStatus?.contentStatus.length ||
       !releases.length
     ) {
       return t('app_create_release.ok');
     }
-    if (!releases || !releases.length) {
-      return null;
-    }
-    if (!!latestRelease && latestRelease.targetCommitish === masterBranchStatus.commit.id) {
+    if (releaseOfLatestCommit) {
       return t('app_create_release.local_changes_cant_build');
     }
     if (repoStatus.contentStatus) {
       return t('app_create_release.local_changes_can_build');
-    }
-    return null;
-  }
-
-  function renderCreateReleaseTitle() {
-    if (!masterBranchStatus || !repoStatus?.contentStatus) {
-      return null;
-    }
-
-    if (
-      !latestRelease ||
-      latestRelease.targetCommitish !== masterBranchStatus.commit.id ||
-      hasMaskinportenScopeChanges ||
-      !repoStatus?.contentStatus
-    ) {
-      return (
-        <>
-          {t('app_release.release_title')}
-          <a
-            href={packagesRouter.getPackageNavigationUrl('latestCommit')}
-            target='_blank'
-            rel='noopener noreferrer'
-          >
-            {t('app_release.release_title_link')}
-          </a>
-        </>
-      );
-    }
-    if (latestRelease.targetCommitish === masterBranchStatus.commit.id) {
-      return (
-        <>
-          {t('app_release.release_built_on_version', { version: latestRelease.tagName })}
-          <a
-            href={gitCommitPath(org, app, masterBranchStatus.commit.id)}
-            target='_blank'
-            rel='noopener noreferrer'
-          >
-            {t('app_release.release_built_on_version_link')}
-          </a>
-        </>
-      );
     }
     return null;
   }
@@ -213,7 +151,7 @@ export function ReleaseContainer() {
         <div className={classes.versionHeaderTitle}>{t('app_release.release_tab_versions')}</div>
       </div>
       <div className={classes.versionSubHeader}>
-        <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
+        {branchName && <BuildSource branchName={branchName} branchStatus={branchStatus} />}
         <StudioPopover.TriggerContext>
           <StudioPopover.Trigger
             title={t('app_create_release.status_popover')}
@@ -244,7 +182,7 @@ export function ReleaseContainer() {
 }
 
 function hasMaskinportenScopesChanged(
-  latestRelease: AppReleaseType | null,
+  latestRelease: AppReleaseType | undefined,
   selectedScopes: string[] | undefined,
   isServiceOwnerApp: boolean,
 ): boolean {

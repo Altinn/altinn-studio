@@ -27,6 +27,8 @@ const orgListWithTestOrg: OrgList = {
   },
 };
 
+const branchName = 'feature/new-page';
+
 const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -37,7 +39,7 @@ const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
     <FeatureFlagsContextProvider value={{ flags: [] }}>
       <TestAppRouter>
         <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-          <CreateRelease />
+          <CreateRelease branchName={branchName} />
         </ServicesContextProvider>
       </TestAppRouter>
     </FeatureFlagsContextProvider>,
@@ -152,7 +154,7 @@ describe('CreateRelease', () => {
     expect(inputVersionNumber).toHaveValue(newVersionNumber);
   });
 
-  it('calls mutation on valid form submission', async () => {
+  it('creates a release from the latest commit on the current branch', async () => {
     const user = userEvent.setup();
     const newVersionNumber = 'v1';
     const newVersionDescription = 'test version';
@@ -179,13 +181,14 @@ describe('CreateRelease', () => {
     });
     await user.click(buildVersionButton);
 
-    expect(mockGetBranchStatus).toHaveBeenCalled();
+    expect(mockGetBranchStatus).toHaveBeenCalledWith(org, app, branchName);
     await waitFor(() => {
       expect(mockCreateRelease).toHaveBeenCalledWith(org, app, {
         tagName: newVersionNumber,
         name: newVersionNumber,
         body: newVersionDescription,
         targetCommitish: mockCommitId,
+        branch: branchName,
       });
     });
   });
