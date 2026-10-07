@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../testing/mocks';
@@ -6,7 +7,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { PersonsList } from './PersonsList';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 
-jest.mock('./PersonDialog/PersonDialog', () => ({
+vi.mock('./PersonDialog/PersonDialog', () => ({
   PersonDialog: ({ editingId, onClose }: { editingId: string | null; onClose: () => void }) => (
     <div>
       <div>{editingId ? 'EditDialog' : 'AddDialog'}</div>
@@ -53,7 +54,7 @@ const getEditButton = () =>
   });
 
 describe('PersonsList', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('renders the persons heading', () => {
     renderPersonsList();
@@ -110,7 +111,7 @@ describe('PersonsList', () => {
 
   it('calls deleteContactPoint when delete is confirmed', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     renderPersonsList({ persons: [person1] });
     const deleteButton = screen.getByRole('button', {
       name: textMock('settings.orgs.contact_points.delete', { name: person1.name }),

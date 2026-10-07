@@ -242,7 +242,9 @@ describe('RepeatingGroupTable', () => {
       );
       const layout = getLayout(groupWithNumericColumn, componentsWithNumericInput);
       await render(layout);
-      expect(screen.getByRole('columnheader', { name: 'Title1' })).toHaveStyle({ '--cell-text-alignment': 'left' });
+      expect(screen.getByRole('columnheader', { name: 'Title1 Valgfritt' })).toHaveStyle({
+        '--cell-text-alignment': 'left',
+      });
     });
 
     async function renderExtraRowsWithHiddenSecondColumn(

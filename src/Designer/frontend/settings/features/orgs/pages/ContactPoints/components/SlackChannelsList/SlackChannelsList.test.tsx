@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../testing/mocks';
@@ -6,7 +7,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { SlackChannelsList } from './SlackChannelsList';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 
-jest.mock('./SlackChannelDialog/SlackChannelDialog', () => ({
+vi.mock('./SlackChannelDialog/SlackChannelDialog', () => ({
   SlackChannelDialog: ({
     editingId,
     onClose,
@@ -56,7 +57,7 @@ const getEditButton = () =>
   });
 
 describe('SlackChannelsList', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('renders the slack heading', () => {
     renderSlackChannelsList();
@@ -112,7 +113,7 @@ describe('SlackChannelsList', () => {
 
   it('calls deleteContactPoint when delete is confirmed', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     renderSlackChannelsList({ channels: [channel1] });
     const deleteButton = screen.getByRole('button', {
       name: textMock('settings.orgs.contact_points.delete', { name: channel1.name }),

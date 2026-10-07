@@ -176,6 +176,79 @@ public class PageNameValidationTests(WebApplicationFactory<Program> factory)
         Assert.DoesNotContain(removedPageId, settingsAfter, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task CreatePage_WhenNameDiffersOnlyInCaseFromAnExistingPage_LeavesTheLayoutSetUnchanged()
+    {
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, AppWithPageOrder, Developer, targetRepository);
+        string settingsBefore = GetFile(targetRepository, SettingsPath(LayoutSetWithPageOrder));
+        string[] layoutFilesBefore = LayoutFileNames(targetRepository, LayoutSetWithPageOrder);
+        string existingPageBefore = GetFile(
+            targetRepository,
+            LayoutPath(LayoutSetWithPageOrder, ExistingPageInPageOrder)
+        );
+
+        // Act
+        using HttpResponseMessage response = await CreatePage(
+            targetRepository,
+            ExistingPageInPageOrder.ToUpperInvariant()
+        );
+
+        // Assert
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(layoutFilesBefore, LayoutFileNames(targetRepository, LayoutSetWithPageOrder));
+        Assert.Equal(settingsBefore, GetFile(targetRepository, SettingsPath(LayoutSetWithPageOrder)));
+        Assert.Equal(
+            existingPageBefore,
+            GetFile(targetRepository, LayoutPath(LayoutSetWithPageOrder, ExistingPageInPageOrder))
+        );
+    }
+
+    [Fact]
+    public async Task UpdatePageGroups_WhenAddedPageDiffersOnlyInCaseFromAPageThatStays_LeavesTheLayoutSetUnchanged()
+    {
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, AppWithPageGroups, Developer, targetRepository);
+        string settingsBefore = GetFile(targetRepository, SettingsPath(LayoutSetWithPageGroups));
+        string[] layoutFilesBefore = LayoutFileNames(targetRepository, LayoutSetWithPageGroups);
+        JsonObject pages = await GetPageGroups(targetRepository);
+        JsonArray firstGroupOrder = pages["groups"].AsArray()[0]["order"].AsArray();
+        string stayingPageId = (string)firstGroupOrder[1]["id"];
+        firstGroupOrder.RemoveAt(0);
+        firstGroupOrder.Add(new JsonObject { ["id"] = stayingPageId.ToUpperInvariant() });
+
+        // Act
+        using HttpResponseMessage response = await UpdatePageGroups(targetRepository, pages);
+
+        // Assert
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(layoutFilesBefore, LayoutFileNames(targetRepository, LayoutSetWithPageGroups));
+        Assert.Equal(settingsBefore, GetFile(targetRepository, SettingsPath(LayoutSetWithPageGroups)));
+    }
+
+    [Fact]
+    public async Task UpdatePageGroups_WhenPageIsRenamedOnlyInCase_RenamesItsLayoutFile()
+    {
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, AppWithPageGroups, Developer, targetRepository);
+        JsonObject pages = await GetPageGroups(targetRepository);
+        string renamedPageId = (string)pages["groups"].AsArray()[0]["order"].AsArray()[0]["id"];
+        string newPageId = renamedPageId.ToUpperInvariant();
+        pages = await RenamePageInGroups(targetRepository, renamedPageId, newPageId);
+
+        // Act
+        using HttpResponseMessage response = await UpdatePageGroups(targetRepository, pages);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        string[] layoutFilesAfter = LayoutFileNames(targetRepository, LayoutSetWithPageGroups);
+        Assert.Contains($"{newPageId}.json", layoutFilesAfter);
+        Assert.DoesNotContain($"{renamedPageId}.json", layoutFilesAfter);
+    }
+
     /// <summary>
     /// Reads the page groups of the layout set and swaps the first page of the first group for a page
     /// with the given name, so that the resulting request both removes an existing page and adds a new
@@ -261,6 +334,20 @@ public class PageNameValidationTests(WebApplicationFactory<Program> factory)
             .Select(Path.GetFileName)
             .Contains($"{pageId}.json", StringComparer.Ordinal);
     }
+
+    /// <summary>
+    /// Lists the exact file names in the layouts folder, in a stable order.
+    /// </summary>
+    /// <param name="repository">The repository to look in.</param>
+    /// <param name="layoutSetName">The name of the layout set to look in.</param>
+    /// <returns>The file names, with extension.</returns>
+    private static string[] LayoutFileNames(string repository, string layoutSetName) =>
+        [
+            .. Directory
+                .EnumerateFiles(Path.Combine(LayoutSetDirectory(repository, layoutSetName), "layouts"))
+                .Select(Path.GetFileName)
+                .Order(StringComparer.Ordinal),
+        ];
 
     private static string LayoutSetDirectory(string repository, string layoutSetName) =>
         Path.Combine(

@@ -174,6 +174,27 @@ echo "terminal.gif: $(stat -c %s terminal.gif) bytes"
 echo "## rust"
 cargo --version
 cargo machete --version
+cargo deny --version
+
+echo "## developer tools"
+actionlint --version | head -1
+yq --version
+shellcheck --version | sed -n 2p
+psql --version
+hyperfine --version
+btop --version | head -1
+socat -V | sed -n 2p
+tcpdump --version | head -1
+dig -v
+for tool in dotnet-counters dotnet-dump dotnet-trace; do
+    echo "$tool $("$tool" --version)"
+done
+for tool in file less lsof nc rsync unzip zip; do
+    command -v "$tool" >/dev/null || fail "$tool is missing"
+done
+python3 -m venv venv
+venv/bin/pip --version
+printf 'a: 1\n' | yq '.a' | grep -qx 1 || fail "yq did not read YAML"
 
 echo "## local development hosts"
 systemctl is-enabled agent-full-hosts-init.service >/dev/null \

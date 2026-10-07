@@ -3,6 +3,7 @@ import {
   ComponentBase,
   FormComponentProps,
   IRawDataModelBinding,
+  LabeledComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
@@ -28,6 +29,7 @@ export type CompPersonLookupSerialized = {
   dataModelBindings: IDataModelBindingsForPersonLookup;
 } & ComponentBase &
   FormComponentProps &
-  SummarizableComponentProps;
+  SummarizableComponentProps &
+  LabeledComponentProps;
 
-// Source hash: 429203383e9b2de73155c1c7c41ecd4aa242a307fde042487ea342d957184f1e
+// Source hash: 5e6b3c1cf1895c6d99abaf746bacb8a58bffd69c58fc89b4bb5dc7141908f63c

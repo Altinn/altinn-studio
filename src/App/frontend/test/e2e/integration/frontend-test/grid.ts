@@ -174,7 +174,7 @@ describe('Grid component', () => {
     cy.get(appFrontend.helpText.alert).should('contain.text', 'Help text');
 
     cy.findByRole('cell', {
-      name: /prosentandel av gjeld i studielån dette er en beskrivende tekst/i,
+      name: /prosentandel av gjeld i studielån\s*valgfritt\s*dette er en beskrivende tekst/i,
     }).should('exist');
     cy.findByRole('button', { name: /Hjelpetekst for Prosentandel av gjeld i studielån/i }).click();
     cy.focused().should('have.attr', 'aria-label', 'Hjelpetekst for Prosentandel av gjeld i studielån');

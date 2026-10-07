@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -23,7 +24,7 @@ const renderUseDeleteUserApiKeyMutation = (queryClient = createQueryClientMock()
   renderHookWithProviders(() => useDeleteUserApiKeyMutation(), { queryClient });
 
 describe('useDeleteUserApiKeyMutation', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('calls deleteUserApiKey with the correct id', async () => {
     const { result } = renderUseDeleteUserApiKeyMutation();

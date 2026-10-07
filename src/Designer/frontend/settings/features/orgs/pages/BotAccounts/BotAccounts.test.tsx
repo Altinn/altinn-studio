@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -14,7 +15,7 @@ const RoutedBotAccounts = () => (
   </Routes>
 );
 
-jest.mock('./components/BotAccountsList/BotAccountsList', () => ({
+vi.mock('./components/BotAccountsList/BotAccountsList', () => ({
   BotAccountsList: ({
     botAccounts,
     onEdit,
@@ -39,7 +40,7 @@ jest.mock('./components/BotAccountsList/BotAccountsList', () => ({
   ),
 }));
 
-jest.mock('./components/BotAccountDialog/BotAccountDialog', () => ({
+vi.mock('./components/BotAccountDialog/BotAccountDialog', () => ({
   BotAccountDialog: ({
     editingId,
     onClose,
@@ -79,7 +80,7 @@ const renderBotAccounts = (botAccounts?: BotAccount[], initialEntries = ['/ttd/s
 };
 
 describe('BotAccounts', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('renders the loading spinner while data is pending', () => {
     renderBotAccounts();
@@ -88,7 +89,7 @@ describe('BotAccounts', () => {
 
   it('renders the error message when query fails', async () => {
     const queryClient = createQueryClientMock();
-    const getBotAccounts = jest.fn().mockRejectedValue(new Error('Failed'));
+    const getBotAccounts = vi.fn().mockRejectedValue(new Error('Failed'));
     renderWithProviders(<RoutedBotAccounts />, {
       queries: { getBotAccounts },
       queryClient,

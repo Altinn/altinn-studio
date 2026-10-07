@@ -78,6 +78,7 @@ namespace Altinn.App.Api.Controllers
         public AuthorizationController(Altinn.App.Core.Internal.Auth.IAuthorizationClient authorization, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> settings, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/api/authorization/parties/current")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(204)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Register.Models.Party), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(int), 200)]
