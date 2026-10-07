@@ -39,6 +39,32 @@ describe('generateComponentDocumentation', () => {
     expect(documentation.get('Example')).not.toContain('../grid/');
   });
 
+  it.each(['en', 'nb'] as const)('documents open configuration and typed additional text bindings in %s', (locale) => {
+    const catalog = {
+      Example: {
+        ...exampleComponent,
+        additionalProperties: { type: 'any' },
+        properties: {
+          textResourceBindings: {
+            type: 'object',
+            required: false,
+            properties: {},
+            additionalProperties: { type: 'string', expression: true },
+          },
+          closed: { type: 'object', required: false, properties: {}, additionalProperties: false },
+        },
+      },
+    } as const satisfies ComponentCatalog;
+    const documentation = generateComponentDocumentation(catalog, {}, locale).get('Example')!;
+
+    expect(documentation).toContain(locale === 'en' ? 'any JSON value' : 'alle JSON-verdier');
+    expect(documentation).toContain('string | expression&lt;string&gt;');
+    expect(documentation.match(locale === 'en' ? /Additional property names/g : /Andre egenskapsnavn/g)).toHaveLength(
+      2,
+    );
+    expect(documentation).toContain('component-property--static" id="closed"');
+  });
+
   it('renders small nested properties as collapsed disclosure elements', () => {
     const catalog = {
       Example: {
