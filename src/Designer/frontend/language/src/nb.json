@@ -305,7 +305,7 @@
   "app_error.details": "Detaljer",
   "app_release.build_source_branch": "Gren:",
   "app_release.build_source_commit_message": "Kommentar:",
-  "app_release.build_source_last_shared": "Sist delt:",
+  "app_release.build_source_last_changed": "Sist endret:",
   "app_release.build_source_title": "Versjonen bygges basert på",
   "app_release.earlier_releases": "Tidligere bygg av appen",
   "app_release.release_branch": "Gren:",

@@ -29,7 +29,7 @@
   "app_deployment.table.build_log": "Build log",
   "app_release.build_source_branch": "Branch:",
   "app_release.build_source_commit_message": "Comment:",
-  "app_release.build_source_last_shared": "Last shared:",
+  "app_release.build_source_last_changed": "Last changed:",
   "app_release.build_source_title": "The version is built from",
   "app_release.earlier_releases": "Earlier builds of your application",
   "app_release.release_branch": "Branch:",

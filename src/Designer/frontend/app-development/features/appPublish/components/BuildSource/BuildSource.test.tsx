@@ -40,7 +40,7 @@ describe('BuildSource', () => {
     renderBuildSource({ branchStatus: undefined });
     expect(screen.getByText(branchName)).toBeInTheDocument();
     expect(
-      screen.queryByText(textMock('app_release.build_source_last_shared')),
+      screen.queryByText(textMock('app_release.build_source_last_changed')),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
