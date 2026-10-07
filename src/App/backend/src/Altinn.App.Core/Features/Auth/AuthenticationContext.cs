@@ -127,8 +127,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                             (int userId) => _profileClient.GetUserProfile(userId),
                             (int partyId) => _altinnPartyClient.GetParty(partyId),
                             (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
-                            (int userId) => _authorizationClient.GetPartyList(userId),
-                            (int userId, int partyId) => _authorizationClient.ValidateSelectedParty(userId, partyId)
+                            () => _authorizationClient.GetPartyList()
                         );
                     }
                     else
@@ -147,8 +146,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                             (int userId) => _profileClient.GetUserProfile(userId),
                             (int partyId) => _altinnPartyClient.GetParty(partyId),
                             (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
-                            (int userId) => _authorizationClient.GetPartyList(userId),
-                            (int userId, int partyId) => _authorizationClient.ValidateSelectedParty(userId, partyId)
+                            () => _authorizationClient.GetPartyList()
                         );
                     }
                 }

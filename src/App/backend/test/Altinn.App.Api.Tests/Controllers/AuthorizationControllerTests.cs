@@ -3,6 +3,8 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.Platform.Register.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -60,6 +62,15 @@ public class AuthorizationControllerTests(WebApplicationFactory<Program> factory
     [InlineData(false)]
     public async Task GetCurrentParty_UsableCookie_ReturnsSelectedParty(bool returnPartyObject)
     {
+        OverrideServicesForThisTest = services =>
+        {
+            var authorizationClient = new Mock<IAuthorizationClient>();
+            authorizationClient
+                .Setup(x => x.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync([new Party { PartyId = 500000 }]);
+            services.AddSingleton(authorizationClient.Object);
+        };
+
         using var response = await GetCurrentParty(partyCookie: "500000", returnPartyObject);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
