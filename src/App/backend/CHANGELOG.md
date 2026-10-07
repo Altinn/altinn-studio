@@ -13,6 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `IOnProcessEndedHandler` runs your code after the ended process is saved, before data marked `autoDeleteOnProcessEnd` is deleted and the instance is released. Like the other process hooks, it can read and change instance data. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+- Build checks `ALTINNAPP1004`–`ALTINNAPP1012` report sequence flows in `process.bpmn` that an instance cannot follow, such as a flow to a missing element or a task with two outgoing flows. Gateway loops and an unlisted gateway default are warnings; the rest are errors. ([#21023](https://github.com/Altinn/altinn-studio/pull/21023))
 
 ### Changed
 
