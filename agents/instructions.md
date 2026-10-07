@@ -27,7 +27,7 @@ Other relevant repositories include:
 - `Altinn/altinn-receipt`
 - `Altinn/altinn-decision-log`
 - `Altinn/altinn-authentication`
-- `Altinn/altinn-authorization-tmp`
+- `Altinn/altinn-auth`
 - `Altinn/altinn-register`
 - `Altinn/altinn-notifications`
 - `Altinn/altinn-correspondence`
