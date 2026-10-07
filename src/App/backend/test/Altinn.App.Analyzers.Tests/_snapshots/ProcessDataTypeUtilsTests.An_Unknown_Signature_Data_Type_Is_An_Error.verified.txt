@@ -1,0 +1,13 @@
+﻿[
+  {
+    Id: ALTINNAPP1013,
+    Title: Process references an unknown data type,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: /repo/App/config/process/process.bpmn(16,35),
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp1013,
+    MessageFormat: Task '{0}' names {1} in {2}, but no entry in 'dataTypes' in applicationmetadata.json has that id, so the app fails where it uses it. Correct the id, or add the data type.,
+    Message: Task 'Task_Sign' names the data type 'signature' in <altinn:signatureConfig><altinn:signatureDataType>, but no entry in 'dataTypes' in applicationmetadata.json has that id, so the app fails where it uses it. Correct the id, or add the data type.,
+    Category: Process
+  }
+]
