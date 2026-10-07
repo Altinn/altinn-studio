@@ -3,6 +3,7 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 const appFrontend = new AppFrontend();
 const simple = () => cy.get('test-binding-component#custom-simple');
 const named = () => cy.get('test-binding-component#custom-named:not([summarymode])');
+const legacySummary = () => cy.get('[data-testid=summary-custom-legacy-summary]');
 const summary = () => cy.get('[data-componentbaseid=custom-summary2] test-binding-component');
 
 describe('Custom web components', () => {
@@ -31,12 +32,23 @@ describe('Custom web components', () => {
     named().shadow().find('[data-field=quokkaValue]').should('have.value', 'Quokka');
     named().shadow().find('[data-field=nebulaValue]').should('have.value', 'Nebula');
 
-    cy.get('[data-testid=summary-custom-legacy-summary]').should('contain.text', 'Quokka, Nebula');
+    legacySummary().should('contain.text', 'Quokka, Nebula');
+    legacySummary().find('test-binding-component').should('not.exist');
+    named().shadow().find('[data-summary]').should('not.exist');
+    summary().should('have.attr', 'summarymode');
+    summary().shadow().find('[data-summary]').should('be.visible');
+    summary().shadow().find('[data-summary-heading]').should('have.text', 'Custom summary');
+    summary().shadow().find('[data-title]').should('have.text', 'Egendefinert felt');
+    summary().shadow().find('[data-caption]').should('have.text', 'Ekstra ledetekst');
+    summary().shadow().find('dl > div').should('have.length', 2);
+    summary().shadow().find('dt').should('have.text', 'quokkaValuenebulaValue');
     summary().shadow().find('input').should('not.exist');
     summary().shadow().find('[data-field=quokkaValue]').should('have.text', 'Quokka');
     summary().shadow().find('[data-field=nebulaValue]').should('have.text', 'Nebula');
     cy.get('#custom-mirror-secondary').clear();
     cy.get('#custom-mirror-secondary').type('Updated');
+    legacySummary().should('contain.text', 'Quokka, Updated').and('not.contain.text', 'Nebula');
+    summary().shadow().find('[data-field=quokkaValue]').should('have.text', 'Quokka');
     summary().shadow().find('[data-field=nebulaValue]').should('have.text', 'Updated');
     cy.visualTesting('custom-components');
   });
@@ -82,5 +94,7 @@ describe('Custom web components', () => {
     cy.findByRole('menuitemradio', { name: 'Engelsk' }).click();
     simple().shadow().find('[data-title]').should('have.text', 'Custom field');
     simple().shadow().find('[data-caption]').should('have.text', 'Extra caption');
+    summary().shadow().find('[data-title]').should('have.text', 'Custom field');
+    summary().shadow().find('[data-caption]').should('have.text', 'Extra caption');
   });
 });
