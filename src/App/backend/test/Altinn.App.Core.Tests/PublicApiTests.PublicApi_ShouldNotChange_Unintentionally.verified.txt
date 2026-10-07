@@ -2370,7 +2370,7 @@ namespace Altinn.App.Core.Features.Process
         public ServiceTaskWait() { }
         public System.DateTimeOffset? Deadline { get; init; }
         public int DeferCount { get; init; }
-        public bool IsFinalCheck { get; }
+        public bool IsFinalCheck { get; init; }
         public System.TimeSpan? Remaining { get; }
         public System.DateTimeOffset? StartedAt { get; init; }
     }
