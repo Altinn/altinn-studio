@@ -6,10 +6,6 @@ import type { IDataModelBindings } from 'src/layout/layout';
 export abstract class FileUploadDef extends FormComponent<'FileUpload'> implements DisplayData {
   protected readonly type = 'FileUpload';
 
-  supportsRequiredProperty(): boolean {
-    return false;
-  }
-
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
     baseComponentId: string,
@@ -21,4 +17,4 @@ export abstract class FileUploadDef extends FormComponent<'FileUpload'> implemen
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 712d458e5f042279ad183dd375b375c4ba77ef555f72f96c5191f9b849f8f311
+// Source hash: 7a00c39cd6cdb1a885d5106359278ac6e4d4ac0cb15324c12a3cc8deee424465

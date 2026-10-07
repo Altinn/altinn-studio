@@ -1,8 +1,10 @@
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IDataModelReference,
   LabeledComponentProps,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -22,8 +24,10 @@ export interface Columns {
 export interface CompSimpleTableExternal
   extends
     ComponentBase,
-    FormComponentPropsWithRequired,
+    FormComponentProps,
     SummarizableComponentProps,
+    RequiredComponentProps,
+    ReadOnlyComponentProps,
     LabeledComponentProps {
   type: 'SimpleTable';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
@@ -75,4 +79,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: f79b47988a4b2b5e966d362d837384a13112f4750b21ff7f8092b0b1a158672d
+// Source hash: 6c838da921ec959fcbeb4f7813f144d6d01273167895df35987c5f5f3c256c01

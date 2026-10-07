@@ -1,12 +1,14 @@
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IDataModelBindingsOptionsSimple,
   IDataModelReference,
   ISelectionComponentFull,
   ISummaryOverridesCommon,
   LabeledComponentProps,
   LayoutStyle,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -25,9 +27,11 @@ export type CheckboxesSummaryOverridesWithRef =
 export interface CompCheckboxesExternal
   extends
     ComponentBase,
-    FormComponentPropsWithRequired,
+    FormComponentProps,
     SummarizableComponentProps,
     ISelectionComponentFull,
+    RequiredComponentProps,
+    ReadOnlyComponentProps,
     LabeledComponentProps {
   type: 'Checkboxes';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
@@ -72,4 +76,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: CheckboxesSummaryOverridesWithRef;
 };
 
-// Source hash: ea7b2faa6b4abbc27f4db7abde78e49131b83980c71d1a46e162c84ec7ea862b
+// Source hash: 46ddc9004f99009631d80457a3d7e817369bbc940fed815516dac8075cace0f7

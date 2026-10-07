@@ -61,7 +61,7 @@ function CandidateEditButton({
   const config = useComponentConfig(targetBaseComponentId);
   const readOnly = useEvalExpression(
     'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.FormComponentProps.readOnly,
+    CommonExpressions.ReadOnlyComponentProps.readOnly,
   );
   const hidden = useIsHidden(targetBaseComponentId);
   if (hidden || readOnly) {
@@ -112,7 +112,7 @@ export function EditButton({
   const config = useComponentConfig(targetBaseComponentId);
   const readOnly = useEvalExpression(
     'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.FormComponentProps.readOnly,
+    CommonExpressions.ReadOnlyComponentProps.readOnly,
   );
   const title = useEvalExpression(
     config.textResourceBindings && 'title' in config.textResourceBindings

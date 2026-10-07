@@ -1,10 +1,12 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IDataModelReference,
   ISummaryOverridesCommon,
   LabeledComponentProps,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
@@ -13,8 +15,10 @@ import {
 export interface CompOrganizationLookupExternal
   extends
     ComponentBase,
-    FormComponentPropsWithRequired,
+    FormComponentProps,
     SummarizableComponentProps,
+    RequiredComponentProps,
+    ReadOnlyComponentProps,
     LabeledComponentProps {
   type: 'OrganizationLookup';
   textResourceBindings?: {
@@ -59,4 +63,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: OrganizationLookupSummaryOverridesWithRef;
 };
 
-// Source hash: 9f46c70cee9cb76b8038a855ebb13a093cf6ff79ac661e943afa99cb362184c4
+// Source hash: d055b721133d8547a38363e1a1adc2f58e7915a04c6eabf39093b43a371ab2fc

@@ -1,9 +1,11 @@
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IRawDataModelBinding,
   LabeledComponentProps,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
@@ -28,8 +30,10 @@ export type CompPersonLookupSerialized = {
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForPersonLookup;
 } & ComponentBase &
-  FormComponentPropsWithRequired &
+  FormComponentProps &
   SummarizableComponentProps &
+  RequiredComponentProps &
+  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: e33f3b8c250aa6c0e17c08b91a6edd29392d3c4c11ab45dca992d7a3782b47cb
+// Source hash: 46264f713a281c66060a58a4106693153ad31ee44eb9f6b43c2727bf8b884b2f

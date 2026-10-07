@@ -1,11 +1,13 @@
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IDataModelBindingsOptionsSimple,
   IDataModelReference,
   ISelectionComponentFull,
   ISummaryOverridesCommon,
   LabeledComponentProps,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -16,9 +18,11 @@ import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contra
 export interface CompMultipleSelectExternal
   extends
     ComponentBase,
-    FormComponentPropsWithRequired,
+    FormComponentProps,
     SummarizableComponentProps,
     ISelectionComponentFull,
+    RequiredComponentProps,
+    ReadOnlyComponentProps,
     LabeledComponentProps {
   type: 'MultipleSelect';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
@@ -69,4 +73,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: MultipleSelectSummaryOverridesWithRef;
 };
 
-// Source hash: 6fab2fc24d1e5a96cab156cce70a57694bc6acf92422ad2a18cf3b7166ab4972
+// Source hash: e5d8cc4faf787ec2dbe663b5a278548817a48b6df176d67f6d5f0e7844483b59

@@ -1,7 +1,9 @@
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IRawDataModelBinding,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
@@ -15,7 +17,9 @@ export type CompAddToListSerialized = {
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: { data: IRawDataModelBinding };
 } & ComponentBase &
-  FormComponentPropsWithRequired &
-  SummarizableComponentProps;
+  FormComponentProps &
+  SummarizableComponentProps &
+  RequiredComponentProps &
+  ReadOnlyComponentProps;
 
-// Source hash: 4193656da88350da7f78ee8310979c72f2ddc0fc9e87cf4b46b90a9c5646e4c2
+// Source hash: 03edc39ac0fc41c6cd04d8c51620bcc76ad6e4b15f917e3a7b8dfb11855460d9

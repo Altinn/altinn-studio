@@ -1,12 +1,14 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IDataModelBindingsOptionsSimple,
   ILikertColumnProperties,
   ISelectionComponentFull,
   LabeledComponentProps,
   LayoutStyle,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
@@ -15,9 +17,11 @@ import {
 export interface CompLikertItemExternal
   extends
     ComponentBase,
-    FormComponentPropsWithRequired,
+    FormComponentProps,
     SummarizableComponentProps,
     ISelectionComponentFull,
+    RequiredComponentProps,
+    ReadOnlyComponentProps,
     ILikertColumnProperties,
     LabeledComponentProps {
   type: 'LikertItem';
@@ -61,4 +65,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: b548019a3c2723688274284dddfd8bed40631dd06c17e794e3d3b03339b36b5e
+// Source hash: 1b35e6718fa5994966e71302a4ee846dfc1f80111b86aa60456d62ece81124cd

@@ -19,6 +19,8 @@ export const Config = new CG.component({
     renderInTabs: true,
   },
 })
+  .extends(CG.common('RequiredComponentProps'))
+  .extends(CG.common('ReadOnlyComponentProps'))
   .addSummaryOverrides()
   .extends(CG.common('LabeledComponentProps'))
   .addDataModelBinding(

@@ -1,8 +1,10 @@
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IRawDataModelBinding,
   LabeledComponentProps,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -71,8 +73,10 @@ export type CompMapSerialized = {
   geometryType?: IGeometryType;
   toolbar?: Toolbar;
 } & ComponentBase &
-  FormComponentPropsWithRequired &
+  FormComponentProps &
   SummarizableComponentProps &
+  RequiredComponentProps &
+  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: 63b754ed4ef2afe175c53b6b85b4ad2d5fdd9481374e1c5ae49a52eb23bbf954
+// Source hash: 68ac932b80f4bc69c5dc6b8f7beca149a1ed3df09696a3bd627cd2da6d433201

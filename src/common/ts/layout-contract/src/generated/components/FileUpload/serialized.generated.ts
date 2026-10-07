@@ -4,6 +4,7 @@ import {
   FormComponentProps,
   ISelectionComponent,
   LabeledComponentProps,
+  ReadOnlyComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -31,7 +32,8 @@ export type CompFileUploadSerialized = {
 } & ComponentBase &
   FormComponentProps &
   SummarizableComponentProps &
+  ReadOnlyComponentProps &
   LabeledComponentProps &
   ISelectionComponent;
 
-// Source hash: 20b864350d2580353d3fd6e403904811886fd28ded0d3ffc37aa23eea86e5778
+// Source hash: db02c3b3d4fadc7f61bd44b91ce8dafddead53fcefa335f620e9ad8e3fc6c37e

@@ -1,7 +1,9 @@
 import type {
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IGrid,
   LabeledComponentProps,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 
 import type { PropsFromGenericComponent } from '.';
@@ -22,7 +24,7 @@ export interface IFormComponentContext {
   grid?: IGrid;
   overrideDisplay?: GenericComponentOverrideDisplay;
   overrideItemProps?: PropsFromGenericComponent['overrideItemProps'] &
-    Partial<ExprResolved<FormComponentPropsWithRequired & LabeledComponentProps>>;
+    Partial<ExprResolved<FormComponentProps & RequiredComponentProps & ReadOnlyComponentProps & LabeledComponentProps>>;
 }
 
 const { Provider, useCtx } = createContext<IFormComponentContext | undefined>({

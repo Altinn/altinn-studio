@@ -1,9 +1,11 @@
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IQueryParameters,
   IRawDataModelBinding,
   LabeledComponentProps,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -37,8 +39,10 @@ export type CompListSerialized = {
   summaryBinding?: string;
   tableHeadersMobile?: string[];
 } & ComponentBase &
-  FormComponentPropsWithRequired &
+  FormComponentProps &
   SummarizableComponentProps &
+  RequiredComponentProps &
+  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: ae6b70c777e92cb168016d6e16a27445fddc425234a24507039e3c2643c50a40
+// Source hash: 3de52212e6b382db609fd281c012c2961abce8592031bbcd9f346bd92bfa0182

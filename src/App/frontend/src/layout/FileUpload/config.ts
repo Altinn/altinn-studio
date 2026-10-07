@@ -10,7 +10,6 @@ export const Config = asOptionsComponent(
   asUploaderComponent(
     new CG.component({
       category: CompCategory.Form,
-      supportsRequired: false,
       availability: 'configurable',
       metadata: {
         name: { nb: 'Vedlegg', en: 'FileUpload' },
@@ -116,6 +115,7 @@ export function asUploaderComponent(config: ComponentConfig) {
           ),
       ),
     )
+    .extends(CG.common('ReadOnlyComponentProps'))
     .extends(CG.common('LabeledComponentProps'))
     .extendTextResources(CG.common('TRBLabel'));
 }

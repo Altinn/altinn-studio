@@ -30,7 +30,7 @@ export function SummaryContent({
   const config = useComponentConfig(targetBaseComponentId);
   const readOnly = useEvalExpression(
     'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.FormComponentProps.readOnly,
+    CommonExpressions.ReadOnlyComponentProps.readOnly,
   );
   const summaryAccessibleTitle = useEvalOptionalTrb(
     config,

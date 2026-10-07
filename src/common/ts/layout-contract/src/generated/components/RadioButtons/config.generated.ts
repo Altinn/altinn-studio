@@ -1,11 +1,13 @@
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IDataModelBindingsOptionsSimple,
   ISelectionComponentFull,
   ISummaryOverridesCommon,
   LabeledComponentProps,
   LayoutStyle,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -16,9 +18,11 @@ import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contra
 export interface CompRadioButtonsExternal
   extends
     ComponentBase,
-    FormComponentPropsWithRequired,
+    FormComponentProps,
     SummarizableComponentProps,
     ISelectionComponentFull,
+    RequiredComponentProps,
+    ReadOnlyComponentProps,
     LabeledComponentProps {
   type: 'RadioButtons';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
@@ -62,4 +66,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: RadioButtonsSummaryOverridesWithRef;
 };
 
-// Source hash: 0e535a3cce7966c03e62506f9e84e30ad48a2f9984dd9421a37dab170113b6f4
+// Source hash: 54966c0ec6f7f1f1680020f4096ee250d31c84c4d5fbf2a71b8abe9ab19a807f

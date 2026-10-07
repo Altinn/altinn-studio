@@ -1,10 +1,12 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IDataModelReference,
   ISummaryOverridesCommon,
   LabeledComponentProps,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SaveWhileTyping,
   SummarizableComponentProps,
   TRBFormComp,
@@ -18,8 +20,10 @@ export type AddressSummaryOverridesWithRef =
 export interface CompAddressExternal
   extends
     ComponentBase,
-    FormComponentPropsWithRequired,
+    FormComponentProps,
     SummarizableComponentProps,
+    RequiredComponentProps,
+    ReadOnlyComponentProps,
     LabeledComponentProps {
   type: 'Address';
   textResourceBindings?: {
@@ -72,4 +76,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: AddressSummaryOverridesWithRef;
 };
 
-// Source hash: 7aaf98fd73eb981c04eddd333492268265ed8c990a6776feaaa6d0b8beb127f5
+// Source hash: 45a59db7cd1b1dffba8b304b3333877297017ba171150f7ff08e201f7d369c35

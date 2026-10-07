@@ -711,7 +711,8 @@ const common = {
       new CG.prop('grid', CG.common('IGrid').optional()),
       new CG.prop('pageBreak', CG.common('IPageBreak').optional()),
     ),
-  FormComponentProps: () =>
+  FormComponentProps: () => new CG.obj(new CG.prop('showValidations', CG.common('AllowedValidationMasks').optional())),
+  ReadOnlyComponentProps: () =>
     new CG.obj(
       new CG.prop(
         'readOnly',
@@ -723,9 +724,8 @@ const common = {
             'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
           ),
       ),
-      new CG.prop('showValidations', CG.common('AllowedValidationMasks').optional()),
     ),
-  FormComponentPropsWithRequired: () =>
+  RequiredComponentProps: () =>
     new CG.obj(
       new CG.prop(
         'required',
@@ -737,7 +737,7 @@ const common = {
             'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
           ),
       ),
-    ).extends(CG.common('FormComponentProps')),
+    ),
   SummarizableComponentProps: () =>
     new CG.obj(
       new CG.prop(

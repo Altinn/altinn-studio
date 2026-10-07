@@ -67,7 +67,7 @@ export function LabelInner(props: LabelInnerProps) {
       : 'readOnly' in config
         ? config.readOnly
         : undefined,
-    CommonExpressions.FormComponentProps.readOnly,
+    CommonExpressions.ReadOnlyComponentProps.readOnly,
   );
   const labelSettings =
     overrideItemProps && 'labelSettings' in overrideItemProps

@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
-import type { FormComponentPropsWithRequired } from '@app/layout-contract/generated/common.generated';
+import type { RequiredComponentProps } from '@app/layout-contract/generated/common.generated';
 
 import type { PropsFromGenericComponent } from '..';
 
@@ -32,14 +32,8 @@ export class Likert extends LikertDef {
     return false;
   }
 
-  useIsRequired(
-    config: CompExternal<'Likert'>,
-    requiredOverride?: FormComponentPropsWithRequired['required'],
-  ): boolean {
-    return useEvalExpression(
-      requiredOverride ?? config.required,
-      CommonExpressions.FormComponentPropsWithRequired.required,
-    );
+  useIsRequired(config: CompExternal<'Likert'>, requiredOverride?: RequiredComponentProps['required']): boolean {
+    return useEvalExpression(requiredOverride ?? config.required, CommonExpressions.RequiredComponentProps.required);
   }
 
   supportsRequiredProperty(): boolean {

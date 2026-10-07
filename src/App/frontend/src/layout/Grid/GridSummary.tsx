@@ -279,7 +279,7 @@ function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
   const config = useComponentConfig(props.labelFrom);
   const readOnly = useEvalExpression(
     'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.FormComponentProps.readOnly,
+    CommonExpressions.ReadOnlyComponentProps.readOnly,
   );
   const title = useEvalExpression(
     config.textResourceBindings && 'title' in config.textResourceBindings
@@ -521,7 +521,7 @@ function SummaryCellWithLabel({
   );
   const readOnly = useEvalExpression(
     'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.FormComponentProps.readOnly,
+    CommonExpressions.ReadOnlyComponentProps.readOnly,
   );
   const required = useComponentIsRequired(config);
   const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;

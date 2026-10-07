@@ -1,10 +1,12 @@
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   HTMLAutoCompleteValues,
   IDataModelBindingsSimple,
   ISummaryOverridesCommon,
   LabeledComponentProps,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SaveWhileTyping,
   SummarizableComponentProps,
   TRBFormComp,
@@ -16,8 +18,10 @@ import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contra
 export interface CompTextAreaExternal
   extends
     ComponentBase,
-    FormComponentPropsWithRequired,
+    FormComponentProps,
     SummarizableComponentProps,
+    RequiredComponentProps,
+    ReadOnlyComponentProps,
     LabeledComponentProps {
   type: 'TextArea';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
@@ -60,4 +64,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: TextAreaSummaryOverridesWithRef;
 };
 
-// Source hash: 1bd4b1e36bed1060c4ccf1d8a0f9b939ca801871dc27d342bb233eaafd868a8b
+// Source hash: 2c03c98290a2e55a42e16e853c7f790ae7fc6d81474fead3bf6cac7fed580c30

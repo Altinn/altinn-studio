@@ -1,11 +1,13 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IDataModelBindingsSimple,
   IFormatting,
   ISummaryOverridesCommon,
   LabeledComponentProps,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SaveWhileTyping,
   SummarizableComponentProps,
   TRBFormComp,
@@ -16,8 +18,10 @@ import {
 export interface CompInputExternal
   extends
     ComponentBase,
-    FormComponentPropsWithRequired,
+    FormComponentProps,
     SummarizableComponentProps,
+    RequiredComponentProps,
+    ReadOnlyComponentProps,
     LabeledComponentProps {
   type: 'Input';
   textResourceBindings?: {
@@ -120,4 +124,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: InputSummaryOverridesWithRef;
 };
 
-// Source hash: 6365a9164c2eeace0f7471c453256f7b13800876b7dbac9edac54f08ac08dcf1
+// Source hash: 8b077ede0999723e0ec39c40886450dd0b93dbca6bd20e85f1cd570409443186

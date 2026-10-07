@@ -84,12 +84,7 @@ export interface ComponentBase {
 }
 
 export interface FormComponentProps {
-  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   showValidations?: AllowedValidationMasks;
-}
-
-export interface FormComponentPropsWithRequired extends FormComponentProps {
-  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
 }
 
 export interface GlobalPageSettingsFromSchema {
@@ -618,6 +613,14 @@ export interface PatternFormatProps {
   patternChar?: string;
 }
 
+export interface ReadOnlyComponentProps {
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
+}
+
+export interface RequiredComponentProps {
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+}
+
 /**
  * Beware, this used to be a number OR boolean value in v3.
  * It can be smart to check the type of this value before using it.
@@ -646,4 +649,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 12f5cd46bcdb5feadb5669df5ef04c0a92ce527beeeae7bf64dfc2d125d30473
+// Source hash: cb0a35a35b8fb7247cc5d11f2509100b355afa228966de1c9f979c237eb0d27c

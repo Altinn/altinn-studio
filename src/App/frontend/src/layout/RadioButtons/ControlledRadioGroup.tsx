@@ -32,11 +32,11 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
   const componentId = useIndexedId(baseComponentId);
   const readOnly = useEvalExpression(
     'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.FormComponentProps.readOnly,
+    CommonExpressions.ReadOnlyComponentProps.readOnly,
   );
   const required = useEvalExpression(
     'required' in config ? config.required : undefined,
-    CommonExpressions.FormComponentPropsWithRequired.required,
+    CommonExpressions.RequiredComponentProps.required,
   );
   const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
   const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);

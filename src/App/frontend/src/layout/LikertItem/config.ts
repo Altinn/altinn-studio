@@ -25,6 +25,8 @@ export const Config = asOptionsComponent(
   }),
   { supportsPreselection: true },
 )
+  .extends(CG.common('RequiredComponentProps'))
+  .extends(CG.common('ReadOnlyComponentProps'))
   .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple'))
   .addTextResource(
     new CG.trb({

@@ -1,15 +1,22 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   ISummaryOverridesCommon,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
 export interface CompSubformExternal
-  extends ComponentBase, FormComponentPropsWithRequired, SummarizableComponentProps {
+  extends
+    ComponentBase,
+    FormComponentProps,
+    SummarizableComponentProps,
+    RequiredComponentProps,
+    ReadOnlyComponentProps {
   type: 'Subform';
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
@@ -68,4 +75,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: SubformSummaryOverridesWithRef;
 };
 
-// Source hash: f351733d51733c7e29fea67e526641ce372b10bf8850f407963493ea9500aa80
+// Source hash: 01bc6cd978db41300f9916e59f83f44c68041d7ca4829c9e86c2553823b0449c

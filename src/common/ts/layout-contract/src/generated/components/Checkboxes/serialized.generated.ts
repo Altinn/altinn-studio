@@ -1,10 +1,12 @@
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IRawDataModelBinding,
   ISelectionComponentFull,
   LabeledComponentProps,
   LayoutStyle,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -28,9 +30,11 @@ export type CompCheckboxesSerialized = {
   showLabelsInTable?: boolean;
   alertOnChange?: ExprValToActualOrExpr<ExprVal.Boolean>;
 } & ComponentBase &
-  FormComponentPropsWithRequired &
+  FormComponentProps &
   SummarizableComponentProps &
   ISelectionComponentFull &
+  RequiredComponentProps &
+  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: 1af53d7573d34e36fb8e8704734e3a5494a541c4577096f0dda6fd118f06265a
+// Source hash: 5b5d0a973bcc7e693f66e67114748646298a3c3d411cc244e7d29e8f7bde910b

@@ -1,7 +1,9 @@
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
@@ -29,7 +31,9 @@ export type CompSubformSerialized = {
   summaryDelimiter?: string;
   dataModelBindings?: undefined;
 } & ComponentBase &
-  FormComponentPropsWithRequired &
-  SummarizableComponentProps;
+  FormComponentProps &
+  SummarizableComponentProps &
+  RequiredComponentProps &
+  ReadOnlyComponentProps;
 
-// Source hash: 5c9b89a8728803c56a136033db971db9e818ec3bc461946e0d851cb46a054eeb
+// Source hash: 5d1690a2bd12d431bc0af9bfd3b7cf0d54b1cd617a9ace9fa29efc8c551e61fe

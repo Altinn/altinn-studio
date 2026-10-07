@@ -26,7 +26,9 @@ export const Config = asOptionsComponent(
 )
   // Auto-generated LikertItem inside here is a form component, so this is a little bit of both a
   // container and a form component
-  .extends(CG.common('FormComponentPropsWithRequired'))
+  .extends(CG.common('FormComponentProps'))
+  .extends(CG.common('RequiredComponentProps'))
+  .extends(CG.common('ReadOnlyComponentProps'))
   .extends(CG.common('LabeledComponentProps'))
   .addTextResource(
     new CG.trb({

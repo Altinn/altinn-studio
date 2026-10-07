@@ -60,11 +60,7 @@ export class ComponentConfig {
     this.inner.extends(CG.common('ComponentBase'));
 
     if (config.category === CompCategory.Form) {
-      this.inner.extends(
-        config.supportsRequired === false
-          ? CG.common('FormComponentProps')
-          : CG.common('FormComponentPropsWithRequired'),
-      );
+      this.inner.extends(CG.common('FormComponentProps'));
       this.extendTextResources(CG.common('TRBFormComp'));
     }
     if (this.isFormLike()) {
@@ -428,10 +424,6 @@ export class ComponentConfig {
     const implementsInterfaces: string[] = [];
 
     const additionalMethods: string[] = [];
-
-    if (this.config.category === CompCategory.Form && this.config.supportsRequired === false) {
-      additionalMethods.push(`supportsRequiredProperty(): boolean { return false; }`);
-    }
 
     if (this.hasDataModelBindings()) {
       additionalMethods.push(

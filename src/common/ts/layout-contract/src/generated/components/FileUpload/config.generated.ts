@@ -6,6 +6,7 @@ import {
   IDataModelBindingsSimple,
   ISelectionComponent,
   LabeledComponentProps,
+  ReadOnlyComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -17,6 +18,7 @@ export interface CompFileUploadExternal
     ComponentBase,
     FormComponentProps,
     SummarizableComponentProps,
+    ReadOnlyComponentProps,
     LabeledComponentProps,
     ISelectionComponent {
   type: 'FileUpload';
@@ -62,4 +64,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: f1c8cd80ad11b68cefb2dce4748a0892e71feb693661c94a39b7e106ce08d210
+// Source hash: ca28b03281643403885171504fa6f0230a6a1cf4fec9ff37bbd94c143b0a39e7

@@ -1,10 +1,12 @@
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   ILikertColumnProperties,
   ISelectionComponent,
   LabeledComponentProps,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
@@ -29,8 +31,10 @@ export type CompLikertSerialized = {
 } & ComponentBase &
   SummarizableComponentProps &
   ISelectionComponent &
-  FormComponentPropsWithRequired &
+  FormComponentProps &
+  RequiredComponentProps &
+  ReadOnlyComponentProps &
   LabeledComponentProps &
   ILikertColumnProperties;
 
-// Source hash: f0ac049716584fdf3034b834aabe641f5a0ff79a0691c51f4f481d652ef38fff
+// Source hash: 55aca886ff37007407c8d2a46fac0f96821d95175f3b4a4224d8fbc4cdf42429

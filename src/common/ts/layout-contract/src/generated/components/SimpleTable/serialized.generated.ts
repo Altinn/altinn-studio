@@ -1,8 +1,10 @@
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IRawDataModelBinding,
   LabeledComponentProps,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -41,8 +43,10 @@ export type CompSimpleTableSerialized = {
   size?: 'sm' | 'md' | 'lg';
   externalApi?: DataConfig;
 } & ComponentBase &
-  FormComponentPropsWithRequired &
+  FormComponentProps &
   SummarizableComponentProps &
+  RequiredComponentProps &
+  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: e01c922a4e85655c3cf180ee62d76d05940cf6883c33a76bd3f3654c5b07c4d2
+// Source hash: 653485b1d443508eecf273fe87243c1b9888383412f115f444faebfc3c3a7011

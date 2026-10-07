@@ -1,9 +1,11 @@
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   ISelectionComponentFull,
   LabeledComponentProps,
   LayoutStyle,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -22,9 +24,11 @@ export type CompRadioButtonsSerialized = {
   showLabelsInTable?: boolean;
   showAsCard?: boolean;
 } & ComponentBase &
-  FormComponentPropsWithRequired &
+  FormComponentProps &
   SummarizableComponentProps &
   ISelectionComponentFull &
+  RequiredComponentProps &
+  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: 711f44960becfbcf17a0cd2dc9d514821d38a41009bedf1e2f20632a623d3b9d
+// Source hash: 5994fff10c14c49fc52c16e68f99e045e2a1d434d5d63af6d54ee00106e53b90

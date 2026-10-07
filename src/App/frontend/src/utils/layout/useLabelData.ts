@@ -29,7 +29,7 @@ export function useLabelData({
   const config = useComponentConfig(baseComponentId);
   const readOnly = useEvalExpression(
     'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.FormComponentProps.readOnly,
+    CommonExpressions.ReadOnlyComponentProps.readOnly,
   );
   const required = useComponentIsRequired(config);
   const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);

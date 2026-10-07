@@ -13,12 +13,6 @@ export interface RequiredComponentConfig {
    * display data is not relevant (i.e. when binding to a group or array of objects).
    */
   displayData?: false;
-
-  /**
-   * Set to false for form components whose requiredness is controlled by component-specific properties.
-   * Form components default to support required
-   */
-  supportsRequired?: false;
 }
 
 /**

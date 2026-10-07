@@ -20,6 +20,8 @@ export const Config = new CG.component({
     renderInTabs: true,
   },
 })
+  .extends(CG.common('RequiredComponentProps'))
+  .extends(CG.common('ReadOnlyComponentProps'))
   .addDataModelBinding(CG.common('IDataModelBindingsSimple'))
   .addProperty(new CG.prop('autocomplete', new CG.const('bday').optional()))
   .addProperty(

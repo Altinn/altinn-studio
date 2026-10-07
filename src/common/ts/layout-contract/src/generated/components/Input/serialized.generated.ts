@@ -1,9 +1,11 @@
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
-  FormComponentPropsWithRequired,
+  FormComponentProps,
   IFormatting,
   LabeledComponentProps,
+  ReadOnlyComponentProps,
+  RequiredComponentProps,
   SaveWhileTyping,
   SummarizableComponentProps,
   TRBFormComp,
@@ -81,8 +83,10 @@ export type CompInputSerialized = {
     | 'photo';
   maxLength?: number;
 } & ComponentBase &
-  FormComponentPropsWithRequired &
+  FormComponentProps &
   SummarizableComponentProps &
+  RequiredComponentProps &
+  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: 460b4568e0757d7e2f87f40bc6b7e2250102f6e55921e5ba72778dd85beddb23
+// Source hash: 1eb0a04cf65997bfd64abe55a4ccef59ef9ec71d0771b53081ddf08580d733b4

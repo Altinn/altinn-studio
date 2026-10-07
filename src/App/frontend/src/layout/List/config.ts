@@ -19,6 +19,8 @@ export const Config = new CG.component({
     renderInTabs: true,
   },
 })
+  .extends(CG.common('RequiredComponentProps'))
+  .extends(CG.common('ReadOnlyComponentProps'))
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'))
   .addDataModelBinding(

@@ -20,6 +20,8 @@ export const Config = new CG.component({
     renderInTabs: true,
   },
 })
+  .extends(CG.common('RequiredComponentProps'))
+  .extends(CG.common('ReadOnlyComponentProps'))
   .addTextResource(
     new CG.trb({
       name: 'prefix',
