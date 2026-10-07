@@ -434,7 +434,13 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
             settings,
             authorization,
             Mock.Of<IAuthorizationService>(),
-            new ProcessAuthorizer(authorization, settings)
+            new ProcessAuthorizer(
+                authorization,
+                settings,
+                Mock.Of<IClaimsPrincipalProvider>(provider =>
+                    provider.GetUser() == httpContext.User
+                )
+            )
         )
         {
             ControllerContext = new ControllerContext { HttpContext = httpContext },

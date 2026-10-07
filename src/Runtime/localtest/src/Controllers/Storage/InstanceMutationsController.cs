@@ -1221,7 +1221,7 @@ public class InstanceMutationsController(
         // ended instance after its process-ended hook.
         if (instance.Process?.CurrentTask is null)
         {
-            return User.GetOrg() is { } org && org == instance.Org ? null : Forbid();
+            return _processAuthorizer.IsServiceOwner(instance) ? null : Forbid();
         }
 
         return await _processAuthorizer.AuthorizeProcessNext(instance, nextProcessState)

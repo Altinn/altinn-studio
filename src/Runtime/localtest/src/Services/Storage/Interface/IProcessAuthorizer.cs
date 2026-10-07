@@ -40,4 +40,10 @@ public interface IProcessAuthorizer
     /// Has a bypass for the sync adapter scope.
     /// </summary>
     Task<bool> AuthorizeDataValuesUpdate(Instance instance);
+
+    /// <summary>
+    /// Determines if the user is the service owner of the instance, i.e. holds a token for the org
+    /// that owns the app.
+    /// </summary>
+    bool IsServiceOwner(Instance instance);
 }

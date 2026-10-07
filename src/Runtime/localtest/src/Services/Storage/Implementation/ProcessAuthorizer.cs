@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
 
@@ -14,17 +15,20 @@ public class ProcessAuthorizer : IProcessAuthorizer
 {
     private readonly IAuthorization _authorizationService;
     private readonly GeneralSettings _generalSettings;
+    private readonly IClaimsPrincipalProvider _claimsPrincipalProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessAuthorizer"/> class.
     /// </summary>
     public ProcessAuthorizer(
         IAuthorization authorizationService,
-        IOptions<GeneralSettings> settings
+        IOptions<GeneralSettings> settings,
+        IClaimsPrincipalProvider claimsPrincipalProvider
     )
     {
         _authorizationService = authorizationService;
         _generalSettings = settings.Value;
+        _claimsPrincipalProvider = claimsPrincipalProvider;
     }
 
     /// <inheritdoc/>
@@ -46,6 +50,10 @@ public class ProcessAuthorizer : IProcessAuthorizer
     /// <inheritdoc/>
     public Task<bool> AuthorizeDataValuesUpdate(Instance instance) =>
         AuthorizeWithSyncAdapterBypass(instance);
+
+    /// <inheritdoc/>
+    public bool IsServiceOwner(Instance instance) =>
+        _claimsPrincipalProvider.GetUser().GetOrg() is { } org && org == instance.Org;
 
     /// <summary>
     /// Get all actions that allow process next for the given task type.
