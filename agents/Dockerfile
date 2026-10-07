@@ -6,6 +6,7 @@ ENV PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sb
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
+        btop \
         build-essential \
         ca-certificates \
         curl \
@@ -169,6 +170,25 @@ RUN case "${TARGETARCH}" in \
     && rm -f /tmp/typos.tar.gz /tmp/typos \
     && test "$(typos --version)" = "typos-cli ${TYPOS_VERSION}"
 
+# ilspycmd decompiles .NET assemblies, such as the Altinn.App and platform packages an app pulls
+# from NuGet, when their source is not at hand. .NET tools are installed to a shared tool path and
+# linked onto the system PATH rather than installed as the Agent user's global tools, because the
+# home directory is resynchronized from the host. The scratch home keeps the SDK's first-run files
+# and the runtime's revocation-list cache out of the Agent's home. The tool store keeps a copy of
+# each package archive that running the tools never reads, so the archives are deleted.
+ARG ILSPYCMD_VERSION=11.1.0.9782
+
+RUN export HOME=/tmp/dotnet-tools-home DOTNET_CLI_HOME=/tmp/dotnet-tools-home \
+    && install -d "${HOME}" \
+    && dotnet tool install ilspycmd \
+        --tool-path /usr/local/share/dotnet-tools \
+        --version "${ILSPYCMD_VERSION}" \
+    && ln -s /usr/local/share/dotnet-tools/ilspycmd /usr/local/bin/ilspycmd \
+    && find /usr/local/share/dotnet-tools/.store -name '*.nupkg' -delete \
+    && ilspycmd --version | grep -qxF "ilspycmd: ${ILSPYCMD_VERSION}" \
+    && rm -rf /tmp/dotnet-tools-home /tmp/NuGetScratch* \
+    && chmod -R a+rX /usr/local/share/dotnet-tools
+
 ARG CODEX_VERSION=0.159.3
 ARG CLAUDE_CODE_VERSION=2.1.286
 ARG STUDIOCTL_VERSION=v0.1.0-preview.26
@@ -282,6 +302,7 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && codex --version \
     && test "$(id -u agent)" = 1000 \
     && hunspell -v \
+    && btop --version \
     && nvim --version \
     && nvim --headless \
         "+lua assert(vim.g.colors_name == 'habamax'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
@@ -332,7 +353,6 @@ RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         aardvark-dns \
         bind9-dnsutils \
-        btop \
         catatonit \
         clang \
         ffmpeg \
@@ -479,7 +499,6 @@ RUN case "${TARGETARCH}" in \
     && psql --version \
     && shellcheck --version \
     && hyperfine --version \
-    && btop --version \
     && socat -V | head -1 \
     && tcpdump --version \
     && dig -v \
@@ -528,11 +547,8 @@ RUN case "${TARGETARCH}" in \
     && yq --version | grep -qF "v${YQ_VERSION}"
 
 # The .NET diagnostics tools trace, count and dump running .NET processes: the profiling side of
-# the toolchain that linux-perf and lldb cover for native code. They are installed to a shared tool
-# path and linked onto the system PATH rather than installed as the Agent user's global tools,
-# because the home directory is resynchronized from the host. The scratch home keeps the SDK's
-# first-run files and the runtime's revocation-list cache out of the Agent's home. The tool store
-# keeps a copy of each package archive that running the tools never reads, about 56 MB in all.
+# the toolchain that linux-perf and lldb cover for native code. They share the tool path and setup
+# that ilspycmd uses in the base stage; their unused package archives would add about 56 MB.
 ARG DOTNET_DIAGNOSTICS_VERSION=10.0.745401
 
 RUN export HOME=/tmp/dotnet-tools-home DOTNET_CLI_HOME=/tmp/dotnet-tools-home \

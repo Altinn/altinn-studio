@@ -5,6 +5,7 @@ External Altinn app repositories belong under `/home/agent/code/apps`.
 `studioctl` is logged in to each configured production, staging or development Studio environment at boot with a
 host-mediated API key.
 `typos` and `hunspell` for the repository spell check (`yarn spell:quick`, `yarn spell:check`).
+`ilspycmd` decompiles .NET assemblies, such as NuGet package dependencies; `btop` shows processes and resource use.
 
 No container, Kubernetes or browser tooling: `studioctl` can support authentication, repository and app work, but
 LocalTest and browser verification cannot run here, so say so instead of working around it.

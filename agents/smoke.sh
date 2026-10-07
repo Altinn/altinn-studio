@@ -32,6 +32,8 @@ agg --version
 nvim --version | head -1
 typos --version
 hunspell -v | head -1
+btop --version | head -1
+ilspycmd --version | head -1
 studioctl version
 test "$(id -un)" = agent || fail "expected to run as agent, got $(id -un)"
 foreign="$(find /home/agent ! -user agent)"
@@ -182,7 +184,6 @@ yq --version
 shellcheck --version | sed -n 2p
 psql --version
 hyperfine --version
-btop --version | head -1
 socat -V | sed -n 2p
 tcpdump --version | head -1
 dig -v
