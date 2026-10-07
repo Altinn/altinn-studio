@@ -407,7 +407,8 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
                 new ClaimsIdentity(
                     org is null
                         ? [new Claim(AltinnCoreClaimTypes.UserId, "1337")]
-                        : [
+                        :
+                        [
                             new Claim(AltinnCoreClaimTypes.Org, org),
                             new Claim(AltinnCoreClaimTypes.OrgNumber, "991825827"),
                         ],
