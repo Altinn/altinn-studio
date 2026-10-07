@@ -1,9 +1,11 @@
+using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 using Altinn.Platform.Storage.Authorization;
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Controllers;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.Services;
@@ -111,7 +113,109 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
         Assert.Null(stored.Process.CurrentTask);
     }
 
-    private static InstanceMutationRequest CreateMoveToNextTaskRequest() =>
+    [Theory]
+    [InlineData("reject", true)]
+    [InlineData("write", false)]
+    public async Task CommitMutation_AbandonFlow_RequiresRejectOnCurrentTask(
+        string permittedAction,
+        bool expectCommitted
+    )
+    {
+        await using LocalStorageFixture storage = new();
+        Instance instance = await CreateInstanceInTask(storage, CurrentTaskId);
+        var authorization = new Mock<IAuthorization>();
+        authorization
+            .Setup(service =>
+                service.AuthorizeInstanceAction(
+                    It.IsAny<Instance>(),
+                    permittedAction,
+                    CurrentTaskId
+                )
+            )
+            .ReturnsAsync(true);
+        InstanceMutationsController controller = CreateController(
+            storage,
+            authorization.Object,
+            CreateMoveToNextTaskRequest("AbandonCurrentMoveToNext")
+        );
+
+        ActionResult<InstanceMutationResponse> result = await controller.CommitMutation(
+            501337,
+            InstanceGuid(instance),
+            CancellationToken.None
+        );
+
+        Instance stored = await GetStoredInstance(storage, instance);
+        if (expectCommitted)
+        {
+            Assert.IsType<OkObjectResult>(result.Result);
+            Assert.Equal(NextTaskId, stored.Process.CurrentTask.ElementId);
+        }
+        else
+        {
+            Assert.IsType<ForbidResult>(result.Result);
+            Assert.Equal(CurrentTaskId, stored.Process.CurrentTask.ElementId);
+        }
+    }
+
+    [Fact]
+    public async Task CommitMutation_RetryOfProcessEndingMutation_ReplaysWithoutAuthorizing()
+    {
+        await using LocalStorageFixture storage = new();
+        Instance instance = await CreateInstanceInTask(storage, CurrentTaskId);
+        InstanceVersionResult versions = await storage.InstanceRepository.ReadVersions(
+            InstanceGuid(instance),
+            CancellationToken.None
+        );
+        Dictionary<string, string> headers = new()
+        {
+            [StorageHeaders.IdempotencyKey] = Guid.NewGuid().ToString(),
+            [StorageHeaders.IfInstanceVersionMatch] = versions.InstanceVersion.ToString(
+                CultureInfo.InvariantCulture
+            ),
+        };
+        InstanceMutationRequest endProcess = new()
+        {
+            ProcessState = new ProcessStateUpdate
+            {
+                State = new ProcessState
+                {
+                    Started = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    Ended = new DateTime(2026, 1, 1, 1, 0, 0, DateTimeKind.Utc),
+                    EndEvent = "EndEvent_1",
+                },
+            },
+        };
+        var permitWrite = new Mock<IAuthorization>();
+        permitWrite
+            .Setup(service =>
+                service.AuthorizeInstanceAction(It.IsAny<Instance>(), "write", CurrentTaskId)
+            )
+            .ReturnsAsync(true);
+        ActionResult<InstanceMutationResponse> first = await CreateController(
+                storage,
+                permitWrite.Object,
+                endProcess,
+                headers
+            )
+            .CommitMutation(501337, InstanceGuid(instance), CancellationToken.None);
+        Assert.IsType<OkObjectResult>(first.Result);
+
+        ActionResult<InstanceMutationResponse> retry = await CreateController(
+                storage,
+                new Mock<IAuthorization>().Object,
+                endProcess,
+                headers
+            )
+            .CommitMutation(501337, InstanceGuid(instance), CancellationToken.None);
+
+        OkObjectResult replayed = Assert.IsType<OkObjectResult>(retry.Result);
+        Assert.True(Assert.IsType<InstanceMutationResponse>(replayed.Value).Replayed);
+    }
+
+    private static InstanceMutationRequest CreateMoveToNextTaskRequest(
+        string flowType = "CompleteCurrentMoveToNext"
+    ) =>
         new()
         {
             ProcessState = new ProcessStateUpdate
@@ -124,7 +228,7 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
                         ElementId = NextTaskId,
                         AltinnTaskType = "data",
                         Flow = 3,
-                        FlowType = "CompleteCurrentMoveToNext",
+                        FlowType = flowType,
                     },
                 },
             },
@@ -173,7 +277,8 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
     private static InstanceMutationsController CreateController(
         LocalStorageFixture storage,
         IAuthorization authorization,
-        InstanceMutationRequest request
+        InstanceMutationRequest request,
+        Dictionary<string, string>? headers = null
     )
     {
         var applicationRepository = new Mock<IApplicationRepository>();
@@ -199,6 +304,10 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
         };
         httpContext.Request.ContentType = "application/json";
         httpContext.Request.Body = new MemoryStream(body);
+        foreach ((string name, string value) in headers ?? [])
+        {
+            httpContext.Request.Headers[name] = value;
+        }
 
         return new InstanceMutationsController(
             storage.DataRepository,
