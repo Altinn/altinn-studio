@@ -1,8 +1,18 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import { StudioIconViewer } from './StudioIconViewer';
 import userEvent from '@testing-library/user-event';
+import type * as StudioIcons from '@studio/icons';
+
+// A few icons are enough to test the search. When a search is cleared, React adds the icons back one by one, and
+// the design system's web package queries the whole list for each of them. This is slow enough in jsdom to make the
+// tests time out in CI.
+vi.mock('@studio/icons', async () => {
+  const { AirplaneIcon, AirplaneFillIcon, PlusIcon, TrashIcon } =
+    await vi.importActual<typeof StudioIcons>('@studio/icons');
+  return { AirplaneIcon, AirplaneFillIcon, PlusIcon, TrashIcon };
+});
 
 describe('StudioIconViewer', () => {
   it('should render the component', () => {
