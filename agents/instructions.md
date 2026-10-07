@@ -85,6 +85,15 @@ is impractical, run the lightest meaningful check and state exactly what remains
   when `command -v agentctl` finds it, and otherwise install it with
   `curl -fsSL https://raw.githubusercontent.com/digdir/digdir-agents/main/agentctl/install.sh | sh`.
 
+## References in responses
+
+- Link GitHub issues and pull requests as Markdown, such as
+  [altinn-studio#1234](https://github.com/Altinn/altinn-studio/issues/1234), so they are clickable in every harness.
+  In text posted to GitHub itself, keep GitHub's native `#1234` or `OWNER/REPOSITORY#1234` form.
+- Write file paths relative to the session's working directory, normally `/home/agent/code`, including the repository
+  or `.worktrees/<task>/` prefix, such as `.worktrees/fix-x/src/Designer/frontend/app.tsx:42`. A path relative to a
+  repository root does not resolve from there.
+
 ## Pull requests
 
 When asked to create or update a pull request:
