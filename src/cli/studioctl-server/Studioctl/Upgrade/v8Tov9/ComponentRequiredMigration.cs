@@ -142,7 +142,8 @@ internal sealed class ComponentRequiredMigration(string projectFolder)
             return;
         }
 
-        var componentId = component["id"]?.GetValue<string>() ?? "<missing id>";
+        var componentId =
+            component["id"] is JsonValue idValue && idValue.TryGetValue<string>(out var id) ? id : "<missing id>";
         messages.Todo(
             $"{fileName}: {type} '{componentId}' had conflicting requiredness: `required` is "
                 + $"{required.ToString().ToLowerInvariant()} but `{minimumProperty}` is {minimum}. The upgrade removed "
