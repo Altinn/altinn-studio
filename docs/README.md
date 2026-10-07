@@ -1,7 +1,7 @@
 # Altinn Studio documentation
 
 Documentation for developing Altinn Studio. Agent-specific guidance lives in `AGENTS.md` files and skills, see
-[the documentation structure ADR](adr/2026-10-07-documentation-structure.md). Documentation for service owners
+[the documentation ADR](adr/2026-10-07-documentation-structure-and-content.md). Documentation for service owners
 and app developers is on [docs.altinn.studio](https://docs.altinn.studio).
 
 ## Architecture decision records
@@ -30,7 +30,7 @@ Start a new ADR from [the template](adr/yyyy-mm-dd-template.md).
 - [Durable yield: a first-class "waiting" outcome for workflow-engine steps](adr/2026-07-23-workflow-engine-durable-yield.md)
 - [Keep the instance id as the eFormidling shipment id](adr/2026-07-24-eformidling-shipment-id.md)
 - [Failure-storm throttling: a namespace circuit breaker for the workflow engine](adr/2026-08-13-workflow-engine-failure-throttling.md)
-- [Documentation structure for Altinn Studio product development](adr/2026-10-07-documentation-structure.md)
+- [Structure and content of Altinn Studio product development documentation](adr/2026-10-07-documentation-structure-and-content.md)
 
 ## Diagrams
 
