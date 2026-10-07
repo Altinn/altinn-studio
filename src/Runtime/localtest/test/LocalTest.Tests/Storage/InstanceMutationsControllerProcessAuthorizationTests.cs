@@ -213,6 +213,63 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
         Assert.True(Assert.IsType<InstanceMutationResponse>(replayed.Value).Replayed);
     }
 
+    [Fact]
+    public async Task CommitMutation_ProcessChangedAfterAuthorization_ReturnsPreconditionFailed()
+    {
+        await using LocalStorageFixture storage = new();
+        Instance instance = await CreateInstanceInTask(storage, CurrentTaskId);
+        var authorization = new Mock<IAuthorization>();
+        authorization
+            .Setup(service =>
+                service.AuthorizeInstanceAction(It.IsAny<Instance>(), "write", CurrentTaskId)
+            )
+            .ReturnsAsync(true);
+        var endProcessBeforeApply = new Mock<IInstanceMutationRepository>();
+        endProcessBeforeApply
+            .Setup(repository =>
+                repository.Apply(
+                    It.IsAny<Guid>(),
+                    It.IsAny<long>(),
+                    It.IsAny<InstanceMutationCommit>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(
+                async (
+                    Guid instanceGuid,
+                    long instanceInternalId,
+                    InstanceMutationCommit commit,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    await CreateInstanceInTask(storage, currentTaskId: null, instance);
+                    return await storage.MutationRepository.Apply(
+                        instanceGuid,
+                        instanceInternalId,
+                        commit,
+                        cancellationToken
+                    );
+                }
+            );
+        InstanceMutationsController controller = CreateController(
+            storage,
+            authorization.Object,
+            CreateMoveToNextTaskRequest(),
+            mutationRepository: endProcessBeforeApply.Object
+        );
+
+        ActionResult<InstanceMutationResponse> result = await controller.CommitMutation(
+            501337,
+            InstanceGuid(instance),
+            CancellationToken.None
+        );
+
+        ObjectResult mismatch = Assert.IsType<ObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status412PreconditionFailed, mismatch.StatusCode);
+        Instance stored = await GetStoredInstance(storage, instance);
+        Assert.Null(stored.Process.CurrentTask);
+    }
+
     private static InstanceMutationRequest CreateMoveToNextTaskRequest(
         string flowType = "CompleteCurrentMoveToNext"
     ) =>
@@ -236,10 +293,11 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
 
     private static async Task<Instance> CreateInstanceInTask(
         LocalStorageFixture storage,
-        string? currentTaskId
+        string? currentTaskId,
+        Instance? existing = null
     )
     {
-        Instance instance = await storage.CreateInstance();
+        Instance instance = existing ?? await storage.CreateInstance();
         instance.Process = new ProcessState
         {
             Started = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
@@ -278,7 +336,8 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
         LocalStorageFixture storage,
         IAuthorization authorization,
         InstanceMutationRequest request,
-        Dictionary<string, string>? headers = null
+        Dictionary<string, string>? headers = null,
+        IInstanceMutationRepository? mutationRepository = null
     )
     {
         var applicationRepository = new Mock<IApplicationRepository>();
@@ -313,7 +372,7 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
             storage.DataRepository,
             Mock.Of<IBlobRepository>(),
             storage.InstanceRepository,
-            storage.MutationRepository,
+            mutationRepository ?? storage.MutationRepository,
             applicationRepository.Object,
             Mock.Of<IDataService>(),
             Mock.Of<IInstanceEventService>(),

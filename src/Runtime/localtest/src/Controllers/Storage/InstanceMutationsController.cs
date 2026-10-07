@@ -740,7 +740,9 @@ public class InstanceMutationsController(
                 instanceUpdates,
                 instanceUpdateProperties,
                 preconditions.InstanceVersion,
-                preconditions.ProcessStateVersion,
+                // As in Storage, the process state the request was authorized against must still be
+                // current when it commits, whether or not the caller sent a precondition.
+                preconditions.ProcessStateVersion ?? currentVersions.ProcessStateVersion,
                 processState,
                 mutationInstanceEvents,
                 idempotencyKey,
