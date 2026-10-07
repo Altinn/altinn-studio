@@ -86,6 +86,10 @@ describe('Lookup validation', { testIsolation: false }, () => {
               .findAllByRole('button', { name: /Slett/ })
               .first()
               .click();
+            cy.get(`[data-componentid="${scenario.id}-group"]`)
+              .find('button')
+              .filter((_, button) => button.textContent?.includes('Slett') ?? false)
+              .should('have.length', count - row - 1);
           }
         });
         cy.get(`[data-componentid="${scenario.id}"]`).then(($lookup) => {
