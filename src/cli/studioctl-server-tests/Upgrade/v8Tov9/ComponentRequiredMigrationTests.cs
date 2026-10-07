@@ -82,6 +82,39 @@ public sealed class ComponentRequiredMigrationTests : IDisposable
         Assert.True(result.Messages.RequiresManualFollowUp);
     }
 
+    [Theory]
+    [InlineData("5")]
+    [InlineData("{}")]
+    [InlineData("null")]
+    public async Task ReportsConflictsWithInvalidIdsWithoutBlockingCleanup(string id)
+    {
+        _app.Write(
+            "ui/Task_1/layouts/form.json",
+            $$"""
+            { "data": { "layout": [
+              { "id": {{id}}, "type": "FileUpload", "required": false, "minNumberOfAttachments": 2 },
+              { "id": "group", "type": "RepeatingGroup", "required": false, "minCount": 1 }
+            ] } }
+            """
+        );
+
+        var result = await new ComponentRequiredMigration(_app.Root).Migrate();
+        var root = Assert.IsType<JsonObject>(JsonNode.Parse(_app.Read("ui/Task_1/layouts/form.json")));
+        var data = Assert.IsType<JsonObject>(root["data"]);
+        var components = Assert.IsType<JsonArray>(data["layout"]);
+
+        Assert.Equal(1, result.FilesChanged);
+        Assert.Equal(2, result.PropertiesRemoved);
+        Assert.All(components, component => Assert.Null(Assert.IsType<JsonObject>(component)["required"]));
+        var attachment = Assert.IsType<JsonObject>(components[0]);
+        var group = Assert.IsType<JsonObject>(components[1]);
+        Assert.Equal(2, Assert.IsAssignableFrom<JsonValue>(attachment["minNumberOfAttachments"]).GetValue<int>());
+        Assert.Equal(1, Assert.IsAssignableFrom<JsonValue>(group["minCount"]).GetValue<int>());
+        Assert.Equal(2, result.Messages.Todos.Count);
+        Assert.Contains("<missing id>", result.Messages.Todos[0], StringComparison.Ordinal);
+        Assert.Contains("group", result.Messages.Todos[1], StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task IgnoresRequiredOnComponentsThatStillSupportIt()
     {
