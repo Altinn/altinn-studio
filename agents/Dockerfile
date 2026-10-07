@@ -485,6 +485,12 @@ RUN case "${TARGETARCH}" in \
     && dig -v \
     && unzip -v | head -1
 
+# Docker API clients such as agentctl's image builds and Testcontainers read DOCKER_HOST, not the
+# CONTAINER_HOST that agentd gives a Session. podman-docker's profile script would otherwise point
+# it at a rootless socket under XDG_RUNTIME_DIR that nothing serves, so use the rootful socket the
+# agent group can reach, as /run/docker.sock does.
+ENV DOCKER_HOST=unix:///run/podman/podman.sock
+
 # yq edits the manifests the deploy workflows patch, actionlint checks the GitHub workflows, and
 # cargo-deny runs the root deny.toml that CI checks with cargo-deny-action. All three are static
 # binaries published per architecture, so the digests are pinned here and must move together with
