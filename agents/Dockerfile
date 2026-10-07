@@ -1,4 +1,4 @@
-FROM ubuntu:26.04@sha256:2260313b31c8c011cd2eebe728008efac1b3982be73eb71348ea2648d2c0e09b AS toolchains
+FROM ubuntu:26.04@sha256:2260313b31c8c011cd2eebe728008efac1b3982be73eb71348ea2648d2c0e09b AS base
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DOTNET_ROOT=/usr/local/share/dotnet
@@ -76,36 +76,6 @@ RUN case "${TARGETARCH}" in \
     && install -d /etc/dotnet \
     && printf '%s\n' "${DOTNET_ROOT}" >/etc/dotnet/install_location \
     && rm -f /tmp/dotnet-install.sh /tmp/go.tar.gz /tmp/node.tar.xz
-
-# .NET tools are built in a stage of their own and copied into the variants. They are not the Agent
-# user's global tools, because the host resynchronizes the home directory, and installing them here
-# keeps the SDK's first-run files and caches out of the image. dotnet-tools.json lists the tools in
-# the .NET tool manifest format, so Renovate updates their versions; this stage reads it instead of
-# `dotnet tool restore`, which would only install local tools. Launchers are linked into /usr/local/bin, where sudo's secure_path also finds them, and
-# /etc/dotnet/install_location lets them find the runtime where sudo drops DOTNET_ROOT. The tool
-# store keeps a copy of each package archive that running the tools never reads, so it is deleted.
-FROM toolchains AS dotnet-tools
-
-ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
-ENV DOTNET_NOLOGO=1
-
-COPY dotnet-tools.json /tmp/dotnet-tools.json
-RUN set -eu; \
-    install -d /out/bin; \
-    for tool in $(jq -r '.tools | keys[]' /tmp/dotnet-tools.json); do \
-        dotnet tool install "${tool}" \
-            --tool-path /out/share/dotnet-tools \
-            --version "$(jq -r --arg tool "${tool}" '.tools[$tool].version' /tmp/dotnet-tools.json)"; \
-        for command in $(jq -r --arg tool "${tool}" '.tools[$tool].commands[]' /tmp/dotnet-tools.json); do \
-            "/out/share/dotnet-tools/${command}" --version; \
-            ln -s "/usr/local/share/dotnet-tools/${command}" "/out/bin/${command}"; \
-        done; \
-    done; \
-    find /out/share/dotnet-tools/.store -name '*.nupkg' -delete; \
-    rm -rf /out/share/dotnet-tools/.store/.stage; \
-    chmod -R a+rX /out
-
-FROM toolchains AS base
 
 ARG YARN_VERSION=4.18.0
 ARG GH_VERSION=2.100.0
@@ -202,10 +172,22 @@ RUN case "${TARGETARCH}" in \
     && rm -f /tmp/typos.tar.gz /tmp/typos \
     && test "$(typos --version)" = "typos-cli ${TYPOS_VERSION}"
 
-# ilspycmd decompiles .NET assemblies, such as the Altinn.App and platform packages an app pulls
-# from NuGet, when their source is not at hand. The diagnostics tools trace, count and dump running
-# .NET processes.
-COPY --from=dotnet-tools /out/ /usr/local/
+# Installs the .NET tools listed in dotnet-tools.json, kept in the .NET tool manifest format so
+# Renovate updates it, to a shared path because the host resynchronizes the Agent's home directory.
+COPY dotnet-tools.json /tmp/dotnet-tools.json
+RUN set -eu; \
+    scratch="$(mktemp -d)"; \
+    export HOME="${scratch}" TMPDIR="${scratch}" DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1; \
+    for tool in $(jq -r '.tools | keys[]' /tmp/dotnet-tools.json); do \
+        dotnet tool install "${tool}" --tool-path /usr/local/share/dotnet-tools \
+            --version "$(jq -r --arg tool "${tool}" '.tools[$tool].version' /tmp/dotnet-tools.json)"; \
+        for command in $(jq -r --arg tool "${tool}" '.tools[$tool].commands[]' /tmp/dotnet-tools.json); do \
+            ln -s "/usr/local/share/dotnet-tools/${command}" "/usr/local/bin/${command}"; \
+            "${command}" --version; \
+        done; \
+    done; \
+    find /usr/local/share/dotnet-tools/.store -name '*.nupkg' -delete; \
+    rm -rf "${scratch}" /tmp/dotnet-tools.json
 
 ARG CODEX_VERSION=0.159.3
 ARG CLAUDE_CODE_VERSION=2.1.286
