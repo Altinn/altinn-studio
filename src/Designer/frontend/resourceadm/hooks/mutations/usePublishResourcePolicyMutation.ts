@@ -15,6 +15,5 @@ export const usePublishResourcePolicyMutation = (org: string, repo: string, id: 
   return useMutation({
     mutationFn: ({ env, payload }: { env: string; payload: Policy }) =>
       publishResourcePolicy(org, repo, id, env, payload),
-    onSuccess: () => {},
   });
 };

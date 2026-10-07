@@ -8,7 +8,7 @@ import type { Policy } from '@altinn/policy-editor';
  * Query to get resources and apps with policy files containing at least one Altinn 2 subject
  *
  * @param org the organization of the user
- * @param org the env
+ * @param env the env
  *
  * @returns UseQueryResult with a list of resource identifiers with policies
  */
