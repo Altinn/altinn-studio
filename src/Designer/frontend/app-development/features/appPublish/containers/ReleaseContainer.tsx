@@ -7,11 +7,17 @@ import { CreateRelease } from '../components/CreateRelease';
 import { Release } from '../components/Release';
 import { UploadIcon, CheckmarkIcon } from '@studio/icons';
 import { BuildSource } from '../components/BuildSource';
-import { StudioPopover, StudioSpinner } from '@studio/components';
+import {
+  StudioError,
+  StudioLink,
+  StudioParagraph,
+  StudioPopover,
+  StudioSpinner,
+} from '@studio/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { useGetSelectedScopesQuery } from '../../../hooks/queries/useGetSelectedScopesQuery';
 import { useOrgListQuery } from 'app-development/hooks/queries/useOrgListQuery';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useCurrentBranchQuery, useRepoStatusQuery } from 'app-shared/hooks/queries';
@@ -29,16 +35,18 @@ export function ReleaseContainer() {
   const isServiceOwnerApp = isServiceOwnerOrg(orgs, org);
   const { data: selectedMaskinportenScopes, isPending: selectedMaskinportenScopesIsPending } =
     useGetSelectedScopesQuery(isServiceOwnerApp);
-  const { data: currentBranch, isPending: currentBranchIsPending } = useCurrentBranchQuery(
-    org,
-    app,
-  );
+  const {
+    data: currentBranch,
+    isPending: currentBranchIsPending,
+    isError: currentBranchIsError,
+  } = useCurrentBranchQuery(org, app);
   const branchName = currentBranch?.branchName;
-  const { data: branchStatus, isPending: branchStatusIsPending } = useBranchStatusQuery(
-    org,
-    app,
-    branchName,
-  );
+  const {
+    data: branchStatus,
+    isPending: branchStatusIsPending,
+    isError: branchStatusIsError,
+  } = useBranchStatusQuery(org, app, branchName);
+  const hasBranchError = currentBranchIsError || branchStatusIsError;
 
   const releaseOfLatestCommit: AppReleaseType | undefined = branchStatus
     ? releases.find((release) => release.targetCommitish === branchStatus.commit.id)
@@ -50,8 +58,8 @@ export function ReleaseContainer() {
   );
   const isLoading =
     isRepoStatusPending ||
-    currentBranchIsPending ||
-    branchStatusIsPending ||
+    (!currentBranchIsError && currentBranchIsPending) ||
+    (!!branchName && branchStatusIsPending) ||
     isOrgListPending ||
     (isServiceOwnerApp && selectedMaskinportenScopesIsPending);
   const { t } = useTranslation();
@@ -88,6 +96,18 @@ export function ReleaseContainer() {
           </div>
           {t('app_create_release.check_status')}
         </>
+      );
+    }
+    if (hasBranchError) {
+      return (
+        <StudioError>
+          <StudioParagraph>
+            <Trans
+              i18nKey='app_create_release_errors.fetch_release_failed'
+              components={{ a: <StudioLink href='/info/contact'> </StudioLink> }}
+            />
+          </StudioParagraph>
+        </StudioError>
       );
     }
     if (!repoStatus) {

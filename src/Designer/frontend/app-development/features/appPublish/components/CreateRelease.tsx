@@ -50,7 +50,10 @@ export function CreateRelease({ branchName }: CreateReleaseProps) {
   const mutation = useCreateReleaseMutation(org, app);
   const handleBuildVersionClick = async () => {
     if (versionNameValid(releases, tagName) && tagName !== '') {
-      const { data: newBranchStatus } = await getBranchStatus();
+      const { data: newBranchStatus, isError } = await getBranchStatus();
+      if (isError || !newBranchStatus) {
+        return;
+      }
       mutation.mutate({
         tagName,
         name: tagName,

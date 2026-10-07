@@ -79,7 +79,6 @@ driftsmeldinger
 egenregistrering
 endringslogg
 endringsoppsummering
-endringstransaksjon
 endringstransaksjonen
 endringsvalg
 engangssamtykke
