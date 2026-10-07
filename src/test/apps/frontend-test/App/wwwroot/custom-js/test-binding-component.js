@@ -52,16 +52,56 @@ class TestBindingComponent extends HTMLElement {
   render() {
     const root = this.shadowRoot;
     root.replaceChildren();
+    const summaryMode = this.isEnabled('summarymode');
+    let content = root;
+    if (summaryMode) {
+      const style = document.createElement('style');
+      style.textContent = `
+        .summary {
+          padding: 24px;
+          border: 2px solid #0062ba;
+          border-left-width: 8px;
+          border-radius: 12px;
+          background: #e8f4fd;
+          color: #003b5c;
+        }
+        .summary h2 { margin: 0; }
+        .summary-heading { margin: 0 0 12px; font-weight: bold; }
+        .summary dl { margin: 24px 0 0; }
+        .summary dl > div {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-between;
+          gap: 8px 24px;
+          padding: 12px 0;
+          border-top: 1px solid #0062ba;
+        }
+        .summary dt { font-weight: bold; }
+        .summary dd { margin: 0; overflow-wrap: anywhere; }
+      `;
+      content = document.createElement('section');
+      content.className = 'summary';
+      content.dataset.summary = '';
+      const heading = document.createElement('p');
+      heading.className = 'summary-heading';
+      heading.dataset.summaryHeading = '';
+      heading.textContent = 'Custom summary';
+      content.append(heading);
+      root.append(style, content);
+    }
     const title = document.createElement('h2');
     title.dataset.title = '';
     const caption = document.createElement('p');
     caption.dataset.caption = '';
-    root.append(title, caption);
+    content.append(title, caption);
+
+    const values = summaryMode ? document.createElement('dl') : content;
+    if (summaryMode) content.append(values);
 
     for (const field of Object.keys(this._dataModelBindings)) {
-      const label = document.createElement('label');
+      const label = document.createElement(summaryMode ? 'dt' : 'label');
       label.textContent = field;
-      const control = document.createElement(this.isEnabled('summarymode') ? 'output' : 'input');
+      const control = document.createElement(summaryMode ? 'output' : 'input');
       control.dataset.field = field;
       if (control instanceof HTMLInputElement) {
         control.readOnly = this.isEnabled('readonly');
@@ -75,8 +115,16 @@ class TestBindingComponent extends HTMLElement {
           );
         });
       }
-      label.append(control);
-      root.append(label);
+      if (summaryMode) {
+        const row = document.createElement('div');
+        const value = document.createElement('dd');
+        value.append(control);
+        row.append(label, value);
+        values.append(row);
+      } else {
+        label.append(control);
+        values.append(label);
+      }
     }
     this.updateTexts();
     this.updateValues();
