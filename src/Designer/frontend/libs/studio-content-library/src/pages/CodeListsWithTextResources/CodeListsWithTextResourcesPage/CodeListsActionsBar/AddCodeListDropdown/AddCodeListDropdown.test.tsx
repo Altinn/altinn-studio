@@ -19,10 +19,7 @@ describe('AddCodeListDropdown', () => {
   it('opens the create new code list modal when clicking on the add new code list button', async () => {
     const user = userEvent.setup();
     renderAddCodeListDropdown();
-    const addNewCodeListButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists_with_text_resources.add_new_code_list'),
-    });
-    await user.click(addNewCodeListButton);
+    await openAddCodeListMenu(user);
     const createNewCodeListModalTitle = screen.getByText(
       textMock('app_content_library.code_lists_with_text_resources.create_new_code_list'),
     );
@@ -92,11 +89,7 @@ describe('AddCodeListDropdown', () => {
   it('opens the import code list dialog when clicking on the import menu button', async () => {
     const user = userEvent.setup();
     renderAddCodeListDropdown({ externalResources });
-    await user.click(
-      screen.getByRole('button', {
-        name: textMock('app_content_library.code_lists_with_text_resources.add_new_code_list'),
-      }),
-    );
+    await openAddCodeListMenu(user);
     const importCodeListButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists_with_text_resources.import_from_org_library'),
     });
@@ -115,6 +108,13 @@ describe('AddCodeListDropdown', () => {
     expect(importButton).not.toBeInTheDocument();
   });
 });
+
+const openAddCodeListMenu = async (user: UserEvent): Promise<void> => {
+  const addNewCodeListButton = screen.getByRole('button', {
+    name: textMock('app_content_library.code_lists_with_text_resources.add_new_code_list'),
+  });
+  await user.click(addNewCodeListButton);
+};
 
 const uploadFileWithFileName = async (
   user: UserEvent,

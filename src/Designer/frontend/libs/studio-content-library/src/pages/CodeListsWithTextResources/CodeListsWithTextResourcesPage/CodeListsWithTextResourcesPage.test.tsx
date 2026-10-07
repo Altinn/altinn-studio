@@ -61,11 +61,7 @@ describe('CodeListsWithTextResourcesPage', () => {
     const user = userEvent.setup();
     renderCodeListsWithTextResourcesPage();
     const codeListSearchField = screen.getByRole('searchbox');
-    await user.click(
-      screen.getByRole('button', {
-        name: textMock('app_content_library.code_lists_with_text_resources.add_new_code_list'),
-      }),
-    );
+    await openAddCodeListMenu(user);
     const codeListCreatButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists_with_text_resources.create_new_code_list'),
     });
@@ -355,11 +351,15 @@ const renderCodeListsWithTextResourcesPage = (
 ): RenderResult =>
   render(<CodeListsWithTextResourcesPage {...defaultCodeListPageProps} {...props} />);
 
-const openCreateDialog = async (user: UserEvent): Promise<HTMLElement> => {
+const openAddCodeListMenu = async (user: UserEvent): Promise<void> => {
   const addButtonLabel = textMock(
     'app_content_library.code_lists_with_text_resources.add_new_code_list',
   );
   await user.click(screen.getByRole('button', { name: addButtonLabel }));
+};
+
+const openCreateDialog = async (user: UserEvent): Promise<HTMLElement> => {
+  await openAddCodeListMenu(user);
   const createButtonLabel = textMock(
     'app_content_library.code_lists_with_text_resources.create_new_code_list',
   );
