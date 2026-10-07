@@ -34,6 +34,7 @@ typos --version
 hunspell -v | head -1
 btop --version | head -1
 ilspycmd --version | head -1
+sudo ilspycmd --version >/dev/null || fail "ilspycmd does not find the .NET runtime under sudo"
 studioctl version
 test "$(id -un)" = agent || fail "expected to run as agent, got $(id -un)"
 foreign="$(find /home/agent ! -user agent)"

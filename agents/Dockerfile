@@ -1,4 +1,4 @@
-FROM ubuntu:26.04@sha256:2260313b31c8c011cd2eebe728008efac1b3982be73eb71348ea2648d2c0e09b AS base
+FROM ubuntu:26.04@sha256:2260313b31c8c011cd2eebe728008efac1b3982be73eb71348ea2648d2c0e09b AS toolchains
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DOTNET_ROOT=/usr/local/share/dotnet
@@ -73,7 +73,43 @@ RUN case "${TARGETARCH}" in \
         --no-path \
         --version "${DOTNET_VERSION}" \
     && ln -s "${DOTNET_ROOT}/dotnet" /usr/local/bin/dotnet \
+    && install -d /etc/dotnet \
+    && printf '%s\n' "${DOTNET_ROOT}" >/etc/dotnet/install_location \
     && rm -f /tmp/dotnet-install.sh /tmp/go.tar.gz /tmp/node.tar.xz
+
+# .NET tools are built in a stage of their own and copied into the variants. They are not the Agent
+# user's global tools, because the host resynchronizes the home directory, and installing them here
+# keeps the SDK's first-run files and caches out of the image. Each dotnet-tools/<stage> manifest
+# lists the tools for that image stage in the .NET tool manifest format, so Renovate updates their
+# versions; this stage reads it instead of `dotnet tool restore`, which would only install local
+# tools. Launchers are linked into /usr/local/bin, where sudo's secure_path also finds them, and
+# /etc/dotnet/install_location lets them find the runtime where sudo drops DOTNET_ROOT. The tool
+# store keeps a copy of each package archive that running the tools never reads, so it is deleted.
+FROM toolchains AS dotnet-tools
+
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+ENV DOTNET_NOLOGO=1
+
+COPY dotnet-tools /tmp/dotnet-tools
+RUN set -eu; \
+    for manifest in /tmp/dotnet-tools/*/dotnet-tools.json; do \
+        out="/out/$(basename "$(dirname "${manifest}")")"; \
+        install -d "${out}/bin"; \
+        for tool in $(jq -r '.tools | keys[]' "${manifest}"); do \
+            dotnet tool install "${tool}" \
+                --tool-path "${out}/share/dotnet-tools" \
+                --version "$(jq -r --arg tool "${tool}" '.tools[$tool].version' "${manifest}")"; \
+            for command in $(jq -r --arg tool "${tool}" '.tools[$tool].commands[]' "${manifest}"); do \
+                "${out}/share/dotnet-tools/${command}" --version; \
+                ln -s "/usr/local/share/dotnet-tools/${command}" "${out}/bin/${command}"; \
+            done; \
+        done; \
+        find "${out}/share/dotnet-tools/.store" -name '*.nupkg' -delete; \
+        rm -rf "${out}/share/dotnet-tools/.store/.stage"; \
+    done; \
+    chmod -R a+rX /out
+
+FROM toolchains AS base
 
 ARG YARN_VERSION=4.18.0
 ARG GH_VERSION=2.100.0
@@ -171,23 +207,8 @@ RUN case "${TARGETARCH}" in \
     && test "$(typos --version)" = "typos-cli ${TYPOS_VERSION}"
 
 # ilspycmd decompiles .NET assemblies, such as the Altinn.App and platform packages an app pulls
-# from NuGet, when their source is not at hand. .NET tools are installed to a shared tool path and
-# linked onto the system PATH rather than installed as the Agent user's global tools, because the
-# home directory is resynchronized from the host. The scratch home keeps the SDK's first-run files
-# and the runtime's revocation-list cache out of the Agent's home. The tool store keeps a copy of
-# each package archive that running the tools never reads, so the archives are deleted.
-ARG ILSPYCMD_VERSION=11.1.0.9782
-
-RUN export HOME=/tmp/dotnet-tools-home DOTNET_CLI_HOME=/tmp/dotnet-tools-home \
-    && install -d "${HOME}" \
-    && dotnet tool install ilspycmd \
-        --tool-path /usr/local/share/dotnet-tools \
-        --version "${ILSPYCMD_VERSION}" \
-    && ln -s /usr/local/share/dotnet-tools/ilspycmd /usr/local/bin/ilspycmd \
-    && find /usr/local/share/dotnet-tools/.store -name '*.nupkg' -delete \
-    && ilspycmd --version | grep -qxF "ilspycmd: ${ILSPYCMD_VERSION}" \
-    && rm -rf /tmp/dotnet-tools-home /tmp/NuGetScratch* \
-    && chmod -R a+rX /usr/local/share/dotnet-tools
+# from NuGet, when their source is not at hand.
+COPY --from=dotnet-tools /out/base/ /usr/local/
 
 ARG CODEX_VERSION=0.159.3
 ARG CLAUDE_CODE_VERSION=2.1.286
@@ -547,27 +568,8 @@ RUN case "${TARGETARCH}" in \
     && yq --version | grep -qF "v${YQ_VERSION}"
 
 # The .NET diagnostics tools trace, count and dump running .NET processes: the profiling side of
-# the toolchain that linux-perf and lldb cover for native code. They share the tool path and setup
-# that ilspycmd uses in the base stage; their unused package archives would add about 56 MB.
-ARG DOTNET_DIAGNOSTICS_VERSION=10.0.745401
-
-RUN export HOME=/tmp/dotnet-tools-home DOTNET_CLI_HOME=/tmp/dotnet-tools-home \
-    && install -d "${HOME}" \
-    && for tool in dotnet-counters dotnet-dump dotnet-trace; do \
-        dotnet tool install "${tool}" \
-            --tool-path /usr/local/share/dotnet-tools \
-            --version "${DOTNET_DIAGNOSTICS_VERSION}" \
-        && ln -s "/usr/local/share/dotnet-tools/${tool}" "/usr/local/bin/${tool}" \
-        && "${tool}" --version \
-        || exit 1; \
-    done \
-    && find /usr/local/share/dotnet-tools/.store -name '*.nupkg' -delete \
-    && dotnet-counters --version \
-    && rm -rf /tmp/dotnet-tools-home /tmp/NuGetScratch* \
-    && chmod -R a+rX /usr/local/share/dotnet-tools \
-    && if find /home/agent ! -user agent -print -quit | grep -q .; then \
-        echo "build left files under /home/agent not owned by agent" >&2; exit 1; \
-    fi
+# the toolchain that linux-perf and lldb cover for native code.
+COPY --from=dotnet-tools /out/full/ /usr/local/
 
 # Kind bind-mounts /lib/modules read-only into every node container. Podman fails the run when the
 # source path is missing where Docker would create it, and the Sandbox kernel is built without

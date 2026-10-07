@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "ilspycmd": {
+      "version": "11.1.0.9782",
+      "commands": ["ilspycmd"]
+    }
+  }
+}
