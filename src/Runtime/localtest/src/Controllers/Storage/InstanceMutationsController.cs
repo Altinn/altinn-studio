@@ -198,22 +198,13 @@ public class InstanceMutationsController(
             return completeConfirmationAuthorizationError;
         }
 
-        // As in Storage, an instance without a current task (an ended or not-started process)
-        // admits a process state only from its service owner, which is how the app releases an
-        // ended instance after its process-ended hook.
-        if (
-            mutationRequest.ProcessState?.State is not null
-            && !(
-                instance.Process?.CurrentTask is null
-                    ? User.GetOrg() is { } org && org == instance.Org
-                    : await _processAuthorizer.AuthorizeProcessNext(
-                        instance,
-                        mutationRequest.ProcessState.State
-                    )
-            )
-        )
+        ActionResult processStateAuthorizationError = await AuthorizeProcessStateMutation(
+            mutationRequest,
+            instance
+        );
+        if (processStateAuthorizationError is not null)
         {
-            return Forbid();
+            return processStateAuthorizationError;
         }
 
         Application application = await _applicationRepository.FindOne(
@@ -1213,6 +1204,29 @@ public class InstanceMutationsController(
         );
 
         return authorizationResult.Succeeded ? null : Forbid();
+    }
+
+    private async Task<ActionResult> AuthorizeProcessStateMutation(
+        InstanceMutationRequest request,
+        Instance instance
+    )
+    {
+        if (request.ProcessState?.State is not { } nextProcessState)
+        {
+            return null;
+        }
+
+        // As in Storage, an instance without a current task (an ended or not-started process)
+        // admits a process state only from its service owner, which is how the app releases an
+        // ended instance after its process-ended hook.
+        if (instance.Process?.CurrentTask is null)
+        {
+            return User.GetOrg() is { } org && org == instance.Org ? null : Forbid();
+        }
+
+        return await _processAuthorizer.AuthorizeProcessNext(instance, nextProcessState)
+            ? null
+            : Forbid();
     }
 
     private async Task<ActionResult> AuthorizeCompleteConfirmationMutation(
