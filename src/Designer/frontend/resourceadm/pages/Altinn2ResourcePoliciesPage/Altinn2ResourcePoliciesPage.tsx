@@ -71,7 +71,7 @@ const getTableData = (resource: ResourcePolicyData): TableRowData => {
   return {
     ...resource,
     a2Roles: [...a2Subjects].sort(),
-    otherRoles: [...[...otherSubjects].sort(), ...[...accessPackages].sort()],
+    otherRoles: [...[...otherSubjects].sort(), ...[...new Set(accessPackages)].sort()],
   };
 };
 
@@ -241,7 +241,7 @@ export const ResourcePolicyTable = ({
             a2Roles: (
               <div>
                 {x.a2Roles.map((role) => (
-                  <div key={role} className={classes.subject}>
+                  <div key={`${x.identifier}-${role}`} className={classes.subject}>
                     <PersonTallShortIcon />
                     {deprecatedAltinn2Roles[role] || role}
                   </div>
@@ -259,14 +259,14 @@ export const ResourcePolicyTable = ({
 
                   if (accessPackageName) {
                     return (
-                      <div key={role} className={classes.subject}>
+                      <div key={`${x.identifier}-${role}`} className={classes.subject}>
                         <PackageIcon />
                         {accessPackageName || role}
                       </div>
                     );
                   } else {
                     return (
-                      <div key={roleName ?? role} className={classes.subject}>
+                      <div key={`${x.identifier}-${roleName ?? role}`} className={classes.subject}>
                         <PersonTallShortIcon />
                         {roleName ?? role}
                       </div>
@@ -336,8 +336,11 @@ export const LocalPolicyEditor = ({
   const { data: accessPackages, isPending: isLoadingAccessPackages } =
     useResourceAccessPackagesQuery(org, app);
 
-  const { mutate: updatePolicyMutation, isError: isUpdatePolicyError } =
-    usePublishResourcePolicyMutation(org, app, tableData.identifier);
+  const {
+    mutate: updatePolicyMutation,
+    isError: isUpdatePolicyError,
+    isPending: isUpdatingPolicy,
+  } = usePublishResourcePolicyMutation(org, app, tableData.identifier);
 
   const publishNewPolicy = () => {
     updatePolicyMutation(
@@ -390,7 +393,7 @@ export const LocalPolicyEditor = ({
         />
       </StudioDialog.Block>
       <StudioDialog.Block className={classes.buttonRow}>
-        <StudioButton onClick={publishNewPolicy}>
+        <StudioButton onClick={publishNewPolicy} loading={isUpdatingPolicy}>
           {t('resourceadm.altinn2policy_publish')}
         </StudioButton>
         <StudioButton variant='tertiary' onClick={onClose}>
@@ -405,7 +408,7 @@ export const LocalPolicyEditor = ({
           data-color={numberOfAltinn2Roles === 0 ? 'success' : 'warning'}
           className={classes.altinn2RolesAlert}
         >
-          {t('resourceadm.altinn2policy_number_of_roles', { roles: numberOfAltinn2Roles })}
+          {t('resourceadm.altinn2policy_number_of_roles', { count: numberOfAltinn2Roles })}
         </StudioAlert>
       </StudioDialog.Block>
     </>
