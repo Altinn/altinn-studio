@@ -32,3 +32,10 @@ ALTINNAPP1009 | Process | Error | Duplicate element id in the process
 ALTINNAPP1010 | Process | Error | Exclusive gateway mixes flows with and without a condition
 ALTINNAPP1011 | Process | Warning | Exclusive gateways form a loop
 ALTINNAPP1012 | Process | Error | Exclusive gateway lists a flow with an empty condition
+ALTINNAPP1013 | Process | Error | Process references an unknown data type
+ALTINNAPP1014 | Process | Error | PDF service task has no data type to store its PDFs in
+ALTINNAPP1015 | Process | Error | Data type cannot hold what the task stores in it
+ALTINNAPP1016 | Process | Warning | Data type must be app-owned
+ALTINNAPP1017 | Process | Warning | Data type belongs to a task that does not exist
+ALTINNAPP1018 | Process | Warning | Process references a data type that the app skips
+ALTINNAPP1019 | Process | Warning | Exclusive gateway references an unknown data type
