@@ -1,0 +1,189 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "size": "L",
+        "id": "Header-fX9LfC",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.Header-fX9LfC.title"
+        }
+      },
+      {
+        "id": "Paragraph-XHM2lo",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.Paragraph-XHM2lo.title"
+        }
+      },
+      {
+        "id": "Styreleder-lookup",
+        "type": "PersonLookup",
+        "dataModelBindings": {
+          "person_lookup_ssn": "Styre.Styreleder.Foedselsnummer",
+          "person_lookup_name": "Styre.Styreleder.Etternavn"
+        },
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.Group-02BCRt.title"
+        },
+        "required": true
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "Styre.HarNestleder"
+        },
+        "id": "har-nestleder-checkbox",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.har-nestleder-checkbox.title"
+        },
+        "options": [
+          {
+            "label": "JnZveKSrltOi",
+            "value": "Ja"
+          }
+        ]
+      },
+      {
+        "id": "Nestleder-lookup",
+        "type": "PersonLookup",
+        "hidden": ["equals", ["component", "har-nestleder-checkbox"], null],
+        "dataModelBindings": {
+          "person_lookup_ssn": "Styre.Nestleder.Foedselsnummer",
+          "person_lookup_name": "Styre.Nestleder.Etternavn"
+        },
+        "textResourceBindings": {
+          "title": "Nestleder"
+        },
+        "required": true
+      },
+      {
+        "id": "Group-RepeatingGroup-ThvmON",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.RepeatingGroup-ThvmON.title"
+        },
+        "headingLevel": 4,
+        "children": ["RepeatingGroup-ThvmON"]
+      },
+      {
+        "id": "Group-ZQZ86T",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.Group-ZQZ86T.title"
+        },
+        "children": ["revisor-radio", "Group-hMnQkh"]
+      },
+      {
+        "id": "NavigationButtons-uebNGK",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      },
+      {
+        "dataModelBindings": {
+          "group": "Styre.Styremedlem"
+        },
+        "id": "RepeatingGroup-ThvmON",
+        "type": "RepeatingGroup",
+        "maxCount": 99999,
+        "children": ["Styremedlem-lookup"]
+      },
+      {
+        "id": "Styremedlem-lookup",
+        "type": "PersonLookup",
+        "dataModelBindings": {
+          "person_lookup_ssn": "Styre.Styremedlem.Foedselsnummer",
+          "person_lookup_name": "Styre.Styremedlem.Etternavn"
+        },
+        "textResourceBindings": {
+          "title": "Styremedlem"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "Revisor.HarRevisor"
+        },
+        "id": "revisor-radio",
+        "type": "RadioButtons",
+        "options": [
+          {
+            "label": "oaCgQfxaJNG1",
+            "value": "nei"
+          },
+          {
+            "label": "dJkCTKVMUIRE",
+            "value": "ja"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.RadioButtons-lupcRJ.title"
+        },
+        "required": true,
+        "layout": "column"
+      },
+      {
+        "id": "Group-hMnQkh",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.Group-hMnQkh.title"
+        },
+        "hidden": ["notEquals", ["component", "revisor-radio"], "ja"],
+        "children": ["org-nr-revisor", "Address-zMK6HS", "Input-revisor-epost"]
+      },
+      {
+        "id": "org-nr-revisor",
+        "type": "OrganisationLookup",
+        "hidden": ["equals", ["dataModel", "Revisor.HarRevisor"], "nei"],
+        "dataModelBindings": {
+          "organisation_lookup_orgnr": "Revisor.Organisasjonsnummer",
+          "organisation_lookup_name": "Revisor.Navn"
+        },
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.Input-X4c6ij.title",
+          "description": "Her legger du inn organisasjonsnummer",
+          "help": "Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene"
+        },
+        "required": true
+      },
+      {
+        "dataModelBindings": {
+          "address": "Revisor.Adresse.Adresselinje",
+          "zipCode": "Revisor.Adresse.Postnummer",
+          "postPlace": "Revisor.Adresse.Sted"
+        },
+        "simplified": true,
+        "saveWhileTyping": 400,
+        "id": "Address-zMK6HS",
+        "type": "Address",
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.Address-zMK6HS.title"
+        },
+        "hidden": [
+          "equals",
+          ["dataModel", "Revisor.Adresse.Adresselinje"],
+          null
+        ],
+        "readOnly": true
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "Revisor.Epost",
+            "dataType": "Skjemadata"
+          }
+        },
+        "id": "Input-revisor-epost",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.Input-LXbBzK.title"
+        },
+        "grid": {
+          "xs": 12,
+          "lg": 6
+        }
+      }
+    ]
+  }
+}
