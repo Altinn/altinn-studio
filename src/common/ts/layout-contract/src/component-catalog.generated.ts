@@ -5619,7 +5619,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
           value: 'Custom',

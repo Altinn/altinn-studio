@@ -41,9 +41,6 @@ export const Config = new CG.component({
     ),
   );
 
-// Shared label settings remain typed when a Custom component supplies a grid label.
-Config.extends(CG.common('LabeledComponentProps'));
-
 // Custom elements may define their own configuration and translated texts.
 Config.inner.additionalProperties(true);
 Config.inner.getProperty('textResourceBindings')?.type.additionalProperties(new CG.expr(ExprVal.String).optional());

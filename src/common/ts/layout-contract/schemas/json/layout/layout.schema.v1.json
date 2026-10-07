@@ -2626,9 +2626,6 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
-          "$ref": "#/definitions/LabeledComponentProps"
-        },
-        {
           "title": "CompCustomExternal",
           "type": "object",
           "properties": {
@@ -2705,7 +2702,6 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
             "removeWhenHidden": true,

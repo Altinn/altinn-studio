@@ -3,7 +3,6 @@ import {
   ComponentBase,
   FormComponentProps,
   IRawDataModelBinding,
-  LabeledComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
@@ -26,7 +25,6 @@ export type CompCustomSerialized = {
   [key: string]: unknown;
 } & ComponentBase &
   FormComponentProps &
-  SummarizableComponentProps &
-  LabeledComponentProps;
+  SummarizableComponentProps;
 
-// Source hash: a0fd17f966547e57c0a36fa2c555512248801127f3ec1366f25a78d6fc7f7786
+// Source hash: b50f2f94c56b24e5ed8f470824c9202e7f62daaf7d644d563df06721242fa9f2
