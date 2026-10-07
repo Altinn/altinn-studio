@@ -86,7 +86,7 @@ internal sealed class CommitProcessState(IAppMetadata appMetadata)
 
             if (!toStoragePayload.ServiceTaskFollows)
             {
-                unitOfWork.TransitionProcessStatus(ProcessStatus.Processing, ProcessStatus.Idle);
+                unitOfWork.ReleaseProcessingStatus();
                 instance.Process.Status = ProcessStatus.Idle;
             }
 

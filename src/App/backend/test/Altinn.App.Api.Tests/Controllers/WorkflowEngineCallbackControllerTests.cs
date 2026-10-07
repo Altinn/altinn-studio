@@ -112,13 +112,12 @@ public class WorkflowEngineCallbackControllerTests
             .Returns(Task.CompletedTask);
         setup = CreateSetup(services =>
         {
-            services.Services.AddSingleton<IWorkflowEngineCommand>(new AcquireProcessingStatus());
             services.Services.AddSingleton(processEngine.Object);
         });
         await using (setup)
         {
             var response = await setup.Execute(
-                AcquireProcessingStatus.Key,
+                ProcessingStatusAcquirer.Key,
                 Guid.NewGuid(),
                 CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(action)),
                 collectionKey: "acquire-chain"
@@ -202,7 +201,6 @@ public class WorkflowEngineCallbackControllerTests
                 services.Services.AddSingleton<ProcessStepOptionsResolver>();
                 services.Services.AddSingleton<ProcessNextRequestFactory>();
                 services.Services.AddSingleton<IWorkflowEngineService, WorkflowEngineService>();
-                services.Services.AddSingleton<IWorkflowEngineCommand>(new AcquireProcessingStatus());
                 services.Services.AddTransient<UserActionService>();
                 services.Services.AddTransient<IProcessEngine, ProcessEngine>();
                 services.Mock<IAuthenticationContext>();
@@ -233,7 +231,7 @@ public class WorkflowEngineCallbackControllerTests
         Guid stepId = Guid.NewGuid();
         string payload = CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(action))!;
         await Assert.ThrowsAsync<HttpRequestException>(() =>
-            setup.Execute(AcquireProcessingStatus.Key, stepId, payload, referenceTime, "acquire-chain")
+            setup.Execute(ProcessingStatusAcquirer.Key, stepId, payload, referenceTime, "acquire-chain")
         );
         var accepted = new WorkflowStatusResponse
         {
@@ -280,7 +278,7 @@ public class WorkflowEngineCallbackControllerTests
             secrets.Setup(s => s.GetValidationSecrets()).Returns([original, rotated]);
         }
         Assert.IsType<OkObjectResult>(
-            await setup.Execute(AcquireProcessingStatus.Key, stepId, payload, referenceTime, "acquire-chain")
+            await setup.Execute(ProcessingStatusAcquirer.Key, stepId, payload, referenceTime, "acquire-chain")
         );
         client.Verify(
             c => c.ListWorkflows("ttd/mocked-app", "acquire-chain", null, null, It.IsAny<CancellationToken>()),
@@ -298,7 +296,7 @@ public class WorkflowEngineCallbackControllerTests
         );
         var workflow = Assert.Single(requests[1].Workflows);
         Assert.Equal(setup.WorkflowId, Assert.Single(workflow.DependsOn!).Id);
-        Assert.DoesNotContain(workflow.Steps, step => step.OperationId == AcquireProcessingStatus.Key);
+        Assert.DoesNotContain(workflow.Steps, step => step.OperationId == ProcessingStatusAcquirer.Key);
         var commit = Assert.Single(workflow.Steps, step => step.OperationId == CommitProcessState.Key);
         var data = JsonSerializer.Deserialize<AppCommandData>(commit.Command.Data!.Value)!;
         var change = CommandPayloadSerializer.Deserialize<ProcessStateChangePayload>(data.Payload)!.ProcessStateChange;
@@ -319,10 +317,10 @@ public class WorkflowEngineCallbackControllerTests
     [Fact]
     public async Task ExecuteCommand_AcquireWithPayload_RequiresCollectionKey()
     {
-        await using var setup = CreateSetup(new AcquireProcessingStatus());
+        await using var setup = CreateSetup(_ => { });
         var response = Assert.IsType<ObjectResult>(
             await setup.Execute(
-                AcquireProcessingStatus.Key,
+                ProcessingStatusAcquirer.Key,
                 Guid.NewGuid(),
                 CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(null))
             )
@@ -331,30 +329,48 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal("Missing Collection-Key", Assert.IsType<ProblemDetails>(response.Value).Title);
     }
 
-    [Fact]
-    public async Task ExecuteCommand_AcquireWithPayload_OnConflict_DoesNotEnqueue()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExecuteCommand_AcquireWithPayload_WhenAnotherChangeGotThereFirst_CompletesWithoutContinuation(
+        bool statusConflict
+    )
     {
+        // A process/next acquire that loses is not a failure: the workflow completes, so whatever is queued behind
+        // it in the collection runs next, and the instance is left exactly as the other change left it.
         var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
         await using var setup = CreateSetup(services =>
         {
-            services.Services.AddSingleton<IWorkflowEngineCommand>(new AcquireProcessingStatus());
             services.Services.AddSingleton(processEngine.Object);
         });
-        setup.Services.Storage.SetStorageVersions(
-            InstanceOwnerPartyId,
-            setup.InstanceGuid,
-            instanceVersion: 2,
-            processStateVersion: 2
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+        if (statusConflict)
+        {
+            storedInstance.Process!.Status = ProcessStatus.Processing;
+            setup.Services.Storage.EnforceExpectedProcessStatus = true;
+        }
+        else
+        {
+            setup.Services.Storage.SetStorageVersions(
+                InstanceOwnerPartyId,
+                setup.InstanceGuid,
+                instanceVersion: 2,
+                processStateVersion: 2
+            );
+        }
+
+        IActionResult result = await setup.Execute(
+            ProcessingStatusAcquirer.Key,
+            Guid.NewGuid(),
+            CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload("reject")),
+            collectionKey: "acquire-chain"
         );
-        var result = Assert.IsType<ObjectResult>(
-            await setup.Execute(
-                AcquireProcessingStatus.Key,
-                Guid.NewGuid(),
-                CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload("reject")),
-                collectionKey: "acquire-chain"
-            )
-        );
-        Assert.Equal(StatusCodes.Status409Conflict, result.StatusCode);
+
+        var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
+        Assert.Equal(setup.State, response.State);
+        Assert.Null(response.Defer);
+        Assert.Equal(statusConflict ? ProcessStatus.Processing : null, storedInstance.Process!.Status);
+        Assert.Single(GetMutationRequests(setup.Services));
         processEngine.VerifyNoOtherCalls();
     }
 
@@ -364,12 +380,54 @@ public class WorkflowEngineCallbackControllerTests
         var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
         await using var setup = CreateSetup(services =>
         {
-            services.Services.AddSingleton<IWorkflowEngineCommand>(new AcquireProcessingStatus());
             services.Services.AddSingleton(processEngine.Object);
         });
-        Assert.IsType<OkObjectResult>(await setup.Execute(AcquireProcessingStatus.Key, Guid.NewGuid()));
+        Assert.IsType<OkObjectResult>(await setup.Execute(ProcessingStatusAcquirer.Key, Guid.NewGuid()));
         Assert.Single(GetMutationRequests(setup.Services));
         processEngine.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_AcquireWithStateForAnotherInstance_ReturnsNonRetryableInvalidStateWithoutMutation()
+    {
+        await using ControllerSetup setup = CreateSetup(
+            _ => { },
+            createState: (signer, instance) =>
+                signer.Sign(
+                    JsonSerializer.Serialize(
+                        new WorkflowCallbackState
+                        {
+                            Instance = new Instance
+                            {
+                                Id = $"{InstanceOwnerPartyId}/{Guid.NewGuid()}",
+                                AppId = instance.AppId,
+                                Org = instance.Org,
+                                InstanceOwner = instance.InstanceOwner,
+                                Process = instance.Process,
+                                Data = [],
+                            },
+                            InstanceVersion = 1,
+                            ProcessStateVersion = 1,
+                            FormData = [],
+                        }
+                    ),
+                    SigningDomain.CallbackState
+                )
+        );
+
+        IActionResult result = await setup.Execute(
+            ProcessingStatusAcquirer.Key,
+            Guid.NewGuid(),
+            CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(null)),
+            collectionKey: "acquire-chain"
+        );
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, objectResult.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
+        Assert.Equal("Invalid State", problem.Title);
+        Assert.True((bool)problem.Extensions["nonRetryable"]!);
+        Assert.Empty(GetMutationRequests(setup.Services));
     }
 
     [Fact]
@@ -724,9 +782,9 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_WhenAcquireGetsStaleInstanceVersion_ReturnsNonRetryableConflictWithoutMutation()
+    public async Task ExecuteCommand_WhenInitialProcessAcquireGetsStaleInstanceVersion_FailsPermanentlyWithoutMutation()
     {
-        await using ControllerSetup setup = CreateSetup(new AcquireProcessingStatus());
+        await using ControllerSetup setup = CreateSetup(_ => { });
         setup.Services.Storage.SetStorageVersions(
             InstanceOwnerPartyId,
             setup.InstanceGuid,
@@ -734,42 +792,33 @@ public class WorkflowEngineCallbackControllerTests
             processStateVersion: 1
         );
 
-        IActionResult result = await setup.Execute(AcquireProcessingStatus.Key, stepId: Guid.NewGuid());
+        IActionResult result = await setup.Execute(ProcessingStatusAcquirer.Key, stepId: Guid.NewGuid());
 
         var objectResult = Assert.IsType<ObjectResult>(result);
-        Assert.Equal(StatusCodes.Status409Conflict, objectResult.StatusCode);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, objectResult.StatusCode);
         var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
-        Assert.Equal("WorkflowAcquireConflict", problem.Title);
-        Assert.Contains("Refresh", problem.Detail, StringComparison.Ordinal);
+        Assert.Equal("The instance changed before its initial process could claim it.", problem.Detail);
         Assert.True((bool)problem.Extensions["nonRetryable"]!);
-        Assert.Equal(
-            AcquireProcessingStatus.ConcurrencyFailureCode,
-            problem.Extensions["workflowFailureCode"] as string
-        );
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
         Assert.True(ProcessStatusHelper.IsIdle(storedInstance));
         Assert.Single(GetMutationRequests(setup.Services));
     }
 
     [Fact]
-    public async Task ExecuteCommand_WhenAcquireGetsProcessStatusConflict_ReturnsNonRetryableConflictWithoutMutation()
+    public async Task ExecuteCommand_WhenInitialProcessAcquireGetsProcessStatusConflict_FailsPermanentlyWithoutMutation()
     {
-        await using ControllerSetup setup = CreateSetup(new AcquireProcessingStatus());
+        await using ControllerSetup setup = CreateSetup(_ => { });
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
         storedInstance.Process!.Status = ProcessStatus.Processing;
         setup.Services.Storage.EnforceExpectedProcessStatus = true;
 
-        IActionResult result = await setup.Execute(AcquireProcessingStatus.Key, stepId: Guid.NewGuid());
+        IActionResult result = await setup.Execute(ProcessingStatusAcquirer.Key, stepId: Guid.NewGuid());
 
         var objectResult = Assert.IsType<ObjectResult>(result);
-        Assert.Equal(StatusCodes.Status409Conflict, objectResult.StatusCode);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, objectResult.StatusCode);
         var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
-        Assert.Equal("WorkflowAcquireConflict", problem.Title);
+        Assert.Equal(nameof(StorageProcessStatusConflictException), problem.Title);
         Assert.True((bool)problem.Extensions["nonRetryable"]!);
-        Assert.Equal(
-            AcquireProcessingStatus.ConcurrencyFailureCode,
-            problem.Extensions["workflowFailureCode"] as string
-        );
         Assert.Equal(ProcessStatus.Processing, storedInstance.Process.Status);
         StorageClientInterceptor.RequestResponse mutation = Assert.Single(GetMutationRequests(setup.Services));
         Assert.Equal("application/problem+json", mutation.ResponseContentHeaders.ContentType?.MediaType);
@@ -788,24 +837,19 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_WhenAcquireGetsUnrelatedStorageConflict_DoesNotTagAcquireConflict()
+    public async Task ExecuteCommand_WhenAcquireGetsUnrelatedStorageConflict_PropagatesForTheEngineToRetry()
     {
-        await using ControllerSetup setup = CreateSetup(new AcquireProcessingStatus());
+        await using ControllerSetup setup = CreateSetup(_ => { });
         setup.Services.Storage.ForcedMutationConflictMessage = "unrelated conflict";
 
         PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
-            setup.Execute(AcquireProcessingStatus.Key, stepId: Guid.NewGuid())
+            setup.Execute(ProcessingStatusAcquirer.Key, stepId: Guid.NewGuid())
         );
 
         Assert.IsNotType<StorageProcessStatusConflictException>(exception);
         Assert.Equal(HttpStatusCode.Conflict, exception.Response.StatusCode);
         Assert.Contains("application/json", exception.Response.Headers["Content-Type"][0]);
         Assert.Equal("\"unrelated conflict\"", exception.Response.Content);
-        Assert.DoesNotContain(
-            AcquireProcessingStatus.ConcurrencyFailureCode,
-            exception.Message,
-            StringComparison.Ordinal
-        );
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
         Assert.True(ProcessStatusHelper.IsIdle(storedInstance));
         Assert.Single(GetMutationRequests(setup.Services));
@@ -945,13 +989,13 @@ public class WorkflowEngineCallbackControllerTests
     public async Task ExecuteCommand_AcquireProcessingStatus_PersistsAndRoundTripsThroughReplay()
     {
         await using ControllerSetup setup = CreateSetup(
-            new AcquireProcessingStatus(),
+            _ => { },
             (_, instance) => instance.Process!.Status = ProcessStatus.Idle
         );
         Guid stepId = Guid.NewGuid();
 
-        IActionResult first = await setup.Execute(AcquireProcessingStatus.Key, stepId);
-        IActionResult replay = await setup.Execute(AcquireProcessingStatus.Key, stepId);
+        IActionResult first = await setup.Execute(ProcessingStatusAcquirer.Key, stepId);
+        IActionResult replay = await setup.Execute(ProcessingStatusAcquirer.Key, stepId);
 
         var firstState = setup.DeserializeState(
             Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(first).Value).State!
@@ -1177,6 +1221,7 @@ public class WorkflowEngineCallbackControllerTests
         );
         configureServices(services);
         services.Services.AddSingleton<WorkflowCallbackStateService>();
+        services.Services.AddTransient<ProcessingStatusAcquirer>();
         services.Services.AddTransient<WorkflowStateSigner>();
         var stateSigningCode = new AppCode
         {

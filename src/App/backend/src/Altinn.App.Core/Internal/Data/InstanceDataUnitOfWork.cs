@@ -87,7 +87,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private readonly ConcurrentDictionary<string, bool> _pendingDataTypeLockStatuses = new(StringComparer.Ordinal);
 
     private ProcessStateChange? _stagedProcessStateChange;
-    private ProcessStatusTransition? _stagedProcessStatusTransition;
+    private bool _stagedProcessingRelease;
     private bool _stagedInstanceDeletion;
     private bool _stagedCompleteConfirmation;
     private readonly Dictionary<string, string?> _stagedInstanceDataValues = new(StringComparer.Ordinal);
@@ -541,21 +541,21 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _stagedProcessStateChange = processStateChange;
     }
 
-    internal void TransitionProcessStatus(ProcessStatus expectedProcessStatus, ProcessStatus newProcessStatus)
+    /// <summary>
+    /// Stages the release from processing to idle, alone or together with a staged process state change. This is
+    /// the only status change a workflow-owned save makes: they all expect processing, which
+    /// <see cref="WorkflowEngine.ProcessingStatusAcquirer"/> claims outside the unit of work.
+    /// </summary>
+    internal void ReleaseProcessingStatus()
     {
-        if (_stagedProcessStatusTransition is not null)
-        {
-            throw new InvalidOperationException("A process status transition is already staged.");
-        }
-
         if (_instance.Process is null)
         {
             throw new InvalidOperationException(
-                "Cannot stage a process status transition before the process state is initialized."
+                "Cannot release the processing status before the process state is initialized."
             );
         }
 
-        _stagedProcessStatusTransition = new ProcessStatusTransition(expectedProcessStatus, newProcessStatus);
+        _stagedProcessingRelease = true;
     }
 
     internal void HardDeleteInstance()
@@ -792,7 +792,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             workflowOwned: true,
             StorageAuthenticationMethod.ServiceOwner(),
             GetWorkflowOwnedWritePreconditions(_storageVersions, idempotencyKey),
-            expectedProcessStatus: _stagedProcessStatusTransition?.ExpectedProcessStatus ?? ProcessStatus.Processing,
+            expectedProcessStatus: ProcessStatus.Processing,
             cancellationToken
         );
 
@@ -924,7 +924,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
         if (
             _stagedProcessStateChange is not null
-            || _stagedProcessStatusTransition is not null
+            || _stagedProcessingRelease
             || _stagedInstanceDeletion
             || _stagedCompleteConfirmation
         )
@@ -1096,18 +1096,18 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private void ApplyStagedProcessState(StorageInstanceMutationRequest request)
     {
         // Storage carries the status inside the process payload, and a process update replaces the whole
-        // process object, so a status-only transition rides an update synthesized from the in-memory
-        // process. Every workflow-owned process update is therefore authoritative for the entire process
-        // shape, which the instance and process state version preconditions make safe.
+        // process object, so a release without a process state change rides an update synthesized from the
+        // in-memory process. Every workflow-owned process update is therefore authoritative for the entire
+        // process shape, which the instance and process state version preconditions make safe.
         ProcessState? state =
             _stagedProcessStateChange?.NewProcessState?.Copy()
-            ?? (_stagedProcessStatusTransition is null ? null : _instance.Process?.Copy());
+            ?? (_stagedProcessingRelease ? _instance.Process?.Copy() : null);
         if (state is null)
         {
             return;
         }
 
-        state.Status = _stagedProcessStatusTransition?.NewProcessStatus ?? ProcessStatus.Processing;
+        state.Status = _stagedProcessingRelease ? ProcessStatus.Idle : ProcessStatus.Processing;
         request.ProcessState = new StorageInstanceMutationProcessStateUpdate
         {
             State = state,
@@ -1164,7 +1164,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private void ClearStagedInstanceMutations()
     {
         _stagedProcessStateChange = null;
-        _stagedProcessStatusTransition = null;
+        _stagedProcessingRelease = false;
         _stagedInstanceDeletion = false;
         _stagedCompleteConfirmation = false;
         _stagedInstanceDataValues.Clear();
@@ -1578,8 +1578,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             || Request.ProcessState?.State is not null
             || Request.ProcessState?.Events?.Count > 0;
     }
-
-    private sealed record ProcessStatusTransition(ProcessStatus ExpectedProcessStatus, ProcessStatus NewProcessStatus);
 
     internal async Task<ReadOnlyMemory<byte>> GetPersistedBinaryData(DataElementIdentifier dataElementIdentifier)
     {

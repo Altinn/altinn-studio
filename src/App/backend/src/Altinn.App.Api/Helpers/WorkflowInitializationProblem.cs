@@ -45,7 +45,6 @@ internal static class WorkflowInitializationProblem
                 instanceDeleted,
                 workflowAccepted,
                 processStateChanged,
-                workflowFailure,
                 submissionStatusCode
             ),
             InitializationState = state,
@@ -82,22 +81,11 @@ internal static class WorkflowInitializationProblem
         bool? instanceDeleted,
         bool? workflowAccepted,
         bool processStateChanged,
-        WorkflowFailure? workflowFailure,
         HttpStatusCode? submissionStatusCode
     ) =>
-        (
-            state,
-            recommendedAction,
-            instanceDeleted,
-            workflowAccepted,
-            processStateChanged,
-            workflowFailure?.Kind,
-            submissionStatusCode
-        ) switch
+        (state, recommendedAction, instanceDeleted, workflowAccepted, processStateChanged, submissionStatusCode) switch
         {
-            (_, _, _, true, false, WorkflowFailureKind.AcquireConflict, _) =>
-                "The initial workflow could not acquire the captured instance version. The instance was left unchanged and the failed workflow was written off. Inspect the instance before retrying.",
-            (WorkflowInitializationState.WorkflowNotAccepted, _, _, _, _, _, HttpStatusCode.Conflict) =>
+            (WorkflowInitializationState.WorkflowNotAccepted, _, _, _, _, HttpStatusCode.Conflict) =>
                 "Another initial workflow was submitted from the same instance version with different content. Inspect the instance before retrying.",
             (
                 WorkflowInitializationState.WorkflowNotAccepted,
@@ -105,17 +93,16 @@ internal static class WorkflowInitializationProblem
                 true,
                 _,
                 _,
-                _,
                 _
             ) =>
                 "Runtime created the instance, but the initial workflow was not accepted by the workflow engine. The created instance was deleted, so the client can safely retry instance creation.",
-            (WorkflowInitializationState.WorkflowNotAccepted, _, false, _, _, _, _) =>
+            (WorkflowInitializationState.WorkflowNotAccepted, _, false, _, _, _) =>
                 "Runtime created the instance, but the initial workflow was not accepted by the workflow engine. Runtime could not delete the created instance, so inspect the instance before retrying instance creation.",
-            (WorkflowInitializationState.WorkflowAcceptanceUnknown, _, _, _, _, _, _) =>
+            (WorkflowInitializationState.WorkflowAcceptanceUnknown, _, _, _, _, _) =>
                 "Runtime submitted the initial workflow, but could not determine whether the workflow engine accepted it. Inspect the instance and workflow state before retrying instance creation.",
-            (WorkflowInitializationState.WorkflowFailed, _, _, true, true, _, _) =>
+            (WorkflowInitializationState.WorkflowFailed, _, _, true, true, _) =>
                 "The workflow engine accepted the initial workflow, but the workflow failed after process state may have been updated in Storage. Do not create a duplicate instance; resolve the workflow failure and call the resume endpoint.",
-            (WorkflowInitializationState.WorkflowFailed, _, _, true, _, _, _) =>
+            (WorkflowInitializationState.WorkflowFailed, _, _, true, _, _) =>
                 "The workflow engine accepted the initial workflow, but the workflow failed before instance initialization completed. Do not create a duplicate instance; resolve the workflow failure and call the resume endpoint.",
             _ => "Runtime could not complete instance initialization. Inspect the response details before retrying.",
         };

@@ -1683,22 +1683,6 @@ public class InstancesController : ControllerBase
         string app
     )
     {
-        if (exception.WorkflowFailure.Kind == WorkflowFailureKind.AcquireConflict)
-        {
-            return WorkflowInitializationProblem.Create(
-                _logger,
-                exception,
-                message,
-                state: WorkflowInitializationState.WorkflowFailed,
-                instance: exception.Instance,
-                recommendedAction: WorkflowRecommendedAction.InspectInstance,
-                workflowFailure: exception.WorkflowFailure,
-                workflowAccepted: true,
-                processStateChanged: false,
-                statusCode: StatusCodes.Status409Conflict
-            );
-        }
-
         return WorkflowInitializationProblem.Create(
             _logger,
             exception,

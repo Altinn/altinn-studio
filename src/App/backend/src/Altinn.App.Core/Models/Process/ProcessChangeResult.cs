@@ -134,6 +134,12 @@ public enum ProcessNextState
     /// The workflow for the current task failed and must be resumed before continuing.
     /// </summary>
     ResumeRequired,
+
+    /// <summary>
+    /// The instance changed after the request read it, so the process did not move on and nothing was performed.
+    /// Refresh the instance and try again.
+    /// </summary>
+    InstanceChanged,
 }
 
 /// <summary>
@@ -233,13 +239,6 @@ public enum WorkflowFailureKind
     /// Polling timed out before the workflow dependency graph reached a terminal state.
     /// </summary>
     Timeout,
-
-    /// <summary>
-    /// The first workflow step could not acquire process ownership because the captured
-    /// instance version or process status was no longer current. The workflow was written off
-    /// without side effects, so the caller should refresh the instance and retry the action.
-    /// </summary>
-    AcquireConflict,
 }
 
 /// <summary>

@@ -279,19 +279,25 @@ internal class ProcessEngine : IProcessEngine
             return result;
         }
 
-        CurrentTaskWorkflowState currentTaskWorkflowState = await _workflowEngineService.GetCurrentTaskWorkflowState(
+        // The same status the instance read shows the client, so a task shown as failed is the task that can be
+        // resumed here.
+        WorkflowTaskStatus workflowStatus = await _workflowEngineService.ResolveWorkflowTaskStatus(
             instance,
             cancellationToken
         );
 
-        if (currentTaskWorkflowState is CurrentTaskWorkflowState.Retrying)
+        if (workflowStatus.Status == WorkflowActivityStatus.Processing)
         {
             ProcessChangeResult retryingResult = CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.Retrying);
             activity?.SetProcessChangeResult(retryingResult);
             return retryingResult;
         }
 
-        if (currentTaskWorkflowState is not CurrentTaskWorkflowState.ResumeRequired failedWorkflow)
+        if (
+            workflowStatus.Status != WorkflowActivityStatus.Failed
+            || (workflowStatus.Failure?.RetryTargetWorkflowId ?? workflowStatus.Failure?.WorkflowId)
+                is not Guid failedWorkflowId
+        )
         {
             var result = new ProcessChangeResult
             {
@@ -306,8 +312,8 @@ internal class ProcessEngine : IProcessEngine
 
         ProcessNextWorkflowResult workflowResult = await _workflowEngineService.ResumeAndWaitForWorkflow(
             instance,
-            failedWorkflow.WorkflowId,
-            failedWorkflow.CollectionKey,
+            failedWorkflowId,
+            ProcessNextRequestFactory.CreateCollectionKey(new InstanceIdentifier(instance)),
             cancellationToken
         );
 
@@ -413,40 +419,11 @@ internal class ProcessEngine : IProcessEngine
         bool rejectAllowedForTask =
             checkedAction == "reject" && _processReader.IsActionAllowedForTask(currentTaskId, checkedAction);
 
-        CurrentTaskWorkflowState currentTaskWorkflowState = await _workflowEngineService.GetCurrentTaskWorkflowState(
-            instance,
-            cancellationToken
-        );
-        switch (currentTaskWorkflowState)
-        {
-            case CurrentTaskWorkflowState.Unblocked:
-                break;
-
-            case CurrentTaskWorkflowState.Retrying:
-            {
-                ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.Retrying);
-                activity?.SetProcessChangeResult(blockedResult);
-                return blockedResult;
-            }
-
-            // A terminally failed workflow owns the task until it is explicitly resumed through
-            // process/resume. No process/next action can supersede it, reject included: the failed
-            // task may already have performed work that a reject cannot undo.
-            case CurrentTaskWorkflowState.ResumeRequired:
-            {
-                ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(
-                    ProcessNextState.ResumeRequired
-                );
-                activity?.SetProcessChangeResult(blockedResult);
-                return blockedResult;
-            }
-
-            default:
-                throw new UnreachableException(
-                    $"Unknown current-task workflow state: {currentTaskWorkflowState.GetType().Name}"
-                );
-        }
-
+        // Earlier workflows are not checked here: the instance can move between such a check and the enqueue, so the
+        // outcome of this call's own workflow is what answers it. Its acquire queues behind whatever the instance's
+        // collection holds and claims the instance only if nothing has changed since this request read it. A terminally
+        // failed workflow condemns it without running, so no action, reject included, can supersede a failed task
+        // before it is resumed. While a transition actually owns the instance, this status check refuses the call.
         ProcessStatus? blockingProcessStatus = ProcessStatusHelper.GetBlockingStatus(instance);
         if (blockingProcessStatus is not null)
         {
@@ -551,25 +528,46 @@ internal class ProcessEngine : IProcessEngine
             cancellationToken
         );
 
+        // A workflow that failed terminally before this call condemned its acquire without running it. That failed
+        // workflow owns the task until it is resumed through process/resume.
+        if (moveToNextResult.WorkflowFailure?.Kind == WorkflowFailureKind.DependencyFailed)
+        {
+            ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.ResumeRequired);
+            activity?.SetProcessChangeResult(blockedResult);
+            return blockedResult;
+        }
+
         if (moveToNextResult.WorkflowFailure is not null)
         {
             var failureResult = new ProcessChangeResult(moveToNextResult.Instance, moveToNextResult.Versions)
             {
                 Success = false,
-                ErrorType =
-                    moveToNextResult.WorkflowFailure.Kind == WorkflowFailureKind.AcquireConflict
-                        ? ProcessErrorType.Conflict
-                        : ProcessErrorType.Internal,
-                ErrorTitle =
-                    moveToNextResult.WorkflowFailure.Kind == WorkflowFailureKind.AcquireConflict
-                        ? "The instance changed before the transition started."
-                        : "Something went wrong while moving to the next task.",
+                ErrorType = ProcessErrorType.Internal,
+                ErrorTitle = "Something went wrong while moving to the next task.",
                 ErrorMessage = CreateWorkflowFailureMessage(moveToNextResult.WorkflowFailure),
                 WorkflowFailure = moveToNextResult.WorkflowFailure,
                 ProcessStateOnFailure = moveToNextResult.ProcessStateChanged ? moveToNextResult.Instance.Process : null,
             };
             activity?.SetProcessChangeResult(failureResult);
             return failureResult;
+        }
+
+        // A lost acquire completes its workflow without a transition, so no failure does not mean the call worked.
+        // What the caller asked for is that the process moves on from the task they acted on, whether this call's
+        // transition did it or one queued behind it.
+        if (!HasAdvanced(moveToNextResult.ProcessStateChange))
+        {
+            var instanceChangedResult = new ProcessChangeResult(moveToNextResult.Instance, moveToNextResult.Versions)
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Conflict,
+                ErrorTitle = "The instance changed before the transition started.",
+                ErrorMessage =
+                    "The instance changed after this request read it, so the process did not move on. Refresh the instance and try again.",
+                ProcessNextState = ProcessNextState.InstanceChanged,
+            };
+            activity?.SetProcessChangeResult(instanceChangedResult);
+            return instanceChangedResult;
         }
 
         var changeResult = new ProcessChangeResult(moveToNextResult.Instance, moveToNextResult.Versions)
@@ -581,6 +579,14 @@ internal class ProcessEngine : IProcessEngine
         activity?.SetProcessChangeResult(changeResult);
         return changeResult;
     }
+
+    /// <summary>
+    /// Whether the process left the task it was on. The flow number rises on every task entry, so a gateway leading
+    /// back to the same task still counts, and an ended process has no current task at all.
+    /// </summary>
+    private static bool HasAdvanced(ProcessStateChange? processStateChange) =>
+        ProcessNextRequestFactory.CreateProcessNextId(processStateChange?.OldProcessState?.CurrentTask)
+        != ProcessNextRequestFactory.CreateProcessNextId(processStateChange?.NewProcessState?.CurrentTask);
 
     private async Task<ProcessChangeResult?> GetValidationError(
         Instance instance,
@@ -1145,8 +1151,6 @@ internal class ProcessEngine : IProcessEngine
             WorkflowFailureKind.EngineFault => workflowFailure.LastError?.Message
                 ?? "The workflow engine failed while moving to the next task.",
             WorkflowFailureKind.Timeout => "Timeout while waiting for workflows to complete.",
-            WorkflowFailureKind.AcquireConflict =>
-                "The instance changed before the process transition could start. Refresh the instance and try again.",
             _ => "Workflow execution failed.",
         };
 

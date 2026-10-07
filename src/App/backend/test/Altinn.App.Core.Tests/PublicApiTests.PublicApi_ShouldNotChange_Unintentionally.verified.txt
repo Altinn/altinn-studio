@@ -5206,6 +5206,7 @@ namespace Altinn.App.Core.Models.Process
     {
         Retrying = 0,
         ResumeRequired = 1,
+        InstanceChanged = 2,
     }
     public class ProcessStartRequest
     {
@@ -5259,7 +5260,6 @@ namespace Altinn.App.Core.Models.Process
         DependencyFailed = 1,
         EngineFault = 2,
         Timeout = 3,
-        AcquireConflict = 4,
     }
     [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Process.JsonCamelCaseEnumConverter))]
     public enum WorkflowSubmissionFailureKind

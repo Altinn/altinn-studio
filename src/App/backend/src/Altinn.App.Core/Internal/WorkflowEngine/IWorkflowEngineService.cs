@@ -39,17 +39,11 @@ internal interface IWorkflowEngineService
         CancellationToken cancellationToken = default
     );
 
-    Task<CurrentTaskWorkflowState> GetCurrentTaskWorkflowState(
-        Instance instance,
-        CancellationToken cancellationToken = default
-    );
-
     /// <summary>
-    /// Resolves the live status of the current task's transition for read-path enrichment:
-    /// whether a workflow is idle, processing (executing / auto-retrying) or failed, together with
-    /// the task the transition targets and — for the failed case — the failure detail. Unlike
-    /// <see cref="GetCurrentTaskWorkflowState"/> (which the process engine uses for control flow),
-    /// this is a presentation projection and carries no engine ids.
+    /// Resolves the live status of the current task's transition: whether a workflow is idle,
+    /// processing (executing / auto-retrying) or failed, together with the task the transition
+    /// targets and — for the failed case — the failure detail. Read-path enrichment projects it for
+    /// clients, and process/resume resumes the failed workflow it names.
     /// </summary>
     Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(
         Instance instance,

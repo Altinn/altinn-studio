@@ -54,7 +54,7 @@ describe('ServiceTaskFailed retry button', () => {
   });
 
   it('retries a workflow failure owned by this service task via process/resume, not process/next', async () => {
-    // A terminally failed workflow blocks process/next (409/resumeRequired) until it is resumed,
+    // A terminally failed workflow blocks process/next until it is resumed,
     // so when the failure is owned by the current service task the retry button must go through
     // POST process/resume - the engine re-runs the failed step in place.
     const user = userEvent.setup();
@@ -83,7 +83,7 @@ describe('ServiceTaskFailed retry button', () => {
 
   it('never issues process/next - retry is always a resume of the failed workflow', async () => {
     // This view only renders for a failure owned by the current service task, where process/next
-    // is 409-blocked (resumeRequired). A parked-but-healthy service task renders the waiting view
+    // is refused with 409. A parked-but-healthy service task renders the waiting view
     // instead, with no retry affordance at all.
     const user = userEvent.setup();
     const instance = getServiceTaskInstance({

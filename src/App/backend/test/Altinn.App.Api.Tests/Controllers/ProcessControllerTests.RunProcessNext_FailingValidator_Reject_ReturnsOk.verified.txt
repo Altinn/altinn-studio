@@ -703,16 +703,6 @@
         }
       ],
       HasParent: true
-    },
-    {
-      Name: SerializationService.SerializeXml,
-      IdFormat: W3C,
-      Tags: [
-        {
-          Type: Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema
-        }
-      ],
-      HasParent: true
     }
   ],
   Metrics: [

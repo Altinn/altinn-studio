@@ -9,6 +9,16 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- `PUT .../process/next` with concurrent changes to the instance:
+    - when the instance changed after the call read it, the call answers `409 Conflict` with `processNextState: "instanceChanged"` and does nothing; try again
+    - a call made while an earlier one has not started yet, or on the same instance version as an earlier one, waits for it instead of being refused
+
+### Removed
+
+- Breaking: `WorkflowFailureKind.AcquireConflict` and the `acquireConflict` workflow failure kind in process responses. A `PUT .../process/next` that another change got to first answers `processNextState: "instanceChanged"` instead.
+
 ## [9.0.0-preview.7] - 2026-10-07
 
 ### Added

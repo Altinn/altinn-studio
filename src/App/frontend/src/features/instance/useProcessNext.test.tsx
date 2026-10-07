@@ -137,21 +137,29 @@ describe('useProcessNext workflow error convergence', () => {
     expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
   });
 
-  it('a blocked 409 with processNextState=retrying is swallowed and converges on the advancing screen', async () => {
+  it('a 409 with processNextState=instanceChanged tells the user the form changed before it was submitted', async () => {
+    const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
     const user = userEvent.setup();
     await renderFailingProcessNext(
       {
-        title: 'Task is still being processed.',
-        processNextState: 'retrying',
+        title: 'The instance changed before the transition started.',
+        processNextState: 'instanceChanged',
         validationIssues: null,
       },
       409,
-      { status: 'processing', targetTask: 'Task_2' },
+      { status: 'idle' },
     );
 
     await user.click(screen.getByRole('button', { name: 'submit-probe' }));
 
-    await waitFor(() => expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'workflow-processing'));
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({ props: { id: 'process_error.instance_changed' } }),
+        expect.objectContaining({ type: 'error' }),
+      ),
+    );
+    expect(logError).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'submit-probe' })).toBeInTheDocument();
   });
 
   it('a bodiless timeout uses the refetched processing state instead of showing a toast', async () => {

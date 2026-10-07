@@ -519,7 +519,7 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal("Process next: Mark instance as processing", workflow.OperationId);
         var step = Assert.Single(workflow.Steps);
         var command = JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!;
-        Assert.Equal(AcquireProcessingStatus.Key, command.CommandKey);
+        Assert.Equal(ProcessingStatusAcquirer.Key, command.CommandKey);
         var payload = Assert.IsType<AcquireProcessingStatusPayload>(
             CommandPayloadSerializer.Deserialize<CommandRequestPayload>(command.Payload)
         );
@@ -545,7 +545,7 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal("Task_1:0", acquire.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
         Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetIdLabel));
         Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
-        Assert.DoesNotContain(AcquireProcessingStatus.Key, ExtractCommandKeys(dependent));
+        Assert.DoesNotContain(ProcessingStatusAcquirer.Key, ExtractCommandKeys(dependent));
     }
 
     [Theory]
@@ -1040,7 +1040,7 @@ public class ProcessNextRequestFactoryTests
 
         var expected = new List<string>
         {
-            AcquireProcessingStatus.Key,
+            ProcessingStatusAcquirer.Key,
             // Task start commands only
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
@@ -1957,7 +1957,7 @@ public class ProcessNextRequestFactoryTests
         Assert.DoesNotContain("DeleteInstanceIfConfigured", keys);
         // Other process end commands should still be present
         Assert.Contains(EndProcessLegacyHook.Key, keys);
-        Assert.Equal(AcquireProcessingStatus.Key, keys[0]);
+        Assert.Equal(ProcessingStatusAcquirer.Key, keys[0]);
         Assert.True(keys.IndexOf(OnProcessEndingHook.Key) < keys.IndexOf(CommitProcessState.Key));
         Assert.True(keys.IndexOf(OnProcessEndingHook.Key) < keys.IndexOf(EndProcessLegacyHook.Key));
         Assert.True(keys.IndexOf(EndProcessLegacyHook.Key) < keys.IndexOf(CommitProcessState.Key));
@@ -1980,7 +1980,7 @@ public class ProcessNextRequestFactoryTests
         );
 
         var keys = ExtractCommandKeys(bundle);
-        Assert.DoesNotContain(AcquireProcessingStatus.Key, keys);
+        Assert.DoesNotContain(ProcessingStatusAcquirer.Key, keys);
         Assert.Equal(EndTask.Key, keys[0]);
         Assert.Equal("dependent-idempotency-key", bundle.IdempotencyKey);
         Assert.Equal("signed-state", bundle.Request.Workflows.Single().State);

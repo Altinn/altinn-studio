@@ -26,7 +26,7 @@ import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 type ProcessNextProblemDetails = ProblemDetails & {
   validationIssues?: BackendValidationIssue[] | null;
-  processNextState?: 'retrying' | 'resumeRequired';
+  processNextState?: 'retrying' | 'resumeRequired' | 'instanceChanged';
   workflowFailure?: IProcessWorkflowFailure;
 };
 
@@ -78,8 +78,8 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
           // The workflow engine can report a live status synchronously via the process/next error body.
           // Map it onto the same state machine ProcessWrapper drives off the polled workflow.status, so a
           // synchronous failure and a polled status render identically:
-          //  - a blocked call (409 with processNextState): 'retrying' means the transition is still in
-          //    flight (processing), 'resumeRequired' means it failed terminally (failed);
+          //  - a call queued behind a terminally failed workflow (409 with processNextState
+          //    'resumeRequired'): the refetched status resolves to failed;
           //  - the failing/timed-out call itself (500/504 with a workflowFailure extension): the refetched
           //    status resolves to failed (terminal) or processing (timeout — the engine keeps retrying).
           // In all cases we refetch the (live-enriched) instance and swallow the error rather than showing
@@ -88,7 +88,7 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
           // meaningful to show than the state machine's localized screens.
           const processNextState = error.response?.data?.processNextState;
           const workflowFailure = error.response?.data?.workflowFailure;
-          if (processNextState === 'retrying' || processNextState === 'resumeRequired' || workflowFailure) {
+          if (processNextState === 'resumeRequired' || workflowFailure) {
             const refetchResult = await reFetchInstanceData();
             if (refetchResult.isError) {
               throw refetchResult.error;
@@ -142,6 +142,13 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
       const { data: newInstance } = await reFetchInstanceData();
       const newCurrentTask = newInstance?.process?.currentTask;
 
+      // Another change reached the instance first, so nothing was submitted. Load the current data, so the user
+      // can review what changed before trying again.
+      const instanceChanged = error.response?.data?.processNextState === 'instanceChanged';
+      if (instanceChanged) {
+        await invalidateFormDataQueries(queryClient);
+      }
+
       if (newCurrentTask?.elementId && newCurrentTask?.elementId !== process?.currentTask?.elementId) {
         navigateToTask(newCurrentTask.elementId);
       }
@@ -150,7 +157,10 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
         return;
       }
 
-      toast(<Lang id={error.response?.data?.detail ?? error.message ?? 'process_error.submit_error_please_retry'} />, {
+      const textId = instanceChanged
+        ? 'process_error.instance_changed'
+        : (error.response?.data?.detail ?? error.message ?? 'process_error.submit_error_please_retry');
+      toast(<Lang id={textId} />, {
         type: 'error',
         autoClose: false,
       });
@@ -185,12 +195,11 @@ export function useProcessNextOutsideFormProvider({ action }: ProcessNextProps =
 /**
  * Resumes the terminally failed workflow that owns the current task (POST process/resume). This is
  * the engine-era analogue of "retry the service task": the engine re-runs the failed step (and its
- * dependents) in place, whereas a plain process/next is rejected with 409/resumeRequired while the
- * workflow is failed. The mutation shares the process/next scope so resuming and advancing can never
- * run concurrently, but deliberately not its mutation key: the key gates ProcessWrapper's
- * full-screen loader, so the failed task view stays mounted (button spinner) until the instance poll
- * that runs while a resume is pending reports the workflow processing, and the transition loader
- * takes over.
+ * dependents) in place, whereas a plain process/next is refused while the workflow is failed. The
+ * mutation shares the process/next scope so resuming and advancing can never run concurrently, but
+ * deliberately not its mutation key: the key gates ProcessWrapper's full-screen loader, so the failed
+ * task view stays mounted (button spinner) until the instance poll that runs while a resume is
+ * pending reports the workflow processing, and the transition loader takes over.
  */
 export function useProcessResume() {
   const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;

@@ -5,7 +5,6 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
-using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -92,6 +91,27 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
+        // State must always be provided — every workflow is enqueued with a captured state blob.
+        if (payload.State is null)
+        {
+            _logger.LogError(
+                "State blob is missing from callback payload. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                commandKey,
+                instanceId
+            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Missing state blob");
+            return NonRetryableProblem(
+                "Missing State",
+                "State blob is missing from callback payload.",
+                StatusCodes.Status422UnprocessableEntity
+            );
+        }
+
+        if (commandKey == ProcessingStatusAcquirer.Key)
+        {
+            return await AcquireProcessingStatus(instanceId, payload, payload.State, activity, cancellationToken);
+        }
+
         IWorkflowEngineCommand? command = _serviceProvider
             .GetServices<IWorkflowEngineCommand>()
             .FirstOrDefault(x => x.GetKey() == commandKey);
@@ -112,22 +132,6 @@ public class WorkflowEngineCallbackController : ControllerBase
         }
 
         // Restore instance and form data from the opaque state blob.
-        // State must always be provided — every workflow is enqueued with a captured state blob.
-        if (payload.State is null)
-        {
-            _logger.LogError(
-                "State blob is missing from callback payload. CommandKey: {CommandKey}, Instance: {InstanceId}.",
-                commandKey,
-                instanceId
-            );
-            activity?.SetStatus(ActivityStatusCode.Error, "Missing state blob");
-            return NonRetryableProblem(
-                "Missing State",
-                "State blob is missing from callback payload.",
-                StatusCodes.Status422UnprocessableEntity
-            );
-        }
-
         InstanceDataUnitOfWork instanceDataUnitOfWork;
         WorkflowCallbackStateCarry stateCarry;
         try
@@ -220,25 +224,6 @@ public class WorkflowEngineCallbackController : ControllerBase
                         currentTaskId
                     );
                 }
-                catch (Exception ex)
-                    when (commandKey == AcquireProcessingStatus.Key
-                        && ex is StorageProcessStatusConflictException or InstanceDataStaleException
-                    )
-                {
-                    _logger.LogWarning(
-                        ex,
-                        "Storage rejected workflow process-status acquisition. Instance: {InstanceId}, Task: {TaskId}.",
-                        instanceId,
-                        currentTaskId
-                    );
-                    activity?.SetStatus(ActivityStatusCode.Error, "Workflow acquire conflict");
-                    return NonRetryableProblem(
-                        "WorkflowAcquireConflict",
-                        "The instance changed before the process transition could start. Refresh the instance and try again.",
-                        StatusCodes.Status409Conflict,
-                        AcquireProcessingStatus.ConcurrencyFailureCode
-                    );
-                }
                 catch (InstanceDataStaleException ex)
                 {
                     _logger.LogError(
@@ -281,37 +266,17 @@ public class WorkflowEngineCallbackController : ControllerBase
                     return Ok(new AppCallbackResponse { State = updatedState });
                 }
 
-                // Process-next continuation runs AFTER save so its state includes Storage-assigned IDs; the enqueue is
-                // idempotency-keyed, so a retried callback is safe.
                 if (success.ProcessNextContinuation is { } processNextContinuation)
                 {
-                    string collectionKey = Request.Headers[CollectionKeyHeader].ToString();
-                    if (string.IsNullOrWhiteSpace(collectionKey))
-                    {
-                        _logger.LogError(
-                            "Workflow callback is missing the '{Header}' header required for process-next continuation. CommandKey: {CommandKey}, Instance: {InstanceId}.",
-                            CollectionKeyHeader,
-                            commandKey,
-                            instanceId
-                        );
-                        activity?.SetStatus(ActivityStatusCode.Error, "Missing Collection-Key header");
-                        return NonRetryableProblem(
-                            "Missing Collection-Key",
-                            "Workflow callback is missing the Collection-Key header required for process-next continuation.",
-                            StatusCodes.Status422UnprocessableEntity
-                        );
-                    }
-
-                    var processEngine = _serviceProvider.GetRequiredService<IProcessEngine>();
-                    await processEngine.EnqueueProcessNext(
+                    return await ContinueWithProcessNext(
+                        processNextContinuation,
+                        commandKey,
+                        instanceId,
+                        payload,
                         instanceDataUnitOfWork,
-                        payload.Actor,
-                        payload.WorkflowId,
-                        collectionKey,
                         updatedState,
-                        payload.ExecutionReferenceTime,
-                        processNextContinuation.Action,
-                        cancellationToken: cancellationToken
+                        activity,
+                        cancellationToken
                     );
                 }
 
@@ -447,6 +412,147 @@ public class WorkflowEngineCallbackController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Serves the acquire step. It commits its own compare-and-set instead of staging changes for the save path
+    /// above, because its outcome decides what happens next (see <see cref="ProcessingStatusAcquirer"/>).
+    /// </summary>
+    private async Task<IActionResult> AcquireProcessingStatus(
+        InstanceIdentifier instanceId,
+        AppCallbackPayload payload,
+        string state,
+        Activity? activity,
+        CancellationToken cancellationToken
+    )
+    {
+        ProcessingStatusAcquisition acquisition;
+        try
+        {
+            acquisition = await _serviceProvider
+                .GetRequiredService<ProcessingStatusAcquirer>()
+                .Acquire(instanceId, payload, state, cancellationToken);
+        }
+        catch (WorkflowCallbackStateException e)
+        {
+            _logger.LogError(
+                e,
+                "Failed to restore workflow callback state. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                ProcessingStatusAcquirer.Key,
+                instanceId
+            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Invalid callback state");
+            return NonRetryableProblem(
+                "Invalid State",
+                "Workflow callback state could not be restored for this instance.",
+                StatusCodes.Status422UnprocessableEntity
+            );
+        }
+
+        switch (acquisition)
+        {
+            case ProcessingStatusAcquisition.Acquired acquired:
+            {
+                string updatedState = await _workflowCallbackStateService.CaptureState(
+                    acquired.UnitOfWork,
+                    acquired.Carry
+                );
+                if (acquired.ProcessNextContinuation is { } processNextContinuation)
+                {
+                    return await ContinueWithProcessNext(
+                        processNextContinuation,
+                        ProcessingStatusAcquirer.Key,
+                        instanceId,
+                        payload,
+                        acquired.UnitOfWork,
+                        updatedState,
+                        activity,
+                        cancellationToken
+                    );
+                }
+
+                activity?.SetStatus(ActivityStatusCode.Ok);
+                return Ok(new AppCallbackResponse { State = updatedState });
+            }
+
+            case ProcessingStatusAcquisition.Superseded superseded:
+                // Expected whenever another change reaches the instance between a process/next request and its
+                // acquire. The workflow completes without a transition, and whatever is queued behind it runs next.
+                _logger.LogInformation(
+                    "Process/next acquire lost to a newer change and completes without a transition. Instance: {InstanceId}, Storage status: {StatusCode}.",
+                    instanceId,
+                    (int)superseded.Exception.Response.StatusCode
+                );
+                activity?.SetStatus(ActivityStatusCode.Ok);
+                return Ok(new AppCallbackResponse { State = state });
+
+            case ProcessingStatusAcquisition.Rejected rejected:
+                _logger.LogError(
+                    "Callback handler failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Error: {ErrorMessage}, ExceptionType: {ExceptionType}",
+                    ProcessingStatusAcquirer.Key,
+                    instanceId,
+                    rejected.Message,
+                    rejected.ExceptionType
+                );
+                activity?.SetStatus(ActivityStatusCode.Error, rejected.Message);
+                return NonRetryableProblem(
+                    rejected.ExceptionType,
+                    rejected.Message,
+                    StatusCodes.Status422UnprocessableEntity
+                );
+
+            default:
+                throw new UnreachableException($"Unknown acquisition outcome: {acquisition.GetType().Name}");
+        }
+    }
+
+    /// <summary>
+    /// Enqueues the dependent process-next workflow and answers the callback. Runs after the save, so the
+    /// continuation's state includes Storage-assigned ids. The enqueue is idempotency-keyed, so a retried callback is
+    /// safe.
+    /// </summary>
+    private async Task<IActionResult> ContinueWithProcessNext(
+        ProcessNextContinuation processNextContinuation,
+        string commandKey,
+        InstanceIdentifier instanceId,
+        AppCallbackPayload payload,
+        InstanceDataUnitOfWork unitOfWork,
+        string updatedState,
+        Activity? activity,
+        CancellationToken cancellationToken
+    )
+    {
+        string collectionKey = Request.Headers[CollectionKeyHeader].ToString();
+        if (string.IsNullOrWhiteSpace(collectionKey))
+        {
+            _logger.LogError(
+                "Workflow callback is missing the '{Header}' header required for process-next continuation. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                CollectionKeyHeader,
+                commandKey,
+                instanceId
+            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Missing Collection-Key header");
+            return NonRetryableProblem(
+                "Missing Collection-Key",
+                "Workflow callback is missing the Collection-Key header required for process-next continuation.",
+                StatusCodes.Status422UnprocessableEntity
+            );
+        }
+
+        var processEngine = _serviceProvider.GetRequiredService<IProcessEngine>();
+        await processEngine.EnqueueProcessNext(
+            unitOfWork,
+            payload.Actor,
+            payload.WorkflowId,
+            collectionKey,
+            updatedState,
+            payload.ExecutionReferenceTime,
+            processNextContinuation.Action,
+            cancellationToken: cancellationToken
+        );
+
+        activity?.SetStatus(ActivityStatusCode.Ok);
+        return Ok(new AppCallbackResponse { State = updatedState });
+    }
+
     /// <summary>Hands one verdict to the relay. The controller decides only <em>when</em> it runs.</summary>
     private Task RunMailboxRelay(
         MailboxContinuation continuation,
@@ -477,12 +583,7 @@ public class WorkflowEngineCallbackController : ControllerBase
         );
     }
 
-    private static ObjectResult NonRetryableProblem(
-        string title,
-        string detail,
-        int statusCode,
-        string? workflowFailureCode = null
-    )
+    private static ObjectResult NonRetryableProblem(string title, string detail, int statusCode)
     {
         var problemDetails = new ProblemDetails
         {
@@ -491,10 +592,6 @@ public class WorkflowEngineCallbackController : ControllerBase
             Status = statusCode,
         };
         problemDetails.Extensions["nonRetryable"] = true;
-        if (workflowFailureCode is not null)
-        {
-            problemDetails.Extensions["workflowFailureCode"] = workflowFailureCode;
-        }
         return new ObjectResult(problemDetails) { StatusCode = statusCode };
     }
 }

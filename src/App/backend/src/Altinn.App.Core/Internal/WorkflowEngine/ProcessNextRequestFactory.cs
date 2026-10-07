@@ -182,7 +182,7 @@ internal sealed class ProcessNextRequestFactory
             new WorkflowRequest
             {
                 OperationId = $"{MainOperationIdPrefix} Mark instance as processing",
-                Steps = [CreateCommand(AcquireProcessingStatus.Key, new AcquireProcessingStatusPayload(action))],
+                Steps = [CreateCommand(ProcessingStatusAcquirer.Key, new AcquireProcessingStatusPayload(action))],
                 State = state,
             },
         ];
@@ -482,7 +482,7 @@ internal sealed class ProcessNextRequestFactory
         var commands = new List<StepRequest>();
         if (acquireProcessingStatus)
         {
-            commands.Add(CreateCommand(AcquireProcessingStatus.Key));
+            commands.Add(CreateCommand(ProcessingStatusAcquirer.Key));
         }
         commands.AddRange(taskEndSteps);
         if (taskEndSteps.Count > 0)

@@ -112,9 +112,9 @@ internal static class WorkflowEngineCommandValidator
             keys
         );
 
-        // AcquireProcessingStatus, MutateProcessState, CommitProcessState, and EnqueueSideEffectsWorkflow
-        // are inserted by ProcessNextRequestFactory rather than declared in WorkflowCommandSet
-        keys.Add(AcquireProcessingStatus.Key);
+        // MutateProcessState, CommitProcessState, and EnqueueSideEffectsWorkflow are inserted by
+        // ProcessNextRequestFactory rather than declared in WorkflowCommandSet. So is AcquireProcessingStatus,
+        // but it is served by ProcessingStatusAcquirer rather than by a registered command.
         keys.Add(MutateProcessState.Key);
         keys.Add(CommitProcessState.Key);
         keys.Add(EnqueueSideEffectsWorkflow.Key);

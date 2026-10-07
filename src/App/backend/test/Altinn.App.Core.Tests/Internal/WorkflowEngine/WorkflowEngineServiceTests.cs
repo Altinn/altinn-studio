@@ -47,7 +47,7 @@ public class WorkflowEngineServiceTests
         var acquire = CreateWorkflowStatus(
             createdAt,
             databaseId: acquireId,
-            steps: [CreateStep(AcquireProcessingStatus.Key, PersistentItemStatus.Completed)]
+            steps: [CreateStep(ProcessingStatusAcquirer.Key, PersistentItemStatus.Completed)]
         );
         var continuation = CreateWorkflowStatus(
             createdAt.AddMilliseconds(1),
@@ -73,7 +73,7 @@ public class WorkflowEngineServiceTests
             .Callback<string, string, string?, WorkflowEnqueueRequest, CancellationToken>(
                 (_, _, _, request, _) =>
                     Assert.Equal(
-                        AcquireProcessingStatus.Key,
+                        ProcessingStatusAcquirer.Key,
                         Assert.Single(Assert.Single(request.Workflows).Steps).OperationId
                     )
             )
@@ -132,7 +132,7 @@ public class WorkflowEngineServiceTests
             case PersistentItemStatus.Failed:
                 Assert.Equal(WorkflowFailureKind.StepFailed, result.WorkflowFailure!.Kind);
                 Assert.Equal(continuationId, result.WorkflowFailure.WorkflowId);
-                Assert.DoesNotContain(continuation.Steps, step => step.OperationId == AcquireProcessingStatus.Key);
+                Assert.DoesNotContain(continuation.Steps, step => step.OperationId == ProcessingStatusAcquirer.Key);
                 continuationStatus = PersistentItemStatus.Completed;
                 continuation = continuation with
                 {
@@ -191,10 +191,6 @@ public class WorkflowEngineServiceTests
                 );
                 break;
         }
-        client.Verify(
-            c => c.AbandonWorkflow(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
     }
 
     [Theory]
@@ -202,7 +198,7 @@ public class WorkflowEngineServiceTests
     [InlineData(false, false)]
     [InlineData(true, true)]
     [InlineData(false, true)]
-    public async Task ProcessNext_AcquireAndContinuationPreserveAdmissionAndTargetTask(bool acquiring, bool failed)
+    public async Task ProcessNext_AcquireAndContinuationResolveStatusAndTargetTask(bool acquiring, bool failed)
     {
         var instance = CreateInstance(Guid.NewGuid());
         string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
@@ -223,33 +219,12 @@ public class WorkflowEngineServiceTests
             databaseId: workflowId,
             collectionKey: collectionKey,
             labels: labels,
-            steps: [CreateStep(acquiring ? AcquireProcessingStatus.Key : CommitProcessState.Key, status)]
+            steps: [CreateStep(acquiring ? ProcessingStatusAcquirer.Key : CommitProcessState.Key, status)]
         );
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         client
-            .Setup(c =>
-                c.ListWorkflows(
-                    Namespace,
-                    It.IsAny<string?>(),
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                (
-                    string _,
-                    string? _,
-                    Dictionary<string, string>? filter,
-                    IReadOnlyList<PersistentItemStatus>? _,
-                    CancellationToken _
-                ) =>
-                    (IReadOnlyList<WorkflowStatusResponse>)(
-                        filter is null || filter.All(label => labels.GetValueOrDefault(label.Key) == label.Value)
-                            ? [workflow]
-                            : []
-                    )
-            );
+            .Setup(c => c.ListWorkflows(Namespace, collectionKey, null, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([workflow]);
         client
             .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(
@@ -270,14 +245,11 @@ public class WorkflowEngineServiceTests
                 }
             );
         var service = CreateService(client, Mock.Of<IInstanceClientWithStorageMetadata>());
-        var admission = await service.GetCurrentTaskWorkflowState(instance);
+        WorkflowTaskStatus resolved = await service.ResolveWorkflowTaskStatus(instance);
+        Assert.Equal(failed ? WorkflowActivityStatus.Failed : WorkflowActivityStatus.Processing, resolved.Status);
+        Assert.Equal(acquiring ? null : "Task_2", resolved.TargetTask);
         if (failed)
-            Assert.Equal(workflowId, Assert.IsType<CurrentTaskWorkflowState.ResumeRequired>(admission).WorkflowId);
-        else
-            Assert.Equal(workflowId, Assert.IsType<CurrentTaskWorkflowState.Retrying>(admission).WorkflowId);
-        var projection = await service.ResolveWorkflowTaskStatus(instance);
-        Assert.Equal(failed ? WorkflowActivityStatus.Failed : WorkflowActivityStatus.Processing, projection.Status);
-        Assert.Equal(acquiring ? null : "Task_2", projection.TargetTask);
+            Assert.Equal(workflowId, resolved.Failure?.RetryTargetWorkflowId ?? resolved.Failure?.WorkflowId);
     }
 
     [Theory]
@@ -503,6 +475,141 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
+    public async Task EnqueueAndWaitForProcessNext_EngineIdempotencyConflictWaitsOnTheWorkflowHoldingTheKey()
+    {
+        // Another process/next on the same instance version, with another body, already enqueued the one acquire
+        // that version can have. Its outcome answers this call too. A workflow written off under the same key has
+        // released it and is not the one to wait on.
+        var instance = CreateInstance(Guid.NewGuid());
+        var versions = new StorageVersionMetadata(InstanceVersion: 3, ProcessStateVersion: 2);
+        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
+        string? idempotencyKey = null;
+        Guid existingAcquireId = Guid.NewGuid();
+        Guid continuationId = Guid.NewGuid();
+        DateTimeOffset createdAt = DateTimeOffset.UtcNow;
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    Namespace,
+                    It.IsAny<string>(),
+                    collectionKey,
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<string, string, string?, WorkflowEnqueueRequest, CancellationToken>(
+                (_, key, _, _, _) => idempotencyKey = key
+            )
+            .ThrowsAsync(new HttpRequestException("idempotency conflict", null, HttpStatusCode.Conflict));
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(() =>
+                [
+                    CreateWorkflowStatus(createdAt.AddMinutes(-1), PersistentItemStatus.Abandoned) with
+                    {
+                        IdempotencyKey = idempotencyKey!,
+                    },
+                    CreateWorkflowStatus(
+                        createdAt,
+                        databaseId: existingAcquireId,
+                        steps: [CreateStep(ProcessingStatusAcquirer.Key, PersistentItemStatus.Completed)]
+                    ) with
+                    {
+                        IdempotencyKey = idempotencyKey!,
+                    },
+                    CreateWorkflowStatus(
+                        createdAt.AddMilliseconds(1),
+                        databaseId: continuationId,
+                        steps: [CreateStep(CommitProcessState.Key, PersistentItemStatus.Completed)]
+                    ),
+                ]
+            );
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateCollection(collectionKey, continuationId, PersistentItemStatus.Completed));
+        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c =>
+                c.GetInstanceWithStorageMetadata(
+                    instance,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, versions));
+        var service = CreateService(client, instanceClient.Object);
+
+        ProcessNextWorkflowResult result = await service.EnqueueAndWaitForProcessNext(
+            instance,
+            versions,
+            "state",
+            action: null,
+            language: null
+        );
+
+        Assert.Null(result.WorkflowFailure);
+        Assert.True(result.ProcessStateChanged);
+        Assert.Equal($"process-next-operation-{new InstanceIdentifier(instance).InstanceGuid:N}-3", idempotencyKey);
+    }
+
+    [Fact]
+    public async Task EnqueueAndWaitForProcessNext_EngineIdempotencyConflictWithoutAWorkflowHoldingTheKeyIsNotAccepted()
+    {
+        var instance = CreateInstance(Guid.NewGuid());
+        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    Namespace,
+                    It.IsAny<string>(),
+                    collectionKey,
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new HttpRequestException("idempotency conflict", null, HttpStatusCode.Conflict));
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([CreateWorkflowStatus(DateTimeOffset.UtcNow)]);
+        var service = CreateService(client, Mock.Of<IInstanceClientWithStorageMetadata>());
+
+        WorkflowSubmissionFailedException exception = await Assert.ThrowsAsync<WorkflowSubmissionFailedException>(() =>
+            service.EnqueueAndWaitForProcessNext(
+                instance,
+                new StorageVersionMetadata(InstanceVersion: 3, ProcessStateVersion: 2),
+                "state",
+                action: null,
+                language: null
+            )
+        );
+
+        Assert.Equal(WorkflowSubmissionFailureKind.NotAccepted, exception.Kind);
+        Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
+        client.Verify(
+            c => c.GetCollection(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
     public async Task EnqueueAndWaitForInitialProcessState_SameVersionReusesKeyWhileTransitionAndActorRemainInBody()
     {
         var instance = CreateInstance(Guid.NewGuid());
@@ -677,178 +784,7 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
-    public async Task EnqueueAndWaitForInitialProcessState_AcquireConflictRePollsAfterAbandonCasLossThenWritesOff()
-    {
-        Guid workflowId = Guid.NewGuid();
-        var instance = CreateInstance(Guid.NewGuid());
-        var versions = new StorageVersionMetadata(InstanceVersion: 9, ProcessStateVersion: 4);
-        WorkflowStatusResponse failedWorkflow = CreateFailedWorkflow(
-            workflowId,
-            AcquireProcessingStatus.Key,
-            processingOrder: 0,
-            httpStatusCode: null,
-            wasRetryable: false
-        );
-        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
-        client
-            .Setup(c =>
-                c.EnqueueWorkflows(
-                    Namespace,
-                    It.IsAny<string>(),
-                    instance.Id!.Split('/')[1],
-                    It.IsAny<WorkflowEnqueueRequest>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                new WorkflowEnqueueResponse.Accepted
-                {
-                    Workflows = [new WorkflowResult { DatabaseId = workflowId, Namespace = Namespace }],
-                }
-            );
-        client
-            .Setup(c => c.GetCollection(Namespace, It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                new WorkflowCollectionDetailResponse
-                {
-                    Key = instance.Id!.Split('/')[1],
-                    Namespace = Namespace,
-                    Heads =
-                    [
-                        new CollectionHeadStatus { DatabaseId = workflowId, Status = PersistentItemStatus.Failed },
-                    ],
-                    CreatedAt = DateTimeOffset.UtcNow,
-                }
-            );
-        client
-            .Setup(c =>
-                c.ListWorkflows(
-                    Namespace,
-                    It.IsAny<string>(),
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([failedWorkflow]);
-        client
-            .SetupSequence(c => c.AbandonWorkflow(Namespace, workflowId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false)
-            .ReturnsAsync(true);
-        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
-        instanceClient
-            .Setup(c =>
-                c.GetInstanceWithStorageMetadata(
-                    instance,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new InstanceWithStorageMetadata(instance, versions));
-        var timeProvider = new FakeTimeProvider();
-        var service = CreateService(client, instanceClient.Object, timeProvider: timeProvider);
-
-        Task<ProcessNextWorkflowResult> resultTask = service.EnqueueAndWaitForInitialProcessState(
-            instance,
-            versions,
-            CreateProcessStateChange(instance)
-        );
-        Assert.False(resultTask.IsCompleted);
-        timeProvider.Advance(TimeSpan.FromMilliseconds(100));
-        ProcessNextWorkflowResult result = await resultTask;
-
-        Assert.Equal(WorkflowFailureKind.AcquireConflict, result.WorkflowFailure?.Kind);
-        Assert.False(result.ProcessStateChanged);
-        client.Verify(c => c.AbandonWorkflow(Namespace, workflowId, It.IsAny<CancellationToken>()), Times.Exactly(2));
-    }
-
-    [Fact]
-    public async Task ResumeAndWaitForWorkflow_RepeatedAbandonCasLossCannotBypassPollingDeadline()
-    {
-        Guid workflowId = Guid.NewGuid();
-        const string collectionKey = "acquire-conflict-chain";
-        var instance = CreateInstance(Guid.NewGuid());
-        var versions = new StorageVersionMetadata(InstanceVersion: 9, ProcessStateVersion: 4);
-        WorkflowStatusResponse failedWorkflow = CreateFailedWorkflow(
-            workflowId,
-            AcquireProcessingStatus.Key,
-            processingOrder: 0,
-            httpStatusCode: StatusCodes.Status409Conflict,
-            wasRetryable: false
-        );
-        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
-        client
-            .Setup(c => c.ResumeWorkflow(Namespace, workflowId, true, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
-        client
-            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                new WorkflowCollectionDetailResponse
-                {
-                    Key = collectionKey,
-                    Namespace = Namespace,
-                    Heads =
-                    [
-                        new CollectionHeadStatus { DatabaseId = workflowId, Status = PersistentItemStatus.Failed },
-                    ],
-                    CreatedAt = DateTimeOffset.UtcNow,
-                }
-            );
-        client
-            .Setup(c =>
-                c.ListWorkflows(
-                    Namespace,
-                    collectionKey,
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([failedWorkflow]);
-        int abandonAttempts = 0;
-        using var abandonAttemptObserved = new SemaphoreSlim(0);
-        client
-            .Setup(c => c.AbandonWorkflow(Namespace, workflowId, It.IsAny<CancellationToken>()))
-            .Callback(() =>
-            {
-                Interlocked.Increment(ref abandonAttempts);
-                abandonAttemptObserved.Release();
-            })
-            .ReturnsAsync(false);
-        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
-        instanceClient
-            .Setup(c =>
-                c.GetInstanceWithStorageMetadata(
-                    instance,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new InstanceWithStorageMetadata(instance, versions));
-        var timeProvider = new FakeTimeProvider();
-        var service = CreateService(client, instanceClient.Object, timeProvider: timeProvider);
-
-        Task<ProcessNextWorkflowResult> resultTask = service.ResumeAndWaitForWorkflow(
-            instance,
-            workflowId,
-            collectionKey
-        );
-        Assert.True(await abandonAttemptObserved.WaitAsync(TimeSpan.FromSeconds(5)));
-        for (int attempt = 1; attempt < 3; attempt++)
-        {
-            timeProvider.Advance(TimeSpan.FromSeconds(2));
-            Assert.True(await abandonAttemptObserved.WaitAsync(TimeSpan.FromSeconds(5)));
-        }
-        timeProvider.Advance(TimeSpan.FromSeconds(101));
-
-        ProcessNextWorkflowResult result = await resultTask.WaitAsync(TimeSpan.FromSeconds(5));
-
-        Assert.Equal(WorkflowFailureKind.Timeout, result.WorkflowFailure?.Kind);
-        Assert.True(abandonAttempts >= 3);
-    }
-
-    [Fact]
-    public async Task ResumeAndWaitForWorkflow_FailureAfterAcquireRemainsResumableAndIsNotWrittenOff()
+    public async Task ResumeAndWaitForWorkflow_FailureAfterAcquireRemainsResumable()
     {
         Guid workflowId = Guid.NewGuid();
         const string collectionKey = "transition-chain";
@@ -907,120 +843,6 @@ public class WorkflowEngineServiceTests
 
         Assert.Equal(WorkflowFailureKind.StepFailed, result.WorkflowFailure?.Kind);
         Assert.Equal("resumeWorkflow", result.WorkflowFailure?.RetryAction);
-        client.Verify(
-            c => c.AbandonWorkflow(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
-    }
-
-    [Fact]
-    public async Task ResumeAndWaitForWorkflow_UnrelatedAcquireConflictRemainsResumableAndIsNotWrittenOff()
-    {
-        Guid workflowId = Guid.NewGuid();
-        const string collectionKey = "unrelated-acquire-conflict";
-        var instance = CreateInstance(Guid.NewGuid());
-        var versions = new StorageVersionMetadata(InstanceVersion: 12, ProcessStateVersion: 8);
-        WorkflowStatusResponse failedWorkflow = CreateFailedWorkflow(
-            workflowId,
-            AcquireProcessingStatus.Key,
-            processingOrder: 0,
-            httpStatusCode: StatusCodes.Status409Conflict,
-            wasRetryable: false,
-            includeAcquireConcurrencyCode: false
-        );
-        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
-        client
-            .Setup(c => c.ResumeWorkflow(Namespace, workflowId, true, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
-        client
-            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                new WorkflowCollectionDetailResponse
-                {
-                    Key = collectionKey,
-                    Namespace = Namespace,
-                    Heads =
-                    [
-                        new CollectionHeadStatus { DatabaseId = workflowId, Status = PersistentItemStatus.Failed },
-                    ],
-                    CreatedAt = DateTimeOffset.UtcNow,
-                }
-            );
-        client
-            .Setup(c =>
-                c.ListWorkflows(
-                    Namespace,
-                    collectionKey,
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([failedWorkflow]);
-        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
-        instanceClient
-            .Setup(c =>
-                c.GetInstanceWithStorageMetadata(
-                    instance,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new InstanceWithStorageMetadata(instance, versions));
-        var service = CreateService(client, instanceClient.Object);
-
-        ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(instance, workflowId, collectionKey);
-
-        Assert.Equal(WorkflowFailureKind.StepFailed, result.WorkflowFailure?.Kind);
-        Assert.Equal("resumeWorkflow", result.WorkflowFailure?.RetryAction);
-        client.Verify(
-            c => c.AbandonWorkflow(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
-    }
-
-    [Fact]
-    public async Task GetCurrentTaskWorkflowState_AbandonedAcquireDoesNotRequireResume()
-    {
-        Guid workflowId = Guid.NewGuid();
-        const string collectionKey = "instance-collection";
-        var instance = CreateInstance(Guid.NewGuid());
-        var workflow = CreateWorkflowStatus(DateTimeOffset.UtcNow, PersistentItemStatus.Abandoned) with
-        {
-            DatabaseId = workflowId,
-            CollectionKey = collectionKey,
-        };
-        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
-        client
-            .Setup(c =>
-                c.ListWorkflows(
-                    Namespace,
-                    null,
-                    It.IsAny<Dictionary<string, string>?>(),
-                    null,
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([workflow]);
-        client
-            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                new WorkflowCollectionDetailResponse
-                {
-                    Key = collectionKey,
-                    Namespace = Namespace,
-                    Heads =
-                    [
-                        new CollectionHeadStatus { DatabaseId = workflowId, Status = PersistentItemStatus.Abandoned },
-                    ],
-                    CreatedAt = DateTimeOffset.UtcNow,
-                }
-            );
-        var service = CreateService(client, Mock.Of<IInstanceClientWithStorageMetadata>());
-
-        CurrentTaskWorkflowState state = await service.GetCurrentTaskWorkflowState(instance);
-
-        Assert.IsType<CurrentTaskWorkflowState.Unblocked>(state);
     }
 
     [Fact]
@@ -2147,26 +1969,6 @@ public class WorkflowEngineServiceTests
             },
         };
 
-    [Fact]
-    public void BuildWorkflowFailure_DoesNotClassifyFailureAfterAcquireAsAcquireConflict()
-    {
-        Guid workflowId = Guid.NewGuid();
-        WorkflowStatusResponse workflow = CreateFailedWorkflow(
-            workflowId,
-            CommitProcessState.Key,
-            processingOrder: 1,
-            httpStatusCode: (int)HttpStatusCode.Conflict,
-            wasRetryable: false,
-            precedingCompletedAcquire: true
-        );
-
-        WorkflowFailure? failure = WorkflowEngineService.BuildWorkflowFailure([workflow]);
-
-        Assert.Equal(WorkflowFailureKind.StepFailed, failure?.Kind);
-        Assert.Equal("resumeWorkflow", failure?.RetryAction);
-        Assert.Equal(workflowId, failure?.RetryTargetWorkflowId);
-    }
-
     private static WorkflowCollectionDetailResponse CreateCollection(
         string collectionKey,
         Guid headId,
@@ -2220,8 +2022,7 @@ public class WorkflowEngineServiceTests
         int processingOrder,
         int? httpStatusCode,
         bool wasRetryable,
-        bool precedingCompletedAcquire = false,
-        bool includeAcquireConcurrencyCode = true
+        bool precedingCompletedAcquire = false
     )
     {
         var steps = new List<StepStatusResponse>();
@@ -2231,7 +2032,7 @@ public class WorkflowEngineServiceTests
                 new StepStatusResponse
                 {
                     DatabaseId = Guid.NewGuid(),
-                    OperationId = AcquireProcessingStatus.Key,
+                    OperationId = ProcessingStatusAcquirer.Key,
                     ProcessingOrder = 0,
                     Command = new StepStatusResponse.CommandDetails { Type = "app" },
                     Status = PersistentItemStatus.Completed,
@@ -2251,16 +2052,7 @@ public class WorkflowEngineServiceTests
                 RetryCount = 0,
                 ErrorHistory =
                 [
-                    new ErrorEntry(
-                        DateTimeOffset.UtcNow,
-                        failedOperationId == AcquireProcessingStatus.Key && includeAcquireConcurrencyCode
-                            ? "AppCommand failed with client error Conflict: "
-                                + "{\"workflowFailureCode\":\"acquireConcurrencyConflict\","
-                                + "\"detail\":\"Refresh and retry.\"}"
-                            : "Workflow callback failed.",
-                        httpStatusCode,
-                        wasRetryable
-                    ),
+                    new ErrorEntry(DateTimeOffset.UtcNow, "Workflow callback failed.", httpStatusCode, wasRetryable),
                 ],
             }
         );
