@@ -121,6 +121,35 @@ describe('ReleaseContainer', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('renders an error instead of a spinner when the current branch cannot be fetched', async () => {
+    const getBranchStatus = jest.fn();
+    renderReleaseContainer({
+      getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve(repoStatus)),
+      getCurrentBranch: jest.fn().mockImplementation(() => Promise.reject(new Error())),
+      getBranchStatus,
+    });
+
+    expect(
+      await screen.findByText(textMock('app_create_release_errors.fetch_release_failed')),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(textMock('app_create_release.loading'))).not.toBeInTheDocument();
+    expect(getBranchStatus).not.toHaveBeenCalled();
+  });
+
+  it('renders an error instead of asking the user to share the branch when the branch status cannot be fetched', async () => {
+    renderReleaseContainer({
+      getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve(repoStatus)),
+      getBranchStatus: jest.fn().mockImplementation(() => Promise.reject(new Error())),
+    });
+
+    expect(
+      await screen.findByText(textMock('app_create_release_errors.fetch_release_failed')),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_create_release.branch_not_shared')),
+    ).not.toBeInTheDocument();
+  });
+
   it('renders that there are no changes when an earlier release was built from the latest commit on the branch', async () => {
     const mockGetAppReleases = jest.fn().mockImplementation(() =>
       Promise.resolve({

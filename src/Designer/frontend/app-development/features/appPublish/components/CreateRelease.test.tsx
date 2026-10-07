@@ -192,6 +192,26 @@ describe('CreateRelease', () => {
     });
   });
 
+  it('does not create a release when the latest commit on the branch cannot be fetched', async () => {
+    const user = userEvent.setup();
+    const mockCreateRelease = jest.fn();
+    renderCreateRelease({
+      getBranchStatus: jest.fn().mockImplementation(() => Promise.reject(new Error())),
+      createRelease: mockCreateRelease,
+    });
+
+    const inputVersionNumber = screen.getByLabelText(
+      textMock('app_create_release.release_version_number'),
+    );
+    await user.type(inputVersionNumber, 'v1');
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_create_release.build_version') }),
+    );
+
+    expect(mockCreateRelease).not.toHaveBeenCalled();
+    expect(inputVersionNumber).toHaveValue('v1');
+  });
+
   it('disables build version button when tag name is invalid', async () => {
     const user = userEvent.setup();
     renderCreateRelease();
