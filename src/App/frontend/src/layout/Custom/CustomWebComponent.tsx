@@ -16,6 +16,16 @@ import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CompExternal, ITextResourceBindings } from 'src/layout/layout';
 
+// React consumes these props instead of forwarding them to the custom element.
+const reactReservedProps = new Set([
+  'ref',
+  'key',
+  'children',
+  'dangerouslySetInnerHTML',
+  'suppressHydrationWarning',
+  'suppressContentEditableWarning',
+]);
+
 export type ICustomComponentProps = PropsFromGenericComponent<'Custom'> & {
   [key: string]: string | number | boolean | object | null | undefined;
   summaryMode?: boolean;
@@ -129,6 +139,9 @@ export function CustomWebComponent({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const propsAsAttributes: any = {};
   Object.keys(passThroughProps).forEach((key) => {
+    if (reactReservedProps.has(key)) {
+      return;
+    }
     let prop = passThroughProps[key];
     if (React.isValidElement(prop)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
