@@ -13,6 +13,10 @@ import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 import type { OrgList } from 'app-shared/types/OrgList';
 import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { app, org } from '@studio/testing/testids';
+import { gitCommitPath } from 'app-shared/api/paths';
+import type { CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
+import type { BranchStatus } from 'app-shared/types/BranchStatus';
 
 const renderReleaseContainer = (queries?: Partial<ServicesContextProps>) => {
   const allQueries: ServicesContextProps = {
@@ -44,12 +48,42 @@ describe('ReleaseContainer', () => {
     expect(screen.getByText(textMock('app_release.earlier_releases'))).toBeInTheDocument();
   });
 
-  it('renders an option to build release if master branch commit differs from latest release commit', async () => {
+  it('renders the branch the next version is built from', async () => {
+    const mockGetBranchStatus = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        name: featureBranchName,
+        commit: {
+          id: featureCommitId,
+          message: 'Add new page\n\nWith a longer description',
+          timestamp: '2026-02-02T14:30:00Z',
+        },
+      }),
+    );
+    renderReleaseContainer({
+      getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve(repoStatus)),
+      getCurrentBranch: getCurrentBranchMock(featureBranchName),
+      getBranchStatus: mockGetBranchStatus,
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('app_create_release.loading')),
+    );
+
+    expect(mockGetBranchStatus).toHaveBeenCalledWith(org, app, featureBranchName);
+    expect(screen.getByText(textMock('app_release.build_source_title'))).toBeInTheDocument();
+    expect(screen.getByText(featureBranchName)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Add new page' })).toHaveAttribute(
+      'href',
+      gitCommitPath(org, app, featureCommitId),
+    );
+  });
+
+  it('renders an option to build release if branch commit differs from latest release commit', async () => {
     const user = userEvent.setup();
     const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
     const mockGetBranchStatus = jest
       .fn()
-      .mockImplementation(() => Promise.resolve({ commit: { id: '123' } }));
+      .mockImplementation(() => Promise.resolve(createBranchStatus('123')));
     renderReleaseContainer({
       getRepoStatus: mockGetRepoStatus,
       getBranchStatus: mockGetBranchStatus,
@@ -64,36 +98,96 @@ describe('ReleaseContainer', () => {
     });
     await user.click(statusButton);
     expect(screen.getByText(textMock('app_create_release.ok'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('app_release.release_title'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('app_release.release_title_link'))).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(textMock('app_create_release.release_version_number')),
+    ).toBeInTheDocument();
     expect(mockGetBranchStatus).toHaveBeenCalledTimes(1);
   });
 
-  it('calls getBranchRepoStatus again to refetch if clicking "latest commit fetched from master"', async () => {
-    jest.spyOn(window, 'open').mockImplementation(jest.fn());
-    const user = userEvent.setup();
-    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
-    const mockGetBranchStatus = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve({ commit: { id: '123' } }));
+  it('informs the user that the branch must be shared when it does not exist in the remote repository', async () => {
     renderReleaseContainer({
-      getRepoStatus: mockGetRepoStatus,
-      getBranchStatus: mockGetBranchStatus,
+      getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve(repoStatus)),
+      getCurrentBranch: getCurrentBranchMock(featureBranchName),
+      getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve('')),
     });
 
     await waitForElementToBeRemoved(() =>
       screen.queryByText(textMock('app_create_release.loading')),
     );
 
-    const latestCommitLink = screen.getByRole('link', {
-      name: textMock('app_release.release_title_link'),
-    });
-    await user.click(latestCommitLink);
-    expect(mockGetRepoStatus).toHaveBeenCalledTimes(1);
-    expect(latestCommitLink).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_create_release.branch_not_shared'))).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(textMock('app_create_release.release_version_number')),
+    ).not.toBeInTheDocument();
   });
 
-  it('renders status that latest commit fetched from master is the same as commit for latest release', async () => {
+  it('renders that there are no changes when an earlier release was built from the latest commit on the branch', async () => {
+    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        results: [
+          {
+            targetCommitish: 'master-commit',
+            tagName: 'v2',
+            branch: 'master',
+            build: { result: BuildResult.succeeded, status: BuildStatus.completed },
+          },
+          {
+            targetCommitish: featureCommitId,
+            tagName: 'v1',
+            branch: featureBranchName,
+            build: { result: BuildResult.succeeded, status: BuildStatus.completed },
+          },
+        ],
+      }),
+    );
+    renderReleaseContainer({
+      getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve(repoStatus)),
+      getCurrentBranch: getCurrentBranchMock(featureBranchName),
+      getBranchStatus: jest
+        .fn()
+        .mockImplementation(() => Promise.resolve(createBranchStatus(featureCommitId))),
+      getAppReleases: mockGetAppReleases,
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('app_create_release.loading')),
+    );
+
+    expect(
+      screen.getByText(textMock('app_create_release.no_changes_on_current_release')),
+    ).toBeInTheDocument();
+  });
+
+  it('renders that the release is still building when a build of the latest commit on the branch is in progress', async () => {
+    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        results: [
+          {
+            targetCommitish: featureCommitId,
+            tagName: 'v1',
+            branch: featureBranchName,
+            build: { result: BuildResult.none, status: BuildStatus.inProgress },
+          },
+        ],
+      }),
+    );
+    renderReleaseContainer({
+      getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve(repoStatus)),
+      getCurrentBranch: getCurrentBranchMock(featureBranchName),
+      getBranchStatus: jest
+        .fn()
+        .mockImplementation(() => Promise.resolve(createBranchStatus(featureCommitId))),
+      getAppReleases: mockGetAppReleases,
+    });
+
+    expect(
+      await screen.findByText(
+        textMock('app_create_release.still_building_release', { version: 'v1' }),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('renders status that latest commit on the branch is the same as commit for latest release', async () => {
     const user = userEvent.setup();
     const mockLatestCommit = '123';
     const mockTagName = 'v1';
@@ -104,7 +198,7 @@ describe('ReleaseContainer', () => {
       );
     const mockGetBranchStatus = jest
       .fn()
-      .mockImplementation(() => Promise.resolve({ commit: { id: mockLatestCommit } }));
+      .mockImplementation(() => Promise.resolve(createBranchStatus(mockLatestCommit)));
     const mockGetAppReleases = jest.fn().mockImplementation(() =>
       Promise.resolve({
         results: [
@@ -134,15 +228,8 @@ describe('ReleaseContainer', () => {
       screen.getByText(textMock('app_create_release.local_changes_cant_build')),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(textMock('app_release.release_built_on_version', { version: mockTagName })),
-    ).toBeInTheDocument();
-    expect(
       screen.getByText(textMock('app_create_release.no_changes_on_current_release')),
     ).toBeInTheDocument();
-    const latestCommitLink = screen.getByRole('link', {
-      name: textMock('app_release.release_built_on_version_link'),
-    });
-    expect(latestCommitLink).toBeInTheDocument();
   });
 
   it('renders an option to build release if Maskinporten scopes differ from latest release', async () => {
@@ -151,7 +238,7 @@ describe('ReleaseContainer', () => {
     const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
     const mockGetBranchStatus = jest
       .fn()
-      .mockImplementation(() => Promise.resolve({ commit: { id: mockLatestCommit } }));
+      .mockImplementation(() => Promise.resolve(createBranchStatus(mockLatestCommit)));
     const mockGetAppReleases = jest.fn().mockImplementation(() =>
       Promise.resolve({
         results: [
@@ -192,7 +279,6 @@ describe('ReleaseContainer', () => {
     );
 
     expect(mockGetSelectedMaskinportenScopes).toHaveBeenCalled();
-    expect(screen.getByText(textMock('app_release.release_title'))).toBeInTheDocument();
     expect(
       screen.getByLabelText(textMock('app_create_release.release_version_number')),
     ).toBeInTheDocument();
@@ -206,7 +292,7 @@ describe('ReleaseContainer', () => {
     const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
     const mockGetBranchStatus = jest
       .fn()
-      .mockImplementation(() => Promise.resolve({ commit: { id: mockLatestCommit } }));
+      .mockImplementation(() => Promise.resolve(createBranchStatus(mockLatestCommit)));
     const mockGetAppReleases = jest.fn().mockImplementation(() =>
       Promise.resolve({
         results: [
@@ -241,7 +327,6 @@ describe('ReleaseContainer', () => {
       screen.queryByText(textMock('app_create_release.loading')),
     );
 
-    expect(screen.getByText(textMock('app_release.release_title'))).toBeInTheDocument();
     expect(
       screen.getByLabelText(textMock('app_create_release.release_version_number')),
     ).toBeInTheDocument();
@@ -249,17 +334,16 @@ describe('ReleaseContainer', () => {
 
   it('does not query Maskinporten scopes for apps outside service owner organizations', async () => {
     const mockLatestCommit = '123';
-    const mockTagName = 'v1';
     const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
     const mockGetBranchStatus = jest
       .fn()
-      .mockImplementation(() => Promise.resolve({ commit: { id: mockLatestCommit } }));
+      .mockImplementation(() => Promise.resolve(createBranchStatus(mockLatestCommit)));
     const mockGetAppReleases = jest.fn().mockImplementation(() =>
       Promise.resolve({
         results: [
           {
             targetCommitish: mockLatestCommit,
-            tagName: mockTagName,
+            tagName: 'v1',
             build: { result: BuildResult.succeeded, status: BuildStatus.completed },
           },
         ],
@@ -281,9 +365,6 @@ describe('ReleaseContainer', () => {
 
     expect(mockGetSelectedMaskinportenScopes).not.toHaveBeenCalled();
     expect(
-      screen.getByText(textMock('app_release.release_built_on_version', { version: mockTagName })),
-    ).toBeInTheDocument();
-    expect(
       screen.getByText(textMock('app_create_release.no_changes_on_current_release')),
     ).toBeInTheDocument();
   });
@@ -297,7 +378,7 @@ describe('ReleaseContainer', () => {
       );
     const mockGetBranchStatus = jest
       .fn()
-      .mockImplementation(() => Promise.resolve({ commit: { id: '123' } }));
+      .mockImplementation(() => Promise.resolve(createBranchStatus('123')));
     const mockGetAppReleases = jest.fn().mockImplementation(() =>
       Promise.resolve({
         results: [
@@ -328,6 +409,30 @@ describe('ReleaseContainer', () => {
     ).toBeInTheDocument();
   });
 });
+
+const featureBranchName = 'feature/new-page';
+const featureCommitId = 'abc123def456';
+
+const createBranchStatus = (commitId: string): BranchStatus => ({
+  name: 'master',
+  commit: {
+    id: commitId,
+    message: 'Latest change',
+    timestamp: '2026-02-02T14:30:00Z',
+    author: {},
+    committer: {},
+  },
+});
+
+const getCurrentBranchMock = (branchName: string) =>
+  jest.fn().mockImplementation(() =>
+    Promise.resolve<CurrentBranchInfo>({
+      branchName,
+      commitSha: featureCommitId,
+      isTracking: true,
+      remoteName: 'origin',
+    }),
+  );
 
 const orgListWithTestOrg: OrgList = {
   orgs: {
