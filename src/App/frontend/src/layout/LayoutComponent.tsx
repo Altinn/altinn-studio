@@ -2,7 +2,7 @@ import React from 'react';
 import type { JSX } from 'react';
 
 import { CompCategory } from '@app/layout-contract';
-import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
+import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
 import type { IDataModelReference, RequiredComponentProps } from '@app/layout-contract/generated/common.generated';
 import type { ErrorObject } from 'ajv';
 
@@ -116,14 +116,15 @@ export abstract class AnyComponent<Type extends CompTypes> {
   }
 
   useIsRequired(
-    _config: CompExternal<Type>,
-    _requiredOverride?: RequiredComponentProps['required'],
+    config: CompExternal<Type>,
+    requiredOverride?: RequiredComponentProps['required'],
   ): boolean | undefined {
-    return undefined;
-  }
-
-  supportsRequiredProperty(): boolean {
-    return false;
+    const supportsRequired = 'required' in Expressions[this.type];
+    const required = useEvalExpression(
+      supportsRequired ? (requiredOverride ?? ('required' in config ? config.required : undefined)) : undefined,
+      CommonExpressions.RequiredComponentProps.required,
+    );
+    return supportsRequired ? required : undefined;
   }
 
   getOptionsEffectValueType(): OptionsValueType | undefined {
@@ -211,19 +212,6 @@ export abstract class FormComponent<Type extends CompTypes>
   implements ValidateEmptyField<Type>
 {
   readonly category = CompCategory.Form;
-
-  useIsRequired(config: CompExternal<Type>, requiredOverride?: RequiredComponentProps['required']): boolean {
-    return useEvalExpression(
-      this.supportsRequiredProperty()
-        ? (requiredOverride ?? ('required' in config ? config.required : undefined))
-        : undefined,
-      CommonExpressions.RequiredComponentProps.required,
-    );
-  }
-
-  supportsRequiredProperty(): boolean {
-    return true;
-  }
 
   validateEmptyField(ctx: ComponentValidationContext<Type>): ComponentValidation[] {
     return validateEmptyFieldAllBindings(ctx);
