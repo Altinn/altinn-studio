@@ -73,7 +73,7 @@
       ],
       HasReadAccess: true,
       HasWriteAccess: true,
-      ElementType: Task,
+      ElementType: ServiceTask,
       Flow: 3,
       Started: DateTime_1,
       ElementId: Task_Service,
@@ -90,7 +90,7 @@
       {
         AltinnTaskType: failing-service,
         ElementId: Task_Service,
-        ElementType: Task
+        ElementType: ServiceTask
       }
     ],
     Workflow: {
@@ -101,6 +101,7 @@
         OccurredAt: DateTimeOffset_1
       }
     },
+    Status: processing,
     Started: DateTime_2,
     StartEvent: StartEvent_1
   }

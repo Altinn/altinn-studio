@@ -560,7 +560,14 @@ public class ResourceAdminController : ControllerBase
             }
         }
 
-        return listviewServiceResources;
+        // filter out MigratedApp resources which exist only on tt02
+        return listviewServiceResources
+            .Where(x =>
+                x.Environments is not ["tt02"]
+                || x.Identifier is null
+                || !x.Identifier.StartsWith($"app_{org}_a", StringComparison.Ordinal)
+            )
+            .ToList();
     }
 
     [HttpGet]

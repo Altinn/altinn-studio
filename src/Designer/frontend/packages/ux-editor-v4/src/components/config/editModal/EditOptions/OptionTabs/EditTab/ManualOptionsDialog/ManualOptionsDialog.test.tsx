@@ -150,7 +150,7 @@ async function renderAndShowCodeListDialog(args?: RenderCodeListDialogArgs): Pro
   const ref = createRef<HTMLDialogElement>();
   const utils = renderCodeListDialog({ ...args, ref });
   ref.current.showModal();
-  await waitFor(expect(screen.getByRole('dialog')).toBeVisible);
+  await waitFor(() => expect(screen.getByRole('dialog')).toBeVisible());
   return utils;
 }
 

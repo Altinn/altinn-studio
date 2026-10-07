@@ -1,14 +1,14 @@
 import React from 'react';
 
-import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { PageValidation } from '@app/layout-contract/generated/common.generated';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { CompNavigationButtonsExternal } from '@app/layout-contract/generated/components/NavigationButtons/config.generated';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
-import { PageValidation } from 'src/layout/common.generated';
 import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { CompNavigationButtonsExternal } from 'src/layout/NavigationButtons/config.generated';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 interface RenderProps extends Omit<Partial<RenderGenericComponentTestProps<'NavigationButtons'>>, 'component'> {
@@ -179,8 +179,6 @@ describe('NavigationButtons', () => {
 
     await userEvent.click(screen.getByText('Neste'));
 
-    await waitForElementToBeRemoved(() => screen.queryByText('Neste'));
-
-    expect(screen.queryByText('Neste')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('Neste')).not.toBeInTheDocument());
   });
 });

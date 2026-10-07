@@ -22,6 +22,14 @@ public static class AppBuilder
         builder.Environment.EnvironmentName = "Development";
 
         builder.Configuration.AddInMemoryCollection([new("GeneralSettings:IsTest", "true")]);
+
+        // The platform tells an app where it provisioned its secrets and what it called each file, and the
+        // libraries need to be told before anything can resolve. A test host stands in for the platform, and
+        // by default points at a directory nothing was provisioned into - which is what most of these tests
+        // assume. A test that wants a client provisioned passes its own variables in configData, which is
+        // added after these and therefore wins.
+        builder.Configuration.AddInMemoryCollection(ProvisionedSecretsTestEnvironment.VariablesWithNothingProvisioned);
+
         if (configData is not null)
         {
             builder.Configuration.AddInMemoryCollection(configData);

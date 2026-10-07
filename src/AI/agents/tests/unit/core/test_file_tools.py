@@ -43,9 +43,7 @@ class TestReadFile:
 
         ctx = _ctx(tmp_path)
         tool = ReadFileTool()
-        result = await tool.run(
-            tool.input_schema.model_validate({"path": "App/model.json"}), ctx
-        )
+        result = await tool.run(tool.input_schema.model_validate({"path": "App/model.json"}), ctx)
         assert not result.is_error
         assert '"a": 1' in result.content
         assert "App/model.json" in ctx.extras["read_set"]
@@ -110,14 +108,10 @@ class TestEditFile:
         (tmp_path / "f.txt").write_text("hello world", encoding="utf-8")
         ctx = _ctx(tmp_path)
         # Pre-read so the read-before-write check passes.
-        await ReadFileTool().run(
-            ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx
-        )
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx)
         tool = EditFileTool()
         result = await tool.run(
-            tool.input_schema.model_validate(
-                {"path": "f.txt", "old_string": "world", "new_string": "Altinn"}
-            ),
+            tool.input_schema.model_validate({"path": "f.txt", "old_string": "world", "new_string": "Altinn"}),
             ctx,
         )
         assert not result.is_error
@@ -129,9 +123,7 @@ class TestEditFile:
         ctx = _ctx(tmp_path)
         tool = EditFileTool()
         result = await tool.run(
-            tool.input_schema.model_validate(
-                {"path": "f.txt", "old_string": "world", "new_string": "Altinn"}
-            ),
+            tool.input_schema.model_validate({"path": "f.txt", "old_string": "world", "new_string": "Altinn"}),
             ctx,
         )
         assert result.is_error
@@ -142,14 +134,10 @@ class TestEditFile:
     async def test_old_string_not_found(self, tmp_path: Path):
         (tmp_path / "f.txt").write_text("hello world", encoding="utf-8")
         ctx = _ctx(tmp_path)
-        await ReadFileTool().run(
-            ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx
-        )
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx)
         tool = EditFileTool()
         result = await tool.run(
-            tool.input_schema.model_validate(
-                {"path": "f.txt", "old_string": "missing", "new_string": "x"}
-            ),
+            tool.input_schema.model_validate({"path": "f.txt", "old_string": "missing", "new_string": "x"}),
             ctx,
         )
         assert result.is_error
@@ -158,14 +146,10 @@ class TestEditFile:
     async def test_old_string_not_unique_blocks_default(self, tmp_path: Path):
         (tmp_path / "f.txt").write_text("foo foo foo", encoding="utf-8")
         ctx = _ctx(tmp_path)
-        await ReadFileTool().run(
-            ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx
-        )
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx)
         tool = EditFileTool()
         result = await tool.run(
-            tool.input_schema.model_validate(
-                {"path": "f.txt", "old_string": "foo", "new_string": "bar"}
-            ),
+            tool.input_schema.model_validate({"path": "f.txt", "old_string": "foo", "new_string": "bar"}),
             ctx,
         )
         assert result.is_error
@@ -176,9 +160,7 @@ class TestEditFile:
     async def test_replace_all_unlocks_multi_match(self, tmp_path: Path):
         (tmp_path / "f.txt").write_text("foo foo foo", encoding="utf-8")
         ctx = _ctx(tmp_path)
-        await ReadFileTool().run(
-            ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx
-        )
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx)
         tool = EditFileTool()
         result = await tool.run(
             tool.input_schema.model_validate(
@@ -197,14 +179,10 @@ class TestEditFile:
     async def test_no_op_edit_rejected(self, tmp_path: Path):
         (tmp_path / "f.txt").write_text("hello", encoding="utf-8")
         ctx = _ctx(tmp_path)
-        await ReadFileTool().run(
-            ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx
-        )
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx)
         tool = EditFileTool()
         result = await tool.run(
-            tool.input_schema.model_validate(
-                {"path": "f.txt", "old_string": "hello", "new_string": "hello"}
-            ),
+            tool.input_schema.model_validate({"path": "f.txt", "old_string": "hello", "new_string": "hello"}),
             ctx,
         )
         assert result.is_error
@@ -212,9 +190,7 @@ class TestEditFile:
 
     async def test_denied_in_read_only_mode(self, tmp_path: Path):
         tool = EditFileTool()
-        args = tool.input_schema.model_validate(
-            {"path": "f.txt", "old_string": "a", "new_string": "b"}
-        )
+        args = tool.input_schema.model_validate({"path": "f.txt", "old_string": "a", "new_string": "b"})
         perm = await tool.check_permission(args, _ctx(tmp_path, allow_app_changes=False))
         assert not perm.allowed
 
@@ -229,9 +205,7 @@ class TestWriteFile:
         ctx = _ctx(tmp_path)
         tool = WriteFileTool()
         result = await tool.run(
-            tool.input_schema.model_validate(
-                {"path": "App/new.json", "content": '{"k": 1}'}
-            ),
+            tool.input_schema.model_validate({"path": "App/new.json", "content": '{"k": 1}'}),
             ctx,
         )
         assert not result.is_error
@@ -254,9 +228,7 @@ class TestWriteFile:
     async def test_overwrite_after_read(self, tmp_path: Path):
         (tmp_path / "f.txt").write_text("old", encoding="utf-8")
         ctx = _ctx(tmp_path)
-        await ReadFileTool().run(
-            ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx
-        )
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx)
         tool = WriteFileTool()
         result = await tool.run(
             tool.input_schema.model_validate({"path": "f.txt", "content": "new"}),
@@ -280,18 +252,14 @@ class TestDiscardFileChanges:
             called["cwd"] = kwargs.get("cwd")
             return subprocess.CompletedProcess(args, 0, "", "")
 
-        monkeypatch.setattr(
-            "agents.core.tools.file_tool.subprocess.run", fake_run
-        )
+        monkeypatch.setattr("agents.core.tools.file_tool.subprocess.run", fake_run)
 
         ctx = _ctx(tmp_path)
         ctx.extras["changed_files"] = {"App/x.json", "App/y.json"}
         ctx.extras["read_set"] = {"App/x.json", "App/y.json"}
 
         tool = DiscardFileChangesTool()
-        result = await tool.run(
-            tool.input_schema.model_validate({"path": "App/x.json"}), ctx
-        )
+        result = await tool.run(tool.input_schema.model_validate({"path": "App/x.json"}), ctx)
         assert not result.is_error
         assert called["args"] == ["git", "checkout", "HEAD", "--", "App/x.json"]
         assert called["cwd"] == str(tmp_path)
@@ -301,13 +269,9 @@ class TestDiscardFileChanges:
 
     async def test_git_failure_surfaces_as_error(self, monkeypatch, tmp_path: Path):
         def fake_run(args, **kwargs):
-            raise subprocess.CalledProcessError(
-                1, args, output="", stderr="error: pathspec did not match"
-            )
+            raise subprocess.CalledProcessError(1, args, output="", stderr="error: pathspec did not match")
 
-        monkeypatch.setattr(
-            "agents.core.tools.file_tool.subprocess.run", fake_run
-        )
+        monkeypatch.setattr("agents.core.tools.file_tool.subprocess.run", fake_run)
 
         tool = DiscardFileChangesTool()
         result = await tool.run(
@@ -316,3 +280,167 @@ class TestDiscardFileChanges:
         )
         assert result.is_error
         assert "did not match" in result.content
+
+
+SETTINGS = """{
+  "$schema": "https://altinncdn.no/layoutSettings.schema.v1.json",
+  "pages": {
+    "order": ["Side1"]
+  }
+}
+"""
+
+
+class TestEditFileToleratesReformattedWhitespace:
+    """A model that copies pretty-printed JSON sends it back collapsed, and then no
+    exact match exists however often it re-reads the file."""
+
+    async def _edit(self, tmp_path: Path, old: str, new: str, **extra):
+        (tmp_path / "Settings.json").write_text(SETTINGS, encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "Settings.json"}), ctx)
+        tool = EditFileTool()
+        return await tool.run(
+            tool.input_schema.model_validate({"path": "Settings.json", "old_string": old, "new_string": new, **extra}),
+            ctx,
+        )
+
+    async def test_a_collapsed_json_block_still_matches(self, tmp_path: Path):
+        result = await self._edit(
+            tmp_path,
+            '"pages": {"order": ["Side1"]}',
+            '"pages": {"order": ["Side1"], "showLanguageSelector": true}',
+        )
+
+        assert not result.is_error
+        assert result.metadata["matched_on_whitespace"] is True
+        assert "showLanguageSelector" in (tmp_path / "Settings.json").read_text()
+
+    async def test_the_result_says_the_region_took_the_new_formatting(self, tmp_path: Path):
+        result = await self._edit(
+            tmp_path,
+            '"pages": {"order": ["Side1"]}',
+            '"pages": {"order": ["Side1"], "showLanguageSelector": true}',
+        )
+
+        assert "ignoring whitespace" in result.content
+
+    async def test_an_exact_match_is_not_reported_as_a_whitespace_match(self, tmp_path: Path):
+        result = await self._edit(tmp_path, '"order": ["Side1"]', '"order": ["Side1", "Side2"]')
+
+        assert not result.is_error
+        assert result.metadata["matched_on_whitespace"] is False
+
+    async def test_a_whitespace_only_needle_gets_no_fallback(self, tmp_path: Path):
+        """It has nothing to match on, so every run of whitespace would qualify."""
+        (tmp_path / "f.txt").write_text("a" + " " * 2000 + "b", encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx)
+        tool = EditFileTool()
+        result = await tool.run(
+            tool.input_schema.model_validate({"path": "f.txt", "old_string": " \t", "new_string": "x"}),
+            ctx,
+        )
+
+        assert result.is_error
+        assert "not found" in result.content
+
+    async def test_text_that_is_absent_however_it_is_spaced_still_fails(self, tmp_path: Path):
+        result = await self._edit(tmp_path, '"pages": {"order": ["Side9"]}', "x")
+
+        assert result.is_error
+        assert "not found" in result.content
+
+    async def test_spaced_json_matches_a_compact_file(self, tmp_path: Path):
+        """Models space out JSON they retype; the repo writes some of it compact."""
+        compact = '{\n  "resources": [\n    {"id":"appName","value":"Helseattest"}\n  ]\n}\n'
+        (tmp_path / "resource.nb.json").write_text(compact, encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "resource.nb.json"}), ctx)
+        tool = EditFileTool()
+        result = await tool.run(
+            tool.input_schema.model_validate(
+                {
+                    "path": "resource.nb.json",
+                    "old_string": '{"id": "appName", "value": "Helseattest"}',
+                    "new_string": '{"id": "appName", "value": "Helseattest"}, {"id": "next", "value": "Neste"}',
+                }
+            ),
+            ctx,
+        )
+
+        assert not result.is_error
+        assert result.metadata["matched_on_whitespace"] is True
+        assert '"next"' in (tmp_path / "resource.nb.json").read_text()
+
+    async def test_whitespace_between_words_cannot_vanish(self, tmp_path: Path):
+        """`foo bar` matching `foobar` would replace semantically different text."""
+        (tmp_path / "f.txt").write_text("foobar = 1", encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx)
+        tool = EditFileTool()
+        result = await tool.run(
+            tool.input_schema.model_validate({"path": "f.txt", "old_string": "foo bar", "new_string": "baz"}),
+            ctx,
+        )
+
+        assert result.is_error
+        assert (tmp_path / "f.txt").read_text() == "foobar = 1"
+
+    async def test_a_quoted_literal_keeps_its_spaces(self, tmp_path: Path):
+        (tmp_path / "f.txt").write_text("label = 'helloworld'", encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx)
+        tool = EditFileTool()
+        result = await tool.run(
+            tool.input_schema.model_validate({"path": "f.txt", "old_string": "'hello world'", "new_string": "'hi'"}),
+            ctx,
+        )
+
+        assert result.is_error
+        assert (tmp_path / "f.txt").read_text() == "label = 'helloworld'"
+
+    async def test_a_needle_with_leading_indent_is_one_match(self, tmp_path: Path):
+        """A leading `\\s*` matches with and without the indent it can absorb, and
+        counting those as separate places refused an unambiguous edit."""
+        (tmp_path / "f.json").write_text('{\n  "a": 1\n}\n', encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "f.json"}), ctx)
+        tool = EditFileTool()
+        result = await tool.run(
+            tool.input_schema.model_validate({"path": "f.json", "old_string": '  "a":  1', "new_string": '  "a": 2'}),
+            ctx,
+        )
+
+        assert not result.is_error
+        assert '"a": 2' in (tmp_path / "f.json").read_text()
+
+    async def test_overlapping_candidates_ask_for_context(self, tmp_path: Path):
+        """Two starts that overlap are still two, and a non-overlapping scan sees one."""
+        (tmp_path / "f.txt").write_text("(((", encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx)
+        tool = EditFileTool()
+        result = await tool.run(
+            tool.input_schema.model_validate({"path": "f.txt", "old_string": "( (", "new_string": "()"}),
+            ctx,
+        )
+
+        assert result.is_error
+        assert "2 places" in result.content
+        assert (tmp_path / "f.txt").read_text() == "((("
+
+    async def test_an_ambiguous_whitespace_match_asks_for_context(self, tmp_path: Path):
+        (tmp_path / "Settings.json").write_text('{\n  "a": 1,\n  "a": 1\n}', encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "Settings.json"}), ctx)
+        tool = EditFileTool()
+        result = await tool.run(
+            tool.input_schema.model_validate(
+                {"path": "Settings.json", "old_string": '"a":   1', "new_string": '"a": 2'}
+            ),
+            ctx,
+        )
+
+        assert result.is_error
+        assert "2 places" in result.content

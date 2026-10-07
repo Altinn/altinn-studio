@@ -1,9 +1,5 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Altinn.App.Core.Features.Payment;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Internal.Data;
@@ -25,9 +21,9 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
         _dataClient = dataClient;
     }
     
-    public async Task<OrderDetails> CalculateOrderDetails(Instance instance, string? language)
+    public async Task<OrderDetails> CalculateOrderDetails(Instance instance, string? language, CancellationToken cancellationToken = default)
     {
-        Form formData = await GetFormData(instance);
+        Form formData = await GetFormData(instance, cancellationToken);
 
         List<PaymentOrderLine> paymentOrderLines = formData?.GoodsAndServicesProperties?.Inventory?.InventoryProperties != null ? 
           formData.GoodsAndServicesProperties.Inventory.InventoryProperties
@@ -51,7 +47,7 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
         
         ContactInformation contactInformation = formData.ContactInformation;
         Company company = formData.Company;
-        CompanyProperties? companyProperties = company.CompanyProperties.FirstOrDefault();
+        CompanyProperties? companyProperties = company.CompanyProperties?.FirstOrDefault();
 
         if(companyProperties == null)
         {
@@ -63,7 +59,7 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
             PrivatePerson = new PayerPrivatePerson
             {
                 Email = contactInformation.Email,
-                PhoneNumber = ExtractPhoneNumber(contactInformation.PhoneNumber),
+                PhoneNumber = contactInformation.PhoneNumber is { } phoneNumber ? ExtractPhoneNumber(phoneNumber) : null,
                 FirstName = companyProperties.FirstName,
                 LastName = companyProperties.LastName
             },
@@ -88,13 +84,13 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
         return payer;
     }
 
-    private async Task<Form> GetFormData(Instance instance)
+    private async Task<Form> GetFormData(Instance instance, CancellationToken cancellationToken)
     {
         DataElement modelData = instance.Data.Single(x => x.DataType == "model");
         InstanceIdentifier instanceIdentifier = new(instance);
         
         return (Form) await _dataClient.GetFormData(instanceIdentifier.InstanceGuid, typeof(Form), instance.Org, instance.AppId,
-            instanceIdentifier.InstanceOwnerPartyId, new Guid(modelData.Id));
+            instanceIdentifier.InstanceOwnerPartyId, new Guid(modelData.Id), cancellationToken: cancellationToken);
     }
 
     private static decimal GetPriceForNiceClassification(InventoryProperties inventoryProperties)

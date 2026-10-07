@@ -68,6 +68,9 @@ describe('TextArea', () => {
       />,
     );
 
-    expect(screen.getByText('7 characters left')).toBeInTheDocument();
+    expect(document.querySelector('[data-field="counter"]')).toHaveAttribute(
+      'data-label',
+      '7 characters left',
+    );
   });
 });

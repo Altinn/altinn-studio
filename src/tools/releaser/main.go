@@ -69,7 +69,7 @@ Commands:
   prepare             Create a changelog promotion PR for release
   backport            Cherry-pick a commit to a release branch with changelog handling
   validate-changelog  Validate a component changelog was modified and release-ready
-  validate-changelogs Validate the structure of every changed CHANGELOG.md (any project)
+  validate-changelogs Validate the structure and entry length of every changed CHANGELOG.md
   resolve-version     Print the release version resolved from a component changelog
 
 Notes:
@@ -380,9 +380,11 @@ When -base and -head are given, only changelogs changed in that range are
 validated. Otherwise every tracked CHANGELOG.md is validated. Vendored and
 generated changelogs (node_modules, .nuget, _testapps, etc.) are skipped.
 
-Only structural errors fail (category order, invalid categories, version
-ordering, duplicate versions). Release-policy semantics are not enforced here;
-use 'validate-changelog' for a specific component's release readiness.
+Structural errors fail (category order, invalid categories, version ordering,
+duplicate versions). With a range, so do [Unreleased] entries longer than 60
+words that are new or changed since -head diverged from -base; links are not
+counted. Release-policy semantics are not enforced here; use
+'validate-changelog' for a specific component's release readiness.
 
 Options:
 `)

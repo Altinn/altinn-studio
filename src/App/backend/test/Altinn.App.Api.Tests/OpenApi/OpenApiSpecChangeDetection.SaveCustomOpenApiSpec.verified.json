@@ -699,6 +699,7 @@
             "name": "optionsId",
             "in": "path",
             "description": "OptionsId from a layout component.",
+            "required": true,
             "schema": {
               "enum": [
                 "fileSourceOptions"
@@ -776,6 +777,7 @@
             "name": "optionsId",
             "in": "path",
             "description": "OptionsId from a layout component.",
+            "required": true,
             "schema": {
               "enum": [
                 "fileSourceOptions"
@@ -2317,6 +2319,13 @@
         },
         "additionalProperties": false
       },
+      "ProcessStatus": {
+        "enum": [
+          "idle",
+          "processing"
+        ],
+        "type": "string"
+      },
       "ValidationStatus": {
         "type": "object",
         "properties": {
@@ -2374,6 +2383,9 @@
       "ProcessState": {
         "type": "object",
         "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ProcessStatus"
+          },
           "started": {
             "type": "string",
             "format": "date-time",
@@ -2592,6 +2604,10 @@
             "format": "int64"
           },
           "contentHash": {
+            "type": "string",
+            "nullable": true
+          },
+          "blobVersionId": {
             "type": "string",
             "nullable": true
           },
@@ -2965,6 +2981,9 @@
       "AppProcessState": {
         "type": "object",
         "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ProcessStatus"
+          },
           "started": {
             "type": "string",
             "format": "date-time",
@@ -3116,7 +3135,9 @@
             "nullable": true
           },
           "enablePdfCreation": {
-            "type": "boolean"
+            "type": "boolean",
+            "nullable": true,
+            "deprecated": true
           },
           "enableFileScan": {
             "type": "boolean"

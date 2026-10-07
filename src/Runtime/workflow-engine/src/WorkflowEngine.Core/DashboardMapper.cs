@@ -12,10 +12,14 @@ internal sealed record DashboardStepDto(
     string Status,
     int ProcessingOrder,
     int RetryCount,
+    int DeferCount,
+    DateTimeOffset? FirstDeferredAt,
+    string? LastDeferReason,
     DateTimeOffset CreatedAt,
     DateTimeOffset? ExecutionStartedAt,
     DateTimeOffset? UpdatedAt,
-    bool StateChanged
+    bool StateChanged,
+    Dictionary<string, string>? Labels
 );
 
 /// <summary>
@@ -109,10 +113,14 @@ internal static class DashboardMapper
             step.Status.ToString(),
             step.ProcessingOrder,
             step.RequeueCount,
+            step.DeferCount,
+            step.FirstDeferredAt,
+            step.LastDeferReason,
             step.CreatedAt,
             step.ExecutionStartedAt,
             step.UpdatedAt,
-            stateChanged
+            stateChanged,
+            step.Labels
         );
 
     internal static DashboardWorkflowDto MapWorkflow(Workflow workflow)

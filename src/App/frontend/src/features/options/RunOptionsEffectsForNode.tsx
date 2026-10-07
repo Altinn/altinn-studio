@@ -1,5 +1,9 @@
 import React from 'react';
 
+import type { IDataModelBindingsOptionsSimple } from '@app/layout-contract/generated/common.generated';
+import type { IDataModelBindingsForGroupCheckbox } from '@app/layout-contract/generated/components/Checkboxes/config.generated';
+import type { IDataModelBindingsForGroupMultiselect } from '@app/layout-contract/generated/components/MultipleSelect/config.generated';
+
 import { FormStore } from 'src/features/form/FormContext';
 import { EffectPreselectedOptionIndex } from 'src/features/options/effects/EffectPreselectedOptionIndex';
 import { EffectRemoveStaleValues } from 'src/features/options/effects/EffectRemoveStaleValues';
@@ -8,12 +12,9 @@ import { EffectStoreLabel } from 'src/features/options/effects/EffectStoreLabel'
 import { EffectStoreLabelInGroup } from 'src/features/options/effects/EffectStoreLabelInGroup';
 import { useFetchOptions, useFilteredAndSortedOptions } from 'src/features/options/useGetOptions';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { getRuntimeIntermediateItem } from 'src/utils/layout/rowContext';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
-import type { IDataModelBindingsForGroupCheckbox } from 'src/layout/Checkboxes/config.generated';
-import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
-import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
-import type { IDataModelBindingsForGroupMultiselect } from 'src/layout/MultipleSelect/config.generated';
+import type { CompExternal, CompWithBehavior } from 'src/layout/layout';
 import type { RuntimeNodeRef } from 'src/utils/layout/deriveRuntimeNodeRefs';
 
 interface RunOptionEffectsProps {
@@ -38,15 +39,12 @@ export function RunOptionsEffectsForNode({ valueType, node }: RunOptionEffectsPr
 
 function RunVisibleOptionsEffects({ valueType, node }: RunOptionEffectsProps) {
   const isReadOnly = FormStore.useIsReadOnly();
-  const lookups = FormStore.bootstrap.useLayoutLookups();
-  const item = getRuntimeIntermediateItem(lookups.getComponent(node.baseId), node.rowContexts) as CompIntermediate<
-    CompWithBehavior<'canHaveOptions'>
-  >;
-  const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
-  const groupBindings = item.dataModelBindings as
-    IDataModelBindingsForGroupCheckbox | IDataModelBindingsForGroupMultiselect;
-  const { unsorted, isFetching, downstreamParameters } = useFetchOptions({ item });
-  const { options, preselectedOption } = useFilteredAndSortedOptions({ unsorted, valueType, item });
+  const config = useComponentConfig(node.baseId) as CompExternal<CompWithBehavior<'canHaveOptions'>>;
+  const bindings = useDataModelBindingsFor(node.baseId);
+  const dataModelBindings = bindings as IDataModelBindingsOptionsSimple | undefined;
+  const groupBindings = bindings as IDataModelBindingsForGroupCheckbox | IDataModelBindingsForGroupMultiselect;
+  const { unsorted, isFetching, downstreamParameters } = useFetchOptions({ config });
+  const { options, preselectedOption } = useFilteredAndSortedOptions({ unsorted, valueType, config });
 
   if (isFetching || isReadOnly) {
     // No need to run effects while fetching or if the data has not been set yet
@@ -57,13 +55,14 @@ function RunVisibleOptionsEffects({ valueType, node }: RunOptionEffectsProps) {
   // we don't store option values here so it makes no sense to do this,
   // consider solving this more elegantly in the future.
   // AFAIK, stale values are not removed from attachment tags, maybe they should?
-  const shouldRemoveStaleValues = item?.type !== 'FileUpload' && !('renderAsSummary' in item && item.renderAsSummary);
+  const shouldRemoveStaleValues =
+    config?.type !== 'FileUpload' && !('renderAsSummary' in config && config.renderAsSummary);
 
   return (
     <>
       {shouldRemoveStaleValues && (
         <EffectRemoveStaleValues
-          item={item}
+          baseComponentId={node.baseId}
           parent={node.parent}
           valueType={valueType}
           options={options}
@@ -71,7 +70,7 @@ function RunVisibleOptionsEffects({ valueType, node }: RunOptionEffectsProps) {
       )}
       {preselectedOption !== undefined && (
         <EffectPreselectedOptionIndex
-          item={item}
+          baseComponentId={node.baseId}
           parent={node.parent}
           preselectedOption={preselectedOption}
           valueType={valueType}
@@ -80,20 +79,20 @@ function RunVisibleOptionsEffects({ valueType, node }: RunOptionEffectsProps) {
       )}
       {downstreamParameters && dataModelBindings && dataModelBindings.metadata ? (
         <EffectSetDownstreamParameters
-          item={item}
+          baseComponentId={node.baseId}
           downstreamParameters={downstreamParameters}
         />
       ) : null}
       {dataModelBindings && dataModelBindings.label && !!groupBindings.group ? (
         <EffectStoreLabelInGroup
-          item={item}
+          baseComponentId={node.baseId}
           parent={node.parent}
           options={options}
         />
       ) : null}
       {dataModelBindings && dataModelBindings.label && !groupBindings.group ? (
         <EffectStoreLabel
-          item={item}
+          baseComponentId={node.baseId}
           parent={node.parent}
           valueType={valueType}
           options={options}

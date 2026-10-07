@@ -106,9 +106,16 @@ internal static class CSharpSyntaxQueries
     /// removed <c>ServiceTaskResult.FailedContinueProcessNext(...)</c> factory. Matches both
     /// <c>Type.Method(...)</c> and bare <c>Method(...)</c> call sites.
     /// </summary>
+    /// <param name="file">The file to search.</param>
+    /// <param name="methodSimpleNames">The simple names of the methods to find.</param>
+    /// <param name="describeFirstStringArgument">
+    /// When set, a call whose first argument is a string literal is reported as <c>Method("literal")</c>,
+    /// for guidance that needs the value - a configuration section name, say - rather than the bare call.
+    /// </param>
     public static IEnumerable<CSharpApiMatch> InvokedMethods(
         ScannedCSharpFile file,
-        IReadOnlySet<string> methodSimpleNames
+        IReadOnlySet<string> methodSimpleNames,
+        bool describeFirstStringArgument = false
     )
     {
         foreach (var invocation in file.Root.DescendantNodes().OfType<InvocationExpressionSyntax>())
@@ -117,14 +124,168 @@ internal static class CSharpSyntaxQueries
 
             if (invokedName is not null && methodSimpleNames.Contains(invokedName.Identifier.Text))
             {
-                yield return new CSharpApiMatch(
-                    file.RelativePath,
-                    file.GetLine(invokedName),
-                    invokedName.Identifier.Text
-                );
+                var symbol = invokedName.Identifier.Text;
+                if (describeFirstStringArgument && FirstStringArgument(invocation) is { } argument)
+                {
+                    symbol = $"{symbol}(\"{argument}\")";
+                }
+
+                yield return new CSharpApiMatch(file.RelativePath, file.GetLine(invokedName), symbol);
             }
         }
     }
+
+    /// <summary>
+    /// The string-literal first arguments of every invocation of a method in <paramref name="methodSimpleNames"/>
+    /// - the configuration section paths handed to <c>ConfigureMaskinportenClient("...")</c>, say. A call whose
+    /// first argument is not a string literal is not represented.
+    /// </summary>
+    public static IEnumerable<string> FirstStringArguments(
+        ScannedCSharpFile file,
+        IReadOnlySet<string> methodSimpleNames
+    )
+    {
+        foreach (var invocation in file.Root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            var invokedName = InvokedName(invocation);
+            if (
+                invokedName is not null
+                && methodSimpleNames.Contains(invokedName.Identifier.Text)
+                && FirstStringArgument(invocation) is { } argument
+            )
+            {
+                yield return argument;
+            }
+        }
+    }
+
+    /// <summary>
+    /// <para>Every string literal argument of an invocation of one of <paramref name="methodSimpleNames"/>,
+    /// paired with the location of the invocation. Used to harvest the Maskinporten scopes an app asks for -
+    /// <c>UseMaskinportenAuthorization("ks:fiks", "altinn:correspondence.write")</c> yields both.</para>
+    /// <para>Only literals are represented. A scope passed as a variable, a constant or a configuration read
+    /// is invisible here and cannot be recovered without a semantic model, so a caller reporting these must
+    /// say the list may be incomplete rather than imply it is exhaustive.</para>
+    /// </summary>
+    public static IEnumerable<(CSharpApiMatch Match, string Value)> StringArgumentsOf(
+        ScannedCSharpFile file,
+        IReadOnlySet<string> methodSimpleNames
+    )
+    {
+        foreach (var invocation in file.Root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            var invokedName = InvokedName(invocation);
+            if (invokedName is null || !methodSimpleNames.Contains(invokedName.Identifier.Text))
+            {
+                continue;
+            }
+
+            foreach (var argument in invocation.ArgumentList.Arguments)
+            {
+                if (argument.Expression is LiteralExpressionSyntax { Token.Value: string value })
+                {
+                    yield return (
+                        new CSharpApiMatch(file.RelativePath, file.GetLine(invokedName), invokedName.Identifier.Text),
+                        value
+                    );
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// <para>Every string literal assigned to a <paramref name="memberName"/> member in an object initializer
+    /// of one of <paramref name="typeSimpleNames"/>, paired with the location of the assignment. Covers the
+    /// collection-valued shape the token-request overloads take -
+    /// <c>new MaskinportenTokenRequest { Scopes = ["ks:fiks"] }</c> - which
+    /// <see cref="StringArgumentsOf"/> cannot see because the scopes are not arguments.</para>
+    /// <para>Literals only, on the same terms and for the same reason as
+    /// <see cref="StringArgumentsOf"/>.</para>
+    /// </summary>
+    public static IEnumerable<(CSharpApiMatch Match, string Value)> InitializerStringValues(
+        ScannedCSharpFile file,
+        IReadOnlySet<string> typeSimpleNames,
+        string memberName
+    )
+    {
+        foreach (var creation in file.Root.DescendantNodes().OfType<BaseObjectCreationExpressionSyntax>())
+        {
+            var typeName = ConstructedTypeName(creation);
+            if (typeName is null || !typeSimpleNames.Contains(typeName) || creation.Initializer is null)
+            {
+                continue;
+            }
+
+            foreach (var expression in creation.Initializer.Expressions)
+            {
+                if (
+                    expression is not AssignmentExpressionSyntax assignment
+                    || assignment.Left is not IdentifierNameSyntax member
+                    || member.Identifier.Text != memberName
+                )
+                {
+                    continue;
+                }
+
+                foreach (var value in DirectStringElements(assignment.Right))
+                {
+                    yield return (
+                        new CSharpApiMatch(file.RelativePath, file.GetLine(assignment), $"{typeName}.{memberName}"),
+                        value
+                    );
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// <para>The string literals an expression contributes <em>as its own elements</em>: the expression itself
+    /// when it is a literal, and the direct elements of a collection expression, an array creation or a
+    /// collection initializer. Nothing is taken from anywhere else.</para>
+    /// <para>The restriction is the point. Descending into arbitrary expressions would read
+    /// <c>Scopes = LoadScopes("Maskinporten:Scopes")</c> as the scope <c>Maskinporten:Scopes</c> - a
+    /// configuration key reported as a scope, which is worse than not reporting the assignment at all,
+    /// because a developer cannot tell an invented scope from a real one and would carry it into a live
+    /// Maskinporten client.</para>
+    /// </summary>
+    private static IEnumerable<string> DirectStringElements(ExpressionSyntax expression)
+    {
+        if (expression is LiteralExpressionSyntax { Token.Value: string single })
+        {
+            return [single];
+        }
+
+        IEnumerable<ExpressionSyntax>? elements = expression switch
+        {
+            CollectionExpressionSyntax collection => collection
+                .Elements.OfType<ExpressionElementSyntax>()
+                .Select(static element => element.Expression),
+            ArrayCreationExpressionSyntax { Initializer: { } initializer } => initializer.Expressions,
+            ImplicitArrayCreationExpressionSyntax implicitArray => implicitArray.Initializer.Expressions,
+            BaseObjectCreationExpressionSyntax { Initializer: { } initializer } => initializer.Expressions,
+            _ => null,
+        };
+
+        if (elements is null)
+        {
+            return [];
+        }
+
+        // OfType<string> drops both non-literal tokens and null values without a null-forgiving cast.
+        return elements
+            .OfType<LiteralExpressionSyntax>()
+            .Select(static literal => literal.Token.Value)
+            .OfType<string>();
+    }
+
+    /// <summary>
+    /// The value of the invocation's first argument when it is a string literal, else <c>null</c>.
+    /// </summary>
+    private static string? FirstStringArgument(InvocationExpressionSyntax invocation) =>
+        invocation.ArgumentList.Arguments.FirstOrDefault()?.Expression
+            is LiteralExpressionSyntax { Token.Value: string value }
+            ? value
+            : null;
 
     /// <summary>
     /// Invocations <c>Receiver.Method(...)</c> where the receiver's trailing simple name is
@@ -413,9 +574,10 @@ internal static class CSharpSyntaxQueries
                 continue;
             }
 
+            var comparable = WithoutGlobalAlias(name);
             var isPrefixMatch =
-                name.Equals(namespacePrefix, StringComparison.Ordinal)
-                || name.StartsWith(namespacePrefix + ".", StringComparison.Ordinal);
+                comparable.Equals(namespacePrefix, StringComparison.Ordinal)
+                || comparable.StartsWith(namespacePrefix + ".", StringComparison.Ordinal);
 
             if (isPrefixMatch)
             {
@@ -423,6 +585,102 @@ internal static class CSharpSyntaxQueries
             }
         }
     }
+
+    /// <summary>
+    /// <c>using</c> directives naming <paramref name="namespacePrefix"/> that the namespace rewrite
+    /// leaves alone, so a human still has to change them. Two forms qualify: an aliased directive
+    /// (<c>using X = A.B;</c>), which the rewrite skips outright, and one written with
+    /// <c>global::</c>, which its exact-name comparison never matches.
+    /// </summary>
+    public static IEnumerable<CSharpApiMatch> UnrewritableUsingNamespaces(
+        ScannedCSharpFile file,
+        string namespacePrefix
+    )
+    {
+        foreach (var directive in file.Root.DescendantNodes().OfType<UsingDirectiveSyntax>())
+        {
+            if (directive.Name?.ToString() is not { } name)
+            {
+                continue;
+            }
+
+            var isGlobalQualified = name.StartsWith("global::", StringComparison.Ordinal);
+            if (directive.Alias is null && !isGlobalQualified)
+            {
+                continue;
+            }
+
+            var comparable = WithoutGlobalAlias(name);
+            if (
+                comparable.Equals(namespacePrefix, StringComparison.Ordinal)
+                || comparable.StartsWith(namespacePrefix + ".", StringComparison.Ordinal)
+            )
+            {
+                var symbol = directive.Alias is null ? $"using {name}" : $"using {directive.Alias.Name} = {name}";
+
+                yield return new CSharpApiMatch(file.RelativePath, file.GetLine(directive), symbol);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Fully-qualified references to <paramref name="namespacePrefix"/> written out in code rather than
+    /// imported (<c>Altinn.Common.EFormidlingClient.IEFormidlingClient</c>). The namespace rewrite only
+    /// touches <c>using</c> directives, so these survive it untouched and must be changed by hand.
+    /// </summary>
+    /// <remarks>
+    /// Covers both positions a qualified name can appear in, because they parse differently: a type
+    /// (<c>QualifiedNameSyntax</c>, e.g. a field's declared type) and an expression
+    /// (<c>MemberAccessExpressionSyntax</c>, e.g. a static call). Matching only the first would miss
+    /// <c>Altinn.EFormidlingClient.Extensions.HttpClientExtension.GetAsync(...)</c> entirely.
+    /// <para>
+    /// Only the outermost name is reported in each case: <see cref="SyntaxNode.DescendantNodes"/> also
+    /// yields the nested left-hand names, which would report the same reference several times over.
+    /// Names inside <c>using</c> directives are skipped - those are already covered by
+    /// <see cref="UsingNamespaces"/> and <see cref="UnrewritableUsingNamespaces"/>.
+    /// </para>
+    /// </remarks>
+    public static IEnumerable<CSharpApiMatch> QualifiedNameReferences(ScannedCSharpFile file, string namespacePrefix)
+    {
+        foreach (var qualified in file.Root.DescendantNodes().OfType<QualifiedNameSyntax>())
+        {
+            if (
+                qualified.Parent is QualifiedNameSyntax
+                || qualified.FirstAncestorOrSelf<UsingDirectiveSyntax>() is not null
+            )
+            {
+                continue;
+            }
+
+            var name = qualified.ToString();
+            if (WithoutGlobalAlias(name).StartsWith(namespacePrefix + ".", StringComparison.Ordinal))
+            {
+                yield return new CSharpApiMatch(file.RelativePath, file.GetLine(qualified), name);
+            }
+        }
+
+        foreach (var access in file.Root.DescendantNodes().OfType<MemberAccessExpressionSyntax>())
+        {
+            if (access.Parent is MemberAccessExpressionSyntax outer && outer.Expression == access)
+            {
+                continue;
+            }
+
+            var name = access.ToString();
+            if (WithoutGlobalAlias(name).StartsWith(namespacePrefix + ".", StringComparison.Ordinal))
+            {
+                yield return new CSharpApiMatch(file.RelativePath, file.GetLine(access), name);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Strips a leading <c>global::</c> so a name can be compared against a plain namespace. Both
+    /// forms mean the same namespace and the rewrite misses both alike, so both must be reported. The
+    /// original spelling is what gets reported back, since that is what the reader has to find.
+    /// </summary>
+    private static string WithoutGlobalAlias(string name) =>
+        name.StartsWith("global::", StringComparison.Ordinal) ? name["global::".Length..] : name;
 
     /// <summary>
     /// Whether <paramref name="name"/> is the name that identifies a base-list entry itself - the

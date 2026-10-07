@@ -197,7 +197,7 @@ describe('CreateService', () => {
     });
     await user.click(createBtn);
 
-    expect(addRepoMock).rejects.toEqual(axiosError);
+    await expect(addRepoMock).rejects.toEqual(axiosError);
 
     await screen.findByText(textMock('dashboard.app_already_exists'));
   });
@@ -260,7 +260,7 @@ describe('CreateService', () => {
       });
     await user.click(getCreateBtn());
 
-    expect(addRepoMock).rejects.toEqual(axiosError);
+    await expect(addRepoMock).rejects.toEqual(axiosError);
 
     await waitFor(() =>
       expect(

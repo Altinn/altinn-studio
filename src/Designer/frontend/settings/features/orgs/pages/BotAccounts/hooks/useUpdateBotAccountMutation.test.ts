@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -14,7 +15,7 @@ const renderUseUpdateBotAccountMutation = (queryClient = createQueryClientMock()
   });
 
 describe('useUpdateBotAccountMutation', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('calls updateBotAccount with the correct arguments', async () => {
     const { result } = renderUseUpdateBotAccountMutation();
@@ -28,7 +29,7 @@ describe('useUpdateBotAccountMutation', () => {
 
   it('invalidates the bot accounts query on success', async () => {
     const queryClient = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     const { result } = renderUseUpdateBotAccountMutation(queryClient);
     await result.current.mutateAsync(deployEnvironments);
     expect(invalidateQueriesSpy).toHaveBeenCalledWith(

@@ -10,7 +10,11 @@ import {
     fmtNamespace,
     abbrevGuids,
 } from '../core/helpers.js';
-import { buildPipelineHTML, scrollPipelineToActive } from './pipeline.js';
+import {
+    buildPipelineHTML,
+    scrollPipelineToActive,
+    setCardHTMLKeepingPipelineScroll,
+} from './pipeline.js';
 
 /** @param {string} text @param {string} [title] */
 export const copyIconHTML = (text, title) =>
@@ -167,7 +171,14 @@ export const buildLabelsHTML = (wf, interactive) => {
     const instance = wf.labels?.processNextInstanceGuid;
     if (instance) {
         // Abbreviated for display so headers don't wrap; tooltip, filter, and copy keep the full id.
-        html += sep + seg('processNextInstanceGuid', instance, abbrevGuids(instance) ?? instance, 'seg instance');
+        html +=
+            sep +
+            seg(
+                'processNextInstanceGuid',
+                instance,
+                abbrevGuids(instance) ?? instance,
+                'seg instance',
+            );
         html += copyIconHTML(instance, 'Copy instance id');
     }
     if (wf.labels) {
@@ -303,9 +314,15 @@ const rerenderCards = (wfKey) => {
     for (const el of document.querySelectorAll(`[data-wfkey="${CSS.escape(wfKey)}"]`)) {
         const card = /** @type {HTMLElement} */ (el);
         if (card.closest('#scheduled-workflows')) continue;
+        // A card playing its exit animation is about to be removed, and it no longer has a live
+        // entry to tick — repainting it would replace its last elapsed with the placeholder.
+        if (card.dataset.exiting) continue;
         const isStatic = !card.closest('#live-workflows');
         const compact = card.classList.contains('compact');
-        card.innerHTML = compact ? buildCompactCardHTML(wf, isStatic) : buildCardHTML(wf, isStatic);
+        setCardHTMLKeepingPipelineScroll(
+            card,
+            compact ? buildCompactCardHTML(wf, isStatic) : buildCardHTML(wf, isStatic),
+        );
         setCardFilterData(card, wf);
     }
 };

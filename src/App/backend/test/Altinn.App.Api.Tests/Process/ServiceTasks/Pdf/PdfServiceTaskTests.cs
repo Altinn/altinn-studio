@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Constants;
@@ -111,10 +112,11 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         rejectProblem["status"]!.Value<int>().Should().Be((int)HttpStatusCode.Conflict);
         rejectProblem["processNextState"]!.Value<string>().Should().Be("resumeRequired");
 
-        // Double check that process stays on the failed service task until resume
+        // The target service task is committed before its side effects run. A failure leaves
+        // that durable task in place so resume retries ExecuteServiceTask without reacquiring.
         Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.ElementId.Should().Be("Task_2");
-        instance.Process.CurrentTask.AltinnTaskType.Should().Be(AltinnTaskTypes.Pdf);
+        instance.Process.CurrentTask.AltinnTaskType.Should().Be("pdf");
     }
 
     [Fact]
@@ -153,6 +155,45 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         // Check that the process has been moved to the next task that is not a service task.
         var processState = JsonConvert.DeserializeObject<ProcessState>(responseAsString);
         processState.Ended.Should().NotBeNull();
+    }
+
+    [Theory]
+    [InlineData("language", "en")]
+    [InlineData("lang", "en")]
+    [InlineData(null, "nn")]
+    public async Task PdfServiceTask_RendersThePdfInTheLanguageTheUserChose_OrTheirProfileLanguage(
+        string? queryName,
+        string expected
+    )
+    {
+        // The PDF is rendered in a workflow-engine callback, a request of its own without the user's query string or
+        // authentication. Its language comes from the one process/next was called with, under either name that worked
+        // when PDFs were rendered inside process/next.
+        List<string> pdfLanguages = [];
+        SendAsync = async message =>
+        {
+            message.RequestUri!.PathAndQuery.Should().Be($"/pdf");
+            using System.Text.Json.JsonDocument body = System.Text.Json.JsonDocument.Parse(
+                await message.Content!.ReadAsStringAsync()
+            );
+            string url = body.RootElement.GetProperty("url").GetString()!;
+            pdfLanguages.Add(Regex.Match(url, "[?&]lang=([^&#]*)").Groups[1].Value);
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("this is the binary pdf content"),
+            };
+        };
+        using HttpClient client = GetRootedUserClient(Org, App);
+        string query = queryName is null ? "" : $"?{queryName}=en";
+
+        using HttpResponseMessage response = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/next{query}",
+            null
+        );
+
+        response.Should().HaveStatusCode(HttpStatusCode.OK);
+        // User 1337's profile language is nn.
+        Assert.Equal(expected, Assert.Single(pdfLanguages));
     }
 
     [Fact]
@@ -194,7 +235,7 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         problem["processStateChanged"]!.Value<bool>().Should().BeTrue();
         problem["processState"]!["currentTask"]!["elementId"]!.Value<string>().Should().Be("Task_2");
 
-        // Double check that process did not move to the next task
+        // The target service task was committed with processing ownership before execution failed.
         Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.ElementId.Should().Be("Task_2");
         instance.Process.CurrentTask.AltinnTaskType.Should().Be("pdf");

@@ -20,20 +20,20 @@ describe('All process steps', () => {
     // so we opt in by selecting the toggle on the first task before submitting (defaults to off to
     // keep other test runs fast).
     cy.get('#createPdfToggle').findByRole('radio', { name: 'Yes' }).check();
-    cy.get(appFrontend.sendinButton).clickAndGone();
+    cy.get(appFrontend.sendinButton).clickAndWaitForProcessNext();
 
     cy.fillOut('changename');
-    cy.get(appFrontend.sendinButton).clickAndGone();
+    cy.get(appFrontend.sendinButton).clickAndWaitForProcessNext();
 
     cy.fillOut('group');
-    cy.get(appFrontend.sendinButton).clickAndGone();
+    cy.get(appFrontend.sendinButton).clickAndWaitForProcessNext();
 
     cy.fillOut('likert');
-    cy.get(appFrontend.sendinButton).clickAndGone();
+    cy.get(appFrontend.sendinButton).clickAndWaitForProcessNext();
 
     cy.fillOut('datalist');
     testAllSummary2();
-    cy.get(appFrontend.sendinButton).clickAndGone();
+    cy.get(appFrontend.sendinButton).clickAndWaitForProcessNext();
 
     testConfirmationPage();
 

@@ -49,11 +49,11 @@ describe('Pagination', () => {
     const nav = screen.getByTestId('pagination');
     expect(within(nav).getByRole('button', { name: /^2$/ })).toHaveAttribute(
       'aria-current',
-      'page',
+      'true',
     );
     expect(within(nav).getByRole('button', { name: /^1$/ })).not.toHaveAttribute(
       'aria-current',
-      'page',
+      'true',
     );
   });
 

@@ -144,6 +144,13 @@ public class RepositoryService : IRepository
         CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, appTemplate, _settings.AppSlnFileName);
         CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, appTemplate, _settings.GitIgnoreFileName);
         CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, appTemplate, _settings.DockerIgnoreFileName);
+        CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, appTemplate, _settings.EditorConfigFileName);
+        CopyFileToApp(
+            serviceMetadata.Org,
+            serviceMetadata.RepositoryName,
+            appTemplate,
+            _settings.GitAttributesFileName
+        );
 
         return true;
     }

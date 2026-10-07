@@ -1,8 +1,4 @@
 ﻿#nullable enable
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Signing;
 using Altinn.App.Models.Skjemadata;
 using Altinn.Platform.Storage.Interface.Models;
@@ -22,7 +18,10 @@ public class FounderSigneesProvider : ISigneeProvider
         var formData = await parameters.InstanceDataAccessor.GetFormData<Skjemadata>(dataElement);
 
         List<ProvidedSignee> providedSignees = [];
-        foreach (StifterPerson stifterPerson in formData.StifterPerson)
+
+        // Both founder groups are repeating groups: they stay absent until the user adds a row,
+        // so "no rows" is a normal state and simply contributes no signees.
+        foreach (StifterPerson stifterPerson in formData.StifterPerson ?? [])
         {
             var personSignee = new ProvidedPerson
             {
@@ -67,11 +66,13 @@ public class FounderSigneesProvider : ISigneeProvider
             providedSignees.Add(personSignee);
         }
 
-        foreach (StifterVirksomhet stifterVirksomhet in formData.StifterVirksomhet)
+        foreach (StifterVirksomhet stifterVirksomhet in formData.StifterVirksomhet ?? [])
         {
             var organisationSignee = new ProvidedOrganization
             {
-                Name = stifterVirksomhet.Navn,
+                // No field on a founder organisation is required by the model schema, so an
+                // unfilled one degrades to an empty value, the same as the organisation number.
+                Name = stifterVirksomhet.Navn ?? string.Empty,
                 OrganizationNumber =
                     stifterVirksomhet.Organisasjonsnummer?.ToString() ?? string.Empty,
                 CommunicationConfig = new CommunicationConfig

@@ -1,8 +1,8 @@
-import { screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PdfAutomaticTaskSelection } from './PdfAutomaticTaskSelection';
-import { createPdfBpmnDetails, renderWithProviders } from '../testUtils';
+import { createBpmnTestModeler } from '../../../../../../test/createBpmnTestModeler';
 
 let mockTasks: any[] = [];
 
@@ -12,7 +12,7 @@ const defaultMockTasks = [
     businessObject: {
       name: 'Task 1',
       extensionElements: {
-        values: [{ taskType: 'data' }],
+        values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
       },
     },
   },
@@ -21,25 +21,18 @@ const defaultMockTasks = [
     businessObject: {
       name: 'Task 2',
       extensionElements: {
-        values: [{ taskType: 'data' }],
+        values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
       },
     },
   },
 ];
 
-jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
-  return {
-    StudioModeler: jest.fn().mockImplementation(() => {
-      return {
-        getAllTasksByType: jest.fn(() => mockTasks),
-      };
-    }),
-  };
-});
-
-const mockUpdateTaskIds = jest.fn();
-jest.mock('../../../../../hooks/useUpdatePdfConfigTaskIds', () => ({
-  useUpdatePdfConfigTaskIds: () => mockUpdateTaskIds,
+jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => ({
+  StudioModeler: jest.fn().mockImplementation(function () {
+    return {
+      getElementsByType: () => mockTasks,
+    };
+  }),
 }));
 
 describe('PdfAutomaticTaskSelection', () => {
@@ -51,7 +44,7 @@ describe('PdfAutomaticTaskSelection', () => {
   it('should render task selector combobox', () => {
     renderPdfAutomaticTaskSelection();
 
-    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
   it('should display available tasks as options', async () => {
@@ -59,7 +52,7 @@ describe('PdfAutomaticTaskSelection', () => {
 
     renderPdfAutomaticTaskSelection();
 
-    const combobox = screen.getByRole('textbox');
+    const combobox = screen.getByRole('combobox');
     await user.click(combobox);
 
     expect(
@@ -70,27 +63,26 @@ describe('PdfAutomaticTaskSelection', () => {
     ).toBeInTheDocument();
   });
 
-  it('should call updateTaskIds when selecting a task', async () => {
+  it('persists a selected task', async () => {
     const user = userEvent.setup();
 
-    renderPdfAutomaticTaskSelection();
+    const { saveXml } = renderPdfAutomaticTaskSelection();
 
-    const combobox = screen.getByRole('textbox');
+    const combobox = screen.getByRole('combobox');
     await user.click(combobox);
 
     const option = screen.getByRole('option', { name: /Task 1.*\(task_1\)/, hidden: true });
     await user.click(option);
 
-    await waitFor(() => expect(mockUpdateTaskIds).toHaveBeenCalled());
-    expect(mockUpdateTaskIds).toHaveBeenCalledWith(['task_1']);
+    expect(await saveXml()).toContain('<altinn:taskId>task_1</altinn:taskId>');
   });
 
-  it('should call updateTaskIds when deselecting a task', async () => {
+  it('removes a deselected task from the BPMN', async () => {
     const user = userEvent.setup();
 
-    renderPdfAutomaticTaskSelection(['task_1']);
+    const { saveXml } = renderPdfAutomaticTaskSelection(['task_1']);
 
-    await user.click(screen.getByRole('textbox'));
+    await user.click(screen.getByRole('combobox'));
 
     const selectedTaskChip = screen.getByRole('option', {
       name: /^Task 1 \(task_1\), /,
@@ -98,22 +90,24 @@ describe('PdfAutomaticTaskSelection', () => {
     });
     await user.click(selectedTaskChip);
 
-    await waitFor(() => expect(mockUpdateTaskIds).toHaveBeenCalledWith([]));
+    expect(await saveXml()).not.toContain('<altinn:taskId>');
   });
 
-  it('should call updateTaskIds when selecting multiple tasks', async () => {
+  it('persists multiple selected tasks', async () => {
     const user = userEvent.setup();
 
-    renderPdfAutomaticTaskSelection();
+    const { saveXml } = renderPdfAutomaticTaskSelection();
 
-    const combobox = screen.getByRole('textbox');
+    const combobox = screen.getByRole('combobox');
     await user.click(combobox);
 
     await user.click(screen.getByRole('option', { name: /Task 1.*\(task_1\)/, hidden: true }));
-    await waitFor(() => expect(mockUpdateTaskIds).toHaveBeenCalledWith(['task_1']));
+    expect(await saveXml()).toContain('<altinn:taskId>task_1</altinn:taskId>');
 
     await user.click(screen.getByRole('option', { name: /Task 2.*\(task_2\)/, hidden: true }));
-    await waitFor(() => expect(mockUpdateTaskIds).toHaveBeenLastCalledWith(['task_1', 'task_2']));
+    const xml = await saveXml();
+    expect(xml).toContain('<altinn:taskId>task_1</altinn:taskId>');
+    expect(xml).toContain('<altinn:taskId>task_2</altinn:taskId>');
   });
 
   describe('edge cases', () => {
@@ -125,7 +119,7 @@ describe('PdfAutomaticTaskSelection', () => {
           businessObject: {
             name: '',
             extensionElements: {
-              values: [{ taskType: 'data' }],
+              values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
             },
           },
         },
@@ -133,7 +127,7 @@ describe('PdfAutomaticTaskSelection', () => {
 
       renderPdfAutomaticTaskSelection();
 
-      const combobox = screen.getByRole('textbox');
+      const combobox = screen.getByRole('combobox');
       await user.click(combobox);
 
       expect(screen.getByRole('option', { name: /\(task_1\)/, hidden: true })).toBeInTheDocument();
@@ -146,7 +140,7 @@ describe('PdfAutomaticTaskSelection', () => {
           id: 'task_1',
           businessObject: {
             extensionElements: {
-              values: [{ taskType: 'data' }],
+              values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
             },
           },
         },
@@ -154,7 +148,7 @@ describe('PdfAutomaticTaskSelection', () => {
 
       renderPdfAutomaticTaskSelection();
 
-      const combobox = screen.getByRole('textbox');
+      const combobox = screen.getByRole('combobox');
       await user.click(combobox);
 
       expect(screen.getByRole('option', { name: /\(task_1\)/, hidden: true })).toBeInTheDocument();
@@ -166,7 +160,7 @@ describe('PdfAutomaticTaskSelection', () => {
 
       renderPdfAutomaticTaskSelection();
 
-      const combobox = screen.getByRole('textbox');
+      const combobox = screen.getByRole('combobox');
       await user.click(combobox);
 
       expect(
@@ -177,10 +171,15 @@ describe('PdfAutomaticTaskSelection', () => {
 });
 
 const renderPdfAutomaticTaskSelection = (taskIds: string[] = []) => {
-  const bpmnDetails = createPdfBpmnDetails({ taskIds });
-
-  return renderWithProviders(<PdfAutomaticTaskSelection />, {
-    bpmnContextProps: { bpmnDetails },
-    bpmnApiContextProps: { layoutSets: [] },
+  const modeler = createBpmnTestModeler();
+  const pdfConfig = modeler.moddle.create('altinn:PdfConfig', {
+    autoPdfTaskIds: modeler.moddle.create('altinn:AutoPdfTaskIds', {
+      taskIds: taskIds.map((value) => modeler.moddle.create('altinn:TaskId', { value })),
+    }),
   });
+  modeler.businessObject.extensionElements = modeler.moddle.create('bpmn:ExtensionElements', {
+    values: [modeler.moddle.create('altinn:TaskExtension', { taskType: 'pdf', pdfConfig })],
+  });
+  render(<PdfAutomaticTaskSelection />, { wrapper: modeler.Wrapper });
+  return modeler;
 };

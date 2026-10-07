@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
+using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Extensions;
 using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;

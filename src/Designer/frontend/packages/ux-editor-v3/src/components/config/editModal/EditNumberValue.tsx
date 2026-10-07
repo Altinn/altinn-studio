@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
 import { getComponentPropertyLabel } from '../../../utils/language';
 import { setComponentProperty } from '../../../utils/component';
-import { StudioDecimalInput } from '@studio/components-legacy';
+import { StudioDecimalInput } from '@studio/components';
 
 export interface EditNumberValueProps extends IGenericEditComponent {
   propertyKey: string;
@@ -28,10 +28,10 @@ export const EditNumberValue = ({
       onChange={handleValueChange}
       propertyPath={component.propertyPath}
       helpText={helpText}
-      renderField={({ fieldProps }) => (
+      renderField={({ fieldProps: { onChange, ...fieldProps } }) => (
         <StudioDecimalInput
           {...fieldProps}
-          onChange={fieldProps.onChange}
+          onChangeNumber={onChange}
           description={getComponentPropertyLabel(propertyKey, t)}
           validationErrorMessage={t('validation_errors.numbers_only')}
         />

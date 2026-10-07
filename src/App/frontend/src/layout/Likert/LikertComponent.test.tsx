@@ -1,8 +1,8 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';
 
 import { defaultMockOptions, generateValidations, render } from 'src/layout/Likert/LikertTestUtils';
-import type { IRawOption } from 'src/layout/common.generated';
 
 const defaultMockQuestions = [
   { Question: 'Hvordan trives du på skolen?', Answer: '' },

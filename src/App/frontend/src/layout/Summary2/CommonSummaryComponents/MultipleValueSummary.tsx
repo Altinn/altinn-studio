@@ -13,7 +13,7 @@ import { validationsOfSeverity } from 'src/features/validation/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import classes from 'src/layout/Summary2/CommonSummaryComponents/MultipleValueSummary.module.css';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useFormDataFor } from 'src/utils/layout/useNodeItem';
+import { useFormDataFor } from 'src/utils/layout/useFormData';
 import type { CompTypes } from 'src/layout/layout';
 
 type ValidTypes = 'MultipleSelect' | 'Checkboxes';

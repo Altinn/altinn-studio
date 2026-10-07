@@ -5,14 +5,12 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/Designer/frontend/**'
-      - 'src/Designer/frontend/testing/cypress/**'
       - '!src/Designer/frontend/stats/**'
       - 'src/Designer/testdata/**'
       - '.github/workflows/designer-frontend-unit-tests.yml'
       - 'package.json'
       - 'yarn.lock'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
@@ -61,7 +59,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: 'Testing'
     runs-on: self-hosted-ubuntu
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: 'Checking Out Code'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -71,10 +69,17 @@ jobs:
       - name: 'Installing Dependencies'
         uses: ./.github/actions/yarn-install
 
-      - name: 'Running Unit Tests'
-        run:  |
+      - name: 'Running Unit Tests (Jest)'
+        run: |
           cd src/Designer/frontend
-          yarn test:ci
+          yarn test:ci:jest
+
+      # Runs the directories listed in src/Designer/frontend/vitest.migrated.js.
+      - name: 'Running Unit Tests (Vitest)'
+        if: ${{ !cancelled() }}
+        run: |
+          cd src/Designer/frontend
+          yarn test:ci:vitest
 
       - name: 'Upload coverage reports to Codecov'
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0

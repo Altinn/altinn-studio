@@ -6,6 +6,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { act, render as rtlRender, waitFor } from '@testing-library/react';
 import dotenv from 'dotenv';
 import { vi } from 'vitest';
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';
 import type { RenderOptions, waitForOptions } from '@testing-library/react';
 import type { AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
@@ -22,7 +23,7 @@ import { ApiProvider } from 'src/core/contexts/ApiProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { FormProvider } from 'src/features/form/FormProvider';
-import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
+import { UiPreferencesProvider } from 'src/features/form/layout/UiPreferencesContext';
 import { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
@@ -39,7 +40,6 @@ import type { PartyApi } from 'src/core/api-client/party.api';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
-import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternal, CompExternalExact, CompTypes } from 'src/layout/layout';
 import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 
@@ -60,6 +60,7 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
 
 interface InstanceRouterProps {
   routerRef?: RouterRef;
+  initialPath?: string;
   initialPage?: string;
   taskId?: string;
   instanceId?: string;
@@ -241,13 +242,14 @@ function DefaultRouter({ children }: PropsWithChildren) {
 export function InstanceRouter({
   children,
   routerRef,
+  initialPath,
   instanceId = exampleInstanceId,
   taskId = 'Task_1',
   initialPage = 'FormLayout',
   alwaysRouteToChildren = false,
   query,
 }: PropsWithChildren<InstanceRouterProps>) {
-  const path = `/ttd/test/instance/${instanceId}/${taskId}/${initialPage}`;
+  const path = initialPath ?? `/ttd/test/instance/${instanceId}/${taskId}/${initialPage}`;
   const router = createMemoryRouter(
     [
       {
@@ -283,7 +285,7 @@ export function StatelessRouter({
   initialPage = 'FormLayout',
   alwaysRouteToChildren = false,
   query,
-}: PropsWithChildren<Omit<InstanceRouterProps, 'taskId' | 'instanceId'>>) {
+}: PropsWithChildren<Omit<InstanceRouterProps, 'taskId' | 'instanceId' | 'initialPath'>>) {
   const path = `/ttd/test/${initialPage}`;
   const router = createMemoryRouter(
     [
@@ -324,7 +326,7 @@ function DefaultProviders({ children, queries, apis, queryClient, Router = Defau
         {...queries}
         queryClient={queryClient}
       >
-        <UiConfigProvider>
+        <UiPreferencesProvider>
           <Router>
             <NavigationFocusStateProvider>
               <GlobalFormDataReadersProvider>
@@ -332,7 +334,7 @@ function DefaultProviders({ children, queries, apis, queryClient, Router = Defau
               </GlobalFormDataReadersProvider>
             </NavigationFocusStateProvider>
           </Router>
-        </UiConfigProvider>
+        </UiPreferencesProvider>
       </AppQueriesProvider>
     </ApiProvider>
   );
@@ -590,6 +592,7 @@ export const renderWithInstanceAndLayout = async ({
   renderer,
   instanceId,
   taskId,
+  initialPath,
   alwaysRouteToChildren,
   initialPage = 'FormLayout',
   query,
@@ -629,6 +632,7 @@ export const renderWithInstanceAndLayout = async ({
           routerRef={routerRef}
           instanceId={instanceId}
           taskId={taskId}
+          initialPath={initialPath}
           initialPage={initialPage}
           alwaysRouteToChildren={alwaysRouteToChildren}
           query={query}

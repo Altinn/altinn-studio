@@ -9,7 +9,8 @@ describe('Tabbing', () => {
     cy.waitUntilSaved();
     cy.get(appFrontend.changeOfName.newFirstName).focus().tab();
     cy.focused().should('have.text', 'Nytt mellomnavn');
-    cy.tab();
+    cy.focused().type('{rightArrow}');
+    cy.focused().should('have.text', 'Nytt etternavn');
     cy.focused().click();
     cy.get(appFrontend.changeOfName.newLastName).type('a').blur().tab().tab();
     cy.focused()

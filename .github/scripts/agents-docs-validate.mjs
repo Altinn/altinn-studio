@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 
-// Validates the AGENTS.md/CLAUDE.md hierarchy (see /AGENTS.md "Conventions across the repo"):
-//   1. Pairing — every AGENTS.md has a sibling CLAUDE.md and vice versa, and each such
-//      CLAUDE.md imports it via `@AGENTS.md`.
+// Validates the AGENTS.md hierarchy (see /AGENTS.md "Conventions across the repo"):
+//   1. Single instruction file — AGENTS.md is the only agent-guidance file, read directly by
+//      every agent, so a CLAUDE.md anywhere in the repository is a regression.
 //   2. Links — every relative markdown link inside an AGENTS.md resolves to a real path.
 //   3. Coverage — every tracked top-level directory and every tracked directory directly
 //      under src/ is mentioned in the root AGENTS.md repository map.
@@ -32,31 +32,15 @@ function gitListDirs(treeish) {
   return out.split('\n').filter(Boolean);
 }
 
-// --- 1. Pairing ---
+// --- 1. Single instruction file ---
 
 const agentsFiles = gitListFiles('AGENTS.md', '**/AGENTS.md');
 const claudeFiles = gitListFiles('CLAUDE.md', '**/CLAUDE.md');
-const agentsDirs = new Set(agentsFiles.map((f) => path.dirname(f)));
-const claudeDirs = new Set(claudeFiles.map((f) => path.dirname(f)));
 
-for (const dir of agentsDirs) {
-  if (!claudeDirs.has(dir)) {
-    errors.push(
-      `${path.join(dir, 'AGENTS.md')}: missing sibling CLAUDE.md stub (add one containing "@AGENTS.md")`,
-    );
-  }
-}
-for (const dir of claudeDirs) {
-  if (!agentsDirs.has(dir)) {
-    errors.push(
-      `${path.join(dir, 'CLAUDE.md')}: no sibling AGENTS.md — content must live in AGENTS.md, with CLAUDE.md pointing at it`,
-    );
-  } else {
-    const stub = fs.readFileSync(path.join(dir, 'CLAUDE.md'), 'utf8');
-    if (!/(^|\s)@AGENTS\.md(\s|$)/.test(stub)) {
-      errors.push(`${path.join(dir, 'CLAUDE.md')}: must import the sibling doc via "@AGENTS.md"`);
-    }
-  }
+for (const file of claudeFiles) {
+  errors.push(
+    `${file}: CLAUDE.md is no longer used — put the guidance in ${path.join(path.dirname(file), 'AGENTS.md')}, which every agent reads directly`,
+  );
 }
 
 // --- 2. Links ---

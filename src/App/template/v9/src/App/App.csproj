@@ -3,12 +3,17 @@
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>Altinn.Application</AssemblyName>
     <RootNamespace>Altinn.App</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api" Version="9.0.0-preview.4">
+    <Using Include="Altinn.App.Core.Features" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Altinn.App.Api" Version="9.0.0-preview.6">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
-    <PackageReference Include="Altinn.App.Core" Version="9.0.0-preview.4" />
+    <PackageReference Include="Altinn.App.Core" Version="9.0.0-preview.6" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\css\" />

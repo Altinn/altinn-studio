@@ -73,7 +73,10 @@ describe('Input', () => {
       />,
     );
 
-    expect(screen.getByText(/characters left/i)).toBeInTheDocument();
+    expect(document.querySelector('[data-field="counter"]')).toHaveAttribute(
+      'data-label',
+      'characters left',
+    );
   });
 
   it('hides the character counter for read-only inputs', () => {

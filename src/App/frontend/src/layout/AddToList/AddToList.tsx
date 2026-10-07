@@ -9,6 +9,7 @@ import {
 } from '@app/form-component';
 import { Button, Dialog } from '@digdir/designsystemet-react';
 import { v4 as uuidv4 } from 'uuid';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { JSONSchema7 } from 'json-schema';
 
 import { FormStore } from 'src/features/form/FormContext';
@@ -17,7 +18,6 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IDataModelReference } from 'src/layout/common.generated';
 
 export function isJSONSchema7Definition(obj: unknown): obj is JSONSchema7 {
   if (typeof obj === 'boolean') {

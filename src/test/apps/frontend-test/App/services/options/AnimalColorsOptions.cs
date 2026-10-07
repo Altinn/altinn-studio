@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.services.options
@@ -9,10 +6,10 @@ namespace Altinn.App.services.options
     {
         public string Id => "animalColors";
 
-        public async Task<AppOptions> GetAppOptionsAsync(string language, Dictionary<string, string> keyValuePairs)
+        public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
         {
 
-            string isForeign = keyValuePairs.GetValueOrDefault("foreign");
+            string? isForeign = keyValuePairs.GetValueOrDefault("foreign");
             List<AppOption> output = new List<AppOption>();
 
             if (isForeign == "true")

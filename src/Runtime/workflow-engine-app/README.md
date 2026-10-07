@@ -50,42 +50,26 @@ dotnet test
 
 No Docker Compose setup needed — tests use Testcontainers for PostgreSQL and WireMock.
 
-## Updating the studioctl image tag
+## The image studioctl runs
 
-`studioctl env up` runs a prebuilt engine image from GHCR as a container. The tag is pinned in [`src/cli/internal/config/config.yaml`](../../cli/internal/config/config.yaml):
+`studioctl env up` runs this service from the `tt02` tag of its GHCR image, moved whenever a build is
+deployed to the ring tt02 serves. Local environments therefore run the build tt02 runs, and nothing
+needs updating in studioctl when this service changes. `--dev-workflow-engine` routes the binding to
+a local host process instead and pulls no image.
 
-```yaml
-image: ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app
-tag: "760d94635e"
-```
+Since that tag moves, `studioctl env status` and `studioctl doctor` name the build a container is
+running rather than only the tag — that is what a report about local behavior should quote, and the
+commit it was built from is stamped on the image as `org.opencontainers.image.revision`. To reproduce
+a report against a specific build, set `STUDIOCTL_IMAGE_WORKFLOW_ENGINE` to its immutable tag, the
+first 10 characters of that commit.
 
-> Passing `--dev-workflow-engine` instead **disables** that container and routes the engine binding to a local host process (so you can run it yourself with `dotnet run`). In that mode the pinned tag is not used — only the default `studioctl env up` consumes it.
+### Keeping the local environment working
 
-### How the image is built
-
-The [`deploy-runtime-workflow-engine-app`](../../../.github/workflows/deploy-runtime-workflow-engine-app.yaml) workflow builds and pushes the image on every push to `main` that touches the engine source, `Dockerfile`, packages, or infra paths. **The tag is the first 10 characters of the triggering commit SHA** (`${GITHUB_SHA::10}`).
-
-### Finding the right tag
-
-After your changes land on `main`, find the build and update the pin:
-
-```sh
-# 1. List recent builds (most recent first). Look for event=push, headBranch=main.
-gh run list --workflow deploy-runtime-workflow-engine-app.yaml -L 15 \
-  --json headSha,displayTitle,event,headBranch,conclusion,createdAt,databaseId
-
-# 2. Confirm the image was actually pushed for that run. The overall run may show
-#    "waiting" (deploy/tag jobs gate on environment approval) — that does NOT mean
-#    the image is missing. Check the build job specifically:
-gh run view <databaseId> \
-  --jq '.jobs[] | select(.name | test("Push|OCI")) | {name, status, conclusion}'
-
-# 3. The tag is the first 10 chars of that run's headSha.
-```
-
-Pin to the **latest** successful build on `main` (matches `main` HEAD) unless you deliberately need an older artifact. Note that follow-up infra/chore commits also retrigger the workflow and produce new tags, so the newest tag is not always the PR you have in mind — verify the `headSha`.
-
-> The GHCR org package API requires a `read:packages` token scope, so listing tags directly via `gh api /orgs/altinn/packages/...` will 403 with the default token. Rely on the **build job conclusion** (step 2) as proof the image exists.
+In a cluster this service's configuration ships with the image. Locally studioctl supplies it, and
+the studioctl a developer has installed is older than the image it pulls. So a change that is atomic
+in a cluster is not atomic locally: renaming a setting, moving the readiness route or requiring a new
+variable breaks `env up` for everyone who has not updated. Keep the previous spelling working for at
+least one studioctl release, and change studioctl in the same pull request.
 
 ## Further reading
 

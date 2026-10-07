@@ -13,19 +13,19 @@ namespace Altinn.App.Core.Internal.Auth;
 public interface IAuthorizationService
 {
     /// <summary>
-    /// Returns the list of parties that user has any rights for.
+    /// Returns the list of parties the authenticated user can act on behalf of.
     /// </summary>
-    /// <param name="userId">The userId.</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>List of parties.</returns>
-    Task<List<Party>?> GetPartyList(int userId);
+    Task<List<Party>?> GetPartyList(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Verifies that the selected party is contained in the user's party list.
+    /// Verifies that the selected party is contained in the authenticated user's party list.
     /// </summary>
-    /// <param name="userId">The user id.</param>
     /// <param name="partyId">The party id.</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns> Boolean indicating whether or not the user can represent the selected party.</returns>
-    Task<bool?> ValidateSelectedParty(int userId, int partyId);
+    Task<bool?> ValidateSelectedParty(int partyId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Check if the user is authorized to perform the given action on the given instance.
@@ -35,13 +35,15 @@ public interface IAuthorizationService
     /// <param name="user"></param>
     /// <param name="action"></param>
     /// <param name="taskId"></param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns></returns>
     Task<bool> AuthorizeAction(
         AppIdentifier appIdentifier,
         InstanceIdentifier instanceIdentifier,
         ClaimsPrincipal user,
         string action,
-        string? taskId = null
+        string? taskId = null,
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -50,6 +52,12 @@ public interface IAuthorizationService
     /// <param name="instance"></param>
     /// <param name="user"></param>
     /// <param name="actions"></param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>Dictionary with actions and the auth decision</returns>
-    Task<List<UserAction>> AuthorizeActions(Instance instance, ClaimsPrincipal user, List<AltinnAction> actions);
+    Task<List<UserAction>> AuthorizeActions(
+        Instance instance,
+        ClaimsPrincipal user,
+        List<AltinnAction> actions,
+        CancellationToken cancellationToken = default
+    );
 }

@@ -25,7 +25,7 @@ describe('Preview', () => {
   });
 
   it('should show an error message when layout metadata fails', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const errorMessage = 'Failed to load';
 
     renderPreview({

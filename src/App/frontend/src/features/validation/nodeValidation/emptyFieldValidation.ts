@@ -1,4 +1,5 @@
 import type { ValidLanguageKey } from '@app/language';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
@@ -6,7 +7,6 @@ import { type ComponentValidation, FrontendValidationSource, ValidationMask } fr
 import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
 import { getFieldNameKey } from 'src/utils/formComponentUtils';
 import type { ComponentValidationContext } from 'src/layout';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompTypes } from 'src/layout/layout';
 
 function evalTextResourceBindings<T extends CompTypes>(ctx: ComponentValidationContext<T>) {

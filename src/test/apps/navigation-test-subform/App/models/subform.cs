@@ -1,4 +1,4 @@
-#nullable disable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -15,17 +15,17 @@ namespace Altinn.App.Models.subform
     [XmlElement("registrationnumber", Order = 1)]
     [JsonProperty("registrationnumber")]
     [JsonPropertyName("registrationnumber")]
-    public string registrationnumber { get; set; }
+    public string? registrationnumber { get; set; }
 
     [XmlElement("modelyear", Order = 2)]
     [JsonProperty("modelyear")]
     [JsonPropertyName("modelyear")]
-    public string modelyear { get; set; }
+    public string? modelyear { get; set; }
 
     [XmlElement("brand", Order = 3)]
     [JsonProperty("brand")]
     [JsonPropertyName("brand")]
-    public string brand { get; set; }
+    public string? brand { get; set; }
 
   }
 }

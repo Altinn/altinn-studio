@@ -19,6 +19,7 @@ import {
   useSetHasSelectedParty,
   useSetSelectedParty,
 } from 'src/features/party/PartiesProvider';
+import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/hooks/useProcessingMutation';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { getPageTitle } from 'src/utils/getPageTitle';
@@ -56,21 +57,34 @@ export const PartySelection = () => {
   const appName = useAppName();
   const appOwner = useAppOwner();
 
-  const onSelectParty = async (party: IParty) => {
-    await selectParty(party);
-    setUserHasSelectedParty(true);
-    navigate('/');
-  };
+  // The processing mutation guards against a second selection while one is in flight
+  const performProcess = useProcessingMutationWithKey<number>('select-party');
+  const pendingPartyId = useCurrentProcessKey<number>('select-party') ?? undefined;
+
+  const onSelectParty = (party: IParty) =>
+    performProcess(party.partyId, async () => {
+      await selectParty(party);
+      setUserHasSelectedParty(true);
+      // await navigation, including running loaders, keeping the pressed state and the click guard active until the page swaps.
+      await navigate('/');
+    });
 
   const numberFilterString = filterString.replace(/\s+/g, '');
   const hasNumberFilter = numberFilterString.length > 0 && numberFilterString.match(/^\d+$/);
-  const filteredParties = partiesAllowedToInstantiate.filter(
-    (party) =>
-      (party.name.toUpperCase().includes(filterString.toUpperCase()) ||
-        (hasNumberFilter &&
-          (party.ssn?.includes(numberFilterString) || party.orgNumber?.includes(numberFilterString)))) &&
-      !(party.isDeleted && !showDeleted),
-  );
+  const matchesSearch = (party: IParty) =>
+    party.name.toUpperCase().includes(filterString.toUpperCase()) ||
+    (hasNumberFilter && (party.ssn?.includes(numberFilterString) || party.orgNumber?.includes(numberFilterString)));
+
+  const filteredParties = partiesAllowedToInstantiate.flatMap((party) => {
+    if (party.isDeleted && !showDeleted) {
+      return [];
+    }
+    const matchingSubUnits = filterString && showSubUnits ? party.childParties?.filter(matchesSearch) : undefined;
+    if (matchingSubUnits?.length) {
+      return [{ party: { ...party, childParties: matchingSubUnits }, expandSubUnits: true }];
+    }
+    return matchesSearch(party) ? [{ party, expandSubUnits: false }] : [];
+  });
 
   const hasMoreParties = filteredParties.length > numberOfPartiesShown;
   const partiesSubset = filteredParties.slice(0, numberOfPartiesShown);
@@ -78,12 +92,14 @@ export const PartySelection = () => {
   function renderParties() {
     return (
       <>
-        {partiesSubset.map((party, index) => (
+        {partiesSubset.map(({ party, expandSubUnits }) => (
           <AltinnParty
-            key={index}
+            key={`${party.partyId}-${expandSubUnits}`}
             party={party}
             onSelectParty={onSelectParty}
             showSubUnits={showSubUnits}
+            pendingPartyId={pendingPartyId}
+            initiallyExpanded={expandSubUnits}
           />
         ))}
         {hasMoreParties ? (

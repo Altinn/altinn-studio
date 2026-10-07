@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -204,6 +206,100 @@ public class AltinnAppGitRepositoryTests : IDisposable
         Assert.NotNull(layoutNames);
         Assert.Equal(2, layoutNames.Length);
         return Task.CompletedTask;
+    }
+
+    [Fact]
+    public async Task GetLayoutNames_DuringLayoutWrite_ShouldReturnOnlyLayouts()
+    {
+        string org = "ttd";
+        string repository = "app-with-layoutsets";
+        string developer = "testUser";
+        string layoutSetName = "layoutSet1";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+        TargetRepoName = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+        AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+        string[] layoutNamesBeforeWrite = altinnAppGitRepository.GetLayoutNames(layoutSetName);
+        var layout = new PausingStream(Encoding.UTF8.GetBytes("{\"data\":"), Encoding.UTF8.GetBytes("{}}"));
+        Task write = altinnAppGitRepository.WriteStreamByRelativePathAsync(
+            $"App/ui/{layoutSetName}/layouts/layoutFile1InSet1.json",
+            layout
+        );
+        await layout.Paused;
+
+        string[] layoutNamesDuringWrite = altinnAppGitRepository.GetLayoutNames(layoutSetName);
+
+        layout.Resume();
+        await write;
+        Assert.Equal(layoutNamesBeforeWrite, layoutNamesDuringWrite);
+    }
+
+    [Fact]
+    public async Task GetLayoutSettingsAndCreateNewIfNotFound_SettingsMissing_ShouldCreateSettingsOnlyInRepository()
+    {
+        string org = "ttd";
+        string repository = "app-with-layoutsets-v9";
+        string developer = "testUser";
+        // Unique, so a folder of this name under the working directory can only come from this test.
+        string layoutSetName = $"Task_{Guid.NewGuid():N}";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+        TargetRepoName = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+        AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+        string layoutSetFolder = Path.Combine(TargetRepoName, "App", "ui", layoutSetName);
+        Directory.CreateDirectory(layoutSetFolder);
+        string workingDirectoryLayoutSetFolder = Path.Combine(
+            Directory.GetCurrentDirectory(),
+            "App",
+            "ui",
+            layoutSetName
+        );
+
+        try
+        {
+            JsonNode layoutSettings = await altinnAppGitRepository.GetLayoutSettingsAndCreateNewIfNotFound(
+                layoutSetName
+            );
+
+            Assert.False(Directory.Exists(workingDirectoryLayoutSetFolder));
+            Assert.True(File.Exists(Path.Combine(layoutSetFolder, "Settings.json")));
+            Assert.False(Directory.Exists(Path.Combine(layoutSetFolder, "layouts")));
+            Assert.Empty(layoutSettings["pages"]["order"].AsArray());
+        }
+        finally
+        {
+            if (Directory.Exists(workingDirectoryLayoutSetFolder))
+            {
+                Directory.Delete(workingDirectoryLayoutSetFolder, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task GetProcessDefinitionFile_StreamKeptDuringSave_ShouldNotBlockSave()
+    {
+        string org = "ttd";
+        string repository = "app-with-layoutsets";
+        string developer = "testUser";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+        TargetRepoName = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+        AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+        string processDefinitionBeforeSave = await altinnAppGitRepository.ReadTextByRelativePathAsync(
+            "App/config/process/process.bpmn"
+        );
+
+        await using Stream keptStream = altinnAppGitRepository.GetProcessDefinitionFile();
+        await altinnAppGitRepository.SaveProcessDefinitionFileAsync(
+            new MemoryStream(Encoding.UTF8.GetBytes("<definitions />"))
+        );
+
+        using var reader = new StreamReader(keptStream);
+        Assert.Equal(processDefinitionBeforeSave, await reader.ReadToEndAsync());
+        Assert.Equal(
+            "<definitions />",
+            await altinnAppGitRepository.ReadTextByRelativePathAsync("App/config/process/process.bpmn")
+        );
     }
 
     [Fact]

@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 This file provides guidance to AI agents when working with code in this repository.
 
@@ -10,14 +10,13 @@ This is the Altinn 3 app frontend - a React application that renders dynamic for
 
 ### Core Commands
 
-- `yarn start` - Start development server (runs codegen first)
-- `yarn build` - Production build (runs codegen and copy-schemas)
-- `yarn gen` - Run code generation for schemas
-- `yarn copy-schemas` - Copy JSON schemas to dist
+- `yarn start` - Start development server
+- `yarn build` - Production build, including schemas from the shared layout contract
+- `yarn gen` - Regenerate and format the tracked layout contract artifacts
 
 ### Testing
 
-- `yarn test` - Run Vitest unit tests once (runs codegen first)
+- `yarn test` - Run Vitest unit tests once
 - `yarn test:watch` - Run tests in watch mode
 - `yarn test:watchall` - Run all tests in watch mode
 - `yarn cy:open` - Open Cypress for e2e testing
@@ -25,7 +24,7 @@ This is the Altinn 3 app frontend - a React application that renders dynamic for
 
 ### Code Quality
 
-- `yarn lint` - Run ESLint (runs codegen first)
+- `yarn lint` - Run ESLint
 - `yarn tsc` - Run TypeScript compiler check
 - `yarn tsc:watch` - Run TypeScript in watch mode
 
@@ -73,7 +72,7 @@ The codebase uses a hybrid approach with plans to modernize:
 
 - Extensive use of TypeScript code generation from JSON schemas
 - Generated files have `.generated.ts` suffix
-- Run `yarn gen` before most operations
+- Run `yarn gen` after changing component configuration or code-generation sources, and commit the generated changes
 
 ### Directory Structure
 
@@ -107,7 +106,7 @@ The codebase uses a hybrid approach with plans to modernize:
 
 #### Code Generation Dependency
 
-Most commands automatically run `yarn gen` first. The codegen system generates TypeScript definitions from JSON schemas, which are essential for the app to function.
+Generated layout schemas, metadata, documentation fragments, and renderer TypeScript files are tracked in `src/common/ts/layout-contract`. Ordinary build, test, lint, and typecheck commands consume those committed files without regenerating them. Run `yarn gen` explicitly after changing generator inputs; CI verifies that the committed output is current.
 
 #### Context Provider Hierarchy
 

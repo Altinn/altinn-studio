@@ -1,55 +1,14 @@
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
-import type { BpmnBusinessObjectViewer } from '../../types/BpmnBusinessObjectViewer';
 import type {
   BpmnBusinessObjectEditor,
   BpmnExtensionElementsEditor,
 } from '../../types/BpmnBusinessObjectEditor';
 import type { BpmnDetails } from '../../types/BpmnDetails';
 import type { BpmnTaskType } from '../../types/BpmnTaskType';
-import {
-  getBpmnEditorDetailsFromBusinessObject,
-  getBpmnViewerDetailsFromBusinessObject,
-} from './bpmnObjectBuilders';
+import { getBpmnEditorDetailsFromBusinessObject } from './bpmnObjectBuilders';
 
 describe('bpmnObjectBuilders', () => {
   afterEach(jest.clearAllMocks);
-
-  describe('getBpmnViewerDetailsFromBusinessObject', () => {
-    const mockTypeTask: BpmnTypeEnum = BpmnTypeEnum.Task;
-    const mockId: string = 'mockId';
-    const mockName: string = 'mockName';
-    const mockTaskTypeData: BpmnTaskType = 'data';
-
-    const mockBpmnBusinessObject: BpmnBusinessObjectViewer = {
-      $type: mockTypeTask,
-      id: mockId,
-      name: mockName,
-      $attrs: {
-        'altinn:tasktype': mockTaskTypeData,
-      },
-    };
-
-    it('returns the BpmnDetails with correct values', () => {
-      const bpmnDetails: BpmnDetails =
-        getBpmnViewerDetailsFromBusinessObject(mockBpmnBusinessObject);
-      expect(bpmnDetails.id).toEqual(mockId);
-      expect(bpmnDetails.name).toEqual(mockName);
-      expect(bpmnDetails.type).toEqual(mockTypeTask);
-      expect(bpmnDetails.taskType).toEqual(mockTaskTypeData);
-    });
-
-    it('returns taskType with value "null" when $attrs are not present', () => {
-      const bpmnBusinessObject: BpmnBusinessObjectViewer = {
-        ...mockBpmnBusinessObject,
-        $attrs: undefined,
-      };
-      const bpmnDetails: BpmnDetails = getBpmnViewerDetailsFromBusinessObject(bpmnBusinessObject);
-      expect(bpmnDetails.id).toEqual(mockId);
-      expect(bpmnDetails.name).toEqual(mockName);
-      expect(bpmnDetails.type).toEqual(mockTypeTask);
-      expect(bpmnDetails.taskType).toBeNull();
-    });
-  });
 
   describe('getBpmnEditorDetailsFromBusinessObject', () => {
     const mockTypeTask: BpmnTypeEnum = BpmnTypeEnum.Task;
@@ -61,7 +20,7 @@ describe('bpmnObjectBuilders', () => {
       values: [
         {
           taskType: mockTaskTypeData,
-          $type: 'altinn:taskType',
+          $type: 'altinn:TaskExtension',
         },
       ],
     };
@@ -80,6 +39,29 @@ describe('bpmnObjectBuilders', () => {
       expect(bpmnDetails.name).toEqual(mockName);
       expect(bpmnDetails.type).toEqual(mockTypeTask);
       expect(bpmnDetails.taskType).toEqual(mockTaskTypeData);
+    });
+
+    it('finds the task type after an unrelated extension', () => {
+      const bpmnDetails = getBpmnEditorDetailsFromBusinessObject({
+        ...mockBpmnBusinessObject,
+        extensionElements: {
+          values: [
+            { $type: 'other:Extension', taskType: 'other' },
+            ...mockBpmnExtensionElements.values,
+          ],
+        },
+      });
+
+      expect(bpmnDetails.taskType).toBe('data');
+    });
+
+    it('handles an empty extension list', () => {
+      const bpmnDetails = getBpmnEditorDetailsFromBusinessObject({
+        ...mockBpmnBusinessObject,
+        extensionElements: { values: [] },
+      });
+
+      expect(bpmnDetails.taskType).toBeNull();
     });
 
     it('returns taskType with value "null" when extensionElements are not present', () => {

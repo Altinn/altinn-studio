@@ -39,7 +39,7 @@ func pgAdminImage(ctx *Options) resource.ImageResource {
 	return &resource.PulledImage{
 		Enabled:    resourceEnabledRef(enabled),
 		Ref:        imageRef(ctx.Images.Core.PgAdmin.Ref(), ContainerPgAdmin, enabled),
-		PullPolicy: resource.PullIfNotPresent,
+		PullPolicy: pullPolicyFor(ctx.Images.Core.PgAdmin),
 	}
 }
 

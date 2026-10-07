@@ -30,7 +30,7 @@ describe('useParentId', () => {
   });
 
   it('Throws an error if not wrapped by a DragAndDropProvider', () => {
-    jest.spyOn(console, 'error').mockImplementation();
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const renderFn = (): ReturnType<typeof renderHook> =>
       renderHook(() => useParentId(), {
         wrapper: ({ children }) => <div>{children}</div>,

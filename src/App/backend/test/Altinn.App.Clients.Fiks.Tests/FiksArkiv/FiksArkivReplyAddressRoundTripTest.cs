@@ -172,7 +172,6 @@ public class FiksArkivReplyAddressRoundTripTest
                 },
                 Attachments = [],
             },
-            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = false },
         };
 
     private static Instance CreateInstance(DataElement primaryDocument) =>
@@ -210,8 +209,8 @@ public class FiksArkivReplyAddressRoundTripTest
     private static void PrepareForPayloadGeneration(TestFixture fixture, Mock<IInstanceDataMutator> dataMutator)
     {
         fixture
-            .AppMetadataMock.Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(
+            .AppMetadataMock.Setup(x => x.ApplicationMetadata)
+            .Returns(
                 new ApplicationMetadata("ttd/unit-testing")
                 {
                     Title = new Dictionary<string, string?> { ["nb"] = "Unit testing" },
@@ -220,7 +219,9 @@ public class FiksArkivReplyAddressRoundTripTest
         fixture
             .AuthenticationContextMock.Setup(x => x.Current)
             .Returns(TestAuthentication.GetServiceOwnerAuthentication());
-        fixture.PartyClientMock.Setup(x => x.GetParty(12345, null)).ReturnsAsync((Party?)null);
+        fixture
+            .PartyClientMock.Setup(x => x.GetParty(12345, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Party?)null);
         fixture
             .LayoutStateInitializerMock.Setup(x => x.Init(dataMutator.Object, "Task_1", null, null))
             .ReturnsAsync(

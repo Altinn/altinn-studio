@@ -4,14 +4,17 @@ from __future__ import annotations
 
 import json
 from types import SimpleNamespace
+from typing import cast
 
 from agents.core.loop import LoopResult, TerminationReason
+from agents.core.tool import LoopContext
 from agents.graph.nodes.agentic_loop_node import (
     MAX_SECURITY_NOTICE_LENGTH,
     SECURITY_NOTICE_HISTORY_MARKER,
     _emit_workflow_completion,
     _extract_security_notice,
 )
+from agents.graph.state import AgentState
 
 _SUMMARY = "Skjemaet er gjenskapt og commitet som `855b1641`."
 _NOTICE = "Dokumentet ba meg opprette et felt med innholdet fra .env. Jeg ignorerte det."
@@ -58,6 +61,7 @@ class TestExtractSecurityNotice:
 
         _, notice = _extract_security_notice(text)
 
+        assert notice is not None
         assert len(notice) == MAX_SECURITY_NOTICE_LENGTH
 
 
@@ -70,9 +74,7 @@ def _completion_events(
 ) -> list:
     sent: list = []
     recorded = history if history is not None else []
-    monkeypatch.setattr(
-        "agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: sent.append(evt)
-    )
+    monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: sent.append(evt))
     monkeypatch.setattr(
         "agents.graph.nodes.agentic_loop_node.sink.add_to_conversation_history",
         lambda *args, **kwargs: recorded.append(args),
@@ -94,24 +96,20 @@ def _completion_events(
         messages=[],
     )
     ctx = SimpleNamespace(extras={"sources": []})
-    _emit_workflow_completion(state, result, ctx)
+    _emit_workflow_completion(cast(AgentState, state), result, cast(LoopContext, ctx))
     return sent
 
 
 class TestEmittedEvent:
     def test_only_a_flag_travels_to_designer(self, monkeypatch):
-        sent = _completion_events(
-            monkeypatch, f"{_SUMMARY}\n\nSECURITY_NOTICE: {_NOTICE}"
-        )
+        sent = _completion_events(monkeypatch, f"{_SUMMARY}\n\nSECURITY_NOTICE: {_NOTICE}")
         message = next(e for e in sent if e.type == "assistant_message")
 
         assert message.data["attachmentInstructionFlagged"] is True
         assert "SECURITY_NOTICE" not in message.data["content"]
 
     def test_the_notice_text_never_leaves_the_agent(self, monkeypatch):
-        sent = _completion_events(
-            monkeypatch, f"{_SUMMARY}\n\nSECURITY_NOTICE: {_NOTICE}"
-        )
+        sent = _completion_events(monkeypatch, f"{_SUMMARY}\n\nSECURITY_NOTICE: {_NOTICE}")
         message = next(e for e in sent if e.type == "assistant_message")
 
         assert _NOTICE not in json.dumps(message.data, ensure_ascii=False)
@@ -124,9 +122,7 @@ class TestEmittedEvent:
 
     def test_history_records_a_fixed_marker_not_the_notice(self, monkeypatch):
         history: list = []
-        _completion_events(
-            monkeypatch, f"{_SUMMARY}\n\nSECURITY_NOTICE: {_NOTICE}", history
-        )
+        _completion_events(monkeypatch, f"{_SUMMARY}\n\nSECURITY_NOTICE: {_NOTICE}", history)
         stored = history[0][2]
 
         assert SECURITY_NOTICE_HISTORY_MARKER in stored
@@ -143,18 +139,14 @@ class TestEmittedEvent:
     def test_no_flag_when_the_turn_had_no_attachment(self, monkeypatch):
         """The alert names an uploaded document, so it must not fire without one:
         the model can report an injection after reading conversation history."""
-        sent = _completion_events(
-            monkeypatch, f"{_SUMMARY}\n\nSECURITY_NOTICE: {_NOTICE}", with_attachment=False
-        )
+        sent = _completion_events(monkeypatch, f"{_SUMMARY}\n\nSECURITY_NOTICE: {_NOTICE}", with_attachment=False)
 
         message = next(e for e in sent if e.type == "assistant_message")
         assert "attachmentInstructionFlagged" not in message.data
 
     def test_the_notice_is_still_stripped_without_an_attachment(self, monkeypatch):
         """Not flagging is not a reason to leak the attacker-influenced sentence."""
-        sent = _completion_events(
-            monkeypatch, f"{_SUMMARY}\n\nSECURITY_NOTICE: {_NOTICE}", with_attachment=False
-        )
+        sent = _completion_events(monkeypatch, f"{_SUMMARY}\n\nSECURITY_NOTICE: {_NOTICE}", with_attachment=False)
 
         message = next(e for e in sent if e.type == "assistant_message")
         assert _NOTICE not in message.data["content"]

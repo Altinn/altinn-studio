@@ -28,11 +28,7 @@ def _make_raw_observation(obs_id, trace_id, start_time, input_tokens, output_tok
 
 
 def _get_row(rows, service_owner_code, date):
-    return next(
-        row
-        for row in rows
-        if row["serviceownercode"] == service_owner_code and row["date"] == date
-    )
+    return next(row for row in rows if row["serviceownercode"] == service_owner_code and row["date"] == date)
 
 
 class TestGetDailyUsage:

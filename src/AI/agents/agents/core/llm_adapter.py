@@ -1,33 +1,17 @@
-"""Provider adapters for the agentic loop.
-
-The loop sees one shape — `LLMAdapter.chat(messages, system, tools) ->
-AssistantMessage` — and never talks to a provider SDK directly.  Each
-adapter handles the translation to/from its provider's tool-calling
-protocol.
-
-This file deliberately does NOT use `LLMClient` (the chat/assistant
-path).  That class is built around single-shot text completion, and
-multi-turn tool-use needs a different shape.  The adapters read the
-same `shared.config` as `LLMClient` so model selection, endpoints, and
-keys stay consistent across both.
-
-Reasoning models (gpt-5, o1, o3) use the Responses API for tool use,
-which has a different shape and is not supported here.  The factory
-raises `NotImplementedError` rather than silently degrading.
-"""
+"""Provider adapters for the agentic loop."""
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from shared.config.base_config import get_config
 from shared.utils.langfuse_utils import trace_generation
 from shared.utils.logging_utils import get_logger
-
-log = get_logger(__name__)
 
 from .messages import (
     AssistantMessage,
@@ -41,17 +25,15 @@ from .messages import (
     extract_tool_uses,
 )
 
+log = get_logger(__name__)
+
 
 def _trace_input_summary(
-    messages: list["Message"],
+    messages: list[Message],
     system_prompt: str,
     tool_schemas: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Compact, Langfuse-safe view of an LLM call's input.
-
-    Full message lists are too large to store unchanged; we keep the
-    system prompt + a turn-count + the tool catalog names so traces are
-    diagnosable without being absurd."""
+    """Compact, Langfuse-safe view of an LLM call's input."""
     return {
         "system_prompt": system_prompt,
         "message_count": len(messages),
@@ -60,7 +42,7 @@ def _trace_input_summary(
     }
 
 
-def _last_user_text_snippet(messages: list["Message"]) -> str:
+def _last_user_text_snippet(messages: list[Message]) -> str:
     """Return a small excerpt of the most recent user/tool_result content
     so traces show what triggered this LLM call."""
     for msg in reversed(messages):
@@ -79,14 +61,11 @@ def _last_user_text_snippet(messages: list["Message"]) -> str:
     return ""
 
 
-def _trace_output_summary(response: "AssistantMessage") -> dict[str, Any]:
+def _trace_output_summary(response: AssistantMessage) -> dict[str, Any]:
     """Compact view of an assistant turn for Langfuse output."""
     return {
         "text": extract_text(response),
-        "tool_calls": [
-            {"name": tc.name, "input": tc.input}
-            for tc in extract_tool_uses(response)
-        ],
+        "tool_calls": [{"name": tc.name, "input": tc.input} for tc in extract_tool_uses(response)],
         "stop_reason": response.stop_reason,
     }
 
@@ -146,21 +125,7 @@ class LLMAdapter(ABC):
         on_text_delta: TextDeltaCallback | None = None,
         on_tool_use_start: ToolUseStartCallback | None = None,
     ) -> AssistantMessage:
-        """Send one turn and return the model's response.
-
-        `tool_schemas` is the Anthropic-style catalog
-        (`[{"name", "description", "input_schema"}]`).  OpenAI-shaped
-        adapters translate internally.
-
-        `on_text_delta`, when provided, is called for each streamed text
-        chunk so the UI can render typing-as-it-happens.  Adapters
-        without streaming support ignore it.
-
-        `on_tool_use_start`, when provided, is called when the model
-        starts emitting a tool_use block.  This is the long silent
-        tail after the text streams out, so the UI needs an explicit
-        signal here to keep moving.
-        """
+        """Send one turn and return the model's response."""
 
 
 # ---------------------------------------------------------------------------
@@ -169,32 +134,23 @@ class LLMAdapter(ABC):
 
 
 class AnthropicAdapter(LLMAdapter):
-    """Talks to Claude via the Anthropic SDK.
-
-    Works against direct Anthropic or Azure AI Foundry — the SDK accepts
-    a custom `base_url` for the latter, matching the pattern used by
-    `LLMClient._init_anthropic_client`.
-    """
+    """Talks to Claude via the Anthropic SDK."""
 
     def __init__(self, *, model: str, max_tokens: int = _ANTHROPIC_MAX_TOKENS) -> None:
         from anthropic import AsyncAnthropic  # local import — optional dep at runtime
 
         config = get_config()
-        if config.AZURE_ANTHROPIC_ENDPOINT and config.AZURE_API_KEY:
+        if config.AZURE_ANTHROPIC_ENDPOINT and config.AZURE_ANTHROPIC_API_KEY:
             self._client = AsyncAnthropic(
-                api_key=config.AZURE_API_KEY,
+                api_key=config.AZURE_ANTHROPIC_API_KEY,
                 base_url=config.AZURE_ANTHROPIC_ENDPOINT,
-                timeout=600.0,
-            )
-        elif config.ANTHROPIC_API_KEY:
-            self._client = AsyncAnthropic(
-                api_key=config.ANTHROPIC_API_KEY,
                 timeout=600.0,
             )
         else:
             raise ValueError(
-                "AnthropicAdapter requires AZURE_ANTHROPIC_ENDPOINT+AZURE_API_KEY "
-                "or ANTHROPIC_API_KEY."
+                "AnthropicAdapter requires AZURE_ANTHROPIC_ENDPOINT with "
+                "AZURE_ANTHROPIC_API_KEY (or AZURE_API_KEY when the Anthropic "
+                "endpoint is on the same resource)."
             )
         self.model = model
         self.max_tokens = max_tokens
@@ -206,15 +162,7 @@ class AnthropicAdapter(LLMAdapter):
         on_text_delta: TextDeltaCallback | None,
         on_tool_use_start: ToolUseStartCallback | None,
     ) -> Any:
-        """Stream the response, fall back to non-streaming on transient drops.
-
-        Iterates the raw SSE event stream so we can react both to text
-        deltas (typing in the UI) and to `content_block_start` events
-        for tool_use blocks (the long silent tail where the model is
-        emitting tool input JSON).  Returns the SDK's `Message` object
-        either way.  The fallback is one-shot: we don't retry the
-        stream because the SDK can't resume mid-stream after a drop.
-        """
+        """Stream the response, fall back to non-streaming on transient drops."""
         accumulated_text = ""
         try:
             async with self._client.messages.stream(**kwargs) as stream:
@@ -222,15 +170,18 @@ class AnthropicAdapter(LLMAdapter):
                     event_type = getattr(event, "type", None)
                     if event_type == "content_block_start":
                         block = getattr(event, "content_block", None)
-                        if block is not None and getattr(block, "type", None) == "tool_use":
-                            if on_tool_use_start is not None:
-                                try:
-                                    on_tool_use_start(
-                                        getattr(block, "name", "") or "",
-                                        getattr(block, "id", "") or "",
-                                    )
-                                except Exception:  # noqa: BLE001
-                                    log.debug("on_tool_use_start raised", exc_info=True)
+                        if (
+                            block is not None
+                            and getattr(block, "type", None) == "tool_use"
+                            and on_tool_use_start is not None
+                        ):
+                            try:
+                                on_tool_use_start(
+                                    getattr(block, "name", "") or "",
+                                    getattr(block, "id", "") or "",
+                                )
+                            except Exception:
+                                log.debug("on_tool_use_start raised", exc_info=True)
                     elif event_type == "content_block_delta":
                         delta = getattr(event, "delta", None)
                         delta_type = getattr(delta, "type", None) if delta is not None else None
@@ -240,14 +191,14 @@ class AnthropicAdapter(LLMAdapter):
                                 accumulated_text += text
                                 try:
                                     on_text_delta(text, accumulated_text)
-                                except Exception:  # noqa: BLE001
+                                except Exception:
                                     log.debug("on_text_delta raised", exc_info=True)
                         # input_json_delta is intentionally ignored — the
                         # tool_use_start hook already told the UI which
                         # tool is generating, and surfacing partial JSON
                         # would be noisy without parsing it.
                 return await stream.get_final_message()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             # Only fall back on the transient transport errors the SDK
             # surfaces for dropped chunked SSE bodies.  Real API errors
             # (4xx/5xx with bodies, auth, etc.) are raised by `messages.stream`
@@ -325,9 +276,7 @@ class AnthropicAdapter(LLMAdapter):
                 if block_type == "text":
                     content.append(TextBlock(text=block.text))
                 elif block_type == "tool_use":
-                    content.append(
-                        ToolUseBlock(id=block.id, name=block.name, input=dict(block.input))
-                    )
+                    content.append(ToolUseBlock(id=block.id, name=block.name, input=dict(block.input)))
                 else:
                     # Other block types (e.g. thinking) are dropped — the loop
                     # only acts on text + tool_use.  Log them: dropped blocks
@@ -347,12 +296,8 @@ class AnthropicAdapter(LLMAdapter):
             usage = {
                 "input_tokens": getattr(usage_obj, "input_tokens", 0) if usage_obj else 0,
                 "output_tokens": getattr(usage_obj, "output_tokens", 0) if usage_obj else 0,
-                "cache_creation_input_tokens": getattr(
-                    usage_obj, "cache_creation_input_tokens", 0
-                ) if usage_obj else 0,
-                "cache_read_input_tokens": getattr(
-                    usage_obj, "cache_read_input_tokens", 0
-                ) if usage_obj else 0,
+                "cache_creation_input_tokens": getattr(usage_obj, "cache_creation_input_tokens", 0) if usage_obj else 0,
+                "cache_read_input_tokens": getattr(usage_obj, "cache_read_input_tokens", 0) if usage_obj else 0,
             }
 
             assistant = AssistantMessage(
@@ -361,27 +306,21 @@ class AnthropicAdapter(LLMAdapter):
                 usage=usage,
             )
             _warn_if_truncated(response.stop_reason, usage["output_tokens"], self.max_tokens)
-            try:
+            with contextlib.suppress(Exception):
                 span.update(
                     output=_trace_output_summary(assistant),
-                    usage_details={
-                        "input": usage["input_tokens"],
-                        "output": usage["output_tokens"],
-                        "cache_creation_input": usage["cache_creation_input_tokens"],
-                        "cache_read_input": usage["cache_read_input_tokens"],
-                        "total": usage["input_tokens"] + usage["output_tokens"],
-                    },
+                    usage_details=_usage_details(
+                        fresh=usage["input_tokens"],
+                        output=usage["output_tokens"],
+                        cache_read=usage["cache_read_input_tokens"],
+                        cache_creation=usage["cache_creation_input_tokens"],
+                    ),
                 )
-            except Exception:  # noqa: BLE001 — never let tracing break the call
-                pass
             return assistant
 
 
 def _with_tool_cache_breakpoint(tool_schemas: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Return a copy of `tool_schemas` with cache_control set on the last
-    entry.  A single breakpoint at the tail caches everything above it,
-    so subsequent identical-tool requests reuse the cached prefix
-    (system + tools) instead of re-tokenising it."""
+    """Return a copy of `tool_schemas` with cache_control set on the last entry."""
     cached = list(tool_schemas)
     last = dict(cached[-1])
     last["cache_control"] = {"type": "ephemeral"}
@@ -390,18 +329,7 @@ def _with_tool_cache_breakpoint(tool_schemas: list[dict[str, Any]]) -> list[dict
 
 
 def _mark_last_block_cacheable(api_messages: list[dict[str, Any]]) -> None:
-    """Tag the final content block of the last message with cache_control.
-
-    On the next loop iteration this prefix (system + tools + history up
-    through this turn's user message) is a cache hit; only the new
-    assistant response and the next tool_result fall outside.  Mutates
-    in place — the dicts were freshly built by `_message_to_anthropic`
-    and aren't shared.
-
-    No-op when the last message has a plain-string content (the very
-    first turn's initial user goal), since cache_control requires the
-    structured block form.
-    """
+    """Tag the final content block of the last message with cache_control."""
     if not api_messages:
         return
     last = api_messages[-1]
@@ -452,23 +380,45 @@ def _block_to_anthropic(block: ContentBlock) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-class OpenAIAdapter(LLMAdapter):
-    """Talks to OpenAI or Azure OpenAI via the chat-completions API.
+def _usage_details(*, fresh: int, output: int, cache_read: int = 0, cache_creation: int = 0) -> dict[str, int]:
+    """Token kinds as the provider reports them, and a total counting all of them.
 
-    Translates the Anthropic-shaped tool catalog and message blocks into
-    OpenAI's `tools=[{type: function, ...}]` + `tool_calls` shape.
-    Supports both non-reasoning models (gpt-4o, gpt-4.1, …) and
-    reasoning models (o1, o3, gpt-5, …) — the latter take a larger
-    `max_tokens` budget and a `reasoning_effort` hint, and don't accept
-    a `temperature` parameter.
-
-    The `reasoning_effort` value is configurable via
-    `LLM_REASONING_EFFORT` (default `"low"`) since the trade-off between
-    cost and reasoning depth is workload-dependent.
+    Anthropic excludes cache reads from `input_tokens` and Azure includes them, so
+    a total built from each provider's own input figure is not comparable.
     """
+    return {
+        "input": fresh,
+        "output": output,
+        "cache_read_input": cache_read,
+        "cache_creation_input": cache_creation,
+        "total": fresh + output + cache_read + cache_creation,
+    }
+
+
+def build_openai_request(
+    *,
+    model: str,
+    messages: list[dict[str, Any]],
+    max_tokens: int,
+    is_reasoning: bool,
+    reasoning_effort: str,
+    tool_schemas: list[dict[str, Any]] | None,
+) -> dict[str, Any]:
+    """The chat-completions payload, as a value so the contract can be tested."""
+    request: dict[str, Any] = {"model": model, "messages": messages}
+    request["max_completion_tokens" if is_reasoning else "max_tokens"] = max_tokens
+    if tool_schemas:
+        request["tools"] = [_tool_schema_to_openai(s) for s in tool_schemas]
+    if is_reasoning:
+        effort = "none" if tool_schemas else reasoning_effort
+        request["extra_body"] = {"reasoning_effort": effort}
+    return request
+
+
+class OpenAIAdapter(LLMAdapter):
+    """Talks to OpenAI or Azure OpenAI via the chat-completions API."""
 
     def __init__(self, *, model: str, max_tokens: int | None = None) -> None:
-        import os
 
         config = get_config()
         if config.OPENAI_BASE_URL:
@@ -501,16 +451,14 @@ class OpenAIAdapter(LLMAdapter):
 
             self._client = AsyncOpenAI(api_key=config.OPENAI_API_KEY)
         else:
-            raise ValueError(
-                "OpenAIAdapter requires AZURE_API_KEY (Azure) or OPENAI_API_KEY."
-            )
+            raise ValueError("OpenAIAdapter requires AZURE_API_KEY (Azure) or OPENAI_API_KEY.")
         self.model = model
         self._is_reasoning = _is_reasoning_model(model)
         if max_tokens is not None:
             self.max_tokens = max_tokens
         else:
             self.max_tokens = _REASONING_MAX_TOKENS if self._is_reasoning else _DEFAULT_MAX_TOKENS
-        self._reasoning_effort = os.getenv("LLM_REASONING_EFFORT", "low")
+        self._reasoning_effort = config.LLM_REASONING_EFFORT
 
     async def chat(
         self,
@@ -534,25 +482,18 @@ class OpenAIAdapter(LLMAdapter):
                 "reasoning": self._is_reasoning,
             },
         ) as span:
-            api_messages: list[dict[str, Any]] = [
-                {"role": "system", "content": system_prompt}
-            ]
+            api_messages: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
             for message in messages:
                 api_messages.extend(_message_to_openai(message))
 
-            kwargs: dict[str, Any] = {
-                "model": self.model,
-                "messages": api_messages,
-                "max_tokens": self.max_tokens,
-            }
-            if self._is_reasoning:
-                # Reasoning models reject `temperature` and use `reasoning_effort`
-                # to trade depth for output budget.  Sent via extra_body so it
-                # passes through both direct OpenAI and Azure OpenAI without
-                # requiring SDK-version-specific kwargs.
-                kwargs["extra_body"] = {"reasoning_effort": self._reasoning_effort}
-            if tool_schemas:
-                kwargs["tools"] = [_tool_schema_to_openai(s) for s in tool_schemas]
+            kwargs = build_openai_request(
+                model=self.model,
+                messages=api_messages,
+                max_tokens=self.max_tokens,
+                is_reasoning=self._is_reasoning,
+                reasoning_effort=self._reasoning_effort,
+                tool_schemas=tool_schemas,
+            )
 
             response = await self._client.chat.completions.create(**kwargs)
             choice = response.choices[0]
@@ -570,14 +511,16 @@ class OpenAIAdapter(LLMAdapter):
                     # validation will raise a clean error the loop converts
                     # into a tool_result error the model can recover from.
                     args = {}
-                content.append(
-                    ToolUseBlock(id=call.id, name=call.function.name, input=args)
-                )
+                content.append(ToolUseBlock(id=call.id, name=call.function.name, input=args))
 
             usage_obj = getattr(response, "usage", None)
+            prompt_details = getattr(usage_obj, "prompt_tokens_details", None)
             usage = {
                 "input_tokens": getattr(usage_obj, "prompt_tokens", 0) if usage_obj else 0,
                 "output_tokens": getattr(usage_obj, "completion_tokens", 0) if usage_obj else 0,
+                # prompt_tokens includes both; Anthropic reports them apart.
+                "cache_read_input_tokens": getattr(prompt_details, "cached_tokens", 0) or 0,
+                "cache_creation_input_tokens": getattr(prompt_details, "cache_write_tokens", 0) or 0,
             }
 
             assistant = AssistantMessage(
@@ -586,26 +529,23 @@ class OpenAIAdapter(LLMAdapter):
                 usage=usage,
             )
             _warn_if_truncated(assistant.stop_reason, usage["output_tokens"], self.max_tokens)
-            try:
+            with contextlib.suppress(Exception):
                 span.update(
                     output=_trace_output_summary(assistant),
-                    usage_details={
-                        "input": usage["input_tokens"],
-                        "output": usage["output_tokens"],
-                        "total": usage["input_tokens"] + usage["output_tokens"],
-                    },
+                    usage_details=_usage_details(
+                        fresh=usage["input_tokens"]
+                        - usage["cache_read_input_tokens"]
+                        - usage["cache_creation_input_tokens"],
+                        output=usage["output_tokens"],
+                        cache_read=usage["cache_read_input_tokens"],
+                        cache_creation=usage["cache_creation_input_tokens"],
+                    ),
                 )
-            except Exception:  # noqa: BLE001
-                pass
             return assistant
 
 
 def _message_to_openai(message: Message) -> list[dict[str, Any]]:
-    """Translate our message to one or more OpenAI messages.
-
-    A single Anthropic-style user message carrying multiple tool_result
-    blocks fans out to one OpenAI message per result (role="tool").
-    """
+    """Translate our message to one or more OpenAI messages."""
     if isinstance(message, UserMessage):
         if isinstance(message.content, str):
             return [{"role": "user", "content": message.content}]
@@ -664,14 +604,7 @@ def _tool_schema_to_openai(schema: dict[str, Any]) -> dict[str, Any]:
 
 
 def _warn_if_truncated(stop_reason: str | None, output_tokens: int, max_tokens: int) -> None:
-    """Surface max_tokens truncation as a log line.
-
-    Without this, a turn that hits the budget cap looks identical to a
-    clean finish in the logs — but the response is mid-stream cut, often
-    leaving the last tool_use missing required fields.  The loop
-    recovers via the error path, but pays a wasted round-trip.  Logging
-    here lets us notice and bump `max_tokens` before users hit it.
-    """
+    """Surface max_tokens truncation as a log line."""
     if stop_reason == "max_tokens":
         log.warning(
             "LLM response truncated at max_tokens budget (output_tokens=%d, max_tokens=%d). "
@@ -709,19 +642,11 @@ def _is_reasoning_model(model: str | None) -> bool:
     if not model:
         return False
     m = model.lower()
-    return m.startswith("o1") or m.startswith("o3") or m.startswith("gpt-5")
+    return m.startswith(("o1", "o3", "gpt-5"))
 
 
 def build_adapter(role: str = "actor", max_tokens: int | None = None) -> LLMAdapter:
-    """Return the adapter configured for the given role.
-
-    Reads model selection from `shared.config` (the `LLM_MODEL_<ROLE>`
-    env vars), the same source `LLMClient` uses for its own roles.
-
-    If `max_tokens` is None, the adapter picks a sensible default — 8k
-    for normal models, 32k for reasoning models (whose internal chain
-    of thought counts against the budget).
-    """
+    """Return the adapter configured for the given role."""
     config = get_config()
     if role == "actor":
         model = config.LLM_MODEL_ACTOR

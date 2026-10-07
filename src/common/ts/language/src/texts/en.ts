@@ -119,8 +119,7 @@ export function en() {
     'form_filler.placeholder_receipt_header': 'The form has been submitted',
     'form_filler.placeholder_user': 'OLA PRIVATPERSON',
     'form_filler.radiobutton_alert_label': 'Are you sure you want to change from {0}?',
-    'form_filler.required_description': 'Required fields are marked with *',
-    'form_filler.required_label': '*',
+    'form_filler.required_label': 'Required',
     'form_filler.summary_item_change': 'Change',
     'form_filler.summary_go_to_correct_page': 'Go to the correct page in the form',
     'form_filler.address': 'Street Address',
@@ -220,6 +219,9 @@ export function en() {
     'general.part_of_form_completed':
       "This part of the form is not currently available. You can't change it.",
     'general.invalid_task_id': 'This part of the form does not exist.',
+    'general.unsupported_task_type': "This part of the form can't be shown.",
+    'general.unsupported_task_type_details':
+      "The process step {0} has the type {1}, which the app can't show.",
     'general.navigate_to_current_process': 'Navigate to the current process step',
     'group.row_error':
       'One of the rows is incorrectly filled out. This has to bee fixed before the schema can be submitted.',
@@ -472,9 +474,6 @@ export function en() {
     'likert.left_column_default_header_text': 'Question',
     'process_error.submit_error_please_retry':
       'Something went wrong when submitting, please try again in a few minutes.',
-    'process_workflow.advancing_title': 'We’re working on your form',
-    'process_workflow.advancing_body':
-      'You don’t need to do anything. We’ll take you to the next step as soon as everything is ready.',
     'process_workflow.failed_heading': 'Something went wrong',
     'process_workflow.failed_description':
       'We couldn’t finish processing your form, and the problem won’t resolve on its own. You’ll need to get in touch so we can help you.',
@@ -489,10 +488,10 @@ export function en() {
     'process_workflow.failure_kind.engineFault': 'The system failed during processing',
     'process_workflow.failure_kind.timeout': 'Processing took too long',
     'process_workflow.failure_kind.unknown': 'Unknown cause',
+    'process_workflow.having_trouble':
+      'We’re having trouble processing your form right now, but we keep trying automatically. Your information has been saved. You can safely close the page and come back later. You can open forms you’ve already started from your inbox or from the Drafts folder.',
     'process_workflow.still_working':
-      'This is taking longer than usual. Your information is saved, and we’ll continue automatically — you can safely close this page and come back later.',
-    'process_workflow.connection_trouble':
-      'We’re having trouble reaching the service right now. Retrying…',
+      'This is taking longer than usual. Your information has been saved, and the work continues automatically. You can safely close the page and come back later. You can open forms you’ve already started from your inbox or from the Drafts folder.',
     'pdfPreview.error': 'Could not show PDF preview',
     'pdfPreview.defaultButtonText': 'Preview PDF',
     'taskTypes.data': 'Fill out',
@@ -582,7 +581,6 @@ export function en() {
     'service_task.help_text':
       'You can try to process again by clicking "{0}". If the problem persists, contact customer service at {1}.',
     'service_task.retry_button': 'Try again',
-    'service_task.back_button': 'Go back',
     'service_task.waiting_title': 'We are processing your request',
     'service_task.waiting_body':
       'This may take a little while. You do not need to do anything, we will continue automatically once everything is ready.',

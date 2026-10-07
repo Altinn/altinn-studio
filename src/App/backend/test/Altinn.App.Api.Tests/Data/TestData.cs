@@ -1,11 +1,14 @@
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Xml;
 using System.Xml.Serialization;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Api.Tests.Data;
@@ -148,8 +151,30 @@ public static class TestData
         return Path.Join(instancesDirectory, org, app, instanceOwnerId.ToString(), instanceGuid + @".json");
     }
 
-    public static void PrepareInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
+    /// <summary>
+    /// Maps each on-disk instance to the test file that prepares it. Test classes run in parallel, and
+    /// preparing an instance deletes and recreates its files, so two classes must never share one.
+    /// </summary>
+    private static readonly ConcurrentDictionary<Guid, string> _instanceOwners = new();
+
+    public static void PrepareInstance(
+        string org,
+        string app,
+        int instanceOwnerId,
+        Guid instanceGuid,
+        [CallerFilePath] string callerFilePath = ""
+    )
     {
+        string owner = _instanceOwners.GetOrAdd(instanceGuid, callerFilePath);
+        if (owner != callerFilePath)
+        {
+            throw new InvalidOperationException(
+                $"Instance {instanceGuid} is prepared by both {Path.GetFileName(owner)} and "
+                    + $"{Path.GetFileName(callerFilePath)}. Test classes run in parallel, so give each "
+                    + "class its own instance."
+            );
+        }
+
         DeleteInstanceAndData(org, app, instanceOwnerId, instanceGuid);
         string instancePath = GetInstancePath(org, app, instanceOwnerId, instanceGuid);
 
@@ -249,5 +274,51 @@ public static class TestData
 
         XmlSerializer serializer = new(modelType);
         serializer.Serialize(xmlWriter, model);
+    }
+
+    public static async Task SetProcessStatus(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        ProcessStatus status
+    )
+    {
+        string path = GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
+        JsonNode root =
+            JsonNode.Parse(await File.ReadAllTextAsync(path))
+            ?? throw new InvalidOperationException(
+                $"Unable to parse test instance {instanceOwnerPartyId}/{instanceGuid}."
+            );
+        JsonObject process =
+            root["process"] as JsonObject
+            ?? throw new InvalidOperationException(
+                $"Test instance {instanceOwnerPartyId}/{instanceGuid} does not have a process."
+            );
+        process["status"] = JsonSerializer.SerializeToNode(status);
+        await File.WriteAllTextAsync(path, root.ToJsonString(_jsonSerializerOptions));
+    }
+
+    public static async Task SetCurrentTaskType(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        string taskType
+    )
+    {
+        string path = GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
+        JsonNode root =
+            JsonNode.Parse(await File.ReadAllTextAsync(path))
+            ?? throw new InvalidOperationException(
+                $"Unable to parse test instance {instanceOwnerPartyId}/{instanceGuid}."
+            );
+        JsonObject currentTask =
+            root["process"]?["currentTask"] as JsonObject
+            ?? throw new InvalidOperationException(
+                $"Test instance {instanceOwnerPartyId}/{instanceGuid} does not have a current task."
+            );
+        currentTask["altinnTaskType"] = taskType;
+        await File.WriteAllTextAsync(path, root.ToJsonString(_jsonSerializerOptions));
     }
 }

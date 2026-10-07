@@ -45,6 +45,8 @@ internal sealed class ScannedCSharpFile
 /// enumerates and parses the source files once, optionally pairs them with a semantic
 /// <see cref="Compilation"/> of the app against its current (v8) packages, and keeps both in sync as
 /// rewriters modify files through <see cref="Update"/>.
+/// The terminal <see cref="GeneratedTypeReferenceFinalizer"/> consumes this annotated v8 snapshot but
+/// writes against the target project directly; the scanner is not current or used after that pass.
 /// <para>
 /// The compilation is optional by design — obtaining one requires a restore and a design-time build
 /// that can fail for reasons outside the upgrade's control (the app does not compile, no matching
@@ -203,38 +205,16 @@ internal sealed class CSharpSourceScanner
             return files;
         }
 
-        // The compilation's trees carry the paths MSBuild gave them; index by full path so each disk
-        // file can adopt its compiled tree (and thereby a semantic model) when one exists. The comparer
-        // follows the platform: case-insensitive where the file system is (MSBuild may report a casing
-        // that differs from the directory enumeration), ordinal where it is not — two files differing
-        // only by case are distinct there, and folding them would pair a file with the other's tree.
-        Dictionary<string, SyntaxTree>? treesByPath = null;
-        if (_compilation is not null)
-        {
-            treesByPath = new Dictionary<string, SyntaxTree>(
-                OperatingSystem.IsWindows() || OperatingSystem.IsMacOS()
-                    ? StringComparer.OrdinalIgnoreCase
-                    : StringComparer.Ordinal
-            );
-            foreach (var tree in _compilation.SyntaxTrees)
-            {
-                if (!string.IsNullOrEmpty(tree.FilePath))
-                {
-                    treesByPath[System.IO.Path.GetFullPath(tree.FilePath)] = tree;
-                }
-            }
-        }
-
-        foreach (var path in Directory.EnumerateFiles(_sourceDirectory, "*.cs", SearchOption.AllDirectories))
+        var paths = Directory
+            .EnumerateFiles(_sourceDirectory, "*.cs", SearchOption.AllDirectories)
+            .Where(path => !BuildOutputPaths.IsBuildOutput(Path.GetRelativePath(_sourceDirectory, path)))
+            .ToArray();
+        var treesByPath = SourceFilePaths.Match(paths, _compilation?.SyntaxTrees ?? [], static tree => tree.FilePath);
+        foreach (var path in paths)
         {
             var relativePath = Path.GetRelativePath(_sourceDirectory, path);
-            if (BuildOutputPaths.IsBuildOutput(relativePath))
-            {
-                continue;
-            }
-
             ScannedCSharpFile file;
-            if (treesByPath is not null && treesByPath.TryGetValue(System.IO.Path.GetFullPath(path), out var tree))
+            if (treesByPath.TryGetValue(path, out var tree))
             {
                 file = new ScannedCSharpFile(this, path, relativePath, tree.GetCompilationUnitRoot());
                 files.Add(file);

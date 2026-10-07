@@ -7,6 +7,7 @@ using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -153,11 +154,12 @@ public class ApiTestBase
                 .AddInMemoryCollection(_configOverrides)
                 .Build();
 
-            configuration.GetSection("AppSettings:AppBasePath").Value = appRootPath;
             IConfigurationSection appSettingSection = configuration.GetSection("AppSettings");
 
             builder.ConfigureLogging(logging => ConfigureFakeLogging(logging, OutputHelper));
 
+            // The app files are read from the content root, which the test host takes from this setting
+            builder.UseContentRoot(appRootPath);
             builder.ConfigureServices(services => services.Configure<AppSettings>(appSettingSection));
             builder.ConfigureTestServices(services => OverrideServicesForAllTests(services));
             builder.ConfigureTestServices(OverrideServicesForThisTest);
@@ -167,6 +169,8 @@ public class ApiTestBase
                 builder.ConfigureTestServices(ConfigureInProcessProcessEngineClient);
             }
             builder.ConfigureTestServices(services => configureServices?.Invoke(services));
+            // Last, so that the hooks every registration above added are applied to the loaded app files
+            builder.ConfigureTestServices(AppFilesMutationHook.Apply);
 
             // Mock IHostEnvironment to return the environment name we want to test
             if (OverrideEnvironment is not null)
@@ -343,6 +347,10 @@ public class ApiTestBase
             sp.GetRequiredService<Altinn.App.Core.Internal.WorkflowEngine.WorkflowCallbackStateService>()
         ));
 
+        // The engine calls back in requests of their own, so a callback must not see the request that enqueued it.
+        services.RemoveAll<Microsoft.AspNetCore.Http.IHttpContextAccessor>();
+        services.AddSingleton<Microsoft.AspNetCore.Http.IHttpContextAccessor, WorkflowCallbackHttpContextAccessor>();
+
         // Mock the events client since it calls external services
         var eventsClientMock = new Mock<Altinn.App.Core.Internal.Events.IEventsClient>();
         eventsClientMock
@@ -350,7 +358,9 @@ public class ApiTestBase
                 x.AddEvent(
                     It.IsAny<string>(),
                     It.IsAny<Altinn.Platform.Storage.Interface.Models.Instance>(),
-                    It.IsAny<Altinn.App.Core.Features.StorageAuthenticationMethod>()
+                    It.IsAny<Altinn.App.Core.Features.StorageAuthenticationMethod>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync("mock-event-id");

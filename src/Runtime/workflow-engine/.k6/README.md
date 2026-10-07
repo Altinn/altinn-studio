@@ -59,6 +59,129 @@ k6 run .k6/constant-rate.js -e RATE=500 -e MAX_VUS=1000 -e POLL_INTERVAL=5
 | `HEALTH_URL`    | `http://localhost:9090/api/v1/health`                | Health endpoint                    |
 | `WEBHOOK_URL`   | `http://wiremock:8080/webhook-callback`              | Webhook URL executed by the engine |
 
+### perpetual-mix.js
+
+A generator that never stops, whose job is to make every panel on the Grafana dashboard show
+something true. The other scripts measure; this one **populates**. Point it at the playground stack,
+leave it running, and open <http://localhost:7070>.
+
+```bash
+make playground                 # from src/Runtime/workflow-engine — throttling ON, fast windows
+k6 run .k6/perpetual-mix.js     # Ctrl+C to stop
+make playground-stop            # stack down; `make reset` also drops the database volume
+```
+
+It needs the playground stack rather than `make run` for one reason: the namespace circuit breaker
+ships dark, and without it the throttle arm has nothing to show. See
+`.k6/docker-compose.playground.yaml` for exactly what the overrides change and why.
+
+Give the throttle panels about eight minutes before reading anything into them. `storm-a` trips
+within a sweep of its first burst and its trip → extend → release → clear arc takes two to three
+minutes; `storm-b` starts half a period later on purpose, so its first arc finishes around the
+seven-minute mark. That offset is the point — it is what puts two breakers in different phases on
+the same panel.
+
+Eleven arms run concurrently, each independently tunable. Setting a rate to `0` removes its scenario:
+
+| Arm            | What it produces                                                                                                                                     |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `healthy`      | Webhooks that complete first time — the line the rest is read against                                                                                |
+| `scheduled`    | Webhooks enqueued with a future `startAt`, so a population sits in `Scheduled` until its start time comes round                                      |
+| `flaky`        | Webhooks against a downstream answering 500 to two requests in three, so steps requeue and recover on their own                                      |
+| `doomed`       | Permanent failures: half a non-retryable 422, half a 500 retried until a short budget runs out                                                       |
+| `reaper`       | Abandons a share of those failures, the way an operator writes off work                                                                              |
+| `deferring`    | Durable yield — steps that park in `Waiting` and resume, plus a slice whose wait budget expires                                                      |
+| `nudger`       | Clears the backoff on parked workflows (`Requeued` and `Waiting` alike)                                                                              |
+| `dependencies` | A failed workflow with a dependent, resumed until it completes, so the dependent is dependency-recovered                                             |
+| `mailboxes`    | Full exchanges: mints, receivers born before and after their message, duplicates, four kinds of refusal, closes, and some mailboxes left to time out |
+| `storm`        | One namespace per arm, each with its own switchable WireMock downstream — break it and the breaker trips, repair it and it recovers                  |
+| `monitor`      | The health-poll sidecar the other scripts use                                                                                                        |
+
+**The Scheduled panels are a level, not a rate.** `SCHEDULED_RATE` x the mean of the horizon is what
+the population settles at — roughly a hundred at the defaults — so the horizon is the cheaper knob
+for moving the tile, since widening it costs no extra enqueues. Keep `SCHEDULE_MIN_SECONDS` well
+above `MetricsCollectionInterval` (5 s): the count is sampled on that tick, and a workflow scheduled
+inside one tick can be claimed before any sample sees it.
+
+**Four namespaces, on purpose.** `playground` holds work that should succeed and never accumulates a
+`Requeued` population, so it can never trip its own breaker — on the throttle panels it is the
+namespace that stays _absent_ while the storm namespaces come and go, which is the attribution story
+those panels exist to tell. `playground-retries` holds the work that fails, kept apart so a pile of
+retrying workflows can never get the mailbox and durable-yield arms throttled. `storm-a` and
+`storm-b` get one breaker each, their cycles phase-offset by half a period so `by (namespace)` shows
+two series in different phases at once.
+
+**How the storm works.** `setup()` gives each storm namespace its own WireMock target backed by a
+two-state scenario, and the arm switches that scenario as it goes. It breaks the target, fires a batch
+of independent collection heads at it, and within a sweep or two the namespace clears both trip
+conditions at once — the absolute floor (`MinRequeuedWorkflows`) and the ratio against its active
+population (`MinRequeuedRatio`). Because the namespace is dedicated, nothing dilutes that denominator.
+While the target stays broken the canaries keep failing their probes and the window doubles every
+sweep. After `STORM_DOWN_SECONDS` the arm repairs the target: the next canary attempt succeeds, the
+sweep reads that as progress, and recovery releases cohorts that double every sweep until one comes
+back empty and the breaker clears. So `tripped`, `extended`, `handler_parked`, `released` and
+`cleared` all move on every cycle.
+
+**`STORM_RETRY_BUDGET` must comfortably outlast `STORM_DOWN_SECONDS`,** and this is the one setting
+that is easy to get wrong. If the parked workflows die of exhausted retries before the downstream
+comes back, recovery opens onto an empty parked population, releases nothing, and jumps straight from
+Tripped to Clear — leaving `engine.throttle.released` flat and the recovery panel empty. That is not
+hypothetical: it is what the first version of this arm did.
+
+The two stubs per namespace cannot be committed as mapping files the way `/flaky` and
+`/permanent-error` are, because there is one pair per entry in `STORM_NAMESPACES` and that list is
+configuration. `setup()` resets WireMock first, which reloads the file-backed mappings and discards
+whatever a previous run registered, so re-running the script never stacks duplicates.
+
+**Known leak.** The `deferring` arm drives the TestApp's `test-defer` command, whose invocation
+counter is a process-lifetime static dictionary keyed per workflow — roughly 17 MB of engine memory
+per day at the default 2/s. Restarting the engine clears it; `DEFER_RATE=0` avoids it. No other arm
+holds per-workflow state anywhere: the flaky downstream is a WireMock scenario cycling three states
+(`.docker/wiremock/mappings/flaky.json`), not a counter.
+
+| Variable                  | Default                 | Description                                                             |
+| ------------------------- | ----------------------- | ----------------------------------------------------------------------- |
+| `HEALTHY_RATE`            | `15`                    | Workflows per second that complete first time                           |
+| `FLAKY_RATE`              | `3`                     | Workflows per second against the flaky downstream                       |
+| `DOOMED_RATE`             | `1`                     | Workflows per second that fail permanently                              |
+| `DEFER_RATE`              | `2`                     | Deferring workflows per second                                          |
+| `MAILBOX_RATE`            | `1`                     | Mailbox exchanges per second                                            |
+| `SCHEDULED_RATE`          | `1`                     | Workflows per second booked for a future `startAt`                      |
+| `SCHEDULE_MIN_SECONDS`    | `30`                    | Nearest `startAt` the scheduled arm books                               |
+| `SCHEDULE_MAX_SECONDS`    | `180`                   | Furthest `startAt` the scheduled arm books                              |
+| `STORM_BURST`             | `80`                    | Workflows per storm burst — must clear `MinRequeuedWorkflows`           |
+| `STORM_PERIOD`            | `300`                   | Seconds between storm bursts, per namespace                             |
+| `STORM_DOWN_SECONDS`      | `75`                    | How long the storm's downstream stays broken before it is repaired      |
+| `STORM_RETRY_BUDGET`      | `00:06:00`              | How long a storm workflow retries — must outlast `STORM_DOWN_SECONDS`   |
+| `STORM_NAMESPACES`        | `storm-a,storm-b`       | One breaker per entry, phase-offset                                     |
+| `MAIN_NAMESPACE`          | `playground`            | Namespace for work that should succeed                                  |
+| `FAILURE_NAMESPACE`       | `playground-retries`    | Namespace for work that fails on purpose                                |
+| `ABANDON_FRACTION`        | `0.5`                   | Share of terminal failures the reaper writes off                        |
+| `MAILBOX_ORPHAN_FRACTION` | `0.3`                   | Share of mailboxes left open for the deadline sweep                     |
+| `WAIT_EXPIRE_EVERY`       | `8`                     | One deferring workflow in this many gets an impossible budget           |
+| `MAILBOX_TIMEOUT`         | `00:00:45`              | Mailbox deadline                                                        |
+| `REAPER_PERIOD`           | `10`                    | Seconds between abandon sweeps                                          |
+| `NUDGE_PERIOD`            | `15`                    | Seconds between nudges                                                  |
+| `DEPENDENCY_PERIOD`       | `45`                    | Seconds between dependency-recovery cycles                              |
+| `HEALTH_PERIOD`           | `15`                    | Seconds between health polls                                            |
+| `MAX_VUS`                 | `400`                   | Max virtual users across all arrival-rate arms                          |
+| `ENGINE_URL`              | `http://localhost:9090` | Engine base URL                                                         |
+| `WIREMOCK_URL`            | `http://wiremock:8080`  | WireMock base URL **as the engine reaches it**, not as k6 does          |
+| `WIREMOCK_ADMIN_URL`      | `http://localhost:6060` | WireMock base URL **as k6 reaches it**, for the storm arm's admin calls |
+
+A quieter mix, for leaving on a laptop:
+
+```bash
+k6 run .k6/perpetual-mix.js -e HEALTHY_RATE=3 -e FLAKY_RATE=1 -e DEFER_RATE=1 \
+  -e MAILBOX_RATE=1 -e STORM_PERIOD=600
+```
+
+Mailboxes and throttling only, for working on those panels:
+
+```bash
+k6 run .k6/perpetual-mix.js -e HEALTHY_RATE=0 -e FLAKY_RATE=0 -e DOOMED_RATE=0 -e DEFER_RATE=0
+```
+
 ### mailbox-storm.js
 
 Mailbox load: relay exchanges, buffered messages nobody receives, and messages that arrive before their

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.JsonConverters;
+using WorkflowEngine.Models.JsonConverters;
 
 namespace WorkflowEngine.App.Commands.AppCommand;
 
@@ -14,9 +14,6 @@ internal sealed record AppCallbackPayload
 
     [JsonPropertyName("actor")]
     public required Actor Actor { get; init; }
-
-    [JsonPropertyName("lockToken")]
-    public required string LockToken { get; init; }
 
     [JsonPropertyName("payload")]
     public string? Payload { get; init; }

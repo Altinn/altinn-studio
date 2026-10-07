@@ -5,11 +5,11 @@ import { ExpandIcon, ShrinkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import classes from 'src/components/presentation/ExpandWidthButton.module.css';
-import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
+import { useExpandedWidth } from 'src/features/form/layout/useExpandedWidth';
 import { Lang } from 'src/features/language/Lang';
 
 export function ExpandWidthButton(props: Parameters<typeof Button>[0]) {
-  const { expandedWidth, toggleExpandedWidth } = useUiConfigContext();
+  const { expandedWidth, toggleExpandedWidth } = useExpandedWidth();
 
   return (
     <Button

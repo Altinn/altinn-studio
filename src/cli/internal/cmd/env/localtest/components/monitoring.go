@@ -5,6 +5,7 @@ import (
 
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 )
 
@@ -12,42 +13,42 @@ func registerMonitoringComponents(manifest *Manifest, opts *Options) {
 	enabled := opts.IncludeMonitoring
 	manifest.addContainer(
 		opts,
-		monitoringImage(opts, ContainerMonitoringTempo, opts.Images.Monitoring.Tempo.Ref()),
+		monitoringImage(opts, ContainerMonitoringTempo, opts.Images.Monitoring.Tempo),
 		monitoringTempoContainer(opts),
 		enabled,
 	)
 	manifest.addContainer(
 		opts,
-		monitoringImage(opts, ContainerMonitoringMimir, opts.Images.Monitoring.Mimir.Ref()),
+		monitoringImage(opts, ContainerMonitoringMimir, opts.Images.Monitoring.Mimir),
 		monitoringMimirContainer(opts),
 		enabled,
 	)
 	manifest.addContainer(
 		opts,
-		monitoringImage(opts, ContainerMonitoringLoki, opts.Images.Monitoring.Loki.Ref()),
+		monitoringImage(opts, ContainerMonitoringLoki, opts.Images.Monitoring.Loki),
 		monitoringLokiContainer(opts),
 		enabled,
 	)
 	manifest.addContainer(
 		opts,
-		monitoringImage(opts, ContainerMonitoringOtelCollector, opts.Images.Monitoring.OtelCollector.Ref()),
+		monitoringImage(opts, ContainerMonitoringOtelCollector, opts.Images.Monitoring.OtelCollector),
 		monitoringOTelCollectorContainer(opts),
 		enabled,
 	)
 	manifest.addContainer(
 		opts,
-		monitoringImage(opts, ContainerMonitoringGrafana, opts.Images.Monitoring.Grafana.Ref()),
+		monitoringImage(opts, ContainerMonitoringGrafana, opts.Images.Monitoring.Grafana),
 		monitoringGrafanaContainer(opts),
 		enabled,
 	)
 }
 
-func monitoringImage(ctx *Options, name, ref string) resource.ImageResource {
+func monitoringImage(ctx *Options, name string, spec config.ImageSpec) resource.ImageResource {
 	enabled := ctx.IncludeMonitoring
 	return &resource.PulledImage{
 		Enabled:    resourceEnabledRef(enabled),
-		Ref:        imageRef(ref, name, enabled),
-		PullPolicy: resource.PullIfNotPresent,
+		Ref:        imageRef(spec.Ref(), name, enabled),
+		PullPolicy: pullPolicyFor(spec),
 	}
 }
 

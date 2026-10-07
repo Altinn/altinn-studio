@@ -1,0 +1,6 @@
+﻿{
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": []
+  }
+}

@@ -168,7 +168,7 @@ describe('PropertiesHeader', () => {
   it('should render main configuration header', () => {
     renderPropertiesHeader({ formItem: componentMocks[ComponentType.Input] });
 
-    const sectionHeader = textMock('ux_editor.component_properties.main_configuration');
+    const sectionHeader = textMock('shared.main_configuration');
     const headerMainConfig = screen.getByText(sectionHeader);
     expect(headerMainConfig).toBeInTheDocument();
   });

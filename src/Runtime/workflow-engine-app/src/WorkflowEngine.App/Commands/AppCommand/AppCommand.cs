@@ -15,7 +15,7 @@ namespace WorkflowEngine.App.Commands.AppCommand;
 
 /// <summary>
 /// Handles "app" commands by making HTTP callbacks to the Altinn application.
-/// Extracts actor, lockToken, and instance information from the typed workflow context
+/// Extracts actor and instance information from the typed workflow context
 /// and command-specific data from the typed command data.
 /// </summary>
 internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
@@ -84,9 +84,6 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
                 "AppCommand requires a non-empty 'instanceGuid' in workflow context"
             );
 
-        if (string.IsNullOrWhiteSpace(workflowContext.LockToken))
-            return new CommandValidationResult.Invalid("AppCommand requires a 'lockToken' in workflow context");
-
         if (string.IsNullOrWhiteSpace(workflowContext.CallbackToken))
             return new CommandValidationResult.Invalid("AppCommand requires a 'callbackToken' in workflow context");
 
@@ -118,7 +115,6 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         {
             CommandKey = commandData.CommandKey,
             Actor = workflowContext.Actor,
-            LockToken = workflowContext.LockToken,
             Payload = commandData.Payload,
             WorkflowId = context.Workflow.DatabaseId,
             Mailbox = mailbox,
@@ -180,18 +176,13 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
                 return ExecutionResult.CriticalError($"App returned invalid response body: {ex.Message}", ex);
             }
 
-            // Captured before classifying the outcome, so a deferral carries state forward exactly as a
-            // completion does — the app's next re-check resumes from what this one produced.
-            if (callbackResponse?.State is not null)
-                context.Step.StateOut = callbackResponse.State;
-
             if (callbackResponse?.Defer is { } deferral)
             {
                 _logger.AppCommandDeferred(commandData.CommandKey, context.Workflow.DatabaseId, deferral.Delay);
-                return ExecutionResult.Defer(deferral.Delay, deferral.Reason);
+                return ExecutionResult.Defer(deferral.Delay, deferral.Reason, callbackResponse.State);
             }
 
-            return ExecutionResult.Success();
+            return ExecutionResult.Success(callbackResponse?.State);
         }
 
         var statusCode = (int)response.StatusCode;
@@ -272,8 +263,8 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 internal static partial class AppCommandDescriptorLogs
 {
     // Routing fields only. Never log the AppCallbackPayload: it carries actor identifiers (incl. national
-    // identity number), the lock token, the command payload body, and the unencrypted state envelope
-    // (instance + form data).
+    // identity number), command key and payload body, workflow/execution metadata, and the unencrypted
+    // state envelope (instance + form data).
     [LoggerMessage(
         LogLevel.Information,
         "Sending AppCommand '{CommandKey}' to {Endpoint} (workflowId: {WorkflowId}, instance: {InstanceOwnerPartyId}/{InstanceGuid})"

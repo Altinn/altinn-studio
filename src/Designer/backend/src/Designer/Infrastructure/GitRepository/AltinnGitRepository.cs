@@ -165,7 +165,7 @@ public class AltinnGitRepository : GitRepository, IAltinnGitRepository
     }
 
     private async Task<(
-        AltinnStudioSettings AltinnStudioSettinngs,
+        AltinnStudioSettings AltinnStudioSettings,
         bool NeedsSaving
     )> MigrateExistingAltinnStudioSettings()
     {

@@ -21,7 +21,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register;
 /// <summary>
 /// A client for retrieving register data from Altinn Platform.
 /// </summary>
-public class AltinnPartyClient : IAltinnPartyClient
+internal sealed class AltinnPartyClient : IAltinnPartyClient
 {
     private readonly ILogger _logger;
     private readonly HttpClient _client;
@@ -60,35 +60,42 @@ public class AltinnPartyClient : IAltinnPartyClient
     }
 
     /// <inheritdoc/>
-    public async Task<Party?> GetParty(int partyId, StorageAuthenticationMethod? authenticationMethod = null)
+    public async Task<Party?> GetParty(
+        int partyId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = _telemetry?.StartGetPartyActivity(partyId);
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         string endpointUrl = $"parties/{partyId}";
         JwtToken token = await GetAuthTokenResolver()
-            .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod);
+            .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, cancellationToken);
 
         using HttpResponseMessage response = await _client.GetAsync(
             token,
             endpointUrl,
-            _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
+            _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App),
+            cancellationToken
         );
 
         Party? party = response.StatusCode switch
         {
-            HttpStatusCode.OK => await JsonSerializerPermissive.DeserializeAsync<Party>(response.Content),
-            HttpStatusCode.Unauthorized => throw new ServiceException(
-                HttpStatusCode.Unauthorized,
-                "Unauthorized for party"
+            HttpStatusCode.OK => await JsonSerializerPermissive.DeserializeAsync<Party>(
+                response.Content,
+                cancellationToken
             ),
-            _ => null,
+            // Register's "no such party" answers: 401 for user tokens (which deliberately also
+            // covers "not yours"), 404 for service owner tokens, 400 for an id that can't be a party.
+            HttpStatusCode.Unauthorized or HttpStatusCode.NotFound or HttpStatusCode.BadRequest => null,
+            _ => throw await PlatformHttpException.Create(response, cancellationToken),
         };
 
         if (party is null)
         {
-            _logger.LogError(
-                "// Getting party with partyID {PartyId} failed with statuscode {StatusCode}",
+            _logger.LogWarning(
+                "Register has no party {PartyId} for this caller, answered {StatusCode}",
                 partyId,
                 response.StatusCode
             );
@@ -100,15 +107,16 @@ public class AltinnPartyClient : IAltinnPartyClient
     /// <inheritdoc/>
     public async Task<Party> LookupParty(
         PartyLookup partyLookup,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartLookupPartyActivity();
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         string endpointUrl = "parties/lookup";
         JwtToken token = await GetAuthTokenResolver()
-            .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod);
+            .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, cancellationToken);
 
         using StringContent content = new(JsonSerializerPermissive.Serialize(partyLookup));
         content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
@@ -116,12 +124,13 @@ public class AltinnPartyClient : IAltinnPartyClient
             token,
             endpointUrl,
             content,
-            _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
+            _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App),
+            cancellationToken
         );
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            return await JsonSerializerPermissive.DeserializeAsync<Party>(response.Content);
+            return await JsonSerializerPermissive.DeserializeAsync<Party>(response.Content, cancellationToken);
         }
 
         _logger.LogError(
@@ -129,29 +138,30 @@ public class AltinnPartyClient : IAltinnPartyClient
             partyLookup.OrgNo,
             partyLookup.Ssn,
             response.StatusCode,
-            await response.Content.ReadAsStringAsync()
+            await response.Content.ReadAsStringAsync(cancellationToken)
         );
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cancellationToken);
     }
 
     /// <inheritdoc/>
-    public async Task<int?> GetPartyIdByUrn(string urn)
+    public async Task<int?> GetPartyIdByUrn(string urn, CancellationToken cancellationToken = default)
     {
         using var activity = _telemetry?.StartLookupPartyActivity();
         string endpointUrl = "apps/parties/query?fields=id,user.id";
         var query = new { data = new string[] { urn } };
         using var content = new StringContent(JsonSerializer.Serialize(query));
         content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
 
-        JwtToken token = await GetAuthTokenResolver().GetAccessToken(_defaultAuthenticationMethod);
+        JwtToken token = await GetAuthTokenResolver().GetAccessToken(_defaultAuthenticationMethod, cancellationToken);
 
         using HttpResponseMessage response = await _client.PostAsync(
             token,
             endpointUrl,
             content,
-            _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
+            _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App),
+            cancellationToken
         );
         if (response.StatusCode != HttpStatusCode.OK)
         {
@@ -159,12 +169,12 @@ public class AltinnPartyClient : IAltinnPartyClient
                 "// Getting partyId by URN {Urn} failed with statuscode {StatusCode} - {Reason}",
                 urn,
                 response.StatusCode,
-                await response.Content.ReadAsStringAsync()
+                await response.Content.ReadAsStringAsync(cancellationToken)
             );
-            throw await PlatformHttpException.Create(response);
+            throw await PlatformHttpException.Create(response, cancellationToken);
         }
 
-        using var responseDocument = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync());
+        using var responseDocument = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync(cancellationToken));
         var listResponse = responseDocument.RootElement.GetProperty("data");
         if (listResponse.GetArrayLength() == 0)
         {
@@ -180,22 +190,23 @@ public class AltinnPartyClient : IAltinnPartyClient
     }
 
     /// <inheritdoc/>
-    public async Task<Guid?> GetPartyUuidByUrn(string urn)
+    public async Task<Guid?> GetPartyUuidByUrn(string urn, CancellationToken cancellationToken = default)
     {
         using var activity = _telemetry?.StartLookupPartyActivity();
         string endpointUrl = "access-management/parties/query";
         var query = new { data = new string[] { urn } };
         using var content = new StringContent(JsonSerializer.Serialize(query));
         content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
 
-        JwtToken token = await GetAuthTokenResolver().GetAccessToken(_defaultAuthenticationMethod);
+        JwtToken token = await GetAuthTokenResolver().GetAccessToken(_defaultAuthenticationMethod, cancellationToken);
 
         using HttpResponseMessage response = await _client.PostAsync(
             token,
             endpointUrl,
             content,
-            _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
+            _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App),
+            cancellationToken
         );
         if (response.StatusCode != HttpStatusCode.OK)
         {
@@ -203,12 +214,12 @@ public class AltinnPartyClient : IAltinnPartyClient
                 "// Getting partyUuid by URN {Urn} failed with statuscode {StatusCode} - {Reason}",
                 urn,
                 response.StatusCode,
-                await response.Content.ReadAsStringAsync()
+                await response.Content.ReadAsStringAsync(cancellationToken)
             );
-            throw await PlatformHttpException.Create(response);
+            throw await PlatformHttpException.Create(response, cancellationToken);
         }
 
-        using var responseDocument = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync());
+        using var responseDocument = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync(cancellationToken));
         var listResponse = responseDocument.RootElement.GetProperty("data");
         if (listResponse.GetArrayLength() == 0)
         {

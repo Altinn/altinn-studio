@@ -15,7 +15,7 @@ namespace Altinn.App.Core.Internal.Auth;
 /// <summary>
 /// Service that handles authorization. Uses AuthorizationClient to communicate with authorization component. Makes authorization decisions in app context possible
 /// </summary>
-public class AuthorizationService : IAuthorizationService
+internal sealed class AuthorizationService : IAuthorizationService
 {
     private readonly IAuthorizationClient _authorizationClient;
     private readonly IAuthenticationContext _authenticationContext;
@@ -43,17 +43,17 @@ public class AuthorizationService : IAuthorizationService
     }
 
     /// <inheritdoc />
-    public async Task<List<Party>?> GetPartyList(int userId)
+    public async Task<List<Party>?> GetPartyList(CancellationToken cancellationToken = default)
     {
-        using var activity = _telemetry?.StartGetPartyListActivity(userId);
-        return await _authorizationClient.GetPartyList(userId);
+        using var activity = _telemetry?.StartGetPartyListActivity();
+        return await _authorizationClient.GetPartyList(cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<bool?> ValidateSelectedParty(int userId, int partyId)
+    public async Task<bool?> ValidateSelectedParty(int partyId, CancellationToken cancellationToken = default)
     {
-        using var activity = _telemetry?.StartValidateSelectedPartyActivity(userId, partyId);
-        return await _authorizationClient.ValidateSelectedParty(userId, partyId);
+        using var activity = _telemetry?.StartValidateSelectedPartyActivity(partyId);
+        return await _authorizationClient.ValidateSelectedParty(partyId, cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc />
@@ -62,11 +62,21 @@ public class AuthorizationService : IAuthorizationService
         InstanceIdentifier instanceIdentifier,
         ClaimsPrincipal user,
         string action,
-        string? taskId = null
+        string? taskId = null,
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartAuthorizeActionActivity(instanceIdentifier, action, taskId);
-        if (!await _authorizationClient.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId))
+        if (
+            !await _authorizationClient.AuthorizeAction(
+                appIdentifier,
+                instanceIdentifier,
+                user,
+                action,
+                taskId,
+                cancellationToken
+            )
+        )
         {
             return false;
         }
@@ -94,14 +104,16 @@ public class AuthorizationService : IAuthorizationService
     public async Task<List<UserAction>> AuthorizeActions(
         Instance instance,
         ClaimsPrincipal user,
-        List<AltinnAction> actions
+        List<AltinnAction> actions,
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartAuthorizeActionsActivity(instance, actions);
         var authDecisions = await _authorizationClient.AuthorizeActions(
             instance,
             user,
-            actions.Select(a => a.Value).ToList()
+            actions.Select(a => a.Value).ToList(),
+            cancellationToken
         );
         List<UserAction> authorizedActions = [];
         foreach (var action in actions)

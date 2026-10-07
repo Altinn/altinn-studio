@@ -504,18 +504,6 @@ public interface IDataClient
         GetBinaryDataList(instanceOwnerPartyId, instanceGuid, null, default);
 
     /// <summary>
-    /// Method that removes a form attachments from disk/storage
-    /// </summary>
-    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organization.</param>
-    /// <param name="instanceOwnerPartyId">The instance owner id</param>
-    /// <param name="instanceGuid">The instance id</param>
-    /// <param name="dataGuid">The attachment id</param>
-    [Obsolete("Use method DeleteData with delayed=false instead.", error: true)]
-    Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid) =>
-        DeleteData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, false);
-
-    /// <summary>
     /// Method that removes a data element from disk/storage immediately or marks it as deleted.
     /// </summary>
     /// <param name="org">Unique identifier of the organization responsible for the app.</param>
@@ -626,54 +614,6 @@ public interface IDataClient
         string dataType,
         HttpRequest request
     ) => InsertBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataType, request, null, default);
-
-    /// <summary>
-    /// Method that updates a form attachments to disk/storage and returns the updated data element.
-    /// </summary>
-    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organization.</param>
-    /// <param name="instanceOwnerPartyId">The instance owner id</param>
-    /// <param name="instanceGuid">The instance id</param>
-    /// <param name="dataGuid">The data id</param>
-    /// <param name="request">Http request containing the attachment to be saved</param>
-    /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>
-    /// <param name="cancellationToken">An optional cancellation token</param>
-    [Obsolete(
-        message: "Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, Stream) instead",
-        error: false
-    )]
-    Task<DataElement> UpdateBinaryData(
-        string org,
-        string app,
-        int instanceOwnerPartyId,
-        Guid instanceGuid,
-        Guid dataGuid,
-        HttpRequest request,
-        StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
-    /// Method that updates a form attachments to disk/storage and returns the updated data element.
-    /// </summary>
-    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organization.</param>
-    /// <param name="instanceOwnerPartyId">The instance owner id</param>
-    /// <param name="instanceGuid">The instance id</param>
-    /// <param name="dataGuid">The data id</param>
-    /// <param name="request">Http request containing the attachment to be saved</param>
-    [Obsolete(
-        message: "Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, Stream) instead",
-        error: false
-    )]
-    Task<DataElement> UpdateBinaryData(
-        string org,
-        string app,
-        int instanceOwnerPartyId,
-        Guid instanceGuid,
-        Guid dataGuid,
-        HttpRequest request
-    ) => UpdateBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, request, null, default);
 
     /// <summary>
     /// Method that updates a form attachments to disk/storage and returns the updated data element.

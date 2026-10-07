@@ -1,13 +1,17 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { CustomDef } from 'src/layout/Custom/config.def.generated';
 import { CustomWebComponent } from 'src/layout/Custom/CustomWebComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { useHasBindingsAndNoData } from 'src/layout/Summary2/isEmpty/isEmptyComponent';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
-import { useFormDataFor, useItemWhenType, useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useFormDataFor, useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -32,7 +36,9 @@ export class Custom extends CustomDef {
   renderSummary2(props: Summary2Props): JSX.Element | null {
     const formData = useFormDataFor<'Custom'>(props.targetBaseComponentId);
     const isEmpty = useHasBindingsAndNoData(props.targetBaseComponentId);
-    const required = useItemWhenType(props.targetBaseComponentId, 'Custom').required;
+    const config = useComponentConfig(props.targetBaseComponentId, 'Custom');
+    const required = useEvalExpression(config.required, Expressions.Custom.required);
+
     return (
       <SummaryFlex
         targetBaseId={props.targetBaseComponentId}

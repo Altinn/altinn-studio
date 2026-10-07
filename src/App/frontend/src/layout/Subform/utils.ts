@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo } from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import dot from 'dot-object';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { evalExpr } from 'src/features/expressions';
 import {
@@ -15,7 +17,6 @@ import { useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
 import { getStatefulDataModelUrl } from 'src/utils/urls/appUrlHelper';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
-import type { IDataModelReference } from 'src/layout/common.generated';
 
 export function useSubformFormData(dataElementId: string) {
   const instanceId = useStrictInstanceId();
@@ -93,18 +94,18 @@ export function useExpressionDataSourcesForSubform(dataType: string, subformData
 }
 
 export function getSubformEntryDisplayName(
-  entryDisplayName: ExprValToActualOrExpr<ExprVal.String>,
+  entryDisplayName: ExprValToActualOrExpr<ExprVal.String> | undefined,
   dataSources: ExpressionDataSources,
   baseComponentId: string,
 ): string | null {
-  const errorIntroText = `Invalid expression for component '${baseComponentId}'`;
+  const descriptor = Expressions.Subform.entryDisplayName;
+  const errorIntroText = `${descriptor.errorIntroText} (component '${baseComponentId}')`;
   if (!ExprValidation.isValidOrScalar(entryDisplayName, ExprVal.String, errorIntroText)) {
     return null;
   }
 
   const resolvedValue = evalExpr(entryDisplayName, dataSources, {
-    returnType: ExprVal.String,
-    defaultValue: '',
+    ...descriptor,
     errorIntroText,
   });
   return resolvedValue ? String(resolvedValue) : null;
@@ -113,16 +114,16 @@ export function getSubformEntryDisplayName(
 export function evalSubformString(
   expr: ExprValToActualOrExpr<ExprVal.String> | undefined,
   dataSources: ExpressionDataSources,
-  defaultValue = '',
 ): string {
+  const descriptor = Expressions.Subform.textResourceBindings.tableEditButton;
+  const defaultValue = descriptor.defaultValue;
   if (!ExprValidation.isValidOrScalar(expr, ExprVal.String)) {
     return defaultValue;
   }
 
   try {
     const resolvedValue = evalExpr(expr, dataSources, {
-      returnType: ExprVal.String,
-      defaultValue,
+      ...descriptor,
     });
 
     return resolvedValue ? String(resolvedValue) : defaultValue;

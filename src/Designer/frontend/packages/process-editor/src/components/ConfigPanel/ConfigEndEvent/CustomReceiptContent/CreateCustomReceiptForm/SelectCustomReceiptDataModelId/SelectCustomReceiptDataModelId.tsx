@@ -35,13 +35,14 @@ export const SelectCustomReceiptDataModelId = ({
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       multiple={false}
       label={t('process_editor.configuration_panel_custom_receipt_select_data_model_label')}
       emptyText={t('process_editor.configuration_panel_no_data_model_to_select')}
       name='customReceiptDataModel'
       id='customReceiptDataModelSelect'
       error={error}
-      selected={selectedValue || undefined}
+      selected={selectedValue || null}
       onSelectedChange={handleSelectedChange}
     >
       {allDataModelIds.map((option) => (

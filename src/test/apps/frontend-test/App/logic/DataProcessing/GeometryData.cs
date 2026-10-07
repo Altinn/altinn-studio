@@ -1,7 +1,5 @@
 #nullable enable
 
-using System.Collections.Generic;
-using System.Linq;
 using Altinn.App.Models;
 
 namespace Altinn.App.logic.DataProcessing;

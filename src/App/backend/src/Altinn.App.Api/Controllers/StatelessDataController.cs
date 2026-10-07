@@ -78,6 +78,7 @@ public class StatelessDataController : ControllerBase
     /// <param name="prefill">Prefilled fields from query parameters</param>
     /// <param name="includeRowId">Whether to initialize or remove AltinnRowId fields in the model</param>
     /// <param name="language">Currently selected language by the user (if available)</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
     [Authorize]
     [HttpGet]
@@ -91,6 +92,7 @@ public class StatelessDataController : ControllerBase
         [FromQuery] string dataType,
         [FromHeader(Name = "party")] string partyFromHeader,
         [FromQuery] string? prefill,
+        CancellationToken cancellationToken,
         [FromQuery] bool includeRowId = false,
         [FromQuery] string? language = null
     )
@@ -111,7 +113,7 @@ public class StatelessDataController : ControllerBase
             );
         }
 
-        InstanceOwner? owner = await GetInstanceOwner(partyFromHeader);
+        InstanceOwner? owner = await GetInstanceOwner(partyFromHeader, cancellationToken);
         if (owner is null)
         {
             return BadRequest(
@@ -236,6 +238,7 @@ public class StatelessDataController : ControllerBase
     /// <param name="partyFromHeader">The party that should be represented with  prefix "partyId:", "person:" or "org:" (eg: "partyId:123")</param>
     /// <param name="includeRowId">Whether to initialize or remove AltinnRowId fields in the model</param>
     /// <param name="language">The language selected by the user.</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
     [Authorize]
     [HttpPost]
@@ -247,6 +250,7 @@ public class StatelessDataController : ControllerBase
         [FromRoute] string app,
         [FromQuery] string dataType,
         [FromHeader(Name = "party")] string partyFromHeader,
+        CancellationToken cancellationToken,
         [FromQuery] bool includeRowId = false,
         [FromQuery] string? language = null
     )
@@ -267,7 +271,7 @@ public class StatelessDataController : ControllerBase
             );
         }
 
-        InstanceOwner? owner = await GetInstanceOwner(partyFromHeader);
+        InstanceOwner? owner = await GetInstanceOwner(partyFromHeader, cancellationToken);
 
         if (owner is null)
         {
@@ -352,7 +356,7 @@ public class StatelessDataController : ControllerBase
         return Ok(appModel);
     }
 
-    private async Task<InstanceOwner?> GetInstanceOwner(string? partyFromHeader)
+    private async Task<InstanceOwner?> GetInstanceOwner(string? partyFromHeader, CancellationToken cancellationToken)
     {
         // Use the party id of the logged in user, if no party id is given in the header
         // Not sure if this is really used anywhere. It doesn't seem useful, as you'd
@@ -388,11 +392,20 @@ public class StatelessDataController : ControllerBase
             var idPrefix = headerParts[0].ToLowerInvariant();
             var party = idPrefix switch
             {
-                PartyPrefix => await _altinnPartyClient.GetParty(int.TryParse(id, out var partyId) ? partyId : 0),
+                PartyPrefix => await _altinnPartyClient.GetParty(
+                    int.TryParse(id, out var partyId) ? partyId : 0,
+                    cancellationToken: cancellationToken
+                ),
 
                 // Frontend seems to only use partyId, not orgnr or ssn.
-                PersonPrefix => await _altinnPartyClient.LookupParty(new PartyLookup { Ssn = id }),
-                OrgPrefix => await _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = id }),
+                PersonPrefix => await _altinnPartyClient.LookupParty(
+                    new PartyLookup { Ssn = id },
+                    cancellationToken: cancellationToken
+                ),
+                OrgPrefix => await _altinnPartyClient.LookupParty(
+                    new PartyLookup { OrgNo = id },
+                    cancellationToken: cancellationToken
+                ),
                 _ => null,
             };
 

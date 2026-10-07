@@ -1,8 +1,14 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Form,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Egendefinert', en: 'Custom' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: true,
     renderInButtonGroup: true,
@@ -12,9 +18,6 @@ export const Config = new CG.component({
     renderInCardsMedia: true,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: false,
-  },
 })
   .addDataModelBinding(
     new CG.obj().optional().additionalProperties(new CG.dataModelBinding()).exportAs('IDataModelBindingsForCustom'),
@@ -22,10 +25,18 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Title',
-      description: 'Title (passed on as the "text" property to the component)',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: {
+        en: 'Title (passed on as the "text" property to the component)',
+        nb: 'Ledeteksten, sendt til komponentens «text»-egenskap.',
+      },
     }),
   )
   .addProperty(
-    new CG.prop('tagName', new CG.str().setTitle('Tag name').setDescription('Web component tag name to use')),
+    new CG.prop(
+      'tagName',
+      new CG.str()
+        .setTitle('Tag name', 'Taggnavn')
+        .setDescription('Web component tag name to use', 'Navnet på web component-taggen som skal brukes.'),
+    ),
   );

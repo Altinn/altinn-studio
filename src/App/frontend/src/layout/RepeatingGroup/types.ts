@@ -1,8 +1,7 @@
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { GridRows } from 'src/layout/common.generated';
-import type { RepeatingGroupDef } from 'src/layout/RepeatingGroup/config.def.generated';
+import type { CompExternal } from 'src/layout/layout';
 
-type Comp = ReturnType<RepeatingGroupDef['evalDefaultExpressions']>;
+type Comp = CompExternal<'RepeatingGroup'>;
 type RepGroupTrb = Exclude<Comp['textResourceBindings'], undefined>;
 type RepGroupEdit = Exclude<Comp['edit'], undefined>;
 
@@ -20,15 +19,3 @@ export type GroupExpressions = ExprResolved<{
   textResourceBindings?: Pick<RepGroupTrb, PerRowTrb>;
   edit?: Pick<RepGroupEdit, PerRowEdit>;
 }>;
-
-// This then, by its definition, is the opposite of the above types. It's the properties that are resolved for the
-// entire repeating group component at once.
-type RepGroupBase = ExprResolved<
-  Omit<Comp, 'hiddenRow' | 'textResourceBindings' | 'edit' | 'rowsAfter' | 'rowsBefore'>
->;
-export type RepGroupInternal = RepGroupBase & {
-  textResourceBindings?: Omit<RepGroupTrb, PerRowTrb>;
-  edit?: Omit<RepGroupEdit, PerRowEdit>;
-  rowsBefore?: GridRows;
-  rowsAfter?: GridRows;
-};

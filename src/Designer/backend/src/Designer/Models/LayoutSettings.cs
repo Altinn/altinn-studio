@@ -12,6 +12,7 @@ public class LayoutSettings
     public Pages? Pages { get; set; }
 
     [JsonPropertyName("defaultDataType")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? DefaultDataType { get; set; }
 
     [JsonPropertyName("type")]

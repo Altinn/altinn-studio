@@ -35,9 +35,39 @@ I dashbordet:
 
 1. Klikk **Hent apper** — laster ned (eller oppdaterer) alle klonede apper for valgt miljø
 2. Klikk **Re-analyser** — parser appene og oppdaterer databasen
-3. Bla gjennom fanene (Oversikt / Komponenter / Innstillinger / Språk / Prosess / Søk)
+3. Bla gjennom fanene (Oversikt / Komponenter / Innstillinger / Språk / Prosess / Grensesnitt / Søk)
 
 Begge operasjonene er idempotente — trygt å kjøre igjen. Re-analyse skipper apper som ikke har endret seg.
+
+## Grensesnitt-fanen
+
+Fanen **Grensesnitt** svarer på hvilke offentlige grensesnitt Altinn.App-bibliotekene tilbyr, og hvor mange apper som faktisk bruker hvert enkelt: hva er mye brukt, hva er lite brukt, og hva rører ingen.
+
+Tallene kommer fra to kilder som møtes i databasen:
+
+- **Katalogen** — alle offentlige grensesnitt i `Altinn.App.Core`, `Altinn.App.Api` og `Altinn.App.Clients.Fiks`, med signatur, dokumentasjonstekst, `[Obsolete]`-merking og om grensesnittet er ment for apper å implementere (`[ImplementableByApps]`).
+- **Appene** — deres egen C#-kode, lest av scanneren. Tre former for bruk skilles fra hverandre: appen **implementerer** grensesnittet, **registrerer** det i DI (`services.AddTransient<IFoo, Bar>()`), eller **injiserer** det (bruker typen uten å implementere den).
+
+En app teller som implementerende også når den arver en av bibliotekets baseklasser i stedet for å navngi grensesnittet — `class MinValidator : GenericFormDataValidator<T>` implementerer `IFormDataValidator`. Katalogen inneholder derfor de 70 klassene i biblioteket som implementerer et grensesnitt, og arven løses transitivt. Detaljvisningen viser «arver GenericFormDataValidator» på disse appene, så tallet kan etterprøves.
+
+Detaljvisningen for ett grensesnitt viser signaturen, hvilke apper som bruker det (med klassenavn, filbane og lenke rett til repoet), fordeling per organisasjon og bibliotekversjon, og hvilke andre grensesnitt de samme appene implementerer.
+
+To lister skiller seg ut:
+
+- **Utvidelsespunkt uten bruk** — ment for apper, men ingen tar dem i bruk.
+- **Grensesnitt utenfor katalogen** — apper implementerer dem, men de finnes ikke i dagens bibliotek. Som regel noe som er fjernet, og som appene henger igjen på.
+
+### Oppdatere katalogen
+
+Katalogen er generert fra bibliotekets egne, innsjekkede public-API-snapshots (`PublicApiTests.PublicApi_ShouldNotChange_Unintentionally.verified.txt`) og ligger som `backend/altinn_fleet/data/interface_catalog.json`. Den følger med i imaget, så dashbordet virker uten at biblioteket er sjekket ut ved siden av.
+
+Kjør generatoren på nytt når bibliotekets offentlige API har endret seg:
+
+```bash
+python3 backend/scripts/generate_interface_catalog.py
+```
+
+`--check` feiler hvis den innsjekkede katalogen er utdatert, og egner seg i CI. Bygg imaget på nytt etter en regenerering, og kjør **Re-analyser** — databasen fylles fra katalogen ved hver analyse.
 
 ## Konfigurasjon
 
@@ -112,9 +142,14 @@ Skjemaet ligger i `backend/altinn_fleet/db.py`. Hovedtabeller:
 - `settings_keys` — alle nøkler i `Settings.json` og `applicationmetadata.json`
 - `bpmn_tasks` — én per task i `process.bpmn`
 - `languages` — én per app × språkkode
+- `interfaces` — katalogen over offentlige grensesnitt i Altinn.App-bibliotekene
+- `app_interfaces` — én rad per app × grensesnitt × brukstype (`implements`/`registers`/`injects`)
 
 ## Begrensninger / TODO
 
 - Henter kun apper som er aktivt deployet via `kuberneteswrapper/api/v1/deployments`. Apper som er publisert men ikke deployet til den valgte env vises ikke.
 - Layouts som lastes dynamisk via expressions kan ikke fullt ut spores statisk — `in_pages_order` heuristikken sjekker `Settings.json` `pages.order`/`pages.groups[].order`.
+- Grensesnitt-bruk leses med regexer over C#-koden, ikke med en kompilator — appene i flåten spenner over alle bibliotekversjoner og bygger ikke i denne containeren. Kall via refleksjon eller kodegenerering fanges derfor ikke opp.
+- Arv gjennom bibliotekets egne baseklasser løses, men ikke arvekjeder som går via appens egne mellomklasser (`class A : GenericFormDataValidator<T>`, `class B : A` — bare `A` telles).
+- Katalogen beskriver den bibliotekversjonen imaget ble bygget fra. Apper på eldre versjoner kan bruke grensesnitt som er fjernet siden — de dukker opp under «Grensesnitt utenfor katalogen».
 - Schema-migrasjoner: ny versjon dropper bare alle tabeller når skjemaet endres. Egnet for tidlige iterasjoner: det er OK for en app som dette.

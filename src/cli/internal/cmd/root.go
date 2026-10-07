@@ -65,6 +65,7 @@ func NewCLI(cfg *config.Config) *CLI {
 	cli.Register(NewSelfCommand(cfg, out))
 	cli.Register(NewAppCommand(cfg, out))
 	cli.Register(NewAppsCommand(cfg, out))
+	cli.Register(NewAgentCommand(cfg, out))
 	cli.Register(NewServerCommand(cfg, out))
 	cli.Register(NewShellCommand(cfg, out))
 	cli.Register(NewAppContainersCommand(cfg, out))
@@ -141,7 +142,9 @@ func (c *CLI) printUsage() {
 		}
 	}
 
-	order := []string{"run", "stop", "env", "auth", "app", "apps", "install", "doctor", "self", "server", "shell"}
+	order := []string{
+		"run", "stop", "env", "auth", "app", "apps", "agent", "install", "doctor", "self", "server", "shell",
+	}
 	for _, name := range order {
 		if cmd, ok := c.commands[name]; ok {
 			c.out.Printlnf("  %-*s  %s", maxLen+2, name, cmd.Synopsis())

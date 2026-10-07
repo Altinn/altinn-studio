@@ -110,7 +110,6 @@ export const TextEditor = ({
           <div className={classes.filterAndSearch}>
             <StudioChip.Checkbox
               className={classes.sortChip}
-              data-size='sm'
               checked={sortTextsAlphabetically}
               onChange={() => setSortTextsAlphabetically(!sortTextsAlphabetically)}
             >

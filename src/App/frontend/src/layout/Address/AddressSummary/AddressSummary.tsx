@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
@@ -9,14 +11,36 @@ import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/
 import { useHasNoDataInBindings } from 'src/layout/Summary2/isEmpty/isEmptyComponent';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
-  const item = useItemWhenType(targetBaseComponentId, 'Address');
-  const { textResourceBindings, dataModelBindings, simplified, required } = item;
-  const { title, summaryTitle, careOfTitle, zipCodeTitle, postPlaceTitle, houseNumberTitle } =
-    textResourceBindings ?? {};
+  const config = useComponentConfig(targetBaseComponentId, 'Address');
+  const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'Address');
+  const required = useEvalExpression(config.required, Expressions.Address.required);
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Address.textResourceBindings.title);
+  const summaryTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Address.textResourceBindings.summaryTitle,
+  );
+  const careOfTitle = useEvalOptionalText(
+    config.textResourceBindings?.careOfTitle,
+    Expressions.Address.textResourceBindings.careOfTitle,
+  );
+  const zipCodeTitle = useEvalOptionalText(
+    config.textResourceBindings?.zipCodeTitle,
+    Expressions.Address.textResourceBindings.zipCodeTitle,
+  );
+  const postPlaceTitle = useEvalOptionalText(
+    config.textResourceBindings?.postPlaceTitle,
+    Expressions.Address.textResourceBindings.postPlaceTitle,
+  );
+  const houseNumberTitle = useEvalOptionalText(
+    config.textResourceBindings?.houseNumberTitle,
+    Expressions.Address.textResourceBindings.houseNumberTitle,
+  );
+
   const { formData } = useDataModelBindings(dataModelBindings);
   const { address, postPlace, zipCode, careOf, houseNumber } = formData;
   const emptyFieldText = useSummaryOverrides<'Address'>(targetBaseComponentId)?.emptyFieldText;
@@ -51,7 +75,7 @@ export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
           />
         </div>
 
-        {!simplified && (
+        {!config.simplified && (
           <div>
             <SingleValueSummary
               title={<Lang id={careOfTitle || 'address_component.care_of'} />}
@@ -98,7 +122,7 @@ export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
               baseComponentId={targetBaseComponentId}
             />
           </div>
-          {!simplified && (
+          {!config.simplified && (
             <div>
               <SingleValueSummary
                 title={<Lang id={houseNumberTitle || 'address_component.house_number'} />}

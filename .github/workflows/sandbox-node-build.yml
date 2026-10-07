@@ -8,7 +8,6 @@ on:
       - '.github/workflows/deploy-sandbox-node.yaml'
       - '.github/workflows/sandbox-node-build.yml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

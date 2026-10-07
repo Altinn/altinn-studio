@@ -8,6 +8,12 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 **Architecture**: Two-tier system (proxy + worker) running in Kubernetes. Local development uses a Kind cluster.
 
+**Local environments follow tt02**: `studioctl env up` runs the worker from the `tt02` tag, moved
+whenever a build is deployed to the ring tt02 serves, so a developer picks it up with whatever
+studioctl they have installed. In a cluster this service's configuration ships with the image;
+locally studioctl supplies it and is not updated with it, so keep a changed setting's previous
+spelling working for one studioctl release.
+
 ## Development Environment
 
 ### Prerequisites

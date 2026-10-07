@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
@@ -25,6 +24,8 @@ internal sealed class StepEntity
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset? UpdatedAt { get; set; }
+
+    public DateTimeOffset? ExecutionStartedAt { get; set; }
 
     public int ProcessingOrder { get; set; }
 
@@ -68,6 +69,7 @@ internal sealed class StepEntity
             Status = step.Status,
             CreatedAt = step.CreatedAt,
             UpdatedAt = step.UpdatedAt,
+            ExecutionStartedAt = step.ExecutionStartedAt,
             ProcessingOrder = step.ProcessingOrder,
             RequeueCount = step.RequeueCount,
             DeferCount = step.DeferCount,
@@ -102,6 +104,7 @@ internal sealed class StepEntity
             ProcessingOrder = ProcessingOrder,
             CreatedAt = CreatedAt,
             UpdatedAt = UpdatedAt,
+            ExecutionStartedAt = ExecutionStartedAt,
             RequeueCount = RequeueCount,
             DeferCount = DeferCount,
             FirstDeferredAt = FirstDeferredAt,

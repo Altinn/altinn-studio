@@ -9,12 +9,15 @@ spec:
   - name: maskinporten-api
     port: 8050
     targetPort: 8050
+    appProtocol: http
   - name: self-service-api
     port: 8051
     targetPort: 8051
+    appProtocol: http
   - name: org-registry-api
     port: 8052
     targetPort: 8052
+    appProtocol: http
   selector:
     app: fakes
 ---

@@ -25,7 +25,7 @@ spec:
     # has no built-in idle timeout). Set generously enough that legitimate
     # long workflows can finish, but short enough that orphaned idle
     # runners get reaped.
-    activeDeadlineSeconds: {{ $.Values.keda.activeDeadlineSeconds | default 1800 }}
+    activeDeadlineSeconds: {{ $.Values.keda.activeDeadlineSeconds | default 7200 }}
     template:
       metadata:
         labels:

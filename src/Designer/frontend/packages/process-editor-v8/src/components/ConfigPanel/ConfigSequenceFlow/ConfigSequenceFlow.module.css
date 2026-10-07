@@ -1,0 +1,4 @@
+.container {
+  padding: var(--ds-size-3);
+  box-sizing: border-box;
+}

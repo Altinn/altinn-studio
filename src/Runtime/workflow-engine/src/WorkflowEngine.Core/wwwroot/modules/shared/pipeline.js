@@ -1,6 +1,6 @@
-/* Pipeline rendering — step circles, connectors, phase labels */
+/* Pipeline rendering — step circles, connectors, element group labels */
 
-import { parseTransition, stepPhase, stepSubLabel } from '../core/state.js';
+import { parseTransition, stepGroup, stepSubLabel } from '../core/state.js';
 import { esc, escAttr, escHtml, escJsArg } from '../core/helpers.js';
 
 /**
@@ -51,18 +51,21 @@ const buildStepTimingHTML = (step, isStatic) => {
  * @param {import('../core/state.js').Workflow} wf
  * @param {import('../core/state.js').Step} step
  * @param {boolean} [isStatic]
- * @param {{ phase: string, first: boolean, last: boolean, label: string|null, halfOffset: boolean }} [phaseOpts]
+ * @param {{ key: string, first: boolean, last: boolean, label: string|null, halfOffset: boolean }} [groupOpts]
  * @returns {string}
  */
-export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
+export const buildStepNodeHTML = (wf, step, isStatic, groupOpts) => {
     let attrs = '';
     let labelHtml = '';
-    if (phaseOpts) {
-        attrs = ` data-phase="${phaseOpts.phase}"`;
-        if (phaseOpts.first) attrs += ' data-phase-first';
-        if (phaseOpts.last) attrs += ' data-phase-last';
-        if (phaseOpts.label)
-            labelHtml = `<span class="phase-label${phaseOpts.halfOffset ? ' phase-label-offset' : ''}">${escHtml(phaseOpts.label)}</span>`;
+    if (groupOpts) {
+        // The group key embeds a BPMN element id straight from the app's process file, so this is a
+        // caller-supplied value in an attribute and needs escAttr, not esc. Nothing reads the value
+        // back — the CSS brackets key on the attribute's presence — but it is written into markup.
+        attrs = ` data-phase="${escAttr(groupOpts.key)}"`;
+        if (groupOpts.first) attrs += ' data-phase-first';
+        if (groupOpts.last) attrs += ' data-phase-last';
+        if (groupOpts.label)
+            labelHtml = `<span class="phase-label${groupOpts.halfOffset ? ' phase-label-offset' : ''}">${escHtml(groupOpts.label)}</span>`;
     }
     let html = `<div class="step-node"${attrs}>`;
     html += labelHtml;
@@ -84,7 +87,7 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     const sub = stepSubLabel(step);
     html += `<div class="step-label-wrap">`;
     html += `<div class="step-label" title="${escAttr(step.commandDetail)}">${esc(step.commandDetail)}</div>`;
-    if (sub) html += `<div class="step-sublabel">${esc(sub)}</div>`;
+    if (sub) html += `<div class="step-sublabel" title="${escAttr(sub)}">${esc(sub)}</div>`;
     html += `</div>`;
 
     html += `<div class="step-meta">`;
@@ -102,6 +105,13 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
         const label = step.status === 'Waiting' ? 'check now' : 'retry now';
         html += `<span class="step-backoff" data-backoff="${escAttr(backoff)}"></span>`;
         html += `<button class="nudge-btn" onclick="nudgeWorkflow(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="${action}">${label}</button>`;
+    }
+    if (isBackedOff) {
+        const failTitle =
+            step.status === 'Waiting'
+                ? 'Fail now (stop waiting, mark the step Failed)'
+                : 'Fail now (stop retrying, mark the step Failed)';
+        html += `<button class="fail-btn" onclick="failWorkflow(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="${failTitle}">fail</button>`;
     }
     if (step.status === 'Failed') {
         html += `<button class="retry-btn" onclick="retryWorkflow(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="Retry this workflow">&#8635; Retry</button>`;
@@ -164,53 +174,48 @@ export const buildPipelineHTML = (wf, isStatic) => {
         return html;
     }
 
-    const phases = steps.map((s) => stepPhase(s.commandDetail));
-    /** @param {string} phase @returns {string} */
-    const phaseLabel = (phase) => {
-        if (phase === 'end') return tx.from;
-        if (phase === 'start') return tx.to;
-        if (phase === 'process-end') return 'End Event';
-        return '';
-    };
+    const groups = steps.map((s) => stepGroup(s, tx));
+    const keys = groups.map((g) => (g ? g.key : null));
 
     const labelAt = new Map();
     let groupStart = -1;
-    let groupPhase = null;
+    let groupKey = null;
     for (let i = 0; i <= steps.length; i++) {
-        const p = i < steps.length ? phases[i] : null;
-        if (p !== groupPhase) {
-            if (groupPhase !== null && groupStart >= 0) {
+        const k = i < steps.length ? keys[i] : null;
+        if (k !== groupKey) {
+            if (groupKey !== null && groupStart >= 0) {
                 const count = i - groupStart;
                 const mid = groupStart + Math.floor((count - 1) / 2);
                 labelAt.set(mid, count % 2 === 0);
             }
-            groupStart = p !== null ? i : -1;
-            groupPhase = p;
+            groupStart = k !== null ? i : -1;
+            groupKey = k;
         }
     }
 
-    // The grouped padding reserves headroom for the phase bracket labels — skip it when
-    // no step maps to a phase (e.g. a lone side-effect step), the brackets never render.
-    const hasPhases = phases.some((p) => p !== null);
+    // The grouped padding reserves headroom for the bracket labels — skip it when
+    // no step belongs to a group (e.g. a lone side-effect step), the brackets never render.
+    const hasPhases = keys.some((k) => k !== null);
     let html = `<div class="pipeline${hasPhases ? ' pipeline-grouped' : ''}${isStatic ? ' pipeline-static' : ''}">`;
     steps.forEach((step, i) => {
         if (i > 0) html += buildConnectorHTML(steps[i - 1], step, isStatic);
 
-        const phase = phases[i];
-        const isFirst = phase !== null && phase !== (i > 0 ? phases[i - 1] : null);
-        const isLast = phase !== null && phase !== (i < steps.length - 1 ? phases[i + 1] : null);
+        const group = groups[i];
+        const key = keys[i];
+        const isFirst = key !== null && key !== (i > 0 ? keys[i - 1] : null);
+        const isLast = key !== null && key !== (i < steps.length - 1 ? keys[i + 1] : null);
 
         const hasLabel = labelAt.has(i);
         html += buildStepNodeHTML(
             wf,
             step,
             isStatic,
-            phase
+            group
                 ? {
-                      phase,
+                      key: group.key,
                       first: isFirst,
                       last: isLast,
-                      label: hasLabel ? phaseLabel(phase) : null,
+                      label: hasLabel ? group.label : null,
                       halfOffset: hasLabel && labelAt.get(i),
                   }
                 : null,
@@ -218,6 +223,24 @@ export const buildPipelineHTML = (wf, isStatic) => {
     });
     html += '</div>';
     return html;
+};
+
+/**
+ * Replaces a card's inner HTML while keeping its pipeline scrolled where the operator left it.
+ * A rebuild swaps the `.pipeline` element, and a fresh element starts at scrollLeft 0 — so without
+ * this every retry or deferral write-back snapped a sideways-scrolled pipeline back to its start.
+ * Callers that want the active step centered instead call {@link scrollPipelineToActive} afterwards.
+ * @param {HTMLElement} card
+ * @param {string} html
+ */
+export const setCardHTMLKeepingPipelineScroll = (card, html) => {
+    const before = /** @type {HTMLElement | null} */ (card.querySelector('.pipeline'));
+    const scrollLeft = before ? before.scrollLeft : 0;
+    card.innerHTML = html;
+    if (scrollLeft > 0) {
+        const after = /** @type {HTMLElement | null} */ (card.querySelector('.pipeline'));
+        if (after) after.scrollLeft = scrollLeft;
+    }
 };
 
 /** @param {HTMLElement} card */

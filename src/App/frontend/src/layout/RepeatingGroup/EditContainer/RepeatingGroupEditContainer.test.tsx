@@ -2,6 +2,8 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';
+import type { CompCheckboxesExternal } from '@app/layout-contract/generated/components/Checkboxes/config.generated';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getMultiPageGroupMock } from 'src/__mocks__/getMultiPageGroupMock';
@@ -15,8 +17,6 @@ import {
   useRepeatingGroupSelector,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { CompCheckboxesExternal } from 'src/layout/Checkboxes/config.generated';
-import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternal } from 'src/layout/layout';
 
 describe('RepeatingGroupsEditContainer', () => {

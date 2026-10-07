@@ -18,17 +18,9 @@ internal sealed class CSharpConversionResult
 /// </summary>
 internal sealed class StatementConverter
 {
-    private readonly Dictionary<string, string> _inputParams;
-    private readonly string _dataVariableName;
     private readonly Dictionary<string, string> _localVariables = new();
     private readonly Dictionary<string, string> _localVariableTypes = new(); // actual C# type: "string?", "decimal?", "bool", etc.
     private int _tempVarCounter = 0;
-
-    public StatementConverter(Dictionary<string, string> inputParams, string dataVariableName = "data")
-    {
-        _inputParams = inputParams;
-        _dataVariableName = dataVariableName;
-    }
 
     /// <summary>
     /// Mark variables as already declared to avoid redeclaration
@@ -951,7 +943,7 @@ internal sealed class StatementConverter
             return $"{objCode}[{propertyCode}]";
         }
 
-        // Handle obj.property -> data.Property
+        // Handle named member access
         if (member.Object is Identifier objId && member.Property is Identifier propId)
         {
             var objectName = objId.Name;
@@ -973,22 +965,6 @@ internal sealed class StatementConverter
                 };
             }
 
-            // Check if this property is a known input parameter
-            if (_inputParams.TryGetValue(propertyName, out var dataModelPath))
-            {
-                // Get the full data model path for this parameter
-
-                // Convert the path to C# property access
-                var propertyPath = ExtractPropertyNameFromPath(dataModelPath);
-                if (propertyPath != null)
-                {
-                    // Only add data variable name if it's not empty
-                    return string.IsNullOrEmpty(_dataVariableName)
-                        ? propertyPath
-                        : $"{_dataVariableName}.{propertyPath}";
-                }
-            }
-
             // Check if the object is a local variable (like "obj" in helper functions)
             // If so, just return the property name as a local variable reference
             if (_localVariables.ContainsKey(objectName) || objectName == "obj")
@@ -997,12 +973,7 @@ internal sealed class StatementConverter
                 return propertyName;
             }
 
-            // Fallback: convert to Pascal case for C# property names
-            // Only add data variable name if it's not empty
-            var csharpPropertyName = ToPascalCase(propertyName);
-            return string.IsNullOrEmpty(_dataVariableName)
-                ? csharpPropertyName
-                : $"{_dataVariableName}.{csharpPropertyName}";
+            return ToPascalCase(propertyName);
         }
 
         throw new NotSupportedException($"Member expression pattern not supported: {member}");
@@ -1021,48 +992,7 @@ internal sealed class StatementConverter
             return "null";
         }
 
-        // Check if this is a local variable
-        if (_localVariables.ContainsKey(identifier.Name))
-        {
-            return identifier.Name;
-        }
-
-        // Check if this is a known input parameter
-        if (_inputParams.TryGetValue(identifier.Name, out var dataModelPath))
-        {
-            // Get the full data model path for this parameter
-
-            // Convert the path to C# property access
-            var propertyPath = ExtractPropertyNameFromPath(dataModelPath);
-            if (propertyPath != null)
-            {
-                return $"{_dataVariableName}.{propertyPath}";
-            }
-        }
-
-        // Otherwise, keep the identifier as-is (might be a local variable)
         return identifier.Name;
-    }
-
-    private string? ExtractPropertyNameFromPath(string dataModelPath)
-    {
-        // Data model paths are like "Group-grp-123.SubGroup-grp-456.PropertyName-datadef-789.value"
-        // We need to convert this to "Groupgrp123.SubGroupgrp456.PropertyNamedatadef789.value"
-        var parts = dataModelPath.Split('.');
-
-        // Sanitize each part (removes hyphens and invalid characters)
-        // Note: "value" at the end is a valid property name and should be kept
-        var sanitizedParts = parts.Select(SanitizePropertyName).Where(p => !string.IsNullOrEmpty(p)).ToArray();
-
-        // Join with dots to create nested property access
-        return sanitizedParts.Length > 0 ? string.Join(".", sanitizedParts) : null;
-    }
-
-    private string SanitizePropertyName(string propertyName)
-    {
-        // The C# model generator removes hyphens but keeps letters, digits, and underscores
-        // This matches the auto-generated model property naming convention
-        return new string(propertyName.Where(c => char.IsLetterOrDigit(c) || c == '_').ToArray());
     }
 
     private string ConvertLiteral(Literal literal)

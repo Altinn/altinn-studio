@@ -21,7 +21,7 @@ on:
       environments:
         description: "Runtime environments to tag. Comma-separated (e.g. at_ring1,at_ring2)."
         required: false
-        default: "at_ring2"
+        default: "at_ring2,tt_ring1,tt_ring2"
       tag-latest:
         description: 'Tag the GHCR image as "latest"'
         required: false
@@ -38,7 +38,7 @@ jobs:
     uses: ./.github/workflows/template-runtime-construct-environments.yaml
     with:
       inputs: ${{ toJSON(github.event.inputs) }}
-      override-default-runtime-environments: at_ring2
+      override-default-runtime-environments: at_ring2,tt_ring1,tt_ring2
 
   push-workflow-engine-app-artifact:
     name: Push workflow-engine-app as OCI artifact
@@ -48,6 +48,7 @@ jobs:
       REGISTRY_NAME: altinncr
     outputs:
       config-repo: ${{ steps.vars.outputs.config-repo }}
+      ghcr-image: ${{ steps.vars.outputs.ghcr-image }}
     defaults:
       run:
         working-directory: src/Runtime/workflow-engine-app
@@ -104,6 +105,7 @@ jobs:
           docker build --platform linux/amd64,linux/arm64 \
             --cache-from type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:buildcache \
             --cache-to type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:buildcache,mode=max \
+            --label org.opencontainers.image.revision=${GITHUB_SHA} \
             --build-arg BUILD_VERSION=${{ steps.vars.outputs.short-sha }} $TAGS -f Runtime/workflow-engine-app/Dockerfile .
 
       - name: push image
@@ -140,6 +142,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
     strategy:
+      fail-fast: false
       matrix:
         include: ${{ fromJson(needs.construct-rings-array.outputs.result) }}
     steps:
@@ -160,3 +163,17 @@ jobs:
         run: |
           flux tag artifact oci://${{ needs.push-workflow-engine-app-artifact.outputs.config-repo }} \
             --tag ${{ matrix.ring }}
+
+      # studioctl runs the "tt02" tag, so local environments run the same build as tt02.
+      # Moved here rather than in the build job, so it only ever points at a build handed to
+      # the ring that tt02 serves.
+      - name: Point the tt02 tag at this build
+        if: matrix.ring == 'tt_ring1' && github.ref == 'refs/heads/main'
+        env:
+          GHCR_IMAGE: ${{ needs.push-workflow-engine-app-artifact.outputs.ghcr-image }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker buildx imagetools create \
+            -t ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:tt02 \
+            "$GHCR_IMAGE"

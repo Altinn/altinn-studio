@@ -63,7 +63,7 @@ const mockNoStoredConsent = (): void => {
 
 describe('useConsentContext', () => {
   it('should throw error when used outside ConsentProvider', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
     const ThrowingComponent = () => {
       useConsent();
@@ -80,7 +80,7 @@ describe('useConsentContext', () => {
 
 describe('useConsentMutationContext', () => {
   it('should throw error when used outside ConsentProvider', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
     const ThrowingComponent = () => {
       useConsentMutation();
@@ -204,7 +204,7 @@ describe('ConsentProvider', () => {
   });
 
   it('should log error but not crash when analytics provider syncConsent fails', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const syncError = new Error('Sync failed');
     mockAnalyticsProvider.syncConsent.mockImplementation(() => {
       throw syncError;
@@ -260,7 +260,7 @@ describe('ConsentProvider', () => {
   });
 
   it('should log error and not update state when CookieStorage.setItem fails', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const storageError = new Error('Storage full');
     (CookieStorage.setItem as jest.Mock).mockImplementation(() => {
       throw storageError;

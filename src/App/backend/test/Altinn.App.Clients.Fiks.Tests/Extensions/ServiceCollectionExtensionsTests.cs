@@ -34,7 +34,6 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var fiksIOSettingsOverride = TestHelpers.RandomFiksIOSettings;
-        var maskinportenSettingsOverride = TestHelpers.RandomMaskinportenSettings;
         await using var fixture = TestFixture.Create(
             services =>
             {
@@ -48,27 +47,17 @@ public class ServiceCollectionExtensionsTests
                         x.AccountPrivateKeyBase64 = fiksIOSettingsOverride.AccountPrivateKeyBase64;
                         x.AmqpHost = fiksIOSettingsOverride.AmqpHost;
                         x.ApiHost = fiksIOSettingsOverride.ApiHost;
-                    })
-                    .WithMaskinportenConfig(x =>
-                    {
-                        x.Authority = maskinportenSettingsOverride.Authority;
-                        x.ClientId = maskinportenSettingsOverride.ClientId;
-                        x.JwkBase64 = maskinportenSettingsOverride.JwkBase64;
                     });
             },
-            useDefaultFiksIOSettings: provideDefaultSettings,
-            useDefaultMaskinportenSettings: provideDefaultSettings
+            useDefaultFiksIOSettings: provideDefaultSettings
         );
 
         // Act
         var fiksIOSettings = fixture.FiksIOSettings;
-        var maskinportenSettings = fixture.MaskinportenSettings;
 
         // Assert
         Assert.NotNull(fiksIOSettings);
-        Assert.NotNull(maskinportenSettings);
         Assert.Equal(fiksIOSettingsOverride, fiksIOSettings);
-        Assert.Equal(maskinportenSettingsOverride, maskinportenSettings);
     }
 
     [Theory]
@@ -78,32 +67,21 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var fiksIOSettingsOverride = TestHelpers.RandomFiksIOSettings;
-        var maskinportenSettingsOverride = TestHelpers.RandomMaskinportenSettings;
         await using var fixture = TestFixture.Create(
             services =>
             {
-                services
-                    .AddFiksIOClient()
-                    .WithFiksIOConfig("SuperCustomFiksIOSettings")
-                    .WithMaskinportenConfig("SuperCustomMaskinportenSettings");
+                services.AddFiksIOClient().WithFiksIOConfig("SuperCustomFiksIOSettings");
             },
-            [
-                ("SuperCustomFiksIOSettings", fiksIOSettingsOverride),
-                ("SuperCustomMaskinportenSettings", maskinportenSettingsOverride),
-            ],
-            useDefaultFiksIOSettings: provideDefaultSettings,
-            useDefaultMaskinportenSettings: provideDefaultSettings
+            [("SuperCustomFiksIOSettings", fiksIOSettingsOverride)],
+            useDefaultFiksIOSettings: provideDefaultSettings
         );
 
         // Act
         var fiksIOSettings = fixture.FiksIOSettings;
-        var maskinportenSettings = fixture.MaskinportenSettings;
 
         // Assert
         Assert.NotNull(fiksIOSettings);
-        Assert.NotNull(maskinportenSettings);
         Assert.Equal(fiksIOSettingsOverride, fiksIOSettings);
-        Assert.Equal(maskinportenSettingsOverride, maskinportenSettings);
     }
 
     [Fact]
@@ -166,7 +144,6 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var fiksIOSettingsOverride = TestHelpers.RandomFiksIOSettings;
         var fiksArkivSettingsOverride = TestHelpers.RandomFiksArkivSettings;
-        var maskinportenSettingsOverride = TestHelpers.RandomMaskinportenSettings;
         await using var fixture = TestFixture.Create(
             services =>
                 services
@@ -188,30 +165,20 @@ public class ServiceCollectionExtensionsTests
                         x.Documents = fiksArkivSettingsOverride.Documents;
                         x.Recipient = fiksArkivSettingsOverride.Recipient;
                         x.Receipt = fiksArkivSettingsOverride.Receipt;
-                    })
-                    .WithMaskinportenConfig(x =>
-                    {
-                        x.Authority = maskinportenSettingsOverride.Authority;
-                        x.ClientId = maskinportenSettingsOverride.ClientId;
-                        x.JwkBase64 = maskinportenSettingsOverride.JwkBase64;
                     }),
             useDefaultFiksIOSettings: provideDefaultSettings,
-            useDefaultFiksArkivSettings: provideDefaultSettings,
-            useDefaultMaskinportenSettings: provideDefaultSettings
+            useDefaultFiksArkivSettings: provideDefaultSettings
         );
 
         // Act
         var fiksIOSettings = fixture.FiksIOSettings;
         var fiksArkivSettings = fixture.FiksArkivSettings;
-        var maskinportenSettings = fixture.MaskinportenSettings;
 
         // Assert
         Assert.NotNull(fiksIOSettings);
         Assert.NotNull(fiksArkivSettings);
-        Assert.NotNull(maskinportenSettings);
         Assert.Equivalent(fiksArkivSettingsOverride, fiksArkivSettings);
         Assert.Equal(fiksIOSettingsOverride, fiksIOSettings);
-        Assert.Equal(maskinportenSettingsOverride, maskinportenSettings);
     }
 
     [Theory]
@@ -222,36 +189,29 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var fiksIOSettingsOverride = TestHelpers.RandomFiksIOSettings;
         var fiksArkivSettingsOverride = TestHelpers.RandomFiksArkivSettings;
-        var maskinportenSettingsOverride = TestHelpers.RandomMaskinportenSettings;
         await using var fixture = TestFixture.Create(
             services =>
                 services
                     .AddFiksArkiv()
                     .WithFiksIOConfig("SuperCustomFiksIOSettings")
-                    .WithFiksArkivConfig("SuperCustomFiksArkivSettings")
-                    .WithMaskinportenConfig("SuperCustomMaskinportenSettings"),
+                    .WithFiksArkivConfig("SuperCustomFiksArkivSettings"),
             [
                 ("SuperCustomFiksIOSettings", fiksIOSettingsOverride),
                 ("SuperCustomFiksArkivSettings", fiksArkivSettingsOverride),
-                ("SuperCustomMaskinportenSettings", maskinportenSettingsOverride),
             ],
             useDefaultFiksIOSettings: provideDefaultSettings,
-            useDefaultFiksArkivSettings: provideDefaultSettings,
-            useDefaultMaskinportenSettings: provideDefaultSettings
+            useDefaultFiksArkivSettings: provideDefaultSettings
         );
 
         // Act
         var fiksIOSettings = fixture.FiksIOSettings;
         var fiksArkivSettings = fixture.FiksArkivSettings;
-        var maskinportenSettings = fixture.MaskinportenSettings;
 
         // Assert
         Assert.NotNull(fiksIOSettings);
         Assert.NotNull(fiksArkivSettings);
-        Assert.NotNull(maskinportenSettings);
         Assert.Equivalent(fiksArkivSettingsOverride, fiksArkivSettings);
         Assert.Equal(fiksIOSettingsOverride, fiksIOSettings);
-        Assert.Equal(maskinportenSettingsOverride, maskinportenSettings);
     }
 
     [Fact]

@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -10,7 +7,7 @@ namespace Altinn.App.logic
     {
         public string DataType { get; } = "attachments";
 
-        public async Task<List<ValidationIssue>> ValidateDataElement(Instance instance, DataElement dataElement, DataType dataType, string language)
+        public async Task<List<ValidationIssue>> ValidateDataElement(Instance instance, DataElement dataElement, DataType dataType, string? language)
         {
             List<ValidationIssue> validationIssues = new List<ValidationIssue>();
 

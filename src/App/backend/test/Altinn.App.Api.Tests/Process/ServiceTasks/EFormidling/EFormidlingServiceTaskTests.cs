@@ -153,7 +153,7 @@ public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplica
 
         firstNextResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
 
-        // Check that the process is still in Task_3
+        // The target service task is durable before its external side effect executes.
         Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.ElementId.Should().Be("Task_3");
         instance.Process.CurrentTask.AltinnTaskType.Should().Be("eFormidling");

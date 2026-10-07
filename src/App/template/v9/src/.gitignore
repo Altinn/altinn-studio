@@ -263,3 +263,9 @@ Temporary Items
 Session.vim
 .netrwhist
 *~
+
+### Altinn ###
+
+# Local-only configuration, loaded by the app libraries when present, so a developer's own settings for a
+# local run stay off the repository.
+appsettings.Local.json

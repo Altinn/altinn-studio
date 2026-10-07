@@ -2,10 +2,12 @@ import React from 'react';
 
 import { Button } from '@app/form-component';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import { useIsMutating } from '@tanstack/react-query';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppOwner } from 'src/core/texts/appTexts';
-import { useProcessNextOutsideFormProvider, useProcessResume } from 'src/features/instance/useProcessNext';
+import { PROCESS_RESUME_MUTATION_KEY } from 'src/features/instance/processNextMutationKey';
+import { useProcessResume } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -14,8 +16,9 @@ import { getPageTitle } from 'src/utils/getPageTitle';
 
 /**
  * The recoverable failure view for a service task whose workflow failed terminally. Unlike the
- * generic WorkflowFailed page, this failure has a task UI owner, so it offers recovery actions:
- * retry (resume the failed workflow) and back (bpmn-allowed reject).
+ * generic WorkflowFailed page, this failure has a task UI owner. Only retry is offered, which
+ * resumes the failed workflow. Returning to a previous task would require knowing how to undo
+ * any work the service task has already performed.
  */
 export function ServiceTaskFailed() {
   const langTools = useLanguage();
@@ -49,10 +52,7 @@ export function ServiceTaskFailed() {
             ]}
           />
         </Paragraph>
-        <div className={classes.buttons}>
-          <RetryButton />
-          <BackButton />
-        </div>
+        <RetryButton />
       </div>
       <ReadyForPrint type='load' />
     </>
@@ -65,48 +65,26 @@ const RetryButton = () => {
   // This view only renders when the workflow failure is owned by the current service task, which
   // means the workflow is terminally failed: process/next is blocked (409/resumeRequired) until
   // it is resumed, so "retry" goes through process/resume - the engine re-runs the failed step in
-  // place. (A parked-but-healthy service task renders ServiceTaskWaiting instead, with no manual
+  // place. (A parked-but-healthy service task renders the standard loader instead, with no manual
   // retry affordance.)
   // Use mutate (not mutateAsync): failures are handled by the mutation's own onError (toast +
   // refetch), and an un-awaited mutateAsync would surface them as unhandled promise rejections.
-  const { mutate: processResume, isPending: isResuming } = useProcessResume();
+  // The transition loader replaces this view while a resume is processing, so the button can
+  // remount mid-resume; read the pending state from the mutation cache, not this observer.
+  const { mutate: processResume } = useProcessResume();
+  const isResuming = useIsMutating({ mutationKey: PROCESS_RESUME_MUTATION_KEY, status: 'pending' }) > 0;
 
   return (
     <Button
       id='service-task-retry-button'
+      className={classes.retryButton}
       onClick={() => processResume()}
-      disabled={!canRetry}
+      disabled={!canRetry || isResuming}
       isLoading={isResuming}
       loadingLabel={langAsString('general.loading')}
       color='success'
     >
       <Lang id='service_task.retry_button' />
-    </Button>
-  );
-};
-
-const BackButton = () => {
-  const { langAsString } = useLanguage();
-  const canReject = useIsAuthorized()('reject');
-  // Use mutate (not mutateAsync) - see RetryButton.
-  const { mutate: processReject, isPending: isRejecting } = useProcessNextOutsideFormProvider({
-    action: 'reject',
-  });
-
-  if (!canReject) {
-    return null;
-  }
-
-  return (
-    <Button
-      id='service-task-back-button'
-      onClick={() => processReject()}
-      disabled={isRejecting}
-      isLoading={isRejecting}
-      loadingLabel={langAsString('general.loading')}
-      color='second'
-    >
-      <Lang id='service_task.back_button' />
     </Button>
   );
 };

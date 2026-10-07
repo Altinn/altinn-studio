@@ -17,3 +17,9 @@ ALTINNAPP0702 | Contracts | Error | Mailbox handle answered twice
 ALTINNAPP0703 | Contracts | Error | Mailbox opened but never answered
 ALTINNAPP0800 | Authorization | Error | Service owner is missing required authorization
 ALTINNAPP0801 | Authorization | Warning | Service owner authorization could not be verified
+ALTINNAPP0900 | Metadata | Error | Duplicate presentationFields/dataFields id
+ALTINNAPP0901 | Metadata | Warning | presentationFields/dataFields entry references an unknown data type
+ALTINNAPP1000 | Process | Error | PDF service task has nothing to render
+ALTINNAPP1001 | Process | Error | PDF service task has a UI folder without pdfLayoutName
+ALTINNAPP1002 | Process | Warning | PDF service task includes a task without a UI folder
+ALTINNAPP1003 | Process | Error | Task uses the wrong BPMN element

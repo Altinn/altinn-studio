@@ -183,6 +183,7 @@ Content-Type: application/json; charset=utf-8
       "namespace": "ttd-e2e-tests",
       "createdAt": "{Scrubbed}",
       "updatedAt": "{Scrubbed}",
+      "executionStartedAt": "{Scrubbed}",
       "labels": {
         "app": "e2e-tests",
         "org": "ttd"
@@ -199,6 +200,7 @@ Content-Type: application/json; charset=utf-8
           "operationId": "/ping-existing",
           "processingOrder": 0,
           "updatedAt": "{Scrubbed}",
+          "executionStartedAt": "{Scrubbed}",
           "command": {
             "type": "webhook"
           },
@@ -215,6 +217,7 @@ Content-Type: application/json; charset=utf-8
       "namespace": "ttd-e2e-tests",
       "createdAt": "{Scrubbed}",
       "updatedAt": "{Scrubbed}",
+      "executionStartedAt": "{Scrubbed}",
       "labels": {
         "app": "e2e-tests",
         "org": "ttd"
@@ -231,6 +234,7 @@ Content-Type: application/json; charset=utf-8
           "operationId": "/ping-down",
           "processingOrder": 0,
           "updatedAt": "{Scrubbed}",
+          "executionStartedAt": "{Scrubbed}",
           "command": {
             "type": "webhook"
           },
@@ -247,6 +251,7 @@ Content-Type: application/json; charset=utf-8
       "namespace": "ttd-e2e-tests",
       "createdAt": "{Scrubbed}",
       "updatedAt": "{Scrubbed}",
+      "executionStartedAt": "{Scrubbed}",
       "labels": {
         "app": "e2e-tests",
         "org": "ttd"
@@ -269,6 +274,7 @@ Content-Type: application/json; charset=utf-8
           "operationId": "/ping-mid",
           "processingOrder": 0,
           "updatedAt": "{Scrubbed}",
+          "executionStartedAt": "{Scrubbed}",
           "command": {
             "type": "webhook"
           },
@@ -285,6 +291,7 @@ Content-Type: application/json; charset=utf-8
       "namespace": "ttd-e2e-tests",
       "createdAt": "{Scrubbed}",
       "updatedAt": "{Scrubbed}",
+      "executionStartedAt": "{Scrubbed}",
       "labels": {
         "app": "e2e-tests",
         "org": "ttd"
@@ -299,6 +306,7 @@ Content-Type: application/json; charset=utf-8
           "operationId": "/ping-side",
           "processingOrder": 0,
           "updatedAt": "{Scrubbed}",
+          "executionStartedAt": "{Scrubbed}",
           "command": {
             "type": "webhook"
           },
@@ -315,6 +323,7 @@ Content-Type: application/json; charset=utf-8
       "namespace": "ttd-e2e-tests",
       "createdAt": "{Scrubbed}",
       "updatedAt": "{Scrubbed}",
+      "executionStartedAt": "{Scrubbed}",
       "labels": {
         "app": "e2e-tests",
         "org": "ttd"
@@ -331,6 +340,7 @@ Content-Type: application/json; charset=utf-8
           "operationId": "/ping-up",
           "processingOrder": 0,
           "updatedAt": "{Scrubbed}",
+          "executionStartedAt": "{Scrubbed}",
           "command": {
             "type": "webhook"
           },

@@ -33,7 +33,7 @@ export interface DropdownProps {
   /** The currently selected value (the data-model value). Empty string means nothing is selected. */
   value: string;
   /** Called with the new value when the selection changes (after confirmation when `alertOnChange`). */
-  onChange?: (value: string) => void;
+  onChange: (value: string) => void;
   /** Called when the input loses focus (used by the wrapper to flush debounced form data). */
   onBlur?: () => void;
   readOnly?: boolean;
@@ -71,13 +71,11 @@ export interface DropdownProps {
   validationMessages?: ReactNode;
 }
 
-function noop() {}
-
 export function Dropdown({
   componentId,
   options,
   value,
-  onChange = noop,
+  onChange,
   onBlur,
   readOnly,
   required,
@@ -162,7 +160,7 @@ export function Dropdown({
           filter={(args) => optionFilter(args, selectedLabels)}
           data-size='sm'
           selected={selectedItem}
-          onSelectedChange={(option) => handleChange(option ? option.value : '')}
+          onSelectedChange={(option) => handleChange(option?.value ?? '')}
           onBlur={() => onBlur?.()}
           className={cn(comboboxClasses.container, classes.showCaretsWithoutClear, {
             [classes.readOnly]: readOnly,
@@ -208,7 +206,6 @@ export function Dropdown({
                 key={option.value}
                 value={option.value}
                 label={langAsString(option.label)}
-                onClick={() => handleChange(option.value)}
               >
                 <span className={classes.optionContent}>
                   {lang(option.label)}

@@ -4,7 +4,6 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -19,7 +18,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Result from <see cref="ProcessNextRequestFactory.Create"/> containing both the request body
+/// Result from <see cref="ProcessNextRequestFactory.CreateChainInitiating"/> containing both the request body
 /// and the metadata that must be sent via URL path and HTTP headers.
 /// </summary>
 internal sealed record WorkflowEnqueueEnvelope(
@@ -61,6 +60,23 @@ internal sealed class ProcessNextRequestFactory
     internal const string ProcessNextInstanceGuidLabel = "processNextInstanceGuid";
 
     /// <summary>
+    /// <strong>Step</strong> label (the others here are workflow labels): the bare id of the BPMN element
+    /// whose lifecycle this step runs — the task being left on a task-end/abandon step, the task being
+    /// entered on a task-start step, and the end event on a process-end step. A transition's step list
+    /// spans two elements, so the element is a per-step fact and cannot be read off the workflow's own
+    /// labels; this is what lets a consumer attribute a step to an element without knowing what any
+    /// command is called.
+    ///
+    /// Carried only by the pre-commit lifecycle steps, which is exactly the run the dashboard brackets
+    /// under one element name. The transition-level steps around them (<c>AcquireProcessingStatus</c>,
+    /// <c>MutateProcessState</c>, <c>CommitProcessState</c>, <c>EnqueueSideEffectsWorkflow</c>) belong to
+    /// the transition rather than to either element and stay unlabeled, and so do the post-commit and
+    /// side-effect steps: labeling those would draw the entering element's name a second time, after the
+    /// commit, around work the first bracket already named.
+    /// </summary>
+    internal const string ProcessNextElementLabel = "processNextElement";
+
+    /// <summary>
     /// OperationId prefix for the Main process-next workflow (the visible collection head carrying
     /// the pre-commit, commit, and post-commit steps).
     /// </summary>
@@ -95,7 +111,6 @@ internal sealed class ProcessNextRequestFactory
     private readonly IAuthenticationContext _authenticationContext;
     private readonly AppIdentifier _appIdentifier;
     private readonly AppSettings _appSettings;
-    private readonly IAppMetadata _appMetadata;
     private readonly IWorkflowCallbackTokenGenerator _callbackTokenGenerator;
     private readonly ProcessStepOptionsResolver _stepOptionsResolver;
 
@@ -104,7 +119,6 @@ internal sealed class ProcessNextRequestFactory
         IAuthenticationContext authenticationContext,
         AppIdentifier appIdentifier,
         IOptions<AppSettings> appSettings,
-        IAppMetadata appMetadata,
         IWorkflowCallbackTokenGenerator callbackTokenGenerator,
         ProcessStepOptionsResolver stepOptionsResolver
     )
@@ -113,7 +127,6 @@ internal sealed class ProcessNextRequestFactory
         _authenticationContext = authenticationContext;
         _appIdentifier = appIdentifier;
         _appSettings = appSettings.Value;
-        _appMetadata = appMetadata;
         _callbackTokenGenerator = callbackTokenGenerator;
         _stepOptionsResolver = stepOptionsResolver;
     }
@@ -122,28 +135,134 @@ internal sealed class ProcessNextRequestFactory
     /// Creates a WorkflowEnqueueEnvelope from the process state change.
     /// The bundle contains the request body plus the metadata (namespace, idempotency key,
     /// collection key) that must be sent via URL path and HTTP headers.
+    /// <paramref name="language"/> is the language the instance was created with (see <see cref="ExtractActor"/>).
     /// </summary>
-    public async Task<WorkflowEnqueueEnvelope> Create(
+    public Task<WorkflowEnqueueEnvelope> CreateChainInitiating(
         Instance instance,
         ProcessStateChange processStateChange,
-        string lockToken,
+        string idempotencyKey,
         string? state = null,
         bool isInstantiation = false,
-        Actor? actor = null,
-        IEnumerable<WorkflowRef>? dependsOn = null,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
-        string? idempotencyKey = null
+        string? language = null
+    ) =>
+        Create(
+            instance,
+            processStateChange,
+            acquireProcessingStatus: true,
+            state,
+            isInstantiation,
+            actor: null,
+            language,
+            dependsOn: null,
+            prefill,
+            notification,
+            idempotencyKey
+        );
+
+    /// <summary>
+    /// Claims the instance before the callback computes and enqueues the transition's steps.
+    /// Only the source task is known until acquisition succeeds and the callback computes the transition.
+    /// <paramref name="language"/> is the language process/next was called with (see <see cref="ExtractActor"/>).
+    /// </summary>
+    public async Task<WorkflowEnqueueEnvelope> CreateAcquire(
+        Instance instance,
+        string? action,
+        string state,
+        string idempotencyKey,
+        string? language
     )
     {
-        AssembledCommands commands = await AssembleCommandSequence(
+        ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
+        InstanceIdentifier instanceId = new(instance);
+        Actor actor = await ExtractActor(language);
+        List<WorkflowRequest> workflows =
+        [
+            new WorkflowRequest
+            {
+                OperationId = $"{MainOperationIdPrefix} Mark instance as processing",
+                Steps = [CreateCommand(AcquireProcessingStatus.Key, new AcquireProcessingStatusPayload(action))],
+                State = state,
+            },
+        ];
+        var context = new AppWorkflowContext
+        {
+            Actor = actor,
+            Org = _appIdentifier.Org,
+            App = _appIdentifier.App,
+            InstanceOwnerPartyId = instanceId.InstanceOwnerPartyId,
+            InstanceGuid = instanceId.InstanceGuid,
+            CallbackToken = _callbackTokenGenerator.GenerateToken(instanceId.InstanceGuid, actor, workflows),
+        };
+        var labels = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (CreateProcessNextId(instance.Process?.CurrentTask) is { } sourceId)
+        {
+            labels[ProcessNextSourceIdLabel] = sourceId;
+        }
+        labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
+        var request = new WorkflowEnqueueRequest
+        {
+            Labels = labels,
+            Context = JsonSerializer.SerializeToElement(context),
+            Workflows = workflows,
+        };
+        return new WorkflowEnqueueEnvelope(
+            request,
+            $"{_appIdentifier.Org}/{_appIdentifier.App}",
+            idempotencyKey,
+            CreateCollectionKey(instanceId)
+        );
+    }
+
+    /// <summary>
+    /// Creates an engine-owned continuation that remains inside an already acquired transition chain.
+    /// </summary>
+    public Task<WorkflowEnqueueEnvelope> CreateDependent(
+        Instance instance,
+        ProcessStateChange processStateChange,
+        string state,
+        Actor actor,
+        IEnumerable<WorkflowRef> dependsOn,
+        string idempotencyKey
+    ) =>
+        Create(
+            instance,
             processStateChange,
+            acquireProcessingStatus: false,
+            state,
+            isInstantiation: false,
+            actor,
+            language: null,
+            dependsOn,
+            prefill: null,
+            notification: null,
+            idempotencyKey
+        );
+
+    private async Task<WorkflowEnqueueEnvelope> Create(
+        Instance instance,
+        ProcessStateChange processStateChange,
+        bool acquireProcessingStatus,
+        string? state,
+        bool isInstantiation,
+        Actor? actor,
+        string? language,
+        IEnumerable<WorkflowRef>? dependsOn,
+        Dictionary<string, string>? prefill,
+        InstantiationNotification? notification,
+        string idempotencyKey
+    )
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
+
+        AssembledCommands commands = AssembleCommandSequence(
+            processStateChange,
+            acquireProcessingStatus,
             isInstantiation,
             prefill,
             notification
         );
-        string effectiveIdempotencyKey = idempotencyKey ?? lockToken;
-
         string fromTaskId =
             processStateChange.OldProcessState?.CurrentTask?.ElementId
             ?? processStateChange.NewProcessState?.StartEvent
@@ -153,19 +272,8 @@ internal sealed class ProcessNextRequestFactory
             ?? processStateChange.NewProcessState?.EndEvent
             ?? "End event";
 
-        Actor resolvedActor = actor ?? await ExtractActor();
+        Actor resolvedActor = actor ?? await ExtractActor(language);
         InstanceIdentifier instanceId = new(instance);
-
-        var context = new AppWorkflowContext
-        {
-            Actor = resolvedActor,
-            LockToken = lockToken,
-            Org = _appIdentifier.Org,
-            App = _appIdentifier.App,
-            InstanceOwnerPartyId = instanceId.InstanceOwnerPartyId,
-            InstanceGuid = instanceId.InstanceGuid,
-            CallbackToken = _callbackTokenGenerator.GenerateToken(instanceId.InstanceGuid),
-        };
 
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
         string? collectionKey = CreateCollectionKey(instanceId);
@@ -173,9 +281,7 @@ internal sealed class ProcessNextRequestFactory
             CreateProcessNextLabels(processStateChange) ?? new Dictionary<string, string>(StringComparer.Ordinal);
         labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
 
-        JsonElement serializedContext = JsonSerializer.SerializeToElement(context);
-
-        // The Main workflow's step sequence: everything through the SaveProcessStateToStorage
+        // The Main workflow's step sequence: everything through the CommitProcessState
         // commit, then - when the transition has side effects - the EnqueueSideEffectsWorkflow
         // step that schedules them, then the critical post-commit commands. Enqueueing at the
         // commit boundary makes the side effects exist if and only if the transition committed,
@@ -186,7 +292,8 @@ internal sealed class ProcessNextRequestFactory
             var sideEffectsEnqueueRequest = new WorkflowEnqueueRequest
             {
                 Labels = labels,
-                Context = serializedContext,
+                // Runtime authentication is added by the enqueue command. Embedding a freshly minted
+                // callback token here would change the parent's hashed payload on every reconstruction.
                 // One single-step workflow per side effect: the effects are independent
                 // outcomes, so each gets its own failure containment - a dead-lettered event
                 // registration must not starve the notification behind it - and its own retry
@@ -212,23 +319,34 @@ internal sealed class ProcessNextRequestFactory
         }
         mainSteps.AddRange(commands.CriticalPostCommit);
 
+        List<WorkflowRequest> workflows =
+        [
+            new WorkflowRequest
+            {
+                OperationId = $"{MainOperationIdPrefix} {fromTaskId} -> {toTaskId}",
+                Steps = mainSteps,
+                State = state,
+                DependsOn = dependsOn,
+            },
+        ];
+        var context = new AppWorkflowContext
+        {
+            Actor = resolvedActor,
+            Org = _appIdentifier.Org,
+            App = _appIdentifier.App,
+            InstanceOwnerPartyId = instanceId.InstanceOwnerPartyId,
+            InstanceGuid = instanceId.InstanceGuid,
+            CallbackToken = _callbackTokenGenerator.GenerateToken(instanceId.InstanceGuid, resolvedActor, workflows),
+        };
+
         var request = new WorkflowEnqueueRequest
         {
             Labels = labels,
-            Context = serializedContext,
-            Workflows =
-            [
-                new WorkflowRequest
-                {
-                    OperationId = $"{MainOperationIdPrefix} {fromTaskId} -> {toTaskId}",
-                    Steps = mainSteps,
-                    State = state,
-                    DependsOn = dependsOn,
-                },
-            ],
+            Context = JsonSerializer.SerializeToElement(context),
+            Workflows = workflows,
         };
 
-        return new WorkflowEnqueueEnvelope(request, ns, effectiveIdempotencyKey, collectionKey);
+        return new WorkflowEnqueueEnvelope(request, ns, idempotencyKey, collectionKey);
     }
 
     /// <summary>
@@ -266,7 +384,7 @@ internal sealed class ProcessNextRequestFactory
 
     /// <summary>
     /// The assembled step lists for one transition: the Main workflow's sequence through the
-    /// SaveProcessStateToStorage commit, the critical post-commit commands that follow it, and the
+    /// CommitProcessState commit, the critical post-commit commands that follow it, and the
     /// non-critical side-effect steps destined for the separate side-effects workflow (enqueued at
     /// the commit boundary by <see cref="EnqueueSideEffectsWorkflow"/>).
     /// </summary>
@@ -276,8 +394,9 @@ internal sealed class ProcessNextRequestFactory
         List<StepRequest> SideEffects
     );
 
-    private async Task<AssembledCommands> AssembleCommandSequence(
+    private AssembledCommands AssembleCommandSequence(
         ProcessStateChange processStateChange,
+        bool acquireProcessingStatus,
         bool isInstantiation,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null
@@ -287,6 +406,7 @@ internal sealed class ProcessNextRequestFactory
         var taskStartSteps = new List<StepRequest>();
         var criticalPostCommitSteps = new List<StepRequest>();
         var sideEffectSteps = new List<StepRequest>();
+        bool serviceTaskFollowsCommit = false;
 
         bool isInitialTaskStart = processStateChange.OldProcessState?.CurrentTask is null;
 
@@ -296,10 +416,12 @@ internal sealed class ProcessNextRequestFactory
                 continue;
 
             string? altinnTaskType = instanceEvent.ProcessInfo?.CurrentTask?.AltinnTaskType;
+            string? serviceTaskType = GetServiceTaskType(altinnTaskType);
 
-            WorkflowCommandSet? workflowCommands = await GetWorkflowStepsForInstanceEvent(
+            WorkflowCommandSet? workflowCommands = GetWorkflowStepsForInstanceEvent(
+                instanceEvent,
                 instanceEventType,
-                altinnTaskType,
+                serviceTaskType,
                 isInitialTaskStart,
                 isInstantiation,
                 prefill,
@@ -307,11 +429,18 @@ internal sealed class ProcessNextRequestFactory
             );
             if (workflowCommands != null)
             {
+                serviceTaskFollowsCommit |= workflowCommands.ServiceTaskFollowsCommit;
+
                 // The task this event's commands run against (start hooks/service task read the entering
                 // task; end/abandon hooks read the leaving task). This is the same id each hook feeds into
                 // ShouldRunForTask at execute time, so resolving the handler here yields the same match.
                 string? eventTaskId = instanceEvent.ProcessInfo?.CurrentTask?.ElementId;
-                string? serviceTaskType = GetServiceTaskType(altinnTaskType);
+
+                // The BPMN element these commands run for, which is the task for every event that has one
+                // and the end event for process end — where CurrentTask is deliberately null, the ended
+                // state having no current task. Options resolution stays keyed on the task alone: an end
+                // event is not a task and configures none of the per-task step options.
+                string? eventElementId = eventTaskId ?? instanceEvent.ProcessInfo?.EndEvent;
 
                 // Task-end/abandon commands go in the first group (they need OLD CurrentTask).
                 // Task-start and process-end commands go in the second group (they need NEW CurrentTask).
@@ -319,13 +448,17 @@ internal sealed class ProcessNextRequestFactory
                 if (instanceEventType is InstanceEventType.process_EndTask or InstanceEventType.process_AbandonTask)
                 {
                     taskEndSteps.AddRange(
-                        workflowCommands.Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                        workflowCommands
+                            .Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                            .WithProcessElement(eventElementId)
                     );
                 }
                 else
                 {
                     taskStartSteps.AddRange(
-                        workflowCommands.Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                        workflowCommands
+                            .Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                            .WithProcessElement(eventElementId)
                     );
                 }
 
@@ -347,20 +480,25 @@ internal sealed class ProcessNextRequestFactory
         }
 
         var commands = new List<StepRequest>();
+        if (acquireProcessingStatus)
+        {
+            commands.Add(CreateCommand(AcquireProcessingStatus.Key));
+        }
         commands.AddRange(taskEndSteps);
         if (taskEndSteps.Count > 0)
         {
             commands.Add(CreateMutateProcessStateCommand(processStateChange));
         }
         commands.AddRange(taskStartSteps);
-        commands.Add(CreateSaveProcessStateToStorageCommand(processStateChange));
+        commands.Add(CreateCommitProcessStateCommand(processStateChange, serviceTaskFollowsCommit));
 
         return new AssembledCommands(commands, criticalPostCommitSteps, sideEffectSteps);
     }
 
-    private async Task<WorkflowCommandSet?> GetWorkflowStepsForInstanceEvent(
+    private WorkflowCommandSet? GetWorkflowStepsForInstanceEvent(
+        InstanceEvent instanceEvent,
         InstanceEventType eventType,
-        string? altinnTaskType,
+        string? serviceTaskType,
         bool isInitialTaskStart,
         bool isInstantiation,
         Dictionary<string, string>? prefill,
@@ -373,10 +511,10 @@ internal sealed class ProcessNextRequestFactory
                 return null;
             case InstanceEventType.process_StartTask:
             {
-                string? serviceTaskType = GetServiceTaskType(altinnTaskType);
                 return WorkflowCommandSet.GetTaskStartSteps(
                     new TaskStartContext
                     {
+                        TaskId = GetRequiredEventTaskId(instanceEvent, eventType),
                         ServiceTask = ResolveServiceTask(serviceTaskType),
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
@@ -387,23 +525,13 @@ internal sealed class ProcessNextRequestFactory
                 );
             }
             case InstanceEventType.process_EndTask:
-                return WorkflowCommandSet.GetTaskEndSteps();
+                return WorkflowCommandSet.GetTaskEndSteps(GetRequiredEventTaskId(instanceEvent, eventType));
             case InstanceEventType.process_AbandonTask:
                 return WorkflowCommandSet.GetTaskAbandonSteps();
             case InstanceEventType.process_EndEvent:
-            {
-                ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
                 return WorkflowCommandSet.GetProcessEndSteps(
-                    new ProcessEndContext
-                    {
-                        RegisterEvents = _appSettings.RegisterEventsWithEventsComponent,
-                        HasAutoDeleteDataTypes = appMetadata.DataTypes.Any(dt =>
-                            dt?.AppLogic?.AutoDeleteOnProcessEnd == true
-                        ),
-                        AutoDeleteInstanceOnProcessEnd = appMetadata.AutoDeleteOnProcessEnd == true,
-                    }
+                    new ProcessEndContext { RegisterEvents = _appSettings.RegisterEventsWithEventsComponent }
                 );
-            }
             default:
                 return null;
         }
@@ -429,34 +557,42 @@ internal sealed class ProcessNextRequestFactory
             ? new ResolvedServiceTask(serviceTaskType, pipeline)
             : null;
 
-    private async Task<Actor> ExtractActor()
+    private static string GetRequiredEventTaskId(InstanceEvent instanceEvent, InstanceEventType eventType) =>
+        instanceEvent.ProcessInfo?.CurrentTask?.ElementId
+        ?? throw new InvalidOperationException($"Workflow event {eventType} is missing current task information.");
+
+    /// <summary>
+    /// The actor the chain's callbacks run on behalf of, from the current request's authentication.
+    /// </summary>
+    /// <param name="language">
+    /// The language the caller chose in the app, sent with process/next or instantiation, or null when the request
+    /// has none. Every callback of the chain restores its data mutator in the actor's language, so the caller's
+    /// profile language (nb for anyone but a user) is only the fallback. Like the rest of the actor it
+    /// rides in the context, outside the engine's idempotency hash and the callback token's actor hash.
+    /// </param>
+    private async Task<Actor> ExtractActor(string? language)
     {
         Authenticated currentAuth = _authenticationContext.Current;
         if (currentAuth is Authenticated.User user)
         {
             Authenticated.User.Details details = await user.LoadDetails(validateSelectedParty: true);
-            string? userLanguage = await currentAuth.GetLanguage();
             return new Actor
             {
                 UserId = user.UserId,
                 AuthenticationLevel = user.AuthenticationLevel,
                 NationalIdentityNumber = details.Profile.Party.SSN,
-                Language = userLanguage,
+                Language = await currentAuth.GetLanguage(language),
             };
         }
 
-        string? resolvedLanguage = await currentAuth.GetLanguage();
+        string resolvedLanguage = await currentAuth.GetLanguage(language);
         return currentAuth switch
         {
-            Authenticated.Org org => new Actor
-            {
-                OrgId = org.OrgNo,
-                AuthenticationLevel = org.AuthenticationLevel,
-                Language = resolvedLanguage,
-            },
+            // Organization authentication currently emits an empty PlatformUser in process events.
+            Authenticated.Org => new Actor { Language = resolvedLanguage },
             Authenticated.ServiceOwner serviceOwner => new Actor
             {
-                OrgId = serviceOwner.OrgNo,
+                OrgId = serviceOwner.Name,
                 AuthenticationLevel = serviceOwner.AuthenticationLevel,
                 Language = resolvedLanguage,
             },
@@ -474,7 +610,7 @@ internal sealed class ProcessNextRequestFactory
 
     private StepRequest CreateMutateProcessStateCommand(ProcessStateChange processStateChange)
     {
-        var payload = new SaveProcessStateToStoragePayload(processStateChange);
+        var payload = new ProcessStateChangePayload(processStateChange);
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
         var step = new StepRequest
         {
@@ -487,16 +623,16 @@ internal sealed class ProcessNextRequestFactory
         return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
     }
 
-    private StepRequest CreateSaveProcessStateToStorageCommand(ProcessStateChange processStateChange)
+    private StepRequest CreateCommitProcessStateCommand(ProcessStateChange processStateChange, bool serviceTaskFollows)
     {
-        var payload = new SaveProcessStateToStoragePayload(processStateChange);
+        var payload = new ProcessStateChangePayload(processStateChange, serviceTaskFollows);
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
         var step = new StepRequest
         {
-            OperationId = SaveProcessStateToStorage.Key,
+            OperationId = CommitProcessState.Key,
             Command = CommandDefinition.Create(
                 "app",
-                new AppCommandData { CommandKey = SaveProcessStateToStorage.Key, Payload = serializedPayload }
+                new AppCommandData { CommandKey = CommitProcessState.Key, Payload = serializedPayload }
             ),
         };
         return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
@@ -512,6 +648,19 @@ internal sealed class ProcessNextRequestFactory
             Command = CommandDefinition.Create(
                 "app",
                 new AppCommandData { CommandKey = EnqueueSideEffectsWorkflow.Key, Payload = serializedPayload }
+            ),
+        };
+        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
+    }
+
+    private StepRequest CreateCommand(string commandKey, CommandRequestPayload? payload = null)
+    {
+        var step = new StepRequest
+        {
+            OperationId = commandKey,
+            Command = CommandDefinition.Create(
+                "app",
+                new AppCommandData { CommandKey = commandKey, Payload = CommandPayloadSerializer.Serialize(payload) }
             ),
         };
         return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);

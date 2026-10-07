@@ -39,8 +39,6 @@ describe('useAddLayoutMutation', () => {
       {
         componentIdsChange: undefined,
         layout: {
-          $schema:
-            'https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json',
           data: {
             layout: [expect.objectContaining({ type: ComponentType.NavigationButtons })],
             hidden: undefined,

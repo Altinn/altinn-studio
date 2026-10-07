@@ -28,10 +28,10 @@ public class InstanceCreatedAltinnEventTests
             {
                 CommandKey = InstanceCreatedAltinnEvent.Key,
                 Actor = new Actor { UserId = 1337 },
-                LockToken = Guid.NewGuid().ToString(),
-                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
                 State = "{}",
                 WorkflowId = Guid.Empty,
+                StepId = Guid.NewGuid(),
+                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
             },
         };
     }
@@ -60,8 +60,18 @@ public class InstanceCreatedAltinnEventTests
 
         // Assert
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        // The engine's step id is the idempotency key: it is what Altinn Events dedupes a retried
+        // registration on, so a command that stopped passing it would silently restore at-least-once
+        // publication.
         eventsClientMock.Verify(
-            x => x.AddEvent("app.instance.created", instance, It.Is<StorageAuthenticationMethod>(a => a != null)),
+            x =>
+                x.AddEvent(
+                    "app.instance.created",
+                    instance,
+                    It.Is<StorageAuthenticationMethod>(a => a != null),
+                    context.Payload.StepId,
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
@@ -73,7 +83,15 @@ public class InstanceCreatedAltinnEventTests
         var instance = CreateInstance();
         var eventsClientMock = new Mock<IEventsClient>();
         eventsClientMock
-            .Setup(x => x.AddEvent(It.IsAny<string>(), It.IsAny<Instance>(), It.IsAny<StorageAuthenticationMethod>()))
+            .Setup(x =>
+                x.AddEvent(
+                    It.IsAny<string>(),
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ThrowsAsync(new Exception("AddEvent failed"));
         var command = new InstanceCreatedAltinnEvent(eventsClientMock.Object);
         var context = CreateContext(instance);
