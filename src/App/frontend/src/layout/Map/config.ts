@@ -20,8 +20,8 @@ export const Config = new CG.component({
     renderInTabs: true,
   },
 })
-  .extends(CG.common('RequiredComponentProps'))
-  .extends(CG.common('ReadOnlyComponentProps'))
+  .addProperty(CG.common('required'))
+  .addProperty(CG.common('readOnly'))
   .addDataModelBinding(
     new CG.obj(
       new CG.prop('simpleBinding', new CG.dataModelBinding().optional()),

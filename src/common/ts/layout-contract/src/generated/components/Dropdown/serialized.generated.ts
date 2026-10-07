@@ -3,8 +3,6 @@ import {
   FormComponentProps,
   ISelectionComponentFull,
   LabeledComponentProps,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -16,6 +14,8 @@ import { IDataModelBindingsOptionsSimple } from '@app/layout-contract/generated/
 export type CompDropdownSerialized = {
   type: 'Dropdown';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   alertOnChange?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsOptionsSimple;
@@ -23,8 +23,6 @@ export type CompDropdownSerialized = {
   FormComponentProps &
   SummarizableComponentProps &
   ISelectionComponentFull &
-  RequiredComponentProps &
-  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: 58bf195a1a18650cddf360135f21d51161bfa7367faa4e8595b9b2a6e045faca
+// Source hash: 9a450d3fa20cf4830d08f090ec788b39be0702e60e62f81d3b68c95bcf0610d0

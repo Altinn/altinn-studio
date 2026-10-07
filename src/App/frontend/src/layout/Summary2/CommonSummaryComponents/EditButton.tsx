@@ -59,10 +59,7 @@ function CandidateEditButton({
   ...rest
 }: EditButtonProps & { remaining: string[]; fallback: string | undefined }) {
   const config = useComponentConfig(targetBaseComponentId);
-  const readOnly = useEvalExpression(
-    'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.ReadOnlyComponentProps.readOnly,
-  );
+  const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
   const hidden = useIsHidden(targetBaseComponentId);
   if (hidden || readOnly) {
     return (
@@ -110,10 +107,7 @@ export function EditButton({
   const isMobile = useIsMobile();
 
   const config = useComponentConfig(targetBaseComponentId);
-  const readOnly = useEvalExpression(
-    'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.ReadOnlyComponentProps.readOnly,
-  );
+  const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
   const title = useEvalExpression(
     config.textResourceBindings && 'title' in config.textResourceBindings
       ? config.textResourceBindings.title

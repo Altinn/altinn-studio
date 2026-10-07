@@ -249,42 +249,6 @@ const FormComponentProps = {
   additionalProperties: false,
 } as const;
 
-const RequiredComponentProps = {
-  type: 'object',
-  properties: {
-    required: {
-      type: 'boolean',
-      expression: true,
-      title: { en: 'Required?', nb: 'Påkrevd' },
-      description: {
-        en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
-        nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
-      },
-      default: false,
-      required: false,
-    },
-  },
-  additionalProperties: false,
-} as const;
-
-const ReadOnlyComponentProps = {
-  type: 'object',
-  properties: {
-    readOnly: {
-      type: 'boolean',
-      expression: true,
-      title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
-      description: {
-        en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
-        nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
-      },
-      default: false,
-      required: false,
-    },
-  },
-  additionalProperties: false,
-} as const;
-
 const ILabelSettings = {
   type: 'object',
   properties: {
@@ -4810,8 +4774,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -4873,6 +4835,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -4943,8 +4927,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         type: {
           type: 'constant',
           value: 'AddToList',
@@ -4970,6 +4952,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         title: { type: 'string', required: true },
@@ -5514,8 +5518,6 @@ const generatedContract = {
         source: ISelectionComponent['properties']['source'],
         optionFilter: ISelectionComponent['properties']['optionFilter'],
         preselectedOptionIndex: ISelectionComponentFull['properties']['preselectedOptionIndex'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -5545,6 +5547,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -5630,8 +5654,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         type: {
           type: 'constant',
           value: 'Custom',
@@ -5667,6 +5689,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -5919,8 +5963,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -5950,6 +5992,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -6124,8 +6188,6 @@ const generatedContract = {
         source: ISelectionComponent['properties']['source'],
         optionFilter: ISelectionComponent['properties']['optionFilter'],
         preselectedOptionIndex: ISelectionComponentFull['properties']['preselectedOptionIndex'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -6155,6 +6217,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         alertOnChange: {
@@ -6222,7 +6306,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         optionsId: ISelectionComponent['properties']['optionsId'],
         queryParameters: ISelectionComponent['properties']['queryParameters'],
@@ -6372,6 +6455,17 @@ const generatedContract = {
           description: {
             en: 'Boolean value indicating if warning popup should be displayed when attempting to delete an element',
             nb: 'Angir om en advarsel skal vises når brukeren prøver å slette et element.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
           },
           default: false,
           required: false,
@@ -6807,8 +6901,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -6838,6 +6930,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         crop: {
@@ -6905,8 +7019,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -6956,6 +7068,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -7260,8 +7394,6 @@ const generatedContract = {
         source: ISelectionComponent['properties']['source'],
         optionFilter: ISelectionComponent['properties']['optionFilter'],
         showValidations: FormComponentProps['properties']['showValidations'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         columns: ILikertColumnProperties['properties']['columns'],
         type: {
@@ -7353,6 +7485,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -7507,8 +7661,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -7538,6 +7690,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -7675,8 +7849,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -7706,6 +7878,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -7800,8 +7994,6 @@ const generatedContract = {
         source: ISelectionComponent['properties']['source'],
         optionFilter: ISelectionComponent['properties']['optionFilter'],
         preselectedOptionIndex: ISelectionComponentFull['properties']['preselectedOptionIndex'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -7831,6 +8023,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         alertOnChange: {
@@ -8235,8 +8449,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -8290,6 +8502,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -8776,8 +9010,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -8831,6 +9063,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -8953,8 +9207,6 @@ const generatedContract = {
         source: ISelectionComponent['properties']['source'],
         optionFilter: ISelectionComponent['properties']['optionFilter'],
         preselectedOptionIndex: ISelectionComponentFull['properties']['preselectedOptionIndex'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -8984,6 +9236,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -9917,8 +10191,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -9948,6 +10220,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         title: { type: 'string', required: true },
@@ -10052,8 +10346,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         type: {
           type: 'constant',
           value: 'Subform',
@@ -10130,6 +10422,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         layoutSet: {
@@ -10512,8 +10826,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -10543,6 +10855,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {
@@ -10622,8 +10956,6 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
-        required: RequiredComponentProps['properties']['required'],
-        readOnly: ReadOnlyComponentProps['properties']['readOnly'],
         labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
@@ -10653,6 +10985,28 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
           required: false,
         },
         removeWhenHidden: {

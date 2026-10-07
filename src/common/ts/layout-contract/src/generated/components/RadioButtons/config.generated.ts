@@ -6,8 +6,6 @@ import {
   ISummaryOverridesCommon,
   LabeledComponentProps,
   LayoutStyle,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -21,11 +19,11 @@ export interface CompRadioButtonsExternal
     FormComponentProps,
     SummarizableComponentProps,
     ISelectionComponentFull,
-    RequiredComponentProps,
-    ReadOnlyComponentProps,
     LabeledComponentProps {
   type: 'RadioButtons';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsOptionsSimple;
   layout?: LayoutStyle;
@@ -66,4 +64,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: RadioButtonsSummaryOverridesWithRef;
 };
 
-// Source hash: 54966c0ec6f7f1f1680020f4096ee250d31c84c4d5fbf2a71b8abe9ab19a807f
+// Source hash: 0aca4ed2b0e90e32347a5ea8391a614c80ed1e8b57a4d189a69dd2c358681634

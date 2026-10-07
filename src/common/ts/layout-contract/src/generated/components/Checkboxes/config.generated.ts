@@ -7,8 +7,6 @@ import {
   ISummaryOverridesCommon,
   LabeledComponentProps,
   LayoutStyle,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -30,11 +28,11 @@ export interface CompCheckboxesExternal
     FormComponentProps,
     SummarizableComponentProps,
     ISelectionComponentFull,
-    RequiredComponentProps,
-    ReadOnlyComponentProps,
     LabeledComponentProps {
   type: 'Checkboxes';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForGroupCheckbox;
   deletionStrategy?: 'soft' | 'hard';
@@ -76,4 +74,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: CheckboxesSummaryOverridesWithRef;
 };
 
-// Source hash: 46ddc9004f99009631d80457a3d7e817369bbc940fed815516dac8075cace0f7
+// Source hash: 113a3d8938bb4e3bf7adc0af34cd02495e29f49bc95c0cec5c66a6b0a31d7a6e

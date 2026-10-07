@@ -1769,12 +1769,6 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -1844,6 +1838,18 @@
                 }
               ]
             },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
@@ -1878,11 +1884,11 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "saveWhileTyping": true,
@@ -1907,12 +1913,6 @@
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
         },
         {
           "title": "CompAddToListExternal",
@@ -1943,6 +1943,18 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "title": {
               "type": "string"
@@ -1984,10 +1996,10 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "required": true,
-            "readOnly": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "title": true,
             "removeWhenHidden": true,
             "dataModelBindings": true
@@ -2435,12 +2447,6 @@
           "$ref": "#/definitions/ISelectionComponentFull"
         },
         {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -2478,6 +2484,18 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
@@ -2533,11 +2551,11 @@
             "source": true,
             "optionFilter": true,
             "preselectedOptionIndex": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "deletionStrategy": true,
@@ -2644,12 +2662,6 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
-        },
-        {
           "title": "CompCustomExternal",
           "type": "object",
           "properties": {
@@ -2692,6 +2704,18 @@
                 }
               ]
             },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
@@ -2722,10 +2746,10 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "required": true,
-            "readOnly": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "tagName": true
@@ -2848,12 +2872,6 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -2891,6 +2909,18 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
@@ -2989,11 +3019,11 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "autocomplete": true,
@@ -3071,12 +3101,6 @@
           "$ref": "#/definitions/ISelectionComponentFull"
         },
         {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -3114,6 +3138,18 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "alertOnChange": {
               "title": "Alert on change",
@@ -3156,11 +3192,11 @@
             "source": true,
             "optionFilter": true,
             "preselectedOptionIndex": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "alertOnChange": true,
             "removeWhenHidden": true,
             "dataModelBindings": true
@@ -3184,9 +3220,6 @@
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
         },
         {
           "$ref": "#/definitions/LabeledComponentProps"
@@ -3319,6 +3352,12 @@
               "description": "Boolean value indicating if warning popup should be displayed when attempting to delete an element",
               "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             }
           },
           "required": [
@@ -3339,7 +3378,6 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "readOnly": true,
             "labelSettings": true,
             "optionsId": true,
             "queryParameters": true,
@@ -3358,7 +3396,8 @@
             "displayMode": true,
             "hasCustomFileEndings": true,
             "validFileEndings": true,
-            "alertOnDelete": true
+            "alertOnDelete": true,
+            "readOnly": true
           },
           "required": [
             "id",
@@ -3775,12 +3814,6 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -3819,6 +3852,18 @@
                 }
               ]
             },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "crop": {
               "$ref": "#/definitions/CropConfig"
             },
@@ -3848,11 +3893,11 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "crop": true,
             "removeWhenHidden": true,
             "dataModelBindings": true
@@ -3875,12 +3920,6 @@
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
         },
         {
           "$ref": "#/definitions/LabeledComponentProps"
@@ -3939,6 +3978,18 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
@@ -4046,11 +4097,11 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "saveWhileTyping": true,
@@ -4203,12 +4254,6 @@
           "$ref": "#/definitions/FormComponentProps"
         },
         {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -4287,6 +4332,18 @@
                 }
               ]
             },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
@@ -4324,12 +4381,12 @@
             "source": true,
             "optionFilter": true,
             "showValidations": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "columns": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "filter": true
@@ -4434,12 +4491,6 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -4477,6 +4528,18 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
@@ -4563,11 +4626,11 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "deletionStrategy": true,
@@ -4600,12 +4663,6 @@
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
         },
         {
           "$ref": "#/definitions/LabeledComponentProps"
@@ -4645,6 +4702,18 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
@@ -4689,11 +4758,11 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "layers": true,
@@ -4724,12 +4793,6 @@
         },
         {
           "$ref": "#/definitions/ISelectionComponentFull"
-        },
-        {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
         },
         {
           "$ref": "#/definitions/LabeledComponentProps"
@@ -4769,6 +4832,18 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "alertOnChange": {
               "title": "Alert on change",
@@ -4815,11 +4890,11 @@
             "source": true,
             "optionFilter": true,
             "preselectedOptionIndex": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "alertOnChange": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
@@ -5188,12 +5263,6 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -5251,6 +5320,18 @@
                 }
               ]
             },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
@@ -5290,11 +5371,11 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true
           },
@@ -5664,12 +5745,6 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -5727,6 +5802,18 @@
                 }
               ]
             },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
@@ -5752,11 +5839,11 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true
           },
@@ -5834,12 +5921,6 @@
           "$ref": "#/definitions/ISelectionComponentFull"
         },
         {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -5877,6 +5958,18 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
@@ -5933,11 +6026,11 @@
             "source": true,
             "optionFilter": true,
             "preselectedOptionIndex": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "layout": true,
@@ -6514,12 +6607,6 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -6557,6 +6644,18 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "title": {
               "type": "string"
@@ -6620,11 +6719,11 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "title": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
@@ -6655,12 +6754,6 @@
         },
         {
           "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
         },
         {
           "title": "CompSubformExternal",
@@ -6730,6 +6823,18 @@
                 }
               ]
             },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "layoutSet": {
               "title": "Layout set ID",
               "description": "The layout set to load for this subform",
@@ -6790,10 +6895,10 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "required": true,
-            "readOnly": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "layoutSet": true,
             "showAddButton": true,
             "showDeleteButton": true,
@@ -7048,12 +7153,6 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -7091,6 +7190,18 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
@@ -7130,11 +7241,11 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "saveWhileTyping": true,
@@ -7246,12 +7357,6 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
-          "$ref": "#/definitions/RequiredComponentProps"
-        },
-        {
-          "$ref": "#/definitions/ReadOnlyComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -7289,6 +7394,18 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
@@ -7376,11 +7493,11 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "required": true,
-            "readOnly": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "autocomplete": true,
@@ -11034,18 +11151,6 @@
         }
       ]
     },
-    "ReadOnlyComponentProps": {
-      "title": "ReadOnlyComponentProps",
-      "type": "object",
-      "properties": {
-        "readOnly": {
-          "title": "Read only/disabled?",
-          "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
-          "default": false,
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
-        }
-      }
-    },
     "RepeatingGroupSummaryOverrides": {
       "allOf": [
         {
@@ -11138,18 +11243,6 @@
           ]
         }
       ]
-    },
-    "RequiredComponentProps": {
-      "title": "RequiredComponentProps",
-      "type": "object",
-      "properties": {
-        "required": {
-          "title": "Required?",
-          "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
-          "default": false,
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
-        }
-      }
     },
     "SaveWhileTyping": {
       "title": "Automatic saving while typing",

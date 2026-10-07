@@ -3,8 +3,6 @@ import {
   FormComponentProps,
   IRawDataModelBinding,
   LabeledComponentProps,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -33,6 +31,8 @@ export interface IDataModelBindingsForTable {
 export type CompSimpleTableSerialized = {
   type: 'SimpleTable';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   title: string;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForTable;
@@ -45,8 +45,6 @@ export type CompSimpleTableSerialized = {
 } & ComponentBase &
   FormComponentProps &
   SummarizableComponentProps &
-  RequiredComponentProps &
-  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: 653485b1d443508eecf273fe87243c1b9888383412f115f444faebfc3c3a7011
+// Source hash: 9588d540d9ef95122f0eb27fced3b88e296ca94022001c2345d239396d343786

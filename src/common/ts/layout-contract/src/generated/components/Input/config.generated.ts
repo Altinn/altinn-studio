@@ -6,8 +6,6 @@ import {
   IFormatting,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SaveWhileTyping,
   SummarizableComponentProps,
   TRBFormComp,
@@ -16,13 +14,7 @@ import {
 } from '@app/layout-contract/generated/common.generated';
 
 export interface CompInputExternal
-  extends
-    ComponentBase,
-    FormComponentProps,
-    SummarizableComponentProps,
-    RequiredComponentProps,
-    ReadOnlyComponentProps,
-    LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
   type: 'Input';
   textResourceBindings?: {
     prefix?: ExprValToActualOrExpr<ExprVal.String>;
@@ -30,6 +22,8 @@ export interface CompInputExternal
   } & TRBFormComp &
     TRBSummarizable &
     TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   saveWhileTyping?: SaveWhileTyping;
@@ -124,4 +118,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: InputSummaryOverridesWithRef;
 };
 
-// Source hash: 8b077ede0999723e0ec39c40886450dd0b93dbca6bd20e85f1cd570409443186
+// Source hash: 6c4267b03a72d1bfc6e7826a030f0105143110f78b4be45a3abd6c9243fa860d

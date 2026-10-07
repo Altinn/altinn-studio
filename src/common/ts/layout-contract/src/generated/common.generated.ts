@@ -613,14 +613,6 @@ export interface PatternFormatProps {
   patternChar?: string;
 }
 
-export interface ReadOnlyComponentProps {
-  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
-}
-
-export interface RequiredComponentProps {
-  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
-}
-
 /**
  * Beware, this used to be a number OR boolean value in v3.
  * It can be smart to check the type of this value before using it.
@@ -649,4 +641,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: cb0a35a35b8fb7247cc5d11f2509100b355afa228966de1c9f979c237eb0d27c
+// Source hash: a99cd3b5424b7e5487c39e6b273cd4658f9b2efb0d86696f6dd4048c1519d210

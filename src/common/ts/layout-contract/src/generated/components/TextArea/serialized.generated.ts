@@ -3,8 +3,6 @@ import {
   FormComponentProps,
   HTMLAutoCompleteValues,
   LabeledComponentProps,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SaveWhileTyping,
   SummarizableComponentProps,
   TRBFormComp,
@@ -17,6 +15,8 @@ import { IDataModelBindingsSimple } from '@app/layout-contract/generated/seriali
 export type CompTextAreaSerialized = {
   type: 'TextArea';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   saveWhileTyping?: SaveWhileTyping;
@@ -25,8 +25,6 @@ export type CompTextAreaSerialized = {
 } & ComponentBase &
   FormComponentProps &
   SummarizableComponentProps &
-  RequiredComponentProps &
-  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: 18f11a35ccd5bc4a6549ef013fe22d12c820fcc20eedbb66bbcacbecd5523057
+// Source hash: c22f23cd3ecee5ae0f1d21fa7af430ee146169a848f9b66a80b3aa53bc190545

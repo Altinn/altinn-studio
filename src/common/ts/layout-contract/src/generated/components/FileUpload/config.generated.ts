@@ -6,7 +6,6 @@ import {
   IDataModelBindingsSimple,
   ISelectionComponent,
   LabeledComponentProps,
-  ReadOnlyComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -18,7 +17,6 @@ export interface CompFileUploadExternal
     ComponentBase,
     FormComponentProps,
     SummarizableComponentProps,
-    ReadOnlyComponentProps,
     LabeledComponentProps,
     ISelectionComponent {
   type: 'FileUpload';
@@ -34,6 +32,7 @@ export interface CompFileUploadExternal
   hasCustomFileEndings?: boolean;
   validFileEndings?: string | string[];
   alertOnDelete?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
 }
 
 export const componentConfig = {
@@ -64,4 +63,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: ca28b03281643403885171504fa6f0230a6a1cf4fec9ff37bbd94c143b0a39e7
+// Source hash: 0409c9cafede63a8fa1dacf30fd7712971f2b58f058dc9cc9a51415eb2dafdc7

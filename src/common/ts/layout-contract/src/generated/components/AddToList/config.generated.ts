@@ -2,8 +2,6 @@ import {
   ComponentBase,
   FormComponentProps,
   IDataModelReference,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
@@ -11,14 +9,11 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CompAddToListExternal
-  extends
-    ComponentBase,
-    FormComponentProps,
-    SummarizableComponentProps,
-    RequiredComponentProps,
-    ReadOnlyComponentProps {
+  extends ComponentBase, FormComponentProps, SummarizableComponentProps {
   type: 'AddToList';
   textResourceBindings?: TRBFormComp & TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   title: string;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: { data: IDataModelReference };
@@ -52,4 +47,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: c66405a4e0d2c4bb08191ede88b00e998067b7d1b95e0b49c2c8c5656dc1fe6b
+// Source hash: 1abfe244f7b55d7a576de5c38beeda4b5280b9d8d68d7f0e8accc194724331f4

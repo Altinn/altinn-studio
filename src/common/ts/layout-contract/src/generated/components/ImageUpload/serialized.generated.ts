@@ -2,8 +2,6 @@ import {
   ComponentBase,
   FormComponentProps,
   LabeledComponentProps,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -28,14 +26,14 @@ export interface CropConfigRect {
 export type CompImageUploadSerialized = {
   type: 'ImageUpload';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   crop?: CropConfig;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsSimple;
 } & ComponentBase &
   FormComponentProps &
   SummarizableComponentProps &
-  RequiredComponentProps &
-  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: b49feb8d6804aa1de0fea852f4d43663fb87eb015f2eef12025ac771efadb17a
+// Source hash: 904acd161fb4ac00ce2e643503d40f4c13bd703e85611fe652bb7990b0b7579d

@@ -2,8 +2,6 @@ import {
   ComponentBase,
   FormComponentProps,
   LabeledComponentProps,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -15,6 +13,8 @@ import { IDataModelBindingsSimple } from '@app/layout-contract/generated/seriali
 export type CompTimePickerSerialized = {
   type: 'TimePicker';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   autocomplete?: 'time';
@@ -24,8 +24,6 @@ export type CompTimePickerSerialized = {
 } & ComponentBase &
   FormComponentProps &
   SummarizableComponentProps &
-  RequiredComponentProps &
-  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: ff68885581e5049d62ffc2e50655b715387b736612d5c4c8a46b22501e66641e
+// Source hash: 86049f27cdaa5aafaa1366594a3d6a427d0f67b14c7418beb1d03d8e1680eac2

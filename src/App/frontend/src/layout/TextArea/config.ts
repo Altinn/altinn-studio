@@ -19,8 +19,8 @@ export const Config = new CG.component({
     renderInTabs: true,
   },
 })
-  .extends(CG.common('RequiredComponentProps'))
-  .extends(CG.common('ReadOnlyComponentProps'))
+  .addProperty(CG.common('required'))
+  .addProperty(CG.common('readOnly'))
   .addDataModelBinding(CG.common('IDataModelBindingsSimple'))
   .addProperty(new CG.prop('saveWhileTyping', CG.common('SaveWhileTyping').optional()))
   .addProperty(new CG.prop('autocomplete', CG.common('HTMLAutoCompleteValues').optional()))

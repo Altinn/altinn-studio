@@ -7,8 +7,6 @@ import {
   ISelectionComponentFull,
   LabeledComponentProps,
   LayoutStyle,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
@@ -20,8 +18,6 @@ export interface CompLikertItemExternal
     FormComponentProps,
     SummarizableComponentProps,
     ISelectionComponentFull,
-    RequiredComponentProps,
-    ReadOnlyComponentProps,
     ILikertColumnProperties,
     LabeledComponentProps {
   type: 'LikertItem';
@@ -31,6 +27,8 @@ export interface CompLikertItemExternal
     help?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsOptionsSimple;
   showLabelsInTable?: boolean;
@@ -65,4 +63,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 1b35e6718fa5994966e71302a4ee846dfc1f80111b86aa60456d62ece81124cd
+// Source hash: fa736e420fe7bd57fb82f50deddb9a6d3ee6470024bd4df3757e7a963fd811b9

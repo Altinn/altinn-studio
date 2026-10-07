@@ -28,10 +28,7 @@ export function SummaryContent({
 }: SummaryContentProps) {
   const { langAsString } = useLanguage();
   const config = useComponentConfig(targetBaseComponentId);
-  const readOnly = useEvalExpression(
-    'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.ReadOnlyComponentProps.readOnly,
-  );
+  const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
   const summaryAccessibleTitle = useEvalOptionalTrb(
     config,
     'summaryAccessibleTitle',

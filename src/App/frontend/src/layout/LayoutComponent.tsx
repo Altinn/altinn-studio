@@ -3,7 +3,8 @@ import type { JSX } from 'react';
 
 import { CompCategory } from '@app/layout-contract';
 import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
-import type { IDataModelReference, RequiredComponentProps } from '@app/layout-contract/generated/common.generated';
+import type { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { ErrorObject } from 'ajv';
 
 import { DefaultNodeInspector } from 'src/features/devtools/components/NodeInspector/DefaultNodeInspector';
@@ -117,12 +118,12 @@ export abstract class AnyComponent<Type extends CompTypes> {
 
   useIsRequired(
     config: CompExternal<Type>,
-    requiredOverride?: RequiredComponentProps['required'],
+    requiredOverride?: ExprValToActualOrExpr<ExprVal.Boolean>,
   ): boolean | undefined {
     const supportsRequired = 'required' in Expressions[this.type];
     const required = useEvalExpression(
       supportsRequired ? (requiredOverride ?? ('required' in config ? config.required : undefined)) : undefined,
-      CommonExpressions.RequiredComponentProps.required,
+      CommonExpressions.required,
     );
     return supportsRequired ? required : undefined;
   }

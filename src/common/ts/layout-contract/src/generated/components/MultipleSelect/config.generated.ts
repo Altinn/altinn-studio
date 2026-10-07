@@ -6,8 +6,6 @@ import {
   ISelectionComponentFull,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -21,11 +19,11 @@ export interface CompMultipleSelectExternal
     FormComponentProps,
     SummarizableComponentProps,
     ISelectionComponentFull,
-    RequiredComponentProps,
-    ReadOnlyComponentProps,
     LabeledComponentProps {
   type: 'MultipleSelect';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   alertOnChange?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForGroupMultiselect;
@@ -73,4 +71,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: MultipleSelectSummaryOverridesWithRef;
 };
 
-// Source hash: e5d8cc4faf787ec2dbe663b5a278548817a48b6df176d67f6d5f0e7844483b59
+// Source hash: c371177062f2db0e0b49d25637584dafd2cb92571604cab22e5a43872f86c931

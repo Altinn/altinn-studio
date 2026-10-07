@@ -3,8 +3,6 @@ import {
   FormComponentProps,
   IRawDataModelBinding,
   LabeledComponentProps,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -65,6 +63,8 @@ export interface Toolbar {
 export type CompMapSerialized = {
   type: 'Map';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForMap;
   layers?: MapLayer[];
@@ -75,8 +75,6 @@ export type CompMapSerialized = {
 } & ComponentBase &
   FormComponentProps &
   SummarizableComponentProps &
-  RequiredComponentProps &
-  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: 68ac932b80f4bc69c5dc6b8f7beca149a1ed3df09696a3bd627cd2da6d433201
+// Source hash: d84990394fd6a072d15086ea04100fe41869a8187256b6ea4eb2c9afd939183d

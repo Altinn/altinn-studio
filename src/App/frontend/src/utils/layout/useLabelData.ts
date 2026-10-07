@@ -27,10 +27,7 @@ export function useLabelData({
   overrideDisplay: GenericComponentOverrideDisplay | undefined;
 }): LabelData {
   const config = useComponentConfig(baseComponentId);
-  const readOnly = useEvalExpression(
-    'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.ReadOnlyComponentProps.readOnly,
-  );
+  const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
   const required = useComponentIsRequired(config);
   const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
   const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);

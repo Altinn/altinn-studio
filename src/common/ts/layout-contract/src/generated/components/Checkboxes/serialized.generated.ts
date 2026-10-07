@@ -5,8 +5,6 @@ import {
   ISelectionComponentFull,
   LabeledComponentProps,
   LayoutStyle,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -23,6 +21,8 @@ export interface IDataModelBindingsForGroupCheckbox extends IDataModelBindingsOp
 export type CompCheckboxesSerialized = {
   type: 'Checkboxes';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForGroupCheckbox;
   deletionStrategy?: 'soft' | 'hard';
@@ -33,8 +33,6 @@ export type CompCheckboxesSerialized = {
   FormComponentProps &
   SummarizableComponentProps &
   ISelectionComponentFull &
-  RequiredComponentProps &
-  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: 5b5d0a973bcc7e693f66e67114748646298a3c3d411cc244e7d29e8f7bde910b
+// Source hash: d8db532d7b39820a50987aca66cea52bcca4ef731467856853fe4251c9053fd1

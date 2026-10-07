@@ -4,8 +4,6 @@ import {
   FormComponentProps,
   IFormatting,
   LabeledComponentProps,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SaveWhileTyping,
   SummarizableComponentProps,
   TRBFormComp,
@@ -22,6 +20,8 @@ export type CompInputSerialized = {
   } & TRBFormComp &
     TRBSummarizable &
     TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   saveWhileTyping?: SaveWhileTyping;
@@ -85,8 +85,6 @@ export type CompInputSerialized = {
 } & ComponentBase &
   FormComponentProps &
   SummarizableComponentProps &
-  RequiredComponentProps &
-  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: 1eb0a04cf65997bfd64abe55a4ccef59ef9ec71d0771b53081ddf08580d733b4
+// Source hash: a90a0b8cf9894642031e8b49c535fd2386d149e77f0624fcda46a38e049ba679

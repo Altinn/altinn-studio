@@ -713,32 +713,6 @@ const common = {
       new CG.prop('pageBreak', CG.common('IPageBreak').optional()),
     ),
   FormComponentProps: () => new CG.obj(new CG.prop('showValidations', CG.common('AllowedValidationMasks').optional())),
-  ReadOnlyComponentProps: () =>
-    new CG.obj(
-      new CG.prop(
-        'readOnly',
-        new CG.expr(ExprVal.Boolean)
-          .optional({ default: false })
-          .setTitle('Read only/disabled?', 'Skrivebeskyttet/deaktivert')
-          .setDescription(
-            'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
-            'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
-          ),
-      ),
-    ),
-  RequiredComponentProps: () =>
-    new CG.obj(
-      new CG.prop(
-        'required',
-        new CG.expr(ExprVal.Boolean)
-          .optional({ default: false })
-          .setTitle('Required?', 'Påkrevd')
-          .setDescription(
-            'Boolean value or expression indicating if the component should be required. Defaults to false.',
-            'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
-          ),
-      ),
-    ),
   readOnly: () =>
     new CG.prop(
       'readOnly',

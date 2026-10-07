@@ -5,8 +5,6 @@ import {
   IDataModelReference,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SaveWhileTyping,
   SummarizableComponentProps,
   TRBFormComp,
@@ -18,13 +16,7 @@ export type AddressSummaryOverridesWithRef =
   | ({ componentType: 'Address' } & ISummaryOverridesCommon);
 
 export interface CompAddressExternal
-  extends
-    ComponentBase,
-    FormComponentProps,
-    SummarizableComponentProps,
-    RequiredComponentProps,
-    ReadOnlyComponentProps,
-    LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
   type: 'Address';
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
@@ -34,6 +26,8 @@ export interface CompAddressExternal
     houseNumberTitle?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForAddress;
   saveWhileTyping?: SaveWhileTyping;
@@ -76,4 +70,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: AddressSummaryOverridesWithRef;
 };
 
-// Source hash: 45a59db7cd1b1dffba8b304b3333877297017ba171150f7ff08e201f7d369c35
+// Source hash: f55840357138ffb8129c996d1c85c9864628601e5006237e8b81d58a195df516

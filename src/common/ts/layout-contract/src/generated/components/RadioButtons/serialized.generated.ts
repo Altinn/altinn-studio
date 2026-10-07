@@ -4,8 +4,6 @@ import {
   ISelectionComponentFull,
   LabeledComponentProps,
   LayoutStyle,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -17,6 +15,8 @@ import { IDataModelBindingsOptionsSimple } from '@app/layout-contract/generated/
 export type CompRadioButtonsSerialized = {
   type: 'RadioButtons';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsOptionsSimple;
   layout?: LayoutStyle;
@@ -27,8 +27,6 @@ export type CompRadioButtonsSerialized = {
   FormComponentProps &
   SummarizableComponentProps &
   ISelectionComponentFull &
-  RequiredComponentProps &
-  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: 5994fff10c14c49fc52c16e68f99e045e2a1d434d5d63af6d54ee00106e53b90
+// Source hash: 99f10521cd9d8c593284685f52b2098705953c583dd9e1daa278589695e3c6b8

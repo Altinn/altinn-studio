@@ -4,8 +4,6 @@ import {
   FormComponentProps,
   IRawDataModelBinding,
   LabeledComponentProps,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SaveWhileTyping,
   SummarizableComponentProps,
   TRBFormComp,
@@ -30,6 +28,8 @@ export type CompAddressSerialized = {
     houseNumberTitle?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForAddress;
   saveWhileTyping?: SaveWhileTyping;
@@ -37,8 +37,6 @@ export type CompAddressSerialized = {
 } & ComponentBase &
   FormComponentProps &
   SummarizableComponentProps &
-  RequiredComponentProps &
-  ReadOnlyComponentProps &
   LabeledComponentProps;
 
-// Source hash: fe96001f5eec29674c7661b0216dc1166ef02e30804ede99ca170ee285a5c649
+// Source hash: 1970cc480bc73637f922aefe168f8463e6e942429fe48bab7f14767d5d8317d8

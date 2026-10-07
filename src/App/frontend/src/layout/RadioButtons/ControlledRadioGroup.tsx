@@ -30,14 +30,8 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
     (t) => t === 'RadioButtons' || t === 'LikertItem',
   );
   const componentId = useIndexedId(baseComponentId);
-  const readOnly = useEvalExpression(
-    'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.ReadOnlyComponentProps.readOnly,
-  );
-  const required = useEvalExpression(
-    'required' in config ? config.required : undefined,
-    CommonExpressions.RequiredComponentProps.required,
-  );
+  const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
+  const required = useEvalExpression('required' in config ? config.required : undefined, CommonExpressions.required);
   const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
   const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);
   const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);

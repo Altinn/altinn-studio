@@ -24,8 +24,8 @@ export const Config = asOptionsComponent(
   }),
   { supportsPreselection: true },
 )
-  .extends(CG.common('RequiredComponentProps'))
-  .extends(CG.common('ReadOnlyComponentProps'))
+  .addProperty(CG.common('required'))
+  .addProperty(CG.common('readOnly'))
   .addProperty(
     new CG.prop(
       'alertOnChange',

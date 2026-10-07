@@ -4,7 +4,6 @@ import {
   FormComponentProps,
   ISelectionComponent,
   LabeledComponentProps,
-  ReadOnlyComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -29,11 +28,11 @@ export type CompFileUploadSerialized = {
   hasCustomFileEndings?: boolean;
   validFileEndings?: string | string[];
   alertOnDelete?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
 } & ComponentBase &
   FormComponentProps &
   SummarizableComponentProps &
-  ReadOnlyComponentProps &
   LabeledComponentProps &
   ISelectionComponent;
 
-// Source hash: db02c3b3d4fadc7f61bd44b91ce8dafddead53fcefa335f620e9ad8e3fc6c37e
+// Source hash: 01890963fe5e05c63574617c5e79b4af687dd6aae5572f58071c2c179a0d49fe

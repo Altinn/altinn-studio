@@ -3,20 +3,13 @@ import {
   ComponentBase,
   FormComponentProps,
   ISummaryOverridesCommon,
-  ReadOnlyComponentProps,
-  RequiredComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
 export interface CompSubformExternal
-  extends
-    ComponentBase,
-    FormComponentProps,
-    SummarizableComponentProps,
-    RequiredComponentProps,
-    ReadOnlyComponentProps {
+  extends ComponentBase, FormComponentProps, SummarizableComponentProps {
   type: 'Subform';
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
@@ -26,6 +19,8 @@ export interface CompSubformExternal
     tableEditButton?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   layoutSet: string;
   showAddButton?: boolean;
   showDeleteButton?: boolean;
@@ -75,4 +70,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: SubformSummaryOverridesWithRef;
 };
 
-// Source hash: 01bc6cd978db41300f9916e59f83f44c68041d7ca4829c9e86c2553823b0449c
+// Source hash: 34d4f662af3803bae1038791c9c5f51647d2047fa861f165808776cce242d0fd
