@@ -207,6 +207,11 @@ echo "## container tooling"
 # `podman run --init` looks this up by name; without it the flag fails instead of running.
 command -v catatonit >/dev/null || fail "catatonit is missing, so podman run --init cannot work"
 echo "catatonit: $(command -v catatonit)"
+# A login shell runs podman-docker's profile script, which must keep the image's DOCKER_HOST.
+login_docker_host="$(bash -lc 'echo "$DOCKER_HOST"')"
+test "$login_docker_host" = unix:///run/podman/podman.sock \
+    || fail "a login shell points DOCKER_HOST at $login_docker_host"
+echo "DOCKER_HOST: $login_docker_host"
 
 echo "## playwright"
 browsers=(/opt/ms-playwright/chromium-*)
