@@ -8,8 +8,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// <c>IEFormidlingLegacyConfigurationProvider</c>, and code references to the removed
 /// <c>AppSettings.EnableEFormidling</c> property (the config key itself is stripped by the eFormidling
 /// service-task migration; this covers C# that read the property). The related
-/// <c>IEFormidlingReceivers</c> signature change is handled by its own auto-migration and is not
-/// reported here.
+/// <c>IEFormidlingMetadata</c> and <c>IEFormidlingReceivers</c> signature changes are handled by
+/// <see cref="EFormidlingHookSignatureMigration"/> and are not reported here.
 /// </summary>
 internal sealed class LegacyEFormidlingCodeDetector
 {
@@ -31,9 +31,10 @@ internal sealed class LegacyEFormidlingCodeDetector
 
     private const string InterfaceSummary =
         "eFormidling interfaces changed in v9. IEFormidlingLegacyConfigurationProvider is removed, and "
-        + "IEFormidlingService.SendEFormidlingShipment no longer accepts just an Instance - the supported "
-        + "overload is SendEFormidlingShipment(Instance, ValidAltinnEFormidlingConfiguration), driven by the "
-        + "eFormidling BPMN service task. Update or remove these implementations by hand. Usages found:";
+        + "IEFormidlingService.SendEFormidlingShipment no longer accepts just an Instance - the v9 method is "
+        + "SendEFormidlingShipment(IInstanceDataAccessor, ValidAltinnEFormidlingConfiguration, CancellationToken), "
+        + "driven by the eFormidling BPMN service task, and an implementation of the service also needs "
+        + "GetEFormidlingShipmentStatus. Update or remove these implementations by hand. Usages found:";
 
     private const string SettingSummary =
         "AppSettings.EnableEFormidling is removed in v9; the on/off gate now lives on the eFormidling BPMN "

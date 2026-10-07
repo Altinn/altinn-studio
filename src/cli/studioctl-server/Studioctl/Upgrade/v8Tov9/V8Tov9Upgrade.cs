@@ -165,14 +165,19 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskNamespace(scanner));
 
+        // Before the eFormidling namespace rewrite, which leaves the receivers' Receiver type unbindable in the
+        // v8 compilation that finds the implementations.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(
+            returnCode,
+            MigrateEFormidlingHookSignatures(scanner, projectFile, options.CancellationToken)
+        );
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingClientNamespaces(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingRegistration(scanner));
-
-        options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingReceiversSignature(scanner, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(
@@ -683,28 +688,37 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Adds the new <c>receiverFromConfig</c> parameter to app implementations of
-    /// <c>IEFormidlingReceivers.GetEFormidlingReceivers</c> so they satisfy the v9 interface.
+    /// Moves app implementations of <c>IEFormidlingMetadata.GenerateEFormidlingMetadata</c> and
+    /// <c>IEFormidlingReceivers.GetEFormidlingReceivers</c> to the v9 signatures, which take the instance's data
+    /// accessor instead of the instance.
     /// </summary>
-    static async Task<int> MigrateEFormidlingReceiversSignature(CSharpSourceScanner scanner, string projectFile)
+    static int MigrateEFormidlingHookSignatures(
+        CSharpSourceScanner scanner,
+        string projectFile,
+        CancellationToken cancellationToken
+    )
     {
-        UpgradeConsole.BeginStep("IEFormidlingReceivers signature");
+        UpgradeConsole.BeginStep("eFormidling metadata and receivers");
         try
         {
-            var migration = new EFormidlingReceiversSignatureMigration(
+            var migration = new EFormidlingHookSignatureMigration(
                 scanner,
-                EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile)
+                EFormidlingHookSignatureMigration.ProjectEnablesNullableAnnotations(projectFile)
             );
-            var result = migration.Migrate();
+            var result = migration.Migrate(cancellationToken);
             return ReportMigrationResult(
                 result,
-                cleanText: "No IEFormidlingReceivers implementations to update",
+                cleanText: $"No {string.Join(" or ", EFormidlingHookSignatureMigration.InterfaceNames)} implementations to update",
                 cleanStatus: UpgradeMessageStatus.Skip
             );
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            return Fail("Error migrating IEFormidlingReceivers signature", ex);
+            return Fail("Error migrating the eFormidling metadata and receivers signatures", ex);
         }
     }
 
@@ -937,7 +951,11 @@ internal static class V8Tov9Upgrade
                 new ExternalMaskinportenPackageDetector(scanner, projectFile).Detect(),
                 new MaskinportenClientOverrideDetector(scanner).Detect(),
                 new RemovedAppResourcesApiDetector(pristineView).Detect(),
-                new InternalizedServiceTypeDetector(pristineView, ProjectGlobalUsings.Read(projectFile)).Detect(),
+                new InternalizedServiceTypeDetector(
+                    pristineView,
+                    ProjectGlobalUsings.Read(projectFile),
+                    liveView: scanner
+                ).Detect(),
                 new RemovedFeatureManagementDetector(scanner).Detect(),
                 new RemovedAppSettingsMemberDetector(pristineView).Detect(),
                 new InternalizedAppTypeDetector(pristineView).Detect()

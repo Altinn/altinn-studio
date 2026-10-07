@@ -14,11 +14,14 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// a design change for the app to make.
 /// </summary>
 /// <remarks>
-/// With a semantic model the match is exact: only names that bind to a type in the Altinn.App packages
+/// <p>With a semantic model the match is exact: only names that bind to a type in the Altinn.App packages
 /// are reported, so an app's own <c>DataClient</c> is left alone. Without one (see
 /// <see cref="CSharpSourceScanner.HasSemanticModels"/>) the names are common enough that a bare name
 /// match would be noise, so a syntax-only file is reported only where it imports the class's own
-/// namespace or spells the reference out fully qualified.
+/// namespace or spells the reference out fully qualified.</p>
+/// <p>Semantic detection binds against the pristine pre-rewrite view, so it also sees usages a rewriter has
+/// since removed, such as the <c>DefaultEFormidlingReceivers</c> type argument the eFormidling registration
+/// rewrite drops. Given the live view, a usage is reported only while its file still names the class.</p>
 /// </remarks>
 internal sealed class InternalizedServiceTypeDetector
 {
@@ -113,6 +116,7 @@ internal sealed class InternalizedServiceTypeDetector
         + "replacement. Usages found:";
 
     private readonly CSharpSourceScanner _scanner;
+    private readonly CSharpSourceScanner? _liveView;
     private readonly IReadOnlySet<string> _projectGlobalNamespaces;
     private readonly Lazy<IReadOnlySet<string>> _sourceGlobalNamespaces;
 
@@ -121,12 +125,18 @@ internal sealed class InternalizedServiceTypeDetector
     /// Namespaces the project file imports everywhere (implicit usings and <c>&lt;Using Include&gt;</c>
     /// items), which the syntax-only fallback has to count as imported in every file.
     /// </param>
+    /// <param name="liveView">
+    /// The rewritten source, when <paramref name="scanner"/> is the pristine view: a usage is reported only
+    /// while the live file still names the class.
+    /// </param>
     public InternalizedServiceTypeDetector(
         CSharpSourceScanner scanner,
-        IReadOnlySet<string>? projectGlobalNamespaces = null
+        IReadOnlySet<string>? projectGlobalNamespaces = null,
+        CSharpSourceScanner? liveView = null
     )
     {
         _scanner = scanner;
+        _liveView = liveView;
         _projectGlobalNamespaces = projectGlobalNamespaces ?? new HashSet<string>(StringComparer.Ordinal);
         _sourceGlobalNamespaces = new Lazy<IReadOnlySet<string>>(() =>
             _scanner
@@ -137,15 +147,45 @@ internal sealed class InternalizedServiceTypeDetector
 
     public MigrationResult Detect()
     {
+        var liveNames = LiveNames();
         var matches = _scanner
             .Files.SelectMany(file =>
                 file.SemanticModel is { } semanticModel
                     ? CSharpSemanticQueries.AltinnTypeReferences(file, semanticModel, _typeNames)
                     : SyntaxMatches(file)
             )
+            .Where(match =>
+                liveNames is null
+                || !liveNames.TryGetValue(match.RelativePath, out var names)
+                || names.Contains(TypeName(match))
+            )
             .Select(WithReplacement);
 
         return WarnOnlyDetector.Report(Summary, matches);
+    }
+
+    /// <summary>
+    /// The internalized class names each live file still contains, by relative path, or <c>null</c> when there is
+    /// no separate live view to compare with.
+    /// </summary>
+    private Dictionary<string, HashSet<string>>? LiveNames()
+    {
+        if (_liveView is null || ReferenceEquals(_liveView, _scanner))
+        {
+            return null;
+        }
+
+        return _liveView.Files.ToDictionary(
+            static file => file.RelativePath,
+            static file =>
+                file.Root.DescendantTokens()
+                    .Where(static token =>
+                        token.IsKind(SyntaxKind.IdentifierToken) && _typeNames.Contains(token.ValueText)
+                    )
+                    .Select(static token => token.ValueText)
+                    .ToHashSet(StringComparer.Ordinal),
+            StringComparer.Ordinal
+        );
     }
 
     private IEnumerable<CSharpApiMatch> SyntaxMatches(ScannedCSharpFile file)
@@ -206,17 +246,22 @@ internal sealed class InternalizedServiceTypeDetector
         }
     }
 
-    /// <summary>
-    /// Appends the interface to inject. A base-list match from <see cref="CSharpSyntaxQueries.TypesImplementing"/>
-    /// is shaped <c>"Derived : Base"</c>, so the internalized name is the part after the colon.
-    /// </summary>
+    /// <summary>Appends the interface to inject.</summary>
     private static CSharpApiMatch WithReplacement(CSharpApiMatch match)
     {
-        var separator = match.Symbol.LastIndexOf(" : ", StringComparison.Ordinal);
-        var typeName = separator < 0 ? match.Symbol : match.Symbol[(separator + 3)..];
-        var replacement = _types[typeName].Interface;
+        var replacement = _types[TypeName(match)].Interface;
         var symbol = replacement is null ? match.Symbol : $"{match.Symbol} (implements {replacement})";
         return match with { Symbol = symbol };
+    }
+
+    /// <summary>
+    /// The internalized class a match names. A base-list match from <see cref="CSharpSyntaxQueries.TypesImplementing"/>
+    /// is shaped <c>"Derived : Base"</c>, so the internalized name is the part after the colon.
+    /// </summary>
+    private static string TypeName(CSharpApiMatch match)
+    {
+        var separator = match.Symbol.LastIndexOf(" : ", StringComparison.Ordinal);
+        return separator < 0 ? match.Symbol : match.Symbol[(separator + 3)..];
     }
 
     private static string LastSegment(string qualifiedName)
