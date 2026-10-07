@@ -13,8 +13,7 @@ managed.
 `yq`, `actionlint` and `shellcheck` for manifests, workflows and shell scripts. `psql`, `unzip`, `zip`, `rsync` and
 `file`.
 Debugging and profiling: `dotnet-trace`, `dotnet-counters` and `dotnet-dump` alongside `perf`, `lldb` and `strace`;
-`ilspycmd` to decompile .NET assemblies; `hyperfine` for benchmarks; `btop`, `lsof`, `tcpdump`, `socat`, `nc`
-and `dig`.
+`ilspycmd` to decompile .NET assemblies; `hyperfine` for benchmarks; `lsof`, `tcpdump`, `socat`, `nc` and `dig`.
 
 Podman with `docker` and `/run/docker.sock` as compatibility surfaces, kind, kubectl, Helm and Flux.
 
