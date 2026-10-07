@@ -820,7 +820,6 @@ public class ProcessNextRequestFactoryTests
             (MutateProcessState.Key, null),
             // A process end has no current task, so the end event is the element these steps run for.
             (OnProcessEndingHook.Key, "EndEvent_1"),
-            (EndProcessLegacyHook.Key, "EndEvent_1"),
             (CommitProcessState.Key, null),
             (EnqueueSideEffectsWorkflow.Key, null),
         ];
@@ -1003,7 +1002,6 @@ public class ProcessNextRequestFactoryTests
             MutateProcessState.Key,
             // Process end commands (pre-commit)
             OnProcessEndingHook.Key,
-            EndProcessLegacyHook.Key,
             // CommitProcessState
             CommitProcessState.Key,
             // Enqueues the side-effects workflow at the commit boundary
@@ -1886,9 +1884,8 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain(CompletedAltinnEvent.Key, keys);
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
-        // The legacy hook must see the ended process and pre-cleanup data before the terminal commit.
-        Assert.Contains(EndProcessLegacyHook.Key, keys);
-        Assert.Equal(EndProcessLegacyHook.Key, keys[^2]);
+        // The end hook must see the ended process and pre-cleanup data before the terminal commit.
+        Assert.Equal(OnProcessEndingHook.Key, keys[^2]);
         Assert.Equal(CommitProcessState.Key, keys[^1]);
     }
 
@@ -1963,7 +1960,6 @@ public class ProcessNextRequestFactoryTests
             (LockTaskData.Key, "Task_1"),
             (MutateProcessState.Key, null),
             (OnProcessEndingHook.Key, "EndEvent_1"),
-            (EndProcessLegacyHook.Key, "EndEvent_1"),
             (CommitProcessState.Key, null),
             (OnProcessEndedHook.Key, null),
             (ReleaseEndedInstance.Key, null),
@@ -2010,11 +2006,8 @@ public class ProcessNextRequestFactoryTests
         Assert.DoesNotContain("DeleteDataElementsIfConfigured", keys);
         Assert.DoesNotContain("DeleteInstanceIfConfigured", keys);
         // Other process end commands should still be present
-        Assert.Contains(EndProcessLegacyHook.Key, keys);
         Assert.Equal(AcquireProcessingStatus.Key, keys[0]);
         Assert.True(keys.IndexOf(OnProcessEndingHook.Key) < keys.IndexOf(CommitProcessState.Key));
-        Assert.True(keys.IndexOf(OnProcessEndingHook.Key) < keys.IndexOf(EndProcessLegacyHook.Key));
-        Assert.True(keys.IndexOf(EndProcessLegacyHook.Key) < keys.IndexOf(CommitProcessState.Key));
     }
 
     [Fact]

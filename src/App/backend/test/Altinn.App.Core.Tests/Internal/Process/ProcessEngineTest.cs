@@ -660,7 +660,7 @@ public sealed class ProcessEngineTest
             },
         };
 
-        await using var fixture = Fixture.Create(services, registerProcessEnd: false);
+        await using var fixture = Fixture.Create(services);
         fixture
             .Mock<IAppMetadata>()
             .Setup(x => x.ApplicationMetadata)
@@ -743,7 +743,6 @@ public sealed class ProcessEngineTest
                 "MutateProcessState",
                 // ProcessEnd commands (see NEW state)
                 "OnProcessEndingHook",
-                "EndProcessLegacyHook",
                 // Persist to Storage
                 "CommitProcessState",
                 // Enqueues the side-effects workflow at the commit boundary
@@ -1910,10 +1909,9 @@ public sealed class ProcessEngineTest
     }
 
     [Theory]
-    [InlineData(true, true)]
-    [InlineData(false, false)]
-    [InlineData(false, true)]
-    public async Task Next_moves_instance_to_end_event_and_ends_process(bool registerProcessEnd, bool useTelemetry)
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Next_moves_instance_to_end_event_and_ends_process(bool useTelemetry)
     {
         var expectedInstance = new Instance()
         {
@@ -1928,19 +1926,11 @@ public sealed class ProcessEngineTest
                 EndEvent = "EndEvent_1",
             },
         };
-        await using var fixture = Fixture.Create(registerProcessEnd: registerProcessEnd, withTelemetry: useTelemetry);
+        await using var fixture = Fixture.Create(withTelemetry: useTelemetry);
         fixture
             .Mock<IAppMetadata>()
             .Setup(x => x.ApplicationMetadata)
             .Returns(new ApplicationMetadata("org/app") { DataTypes = [] });
-
-        if (registerProcessEnd)
-        {
-            fixture
-                .Mock<IProcessEnd>()
-                .Setup(x => x.End(It.IsAny<Instance>(), It.IsAny<List<InstanceEvent>>()))
-                .Verifiable(Times.Once);
-        }
 
         LegacyProcessEngine processEngine = fixture.ProcessEngine;
         InstanceOwner instanceOwner = new() { PartyId = _instanceOwnerPartyId.ToString() };
@@ -1998,13 +1988,10 @@ public sealed class ProcessEngineTest
 
         // Note: Removed obsolete verifications for IProcessEventHandlerDelegator and IProcessEventDispatcher
         // These interfaces no longer exist in the new process engine architecture.
-        // Note: IProcessEnd.End is no longer called directly by ProcessEngine in the new architecture.
-        // Process end logic is now handled via HTTP process engine commands.
 
         if (useTelemetry)
         {
-            var snapshotFilename =
-                $"ProcessEngineTest.Telemetry.IProcessEnd_{(registerProcessEnd ? "registered" : "not_registered")}.json";
+            var snapshotFilename = "ProcessEngineTest.Telemetry.ProcessEnd.json";
             await Verify(fixture.TelemetrySink.GetSnapshot()).UseFileName(snapshotFilename);
         }
 
@@ -3537,8 +3524,7 @@ public sealed class ProcessEngineTest
             ServiceCollection? services = null,
             IEnumerable<IUserAction>? userActions = null,
             bool withTelemetry = false,
-            TestJwtToken? token = null,
-            bool registerProcessEnd = false
+            TestJwtToken? token = null
         )
         {
             services ??= new ServiceCollection();
@@ -3779,9 +3765,6 @@ public sealed class ProcessEngineTest
             services.TryAddSingleton<ProcessStepOptionsResolver>();
             services.TryAddTransient<WorkflowStateSigner>();
             services.TryAddTransient<WorkflowCallbackStateService>();
-
-            if (registerProcessEnd)
-                services.AddSingleton<IProcessEnd>(_ => new Mock<IProcessEnd>().Object);
 
             services.TryAddTransient<ModelSerializationService>();
 

@@ -142,9 +142,9 @@ never by step order.
 
 Post-commit categorization: `ExecuteServiceTask`, `OnProcessEndedHook` and `ReleaseEndedInstance` are **critical** (stay in Main);
 `MovedToAltinnEvent`, `InstanceCreatedAltinnEvent`, `CompletedAltinnEvent`, and
-`NotifyInstanceOwnerOnInstantiation` are **side effects**. (`EndProcessLegacyHook` runs pre-commit,
-and the configured process-end cleanup/hard delete is staged by `CommitProcessState` into the
-commit save itself.)
+`NotifyInstanceOwnerOnInstantiation` are **side effects**. (The configured process-end cleanup/hard
+delete is staged into the save that releases the instance: `CommitProcessState`, or
+`ReleaseEndedInstance` when steps follow the commit.)
 
 ### Task-to-Task Transition (e.g., Task_1 → Task_2)
 
@@ -189,13 +189,13 @@ Main continuation workflow (W2; no acquire):
 ── instance.Process.CurrentTask = Task_1 (OLD) ──
 EndTask → CommonTaskFinalization → OnTaskEndingHook → LockTaskData
   ── MutateProcessState (in-memory: CurrentTask → null, EndEvent set) ──
-OnProcessEndingHook → EndProcessLegacyHook
+OnProcessEndingHook
   ── CommitProcessState (stages ended state/events + processing → idle +
                          configured element cleanup + optional hard delete in one save) ──
 EnqueueSideEffectsWorkflow
 
 With an IOnProcessEndedHandler registered, the release moves to the last step:
-OnProcessEndingHook → EndProcessLegacyHook
+OnProcessEndingHook
   ── CommitProcessState (stages ended state/events; keeps processing) ──
 OnProcessEndedHook
   ── ReleaseEndedInstance (configured element cleanup + processing → idle + optional hard delete) ──
@@ -207,7 +207,7 @@ CompletedAltinnEvent
 
 Process-end cleanup is part of the `CommitProcessState` aggregate. `CommitProcessState` accepts only an active shape (`Ended` null and `CurrentTask` present) or a terminal shape (`Ended` present, `CurrentTask` null, and `EndEvent` nonblank); every other shape fails before any process/status/cleanup/deletion staging. Configured elements are staged for deletion in the same save; an in-aggregate unlock is staged first so locked task data is emitted with `ignoreLock=true`. Optional hard deletion is also part of that exact terminal aggregate. There is no version-bumping Storage callback after the clearing/hard-delete commit.
 When the app registers an `IOnProcessEndedHandler`, the ended state is committed first with `processing` kept, the hook runs against the committed end, and `ReleaseEndedInstance` stages the same cleanup, release and hard delete in the workflow's last save, so `idle` still marks the end of the whole workflow. Storage must admit that release save on an instance whose stored process has already ended. The side effects of a process end are enqueued after the release, so `completed` is announced for the finished end.
-`EndProcessLegacyHook` deliberately runs before the terminal commit, after the ended state is installed in memory, so public app `IProcessEnd` implementations can inspect `EndEvent` and pre-cleanup data while `processing` still blocks unsupported direct Storage mutations. `CompletedAltinnEvent` remains after the commit; it only publishes through `IEventsClient.AddEvent` and does not perform an instance-version/process-version save.
+`CompletedAltinnEvent` remains after the commit; it only publishes through `IEventsClient.AddEvent` and does not perform an instance-version/process-version save.
 
 ### Initial Task Start (process just created)
 
