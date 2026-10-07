@@ -30,11 +30,11 @@ export function ThreadColumn({
   return (
     <div className={classes.threadColumn}>
       <div className={classes.threadButtons}>
-        <StudioButton variant='secondary' onClick={onToggleCollapse}>
+        <StudioButton variant='secondary' onClick={onToggleCollapse} fullWidth>
           <SidebarLeftIcon />
           {texts.hideThreads}
         </StudioButton>
-        <StudioButton onClick={onCreateThread}>
+        <StudioButton onClick={onCreateThread} fullWidth>
           <PlusIcon />
           {texts.newThread}
         </StudioButton>

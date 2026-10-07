@@ -126,7 +126,10 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
         Assert.Contains("enablePdfCreation", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
         Assert.Contains(result.Warnings, w => w.Contains("Task_Ghost", StringComparison.Ordinal));
-        Assert.Contains(result.Todos, t => t.Contains("Left enablePdfCreation", StringComparison.Ordinal));
+        Assert.Contains(
+            result.Todos,
+            t => t.Contains("Could not insert the PDF service task", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -641,12 +644,13 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
     }
 
     [Fact]
-    public async Task DefaultTemplateMetadata_NeedsNoPdfMigration()
+    public async Task DefaultTemplateMetadata_GetsNoPdfTaskAndFlagStripped()
     {
-        // A freshly-scaffolded app's applicationmetadata.json has no enablePdfCreation, so the
-        // migrator must do nothing and leave the file byte-for-byte untouched. The fixture is a
-        // verbatim copy of src/App/template/v8/src/App/config/applicationmetadata.json; its [ORG]/[APP]
-        // placeholders are valid JSON string values and irrelevant to this migrator.
+        // A freshly-scaffolded app's form data type sets enablePdfCreation to false, so the migrator
+        // adds no PDF service task (there is no process file, which would otherwise be a to-do) and only
+        // removes the flag. The fixture is a verbatim copy of
+        // src/App/template/v8/src/App/config/applicationmetadata.json; its [ORG]/[APP] placeholders are
+        // valid JSON string values and irrelevant to this migrator.
         var metadata = await File.ReadAllTextAsync(
             Path.Combine(AppContext.BaseDirectory, "Upgrade/v8Tov9/TestData/template-appmetadata.json"),
             TestContext.Current.CancellationToken
@@ -657,7 +661,106 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
         Assert.Empty(result.Warnings);
         Assert.Empty(result.Todos);
+        Assert.Equal(
+            metadata
+                .Split('\n')
+                .Where(line => !line.Contains("\"enablePdfCreation\": false,", StringComparison.Ordinal)),
+            _app.Read("config/applicationmetadata.json").Split('\n')
+        );
+    }
+
+    [Fact]
+    public async Task MissingFlagOnFormData_GetsPdfServiceTask()
+    {
+        // enablePdfCreation defaults to true in v8, so a form data type without the flag generated a
+        // PDF at the end of its task and needs a PDF service task to keep doing so.
+        var metadata = Metadata(
+            """
+                {
+                  "id": "model",
+                  "taskId": "Task_1",
+                  "appLogic": {
+                    "classRef": "Altinn.App.Models.model"
+                  }
+                }
+            """
+        );
+        _app.Write("config/applicationmetadata.json", metadata);
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
+        );
+
+        var result = await MigrateResult();
+
+        var process = ProcessAfter();
+        Assert.NotNull(ElementById(process, "PdfTask_Task_1"));
+        Assert.Equal("PdfTask_Task_1", ElementById(process, "Flow_end")?.Attribute("targetRef")?.Value);
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
         Assert.Equal(metadata, _app.Read("config/applicationmetadata.json"));
+    }
+
+    [Fact]
+    public async Task ExplicitFalseOnFormData_GetsNoPdfTaskAndFlagStripped()
+    {
+        _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(FormDataType("model", "Task_1", enablePdfCreation: false))
+        );
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
+        );
+        var processBefore = _app.Read("config/process/process.bpmn");
+
+        var result = await MigrateResult();
+
+        Assert.Equal(processBefore, _app.Read("config/process/process.bpmn"));
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
+        Assert.DoesNotContain(
+            "enablePdfCreation",
+            _app.Read("config/applicationmetadata.json"),
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public async Task MissingFlagOnAttachmentOrTaskLessData_GetsNoPdfTaskAndNoWarning()
+    {
+        // The implicit default never generated a PDF without a classRef or a taskId either, and it is on
+        // every such data type, so unlike an explicit flag it is not worth a warning.
+        _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(
+                """
+                    {
+                      "id": "file",
+                      "maxCount": 1
+                    }
+                """,
+                """
+                    {
+                      "id": "stateless-model",
+                      "appLogic": {
+                        "classRef": "Altinn.App.Models.Stateless"
+                      }
+                    }
+                """
+            )
+        );
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
+        );
+        var processBefore = _app.Read("config/process/process.bpmn");
+
+        var result = await MigrateResult();
+
+        Assert.Equal(processBefore, _app.Read("config/process/process.bpmn"));
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -1160,7 +1263,10 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         Assert.False(FolderExists(PdfTaskFolder));
         Assert.Contains("enablePdfCreation", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
         Assert.Contains(result.Warnings, w => w.Contains(reason, StringComparison.Ordinal));
-        Assert.Contains(result.Todos, t => t.Contains("Left enablePdfCreation", StringComparison.Ordinal));
+        Assert.Contains(
+            result.Todos,
+            t => t.Contains("Could not insert the PDF service task", StringComparison.Ordinal)
+        );
     }
 
     [Theory]
@@ -1192,7 +1298,10 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         Assert.False(FolderExists(PdfTaskFolder));
         Assert.Contains("enablePdfCreation", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
         Assert.Contains(result.Warnings, w => w.Contains($"App/{path} cannot be read", StringComparison.Ordinal));
-        Assert.Contains(result.Todos, t => t.Contains("Left enablePdfCreation", StringComparison.Ordinal));
+        Assert.Contains(
+            result.Todos,
+            t => t.Contains("Could not insert the PDF service task", StringComparison.Ordinal)
+        );
     }
 
     [Theory]
@@ -1351,7 +1460,10 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
                     StringComparison.Ordinal
                 )
         );
-        Assert.Contains(result.Todos, t => t.Contains("Left enablePdfCreation", StringComparison.Ordinal));
+        Assert.Contains(
+            result.Todos,
+            t => t.Contains("Could not insert the PDF service task", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -1373,7 +1485,10 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
             result.Warnings,
             w => w.Contains("already exists with other content", StringComparison.Ordinal)
         );
-        Assert.Contains(result.Todos, t => t.Contains("Left enablePdfCreation", StringComparison.Ordinal));
+        Assert.Contains(
+            result.Todos,
+            t => t.Contains("Could not insert the PDF service task", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
