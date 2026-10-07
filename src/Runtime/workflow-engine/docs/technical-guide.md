@@ -294,11 +294,11 @@ the gauge measures the state (`engine.workflows.waiting`).
 
 Each bounds a different thing, and none of them substitutes for another:
 
-| Clock                      | Bounds                          | Anchored at                                   | Default                 | A command reads                    |
-| -------------------------- | ------------------------------- | --------------------------------------------- | ----------------------- | ---------------------------------- |
-| `command.maxExecutionTime` | One execution attempt           | Attempt start                                 | 100s                    | `ExecutionDeadline`                |
-| `RetryStrategy`            | A run of consecutive _errors_   | `Step.LastDeferredAt`, else the previous step | 24h / unlimited retries | `Step.RequeueCount`                |
-| `command.waitBudget`       | Cumulative time spent _waiting_ | `Step.FirstDeferredAt`                        | 24h                     | `Step.DeferCount` + `WaitDeadline` |
+| Clock                      | Bounds                          | Anchored at                                   | Default                 | A command reads                                         |
+| -------------------------- | ------------------------------- | --------------------------------------------- | ----------------------- | ------------------------------------------------------- |
+| `command.maxExecutionTime` | One execution attempt           | Attempt start                                 | 100s                    | `ExecutionDeadline`                                     |
+| `RetryStrategy`            | A run of consecutive _errors_   | `Step.LastDeferredAt`, else the previous step | 24h / unlimited retries | `Step.RequeueCount`                                     |
+| `command.waitBudget`       | Cumulative time spent _waiting_ | `Step.FirstDeferredAt`                        | 24h                     | `Step.DeferCount` + `WaitDeadline` + `IsFinalWaitCheck` |
 
 Each clock is observable from `CommandExecutionContext`, one field per clock, so a command can pace
 itself against the same limits the engine will enforce instead of guessing at them. Both deadlines are
@@ -342,7 +342,15 @@ The budget bounds waiting; it does not shorten the last poll. A deferral asking 
 budget has left is **clamped to land exactly on the deadline**, so the step always spends its whole
 budget and always gets one final execution before expiring. (Rejecting the overshooting deferral
 instead would forfeit the remainder of the budget, and would make `Defer(24h)` under a 24h budget fail
-without ever having waited.) A deferral _at or past_ the deadline is what fails the step — with a
+without ever having waited.)
+
+Expiry is judged by when an attempt **started**, not by when its deferral returns, so the command and
+the engine always agree on which run is the last. An attempt that started before the deadline but
+returns after it is re-run at once, and that run is the final check. Commands read this as
+`IsFinalWaitCheck` (`isFinalWaitCheck` on the app callback) and give up on it, not by comparing
+`WaitDeadline` with their own clock. The cost is at most one attempt beyond the budget.
+
+A deferral from an attempt that started _at or past_ the deadline is what fails the step — with a
 distinct classification:
 
 ```text
@@ -367,8 +375,8 @@ special-casing for waiting.
 
 `DeferCount` and `FirstDeferredAt` are exposed on `StepStatusResponse`. A command reads `DeferCount`
 from `CommandExecutionContext.Step` and `WaitDeadline` from the context itself, so it can back off its
-own cadence adaptively — or give up early, deliberately, instead of being failed anonymously when the
-budget expires. `WaitDeadline` is an absolute instant rather than a remaining duration: a duration
+own cadence adaptively — or, when `IsFinalWaitCheck` says this attempt is the last, give up
+deliberately instead of being failed anonymously when the budget expires. `WaitDeadline` is an absolute instant rather than a remaining duration: a duration
 starts aging the moment it is computed, and a command that receives it across a network boundary (as
 the Altinn app callback does) cannot tell how much has already been spent.
 `engine.steps.wait.duration` records the budget a step actually consumed, once per deferring step at
@@ -1117,7 +1125,7 @@ OpenTelemetry data exported via OTLP, designed for Grafana (Tempo + Prometheus).
 | `engine.mailboxes.created`                | Counter   | —                                                                                        |
 | `engine.mailboxes.closed`                 | Counter   | `reason` (`request`/`deadline`)                                                          |
 | `engine.mailboxes.deliveries.received`    | Counter   | `outcome` (`accepted`/`duplicate`/`not_found`/`closed`/`log_full`/`too_large`/`invalid`) |
-| `engine.mailboxes.deliveries.unpaired`  | Counter   | — (recorded by the deadline sweep alone)                                                 |
+| `engine.mailboxes.deliveries.unpaired`    | Counter   | — (recorded by the deadline sweep alone)                                                 |
 | `engine.mailboxes.receivers.created`      | Counter   | `birth` (`delivered`/`closed`/`held`)                                                    |
 | `engine.mailboxes.receivers.released`     | Counter   | `cause` (`delivered`/`closed`)                                                           |
 | `engine.mailboxes.receivers.wake_latency` | Histogram | — (seconds from release to first claim, recorded once per release)                       |
@@ -1428,9 +1436,7 @@ GET /api/v1/ttd:my-app/workflows?status=Failed&label=instanceOwnerPartyId:500012
 
 ```json
 {
-    "data": [
-        /* WorkflowStatusResponse items */
-    ],
+    "data": [/* WorkflowStatusResponse items */],
     "pageSize": 25,
     "totalCount": 142,
     "nextCursor": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
@@ -1830,15 +1836,15 @@ immediately, without waiting for the next sweep. Operational tooling — the obs
 force-trip/force-clear endpoints, the dashboard panel, and the nudge/resume interplay — is
 described under [Failure-Storm Throttling](#failure-storm-throttling).
 
-| Setting                            | Default | Description                                             |
-| ---------------------------------- | ------- | ------------------------------------------------------- |
-| `Throttling.Enabled`               | false   | Master switch for the namespace circuit breaker         |
-| `Throttling.MinRequeuedWorkflows`  | 50      | Absolute floor of `Requeued` workflows before tripping  |
-| `Throttling.MinRequeuedRatio`      | 0.5     | Fraction of active workflows that must be `Requeued`    |
-| `Throttling.SweepInterval`         | 30s     | Throttle sweep cadence (detect → throttle → probe → release) |
-| `Throttling.CanaryCount`           | 3       | Canary workflows kept on the normal retry schedule      |
-| `Throttling.InitialWindow`         | 10m     | Throttle window at first trip                           |
-| `Throttling.MaxWindow`             | 1h      | Cap on the exponentially growing window                 |
+| Setting                           | Default | Description                                                  |
+| --------------------------------- | ------- | ------------------------------------------------------------ |
+| `Throttling.Enabled`              | false   | Master switch for the namespace circuit breaker              |
+| `Throttling.MinRequeuedWorkflows` | 50      | Absolute floor of `Requeued` workflows before tripping       |
+| `Throttling.MinRequeuedRatio`     | 0.5     | Fraction of active workflows that must be `Requeued`         |
+| `Throttling.SweepInterval`        | 30s     | Throttle sweep cadence (detect → throttle → probe → release) |
+| `Throttling.CanaryCount`          | 3       | Canary workflows kept on the normal retry schedule           |
+| `Throttling.InitialWindow`        | 10m     | Throttle window at first trip                                |
+| `Throttling.MaxWindow`            | 1h      | Cap on the exponentially growing window                      |
 
 Window growth (×2), release cohort growth (×2), and jitter (±20%) are named constants on
 `ThrottlingSettings`, deliberately not configuration.

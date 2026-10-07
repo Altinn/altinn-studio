@@ -9,6 +9,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [9.0.0-preview.7] - 2026-10-07
+
 ### Added
 
 - The live `workflow` status on process reads now includes `failedAttempts` while a transition is processing: how many attempts of its current step in a row have failed and are being retried automatically. It also includes `resumedAt` when the transition has been resumed, because a resume reruns the transition and keeps its original `startedAt`. The app frontend uses it to tell the user when a transition is having trouble, rather than showing an unexplained long wait.
@@ -21,8 +23,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Signing and payment configuration is now checked at startup. Delegated signing requires exactly one matching signee provider and, in staging and production, a correspondence resource for the current environment. Unreadable process configuration also prevents startup, so these errors can be fixed before users reach the affected tasks.
 - An app no longer starts when a task in `config/process/process.bpmn`:
-  - has a blank `<altinn:taskType>`, or a type that no built-in or registered task matches exactly, including case ([#20832](https://github.com/Altinn/altinn-studio/pull/20832))
-  - uses the wrong BPMN element: a service task, such as `pdf` or your own `IServiceTask`, must be a `<bpmn:serviceTask>`, and every other task a `<bpmn:task>` ([#20352](https://github.com/Altinn/altinn-studio/issues/20352))
+    - has a blank `<altinn:taskType>`, or a type that no built-in or registered task matches exactly, including case ([#20832](https://github.com/Altinn/altinn-studio/pull/20832))
+    - uses the wrong BPMN element: a service task, such as `pdf` or your own `IServiceTask`, must be a `<bpmn:serviceTask>`, and every other task a `<bpmn:task>` ([#20352](https://github.com/Altinn/altinn-studio/issues/20352))
 - A service task's type is matched exactly, including case, everywhere in the process engine, and when several service tasks that implement the same interface (`IServiceTask` or `IPipelineServiceTask`) declare the same type, the one registered last runs. ([#20832](https://github.com/Altinn/altinn-studio/pull/20832))
 - `DataType.EnablePdfCreation` in application metadata is now nullable and marked obsolete. The flag has had no effect since PDF generation moved to the PDF service task (build check `ALTINNAPP0600`), so remove code that reads or sets it. ([#19667](https://github.com/Altinn/altinn-studio/issues/19667))
 - The app's resource files under `config/`, `models/`, `options/` and `ui/` are now read into memory once when the app starts. If `config/applicationmetadata.json` is missing, or any of these JSON files does not parse, the app refuses to start and lists every file with a problem, where it previously failed the first request that needed the file. In the `Development` environment the app checks the files every second and picks up edits without a restart; an edit that leaves a file broken is logged and the previous version stays in use until the file is fixed. File and folder names are matched case-sensitively on every operating system, so an app that only started on Windows or macOS because a name differed in case, such as `ui/settings.json`, now fails there too, as it always did in the Linux container.
@@ -46,6 +48,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - An eFormidling task whose `<altinn:disabled>` is neither `true` nor `false` now stops startup with an error naming the field and the environment, instead of an unexplained parse failure. Leaving it out or blank still enables eFormidling. ([#20832](https://github.com/Altinn/altinn-studio/pull/20832))
 - PDFs from PDF, subform PDF, signing and payment tasks are now in the language the user selected in the app, not always Norwegian bokmål. Service tasks, process hooks and gateways that run when an instance is created or moves to the next task get that language in `IInstanceDataAccessor.Language` too. ([#20910](https://github.com/Altinn/altinn-studio/pull/20910))
 - Creating an instance no longer fails with an internal server error when the start event leads straight to an exclusive gateway with conditions. ([#20910](https://github.com/Altinn/altinn-studio/pull/20910))
+- A service task that gives up when `Wait.IsFinalCheck` is `true` can no longer fail with the generic error for an exhausted wait budget instead of its own. In unit tests, set `IsFinalCheck` directly: a past `Deadline` no longer implies it.
 
 ### Removed
 

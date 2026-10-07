@@ -60,9 +60,16 @@ public sealed record CommandExecutionContext
     /// </summary>
     /// <remarks>
     /// A deadline rather than a remaining duration, which would start aging the instant it is computed.
-    /// Pair with <see cref="Step.DeferCount"/>.
+    /// Pair with <see cref="Step.DeferCount"/>. Decide whether to give up with
+    /// <see cref="IsFinalWaitCheck"/>, not by comparing this with the clock.
     /// </remarks>
     public DateTimeOffset? WaitDeadline { get; init; }
+
+    /// <summary>
+    /// <c>true</c> when this attempt is the step's final check: deferring from it fails the step as
+    /// expired. While <c>false</c>, a deferral always gets another run.
+    /// </summary>
+    public bool IsFinalWaitCheck { get; init; }
 
     /// <summary>
     /// What the rendezvous produced for this step; <c>null</c> for a step that receives from no mailbox. Read
