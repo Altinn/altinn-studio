@@ -3,10 +3,11 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
 import { DescribableCodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
-import { getSourceForCommon } from 'src/codegen/Common';
+import { getCommonProperty, getSourceForCommon } from 'src/codegen/Common';
 import { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
 import { prefixExpressionDescriptors } from 'src/codegen/ExpressionDescriptors';
 import type { CodeGenerator, CodeGeneratorWithProperties, Extract } from 'src/codegen/CodeGenerator';
+import type { CommonPropertyKeys } from 'src/codegen/Common';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
 import type { ExpressionDescriptorEntry } from 'src/codegen/ExpressionDescriptors';
 
@@ -89,8 +90,9 @@ export class GenerateObject<P extends Props>
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  addProperty(prop: GenerateProperty<any>): this {
+  addProperty(property: GenerateProperty<any> | GenerateCommonImport<CommonPropertyKeys>): this {
     this.ensureMutable();
+    const prop = property instanceof GenerateCommonImport ? getCommonProperty(property.key) : property;
     const { name, insertBefore, insertAfter, insertFirst } = prop.toObject();
     prop.setAsAdded();
 

@@ -4588,6 +4588,16 @@ export const CommonExpressions = {
       errorIntroText: 'Invalid expression for TRBSummarizable, property summaryAccessibleTitle',
     } satisfies ExpressionDescriptor<ExprVal.String>,
   },
+  readOnly: {
+    returnType: ExprVal.Boolean,
+    defaultValue: false,
+    errorIntroText: 'Invalid expression for readOnly',
+  } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+  required: {
+    returnType: ExprVal.Boolean,
+    defaultValue: false,
+    errorIntroText: 'Invalid expression for required',
+  } satisfies ExpressionDescriptor<ExprVal.Boolean>,
 } as const;
 
-// Source hash: f56f5152413607a4c7032aa42afb341ab86d44b13ee96d11ce43015a644aff8b
+// Source hash: 2c66777e8da5b424681f88a2fe0a90a7bdbc747c04eb411944f5a0b00f40f2ed
