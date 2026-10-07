@@ -47,6 +47,7 @@ public class AppScopesController(
         return Ok(response);
     }
 
+    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
     [Authorize(StudioOidcConstants.OrgAccessAuthorizationPolicy)]
     [HttpPut]
     public async Task<IActionResult> UpsertAppScopes(

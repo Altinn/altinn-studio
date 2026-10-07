@@ -16,6 +16,7 @@ using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers.AppScopesController;
@@ -146,7 +147,19 @@ public class UpsertAppScopesTests
     }
 
     [Fact]
-    public async Task UpsertAppScopes_Should_ReturnBadRequest_WhenRepoOwnerIsNotServiceOwner()
+    public async Task UpsertAppScopes_Should_ReturnForbidden_WhenUserHasOrgAccessButIsNotMemberOfOrg()
+    {
+        UserOrganizationServiceMock.Setup(x => x.UserIsMemberOfOrganization(Org)).ReturnsAsync(false);
+        string app = TestDataHelper.GenerateTestRepoName();
+
+        using var response = await SendUpsertRequest(Org, app, CreatePayload([AccessibleForAllScope]));
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.False(await DesignerDbFixture.DbContext.AppScopes.AnyAsync(x => x.App == app && x.Org == Org));
+    }
+
+    [Fact]
+    public async Task UpsertAppScopes_Should_ReturnForbidden_WhenRepoOwnerIsNotServiceOwner()
     {
         using var response = await SendUpsertRequest(
             "developer",
@@ -154,7 +167,7 @@ public class UpsertAppScopesTests
             CreatePayload([AccessibleForAllScope])
         );
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     private async Task<HttpResponseMessage> SendUpsertRequest(string org, string app, AppScopesUpsertRequest payload)

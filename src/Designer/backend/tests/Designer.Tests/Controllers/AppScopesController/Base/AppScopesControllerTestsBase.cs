@@ -46,7 +46,7 @@ public class AppScopesControllerTestsBase<TControllerTest> : DbDesignerEndpoints
         var environmentsServiceMock = new Mock<IEnvironmentsService>();
         environmentsServiceMock
             .Setup(x => x.GetAltinnOrgNumber(It.IsAny<string>()))
-            .ReturnsAsync((string org) => "991825827");
+            .ReturnsAsync((string org) => org == "ttd" ? "991825827" : null);
         environmentsServiceMock
             .Setup(x => x.IsAltinnOrg(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((string org, CancellationToken _) => org == "ttd");
