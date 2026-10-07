@@ -30,7 +30,7 @@ export function BuildSource({ branchName, branchStatus }: BuildSourceProps): Rea
         </dd>
         {branchStatus && (
           <>
-            <dt>{t('app_release.build_source_last_shared')}</dt>
+            <dt>{t('app_release.build_source_last_changed')}</dt>
             <dd>
               <time dateTime={branchStatus.commit.timestamp}>
                 {DateUtils.formatDateTime(branchStatus.commit.timestamp)}
