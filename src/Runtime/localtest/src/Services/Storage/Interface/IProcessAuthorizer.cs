@@ -4,8 +4,10 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.Platform.Storage.Authorization;
 
 /// <summary>
-/// Authorizer for process operations. The org that owns the app is always allowed; every other caller
-/// is checked as each method describes.
+/// Authorizer for process operations. To keep app policies simple, a service owner token skips policy
+/// evaluation: the workflow engine uses it to commit the app's process transitions. Today any token for
+/// the org that owns the app qualifies, not only the one the app itself uses. Every other caller is
+/// checked as each method describes.
 /// </summary>
 public interface IProcessAuthorizer
 {
