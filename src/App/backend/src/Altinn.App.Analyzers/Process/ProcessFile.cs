@@ -23,6 +23,27 @@ internal static class ProcessFile
     /// <summary>The element of a service task.</summary>
     internal static readonly XName ServiceTask = Bpmn + "serviceTask";
 
+    /// <summary>The process the runtime binds: the single one directly under the definitions.</summary>
+    internal static readonly XName Process = Bpmn + "process";
+
+    /// <summary>The element where an instance enters the process.</summary>
+    internal static readonly XName StartEvent = Bpmn + "startEvent";
+
+    /// <summary>The element where an instance leaves the process.</summary>
+    internal static readonly XName EndEvent = Bpmn + "endEvent";
+
+    /// <summary>The element that chooses one of the sequence flows it lists in <c>outgoing</c>.</summary>
+    internal static readonly XName ExclusiveGateway = Bpmn + "exclusiveGateway";
+
+    /// <summary>The element that connects the element its <c>sourceRef</c> names to the one its <c>targetRef</c> names.</summary>
+    internal static readonly XName SequenceFlow = Bpmn + "sequenceFlow";
+
+    /// <summary>A flow node's reference to a sequence flow that leaves it.</summary>
+    internal static readonly XName Outgoing = Bpmn + "outgoing";
+
+    /// <summary>A sequence flow's condition, which an exclusive gateway evaluates to choose the flow.</summary>
+    internal static readonly XName ConditionExpression = Bpmn + "conditionExpression";
+
     /// <summary>
     /// The app's process file. More than one means a project layout this analysis cannot reason about, so it
     /// stays quiet rather than guessing.
