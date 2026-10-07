@@ -52,7 +52,7 @@ class TestBindingComponent extends HTMLElement {
   render() {
     const root = this.shadowRoot;
     root.replaceChildren();
-    const title = document.createElement('h3');
+    const title = document.createElement('h2');
     title.dataset.title = '';
     const caption = document.createElement('p');
     caption.dataset.caption = '';
