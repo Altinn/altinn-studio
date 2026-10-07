@@ -45,7 +45,7 @@ namespace Altinn.App.Models.TransitionControl
         /// no layout - the frontend renders its built-in waiting/failure views) or "layout"
         /// (Task_ServiceLayout, which has a ui folder - the frontend renders the app's custom
         /// layout instead of the default waiting view). Only meaningful on the postCommit path.</summary>
-        [XmlElement("serviceView", Order = 6)]
+        [XmlElement("serviceView", Order = 5)]
         [JsonProperty("serviceView")]
         [JsonPropertyName("serviceView")]
         public string? serviceView { get; set; }
@@ -55,16 +55,26 @@ namespace Altinn.App.Models.TransitionControl
         /// workflow in Waiting and re-runs the task after deferDelayMs. Distinct from `attempts`,
         /// which forces retryable FAILURES. 0 means no deferrals. Only meaningful on the postCommit
         /// path.</summary>
-        [XmlElement("deferrals", Order = 7)]
+        [XmlElement("deferrals", Order = 6)]
         [JsonProperty("deferrals")]
         [JsonPropertyName("deferrals")]
         public int? deferrals { get; set; }
 
         /// <summary>How long the engine waits between deferrals. The service task picks this per
         /// re-check; the step's wait budget caps the total.</summary>
-        [XmlElement("deferDelayMs", Order = 8)]
+        [XmlElement("deferDelayMs", Order = 7)]
         [JsonProperty("deferDelayMs")]
         [JsonPropertyName("deferDelayMs")]
         public int? deferDelayMs { get; set; }
+
+        /// <summary>Which task the process moves on to after the service task on the postCommit
+        /// path: "task2" (a data task, the default) or "sign" (Task_Sign, a signing task). A
+        /// signing task renders through its ui folder, so a session still parked on the service
+        /// task's url when the process moves on exercises the task-type lookup for a url that
+        /// names a different task than the current one.</summary>
+        [XmlElement("next", Order = 8)]
+        [JsonProperty("next")]
+        [JsonPropertyName("next")]
+        public string? next { get; set; }
     }
 }

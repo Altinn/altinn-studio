@@ -11,21 +11,49 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- `studioctl app upgrade v9` enables implicit usings in the project file and adds `Altinn.App.Core.Features` as a global using, so app code no longer needs `using` directives for the most common namespaces. The `using` directives this makes redundant are removed from the app's C# files, except the generated data models under `models/`, which Studio regenerates. Converted legacy rules are generated without them.
+- `studioctl app upgrade v9` renames the model argument of the `IAppResources` methods `GetModelJsonSchema`, `GetXsdSchema` and `GetPrefillJson` where a call passes it by name, since v9 names the parameter `dataTypeId`.
+- `studioctl app upgrade v9` reports references to the app library's service classes that are internal in v9, such as `AppResourcesSI`, `AppMetadata`, `DataClient` and `PdfService`, and names the interface to inject instead of each one.
+- `studioctl app upgrade v9` rewrites awaited `IAppMetadata` reads to the v9 properties: `GetApplicationMetadata()` to `ApplicationMetadata`, `GetApplicationXACMLPolicy()` to `XacmlPolicy` and `GetApplicationBPMNProcess()` to `ProcessDefinition`.
+- `studioctl app upgrade v9` reports code that injects `IFeatureManager` or calls `AddFeatureManagement()`, which the v9 app libraries no longer register, reads of the removed `AppSettings.AppBasePath` and folder settings, and references to the `FrontendFeatures` and `Altinn.App.Core.Internal.Language.ApplicationLanguage` classes, which are internal in v9 as well, with what to use instead.
+- `studioctl app upgrade v9` points out `AppSettings` keys in the appsettings files that v9 no longer reads, and app files and folders whose names differ only in case from the names v9 reads, since v9 matches names case-sensitively on every operating system.
+- `studioctl app upgrade v9` removes `GeneralSettings:HostName` from the appsettings files, such as the old localtest host `altinn3local.no`. The platform sets the host name for a deployed app, and studioctl for a local run. ([#16308](https://github.com/Altinn/altinn-studio/issues/16308))
+- `studioctl app upgrade v9` renames the misspelled `allowedContributers` to `allowedContributors` on data types in `config/applicationmetadata.json`. ([#20846](https://github.com/Altinn/altinn-studio/pull/20846))
+- `studioctl app upgrade v9` points `$schema` in the app's JSON files at the schemas on `https://altinn.studio/designer/app-dist`, at the same version as the Altinn.App packages.
+
+### Changed
+
+- `studioctl app upgrade v9` prepares apps for the new "Må fylles ut" and "Valgfritt" field markers: it removes `form_filler.required_label` overrides that only repeated the old `*`, removes the retired `form_filler.required_description` text, and drops `labelSettings.optionalIndicator: true` from layouts, since it is now the default. A custom required label is kept and reported. ([#16612](https://github.com/Altinn/altinn-studio/issues/16612))
+- The PDF and eFormidling service tasks that `studioctl app upgrade v9` adds to the process are named "Lag PDF" and "Send med eFormidling", the names Studio gives new tasks of those types.
+
+### Fixed
+
+- `studioctl app upgrade v9` moves projects that reference the app, such as a test project, to .NET 10 too, so the solution no longer fails to build with `NU1201`. Run the upgrade again to fix an app already upgraded. ([#19421](https://github.com/Altinn/altinn-studio/issues/19421))
+- `studioctl app upgrade v9` no longer stops with a folder collision when a subform's layout set also lists a task in `layout-sets.json`. Sets used by a Subform component or marked `"type": "subform"` keep their own folder, since v9 does not bind subforms to tasks. A task that only such a set lists gets a TODO.
+- `studioctl app upgrade v9` and `studioctl app upgrade frontend-v4` now convert `saveWhileTyping` values set to `true` or `false`, which the frontend has ignored since v4. `true` is removed, and `false` becomes 4000 milliseconds, with a warning.
+- `studioctl app upgrade v9` keeps custom PDF layouts (`pdfLayoutName`) when it replaces `enablePdfCreation` with a PDF service task. The PDF service task gets its own layout set with the PDF layout, and legacy `Summary` components become `Summary2`. When this cannot be done automatically, the upgrade reports a TODO and keeps `enablePdfCreation` until it is run again.
+- Apps whose data types leave out `enablePdfCreation`, which v8 treats as `true`, keep generating their PDF after `studioctl app upgrade v9`, which now adds a PDF service task for them too. ([#20973](https://github.com/Altinn/altinn-studio/pull/20973))
+
+## [0.1.0-preview.27] - 2026-09-23
+
+### Added
+
 - `studioctl self upgrade` runs the same update as `studioctl self update`, so either name works.
-- `studioctl agent skills` now distributes an Altinn Studio app-development skill and installs it for Codex,
-  Claude Code, repository-local harnesses, or an explicit skills directory. Installing synchronizes the named skill
-  with the version packaged by studioctl, replacing an existing copy at that skill path when it differs.
+- `studioctl agent skills` now distributes an Altinn Studio app-development skill and installs it for Codex, Claude Code, repository-local harnesses, or an explicit skills directory. Installing synchronizes the named skill with the version packaged by studioctl, replacing an existing copy at that skill path when it differs.
 - `studioctl app upgrade v9` adds `Invalid` wherever a validation-type list explicitly includes `Schema`, preserving validation of input that cannot be saved after the two types are separated in v9.
+- `studioctl app upgrade v9` lists the Maskinporten scopes your app needs, and where to grant them.
+- `studioctl doctor` shows whether a local Maskinporten client is configured.
 
 ### Changed
 
 - `studioctl app upgrade v9` now applies all layout changes together, so each layout file is read and written only once and keeps its original byte order mark, line endings and trailing newline.
+- Maskinporten guidance in `studioctl app upgrade v9` says that scopes are needed both in Studio and on the client you use locally.
 
 ### Fixed
 
 - `studioctl app upgrade v9` converts primitive calculation rules without the previous shared-function parameter limit, preserves arithmetic grouping, missing-input guards, early returns and JavaScript rounding, and writes their results through the v9 data-model API. Package removal also recognizes package names regardless of letter case.
-- Installing `studioctl` on a new machine no longer requires Docker or another container runtime. Legacy data
-  migrations are recorded as already satisfied on a fresh installation and still run normally during updates.
+- `studioctl app run` on macOS 27 no longer times out with "no matching app metadata endpoint was discovered". The app port discovery no longer relies on `netstat`, which stopped listing TCP sockets in that release.
+- Installing `studioctl` on a new machine no longer requires Docker or another container runtime. Legacy data migrations are recorded as already satisfied on a fresh installation and still run normally during updates.
 - `studioctl self update` no longer requires Podman or Docker to be running while it applies installation migrations.
 - `studioctl app upgrade v9` can be safely run again after the project has moved to v9. Layout and legacy-rule migrations no longer duplicate successful changes.
 - When a legacy conditional-rendering rule cannot be converted, all other layout changes are completed first. The affected layout gets a detailed manual-conversion marker, the upgrade reports a `TODO`, and its `RuleConfiguration.json` and `RuleHandler.js` are kept for reference. A later run recognizes the marker instead of failing on the intentionally invalid JSON.
@@ -79,6 +107,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` removes unsupported `required` properties from known components without changing their other settings. When `required` contradicts `minNumberOfAttachments` on a file upload or `minCount` on a repeating group, the upgrade keeps the minimum and reports a TODO for the app developer to verify it.
 - `studioctl app upgrade v9` removes `moveToNextTask` from the Fiks Arkiv `successHandling` and `errorHandling` settings in your appsettings files. A Fiks Arkiv task in v9 always moves the process on once the archiving is decided, so the setting no longer exists; left in place it would be ignored without notice. Where it was `false`, the upgrade reports a TODO explaining what changes: a success that used to leave the instance on the task now moves on with the success action, and a rejection that used to fail the task now moves on with the error action, `reject` by default. The upgrade also reports a TODO for a Fiks Arkiv task that is not followed by an exclusive gateway, since the v9 app refuses to start until one separates a confirmed archiving from a rejected one.
+
 ### Fixed
 
 - `studioctl app upgrade v9` no longer fails immediately with `Upgrade output writer is not configured.` This broke every v9 upgrade in 0.1.0-preview.23. The compilation the upgrade runs for exact API detection now reports as its own `Semantic analysis` step, marked OK when the app compiled and WARN with the reason when the upgrade falls back to syntax-based detection.

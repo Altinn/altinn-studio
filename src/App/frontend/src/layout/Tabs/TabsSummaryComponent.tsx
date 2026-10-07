@@ -3,12 +3,12 @@ import type { JSX } from 'react';
 
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
 export function TabsSummaryComponent({ targetBaseComponentId, overrides }: SummaryRendererProps): JSX.Element | null {
-  const { tabs } = useExternalItem(targetBaseComponentId, 'Tabs');
-  const childIds = tabs.map((card) => card.children).flat();
+  const config = useComponentConfig(targetBaseComponentId, 'Tabs');
+  const childIds = config.tabs.map((card) => card.children).flat();
 
   return (
     <>

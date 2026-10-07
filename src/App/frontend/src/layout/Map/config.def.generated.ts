@@ -1,31 +1,10 @@
-import type {
-  ComponentBase,
-  FormComponentPropsWithRequired,
-  SummarizableComponentProps,
-} from '@app/layout-contract/generated/common.generated';
-
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 export abstract class MapDef extends FormComponent<'Map'> implements DisplayData {
   protected readonly type = 'Map';
-
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'Map'>) {
-    return {
-      ...(props.item as Omit<
-        typeof props.item,
-        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
-      >),
-      ...props.evalBase(),
-      ...props.evalFormProps(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -38,4 +17,4 @@ export abstract class MapDef extends FormComponent<'Map'> implements DisplayData
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: db911a8cdfbfaf9d735e5596c9272b0c90101eae215f652cbeb003b20c569110
+// Source hash: a6ece11e187db6f15f8c312c4a1d7b0e654437c7dcb261a005bf41395755a3ff

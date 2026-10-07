@@ -4,6 +4,7 @@ import {
   FormComponentPropsWithRequired,
   ILikertColumnProperties,
   ISelectionComponent,
+  LabeledComponentProps,
   SummarizableComponentProps,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
@@ -29,6 +30,7 @@ export type CompLikertSerialized = {
   SummarizableComponentProps &
   ISelectionComponent &
   FormComponentPropsWithRequired &
+  LabeledComponentProps &
   ILikertColumnProperties;
 
-// Source hash: 716e7eab0f8f0b45aec2627c47d15df2e18a1c9a2840471e54e8e6a388b09287
+// Source hash: f0ac049716584fdf3034b834aabe641f5a0ff79a0691c51f4f481d652ef38fff

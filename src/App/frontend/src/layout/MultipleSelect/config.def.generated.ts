@@ -1,31 +1,10 @@
-import type {
-  ComponentBase,
-  FormComponentPropsWithRequired,
-  SummarizableComponentProps,
-} from '@app/layout-contract/generated/common.generated';
-
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 export abstract class MultipleSelectDef extends FormComponent<'MultipleSelect'> implements DisplayData {
   protected readonly type = 'MultipleSelect';
-
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'MultipleSelect'>) {
-    return {
-      ...(props.item as Omit<
-        typeof props.item,
-        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
-      >),
-      ...props.evalBase(),
-      ...props.evalFormProps(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -38,4 +17,4 @@ export abstract class MultipleSelectDef extends FormComponent<'MultipleSelect'> 
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 969e38f6721fed471adfd500d07fe14f75d678eb6c4719d8652a17e27dd454b5
+// Source hash: 10caeece3ccd1bcf79dad8930206391beb8797870b394f0278e59667e0e97247

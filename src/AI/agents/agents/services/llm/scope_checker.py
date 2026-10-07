@@ -6,59 +6,35 @@ documentation previously caused the model to answer questions it should
 have declined (e.g. a phone-number lookup matching Altinn's "lookup-service"
 feature by name).
 """
+
 import json
-from typing import Any, Optional, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from pydantic import BaseModel
 
-from .llm_client import get_llm_client
 from agents.prompts import get_prompt_with_langfuse
 from shared.utils.logging_utils import get_logger
+
+from .llm_client import get_llm_client
+from .recent_turns import prepend_recent_turns
 
 log = get_logger(__name__)
 
 
 class ScopeCheckResult(BaseModel):
     in_scope: bool
-    decline_message: Optional[str] = None
-    reason: Optional[str] = None
-
-
-CONTEXT_TURNS = 4
-CONTEXT_CHARS_PER_TURN = 400
+    decline_message: str | None = None
+    reason: str | None = None
 
 
 def build_scope_check_message(query: str, conversation: Sequence[Any] | None = None) -> str:
     """The user message the scope classifier sees, as a value so a dataset can
     send exactly what production sends."""
-    recent = _recent_turns(conversation)
-    if not recent:
-        return f"Classify this question: {query}"
-    return (
-        "Recent conversation, oldest first, for judging a follow-up:\n"
-        f"{recent}\n\n"
-        f"Classify this question: {query}"
-    )
+    return prepend_recent_turns(f"Classify this question: {query}", conversation)
 
 
-def _recent_turns(conversation: Sequence[Any] | None) -> str:
-    lines = []
-    for turn in list(conversation or [])[-CONTEXT_TURNS:]:
-        role = _field(turn, "role")
-        text = _field(turn, "content") or _field(turn, "text")
-        if role and text:
-            lines.append(f"{role}: {text[:CONTEXT_CHARS_PER_TURN]}")
-    return "\n".join(lines)
-
-
-def _field(turn: Any, name: str) -> str:
-    value = turn.get(name) if isinstance(turn, dict) else getattr(turn, name, None)
-    return value if isinstance(value, str) else ""
-
-
-async def check_scope_async(
-    query: str, conversation_history: Sequence[Any] | None = None
-) -> ScopeCheckResult:
+async def check_scope_async(query: str, conversation_history: Sequence[Any] | None = None) -> ScopeCheckResult:
     """Classify whether a chat question is about Altinn Studio/apps.
 
     The recent conversation goes with it: a follow-up read alone is about
@@ -79,7 +55,7 @@ async def check_scope_async(
     if cleaned.startswith("```"):
         fence_end = cleaned.find("\n")
         first_line = cleaned[:fence_end] if fence_end != -1 else cleaned
-        cleaned = cleaned[len(first_line):].strip() if first_line.startswith("```") else cleaned
+        cleaned = cleaned[len(first_line) :].strip() if first_line.startswith("```") else cleaned
         if cleaned.endswith("```"):
             cleaned = cleaned[:-3].strip()
 

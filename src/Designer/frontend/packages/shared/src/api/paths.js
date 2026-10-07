@@ -31,10 +31,12 @@ export const dataModelPath = (org, app, modelPath, saveOnly = false) =>
     modelPath,
     saveOnly,
   })}`; // Get, Put, Delete
+export const dataModelGenerationStatusPath = (org, app, modelPath) => `${apiBasePath}/${org}/${app}/datamodels/datamodel/generation-status?${s({ modelPath })}`; // Get
 export const dataTypePath = (org, app, dataModelName) => `${apiBasePath}/${org}/${app}/datamodels/datamodel/${dataModelName}/dataType`; // Get, Put
 export const dataModelsJsonPath = (org, app) => `${apiBasePath}/${org}/${app}/datamodels/json`; // Get
 export const dataModelsXsdPath = (org, app) => `${apiBasePath}/${org}/${app}/datamodels/xsd`; // Get
 export const dataModelsUploadPath = (org, app) => `${apiBasePath}/${org}/${app}/datamodels/upload`; // Post
+export const replaceDataModelXsdPath = (org, app, modelPath) => `${apiBasePath}/${org}/${app}/datamodels/datamodel/xsd?${s({ modelPath })}`; // Put
 export const dataModelAddXsdFromRepoPath = (org, app, filePath) => `${apiBasePath}/${org}/${app}/datamodels/xsd-from-repo?${s({ filePath })}`; // Post
 export const dataModelPrefillPath = (org, app, modelPath) => `${apiBasePath}/${org}/${app}/datamodels/prefill?${s({ modelPath })}`; // Get, Put
 
@@ -81,6 +83,8 @@ export const taskNavigationGroupPath = (org, app) => `${uiFoldersPath(org, app)}
 export const uiFoldersPath = (org, app) => `${apiBasePath}/${org}/${app}/ui-folders`;
 export const uiFoldersLayoutSetsPath = (org, app) => `${uiFoldersPath(org, app)}/layout-sets`; // Post
 export const uiFoldersLayoutSetPath = (org, app, layoutSetId) => `${uiFoldersPath(org, app)}/layout-sets/${layoutSetId}`; // Put, Delete
+export const subformPdfComponentPath = (org, app, layoutSetId) => `${uiFoldersLayoutSetPath(org, app, layoutSetId)}/subform-pdf-component`; // Post, Delete
+export const subformComponentsPath = (org, app) => `${uiFoldersPath(org, app)}/subform-components`; // Get
 export const validationOnNavigationPath = (org, app) => `${uiFoldersPath(org, app)}/settings/validation-on-navigation`; // Get, Post, Delete
 export const layoutSetsExtendedPath = (org, app) => `${uiFoldersPath(org, app)}/layout-sets/extended`; // Get
 
@@ -213,7 +217,7 @@ export const createInstancePath = (org, app, partyId, taskId) => `${instancesPat
 export const processEditorPath = (org, app) => `${apiBasePath}/${org}/${app}/process-modelling/process-definition`; // Get, Put
 export const processEditorDataTypesChangePath = (org, app) => `${apiBasePath}/${org}/${app}/process-modelling/data-types`; // Put
 export const processTaskTypePath = (org, app, taskId) => `${apiBasePath}/${org}/${app}/process-modelling/task-type/${taskId}`; // Get
-export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${apiBasePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId })}`; // Post, Delete
+export const processEditorDataTypePath = (org, app, dataTypeId, taskId, allowedContentTypes) => `${apiBasePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId, allowedContentTypes }, { arrayFormat: 'repeat' })}`; // Post, Delete
 
 // Env
 export const envFilePath = () => `${basePath}/config/env.json`;
@@ -237,7 +241,7 @@ export const chatFeedbackPath = (org, app, traceId) => `${apiBasePath}/${org}/${
 export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;
 
 // Can use feature
-export const canUseFeaturePath = (featureName) => `${apiBasePath}/canUseFeature?featureName=${featureName}`;
+export const canUseFeaturePath = (org, app, featureName) => `${apiBasePath}/${org}/${app}/canUseFeature?featureName=${featureName}`;
 
 // App Templates (the scaffold a new app is created from)
 export const appTemplatesPath = () => `${apiBasePath}/apptemplates`; // GET

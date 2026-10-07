@@ -26,7 +26,7 @@ class SkillArgs(BaseModel):
     )
 
 
-class SkillTool(Tool):
+class SkillTool(Tool[SkillArgs]):
     """Load a skill's full instructions into the conversation."""
 
     name = "skill"
@@ -54,7 +54,7 @@ class SkillTool(Tool):
                 is_error=True,
             )
         try:
-            body = skill.load_body()
+            body = skill.load_body(ctx.app_version_profile.version_label)
         except OSError as exc:
             return ToolResult(
                 content=f"Failed to load skill {args.skill!r}: {exc}",

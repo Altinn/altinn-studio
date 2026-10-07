@@ -1,6 +1,6 @@
 // These imports are here to make sure that the CSS of the components are rendered correctly
 import '@digdir/designsystemet-css/index.css';
-import '@digdir/designsystemet-theme/altinn.css';
+import '@digdir/designsystemet-css/theme';
 import './style/studio-variables.css';
 
 export * from './StudioActionCard';
@@ -52,6 +52,7 @@ export * from './StudioIconViewer';
 export * from './StudioInlineTextField';
 export * from './StudioLabel';
 export * from './StudioLabelAsParagraph';
+export * from './StudioLabelWrapper';
 export * from './StudioLanguagePicker';
 export * from './StudioLibraryElement';
 export * from './StudioLink';
@@ -90,7 +91,6 @@ export * from './StudioTextResourceAction';
 export * from './StudioTextResourceEditor';
 export * from './StudioTextResourceInput';
 export * from './StudioTextResourcePicker';
-export * from './StudioTextResourcePicker2';
 export * from './StudioTextResourceValueEditor';
 export * from './StudioTreeView';
 export * from './StudioToggleGroup';

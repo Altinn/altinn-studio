@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Features.Cache;
 using Altinn.App.Core.Internal;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
@@ -11,6 +11,7 @@ using Altinn.Platform.Register.Models;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 
 namespace Altinn.App.Core.Features.Auth;
 
@@ -23,7 +24,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
     private readonly IProfileClient _profileClient;
     private readonly IAltinnPartyClient _altinnPartyClient;
     private readonly IAuthorizationClient _authorizationClient;
-    private readonly IAppConfigurationCache _appConfigurationCache;
+    private readonly IAppMetadata _appMetadata;
     private readonly RuntimeEnvironment _runtimeEnvironment;
 
     public AuthenticationContext(
@@ -33,7 +34,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
         IProfileClient profileClient,
         IAltinnPartyClient altinnPartyClient,
         IAuthorizationClient authorizationClient,
-        IAppConfigurationCache appConfigurationCache,
+        IAppMetadata appMetadata,
         RuntimeEnvironment runtimeEnvironment
     )
     {
@@ -43,7 +44,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
         _profileClient = profileClient;
         _altinnPartyClient = altinnPartyClient;
         _authorizationClient = authorizationClient;
-        _appConfigurationCache = appConfigurationCache;
+        _appMetadata = appMetadata;
         _runtimeEnvironment = runtimeEnvironment;
     }
 
@@ -105,7 +106,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                         parsedToken,
                         appId,
                         ResolveInstanceFromRoute(httpContext),
-                        _appConfigurationCache.ApplicationMetadata
+                        _appMetadata.ApplicationMetadata
                     );
                 }
                 else
@@ -117,13 +118,16 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                             tokenStr: token,
                             parsedToken,
                             isAuthenticated: !string.IsNullOrWhiteSpace(token),
-                            _appConfigurationCache.ApplicationMetadata,
-                            () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
+                            _appMetadata.ApplicationMetadata,
+                            () =>
+                                ReadSelectedPartyCookieValues(
+                                    httpContext.Request,
+                                    generalSettings.GetAltinnPartyCookieName
+                                ),
                             (int userId) => _profileClient.GetUserProfile(userId),
                             (int partyId) => _altinnPartyClient.GetParty(partyId),
                             (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
-                            (int userId) => _authorizationClient.GetPartyList(userId),
-                            (int userId, int partyId) => _authorizationClient.ValidateSelectedParty(userId, partyId)
+                            () => _authorizationClient.GetPartyList()
                         );
                     }
                     else
@@ -133,13 +137,16 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                             tokenStr: token,
                             parsedToken,
                             isAuthenticated: isAuthenticated,
-                            _appConfigurationCache.ApplicationMetadata,
-                            () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
+                            _appMetadata.ApplicationMetadata,
+                            () =>
+                                ReadSelectedPartyCookieValues(
+                                    httpContext.Request,
+                                    generalSettings.GetAltinnPartyCookieName
+                                ),
                             (int userId) => _profileClient.GetUserProfile(userId),
                             (int partyId) => _altinnPartyClient.GetParty(partyId),
                             (string orgNr) => _altinnPartyClient.LookupParty(new PartyLookup { OrgNo = orgNr }),
-                            (int userId) => _authorizationClient.GetPartyList(userId),
-                            (int userId, int partyId) => _authorizationClient.ValidateSelectedParty(userId, partyId)
+                            () => _authorizationClient.GetPartyList()
                         );
                     }
                 }
@@ -156,6 +163,34 @@ internal sealed class AuthenticationContext : IAuthenticationContext
             }
             return authInfo;
         }
+    }
+
+    /// <summary>
+    /// Reads every copy of the party selection cookie from the raw Cookie header, in order.
+    /// The framework's cookie collection would keep only the last.
+    /// </summary>
+    internal static IReadOnlyList<string> ReadSelectedPartyCookieValues(HttpRequest request, string cookieName)
+    {
+        if (!CookieHeaderValue.TryParseList(request.Headers.Cookie, out var cookies))
+            return [];
+
+        List<string>? values = null;
+        for (var i = 0; i < cookies.Count; i++)
+        {
+            var cookie = cookies[i];
+            if (!string.Equals(cookie.Name.Value, cookieName, StringComparison.Ordinal))
+                continue;
+
+            var value = cookie.Value.Value;
+            if (string.IsNullOrEmpty(value))
+                continue; // as the framework's cookie collection does
+
+            (values ??= []).Add(value);
+        }
+
+        if (values is null)
+            return [];
+        return values;
     }
 
     /// <summary>

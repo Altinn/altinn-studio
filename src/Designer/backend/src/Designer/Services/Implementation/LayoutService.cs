@@ -41,6 +41,8 @@ public class LayoutService(
             editingContext.Repo,
             editingContext.Developer
         );
+        // Validated before the existing page is rewritten, so a refused name leaves the set untouched.
+        appRepository.EnsureLayoutWriteIsAllowed(layoutSetId, pageId);
         LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
         bool includeShowBackButton = !appVersionService.IsV9App(editingContext);
         if (layoutSettings.Pages is not PagesWithOrder pages)
@@ -48,7 +50,7 @@ public class LayoutService(
             throw new InvalidOperationException("Cannot add order page to layout using groups.");
         }
 
-        AltinnPageLayout pageLayout = new();
+        AltinnPageLayout pageLayout = new(appRepository.LayoutSchemaUrl);
         if (pages.Order.Count > 0)
         {
             pageLayout = pageLayout.WithNavigationButtons(includeShowBackButton);
@@ -228,6 +230,9 @@ public class LayoutService(
         IEnumerable<string> order = pagesWithGroups.Groups.SelectMany((group) => group.Order);
         IEnumerable<string> originalOrder = originalPagesWithGroups.Groups.SelectMany((group) => group.Order);
         var deletedPages = originalOrder.Except(order).ToList();
+        var createdPages = order.Except(originalOrder).ToList();
+        // Validated before the first delete, so a refused name leaves the set untouched.
+        appRepository.EnsureLayoutWritesAreAllowed(layoutSetId, createdPages, deletedPages);
         foreach (string pageId in deletedPages)
         {
             appRepository.DeleteLayout(layoutSetId, pageId);
@@ -240,12 +245,11 @@ public class LayoutService(
                 }
             );
         }
-        var createdPages = order.Except(originalOrder).ToList();
         LayoutSetConfig layoutSetConfig = await appDevelopmentService.GetLayoutSetConfig(editingContext, layoutSetId);
         bool includeShowBackButton = !appVersionService.IsV9App(editingContext);
         foreach (string pageId in createdPages)
         {
-            AltinnPageLayout altinnPageLayout = new();
+            AltinnPageLayout altinnPageLayout = new(appRepository.LayoutSchemaUrl);
             if (originalOrder.Any())
             {
                 altinnPageLayout = altinnPageLayout.WithNavigationButtons(includeShowBackButton);

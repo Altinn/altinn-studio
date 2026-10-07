@@ -112,6 +112,23 @@ describe('SchemaModel', () => {
     });
   });
 
+  describe('hasUniquePointer', () => {
+    it('Returns true when the unique pointer refers to an existing node', () => {
+      const uniqueParentPointer = `${UNIQUE_POINTER_PREFIX}${parentNodeMock.schemaPointer}`;
+      expect(schemaModel.hasUniquePointer(uniqueParentPointer)).toBe(true);
+    });
+
+    it('Returns false when the unique pointer refers to a node that does not exist', () => {
+      const uniquePointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/doesNotExist`;
+      expect(schemaModel.hasUniquePointer(uniquePointer)).toBe(false);
+    });
+
+    it('Returns false when the parents of the unique pointer do not exist', () => {
+      const uniquePointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/doesNotExist/properties/child`;
+      expect(schemaModel.hasUniquePointer(uniquePointer)).toBe(false);
+    });
+  });
+
   describe('getSchemaPointerByUniquePointer', () => {
     const uniqueGrandChildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child/items/properties/grandchild`;
     const uniqueChildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child`;

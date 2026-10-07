@@ -10,6 +10,7 @@ export const Config = asOptionsComponent(
   asUploaderComponent(
     new CG.component({
       category: CompCategory.Form,
+      supportsRequired: false,
       availability: 'configurable',
       metadata: {
         name: { nb: 'Vedlegg', en: 'FileUpload' },
@@ -23,10 +24,6 @@ export const Config = asOptionsComponent(
         renderInCards: true,
         renderInCardsMedia: false,
         renderInTabs: true,
-      },
-      functionality: {
-        customExpressions: true,
-        supportsRequired: false,
       },
     }),
   ).addTextResource(
@@ -61,6 +58,7 @@ export function asUploaderComponent(config: ComponentConfig) {
       new CG.prop(
         'maxNumberOfAttachments',
         new CG.expr(ExprVal.Number)
+          .setFallback(Infinity)
           .setTitle('Max number of attachments', 'Maksimalt antall vedlegg')
           .setDescription(
             'Sets the maximum number of attachments allowed to upload',
@@ -72,6 +70,7 @@ export function asUploaderComponent(config: ComponentConfig) {
       new CG.prop(
         'minNumberOfAttachments',
         new CG.expr(ExprVal.Number)
+          .setFallback(0)
           .setTitle('Min number of attachments', 'Minste antall vedlegg')
           .setDescription(
             'Sets the minimum number of attachments required to upload',

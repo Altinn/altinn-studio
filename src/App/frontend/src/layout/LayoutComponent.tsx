@@ -2,11 +2,10 @@ import React from 'react';
 import type { JSX } from 'react';
 
 import { CompCategory } from '@app/layout-contract';
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import type {
-  ComponentBase,
   FormComponentPropsWithRequired,
   IDataModelReference,
-  SummarizableComponentProps,
 } from '@app/layout-contract/generated/common.generated';
 import type { ErrorObject } from 'ajv';
 
@@ -15,9 +14,8 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { validateEmptyFieldAllBindings } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { getComponentCapabilities } from 'src/layout/index';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { CompCapabilities } from 'src/codegen/Config';
-import type { SimpleEval } from 'src/features/expressions';
-import type { ExprResolved, ExprVal } from 'src/features/expressions/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { ComponentValidation } from 'src/features/validation';
@@ -30,31 +28,14 @@ import type {
 import type {
   CompExternal,
   CompExternalExact,
-  CompIntermediateExact,
-  CompInternal,
   ComponentLayoutValidationProps,
   CompTypes,
   IDataModelBindings,
-  ITextResourceBindingsExternal,
 } from 'src/layout/layout';
 import type { LegacySummaryOverrides } from 'src/layout/Summary/SummaryComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { RowContext } from 'src/utils/layout/rowContext';
 import type { BaseRow } from 'src/utils/layout/types';
-
-export interface ExprResolver<Type extends CompTypes> {
-  item: CompIntermediateExact<Type>;
-  evalBase: () => ExprResolved<Omit<ComponentBase, 'hidden'>>;
-  evalFormProps: () => ExprResolved<FormComponentPropsWithRequired>;
-  evalSummarizable: () => ExprResolved<SummarizableComponentProps>;
-  evalStr: SimpleEval<ExprVal.String>;
-  evalNum: SimpleEval<ExprVal.Number>;
-  evalBool: SimpleEval<ExprVal.Boolean>;
-  evalAny: SimpleEval<ExprVal.Any>;
-  evalTrb: () => {
-    textResourceBindings: ExprResolved<ITextResourceBindingsExternal<Type>>;
-  };
-}
 
 export type RuntimeChild = {
   baseId: string;
@@ -87,19 +68,6 @@ export abstract class AnyComponent<Type extends CompTypes> {
   renderLayoutValidators(_props: ComponentLayoutValidationProps<Type>): JSX.Element | null {
     return null;
   }
-
-  /**
-   * The default expression evaluator, implemented by code generation. Do not try to override this yourself. If you
-   * need custom expression support, set that in your component configuration.
-   */
-  abstract evalDefaultExpressions(props: ExprResolver<Type>): unknown;
-
-  /**
-   * Resolves all expressions in the layout configuration, and returns a new layout configuration
-   * with expressions resolved. Will either be implemented using code generation (if your component has no custom
-   * expressions), or must be implemented manually.
-   */
-  abstract evalExpressions(props: ExprResolver<Type>): unknown;
 
   /**
    * Given a node, a list of the node's data, for display in the devtools node inspector
@@ -150,16 +118,19 @@ export abstract class AnyComponent<Type extends CompTypes> {
     return validate(schemaPointer, component);
   }
 
-  getOptionsEffectValueType(): OptionsValueType | undefined {
+  useIsRequired(
+    _config: CompExternal<Type>,
+    _requiredOverride?: FormComponentPropsWithRequired['required'],
+  ): boolean | undefined {
     return undefined;
-  }
-
-  isRequired(_item: CompInternal<Type>): boolean {
-    return false;
   }
 
   supportsRequiredProperty(): boolean {
     return false;
+  }
+
+  getOptionsEffectValueType(): OptionsValueType | undefined {
+    return undefined;
   }
 
   /**
@@ -244,8 +215,13 @@ export abstract class FormComponent<Type extends CompTypes>
 {
   readonly category = CompCategory.Form;
 
-  isRequired(item: CompInternal<Type>): boolean {
-    return this.supportsRequiredProperty() && 'required' in item && item.required === true;
+  useIsRequired(config: CompExternal<Type>, requiredOverride?: FormComponentPropsWithRequired['required']): boolean {
+    return useEvalExpression(
+      this.supportsRequiredProperty()
+        ? (requiredOverride ?? ('required' in config ? config.required : undefined))
+        : undefined,
+      CommonExpressions.FormComponentPropsWithRequired.required,
+    );
   }
 
   supportsRequiredProperty(): boolean {

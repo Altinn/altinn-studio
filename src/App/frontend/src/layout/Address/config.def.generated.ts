@@ -1,36 +1,10 @@
-import type {
-  ComponentBase,
-  FormComponentPropsWithRequired,
-  SummarizableComponentProps,
-} from '@app/layout-contract/generated/common.generated';
-
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 export abstract class AddressDef extends FormComponent<'Address'> implements DisplayData {
   protected readonly type = 'Address';
-
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'Address'>) {
-    return {
-      ...(props.item as Omit<
-        typeof props.item,
-        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
-      >),
-      ...props.evalBase(),
-      ...props.evalFormProps(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
-
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'Address'>) {
-    return this.evalDefaultExpressions(props);
-  }
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -43,4 +17,4 @@ export abstract class AddressDef extends FormComponent<'Address'> implements Dis
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: b1ff39cef6b24b7f1ff06864ea883132873233dff2f3dcd418ef129aa1bed93f
+// Source hash: 2823615a59584bf9dc7ff57117c6f1dd2927bdccafd33ef0896ee140692d627b

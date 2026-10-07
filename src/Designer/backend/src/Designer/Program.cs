@@ -24,9 +24,7 @@ using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Extensions;
 using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Implementation;
-using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Altinn.Studio.Designer.TypedHttpClients;
 using Azure.Identity;
 using Microsoft.AspNetCore.Builder;
@@ -178,8 +176,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
     services.Configure<AssistantSettings>(configuration.GetSection("AltinitySettings"));
-    services.AddSingleton<IAssistantWebSocketService, AssistantWebSocketService>();
-    services.AddHttpClient<IAssistantServiceClient, AssistantServiceClient>();
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(
         maskinPortenClientName,
@@ -230,7 +226,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddFeatureManagement();
     services.RegisterSynchronizationServices(configuration);
 
-    services.AddSingleton<AssistantAttachmentBuffer>();
     var signalRBuilder = services.AddSignalR();
     var redisSettings = configuration.GetSection(nameof(RedisCacheSettings)).Get<RedisCacheSettings>();
     if (redisSettings.UseRedisCache)

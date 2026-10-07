@@ -18,6 +18,7 @@ on:
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'
       - 'src/test/apps/**'
+      - 'src/common/ts/layout-contract/**'
       - 'src/common/ts/form-component/src/**'
       - 'src/common/ts/form-component/package.json'
       - 'src/common/ts/form-engine/src/**'
@@ -313,6 +314,8 @@ jobs:
             src/App/frontend/frontend-server.log
             src/App/frontend/local-env-diagnostics.log
             src/App/frontend/localtest-container.log
+            src/App/frontend/workflow-engine-container.log
+            src/App/frontend/workflow-engine-database.dump
             src/App/frontend/test/logs/*
             src/App/frontend/test/screenshots/**
             ${{ env.STUDIOCTL_HOME }}/logs/**

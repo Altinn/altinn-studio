@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { ConditionalWrapper, Fieldset, FullWidthWrapper, HelpTextContainer, useIsMobile } from '@app/form-component';
+import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type {
@@ -34,9 +35,10 @@ import {
 import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
+import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useComponentIsRequired, useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 interface ColSpanHiddenOverlapWarningParams {
@@ -93,8 +95,14 @@ function useWarnIfColSpanOverlapsHiddenColumns({
 
 export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const { baseComponentId } = props;
-  const { rows, textResourceBindings, labelSettings } = useItemWhenType(baseComponentId, 'Grid');
-  const { title, description, help } = textResourceBindings ?? {};
+  const config = useComponentConfig(baseComponentId, 'Grid');
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Grid.textResourceBindings.title);
+  const description = useEvalOptionalText(
+    config.textResourceBindings?.description,
+    Expressions.Grid.textResourceBindings.description,
+  );
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Grid.textResourceBindings.help);
+
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();
   const parent = FormStore.bootstrap.useLayoutLookups().componentToParent[baseComponentId];
@@ -104,7 +112,10 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const accessibleTitle = elementAsString(title);
   const indexedId = useIndexedId(baseComponentId);
 
-  const columnHiddenExprs = useMemo(() => rows?.find((r) => r.header)?.cells?.map(getGridCellHiddenExpr) ?? [], [rows]);
+  const columnHiddenExprs = useMemo(
+    () => config.rows?.find((r) => r.header)?.cells?.map(getGridCellHiddenExpr) ?? [],
+    [config.rows],
+  );
   const expressionDataSources = useExpressionDataSources(columnHiddenExprs);
   const hiddenColumnIndices = useMemo(
     () =>
@@ -143,12 +154,19 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
             className={cn({ [css.captionFullWidth]: shouldHaveFullWidth })}
             title={<Lang id={title} />}
             description={description && <Lang id={description} />}
-            helpText={help ? { text: <Lang id={help} />, accessibleTitle } : undefined}
-            labelSettings={labelSettings}
+            helpText={
+              help
+                ? {
+                    text: <Lang id={help} />,
+                    accessibleTitle,
+                  }
+                : undefined
+            }
+            labelSettings={config.labelSettings}
           />
         )}
         <GridRowsRenderer
-          rows={rows}
+          rows={config.rows}
           isNested={isNested}
           mutableColumnSettings={columnSettings}
           hiddenColumnIndices={hiddenColumnIndices}
@@ -350,11 +368,7 @@ function CellWithComponent({
 }: CellWithComponentProps) {
   const isHidden = useIsHidden(baseComponentId);
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
-  const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, {
-    returnType: ExprVal.Number,
-    defaultValue: 1,
-    errorIntroText: `Invalid expression for colSpan in Grid cell with component "${baseComponentId}"`,
-  });
+  const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, CommonExpressions.IGridColumnProperties.colSpan);
   useWarnIfColSpanOverlapsHiddenColumns({
     colSpan: colSpanValue,
     cellIdx: cellIdx ?? -1,
@@ -395,11 +409,7 @@ function CellWithText({
   cellIdx,
   hiddenColumnIndices,
 }: CellWithTextProps) {
-  const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, {
-    returnType: ExprVal.Number,
-    defaultValue: 1,
-    errorIntroText: 'Invalid expression for colSpan in Grid text cell',
-  });
+  const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, CommonExpressions.IGridColumnProperties.colSpan);
   useWarnIfColSpanOverlapsHiddenColumns({
     colSpan: colSpanValue,
     cellIdx: cellIdx ?? -1,
@@ -444,23 +454,25 @@ function CellWithLabel({
   hiddenColumnIndices,
 }: CellWithLabelProps) {
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
-  const item = useItemFor(labelFrom);
-  const trb = item.textResourceBindings;
-  const required = useComponentIsRequired(labelFrom);
-  const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, {
-    returnType: ExprVal.Number,
-    defaultValue: 1,
-    errorIntroText: `Invalid expression for colSpan in Grid cell with label from "${labelFrom}"`,
-  });
+  const config = useComponentConfig(labelFrom);
+  const readOnly = useEvalExpression(
+    'readOnly' in config ? config.readOnly : undefined,
+    CommonExpressions.FormComponentProps.readOnly,
+  );
+  const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
+  const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);
+  const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);
+
+  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
+  const required = useComponentIsRequired(config);
+  const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, CommonExpressions.IGridColumnProperties.colSpan);
   useWarnIfColSpanOverlapsHiddenColumns({
     colSpan: colSpanValue,
     cellIdx: cellIdx ?? -1,
     hiddenColumnIndices,
     cellDescription: `with label from "${labelFrom}"`,
   });
-  const title = trb && 'title' in trb ? trb.title : undefined;
-  const help = trb && 'help' in trb ? trb.help : undefined;
-  const description = trb && 'description' in trb && typeof trb.description === 'string' ? trb.description : undefined;
+
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
 
   return (
@@ -473,6 +485,8 @@ function CellWithLabel({
         id={useIndexedId(labelFrom)}
         label={title}
         required={required}
+        readOnly={readOnly}
+        labelSettings={labelSettings}
         help={help}
         description={description}
       />

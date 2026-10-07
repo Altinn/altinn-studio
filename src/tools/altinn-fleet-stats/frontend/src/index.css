@@ -1,5 +1,5 @@
-/* Designsystemet — Altinn-tema (ren CSS, ikke Tailwind v4-varianten) */
-@import '@digdir/designsystemet-theme/altinn.css';
+/* Designsystemet — standardtema (ren CSS, ikke Tailwind v4-varianten) */
+@import '@digdir/designsystemet-css/theme';
 @import '@digdir/designsystemet-css';
 
 /* Inter — fonten Designsystemet er designet for */

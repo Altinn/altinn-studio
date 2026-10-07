@@ -3,18 +3,23 @@ import type { JSX, PropsWithChildren } from 'react';
 
 import { Flex } from '@app/form-component';
 import { CompCategory } from '@app/layout-contract';
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import cn from 'classnames';
 
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { getComponentDef } from 'src/layout';
+import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { useHasOnlyEmptyChildren, useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import classes from 'src/layout/Summary2/Summary2.module.css';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useExternalItem } from 'src/utils/layout/hooks';
-import { useComponentIsRequired, useItemFor } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useResolvedPageBreak } from 'src/utils/layout/useResolvedPageBreak';
+import type { CompTypes } from 'src/layout/layout';
 
 interface ComponentSummaryProps {
   targetBaseComponentId: string;
@@ -42,10 +47,14 @@ export enum SummaryContains {
 }
 
 export function ComponentSummary({ targetBaseComponentId }: ComponentSummaryProps) {
-  const type = useExternalItem(targetBaseComponentId).type;
+  const type = useComponentConfig(targetBaseComponentId).type;
   const def = getComponentDef(type);
   const SummaryRenderer = def.renderSummary2;
-  return SummaryRenderer ? <SummaryRenderer targetBaseComponentId={targetBaseComponentId} /> : null;
+  return SummaryRenderer ? (
+    <FormComponentContextProvider value={{ baseComponentId: targetBaseComponentId }}>
+      <SummaryRenderer targetBaseComponentId={targetBaseComponentId} />
+    </FormComponentContextProvider>
+  ) : null;
 }
 
 export function useSummarySoftHidden(hidden: boolean | undefined) {
@@ -73,11 +82,15 @@ function useIsHiddenInSummary(baseComponentId: string) {
   return !!(hidden || hiddenInOverride);
 }
 
-function useIsHiddenBecauseEmpty(baseComponentId: string, content: SummaryContains) {
+function useIsHiddenBecauseEmpty<T extends CompTypes>(baseComponentId: string, type: T, content: SummaryContains) {
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
-  const item = useItemFor(baseComponentId);
-  const isRequired = useComponentIsRequired(baseComponentId);
-  const forceShowInSummary = item['forceShowInSummary'];
+  const config = useComponentConfig(baseComponentId, type);
+  const forceShowInSummary = useEvalExpression(
+    'forceShowInSummary' in config ? config.forceShowInSummary : undefined,
+    CommonExpressions.SummarizableComponentProps.forceShowInSummary,
+  );
+
+  const isRequired = useComponentIsRequired(config);
 
   if (isRequired && content === SummaryContains.EmptyValueNotRequired) {
     window.logErrorOnce(`Node ${baseComponentId} marked as required, but summary indicates EmptyValueNotRequired`);
@@ -95,16 +108,21 @@ interface SummaryFlexProps extends PropsWithChildren {
 }
 
 function SummaryFlexInternal({ targetBaseId, children, className }: Omit<SummaryFlexProps, 'content'>) {
-  const { pageBreak, grid, type } = useItemFor(targetBaseId);
+  const config = useComponentConfig(targetBaseId);
+  const pageBreak = useResolvedPageBreak(config.pageBreak);
   const indexedId = useIndexedId(targetBaseId);
+  const summary2BaseId = useSummaryProp('id');
+  const summary2NodeId = useSummaryProp('nodeId');
 
   return (
     <Flex
       item
       className={cn(pageBreakStyles(pageBreak), classes.summaryItem, className)}
-      size={grid}
+      size={config.grid}
+      data-componentbaseid={summary2BaseId}
+      data-componentid={summary2NodeId}
       data-summary-target={indexedId}
-      data-summary-target-type={type}
+      data-summary-target-type={config.type}
     >
       {children}
     </Flex>
@@ -121,7 +139,7 @@ function SummaryFlexInternal({ targetBaseId, children, className }: Omit<Summary
  * @see HideWhenAllChildrenEmpty
  */
 export function SummaryFlex({ targetBaseId, className, content, children }: SummaryFlexProps) {
-  const component = useExternalItem(targetBaseId);
+  const component = useComponentConfig(targetBaseId);
   const def = getComponentDef(component.type);
   const empty = content === SummaryContains.EmptyValueNotRequired || content === SummaryContains.EmptyValueRequired;
   if (def.category === CompCategory.Container && !empty) {
@@ -131,7 +149,7 @@ export function SummaryFlex({ targetBaseId, className, content, children }: Summ
   }
 
   const isHidden = useIsHiddenInSummary(targetBaseId);
-  const isHiddenBecauseEmpty = useIsHiddenBecauseEmpty(targetBaseId, content);
+  const isHiddenBecauseEmpty = useIsHiddenBecauseEmpty(targetBaseId, component.type, content);
   const { className: hiddenClass, leafCanReturnNull } = useSummarySoftHidden(isHidden);
 
   useReportSummaryRender(isHidden ? SummaryContains.EmptyValueNotRequired : content);
@@ -164,7 +182,7 @@ export function SummaryFlexForContainer({
   targetBaseId,
   children,
 }: HideWhenAllChildrenEmptyProps & Pick<SummaryFlexProps, 'targetBaseId' | 'children'>) {
-  const component = useExternalItem(targetBaseId);
+  const component = useComponentConfig(targetBaseId);
   const def = getComponentDef(component.type);
   if (def.category !== CompCategory.Container) {
     throw new Error(`SummaryFlexForContainer rendered with ${component.type} target. Use SummaryFlex instead.`);

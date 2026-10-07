@@ -58,6 +58,7 @@ export const mockTexts: AssistantTexts = {
   heading: 'heading',
   preview: 'preview',
   fileBrowser: 'fileBrowser',
+  toolColumnMode: 'toolColumnMode',
   hideThreads: 'hideThreads',
   showThreads: 'showThreads',
   newThread: 'newThread',
@@ -75,4 +76,5 @@ export const mockTexts: AssistantTexts = {
   securityNoticeAlert: securityNoticeAlertTexts,
   permissionPrompt: permissionPromptTexts,
   sourcesLabel: 'sourcesLabel',
+  filesChangedLabel: 'filesChangedLabel',
 };

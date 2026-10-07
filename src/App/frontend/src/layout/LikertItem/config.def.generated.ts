@@ -1,36 +1,10 @@
-import type {
-  ComponentBase,
-  FormComponentPropsWithRequired,
-  SummarizableComponentProps,
-} from '@app/layout-contract/generated/common.generated';
-
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 export abstract class LikertItemDef extends FormComponent<'LikertItem'> implements DisplayData {
   protected readonly type = 'LikertItem';
-
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'LikertItem'>) {
-    return {
-      ...(props.item as Omit<
-        typeof props.item,
-        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
-      >),
-      ...props.evalBase(),
-      ...props.evalFormProps(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
-
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'LikertItem'>) {
-    return this.evalDefaultExpressions(props);
-  }
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -43,4 +17,4 @@ export abstract class LikertItemDef extends FormComponent<'LikertItem'> implemen
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 386c23bdc850eaf11c0a7469e3c55b669190a5a013f89a86152e6ed4fdbdfe1a
+// Source hash: 83980688620a43b1d226d202ab9724200f8cc17fd29066657233a6b6815b84d8

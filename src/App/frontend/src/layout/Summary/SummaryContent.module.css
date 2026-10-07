@@ -28,6 +28,9 @@
 
 @media print {
   .container {
-    break-inside: avoid;
+    /* Any summary can grow beyond one page. Let its content fragment in normal
+       block flow instead of fragmenting a grid item spanning multiple pages. */
+    display: block;
+    break-inside: auto;
   }
 }

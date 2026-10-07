@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../testing/mocks';
@@ -6,8 +7,8 @@ import { ActionsCell } from './ActionsCell';
 import { StudioTable } from '@studio/components';
 
 const defaultProps = {
-  onEdit: jest.fn(),
-  onDelete: jest.fn(),
+  onEdit: vi.fn(),
+  onDelete: vi.fn(),
   editAriaLabel: 'Edit',
   itemName: 'Test item',
 };
@@ -29,11 +30,11 @@ const getDeleteButton = () =>
   });
 
 describe('ActionsCell', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('calls onEdit when edit button is clicked', async () => {
     const user = userEvent.setup();
-    const onEdit = jest.fn();
+    const onEdit = vi.fn();
     renderActionsCell({ onEdit });
     await user.click(screen.getByRole('button', { name: defaultProps.editAriaLabel }));
     expect(onEdit).toHaveBeenCalled();
@@ -41,21 +42,21 @@ describe('ActionsCell', () => {
 
   it('calls onDelete when delete button is clicked and confirmed', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
-    const onDelete = jest.fn();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const onDelete = vi.fn();
     renderActionsCell({ onDelete });
     await user.click(getDeleteButton());
     expect(onDelete).toHaveBeenCalled();
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('does not call onDelete when delete is cancelled', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(false);
-    const onDelete = jest.fn();
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const onDelete = vi.fn();
     renderActionsCell({ onDelete });
     await user.click(getDeleteButton());
     expect(onDelete).not.toHaveBeenCalled();
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 });

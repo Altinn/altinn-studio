@@ -24,7 +24,7 @@ namespace Altinn.App.Core.Internal.Pdf;
 /// <summary>
 /// Service for handling the creation and storage of receipt Pdf.
 /// </summary>
-public class PdfService : IPdfService
+internal sealed class PdfService : IPdfService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IPdfGeneratorClient _pdfGeneratorClient;
@@ -155,11 +155,7 @@ public class PdfService : IPdfService
     {
         using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
 
-        HttpContext? httpContext = _httpContextAccessor.HttpContext;
-        var queries = httpContext?.Request.Query;
-        var auth = _authenticationContext.Current;
-
-        var language = GetOverriddenLanguage(queries) ?? await auth.GetLanguage();
+        string language = await GetLanguage(dataAccessor: null);
 
         return await GeneratePdfContent(
             instance,
@@ -191,11 +187,7 @@ public class PdfService : IPdfService
         Instance instance = dataAccessor.Instance;
         using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
 
-        HttpContext? httpContext = _httpContextAccessor.HttpContext;
-        var queries = httpContext?.Request.Query;
-        var auth = _authenticationContext.Current;
-
-        var language = GetOverriddenLanguage(queries) ?? await auth.GetLanguage();
+        string language = await GetLanguage(dataAccessor);
 
         return await GeneratePdfContent(
             instance,
@@ -223,11 +215,7 @@ public class PdfService : IPdfService
     {
         Instance instance = instanceDataMutator.Instance;
 
-        HttpContext? httpContext = _httpContextAccessor.HttpContext;
-        var queries = httpContext?.Request.Query;
-        var auth = _authenticationContext.Current;
-
-        var language = GetOverriddenLanguage(queries) ?? await auth.GetLanguage();
+        string language = await GetLanguage(instanceDataMutator);
 
         await using Stream pdfContent = await GeneratePdfContent(
             instance,
@@ -362,6 +350,15 @@ public class PdfService : IPdfService
 
         return new Uri(url);
     }
+
+    /// <summary>
+    /// The language a PDF is rendered in: a <c>language</c> or <c>lang</c> override on the current request, else the
+    /// language of <paramref name="dataAccessor"/>, else the caller's. A workflow callback has no such query and is
+    /// authenticated as the app, so there the accessor's language, the one the user chose for the transition, decides.
+    /// </summary>
+    private async Task<string> GetLanguage(IInstanceDataAccessor? dataAccessor) =>
+        GetOverriddenLanguage(_httpContextAccessor.HttpContext?.Request.Query)
+        ?? await _authenticationContext.Current.GetLanguage(dataAccessor?.Language);
 
     internal static string? GetOverriddenLanguage(IQueryCollection? queries)
     {

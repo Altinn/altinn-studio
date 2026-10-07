@@ -120,8 +120,7 @@ export function nb() {
     'form_filler.placeholder_receipt_header': 'Skjemaet er nå fullført og sendt inn.',
     'form_filler.placeholder_user': 'OLA PRIVATPERSON',
     'form_filler.radiobutton_alert_label': 'Er du sikker på at du vil endre fra {0}?',
-    'form_filler.required_description': 'Obligatoriske felter er markert med *',
-    'form_filler.required_label': '*',
+    'form_filler.required_label': 'Må fylles ut',
     'form_filler.summary_item_change': 'Endre',
     'form_filler.summary_go_to_correct_page': 'Gå til riktig side i skjema',
     'form_filler.address': 'Gateadresse',
@@ -176,7 +175,7 @@ export function nb() {
     'general.customer_service_slack': 'https://digdir-samarbeid.slack.com',
     'general.customer_service_email': 'servicedesk@altinn.no',
     'general.customer_service_error_message':
-      'Hvis du har behov for assistanse kan du nå Altinn på<br/><br/><li>Telefon: <a href="tel:{0}">{0}</a></li><li>E-post: {1}</li><li>Slack: {2}</li></ul>',
+      'Hvis du har behov for assistanse kan du nå Altinn på<br/><br/><ul><li>Telefon: <a href="tel:{0}">{0}</a></li><li>E-post: {1}</li><li>Slack: {2}</li></ul>',
     'general.delete': 'Slett',
     'general.download': 'Nedlasting {0}',
     'general.disabled': 'Deaktivert',
@@ -197,7 +196,7 @@ export function nb() {
     'general.log_out': 'Logg ut',
     'general.next': 'Neste',
     'general.no_options': 'Ingen alternativer tilgjengelig',
-    'general.optional': 'Valgfri',
+    'general.optional': 'Valgfritt',
     'general.page_number': 'Side {0}',
     'general.print_button_text': 'Print / Lagre PDF',
     'general.progress': 'Side {0} av {1}',
@@ -221,6 +220,9 @@ export function nb() {
     'general.part_of_form_completed':
       'Denne delen av skjemaet er ikke tilgjengelig. Du kan ikke gjøre endringer her nå.',
     'general.invalid_task_id': 'Denne delen av skjemaet finnes ikke.',
+    'general.unsupported_task_type': 'Denne delen av skjemaet kan ikke vises.',
+    'general.unsupported_task_type_details':
+      'Prosessteget {0} har typen {1}, som appen ikke kan vise.',
     'general.navigate_to_current_process': 'Gå til riktig prosessteg',
     'group.row_error':
       'En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn',
@@ -488,6 +490,8 @@ export function nb() {
     'process_workflow.failure_kind.engineFault': 'Systemet feilet under behandlingen',
     'process_workflow.failure_kind.timeout': 'Behandlingen tok for lang tid',
     'process_workflow.failure_kind.unknown': 'Ukjent årsak',
+    'process_workflow.having_trouble':
+      'Vi får ikke behandlet skjemaet ditt akkurat nå, men vi prøver igjen automatisk. Opplysningene dine er lagret. Du kan trygt lukke siden og komme tilbake senere. Du kan åpne skjemaer du allerede har startet på fra innboksen eller fra Utkast-mappen.',
     'process_workflow.still_working':
       'Dette tar uvanlig lang tid. Opplysningene dine er lagret, og arbeidet fortsetter automatisk. Du kan trygt lukke siden og komme tilbake senere. Du kan åpne skjemaer du allerede har startet på fra innboksen eller fra Utkast-mappen.',
     'pdfPreview.error': 'Kunne ikke forhåndsvise PDF',

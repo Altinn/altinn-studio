@@ -3,6 +3,7 @@ import {
   ComponentBase,
   FormComponentPropsWithRequired,
   IRawDataModelBinding,
+  LabeledComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
@@ -20,6 +21,7 @@ export type CompOrganizationLookupSerialized = {
   dataModelBindings: { orgnr: IRawDataModelBinding; name?: IRawDataModelBinding };
 } & ComponentBase &
   FormComponentPropsWithRequired &
-  SummarizableComponentProps;
+  SummarizableComponentProps &
+  LabeledComponentProps;
 
-// Source hash: 68b90f8c5b4b5f24ddfc721c675521fcb03c2a77fd15eab5d2e766ca2ef1fb0a
+// Source hash: be4412d6ae093ac160bf22a65a2b88de4b1677b285b428c27bdd9c6f7184ddcc

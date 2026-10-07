@@ -29,7 +29,6 @@ from agents.core import (
     ToolUseBlock,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fake tools
 # ---------------------------------------------------------------------------
@@ -39,7 +38,7 @@ class EchoArgs(BaseModel):
     text: str
 
 
-class EchoTool(Tool):
+class EchoTool(Tool[EchoArgs]):
     """Returns its `text` arg as the result.  Concurrency-safe."""
 
     name = "echo"
@@ -51,7 +50,7 @@ class EchoTool(Tool):
         return ToolResult(content=args.text)
 
 
-class CountingTool(Tool):
+class CountingTool(Tool[EchoArgs]):
     """Tracks invocation order on `ctx.extras["calls"]`.  Unsafe."""
 
     name = "counting"
@@ -64,7 +63,7 @@ class CountingTool(Tool):
         return ToolResult(content=f"recorded:{args.text}")
 
 
-class BoomTool(Tool):
+class BoomTool(Tool[EchoArgs]):
     """Raises — used to exercise the error-recovery path."""
 
     name = "boom"
@@ -76,7 +75,7 @@ class BoomTool(Tool):
         raise RuntimeError(f"boom: {args.text}")
 
 
-class DeniedTool(Tool):
+class DeniedTool(Tool[EchoArgs]):
     """Denies all calls — exercises the permission path."""
 
     name = "denied"
@@ -91,7 +90,7 @@ class DeniedTool(Tool):
         raise AssertionError("DeniedTool.run must not be called")
 
 
-class SourcedTool(Tool):
+class SourcedTool(Tool[EchoArgs]):
     """Declares a consulted-source record in metadata — exercises the
     loop's source collection.  `text == "fail"` returns an error result
     that still carries a source, to prove errors are not collected."""
@@ -112,7 +111,7 @@ class SourcedTool(Tool):
         return ToolResult(content=f"looked up {args.text}", metadata={"source": source})
 
 
-class GatedTool(Tool):
+class GatedTool(Tool[EchoArgs]):
     """Write-style tool gated on allow_app_changes with an escalatable
     denial — exercises the interactive permission path."""
 
@@ -149,7 +148,7 @@ class FakeAdapter(LLMAdapter):
         self.responses: list[AssistantMessage] = list(responses or [])
         self.calls: list[dict[str, Any]] = []
 
-    def queue(self, response: AssistantMessage) -> "FakeAdapter":
+    def queue(self, response: AssistantMessage) -> FakeAdapter:
         self.responses.append(response)
         return self
 

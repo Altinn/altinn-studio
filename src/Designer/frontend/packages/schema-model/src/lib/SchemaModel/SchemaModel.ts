@@ -74,6 +74,17 @@ export class SchemaModel extends SchemaModelBase {
     ]);
   }
 
+  public hasUniquePointer(uniquePointer: string): boolean {
+    const schemaPointer = SchemaModel.removeUniquePointerPrefix(uniquePointer);
+    if (this.hasNode(schemaPointer)) return true;
+
+    // Resolving a pointer whose ancestors no longer exist throws, so check them first
+    const parentUniquePointer = this.getParentUniquePointer(uniquePointer);
+    if (!parentUniquePointer || !this.hasUniquePointer(parentUniquePointer)) return false;
+
+    return this.hasNode(this.getSchemaPointerByUniquePointer(uniquePointer));
+  }
+
   private getParentSchemaPointerByUniquePointer(uniquePointer: string): string {
     const parentPropertyNode = this.getParentPropertyNodeByUniquePointer(uniquePointer);
     return isReference(parentPropertyNode)

@@ -18,11 +18,9 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: false,
-  },
 })
   .addSummaryOverrides()
+  .extends(CG.common('LabeledComponentProps'))
   .addDataModelBinding(
     new CG.obj(
       new CG.prop(

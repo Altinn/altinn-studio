@@ -1,31 +1,10 @@
-import type {
-  ComponentBase,
-  FormComponentPropsWithRequired,
-  SummarizableComponentProps,
-} from '@app/layout-contract/generated/common.generated';
-
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 export abstract class ImageUploadDef extends FormComponent<'ImageUpload'> implements DisplayData {
   protected readonly type = 'ImageUpload';
-
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'ImageUpload'>) {
-    return {
-      ...(props.item as Omit<
-        typeof props.item,
-        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
-      >),
-      ...props.evalBase(),
-      ...props.evalFormProps(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -38,4 +17,4 @@ export abstract class ImageUploadDef extends FormComponent<'ImageUpload'> implem
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: e69bd407dcfbbe09743f927a4ad7191434b48a84ebc8d9d7d0647da2a68126e1
+// Source hash: cb11d3b30a7aaf29b5d81cf10357047d10bba6a89a252c87afb5a2412812a149

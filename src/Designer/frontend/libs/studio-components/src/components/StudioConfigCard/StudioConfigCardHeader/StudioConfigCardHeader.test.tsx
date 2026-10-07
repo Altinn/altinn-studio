@@ -9,6 +9,12 @@ describe('StudioConfigCardHeader', () => {
     expect(screen.getByText('Card Title')).toBeInTheDocument();
   });
 
+  it('should set the given id on the card label', () => {
+    renderStudioConfigCardHeader({ cardLabelId: 'card-label-id' });
+
+    expect(screen.getByText('Card Title')).toHaveAttribute('id', 'card-label-id');
+  });
+
   it('should call onDelete when delete button is clicked', async () => {
     const user = userEvent.setup();
     const onDeleteMock = jest.fn();

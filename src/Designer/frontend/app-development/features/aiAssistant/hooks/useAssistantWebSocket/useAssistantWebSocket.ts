@@ -8,9 +8,9 @@ import type {
   ConnectionStatus,
 } from '@studio/assistant';
 
-const ALTINITY_CONNECTION_INDEX = 0; // WSConnector uses single connection for Altinity hub
+const ASSISTANT_CONNECTION_INDEX = 0; // WSConnector uses single connection for assistant hub
 
-enum AltinityClientsName {
+enum AssistantClientsName {
   ReceiveAgentMessage = 'ReceiveAgentMessage',
 }
 
@@ -32,11 +32,11 @@ export const useAssistantWebSocket = (): UseAssistantWebSocketResult => {
     // One shared connection per browser tab (WSConnector.getInstance is keyed by hub URL).
     const wsInstance = WSConnector.getInstance(
       [assistantWebSocketHub()],
-      [AltinityClientsName.ReceiveAgentMessage],
+      [AssistantClientsName.ReceiveAgentMessage],
     );
     wsInstanceRef.current = wsInstance;
 
-    const connection = getAltinitySignalRConnection(wsInstance);
+    const connection = getAssistantSignalRConnection(wsInstance);
     if (!connection) return undefined;
 
     ensureAgentMessageDispatcher(connection);
@@ -61,18 +61,18 @@ export const useAssistantWebSocket = (): UseAssistantWebSocketResult => {
   }, []);
 
   const startWorkflow = useCallback(async (request: WorkflowRequest): Promise<AgentResponse> => {
-    const connection = getAltinitySignalRConnection(wsInstanceRef.current);
+    const connection = getAssistantSignalRConnection(wsInstanceRef.current);
     if (!connection) {
-      throw new Error('No active SignalR connection to Altinity hub');
+      throw new Error('No active SignalR connection to assistant hub');
     }
 
     return await invokeStartWorkflowOnServer(connection, request);
   }, []);
 
   const cancelWorkflow = useCallback(async (cancelSessionId: string): Promise<void> => {
-    const connection = getAltinitySignalRConnection(wsInstanceRef.current);
+    const connection = getAssistantSignalRConnection(wsInstanceRef.current);
     if (!connection) {
-      throw new Error('No active SignalR connection to Altinity hub');
+      throw new Error('No active SignalR connection to assistant hub');
     }
 
     try {
@@ -85,9 +85,9 @@ export const useAssistantWebSocket = (): UseAssistantWebSocketResult => {
 
   const respondToPermission = useCallback(
     async (sessionId: string, requestId: string, granted: boolean): Promise<void> => {
-      const connection = getAltinitySignalRConnection(wsInstanceRef.current);
+      const connection = getAssistantSignalRConnection(wsInstanceRef.current);
       if (!connection) {
-        throw new Error('No active SignalR connection to Altinity hub');
+        throw new Error('No active SignalR connection to assistant hub');
       }
 
       try {
@@ -102,9 +102,9 @@ export const useAssistantWebSocket = (): UseAssistantWebSocketResult => {
 
   const registerSession = useCallback(
     async (org: string, app: string, threadId: string): Promise<void> => {
-      const connection = getAltinitySignalRConnection(wsInstanceRef.current);
+      const connection = getAssistantSignalRConnection(wsInstanceRef.current);
       if (!connection) {
-        throw new Error('No active SignalR connection to Altinity hub');
+        throw new Error('No active SignalR connection to assistant hub');
       }
 
       try {
@@ -127,13 +127,13 @@ export const useAssistantWebSocket = (): UseAssistantWebSocketResult => {
   };
 };
 
-function getAltinitySignalRConnection(wsInstance: any): any | null {
+function getAssistantSignalRConnection(wsInstance: any): any | null {
   if (!wsInstance) return null;
 
   const connections = wsInstance.connections;
   if (!connections || connections.length === 0) return null;
 
-  return connections[ALTINITY_CONNECTION_INDEX];
+  return connections[ASSISTANT_CONNECTION_INDEX];
 }
 
 const agentMessageSubscribers = new Set<(message: WorkflowEvent) => void>();
@@ -173,7 +173,7 @@ function ensureAgentMessageDispatcher(connection: any): void {
   if (dispatchedConnections.has(connection)) return;
   dispatchedConnections.add(connection);
 
-  connection.on(AltinityClientsName.ReceiveAgentMessage, (message: WorkflowEvent) => {
+  connection.on(AssistantClientsName.ReceiveAgentMessage, (message: WorkflowEvent) => {
     if (
       message.type === 'workflow_status' &&
       message.data?.message?.toLowerCase() === 'session created'
@@ -186,7 +186,7 @@ function ensureAgentMessageDispatcher(connection: any): void {
         subscriber(message);
       } catch (error) {
         // One failing subscriber must not block delivery to the others.
-        console.error('Altinity agent message subscriber failed:', error);
+        console.error('Assistant agent message subscriber failed:', error);
       }
     });
   });

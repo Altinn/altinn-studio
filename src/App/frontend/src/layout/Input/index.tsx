@@ -5,16 +5,17 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { InputDef } from 'src/layout/Input/config.def.generated';
-import { evalFormatting } from 'src/layout/Input/formatting';
+import { useResolvedFormatting } from 'src/layout/Input/formatting';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { InputSummary } from 'src/layout/Input/InputSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { formatNumericText } from 'src/utils/formattingUtils';
-import { useItemWhenType, useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { validateDataModelBindingsSimple } from 'src/utils/layout/validation/utils';
 import type { DataModelBindingValidationContext, PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Input extends InputDef {
@@ -26,8 +27,8 @@ export class Input extends InputDef {
 
   useDisplayData(baseComponentId: string): string {
     const formData = useNodeFormDataWhenType(baseComponentId, 'Input');
-    const item = useItemWhenType(baseComponentId, 'Input');
-    const formatting = item?.formatting;
+    const config = useComponentConfig(baseComponentId, 'Input');
+    const formatting = useResolvedFormatting(config.formatting);
     const currentLanguage = useCurrentLanguage();
     const text = formData?.simpleBinding || '';
     if (!text) {
@@ -57,12 +58,5 @@ export class Input extends InputDef {
     { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
   ): string[] {
     return validateDataModelBindingsSimple(baseComponentId, bindings, lookupBinding, layoutLookups);
-  }
-
-  evalExpressions(props: ExprResolver<'Input'>) {
-    return {
-      ...this.evalDefaultExpressions(props),
-      formatting: evalFormatting(props),
-    };
   }
 }

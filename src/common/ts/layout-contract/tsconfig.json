@@ -4,7 +4,8 @@
     "target": "es2022",
     "moduleResolution": "bundler",
     "strict": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["node"]
   },
   "include": ["src/**/*.ts"]
 }

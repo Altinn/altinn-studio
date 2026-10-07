@@ -1,6 +1,9 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
+import type { FormComponentPropsWithRequired } from '@app/layout-contract/generated/common.generated';
+
 import type { PropsFromGenericComponent } from '..';
 
 import { LikertDef } from 'src/layout/Likert/config.def.generated';
@@ -10,16 +13,12 @@ import { getLikertStartStopIndex } from 'src/layout/Likert/rowUtils';
 import { LikertSummaryComponent } from 'src/layout/Likert/Summary/LikertSummaryComponent';
 import { LikertSummary } from 'src/layout/Likert/Summary2/LikertSummary';
 import { appendRowContext, getIndexedDataModelReference } from 'src/utils/layout/rowContext';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
 import type { DataModelBindingValidationContext } from 'src/layout';
-import type { CompInternal, IDataModelBindings } from 'src/layout/layout';
-import type {
-  ChildClaimerProps,
-  ExprResolver,
-  RuntimeChildrenProps,
-  SummaryRendererProps,
-} from 'src/layout/LayoutComponent';
+import type { CompExternal, IDataModelBindings } from 'src/layout/layout';
+import type { ChildClaimerProps, RuntimeChildrenProps, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Likert extends LikertDef {
@@ -33,8 +32,14 @@ export class Likert extends LikertDef {
     return false;
   }
 
-  isRequired(item: CompInternal<'Likert'>): boolean {
-    return item.required === true;
+  useIsRequired(
+    config: CompExternal<'Likert'>,
+    requiredOverride?: FormComponentPropsWithRequired['required'],
+  ): boolean {
+    return useEvalExpression(
+      requiredOverride ?? config.required,
+      CommonExpressions.FormComponentPropsWithRequired.required,
+    );
   }
 
   supportsRequiredProperty(): boolean {
@@ -84,14 +89,6 @@ export class Likert extends LikertDef {
     }
 
     return errors;
-  }
-
-  evalExpressions(props: ExprResolver<'Likert'>) {
-    return {
-      ...this.evalDefaultExpressions(props),
-      required: props.evalBool(props.item.required, false),
-      readOnly: props.evalBool(props.item.readOnly, false),
-    };
   }
 
   getOptionsEffectValueType() {

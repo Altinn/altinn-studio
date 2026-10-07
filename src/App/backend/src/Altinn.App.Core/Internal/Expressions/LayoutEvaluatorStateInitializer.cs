@@ -15,7 +15,7 @@ namespace Altinn.App.Core.Internal.Expressions;
 /// <summary>
 /// Utility class for collecting all the services from DI that are needed to initialize <see cref="LayoutEvaluatorState" />
 /// </summary>
-public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
+internal sealed class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
 {
     // Dependency injection properties (set in ctor)
     private readonly IAppResources _appResources;
@@ -165,7 +165,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         Debug.Assert(layouts is not null);
         var dataElement = instance.Data.Find(d => d.DataType == layouts.DefaultDataType.Id);
         Debug.Assert(dataElement is not null);
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
         var dataAccessor = new SingleDataElementAccessor(
             instance,
             dataElement,

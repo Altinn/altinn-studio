@@ -19,9 +19,10 @@ const texts: TextResourceInputTexts = {
   emptyTextResourceList: 'Ingen tekstressurser er tilgjengelige',
   editValue: 'Rediger verdi',
   idLabel: 'ID:',
+  modeToggle: 'Modus',
   search: 'Søk',
+  clearSelection: 'Fjern valg',
   textResourcePickerLabel: 'Velg tekstressurs',
-  noTextResourceOptionLabel: 'Ikke oppgitt',
   valueLabel: 'Tekstverdi',
 };
 const currentId = 'land.NO';
@@ -118,7 +119,7 @@ describe('StudioTextResourceInput', () => {
     await user.type(picker, newResource.value);
     const option = await screen.findByText(newResource.value);
     await user.click(option);
-    await waitFor(expect(onChangeCurrentId).toHaveBeenCalled);
+    await waitFor(() => expect(onChangeCurrentId).toHaveBeenCalled());
 
     expect(onChangeCurrentId).toHaveBeenCalledTimes(1);
     expect(onChangeCurrentId).toHaveBeenCalledWith(newResource.id);
@@ -129,8 +130,9 @@ describe('StudioTextResourceInput', () => {
     renderTextResourceInput();
 
     await switchToSearchMode(user);
-    const chipButton = screen.getByRole('option', { name: /Press to remove/i });
-    await user.click(chipButton);
+    const clearButton = screen.getByRole('button', { name: texts.clearSelection });
+    await user.click(clearButton);
+    await user.tab();
     await waitFor(() => expect(onChangeCurrentId).toHaveBeenCalled());
 
     expect(onChangeCurrentId).toHaveBeenCalledTimes(1);

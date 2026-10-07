@@ -25,14 +25,8 @@ import { appendRowContext, getIndexedDataModelReference } from 'src/utils/layout
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
-import type { CompInternal, IDataModelBindings } from 'src/layout/layout';
-import type {
-  ChildClaimerProps,
-  ExprResolver,
-  RuntimeChildrenProps,
-  SummaryRendererProps,
-} from 'src/layout/LayoutComponent';
-import type { RepGroupInternal } from 'src/layout/RepeatingGroup/types';
+import type { CompExternal, IDataModelBindings } from 'src/layout/layout';
+import type { ChildClaimerProps, RuntimeChildrenProps, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class RepeatingGroup extends RepeatingGroupDef implements ValidateComponent<'RepeatingGroup'>, ValidationFilter {
@@ -47,31 +41,6 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
       );
     },
   );
-
-  evalExpressions(props: ExprResolver<'RepeatingGroup'>): RepGroupInternal {
-    const { item, evalBool } = props;
-
-    const tableColumns = item.tableColumns ? { ...item.tableColumns } : undefined;
-    if (item.tableColumns) {
-      for (const column in tableColumns) {
-        tableColumns[column] = {
-          ...tableColumns[column],
-          hidden: evalBool(tableColumns[column].hidden, false),
-        };
-      }
-    }
-
-    return {
-      ...this.evalDefaultExpressions(props),
-      ...(tableColumns ? { tableColumns } : undefined),
-      edit: item.edit
-        ? {
-            ...item.edit,
-            addButton: evalBool(item.edit.addButton, true),
-          }
-        : undefined,
-    } as RepGroupInternal;
-  }
 
   renderSummary(props: SummaryRendererProps): JSX.Element | null {
     return <SummaryRepeatingGroup {...props} />;
@@ -91,8 +60,8 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
     return false;
   }
 
-  isRequired(item: CompInternal<'RepeatingGroup'>): boolean {
-    return item.minCount !== undefined && item.minCount > 0;
+  useIsRequired(config: CompExternal<'RepeatingGroup'>): boolean {
+    return config.minCount !== undefined && config.minCount > 0;
   }
 
   validateComponent(ctx: ComponentValidationContext<'RepeatingGroup'>): ComponentValidation[] {

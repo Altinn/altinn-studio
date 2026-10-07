@@ -107,7 +107,7 @@ describe('Attachments', () => {
     assertAttachments();
 
     cy.findByRole('button', { name: 'Neste' }).click();
-    cy.findByRole('button', { name: 'Send inn' }).click();
+    cy.findByRole('button', { name: 'Send inn' }).clickAndWaitForProcessNext();
 
     cy.get('#ReceiptContainer').should('contain.text', 'Skjemaet er sendt inn');
   });

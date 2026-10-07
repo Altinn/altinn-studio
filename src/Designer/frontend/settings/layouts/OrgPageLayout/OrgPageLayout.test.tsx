@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
 import { OrgPageLayout } from './OrgPageLayout';
@@ -8,7 +9,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { User } from 'app-shared/types/Repository';
 
-jest.mock('../../features/orgs/layout/PageLayout', () => ({
+vi.mock('../../features/orgs/layout/PageLayout', () => ({
   PageLayout: () => <div>PageLayout</div>,
 }));
 

@@ -12,9 +12,7 @@ import pytest
 from agents.prompts.loader import PROMPTS_DIR, load_prompt
 
 SHIPPED = sorted(
-    path.stem
-    for path in PROMPTS_DIR.rglob("*.md")
-    if path.stem != "README" and not path.name.startswith("_")
+    path.stem for path in PROMPTS_DIR.rglob("*.md") if path.stem != "README" and not path.name.startswith("_")
 )
 
 

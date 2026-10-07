@@ -14,7 +14,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 from agents.altinn.datamodel import datamodel_sync
-from agents.altinn.layout import LAYOUT_SCHEMA_URL
+from agents.altinn.layout import get_layout_schema
 from agents.altinn.layout.properties import layout_properties_tool
 from agents.core.tool import LoopContext, Tool, ToolResult
 
@@ -25,7 +25,7 @@ class LayoutPropsArgs(BaseModel):
     )
 
 
-class LayoutPropsTool(Tool):
+class LayoutPropsTool(Tool[LayoutPropsArgs]):
     """Canonical property list for a layout component type."""
 
     name = "altinn_layout_props"
@@ -43,16 +43,17 @@ class LayoutPropsTool(Tool):
     is_read_only = True
 
     async def run(self, args: LayoutPropsArgs, ctx: LoopContext) -> ToolResult:
+        profile = ctx.app_version_profile
         try:
-            result = layout_properties_tool(
-                user_goal="agentic-loop",
-                component_type=args.component_type,
-                schema_url=LAYOUT_SCHEMA_URL,
-            )
-        except Exception as exc:  # noqa: BLE001 — CDN fetch / parse errors
-            return ToolResult(
-                content=f"Could not load component schema: {exc}", is_error=True
-            )
+            schema = get_layout_schema(profile.layout_schema_location)
+        except Exception as exc:  # schema load / parse errors
+            return ToolResult(content=f"Could not load component schema: {exc}", is_error=True)
+        result = layout_properties_tool(
+            user_goal="agentic-loop",
+            component_type=args.component_type,
+            schema=schema,
+            binding_constraints=profile.binding_constraints,
+        )
         is_error = isinstance(result, dict) and result.get("status") == "error"
         return ToolResult(
             content=json.dumps(result, ensure_ascii=False),
@@ -60,7 +61,7 @@ class LayoutPropsTool(Tool):
             metadata={
                 "source": {
                     "title": f"Layout-skjema ({args.component_type})",
-                    "url": LAYOUT_SCHEMA_URL,
+                    "url": profile.layout_schema_display_url,
                     "kind": "schema",
                 }
             },
@@ -73,7 +74,7 @@ class DatamodelSyncArgs(BaseModel):
     )
 
 
-class DatamodelSyncTool(Tool):
+class DatamodelSyncTool(Tool[DatamodelSyncArgs]):
     """Generate XSD + C# from a JSON Schema model (Altinn Studio parity)."""
 
     name = "altinn_datamodel_sync"
@@ -91,9 +92,7 @@ class DatamodelSyncTool(Tool):
     async def run(self, args: DatamodelSyncArgs, ctx: LoopContext) -> ToolResult:
         schema_file = Path(ctx.repo_path) / args.schema_path
         if not schema_file.is_file():
-            return ToolResult(
-                content=f"Schema file not found: {args.schema_path}", is_error=True
-            )
+            return ToolResult(content=f"Schema file not found: {args.schema_path}", is_error=True)
         try:
             schema_content = schema_file.read_text(encoding="utf-8")
         except OSError as exc:
@@ -119,9 +118,7 @@ class DatamodelSyncTool(Tool):
             try:
                 out_path.write_text(entry["content"], encoding="utf-8")
             except OSError as exc:
-                return ToolResult(
-                    content=f"Could not write {entry['path']}: {exc}", is_error=True
-                )
+                return ToolResult(content=f"Could not write {entry['path']}: {exc}", is_error=True)
             rel = str(out_path.relative_to(ctx.repo_path))
             written.append(rel)
             changed.add(rel)

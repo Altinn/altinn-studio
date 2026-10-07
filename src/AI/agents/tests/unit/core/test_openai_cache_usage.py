@@ -8,9 +8,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from agents.core.llm_adapter import OpenAIAdapter, _usage_details
-from agents.core.messages import UserMessage
+from agents.core.messages import Message, UserMessage
 
-MESSAGES = [UserMessage(content="say ok")]
+MESSAGES: list[Message] = [UserMessage(content="say ok")]
 
 
 def _completion(prompt_tokens: int, cached: int | None):
@@ -36,20 +36,18 @@ async def _chat(adapter: OpenAIAdapter, completion) -> tuple[dict, dict]:
     span = MagicMock()
     with patch("agents.core.llm_adapter.trace_generation") as traced:
         traced.return_value.__enter__.return_value = span
-        assistant = await adapter.chat(
-            messages=MESSAGES, system_prompt="s", tool_schemas=[]
-        )
+        assistant = await adapter.chat(messages=MESSAGES, system_prompt="s", tool_schemas=[])
     return assistant.usage, span.update.call_args.kwargs["usage_details"]
 
 
 @pytest.fixture
 def adapter():
     with patch.object(OpenAIAdapter, "__init__", lambda self, **kw: None):
-        made = OpenAIAdapter()
+        made = OpenAIAdapter(model="gpt-5.6-terra")
     made.model = "gpt-5.6-terra"
     made.max_tokens = 1024
     made._is_reasoning = True
-    made._reasoning_effort = None
+    made._reasoning_effort = "low"
     return made
 
 

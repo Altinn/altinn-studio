@@ -49,8 +49,11 @@ public class AltinnPartyClientTest
         Assert.Equal($"{ApiRegisterEndpoint}parties/123", capturedRequest.RequestUri!.ToString());
     }
 
-    [Fact]
-    public async Task GetParty_Unauthorized_ThrowsException()
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)] // user token: no such party, or not one the user can represent
+    [InlineData(HttpStatusCode.NotFound)] // service owner token: no such party
+    [InlineData(HttpStatusCode.BadRequest)] // an id that can't be a party
+    public async Task GetParty_NoSuchParty_LogsWarningAndReturnsNull(HttpStatusCode statusCode)
     {
         // Arrange
         var fixture = Fixture.Create();
@@ -61,35 +64,37 @@ public class AltinnPartyClientTest
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.Unauthorized));
-
-        // Act
-        var act = async () => await fixture.Client.GetParty(123);
-
-        // Assert
-        await Assert.ThrowsAsync<ServiceException>(act);
-    }
-
-    [Fact]
-    public async Task GetParty_UnknownError_LogsEventAndReturnsNull()
-    {
-        // Arrange
-        var fixture = Fixture.Create();
-        fixture
-            .HttpMessageHandlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.BadRequest));
+            .ReturnsAsync(new HttpResponseMessage(statusCode));
 
         // Act
         var result = await fixture.Client.GetParty(123);
 
         // Assert
         Assert.Null(result);
-        fixture.LoggerMock.VerifyCall(LogLevel.Error, "failed with statuscode", Times.Once());
+        fixture.LoggerMock.VerifyCall(LogLevel.Warning, "has no party", Times.Once());
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    public async Task GetParty_UnexpectedStatus_Throws(HttpStatusCode statusCode)
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        fixture
+            .HttpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage(statusCode));
+
+        // Act
+        var act = async () => await fixture.Client.GetParty(123);
+
+        // Assert
+        await Assert.ThrowsAsync<PlatformHttpException>(act);
     }
 
     [Fact]
@@ -154,7 +159,7 @@ public class AltinnPartyClientTest
             var loggerMock = new Mock<ILogger<AltinnPartyClient>>();
 
             var appMetadataMock = new Mock<IAppMetadata>();
-            appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
+            appMetadataMock.Setup(m => m.ApplicationMetadata).Returns(new ApplicationMetadata("org/app"));
 
             // Valid JWT format required by JwtToken.Parse
             const string validJwtToken =

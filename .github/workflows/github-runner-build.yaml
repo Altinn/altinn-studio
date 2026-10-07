@@ -6,10 +6,9 @@ on:
     paths:
       - 'Cargo.toml'
       - 'Cargo.lock'
+      - 'clippy.toml'
+      - 'rust-toolchain.toml'
       - 'rustfmt.toml'
-      - 'src/experimental/sandbox/**'
-      - 'src/experimental/sandbox-authorization/**'
-      - 'src/experimental/sandbox-microsandbox/**'
       - 'src/ci/github-runner/Dockerfile.coordinator'
       - 'src/ci/github-runner/coordinator/**'
       - '.github/workflows/github-runner-build.yaml'
@@ -45,12 +44,12 @@ jobs:
             sudo apt-get install --yes --no-install-recommends libcap-ng-dev
           fi
 
-      # The runner image bakes the toolchain pinned by Cargo.toml; only
+      # The runner image bakes the toolchain pinned by rust-toolchain.toml; only
       # install through rustup when the two have drifted (e.g. a PR bumping
-      # rust-version before the image has been rebuilt).
+      # the toolchain before the image has been rebuilt).
       - name: Verify Rust toolchain
         run: |
-          RUST_VERSION="$(sed -n 's/^rust-version = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/Cargo.toml")"
+          RUST_VERSION="$(sed -n 's/^channel = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/rust-toolchain.toml")"
           test -n "${RUST_VERSION}"
           if [ "$(rustc --version | awk '{ print $2 }')" != "${RUST_VERSION}" ] \
             || ! rustfmt --version >/dev/null 2>&1 \

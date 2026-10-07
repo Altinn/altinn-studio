@@ -340,7 +340,7 @@ public class InstancesController : ControllerBase
             return BadRequest("The path parameter 'app' cannot be empty");
         }
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         if (VerifyInstantiationPermissions(application, org, app) is { } verificationResult)
             return verificationResult;
 
@@ -471,7 +471,12 @@ public class InstancesController : ControllerBase
         try
         {
             // start process and goto next task
-            ProcessStartRequest processStartRequest = new() { Instance = instanceTemplate, User = User };
+            ProcessStartRequest processStartRequest = new()
+            {
+                Instance = instanceTemplate,
+                User = User,
+                Language = language,
+            };
 
             ProcessChangeResult result = await _processEngine.CreateInitialProcessState(processStartRequest);
             if (!result.Success)
@@ -535,7 +540,8 @@ public class InstancesController : ControllerBase
                 versions,
                 processStateChange,
                 isInstantiation: true,
-                notification: notification
+                notification: notification,
+                language: language
             );
         }
         catch (InstanceStateConflictException)
@@ -638,7 +644,7 @@ public class InstancesController : ControllerBase
 
         bool isCopyRequest = !string.IsNullOrEmpty(instantiationInstance.SourceInstanceId);
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         if (VerifyInstantiationPermissions(application, org, app, isCopy: isCopyRequest) is { } verificationResult)
             return verificationResult;
 
@@ -837,6 +843,7 @@ public class InstancesController : ControllerBase
                 Instance = instanceTemplate,
                 User = User,
                 Prefill = instantiationInstance.Prefill,
+                Language = language,
             };
 
             ProcessChangeResult processResult = await _processEngine.CreateInitialProcessState(startRequest);
@@ -878,7 +885,8 @@ public class InstancesController : ControllerBase
                 processStateChange,
                 isInstantiation: true,
                 prefill: instantiationInstance.Prefill,
-                notification: instantiationInstance.Notification
+                notification: instantiationInstance.Notification,
+                language: language
             );
         }
         catch (InstanceStateConflictException)
@@ -964,7 +972,7 @@ public class InstancesController : ControllerBase
             return Forbid();
         }
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
 
         if (application.CopyInstanceSettings?.Enabled is null or false)
         {
@@ -1052,7 +1060,12 @@ public class InstancesController : ControllerBase
         }
 
         // Calculate initial process state in memory before creating the instance with process state
-        ProcessStartRequest processStartRequest = new() { Instance = targetInstance, User = User };
+        ProcessStartRequest processStartRequest = new()
+        {
+            Instance = targetInstance,
+            User = User,
+            Language = language,
+        };
         ProcessChangeResult startResult = await _processEngine.CreateInitialProcessState(processStartRequest);
         if (!startResult.Success)
         {
@@ -1086,7 +1099,8 @@ public class InstancesController : ControllerBase
                     targetInstance,
                     fetchedTargetInstance.Metadata,
                     startResult.ProcessStateChange,
-                    isInstantiation: true
+                    isInstantiation: true,
+                    language: language
                 );
             }
 
@@ -1649,7 +1663,6 @@ public class InstancesController : ControllerBase
 
         return WorkflowInitializationProblem.Create(
             _logger,
-            WorkflowInitializationFlow.Instantiation,
             exception,
             message,
             state,
@@ -1674,7 +1687,6 @@ public class InstancesController : ControllerBase
         {
             return WorkflowInitializationProblem.Create(
                 _logger,
-                WorkflowInitializationFlow.Instantiation,
                 exception,
                 message,
                 state: WorkflowInitializationState.WorkflowFailed,
@@ -1689,7 +1701,6 @@ public class InstancesController : ControllerBase
 
         return WorkflowInitializationProblem.Create(
             _logger,
-            WorkflowInitializationFlow.Instantiation,
             exception,
             message,
             state: WorkflowInitializationState.WorkflowFailed,

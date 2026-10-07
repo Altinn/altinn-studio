@@ -21,7 +21,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register;
 /// <summary>
 /// A client for retrieving register data from Altinn Platform.
 /// </summary>
-public class AltinnPartyClient : IAltinnPartyClient
+internal sealed class AltinnPartyClient : IAltinnPartyClient
 {
     private readonly ILogger _logger;
     private readonly HttpClient _client;
@@ -68,7 +68,7 @@ public class AltinnPartyClient : IAltinnPartyClient
     {
         using var activity = _telemetry?.StartGetPartyActivity(partyId);
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         string endpointUrl = $"parties/{partyId}";
         JwtToken token = await GetAuthTokenResolver()
             .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, cancellationToken);
@@ -86,17 +86,16 @@ public class AltinnPartyClient : IAltinnPartyClient
                 response.Content,
                 cancellationToken
             ),
-            HttpStatusCode.Unauthorized => throw new ServiceException(
-                HttpStatusCode.Unauthorized,
-                "Unauthorized for party"
-            ),
-            _ => null,
+            // Register's "no such party" answers: 401 for user tokens (which deliberately also
+            // covers "not yours"), 404 for service owner tokens, 400 for an id that can't be a party.
+            HttpStatusCode.Unauthorized or HttpStatusCode.NotFound or HttpStatusCode.BadRequest => null,
+            _ => throw await PlatformHttpException.Create(response, cancellationToken),
         };
 
         if (party is null)
         {
-            _logger.LogError(
-                "// Getting party with partyID {PartyId} failed with statuscode {StatusCode}",
+            _logger.LogWarning(
+                "Register has no party {PartyId} for this caller, answered {StatusCode}",
                 partyId,
                 response.StatusCode
             );
@@ -114,7 +113,7 @@ public class AltinnPartyClient : IAltinnPartyClient
     {
         using var activity = _telemetry?.StartLookupPartyActivity();
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         string endpointUrl = "parties/lookup";
         JwtToken token = await GetAuthTokenResolver()
             .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, cancellationToken);
@@ -153,7 +152,7 @@ public class AltinnPartyClient : IAltinnPartyClient
         var query = new { data = new string[] { urn } };
         using var content = new StringContent(JsonSerializer.Serialize(query));
         content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
 
         JwtToken token = await GetAuthTokenResolver().GetAccessToken(_defaultAuthenticationMethod, cancellationToken);
 
@@ -198,7 +197,7 @@ public class AltinnPartyClient : IAltinnPartyClient
         var query = new { data = new string[] { urn } };
         using var content = new StringContent(JsonSerializer.Serialize(query));
         content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
 
         JwtToken token = await GetAuthTokenResolver().GetAccessToken(_defaultAuthenticationMethod, cancellationToken);
 

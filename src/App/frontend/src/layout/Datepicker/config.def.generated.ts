@@ -1,31 +1,10 @@
-import type {
-  ComponentBase,
-  FormComponentPropsWithRequired,
-  SummarizableComponentProps,
-} from '@app/layout-contract/generated/common.generated';
-
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 export abstract class DatepickerDef extends FormComponent<'Datepicker'> implements DisplayData {
   protected readonly type = 'Datepicker';
-
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'Datepicker'>) {
-    return {
-      ...(props.item as Omit<
-        typeof props.item,
-        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
-      >),
-      ...props.evalBase(),
-      ...props.evalFormProps(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -38,4 +17,4 @@ export abstract class DatepickerDef extends FormComponent<'Datepicker'> implemen
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: f2f2afa8910f2a14e3fa0e4e244e7af2917c278436a6b1f12439f5e1aaeff427
+// Source hash: 78f412b46b8f6d1f7b76093f7739b9f5c5bea60f143c9d1716db1672adec2899

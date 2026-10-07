@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from difflib import SequenceMatcher
 
 from benchmarks import manifest, outputs
 from benchmarks.provenance import blocking_differences
@@ -86,10 +85,7 @@ class BehaviorChange:
         if self.before is None:
             lines.append(f"{behavior.evaluator} {self.after:.3f}, no baseline to compare against")
         elif self.delta is not None and abs(self.delta) > NOISE_FLOOR:
-            lines.append(
-                f"{behavior.evaluator} {self.before:.3f} to {self.after:.3f}, "
-                f"a change of {self.delta:+.3f}"
-            )
+            lines.append(f"{behavior.evaluator} {self.before:.3f} to {self.after:.3f}, a change of {self.delta:+.3f}")
         else:
             lines.append(f"{behavior.evaluator} {self.after:.3f}, unchanged past the noise floor")
         if self.after == 0:
@@ -99,9 +95,7 @@ class BehaviorChange:
             lines.append(f"item {item.item_id} {item.before:.3f} to {item.after:.3f}")
         for item in self.silent_items[:2]:
             shape = item.shape
-            lines.append(
-                f"item {item.item_id} kept its score and changed shape: {shape.summary}"
-            )
+            lines.append(f"item {item.item_id} kept its score and changed shape: {shape.summary}")
             for kind, entry in shape.paths(4):
                 lines.append(f"  {kind}: {entry}")
         unstructured = [i for i in self.items if i.shape.changed is None]
@@ -209,19 +203,3 @@ def compare(baseline: Run, candidate: Run) -> Comparison:
         changes=tuple(changes),
         refused=refused,
     )
-
-
-def word_diff(before: str, after: str) -> tuple[tuple[str, str], ...]:
-    """Token level diff, as (kind, text) pairs where kind is same, del or add."""
-    left, right = before.split(), after.split()
-    matcher = SequenceMatcher(None, left, right, autojunk=False)
-    out: list[tuple[str, str]] = []
-    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
-        if tag == "equal":
-            out.append(("same", " ".join(left[i1:i2])))
-        else:
-            if i1 != i2:
-                out.append(("del", " ".join(left[i1:i2])))
-            if j1 != j2:
-                out.append(("add", " ".join(right[j1:j2])))
-    return tuple(pair for pair in out if pair[1])

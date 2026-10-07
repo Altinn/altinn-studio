@@ -8,9 +8,13 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal } from 'src/layout/layout';
 
-const render = async (component: Partial<CompExternal> = {}, waitUntilLoaded = true) =>
+const render = async (
+  component: Partial<CompExternal> = {},
+  waitUntilLoaded = true,
+  requestedId = component.id ?? 'mockId',
+) =>
   await renderWithInstanceAndLayout({
-    renderer: <GenericComponent baseComponentId={component.id ?? 'mockId'} />,
+    renderer: <GenericComponent baseComponentId={requestedId} />,
     waitUntilLoaded,
     queries: {
       fetchFormBootstrapForInstance: async () =>
@@ -53,6 +57,19 @@ const render = async (component: Partial<CompExternal> = {}, waitUntilLoaded = t
   });
 
 describe('GenericComponent', () => {
+  it('reports a missing component through its component error boundary', async () => {
+    const spy = vi.spyOn(window, 'logError').mockImplementation(() => {});
+
+    await render({}, false, 'missing');
+
+    await waitFor(() =>
+      expect(spy).toHaveBeenCalledWith(
+        expect.stringContaining('Exception thrown when rendering node "missing"'),
+        expect.any(Error),
+      ),
+    );
+  });
+
   it('should show an error in the logs when rendering an unknown component type', async () => {
     const spy = vi
       .spyOn(window, 'logError')

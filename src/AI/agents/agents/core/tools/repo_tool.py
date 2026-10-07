@@ -22,7 +22,7 @@ class ScanRepoArgs(BaseModel):
     model_config = {"extra": "forbid"}
 
 
-class ScanRepoTool(Tool):
+class ScanRepoTool(Tool[ScanRepoArgs]):
     """Inspect the session's repository and return a structured summary.
 
     The summary lists available layouts, models, resources, and locales

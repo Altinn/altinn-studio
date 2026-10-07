@@ -469,6 +469,22 @@ describe('RepeatingGroupContainer', () => {
     expect(saveButton).toBeInTheDocument();
   });
 
+  it('evaluates the save button at the location of each edited row', async () => {
+    await render({
+      container: {
+        textResourceBindings: { saveButton: 'button.save' },
+        edit: {
+          ...mockContainer.edit,
+          saveButton: ['equals', ['dataModel', 'Group.prop1'], 'value2'],
+        },
+      },
+    });
+    await userEvent.click(screen.getByRole('button', { name: /^Rediger value1$/i }));
+    expect(screen.queryByText('New save text')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /^Rediger value2$/i }));
+    expect(screen.getByText('New save text')).toBeInTheDocument();
+  });
+
   describe('help text', () => {
     it('should render the title and a help text button in showAll mode when a help text is set', async () => {
       await render({

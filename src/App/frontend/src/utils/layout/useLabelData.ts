@@ -1,5 +1,9 @@
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useComponentIsRequired, useItemFor } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
+import { useEvalExpression, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import type { GenericComponentOverrideDisplay } from 'src/layout/FormComponentContext';
 
 export interface LabelData {
@@ -22,21 +26,18 @@ export function useLabelData({
   baseComponentId: string;
   overrideDisplay: GenericComponentOverrideDisplay | undefined;
 }): LabelData {
-  const item = useItemFor(baseComponentId);
+  const config = useComponentConfig(baseComponentId);
+  const readOnly = useEvalExpression(
+    'readOnly' in config ? config.readOnly : undefined,
+    CommonExpressions.FormComponentProps.readOnly,
+  );
+  const required = useComponentIsRequired(config);
+  const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
+  const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);
+  const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);
+
   const componentId = useIndexedId(baseComponentId);
-
-  const readOnly = 'readOnly' in item ? item.readOnly : undefined;
-  const required = useComponentIsRequired(baseComponentId);
-  const showOptionalMarking = 'labelSettings' in item && !!item.labelSettings?.optionalIndicator;
-
-  const trb = item.textResourceBindings;
-  const { title, help, description } = trb
-    ? {
-        title: 'title' in trb ? trb.title : undefined,
-        help: 'help' in trb ? trb.help : undefined,
-        description: 'description' in trb ? trb.description : undefined,
-      }
-    : { title: undefined, help: undefined, description: undefined };
+  const showOptionalMarking = !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
 
   const shouldShowLabel =
     (overrideDisplay?.renderLabel ?? true) && overrideDisplay?.renderedInTable !== true && !!title;

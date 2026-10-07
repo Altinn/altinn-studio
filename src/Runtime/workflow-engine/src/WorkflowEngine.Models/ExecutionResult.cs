@@ -9,18 +9,24 @@ namespace WorkflowEngine.Models;
 /// <param name="Exception">Optional exception associated with a failed outcome.</param>
 /// <param name="HttpStatusCode">Optional HTTP status code captured from the underlying transport.</param>
 /// <param name="DeferDelay">For <see cref="ExecutionStatus.Deferred"/> outcomes: how long to wait before re-executing the step (this deferral only — see <see cref="CommandDefinition.WaitBudget"/> for the total).</param>
+/// <param name="StateOut">For <see cref="ExecutionStatus.Success"/> and <see cref="ExecutionStatus.Deferred"/> outcomes: the state the step produced, stored as <see cref="Step.StateOut"/>. <c>null</c> keeps the step's current state.</param>
 public record struct ExecutionResult(
     ExecutionStatus Status,
     string? Message = null,
     Exception? Exception = null,
     int? HttpStatusCode = null,
-    TimeSpan? DeferDelay = null
+    TimeSpan? DeferDelay = null,
+    string? StateOut = null
 )
 {
     /// <summary>
     /// Creates a successful execution result.
     /// </summary>
-    public static ExecutionResult Success() => new(ExecutionStatus.Success);
+    /// <param name="state">
+    /// Optional state the step produced. The engine hands it to the next step as
+    /// <see cref="CommandExecutionContext.StateIn"/>.
+    /// </param>
+    public static ExecutionResult Success(string? state = null) => new(ExecutionStatus.Success, StateOut: state);
 
     /// <summary>
     /// Creates a canceled execution result.
@@ -74,6 +80,10 @@ public record struct ExecutionResult(
     /// <see cref="Step.LastDeferReason"/> and surfaced on status reads, so consumers can show why a
     /// waiting step is waiting — phrase it for a reader, not a log parser.
     /// </param>
-    public static ExecutionResult Defer(TimeSpan delay, string? message = null) =>
-        new(ExecutionStatus.Deferred, message, DeferDelay: delay);
+    /// <param name="state">
+    /// Optional state the step produced. The engine hands it back to this step as
+    /// <see cref="CommandExecutionContext.StateIn"/> on the next attempt, so a re-check resumes from it.
+    /// </param>
+    public static ExecutionResult Defer(TimeSpan delay, string? message = null, string? state = null) =>
+        new(ExecutionStatus.Deferred, message, DeferDelay: delay, StateOut: state);
 };

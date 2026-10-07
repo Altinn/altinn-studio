@@ -180,6 +180,24 @@ describe('SummaryComponent', () => {
     expect(screen.getByTestId('summary-single-value-component')).toBeInTheDocument();
   });
 
+  test('should expose the Summary2 component identifiers on rendered summary content', async () => {
+    await render({
+      summary2Config: {
+        type: 'Summary2',
+        hideEmptyFields: false,
+        id: 'Summary2',
+        target: {
+          id: 'Input',
+          type: 'component',
+        },
+      },
+    });
+
+    const summaryItem = screen.getByTestId('summary-single-value-component').closest('[data-componentid]');
+    expect(summaryItem).toHaveAttribute('data-componentid', 'mySummary2');
+    expect(summaryItem).toHaveAttribute('data-componentbaseid', 'mySummary2');
+  });
+
   test('should not render component if its set to hide if empty', async () => {
     await render({
       summary2Config: {
@@ -225,37 +243,42 @@ describe('SummaryComponent', () => {
     expect(screen.getByTestId('summary-single-value-component')).toBeInTheDocument();
   });
 
-  test('should render an empty FileUpload when its minimum attachment count makes it required', async () => {
-    await render({
-      layout: {
-        FormLayout: {
-          data: {
-            layout: [
-              {
-                id: 'FileUpload',
-                type: 'FileUpload',
-                displayMode: 'list',
-                maxFileSizeInMB: 25,
-                minNumberOfAttachments: 1,
-                maxNumberOfAttachments: 10,
-              },
-            ],
+  test.each([{ minimum: 1 }, { minimum: ['if', ['equals', 1, 1], 1, 'else', 0] }] satisfies {
+    minimum: CompExternal<'FileUpload'>['minNumberOfAttachments'];
+  }[])(
+    'should render an empty FileUpload when its minimum attachment count $minimum makes it required',
+    async ({ minimum }) => {
+      await render({
+        layout: {
+          FormLayout: {
+            data: {
+              layout: [
+                {
+                  id: 'FileUpload',
+                  type: 'FileUpload',
+                  displayMode: 'list',
+                  maxFileSizeInMB: 25,
+                  minNumberOfAttachments: minimum,
+                  maxNumberOfAttachments: 10,
+                },
+              ],
+            },
           },
         },
-      },
-      summary2Config: {
-        type: 'Summary2',
-        hideEmptyFields: true,
-        id: 'Summary2',
-        target: {
-          id: 'FileUpload',
-          type: 'component',
+        summary2Config: {
+          type: 'Summary2',
+          hideEmptyFields: true,
+          id: 'Summary2',
+          target: {
+            id: 'FileUpload',
+            type: 'component',
+          },
         },
-      },
-    });
+      });
 
-    expect(document.querySelector('[data-summary-target="FileUpload"]')).toBeInTheDocument();
-  });
+      expect(document.querySelector('[data-summary-target="FileUpload"]')).toBeInTheDocument();
+    },
+  );
 
   test('should ignore an unsupported required property on FileUpload', async () => {
     await render({

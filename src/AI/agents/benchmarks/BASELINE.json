@@ -1,18 +1,18 @@
 {
   "axes": {
-    "actor_prompt": "07e319515e6a",
-    "code": "56ac9ac clean",
-    "dataset": "115 items be00f7b53c3b",
+    "actor_prompt": "333710f2f15b",
+    "code": "8a69954 clean",
+    "dataset": "116 items 90d5f6e70f83",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-5.6-sol",
     "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
     "prompts": "not recorded",
-    "sampling": "reasoning_effort none, temperature 0.1, temperature_planner model default",
-    "tools": "c8bbdb44ee0f"
+    "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
+    "tools": "36867ddc0e3f"
   },
-  "check_id": "20260914T065446Z-whitespace-only-needles-and-ambiguous-prompt-names-refused-2233",
-  "label": "whitespace-only needles and ambiguous prompt names refused",
-  "recorded_at": "2026-09-14T07:00:17+00:00",
-  "why": "whitespace-only needles and ambiguous prompt names are refused rather than guessed"
+  "check_id": "20261006T171623Z-remove-the-v9-upgrade-tool-rerun-1-8a699541ee-05ff",
+  "label": "remove the v9 upgrade tool rerun-1 8a699541ee",
+  "recorded_at": "2026-10-06T17:21:03+00:00",
+  "why": "Removes the v9 upgrade tool from #20721, which moves the tools digest. No regressions with e2e."
 }

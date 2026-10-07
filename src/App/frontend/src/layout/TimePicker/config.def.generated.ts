@@ -1,31 +1,10 @@
-import type {
-  ComponentBase,
-  FormComponentPropsWithRequired,
-  SummarizableComponentProps,
-} from '@app/layout-contract/generated/common.generated';
-
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 export abstract class TimePickerDef extends FormComponent<'TimePicker'> implements DisplayData {
   protected readonly type = 'TimePicker';
-
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'TimePicker'>) {
-    return {
-      ...(props.item as Omit<
-        typeof props.item,
-        keyof ComponentBase | keyof FormComponentPropsWithRequired | keyof SummarizableComponentProps | 'hidden'
-      >),
-      ...props.evalBase(),
-      ...props.evalFormProps(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -38,4 +17,4 @@ export abstract class TimePickerDef extends FormComponent<'TimePicker'> implemen
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 1a957ed72624af4f9913b1f34fb8a8ec03c91f2454337681790fe7d87e9ca718
+// Source hash: 8806b895fcd5814b52b84bc6220b22e937afd27c377c59edff7c1c163c8dd833

@@ -19,7 +19,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register;
 /// <summary>
 /// A client for retrieving ER data from Altinn Platform.
 /// </summary>
-public class RegisterERClient : IOrganizationClient
+internal sealed class RegisterERClient : IOrganizationClient
 {
     private readonly ILogger _logger;
     private readonly HttpClient _client;
@@ -66,7 +66,7 @@ public class RegisterERClient : IOrganizationClient
             cancellationToken
         );
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         using HttpResponseMessage response = await _client.GetAsync(
             token,
             endpointUrl,

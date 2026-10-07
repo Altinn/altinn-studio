@@ -97,30 +97,38 @@ describe('AddressLayout', () => {
 
   it('shows required indicators when required is true', () => {
     render({ simplified: false, required: true });
-    expect(screen.getByRole('textbox', { name: 'Gateadresse *' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Postnr *' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Gateadresse Må fylles ut' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr Må fylles ut' })).toBeInTheDocument();
     expect(
-      screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse *' }),
+      screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse Må fylles ut' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /Bolignummer \*/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer Må fylles ut/i })).toBeInTheDocument();
   });
 
-  it('shows optional indicators when showOptionalMarking is true and not required', () => {
-    render({ simplified: false, required: false, showOptionalMarking: true });
-    expect(screen.getByRole('textbox', { name: 'Gateadresse (Valgfri)' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Postnr (Valgfri)' })).toBeInTheDocument();
+  it('shows optional indicators by default when not required', () => {
+    render({ simplified: false, required: false });
+    expect(screen.getByRole('textbox', { name: 'Gateadresse Valgfritt' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr Valgfritt' })).toBeInTheDocument();
     expect(
-      screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' }),
+      screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse Valgfritt' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /Bolignummer \(Valgfri\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer Valgfritt/i })).toBeInTheDocument();
+  });
+
+  it('hides optional indicators when showOptionalMarking is false', () => {
+    render({ simplified: false, required: false, showOptionalMarking: false });
+    expect(
+      screen.queryByRole('textbox', { name: 'Gateadresse Valgfritt' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
   });
 
   it('does not show optional indicators when readOnly is true', () => {
-    render({ simplified: false, readOnly: true, showOptionalMarking: true });
+    render({ simplified: false, required: false, readOnly: true });
     expect(
-      screen.queryByRole('textbox', { name: 'Gateadresse (Valgfri)' }),
+      screen.queryByRole('textbox', { name: 'Gateadresse Valgfritt' }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByRole('textbox', { name: 'Postnr (Valgfri)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Postnr Valgfritt' })).not.toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
   });
 

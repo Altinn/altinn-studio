@@ -1,6 +1,8 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments/tools';
@@ -13,6 +15,7 @@ import { validateMissingTagsForNode } from 'src/layout/FileUpload/Tag/useValidat
 import { validateAttachmentDataElements } from 'src/layout/FileUpload/useValidateAttachmentDataElements';
 import { validateMinNumberOfAttachmentsForNode } from 'src/layout/FileUpload/useValidateMinNumberOfAttachments';
 import { validateFileUploaderDataBindings } from 'src/layout/FileUpload/utils/useFileUploaderDataBindingsValidation';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { AnyValidation, ComponentValidation } from 'src/features/validation';
 import type {
@@ -21,8 +24,8 @@ import type {
   PropsFromGenericComponent,
   ValidateComponent,
 } from 'src/layout';
-import type { CompInternal, ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { CompExternal, ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class FileUpload extends FileUploadDef implements ValidateComponent<'FileUpload'> {
@@ -40,22 +43,14 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
     return false;
   }
 
-  isRequired(item: CompInternal<'FileUpload'>): boolean {
-    return item.minNumberOfAttachments > 0;
+  useIsRequired(config: CompExternal<'FileUpload'>): boolean {
+    const minimum = useEvalExpression(config.minNumberOfAttachments, Expressions.FileUpload.minNumberOfAttachments);
+    return minimum > 0;
   }
 
   useDisplayData(baseComponentId: string): string {
     const attachments = AttachmentReadModel.useAttachmentsFor(baseComponentId);
     return attachments.map((a) => a.data.filename).join(', ');
-  }
-
-  evalExpressions(props: ExprResolver<'FileUpload'>) {
-    return {
-      ...this.evalDefaultExpressions(props),
-      alertOnDelete: props.evalBool(props.item.alertOnDelete, false),
-      maxNumberOfAttachments: props.evalNum(props.item.maxNumberOfAttachments, Infinity),
-      minNumberOfAttachments: props.evalNum(props.item.minNumberOfAttachments, 0),
-    };
   }
 
   renderSummary(props: SummaryRendererProps): JSX.Element | null {
@@ -77,7 +72,7 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
 
   validateComponent(ctx: ComponentValidationContext<'FileUpload'>): AnyValidation[] {
     const attachments = attachmentSelector(
-      makeAttachmentNode(ctx.baseComponentId, ctx.component),
+      makeAttachmentNode({ ...ctx.component, indexedId: ctx.indexedId }),
       ctx.formState,
       ctx.instanceData,
       getApplicationMetadata(),

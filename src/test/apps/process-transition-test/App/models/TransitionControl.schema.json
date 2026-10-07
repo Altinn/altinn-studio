@@ -23,10 +23,12 @@
       "title": "Scenario"
     },
     "delayMs": {
+      "@xsdType": "int",
       "type": "integer",
       "title": "Forsinkelse (ms)"
     },
     "attempts": {
+      "@xsdType": "int",
       "type": "integer",
       "title": "Antall forsøk"
     },
@@ -39,12 +41,18 @@
       "title": "Visning under behandling"
     },
     "deferrals": {
+      "@xsdType": "int",
       "type": "integer",
       "title": "Antall utsettelser"
     },
     "deferDelayMs": {
+      "@xsdType": "int",
       "type": "integer",
       "title": "Tid mellom utsettelser (ms)"
+    },
+    "next": {
+      "type": "string",
+      "title": "Neste steg etter service tasken"
     }
   }
 }

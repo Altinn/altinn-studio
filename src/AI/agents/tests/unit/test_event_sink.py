@@ -10,8 +10,8 @@ run on the same session (``mark_session_started``) lifts the suppression.
 
 import threading
 
+from agents.services.events.events import AgentEvent, EventType
 from agents.services.events.jobs import EventSink
-from agents.services.events.events import AgentEvent
 
 SESSION_ID = "session-1"
 CANCEL_RACE_WINDOW_SECONDS = 0.5
@@ -19,7 +19,7 @@ CANCEL_COMPLETION_TIMEOUT_SECONDS = 5
 DEVELOPER = "testUser"
 
 
-def _event(event_type: str, **data) -> AgentEvent:
+def _event(event_type: EventType, **data) -> AgentEvent:
     return AgentEvent(type=event_type, session_id=SESSION_ID, data=data)
 
 
@@ -31,6 +31,12 @@ def _sink_with_session() -> EventSink:
 
 def _delivered_types(sink: EventSink) -> list[str]:
     return [event.type for event in sink.get_developer_events_since(DEVELOPER, 0)]
+
+
+def _session_status(sink: EventSink) -> dict:
+    status = sink.get_session_status(SESSION_ID)
+    assert status is not None
+    return status
 
 
 class TestCancelledSessionSuppression:
@@ -153,19 +159,19 @@ class TestCancelRacingDelivery:
         """A cancel arriving mid-send must not overtake the event being sent."""
         sink = _sink_with_session()
         cancel_thread: list[threading.Thread] = []
-        original_get_buffer = sink._get_or_create_buffer
+        buffer = sink._developer_buffers[DEVELOPER]
+        original_append = buffer.append
 
-        def cancel_midway(session_id: str):
-            buffer = original_get_buffer(session_id)
+        def cancel_midway(event: AgentEvent):
             if not cancel_thread:
                 thread = threading.Thread(target=sink.cancel_session, args=(SESSION_ID,))
                 cancel_thread.append(thread)
                 thread.start()
                 # Long enough for an unlocked delivery to lose the race.
                 thread.join(timeout=CANCEL_RACE_WINDOW_SECONDS)
-            return buffer
+            original_append(event)
 
-        sink._get_or_create_buffer = cancel_midway
+        buffer.append = cancel_midway
         sink.send(_event("status", message="Skanner repo"))
         cancel_thread[0].join(timeout=CANCEL_COMPLETION_TIMEOUT_SECONDS)
 
@@ -197,3 +203,66 @@ class TestDeliverUnlessCancelled:
         # Only cancel_session's own terminal event, and no orphaned history.
         assert _delivered_types(sink) == ["error"]
         assert sink.get_conversation_history(SESSION_ID) == []
+
+
+class TestSessionStatus:
+    def test_terminal_error_marks_the_session_as_finished(self):
+        sink = _sink_with_session()
+        sink.mark_session_started(SESSION_ID)
+
+        sink.send(_event("error", done=True, success=False, status="rejected"))
+
+        status = _session_status(sink)
+        assert status["status"] == "error"
+        assert status["success"] is False
+
+    def test_non_terminal_error_leaves_the_session_running(self):
+        sink = _sink_with_session()
+        sink.mark_session_started(SESSION_ID)
+
+        sink.send(_event("error", message="Klarte ikke å hente ut feltlisten fra vedlegget."))
+
+        assert _session_status(sink)["status"] == "running"
+
+    def test_progress_status_leaves_the_session_running(self):
+        sink = _sink_with_session()
+        sink.mark_session_started(SESSION_ID)
+
+        sink.send(_event("status", message="Skanner repo"))
+
+        assert _session_status(sink)["status"] == "running"
+
+    def test_terminal_status_marks_the_session_as_done(self):
+        sink = _sink_with_session()
+        sink.mark_session_started(SESSION_ID)
+
+        sink.deliver_unless_cancelled(
+            SESSION_ID,
+            [
+                _event("assistant_message", content="Utenfor det jeg kan hjelpe med"),
+                _event("status", done=True, success=True, status="completed"),
+            ],
+        )
+
+        status = _session_status(sink)
+        assert status["status"] == "done"
+        assert status["success"] is True
+        assert status["last_message"]["content"] == "Utenfor det jeg kan hjelpe med"
+
+    def test_failed_terminal_status_marks_the_session_as_done_without_success(self):
+        sink = _sink_with_session()
+        sink.mark_session_started(SESSION_ID)
+
+        sink.send(_event("status", done=True, success=False, status="failed"))
+
+        status = _session_status(sink)
+        assert status["status"] == "done"
+        assert status["success"] is False
+
+    def test_cancelled_session_keeps_the_cancelled_status(self):
+        sink = _sink_with_session()
+        sink.mark_session_started(SESSION_ID)
+
+        sink.cancel_session(SESSION_ID)
+
+        assert _session_status(sink)["status"] == "cancelled"

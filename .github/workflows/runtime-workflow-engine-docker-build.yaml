@@ -11,9 +11,11 @@ name: Runtime Workflow Engine - Docker build
 # (only the app image is built, and only on push to main), so a Dockerfile
 # regression could otherwise stay dormant until someone builds it locally.
 #
-# This job is therefore scoped to the Dockerfiles and their .dockerignore
-# only — the parts no other workflow exercises. Source changes intentionally
-# do NOT trigger it, since the dotnet workflows already gate those.
+# This job is therefore scoped to the Dockerfiles, their .dockerignore and
+# the global.json that pins the SDK the build stage must provide — the parts
+# no other workflow exercises against the base images. Source changes
+# intentionally do NOT trigger it, since the dotnet workflows already gate
+# those.
 
 on:
   pull_request:
@@ -21,6 +23,7 @@ on:
     paths:
       - 'src/Runtime/workflow-engine/Dockerfile'
       - 'src/Runtime/workflow-engine/Dockerfile.dockerignore'
+      - 'src/Runtime/workflow-engine/global.json'
       - 'src/Runtime/workflow-engine-app/Dockerfile'
       - 'src/Runtime/workflow-engine-app/Dockerfile.dockerignore'
       - '.github/workflows/runtime-workflow-engine-docker-build.yaml'

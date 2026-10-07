@@ -1,5 +1,3 @@
-using WorkflowEngine.Resilience.Models;
-
 // CA1716: Identifiers should not match keywords (https://github.com/dotnet/roslyn-analyzers/issues/1858)
 #pragma warning disable CA1716
 

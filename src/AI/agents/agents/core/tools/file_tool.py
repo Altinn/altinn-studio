@@ -18,17 +18,15 @@ modify" rhythm that CC uses to prevent blind retries.
 
 from __future__ import annotations
 
+import asyncio
 import subprocess
 from pathlib import Path
-from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from agents.core.tool import LoopContext, ToolResult
+from agents.core.tool import LoopContext, Tool, ToolResult
 
 from ._write_base import WriteToolMixin
-from agents.core.tool import Tool
-
 
 # Cap on a single read's payload — without this, a 200kB schema file
 # would dominate the model's context budget.  Truncation marker mirrors
@@ -98,7 +96,7 @@ class ReadFileArgs(BaseModel):
     path: str = Field(min_length=1, description="Repo-relative path.")
 
 
-class ReadFileTool(Tool):
+class ReadFileTool(Tool[ReadFileArgs]):
     name = "read_file"
     description = (
         "Read a file from the session repository and return its contents.\n\n"
@@ -150,8 +148,7 @@ class ReadFileTool(Tool):
             head = text[:_MAX_READ_CHARS]
             return ToolResult(
                 content=(
-                    head
-                    + f"\n\n[…truncated {len(text) - _MAX_READ_CHARS} chars. "
+                    head + f"\n\n[…truncated {len(text) - _MAX_READ_CHARS} chars. "
                     "Use a more specific tool or read a smaller file if you need the rest.]"
                 ),
                 metadata={"truncated": True, "chars": len(text)},
@@ -180,7 +177,7 @@ class EditFileArgs(BaseModel):
     )
 
 
-class EditFileTool(WriteToolMixin):
+class EditFileTool(WriteToolMixin[EditFileArgs]):
     name = "edit_file"
     description = (
         "Find a literal string in a file and replace it.  Surgical: one "
@@ -240,10 +237,7 @@ class EditFileTool(WriteToolMixin):
             if len(spans) != 1:
                 found = ""
                 if len(spans) > 1:
-                    found = (
-                        f"  Ignoring whitespace it would match {len(spans)} places, so "
-                        "add surrounding context."
-                    )
+                    found = f"  Ignoring whitespace it would match {len(spans)} places, so add surrounding context."
                 return ToolResult(
                     content=(
                         f"`old_string` not found in {args.path}.  Re-read the file and "
@@ -279,8 +273,7 @@ class EditFileTool(WriteToolMixin):
 
         _mark_changed(ctx, args.path)
         note = (
-            "  `old_string` matched only after ignoring whitespace, so that region now "
-            "carries your formatting."
+            "  `old_string` matched only after ignoring whitespace, so that region now carries your formatting."
             if matched_on_whitespace
             else ""
         )
@@ -356,10 +349,7 @@ def _whitespace_insensitive_spans(text: str, needle: str) -> list[tuple[int, int
         return []
     # Every start position, not just the non-overlapping ones: two candidates that
     # overlap are still two, and this match only applies when there is exactly one.
-    spans = [
-        (found.start(), found.start() + len(found.group(1)))
-        for found in re.finditer(f"(?=({joined}))", text)
-    ]
+    spans = [(found.start(), found.start() + len(found.group(1))) for found in re.finditer(f"(?=({joined}))", text)]
     return _without_whitespace_variants(spans)
 
 
@@ -387,7 +377,7 @@ class WriteFileArgs(BaseModel):
     content: str = Field(description="Full new contents of the file.")
 
 
-class WriteFileTool(WriteToolMixin):
+class WriteFileTool(WriteToolMixin[WriteFileArgs]):
     name = "write_file"
     description = (
         "Create a new file, or completely overwrite an existing one.\n\n"
@@ -445,7 +435,7 @@ class DiscardFileChangesArgs(BaseModel):
     path: str = Field(min_length=1, description="Repo-relative path to reset to HEAD.")
 
 
-class DiscardFileChangesTool(WriteToolMixin):
+class DiscardFileChangesTool(WriteToolMixin[DiscardFileChangesArgs]):
     name = "discard_file_changes"
     description = (
         "Reset ONE file in the working tree back to its last committed state "
@@ -468,7 +458,8 @@ class DiscardFileChangesTool(WriteToolMixin):
         except PathError as exc:
             return ToolResult(content=str(exc), is_error=True)
         try:
-            subprocess.run(
+            await asyncio.to_thread(
+                subprocess.run,
                 ["git", "checkout", "HEAD", "--", args.path],
                 cwd=ctx.repo_path,
                 check=True,

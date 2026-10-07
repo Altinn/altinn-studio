@@ -12,8 +12,6 @@ import { retrieveSelectedValues } from './utils';
 
 export type StudioTextResourcePickerProps = Override<
   {
-    emptyLabel?: string;
-    noTextResourceOptionLabel?: string;
     onValueChange: (id: string | null) => void;
     required?: boolean;
     textResources: TextResource[];
@@ -23,18 +21,7 @@ export type StudioTextResourcePickerProps = Override<
 >;
 
 export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextResourcePickerProps>(
-  (
-    {
-      emptyLabel = '',
-      noTextResourceOptionLabel = '',
-      onValueChange,
-      required,
-      textResources,
-      value,
-      ...rest
-    },
-    ref,
-  ) => {
+  ({ onValueChange, textResources, value, ...rest }, ref) => {
     const handleSelectedChange = (item: StudioSuggestionItem): void =>
       onValueChange(item?.value ?? null);
 
@@ -43,35 +30,31 @@ export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextR
       [textResources, value],
     );
 
-    const selectedItem: StudioSuggestionItem = useMemo(
-      () => ({
-        value: selectedValue,
-        label: textResources.find((tr) => tr.id === selectedValue)?.value ?? selectedValue,
-      }),
+    const selectedItem: StudioSuggestionItem | null = useMemo(
+      () =>
+        selectedValue
+          ? {
+              value: selectedValue,
+              label: textResources.find((tr) => tr.id === selectedValue)?.value ?? selectedValue,
+            }
+          : null,
       [selectedValue, textResources],
     );
 
     return (
       <StudioSuggestion
         {...rest}
-        defaultSelected={selectedItem}
+        defaultSelected={undefined}
         multiple={false}
         onSelectedChange={handleSelectedChange}
         selected={selectedItem}
         ref={ref}
       >
-        {!required && renderNoTextResourceOption(noTextResourceOptionLabel)}
         {renderTextResourceOptions(textResources)}
       </StudioSuggestion>
     );
   },
 );
-
-function renderNoTextResourceOption(label: string): ReactElement {
-  return (
-    <StudioSuggestion.Option aria-label={label} className={classes.noTextResourceOption} value='' />
-  );
-}
 
 function renderTextResourceOptions(textResources: TextResource[]): ReactElement[] {
   return textResources.map(renderTextResourceOption);

@@ -256,7 +256,11 @@ public sealed class LegacyRuleConversionTests
             .Select(file => MetadataReference.CreateFromFile(file));
         var compilation = CSharpCompilation.Create(
             "Rules_" + Guid.NewGuid().ToString("N"),
-            [CSharpSyntaxTree.ParseText(source), CSharpSyntaxTree.ParseText(Sdk)],
+            [
+                CSharpSyntaxTree.ParseText(source),
+                CSharpSyntaxTree.ParseText(Sdk),
+                CSharpSyntaxTree.ParseText(ProjectGlobalUsings),
+            ],
             references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
         );
@@ -268,6 +272,16 @@ public sealed class LegacyRuleConversionTests
         var task = Assert.IsType<Task<object?>>(run.Invoke(null, [inputs]));
         return await task;
     }
+
+    // What the upgraded project imports in every file: the SDK's implicit usings the generated code
+    // relies on, plus the Altinn.App.Core.Features global using the v9 upgrade adds to App.csproj.
+    private const string ProjectGlobalUsings = """
+        global using System;
+        global using System.Collections.Generic;
+        global using System.Linq;
+        global using System.Threading.Tasks;
+        global using Altinn.App.Core.Features;
+        """;
 
     // This deliberately models v9's ExpressionValue-only Set contract, not the removed object overload.
     private const string Sdk = """

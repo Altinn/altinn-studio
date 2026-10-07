@@ -3,7 +3,7 @@ import type { IGridStyling } from '@app/layout-contract/generated/common.generat
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { getComponentDef } from 'src/layout/index';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 
 export interface ComponentStructureData {
   componentId: string;
@@ -18,7 +18,7 @@ export interface ComponentStructureData {
  */
 export function useComponentStructureData(baseComponentId: string): ComponentStructureData {
   const overrideItemProps = useFormComponentCtx()?.overrideItemProps;
-  const component = useExternalItem(baseComponentId);
+  const component = useComponentConfig(baseComponentId);
   const grid = overrideItemProps?.grid ?? component?.grid;
   const layoutComponent = getComponentDef(component.type);
   const showValidationMessages = layoutComponent.renderDefaultValidations();

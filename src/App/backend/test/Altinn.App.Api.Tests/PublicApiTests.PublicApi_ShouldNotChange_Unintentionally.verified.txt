@@ -78,6 +78,7 @@ namespace Altinn.App.Api.Controllers
         public AuthorizationController(Altinn.App.Core.Internal.Auth.IAuthorizationClient authorization, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> settings, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/api/authorization/parties/current")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(204)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Register.Models.Party), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(int), 200)]
@@ -87,13 +88,13 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(bool), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 500, "text/plain", new string[0])]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ValidateSelectedParty(int userId, int partyId, System.Threading.CancellationToken cancellationToken) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ValidateSelectedParty(int partyId, System.Threading.CancellationToken cancellationToken) { }
     }
     [Microsoft.AspNetCore.Mvc.ApiController]
     [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi=true)]
     public class CustomOpenApiController : Microsoft.AspNetCore.Mvc.Controller
     {
-        public CustomOpenApiController(Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Swashbuckle.AspNetCore.SwaggerGen.ISerializerDataContractResolver dataContractResolver, Altinn.App.Core.Internal.Process.IProcessReader processReader, System.IServiceProvider serviceProvider, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> settings) { }
+        public CustomOpenApiController(Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Swashbuckle.AspNetCore.SwaggerGen.ISerializerDataContractResolver dataContractResolver, Altinn.App.Core.Internal.Process.IProcessReader processReader, System.IServiceProvider serviceProvider) { }
         public static string InfoDescriptionWarningText { get; }
         [Microsoft.AspNetCore.Mvc.HttpGet("/{org}/{app}/v1/customOpenapi.json")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> Index() { }
@@ -103,7 +104,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data")]
     public class DataController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public DataController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.DataController> logger, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.Prefill.IPrefill prefillService, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Microsoft.FeatureManagement.IFeatureManager featureManager, Altinn.App.Api.Helpers.Patch.InternalPatchService patchService, Altinn.App.Core.Helpers.Serialization.ModelSerializationService modelDeserializer, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, System.IServiceProvider serviceProvider) { }
+        public DataController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.DataController> logger, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.Prefill.IPrefill prefillService, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.App.IFrontendFeatures frontendFeatures, Altinn.App.Api.Helpers.Patch.InternalPatchService patchService, Altinn.App.Core.Helpers.Serialization.ModelSerializationService modelDeserializer, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, System.IServiceProvider serviceProvider) { }
         [Altinn.App.Api.Controllers.DisableFormValueModelBinding]
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceWrite")]
         [Microsoft.AspNetCore.Mvc.HttpPost]
@@ -548,14 +549,6 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Core.Internal.Process.Elements.AppProcessState>> ResumeCurrentTask([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken cancellationToken) { }
-        [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceInstantiate")]
-        [Microsoft.AspNetCore.Mvc.HttpPost("start")]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.WorkflowInitializationProblemDetails), 500)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409, "application/problem+json", new string[] {
-                "application/json"})]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Core.Internal.Process.Elements.AppProcessState>> StartProcess([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? startEvent = null) { }
     }
     [Microsoft.AspNetCore.Authorization.Authorize]
     [Microsoft.AspNetCore.Mvc.ApiController]
@@ -834,6 +827,7 @@ namespace Altinn.App.Api.Helpers
     public static class StartupHelper
     {
         public static string GetApplicationId() { }
+        public static string GetApplicationId(string contentRootPath) { }
         public static void IncludeXmlComments(Altinn.App.Api.Helpers.StartupHelper.SwaggerIncludeXmlComments swaggerDelegate) { }
         public delegate void SwaggerIncludeXmlComments(string filepath, bool a);
     }
@@ -877,11 +871,6 @@ namespace Altinn.App.Api.Infrastructure.Middleware
 }
 namespace Altinn.App.Api.Infrastructure.Telemetry
 {
-    public class CustomTelemetryInitializer : Microsoft.ApplicationInsights.Extensibility.ITelemetryInitializer
-    {
-        public CustomTelemetryInitializer() { }
-        public void Initialize(Microsoft.ApplicationInsights.Channel.ITelemetry telemetry) { }
-    }
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class HealthTelemetryFilter : Microsoft.ApplicationInsights.Extensibility.ITelemetryProcessor
     {
@@ -1324,9 +1313,8 @@ namespace Altinn.App.Api.Models
     public enum WorkflowRecommendedAction
     {
         RetryInstanceCreation = 0,
-        RetryStartProcess = 1,
-        InspectInstance = 2,
-        ResumeCurrentTask = 3,
+        InspectInstance = 1,
+        ResumeCurrentTask = 2,
     }
     public sealed class WorkflowResumeEndpoint : System.IEquatable<Altinn.App.Api.Models.WorkflowResumeEndpoint>
     {

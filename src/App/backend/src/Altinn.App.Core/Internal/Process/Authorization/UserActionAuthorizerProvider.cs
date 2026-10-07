@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Internal.Process.Authorization;
 /// <summary>
 /// Register a user action authorizer for a given action and/or task
 /// </summary>
-public class UserActionAuthorizerProvider : IUserActionAuthorizerProvider
+internal sealed class UserActionAuthorizerProvider : IUserActionAuthorizerProvider
 {
     private readonly Func<IUserActionAuthorizer> _factory;
 

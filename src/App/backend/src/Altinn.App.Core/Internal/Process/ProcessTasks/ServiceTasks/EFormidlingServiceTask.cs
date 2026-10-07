@@ -51,6 +51,46 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     public string Type => "eFormidling";
 
     /// <inheritdoc />
+    public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context)
+    {
+        AltinnEFormidlingConfiguration? config = _processReader
+            .GetAltinnTaskExtension(context.TaskId)
+            ?.EFormidlingConfiguration;
+        if (config is null)
+        {
+            return ["An eFormidling task has no <altinn:eFormidlingConfig> element."];
+        }
+
+        ValidAltinnEFormidlingConfiguration validConfig = config.Validate(context.Environment);
+        var errors = new List<string>();
+        foreach (string dataTypeId in validConfig.DataTypes)
+        {
+            if (!context.ApplicationMetadata.DataTypes.Exists(dataType => dataType.Id == dataTypeId))
+            {
+                errors.Add($"Task ships data type '{dataTypeId}', which does not exist in applicationmetadata.json.");
+            }
+        }
+
+        if (!validConfig.Disabled)
+        {
+            if (_eFormidlingService is null)
+            {
+                errors.Add(
+                    $"eFormidling is enabled for this environment ({context.Environment}), but no "
+                        + $"{nameof(IEFormidlingService)} is registered. Call AddEFormidling() when configuring "
+                        + "services, or disable the task with <altinn:disabled>."
+                );
+            }
+            else if (_eFormidlingService is DefaultEFormidlingService defaultService)
+            {
+                errors.AddRange(defaultService.ValidateConfiguration(context.Environment));
+            }
+        }
+
+        return errors;
+    }
+
+    /// <inheritdoc />
     /// <remarks>
     /// The pipeline's shape is fixed at enqueue time — a workflow enqueued against it dispatches by item
     /// index, so stages must not be inserted, reordered or removed while workflows are in flight.

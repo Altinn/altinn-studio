@@ -9,9 +9,8 @@ from pathlib import Path
 
 from benchmarks import registry
 
-SCHEMA_DIR = (
-    Path(__file__).resolve().parents[3]
-    / "Designer/frontend/packages/ux-editor/src/testing/schemas/json/component"
+LAYOUT_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[3] / "common/ts/layout-contract/schemas/json/layout/layout.schema.v1.json"
 )
 
 # A component type in a layout, or a field type in an extracted spec.
@@ -38,15 +37,8 @@ class Coverage:
 
     @property
     def rendered(self) -> tuple[str, ...]:
-        rendering = {
-            e.name for e in registry.live() if e.kind in RENDERING_KINDS
-        }
-        seen = {
-            c
-            for name, cs in self.by_dataset.items()
-            if name in rendering
-            for c in cs
-        }
+        rendering = {e.name for e in registry.live() if e.kind in RENDERING_KINDS}
+        seen = {c for name, cs in self.by_dataset.items() if name in rendering for c in cs}
         return tuple(sorted(seen & set(self.universe)))
 
     @property
@@ -63,14 +55,11 @@ class Coverage:
 
 def universe() -> tuple[str, ...]:
     """Every component type the agent could emit, from the schemas in this repo."""
-    if not SCHEMA_DIR.is_dir():
+    if not LAYOUT_SCHEMA_PATH.is_file():
         return ()
-    names = [
-        path.name.split(".")[0]
-        for path in SCHEMA_DIR.glob("*.schema.v1.json")
-        if not path.name.startswith("common-defs")
-    ]
-    return tuple(sorted(names))
+    schema = json.loads(LAYOUT_SCHEMA_PATH.read_text(encoding="utf-8"))
+    component_types = schema["definitions"]["AnyComponent"]["properties"]["type"]["enum"]
+    return tuple(sorted(component_types))
 
 
 def _in_file(path: Path) -> tuple[str, ...]:
@@ -100,12 +89,8 @@ def render(coverage: Coverage) -> list[str]:
         return ["  component schemas not found, so coverage cannot be computed"]
     out = [f"  {coverage.summary()}"]
     if coverage.replay_only:
-        out.append(
-            f"  exercised but never rendered: {', '.join(coverage.replay_only)}"
-        )
-        out.append(
-            "    a runtime break in these cannot show up, because no run loads the page"
-        )
+        out.append(f"  exercised but never rendered: {', '.join(coverage.replay_only)}")
+        out.append("    a runtime break in these cannot show up, because no run loads the page")
     for name in coverage.unavailable:
         entry = registry.by_name(name)
         note = " and it is the only kind that renders" if entry.kind in RENDERING_KINDS else ""

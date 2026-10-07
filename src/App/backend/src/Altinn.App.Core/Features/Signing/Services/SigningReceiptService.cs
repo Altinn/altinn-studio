@@ -49,7 +49,7 @@ internal sealed class SigningReceiptService(
     )
     {
         using var activity = _telemetry?.StartSendSignatureReceiptActivity();
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
         var (resource, senderOrgNumber, senderDetails, recipient) = await GetCorrespondenceHeaders(
             signee.PersonNumber,
             applicationMetadata,
