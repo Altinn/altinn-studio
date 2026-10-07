@@ -86,3 +86,26 @@ spec:
     replicaCount: 0
     autoscaling:
       enabled: false
+  # Keep the pdf/pdf-generator Service (called by all apps, parentRef of the
+  # HTTPRoute above) when this release is uninstalled
+  postRenderers:
+  - kustomize:
+      patches:
+      # The chart renders a blank subject namespace, which kustomize rejects.
+      # The API server drops the blank value anyway, so this is a no-op live.
+      - target:
+          kind: RoleBinding
+          name: pdf-generator
+        patch: |
+          - op: remove
+            path: /subjects/0/namespace
+      - target:
+          kind: Service
+          name: pdf-generator
+        patch: |
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: pdf-generator
+            annotations:
+              helm.sh/resource-policy: keep
