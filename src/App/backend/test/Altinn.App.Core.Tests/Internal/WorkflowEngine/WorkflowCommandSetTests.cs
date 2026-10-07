@@ -90,6 +90,18 @@ public class WorkflowCommandSetTests
     }
 
     [Fact]
+    public void GetProcessEndSteps_WithProcessEndedHandler_RunsTheHookAndTheReleaseAfterTheCommit()
+    {
+        var commandSet = WorkflowCommandSet.GetProcessEndSteps(
+            new ProcessEndContext { RegisterEvents = true, HasProcessEndedHandler = true }
+        );
+
+        Assert.Equal([OnProcessEndingHook.Key, EndProcessLegacyHook.Key], Keys(commandSet.Commands));
+        Assert.Equal([OnProcessEndedHook.Key, ReleaseEndedInstance.Key], Keys(commandSet.CriticalPostCommitCommands));
+        Assert.Equal([CompletedAltinnEvent.Key], Keys(commandSet.SideEffectCommands));
+    }
+
+    [Fact]
     public void GetTaskEndSteps_HasNoPostCommitCommands()
     {
         var commandSet = WorkflowCommandSet.GetTaskEndSteps("Task_1");

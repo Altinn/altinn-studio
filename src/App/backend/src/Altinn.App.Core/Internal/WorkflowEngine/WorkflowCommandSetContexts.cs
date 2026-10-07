@@ -63,4 +63,9 @@ internal sealed record ProcessEndContext
     /// Whether to register events with the events component.
     /// </summary>
     public bool RegisterEvents { get; init; }
+
+    /// <summary>
+    /// Whether the app registers an <see cref="IOnProcessEndedHandler"/>, which runs after the commit.
+    /// </summary>
+    public bool HasProcessEndedHandler { get; init; }
 }

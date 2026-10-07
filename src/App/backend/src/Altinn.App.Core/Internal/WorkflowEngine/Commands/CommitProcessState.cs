@@ -9,9 +9,10 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
 /// Request payload for CommitProcessState command.
-/// Contains the complete process state change with old and new states.
+/// Contains the complete process state change with old and new states, and whether the workflow runs
+/// further steps after the commit, which then own the release of the instance.
 /// </summary>
-internal sealed record ProcessStateChangePayload(ProcessStateChange ProcessStateChange, bool ServiceTaskFollows = false)
+internal sealed record ProcessStateChangePayload(ProcessStateChange ProcessStateChange, bool StepsFollowCommit = false)
     : CommandRequestPayload;
 
 /// <summary>
@@ -79,15 +80,9 @@ internal sealed class CommitProcessState(IAppMetadata appMetadata)
             instance.Process = newProcessState;
             unitOfWork.UpdateProcessState(processStateChange);
 
-            if (newProcessState.Ended is not null)
+            if (!toStoragePayload.StepsFollowCommit)
             {
-                await StageProcessEndCleanup(unitOfWork);
-            }
-
-            if (!toStoragePayload.ServiceTaskFollows)
-            {
-                unitOfWork.TransitionProcessStatus(ProcessStatus.Processing, ProcessStatus.Idle);
-                instance.Process.Status = ProcessStatus.Idle;
+                await StageRelease(unitOfWork, appMetadata);
             }
 
             return new SuccessfulProcessEngineCommandResult();
@@ -98,9 +93,27 @@ internal sealed class CommitProcessState(IAppMetadata appMetadata)
         }
     }
 
-    private async Task StageProcessEndCleanup(InstanceDataUnitOfWork unitOfWork)
+    /// <summary>
+    /// Stages the end of the workflow's ownership of the instance: the configured process-end cleanup when the
+    /// process has ended, then <c>processing</c> → <c>idle</c>. Staged by whichever step finishes the workflow.
+    /// </summary>
+    internal static async Task StageRelease(InstanceDataUnitOfWork unitOfWork, IAppMetadata appMetadata)
     {
-        ApplicationMetadata applicationMetadata = appMetadata.ApplicationMetadata;
+        Instance instance = unitOfWork.Instance;
+        if (instance.Process.Ended is not null)
+        {
+            await StageProcessEndCleanup(unitOfWork, appMetadata.ApplicationMetadata);
+        }
+
+        unitOfWork.TransitionProcessStatus(ProcessStatus.Processing, ProcessStatus.Idle);
+        instance.Process.Status = ProcessStatus.Idle;
+    }
+
+    private static async Task StageProcessEndCleanup(
+        InstanceDataUnitOfWork unitOfWork,
+        ApplicationMetadata applicationMetadata
+    )
+    {
         HashSet<string> dataTypesToDelete = applicationMetadata
             .DataTypes.Where(dataType => dataType?.AppLogic?.AutoDeleteOnProcessEnd == true)
             .Select(dataType => dataType.Id)

@@ -140,7 +140,7 @@ Altinn events must tolerate out-of-order (and duplicate) delivery. Should a side
 genuinely need to run after another, express it with an explicit `DependsOn` between the siblings —
 never by step order.
 
-Post-commit categorization: `ExecuteServiceTask` is **critical** (stays in Main);
+Post-commit categorization: `ExecuteServiceTask`, `OnProcessEndedHook` and `ReleaseEndedInstance` are **critical** (stay in Main);
 `MovedToAltinnEvent`, `InstanceCreatedAltinnEvent`, `CompletedAltinnEvent`, and
 `NotifyInstanceOwnerOnInstantiation` are **side effects**. (`EndProcessLegacyHook` runs pre-commit,
 and the configured process-end cleanup/hard delete is staged by `CommitProcessState` into the
@@ -194,11 +194,19 @@ OnProcessEndingHook → EndProcessLegacyHook
                          configured element cleanup + optional hard delete in one save) ──
 EnqueueSideEffectsWorkflow
 
+With an IOnProcessEndedHandler registered, the release moves to the last step:
+OnProcessEndingHook → EndProcessLegacyHook
+  ── CommitProcessState (stages ended state/events; keeps processing) ──
+OnProcessEndedHook
+  ── ReleaseEndedInstance (configured element cleanup + processing → idle + optional hard delete) ──
+EnqueueSideEffectsWorkflow
+
 Side-effects workflow (single-step independent root, IsHead=false, own commit-time state, links→Main):
 CompletedAltinnEvent
 ```
 
 Process-end cleanup is part of the `CommitProcessState` aggregate. `CommitProcessState` accepts only an active shape (`Ended` null and `CurrentTask` present) or a terminal shape (`Ended` present, `CurrentTask` null, and `EndEvent` nonblank); every other shape fails before any process/status/cleanup/deletion staging. Configured elements are staged for deletion in the same save; an in-aggregate unlock is staged first so locked task data is emitted with `ignoreLock=true`. Optional hard deletion is also part of that exact terminal aggregate. There is no version-bumping Storage callback after the clearing/hard-delete commit.
+When the app registers an `IOnProcessEndedHandler`, the ended state is committed first with `processing` kept, the hook runs against the committed end, and `ReleaseEndedInstance` stages the same cleanup, release and hard delete in the workflow's last save, so `idle` still marks the end of the whole workflow. Storage must admit that release save on an instance whose stored process has already ended. The side effects of a process end are enqueued after the release, so `completed` is announced for the finished end.
 `EndProcessLegacyHook` deliberately runs before the terminal commit, after the ended state is installed in memory, so public app `IProcessEnd` implementations can inspect `EndEvent` and pre-cleanup data while `processing` still blocks unsupported direct Storage mutations. `CompletedAltinnEvent` remains after the commit; it only publishes through `IEventsClient.AddEvent` and does not perform an instance-version/process-version save.
 
 ### Initial Task Start (process just created)
@@ -279,7 +287,7 @@ Task-generated-data cleanup lives in `CleanupGeneratedFromTask`, which runs righ
 
 `CommitProcessState` is the commit boundary in the workflow sequence, but it does not write to Storage itself. It validates and stages the `ProcessStateChange` on the `InstanceDataUnitOfWork`; the controller's workflow-owned save (`SaveWorkflowOwnedAggregate`) in that same callback commits that process-state mutation. Other callbacks use the same controller-owned workflow save for their own data changes, pending lock statuses, and derived instance-field updates.
 
-`AcquireProcessingStatus` stages exactly expected `idle` → new `processing` and updates the in-memory snapshot before it is re-signed; because the status lives inside the process payload, its save also sends a full `processState` update synthesized from that snapshot. Every subsequent workflow-owned save defaults to expected `processing`. `CommitProcessState` normally stages expected `processing` → new `idle`. When the exact sequence constructed by the factory contains a following service-task command, the factory sets `ServiceTaskFollows` in the private commit payload and the commit instead keeps `processing`. This indicator is produced by the same `WorkflowCommandSet` branch that appends `ExecuteServiceTask`; it is not a task-type classifier, app-facing option, hidden global, or signed runtime continuation result.
+`AcquireProcessingStatus` stages exactly expected `idle` → new `processing` and updates the in-memory snapshot before it is re-signed; because the status lives inside the process payload, its save also sends a full `processState` update synthesized from that snapshot. Every subsequent workflow-owned save defaults to expected `processing`. `CommitProcessState` normally stages expected `processing` → new `idle`. When the sequence constructed by the factory has critical post-commit commands (a service task, or the process-ended hook and its release), the factory sets `StepsFollowCommit` in the private commit payload and the commit instead keeps `processing`; the last of those steps owns the release. The indicator is derived from the assembled sequence; it is not a task-type classifier, app-facing option, hidden global, or signed runtime continuation result.
 
 A successful acquire with an action payload returns `ProcessNextContinuation(Action)`. After saving and re-capturing state, the controller calls `ProcessEngine.EnqueueProcessNext` with the workflow actor, W1's id and the restored unit of work. The navigator uses that service-owner-loaded data for gateway expressions, never a fresh unit of work authenticated as the callback principal. The actor's event fields match the request's `PlatformUser` (including the service owner's org name and the currently empty organization user). An acquire without a payload, used by initial process starts, returns no continuation.
 

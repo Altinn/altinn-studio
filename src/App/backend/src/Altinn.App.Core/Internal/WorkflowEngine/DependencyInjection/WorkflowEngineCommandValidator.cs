@@ -108,7 +108,9 @@ internal static class WorkflowEngineCommandValidator
         CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps("DummyTask"), keys);
         CollectCommandKeys(WorkflowCommandSet.GetTaskAbandonSteps(), keys);
         CollectCommandKeys(
-            WorkflowCommandSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true }),
+            WorkflowCommandSet.GetProcessEndSteps(
+                new ProcessEndContext { RegisterEvents = true, HasProcessEndedHandler = true }
+            ),
             keys
         );
 

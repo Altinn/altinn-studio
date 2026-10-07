@@ -159,6 +159,11 @@ internal sealed class ProcessStepOptionsResolver
             return _appImplementationFactory.GetAll<IOnProcessEndingHandler>().FirstOrDefault()?.StepOptions;
         }
 
+        if (commandKey == OnProcessEndedHook.Key)
+        {
+            return _appImplementationFactory.GetAll<IOnProcessEndedHandler>().FirstOrDefault()?.StepOptions;
+        }
+
         return null;
     }
 }
