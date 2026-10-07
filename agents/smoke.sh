@@ -35,6 +35,9 @@ hunspell -v | head -1
 btop --version | head -1
 ilspycmd --version | head -1
 sudo ilspycmd --version >/dev/null || fail "ilspycmd does not find the .NET runtime under sudo"
+for tool in dotnet-counters dotnet-dump dotnet-trace; do
+    echo "$tool $("$tool" --version)"
+done
 studioctl version
 test "$(id -un)" = agent || fail "expected to run as agent, got $(id -un)"
 foreign="$(find /home/agent ! -user agent)"
@@ -188,9 +191,6 @@ hyperfine --version
 socat -V | sed -n 2p
 tcpdump --version | head -1
 dig -v
-for tool in dotnet-counters dotnet-dump dotnet-trace; do
-    echo "$tool $("$tool" --version)"
-done
 for tool in file less lsof nc rsync unzip zip; do
     command -v "$tool" >/dev/null || fail "$tool is missing"
 done
