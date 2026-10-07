@@ -1,0 +1,35 @@
+﻿[
+  {
+    Id: ALTINNAPP1021,
+    Title: Task configuration contains an element the app ignores,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: /repo/App/config/process/process.bpmn(19,3),
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp1021,
+    MessageFormat: Task '{0}' has {1} in {2}, which {3}. {4}.,
+    Message: Task 'Task_Sign' has <altinn:signingPdfDatatype> in <altinn:signatureConfig>, which the app does not read, so the setting has no effect. Rename it to <altinn:signingPdfDataType>.,
+    Category: Process
+  },
+  {
+    Id: ALTINNAPP1020,
+    Title: Task configuration is missing a required setting or has an invalid value,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: /repo/App/config/process/process.bpmn(20,3),
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp1020,
+    MessageFormat: Task '{0}' {1}, so {2}. {3}.,
+    Message: Task 'Task_Sign' has <altinn:signatureConfig><altinn:signeeProviderId> but no <altinn:correspondenceResource> for the Staging and Production environments, so the app does not start there. Add one without env, or one for each of those environments.,
+    Category: Process
+  },
+  {
+    Id: ALTINNAPP1022,
+    Title: Task configuration has an env attribute the app cannot use,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: /repo/App/config/process/process.bpmn(22,3),
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp1022,
+    MessageFormat: Task '{0}' has {1} on {2}, {3}. {4}.,
+    Message: Task 'Task_Sign' has env="tt03" on <altinn:signatureConfig><altinn:correspondenceResource>, which is not an environment name the app recognizes, so the entry applies in none of Development, Staging and Production. Use one of the names the app recognizes: development, dev, local, localtest, staging, test, at22, at23, at24, tt02, yt01, production, prod, produksjon.,
+    Category: Process
+  }
+]

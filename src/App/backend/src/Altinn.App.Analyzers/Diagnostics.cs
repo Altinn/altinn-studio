@@ -332,6 +332,42 @@ public static class Diagnostics
                 + "condition that reads [\"dataModel\", ...] without naming a data type fails when an instance "
                 + "leaves the gateway. Correct the id, or add the data type."
         );
+
+        // Only for settings without which the built-in task type fails for certain: at startup, or every time the task
+        // runs. Startup checks most of them for null only, and an empty element reads as an empty string, which passes;
+        // settings that differ by environment it checks only for the environment the app runs in. Also for a value the
+        // app cannot read as the type it expects, which fails loading the process or the task's startup check. '{1}'
+        // says what is missing or invalid, and where; '{2}' what happens; '{3}' how to fix it.
+        public static readonly DiagnosticDescriptor TaskSettingInvalid = Error(
+            "ALTINNAPP1020",
+            Category.Process,
+            "Task configuration is missing a required setting or has an invalid value",
+            "Task '{0}' {1}, so {2}. {3}."
+        );
+
+        // A warning, since nothing fails where the element is: the runtime deserializes the process with
+        // XmlSerializer, which skips what it does not read, so the setting is lost without a word. Elements with
+        // other names in other namespaces belong to other tools and are left alone. '{1}' is the element, '{2}' its
+        // parent, '{3}' why the app ignores it, '{4}' how to fix it.
+        public static readonly DiagnosticDescriptor TaskConfigurationElementIgnored = Warning(
+            "ALTINNAPP1021",
+            Category.Process,
+            "Task configuration contains an element the app ignores",
+            "Task '{0}' has {1} in {2}, which {3}. {4}."
+        );
+
+        // For an env attribute that does not do what it says: a name the app does not recognize, which applies in
+        // none of the environments, and an attribute the app does not read, because of its case or namespace prefix or
+        // because the element takes none, which applies in every one. A warning, since the entry may be meant for an
+        // environment name the app does not recognize either: the runtime maps every such name to the same unknown
+        // environment. '{1}' is the attribute, '{2}' the element it is on, '{3}' what the app makes of it, '{4}' how
+        // to fix it.
+        public static readonly DiagnosticDescriptor UnusableEnvironmentAttribute = Warning(
+            "ALTINNAPP1022",
+            Category.Process,
+            "Task configuration has an env attribute the app cannot use",
+            "Task '{0}' has {1} on {2}, {3}. {4}."
+        );
     }
 
     internal static class Deprecations

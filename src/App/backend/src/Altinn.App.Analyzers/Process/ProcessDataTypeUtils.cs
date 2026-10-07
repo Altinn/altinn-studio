@@ -21,12 +21,10 @@ internal static class ProcessDataTypeUtils
     private const string PdfContentType = "application/pdf";
     private const string JsonContentType = "application/json";
     private const string AppOwned = "app:owned";
+    private const string SigningTaskType = "signing";
     private const string SubformPdfTaskType = "subformPdf";
 
-    private static readonly XName _extensionElements = ProcessFile.Bpmn + "extensionElements";
-    private static readonly XName _taskExtension = ProcessFile.Altinn + "taskExtension";
     private static readonly XName _gatewayExtension = ProcessFile.Altinn + "gatewayExtension";
-    private static readonly XName _taskType = ProcessFile.Altinn + "taskType";
     private static readonly XName _connectedDataTypeId = ProcessFile.Altinn + "connectedDataTypeId";
     private static readonly XName _xsiNil = XNamespace.Get("http://www.w3.org/2001/XMLSchema-instance") + "nil";
 
@@ -53,9 +51,9 @@ internal static class ProcessDataTypeUtils
     private static readonly TaskReference[] _taskReferences =
     [
         // The signing configuration is checked only for null (SigningProcessTask), so an empty element is an id
-        // the app looks up and fails on, like an unknown one.
-        new(["signatureConfig", "signatureDataType"], SkipBlank: false),
-        new(["signatureConfig", "signeeStatesDataTypeId"], SkipBlank: false),
+        // the app looks up and fails on, like an unknown one. In a signing task, ALTINNAPP1020 reports it as missing.
+        new(["signatureConfig", "signatureDataType"], SkipBlank: false, BlankIsMissingIn: SigningTaskType),
+        new(["signatureConfig", "signeeStatesDataTypeId"], SkipBlank: false, BlankIsMissingIn: SigningTaskType),
         new(["signatureConfig", "signingPdfDataType"], SkipBlank: false),
         // UniqueSignatureAuthorizer only looks for signatures among the instance's data elements of these types, so
         // an entry that matches none, a blank one included, is skipped.
@@ -123,7 +121,10 @@ internal static class ProcessDataTypeUtils
             if (element.Name == ProcessFile.Task || element.Name == ProcessFile.ServiceTask)
             {
                 taskIds.Add(id);
-                if (element.Element(_extensionElements)?.Element(_taskExtension) is { } taskExtension)
+                if (
+                    element.Element(ProcessFile.ExtensionElements)?.Element(ProcessFile.TaskExtension) is
+                    { } taskExtension
+                )
                 {
                     CheckTask(context, element, id, taskExtension);
                 }
@@ -141,13 +142,13 @@ internal static class ProcessDataTypeUtils
     {
         // Compared as written, like the runtime, which resolves the task's implementation by exact type. The rules
         // below follow what the built-in implementation of each type stores.
-        var taskType = taskExtension.Element(_taskType)?.Value;
+        var taskType = taskExtension.Element(ProcessFile.TaskType)?.Value;
         foreach (var reference in _taskReferences)
         {
             ReportUnknownDataTypes(context, taskId, taskType, taskExtension, reference);
         }
 
-        CheckDataTypesToSign(context, taskId, taskExtension);
+        CheckDataTypesToSign(context, taskId, taskType, taskExtension);
 
         switch (taskType)
         {
@@ -179,11 +180,17 @@ internal static class ProcessDataTypeUtils
     /// SigningUserAction signs the data types whose id matches an entry ignoring case, and fails only when none does
     /// (GetDataTypeForSignature). The signing view lists the documents to sign by exact id (SigningController).
     /// </summary>
-    private static void CheckDataTypesToSign(Context context, string taskId, XElement taskExtension)
+    private static void CheckDataTypesToSign(Context context, string taskId, string? taskType, XElement taskExtension)
     {
         var entries = Follow(taskExtension, _dataTypesToSign).ToList();
         if (!entries.Exists(e => context.DataTypes.FindIgnoringCase(e.Value) is not null))
         {
+            // A signing task that names no data type to sign is reported by ALTINNAPP1020 instead.
+            if (taskType == SigningTaskType && entries.TrueForAll(e => string.IsNullOrWhiteSpace(e.Value)))
+            {
+                return;
+            }
+
             foreach (var entry in entries)
             {
                 ReportUnknown(context, entry, taskId, _dataTypesToSign);
@@ -235,7 +242,10 @@ internal static class ProcessDataTypeUtils
     /// </summary>
     private static void CheckGateway(Context context, XElement gateway, string gatewayId)
     {
-        var element = gateway.Element(_extensionElements)?.Element(_gatewayExtension)?.Element(_connectedDataTypeId);
+        var element = gateway
+            .Element(ProcessFile.ExtensionElements)
+            ?.Element(_gatewayExtension)
+            ?.Element(_connectedDataTypeId);
         if (element is null || IsNil(element) || context.DataTypes.Find(element.Value) is not null)
         {
             return;
@@ -488,13 +498,11 @@ internal static class ProcessDataTypeUtils
     )
     {
         var skipped = taskType is not null && taskType == reference.FailsInTaskType ? null : reference.Skipped;
+        var skipBlank = reference.SkipBlank || (taskType is not null && taskType == reference.BlankIsMissingIn);
         foreach (var element in Follow(taskExtension, reference.Path))
         {
             var dataTypeId = element.Value;
-            if (
-                (reference.SkipBlank && string.IsNullOrWhiteSpace(dataTypeId))
-                || context.DataTypes.Find(dataTypeId) is not null
-            )
+            if ((skipBlank && string.IsNullOrWhiteSpace(dataTypeId)) || context.DataTypes.Find(dataTypeId) is not null)
             {
                 continue;
             }
@@ -537,7 +545,7 @@ internal static class ProcessDataTypeUtils
     private static string Describe(string dataTypeId) =>
         string.IsNullOrWhiteSpace(dataTypeId) ? "an empty data type id" : $"the data type '{dataTypeId}'";
 
-    private static string ElementPath(string[] path) => string.Concat(path.Select(name => $"<altinn:{name}>"));
+    private static string ElementPath(string[] path) => string.Concat(path.Select(ProcessFile.Tag));
 
     /// <summary>
     /// The first <paramref name="name"/> element under <paramref name="config"/>, the one the runtime reads, and the
@@ -582,11 +590,15 @@ internal static class ProcessDataTypeUtils
     /// The task type in which an unknown id fails after all, so it is reported as one that fails rather than as
     /// <paramref name="Skipped"/>.
     /// </param>
+    /// <param name="BlankIsMissingIn">
+    /// The task type whose blank id ALTINNAPP1020 reports as a missing setting, so it is left alone here.
+    /// </param>
     private sealed record TaskReference(
         string[] Path,
         bool SkipBlank,
         string? Skipped = null,
-        string? FailsInTaskType = null
+        string? FailsInTaskType = null,
+        string? BlankIsMissingIn = null
     );
 
     private sealed class Context(

@@ -204,20 +204,63 @@ public class ProcessDataTypeUtilsTests
 
     [Theory]
     // A blank entry matches nothing, like an unknown one: it is left out, and fails only when nothing else is signed.
-    [InlineData("<altinn:dataType>model</altinn:dataType><altinn:dataType />", Skipped)]
-    [InlineData("<altinn:dataType />", UnknownDataType)]
-    public void A_Blank_Data_Type_To_Sign_Fails_Only_When_Nothing_Is_Signed(string entries, string expectedId)
+    [InlineData("signing", "<altinn:dataType>model</altinn:dataType><altinn:dataType />", Skipped)]
+    [InlineData("myTask", "<altinn:dataType />", UnknownDataType)]
+    // ALTINNAPP1020 reports a signing task that names nothing to sign.
+    [InlineData("signing", "<altinn:dataType />", null)]
+    public void A_Blank_Data_Type_To_Sign_Fails_Only_When_Nothing_Is_Signed(
+        string taskType,
+        string entries,
+        string? expectedId
+    )
     {
         var process = Process(
-            SigningTask(
+            Task(
                 "Task_Sign",
+                taskType,
                 $"<altinn:signatureConfig><altinn:dataTypesToSign>{entries}</altinn:dataTypesToSign></altinn:signatureConfig>"
             )
         );
 
         var diagnostics = Collect(process, Metadata(Model));
 
-        Assert.Equal([expectedId], diagnostics.Select(d => d.Id));
+        Assert.Equal(expectedId is null ? [] : [expectedId], diagnostics.Select(d => d.Id));
+    }
+
+    [Theory]
+    [InlineData("<altinn:signatureDataType />")]
+    [InlineData("<altinn:signeeStatesDataTypeId> </altinn:signeeStatesDataTypeId>")]
+    public void A_Blank_Signing_Data_Type_In_A_Signing_Task_Is_Left_To_The_Missing_Setting_Rule(string setting)
+    {
+        // ALTINNAPP1020 reports it as an empty setting.
+        var process = Process(
+            SigningTask(
+                "Task_Sign",
+                $"<altinn:signatureConfig><altinn:dataTypesToSign><altinn:dataType>model</altinn:dataType></altinn:dataTypesToSign>{setting}</altinn:signatureConfig>"
+            )
+        );
+
+        Assert.Empty(Collect(process, Metadata(Model)));
+    }
+
+    [Fact]
+    public void A_Blank_Data_Type_In_A_Task_Without_A_Type_Is_Reported()
+    {
+        // Only a blank id in a signing task is left to ALTINNAPP1020; a task without a type is not one.
+        var process = Process(
+            """
+                    <bpmn:task id="Task_Untyped">
+                      <bpmn:extensionElements>
+                        <altinn:taskExtension>
+                          <altinn:signatureConfig><altinn:signingPdfDataType /></altinn:signatureConfig>
+                        </altinn:taskExtension>
+                      </bpmn:extensionElements>
+                    </bpmn:task>
+
+            """
+        );
+
+        Assert.Equal(UnknownDataType, Assert.Single(Collect(process, Metadata(Model))).Id);
     }
 
     [Fact]
