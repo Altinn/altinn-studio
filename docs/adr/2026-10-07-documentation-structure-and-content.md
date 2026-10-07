@@ -13,23 +13,25 @@ instead of repeating it.
 
 ### Structure
 
-| Content                                                                            | Home                                                                             |
-| ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| What the product is, the repository map, where to read next                        | Root `README.md`, and `docs/README.md` as the index of `docs/`                   |
-| How we work: issue types and labels, pull requests, changelogs, releases, spelling | `CONTRIBUTING.md`, with details in `docs/development/`                           |
-| Architecture, environments and clusters, deployment, DIS                           | `docs/architecture/` and `docs/infrastructure/`                                  |
-| Vocabulary                                                                         | `docs/glossary.md`                                                               |
-| Related repositories and what lives where                                          | `docs/repositories.md`                                                           |
-| A component: what it is, how it fits with the rest, where and how it runs          | The component's `README.md`, with longer material in a `docs/` folder next to it |
-| Decisions and their reasoning                                                      | `docs/adr/`                                                                      |
-| Direction for agents                                                               | `AGENTS.md`                                                                      |
-| Repeatable multi-step procedures for agents                                        | Skills                                                                           |
-| How our agent images behave                                                        | `agents/`                                                                        |
+| Content                                                                            | Home                                                                                 |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| What the product is, the repository map, where to read next                        | Root `README.md`, and `docs/README.md` as the index of `docs/`                       |
+| How we work: issue types and labels, pull requests, changelogs, releases, spelling | `CONTRIBUTING.md`, with details in `docs/development/`                               |
+| Architecture, environments and clusters, deployment, DIS                           | `docs/architecture/` and `docs/infrastructure/`                                      |
+| Vocabulary                                                                         | `docs/glossary.md`                                                                   |
+| Related repositories and what lives where                                          | `docs/repositories.md`                                                               |
+| A component: what it is, how it fits with the rest, where and how it runs          | The component's `README.md`, with longer material in a `docs/` folder next to it     |
+| Diagrams                                                                           | `docs/diagrams/` when they span components, otherwise the component's `docs/` folder |
+| Decisions and their reasoning                                                      | `docs/adr/`                                                                          |
+| Direction for agents                                                               | `AGENTS.md`                                                                          |
+| Repeatable multi-step procedures for agents                                        | Skills                                                                               |
+| How our agent images behave                                                        | `agents/`                                                                            |
 
 - Each fact has one home. Other files link to it instead of repeating it.
 - Every directory with an `AGENTS.md` also has a `README.md`. The `AGENTS.md` links to the README and adds only
   direction for agents.
 - `docs/` has no agent-specific content.
+- Each diagram is linked from the document that explains it.
 - Use plain Markdown links, not harness-specific imports such as `@README.md`.
 - Facts about another repository live in that repository. Our docs describe how we use it and link there. For
   example, `altinn-platform` documents the DIS operators and their CRDs.
