@@ -5590,6 +5590,7 @@ const generatedContract = {
       },
     },
     Custom: {
+      additionalProperties: { type: 'any' },
       kind: 'component',
       category: 'Form',
       capabilities: {

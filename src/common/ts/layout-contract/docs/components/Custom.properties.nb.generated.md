@@ -1,5 +1,7 @@
 Komponenten støtter også de [felles komponentegenskapene](../common-properties/).
 
+Andre egenskapsnavn er tillatt. Verditype: alle JSON-verdier, inkludert tekst, tall, boolske verdier, objekter, lister og null.
+
 <details class="card adocs-expand adocs-expand-small component-property" id="type">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
@@ -111,7 +113,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
     </span>
   </summary>
   <div class="component-property-group-content">
-    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler tekstene i komponenten til tekstressurser eller uttrykk.</div></div>
+    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler tekstene i komponenten til tekstressurser eller uttrykk. Andre egenskapsnavn er tillatt. Verditype: string | expression&lt;string&gt;.</div></div>
     <div class="component-property-list">
       <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.tabletitle">
         <summary class="component-property-summary">
@@ -211,7 +213,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler verdiene i komponenten til felter i datamodellen.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler verdiene i komponenten til felter i datamodellen. Andre egenskapsnavn er tillatt. Verditype: datamodellbinding.</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="tagname">
