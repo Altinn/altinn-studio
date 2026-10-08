@@ -1,12 +1,13 @@
-import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, HTMLAttributes, KeyboardEvent, ReactElement, Ref } from 'react';
 import cn from 'classnames';
 import { ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
 import classes from './StudioCodeViewer.module.css';
 import { MAX_FORMATTED_CODE_LENGTH } from './codeLanguage';
-import type { highlightCode, StudioCodeViewerLanguage } from './highlightCode';
-import { findJsonFoldRegions, splitHighlightedCodeIntoLines } from './codeLines';
-import type { FoldRegion } from './codeLines';
+import type { StudioCodeViewerLanguage } from './highlightCode';
+import { useHighlightedLines } from './useHighlightedLines';
+import { createCodeLines, findFoldButtonForKey, findVisibleLineIndexes } from './utils';
+import type { CodeLines } from './utils';
 
 export type StudioCodeViewerTexts = {
   collapse: string;
@@ -90,85 +91,12 @@ function StudioCodeViewer(
   );
 }
 
-type CodeLines = {
-  code: string;
-  lines: string[];
-  foldRegions: Map<number, FoldRegion>;
-};
-
 type CollapsedLines = {
   codeLines: CodeLines;
   indexes: ReadonlySet<number>;
 };
 
 const noIndexes: ReadonlySet<number> = new Set();
-
-function createCodeLines(code: string, language?: StudioCodeViewerLanguage): CodeLines {
-  const normalizedCode = code.replace(/\r\n?/g, '\n');
-  return {
-    code: normalizedCode,
-    lines: normalizedCode.split('\n'),
-    foldRegions: language === 'json' ? findJsonFoldRegions(normalizedCode) : new Map(),
-  };
-}
-
-let loadedHighlightCode: typeof highlightCode | undefined;
-
-export async function loadHighlightCode(): Promise<typeof highlightCode> {
-  loadedHighlightCode ??= (await import('./highlightCode')).highlightCode;
-  return loadedHighlightCode;
-}
-
-function useHighlightedLines(
-  code: string,
-  language?: StudioCodeViewerLanguage,
-): string[] | undefined {
-  const [highlight, setHighlight] = useState(() => loadedHighlightCode);
-
-  useEffect(() => {
-    if (!language || highlight) return;
-    loadHighlightCode().then((loaded) => setHighlight(() => loaded));
-  }, [language, highlight]);
-
-  return useMemo(
-    () =>
-      language && highlight ? splitHighlightedCodeIntoLines(highlight(code, language)) : undefined,
-    [highlight, code, language],
-  );
-}
-
-function findVisibleLineIndexes(
-  { lines, foldRegions }: CodeLines,
-  collapsedIndexes: ReadonlySet<number>,
-): number[] {
-  const visibleIndexes: number[] = [];
-  let index = 0;
-  while (index < lines.length) {
-    visibleIndexes.push(index);
-    index = collapsedIndexes.has(index) ? foldRegions.get(index).endIndex + 1 : index + 1;
-  }
-  return visibleIndexes;
-}
-
-function findFoldButtonForKey(
-  foldButtons: HTMLButtonElement[],
-  currentButton: HTMLButtonElement,
-  key: string,
-): HTMLButtonElement | undefined {
-  const position = foldButtons.indexOf(currentButton);
-  switch (key) {
-    case 'ArrowDown':
-      return foldButtons[position + 1];
-    case 'ArrowUp':
-      return foldButtons[position - 1];
-    case 'Home':
-      return foldButtons[0];
-    case 'End':
-      return foldButtons.at(-1);
-    default:
-      return undefined;
-  }
-}
 
 type CodeLineProps = {
   index: number;
