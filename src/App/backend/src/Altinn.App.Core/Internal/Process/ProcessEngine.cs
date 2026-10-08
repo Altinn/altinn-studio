@@ -545,8 +545,7 @@ internal class ProcessEngine : IProcessEngine
                 Success = false,
                 ErrorType = ProcessErrorType.Internal,
                 ErrorTitle = "The process could not move on from the current task.",
-                ErrorMessage =
-                    "Where the process goes from the current task could not be decided, so nothing was changed.",
+                ErrorMessage = "Could not decide where the process goes next.",
             };
             activity?.SetProcessChangeResult(nextElementFailedResult);
             return nextElementFailedResult;

@@ -193,7 +193,7 @@ describe('useProcessNext workflow error convergence', () => {
     await renderFailingProcessNext(
       {
         title: 'The process could not move on from the current task.',
-        detail: 'Where the process goes from the current task could not be decided, so nothing was changed.',
+        detail: 'Could not decide where the process goes next.',
       },
       500,
       { status: 'idle' },
