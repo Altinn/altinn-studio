@@ -2,7 +2,9 @@
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -52,9 +54,11 @@ public class SaveResourceTests
         Assert.True(
             TestDataHelper.FileExistsInRepo(org, targetRepository, developer, $"App/config/texts/resource.{lang}.json")
         );
+        JsonObject expectedJson = JsonNode.Parse(payload)!.AsObject();
+        expectedJson["$schema"] = TextResource.SchemaUrl;
         Assert.True(
             JsonUtils.DeepEquals(
-                payload,
+                expectedJson.ToJsonString(),
                 TestDataHelper.GetFileFromRepo(
                     org,
                     targetRepository,
