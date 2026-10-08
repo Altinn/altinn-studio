@@ -57,7 +57,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
         var provider = new Mock<IAppOptionsProvider>(MockBehavior.Strict);
         provider
-            .Setup(p => p.GetAppOptionsAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
+            .Setup(p => p.GetAppOptions(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(options)
             .Verifiable(Times.Once);
         provider.Setup(p => p.Id).Returns("test").Verifiable(Times.Once);
@@ -350,7 +350,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var provider = new Mock<IInstanceAppOptionsProvider>(MockBehavior.Strict);
         provider
             .Setup(p =>
-                p.GetInstanceAppOptionsAsync(
+                p.GetInstanceAppOptions(
                     It.IsAny<InstanceIdentifier>(),
                     It.IsAny<string>(),
                     It.IsAny<Dictionary<string, string>>()
@@ -488,7 +488,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var options = TestDataOptionsController.GetAppOptions("nb");
         var providerMock = new Mock<IAppOptionsProvider>(MockBehavior.Strict);
         providerMock
-            .Setup(p => p.GetAppOptionsAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
+            .Setup(p => p.GetAppOptions(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(options)
             .Verifiable(Times.Once);
         providerMock.Setup(p => p.Id).Returns("test").Verifiable(Times.Once);
@@ -690,7 +690,7 @@ internal sealed class DummyAltinn3LibraryCodeListService : IAltinn3LibraryCodeLi
         TagNames = ["test-tag-name"],
     };
 
-    public Task<Altinn3LibraryCodeListResponse> GetCachedCodeListResponseAsync(
+    public Task<Altinn3LibraryCodeListResponse> GetCachedCodeListResponse(
         string org,
         string codeListId,
         string? version,
@@ -727,7 +727,7 @@ internal sealed class DummyAltinn3LibraryCodeListService : IAltinn3LibraryCodeLi
         };
     }
 
-    public async Task<AppOptions> GetAppOptionsAsync(
+    public async Task<AppOptions> GetAppOptions(
         string org,
         string codeListId,
         string version,
@@ -736,7 +736,7 @@ internal sealed class DummyAltinn3LibraryCodeListService : IAltinn3LibraryCodeLi
     )
     {
         CallCounter++;
-        var response = await GetCachedCodeListResponseAsync(org, codeListId, version, cancellationToken);
+        var response = await GetCachedCodeListResponse(org, codeListId, version, cancellationToken);
         return MapAppOptions(response, language);
     }
 }
@@ -745,7 +745,7 @@ internal sealed class DummyInstanceProvider : IInstanceAppOptionsProvider
 {
     public string Id => "testInstance";
 
-    public Task<AppOptions> GetInstanceAppOptionsAsync(
+    public Task<AppOptions> GetInstanceAppOptions(
         InstanceIdentifier instanceIdentifier,
         string? language,
         Dictionary<string, string> keyValuePairs
@@ -759,7 +759,7 @@ internal sealed class DummyProvider : IAppOptionsProvider
 {
     public string Id => "test";
 
-    public Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
+    public Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
     {
         return Task.FromResult(TestDataOptionsController.GetAppOptions(language));
     }

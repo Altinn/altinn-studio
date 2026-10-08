@@ -98,7 +98,7 @@ public sealed class AppFilesPollerTests : IDisposable
         var appMetadata = new AppMetadata(accessor, frontendFeatures.Object);
         var options = new AppOptionsFileHandler(accessor);
         Assert.Equal("Før", (appMetadata.ApplicationMetadata).Title["nb"]);
-        Assert.Equal("Norge", Assert.Single((await options.ReadOptionsFromFileAsync("land"))!).Label);
+        Assert.Equal("Norge", Assert.Single((await options.ReadOptionsFromFile("land"))!).Label);
 
         WriteFile("config/applicationmetadata.json", """{ "id": "ttd/app", "title": { "nb": "Etter" } }""");
         WriteFile("options/land.json", """[{ "value": "SE", "label": "Sverige" }]""");
@@ -106,7 +106,7 @@ public sealed class AppFilesPollerTests : IDisposable
 
         // AppMetadata caches the parsed file, but only for as long as the snapshot it was parsed from is current
         Assert.Equal("Etter", (appMetadata.ApplicationMetadata).Title["nb"]);
-        Assert.Equal("Sverige", Assert.Single((await options.ReadOptionsFromFileAsync("land"))!).Label);
+        Assert.Equal("Sverige", Assert.Single((await options.ReadOptionsFromFile("land"))!).Label);
     }
 
     [Fact]

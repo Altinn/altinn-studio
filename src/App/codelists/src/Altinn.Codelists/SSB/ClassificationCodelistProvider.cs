@@ -66,7 +66,7 @@ internal sealed class ClassificationCodelistProvider : IAppOptionsProvider
     public string Id { get; private set; }
 
     /// Gets the <see cref="AppOptions"/> based on the provided classification, options id and key value pairs.
-    public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
+    public async Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
     {
         Dictionary<string, string> mergedKeyValuePairs = MergeDictionaries(_defaultKeyValuePairs, keyValuePairs);
 

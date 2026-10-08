@@ -270,7 +270,7 @@ internal sealed class FormBootstrapService
             }
 
             var schema = GetSchema(dataType);
-            var formData = await GetFormDataAsync(dataAccessor, dataElement, language, cancellationToken);
+            var formData = await GetFormData(dataAccessor, dataElement, language, cancellationToken);
             var validationConfig = isPdf || dataElement.Locked ? null : GetValidationConfig(dataType);
 
             return (
@@ -405,7 +405,7 @@ internal sealed class FormBootstrapService
             try
             {
                 var isStaticallyConfigured = optionsAnalysis.StaticallyConfiguredOptionIds.Contains(optionsId);
-                var optionsFromFile = await appOptionsFileHandler.ReadOptionsFromFileAsync(optionsId);
+                var optionsFromFile = await appOptionsFileHandler.ReadOptionsFromFile(optionsId);
                 var isPlainJsonFile = optionsFromFile is not null;
 
                 if (!isStaticallyConfigured && !isPlainJsonFile)
@@ -457,7 +457,7 @@ internal sealed class FormBootstrapService
     {
         if (instanceIdentifier is not null)
         {
-            var instanceOptions = await _appOptionsService.GetOptionsAsync(
+            var instanceOptions = await _appOptionsService.GetOptions(
                 instanceIdentifier,
                 optionsId,
                 language,
@@ -469,7 +469,7 @@ internal sealed class FormBootstrapService
             }
         }
 
-        return await _appOptionsService.GetOptionsAsync(optionsId, language, queryParameters);
+        return await _appOptionsService.GetOptions(optionsId, language, queryParameters);
     }
 
     private async Task<PartitionedInitialValidations?> LoadAndPartitionInitialValidations(
@@ -583,7 +583,7 @@ internal sealed class FormBootstrapService
         return JsonSerializer.Deserialize<JsonElement>(schemaJson, _jsonSerializerOptions);
     }
 
-    private async Task<object> GetFormDataAsync(
+    private async Task<object> GetFormData(
         InstanceDataUnitOfWork dataAccessor,
         DataElement dataElement,
         string language,

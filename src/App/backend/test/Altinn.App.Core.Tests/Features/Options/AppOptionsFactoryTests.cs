@@ -94,7 +94,7 @@ public class AppOptionsFactoryTests
 
         IAppOptionsProvider optionsProvider = factory.GetOptionsProvider("Country");
 
-        AppOptions options = await optionsProvider.GetAppOptionsAsync(
+        AppOptions options = await optionsProvider.GetAppOptions(
             LanguageConst.Nb,
             new Dictionary<string, string>() { { "key", "value" } }
         );
@@ -105,7 +105,7 @@ public class AppOptionsFactoryTests
     {
         public string Id { get; set; } = "country";
 
-        public Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
+        public Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
         {
             var options = new AppOptions
             {

@@ -14,7 +14,7 @@ public interface IDataListsService
     /// <param name="language">The language code requested.</param>
     /// <param name="keyValuePairs">Optional list of key/value pairs to use for filtering and further lookup.</param>
     /// <returns>The list of options</returns>
-    Task<DataList> GetDataListAsync(string dataListId, string? language, Dictionary<string, string> keyValuePairs);
+    Task<DataList> GetDataList(string dataListId, string? language, Dictionary<string, string> keyValuePairs);
 
     /// <summary>
     /// Get the list of instance specific datalist for a specific data list based on the <see cref="InstanceIdentifier"/>
@@ -26,7 +26,7 @@ public interface IDataListsService
     /// <param name="language">The language code requested.</param>
     /// <param name="keyValuePairs">Optional list of key/value pairs to use for filtering and further lookup.</param>
     /// <returns>The list of options</returns>
-    Task<DataList> GetDataListAsync(
+    Task<DataList> GetDataList(
         InstanceIdentifier instanceIdentifier,
         string dataListId,
         string? language,

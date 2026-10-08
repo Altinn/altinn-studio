@@ -41,7 +41,7 @@ public class ModelDeserializer
     /// <param name="stream">The data stream to deserialize.</param>
     /// <param name="contentType">The content type of the stream.</param>
     /// <returns>An instance of the initialized type if deserializing succeed.</returns>
-    public async Task<object?> DeserializeAsync(Stream stream, string? contentType)
+    public async Task<object?> Deserialize(Stream stream, string? contentType)
     {
         Error = null;
 
@@ -53,19 +53,19 @@ public class ModelDeserializer
 
         if (contentType.Contains("application/json"))
         {
-            return await DeserializeJsonAsync(stream);
+            return await DeserializeJson(stream);
         }
 
         if (contentType.Contains("application/xml"))
         {
-            return await DeserializeXmlAsync(stream);
+            return await DeserializeXml(stream);
         }
 
         Error = $"Unknown content type {contentType}. Cannot read the data.";
         return null;
     }
 
-    private async Task<object?> DeserializeJsonAsync(Stream stream)
+    private async Task<object?> DeserializeJson(Stream stream)
     {
         Error = null;
 
@@ -89,7 +89,7 @@ public class ModelDeserializer
         }
     }
 
-    private async Task<object?> DeserializeXmlAsync(Stream stream)
+    private async Task<object?> DeserializeXml(Stream stream)
     {
         Error = null;
 

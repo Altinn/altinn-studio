@@ -63,7 +63,7 @@ public class ProcessNavigatorTests
     {
         public string GatewayId => "AltinnExpressionsExclusiveGateway";
 
-        public Task<List<SequenceFlow>> FilterAsync(
+        public Task<List<SequenceFlow>> Filter(
             List<SequenceFlow> outgoingFlows,
             Instance instance,
             IInstanceDataAccessor dataAccessor,
@@ -75,7 +75,7 @@ public class ProcessNavigatorTests
             );
         }
 
-        Task<List<SequenceFlow>> IProcessExclusiveGateway.FilterAsync(
+        Task<List<SequenceFlow>> IProcessExclusiveGateway.Filter(
             List<SequenceFlow> outgoingFlows,
             Instance instance,
             ProcessGatewayInformation processGatewayInformation
@@ -103,7 +103,7 @@ public class ProcessNavigatorTests
     {
         public string GatewayId => "AltinnExpressionsExclusiveGateway";
 
-        public Task<List<SequenceFlow>> FilterAsync(
+        public Task<List<SequenceFlow>> Filter(
             List<SequenceFlow> outgoingFlows,
             Instance instance,
             IInstanceDataAccessor dataAccessor,
@@ -113,7 +113,7 @@ public class ProcessNavigatorTests
             return Task.FromResult(new List<SequenceFlow>());
         }
 
-        Task<List<SequenceFlow>> IProcessExclusiveGateway.FilterAsync(
+        Task<List<SequenceFlow>> IProcessExclusiveGateway.Filter(
             List<SequenceFlow> outgoingFlows,
             Instance instance,
             ProcessGatewayInformation processGatewayInformation

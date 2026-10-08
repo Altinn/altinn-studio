@@ -93,23 +93,7 @@ public static class LayoutEvaluator
     /// <summary>
     /// Remove fields that are only referenced from hidden fields from the data object in the state.
     /// </summary>
-    [Obsolete("Use the async version of this method RemoveHiddenDataAsync")]
-    public static void RemoveHiddenData(LayoutEvaluatorState state, RowRemovalOption rowRemovalOption)
-    {
-        RemoveHiddenDataAsync(state, rowRemovalOption, evaluateRemoveWhenHidden: false).GetAwaiter().GetResult();
-    }
-
-    /// <summary>
-    /// Remove fields that are only referenced from hidden fields from the data object in the state.
-    /// </summary>
-    [Obsolete("Use the overload with evaluateRemoveWhenHidden parameter")]
-    public static async Task RemoveHiddenDataAsync(LayoutEvaluatorState state, RowRemovalOption rowRemovalOption) =>
-        await RemoveHiddenDataAsync(state, rowRemovalOption, evaluateRemoveWhenHidden: false);
-
-    /// <summary>
-    /// Remove fields that are only referenced from hidden fields from the data object in the state.
-    /// </summary>
-    public static async Task RemoveHiddenDataAsync(
+    public static async Task RemoveHiddenData(
         LayoutEvaluatorState state,
         RowRemovalOption rowRemovalOption,
         bool evaluateRemoveWhenHidden

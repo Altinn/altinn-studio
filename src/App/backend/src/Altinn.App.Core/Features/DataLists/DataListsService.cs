@@ -26,18 +26,18 @@ internal sealed class DataListsService : IDataListsService
     }
 
     /// <inheritdoc/>
-    public async Task<DataList> GetDataListAsync(
+    public async Task<DataList> GetDataList(
         string dataListId,
         string? language,
         Dictionary<string, string> keyValuePairs
     )
     {
         using var activity = _telemetry?.StartDataListActivity();
-        return await _dataListsFactory.GetDataListProvider(dataListId).GetDataListAsync(language, keyValuePairs);
+        return await _dataListsFactory.GetDataListProvider(dataListId).GetDataList(language, keyValuePairs);
     }
 
     /// <inheritdoc />
-    public async Task<DataList> GetDataListAsync(
+    public async Task<DataList> GetDataList(
         InstanceIdentifier instanceIdentifier,
         string dataListId,
         string? language,
@@ -47,6 +47,6 @@ internal sealed class DataListsService : IDataListsService
         using var activity = _telemetry?.StartDataListActivity(instanceIdentifier);
         return await _instanceDataListsFactory
             .GetDataListProvider(dataListId)
-            .GetInstanceDataListAsync(instanceIdentifier, language, keyValuePairs);
+            .GetInstanceDataList(instanceIdentifier, language, keyValuePairs);
     }
 }

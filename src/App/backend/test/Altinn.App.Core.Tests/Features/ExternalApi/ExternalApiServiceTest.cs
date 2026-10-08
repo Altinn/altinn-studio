@@ -33,7 +33,7 @@ public class ExternalApiServiceTests
 
         _externalApiClientMock.SetupGet(c => c.Id).Returns(externalApiId);
         _externalApiClientMock
-            .Setup(c => c.GetExternalApiDataAsync(_instanceIdentifierMock.Object, queryParams))
+            .Setup(c => c.GetExternalApiData(_instanceIdentifierMock.Object, queryParams))
             .ReturnsAsync(externalApiResultData);
         _externalApiFactoryMock
             .Setup(f => f.GetExternalApiClient(externalApiId))
@@ -55,7 +55,7 @@ public class ExternalApiServiceTests
         data.Should().NotBeNull();
         data.Should().BeEquivalentTo(new ExternalApiDataResult(externalApiResultData, true));
         _externalApiClientMock.Verify(
-            c => c.GetExternalApiDataAsync(_instanceIdentifierMock.Object, queryParams),
+            c => c.GetExternalApiData(_instanceIdentifierMock.Object, queryParams),
             Times.Once
         );
     }
@@ -94,7 +94,7 @@ public class ExternalApiServiceTests
 
         _externalApiClientMock.SetupGet(c => c.Id).Returns(externalApiId);
         _externalApiClientMock
-            .Setup(c => c.GetExternalApiDataAsync(_instanceIdentifierMock.Object, queryParams))
+            .Setup(c => c.GetExternalApiData(_instanceIdentifierMock.Object, queryParams))
             .Throws<HttpRequestException>();
         _externalApiFactoryMock
             .Setup(f => f.GetExternalApiClient(externalApiId))

@@ -9,7 +9,7 @@ namespace Altinn.Codelists.Tests.SSB;
 public class MunicipalitiesCodelistProviderTests
 {
     [Fact]
-    public async Task GetAppOptionsAsync_ShouldReturnListOfCodes()
+    public async Task GetAppOptions_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
         IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider(
@@ -18,7 +18,7 @@ public class MunicipalitiesCodelistProviderTests
             httpClientMock
         );
 
-        var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+        var appOptions = await appOptionsProvider.GetAppOptions("nb", new Dictionary<string, string>());
 
         Assert.NotNull(appOptions.Options);
         Assert.Equal(357, appOptions.Options.Count);

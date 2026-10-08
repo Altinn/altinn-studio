@@ -23,7 +23,7 @@ internal sealed class PostalCodesCodelistsProvider : IAppOptionsProvider
     public string Id => "poststed";
 
     /// <inheritdoc/>
-    public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
+    public async Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
     {
         List<PostalCodeRecord> postalCodes = await _postalCodesClient.GetPostalCodes();
 

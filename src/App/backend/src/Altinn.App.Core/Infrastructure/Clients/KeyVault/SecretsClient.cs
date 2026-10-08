@@ -33,7 +33,7 @@ internal sealed class SecretsClient : ISecretsClient
     }
 
     /// <inheritdoc />
-    public async Task<byte[]> GetCertificateAsync(string certificateName)
+    public async Task<byte[]> GetCertificate(string certificateName)
     {
         using KeyVaultClient client = new KeyVaultClient(
             new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback)
@@ -44,7 +44,7 @@ internal sealed class SecretsClient : ISecretsClient
     }
 
     /// <inheritdoc />
-    public async Task<JsonWebKey> GetKeyAsync(string keyName)
+    public async Task<JsonWebKey> GetKey(string keyName)
     {
         using KeyVaultClient client = new KeyVaultClient(
             new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback)
@@ -64,7 +64,7 @@ internal sealed class SecretsClient : ISecretsClient
     }
 
     /// <inheritdoc />
-    public async Task<string> GetSecretAsync(string secretName)
+    public async Task<string> GetSecret(string secretName)
     {
         using KeyVaultClient client = new KeyVaultClient(
             new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback)

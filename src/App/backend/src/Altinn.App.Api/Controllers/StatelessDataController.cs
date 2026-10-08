@@ -291,7 +291,7 @@ public class StatelessDataController : ControllerBase
         }
 
         ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
-        object? appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+        object? appModel = await deserializer.Deserialize(Request.Body, Request.ContentType);
 
         if (!string.IsNullOrEmpty(deserializer.Error) || appModel is null)
         {
@@ -343,7 +343,7 @@ public class StatelessDataController : ControllerBase
         }
 
         ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
-        object? appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+        object? appModel = await deserializer.Deserialize(Request.Body, Request.ContentType);
 
         if (!string.IsNullOrEmpty(deserializer.Error) || appModel is null)
         {

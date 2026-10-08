@@ -12,7 +12,7 @@ internal sealed class CountiesCodelistProvider(IAdministrativeUnitsClient _count
     public string Id => "fylker-kv";
 
     /// <inheritdoc/>
-    public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
+    public async Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
     {
         var counties = await _countiesHttpClient.GetCounties();
 
