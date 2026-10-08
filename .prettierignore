@@ -11,3 +11,6 @@ yarn.lock
 *.verified.json
 *.yaml
 eidlogger/
+
+# Roslyn parses these Markdown tables and requires its own release-file format.
+**/AnalyzerReleases.*.md
