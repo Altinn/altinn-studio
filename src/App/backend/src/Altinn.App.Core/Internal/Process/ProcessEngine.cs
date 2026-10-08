@@ -420,10 +420,15 @@ internal class ProcessEngine : IProcessEngine
             checkedAction == "reject" && _processReader.IsActionAllowedForTask(currentTaskId, checkedAction);
 
         // Collection dependencies fence earlier workflows; checking them here would race the enqueue.
+        // Only the process status refuses up front, and the task's workflow says whether to wait or resume.
         ProcessStatus? blockingProcessStatus = ProcessStatusHelper.GetBlockingStatus(instance);
         if (blockingProcessStatus is not null)
         {
-            ProcessChangeResult blockedResult = CreateProcessStatusBlockedResult(blockingProcessStatus.Value);
+            ProcessChangeResult blockedResult = await CreateProcessStatusBlockedResult(
+                instance,
+                blockingProcessStatus.Value,
+                cancellationToken
+            );
             activity?.SetProcessChangeResult(blockedResult);
             return blockedResult;
         }
@@ -1023,8 +1028,27 @@ internal class ProcessEngine : IProcessEngine
             _ => throw new ArgumentOutOfRangeException(nameof(blockedState), blockedState, null),
         };
 
-    private static ProcessChangeResult CreateProcessStatusBlockedResult(ProcessStatus currentStatus)
+    private async Task<ProcessChangeResult> CreateProcessStatusBlockedResult(
+        Instance instance,
+        ProcessStatus currentStatus,
+        CancellationToken cancellationToken
+    )
     {
+        WorkflowTaskStatus workflowStatus = await _workflowEngineService.ResolveWorkflowTaskStatus(
+            instance,
+            cancellationToken
+        );
+        if (workflowStatus.Status == WorkflowActivityStatus.Processing)
+        {
+            return CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.Retrying);
+        }
+
+        if (workflowStatus.Status == WorkflowActivityStatus.Failed)
+        {
+            return CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.ResumeRequired);
+        }
+
+        // Idle: the transition finished after the read, or nothing owns the instance; only the status is certain.
         var problem = ProcessStatusHelper.CreateMutationProblem(currentStatus);
         return new ProcessChangeResult
         {

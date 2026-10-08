@@ -972,7 +972,17 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         ProcessStatus processStatus
     )
     {
+        // No workflow is running or failed, so the refusal is the shared process-status problem.
         var workflowEngineService = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        workflowEngineService
+            .Setup(service => service.ResolveWorkflowTaskStatus(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new WorkflowTaskStatus(
+                    Core.Internal.Process.Elements.WorkflowActivityStatus.Idle,
+                    TargetTask: null,
+                    Failure: null
+                )
+            );
         var action = CreateStrictCompleteActionMock();
         var authorizer = CreateCompleteAuthorizerMock("write");
         OverrideServicesForThisTest = services =>
@@ -992,6 +1002,10 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         );
 
         await ProcessStatusProblemAssertions.AssertResponse(response, processStatus);
+        workflowEngineService.Verify(
+            service => service.ResolveWorkflowTaskStatus(It.IsAny<Instance>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
         workflowEngineService.VerifyNoOtherCalls();
         VerifyCompleteAuthorizations(authorizer, "write", completeAuthorizationExpected: false);
         VerifyAppCodeWasNotInvoked(action);

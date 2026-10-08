@@ -2150,6 +2150,54 @@ public sealed class ProcessEngineTest
             );
     }
 
+    [Theory]
+    [InlineData(false, ProcessNextState.Retrying)]
+    [InlineData(true, ProcessNextState.ResumeRequired)]
+    public async Task Next_on_processing_instance_answers_with_the_current_task_workflow_state(
+        bool workflowFailed,
+        ProcessNextState expectedState
+    )
+    {
+        Guid workflowId = Guid.NewGuid();
+        PersistentItemStatus headStatus = workflowFailed
+            ? PersistentItemStatus.Failed
+            : PersistentItemStatus.Processing;
+        var processEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        processEngineClientMock
+            .Setup(c => c.GetCollection(It.IsAny<string>(), _collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                CreateWorkflowCollectionDetailResponse(
+                    _collectionKey,
+                    CreateCollectionHeadStatus(workflowId, headStatus)
+                )
+            );
+        processEngineClientMock
+            .Setup(c => c.ListWorkflows(It.IsAny<string>(), _collectionKey, null, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([
+                CreateWorkflowStatusResponse(workflowId, "Process next: Task_1 -> Task_2", headStatus, _collectionKey),
+            ]);
+        var services = new ServiceCollection();
+        services.AddSingleton(processEngineClientMock.Object);
+        await using var fixture = Fixture.Create(services);
+        Instance instance = CreateTask1Instance();
+        instance.Process.Status = ProcessStatus.Processing;
+
+        ProcessChangeResult result = await fixture.ProcessEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = instance,
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = null,
+            }
+        );
+
+        result.Success.Should().BeFalse();
+        result.ErrorType.Should().Be(ProcessErrorType.Conflict);
+        result.ProcessNextState.Should().Be(expectedState);
+        result.BlockingProcessStatus.Should().BeNull();
+    }
+
     [Fact]
     public async Task EnqueueAndWaitForProcessNext_completes_when_collection_heads_complete()
     {
