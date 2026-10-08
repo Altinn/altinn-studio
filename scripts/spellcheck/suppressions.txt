@@ -172,13 +172,6 @@ adresse
 hel
 Hel
 
-# Norwegian display text and role codes in the external Altinn 2 role catalogue.
-# Preserve these API values; short strings and hyphenated codes evade classification.
-@paths src/Designer/frontend/resourceadm/pages/Altinn2ResourcePoliciesPage/AllRoles.ts
-delt
-mor
-partiets
-
 # Norwegian sample content in Storybook stories and JSX text nodes
 @paths **/MergeConflictWarning/**
 appen
