@@ -75,7 +75,7 @@ describe('DeployPage', () => {
       screen.queryByLabelText(textMock('app_deployment.loading')),
     );
 
-    expect(screen.getByText(textMock('app_release.release_title'))).toBeInTheDocument();
+    expect(await screen.findByText(textMock('app_release.build_source_title'))).toBeInTheDocument();
   });
 });
 
