@@ -423,6 +423,12 @@ public class WorkflowEngineCallbackController : ControllerBase
         CancellationToken cancellationToken
     )
     {
+        // A payload means process/next, whose continuation needs the collection key; refuse before claiming.
+        if (payload.Payload is not null && GetCollectionKey() is null)
+        {
+            return MissingCollectionKey(ProcessingStatusAcquirer.Key, instanceId, activity);
+        }
+
         ProcessingStatusAcquisition acquisition;
         try
         {
@@ -509,27 +515,37 @@ public class WorkflowEngineCallbackController : ControllerBase
         Activity? activity
     )
     {
-        string collectionKey = Request.Headers[CollectionKeyHeader].ToString();
-        if (string.IsNullOrWhiteSpace(collectionKey))
+        if (GetCollectionKey() is not { } collectionKey)
         {
-            _logger.LogError(
-                "Workflow callback is missing the '{Header}' header required for process-next continuation. CommandKey: {CommandKey}, Instance: {InstanceId}.",
-                CollectionKeyHeader,
-                commandKey,
-                instanceId
-            );
-            activity?.SetStatus(ActivityStatusCode.Error, "Missing Collection-Key header");
-            return NonRetryableProblem(
-                "Missing Collection-Key",
-                "Workflow callback is missing the Collection-Key header required for process-next continuation.",
-                StatusCodes.Status422UnprocessableEntity
-            );
+            return MissingCollectionKey(commandKey, instanceId, activity);
         }
 
         await enqueue(collectionKey);
 
         activity?.SetStatus(ActivityStatusCode.Ok);
         return Ok(new AppCallbackResponse { State = updatedState });
+    }
+
+    private string? GetCollectionKey()
+    {
+        string collectionKey = Request.Headers[CollectionKeyHeader].ToString();
+        return string.IsNullOrWhiteSpace(collectionKey) ? null : collectionKey;
+    }
+
+    private ObjectResult MissingCollectionKey(string commandKey, InstanceIdentifier instanceId, Activity? activity)
+    {
+        _logger.LogError(
+            "Workflow callback is missing the '{Header}' header required for process-next continuation. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+            CollectionKeyHeader,
+            commandKey,
+            instanceId
+        );
+        activity?.SetStatus(ActivityStatusCode.Error, "Missing Collection-Key header");
+        return NonRetryableProblem(
+            "Missing Collection-Key",
+            "Workflow callback is missing the Collection-Key header required for process-next continuation.",
+            StatusCodes.Status422UnprocessableEntity
+        );
     }
 
     private Task RunMailboxRelay(

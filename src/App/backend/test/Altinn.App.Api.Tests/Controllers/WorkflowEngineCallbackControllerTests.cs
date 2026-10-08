@@ -301,6 +301,8 @@ public class WorkflowEngineCallbackControllerTests
         );
         Assert.Equal(StatusCodes.Status422UnprocessableEntity, response.StatusCode);
         Assert.Equal("Missing Collection-Key", Assert.IsType<ProblemDetails>(response.Value).Title);
+        // Refused before claiming: without a continuation, a claim would leave the instance processing.
+        Assert.Empty(GetMutationRequests(setup.Services));
     }
 
     [Theory]
