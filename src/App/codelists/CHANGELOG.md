@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Breaking: the code list providers implement `GetAppOptions` instead of `GetAppOptionsAsync`, matching `IAppOptionsProvider` in the Altinn app libraries. Use them with an `Altinn.App.Core` version that has this rename. ([#19774](https://github.com/Altinn/altinn-studio/issues/19774))
+
 ## [9.0.0-preview.1] - 2026-09-09
 
 ### Changed

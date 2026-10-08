@@ -9,6 +9,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Breaking: app library methods no longer end in `Async`, for example `IAppOptionsProvider.GetAppOptions`, `IDataListProvider.GetDataList`, `IProcessExclusiveGateway.Filter` and `ISecretsClient.GetSecret`. Rename your implementations and calls; `studioctl app upgrade v9` does this for you. ([#19774](https://github.com/Altinn/altinn-studio/issues/19774))
+
+### Removed
+
+- Breaking: the obsolete two-parameter `LayoutEvaluator.RemoveHiddenData` overloads, including the blocking synchronous one. Await `LayoutEvaluator.RemoveHiddenData(state, rowRemovalOption, evaluateRemoveWhenHidden: false)` instead; `studioctl app upgrade v9` rewrites the asynchronous calls for you. ([#19774](https://github.com/Altinn/altinn-studio/issues/19774))
+
 ## [9.0.0-preview.7] - 2026-10-07
 
 ### Added

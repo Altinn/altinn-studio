@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl app upgrade v9` removes the `Async` suffix from app code that implements or calls the renamed app library methods, such as `GetAppOptionsAsync` and `FilterAsync`, and lists the calls it cannot verify for you to check. ([#19774](https://github.com/Altinn/altinn-studio/issues/19774))
+
 ## [0.1.0-preview.28] - 2026-10-07
 
 ### Added
