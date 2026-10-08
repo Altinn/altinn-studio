@@ -565,6 +565,65 @@ public sealed class WorkflowPassthroughTests
         );
     }
 
+    [Fact]
+    public async Task EngineConnectionBreaksOffMidBody_DegradesToEngineUnavailable()
+    {
+        // The engine answers its headers and then the connection drops: the body read fails with
+        // an IOException rather than a cancellation. It must not surface as an unhandled 500.
+        var ct = TestContext.Current.CancellationToken;
+        _factory.EngineHandler.ResponseFactory = _ =>
+        {
+            var broken = new HttpResponseMessage(HttpStatusCode.OK);
+            broken.Content = new StreamContent(new BrokenStream());
+            broken.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            return broken;
+        };
+        using var client = CreateAuthorizedClient();
+
+        var response = await client.GetAsync(new Uri($"{GatewayPrefix}/workflows", UriKind.Relative), ct);
+
+        Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+        Assert.Contains(
+            $"\"type\":\"{GatewayProblem.WorkflowEngineUnavailableType}\"",
+            await response.Content.ReadAsStringAsync(ct),
+            StringComparison.Ordinal
+        );
+        Assert.Contains(
+            _factory.Logs.Entries,
+            e =>
+                e.Category == HandleWorkflows.DiagnosticsLoggerCategory
+                && e.Message.Contains("broke off", StringComparison.Ordinal)
+        );
+    }
+
+    /// <summary>A read-only stream whose reads fail the way a dropped connection does.</summary>
+    private sealed class BrokenStream : Stream
+    {
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
+            ValueTask.FromException<int>(new IOException("The response ended prematurely."));
+
+        public override int Read(byte[] buffer, int offset, int count) =>
+            throw new IOException("The response ended prematurely.");
+
+        public override void Flush() { }
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+    }
+
     /// <summary>A read-only stream whose reads complete only by cancellation.</summary>
     private sealed class StallingStream : Stream
     {
