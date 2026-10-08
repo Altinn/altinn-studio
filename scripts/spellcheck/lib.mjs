@@ -785,7 +785,9 @@ export function parseKeyDeclarations(text, name) {
 
 function assignKind(section, kind, where) {
   if (section.kind !== undefined) {
-    throw new HarnessError(`${where}: a section declares exactly one of @empty/@key-contract/@language`);
+    throw new HarnessError(
+      `${where}: a section declares exactly one of @empty/@key-contract/@language`,
+    );
   }
   return kind;
 }
@@ -804,7 +806,8 @@ export function compileKeyDeclarations(entries) {
   return entries.map((e, i) => {
     const where = `key declaration #${i} ('${e.key ?? '?'}')`;
     if (!e.key) throw new HarnessError(`${where} needs a key`);
-    if (!e.kind) throw new HarnessError(`${where} declares no kind (@empty/@key-contract/@language)`);
+    if (!e.kind)
+      throw new HarnessError(`${where} declares no kind (@empty/@key-contract/@language)`);
     if (!e.files) throw new HarnessError(`${where} declares no @files scope`);
     return { ...e, res: e.files.map(globToRegExp), hits: 0 };
   });
