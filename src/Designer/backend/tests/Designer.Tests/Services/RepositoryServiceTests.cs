@@ -365,23 +365,47 @@ public class RepositoryServiceTests
     }
 
     [Fact]
-    public async Task DeleteRepository_SourceControlServiceIsCalled()
+    public async Task DeleteRepository_DeletesLocalCloneAndCallsGiteaClient()
     {
         // Arrange
-        string developer = "testUser";
         string org = "ttd";
-        string repository = "apps-test";
+        string origApp = "hvem-er-hvem";
+        string app = TestDataHelper.GenerateTestRepoName(origApp);
+        string developer = "testUser";
 
-        Mock<ISourceControl> mock = new();
-        mock.Setup(m => m.DeleteRepository(It.IsAny<AltinnRepoEditingContext>())).Returns(Task.CompletedTask);
+        await TestDataHelper.CopyRepositoryForTest(org, origApp, developer, app);
+        string expectedPath = TestDataHelper.GetTestDataRepositoryDirectory(org, app, developer);
 
-        RepositoryService sut = GetServiceForTest(developer, mock.Object);
+        try
+        {
+            // Guard the fixture: the assertion below only proves something if the clone actually existed.
+            Assert.True(Directory.Exists(expectedPath), "Test fixture was not set up: local clone does not exist.");
 
-        // Act
-        await sut.DeleteRepository(org, repository);
+            Mock<IGiteaClient> giteaClientMock = new();
+            giteaClientMock.Setup(m => m.DeleteRepository(org, app)).ReturnsAsync(true);
 
-        // Assert
-        mock.VerifyAll();
+            RepositoryService sut = GetServiceForTest(developer, giteaClient: giteaClientMock.Object);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                app,
+                developer
+            );
+
+            // Act
+            await sut.DeleteRepository(editingContext);
+
+            // Assert
+            giteaClientMock.Verify(m => m.DeleteRepository(org, app), Times.Once);
+            Assert.False(Directory.Exists(expectedPath));
+        }
+        finally
+        {
+            // Ensure a failed run leaves no fixture files behind for later tests.
+            if (Directory.Exists(expectedPath))
+            {
+                Directory.Delete(expectedPath, recursive: true);
+            }
+        }
     }
 
     [Fact]
@@ -623,7 +647,8 @@ public class RepositoryServiceTests
         string developer,
         ISourceControl sourceControlMock = null,
         ICustomTemplateService customTemplateServiceMock = null,
-        IAppScopesService appScopesServiceMock = null
+        IAppScopesService appScopesServiceMock = null,
+        IGiteaClient giteaClient = null
     )
     {
         HttpContext ctx = GetHttpContextForTestUser(developer);
@@ -670,7 +695,7 @@ public class RepositoryServiceTests
             new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object
         );
 
-        IGiteaClient giteaClientMock = new IGiteaClientMock();
+        IGiteaClient giteaClientMock = giteaClient ?? new IGiteaClientMock();
         ApplicationMetadataService applicationInformationService = new(
             new Mock<ILogger<ApplicationMetadataService>>().Object,
             altinnStorageAppMetadataClient,

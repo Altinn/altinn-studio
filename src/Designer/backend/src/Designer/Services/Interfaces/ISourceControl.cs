@@ -158,13 +158,6 @@ public interface ISourceControl
     Task<bool> CreatePullRequest(AltinnRepoEditingContext editingContext, string target, string source, string title);
 
     /// <summary>
-    /// Deletes the provided repository. Both local clone and remote repo.
-    /// </summary>
-    /// <param name="editingContext">The altinn repo editing context</param>
-    /// <returns></returns>
-    Task DeleteRepository(AltinnRepoEditingContext editingContext);
-
-    /// <summary>
     /// Checkout the repository on specified branch.
     /// </summary>
     /// <param name="editingContext">The altinn repo editing context</param>
