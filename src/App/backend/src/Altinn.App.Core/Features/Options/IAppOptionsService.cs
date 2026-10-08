@@ -14,7 +14,7 @@ public interface IAppOptionsService
     /// <param name="language">The language code requested.</param>
     /// <param name="keyValuePairs">Optional list of key/value pairs to use for filtering and further lookup.</param>
     /// <returns>The list of options</returns>
-    Task<AppOptions> GetOptionsAsync(string optionId, string? language, Dictionary<string, string> keyValuePairs);
+    Task<AppOptions> GetOptions(string optionId, string? language, Dictionary<string, string> keyValuePairs);
 
     /// <summary>
     /// Get the list of instance specific options for a specific options list based on the <see cref="InstanceIdentifier"/>
@@ -26,7 +26,7 @@ public interface IAppOptionsService
     /// <param name="language">The language code requested.</param>
     /// <param name="keyValuePairs">Optional list of key/value pairs to use for filtering and further lookup.</param>
     /// <returns>The list of options</returns>
-    Task<AppOptions?> GetOptionsAsync(
+    Task<AppOptions?> GetOptions(
         InstanceIdentifier instanceIdentifier,
         string optionId,
         string? language,

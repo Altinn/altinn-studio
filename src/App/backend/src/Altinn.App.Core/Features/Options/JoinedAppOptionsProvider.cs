@@ -31,7 +31,7 @@ internal sealed class JoinedAppOptionsProvider : IAppOptionsProvider
     public string Id { get; }
 
     /// <inheritdoc />
-    public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
+    public async Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
     {
         // The app options factory is delayed to avoid circular dependencies
         var appOptionsFactory = _appOptionsFactory();
@@ -40,7 +40,7 @@ internal sealed class JoinedAppOptionsProvider : IAppOptionsProvider
             _subOptions.Select(async optionId =>
             {
                 var p = appOptionsFactory.GetOptionsProvider(optionId);
-                return (p.Id, AppOption: await p.GetAppOptionsAsync(language, keyValuePairs));
+                return (p.Id, AppOption: await p.GetAppOptions(language, keyValuePairs));
             })
         );
 

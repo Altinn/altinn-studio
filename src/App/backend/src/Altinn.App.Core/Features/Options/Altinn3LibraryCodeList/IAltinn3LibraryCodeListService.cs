@@ -16,7 +16,7 @@ public interface IAltinn3LibraryCodeListService
     /// <param name="language">Preferred language to map to. Has fallback, will try to map to requested language, else Nb, En, then first available (alphabetically by key) if not provided or not found.</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>App options</returns>
-    Task<AppOptions> GetAppOptionsAsync(
+    Task<AppOptions> GetAppOptions(
         string org,
         string codeListId,
         string version,
@@ -32,7 +32,7 @@ public interface IAltinn3LibraryCodeListService
     /// <param name="version">Code list version</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Altinn 3 library code list response</returns>
-    Task<Altinn3LibraryCodeListResponse> GetCachedCodeListResponseAsync(
+    Task<Altinn3LibraryCodeListResponse> GetCachedCodeListResponse(
         string org,
         string codeListId,
         string? version,

@@ -23,7 +23,7 @@ public interface IProcessExclusiveGateway
     /// <param name="dataAccessor">Cached accessor for instance.Data</param>
     /// <param name="processGatewayInformation">Information connected with the current gateway under evaluation</param>
     /// <returns>List of possible SequenceFlows to choose out of the gateway</returns>
-    public async Task<List<SequenceFlow>> FilterAsync(
+    public async Task<List<SequenceFlow>> Filter(
         List<SequenceFlow> outgoingFlows,
         Instance instance,
         IInstanceDataAccessor dataAccessor,
@@ -32,7 +32,7 @@ public interface IProcessExclusiveGateway
     {
         // TODO: Remove default implementation that calls the legacy in v9
 #pragma warning disable CS0618 // Type or member is obsolete
-        return await FilterAsync(outgoingFlows, instance, processGatewayInformation);
+        return await Filter(outgoingFlows, instance, processGatewayInformation);
 #pragma warning restore CS0618 // Type or member is obsolete
     }
 
@@ -43,10 +43,8 @@ public interface IProcessExclusiveGateway
     /// <param name="instance">Instance where process is about to move next</param>
     /// <param name="processGatewayInformation">Information connected with the current gateway under evaluation</param>
     /// <returns>List of possible SequenceFlows to choose out of the gateway</returns>
-    [Obsolete(
-        "Use FilterAsync(List<SequenceFlow>, Instance, IInstanceDataAccessor, ProcessGatewayInformation) instead"
-    )]
-    public Task<List<SequenceFlow>> FilterAsync(
+    [Obsolete("Use Filter(List<SequenceFlow>, Instance, IInstanceDataAccessor, ProcessGatewayInformation) instead")]
+    public Task<List<SequenceFlow>> Filter(
         List<SequenceFlow> outgoingFlows,
         Instance instance,
         ProcessGatewayInformation processGatewayInformation

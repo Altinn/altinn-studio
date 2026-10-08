@@ -187,6 +187,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigratePlatformHttpExceptionApis(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateAsyncSuffixApis(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateMisspelledApis(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -783,6 +786,29 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating PlatformHttpException APIs", ex);
+        }
+    }
+
+    /// <summary>
+    /// Drops the Async suffix from app code using the SDK methods v9 renamed (the options and data list
+    /// providers, IProcessExclusiveGateway.Filter, ISecretsClient, ...). Only SDK methods are renamed:
+    /// .NET and third-party methods keep their names, and no string literal is touched.
+    /// </summary>
+    static async Task<int> MigrateAsyncSuffixApis(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("Async suffix");
+        try
+        {
+            var result = new AsyncSuffixApiMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No renamed Async SDK methods in use",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing the Async suffix from SDK method calls", ex);
         }
     }
 

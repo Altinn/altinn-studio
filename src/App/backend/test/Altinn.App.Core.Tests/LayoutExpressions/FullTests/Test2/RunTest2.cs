@@ -65,7 +65,7 @@ public class RunTest2
         data.Some.Data[0].Binding2.Should().Be(0); // binding is not nullable, but will be reset to zero
         data.Some.Data[1].Binding.Should().Be("binding");
         data.Some.Data[1].Binding2.Should().Be(2);
-        await LayoutEvaluator.RemoveHiddenDataAsync(state, RowRemovalOption.DeleteRow);
+        await LayoutEvaluator.RemoveHiddenData(state, RowRemovalOption.DeleteRow, evaluateRemoveWhenHidden: false);
 
         // Verify data was removed
         data.Some.Data.Should().BeNull();

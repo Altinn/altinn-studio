@@ -103,10 +103,7 @@ internal sealed class ProfileClient : IProfileClient
         );
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            userProfile = await JsonSerializerPermissive.DeserializeAsync<UserProfile>(
-                response.Content,
-                cancellationToken
-            );
+            userProfile = await JsonSerializerPermissive.Deserialize<UserProfile>(response.Content, cancellationToken);
         }
         else
         {
@@ -153,10 +150,7 @@ internal sealed class ProfileClient : IProfileClient
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            userProfile = await JsonSerializerPermissive.DeserializeAsync<UserProfile>(
-                response.Content,
-                cancellationToken
-            );
+            userProfile = await JsonSerializerPermissive.Deserialize<UserProfile>(response.Content, cancellationToken);
         }
         else
         {
@@ -189,7 +183,7 @@ internal sealed class ProfileClient : IProfileClient
         );
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            return await JsonSerializerPermissive.DeserializeAsync<UserProfile>(response.Content, cancellationToken);
+            return await JsonSerializerPermissive.Deserialize<UserProfile>(response.Content, cancellationToken);
         }
 
         _logger.LogError(

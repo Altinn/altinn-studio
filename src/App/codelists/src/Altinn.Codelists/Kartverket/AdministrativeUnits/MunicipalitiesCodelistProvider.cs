@@ -14,7 +14,7 @@ internal sealed class MunicipalitiesCodelistProvider(IAdministrativeUnitsClient 
     public string Id => "kommuner-kv";
 
     /// <inheritdoc/>
-    public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
+    public async Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
     {
         bool hasCountyParam = keyValuePairs.TryGetValue("fnr", out string? countyNumber);
         List<Municipality> municipalities =

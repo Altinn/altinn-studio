@@ -7,14 +7,14 @@ namespace Altinn.Codelists.Tests.Kartverket.AdministrativeUnits;
 public class CountiesCodelistProviderTests
 {
     [Fact]
-    public async Task GetAppOptionsAsync_ShouldReturnListOfCounties()
+    public async Task GetAppOptions_ShouldReturnListOfCounties()
     {
         var administrativeUnitsHttpClientMock = new AdministrativeUnitsHttpClientMock(
             Options.Create(new AdministrativeUnitsSettings())
         );
         IAppOptionsProvider appOptionsProvider = new CountiesCodelistProvider(administrativeUnitsHttpClientMock);
 
-        var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+        var appOptions = await appOptionsProvider.GetAppOptions("nb", new Dictionary<string, string>());
 
         Assert.NotNull(appOptions.Options);
         Assert.Equal(11, appOptions.Options.Count);
