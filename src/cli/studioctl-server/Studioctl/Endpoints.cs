@@ -5,7 +5,7 @@ using Altinn.Studio.StudioctlServer.Platform;
 
 namespace Altinn.Studio.StudioctlServer.Studioctl;
 
-internal static class Endpoints
+internal static partial class Endpoints
 {
     public static RouteGroupBuilder MapStudioctlEndpoints(this RouteGroupBuilder api)
     {
@@ -15,6 +15,7 @@ internal static class Endpoints
         studioctl.MapDelete("/apps", UnregisterApp);
         studioctl.MapPost("/shutdown", Shutdown);
         studioctl.MapPost("/apps/upgrades", RunUpgrade);
+        studioctl.MapValidateEndpoints();
         return studioctl;
     }
 
