@@ -184,6 +184,6 @@ Categories are the GitHub issue types `Bug` and `Enhancement`, not labels; state
 
 ### Domain docs
 
-Multi-context: [`GLOSSARY-MAP.md`](GLOSSARY-MAP.md) lists one `GLOSSARY.md` per area, created lazily. All
+Single-context: one `GLOSSARY.md` at the repo root for all areas, created lazily. All
 ADRs live in `docs/adr/` and are named by date (`yyyy-mm-dd-<slug>.md`, from `yyyy-mm-dd-template.md`),
 never by sequence number. See [`docs/agents/domain.md`](docs/agents/domain.md).

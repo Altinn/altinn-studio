@@ -4,24 +4,20 @@ How the engineering skills should consume this repo's domain documentation when 
 
 ## Layout
 
-This repo is **multi-context**. The root `GLOSSARY-MAP.md` lists the contexts, which follow the per-area `AGENTS.md` hierarchy: `src/Designer`, `src/App`, `src/Runtime`, `src/cli`, `src/tools`, and `src/common`. Each context's `GLOSSARY.md` is created lazily by the `domain-modeling` skill when its first term is resolved.
+This repo is **single-context**: Designer, App, Runtime and the tooling share one domain language, so terms like app, service owner and instance are defined once. Don't create per-area `GLOSSARY.md` files, a `GLOSSARY-MAP.md`, or per-area `docs/adr/` directories.
 
 ```
 /
-├── GLOSSARY-MAP.md
-├── docs/adr/            ← all ADRs, system-wide and context-specific
-└── src/
-    ├── Designer/GLOSSARY.md
-    ├── App/GLOSSARY.md
-    └── …
+├── GLOSSARY.md          ← created lazily by the `domain-modeling` skill
+└── docs/adr/            ← all ADRs
 ```
 
 ## Before exploring, read these
 
-- **`GLOSSARY-MAP.md`** at the repo root: it points at one `GLOSSARY.md` per context. Read each one relevant to the topic.
-- **`docs/adr/`**: read ADRs that touch the area you're about to work in. This is the only ADR directory; don't create per-context `docs/adr/` directories.
+- **`GLOSSARY.md`** at the repo root.
+- **`docs/adr/`**: read ADRs that touch the area you're about to work in.
 
-If a context's `GLOSSARY.md` doesn't exist yet, **proceed silently**. Don't flag its absence; don't suggest creating it upfront.
+If `GLOSSARY.md` doesn't exist yet, **proceed silently**. Don't flag its absence; don't suggest creating it upfront.
 
 ## ADR naming
 
@@ -29,7 +25,7 @@ ADRs are named by date, not by sequence number: `docs/adr/yyyy-mm-dd-<slug>.md`,
 
 ## Use the glossary's vocabulary
 
-When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in the relevant `GLOSSARY.md`. Don't drift to synonyms the glossary explicitly avoids.
+When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `GLOSSARY.md`. Don't drift to synonyms the glossary explicitly avoids.
 
 If the concept you need isn't in the glossary yet, that's a signal: either you're inventing language the project doesn't use (reconsider) or there's a real gap (note it for the `domain-modeling` skill).
 
