@@ -195,8 +195,8 @@ steps:
           SCOPES_LABEL_VALUE="[]"
         fi
 
-        if ! SCOPES_JSON=$(echo "${SCOPES_LABEL_VALUE}" | jq -cs 'if length == 1 and (.[0] | type == "array" and all(.[]; type == "string")) then .[0] else error("expected one JSON array of strings") end'); then
-          echo "##[error]Invalid Maskinporten scopes label on image, expected a JSON array of strings: ${SCOPES_LABEL_VALUE}"
+        if ! SCOPES_JSON=$(echo "${SCOPES_LABEL_VALUE}" | jq -cs 'if length == 1 and (.[0] | type == "array" and all(.[]; type == "string" and test("^\\S+$"))) then .[0] else error("expected one JSON array of scopes") end'); then
+          echo "##[error]Invalid Maskinporten scopes label on image, expected a JSON array of non-empty scopes without whitespace: ${SCOPES_LABEL_VALUE}"
           exit 1
         fi
 
