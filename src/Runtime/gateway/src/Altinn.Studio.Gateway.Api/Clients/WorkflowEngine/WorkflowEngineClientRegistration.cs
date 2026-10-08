@@ -14,8 +14,11 @@ internal static class WorkflowEngineClientRegistration
             .AddOptions<WorkflowEngineSettings>()
             .Bind(configuration.GetSection(WorkflowEngineSettings.SectionName))
             .Validate(
-                settings => settings.BaseUrl.IsAbsoluteUri && string.IsNullOrEmpty(settings.BaseUrl.Query),
-                "WorkflowEngine.BaseUrl must be an absolute URI without a query string."
+                settings =>
+                    settings.BaseUrl.IsAbsoluteUri
+                    && string.IsNullOrEmpty(settings.BaseUrl.Query)
+                    && string.IsNullOrEmpty(settings.BaseUrl.Fragment),
+                "WorkflowEngine.BaseUrl must be an absolute URI without a query string or fragment."
             )
             .Validate(
                 settings => settings.RequestTimeout > TimeSpan.Zero,
@@ -26,20 +29,24 @@ internal static class WorkflowEngineClientRegistration
         // No resilience handler on purpose: resume, nudge and fail are mutations, and a blanket retry
         // would replay them. The engine is one hop away; failures surface as the distinct
         // "engine unavailable" envelope and the caller decides whether to retry.
-        services.AddHttpClient(
-            WorkflowEngineClient.HttpClientName,
-            (serviceProvider, client) =>
-            {
-                var settings = serviceProvider
-                    .GetRequiredService<IOptionsMonitor<WorkflowEngineSettings>>()
-                    .CurrentValue;
-                client.BaseAddress = NormalizeBaseUrl(settings.BaseUrl);
-                // Bounds the header phase only: responses are read headers-first so the body can
-                // stream through, and HttpClient disposes its timeout once the headers are in.
-                // UpstreamPassthroughResult bounds the body phase with the same setting.
-                client.Timeout = settings.RequestTimeout;
-            }
-        );
+        services
+            .AddHttpClient(
+                WorkflowEngineClient.HttpClientName,
+                (serviceProvider, client) =>
+                {
+                    var settings = serviceProvider
+                        .GetRequiredService<IOptionsMonitor<WorkflowEngineSettings>>()
+                        .CurrentValue;
+                    client.BaseAddress = NormalizeBaseUrl(settings.BaseUrl);
+                    // Bounds the header phase only: responses are read headers-first so the body can
+                    // stream through, and HttpClient disposes its timeout once the headers are in.
+                    // UpstreamPassthroughResult bounds the body phase with the same setting.
+                    client.Timeout = settings.RequestTimeout;
+                }
+            )
+            // A pass-through follows no redirects: following one would send a second request to a
+            // path outside the whitelist and hand the caller that answer instead of the engine's.
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
 
         services.AddSingleton<WorkflowEngineClient>();
 
