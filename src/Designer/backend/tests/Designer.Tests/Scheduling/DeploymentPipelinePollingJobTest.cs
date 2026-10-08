@@ -1,6 +1,8 @@
 #nullable enable
 using System;
 using System.Diagnostics;
+using System.Net.Http;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
@@ -10,6 +12,7 @@ using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Scheduling;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -76,6 +79,216 @@ public class DeploymentPipelinePollingJobTest
         var capturedAppMetadata = JsonConvert.DeserializeObject<ApplicationMetadata>(capturedAppMetadataJson);
         Assert.NotNull(capturedAppMetadata);
         Assert.False(capturedAppMetadata.CopyInstanceSettings.Enabled);
+        Assert.Equal(
+            nameof(AppStatus.Deprecated),
+            JsonNode.Parse(capturedAppMetadataJson)?["status"]?.GetValue<string>()
+        );
+    }
+
+    [Fact]
+    public async Task Execute_UndeploySucceeded_SetsDeprecatedStatusInResourceRegistry()
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        var jobExecutionContext = JobExecutionContextFactory(PipelineType.Undeploy);
+        SetupCompletedBuild(fixture, BuildResult.Succeeded);
+
+        // Act
+        await fixture.Service.Execute(jobExecutionContext);
+
+        // Assert
+        fixture.MockApplicationInformationService.Verify(
+            x => x.UpdateResourceRegistryStatusAsync("testorg", "testapp", "tt02", AppStatus.Deprecated),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task Execute_UndeploySucceeded_ResourceRegistryUpdateFails_StillPublishesCompletedEvent()
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        var jobExecutionContext = JobExecutionContextFactory(PipelineType.Undeploy);
+        SetupCompletedBuild(fixture, BuildResult.Succeeded);
+        fixture
+            .MockApplicationInformationService.Setup(x =>
+                x.UpdateResourceRegistryStatusAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
+                )
+            )
+            .ReturnsAsync(new ResourceRegistryPublishResult(false, "Resource not found"));
+
+        // Act
+        await fixture.Service.Execute(jobExecutionContext);
+
+        // Assert
+        fixture.MockPublisher.Verify(
+            x =>
+                x.Publish(
+                    It.Is<DeploymentPipelineCompleted>(e => e.PipelineType == PipelineType.Undeploy && e.Succeeded),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Theory]
+    [InlineData(PipelineType.Deploy, BuildResult.Succeeded)]
+    [InlineData(PipelineType.Undeploy, BuildResult.Failed)]
+    public async Task Execute_NotSucceededUndeploy_DoesNotUpdateResourceRegistryStatus(
+        PipelineType pipelineType,
+        BuildResult buildResult
+    )
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        var jobExecutionContext = JobExecutionContextFactory(pipelineType);
+        SetupCompletedBuild(fixture, buildResult);
+
+        // Act
+        await fixture.Service.Execute(jobExecutionContext);
+
+        // Assert
+        fixture.MockApplicationInformationService.Verify(
+            x =>
+                x.UpdateResourceRegistryStatusAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
+                ),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task Execute_UndeploySucceeded_AppDeployedAgainAfterUndeploy_SkipsDeprecation()
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        var jobExecutionContext = JobExecutionContextFactory(PipelineType.Undeploy);
+        DateTime undeployRequested = DateTime.UtcNow.AddMinutes(-10);
+        SetupCompletedBuild(fixture, BuildResult.Succeeded, decommissionCreated: undeployRequested);
+        fixture
+            .MockDeploymentRepository.Setup(x => x.GetLatestDeploy("testorg", "testapp", "tt02"))
+            .ReturnsAsync(new DeploymentEntity { Created = undeployRequested.AddMinutes(5) });
+
+        // Act
+        await fixture.Service.Execute(jobExecutionContext);
+
+        // Assert
+        fixture.MockStorageAppMetadataClient.Verify(
+            x =>
+                x.UpsertApplicationMetadata(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                ),
+            Times.Never
+        );
+        fixture.MockApplicationInformationService.Verify(
+            x =>
+                x.UpdateResourceRegistryStatusAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
+                ),
+            Times.Never
+        );
+        fixture.MockPublisher.Verify(
+            x =>
+                x.Publish(
+                    It.Is<DeploymentPipelineCompleted>(e => e.PipelineType == PipelineType.Undeploy && e.Succeeded),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task Execute_UndeploySucceeded_LatestDeployBeforeUndeploy_SetsDeprecatedStatus()
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        var jobExecutionContext = JobExecutionContextFactory(PipelineType.Undeploy);
+        DateTime undeployRequested = DateTime.UtcNow.AddMinutes(-10);
+        SetupCompletedBuild(fixture, BuildResult.Succeeded, decommissionCreated: undeployRequested);
+        fixture
+            .MockDeploymentRepository.Setup(x => x.GetLatestDeploy("testorg", "testapp", "tt02"))
+            .ReturnsAsync(new DeploymentEntity { Created = undeployRequested.AddDays(-1) });
+
+        // Act
+        await fixture.Service.Execute(jobExecutionContext);
+
+        // Assert
+        fixture.MockApplicationInformationService.Verify(
+            x => x.UpdateResourceRegistryStatusAsync("testorg", "testapp", "tt02", AppStatus.Deprecated),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task Execute_UndeploySucceeded_StorageUpdateFails_StillSetsDeprecatedStatusInResourceRegistry()
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        var jobExecutionContext = JobExecutionContextFactory(PipelineType.Undeploy);
+        SetupCompletedBuild(fixture, BuildResult.Succeeded);
+        fixture
+            .MockStorageAppMetadataClient.Setup(x =>
+                x.UpsertApplicationMetadata(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ThrowsAsync(new HttpRequestException("Storage unavailable"));
+
+        // Act
+        await Assert.ThrowsAsync<HttpRequestException>(() => fixture.Service.Execute(jobExecutionContext));
+
+        // Assert
+        fixture.MockApplicationInformationService.Verify(
+            x => x.UpdateResourceRegistryStatusAsync("testorg", "testapp", "tt02", AppStatus.Deprecated),
+            Times.Once
+        );
+    }
+
+    private static void SetupCompletedBuild(
+        Fixture fixture,
+        BuildResult buildResult,
+        DateTime? decommissionCreated = null
+    )
+    {
+        fixture
+            .MockStorageAppMetadataClient.Setup(x =>
+                x.GetApplicationMetadataJsonAsync(
+                    It.IsAny<AltinnRepoEditingContext>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(JsonConvert.SerializeObject(new ApplicationMetadata("testorg/testapp")));
+
+        fixture
+            .MockAzureDevOpsBuildClient.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new BuildEntity { Status = BuildStatus.Completed, Result = buildResult });
+
+        fixture
+            .MockDeploymentRepository.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(
+                new DeploymentEntity
+                {
+                    Build = new BuildEntity { Status = BuildStatus.None },
+                    Created = decommissionCreated ?? DateTime.UtcNow,
+                }
+            );
     }
 
     [Fact]
@@ -129,7 +342,9 @@ public class DeploymentPipelinePollingJobTest
         DeploymentPipelinePollingJob DeploymentPipelinePollingJob,
         Mock<IAltinnStorageAppMetadataClient> MockStorageAppMetadataClient,
         Mock<IDeploymentRepository> MockDeploymentRepository,
-        Mock<IAzureDevOpsBuildClient> MockAzureDevOpsBuildClient
+        Mock<IAzureDevOpsBuildClient> MockAzureDevOpsBuildClient,
+        Mock<IApplicationInformationService> MockApplicationInformationService,
+        Mock<IPublisher> MockPublisher
     )
     {
         public DeploymentPipelinePollingJob Service => DeploymentPipelinePollingJob;
@@ -141,14 +356,27 @@ public class DeploymentPipelinePollingJobTest
             var mockDeployEventRepository = new Mock<IDeployEventRepository>();
             var mockAzureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
             var mockHubContext = MockHubContextFactory<EntityUpdatedHub, IEntityUpdateClient>();
+            var mockPublisher = new Mock<IPublisher>();
+            var mockApplicationInformationService = new Mock<IApplicationInformationService>();
+            mockApplicationInformationService
+                .Setup(x =>
+                    x.UpdateResourceRegistryStatusAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<AppStatus>()
+                    )
+                )
+                .ReturnsAsync(new ResourceRegistryPublishResult(true));
 
             var service = new DeploymentPipelinePollingJob(
                 mockAzureDevOpsBuildClient.Object,
                 mockDeploymentRepository.Object,
                 mockDeployEventRepository.Object,
                 mockStorageAppMetadataClient.Object,
+                mockApplicationInformationService.Object,
                 mockHubContext.Object,
-                Mock.Of<IPublisher>(),
+                mockPublisher.Object,
                 NullLogger<DeploymentPipelinePollingJob>.Instance,
                 TimeProvider.System
             );
@@ -157,7 +385,9 @@ public class DeploymentPipelinePollingJobTest
                 service,
                 mockStorageAppMetadataClient,
                 mockDeploymentRepository,
-                mockAzureDevOpsBuildClient
+                mockAzureDevOpsBuildClient,
+                mockApplicationInformationService,
+                mockPublisher
             );
         }
     }

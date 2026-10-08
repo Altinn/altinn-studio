@@ -396,6 +396,131 @@ public class CreateTests
         Assert.Equal(DeployEventType.PipelineScheduled.ToString(), events[1].EventType);
     }
 
+    [Theory]
+    [InlineData("ttd", "deploy-test-at22", "at22", null, "5.0.0", "50001", AppStatus.UnderDevelopment)]
+    [InlineData("ttd", "deploy-test-tt02", "tt02", "Completed", "5.0.1", "50002", AppStatus.Completed)]
+    public async Task Create_SetsAppStatus_InDeploymentAndStorage(
+        string org,
+        string app,
+        string envName,
+        string appStatus,
+        string tagName,
+        string buildId,
+        AppStatus expectedAppStatus
+    )
+    {
+        // Arrange
+        await PrepareReleaseInDb(org, app, tagName);
+        _mockServerFixture.PrepareDeploymentMockResponses(org, app, buildId);
+
+        string uri = VersionPrefix(org, app);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri)
+        {
+            Content = JsonContent.Create(
+                new
+                {
+                    envName,
+                    tagName,
+                    appStatus,
+                }
+            ),
+        };
+
+        // Act
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+        string responseBody = await response.Content.ReadAsStringAsync();
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.Equal(
+            expectedAppStatus.ToString(),
+            JsonSerializer.Deserialize<JsonElement>(responseBody).GetProperty("appStatus").GetString()
+        );
+
+        var deployment = await DesignerDbFixture
+            .DbContext.Deployments.AsNoTracking()
+            .SingleAsync(d => d.Org == org && d.App == app && d.Buildid == buildId);
+        Assert.Equal(expectedAppStatus.ToString(), deployment.AppStatus);
+
+        var storageRequest = _mockServerFixture.MockApi.LogEntries.Last(entry =>
+            entry.RequestMessage.Path.Contains("/storage/api/v1/applications")
+            && entry.RequestMessage.Method == "POST"
+            && entry.RequestMessage.RawQuery.Contains($"appId={org}/{app}")
+        );
+        var storedApplicationMetadata = JsonSerializer.Deserialize<JsonElement>(storageRequest.RequestMessage.Body);
+        Assert.Equal(expectedAppStatus.ToString(), storedApplicationMetadata.GetProperty("status").GetString());
+    }
+
+    [Theory]
+    [InlineData("ttd", "queue-build-test", "tt02", "6.0.0", "60001")]
+    public async Task Create_WithoutAppStatus_UsesAppStatusFromPreviousDeploy(
+        string org,
+        string app,
+        string envName,
+        string tagName,
+        string buildId
+    )
+    {
+        // Arrange
+        await PrepareReleaseInDb(org, app, tagName);
+        _mockServerFixture.PrepareDeploymentMockResponses(org, app, buildId);
+        var previousDeploy = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
+            org,
+            app,
+            envName: envName,
+            appStatus: AppStatus.Completed
+        );
+        previousDeploy.Created = DateTime.UtcNow.AddMinutes(-5);
+        await DesignerDbFixture.PrepareEntityInDatabase(previousDeploy);
+
+        string uri = VersionPrefix(org, app);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri)
+        {
+            Content = JsonContent.Create(new { envName, tagName }),
+        };
+
+        // Act
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var deployment = await DesignerDbFixture
+            .DbContext.Deployments.AsNoTracking()
+            .SingleAsync(d => d.Org == org && d.App == app && d.Buildid == buildId);
+        Assert.Equal(nameof(AppStatus.Completed), deployment.AppStatus);
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-status-deprecated", "at22", "Deprecated")]
+    [InlineData("ttd", "app-status-withdrawn", "at22", "Withdrawn")]
+    public async Task Create_Returns_400BadRequest_When_AppStatus_Is_Not_Allowed(
+        string org,
+        string app,
+        string envName,
+        string appStatus
+    )
+    {
+        // Arrange
+        string uri = VersionPrefix(org, app);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri)
+        {
+            Content = JsonContent.Create(
+                new
+                {
+                    envName,
+                    tagName = "1.0.0",
+                    appStatus,
+                }
+            ),
+        };
+
+        // Act
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     private async Task PrepareReleaseInDb(string org, string app, string tagName)
     {
         var releaseEntity = new ReleaseEntity
