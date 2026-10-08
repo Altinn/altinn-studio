@@ -1578,9 +1578,6 @@ namespace Altinn.App.Core.Features
     public interface IProcessExclusiveGateway
     {
         string GatewayId { get; }
-        [System.Obsolete("Use FilterAsync(List<SequenceFlow>, Instance, IInstanceDataAccessor, ProcessGatew" +
-            "ayInformation) instead")]
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow>> FilterAsync(System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow> outgoingFlows, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Models.Process.ProcessGatewayInformation processGatewayInformation);
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow>> FilterAsync(System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow> outgoingFlows, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.Process.ProcessGatewayInformation processGatewayInformation);
     }
     public interface ISmsNotificationClient

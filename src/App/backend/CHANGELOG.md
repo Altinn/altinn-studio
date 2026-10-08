@@ -22,6 +22,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Removed
 
+- Breaking: the obsolete `IProcessExclusiveGateway.FilterAsync` overload without an `IInstanceDataAccessor`. Implement the one that takes it, and read the instance's data through the accessor. `studioctl app upgrade v9` adds the parameter.
 - Breaking: `WorkflowFailureKind.AcquireConflict` and the `acquireConflict` workflow failure kind in process responses. A `PUT .../process/next` that another change got to first answers `processNextState: "instanceChanged"` instead.
 
 ## [9.0.0-preview.7] - 2026-10-07
