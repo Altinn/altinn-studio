@@ -9,6 +9,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- `studioctl env up --monitoring` now runs VictoriaMetrics, VictoriaTraces and VictoriaLogs, with Grafana 12.4: ([#20578](https://github.com/Altinn/altinn-studio/pull/20578))
+  - metrics keep their OpenTelemetry names, such as `http.server.request.duration`
+  - `STUDIOCTL_IMAGE_VICTORIA_METRICS`, `_TRACES` and `_LOGS` replace the Tempo, Mimir and Loki variables
+  - dashboards built locally also work in the shared Altinn Studio Grafana
+  - starting needs network access
+
 ## [0.1.0-preview.28] - 2026-10-07
 
 ### Added

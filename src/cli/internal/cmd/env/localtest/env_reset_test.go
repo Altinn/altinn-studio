@@ -251,11 +251,11 @@ func testResetImages() config.ImagesConfig {
 			PgAdmin:          config.ImageSpec{Image: "dpage/pgadmin4", Tag: "latest"},
 		},
 		Monitoring: config.MonitoringImages{
-			Tempo:         config.ImageSpec{Image: "grafana/tempo", Tag: "latest"},
-			Mimir:         config.ImageSpec{Image: "grafana/mimir", Tag: "latest"},
-			Loki:          config.ImageSpec{Image: "grafana/loki", Tag: "latest"},
-			OtelCollector: config.ImageSpec{Image: "otel/opentelemetry-collector-contrib", Tag: "latest"},
-			Grafana:       config.ImageSpec{Image: "grafana/grafana", Tag: "latest"},
+			VictoriaMetrics: config.ImageSpec{Image: "victoriametrics/victoria-metrics", Tag: "latest"},
+			VictoriaTraces:  config.ImageSpec{Image: "victoriametrics/victoria-traces", Tag: "latest"},
+			VictoriaLogs:    config.ImageSpec{Image: "victoriametrics/victoria-logs", Tag: "latest"},
+			OtelCollector:   config.ImageSpec{Image: "otel/opentelemetry-collector-contrib", Tag: "latest"},
+			Grafana:         config.ImageSpec{Image: "grafana/grafana", Tag: "latest"},
 		},
 	}
 }
