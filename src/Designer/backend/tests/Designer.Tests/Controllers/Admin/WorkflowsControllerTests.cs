@@ -736,7 +736,7 @@ public class WorkflowsControllerTests
     }
 
     [Fact]
-    public async Task PassThrough_LeavesAnAbsentUpstreamContentTypeAbsent()
+    public async Task PassThrough_DropsABodyWithoutADeclaredType_KeepingTheStatus()
     {
         SetupCollections(
             new HttpResponseMessage(HttpStatusCode.OK) { Content = ByteContent(Encoding.UTF8.GetBytes("[]")) }
@@ -746,6 +746,40 @@ public class WorkflowsControllerTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Null(response.Content.Headers.ContentType);
+        Assert.Empty(await response.Content.ReadAsByteArrayAsync());
+    }
+
+    [Fact]
+    public async Task PassThrough_NeverServesAnHtmlBody_KeepingTheStatus()
+    {
+        // An ingress error page in front of the gateway, say: it must not be served as Studio content.
+        SetupCollections(
+            new HttpResponseMessage(HttpStatusCode.BadGateway)
+            {
+                Content = ByteContent(Encoding.UTF8.GetBytes("<html><script>alert(1)</script></html>"), "text/html"),
+            }
+        );
+
+        using var response = await HttpClient.GetAsync($"{BasePath()}/collections");
+
+        Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+        Assert.NotEqual("text/html", response.Content.Headers.ContentType?.MediaType);
+        Assert.Empty(await response.Content.ReadAsByteArrayAsync());
+    }
+
+    [Fact]
+    public async Task PassThrough_MarksTheResponseNosniff()
+    {
+        SetupCollections(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = ByteContent(Encoding.UTF8.GetBytes("[]"), "application/json"),
+            }
+        );
+
+        using var response = await HttpClient.GetAsync($"{BasePath()}/collections");
+
+        Assert.Equal("nosniff", Assert.Single(response.Headers.GetValues("X-Content-Type-Options")));
     }
 
     [Fact]
@@ -770,6 +804,7 @@ public class WorkflowsControllerTests
                 """{"a":1}"""
             )
         );
+        upstreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
         SetupCollections(new HttpResponseMessage(HttpStatusCode.OK) { Content = upstreamContent });
 
         (WorkflowsAdminController controller, _) = CreateDirectController();
