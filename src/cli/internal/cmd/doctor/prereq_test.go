@@ -4,6 +4,9 @@ package doctor
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 
 	"altinn.studio/devenv/pkg/container"
@@ -17,12 +20,15 @@ const (
 	dotnetTool            = "dotnet"
 	podmanTool            = "podman"
 	resolvedDockerDefault = "Docker Engine API -> Docker (Default)"
+	systemctlPath         = "/usr/bin/systemctl"
+	systemdLoadedState    = "loaded"
 )
 
 var (
 	errMissingTool      = errors.New("missing tool")
 	errUnexpectedTool   = errors.New("unexpected tool")
 	errNoRuntimeRunning = errors.New("no runtime running")
+	errUserSystemd      = errors.New("user manager unavailable")
 )
 
 func TestProbeContainerRuntime(t *testing.T) {
@@ -116,6 +122,116 @@ func TestCollectPrerequisitesIncludesDockerHost(t *testing.T) {
 	}
 	if prereqs.ContainerResolved != resolvedDockerDefault {
 		t.Fatalf("collectPrerequisites() ContainerResolved = %q", prereqs.ContainerResolved)
+	}
+}
+
+func TestContainerHostHintForMissingRootlessPodmanSocket(t *testing.T) {
+	requireLinux(t)
+	runtimeDir := t.TempDir()
+	t.Setenv("XDG_RUNTIME_DIR", runtimeDir)
+
+	svc := &Service{
+		lookPath: func(name string) (string, error) {
+			if name == "systemctl" {
+				return systemctlPath, nil
+			}
+			return "", errMissingTool
+		},
+		systemdUserUnitLoadState: func(context.Context, string) (string, error) {
+			return systemdLoadedState, nil
+		},
+	}
+	host := "unix://" + filepath.Join(runtimeDir, "podman", "podman.sock")
+
+	got := svc.containerHostHint(t.Context(), host)
+	want := "socket not found; run 'systemctl --user enable --now podman.socket'"
+	if got != want {
+		t.Fatalf("containerHostHint() = %q, want %q", got, want)
+	}
+}
+
+func TestContainerHostHintRequiresLoadedPodmanSystemdUnit(t *testing.T) {
+	requireLinux(t)
+	runtimeDir := t.TempDir()
+	t.Setenv("XDG_RUNTIME_DIR", runtimeDir)
+	host := "unix://" + filepath.Join(runtimeDir, "podman", "podman.sock")
+
+	tests := []struct {
+		lookPath  func(string) (string, error)
+		loadState func(context.Context, string) (string, error)
+		name      string
+	}{
+		{
+			name: "systemctl missing",
+			lookPath: func(string) (string, error) {
+				return "", errMissingTool
+			},
+		},
+		{
+			name: "podman socket unit not found",
+			lookPath: func(string) (string, error) {
+				return systemctlPath, nil
+			},
+			loadState: func(context.Context, string) (string, error) {
+				return "not-found", nil
+			},
+		},
+		{
+			name: "user systemd unavailable",
+			lookPath: func(string) (string, error) {
+				return systemctlPath, nil
+			},
+			loadState: func(context.Context, string) (string, error) {
+				return "", errUserSystemd
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := &Service{
+				lookPath:                 tt.lookPath,
+				systemdUserUnitLoadState: tt.loadState,
+			}
+			if got := svc.containerHostHint(t.Context(), host); got != "" {
+				t.Fatalf("containerHostHint() = %q, want empty", got)
+			}
+		})
+	}
+}
+
+func TestContainerHostHintRequiresMissingConfiguredSocket(t *testing.T) {
+	requireLinux(t)
+	runtimeDir := t.TempDir()
+	t.Setenv("XDG_RUNTIME_DIR", runtimeDir)
+	podmanDir := filepath.Join(runtimeDir, "podman")
+	if err := os.Mkdir(podmanDir, 0o700); err != nil {
+		t.Fatalf("Mkdir() error = %v", err)
+	}
+	socketPath := filepath.Join(podmanDir, "podman.sock")
+	if err := os.WriteFile(socketPath, nil, 0o600); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+
+	svc := &Service{
+		lookPath: func(string) (string, error) {
+			return systemctlPath, nil
+		},
+		systemdUserUnitLoadState: func(context.Context, string) (string, error) {
+			return systemdLoadedState, nil
+		},
+	}
+	host := "unix://" + socketPath
+
+	if got := svc.containerHostHint(t.Context(), host); got != "" {
+		t.Fatalf("containerHostHint() = %q, want empty", got)
+	}
+}
+
+func requireLinux(t *testing.T) {
+	t.Helper()
+	if runtime.GOOS != "linux" {
+		t.Skip("rootless Podman systemd socket hint is Linux-specific")
 	}
 }
 

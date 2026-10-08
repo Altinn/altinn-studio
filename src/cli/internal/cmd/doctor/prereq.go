@@ -29,6 +29,7 @@ func (s *Service) collectPrerequisites(ctx context.Context) *Prerequisites {
 	prerequisites.ContainerResolved = containerResolved
 	prerequisites.ContainerTools = containerTools
 	prerequisites.ContainerHost = strings.TrimSpace(os.Getenv("DOCKER_HOST"))
+	prerequisites.ContainerHostHint = s.containerHostHint(ctx, prerequisites.ContainerHost)
 	prerequisites.ContainerClient = toolchain.ClientVersion
 	prerequisites.ContainerServer = toolchain.ServerVersion
 	prerequisites.Container = Check{
@@ -182,7 +183,7 @@ func (s *Service) collectContainerTools(ctx context.Context) []ContainerTool {
 	var wg sync.WaitGroup
 
 	for _, name := range toolNames {
-		if _, err := s.lookupPath(name); err != nil {
+		if !s.commandExists(name) {
 			continue
 		}
 
