@@ -2154,10 +2154,6 @@ namespace Altinn.App.Core.Features.Process
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnProcessEndedContext context);
     }
-    public interface IOnProcessEndingHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
-    {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnProcessEndingContext context);
-    }
     public interface IOnTaskAbandonHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnTaskAbandonContext context);
@@ -2203,12 +2199,6 @@ namespace Altinn.App.Core.Features.Process
     public sealed class OnProcessEndedContext
     {
         public OnProcessEndedContext() { }
-        public System.Threading.CancellationToken CancellationToken { get; init; }
-        public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
-    }
-    public sealed class OnProcessEndingContext
-    {
-        public OnProcessEndingContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
     }
