@@ -747,14 +747,14 @@ steps:
           "apiVersion": "resources.altinn.studio/v1alpha1",
           "kind": "MaskinportenClient",
           "metadata": {
-            "name": env(RELEASE_NAME),
+            "name": strenv(RELEASE_NAME),
             "namespace": "default",
             "labels": {
               "altinn.studio/managed-by": "altinn-studio",
-              "altinn.studio/source-environment": env(STUDIO_ENVIRONMENT),
-              "altinn.studio/build-id": env(BUILD_BUILDID),
-              "altinn.studio/org": env(APP_OWNER),
-              "altinn.studio/app": env(APP_REPO)
+              "altinn.studio/source-environment": strenv(STUDIO_ENVIRONMENT),
+              "altinn.studio/build-id": strenv(BUILD_BUILDID),
+              "altinn.studio/org": strenv(APP_OWNER),
+              "altinn.studio/app": strenv(APP_REPO)
             }
           },
           "spec": {
