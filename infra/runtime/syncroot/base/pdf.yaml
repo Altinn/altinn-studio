@@ -3,10 +3,8 @@ kind: Namespace
 metadata:
   name: pdf
 ---
-# Apps call http://pdf-generator.pdf.svc.cluster.local/pdf. The Service was created
-# by the removed pdf-generator HelmRelease and has no endpoints; the spec matches what
-# Helm created so the live Service is adopted unchanged. Linkerd routes the traffic
-# client-side to pdf3 using the HTTPRoute below.
+# Apps call http://pdf-generator.pdf.svc.cluster.local/pdf. The Service has no
+# endpoints; Linkerd routes the traffic client-side to pdf3 using the HTTPRoute below.
 apiVersion: v1
 kind: Service
 metadata:
@@ -18,6 +16,7 @@ spec:
   - name: pdf-generator
     port: 80
     protocol: TCP
+    appProtocol: http
     targetPort: 3000
   selector:
     app: pdf-generator
