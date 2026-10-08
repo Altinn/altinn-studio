@@ -6,7 +6,13 @@ import {
   PolicyEditor,
   type Policy,
 } from '@altinn/policy-editor';
-import { StudioAlert, StudioButton, StudioDialog, StudioSpinner } from '@studio/components';
+import {
+  StudioAlert,
+  StudioButton,
+  StudioDialog,
+  StudioHeading,
+  StudioSpinner,
+} from '@studio/components';
 import type { ResourceTypeOption } from 'app-shared/types/ResourceAdm';
 import {
   useResourceAccessPackagesQuery,
@@ -79,14 +85,28 @@ export const LocalPolicyEditor = ({
   );
   const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(updatedPolicy.rules, subjects);
 
+  const heading = (
+    <StudioDialog.Block className={classes.dialogHeading}>
+      <StudioHeading level={1} data-size='xs'>
+        {t('resourceadm.altinn2policy_dialog_heading', { resourceId: tableData.identifier })}
+      </StudioHeading>
+    </StudioDialog.Block>
+  );
+
   if (isActionPending || isLoadingSubjects || isLoadingAccessPackages) {
-    return <StudioSpinner aria-label={t('resourceadm.altinn2policy_policy_spinner')} />;
+    return (
+      <>
+        {heading}
+        <StudioSpinner aria-label={t('resourceadm.altinn2policy_policy_spinner')} />
+      </>
+    );
   }
 
   const numberOfAltinn2Roles = getDeprecatedAltinn2Subjects(updatedPolicy.rules || []).length;
 
   return (
     <>
+      {heading}
       <StudioDialog.Block>
         <PolicyEditor
           policy={updatedPolicy}

@@ -17,6 +17,13 @@
   margin-bottom: var(--ds-size-8);
 }
 
+.dialogHeading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--ds-color-neutral-background-default);
+}
+
 .buttonRow {
   display: flex;
   align-items: center;
