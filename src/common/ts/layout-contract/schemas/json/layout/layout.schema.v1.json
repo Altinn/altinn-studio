@@ -1944,18 +1944,6 @@
                 }
               ]
             },
-            "required": {
-              "title": "Required?",
-              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
-              "default": false,
-              "$ref": "expression.schema.v1.json#/definitions/boolean"
-            },
-            "readOnly": {
-              "title": "Read only/disabled?",
-              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
-              "default": false,
-              "$ref": "expression.schema.v1.json#/definitions/boolean"
-            },
             "title": {
               "type": "string"
             },
@@ -1998,8 +1986,6 @@
             "forceShowInSummary": true,
             "type": true,
             "textResourceBindings": true,
-            "required": true,
-            "readOnly": true,
             "title": true,
             "removeWhenHidden": true,
             "dataModelBindings": true
@@ -4537,12 +4523,6 @@
               "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
-            "readOnly": {
-              "title": "Read only/disabled?",
-              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
-              "default": false,
-              "$ref": "expression.schema.v1.json#/definitions/boolean"
-            },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
@@ -4632,7 +4612,6 @@
             "type": true,
             "textResourceBindings": true,
             "required": true,
-            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "deletionStrategy": true,
@@ -6647,18 +6626,6 @@
                 }
               ]
             },
-            "required": {
-              "title": "Required?",
-              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
-              "default": false,
-              "$ref": "expression.schema.v1.json#/definitions/boolean"
-            },
-            "readOnly": {
-              "title": "Read only/disabled?",
-              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
-              "default": false,
-              "$ref": "expression.schema.v1.json#/definitions/boolean"
-            },
             "title": {
               "type": "string"
             },
@@ -6724,8 +6691,6 @@
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
-            "required": true,
-            "readOnly": true,
             "title": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
@@ -6825,18 +6790,6 @@
                 }
               ]
             },
-            "required": {
-              "title": "Required?",
-              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
-              "default": false,
-              "$ref": "expression.schema.v1.json#/definitions/boolean"
-            },
-            "readOnly": {
-              "title": "Read only/disabled?",
-              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
-              "default": false,
-              "$ref": "expression.schema.v1.json#/definitions/boolean"
-            },
             "layoutSet": {
               "title": "Layout set ID",
               "description": "The layout set to load for this subform",
@@ -6899,8 +6852,6 @@
             "forceShowInSummary": true,
             "type": true,
             "textResourceBindings": true,
-            "required": true,
-            "readOnly": true,
             "layoutSet": true,
             "showAddButton": true,
             "showDeleteButton": true,

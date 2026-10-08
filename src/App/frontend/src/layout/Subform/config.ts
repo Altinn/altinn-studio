@@ -20,8 +20,6 @@ export const Config = new CG.component({
     renderInTabs: false,
   },
 })
-  .addProperty(CG.common('required'))
-  .addProperty(CG.common('readOnly'))
   .addProperty(
     new CG.prop(
       'layoutSet',

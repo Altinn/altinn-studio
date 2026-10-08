@@ -20,8 +20,6 @@ export const Config = new CG.component({
   },
   displayData: false,
 })
-  .addProperty(CG.common('required'))
-  .addProperty(CG.common('readOnly'))
   .addProperty(new CG.prop('title', new CG.str()))
   .addDataModelBinding(
     new CG.obj(

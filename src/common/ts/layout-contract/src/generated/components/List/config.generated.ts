@@ -17,7 +17,6 @@ export interface CompListExternal
   type: 'List';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
-  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForList;
   deletionStrategy?: 'soft' | 'hard';
@@ -74,4 +73,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: ListSummaryOverridesWithRef;
 };
 
-// Source hash: c8f624d8563962dfcfcddec262edfc13d4c996a282dad3773b184b34afdbe2f6
+// Source hash: e9cb36311f83d5b53698cfb4ea6544f9939ebd8450d4f08c80f7e87c4d8960eb

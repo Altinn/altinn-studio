@@ -21,8 +21,6 @@ export type CompSubformSerialized = {
     tableEditButton?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
-  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
-  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   layoutSet: string;
   showAddButton?: boolean;
   showDeleteButton?: boolean;
@@ -34,4 +32,4 @@ export type CompSubformSerialized = {
   FormComponentProps &
   SummarizableComponentProps;
 
-// Source hash: 0a8205d2018a87986120f5412a513735b82a2b6db2a5a7a6dac9e5d61b3edbe8
+// Source hash: d28719d5c428fea8937e81377cd7497f6afc0e837c0733e3d3133572ad4f0238

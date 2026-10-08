@@ -4954,28 +4954,6 @@ const generatedContract = {
           },
           required: false,
         },
-        required: {
-          type: 'boolean',
-          expression: true,
-          title: { en: 'Required?', nb: 'Påkrevd' },
-          description: {
-            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
-            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
-          },
-          default: false,
-          required: false,
-        },
-        readOnly: {
-          type: 'boolean',
-          expression: true,
-          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
-          description: {
-            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
-            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
-          },
-          default: false,
-          required: false,
-        },
         title: { type: 'string', required: true },
         removeWhenHidden: {
           type: 'boolean',
@@ -7704,17 +7682,6 @@ const generatedContract = {
           default: false,
           required: false,
         },
-        readOnly: {
-          type: 'boolean',
-          expression: true,
-          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
-          description: {
-            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
-            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
-          },
-          default: false,
-          required: false,
-        },
         removeWhenHidden: {
           type: 'boolean',
           expression: true,
@@ -10223,28 +10190,6 @@ const generatedContract = {
           },
           required: false,
         },
-        required: {
-          type: 'boolean',
-          expression: true,
-          title: { en: 'Required?', nb: 'Påkrevd' },
-          description: {
-            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
-            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
-          },
-          default: false,
-          required: false,
-        },
-        readOnly: {
-          type: 'boolean',
-          expression: true,
-          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
-          description: {
-            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
-            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
-          },
-          default: false,
-          required: false,
-        },
         title: { type: 'string', required: true },
         removeWhenHidden: {
           type: 'boolean',
@@ -10423,28 +10368,6 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
-          required: false,
-        },
-        required: {
-          type: 'boolean',
-          expression: true,
-          title: { en: 'Required?', nb: 'Påkrevd' },
-          description: {
-            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
-            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
-          },
-          default: false,
-          required: false,
-        },
-        readOnly: {
-          type: 'boolean',
-          expression: true,
-          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
-          description: {
-            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
-            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
-          },
-          default: false,
           required: false,
         },
         layoutSet: {

@@ -26,7 +26,6 @@ export type CompListSerialized = {
   type: 'List';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
-  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForList;
   deletionStrategy?: 'soft' | 'hard';
@@ -43,4 +42,4 @@ export type CompListSerialized = {
   SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 86161396b6fb34cf2d249cccd82db4805ada33b321ecc959c4c514fd8e8bbcc0
+// Source hash: 32bde15ff538efa40b17ccc5e6668498d9f088ec53060910b4eac5a35de2eaba

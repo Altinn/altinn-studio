@@ -31,8 +31,6 @@ export interface IDataModelBindingsForTable {
 export type CompSimpleTableSerialized = {
   type: 'SimpleTable';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
-  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
-  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   title: string;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForTable;
@@ -47,4 +45,4 @@ export type CompSimpleTableSerialized = {
   SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 9588d540d9ef95122f0eb27fced3b88e296ca94022001c2345d239396d343786
+// Source hash: 5e8746319d35f38cd3f0952d5f89f528b62b01b25973053b7b9fadaa66729aa5

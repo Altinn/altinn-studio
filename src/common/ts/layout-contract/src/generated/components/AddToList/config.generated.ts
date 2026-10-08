@@ -12,8 +12,6 @@ export interface CompAddToListExternal
   extends ComponentBase, FormComponentProps, SummarizableComponentProps {
   type: 'AddToList';
   textResourceBindings?: TRBFormComp & TRBSummarizable;
-  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
-  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   title: string;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: { data: IDataModelReference };
@@ -47,4 +45,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 1abfe244f7b55d7a576de5c38beeda4b5280b9d8d68d7f0e8accc194724331f4
+// Source hash: cc2485e9dc15f99dec15740bd19fd9da5aad139d4abcbe1a6d0a1c6d86ae2402

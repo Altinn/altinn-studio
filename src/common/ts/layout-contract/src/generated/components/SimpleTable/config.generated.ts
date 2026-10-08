@@ -23,8 +23,6 @@ export interface CompSimpleTableExternal
   extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
   type: 'SimpleTable';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
-  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
-  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   title: string;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForTable;
@@ -73,4 +71,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 5886b7593e7950d57e9fe53ca3310a99f26a53d5da1bb22666863d58aa160a59
+// Source hash: 4f84991e530f2dff734ff671f682d4709ae44178ec199fd83b97cd629d5cf946

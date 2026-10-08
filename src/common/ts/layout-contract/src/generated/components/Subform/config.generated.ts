@@ -19,8 +19,6 @@ export interface CompSubformExternal
     tableEditButton?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
-  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
-  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   layoutSet: string;
   showAddButton?: boolean;
   showDeleteButton?: boolean;
@@ -70,4 +68,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: SubformSummaryOverridesWithRef;
 };
 
-// Source hash: 34d4f662af3803bae1038791c9c5f51647d2047fa861f165808776cce242d0fd
+// Source hash: 5ee838c79d74d0e725bade835ff3557806738cc0a2527c0d47efa3e0fff4fe54

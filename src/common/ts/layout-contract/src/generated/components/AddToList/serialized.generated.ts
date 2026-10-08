@@ -11,8 +11,6 @@ import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 export type CompAddToListSerialized = {
   type: 'AddToList';
   textResourceBindings?: TRBFormComp & TRBSummarizable;
-  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
-  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   title: string;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: { data: IRawDataModelBinding };
@@ -20,4 +18,4 @@ export type CompAddToListSerialized = {
   FormComponentProps &
   SummarizableComponentProps;
 
-// Source hash: 1d896d6bcdd9b0090ee5ba8273b540df6fe81242e1e975507fd8d7ef3b262bdd
+// Source hash: d6599fb4063544b75ee0e5e4eb6c2a7cc3390cfb4f32cf3d60f18d5ae4d06c96

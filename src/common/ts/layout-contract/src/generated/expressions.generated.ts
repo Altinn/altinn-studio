@@ -271,16 +271,6 @@ export const Expressions = {
           'Invalid expression for AddToList, property textResourceBindings.summaryAccessibleTitle',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for AddToList, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for AddToList, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -2042,11 +2032,6 @@ export const Expressions = {
       defaultValue: false,
       errorIntroText: 'Invalid expression for List, property required',
     } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for List, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -3624,16 +3609,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for SimpleTable, property textResourceBindings.help',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for SimpleTable, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for SimpleTable, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -3719,16 +3694,6 @@ export const Expressions = {
           'Invalid expression for Subform, property textResourceBindings.tableEditButton',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Subform, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Subform, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     entryDisplayName: {
       returnType: ExprVal.String,
       defaultValue: undefined,
@@ -4592,4 +4557,4 @@ export const CommonExpressions = {
   } satisfies ExpressionDescriptor<ExprVal.Boolean>,
 } as const;
 
-// Source hash: 46ee550549d6aecd392b1e0ae63b3b87edfb8d4a275b51886760a0312636e8e9
+// Source hash: 959a8041204c0b133dd10cfbbf3fa3a2066ad04ce2e50007060d18fe6bc63ff6

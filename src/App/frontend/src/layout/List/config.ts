@@ -20,7 +20,6 @@ export const Config = new CG.component({
   },
 })
   .addProperty(CG.common('required'))
-  .addProperty(CG.common('readOnly'))
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'))
   .addDataModelBinding(
