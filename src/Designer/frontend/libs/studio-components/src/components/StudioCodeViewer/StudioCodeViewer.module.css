@@ -178,14 +178,11 @@
 .code :global(.hljs-literal),
 .code :global(.hljs-symbol),
 .code :global(.hljs-variable),
-.code :global(.hljs-template-variable) {
-  color: var(--ds-color-accent-text-subtle);
-}
-
+.code :global(.hljs-template-variable),
 .code :global(.hljs-title),
 .code :global(.hljs-type),
 .code :global(.hljs-section),
 .code :global(.hljs-selector-id),
 .code :global(.hljs-selector-class) {
-  color: var(--ds-color-info-text-subtle);
+  color: var(--ds-color-accent-text-subtle);
 }
