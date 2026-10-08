@@ -11,6 +11,7 @@ public interface IProcessAuthorizer
     /// <summary>
     /// Determines if the user is authorized to perform process next for the current task.
     /// Checks authorization against the set of actions that allow process next for the current task type.
+    /// An instance without a current task (an ended or not-started process) admits only the service owner.
     /// </summary>
     /// <param name="instance">The instance to authorize against.</param>
     /// <param name="nextProcessState">The incoming process state, used to handle flow type overrides (e.g. AbandonCurrentMoveToNext).</param>
@@ -40,10 +41,4 @@ public interface IProcessAuthorizer
     /// Has a bypass for the sync adapter scope.
     /// </summary>
     Task<bool> AuthorizeDataValuesUpdate(Instance instance);
-
-    /// <summary>
-    /// Determines if the user is the service owner of the instance, i.e. holds a token for the org
-    /// that owns the app.
-    /// </summary>
-    bool IsServiceOwner(Instance instance);
 }
