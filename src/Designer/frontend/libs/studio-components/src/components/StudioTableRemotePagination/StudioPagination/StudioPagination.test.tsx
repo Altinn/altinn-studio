@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { StudioPagination, type StudioPaginationProps } from './StudioPagination';
 import { render, screen, type RenderResult } from '@testing-library/react';
 
@@ -25,7 +26,7 @@ const renderStudioPagination = (props: Partial<StudioPaginationProps> = {}): Ren
   const defaultProps: StudioPaginationProps = {
     currentPage: 1,
     totalPages: 5,
-    onChange: jest.fn(),
+    onChange: vi.fn(),
   };
   return render(<StudioPagination {...defaultProps} {...props} />);
 };

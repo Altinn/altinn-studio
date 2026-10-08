@@ -25,56 +25,21 @@ const exampleComponent = {
 } as const;
 
 describe('generateComponentDocumentation', () => {
-  it.each(['en', 'nb'] as const)('renders only the supplied common properties in %s', (locale) => {
+  it.each(['en', 'nb'] as const)('links components to one common-property page in %s', (locale) => {
     const property = { type: 'string', required: false } as const;
     const catalog = { Example: { ...exampleComponent, properties: { value: property } } } satisfies ComponentCatalog;
-    const render = (names: string[]) =>
-      generateComponentDocumentation(catalog, Object.fromEntries(names.map((name) => [name, property])), locale).get(
-        'Example',
-      )!;
+    const documentation = generateComponentDocumentation(catalog, { id: property, grid: property }, locale);
 
-    expect(render([]).startsWith('|')).toBe(true);
-    expect(render(['custom']).split('\n')[0]).toBe(
+    expect(documentation.get('Example')?.split('\n')[0]).toBe(
       locale === 'en'
-        ? 'The component also supports the common properties [`custom`](../common-properties/#custom).'
-        : 'Komponenten støtter også de felles egenskapene [`custom`](../common-properties/#custom).',
+        ? 'The component also supports the [common component properties](../common-properties/).'
+        : 'Komponenten støtter også de [felles komponentegenskapene](../common-properties/).',
     );
-    expect(render(['id', 'custom']).split('\n')[0]).toContain(
-      locale === 'en'
-        ? '[`id`](../common-properties/#id) and [`custom`](../common-properties/#custom).'
-        : '[`id`](../common-properties/#id) og [`custom`](../common-properties/#custom).',
-    );
-    expect(render(['grid', 'pageBreak', 'custom']).split('\n')[0]).toContain(
-      locale === 'en'
-        ? '[`grid`](../grid/), [`pageBreak`](../page-break/), and [`custom`](../common-properties/#custom).'
-        : '[`grid`](../grid/), [`pageBreak`](../page-break/) og [`custom`](../common-properties/#custom).',
-    );
-    expect(render(['custom'])).not.toContain('../grid/');
+    expect(documentation.get('Example')).not.toContain('id="id"');
+    expect(documentation.get('Example')).not.toContain('../grid/');
   });
 
-  it.each([
-    [1, 3, 'minItems: 1, maxItems: 3'],
-    [0, 0, 'minItems: 0, maxItems: 0'],
-    [undefined, 3, 'minItems: 0, maxItems: 3'],
-    [1, undefined, 'minItems: 1, maxItems: ∞'],
-  ])('renders array cardinality limits %s and %s', (minItems, maxItems, expected) => {
-    const catalog = {
-      Example: {
-        ...exampleComponent,
-        properties: {
-          values: { type: 'array', items: { type: 'string' }, minItems, maxItems, required: false },
-        },
-      },
-    } as const satisfies ComponentCatalog;
-
-    for (const language of ['en', 'nb'] as const) {
-      expect(generateComponentDocumentation(catalog, {}, language).get('Example')).toContain(
-        `| \`values\` | \`string[] (${expected})\` |`,
-      );
-    }
-  });
-
-  it('renders nested object and array properties with expression result types', () => {
+  it('renders small nested properties as collapsed disclosure elements', () => {
     const catalog = {
       Example: {
         ...exampleComponent,
@@ -99,38 +64,164 @@ describe('generateComponentDocumentation', () => {
       },
     } as const satisfies ComponentCatalog;
 
-    const documentation = generateComponentDocumentation(catalog, {}, 'nb').get('Example');
+    const documentation = generateComponentDocumentation(catalog, {}, 'nb').get('Example')!;
 
-    expect(documentation).not.toContain('### Eksempel');
-    expect(documentation).toContain('| `rows` | `object[]` | Ja |');
-    expect(documentation).toContain(
-      '| `rows[].label` | `string \\| expression<string>` | Nei | `"Label"` | Vist ledetekst. |',
-    );
+    expect(documentation).toContain('<details class="card adocs-expand adocs-expand-small component-property"');
+    expect(documentation).not.toContain('<details open');
+    expect(documentation).toContain('id="rows[].label"');
+    expect(documentation).toContain('string | expression&lt;string&gt;');
+    expect(documentation).toContain('Standardverdi: <span class="component-property-value">&quot;Label&quot;</span>');
+    expect(documentation).toContain('<div class="component-property-description">Vist ledetekst.</div>');
+    expect(documentation).not.toContain('<dl>');
   });
 
-  it('parenthesizes union array item types', () => {
+  it('groups properties with at least three nested rows', () => {
     const catalog = {
       Example: {
         ...exampleComponent,
         properties: {
-          values: {
-            type: 'array',
+          settings: {
+            type: 'object',
+            required: true,
+            description: { en: 'Controls the example.', nb: 'Styrer eksempelet.' },
+            properties: {
+              first: { type: 'string', required: false },
+              second: { type: 'string', required: false },
+              third: { type: 'string', required: false },
+            },
+          },
+          queryParameters: {
+            type: 'object',
             required: false,
-            items: {
-              type: 'union',
-              variants: [
-                { type: 'constant', value: 'one' },
-                { type: 'constant', value: 'two' },
-              ],
+            properties: {
+              value: { type: 'string', required: false },
+            },
+          },
+          bindingWrapper: {
+            type: 'object',
+            required: false,
+            properties: {
+              nested: {
+                type: 'object',
+                required: false,
+                properties: {
+                  binding: {
+                    type: 'object',
+                    semanticType: 'dataModelBinding',
+                    required: false,
+                    properties: {
+                      dataType: { type: 'string', required: true },
+                      field: { type: 'string', required: true },
+                    },
+                  },
+                },
+              },
             },
           },
         },
       },
     } as const satisfies ComponentCatalog;
 
-    expect(generateComponentDocumentation(catalog, {}, 'en').get('Example')).toContain(
-      '| `values` | `("one" \\| "two")[]` | No |  |',
+    const documentation = generateComponentDocumentation(catalog, {}, 'en').get('Example')!;
+
+    expect(documentation).toContain('<details class="component-property-group" id="settings">');
+    expect(documentation).toContain('Controls the example.');
+    expect(documentation).toContain('id="settings.first"');
+    expect(documentation).not.toContain('class="component-property-group" id="queryparameters"');
+    expect(documentation).toContain('id="queryparameters.value"');
+    expect(documentation).not.toContain('class="component-property-group" id="bindingwrapper"');
+  });
+
+  it('renders data model bindings as a semantic type without internal normalized fields', () => {
+    const catalog = {
+      Example: {
+        ...exampleComponent,
+        properties: {
+          dataModelBindings: {
+            type: 'object',
+            required: true,
+            properties: {
+              simpleBinding: {
+                type: 'object',
+                semanticType: 'dataModelBinding',
+                required: true,
+                properties: {
+                  dataType: { type: 'string', required: true },
+                  field: { type: 'string', required: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    } as const satisfies ComponentCatalog;
+
+    const documentation = generateComponentDocumentation(catalog, {}, 'nb').get('Example')!;
+
+    expect(documentation).toContain(
+      'href="/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">datamodellbinding</a>',
     );
+    expect(documentation).toContain(
+      'href="/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">Slik bruker du datamodellbindinger.</a>',
+    );
+    expect(documentation).not.toContain('dataModelBindings.simpleBinding.dataType');
+    expect(documentation).not.toContain('dataModelBindings.simpleBinding.field');
+    expect(documentation).toContain('<details class="component-property-group" id="datamodelbindings">');
+  });
+
+  it('moves selected top-level properties first and preserves the order of all other properties', () => {
+    const property = { type: 'boolean', required: false } as const;
+    const catalog = {
+      Example: {
+        ...exampleComponent,
+        properties: {
+          alpha: property,
+          required: property,
+          beta: property,
+          type: { type: 'constant', value: 'Example', required: true },
+          showValidations: property,
+          readOnly: property,
+          gamma: property,
+        },
+      },
+    } as const satisfies ComponentCatalog;
+
+    const documentation = generateComponentDocumentation(catalog, {}, 'en').get('Example')!;
+    const renderedNames = [...documentation.matchAll(/component-property-name" title="([^"]+)"/g)].map(
+      (match) => match[1],
+    );
+
+    expect(renderedNames).toEqual(['type', 'readOnly', 'required', 'showValidations', 'alpha', 'beta', 'gamma']);
+  });
+
+  it('renders properties without descriptions as static rows', () => {
+    const catalog = {
+      Example: {
+        ...exampleComponent,
+        properties: {
+          value: { type: 'string', required: false },
+        },
+      },
+    } as const satisfies ComponentCatalog;
+
+    const documentation = generateComponentDocumentation(catalog, {}, 'en').get('Example')!;
+
+    expect(documentation).toContain(
+      '<div class="card adocs-expand adocs-expand-small component-property component-property--static"',
+    );
+    expect(documentation).not.toContain('<details');
+    expect(documentation).not.toContain('component-property-chevron');
+  });
+
+  it('separates generated HTML blocks with blank lines', () => {
+    const property = { type: 'string', required: false } as const;
+    const catalog = {
+      Example: { ...exampleComponent, properties: { first: property, second: property } },
+    } satisfies ComponentCatalog;
+
+    const documentation = generateComponentDocumentation(catalog, {}, 'en').get('Example')!;
+
+    expect(documentation).toContain('</div>\n\n<div class="card');
   });
 
   it('distinguishes discriminated object variants in nested paths', () => {
@@ -167,30 +258,60 @@ describe('generateComponentDocumentation', () => {
 
     const documentation = generateComponentDocumentation(catalog, {}, 'en').get('Example');
 
-    expect(documentation).toContain('| `items[type=Text].value` | `string` | Yes |  |');
-    expect(documentation).toContain('| `items[type=Number].value` | `number` | Yes |  |');
+    expect(documentation).toContain('id="items[type=text].value"');
+    expect(documentation).toContain('title="items[type=Text].value"');
+    expect(documentation).toContain('id="items[type=number].value"');
+    expect(documentation).toContain('title="items[type=Number].value"');
   });
 
-  it('separates common properties and renders numeric constraints', () => {
-    const constrainedNumber = {
-      type: 'number',
-      minimum: 1,
-      maximum: 12,
-      default: 6,
-      required: false,
+  it('inlines nested common properties without inferred links or separate documents', () => {
+    const commonProperties = {
+      grid: {
+        type: 'object',
+        required: false,
+        description: { en: 'Controls the layout.', nb: 'Styrer plasseringen.' },
+        properties: {
+          xs: { type: 'integer', required: false, minimum: 1, maximum: 12 },
+        },
+      },
+      pageBreak: {
+        type: 'object',
+        required: false,
+        properties: {
+          before: { type: 'boolean', required: false, default: false },
+        },
+      },
     } as const;
+
+    const documentation = generateComponentDocumentation({}, commonProperties, 'en');
+    const common = documentation.get('_common')!;
+
+    expect([...documentation.keys()]).toEqual(['_common']);
+    expect(common).not.toContain('component-property-group');
+    expect(common).toContain('id="grid.xs"');
+    expect(common).toContain('integer (1–12)');
+    expect(common).toContain('id="pagebreak.before"');
+    expect(common).not.toContain('href=');
+  });
+
+  it('omits empty defaults and preserves meaningful falsy defaults', () => {
+    const property = { type: 'string', required: false } as const;
     const catalog = {
       Example: {
         ...exampleComponent,
-        properties: { id: constrainedNumber, value: constrainedNumber },
+        properties: {
+          missing: property,
+          empty: { ...property, default: '' },
+          nullValue: { ...property, default: null },
+          disabled: { type: 'boolean', required: false, default: false },
+          zero: { type: 'number', required: false, default: 0 },
+        },
       },
     } as const satisfies ComponentCatalog;
 
-    const documentation = generateComponentDocumentation(catalog, { id: constrainedNumber }, 'en');
-
-    expect(documentation.get('Example')).toContain('common properties [`id`](../common-properties/#id).');
-    expect(documentation.get('Example')).not.toContain('| `id` |');
-    expect(documentation.get('Example')).toContain('| `value` | `number (1–12)` | No | `6` |  |');
-    expect(documentation.get('_common')).toContain('| `id` | `number (1–12)` | No | `6` |  |');
+    const documentation = generateComponentDocumentation(catalog, {}, 'en').get('Example')!;
+    expect(documentation.match(/component-property-default/g)).toHaveLength(2);
+    expect(documentation).toContain('Default: <span class="component-property-value">false</span>');
+    expect(documentation).toContain('Default: <span class="component-property-value">0</span>');
   });
 });

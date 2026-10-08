@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import React, { useContext } from 'react';
 import { render, renderHook, screen, waitFor } from '@testing-library/react';
@@ -9,7 +10,7 @@ import { StudioDragAndDropTreeRootContext } from './StudioDragAndDropTreeRootCon
 // Test data:
 const childrenTestId = 'test';
 const renderComponent = (children?: ReactNode): React.ReactElement => (
-  <StudioDragAndDrop.Provider onAdd={jest.fn()} onMove={jest.fn()} rootId='rootId'>
+  <StudioDragAndDrop.Provider onAdd={vi.fn()} onMove={vi.fn()} rootId='rootId'>
     <StudioDragAndDropTreeRoot>
       <div data-testid={childrenTestId}>{children}</div>
     </StudioDragAndDropTreeRoot>
@@ -20,7 +21,7 @@ const renderStudioDragAndDropTreeRoot = (children?: ReactNode): ReturnType<typeo
   render(renderComponent(children));
 
 describe('StudioDragAndDropTreeRoot', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Renders children', () => {
     renderStudioDragAndDropTreeRoot();

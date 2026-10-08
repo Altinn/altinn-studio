@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Text.Json;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
@@ -150,12 +149,11 @@ public static class TestAuthentication
             null,
             false,
             applicationMetadata ?? NewApplicationMetadata(),
-            () => null,
+            () => [],
             _ => Task.FromResult<UserProfile?>(null),
             _ => Task.FromResult<Party?>(null),
             _ => Task.FromResult<Party>(null!),
-            _ => Task.FromResult<List<Party>?>(null),
-            (_, _) => Task.FromResult<bool?>(null)
+            () => Task.FromResult<List<Party>?>(null)
         );
         return Assert.IsType<None>(auth);
     }
@@ -218,7 +216,7 @@ public static class TestAuthentication
             null,
             true,
             applicationMetadata ?? NewApplicationMetadata(),
-            getSelectedParty: () => $"{userPartyId}",
+            getSelectedPartyCookieValues: () => [$"{userPartyId}"],
             getUserProfile: uid =>
             {
                 Assert.Equal(userId, uid);
@@ -239,17 +237,7 @@ public static class TestAuthentication
                 return Task.FromResult<Party?>(party);
             },
             lookupOrgParty: _ => throw new NotImplementedException(),
-            getPartyList: uid =>
-            {
-                Assert.Equal(userId, uid);
-                return Task.FromResult<List<Party>?>([party]);
-            },
-            validateSelectedParty: (uid, pid) =>
-            {
-                Assert.Equal(userId, uid);
-                Assert.Equal(userPartyId, pid);
-                return Task.FromResult<bool?>(true);
-            }
+            getPartyList: () => Task.FromResult<List<Party>?>([party])
         );
         return Assert.IsType<User>(auth);
     }
@@ -312,7 +300,7 @@ public static class TestAuthentication
             null,
             true,
             applicationMetadata ?? NewApplicationMetadata(),
-            getSelectedParty: () => $"{partyId}",
+            getSelectedPartyCookieValues: () => [$"{partyId}"],
             getUserProfile: uid =>
             {
                 Assert.Equal(userId, uid);
@@ -334,17 +322,7 @@ public static class TestAuthentication
                 return Task.FromResult<Party?>(party);
             },
             lookupOrgParty: _ => throw new NotImplementedException(),
-            getPartyList: uid =>
-            {
-                Assert.Equal(userId, uid);
-                return Task.FromResult<List<Party>?>([party]);
-            },
-            validateSelectedParty: (uid, pid) =>
-            {
-                Assert.Equal(userId, uid);
-                Assert.Equal(partyId, pid);
-                return Task.FromResult<bool?>(true);
-            }
+            getPartyList: () => Task.FromResult<List<Party>?>([party])
         );
         return Assert.IsType<User>(auth);
     }
@@ -412,7 +390,7 @@ public static class TestAuthentication
             null,
             true,
             applicationMetadata ?? NewApplicationMetadata(),
-            getSelectedParty: () => throw new NotImplementedException(),
+            getSelectedPartyCookieValues: () => throw new NotImplementedException(),
             getUserProfile: _ => throw new NotImplementedException(),
             lookupUserParty: _ => throw new NotImplementedException(),
             lookupOrgParty: orgNo =>
@@ -420,8 +398,7 @@ public static class TestAuthentication
                 Assert.Equal(orgNumber, orgNo);
                 return Task.FromResult<Party>(party);
             },
-            getPartyList: _ => throw new NotImplementedException(),
-            validateSelectedParty: (_, __) => throw new NotImplementedException()
+            getPartyList: () => throw new NotImplementedException()
         );
         return Assert.IsType<Org>(auth);
     }
@@ -496,7 +473,7 @@ public static class TestAuthentication
             null,
             true,
             applicationMetadata ?? NewApplicationMetadata(org: org),
-            getSelectedParty: () => throw new NotImplementedException(),
+            getSelectedPartyCookieValues: () => throw new NotImplementedException(),
             getUserProfile: _ => throw new NotImplementedException(),
             lookupUserParty: _ => throw new NotImplementedException(),
             lookupOrgParty: orgNo =>
@@ -504,8 +481,7 @@ public static class TestAuthentication
                 Assert.Equal(orgNumber, orgNo);
                 return Task.FromResult<Party>(party);
             },
-            getPartyList: _ => throw new NotImplementedException(),
-            validateSelectedParty: (_, __) => throw new NotImplementedException()
+            getPartyList: () => throw new NotImplementedException()
         );
         return Assert.IsType<ServiceOwner>(auth);
     }
@@ -606,7 +582,7 @@ public static class TestAuthentication
             null,
             true,
             applicationMetadata ?? NewApplicationMetadata(),
-            getSelectedParty: () => throw new NotImplementedException(),
+            getSelectedPartyCookieValues: () => throw new NotImplementedException(),
             getUserProfile: _ => throw new NotImplementedException(),
             lookupUserParty: _ => throw new NotImplementedException(),
             lookupOrgParty: orgNo =>
@@ -614,8 +590,7 @@ public static class TestAuthentication
                 Assert.Equal(systemUserOrgNumber, orgNo);
                 return Task.FromResult<Party>(party);
             },
-            getPartyList: _ => throw new NotImplementedException(),
-            validateSelectedParty: (_, __) => throw new NotImplementedException()
+            getPartyList: () => throw new NotImplementedException()
         );
         return Assert.IsType<SystemUser>(auth);
     }

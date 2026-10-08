@@ -16,7 +16,7 @@ import type { FormComponent } from '../../types/FormComponent';
 export const internalLayoutToExternal = (
   internalLayout: IInternalLayout,
 ): SerializedFormLayout => ({
-  $schema: layoutSchemaUrl(),
+  $schema: internalLayout.$schema ?? layoutSchemaUrl(),
   data: {
     hidden: internalLayout.hidden,
     layout: generateExternalComponents(internalLayout),

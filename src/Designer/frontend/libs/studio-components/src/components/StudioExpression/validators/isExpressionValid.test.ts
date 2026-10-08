@@ -1,10 +1,24 @@
+import { describe, expect, it } from 'vitest';
 import type { DataLookupFunc, Expression } from '../types/Expression';
 import { isExpressionValid } from './isExpressionValid';
 import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
+import Ajv from 'ajv';
+import expressionSchema from '@app/layout-contract/schemas/json/layout/expression.schema.v1.json';
 
 describe('isExpressionValid', () => {
+  it('Accepts gateway actions using the shared expression schema', () => {
+    const gatewayAction = ['gatewayAction'];
+    expect(isExpressionValid(gatewayAction)).toBe(true);
+    expect(isExpressionValid(['equals', gatewayAction, 'sign'])).toBe(true);
+
+    const validateRuntimeExpression = new Ajv({ strict: false }).compile(expressionSchema);
+    expect(validateRuntimeExpression(gatewayAction)).toBe(true);
+    expect(validateRuntimeExpression(['equals', gatewayAction, 'sign'])).toBe(true);
+    expect(isExpressionValid(['gatewayAction', 'unexpected-argument'])).toBe(false);
+  });
+
   it('Returns true when expression is valid', () => {
     const equalsExpression: Expression = [
       GeneralRelationOperator.Equals,

@@ -37,11 +37,11 @@ describe('SelectDataTypes', () => {
         mutateDataTypes: mutateDataTypesMock,
       },
     );
-    const suggestionInput = screen.getByRole('textbox', {
+    const suggestionInput = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
     await user.click(suggestionInput);
-    await user.type(suggestionInput, `${dataTypeToConnect}{Enter}`);
+    await user.click(await findOption(dataTypeToConnect));
 
     await waitFor(() =>
       expect(mutateDataTypesMock).toHaveBeenCalledWith({
@@ -57,7 +57,7 @@ describe('SelectDataTypes', () => {
     const dataModelIds = ['dataModel1', 'dataModel2'];
     renderSelectDataTypes({ dataModelIds, existingDataType });
 
-    const suggestionInput = screen.getByRole('textbox', {
+    const suggestionInput = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
 
@@ -81,12 +81,11 @@ describe('SelectDataTypes', () => {
         mutateDataTypes: mutateDataTypesMock,
       },
     );
-    const suggestionInput = screen.getByRole('textbox', {
+    const suggestionInput = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
     await user.click(suggestionInput);
-    await user.clear(suggestionInput);
-    await user.type(suggestionInput, `${dataTypeToConnect}{Enter}`);
+    await user.click(await findOption(dataTypeToConnect));
 
     await waitFor(() =>
       expect(mutateDataTypesMock).toHaveBeenCalledWith({
@@ -119,6 +118,46 @@ describe('SelectDataTypes', () => {
     expect(mockOnClose).toHaveBeenCalled();
   });
 
+  it('removes the binding when the selected model is cleared and the field is left', async () => {
+    const user = userEvent.setup();
+    const mutateDataTypes = jest.fn();
+    renderSelectDataTypes(
+      { existingDataType: 'model', dataModelIds: ['model'] },
+      { mutateDataTypes },
+    );
+    const input = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_set_data_model_label'),
+    });
+
+    await user.click(input);
+    await waitFor(() => expect(input).toHaveValue('model'));
+    await user.clear(input);
+    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+
+    expect(mutateDataTypes).toHaveBeenCalledWith({ connectedTaskId, newDataTypes: [undefined] });
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it('preserves the binding when clearing is not allowed', async () => {
+    const user = userEvent.setup();
+    const mutateDataTypes = jest.fn();
+    renderSelectDataTypes(
+      { existingDataType: 'model', dataModelIds: ['model'], hideDeleteButton: true },
+      { mutateDataTypes },
+    );
+    const input = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_set_data_model_label'),
+    });
+
+    await user.click(input);
+    await waitFor(() => expect(input).toHaveValue('model'));
+    await user.clear(input);
+    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+
+    expect(mutateDataTypes).not.toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+
   it('should not call updateDataTypes when data type is set to existing', async () => {
     const user = userEvent.setup();
     const mutateDataTypesMock = jest.fn();
@@ -130,12 +169,11 @@ describe('SelectDataTypes', () => {
         mutateDataTypes: mutateDataTypesMock,
       },
     );
-    const suggestionInput = screen.getByRole('textbox', {
+    const suggestionInput = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
     await user.click(suggestionInput);
-    await user.clear(suggestionInput);
-    await user.type(suggestionInput, `${existingDataType}{Enter}`);
+    await user.click(await findOption(existingDataType));
 
     expect(mutateDataTypesMock).not.toHaveBeenCalled();
   });
@@ -174,6 +212,8 @@ describe('SelectDataTypes', () => {
     expect(description).toBeInTheDocument();
   });
 });
+
+const findOption = (name: string) => screen.findByRole('option', { name, hidden: true });
 
 const renderSelectDataTypes = (
   props: Partial<SelectDataTypesProps> = {},

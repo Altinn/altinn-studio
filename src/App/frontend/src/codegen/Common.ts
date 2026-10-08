@@ -4,7 +4,7 @@ import type { JSONSchema7 } from 'json-schema';
 import { CG } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
-import type { MaybeOptionalCodeGenerator, MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
+import type { Extract, MaybeOptionalCodeGenerator, MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 
 const common = {
@@ -109,8 +109,11 @@ const common = {
         'optionalIndicator',
         new CG.bool()
           .setTitle('Optional indicator', 'Markering av valgfritt felt')
-          .setDescription('Show optional indicator on label', 'Viser en markering for valgfrie felt ved ledeteksten.')
-          .optional(),
+          .setDescription(
+            'Show the optional indicator on the label of non-required fields. Enabled by default.',
+            'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.',
+          )
+          .optional({ default: true }),
       ),
     )
       .setTitle('Label settings', 'Innstillinger for ledetekst')
@@ -407,17 +410,9 @@ const common = {
       .setTitle('Option', 'Alternativ')
       .setDescription('Defines one selectable option.', 'Definerer ett valgbart alternativ.')
       .addExample({ label: '', value: '' }),
-  IMapping: () =>
-    new CG.obj()
-      .additionalProperties(new CG.str())
-      .setTitle('Mapping', 'Kobling')
-      .setDescription(
-        'A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).',
-        'En samling nøkkel/verdi-par, vanligvis brukt til å koble en sti i datamodellen til en parameter i spørringsstrengen.',
-      ),
   IQueryParameters: () =>
     new CG.obj()
-      .additionalProperties(new CG.expr(ExprVal.String))
+      .additionalProperties(new CG.expr(ExprVal.String).setFallback(''))
       .setTitle('Query parameters', 'Spørringsparametere')
       .setDescription(
         'A mapping of query string parameters to values. Will be appended to the URL when fetching options.',
@@ -448,6 +443,7 @@ const common = {
       new CG.prop(
         'label',
         new CG.expr(ExprVal.String)
+          .setFallback('')
           .setTitle('Label', 'Ledetekst')
           .setDescription(
             'A label of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
@@ -546,7 +542,7 @@ const common = {
       new CG.prop(
         'optionFilter',
         new CG.expr(ExprVal.Boolean)
-          .optional()
+          .optional({ default: true })
           .setTitle('Filter options (using an expression)', 'Filtrer alternativer med et uttrykk')
           .setDescription(
             'Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use ["value"]. You can also use ["value", "label"] to get the label text resource id, likewise also "description" and "helpText".',
@@ -573,7 +569,7 @@ const common = {
       new CG.prop(
         'colSpan',
         new CG.expr(ExprVal.Number)
-          .optional()
+          .optional({ default: 1 })
           .setTitle('Column span', 'Kolonnespenn')
           .setDescription(
             'Number of columns this cell should span. Defaults to 1 if not set.',
@@ -877,7 +873,16 @@ const common = {
 
   AllowedValidationMasks: () =>
     new CG.arr(
-      new CG.enum('Schema', 'Component', 'Expression', 'CustomBackend', 'Required', 'AllExceptRequired', 'All'),
+      new CG.enum(
+        'Schema',
+        'Invalid',
+        'Component',
+        'Expression',
+        'CustomBackend',
+        'Required',
+        'AllExceptRequired',
+        'All',
+      ),
     )
       .setTitle('Validation types', 'Valideringstyper')
       .setDescription('List of validation types to show', 'Liste over valideringstypene som skal vises.'),
@@ -971,7 +976,7 @@ const common = {
       new CG.prop(
         'navigationTitle',
         new CG.expr(ExprVal.String)
-          .optional()
+          .optional({ default: 'navigation.form_pages' })
           .setTitle('Navigation title', 'Navigasjonstittel')
           .setDescription(
             'Overrides the default "Skjemasider" heading shown in the navigation panel. Can be a text resource key or a dynamic expression that reads from the data model.',
@@ -1133,7 +1138,7 @@ const common = {
 
   PatternFormatProps: () =>
     new CG.obj(
-      new CG.prop('format', new CG.expr(ExprVal.String)),
+      new CG.prop('format', new CG.expr(ExprVal.String).setFallback('')),
       new CG.prop('mask', new CG.union(new CG.str(), new CG.arr(new CG.str())).optional()),
       new CG.prop('allowEmptyFormatting', new CG.bool().optional()),
       new CG.prop('patternChar', new CG.str().optional()),
@@ -1142,9 +1147,9 @@ const common = {
     new CG.obj(
       new CG.prop(
         'thousandSeparator',
-        new CG.union(new CG.expr(ExprVal.Boolean), new CG.expr(ExprVal.String)).optional(),
+        new CG.union(new CG.expr(ExprVal.Boolean), new CG.expr(ExprVal.String)).optional({ default: false }),
       ),
-      new CG.prop('decimalSeparator', new CG.expr(ExprVal.String).optional()),
+      new CG.prop('decimalSeparator', new CG.expr(ExprVal.String).optional({ default: '.' })),
       new CG.prop('allowedDecimalSeparators', new CG.arr(new CG.str()).optional()),
       new CG.prop('thousandsGroupStyle', new CG.enum('thousand', 'lakh', 'wan', 'none').optional()),
       new CG.prop('decimalScale', new CG.num().optional()),
@@ -1238,6 +1243,7 @@ const common = {
 };
 
 export type ValidCommonKeys = keyof typeof common;
+export type CommonValue<K extends ValidCommonKeys> = Extract<ReturnType<(typeof common)[K]>>;
 
 interface TRB {
   title: LocalizedText;
@@ -1284,6 +1290,15 @@ export function getSourceForCommon(
   impl.exportAs(key);
   implementationsCache[cacheKey] = impl;
   return impl;
+}
+
+export function getCommonTypeSources() {
+  return Object.keys(common)
+    .sort()
+    .map((key) => ({
+      key,
+      source: getSourceForCommon(key as ValidCommonKeys),
+    }));
 }
 
 export function generateAllCommonTypes(map: { [key: string]: ComponentConfig }) {

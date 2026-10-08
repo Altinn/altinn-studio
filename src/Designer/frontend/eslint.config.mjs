@@ -8,6 +8,7 @@ import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import vitestMigratedDirectories from './vitest.migrated.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,8 +24,6 @@ const designsystemetRestriction = {
     '@digdir/designsystemet-react/*',
     '@digdir/designsystemet-css',
     '@digdir/designsystemet-css/**',
-    '@digdir/designsystemet-theme',
-    '@digdir/designsystemet-theme/**',
   ],
   message:
     'Do not import from Designsystemet directly. Import components from @studio/components instead, and add a wrapper there if the component is missing. The Designsystemet stylesheets are loaded by @studio/components.',
@@ -156,19 +155,6 @@ export default [
         project: './scripts/tsconfig.json',
         tsconfigRootDir: __dirname,
       },
-    },
-  },
-  {
-    files: ['testing/cypress/src/**/*.js', 'testing/cypress/src/**/*.ts'],
-    languageOptions: {
-      parserOptions: {
-        project: false,
-        tsconfigRootDir: __dirname,
-      },
-    },
-    rules: {
-      '@typescript-eslint/consistent-type-exports': 'off',
-      '@typescript-eslint/consistent-type-imports': 'off',
     },
   },
   {
@@ -385,7 +371,33 @@ export default [
     },
   },
   {
-    files: ['packages/policy-editor/**/*.{ts,tsx}', 'packages/process-editor/**/*.{ts,tsx}'],
+    files: ['packages/process-editor/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': restrictedImports([
+        {
+          group: ['@altinn/process-editor-v8'],
+          message: 'Do not import from @altinn/process-editor-v8 in process-editor.',
+        },
+      ]),
+    },
+  },
+  {
+    files: ['packages/process-editor-v8/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': restrictedImports([
+        {
+          group: ['@altinn/process-editor'],
+          message: 'Do not import from @altinn/process-editor in process-editor-v8.',
+        },
+      ]),
+    },
+  },
+  {
+    files: [
+      'packages/policy-editor/**/*.{ts,tsx}',
+      'packages/process-editor/**/*.{ts,tsx}',
+      'packages/process-editor-v8/**/*.{ts,tsx}',
+    ],
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
     },
@@ -400,6 +412,23 @@ export default [
           message: 'Import from @altinn/schema-model instead of using relative path.',
         },
       ]),
+    },
+  },
+  {
+    // Tests in the directories listed in vitest.migrated.js run with Vitest, so they must not use Jest's API.
+    files: vitestMigratedDirectories.flatMap((directory) => [
+      `${directory}/**/*.test.ts`,
+      `${directory}/**/*.test.tsx`,
+    ]),
+    rules: {
+      'no-restricted-globals': [
+        'error',
+        {
+          name: 'jest',
+          message:
+            "This test runs with Vitest. Use vi from 'vitest' instead of jest. See the unit test section in src/Designer/frontend/AGENTS.md.",
+        },
+      ],
     },
   },
 ];

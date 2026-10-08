@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { ForwardedRef } from 'react';
 import React from 'react';
 import { render, screen, type RenderResult } from '@testing-library/react';
@@ -43,6 +44,12 @@ describe('StudioSuggestion', () => {
     );
   });
 
+  it('Labels the clear button with the given clearButtonLabel', () => {
+    const clearButtonLabel = 'Clear selection';
+    renderStudioSuggestion({ suggestionProps: { clearButtonLabel } });
+    expect(getClearButton()).toHaveAttribute('aria-label', clearButtonLabel);
+  });
+
   it('Forwards the ref to the button element if given', () => {
     testRefForwarding<React.ElementRef<typeof StudioSuggestion>>(
       (ref) => renderStudioSuggestion({}, ref),
@@ -71,6 +78,10 @@ type RenderStudioSuggestionProps = {
   suggestionProps?: Partial<StudioSuggestionProps>;
   options?: StudioSuggestionOptionProps[];
 };
+
+function getClearButton(): HTMLElement {
+  return screen.getByRole('button', { hidden: true });
+}
 
 function getInput(label: string = defaultProps.label): HTMLInputElement {
   return screen.getByLabelText(label);

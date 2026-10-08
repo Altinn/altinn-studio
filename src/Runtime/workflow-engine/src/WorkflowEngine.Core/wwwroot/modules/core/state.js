@@ -22,6 +22,7 @@
  *   executionStartedAt: string | null,
  *   updatedAt:      string | null,
  *   stateChanged:   boolean,
+ *   labels?:        Record<string, string>,
  * }} Step
  */
 
@@ -118,12 +119,14 @@
  */
 
 /**
- * @typedef {{ startedAt: string, frozenAt?: number }} WorkflowTimer
+ * `previousWorkflows` is the live section's own set: the freshest SSE copy of every workflow it
+ * holds a live card for, dropped the moment one leaves (an exiting card outlives its entry by the
+ * length of its animation). Other sections read it for fresher data than their own snapshot, and
+ * to tell a live workflow from a settled one.
  *
  * @typedef {{
  *   previousWorkflows:    Record<string, Workflow>,
  *   workflowFingerprints: Record<string, string>,
- *   workflowTimers:       Record<string, WorkflowTimer>,
  *   lastRecentKeys:       string,
  *   queryLoaded:        boolean,
  *   liveFilter:           string,
@@ -181,7 +184,6 @@ export const dom = {
 export const state = {
     previousWorkflows: {},
     workflowFingerprints: {},
-    workflowTimers: {},
     lastRecentKeys: '',
     queryLoaded: false,
     liveFilter: '',
@@ -252,30 +254,68 @@ export const parseTransition = (wf) => {
     };
 };
 
+/**
+ * Step label naming the BPMN element whose lifecycle the step runs — the task being left, the task
+ * being entered, or the end event. Written by the Altinn app library on the pre-commit lifecycle
+ * steps only, which is exactly the run that belongs under one element name.
+ */
+const PROCESS_ELEMENT_LABEL = 'processNextElement';
+
+/* The command-name map below is the fallback for steps that carry no element label: workflows
+ * enqueued before the label existed, and apps still on an older Altinn.App version — the engine
+ * serves many apps at once, so this is a standing fallback rather than a migration window. It
+ * cannot name the element itself, only which end of the transition the step sits at, which the
+ * renderer then resolves against the operationId. A command missing from it has no group, so it
+ * falls outside the brackets. */
 const TASK_END_COMMANDS = new Set([
     'EndTask',
     'CommonTaskFinalization',
-    'EndTaskLegacyHook',
     'OnTaskEndingHook',
     'LockTaskData',
     'AbandonTask',
     'OnTaskAbandonHook',
-    'AbandonTaskLegacyHook',
 ]);
 const TASK_START_COMMANDS = new Set([
     'UnlockTaskData',
+    'CleanupGeneratedFromTask',
     'StartTask',
-    'StartTaskLegacyHook',
     'OnTaskStartingHook',
     'CommonTaskInitialization',
 ]);
-const PROCESS_END_COMMANDS = new Set(['OnProcessEndingHook']);
+const PROCESS_END_COMMANDS = new Set(['OnProcessEndingHook', 'EndProcessLegacyHook']);
 
 /** @param {string} commandDetail @returns {'end'|'start'|'process-end'|null} */
 export const stepPhase = (commandDetail) => {
     if (TASK_END_COMMANDS.has(commandDetail)) return 'end';
     if (TASK_START_COMMANDS.has(commandDetail)) return 'start';
     if (PROCESS_END_COMMANDS.has(commandDetail)) return 'process-end';
+    return null;
+};
+
+/**
+ * The bracket group a step belongs to: a `key` to group consecutive steps by, and the `label` drawn
+ * over the group. Null for a step that belongs to no element, which ends the group before it.
+ *
+ * The step's own element label wins, because it is the app's own answer and names the element
+ * outright. Only without one does this fall back to {@link stepPhase} plus the transition parsed
+ * from the operationId — a guess that is right whenever the command is one this dashboard version
+ * happens to know.
+ *
+ * Keys from the two sources are deliberately distinct strings, so a labeled and an unlabeled step
+ * never merge into one bracket on the strength of a coincidence.
+ *
+ * @param {Step} step
+ * @param {{ from: string, to: string }} tx
+ * @returns {{ key: string, label: string } | null}
+ */
+export const stepGroup = (step, tx) => {
+    const element = step.labels?.[PROCESS_ELEMENT_LABEL];
+    if (element) return { key: `element:${element}`, label: element };
+
+    const phase = stepPhase(step.commandDetail);
+    if (phase === 'end') return { key: 'phase:end', label: tx.from };
+    if (phase === 'start') return { key: 'phase:start', label: tx.to };
+    if (phase === 'process-end') return { key: 'phase:process-end', label: 'End Event' };
     return null;
 };
 

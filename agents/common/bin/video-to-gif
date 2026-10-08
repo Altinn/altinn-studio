@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Converts a browser recording (WebM/MP4) to a GIF that stays readable under GitHub's 10 MB limit.
+# Converts a browser recording (WebM/MP4) to a GIF that stays readable under the 10 MiB attachment limit.
 #
 #   video-to-gif [--start SECONDS] [--duration SECONDS] [--width PIXELS] [--fps N] INPUT OUTPUT.gif
 #
@@ -58,7 +58,7 @@ size="$(stat -c %s "$output")"
 printf '%s: %d frames at %s fps, %s bytes\n' "$output" \
     "$(ffprobe -v error -count_frames -select_streams v:0 -show_entries stream=nb_read_frames -of csv=p=0 "$output")" \
     "$fps" "$size"
-if [ "$size" -gt $((8 * 1024 * 1024)) ]; then
-    echo "video-to-gif: larger than 8 MB; shorten the interval, lower --fps or --width, or attach an MP4 instead" >&2
+if [ "$size" -gt $((10 * 1024 * 1024)) ]; then
+    echo "video-to-gif: larger than 10 MiB; shorten the interval, lower --fps or --width, or attach an MP4 instead" >&2
     exit 1
 fi

@@ -22,9 +22,6 @@ export const Config = asOptionsComponent(
       renderInCardsMedia: false,
       renderInTabs: false,
     },
-    functionality: {
-      customExpressions: false,
-    },
   }),
   { supportsPreselection: true },
 )
@@ -69,4 +66,5 @@ export const Config = asOptionsComponent(
     ),
   )
   .extends(CG.common('ILikertColumnProperties'))
+  .extends(CG.common('LabeledComponentProps'))
   .addProperty(new CG.prop('layout', CG.common('LayoutStyle').optional()));

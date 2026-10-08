@@ -1,0 +1,11 @@
+.button {
+  position: relative;
+  overflow: visible;
+}
+
+.badge {
+  --dsc-badge-size: var(--ds-size-4);
+  position: absolute;
+  top: calc(var(--ds-size-1) * -1);
+  right: calc(var(--ds-size-1) * -1);
+}

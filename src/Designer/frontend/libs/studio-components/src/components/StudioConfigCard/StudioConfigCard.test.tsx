@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { render, type RenderResult, screen } from '@testing-library/react';
 import { StudioConfigCard, type StudioConfigCardProps } from './StudioConfigCard';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';

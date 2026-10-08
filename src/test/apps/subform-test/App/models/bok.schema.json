@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "http://altinn-repositories:3000/ttd/subform-test-ds/App/models/moped.schema.json",
+  "$id": "http://altinn-repositories:3000/ttd/subform-test-ds/App/models/bok.schema.json",
   "info": {
     "rootNode": ""
   },
@@ -15,7 +15,7 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "@xsdRootElement": "bok",
+  "@xsdRootElement": "Bok",
   "type": "object",
   "required": [
     "Tittel",
@@ -35,6 +35,16 @@
     },
     "Publikasjonsaar": {
       "type": "integer"
+    },
+    "PageCount": {
+      "@xsdType": "int",
+      "type": "integer"
+    },
+    "CopyCount": {
+      "@xsdType": "integer",
+      "type": "integer",
+      "minimum": -999999999999999,
+      "maximum": 999999999999999
     }
   }
 }

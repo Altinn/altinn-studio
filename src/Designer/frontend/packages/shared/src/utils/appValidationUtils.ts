@@ -11,11 +11,13 @@ export type FieldConfig = {
   translationKey: string;
   critical: boolean;
   area: AppValidationArea;
+  hrefPath?: string;
+  translationParams?: Record<string, string>;
 };
 
 export type ErrorItem = {
   errorKey: string;
-  search: string;
+  path: string;
   fullHref: string;
   errorMessage: string;
   area: AppValidationArea;
@@ -62,7 +64,7 @@ export const getAppValidationSummary = (
   errorKeys: string[],
   org: string,
   app: string,
-  t: (key: string) => string,
+  t: (key: string, params?: Record<string, string>) => string,
 ): AppValidationSummary => {
   const errorItems = mapErrorKeyErrorItems(errorKeys, 'danger', org, app, t);
   const warningItems = mapErrorKeyErrorItems(errorKeys, 'warning', org, app, t);
@@ -89,7 +91,7 @@ export const mapErrorKeyErrorItems = (
   severity: Severity,
   org: string,
   app: string,
-  t: (key: string) => string,
+  t: (key: string, params?: Record<string, string>) => string,
 ): ErrorItem[] => {
   return errorKeys
     .filter((errorKey) => {
@@ -103,11 +105,14 @@ export const mapErrorKeyErrorItems = (
     .map((errorKey) => {
       const fieldConfig = getFieldConfig(errorKey);
       const anchor = fieldConfig?.anchor ?? '';
-      const search = `currentTab=about&focus=${anchor}`;
-      const fullHref = `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/app-settings?${search}`;
-      const errorMessage = t(fieldConfig?.translationKey ?? errorKey);
+      const path = fieldConfig?.hrefPath ?? `app-settings?currentTab=about&focus=${anchor}`;
+      const fullHref = `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/${path}`;
+      const errorMessage = t(
+        fieldConfig?.translationKey ?? errorKey,
+        fieldConfig?.translationParams,
+      );
       const area = fieldConfig?.area ?? 'other';
-      return { errorKey, search, fullHref, errorMessage, area };
+      return { errorKey, path, fullHref, errorMessage, area };
     });
 };
 
@@ -227,6 +232,25 @@ export const getFieldConfig = (errorKey: string): FieldConfig | undefined => {
       translationKey: 'app_validation.app_metadata.contact_points.incomplete',
       critical: true,
       area: 'settings',
+    };
+  }
+
+  const taskSettingsMatch = errorKey.match(
+    /^taskSettings\[([^\]]+)\]\.defaultDataType\.(missing|notFound)(?:\.(.+))?$/,
+  );
+  if (taskSettingsMatch) {
+    const [, taskId, issue, dataTypeId] = taskSettingsMatch;
+    return {
+      anchor: '',
+      translationKey:
+        issue === 'missing'
+          ? 'app_validation.task_settings.default_data_type.missing'
+          : 'app_validation.task_settings.default_data_type.not_found',
+      critical: true,
+      area: 'process',
+      hrefPath: 'process-editor',
+      translationParams:
+        issue === 'missing' ? { taskId } : { taskId, dataTypeId: dataTypeId ?? '' },
     };
   }
 

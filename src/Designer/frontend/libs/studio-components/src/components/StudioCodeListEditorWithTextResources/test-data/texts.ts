@@ -49,9 +49,9 @@ function textResourceTexts(
     editValue: createTextResourceEditButtonTitle(rowNumber, property),
     emptyTextResourceList: 'No text resources available',
     idLabel: 'ID:',
+    modeToggle: 'Mode',
     search: createTextResourceSearchButtonTitle(rowNumber, property),
     textResourcePickerLabel: createTextResourcePickerLabel(rowNumber, property),
-    noTextResourceOptionLabel: 'None',
     valueLabel: createTextResourceValueLabel(rowNumber, property),
   };
 }

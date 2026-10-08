@@ -12,6 +12,8 @@ dependencies = [
 
     # HTTP client
     "httpx>=0.28.1",
+    # Security floor for Requests' transitive dependency (CVE-2026-97687, CVE-2026-97689)
+    "urllib3>=2.8.0",
 
     # Configuration
     "python-dotenv>=1.2.2",
@@ -33,16 +35,20 @@ dependencies = [
     "PyYAML>=6.0",
 
     # Altinn domain library (agents/altinn)
-    "jsonschema>=4.0",
-    "defusedxml>=0.7",
+    "jsonschema>=4.18",
+    # ECMA-262 regex syntax (\\p{L}) in JSON Schema patterns
+    "regex>=2026.5.9",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=9.0.0",
     "pytest-cov>=6.0.0",
-    "pytest-mock>=3.15.0",
     "pytest-asyncio>=1.3.0",
+    "ruff>=0.16.8",
+    "pyright[nodejs]>=1.1.414",
+    # Pyright reads the playwright types. The tests do not start a browser.
+    "playwright>=1.49.0",
 ]
 preview = [
     "playwright>=1.49.0",
@@ -64,3 +70,44 @@ addopts = [
     "-v",
 ]
 asyncio_mode = "auto"
+
+[tool.pyright]
+# CI uses Python 3.12, the oldest version that requires-python allows.
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+include = ["agents", "api", "benchmarks", "scripts", "services", "shared", "tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors: whitespace, comparisons to None, bare except, ambiguous names
+    "W",     # pycodestyle warnings: trailing whitespace and invalid escape sequences
+    "F",     # Pyflakes: unused imports and variables, undefined names
+    "I",     # isort: import order and import groups
+    "B",     # flake8-bugbear: likely bugs, for example mutable default arguments
+    "UP",    # pyupgrade: old syntax that Python 3.12 can replace
+    "SIM",   # flake8-simplify: code that you can make simpler
+    "C4",    # flake8-comprehensions: unnecessary calls and comprehensions
+    "PIE",   # flake8-pie: unnecessary statements and duplicate class fields
+    "RUF",   # Ruff-specific: mutable class defaults, ambiguous Unicode, lost asyncio tasks
+    "ASYNC", # flake8-async: blocking calls in async functions
+]
+ignore = [
+    "E501",     # Line too long: the formatter controls line length
+    "W191",     # Tab indentation: the formatter controls indentation
+    "ASYNC240", # Blocking pathlib calls in async code: short checks do not block the event loop in a meaningful way
+    "ASYNC109", # Async function with a timeout parameter: existing async APIs take a timeout argument on purpose
+    "UP042",    # Use StrEnum: StrEnum changes str() and format() output of existing enums
+]
+
+# Norwegian text and prompts use these characters on purpose
+allowed-confusables = ["–", "×"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "B011",   # assert False: tests use `assert False` on purpose
+    "RUF012", # Mutable class attribute without ClassVar: test fakes use plain class attributes
+]

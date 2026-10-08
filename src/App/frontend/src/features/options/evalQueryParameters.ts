@@ -1,36 +1,15 @@
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import type { IQueryParameters } from '@app/layout-contract/generated/common.generated';
 
-import { evalExpr } from 'src/features/expressions';
-import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
-import { ExprVal } from 'src/features/expressions/types';
-import type { ExprResolved } from 'src/features/expressions/types';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
+import { useShallowMemo } from 'src/hooks/useShallowMemo';
+import { useEvalExpressionDictionary } from 'src/utils/layout/useEvalExpression';
 
-export function evalQueryParameters(props: ExprResolver<'List'>) {
-  if (!props.item.queryParameters) {
-    return undefined;
-  }
-
-  const { evalStr } = props;
-  const out = { ...props.item.queryParameters } as ExprResolved<IQueryParameters>;
-  for (const [key, value] of Object.entries(out)) {
-    out[key] = evalStr(value, '');
-  }
-  return out;
-}
-
-export function useResolvedQueryParameters(
-  queryParameters: IQueryParameters | undefined,
-): Record<string, string> | undefined {
-  const dataSources = useExpressionDataSources(queryParameters);
-  return queryParameters
-    ? Object.entries(queryParameters).reduce((obj, [key, expr]) => {
-        obj[key] = evalExpr(expr, dataSources, {
-          returnType: ExprVal.String,
-          defaultValue: '',
-          errorIntroText: `Invalid expression in query parameters`,
-        });
-        return obj;
-      }, {})
-    : undefined;
+export function useResolvedQueryParameters(queryParameters: IQueryParameters | undefined) {
+  const resolved = useEvalExpressionDictionary(
+    queryParameters,
+    CommonExpressions.IQueryParameters.additionalProperties,
+  );
+  // Equal resolved strings preserve identity until a value changes.
+  const stable = useShallowMemo(resolved ?? {});
+  return resolved ? stable : undefined;
 }

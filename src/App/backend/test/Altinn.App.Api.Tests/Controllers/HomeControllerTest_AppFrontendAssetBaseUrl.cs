@@ -17,8 +17,6 @@ public class HomeControllerTest_AppFrontendAssetBaseUrl : ApiTestBase, IClassFix
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
-    private const string GeneratedOrg = "xunit";
-    private const string GeneratedApp = "test-app";
 
     public HomeControllerTest_AppFrontendAssetBaseUrl(
         WebApplicationFactory<Program> factory,
@@ -55,8 +53,8 @@ public class HomeControllerTest_AppFrontendAssetBaseUrl : ApiTestBase, IClassFix
         var html = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains($"href=\"/{GeneratedOrg}/{GeneratedApp}/altinn-app-frontend/altinn-app-frontend.css\"", html);
-        Assert.Contains($"src=\"/{GeneratedOrg}/{GeneratedApp}/altinn-app-frontend/altinn-app-frontend.js\"", html);
+        Assert.Contains($"href=\"/{Org}/{App}/altinn-app-frontend/altinn-app-frontend.css\"", html);
+        Assert.Contains($"src=\"/{Org}/{App}/altinn-app-frontend/altinn-app-frontend.js\"", html);
         Assert.DoesNotContain("loading our built-in frontend is not yet supported", html);
     }
 
@@ -74,7 +72,7 @@ public class HomeControllerTest_AppFrontendAssetBaseUrl : ApiTestBase, IClassFix
         services.Replace(ServiceDescriptor.Singleton(webHostEnvironmentMock.Object));
 
         services.AddSingleton(
-            new AppMetadataMutationHook(appMetadata =>
+            AppFilesMutationHook.ApplicationMetadata(appMetadata =>
             {
                 appMetadata.OnEntry = new OnEntry { Show = "Task_1" };
                 appMetadata.DataTypes.Find(d => d.Id == "default")!.AppLogic!.AllowAnonymousOnStateless = true;

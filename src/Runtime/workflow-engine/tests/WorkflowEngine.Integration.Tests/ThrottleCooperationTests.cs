@@ -64,6 +64,19 @@ public sealed class ThrottlingEngineAppFixture : EngineAppFixture<Program>
     /// The view the handler reads, which no sweep cycle can overwrite. Tests publish here.
     /// </summary>
     internal ThrottleStateView HandlerView => (ThrottleStateView)Services.GetRequiredService<IThrottleStateView>();
+
+    /// <summary>
+    /// Empties the handler's view alongside the database reset. Nothing else clears it: the
+    /// sweep publishes to the other instance, and with a one-hour sweep interval the snapshot's
+    /// staleness expiry never fires inside a run — so a namespace one test trips stays tripped
+    /// for every test after it, and the next one to use the default namespace would have its
+    /// workflows parked for no reason it could see.
+    /// </summary>
+    public override async Task Reset()
+    {
+        HandlerView.Publish(new Dictionary<string, TimeSpan>(StringComparer.Ordinal));
+        await base.Reset();
+    }
 }
 
 [CollectionDefinition(Name)]

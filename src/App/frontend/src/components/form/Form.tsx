@@ -4,7 +4,6 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { Flex } from '@app/form-component';
 
 import classes from 'src/components/form/Form.module.css';
-import { MessageBanner } from 'src/components/form/MessageBanner';
 import { ErrorReport, ErrorReportList } from 'src/components/message/ErrorReport';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { Loader } from 'src/core/loading/Loader';
@@ -13,15 +12,12 @@ import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { FormStore } from 'src/features/form/FormContext';
-import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
-import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
-import { usePageHasVisibleRequiredValidations } from 'src/features/validation/validationHooks';
 import { useQueryKey } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useCurrentView, useIsValidPageId, useNavigateToPage, useStartUrl } from 'src/hooks/useNavigatePage';
@@ -32,7 +28,6 @@ import { getPageTitle } from 'src/utils/getPageTitle';
 import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
 
 interface FormState {
-  hasRequired: boolean;
   mainIds: string[];
   errorReportIds: string[];
   formErrors: NodeRefValidation<AnyValidation<'error'>>[];
@@ -66,8 +61,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   const appName = useAppName();
   const appOwner = useAppOwner();
   const { langAsString } = useLanguage();
-  const { hasRequired, mainIds, errorReportIds, formErrors, taskErrors } = useFormState(currentPageId);
-  const requiredFieldsMissing = usePageHasVisibleRequiredValidations(currentPageId);
+  const { mainIds, errorReportIds, formErrors, taskErrors } = useFormState(currentPageId);
   const textResources = useTextResources();
   const validationBoundaryActive = FormStore.raw.useSelector(
     (state) =>
@@ -77,7 +71,6 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   );
 
   useRedirectToStoredPage();
-  useSetExpandedWidth();
 
   if (shouldNavigateToStart) {
     return <NavigateToStartUrl />;
@@ -100,12 +93,6 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   return (
     <>
       <title>{`${getPageTitle(appName, hasSetCurrentPageId ? langAsString(currentPageId) : undefined, appOwner)}`}</title>
-      {hasRequired && (
-        <MessageBanner
-          error={requiredFieldsMissing}
-          messageKey='form_filler.required_description'
-        />
-      )}
       <Flex
         container
         spacing={6}
@@ -173,22 +160,6 @@ function useRedirectToStoredPage() {
   }, [pageKey, currentViewCacheKey, isValidPageId, navigateToPage]);
 }
 
-/**
- * Sets the expanded width for the current page if it is defined in the currently viewed layout-page
- */
-function useSetExpandedWidth() {
-  const currentPageId = useCurrentView();
-  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
-  const expandedWidthFromLayout = currentPageId ? layoutCollection[currentPageId]?.data.expandedWidth : undefined;
-  const expandedWidthFromSettings = usePageSettings().expandedWidth;
-  const expandedWidth = expandedWidthFromLayout ?? expandedWidthFromSettings ?? false;
-  const { setExpandedWidth } = useUiConfigContext();
-
-  useEffect(() => {
-    setExpandedWidth(expandedWidth);
-  }, [expandedWidth, setExpandedWidth]);
-}
-
 const emptyArray = [];
 function useFormState(currentPageId: string | undefined): FormState {
   const lookups = FormStore.bootstrap.useLayoutLookups();
@@ -222,16 +193,7 @@ function useFormState(currentPageId: string | undefined): FormState {
     return [toMainLayout.reverse(), toErrorReport.reverse()];
   }, [hasErrors, lookups.allComponents, topLevelIds]);
 
-  const hasRequired =
-    (currentPageId &&
-      lookups.allPerPage[currentPageId]?.some((id) => {
-        const layout = lookups.allComponents[id];
-        return layout && 'required' in layout && layout.required !== false;
-      })) ||
-    false;
-
   return {
-    hasRequired,
     mainIds,
     errorReportIds,
     formErrors,

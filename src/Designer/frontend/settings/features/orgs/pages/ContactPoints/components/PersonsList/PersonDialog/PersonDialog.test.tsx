@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -20,7 +22,7 @@ type RenderProps = {
   initialValue?: Person;
   availableEnvironments?: string[];
   editingId?: string | null;
-  onClose?: jest.Mock;
+  onClose?: Mock;
 };
 
 const renderPersonDialog = (
@@ -28,7 +30,7 @@ const renderPersonDialog = (
     initialValue = defaultPerson,
     availableEnvironments = ['tt02', 'production'],
     editingId = null,
-    onClose = jest.fn(),
+    onClose = vi.fn(),
   }: RenderProps = {},
   queries: Parameters<typeof renderWithProviders>[1]['queries'] = {},
 ) =>
@@ -48,7 +50,7 @@ const getSaveButton = () => screen.getByRole('button', { name: textMock('general
 const getCancelButton = () => screen.getByRole('button', { name: textMock('general.cancel') });
 const getNameInput = () =>
   screen.getByRole('textbox', {
-    name: `${textMock('settings.orgs.contact_points.field_name')} ${textMock('general.required')}`,
+    name: `${textMock('settings.orgs.contact_points.field_name')}${textMock('general.required')}`,
   });
 const getEmailInput = () =>
   screen.getByRole('textbox', { name: textMock('settings.orgs.contact_points.field_email') });
@@ -56,7 +58,7 @@ const getPhoneInput = () =>
   screen.getByRole('textbox', { name: textMock('settings.orgs.contact_points.field_phone') });
 
 describe('PersonDialog', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('renders the add title when not editing', () => {
     renderPersonDialog();
@@ -168,7 +170,7 @@ describe('PersonDialog', () => {
   });
 
   it('calls onClose when cancel is clicked', async () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const user = userEvent.setup();
     renderPersonDialog({ onClose });
     await user.click(getCancelButton());
@@ -227,8 +229,8 @@ describe('PersonDialog', () => {
   });
 
   it('does not call onClose when cancel is clicked while saving', async () => {
-    const addContactPoint = jest.fn(() => new Promise<never>(() => {})); // never resolves
-    const onClose = jest.fn();
+    const addContactPoint = vi.fn(() => new Promise<never>(() => {})); // never resolves
+    const onClose = vi.fn();
     const user = userEvent.setup();
     renderPersonDialog(
       { initialValue: { ...defaultPerson, name: 'Test', email: 'test@example.com' }, onClose },
@@ -240,7 +242,7 @@ describe('PersonDialog', () => {
   });
 
   it('calls onClose when cancel is clicked while not saving', async () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const user = userEvent.setup();
     renderPersonDialog({ onClose });
     await user.click(getCancelButton());

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -13,37 +14,37 @@ namespace Altinn.App.Models
     [XmlElement("ProcessTask")]
     [JsonProperty("ProcessTask")]
     [JsonPropertyName("ProcessTask")]
-    public string ProcessTask { get; set; }
+    public string? ProcessTask { get; set; }
 
     [XmlElement("Title")]
     [JsonProperty("Title")]
     [JsonPropertyName("Title")]
-    public string Title { get; set; }
+    public string? Title { get; set; }
 
     [XmlElement("Body")]
     [JsonProperty("Body")]
     [JsonPropertyName("Body")]
-    public string Body { get; set; }
+    public string? Body { get; set; }
 
     [XmlElement("Reference")]
     [JsonProperty("Reference")]
     [JsonPropertyName("Reference")]
-    public string Reference { get; set; }
+    public string? Reference { get; set; }
 
     [XmlElement("Sender")]
     [JsonProperty("Sender")]
     [JsonPropertyName("Sender")]
-    public string Sender { get; set; }
+    public string? Sender { get; set; }
 
     [XmlElement("PrefilledJobTitle")]
     [JsonProperty("PrefilledJobTitle")]
     [JsonPropertyName("PrefilledJobTitle")]
-    public string PrefilledJobTitle { get; set; }
+    public string? PrefilledJobTitle { get; set; }
     
     [XmlElement("JobTitle")]
     [JsonProperty("JobTitle")]
     [JsonPropertyName("JobTitle")]
-    public string JobTitle { get; set; }
+    public string? JobTitle { get; set; }
 
 
     

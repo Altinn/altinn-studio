@@ -2,6 +2,7 @@ import React from 'react';
 import { useSearchParams } from 'react-router';
 
 import { NavigationButtons } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
@@ -17,7 +18,9 @@ import {
   useProcessingMutationWithKey,
 } from 'src/hooks/useProcessingMutation';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { NavigatePageProcessKey } from 'src/hooks/useProcessingMutation';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -50,10 +53,14 @@ export function NavigationButtonsComponent({ baseComponentId }: Props) {
 }
 
 function WithSummary({ baseComponentId, summaryBaseComponentId }: Props & { summaryBaseComponentId: string }) {
-  const summaryItem = useItemWhenType(summaryBaseComponentId, 'Summary');
-  const returnToViewText =
-    summaryItem?.textResourceBindings?.returnToSummaryButtonTitle ?? 'form_filler.back_to_summary';
-  const showNextButtonSummary = summaryItem?.display != null && summaryItem?.display?.nextButton === true;
+  const config = useComponentConfig(summaryBaseComponentId, 'Summary');
+  const returnToSummaryButtonTitle = useEvalOptionalText(
+    config.textResourceBindings?.returnToSummaryButtonTitle,
+    Expressions.Summary.textResourceBindings.returnToSummaryButtonTitle,
+  );
+
+  const returnToViewText = returnToSummaryButtonTitle ?? 'form_filler.back_to_summary';
+  const showNextButtonSummary = config.display != null && config.display.nextButton === true;
 
   return (
     <NavigationButtonsComponentInner
@@ -69,16 +76,26 @@ function NavigationButtonsComponentInner({
   returnToViewText,
   showNextButtonSummary,
 }: Props & { returnToViewText: string; showNextButtonSummary: boolean }) {
-  const { id, showBackButton, textResourceBindings, validateOnNext, validateOnPrevious } = useItemWhenType(
-    baseComponentId,
-    'NavigationButtons',
+  const config = useComponentConfig(baseComponentId, 'NavigationButtons');
+  const componentId = useIndexedId(baseComponentId);
+  const next = useEvalOptionalText(
+    config.textResourceBindings?.next,
+    Expressions.NavigationButtons.textResourceBindings.next,
+  );
+  const back = useEvalOptionalText(
+    config.textResourceBindings?.back,
+    Expressions.NavigationButtons.textResourceBindings.back,
+  );
+  const resolvedBackToPage = useEvalOptionalText(
+    config.textResourceBindings?.backToPage,
+    Expressions.NavigationButtons.textResourceBindings.backToPage,
   );
 
   const { getPageValidation } = usePageValidation(baseComponentId);
   // Use component-level validation if set, otherwise fall back to page-level
   // When page-level validation is set, only validate forward navigation
-  const validateOnForward = getPageValidation() ?? validateOnNext;
-  const validateOnBackward = getPageValidation() ? undefined : validateOnPrevious;
+  const validateOnForward = getPageValidation() ?? config.validateOnNext;
+  const validateOnBackward = getPageValidation() ? undefined : config.validateOnPrevious;
 
   const { navigateToNextPage, navigateToPreviousPage, navigateToPage, maybeSaveOnPageChange } = useNavigatePage();
   const hasNext = !!useNextPageKey();
@@ -103,8 +120,8 @@ function NavigationButtonsComponentInner({
   const attachmentsPending = AttachmentReadModel.useHasPendingAttachments();
 
   const getScrollPosition = React.useCallback(
-    () => document.querySelector(`[data-componentid="${id}"]`)?.getClientRects().item(0)?.y,
-    [id],
+    () => document.querySelector(`[data-componentid="${componentId}"]`)?.getClientRects().item(0)?.y,
+    [componentId],
   );
 
   /**
@@ -182,14 +199,14 @@ function NavigationButtonsComponentInner({
 
   return (
     <NavigationButtons
-      componentId={id}
-      next={textResourceBindings?.next || undefined}
-      back={textResourceBindings?.back || undefined}
+      componentId={componentId}
+      next={next || undefined}
+      back={back || undefined}
       backToSummary={returnToViewText}
-      backToPage={textResourceBindings?.backToPage || undefined}
+      backToPage={resolvedBackToPage || undefined}
       backToPageParams={[smartLowerCaseFirst(langAsString(backToPage ?? ''))]}
       showNext={showNextButton}
-      showPrevious={hasPrevious && showBackButton !== false}
+      showPrevious={hasPrevious && config.showBackButton !== false}
       showBackToSummary={showBackToSummaryButton}
       showBackToPage={showBackToPageButton}
       disabled={isAnyProcessing}

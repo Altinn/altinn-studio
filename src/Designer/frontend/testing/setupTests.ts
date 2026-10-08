@@ -1,16 +1,12 @@
 import 'jest';
-import 'whatwg-fetch';
 import '@testing-library/jest-dom/jest-globals';
 import '@testing-library/jest-dom';
-import '@oddbird/popover-polyfill';
+import './setupEnvironment';
 import failOnConsole from 'jest-fail-on-console';
 import { textMock } from './mocks/i18nMock';
 import { SignalR } from './mocks/signalr';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { configure } from '@testing-library/dom';
-import { TextEncoder, TextDecoder } from 'util';
 import { createElement, type ComponentType } from 'react';
-import { webcrypto } from 'crypto';
 
 failOnConsole({
   shouldFailOnWarn: true,
@@ -25,60 +21,6 @@ failOnConsole({
 
     return false;
   },
-});
-
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(), // Deprecated
-    removeListener: jest.fn(), // Deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-});
-
-Object.defineProperty(window, 'scrollTo', {
-  writable: true,
-  value: jest.fn(),
-});
-
-// polyfill for jsdom (taken from https://stackoverflow.com/questions/68468203/why-am-i-getting-textencoder-is-not-defined-in-jest)
-Object.assign(global, { TextDecoder, TextEncoder });
-
-// ResizeObserver must be mocked because it is used by the Popover component from the design system, but it is not supported by React Testing Library.
-class ResizeObserver {
-  observe = jest.fn();
-  unobserve = jest.fn();
-  disconnect = jest.fn();
-}
-
-window.ResizeObserver = ResizeObserver;
-
-// document.getAnimations must be mocked because it is used by the design system, but it is not supported by React Testing Library.
-Object.defineProperty(document, 'getAnimations', {
-  value: () => [],
-  writable: true,
-});
-
-// Use Node's implementation of Web Crypto API, since Jest does not have access to browser's Web Crypto API
-Object.defineProperty(window, 'crypto', {
-  value: webcrypto,
-  writable: true,
-});
-
-// Workaround for the known issue. For more info, see this: https://github.com/jsdom/jsdom/issues/3294#issuecomment-1268330372
-HTMLDialogElement.prototype.showModal = jest.fn(function mock(this: HTMLDialogElement) {
-  this.open = true;
-});
-HTMLDialogElement.prototype.close = jest.fn(function mock(this: HTMLDialogElement) {
-  if (this.open) {
-    this.open = false;
-    this.dispatchEvent(new Event('close'));
-  }
 });
 
 // I18next mocks. The useTranslation and Trans mocks apply the textMock function on the text key, so that it can be used to address the texts in the tests.
@@ -124,7 +66,3 @@ jest.mock('@microsoft/signalr', () => ({
 }));
 
 jest.setTimeout(3000000);
-
-const TESTING_LIBRARY_TIMEOUT_MILLISECONDS = 2000;
-
-configure({ asyncUtilTimeout: TESTING_LIBRARY_TIMEOUT_MILLISECONDS });

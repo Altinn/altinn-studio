@@ -1,5 +1,7 @@
+import expressionSchema from '@app/layout-contract/schemas/json/layout/expression.schema.v1.json';
 import Ajv from 'ajv';
-import expressionSchema from 'schemas/json/layout/expression.schema.v1.json';
+import fs from 'node:fs';
+import path from 'node:path';
 
 import { CompareOperators, ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
 import { ExprVal } from 'src/features/expressions/types';
@@ -130,6 +132,20 @@ describe('expression schema tests', () => {
   it('invalid functions should not validate', () => {
     const valid = validate(['invalid_function']);
     expect(valid).toBe(false);
+  });
+
+  // A definition that is declared twice is silently dropped when the schema is parsed (the last one wins), so
+  // additions to an existing definition can look applied while having no effect at all.
+  it('no definition should be declared more than once', () => {
+    const schemaPath = path.resolve(
+      import.meta.dirname,
+      '../../../../../common/ts/layout-contract/schemas/json/layout/expression.schema.v1.json',
+    );
+    const rawSchema = fs.readFileSync(schemaPath, 'utf-8');
+    const declarations = [...rawSchema.matchAll(/^ {4}"([^"]+)": \{$/gm)].map(([, name]) => name);
+    const duplicates = declarations.filter((name, index) => declarations.indexOf(name) !== index);
+    expect(duplicates).toEqual([]);
+    expect(declarations.length).toBe(Object.keys(expressionSchema.definitions).length);
   });
 
   it('no other function definitions should be present', () => {

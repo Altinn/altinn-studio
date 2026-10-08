@@ -44,7 +44,7 @@ const convertExternalLayout = (
   const convertedData: InternalLayoutData = data
     ? convertExternalData(data, layoutDefaultDataType)
     : createEmptyLayoutData();
-  return { ...convertedData, customRootProperties };
+  return { $schema: externalLayout.$schema, ...convertedData, customRootProperties };
 };
 
 const getCustomRootProperties = (externalLayout: SerializedFormLayout) => {

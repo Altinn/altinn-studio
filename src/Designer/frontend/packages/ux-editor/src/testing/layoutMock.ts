@@ -75,6 +75,7 @@ export const customDataPropertiesMock: KeyValuePairs = {
 };
 export const layoutMock: IInternalLayout = {
   pageIndexes: {},
+  $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
   components: {
     [component1IdMock]: component1Mock,
     [component2IdMock]: component2Mock,

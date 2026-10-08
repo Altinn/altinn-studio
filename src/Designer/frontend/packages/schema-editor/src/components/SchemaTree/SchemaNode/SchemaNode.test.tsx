@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../test/renderWithProviders';
 import { StudioDragAndDropTree } from '@studio/components';
 import { SchemaNode } from './SchemaNode';
@@ -25,7 +26,7 @@ const setupSchemaModel = () => SchemaModel.fromArray(uiSchemaNodesMock).deepClon
 
 /* eslint-disable testing-library/no-node-access */ // Disabled because Eslint misinterprets the "children" properties as React children
 describe('SchemaNode', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Renders a node', () => {
     const { schemaPointer } = objectNodeMock;
@@ -37,7 +38,7 @@ describe('SchemaNode', () => {
   it('Saves the model correctly when a text node is added', async () => {
     const { schemaPointer } = objectNodeMock;
     const schemaModel = setupSchemaModel();
-    const save = jest.fn();
+    const save = vi.fn();
     const numberOfChildren = objectNodeMock.children.length;
     render({ schemaModel, save, schemaPointer });
     await user.click(getAddNodeInChildButton());
@@ -53,7 +54,7 @@ describe('SchemaNode', () => {
   it('Saves the model correctly when a combination node is added', async () => {
     const { schemaPointer } = objectNodeMock;
     const schemaModel = setupSchemaModel();
-    const save = jest.fn();
+    const save = vi.fn();
     const numberOfChildren = objectNodeMock.children.length;
     render({ schemaModel, save, schemaPointer });
     await user.click(getAddNodeInChildButton());
@@ -69,11 +70,11 @@ describe('SchemaNode', () => {
   it('Saves the model correctly when a reference node is added', async () => {
     const { schemaPointer } = objectNodeMock;
     const schemaModel = setupSchemaModel();
-    const save = jest.fn();
+    const save = vi.fn();
     const numberOfChildren = objectNodeMock.children.length;
     const definitionPointer = definitionNodeMock.schemaPointer;
     const definitionName = extractNameFromPointer(definitionPointer);
-    jest.spyOn(window, 'prompt').mockImplementation(() => definitionName);
+    vi.spyOn(window, 'prompt').mockImplementation(() => definitionName);
     render({ schemaModel, save, schemaPointer });
     await user.click(getAddNodeInChildButton());
     const addReferenceButtonName = textMock('schema_editor.add_reference');
@@ -103,11 +104,11 @@ describe('SchemaNode', () => {
 
   it('Enables the deletion of a child node from a definition that is currently in use', async () => {
     const { schemaPointer } = referenceNodeMock;
-    const save = jest.fn();
+    const save = vi.fn();
     render({ schemaPointer, save });
 
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     await user.click(deleteButton);
     expect(save).toHaveBeenCalledTimes(1);
   });
@@ -115,8 +116,8 @@ describe('SchemaNode', () => {
   it('Saves the model correctly when a node is deleted', async () => {
     const { schemaPointer } = objectNodeMock;
     const schemaModel = setupSchemaModel();
-    const save = jest.fn();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    const save = vi.fn();
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     render({ schemaModel, save, schemaPointer });
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
     await user.click(deleteButton);
@@ -129,8 +130,8 @@ describe('SchemaNode', () => {
     const { schemaPointer } = objectNodeMock;
     const schemaModel = setupSchemaModel();
     const schemaModelBefore = schemaModel.deepClone();
-    const save = jest.fn();
-    jest.spyOn(window, 'confirm').mockImplementation(() => false);
+    const save = vi.fn();
+    vi.spyOn(window, 'confirm').mockImplementation(() => false);
     render({ schemaModel, save, schemaPointer });
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
     await user.click(deleteButton);
@@ -141,7 +142,7 @@ describe('SchemaNode', () => {
   it('Saves the model correctly when a node is converted to a type', async () => {
     const { schemaPointer } = objectNodeMock;
     const schemaModel = setupSchemaModel();
-    const save = jest.fn();
+    const save = vi.fn();
     render({ schemaModel, save, schemaPointer });
     const promoteButton = screen.getByRole('button', { name: textMock('schema_editor.promote') });
     await user.click(promoteButton);
@@ -154,7 +155,7 @@ describe('SchemaNode', () => {
   it('Saves the model correctly when a node is duplicated', async () => {
     const { schemaPointer } = objectNodeMock;
     const schemaModel = setupSchemaModel();
-    const save = jest.fn();
+    const save = vi.fn();
     const numberOfRootProperties = schemaModel.getRootProperties().length;
     render({ schemaModel, save, schemaPointer });
     const duplicateButton = screen.getByRole('button', {
@@ -170,8 +171,8 @@ describe('SchemaNode', () => {
   it('Removes node selection when the node is selected and deleted', async () => {
     const { schemaPointer } = objectNodeMock;
     const schemaModel = setupSchemaModel();
-    const setSelectedUniquePointer = jest.fn();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    const setSelectedUniquePointer = vi.fn();
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     render({
       schemaModel,
       schemaPointer,
@@ -187,7 +188,7 @@ describe('SchemaNode', () => {
   it('Marks the node as selected when it is added', async () => {
     const { schemaPointer } = objectNodeMock;
     const schemaModel = setupSchemaModel();
-    const save = jest.fn();
+    const save = vi.fn();
     render({ schemaModel, save, schemaPointer });
     await user.click(getAddNodeInChildButton());
     const addTextButtonName = textMock('schema_editor.add_string');
@@ -210,12 +211,12 @@ interface RenderProps {
 const render = ({
   schemaPointer = objectNodeMock.schemaPointer,
   schemaModel = SchemaModel.fromArray(uiSchemaNodesMock),
-  save = jest.fn(),
+  save = vi.fn(),
   selectedUniquePointer = null,
-  setSelectedUniquePointer = jest.fn(),
+  setSelectedUniquePointer = vi.fn(),
 }: RenderProps) => {
-  const onAdd = jest.fn();
-  const onMove = jest.fn();
+  const onAdd = vi.fn();
+  const onMove = vi.fn();
   return renderWithProviders({
     appContextProps: { save, schemaModel, selectedUniquePointer, setSelectedUniquePointer },
   })(

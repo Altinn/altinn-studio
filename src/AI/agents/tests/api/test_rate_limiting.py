@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 from fastapi import HTTPException, Request
 
-from api.rate_limiting import RateLimiter, WINDOW_SECONDS
+from api.rate_limiting import WINDOW_SECONDS, RateLimiter
 
 
 class FakeClock:
@@ -65,7 +65,9 @@ async def test_rejection_includes_a_retry_after_header(clock):
     with pytest.raises(HTTPException) as exc_info:
         await limiter(request_from("kari"))
 
-    assert int(exc_info.value.headers["Retry-After"]) == WINDOW_SECONDS
+    headers = exc_info.value.headers
+    assert headers is not None
+    assert int(headers["Retry-After"]) == WINDOW_SECONDS
 
 
 async def test_keys_are_limited_independently(clock):
@@ -89,4 +91,3 @@ async def test_requests_are_allowed_again_after_the_window_passes(clock):
     await call_n_times(limiter, "kari", 2)
     clock.advance(WINDOW_SECONDS + 1)
     await call_n_times(limiter, "kari", 2)
-

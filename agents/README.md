@@ -1,83 +1,65 @@
 # Altinn Agents
 
-Choose a Claude Code development environment:
+Agents for working on Altinn Studio, run with `agentctl` from [digdir/digdir-agents](https://github.com/digdir/digdir-agents).
+See its [README](https://github.com/digdir/digdir-agents/blob/main/agentctl/README.md) for installation and how
+`agentctl` works.
 
-| Variant    | Additional tools                                                   |
-| ---------- | ------------------------------------------------------------------ |
-| `minimal`  | .NET, Node.js, Go, GitHub CLI, asciinema and agg                   |
-| `full`     | Rust, Podman, kind, kubectl, Helm, Flux, Playwright CLI and ffmpeg |
-| `worktree` | Full image with the current checkout mounted read-write            |
+| Agent / variant          | Image and checkout                                                   |
+| ------------------------ | -------------------------------------------------------------------- |
+| `minimal` default        | Minimal published image and a fresh checkout                         |
+| `minimal` `nested`       | Minimal published image, reduced to fit inside another Agent         |
+| `minimal` `nested-build` | Reduced resources and a minimal image built from this checkout       |
+| `minimal` `worktree`     | Minimal published image with the current checkout mounted read-write |
+| `full` default           | Full published image and a fresh checkout                            |
+| `full` `nested`          | Full published image, reduced to fit inside another Agent            |
+| `full` `nested-build`    | Reduced resources and a full image built from this checkout          |
+| `full` `worktree`        | Full published image with the current checkout mounted read-write    |
+| `desktop` default        | Full image plus a graphical desktop, and a fresh checkout            |
+| `desktop` `nested`       | Desktop published image, reduced to fit inside another Agent         |
+| `desktop` `nested-build` | Reduced resources and a desktop image built from this checkout       |
+| `desktop` `worktree`     | Desktop published image with the current checkout mounted read-write |
 
-Every variant installs the `pr-evidence` skill from `agents/skills`: screenshots and clips through Playwright, terminal
-recordings through asciinema, uploaded with `gh pr create --attach`.
+## Getting started
 
-The host needs hardware virtualization. Docker is required only for manifests that build an image locally; these
-released variants use registry references. Install the released Agent CLI on Linux or macOS:
+1. Install `agentctl` and run `agentctl claude login`. If your `agentctl` was installed from an altinn-studio
+   release, install it again from digdir-agents to keep receiving updates.
+2. Copy the chosen Agent's `.env.sample` to `.env` and fill it in (see [Credentials](#credentials)).
+3. Run `agentctl tui` from this checkout. The footer lists the keys for what is selected; the common ones:
+   - `c` creates an Agent: pick the Agent and variant, and it is provisioned.
+   - `n` starts a new Session on the selected Agent, and `enter` attaches to a Session. Detach with `Ctrl-b d`.
+   - `o` opens the selected Agent or Session: `e` a shell, `c` VS Code (Remote-SSH), `z` Zed, `s` an SSH shell, and
+     `y` copies the SSH alias. For `desktop`, `w` opens the desktop in the browser and `v` in a VNC client.
+   - `a` archives a Session, keeping its conversation, and unarchives it again.
+   - `d` deletes the selected Session or Agent.
+   - `x` stops or starts the selected Agent.
 
-```sh
-curl -fsSL https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/experimental/agent/install.sh | sh
-agentctl claude login
-```
+The `worktree` variants mount this checkout into the Agent, and `agentctl` rejects a checkout that contains a `.env`
+file. Keep that variant's env file outside the checkout, for example `~/.agent/altinn-worktree.env`, and select it in
+the create form.
 
-Windows additionally requires the `HypervisorPlatform` optional feature. Install from PowerShell:
+## External harnesses
 
-```powershell
-irm https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/experimental/agent/install.ps1 | iex
-```
+You can also work in an Agent's Sandbox from a harness outside `agentctl`, through any app that runs its sessions
+on a remote host over SSH. Apps known to work include:
 
-Open a new PowerShell window so the updated user `PATH` takes effect, then authenticate:
+- ChatGPT desktop app
+- Claude desktop app
+- T3 Code
+- VS Code Insiders, in the Agents window
 
-```powershell
-agentctl claude login
-```
+Connect the app to the Agent's SSH alias, `agentctl-<name>`, for example `agentctl-altinn-full`. Choose **Set up SSH** in
+the TUI's `o` menu once, or run `agentctl ssh-config install`, so OpenSSH resolves the alias; `y` in the same menu
+copies it.
 
-## GitHub token
+## Credentials
 
-Create a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new)
-for the repositories the Agent will use. Grant `Contents: Read and write` and
-`Pull requests: Read and write`; add `Actions: Read` for CI inspection and `Workflows: Read and
-write` only when the Agent must change workflow files. Gists are an account permission rather than a
-repository one, so add `Gists: Read and write` when the Agent must create or push them.
-Organization approval may be required.
+All tokens and keys stay on the host. The Agent sees placeholders, and they are substituted only in requests to
+their own hosts. `GIT_USER_NAME` and `GIT_USER_EMAIL` enter the Agent in plaintext.
 
-Copy the chosen variant's `.env.sample` to `.env` and set `GITHUB_TOKEN` there. The token remains
-on the host and is substituted only for authorized GitHub requests, including attachment uploads to
-`uploads.github.com`. Inside the Agent the variable holds an inert placeholder with the fine-grained
-token prefix, which `gh` needs before it will attach files. The worktree variant does not receive a
-token because its host checkout is mounted into the Agent, so it cannot attach files to pull requests.
-
-From the repository root, configure and start an Agent:
-
-```sh
-cd agents/full
-cp .env.sample .env
-$EDITOR .env
-agentctl apply -f agent.yaml --wait
-```
-
-`--wait` streams provisioning progress and returns once the Agent is Ready. Without it `apply`
-returns immediately and `agentctl wait agent/altinn-full` follows the same progress later.
-
-Use `agents/minimal` and `agent/altinn-minimal` instead for the minimal variant.
-
-To work directly on the current checkout without cloning it, apply `agents/worktree/agent.yaml` from
-the repository root. The entire checkout, including ignored files, is then visible inside the Agent. Linked Git
-worktrees also need their external common Git directory mounted for Git commands to work inside the Agent.
-
-A `.env` inside the mounted checkout would be readable from the Agent, so `agentctl apply` rejects the worktree
-variant while any `.env` of another Agent, for example `agents/full/.env`, lies inside the checkout. Keep such
-secret files outside the checkout and pass their location with `agentctl apply --env-file <path>`.
-
-Create or reattach to a Session:
-
-```sh
-agentctl attach session/work
-```
-
-Detach with `Ctrl-b d`. Sessions open in `/home/agent/code`.
-
-Delete the Agent and its Sandbox:
-
-```sh
-agentctl delete agent/altinn-full
-```
+- `GITHUB_TOKEN`: a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new) with
+  `Contents` and `Pull requests` read and write. Add `Actions: Read` for CI, `Workflows: Read and write` to change
+  workflow files and `Gists: Read and write` for gists.
+- `AZURE_DEVOPS_PAT`: a [personal access token](https://dev.azure.com/brreg/_usersSettings/tokens) in the `brreg`
+  organization with `Code: Read`, or `Code: Read & write` to push.
+- `STUDIO_PROD_API_KEY`, `STUDIO_STAGING_API_KEY`, `STUDIO_DEV_API_KEY`: Designer API keys. The Agent logs `studioctl`
+  in to each configured environment at boot; check with `studioctl auth status`.

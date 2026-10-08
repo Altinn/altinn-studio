@@ -1,16 +1,16 @@
 import React from 'react';
 
-import { useBrowserWidth } from '@app/form-component';
+import { useIsLgUp } from '@app/form-component';
 
-import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
+import { useExpandedWidth } from 'src/features/form/layout/useExpandedWidth';
 import { AppNavigation, AppNavigationHeading, appNavigationHeadingId } from 'src/features/navigation/AppNavigation';
 import classes from 'src/features/navigation/SidebarNavigation.module.css';
-import { SIDEBAR_BREAKPOINT, useHasGroupedNavigation } from 'src/features/navigation/utils';
+import { useHasGroupedNavigation } from 'src/features/navigation/utils';
 
 export function SideBarNavigation() {
   const hasGroupedNavigation = useHasGroupedNavigation();
-  const { expandedWidth } = useUiConfigContext();
-  const isScreenLarge = useBrowserWidth((width) => width >= SIDEBAR_BREAKPOINT) && !expandedWidth;
+  const { expandedWidth } = useExpandedWidth();
+  const isScreenLarge = useIsLgUp() && !expandedWidth;
 
   if (!hasGroupedNavigation || !isScreenLarge) {
     return null;

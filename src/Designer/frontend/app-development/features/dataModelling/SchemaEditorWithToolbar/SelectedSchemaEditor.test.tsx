@@ -2,7 +2,7 @@ import { renderWithProviders } from '../../../test/mocks';
 import type { SelectedSchemaEditorProps } from './SelectedSchemaEditor';
 import { SelectedSchemaEditor } from './SelectedSchemaEditor';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { act, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import {
@@ -44,11 +44,19 @@ const defaultProps: SelectedSchemaEditorProps = {
 const schemaEditorTestId = 'schema-editor';
 const saveButtonTestId = 'save-button';
 const savePrefillConfigButtonTestId = 'save-prefill-config-button';
+const saveFirstEditButtonTestId = 'save-first-edit-button';
+const saveSecondEditButtonTestId = 'save-second-edit-button';
+const modelTitleTestId = 'model-title';
+const mockFirstEdit = { ...dataMock, title: 'first edit' };
+const mockSecondEdit = { ...dataMock, title: 'second edit' };
 const prefillConfigMock: PrefillConfig = { ER: { OrgNumber: 'someField' } };
 jest.mock('@altinn/schema-editor/SchemaEditorApp', () => ({
-  SchemaEditorApp: ({ save, savePrefillConfig }: SchemaEditorAppProps) => (
+  SchemaEditorApp: ({ jsonSchema, save, savePrefillConfig }: SchemaEditorAppProps) => (
     <div data-testid={schemaEditorTestId}>
+      <span data-testid='model-title'>{jsonSchema.title ?? 'untitled'}</span>
       <button data-testid={saveButtonTestId} onClick={() => save(dataMock)} />
+      <button data-testid='save-first-edit-button' onClick={() => save(mockFirstEdit)} />
+      <button data-testid='save-second-edit-button' onClick={() => save(mockSecondEdit)} />
       <button
         data-testid={savePrefillConfigButtonTestId}
         onClick={() => savePrefillConfig(prefillConfigMock)}
@@ -112,6 +120,33 @@ describe('SelectedSchemaEditor', () => {
     await waitFor(() => jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
     await waitFor(() => expect(saveDataModel).toHaveBeenCalledTimes(1));
     expect(saveDataModel).toHaveBeenCalledWith(org, app, model1Path, dataMock);
+  });
+
+  it('Keeps an edit made while the previous save is being written to the cache', async () => {
+    const saveDataModel = jest.fn();
+    const getDataModel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
+
+    render({ getDataModel, saveDataModel });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('schema_editor.loading_page')),
+    );
+
+    await user.click(screen.getByTestId(saveFirstEditButtonTestId));
+    const saveSecondEditButton = screen.getByTestId(saveSecondEditButtonTestId);
+    await act(async () => {
+      jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+      saveSecondEditButton.click();
+    });
+    await act(async () => jest.advanceTimersByTime(1));
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    expect(saveDataModel).toHaveBeenCalledWith(org, app, model1Path, mockFirstEdit);
+
+    expect(screen.getByTestId(modelTitleTestId)).toHaveTextContent('second edit');
+
+    await act(async () => jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
+    expect(saveDataModel).toHaveBeenCalledTimes(2);
+    expect(saveDataModel).toHaveBeenLastCalledWith(org, app, model1Path, mockSecondEdit);
   });
 
   it('Saves the prefill config for the current model', async () => {

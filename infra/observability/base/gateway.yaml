@@ -6,7 +6,7 @@ metadata:
     altinn.studio/otel-collector: otel-gateway
 spec:
   mode: deployment
-  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.148.0
+  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.161.0
   serviceAccount: otel-collector
   upgradeStrategy: automatic
   replicas: 1
@@ -24,7 +24,23 @@ spec:
       labelSelector:
         matchLabels:
           altinn.studio/otel-collector: otel-gateway
+  # On deletion the pod first leaves the Service and the gateway's headless DNS and keeps
+  # working, retries included, while its queues drain; then the Collector shuts down and
+  # flushes, with one attempt per remaining batch. Telemetry can wait, so both are generous.
+  # Native sleep: the image has no shell.
+  lifecycle:
+    preStop:
+      sleep:
+        seconds: 60 # beyond the gateway's 40s tail sampling wait and 5s batch timeout
+  terminationGracePeriodSeconds: 120 # 60s above, 30s to shut down, a sidecar's drain, margin
+  livenessProbe:
+    terminationGracePeriodSeconds: 10 # a failed liveness probe restarts without the 60s drain
   config:
+    extensions:
+      # The operator derives the readiness and liveness probes from this extension, so a pod counts
+      # as ready only once the Collector is running, and a rollout keeps the old pod until then.
+      health_check:
+        endpoint: 0.0.0.0:13133 # the kubelet probes the pod IP; the default binds localhost
     receivers:
       otlp:
         protocols:
@@ -51,9 +67,10 @@ spec:
               - set(span.attributes["db.system"], span.attributes["db.system.name"]) where span.attributes["db.system.name"] != nil
               - set(span.attributes["http.route"], span.attributes["url.path"]) where span.attributes["url.path"] != nil and span.attributes["http.route"] == nil
               - replace_pattern(span.attributes["http.route"], "/(.*?)/(.*?)?/(.*?)?$","/$$1/$$2") where resource.attributes["k8s.deployment.name"] == "traefik" and span.attributes["http.route"] != nil
-              - set(span.attributes["http.host"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
-              - set(span.attributes["http.target"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
-              - set(span.attributes["server.address"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
+              # Guard on service.name: `set` writes an empty value when its source is nil (ottl.set.allowNil, on by default since collector 0.161.0).
+              - set(span.attributes["http.host"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil and resource.attributes["service.name"] != nil
+              - set(span.attributes["http.target"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil and resource.attributes["service.name"] != nil
+              - set(span.attributes["server.address"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil and resource.attributes["service.name"] != nil
       transform/pdf3_expected_429_success:
         error_mode: ignore
         trace_statements:
@@ -133,3 +150,5 @@ spec:
       batch:
         send_batch_size: 1024
         timeout: 5s
+    service:
+      extensions: [health_check]

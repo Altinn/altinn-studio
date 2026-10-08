@@ -4,16 +4,16 @@
   "version": "0.1.0",
   "main": "./src/index.ts",
   "scripts": {
-    "test": "jest",
+    "test": "yarn workspace studio-designer-frontend vitest run libs/studio-components/",
     "lint": "eslint \"src/components/**/*.ts*\"",
     "storybook": "storybook dev -p 6007",
     "build-storybook": "storybook build",
     "typecheck": "tsc --noEmit -p ./"
   },
   "dependencies": {
-    "@digdir/designsystemet-css": "1.13.3",
-    "@digdir/designsystemet-react": "1.13.3",
-    "@digdir/designsystemet-theme": "1.11.0",
+    "@app/layout-contract": "workspace:*",
+    "@digdir/designsystemet-css": "1.23.0",
+    "@digdir/designsystemet-react": "1.23.0",
     "@studio/hooks": "workspace:^",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
@@ -33,14 +33,10 @@
     "@studio/ui-test": "workspace:^",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
-    "@types/jest": "^30.0.0",
     "@typescript/native": "npm:typescript@7.0.2",
     "eslint": "10.8.1",
     "eslint-plugin-storybook": "10.5.7",
-    "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0",
     "storybook": "10.5.7",
-    "ts-jest": "^29.1.1",
     "typescript": "npm:@typescript/typescript6@6.0.2"
   }
 }

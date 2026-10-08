@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 
-import { useIsMutating, useMutation, useQueryClient } from '@tanstack/react-query';
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
-import type { IDataModelReference, IMapping } from '@app/layout-contract/generated/common.generated';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { AxiosRequestConfig } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
@@ -12,9 +11,10 @@ import {
   type useGetCachedInitialValidations,
   useIsUpdatingInitialValidations,
 } from 'src/core/queries/backendValidation';
+import { useIsMutating, useMutation, useQueryClient } from 'src/core/queries/reactQuery';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
-import { FormStore } from 'src/features/form/FormContext';
+import { FormStore, getRootFormStore } from 'src/features/form/FormContext';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
@@ -30,7 +30,7 @@ import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
-import type { FormStoreState } from 'src/features/form/FormContext';
+import type { FormStoreApi, FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapQueryResponse } from 'src/features/formBootstrap/useFormBootstrapQuery';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import type { FDActionResult, FDSaveFinished, UpdatedDataModel } from 'src/features/formData/FormDataWriteStateMachine';
@@ -53,6 +53,15 @@ export interface FormDataSliceProps {
 }
 
 const saveFormDataMutationKey = ['saveFormData'] as const;
+
+function adjustNestedFormStatus(rootStore: FormStoreApi, unsavedDelta: number, unloadWarningDelta: number) {
+  rootStore.setState((state) => ({
+    nestedFormStatus: {
+      unsaved: state.nestedFormStatus.unsaved + unsavedDelta,
+      unloadWarnings: state.nestedFormStatus.unloadWarnings + unloadWarningDelta,
+    },
+  }));
+}
 
 function useFormDataSaveMutation() {
   const { doPostStatelessFormData, doPatchMultipleFormData } = useAppMutations();
@@ -301,6 +310,9 @@ export function FormDataWriteEffects() {
 }
 
 function FormDataEffects() {
+  const store = FormStore.raw.useStore();
+  const parent = store.getState().parent;
+  const rootStore = getRootFormStore(store);
   const [autoSaving, lockedBy, debounceTimeout, manualSaveRequested] = FormStore.raw.useShallowSelector((s) => [
     s.data.autoSaving,
     s.data.lockedBy,
@@ -308,6 +320,12 @@ function FormDataEffects() {
     s.data.manualSaveRequested,
   ]);
   const hasUnsavedChanges = useHasUnsavedChanges();
+  const hasInvalidData = FormStore.raw.useSelector((state) => hasInvalidFormData(state));
+  const shouldWarnBeforeUnload = hasUnsavedChanges || hasInvalidData;
+  const [nestedUnsaved, nestedUnloadWarnings] = FormStore.raw.useShallowSelector((state) => [
+    state.nestedFormStatus.unsaved,
+    state.nestedFormStatus.unloadWarnings,
+  ]);
   const setUnsavedAttrTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const { mutate: performSave, error } = useFormDataSaveMutation();
@@ -323,11 +341,27 @@ function FormDataEffects() {
     throw error;
   }
 
-  // Marking the document as having unsaved changes. The data attribute is used in tests, while the beforeunload
-  // event is used to warn the user when they try to navigate away from the page with unsaved changes.
+  // Nested forms publish their status to the root FormStore. Only the root writes global browser state.
   useEffect(() => {
+    if (!parent) {
+      return;
+    }
+
+    adjustNestedFormStatus(rootStore, Number(hasUnsavedChanges), Number(shouldWarnBeforeUnload));
+
+    return () => {
+      adjustNestedFormStatus(rootStore, -Number(hasUnsavedChanges), -Number(shouldWarnBeforeUnload));
+    };
+  }, [parent, rootStore, hasUnsavedChanges, shouldWarnBeforeUnload]);
+
+  // The data attribute tracks saveable changes for tests. Invalid input also requires an unload warning.
+  useEffect(() => {
+    if (parent) {
+      return;
+    }
+
     clearTimeout(setUnsavedAttrTimeout.current);
-    if (hasUnsavedChanges) {
+    if (hasUnsavedChanges || nestedUnsaved > 0) {
       document.body.setAttribute('data-unsaved-changes', 'true');
     } else {
       setUnsavedAttrTimeout.current = setTimeout(() => {
@@ -335,14 +369,20 @@ function FormDataEffects() {
         setUnsavedAttrTimeout.current = undefined;
       }, 10);
     }
-    window.onbeforeunload = hasUnsavedChanges ? () => true : null;
+    window.onbeforeunload =
+      shouldWarnBeforeUnload || nestedUnloadWarnings > 0
+        ? (event) => {
+            event.preventDefault();
+            return true;
+          }
+        : null;
 
     return () => {
       clearTimeout(setUnsavedAttrTimeout.current);
       document.body.removeAttribute('data-unsaved-changes');
       window.onbeforeunload = null;
     };
-  }, [hasUnsavedChanges]);
+  }, [parent, hasUnsavedChanges, shouldWarnBeforeUnload, nestedUnsaved, nestedUnloadWarnings]);
 
   // Debounce the data model when the user stops typing. This has the effect of triggering the useEffect below,
   // saving the data model to the backend. Freezing can also be triggered manually, when a manual save is requested.
@@ -463,6 +503,14 @@ function hasUnsavedChanges(state: FormStoreState) {
   return Object.values(state.data.models).some(
     ({ currentData, lastSavedData, debouncedCurrentData }) =>
       currentData !== lastSavedData || debouncedCurrentData !== lastSavedData,
+  );
+}
+
+export function hasInvalidFormData(state: FormStoreState): boolean {
+  return Object.values(state.data.models).some(({ invalidCurrentData }) =>
+    Object.values(dot.dot(invalidCurrentData)).some(
+      (value) => typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean',
+    ),
   );
 }
 
@@ -605,6 +653,11 @@ const debouncedSelector = (reference: IDataModelReference) => (state: FormStoreS
 const invalidDebouncedSelector = (reference: IDataModelReference) => (state: FormStoreState) =>
   dot.pick(reference.field, state.data.models[reference.dataType]?.invalidDebouncedCurrentData);
 
+const dataModelReferenceCacheKey = ([arg]: unknown[]): string[] => {
+  const reference = arg as IDataModelReference;
+  return [reference.dataType, reference.field];
+};
+
 const debouncedRowSelector = (reference: IDataModelReference) => (state: FormStoreState) => {
   const rawRows = dot.pick(reference.field, state.data.models[reference.dataType]?.debouncedCurrentData);
   if (!Array.isArray(rawRows) || !rawRows.length) {
@@ -620,10 +673,11 @@ export const formDataHooks = {
    * model).
    */
   useCurrentSelector(): FormDataSelector {
-    return FormStore.raw.useDelayedSelector({
-      mode: 'simple',
-      selector: currentSelector,
-    });
+    return FormStore.raw.useDelayedSelector(
+      { mode: 'simple', selector: currentSelector },
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   /**
@@ -633,10 +687,11 @@ export const formDataHooks = {
    * pretend to have the full data model available to look up values from.
    */
   useDebouncedSelector(): FormDataSelector {
-    return FormStore.raw.useDelayedSelector({
-      mode: 'simple',
-      selector: debouncedSelector,
-    });
+    return FormStore.raw.useDelayedSelector(
+      { mode: 'simple', selector: debouncedSelector },
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   /**
@@ -645,20 +700,22 @@ export const formDataHooks = {
    * inside them (and re-render if that data changes).
    */
   useDebouncedRowsSelector(): FormDataRowsSelector {
-    return FormStore.raw.useDelayedSelector({
-      mode: 'simple',
-      selector: debouncedRowSelector,
-    });
+    return FormStore.raw.useDelayedSelector(
+      { mode: 'simple', selector: debouncedRowSelector },
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   /**
    * Same as useDebouncedSelector(), but for invalid data.
    */
   useInvalidDebouncedSelector(): FormDataSelector {
-    return FormStore.raw.useDelayedSelector({
-      mode: 'simple',
-      selector: invalidDebouncedSelector,
-    });
+    return FormStore.raw.useDelayedSelector(
+      { mode: 'simple', selector: invalidDebouncedSelector },
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   /**
@@ -686,10 +743,12 @@ export const formDataHooks = {
    * provider is not present.
    */
   useLaxDebouncedSelector(): FormDataSelector | typeof ContextNotProvided {
-    return FormStore.raw.useLaxDelayedSelector({
-      mode: 'simple',
-      selector: debouncedSelector,
-    });
+    return FormStore.raw.useLaxDelayedSelector(
+      { mode: 'simple', selector: debouncedSelector },
+      undefined,
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   /**
@@ -812,42 +871,6 @@ export const formDataHooks = {
       reference ? dot.pick(reference.field, v.data.models[reference.dataType]?.invalidDebouncedCurrentData) : undefined,
     );
   },
-
-  /**
-   * This returns an object that can be used to generate a query string for parts of the current form data.
-   * It is almost the same as usePickFreshStrings(), but with important differences:
-   *   1. The _keys_ in the input are expected to contain the data model paths, not the values. Mappings are reversed
-   *      in that sense.
-   *   2. The data is fetched from the debounced model, not the fresh/current one. That ensures queries that are
-   *      generated from this hook are more stable, and aren't re-fetched on every keystroke.
-   */
-  useMapping: <D extends 'string' | 'raw' = 'string'>(
-    mapping: IMapping | undefined,
-    defaultDataType: string | undefined,
-    dataAs?: D,
-  ): D extends 'raw' ? { [key: string]: FDValue } : { [key: string]: string } =>
-    FormStore.raw.useMemoSelector((s) => {
-      const realDataAs = dataAs || 'string';
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const out: any = {};
-      if (mapping && defaultDataType) {
-        for (const key of Object.keys(mapping)) {
-          const outputKey = mapping[key];
-          const value = dot.pick(key, s.data.models[defaultDataType]?.debouncedCurrentData);
-
-          if (realDataAs === 'raw') {
-            out[outputKey] = value;
-          } else if (typeof value === 'undefined' || value === null) {
-            out[outputKey] = '';
-          } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            out[outputKey] = String(value);
-          } else {
-            out[outputKey] = JSON.stringify(value);
-          }
-        }
-      }
-      return out;
-    }),
 
   /**
    * This returns the raw method for setting a value in the form data. This is useful if you want to

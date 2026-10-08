@@ -1,30 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ../../../../../../infra/runtime/syncroot/base/altinn-charts.yaml
   - ../../../../../../infra/runtime/syncroot/base/pdf.yaml
   - ../../../../../../infra/runtime/syncroot/base/pdf3.yaml
 patches:
-  # pdf-generator disabled (old generator decommissioned, but keep HelmRelease for infrastructure)
-  - target:
-      kind: HelmRelease
-      name: pdf-generator
-    patch: |-
-      - op: replace
-        path: /spec/values/replicaCount
-        value: 0
-      - op: replace
-        path: /spec/values/environment
-        value: local
-      - op: replace
-        path: /spec/values/autoscaling
-        value:
-          enabled: false
-      - op: replace
-        path: /spec/values/image
-        value:
-          repository: browserless/chrome
-          tag: 1-puppeteer-21.4.1
   - patch: |-
       apiVersion: source.toolkit.fluxcd.io/v1
       kind: OCIRepository

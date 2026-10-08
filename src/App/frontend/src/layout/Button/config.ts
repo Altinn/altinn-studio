@@ -18,9 +18,6 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: false,
-  },
 })
   .addTextResource(
     new CG.trb({
@@ -29,15 +26,4 @@ export const Config = new CG.component({
       description: { en: 'The title/text on the button', nb: 'Teksten på knappen.' },
     }),
   )
-  .addProperty(
-    new CG.prop(
-      'mode',
-      new CG.enum('submit', 'save', 'instantiate')
-        .optional({ default: 'submit' })
-        .setTitle('Mode', 'Modus')
-        .setDescription('The mode of the button', 'Knappens modus.')
-        .exportAs('ButtonMode'),
-    ),
-  )
-  .extends(CG.common('IButtonProps'))
-  .addProperty(new CG.prop('mapping', CG.common('IMapping').optional()));
+  .extends(CG.common('IButtonProps'));

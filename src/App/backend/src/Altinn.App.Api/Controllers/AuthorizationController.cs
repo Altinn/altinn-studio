@@ -1,4 +1,3 @@
-using System.Globalization;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
@@ -36,9 +35,13 @@ public class AuthorizationController : Controller
     /// <summary>
     /// Gets current party by reading cookie value and validating.
     /// </summary>
-    /// <returns>Party id for selected party. If invalid, partyId for logged in user is returned.</returns>
+    /// <returns>
+    /// Party id (or the party) for the selected party, or 204 No Content if the selection can't be used
+    /// and the user should select a party again.
+    /// </returns>
     [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Party), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [Authorize]
     [HttpGet("{org}/{app}/api/authorization/parties/current")]
@@ -55,34 +58,18 @@ public class AuthorizationController : Controller
                 if (details.CanRepresent is not bool canRepresent)
                     throw new Exception("Couldn't validate selected party");
 
-                if (canRepresent)
+                if (!canRepresent)
                 {
-                    if (returnPartyObject)
-                    {
-                        return Ok(PartySsnMasking.MaskParty(details.SelectedParty));
-                    }
-
-                    return Ok(details.SelectedParty.PartyId);
-                }
-
-                // Now we know the user can't represent the selected party (reportee)
-                // so we will automatically switch to the user's own party (from the profile)
-                var reportee = details.Profile.Party;
-                if (user.SelectedPartyId != reportee.PartyId)
-                {
-                    // Setting cookie to partyID of logged in user if it varies from previous value.
-                    Response.Cookies.Append(
-                        _settings.GetAltinnPartyCookieName,
-                        reportee.PartyId.ToString(CultureInfo.InvariantCulture),
-                        new CookieOptions { Domain = _settings.HostName }
-                    );
+                    PartySelectionCookie.Clear(Response, _settings);
+                    return NoContent();
                 }
 
                 if (returnPartyObject)
                 {
-                    return Ok(PartySsnMasking.MaskParty(reportee));
+                    return Ok(PartySsnMasking.MaskParty(details.SelectedParty));
                 }
-                return Ok(reportee.PartyId);
+
+                return Ok(details.SelectedParty.PartyId);
             }
             case Authenticated.Org org:
             {
@@ -120,24 +107,24 @@ public class AuthorizationController : Controller
     }
 
     /// <summary>
-    /// Checks if the user can represent the selected party.
+    /// Checks if the authenticated user can represent the selected party.
     /// </summary>
-    /// <param name="userId">The userId</param>
     /// <param name="partyId">The partyId</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>Boolean indicating if the selected party is valid.</returns>
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
     [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError, "text/plain")]
     [Authorize]
     [HttpGet]
-    public async Task<IActionResult> ValidateSelectedParty(int userId, int partyId)
+    public async Task<IActionResult> ValidateSelectedParty(int partyId, CancellationToken cancellationToken)
     {
-        if (partyId == 0 || userId == 0)
+        if (partyId == 0)
         {
-            return BadRequest("Both userId and partyId must be provided.");
+            return BadRequest("partyId must be provided.");
         }
 
-        bool? result = await _authorization.ValidateSelectedParty(userId, partyId);
+        bool? result = await _authorization.ValidateSelectedParty(partyId, cancellationToken: cancellationToken);
 
         if (result != null)
         {
@@ -145,7 +132,7 @@ public class AuthorizationController : Controller
         }
         else
         {
-            return StatusCode(500, $"Something went wrong when trying to validate party {partyId} for user {userId}");
+            return StatusCode(500, $"Something went wrong when trying to validate party {partyId}");
         }
     }
 }

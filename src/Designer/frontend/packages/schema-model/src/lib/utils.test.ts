@@ -1,14 +1,15 @@
+import { describe, expect, it, test } from 'vitest';
 import {
   combinationIsNullable,
   createNodeBase,
   getUniqueNodePath,
   isDefinitionRoot,
+  isEmptyCombination,
   isNodeValidParent,
   replaceLastPointerSegment,
 } from './utils';
 import type { UiSchemaNode } from '../types';
 import { FieldType, Keyword } from '../types';
-import { expect } from '@jest/globals';
 import { buildUiSchema } from './build-ui-schema';
 import { selectorsTestSchema } from '../../test/testUtils';
 import { makePointerFromArray } from './pointerUtils';
@@ -83,6 +84,16 @@ describe('utils', () => {
 
     it.each(testCases)('Returns %s when the node is %s', (expectedResult, caseKey) => {
       expect(isNodeValidParent(testData[caseKey])).toBe(expectedResult);
+    });
+  });
+
+  describe('isEmptyCombination', () => {
+    it('Returns true for a combination without children', () => {
+      expect(isEmptyCombination({ ...allOfNodeMock, children: [] })).toBe(true);
+    });
+
+    it('Returns false for a combination with children', () => {
+      expect(isEmptyCombination(allOfNodeMock)).toBe(false);
     });
   });
 

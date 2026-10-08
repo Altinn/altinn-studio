@@ -1,0 +1,15 @@
+[Unit]
+Description=Trust the Agent certificate bundle in Chromium
+
+[Service]
+# `Type=exec` completes the start job once the script has been started, keeping the import out of
+# the boot transaction so that `systemctl is-system-running --wait` does not wait for it and a
+# Session starts sooner. The script marks a finished import in the runtime directory.
+Type=exec
+User=agent
+Group=agent
+Environment=HOME=/home/agent
+ExecStart=/usr/local/libexec/agent-browser-ca-init
+
+[Install]
+WantedBy=multi-user.target

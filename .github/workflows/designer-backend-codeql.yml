@@ -18,7 +18,6 @@ on:
       - '.github/codeql/**'
       - '.github/workflows/designer-backend-codeql.yml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
   schedule:
     - cron: '45 1 * * 0'

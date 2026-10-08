@@ -41,7 +41,7 @@ func pdfImage(ctx *Options) resource.ImageResource {
 	return &resource.PulledImage{
 		Enabled:    nil,
 		Ref:        ctx.Images.Core.PDF3.Ref(),
-		PullPolicy: resource.PullIfNotPresent,
+		PullPolicy: pullPolicyFor(ctx.Images.Core.PDF3),
 	}
 }
 

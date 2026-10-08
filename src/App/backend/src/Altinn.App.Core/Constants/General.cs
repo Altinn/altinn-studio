@@ -39,4 +39,9 @@ public static class General
     /// Header name for platform access token
     /// </summary>
     internal const string PlatformAccessTokenHeaderName = "PlatformAccessToken";
+
+    /// <summary>
+    /// Header name for the client-supplied idempotency key.
+    /// </summary>
+    internal const string IdempotencyKeyHeaderName = "Idempotency-Key";
 }

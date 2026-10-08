@@ -717,10 +717,9 @@ public class EFormidlingServiceTaskTests
 
         var result = await AwaitDelivery(_serviceTask, CreateContext(unitOfWork));
 
-        // Auto-advance: the process leaves the task once delivery is confirmed, not when the
+        // The task succeeds once delivery is confirmed, not when the
         // shipment was handed over.
-        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
+        Assert.IsType<ServiceTaskSuccessResult>(result);
         Assert.Equal(
             reportedStatus,
             unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]
@@ -766,7 +765,12 @@ public class EFormidlingServiceTaskTests
         // classification, so the task ends it on its own terms instead.
         var context = CreateContext(
             unitOfWork,
-            new ServiceTaskWait { DeferCount = 40, Deadline = DateTimeOffset.UtcNow.AddSeconds(-1) }
+            new ServiceTaskWait
+            {
+                DeferCount = 40,
+                Deadline = DateTimeOffset.UtcNow.AddSeconds(-1),
+                IsFinalCheck = true,
+            }
         );
         var result = await AwaitDelivery(_serviceTask, context);
 

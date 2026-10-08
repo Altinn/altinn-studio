@@ -11,7 +11,7 @@ namespace Altinn.App.Core.Implementation;
 /// <summary>
 /// Default handling of instance events
 /// </summary>
-public class DefaultAppEvents : IAppEvents
+internal sealed class DefaultAppEvents : IAppEvents
 {
     private readonly ILogger<DefaultAppEvents> _logger;
     private readonly IAppMetadata _appMetadata;
@@ -50,7 +50,7 @@ public class DefaultAppEvents : IAppEvents
 
     private async Task AutoDeleteDataElements(Instance instance)
     {
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
         List<string> typesToDelete = applicationMetadata
             .DataTypes.Where(dt => dt?.AppLogic?.AutoDeleteOnProcessEnd == true)
             .Select(dt => dt.Id)

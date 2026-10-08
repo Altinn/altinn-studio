@@ -1,14 +1,20 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
 import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
 import { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
+import type { CommonValue } from 'src/codegen/Common';
 
 /**
  * Generates a data model binding property. This is just a regular property, but this class is used as a
  * helper to make sure you always provide a description and title.
+ * Values are typed as the raw binding (string or object), matching what the JSON Schema accepts.
  */
-export class GenerateDataModelBinding extends GenerateCommonImport<'IDataModelReference'> {
+export class GenerateDataModelBinding extends GenerateCommonImport<
+  'IDataModelReference',
+  CommonValue<'IRawDataModelBinding'>
+> {
   private rawBinding = CG.common('IRawDataModelBinding');
 
   constructor() {
@@ -26,5 +32,13 @@ export class GenerateDataModelBinding extends GenerateCommonImport<'IDataModelRe
     // objects. We rewrite incoming layouts to always be objects in LayoutsContext, so in practice this is always
     // an object internally.
     return this.rawBinding.toJsonSchema();
+  }
+
+  toComponentCatalog(): PropertyValueDefinition {
+    return { ...super.toComponentCatalog(), semanticType: 'dataModelBinding' };
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    return { ...super.toComponentCatalogDefinition(), semanticType: 'dataModelBinding' };
   }
 }

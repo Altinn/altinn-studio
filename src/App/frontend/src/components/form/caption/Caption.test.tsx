@@ -26,15 +26,26 @@ describe('Caption', () => {
     expect(title).toBeInTheDocument();
   });
 
-  it('provides an optional indicator', async () => {
-    await render({ required: false, labelSettings: { optionalIndicator: true } });
-    const title = screen.getByRole('table', { name: /title test \(valgfri\) description test/i });
+  it('provides an optional indicator by default when not required', async () => {
+    await render({ required: false });
+    const title = screen.getByRole('table', { name: /title test valgfritt description test/i });
     expect(title).toBeInTheDocument();
   });
 
-  it('provides an required indicator', async () => {
+  it('hides the optional indicator when disabled', async () => {
+    await render({ required: false, labelSettings: { optionalIndicator: false } });
+    expect(screen.queryByRole('table', { name: /valgfritt/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('table', { name: /title test description test/i })).toBeInTheDocument();
+  });
+
+  it('provides no indicator when the table has no notion of being required', async () => {
+    await render();
+    expect(screen.queryByRole('table', { name: /valgfritt|må fylles ut/i })).not.toBeInTheDocument();
+  });
+
+  it('provides a required indicator', async () => {
     await render({ required: true });
-    const title = screen.getByRole('table', { name: /title test \* description test/i });
+    const title = screen.getByRole('table', { name: /title test må fylles ut description test/i });
     expect(title).toBeInTheDocument();
   });
 });

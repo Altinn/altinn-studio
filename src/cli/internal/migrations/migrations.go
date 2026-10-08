@@ -56,6 +56,11 @@ func RunAll(ctx context.Context, cfg *config.Config, migrations []Migration) err
 	return NewRunner().RunAll(ctx, cfg, migrations)
 }
 
+// Baseline records every migration shipped in the installed release as applied.
+func Baseline(cfg *config.Config) error {
+	return NewRunner().Baseline(cfg)
+}
+
 // NewRunner creates a migration runner with production defaults.
 func NewRunner(opts ...RunnerOption) *Runner {
 	runner := &Runner{
@@ -87,6 +92,28 @@ func WithOutput(stdout, stderr io.Writer) RunnerOption {
 // Run applies all pending registered migrations.
 func (r *Runner) Run(ctx context.Context, cfg *config.Config) error {
 	return r.RunAll(ctx, cfg, r.RegisteredMigrations())
+}
+
+// Baseline records the registered migrations without running them.
+func (r *Runner) Baseline(cfg *config.Config) error {
+	if cfg == nil {
+		return ErrConfigRequired
+	}
+	state, err := readState(cfg)
+	if err != nil {
+		return err
+	}
+	applied := appliedSet(state.Applied)
+	for _, migration := range r.RegisteredMigrations() {
+		if migration.ID == "" {
+			return ErrMigrationIDRequired
+		}
+		if !applied[migration.ID] {
+			state.Applied = append(state.Applied, migration.ID)
+			applied[migration.ID] = true
+		}
+	}
+	return writeState(cfg, state)
 }
 
 // RunAll applies the provided migrations.

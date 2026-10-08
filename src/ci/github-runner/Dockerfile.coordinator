@@ -6,7 +6,6 @@ RUN apt-get update \
 
 WORKDIR /source
 COPY Cargo.toml Cargo.lock ./
-COPY src/experimental src/experimental
 COPY src/ci/github-runner/coordinator src/ci/github-runner/coordinator
 RUN cargo build \
     --locked \
@@ -16,17 +15,17 @@ RUN cargo build \
       /source/target/release/coordinator \
       /source/target/release/sandbox-image
 
-FROM ubuntu:24.04@sha256:561618e2c15bf2397621dd04f96926663a3b5616c189cf7e38db7e82f5c538ea AS runtime-bundle
+FROM ubuntu:24.04@sha256:224a1869083a311ef3f13648a154ba79832fbef6364d31493642ca03082da254 AS runtime-bundle
 
-ARG MICROSANDBOX_RUNTIME_VERSION=0.6.9-digdir.3
+ARG MICROSANDBOX_RUNTIME_VERSION=0.7.4-digdir.3
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /runtime
-RUN runtime_tag="digdir-v${MICROSANDBOX_RUNTIME_VERSION}" \
-    && release_url="https://github.com/martinothamar/microsandbox/releases/download/${runtime_tag}" \
+RUN runtime_tag="v${MICROSANDBOX_RUNTIME_VERSION}" \
+    && release_url="https://github.com/digdir/microsandbox/releases/download/${runtime_tag}" \
     && curl --fail --location --retry 5 --output microsandbox-linux-x86_64.tar.gz \
       "${release_url}/microsandbox-linux-x86_64.tar.gz" \
     && curl --fail --location --retry 5 --output checksums.sha256 \
@@ -34,8 +33,8 @@ RUN runtime_tag="digdir-v${MICROSANDBOX_RUNTIME_VERSION}" \
     && sha256sum --check --ignore-missing --strict checksums.sha256 \
     && grep --fixed-strings --quiet '  microsandbox-linux-x86_64.tar.gz' checksums.sha256
 
-# The downloaded Microsandbox runtime currently requires glibc 2.39.
-FROM ubuntu:24.04@sha256:561618e2c15bf2397621dd04f96926663a3b5616c189cf7e38db7e82f5c538ea
+# The downloaded Microsandbox runtime requires glibc 2.28 or newer.
+FROM ubuntu:24.04@sha256:224a1869083a311ef3f13648a154ba79832fbef6364d31493642ca03082da254
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends ca-certificates libcap-ng0 \

@@ -138,6 +138,7 @@ const baseContainer: FormContainer = {
 };
 
 export const internalLayoutWithMultiPageGroup: IInternalLayout = {
+  $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
   components: {
     [component1Id]: internalComponent1,
     [component2Id]: internalComponent2,

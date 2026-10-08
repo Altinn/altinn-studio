@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { ForwardedRef } from 'react';
 import { render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
@@ -10,7 +11,7 @@ import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAp
 describe('StudioSkeleton', () => {
   it('Renders a rectangle by default', () => {
     const skeleton = renderAndGetSkeleton();
-    expect(skeleton).toHaveAttribute('data-variant', 'rectangle');
+    expect(skeleton).not.toHaveAttribute('data-variant');
   });
 
   it.each(['rectangle', 'circle', 'text'] as const)('Renders the %s variant', (variant) => {

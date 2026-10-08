@@ -44,9 +44,9 @@ internal sealed class XsdValidator : IValidator
     /// Only run for tasks that has data elements with ClassRef and is likely to have an XSD schema to validate against.
     /// </summary>
     public bool ShouldRunForTask(string taskId) =>
-        _appMetadata
-            .GetApplicationMetadata()
-            .Result.DataTypes.Exists(dt => dt.TaskId == taskId && dt.AppLogic?.ClassRef is not null);
+        _appMetadata.ApplicationMetadata.DataTypes.Exists(dt =>
+            dt.TaskId == taskId && dt.AppLogic?.ClassRef is not null
+        );
 
     /// <inheritdoc />
     public string ValidationSource => "Xsd";
@@ -77,11 +77,12 @@ internal sealed class XsdValidator : IValidator
             {
                 continue;
             }
-            var modelId = classRef.Split('.').Last(); // ModelId is the last part of the class ref, which is the part that is used in the XSD schema file name
-            var schema = _appResourceService.GetXsdSchema(modelId);
+
+            var schema = _appResourceService.GetXsdSchema(dataType.Id);
+
             if (schema is null)
             {
-                _logger.LogInformation(
+                _logger.LogWarning(
                     "No XSD schema found for data type {DataTypeId}, skipping XSD validation",
                     dataType.Id
                 );

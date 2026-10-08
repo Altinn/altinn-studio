@@ -2,8 +2,7 @@
 # Set default behavior to automatically normalize line endings.
 ###############################################################################
 * text=auto
-/src/App/backend/**/*.cs text eol=crlf
-/src/App/fileanalyzers/**/*.cs text eol=crlf
+*.cs text eol=lf
 
 # Go source files must use LF (required by gofmt and golangci-lint)
 *.go text eol=lf
@@ -16,6 +15,10 @@
 *.json text eol=lf
 *.sh text eol=lf
 *.md text eol=lf
+
+# Verify snapshots must be byte-identical across platforms
+*.verified.txt text eol=lf
+*.verified.xml text eol=lf
 
 ###############################################################################
 # Set default behavior for command prompt diff.

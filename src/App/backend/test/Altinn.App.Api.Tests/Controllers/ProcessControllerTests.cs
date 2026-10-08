@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -10,15 +11,22 @@ using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
+using Altinn.App.Tests.Common.Auth;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
@@ -36,7 +44,6 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-[Collection("Process version admission file-backed tests")]
 public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     // Define constants
@@ -72,6 +79,168 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             services.AddSingleton(_formDataValidatorMock.Object);
         };
         TestData.PrepareInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
+    }
+
+    [Theory]
+    [InlineData("Per Olsen", "nb", "EndEvent_1")]
+    [InlineData("Per Olsen", "en", "EndEvent_1")]
+    [InlineData("Per Olsen", "nn", "EndEvent_1")]
+    [InlineData("A different name", "en", "EndEvent_Other")]
+    public async Task NextElement_ExpressionGateway_TakesTheBranchTheDataSelects(
+        string expectedName,
+        string language,
+        string expectedEnd
+    )
+    {
+        string bpmn = await File.ReadAllTextAsync(
+            Path.Join(TestData.GetApplicationDirectory(Org, App), "config/process/process.bpmn")
+        );
+        bpmn = bpmn.Replace(
+            "sourceRef=\"Task_1\" targetRef=\"EndEvent_1\"",
+            "sourceRef=\"Task_1\" targetRef=\"Gateway_1\"",
+            StringComparison.Ordinal
+        );
+        bpmn = bpmn.Replace(
+            "</bpmn:process>",
+            $$"""
+            <bpmn:exclusiveGateway id="Gateway_1">
+              <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>
+              <bpmn:outgoing>Flow_match</bpmn:outgoing>
+              <bpmn:outgoing>Flow_other</bpmn:outgoing>
+              <bpmn:extensionElements><altinn:gatewayExtension><altinn:connectedDataTypeId>default</altinn:connectedDataTypeId></altinn:gatewayExtension></bpmn:extensionElements>
+            </bpmn:exclusiveGateway>
+            <bpmn:endEvent id="EndEvent_Other"><bpmn:incoming>Flow_other</bpmn:incoming></bpmn:endEvent>
+            <bpmn:sequenceFlow id="Flow_match" sourceRef="Gateway_1" targetRef="EndEvent_1">
+              <bpmn:conditionExpression>["and", ["equals", ["dataModel", "melding.name"], "{{expectedName}}"], ["equals", ["language"], "{{language}}"]]</bpmn:conditionExpression>
+            </bpmn:sequenceFlow>
+            <bpmn:sequenceFlow id="Flow_other" sourceRef="Gateway_1" targetRef="EndEvent_Other">
+              <bpmn:conditionExpression>["or", ["notEquals", ["dataModel", "melding.name"], "{{expectedName}}"], ["notEquals", ["language"], "{{language}}"]]</bpmn:conditionExpression>
+            </bpmn:sequenceFlow>
+            </bpmn:process>
+            """,
+            StringComparison.Ordinal
+        );
+        var processClient = new Mock<IProcessClient>(MockBehavior.Strict);
+        processClient
+            .Setup(p => p.GetProcessDefinition())
+            .Returns(() => new MemoryStream(Encoding.UTF8.GetBytes(bpmn)));
+        bool callbackStarted = false;
+        bool authenticationReadAfterCallbackStarted = false;
+        bool formReadAfterCallbackStarted = false;
+        int formReads = 0;
+        using var client = GetRootedUserClient(
+            Org,
+            App,
+            1337,
+            InstanceOwnerPartyId,
+            configureServices: services =>
+            {
+                var authentication = TestAuthentication.GetUserAuthentication(
+                    userPartyId: InstanceOwnerPartyId,
+                    profileSettingPreference: new() { Language = language }
+                );
+                var authenticationContext = new Mock<IAuthenticationContext>(MockBehavior.Strict);
+                authenticationContext
+                    .SetupGet(a => a.Current)
+                    .Returns(() =>
+                    {
+                        authenticationReadAfterCallbackStarted |= callbackStarted;
+                        return authentication;
+                    });
+                services.AddSingleton(authenticationContext.Object);
+                services.AddSingleton(processClient.Object);
+                services.AddSingleton(SetupPdfGeneratorMock().Object);
+                var acquire = Assert.Single(services, d => d.ImplementationType == typeof(AcquireProcessingStatus));
+                services.Remove(acquire);
+                services.AddTransient<IWorkflowEngineCommand>(sp => new CallbackPrincipalAcquireCommand(() =>
+                {
+                    callbackStarted = true;
+                    sp.GetRequiredService<IHttpContextAccessor>().HttpContext!.User = new ClaimsPrincipal(
+                        new ClaimsIdentity(authenticationType: WorkflowCallbackAuthentication.Scheme)
+                    );
+                }));
+                services.AddTransient<IDataClientWithStorageMetadata>(sp =>
+                {
+                    var underlying = (IDataClientWithStorageMetadata)sp.GetRequiredService<IDataClient>();
+                    var guard = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
+                    guard
+                        .Setup(d =>
+                            d.GetDataBytesWithExpectedBlobVersionId(
+                                It.IsAny<int>(),
+                                It.IsAny<Guid>(),
+                                It.IsAny<Guid>(),
+                                It.IsAny<StorageAuthenticationMethod?>(),
+                                It.IsAny<string?>(),
+                                It.IsAny<CancellationToken>()
+                            )
+                        )
+                        .Returns(
+                            (
+                                int partyId,
+                                Guid instanceId,
+                                Guid dataId,
+                                StorageAuthenticationMethod? auth,
+                                string? version,
+                                CancellationToken cancellationToken
+                            ) =>
+                            {
+                                formReadAfterCallbackStarted |= callbackStarted;
+                                formReads++;
+                                return underlying.GetDataBytesWithExpectedBlobVersionId(
+                                    partyId,
+                                    instanceId,
+                                    dataId,
+                                    auth,
+                                    version,
+                                    cancellationToken
+                                );
+                            }
+                        );
+                    return guard.Object;
+                });
+            }
+        );
+        using var response = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
+        Assert.True(response.IsSuccessStatusCode, await response.Content.ReadAsStringAsync());
+        Assert.True(callbackStarted);
+        Assert.False(
+            authenticationReadAfterCallbackStarted,
+            "The continuation must build the transition from the captured actor, not the callback request's authentication context."
+        );
+        Assert.False(
+            formReadAfterCallbackStarted,
+            "Callback form data must come from the restored unit of work, with no Storage read under the callback principal."
+        );
+        Assert.True(formReads > 0);
+        var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
+        Assert.Equal(expectedEnd, instance.Process.EndEvent);
+        var workflows = await Services
+            .GetRequiredService<IWorkflowEngineClient>()
+            .ListWorkflows(
+                Services.GetRequiredService<Altinn.App.Core.Models.AppIdentifier>().ToString(),
+                _instanceGuid.ToString()
+            );
+        var acquireWorkflow = Assert.Single(
+            workflows,
+            w => w.Steps.Count == 1 && w.Steps[0].OperationId == AcquireProcessingStatus.Key
+        );
+        var continuation = Assert.Single(workflows, w => w.Steps.Any(s => s.OperationId == CommitProcessState.Key));
+        Assert.False(acquireWorkflow.Labels!.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetIdLabel));
+        Assert.False(acquireWorkflow.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
+        Assert.Equal(PersistentItemStatus.Completed, acquireWorkflow.OverallStatus);
+        Assert.Equal(PersistentItemStatus.Completed, continuation.OverallStatus);
+        Assert.Equal($"process-next-dependent-{acquireWorkflow.DatabaseId:N}", continuation.IdempotencyKey);
+    }
+
+    private sealed class CallbackPrincipalAcquireCommand(Action enterCallback) : IWorkflowEngineCommand
+    {
+        public string GetKey() => AcquireProcessingStatus.Key;
+
+        public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
+        {
+            enterCallback();
+            return new AcquireProcessingStatus().Execute(context);
+        }
     }
 
     [Fact]
@@ -141,70 +310,44 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         CompareResult<AppProcessState>(expectedString, content);
     }
 
-    [Fact]
-    public async Task RunProcessNextWithLang_VerifyPdfCallWithLanguage()
+    [Theory]
+    [InlineData("en", "en")]
+    [InlineData(null, "nn")]
+    public async Task RunProcessNext_TaskEndGetsTheLanguageTheUserChose_OrTheirProfileLanguage(
+        string? language,
+        string expected
+    )
     {
-        var language = "es";
-        SendAsync = async message =>
+        var taskEnd = new LanguageCapturingTaskEndHandler();
+        OverrideServicesForThisTest = services =>
         {
-            message.RequestUri!.PathAndQuery.Should().Be($"/pdf");
-
-            var content = await message.Content!.ReadAsStringAsync();
-
-            OutputHelper.WriteLine("pdf request content:");
-            OutputHelper.WriteLine(content);
-            OutputHelper.WriteLine("");
-
-            using var document = JsonDocument.Parse(content);
-            document.RootElement.GetProperty("url").GetString().Should().Contain($"lang={language}");
-
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent("this is the binary pdf content"),
-            };
+            services.AddSingleton(SetupPdfGeneratorMock().Object);
+            services.AddSingleton<IOnTaskEndingHandler>(taskEnd);
         };
         using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
-        // both "?lang" and "?language" should work
-        var nextResponse = await client.PutAsync(
-            $"{Org}/{App}/instances/{_instanceId}/process/next?lang={language}",
+        string query = language is null ? "" : $"?language={language}";
+
+        using var nextResponse = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/next{query}",
             null
         );
-        var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        OutputHelper.WriteLine(nextResponseContent);
-        nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+
+        Assert.True(nextResponse.IsSuccessStatusCode, await nextResponse.Content.ReadAsStringAsync());
+        // The task end runs in a workflow-engine callback; user 1337's profile language is nn.
+        Assert.Equal(expected, taskEnd.Language);
     }
 
-    [Fact]
-    public async Task RunProcessNextWithLanguage_VerifyPdfCall()
+    private sealed class LanguageCapturingTaskEndHandler : IOnTaskEndingHandler
     {
-        var language = "es";
-        SendAsync = async message =>
+        public string? Language { get; private set; }
+
+        public bool ShouldRunForTask(string taskId) => true;
+
+        public Task<HookResult> Execute(OnTaskEndingContext context)
         {
-            message.RequestUri!.PathAndQuery.Should().Be($"/pdf");
-
-            var content = await message.Content!.ReadAsStringAsync();
-
-            OutputHelper.WriteLine("pdf request content:");
-            OutputHelper.WriteLine(content);
-            OutputHelper.WriteLine("");
-
-            using var document = JsonDocument.Parse(content);
-            document.RootElement.GetProperty("url").GetString().Should().Contain($"lang={language}");
-
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent("this is the binary pdf content"),
-            };
-        };
-        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
-        // both "?lang" and "?language" should work
-        var nextResponse = await client.PutAsync(
-            $"{Org}/{App}/instances/{_instanceId}/process/next?language={language}",
-            null
-        );
-        var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        OutputHelper.WriteLine(nextResponseContent);
-        nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+            Language = context.InstanceDataMutator.Language;
+            return Task.FromResult<HookResult>(HookResult.Success());
+        }
     }
 
     [Fact]
@@ -468,7 +611,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         {
             services.AddSingleton(pdfMock.Object);
             services.AddSingleton(
-                new AppMetadataMutationHook(appMetadata =>
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
                 {
                     var defaultDataType = appMetadata.DataTypes.Single(dt => dt.Id == "default");
                     defaultDataType.AppLogic.ShadowFields = new() { Prefix = "SF_", SaveToDataType = saveToDataType };
@@ -653,7 +796,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         const string org = "ttd";
         const string app = "process-version-admission";
         const int instanceOwnerPartyId = 501337;
-        var instanceGuid = new Guid("d2af1cfd-db99-45f9-9625-9dfa1223485f");
+        var instanceGuid = new Guid("a55a3a77-2326-4056-b7e0-d9b093bbea6c");
         var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
         TestData.PrepareInstance(org, app, instanceOwnerPartyId, instanceGuid);
@@ -763,66 +906,6 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             .Be(
                 $$"""{"processHistory":[{"eventType":null,"elementId":"Task_1","occured":null,"started":"{{start}}","ended":null,"performedBy":null}]}"""
             );
-    }
-
-    [Fact]
-    public async Task StartProcess_WhenWorkflowExecutionFails_ReturnsWorkflowFailedProblemDetails()
-    {
-        // Arrange: the workflow engine accepts the process start but the workflow then fails after the
-        // process state may already have changed in Storage.
-        var instance = new Instance
-        {
-            Id = _instanceId,
-            AppId = $"{Org}/{App}",
-            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId.ToString() },
-        };
-        var workflowFailure = new Altinn.App.Core.Models.Process.WorkflowFailure
-        {
-            Kind = Altinn.App.Core.Models.Process.WorkflowFailureKind.StepFailed,
-            StepOperationId = "StartTask",
-            LastError = new Altinn.App.Core.Models.Process.WorkflowFailureError
-            {
-                Message = "Simulated workflow callback failure.",
-            },
-        };
-
-        Mock<Altinn.App.Core.Internal.Process.IProcessEngine> processEngineMock = CreateProcessEngineThrowingOnSubmit(
-            new Altinn.App.Core.Internal.WorkflowEngine.WorkflowExecutionFailedException(
-                instance,
-                workflowFailure,
-                processStateChanged: true,
-                "Process workflow execution failed."
-            )
-        );
-        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
-
-        // Act
-        using HttpResponseMessage response = await client.PostAsync(
-            $"{Org}/{App}/instances/{_instanceId}/process/start",
-            null
-        );
-        string responseContent = await response.Content.ReadAsStringAsync();
-        OutputHelper.WriteLine(responseContent);
-
-        // Assert: the endpoint surfaces the same structured recovery contract as instantiation instead of a bare 500.
-        response.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
-        using JsonDocument document = JsonDocument.Parse(responseContent);
-        JsonElement root = document.RootElement;
-        root.GetProperty("title").GetString().Should().Be("Process start failed.");
-        root.GetProperty("initializationState").GetString().Should().Be("workflowFailed");
-        root.GetProperty("recommendedAction").GetString().Should().Be("resumeCurrentTask");
-        root.GetProperty("workflowAccepted").GetBoolean().Should().BeTrue();
-        root.GetProperty("processStateChanged").GetBoolean().Should().BeTrue();
-        root.GetProperty("detail").GetString().Should().Contain("call the resume endpoint");
-        JsonElement resumeEndpoint = root.GetProperty("resumeEndpoint");
-        resumeEndpoint.GetProperty("method").GetString().Should().Be("POST");
-        resumeEndpoint
-            .GetProperty("path")
-            .GetString()
-            .Should()
-            .Be($"/{Org}/{App}/instances/{_instanceId}/process/resume");
-        // Literal, not WorkflowFailureKind.StepFailed.ToString(), so renaming the enum member fails this test.
-        root.GetProperty("workflowFailure").GetProperty("kind").GetString().Should().Be("stepFailed");
     }
 
     [Fact]
@@ -1335,166 +1418,6 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         document.RootElement.GetProperty("detail").GetString().Should().Contain("Refresh");
     }
 
-    [Fact]
-    public async Task StartProcess_WhenAcquireFails_ReturnsConflictWithoutResume()
-    {
-        var instance = new Instance
-        {
-            Id = _instanceId,
-            AppId = $"{Org}/{App}",
-            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId.ToString() },
-        };
-        var workflowFailure = new Altinn.App.Core.Models.Process.WorkflowFailure
-        {
-            Kind = Altinn.App.Core.Models.Process.WorkflowFailureKind.AcquireConflict,
-            StepOperationId = "AcquireProcessingStatus",
-        };
-        Mock<Altinn.App.Core.Internal.Process.IProcessEngine> processEngineMock = CreateProcessEngineThrowingOnSubmit(
-            new Altinn.App.Core.Internal.WorkflowEngine.WorkflowExecutionFailedException(
-                instance,
-                workflowFailure,
-                processStateChanged: false,
-                "Acquire conflict."
-            )
-        );
-        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
-
-        using HttpResponseMessage response = await client.PostAsync(
-            $"{Org}/{App}/instances/{_instanceId}/process/start",
-            null
-        );
-        string responseContent = await response.Content.ReadAsStringAsync();
-
-        response.Should().HaveStatusCode(HttpStatusCode.Conflict);
-        using JsonDocument document = JsonDocument.Parse(responseContent);
-        JsonElement root = document.RootElement;
-        root.GetProperty("recommendedAction").GetString().Should().Be("retryStartProcess");
-        root.GetProperty("detail").GetString().Should().Contain("Refresh");
-        root.GetProperty("workflowFailure").GetProperty("kind").GetString().Should().Be("acquireConflict");
-        root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
-    }
-
-    [Theory]
-    [InlineData(ProcessStatus.Processing)]
-    public async Task StartProcess_WhenProcessStatusBlocks_ReturnsSharedProblemBeforeEngine(ProcessStatus processStatus)
-    {
-        await TestData.SetProcessStatus(Org, App, InstanceOwnerPartyId, _instanceGuid, processStatus);
-        var processEngineMock = new Mock<Altinn.App.Core.Internal.Process.IProcessEngine>(MockBehavior.Strict);
-        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
-
-        using HttpResponseMessage response = await client.PostAsync(
-            $"{Org}/{App}/instances/{_instanceId}/process/start",
-            null
-        );
-
-        await ProcessStatusProblemAssertions.AssertResponse(response, processStatus);
-        processEngineMock.VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task StartProcess_WhenEngineRejectsDifferentBodyForSameVersionKey_ReturnsConflictWithoutResume()
-    {
-        Mock<Altinn.App.Core.Internal.Process.IProcessEngine> processEngineMock = CreateProcessEngineThrowingOnSubmit(
-            Altinn.App.Core.Internal.WorkflowEngine.WorkflowSubmissionFailedException.NotAccepted(
-                "Engine idempotency conflict.",
-                HttpStatusCode.Conflict,
-                _instanceGuid.ToString()
-            )
-        );
-        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
-
-        using HttpResponseMessage response = await client.PostAsync(
-            $"{Org}/{App}/instances/{_instanceId}/process/start",
-            null
-        );
-        string responseContent = await response.Content.ReadAsStringAsync();
-
-        response.Should().HaveStatusCode(HttpStatusCode.Conflict);
-        using JsonDocument document = JsonDocument.Parse(responseContent);
-        JsonElement root = document.RootElement;
-        root.GetProperty("recommendedAction").GetString().Should().Be("inspectInstance");
-        root.GetProperty("detail").GetString().Should().Contain("Refresh");
-        root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
-    }
-
-    // Pins the wire strings of the process-start submission-failure contract. NotAccepted leaves the existing
-    // instance untouched so the client can retry the start; Unknown is indeterminate so the client must inspect.
-    [Theory]
-    [InlineData(true, "workflowNotAccepted", "retryStartProcess", "notAccepted")]
-    [InlineData(false, "workflowAcceptanceUnknown", "inspectInstance", "unknown")]
-    public async Task StartProcess_WhenWorkflowSubmissionFails_ReturnsProblemDetailsWithoutResume(
-        bool notAccepted,
-        string expectedState,
-        string expectedAction,
-        string expectedFailureKind
-    )
-    {
-        // Arrange
-        var submissionException = notAccepted
-            ? Altinn.App.Core.Internal.WorkflowEngine.WorkflowSubmissionFailedException.NotAccepted(
-                "Simulated workflow rejection."
-            )
-            : Altinn.App.Core.Internal.WorkflowEngine.WorkflowSubmissionFailedException.Unknown(
-                "Simulated unknown acceptance state."
-            );
-        Mock<Altinn.App.Core.Internal.Process.IProcessEngine> processEngineMock = CreateProcessEngineThrowingOnSubmit(
-            submissionException
-        );
-
-        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
-
-        // Act
-        using HttpResponseMessage response = await client.PostAsync(
-            $"{Org}/{App}/instances/{_instanceId}/process/start",
-            null
-        );
-        string responseContent = await response.Content.ReadAsStringAsync();
-        OutputHelper.WriteLine(responseContent);
-
-        // Assert
-        response.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
-        using JsonDocument document = JsonDocument.Parse(responseContent);
-        JsonElement root = document.RootElement;
-        root.GetProperty("title").GetString().Should().Be("Process start failed.");
-        root.GetProperty("initializationState").GetString().Should().Be(expectedState);
-        root.GetProperty("recommendedAction").GetString().Should().Be(expectedAction);
-        // Asserted against a literal, not Kind.ToString(), so an enum rename is caught as a contract break.
-        root.GetProperty("workflowSubmissionFailureKind").GetString().Should().Be(expectedFailureKind);
-        // Submission never reached execution, so there is nothing to resume.
-        root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
-        root.TryGetProperty("workflowFailure", out _).Should().BeFalse();
-    }
-
-    private Mock<Altinn.App.Core.Internal.Process.IProcessEngine> CreateProcessEngineThrowingOnSubmit(
-        Exception submitException
-    )
-    {
-        var processEngineMock = new Mock<Altinn.App.Core.Internal.Process.IProcessEngine>();
-        processEngineMock
-            .Setup(p => p.CreateInitialProcessState(It.IsAny<Altinn.App.Core.Models.Process.ProcessStartRequest>()))
-            .ReturnsAsync(
-                new Altinn.App.Core.Models.Process.ProcessChangeResult
-                {
-                    Success = true,
-                    ProcessStateChange = new Altinn.App.Core.Models.Process.ProcessStateChange(),
-                }
-            );
-        processEngineMock
-            .Setup(p =>
-                p.SubmitInitialProcessState(
-                    It.IsAny<Instance>(),
-                    It.IsAny<StorageVersionMetadata>(),
-                    It.IsAny<Altinn.App.Core.Models.Process.ProcessStateChange>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<Altinn.App.Core.Models.Notifications.Future.InstantiationNotification?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ThrowsAsync(submitException);
-        return processEngineMock;
-    }
-
     private HttpClient GetClientWithProcessEngine(
         Mock<Altinn.App.Core.Internal.Process.IProcessEngine> processEngineMock
     ) =>
@@ -1528,14 +1451,22 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var authorizer = new Mock<IProcessEngineAuthorizer>(MockBehavior.Strict);
         authorizer
             .Setup(service =>
-                service.AuthorizeProcessNext(It.Is<Instance>(instance => instance.Id == _instanceId), action)
+                service.AuthorizeProcessNext(
+                    It.Is<Instance>(instance => instance.Id == _instanceId),
+                    action,
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync(actionAuthorized);
         if (completeProcessAuthorized is bool authorized)
         {
             authorizer
                 .Setup(service =>
-                    service.AuthorizeProcessNext(It.Is<Instance>(instance => instance.Id == _instanceId), null)
+                    service.AuthorizeProcessNext(
+                        It.Is<Instance>(instance => instance.Id == _instanceId),
+                        null,
+                        It.IsAny<CancellationToken>()
+                    )
                 )
                 .ReturnsAsync(authorized);
         }
@@ -1550,11 +1481,21 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     )
     {
         authorizer.Verify(
-            service => service.AuthorizeProcessNext(It.Is<Instance>(instance => instance.Id == _instanceId), action),
+            service =>
+                service.AuthorizeProcessNext(
+                    It.Is<Instance>(instance => instance.Id == _instanceId),
+                    action,
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
         authorizer.Verify(
-            service => service.AuthorizeProcessNext(It.Is<Instance>(instance => instance.Id == _instanceId), null),
+            service =>
+                service.AuthorizeProcessNext(
+                    It.Is<Instance>(instance => instance.Id == _instanceId),
+                    null,
+                    It.IsAny<CancellationToken>()
+                ),
             completeAuthorizationExpected ? Times.Once() : Times.Never()
         );
         authorizer.VerifyNoOtherCalls();

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
-using Altinn.Studio.Designer.Models;
+using System.Linq;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,8 +24,8 @@ public class AppTemplateController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IReadOnlyList<AppTemplate>> GetAppTemplates()
+    public ActionResult<IReadOnlyList<AppTemplateResponse>> GetAppTemplates()
     {
-        return Ok(_appTemplateCatalog.GetAppTemplates());
+        return Ok(_appTemplateCatalog.GetAppTemplates().Select(AppTemplateResponse.FromAppTemplate).ToList());
     }
 }

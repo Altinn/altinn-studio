@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import type { CellTextResourceInputProps } from '../Cell/CellTextResource';
 import type { TextResourceInputTexts } from '../../StudioTextResourceInput';
 import { textResourcesMock } from '../../../test-data/textResourcesMock';
@@ -30,17 +31,17 @@ export const textResourceProps = (rowNumber: number): CellTextResourceInputProps
   textResources: textResourcesMock,
   texts: textResourceTexts(rowNumber),
   currentId: 'land.NO',
-  onChangeCurrentId: jest.fn(),
-  onChangeTextResource: jest.fn(),
-  onCreateTextResource: jest.fn(),
+  onChangeCurrentId: vi.fn(),
+  onChangeTextResource: vi.fn(),
+  onCreateTextResource: vi.fn(),
 });
 
 export const textResourceTexts = (rowNumber: number): TextResourceInputTexts => ({
   editValue: textResourceEditLabel(rowNumber),
   emptyTextResourceList: 'No text resources available',
   idLabel: 'ID:',
+  modeToggle: 'Mode',
   search: textResourceSearchLabel(rowNumber),
   textResourcePickerLabel: textResourcePickerLabel(rowNumber),
-  noTextResourceOptionLabel: 'Ikke oppgitt',
   valueLabel: textResourceValueLabel(rowNumber),
 });

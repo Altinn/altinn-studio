@@ -1,10 +1,13 @@
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.AccessManagement.Helpers;
+using Altinn.App.Core.Internal.AccessManagement.Models;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
@@ -12,6 +15,7 @@ using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -22,7 +26,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization;
 /// <summary>
 /// Client for handling authorization actions in Altinn Platform.
 /// </summary>
-public class AuthorizationClient : IAuthorizationClient
+internal sealed class AuthorizationClient : IAuthorizationClient
 {
     private readonly HttpClient _client;
     private readonly IServiceProvider _serviceProvider;
@@ -30,6 +34,20 @@ public class AuthorizationClient : IAuthorizationClient
     private readonly ILogger _logger;
     private readonly Telemetry? _telemetry;
     private const string ForwardedForHeaderName = "x-forwarded-for";
+
+    private static readonly Dictionary<string, string?> _authorizedPartiesQuery = new()
+    {
+        // The access lists tell parties the user can act for from parties reached only through delegated instances
+        ["includeRoles"] = "true",
+        ["includeAccessPackages"] = "true",
+        ["includeResources"] = "true",
+        ["includeInstances"] = "true",
+        // Set explicitly, as Access Management otherwise narrows the list by the user's profile settings
+        ["includePartiesViaKeyRoles"] = "true",
+        ["includeSubParties"] = "true",
+        ["includeInactiveParties"] = "true",
+    };
+    private readonly string _authorizedPartiesUrl;
 
     private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
@@ -57,66 +75,63 @@ public class AuthorizationClient : IAuthorizationClient
         httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.SubscriptionKey);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         _client = httpClient;
+        _authorizedPartiesUrl = QueryHelpers.AddQueryString(
+            platformSettings.ApiAccessManagementEndpoint.TrimEnd('/') + "/enduser/authorizedparties",
+            _authorizedPartiesQuery
+        );
     }
 
     /// <inheritdoc />
-    public async Task<List<Party>?> GetPartyList(int userId, StorageAuthenticationMethod? authenticationMethod = null)
+    public async Task<List<Party>?> GetPartyList(
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
-        using var activity = _telemetry?.StartClientGetPartyListActivity(userId);
-        List<Party>? partyList = null;
-        string apiUrl = $"parties?userid={userId}";
+        using var activity = _telemetry?.StartClientGetPartyListActivity();
         JwtToken token = await GetAuthTokenResolver()
-            .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod);
+            .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, cancellationToken);
         try
         {
-            using HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+            using HttpResponseMessage response = await _client.GetAsync(
+                token,
+                _authorizedPartiesUrl,
+                cancellationToken: cancellationToken
+            );
 
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
-                string partyListData = await response.Content.ReadAsStringAsync();
-                partyList = JsonConvert.DeserializeObject<List<Party>>(partyListData);
+                _logger.LogError(
+                    "Unable to retrieve party list. Access Management responded with status code {StatusCode}",
+                    response.StatusCode
+                );
+                return null;
             }
+
+            var result = await response.Content.ReadFromJsonAsync<AuthorizedPartiesResponse>(cancellationToken);
+            return AuthorizedPartyMapper.ToParties(result?.Data ?? []);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception e)
         {
             _logger.LogError("Unable to retrieve party list. An error occurred {ErrorMessage}", e.Message);
         }
 
-        return partyList;
+        return null;
     }
 
     /// <inheritdoc />
     public async Task<bool?> ValidateSelectedParty(
-        int userId,
         int partyId,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
-        using var activity = _telemetry?.StartClientValidateSelectedPartyActivity(userId, partyId);
-        bool? result;
-        string apiUrl = $"parties/{partyId}/validate?userid={userId}";
-        JwtToken token = await GetAuthTokenResolver()
-            .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod);
-
-        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
-
-        if (response.StatusCode == System.Net.HttpStatusCode.OK)
-        {
-            string responseData = await response.Content.ReadAsStringAsync();
-            result = JsonConvert.DeserializeObject<bool>(responseData);
-        }
-        else
-        {
-            _logger.LogError(
-                "Validating selected party {PartyId} for user {UserId} failed with statuscode {StatusCode}",
-                partyId,
-                userId,
-                response.StatusCode
-            );
-            result = null;
-        }
-
-        return result;
+        using var activity = _telemetry?.StartClientValidateSelectedPartyActivity(partyId);
+        List<Party>? parties = await GetPartyList(authenticationMethod, cancellationToken);
+        return parties is null ? null : PartyListHelper.ContainsPartyWithAccess(parties, partyId);
     }
 
     /// <inheritdoc />
@@ -125,7 +140,8 @@ public class AuthorizationClient : IAuthorizationClient
         InstanceIdentifier instanceIdentifier,
         ClaimsPrincipal user,
         string action,
-        string? taskId = null
+        string? taskId = null,
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartClientAuthorizeActionActivity(instanceIdentifier, action, taskId);
@@ -141,7 +157,7 @@ public class AuthorizationClient : IAuthorizationClient
             instanceIdentifier.InstanceGuid,
             taskId
         );
-        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+        XacmlJsonResponse response = await GetDecisionForRequest(request, cancellationToken);
         if (response?.Response == null)
         {
             _logger.LogWarning(
@@ -159,12 +175,13 @@ public class AuthorizationClient : IAuthorizationClient
     public async Task<Dictionary<string, bool>> AuthorizeActions(
         Instance instance,
         ClaimsPrincipal user,
-        List<string> actions
+        List<string> actions,
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartClientAuthorizeActionsActivity(instance);
         XacmlJsonRequestRoot request = MultiDecisionHelper.CreateMultiDecisionRequest(user, instance, actions);
-        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+        XacmlJsonResponse response = await GetDecisionForRequest(request, cancellationToken);
         if (response?.Response == null)
         {
             _logger.LogWarning(
@@ -182,10 +199,14 @@ public class AuthorizationClient : IAuthorizationClient
     }
 
     /// <inheritdoc />
-    public async Task<List<string>> GetKeyRoleOrganizationParties(int userId, List<string> orgNumbers)
+    public async Task<List<string>> GetKeyRoleOrganizationParties(
+        int userId,
+        List<string> orgNumbers,
+        CancellationToken cancellationToken = default
+    )
     {
         XacmlJsonRequestRoot request = CreateXacmlJsonRequest(userId, orgNumbers);
-        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+        XacmlJsonResponse response = await GetDecisionForRequest(request, cancellationToken);
 
         if (response?.Response == null)
         {
@@ -203,6 +224,19 @@ public class AuthorizationClient : IAuthorizationClient
         ];
 
         return organizations;
+    }
+
+    /// <summary>
+    /// <see cref="IPDP"/> (Altinn.Common.PEP) exposes no cancellation token, so cancellation can only be honored
+    /// before the decision request is sent.
+    /// </summary>
+    private Task<XacmlJsonResponse> GetDecisionForRequest(
+        XacmlJsonRequestRoot request,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return _pdp.GetDecisionForRequest(request);
     }
 
     private static XacmlJsonRequestRoot CreateXacmlJsonRequest(int userId, List<string> orgNumbers)

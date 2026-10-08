@@ -36,7 +36,7 @@ class PreviewRenderCheckArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class PreviewRenderCheckTool(WriteToolMixin):
+class PreviewRenderCheckTool(WriteToolMixin[PreviewRenderCheckArgs]):
     name = "preview_render_check"
     description = (
         "Render every ordered page of the app in Studio's app preview "
@@ -120,8 +120,7 @@ class PreviewRenderCheckTool(WriteToolMixin):
         body = {
             "passed": not failures,
             "pages": [
-                {"page": result.page, "rendered": result.rendered, "detail": result.detail}
-                for result in results
+                {"page": result.page, "rendered": result.rendered, "detail": result.detail} for result in results
             ],
         }
         content = json.dumps(body, ensure_ascii=False, indent=2)

@@ -16,7 +16,6 @@ on:
       - 'src/common/ts/language/package.json'
       - '.github/workflows/app-frontend-unit-tests.yml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

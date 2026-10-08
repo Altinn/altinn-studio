@@ -1,7 +1,6 @@
 using Altinn.App.Clients.Fiks.FiksArkiv;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
-using Altinn.App.Core.Features.Maskinporten.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Clients.Fiks.Configuration;
@@ -24,20 +23,6 @@ public interface IFiksSetupBuilder<out T>
     /// <param name="configSectionPath">Configuration section path.</param>
     /// <returns>The builder instance.</returns>
     T WithFiksIOConfig(string configSectionPath);
-
-    /// <summary>
-    /// Configures the underlying Maskinporten client with the provided options.
-    /// </summary>
-    /// <param name="configureOptions">Configuration delegate.</param>
-    /// <returns>The builder instance.</returns>
-    T WithMaskinportenConfig(Action<MaskinportenSettings> configureOptions);
-
-    /// <summary>
-    /// Configures the underlying Maskinporten client with the options from the specified configuration section.
-    /// </summary>
-    /// <param name="configSectionPath">Configuration section path.</param>
-    /// <returns>The builder instance.</returns>
-    T WithMaskinportenConfig(string configSectionPath);
 
     /// <summary>
     /// Completes the setup and returns the service collection.

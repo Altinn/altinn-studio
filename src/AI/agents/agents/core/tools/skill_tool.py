@@ -12,17 +12,21 @@ versioned) with the agent itself.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field
 
 from agents.core.skills import Skill
 from agents.core.tool import LoopContext, Tool, ToolResult
 
 
 class SkillArgs(BaseModel):
-    skill: str = Field(description="Name of the skill to load, exactly as it appears in the skill listing.")
+    # Models reach for `name` first; accepting it costs a wasted turn per skill.
+    skill: str = Field(
+        validation_alias=AliasChoices("skill", "name"),
+        description="Name of the skill to load, exactly as it appears in the skill listing.",
+    )
 
 
-class SkillTool(Tool):
+class SkillTool(Tool[SkillArgs]):
     """Load a skill's full instructions into the conversation."""
 
     name = "skill"
@@ -50,7 +54,7 @@ class SkillTool(Tool):
                 is_error=True,
             )
         try:
-            body = skill.load_body()
+            body = skill.load_body(ctx.app_version_profile.version_label)
         except OSError as exc:
             return ToolResult(
                 content=f"Failed to load skill {args.skill!r}: {exc}",

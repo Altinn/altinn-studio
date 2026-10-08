@@ -59,7 +59,7 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
     /// <inheritdoc />
     public async Task<string> GetApplicationTitle(CancellationToken cancellationToken = default)
     {
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
 
         return await _translationService.TranslateTextKey("appName", LanguageConst.Nb)
             ?? appMetadata.Title.GetValueOrDefault(LanguageConst.Nb)
@@ -306,7 +306,7 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         {
             cancellationToken.ThrowIfCancellationRequested();
             int partyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
-            return await _altinnPartyClient.GetParty(partyId); // Note: doesn't accept cancellation token.. yet
+            return await _altinnPartyClient.GetParty(partyId, cancellationToken: cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

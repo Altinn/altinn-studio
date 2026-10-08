@@ -148,7 +148,7 @@ public class CommitProcessStateTests
         );
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         Assert.Equal(ProcessStatus.Processing, setup.UnitOfWork.Instance.Process?.Status);
 
         await setup.UnitOfWork.SaveWorkflowOwnedAggregate(
@@ -622,8 +622,8 @@ public class CommitProcessStateTests
     {
         var appMetadataMock = new Mock<IAppMetadata>();
         appMetadataMock
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(applicationMetadata ?? new ApplicationMetadata("ttd/test-app") { DataTypes = [] });
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(applicationMetadata ?? new ApplicationMetadata("ttd/test-app") { DataTypes = [] });
         return new CommitProcessState(appMetadataMock.Object);
     }
 

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ForwardedRef } from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen, within } from '@testing-library/react';
@@ -11,7 +12,7 @@ const trueLabel = 'True';
 const falseLabel = 'False';
 const groupName = 'Boolean toggle';
 const defaultProps: StudioBooleanToggleGroupProps = {
-  'data-toggle-group': groupName,
+  'aria-label': groupName,
   trueLabel,
   falseLabel,
 };
@@ -44,7 +45,7 @@ describe('StudioBooleanToggleGroup', () => {
 
   it('Calls the onChange callback with true when the user checks the true toggle', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderBooleanToggle({ onChange, value: false });
     await user.click(getTrueToggle());
     expect(onChange).toHaveBeenCalledTimes(1);
@@ -61,7 +62,7 @@ describe('StudioBooleanToggleGroup', () => {
 
   it('Calls the onChange callback with false when the user checks the false toggle', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderBooleanToggle({ onChange, value: true });
     await user.click(getFalseToggle());
     expect(onChange).toHaveBeenCalledTimes(1);

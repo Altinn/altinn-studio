@@ -3,7 +3,7 @@ using System.Text;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Features.Cache;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -141,7 +141,7 @@ internal sealed class ScopeAuthorizationMiddleware(RequestDelegate _next)
 }
 
 internal sealed class ScopeAuthorizationService(
-    IAppConfigurationCache _appConfigurationCache,
+    IAppMetadata _appMetadata,
     IEnumerable<EndpointDataSource> _endpointDataSources,
     IHostApplicationLifetime _hostLifetime,
     IOptions<GeneralSettings> _generalSettings,
@@ -243,7 +243,7 @@ internal sealed class ScopeAuthorizationService(
         _logger.LogDebug("Starting scope authorization initialization");
         try
         {
-            var appMetadata = _appConfigurationCache.ApplicationMetadata;
+            var appMetadata = _appMetadata.ApplicationMetadata;
 
             HasDefinedCustomScopes =
                 !string.IsNullOrWhiteSpace(appMetadata.ApiScopes?.Users?.Read)
@@ -464,7 +464,7 @@ internal sealed class ScopeAuthorizationService(
         if (string.IsNullOrWhiteSpace(configuredScope))
             return null;
 
-        var appMetadata = _appConfigurationCache.ApplicationMetadata;
+        var appMetadata = _appMetadata.ApplicationMetadata;
         configuredScope = configuredScope.Replace("[app]", appMetadata.AppIdentifier.App);
         return new[] { configuredScope, "altinn:portal/enduser" }.ToFrozenSet(StringComparer.Ordinal);
     }
@@ -475,7 +475,7 @@ internal sealed class ScopeAuthorizationService(
         if (string.IsNullOrWhiteSpace(configuredScope))
             return null;
 
-        var appMetadata = _appConfigurationCache.ApplicationMetadata;
+        var appMetadata = _appMetadata.ApplicationMetadata;
         configuredScope = configuredScope.Replace("[app]", appMetadata.AppIdentifier.App);
         return new[] { configuredScope }.ToFrozenSet(StringComparer.Ordinal);
     }

@@ -15,7 +15,7 @@ import { createContext } from 'src/core/contexts/context';
 import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { Footer } from 'src/features/footer/Footer';
-import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
+import { useExpandedWidth } from 'src/features/form/layout/useExpandedWidth';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
@@ -38,7 +38,7 @@ export const PresentationComponent = ({
   const instanceStatus = useInstanceDataQuery({
     select: (instance) => instance.status,
   }).data;
-  const { expandedWidth } = useUiConfigContext();
+  const { expandedWidth } = useExpandedWidth();
   const hasGroupedNavigation = useHasGroupedNavigation();
   const isReceipt = useIsReceiptPage();
   const realHeader = isReceipt ? <Lang id='receipt.receipt' /> : header;

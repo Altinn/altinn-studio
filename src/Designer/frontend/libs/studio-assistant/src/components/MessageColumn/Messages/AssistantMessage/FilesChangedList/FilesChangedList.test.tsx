@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { FilesChangedList, type FilesChangedListProps } from './FilesChangedList';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
@@ -6,11 +7,19 @@ const fileName = 'layout.json';
 const directory = 'App/ui';
 const filePath = `${directory}/${fileName}`;
 
+const label = 'Changed files';
+
 describe('FilesChangedList', () => {
+  it('renders the label', () => {
+    renderFilesChangedList();
+
+    expect(screen.getByText(label)).toBeInTheDocument();
+  });
+
   it('renders a button with the file name and directory', () => {
     renderFilesChangedList();
 
-    const fileButton = screen.getByRole('button', { name: `${fileName} ${directory}` });
+    const fileButton = screen.getByRole('button', { name: `${fileName}${directory}` });
     expect(fileButton).toBeInTheDocument();
   });
 
@@ -23,6 +32,7 @@ describe('FilesChangedList', () => {
 
 const defaultProps: FilesChangedListProps = {
   filePaths: [filePath],
+  label,
 };
 
 const renderFilesChangedList = (props: Partial<FilesChangedListProps> = {}): RenderResult =>

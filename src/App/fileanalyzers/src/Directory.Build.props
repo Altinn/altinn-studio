@@ -2,6 +2,7 @@
 <Project>
   <Import Project="../Directory.Build.props" />
   <Import Project="$(MSBuildThisFileDirectory)../../PackageVersioning.props" />
+  <Import Project="$(MSBuildThisFileDirectory)../../AppCoreDependency.props" />
 
   <ItemGroup>
     <None Include="../../README.md" Link="README.md" Pack="true" PackagePath="/" />

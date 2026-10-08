@@ -8,6 +8,7 @@ export const useAssistantTexts = (): AssistantTexts => {
     heading: t('top_menu.ai_assistant'),
     preview: t('ai_assistant.preview'),
     fileBrowser: t('ai_assistant.file_browser'),
+    toolColumnMode: t('ai_assistant.tool_column_mode'),
     hideThreads: t('ai_assistant.hide_threads'),
     showThreads: t('ai_assistant.show_threads'),
     newThread: t('ai_assistant.new_thread'),
@@ -56,5 +57,6 @@ export const useAssistantTexts = (): AssistantTexts => {
       deny: t('ai_assistant.permission_prompt_deny'),
     },
     sourcesLabel: t('ai_assistant.sources_label'),
+    filesChangedLabel: t('ai_assistant.files_changed_label'),
   };
 };

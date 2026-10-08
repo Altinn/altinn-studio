@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ForwardedRef } from 'react';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
 import type { StudioTextResourcePickerProps } from './StudioTextResourcePicker';
@@ -13,12 +14,12 @@ import type { TextResource } from '@studio/pure-functions';
 
 // Test data:
 const textResources = textResourcesMock;
-const onValueChange = jest.fn();
-const noTextResourceOptionLabel = 'Unset';
+const onValueChange = vi.fn();
+const clearButtonLabel = 'Clear selection';
 const defaultProps: StudioTextResourcePickerProps = {
   onValueChange,
   textResources,
-  noTextResourceOptionLabel,
+  clearButtonLabel,
   emptyText: '',
   label: 'Text Resource',
 };
@@ -27,13 +28,13 @@ const textMissingValueId = 'missing-value-id';
 
 describe('StudioTextResourcePicker', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
-    jest.clearAllMocks();
+    vi.useFakeTimers();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
   });
 
   it('Renders a studio suggestion', () => {
@@ -47,7 +48,7 @@ describe('StudioTextResourcePicker', () => {
   });
 
   it('Displays the given text resources when the user clicks', async () => {
-    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     const testTextResources: TextResource[] = [
       { id: '1', value: 'Test 1' },
       { id: '2', value: 'Test 2' },
@@ -61,7 +62,7 @@ describe('StudioTextResourcePicker', () => {
   });
 
   it('Calls the onValueChange when comboboxbeforeselect is fired', async () => {
-    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderTextResourcePicker();
     const textResourceToPick = textResources[arbitraryTextResourceIndex];
     await user.click(getInput());
@@ -86,35 +87,39 @@ describe('StudioTextResourcePicker', () => {
     expect(getInput()).toHaveValue(pickedTextResource.value);
   });
 
-  it('Displays the no text resource option when the user clicks', async () => {
-    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
-    renderTextResourcePicker();
+  it('Displays only the text resources as options when the user clicks', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const testTextResources: TextResource[] = [
+      { id: '1', value: 'Test 1' },
+      { id: '2', value: 'Test 2' },
+    ];
+    renderTextResourcePicker({ textResources: testTextResources });
     await user.click(getInput());
-    const options = screen.getAllByRole('option', { hidden: true });
-    expect(options.some((opt) => opt.getAttribute('value') === '')).toBe(true);
+    const options = screen
+      .getAllByRole('option', { hidden: true })
+      .filter((option) => !option.hasAttribute('data-empty'));
+    expect(options.map((option) => option.getAttribute('value'))).toEqual(['1', '2']);
   });
 
-  it('Does not display the no text resource option when the user clicks and the text resource is required', async () => {
-    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
-    renderTextResourcePicker({ required: true });
-    await user.click(getInput());
-    const noTextResourceOption = screen.queryByRole('option', { name: noTextResourceOptionLabel });
-    expect(noTextResourceOption).not.toBeInTheDocument();
-  });
-
-  it('Renders with the no text resource option selected by default', () => {
+  it('Renders with no option selected by default', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderTextResourcePicker();
     expect(getInput()).toHaveValue('');
+    await user.click(getInput());
+    expect(screen.queryByRole('option', { selected: true, hidden: true })).not.toBeInTheDocument();
   });
 
-  it('Renders with no text resource option as selected when the given id does not exist', () => {
+  it('Renders with no option selected when the given id does not exist', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     const nonExistentId = 'non-existent-id';
     renderTextResourcePicker({ value: nonExistentId });
     expect(getInput()).toHaveValue('');
+    await user.click(getInput());
+    expect(screen.queryByRole('option', { selected: true, hidden: true })).not.toBeInTheDocument();
   });
 
   it('Does not apply other changes to the textfield than the ones triggered by the user when the user changes from a valid to an invalid value', async () => {
-    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     const chosenTextResource = textResources[arbitraryTextResourceIndex];
     renderTextResourcePicker({ value: chosenTextResource.id });
     const textBox = getInput();
@@ -131,7 +136,7 @@ describe('StudioTextResourcePicker', () => {
   });
 
   it('Renders without error when the text props are undefined', () => {
-    renderTextResourcePicker({ emptyLabel: undefined, noTextResourceOptionLabel: undefined });
+    renderTextResourcePicker();
     expect(getInput()).toBeInTheDocument();
   });
 
@@ -150,12 +155,23 @@ describe('StudioTextResourcePicker', () => {
   });
 
   it('Calls onValueChange with null when selection is cleared', async () => {
-    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     const pickedTextResource = textResources[arbitraryTextResourceIndex];
     renderTextResourcePicker({ value: pickedTextResource.id });
-    await user.click(screen.getByRole('button', { name: 'Tøm' }));
+    await user.click(screen.getByRole('button', { name: clearButtonLabel }));
     await user.tab();
     await waitFor(() => expect(onValueChange).toHaveBeenCalledWith(null));
+  });
+
+  it('Keeps the selection cleared when the parent updates the value after the selection is cleared', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const pickedTextResource = textResources[arbitraryTextResourceIndex];
+    const { rerender } = renderTextResourcePicker({ value: pickedTextResource.id });
+    await user.click(screen.getByRole('button', { name: clearButtonLabel }));
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledWith(null));
+    rerender(<StudioTextResourcePicker {...defaultProps} value={undefined} />);
+    await user.tab();
+    expect(getInput()).toHaveValue('');
   });
 
   it('Displays the ID as label when text resource value is not found', () => {
@@ -176,7 +192,7 @@ function renderTextResourcePicker(
   ref?: ForwardedRef<HTMLInputElement>,
 ): RenderResult {
   const view = render(<StudioTextResourcePicker {...defaultProps} {...props} ref={ref} />);
-  jest.runAllTimers();
+  vi.runAllTimers();
   return view;
 }
 

@@ -8,7 +8,6 @@ using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience.Extensions;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -320,6 +319,9 @@ internal sealed class WorkflowHandler(
         ExecutionResult result
     )
     {
+        if ((result.IsSuccess() || result.IsDeferred()) && result.StateOut is not null)
+            currentStep.StateOut = result.StateOut;
+
         if (result.IsSuccess())
         {
             currentStep.Status = PersistentItemStatus.Completed;
@@ -437,10 +439,8 @@ internal sealed class WorkflowHandler(
             : result.Message;
 
         var waitBudget = currentStep.ResolveWaitBudget(_settings);
-        var waitDeadline = (currentStep.FirstDeferredAt ?? now).Add(waitBudget);
-        var remainingBudget = waitDeadline - now;
 
-        if (remainingBudget <= TimeSpan.Zero)
+        if (currentStep.IsFinalWaitCheck(_settings))
         {
             currentStep.Status = PersistentItemStatus.Failed;
             currentStep.ErrorHistory.Add(
@@ -461,9 +461,13 @@ internal sealed class WorkflowHandler(
             return;
         }
 
-        // Floor: a positive but negligible delay would re-execute as fast as the fetch loop cycles.
-        // Ceiling: a deferral overshooting the budget lands on the deadline rather than being
-        // rejected, so the step spends its whole budget and always gets one final check.
+        // Floor: a delay below MinStepDeferDelay is raised to it, so a near-zero delay cannot make
+        // the step re-run in a tight loop.
+        // Ceiling: a delay that overshoots the deadline is cut to end on it rather than rejected,
+        // so the step spends its whole budget and gets one last run at the deadline, or
+        // immediately if the deadline passed while the run that just deferred was executing.
+        var waitDeadline = (currentStep.FirstDeferredAt ?? now).Add(waitBudget);
+        var remainingBudget = waitDeadline > now ? waitDeadline - now : TimeSpan.Zero;
         var requestedDelay = delay > _settings.MinStepDeferDelay ? delay : _settings.MinStepDeferDelay;
         var scheduledDelay = requestedDelay < remainingBudget ? requestedDelay : remainingBudget;
 

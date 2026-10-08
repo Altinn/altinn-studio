@@ -11,10 +11,12 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// <see cref="WorkflowActivityStatus.Processing"/>: retrying means the engine has the transition
 /// parked between automatic retry attempts (a previous attempt failed), letting a waiting UI say
 /// "a step is being retried" instead of an unexplained long wait; progress is how far through the
-/// transition's engine steps execution has come. <see cref="StartedAt"/> (also processing-only) is
-/// when the transition was enqueued, on the engine's clock - it lets a client that reconnects
-/// mid-transition (page refresh, second session) anchor "how long has this been running" to server
-/// truth instead of its own page load.
+/// transition's engine steps execution has come. <see cref="FailedAttempts"/> (also processing-only)
+/// counts the current step's consecutive failed attempts and, unlike retrying, holds steady while a
+/// retry attempt executes. <see cref="StartedAt"/> (also processing-only) is
+/// when the transition was enqueued, and <see cref="ResumedAt"/> when it was last resumed. Together with <see cref="CurrentTime"/>, sampled on the same
+/// engine clock, it lets a reconnecting client measure elapsed processing time without comparing
+/// client and server clocks.
 /// </summary>
 internal sealed record WorkflowTaskStatus(
     WorkflowActivityStatus Status,
@@ -23,7 +25,10 @@ internal sealed record WorkflowTaskStatus(
     bool Retrying = false,
     WorkflowStepProgress? Progress = null,
     DateTimeOffset? StartedAt = null,
-    string? WaitingReason = null
+    string? WaitingReason = null,
+    DateTimeOffset? CurrentTime = null,
+    int FailedAttempts = 0,
+    DateTimeOffset? ResumedAt = null
 )
 {
     /// <summary>
@@ -37,11 +42,14 @@ internal sealed record WorkflowTaskStatus(
             Status = Status,
             TargetTask = TargetTask,
             Retrying = Retrying ? true : null,
+            FailedAttempts = FailedAttempts > 0 ? FailedAttempts : null,
             WaitingReason = WaitingReason,
             Progress = Progress is { } progress
                 ? new AppProcessWorkflowProgress { Completed = progress.Completed, Total = progress.Total }
                 : null,
             StartedAt = StartedAt,
+            ResumedAt = ResumedAt,
+            CurrentTime = CurrentTime,
             Failure = Failure is { } failure
                 ? new AppProcessWorkflowFailure
                 {

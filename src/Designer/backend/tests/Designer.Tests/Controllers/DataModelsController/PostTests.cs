@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System.IO;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -118,6 +120,45 @@ public class PostTests : DesignerEndpointsTestsBase<PostTests>, IClassFixture<We
             JsonSerializerOptions
         );
         Assert.True(deserializedApplicationMetadata.DataTypes.Exists(dataType => dataType.Id == modelAndSchemaName));
+    }
+
+    [Theory]
+    [InlineData(8)]
+    [InlineData(9)]
+    public async Task PostDatamodel_CreateNew_DisablesLegacyPdfCreationOnlyForV8(int majorVersion)
+    {
+        const string modelName = "newModel";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
+        await File.WriteAllTextAsync(
+            Path.Combine(TestRepoPath, "App", "App.csproj"),
+            $"""
+            <Project Sdk="Microsoft.NET.Sdk">
+              <ItemGroup><PackageReference Include="Altinn.App.Api" Version="{majorVersion}.0.0" /></ItemGroup>
+            </Project>
+            """
+        );
+
+        using var postResponse = await HttpClient.PostAsJsonAsync(
+            $"{VersionPrefix(Org, targetRepository)}/new",
+            new CreateModelViewModel { ModelName = modelName, RelativeDirectory = "" },
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
+
+        Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+        using JsonDocument metadata = JsonDocument.Parse(
+            TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, "App/config/applicationmetadata.json")
+        );
+        JsonElement dataType = metadata
+            .RootElement.GetProperty("dataTypes")
+            .EnumerateArray()
+            .Single(type => type.GetProperty("id").GetString() == modelName);
+        bool hasLegacyFlag = dataType.TryGetProperty("enablePdfCreation", out JsonElement legacyFlag);
+        Assert.Equal(majorVersion == 8, hasLegacyFlag);
+        if (hasLegacyFlag)
+        {
+            Assert.False(legacyFlag.GetBoolean());
+        }
     }
 
     [Theory]

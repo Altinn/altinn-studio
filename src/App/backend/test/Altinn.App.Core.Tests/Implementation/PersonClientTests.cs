@@ -36,8 +36,8 @@ public class PersonClientTests
 
         _appMetadata = new Mock<IAppMetadata>();
         _appMetadata
-            .Setup(s => s.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/app") { Org = "ttd", Id = "ttd/app" });
+            .Setup(s => s.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("ttd/app") { Org = "ttd", Id = "ttd/app" });
 
         _accessTokenGenerator = new Mock<IAccessTokenGenerator>();
         _accessTokenGenerator
@@ -67,7 +67,7 @@ public class PersonClientTests
         var target = CreatePersonClient(new HttpClient(messageHandler));
 
         // Act
-        var actual = await target.GetPerson("personnummer", "lastname", ct: CancellationToken.None);
+        var actual = await target.GetPerson("personnummer", "lastname", cancellationToken: CancellationToken.None);
 
         // Assert
         _appMetadata.VerifyAll();
@@ -103,7 +103,7 @@ public class PersonClientTests
         var target = CreatePersonClient(new HttpClient(messageHandler));
 
         // Act
-        var actual = await target.GetPerson("personnummer", "lastname", ct: CancellationToken.None);
+        var actual = await target.GetPerson("personnummer", "lastname", cancellationToken: CancellationToken.None);
 
         // Assert
         Assert.NotNull(platformRequest);
@@ -134,7 +134,7 @@ public class PersonClientTests
         // Act
         try
         {
-            _ = await target.GetPerson("personnummer", "lastname", ct: CancellationToken.None);
+            _ = await target.GetPerson("personnummer", "lastname", cancellationToken: CancellationToken.None);
         }
         catch (PlatformHttpException phe)
         {

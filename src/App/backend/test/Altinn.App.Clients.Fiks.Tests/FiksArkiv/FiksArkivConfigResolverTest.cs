@@ -110,8 +110,8 @@ public class FiksArkivConfigResolverTest
         await using var fixture = TestFixture.Create(services => services.AddFiksArkiv());
 
         fixture
-            .AppMetadataMock.Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(
+            .AppMetadataMock.Setup(x => x.ApplicationMetadata)
+            .Returns(
                 new ApplicationMetadata(appId)
                 {
                     Title = new Dictionary<string, string?> { [LanguageConst.Nb] = appTitle },
@@ -413,7 +413,7 @@ public class FiksArkivConfigResolverTest
                 options.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}/";
             });
         });
-        fixture.AppMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
 
         // Act
         var result = fixture.FiksArkivConfigResolver.GetInstanceReference(instance);
@@ -449,7 +449,7 @@ public class FiksArkivConfigResolverTest
                 options.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}/";
             });
         });
-        fixture.AppMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
 
         // Act
         var result = fixture.FiksArkivConfigResolver.GetRecipientParty(instance, recipient);
@@ -508,7 +508,9 @@ public class FiksArkivConfigResolverTest
             useDefaultFiksArkivSettings: false
         );
         fixture
-            .PartyClientMock.Setup(x => x.GetParty(123, It.IsAny<StorageAuthenticationMethod?>()))
+            .PartyClientMock.Setup(x =>
+                x.GetParty(123, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(registeredName is null ? null : new Party { PartyId = 123, Name = registeredName });
 
         // Act
@@ -552,7 +554,7 @@ public class FiksArkivConfigResolverTest
             fixture.FiksArkivConfigResolver.GetInstanceOwnerParty(OrganizationOwnedInstance(), cancellation.Token)
         );
         fixture.PartyClientMock.Verify(
-            x => x.GetParty(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>()),
+            x => x.GetParty(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()),
             Times.Never
         );
     }
@@ -790,7 +792,11 @@ public class FiksArkivConfigResolverTest
                     : null,
         };
         await using var fixture = TestFixture.Create(services => services.AddFiksArkiv());
-        fixture.PartyClientMock.Setup(x => x.GetParty(123, It.IsAny<StorageAuthenticationMethod?>())).ReturnsAsync(party);
+        fixture
+            .PartyClientMock.Setup(x =>
+                x.GetParty(123, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(party);
 
         // Act
         var result = await fixture.FiksArkivConfigResolver.GetInstanceOwnerParty(instance);
@@ -808,7 +814,11 @@ public class FiksArkivConfigResolverTest
         // Arrange
         var instance = new Instance { InstanceOwner = new InstanceOwner { PartyId = "123" } };
         await using var fixture = TestFixture.Create(services => services.AddFiksArkiv());
-        fixture.PartyClientMock.Setup(x => x.GetParty(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>())).ReturnsAsync((Party?)null);
+        fixture
+            .PartyClientMock.Setup(x =>
+                x.GetParty(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync((Party?)null);
 
         // Act
         var result = await fixture.FiksArkivConfigResolver.GetInstanceOwnerParty(instance);

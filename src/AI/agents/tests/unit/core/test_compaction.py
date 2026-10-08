@@ -5,6 +5,7 @@ from __future__ import annotations
 from agents.core import (
     AssistantMessage,
     CompactionConfig,
+    Message,
     TextBlock,
     ToolResultBlock,
     ToolUseBlock,
@@ -55,9 +56,7 @@ class TestMessageChars:
         assert message_chars(msg) == 3 + 1 + len(str({"a": 1}))
 
     def test_tool_result_block(self):
-        msg = UserMessage(
-            content=[ToolResultBlock(tool_use_id="1", content="result-text")]
-        )
+        msg = UserMessage(content=[ToolResultBlock(tool_use_id="1", content="result-text")])
         assert message_chars(msg) == len("result-text")
 
 
@@ -66,16 +65,8 @@ class TestCompactIfNeeded:
         """n_pairs of (assistant tool_use + user tool_result) after an initial user goal."""
         msgs: list = [UserMessage(content="goal")]
         for i in range(n_pairs):
-            msgs.append(
-                AssistantMessage(
-                    content=[ToolUseBlock(id=f"id{i}", name="echo", input={"text": "q"})]
-                )
-            )
-            msgs.append(
-                UserMessage(
-                    content=[ToolResultBlock(tool_use_id=f"id{i}", content="x" * body_chars)]
-                )
-            )
+            msgs.append(AssistantMessage(content=[ToolUseBlock(id=f"id{i}", name="echo", input={"text": "q"})]))
+            msgs.append(UserMessage(content=[ToolResultBlock(tool_use_id=f"id{i}", content="x" * body_chars)]))
         return msgs
 
     def test_under_threshold_returns_input_unchanged(self):
@@ -117,7 +108,7 @@ class TestCompactIfNeeded:
 
 class TestTotalChars:
     def test_sums_messages(self):
-        msgs = [
+        msgs: list[Message] = [
             UserMessage(content="a" * 10),
             UserMessage(content="b" * 20),
         ]

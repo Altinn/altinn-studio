@@ -5,6 +5,7 @@
   namespace: ttd-e2e-tests,
   createdAt: {Scrubbed},
   updatedAt: {Scrubbed},
+  executionStartedAt: {Scrubbed},
   labels: {
     app: e2e-tests,
     org: ttd
@@ -25,6 +26,7 @@
       operationId: /ping-mid,
       processingOrder: 0,
       updatedAt: {Scrubbed},
+      executionStartedAt: {Scrubbed},
       command: {
         type: webhook
       },

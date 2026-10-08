@@ -13,7 +13,7 @@ export const uploadImageAndVerify = (fileName: string) => {
     .selectFile(makeTestFile(fileName), { force: true });
 
   cy.get('canvas').should('be.visible');
-  cy.get('canvas').then(($canvas) => {
+  cy.get('canvas').should(($canvas) => {
     const canvas = $canvas[0] as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
     const data = ctx?.getImageData(0, 0, canvas.width, canvas.height).data;

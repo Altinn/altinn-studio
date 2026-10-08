@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.RegularExpressions;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
@@ -17,6 +18,7 @@ using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.App.PlatformServices.Tests.Mocks;
+using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -312,7 +314,7 @@ public class PdfServiceTests
         var mutatorMock = CreateMutatorMock(instance);
 
         // Act
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Asserts
         _pdfGeneratorClient.Verify(
@@ -388,7 +390,7 @@ public class PdfServiceTests
         var mutatorMock = CreateMutatorMock(instance);
 
         // Act
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Asserts
         _pdfGeneratorClient.Verify(
@@ -460,6 +462,110 @@ public class PdfServiceTests
         language.Should().BeNull();
     }
 
+    [Theory]
+    [InlineData(null, "en", null, "en")]
+    [InlineData("de", "en", null, "de")]
+    [InlineData(null, null, "nn", "nn")]
+    [InlineData(null, " ", "nn", "nn")]
+    public async Task GenerateAndStorePdf_RendersInTheRequestOverride_ElseTheMutatorsLanguage_ElseTheCallers(
+        string? queryLanguage,
+        string? mutatorLanguage,
+        string? profileLanguage,
+        string expected
+    )
+    {
+        // A workflow callback has no language query, so a PDF service task's PDF follows the callback's data mutator,
+        // whose language is the one the user chose for the transition.
+        Uri? pdfUri = null;
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Uri, string?, StorageAuthenticationMethod?, CancellationToken>((uri, _, _, _) => pdfUri = uri)
+            .ReturnsAsync(new MemoryStream());
+        DefaultHttpContext httpContext = new();
+        httpContext.Request.Protocol = "https";
+        httpContext.Request.Host = new(HostName);
+        if (queryLanguage is not null)
+        {
+            httpContext.Request.QueryString = new QueryString($"?lang={queryLanguage}");
+        }
+        var httpContextAccessor = new Mock<IHttpContextAccessor>();
+        httpContextAccessor.Setup(s => s.HttpContext).Returns(httpContext);
+        var authenticationContext = new Mock<IAuthenticationContext>();
+        authenticationContext
+            .Setup(s => s.Current)
+            .Returns(
+                TestAuthentication.GetUserAuthentication(
+                    profileSettingPreference: profileLanguage is null
+                        ? null
+                        : new ProfileSettingPreference { Language = profileLanguage }
+                )
+            );
+        var target = SetupPdfService(
+            httpContentAccessor: httpContextAccessor,
+            authenticationContext: authenticationContext
+        );
+        Mock<IInstanceDataMutator> mutatorMock = CreateMutatorMock(CreateTask1Instance());
+        mutatorMock.Setup(m => m.Language).Returns(mutatorLanguage);
+
+        await target.GenerateAndStorePdf(
+            mutatorMock.Object,
+            customFileNameTextResourceKey: null,
+            cancellationToken: CancellationToken.None
+        );
+
+        Assert.NotNull(pdfUri);
+        Assert.Equal(expected, GetLangParameter(pdfUri));
+    }
+
+    [Fact]
+    public async Task GeneratePdf_FromADataAccessor_RendersInItsLanguage()
+    {
+        // The signing and payment tasks generate their PDFs from the callback's data mutator.
+        Uri? pdfUri = null;
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Uri, string?, StorageAuthenticationMethod?, CancellationToken>((uri, _, _, _) => pdfUri = uri)
+            .ReturnsAsync(new MemoryStream());
+        var target = SetupPdfService();
+        Mock<IInstanceDataMutator> mutatorMock = CreateMutatorMock(CreateTask1Instance());
+        mutatorMock.Setup(m => m.Language).Returns("en");
+
+        await using Stream pdf = await ((IPdfService)target).GeneratePdf(
+            mutatorMock.Object,
+            "Task_1",
+            isPreview: false
+        );
+
+        Assert.NotNull(pdfUri);
+        Assert.Equal("en", GetLangParameter(pdfUri));
+    }
+
+    private static Instance CreateTask1Instance() =>
+        new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+        };
+
+    private static string? GetLangParameter(Uri uri) =>
+        Regex.Match(uri.AbsoluteUri, "[?&]lang=([^&#]*)") is { Success: true } match ? match.Groups[1].Value : null;
+
     [Fact]
     public async Task GenerateAndStorePdf_WithAutoGeneratePdfForTaskIds_ShouldIncludeTaskIdsInUri()
     {
@@ -498,7 +604,7 @@ public class PdfServiceTests
             mutatorMock.Object,
             null,
             autoGeneratePdfForTaskIds,
-            ct: CancellationToken.None
+            cancellationToken: CancellationToken.None
         );
 
         // Assert
@@ -574,7 +680,12 @@ public class PdfServiceTests
         var mutatorMock = CreateMutatorMock(instance, mockAppResources);
 
         // Act
-        await target.GenerateAndStorePdf(mutatorMock.Object, customTextResourceKey, null, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(
+            mutatorMock.Object,
+            customTextResourceKey,
+            null,
+            cancellationToken: CancellationToken.None
+        );
 
         // Assert
         mutatorMock.Verify(
@@ -643,7 +754,12 @@ public class PdfServiceTests
         var mutatorMock = CreateMutatorMock(instance, mockAppResources);
 
         // Act
-        await target.GenerateAndStorePdf(mutatorMock.Object, customTextResourceKey, null, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(
+            mutatorMock.Object,
+            customTextResourceKey,
+            null,
+            cancellationToken: CancellationToken.None
+        );
 
         // Assert
         mutatorMock.Verify(
@@ -703,7 +819,7 @@ public class PdfServiceTests
 
         var mutatorMock = CreateMutatorMock(instance);
 
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         mutatorMock.Verify(
             m =>
@@ -830,7 +946,7 @@ public class PdfServiceTests
 
         // Act
         var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         _pdfGeneratorClient.Verify(
             s =>
@@ -879,7 +995,7 @@ public class PdfServiceTests
 
         // Act
         var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -929,7 +1045,7 @@ public class PdfServiceTests
 
         // Act
         var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -976,7 +1092,7 @@ public class PdfServiceTests
 
         // Act
         var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -1024,7 +1140,7 @@ public class PdfServiceTests
 
         // Act
         var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -1086,7 +1202,7 @@ public class PdfServiceTests
         };
 
         // Act
-        await target.GeneratePdf(instance, "Task_1", isPreview: false, ct: CancellationToken.None);
+        await target.GeneratePdf(instance, "Task_1", isPreview: false, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -1120,7 +1236,7 @@ public class PdfServiceTests
 
         var dataType = new DataType() { Id = "Model" };
         var applicationMetadata = new ApplicationMetadata("digdir/not-really-an-app") { DataTypes = [dataType] };
-        mockAppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        mockAppMetadata.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         var uiFolderComponent = new UiFolderComponent(new List<PageComponent>(), "layout", dataType);
         var layoutModel = new LayoutModel([uiFolderComponent], null);

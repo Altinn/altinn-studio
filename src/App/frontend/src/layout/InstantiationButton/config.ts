@@ -18,9 +18,6 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: false,
-  },
 })
   .addTextResource(
     new CG.trb({
@@ -29,4 +26,14 @@ export const Config = new CG.component({
       description: { en: 'The title/text to display on the button', nb: 'Teksten som vises på knappen.' },
     }),
   )
-  .addProperty(new CG.prop('mapping', CG.common('IMapping').optional()));
+  .addProperty(
+    new CG.prop(
+      'queryParameters',
+      CG.common('IQueryParameters')
+        .optional()
+        .setDescription(
+          'Values used to prefill the new instance.',
+          'Verdier som brukes til å forhåndsutfylle det nye eksemplaret.',
+        ),
+    ),
+  );

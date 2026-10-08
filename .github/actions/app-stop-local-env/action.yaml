@@ -15,6 +15,8 @@ runs:
         diagnostics_dir="${GITHUB_WORKSPACE}/src/App/frontend"
         diagnostics_log="${diagnostics_dir}/local-env-diagnostics.log"
         localtest_log="${diagnostics_dir}/localtest-container.log"
+        workflow_engine_log="${diagnostics_dir}/workflow-engine-container.log"
+        workflow_engine_dump="${diagnostics_dir}/workflow-engine-database.dump"
         frontend_pid_file="${diagnostics_dir}/frontend-server.pid"
 
         mkdir -p "$diagnostics_dir"
@@ -53,6 +55,8 @@ runs:
           run_diagnostic ss -antp
           run_diagnostic docker ps --no-trunc
           run_diagnostic docker inspect --format '{{json .State}}' localtest
+          run_diagnostic docker inspect --format '{{json .State}}' localtest-workflow-engine
+          run_diagnostic docker inspect --format '{{json .State}}' localtest-workflow-engine-db
           run_diagnostic docker stats --no-stream
           run_diagnostic df -h
           run_diagnostic free -h
@@ -89,6 +93,10 @@ runs:
         } 2>&1 | tee "$diagnostics_log"
 
         timeout 30 docker logs --timestamps localtest > "$localtest_log" 2>&1 || true
+        timeout 30 docker logs --timestamps localtest-workflow-engine > "$workflow_engine_log" 2>&1 || true
+        timeout 60 docker exec localtest-workflow-engine-db \
+          pg_dump --username postgres --dbname workflow_engine --format custom \
+          > "$workflow_engine_dump" 2>> "$diagnostics_log" || true
         exit 0
 
     - name: Stop localtest

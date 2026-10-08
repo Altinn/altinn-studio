@@ -26,8 +26,8 @@ export function useOnPageNavigationValidation() {
   /* Ensures the callback will have the latest state */
   const callback = useOurEffectEvent(async (currentPage: string, config: PageValidation): Promise<boolean> => {
     const pageConfig = config.page ?? 'current';
-    const masks = config.show;
-    const mask = getVisibilityMask(masks);
+
+    const mask = getVisibilityMask(config.show);
     const currentIndex = pageOrder.indexOf(currentPage);
 
     if (!pageOrder || currentIndex === -1) {

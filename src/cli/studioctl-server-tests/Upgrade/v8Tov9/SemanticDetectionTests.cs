@@ -67,6 +67,70 @@ public sealed class SemanticDetectionTests : IDisposable
                 }
             }
 
+            namespace Altinn.App.Core.Internal.App
+            {
+                public interface IAppResources
+                {
+                    object GetApplication();
+                    object GetApplicationXACMLPolicy();
+                    object GetApplicationBPMNProcess();
+                    byte[] GetText(string org, string app, string textResource);
+                }
+
+                public sealed class AppMetadata : IAppMetadata
+                {
+                    public System.Threading.Tasks.Task<object> GetApplicationMetadata() => System.Threading.Tasks.Task.FromResult(new object());
+                    public System.Threading.Tasks.Task<string> GetApplicationXACMLPolicy() => System.Threading.Tasks.Task.FromResult("");
+                    public System.Threading.Tasks.Task<string> GetApplicationBPMNProcess() => System.Threading.Tasks.Task.FromResult("");
+                }
+
+                public class AppResourcesSI : IAppResources
+                {
+                    public object GetApplication() => new();
+                    public object GetApplicationXACMLPolicy() => new();
+                    public object GetApplicationBPMNProcess() => new();
+                    public byte[] GetText(string org, string app, string textResource) => [];
+                }
+
+                public interface IAppMetadata
+                {
+                    System.Threading.Tasks.Task<object> GetApplicationMetadata();
+                    System.Threading.Tasks.Task<string> GetApplicationXACMLPolicy();
+                    System.Threading.Tasks.Task<string> GetApplicationBPMNProcess();
+                }
+            }
+
+            namespace Altinn.App.Core.Internal.Data
+            {
+                public interface IDataClient
+                {
+                    System.Threading.Tasks.Task<object> UpdateBinaryData(
+                        string org,
+                        string app,
+                        int instanceOwnerPartyId,
+                        System.Guid instanceGuid,
+                        System.Guid dataGuid,
+                        Microsoft.AspNetCore.Http.HttpRequest request
+                    );
+
+                    System.Threading.Tasks.Task<object> UpdateBinaryData(
+                        Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier,
+                        string? contentType,
+                        string? filename,
+                        System.Guid dataGuid,
+                        System.IO.Stream stream
+                    );
+                }
+            }
+
+            namespace Altinn.App.Core.Models
+            {
+                public sealed class InstanceIdentifier
+                {
+                    public InstanceIdentifier(int instanceOwnerPartyId, System.Guid instanceGuid) { }
+                }
+            }
+
             """
         )
     );
@@ -187,7 +251,7 @@ public sealed class SemanticDetectionTests : IDisposable
     // --- CorrespondenceApiMigration.WithData -----------------------------------------------------
 
     [Fact]
-    public void WithData_ByteArgumentDeclaredInTheSdk_OnlySemanticCompletesTheRewrite()
+    public async Task WithData_ByteArgumentDeclaredInTheSdk_OnlySemanticCompletesTheRewrite()
     {
         var path = _app.Write(
             "logic/Sender.cs",
@@ -207,18 +271,21 @@ public sealed class SemanticDetectionTests : IDisposable
 
         // Syntax cannot type `holder.Payload` (its declaration lives in the SDK, not the app) and
         // reports it for the developer to finish.
-        var syntax = new CorrespondenceApiMigration(SyntaxScanner()).Migrate();
+        var syntax = new CorrespondenceApiMigration(SyntaxScanner()).Migrate(TestContext.Current.CancellationToken);
         Assert.NotEmpty(syntax.Todos);
-        Assert.DoesNotContain("MemoryStream", File.ReadAllText(path));
+        Assert.DoesNotContain("MemoryStream", await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken));
 
         // Overload resolution proves it a byte array, so the rewrite completes.
-        var semantic = new CorrespondenceApiMigration(SemanticScanner()).Migrate();
+        var semantic = new CorrespondenceApiMigration(SemanticScanner()).Migrate(TestContext.Current.CancellationToken);
         Assert.Empty(semantic.Todos);
-        Assert.Contains("WithData(new MemoryStream(holder.Payload))", File.ReadAllText(path));
+        Assert.Contains(
+            "WithData(new MemoryStream(holder.Payload))",
+            await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken)
+        );
     }
 
     [Fact]
-    public void WithData_GenuineReadOnlyMemory_IsReportedNotWrapped()
+    public async Task WithData_GenuineReadOnlyMemory_IsReportedNotWrapped()
     {
         var path = _app.Write(
             "logic/Sender.cs",
@@ -236,18 +303,18 @@ public sealed class SemanticDetectionTests : IDisposable
             """
         );
 
-        var semantic = new CorrespondenceApiMigration(SemanticScanner()).Migrate();
+        var semantic = new CorrespondenceApiMigration(SemanticScanner()).Migrate(TestContext.Current.CancellationToken);
 
         // `new MemoryStream(readOnlyMemory)` would not compile, so this must stay a report - and the
         // report must say the type IS known and give advice that compiles.
         Assert.NotEmpty(semantic.Todos);
-        Assert.DoesNotContain("MemoryStream", File.ReadAllText(path));
+        Assert.DoesNotContain("MemoryStream", await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken));
         Assert.Contains(semantic.Warnings, static w => w.Contains("cannot be wrapped in a MemoryStream directly"));
         Assert.DoesNotContain(semantic.Warnings, static w => w.Contains("could not be determined"));
     }
 
     [Fact]
-    public void WithData_StreamThroughAVariable_OnlySemanticLeavesItAloneSilently()
+    public async Task WithData_StreamThroughAVariable_OnlySemanticLeavesItAloneSilently()
     {
         var path = _app.Write(
             "logic/Sender.cs",
@@ -265,10 +332,10 @@ public sealed class SemanticDetectionTests : IDisposable
             """
         );
 
-        var semantic = new CorrespondenceApiMigration(SemanticScanner()).Migrate();
+        var semantic = new CorrespondenceApiMigration(SemanticScanner()).Migrate(TestContext.Current.CancellationToken);
 
         Assert.Empty(semantic.Todos);
-        Assert.DoesNotContain("MemoryStream", File.ReadAllText(path));
+        Assert.DoesNotContain("MemoryStream", await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken));
     }
 
     // --- Detection binds against the pristine pre-rewrite snapshot -------------------------------
@@ -357,7 +424,7 @@ public sealed class SemanticDetectionTests : IDisposable
             "Altinn.App.Core.Features.Process",
             new System.Text.RegularExpressions.Regex(@"\.cs$")
         );
-        var correspondence = new CorrespondenceApiMigration(scanner).Migrate();
+        var correspondence = new CorrespondenceApiMigration(scanner).Migrate(TestContext.Current.CancellationToken);
         Assert.Contains(correspondence.Warnings, static w => w.Contains("WithSender"));
 
         var exitCode = await V8Tov9Upgrade.CheckRemovedCSharpApis(scanner, ProjectFile());
@@ -368,6 +435,98 @@ public sealed class SemanticDetectionTests : IDisposable
         // Syntax detector on the live view: does not re-report the no-op call the rewriter removed.
         Assert.DoesNotContain(": WithSender", text);
         Assert.Equal(3, exitCode);
+    }
+
+    // --- RemovedAppResourcesApiDetector -----------------------------------------------------------
+
+    [Fact]
+    public void AppResources_XacmlPolicy_OnlySemanticSeparatesRemovedFromReplacement()
+    {
+        _app.Write(
+            "logic/Reader.cs",
+            """
+            using Altinn.App.Core.Internal.App;
+
+            public class Reader
+            {
+                public object Removed(IAppResources resources) => resources.GetApplicationXACMLPolicy();
+
+                public object Replacement(IAppMetadata metadata) => metadata.GetApplicationXACMLPolicy();
+            }
+            """
+        );
+
+        var syntax = new RemovedAppResourcesApiDetector(SyntaxScanner()).Detect();
+        var semantic = new RemovedAppResourcesApiDetector(SemanticScanner()).Detect();
+
+        // Syntax cannot tell the two calls apart by name and arity alone, so it reports neither.
+        Assert.Empty(syntax.Warnings);
+
+        // Semantic binds each call to its declaring interface: only the IAppResources one is removed.
+        var callLines = semantic.Warnings.Where(static w => w.Contains("Reader.cs:")).ToList();
+        Assert.Single(callLines);
+        Assert.Contains("Reader.cs:5: GetApplicationXACMLPolicy", callLines[0]);
+        Assert.NotEmpty(semantic.Todos);
+    }
+
+    [Fact]
+    public void UpdateBinaryData_OverloadResolution_SeparatesRemovedFromSurviving()
+    {
+        _app.Write(
+            "logic/Uploader.cs",
+            """
+            using Altinn.App.Core.Internal.Data;
+            using Altinn.App.Core.Models;
+            using Microsoft.AspNetCore.Http;
+
+            public class Uploader
+            {
+                public void Removed(IDataClient client, string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid, HttpRequest request) =>
+                    client.UpdateBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, request);
+
+                public void Surviving(IDataClient client, InstanceIdentifier id, System.Guid dataGuid, System.IO.Stream stream) =>
+                    client.UpdateBinaryData(id, "application/pdf", "file.pdf", dataGuid, stream);
+            }
+            """
+        );
+
+        var semantic = new RemovedAppResourcesApiDetector(SemanticScanner()).Detect();
+
+        var callLines = semantic.Warnings.Where(static w => w.Contains("Uploader.cs:")).ToList();
+        Assert.Single(callLines);
+        Assert.Contains("Uploader.cs:8: UpdateBinaryData", callLines[0]);
+    }
+
+    [Fact]
+    public void InternalizedServiceTypes_OnlyTheAltinnTypesAreReported()
+    {
+        _app.Write(
+            "logic/Wrapper.cs",
+            """
+            using Altinn.App.Core.Internal.App;
+
+            public class AppResourcesSI { }
+            public class AppMetadata { }
+
+            public class Wrapper
+            {
+                public Wrapper(AppResourcesSI own, Altinn.App.Core.Internal.App.AppResourcesSI altinn) { }
+                public Wrapper(AppMetadata own, Altinn.App.Core.Internal.App.AppMetadata altinn) { }
+            }
+            """
+        );
+
+        var semantic = new InternalizedServiceTypeDetector(SemanticScanner()).Detect();
+
+        // The app's own classes of the same names are not the internalized ones; only the Altinn types are
+        // reported, each with the interface to inject instead.
+        Assert.Equal(
+            [
+                "logic/Wrapper.cs:8: AppResourcesSI (implements IAppResources)",
+                "logic/Wrapper.cs:9: AppMetadata (implements IAppMetadata)",
+            ],
+            semantic.Warnings.Where(static w => w.Contains("Wrapper.cs:")).Select(static w => w.Replace('\\', '/'))
+        );
     }
 
     // --- Scanner.Update keeps semantic models current --------------------------------------------

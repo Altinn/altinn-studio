@@ -16,10 +16,6 @@
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Altinn.App.Core" />
-  </ItemGroup>
-
   <Target Name="GenerateDependencyAssemblyAttributes" BeforeTargets="GetAssemblyAttributes">
     <ItemGroup>
       <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute" Condition="'%(PackageReference.Identity)' != '' and '%(PackageReference.PrivateAssets)' != 'all'">

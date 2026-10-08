@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, test, vi } from 'vitest';
 import { ItemDataComponent } from './ItemDataComponent';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { SchemaModel } from '@altinn/schema-model';
@@ -21,7 +22,7 @@ import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 const user = userEvent.setup();
 
 // Test data:
-const saveDataModel = jest.fn();
+const saveDataModel = vi.fn();
 const defaultNode: UiSchemaNode = combinationNodeMock;
 
 const renderItemDataComponent = (
@@ -40,7 +41,7 @@ const renderItemDataComponent = (
 };
 
 describe('ItemDataComponent', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   test('"Multiple answers" checkbox should appear if selected item is field', async () => {
     renderItemDataComponent(fieldNode1Mock);
@@ -150,7 +151,7 @@ describe('ItemDataComponent', () => {
 
   it('Updates the prefill config mapping when the field is renamed', async () => {
     const prefillConfig: PrefillConfig = { ER: { OrgNumber: 'toggable' } };
-    const savePrefillConfig = jest.fn();
+    const savePrefillConfig = vi.fn();
     renderItemDataComponent(toggableNodeMock, { prefillConfig, savePrefillConfig });
 
     const nameInput = screen.getByRole('textbox', {
@@ -165,7 +166,7 @@ describe('ItemDataComponent', () => {
 
   it('Does not touch the prefill config when the renamed field has no prefill mapping', async () => {
     const prefillConfig: PrefillConfig = { ER: { OrgNumber: 'someOtherField' } };
-    const savePrefillConfig = jest.fn();
+    const savePrefillConfig = vi.fn();
     renderItemDataComponent(toggableNodeMock, { prefillConfig, savePrefillConfig });
 
     const nameInput = screen.getByRole('textbox', {

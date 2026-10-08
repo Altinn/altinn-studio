@@ -16,7 +16,6 @@ node ./setup.js
 These are created by the script and are found at the root in the `.env`-file.
 
 ```dotenv
-CYPRESS_TEST_APP=<cypress-test-app>
 DEVELOP_APP_DEVELOPMENT=0
 DEVELOP_RESOURCE_ADMIN=0
 DEVELOP_ADMIN=0

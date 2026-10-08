@@ -401,16 +401,16 @@ public class FiksArkivDefaultPayloadGeneratorTest
             useDefaultFiksArkivSettings: false
         );
 
-        fixture
-            .AppMetadataMock.Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/test-app"));
+        fixture.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(new ApplicationMetadata("ttd/test-app"));
         fixture
             .TranslationServiceMock.Setup(x => x.TranslateTextKey("appName", LanguageConst.Nb, null))
             .ReturnsAsync("Test app");
         // The register lookup serves both the sender korrespondansepart and the instance owner classification's
         // title, so the two are driven from the same owner rather than being hand-rolled per case.
         fixture
-            .PartyClientMock.Setup(x => x.GetParty(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>()))
+            .PartyClientMock.Setup(x =>
+                x.GetParty(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(Factories.RegisterParty(testCase.Owner));
 
         return fixture;

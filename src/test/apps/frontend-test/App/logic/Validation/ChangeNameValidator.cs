@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
-using Altinn.App.Core.Models.Validation;
+﻿using Altinn.App.Core.Models.Validation;
 using Altinn.App.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -17,13 +13,13 @@ namespace Altinn.App.logic.Validation
             return true;
         }
 
-        public Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string language)
+        public Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language)
         {
             List<ValidationIssue> validationIssues = new List<ValidationIssue>();
 
             Skjema model = (Skjema)data;
-            string middleName = model?.NyttNavngrp9313?.NyttNavngrp9314?.PersonMellomnavnNyttdatadef34759?.value;
-            string firstName = model?.NyttNavngrp9313?.NyttNavngrp9314?.PersonFornavnNyttdatadef34758?.value;
+            string? middleName = model?.NyttNavngrp9313?.NyttNavngrp9314?.PersonMellomnavnNyttdatadef34759?.value;
+            string? firstName = model?.NyttNavngrp9313?.NyttNavngrp9314?.PersonFornavnNyttdatadef34758?.value;
             string modelMiddleName = "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value";
             string modelFirstName = "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value";
             string modelChangesFirstName =
@@ -125,15 +121,15 @@ namespace Altinn.App.logic.Validation
                 });
             }
 
-            if (model.FilteredOptions?.Ingredients != null)
+            if (model?.FilteredOptions?.Ingredients != null)
             {
                 // Iterate the ingredients and figure out if there are any duplicates. If there are, the rows
                 // with duplicates (not the original ones) should be marked with a validation issue.
-                var foundTypes = new Dictionary<decimal?, bool>();
+                var foundTypes = new Dictionary<decimal, bool>();
                 foreach (var index in Enumerable.Range(0, model.FilteredOptions.Ingredients.Count))
                 {
                     var type = model.FilteredOptions.Ingredients[index].Type;
-                    if (type != null && !foundTypes.TryAdd(type, true))
+                    if (type != null && !foundTypes.TryAdd(type.Value, true))
                     {
                         validationIssues.Add(new ValidationIssue
                         {

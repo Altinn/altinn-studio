@@ -1,4 +1,4 @@
-#nullable disable
+#nullable enable
 using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
@@ -11,6 +11,6 @@ namespace Altinn.App.Models.Task2Data
         [XmlElement("note", Order = 1)]
         [JsonProperty("note")]
         [JsonPropertyName("note")]
-        public string note { get; set; }
+        public string? note { get; set; }
     }
 }

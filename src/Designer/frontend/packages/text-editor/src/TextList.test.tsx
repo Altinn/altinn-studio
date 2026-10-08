@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import type { TextListProps } from './TextList';
 import { TextList } from './TextList';
@@ -76,7 +77,7 @@ const renderTextList = (props: Partial<TextListProps> = {}) => {
 describe('TextList', () => {
   it('should call updateEntryId when the ID is changed in the edit mode', async () => {
     const user = userEvent.setup();
-    const updateEntryId = jest.fn();
+    const updateEntryId = vi.fn();
     const { rerender, initPros } = renderTextList({ updateEntryId });
     queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
     rerender(
@@ -100,7 +101,7 @@ describe('TextList', () => {
 
   it('should display warnings for existing, empty, or space-containing IDs', async () => {
     const user = userEvent.setup();
-    const updateEntryId = jest.fn();
+    const updateEntryId = vi.fn();
     const [firstErrorMessage, secondErrorMessage, thirdErrorMessage]: string[] = [
       textMock('text_editor.key.error_duplicate'),
       textMock('text_editor.key.error_invalid'),

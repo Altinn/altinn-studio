@@ -13,11 +13,9 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Bootstrap;
-using Altinn.App.Core.Features.Cache;
 using Altinn.App.Core.Features.Correspondence.Extensions;
-using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Extensions;
-using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Internal.App;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using Altinn.Studio.Common;
@@ -28,7 +26,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.FeatureManagement;
 using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
@@ -50,10 +47,6 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static void AddAltinnAppControllersWithViews(this IServiceCollection services)
     {
-        // We add this here because it uses a hosted service and we want it to run as early as possible
-        // so that consumers of the cache can rely on it being available.
-        services.AddAppConfigurationCache();
-
         // Add API controllers from Altinn.App.Api
         IMvcBuilder mvcBuilder = services.AddControllersWithViews(options =>
         {
@@ -81,7 +74,8 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds all services to run an Altinn application.
+    /// Adds all services to run an Altinn application. Loads the app resource files (config, models, options and ui folders)
+    /// into memory, so a broken app fails here instead of on the first request.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> being built.</param>
     /// <param name="config">A reference to the current <see cref="IConfiguration"/> object.</param>
@@ -94,7 +88,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddMemoryCache();
         services.AddHealthChecks().AddCheck<HealthCheck>("default_health_check");
-        services.AddFeatureManagement();
 
         services.AddPlatformServices(config, env);
         services.AddAppServices(config, env);
@@ -112,8 +105,6 @@ public static class ServiceCollectionExtensions
             AddApplicationInsights(services, config, env);
         }
 
-        // AddMaskinportenClient adds a keyed service. This needs to happen after AddApplicationInsights,
-        // due to a bug in app insights: https://github.com/microsoft/ApplicationInsights-dotnet/issues/2828
         services.AddMaskinportenClient();
         services.AddCorrespondenceClient();
 
@@ -140,46 +131,14 @@ public static class ServiceCollectionExtensions
         services.AddSwaggerFilter();
 
         // Add swagger endpoint for end user system api documentation
-        var appId = StartupHelper.GetApplicationId();
+        var appId = StartupHelper.GetApplicationId(env.ContentRootPath);
         services.Configure<SwaggerUIOptions>(c =>
         {
             c.SwaggerEndpoint($"/{appId}/v1/customOpenapi.json", $"End user app API for {appId}");
         });
+
+        services.AddAppFiles(env);
     }
-
-    /// <summary>
-    /// <p>Configures the <see cref="MaskinportenClient"/> service with a configuration object which will be static for the lifetime of the service.</p>
-    /// <p>If you have already provided a <see cref="MaskinportenSettings"/> configuration, either manually or
-    /// implicitly via <see cref="WebHostBuilderExtensions.ConfigureAppWebHost"/>, this will be overridden.</p>
-    /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <param name="configureOptions">
-    /// Action delegate that provides <see cref="MaskinportenSettings"/> configuration for the <see cref="MaskinportenClient"/> service
-    /// </param>
-    public static IServiceCollection ConfigureMaskinportenClient(
-        this IServiceCollection services,
-        Action<MaskinportenSettings> configureOptions
-    ) =>
-        Altinn.App.Core.Features.Maskinporten.Extensions.ServiceCollectionExtensions.ConfigureMaskinportenClient(
-            services,
-            configureOptions
-        );
-
-    /// <summary>
-    /// <p>Binds a <see cref="MaskinportenClient"/> configuration to the supplied config section path.</p>
-    /// <p>If you have already provided a <see cref="MaskinportenSettings"/> configuration, either manually or
-    /// implicitly via <see cref="WebHostBuilderExtensions.ConfigureAppWebHost"/>, this will be overridden.</p>
-    /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <param name="configSectionPath">The configuration section path (Eg. "MaskinportenSettings")</param>
-    public static IServiceCollection ConfigureMaskinportenClient(
-        this IServiceCollection services,
-        string configSectionPath
-    ) =>
-        Altinn.App.Core.Features.Maskinporten.Extensions.ServiceCollectionExtensions.ConfigureMaskinportenClient(
-            services,
-            configSectionPath
-        );
 
     /// <summary>
     /// Adds Application Insights to the service collection.
@@ -221,7 +180,7 @@ public static class ServiceCollectionExtensions
 
     private static void AddOpenTelemetry(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
-        var appId = StartupHelper.GetApplicationId().Split("/")[1];
+        var appId = StartupHelper.GetApplicationId(env.ContentRootPath).Split("/")[1];
         var appVersion = config.GetSection("AppSettings").GetValue<string>("AppVersion");
         var isTest = config.GetSection("GeneralSettings").GetValue<bool>("IsTest");
         if (string.IsNullOrWhiteSpace(appVersion))

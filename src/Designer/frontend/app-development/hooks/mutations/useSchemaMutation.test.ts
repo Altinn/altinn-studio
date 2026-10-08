@@ -18,10 +18,39 @@ describe('useSchemaMutation', () => {
       renderHookResult: { result },
     } = render({ saveDataModel });
     result.current.mutate({ modelPath, model: jsonSchemaMock });
-    await waitFor(() => result.current.isPending);
-    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(saveDataModel).toHaveBeenCalledTimes(1));
     expect(saveDataModel).toHaveBeenCalledWith(org, app, modelPath, jsonSchemaMock);
-    await waitFor(() => result.current.isSuccess);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  });
+
+  it('Leaves combinations without subschemas out of the saved model but keeps them in the cache', async () => {
+    const saveDataModel = jest.fn();
+    const queryClient = createQueryClientMock();
+    const text = { type: 'string' };
+    const model = { type: 'object', properties: { text, combination: { anyOf: [] } } };
+    const {
+      renderHookResult: { result },
+    } = render({ saveDataModel }, queryClient);
+    result.current.mutate({ modelPath, model });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(saveDataModel).toHaveBeenCalledWith(org, app, modelPath, {
+      type: 'object',
+      properties: { text },
+    });
+    expect(queryClient.getQueryData([QueryKey.JsonSchema, org, app, modelPath])).toEqual(model);
+  });
+
+  it('Rechecks whether the model files are out of date', async () => {
+    const queryClient = createQueryClientMock();
+    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const {
+      renderHookResult: { result },
+    } = render({}, queryClient);
+    result.current.mutate({ modelPath, model: jsonSchemaMock });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.DataModelGenerationStatus, org, app, modelPath],
+    });
   });
 
   it('Updates the JsonSchema query cache', async () => {
@@ -30,7 +59,7 @@ describe('useSchemaMutation', () => {
       renderHookResult: { result },
     } = render({}, queryClient);
     result.current.mutate({ modelPath, model: jsonSchemaMock });
-    await waitFor(() => result.current.isSuccess);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queryClient.getQueryData([QueryKey.JsonSchema, org, app, modelPath])).toEqual(
       jsonSchemaMock,
     );

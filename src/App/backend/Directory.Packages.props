@@ -7,7 +7,7 @@
     <PackageVersion Include="Altinn.Common.AccessTokenClient" Version="1.1.5" />
     <PackageVersion Include="Altinn.Common.PEP" Version="4.2.2" />
     <PackageVersion Include="Altinn.Platform.Models" Version="1.6.1" />
-    <PackageVersion Include="Altinn.Platform.Storage.Interface.Experimental" Version="4.7.1-pr.2231.interface-aggregate-mutation.e6829dd9" />
+    <PackageVersion Include="Altinn.Platform.Storage.Interface" Version="5.0.0-rc.1" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.1" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
     <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.7.0" />
@@ -34,7 +34,6 @@
     <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.5.0" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.Testing" Version="10.5.0" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.8.0" />
-    <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.4.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageVersion Include="Microsoft.OpenApi" Version="2.11.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
@@ -74,6 +73,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="KS.Fiks.Arkiv.Models.V1" Version="1.0.10" />
-    <PackageVersion Include="KS.Fiks.IO.Client" Version="6.1.2" />
+    <PackageVersion Include="KS.Fiks.IO.Client" Version="7.0.3" />
   </ItemGroup>
 </Project>

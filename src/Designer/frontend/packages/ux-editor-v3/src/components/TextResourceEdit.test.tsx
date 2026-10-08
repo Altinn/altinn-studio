@@ -124,7 +124,7 @@ describe('TextResourceEdit', () => {
     const value = 'Lorem';
     const resources: ITextResources = { nb: [{ id, value }] };
     await render(resources, id);
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const textBox = screen.getByLabelText(nbText);
     fireEvent.click(textBox);
     fireEvent.click(document.body);

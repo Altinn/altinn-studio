@@ -185,6 +185,53 @@ public class ProcessStatusGuardTests
         Assert.Equal(ReadStatus.Read, persisted.Status.ReadStatus);
     }
 
+    [Fact]
+    public async Task UpdateReadStatus_WhenSnapshotIsStale_PreservesWorkflowProgressAndVersions()
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance staleInstance = await CreateProcessingInstance(storage);
+        Guid instanceGuid = Guid.Parse(staleInstance.Id.Split('/')[1]);
+        InstanceVersionResult before = await storage.InstanceRepository.ReadVersions(instanceGuid);
+        var nextTask = new ProcessState
+        {
+            Status = ProcessStatus.Processing,
+            CurrentTask = new ProcessElementInfo { ElementId = "Task_Fail" },
+        };
+        InstanceMutationApplyResult committed = await storage.MutationRepository.Apply(
+            instanceGuid,
+            instanceInternalId: 0,
+            new InstanceMutationCommit(
+                CreateDataElements: [],
+                UpdateDataElements: [],
+                DeleteDataElements: [],
+                InstanceUpdates: staleInstance,
+                InstanceUpdateProperties: [nameof(Instance.Process)],
+                ExpectedInstanceVersion: before.InstanceVersion,
+                ExpectedProcessStateVersion: before.ProcessStateVersion,
+                ProcessState: nextTask
+            )
+        );
+        staleInstance.Status.ReadStatus = ReadStatus.Read;
+
+        Instance result = await storage.InstanceRepository.UpdateReadStatus(
+            staleInstance,
+            CancellationToken.None
+        );
+
+        (Instance persisted, _) = await storage.InstanceRepository.GetOne(
+            instanceGuid,
+            false,
+            CancellationToken.None
+        );
+        InstanceVersionResult after = await storage.InstanceRepository.ReadVersions(instanceGuid);
+        Assert.Equal("Task_Fail", result.Process.CurrentTask.ElementId);
+        Assert.Equal("Task_Fail", persisted.Process.CurrentTask.ElementId);
+        Assert.Equal(ProcessStatus.Processing, persisted.Process.Status);
+        Assert.Equal(ReadStatus.Read, persisted.Status.ReadStatus);
+        Assert.Equal(committed.Versions.InstanceVersion, after.InstanceVersion);
+        Assert.Equal(committed.Versions.ProcessStateVersion, after.ProcessStateVersion);
+    }
+
     private static Instance InstanceWithStatus(ProcessStatus? status) =>
         new() { Process = new ProcessState { Status = status } };
 

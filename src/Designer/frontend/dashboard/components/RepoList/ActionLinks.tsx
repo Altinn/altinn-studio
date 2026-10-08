@@ -62,7 +62,6 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
           appName: repoName,
         })}
         variant='tertiary'
-        className={classes.editButton}
         icon={editIconWithLink}
       />
       <StudioDropdown

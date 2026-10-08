@@ -209,7 +209,7 @@ describe('useAssistantWebSocket', () => {
 
     it('rethrows when the hub invocation fails', async () => {
       mockInvoke.mockRejectedValue(new Error('Hub disconnected'));
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
       const { result } = renderUseAssistantWebSocket();
 
       await expect(
@@ -225,7 +225,7 @@ describe('useAssistantWebSocket', () => {
 
       await expect(
         result.current.respondToPermission('session-1', 'request-1', true),
-      ).rejects.toThrow('No active SignalR connection to Altinity hub');
+      ).rejects.toThrow('No active SignalR connection to assistant hub');
       expect(mockInvoke).not.toHaveBeenCalled();
     });
   });

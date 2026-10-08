@@ -112,7 +112,6 @@
                   },
                   TaskId: Task_1-access,
                   MinCount: 0,
-                  EnablePdfCreation: true,
                   EnableFileScan: false,
                   ValidationErrorOnPendingFileScan: false
                 },
@@ -156,7 +155,6 @@
                 },
                 TaskId: Task_1-access,
                 MinCount: 0,
-                EnablePdfCreation: true,
                 EnableFileScan: false,
                 ValidationErrorOnPendingFileScan: false
               },
@@ -185,7 +183,6 @@
                   TaskId: Task_1-access,
                   MaxCount: 0,
                   MinCount: 0,
-                  EnablePdfCreation: true,
                   EnableFileScan: false,
                   ValidationErrorOnPendingFileScan: false
                 },
@@ -230,7 +227,6 @@
                 TaskId: Task_1-access,
                 MaxCount: 0,
                 MinCount: 0,
-                EnablePdfCreation: true,
                 EnableFileScan: false,
                 ValidationErrorOnPendingFileScan: false
               },
@@ -269,7 +265,6 @@
                   TaskId: Task_1-access,
                   MaxCount: 0,
                   MinCount: 0,
-                  EnablePdfCreation: true,
                   EnableFileScan: false,
                   ValidationErrorOnPendingFileScan: false
                 },
@@ -314,7 +309,6 @@
                 TaskId: Task_1-access,
                 MaxCount: 0,
                 MinCount: 0,
-                EnablePdfCreation: true,
                 EnableFileScan: false,
                 ValidationErrorOnPendingFileScan: false
               },
@@ -364,7 +358,6 @@
               },
               TaskId: Task_1-access,
               MinCount: 0,
-              EnablePdfCreation: true,
               EnableFileScan: false,
               ValidationErrorOnPendingFileScan: false
             },
@@ -380,7 +373,6 @@
               TaskId: Task_1-access,
               MaxCount: 0,
               MinCount: 0,
-              EnablePdfCreation: true,
               EnableFileScan: false,
               ValidationErrorOnPendingFileScan: false
             }
@@ -442,7 +434,6 @@
               },
               TaskId: Task_1-access,
               MinCount: 0,
-              EnablePdfCreation: true,
               EnableFileScan: false,
               ValidationErrorOnPendingFileScan: false
             },
@@ -458,7 +449,6 @@
               TaskId: Task_1-access,
               MaxCount: 0,
               MinCount: 0,
-              EnablePdfCreation: true,
               EnableFileScan: false,
               ValidationErrorOnPendingFileScan: false
             }

@@ -6,7 +6,6 @@ using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Extensions;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -675,12 +674,15 @@ internal sealed class DbMaintenanceService(
             RETURNING is_head
             """;
 
+        // execution_started_at is cleared with the lease: the dead attempt is over, and a workflow
+        // back in Enqueued never carries a stamp (same rule as resume and dependency recovery).
         internal static readonly string ReclaimStaleWorkflows = $"""
             UPDATE engine.workflows
             SET status = {(int)PersistentItemStatus.Enqueued},
                 updated_at = @now,
                 heartbeat_at = NULL,
                 lease_token = NULL,
+                execution_started_at = NULL,
                 reclaim_count = reclaim_count + 1
             WHERE status = {(int)PersistentItemStatus.Processing}
               AND heartbeat_at IS NOT NULL
@@ -698,6 +700,7 @@ internal sealed class DbMaintenanceService(
                 backoff_until = NULL,
                 heartbeat_at = NULL,
                 lease_token = NULL,
+                execution_started_at = NULL,
                 reclaim_count = 0,
                 updated_at = @now
             WHERE w.status = {(int)PersistentItemStatus.DependencyFailed}

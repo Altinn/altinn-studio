@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import { StudioIconTextfield } from './StudioIconTextfield';
@@ -55,9 +56,14 @@ describe('StudioIconTextfield', () => {
     expect(icons).toHaveLength(2);
   });
 
+  it('focuses the text field on mount when autoFocus is set', () => {
+    renderStudioIconTextfield({ autoFocus: true });
+    expect(screen.getByRole('textbox', { name: label })).toHaveFocus();
+  });
+
   it('should execute onChange callback when input value changes', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderStudioIconTextfield({ onChange });
     const textfield = screen.getByRole('textbox', { name: label });
     const newInput = 'newInput';

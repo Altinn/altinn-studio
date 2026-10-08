@@ -1,4 +1,4 @@
-#nullable disable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -16,17 +16,17 @@ namespace Altinn.App.Models.Moped
         [XmlElement("RegNo", Order = 1)]
         [JsonProperty("RegNo")]
         [JsonPropertyName("RegNo")]
-        public string RegNo { get; set; }
+        public string? RegNo { get; set; }
 
         [XmlElement("Merke", Order = 2)]
         [JsonProperty("Merke")]
         [JsonPropertyName("Merke")]
-        public string Merke { get; set; }
+        public string? Merke { get; set; }
 
         [XmlElement("Modell", Order = 3)]
         [JsonProperty("Modell")]
         [JsonPropertyName("Modell")]
-        public string Modell { get; set; }
+        public string? Modell { get; set; }
 
         [XmlElement("EkstraInfoCheck", Order = 4)]
         [JsonProperty("EkstraInfoCheck")]
@@ -36,7 +36,7 @@ namespace Altinn.App.Models.Moped
         [XmlElement("EkstraInfoData", Order = 5)]
         [JsonProperty("EkstraInfoData")]
         [JsonPropertyName("EkstraInfoData")]
-        public string EkstraInfoData { get; set; }
+        public string? EkstraInfoData { get; set; }
 
         [Range(Double.MinValue, Double.MaxValue)]
         [XmlElement("Produksjonsaar", Order = 6)]

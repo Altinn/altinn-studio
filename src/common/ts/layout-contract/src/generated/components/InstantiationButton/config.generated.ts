@@ -1,10 +1,10 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
-import { ComponentBase, IMapping } from '@app/layout-contract/generated/common.generated';
+import { ComponentBase, IQueryParameters } from '@app/layout-contract/generated/common.generated';
 
 export interface CompInstantiationButtonExternal extends ComponentBase {
   type: 'InstantiationButton';
   textResourceBindings?: { title?: ExprValToActualOrExpr<ExprVal.String> };
-  mapping?: IMapping;
+  queryParameters?: IQueryParameters;
   dataModelBindings?: undefined;
 }
 
@@ -36,4 +36,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 76c88f20d544eabe9ad309b8e58228ffe49a15fbe47a70ecbe64c33fb21f1f5b
+// Source hash: ffa71431f213aa05eb5a29dfd100da22d0d2a6a7b284fabe1431e9b573905cbe

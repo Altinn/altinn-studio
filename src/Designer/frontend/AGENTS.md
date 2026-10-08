@@ -13,7 +13,7 @@ Studio Designer's frontend relies on the following tools:
 - React
 - React Router
 - Tanstack Query
-- Jest with React Testing Library for unit tests
+- Vitest and Jest with React Testing Library for unit tests (migrating from Jest to Vitest, see Unit tests)
 - Playwright for E2E tests
 - React components and CSS tokens from Designsystemet
 
@@ -35,12 +35,14 @@ The frontend consists of several React packages in the following directories:
   - `studio-pure-functions` - A collection of general utility classes for handling arrays, blobs, dates, files, numbers, strings, etc. Use these utilities to avoid code duplication for common operations.
 - `./packages` - Contains tools for individual Altinn apps.
   - `policy-editor` - Handles access policy.
-  - `process-editor` - Handles the BPMN process.
+  - `process-editor` - Handles the BPMN process. Serves apps on Altinn.App v9 and newer.
+  - `process-editor-v8` - Legacy package for apps on Altinn.App v8 and older, frozen.
   - `schema-editor` - Handles editing data models.
   - `schema-model` - Underlying model for the `schema-editor` package.
   - `shared` - Shared resources for the `./packages` directory.
   - `text-editor` - Handles editing of texts and their translations.
-  - `ux-editor` - Layout and form component configurations.
+  - `ux-editor` - Layout and form component configurations. Serves apps on app-frontend v9 and newer.
+  - `ux-editor-v4` - Legacy package for apps on app-frontend v4.
   - `ux-editor-v3` - Legacy package, not maintained.
 - `./resourceadm` - Altinn resource register.
 - `./scripts` - Independent scripts for configuration of form components.
@@ -56,7 +58,8 @@ The frontend consists of several React packages in the following directories:
 
 ### Test
 
-- `yarn test` - Run Jest unit tests. To filter which tests to run, use: `yarn test partlyMatchingPathOrFilename`
+- `yarn test` - Run all unit tests, first with Jest, then with Vitest
+- `yarn test:jest` and `yarn test:vitest` - Run the tests of one runner. To filter which tests to run, use: `yarn test:jest partlyMatchingPathOrFilename`
 
 ### Development servers
 
@@ -97,6 +100,16 @@ Components MUST use custom hooks, never call `useQuery`/`useMutation` directly.
 **Error handling:** A global `MutationCache`/`QueryCache` `onError` in `\packages\shared\src\contexts\ServicesContext.tsx` surfaces all query and mutation errors as toasts.
 
 ## Unit tests
+
+The unit tests are moving from Jest to Vitest, one directory at a time. The directories listed in
+`vitest.migrated.js` run with Vitest; all others still run with Jest.
+
+- In a Vitest directory, import the test API from `vitest` (`import { describe, expect, it, vi } from 'vitest'`)
+  and use `vi` instead of `jest`. ESLint reports any use of `jest` there.
+- Shared test helpers outside those directories are used by both runners. They may call `jest.fn` and
+  `jest.spyOn`, which `testing/vitestJestShim.ts` maps to `vi` under Vitest, but must not call `jest.mock`.
+- Test setup is split into `testing/setupEnvironment.ts` (both runners), `testing/setupTests.ts` (Jest) and
+  `testing/setupTests.vitest.ts` (Vitest). Change a global mock in both runner files.
 
 - Unit tests should be placed in the same folder as the component it is testing.
 - Tanstack Query tests: Prefer `queryClient.setQueryData` to seed data for hooks/components.

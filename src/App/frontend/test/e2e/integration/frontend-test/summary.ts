@@ -688,7 +688,6 @@ function injectExtraPageAndSetTriggers(pageValidationConfig?: PageValidation | u
         {
           id: 'page3-submit',
           type: 'Button',
-          mode: 'submit',
           textResourceBindings: {
             title: 'submit',
           },

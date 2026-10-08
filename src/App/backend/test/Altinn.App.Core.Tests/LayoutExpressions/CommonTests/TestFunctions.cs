@@ -253,19 +253,16 @@ public class TestFunctions
     public async Task Jmespath_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
-    [SharedTestCases("sum")]
-    public async Task Sum_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
-        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+    [SharedTest("sum")]
+    public async Task Sum_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
-    [SharedTestCases("average")]
-    public async Task Average_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
-        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+    [SharedTest("average")]
+    public async Task Average_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
-    [SharedTestCases("count")]
-    public async Task Count_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
-        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+    [SharedTest("count")]
+    public async Task Count_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     private static async Task<ExpressionTestCaseRoot> LoadTestCase(string file, string folder)
     {
@@ -530,7 +527,7 @@ public class TestFunctions
         // This is just a way to ensure that all folders have test methods associcated.
         var jsonTestFolders = Directory
             .GetDirectories(TestAttributeHelper.CommonExpressionTestsPath("evaluation", "functions"))
-            .Where(d => Directory.GetFiles(d).Length > 0)
+            .Where(d => Directory.GetFiles(d).Any(file => !FileNamesInFolderDataAttribute.IsDisabledInBackend(file)))
             .Select(d => Path.GetFileName(d))
             .OrderBy(s => s)
             .ToArray();

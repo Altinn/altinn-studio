@@ -39,6 +39,9 @@ public sealed class PaymentControllerProcessStatusGuardTests
         {
             var processReader = new Mock<IProcessReader>(MockBehavior.Strict);
             processReader
+                .Setup(reader => reader.GetProcessTasks())
+                .Returns(Services.GetRequiredService<IProcessReader>().GetProcessTasks());
+            processReader
                 .Setup(reader => reader.GetAltinnTaskExtension("Task_1"))
                 .Returns(CreatePaymentTaskExtension());
             var paymentService = new Mock<IPaymentService>(MockBehavior.Strict);
@@ -48,7 +51,8 @@ public sealed class PaymentControllerProcessStatusGuardTests
                         It.IsAny<Instance>(),
                         It.IsAny<ValidAltinnPaymentConfiguration>(),
                         "Task_1",
-                        It.IsAny<string?>()
+                        It.IsAny<string?>(),
+                        It.IsAny<CancellationToken>()
                     )
                 )
                 .ReturnsAsync(
@@ -95,7 +99,8 @@ public sealed class PaymentControllerProcessStatusGuardTests
                         It.IsAny<Instance>(),
                         It.IsAny<ValidAltinnPaymentConfiguration>(),
                         "Task_1",
-                        It.IsAny<string?>()
+                        It.IsAny<string?>(),
+                        It.IsAny<CancellationToken>()
                     ),
                 Times.Once
             );
@@ -119,6 +124,9 @@ public sealed class PaymentControllerProcessStatusGuardTests
         {
             var processReader = new Mock<IProcessReader>(MockBehavior.Strict);
             processReader
+                .Setup(reader => reader.GetProcessTasks())
+                .Returns(Services.GetRequiredService<IProcessReader>().GetProcessTasks());
+            processReader
                 .Setup(reader => reader.GetAltinnTaskExtension(historicalTaskId))
                 .Returns(CreatePaymentTaskExtension());
             var paymentService = new Mock<IPaymentService>(MockBehavior.Strict);
@@ -128,7 +136,8 @@ public sealed class PaymentControllerProcessStatusGuardTests
                         It.IsAny<Instance>(),
                         It.IsAny<ValidAltinnPaymentConfiguration>(),
                         historicalTaskId,
-                        It.IsAny<string?>()
+                        It.IsAny<string?>(),
+                        It.IsAny<CancellationToken>()
                     )
                 )
                 .ReturnsAsync(
@@ -169,7 +178,8 @@ public sealed class PaymentControllerProcessStatusGuardTests
                         It.IsAny<Instance>(),
                         It.IsAny<ValidAltinnPaymentConfiguration>(),
                         historicalTaskId,
-                        It.IsAny<string?>()
+                        It.IsAny<string?>(),
+                        It.IsAny<CancellationToken>()
                     ),
                 Times.Once
             );

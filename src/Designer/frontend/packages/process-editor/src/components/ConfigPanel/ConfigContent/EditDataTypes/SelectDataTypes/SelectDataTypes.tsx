@@ -13,7 +13,7 @@ import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 
 export interface SelectDataTypesProps {
   dataModelIds: string[];
-  existingDataType: string;
+  existingDataType: string | undefined;
   connectedTaskId: string;
   onClose: () => void;
   hideDeleteButton?: boolean;
@@ -40,8 +40,12 @@ export const SelectDataTypes = ({
     onClose();
   };
 
-  const handleSelectedChange = (item: StudioSuggestionItem) => {
-    handleChangeDataModel(item.value);
+  const handleSelectedChange = (item: StudioSuggestionItem | null) => {
+    if (!item && hideDeleteButton) {
+      onClose();
+      return;
+    }
+    handleChangeDataModel(item?.value);
   };
 
   const dataModelOptionsToDisplay: string[] = existingDataType
@@ -55,11 +59,12 @@ export const SelectDataTypes = ({
   const selectedItems =
     existingDataType && dataModelOptionsToDisplay.includes(existingDataType)
       ? { value: existingDataType, label: existingDataType }
-      : undefined;
+      : null;
 
   return (
     <div className={classes.dataTypeSelectAndButtons}>
       <StudioSuggestion
+        clearButtonLabel={t('general.clear_selection')}
         multiple={false}
         label={t('process_editor.configuration_panel_set_data_model_label')}
         description={descriptionText}

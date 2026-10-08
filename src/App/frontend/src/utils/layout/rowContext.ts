@@ -1,6 +1,6 @@
-import type { IDataModelReference, IMapping } from '@app/layout-contract/generated/common.generated';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
-import type { CompExternal, CompIntermediate, CompTypes, IDataModelBindings } from 'src/layout/layout';
+import type { CompTypes, IDataModelBindings } from 'src/layout/layout';
 
 export type RowContext = {
   groupBinding: IDataModelReference;
@@ -98,41 +98,6 @@ export function getIndexedDataModelBindings<T extends CompTypes = CompTypes>(
       clone[key] = getIndexedDataModelReference(target, rowContexts);
     }
   }
-
-  return clone;
-}
-
-export function getIndexedMapping(mapping: IMapping | undefined, rowContexts: RowContext[]): IMapping | undefined {
-  if (!mapping) {
-    return undefined;
-  }
-
-  const clone = { ...mapping };
-  for (const [markerIndex, { rowIndex }] of rowContexts.entries()) {
-    for (const key of Object.keys(clone)) {
-      const value = clone[key];
-      const newKey = key.replace(`[{${markerIndex}}]`, `[${rowIndex}]`);
-      delete clone[key];
-      clone[newKey] = value;
-    }
-  }
-
-  return clone;
-}
-
-export function getRuntimeIntermediateItem<T extends CompTypes>(
-  component: CompExternal<T>,
-  rowContexts: RowContext[],
-): CompIntermediate<T> {
-  const clone = { ...component } as CompIntermediate<T>;
-  if ('mapping' in clone) {
-    clone.mapping = getIndexedMapping(clone.mapping, rowContexts);
-  }
-  if ('dataModelBindings' in clone && clone.dataModelBindings !== undefined) {
-    clone.dataModelBindings = getIndexedDataModelBindings(clone.dataModelBindings, rowContexts);
-  }
-
-  clone.id = applyRowContextToComponentId(clone.id, rowContexts);
 
   return clone;
 }

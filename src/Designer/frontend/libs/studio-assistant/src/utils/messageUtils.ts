@@ -26,7 +26,17 @@ export function createUserMessage(
 }
 
 export function filterCriticalFileNames(filePaths: string[]): string[] {
-  const criticalFileNames = ['policy.xml', 'applicationmetadata.json', '.csproj', 'package.json'];
+  const criticalFileNames = [
+    'policy.xml',
+    'applicationmetadata.json',
+    '.csproj',
+    'package.json',
+    'dockerfile',
+    '.dockerignore',
+    'deployment/values.yaml',
+    'directory.build.props',
+    'nuget.config',
+  ];
   return filePaths.filter((filePath) =>
     criticalFileNames.some((criticalFileName) => filePath.toLowerCase().endsWith(criticalFileName)),
   );

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
@@ -35,17 +36,16 @@ internal sealed class NotificationOrderClient : INotificationOrderClient
         _telemetry = telemetry;
     }
 
-    public async Task<NotificationOrderResponse> Order(NotificationOrderRequest request, CancellationToken ct)
+    public async Task<NotificationOrderResponse> Order(
+        NotificationOrderRequest request,
+        CancellationToken cancellationToken
+    )
     {
         using var activity = _telemetry?.StartNotificationOrderActivity(Telemetry.Notifications.OrderType.Future);
 
-        // Cannot use `using var` here — httpResponseMessage must be accessible in the catch block.
-        // Disposed manually in finally instead.
-        HttpResponseMessage? httpResponseMessage = null;
-        string? httpContent = null;
         try
         {
-            var application = await _appMetadata.GetApplicationMetadata();
+            var application = _appMetadata.ApplicationMetadata;
 
             var uri = _platformSettings.ApiNotificationEndpoint.TrimEnd('/') + "/future/orders";
             var body = JsonSerializer.Serialize(request);
@@ -60,11 +60,18 @@ internal sealed class NotificationOrderClient : INotificationOrderClient
                 _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
             );
 
-            httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage, ct);
-            httpContent = await httpResponseMessage.Content.ReadAsStringAsync(ct);
-
-            if (httpResponseMessage.IsSuccessStatusCode)
+            using var httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage, cancellationToken);
+            string? httpContent = null;
+            try
             {
+                httpContent = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
+                if (!httpResponseMessage.IsSuccessStatusCode)
+                {
+                    throw new HttpRequestException(
+                        $"Got error status code for notification order: {(int)httpResponseMessage.StatusCode}"
+                    );
+                }
+
                 var orderResponse =
                     JsonSerializer.Deserialize<NotificationOrderResponse>(httpContent)
                     ?? throw new JsonException("Couldn't deserialize notification order response.");
@@ -75,30 +82,37 @@ internal sealed class NotificationOrderClient : INotificationOrderClient
                 );
                 return orderResponse;
             }
-
-            throw new HttpRequestException(
-                $"Got error status code for notification order: {(int)httpResponseMessage.StatusCode}"
-            );
+            catch (Exception e)
+            {
+                throw OrderFailed(e, httpResponseMessage.StatusCode, httpResponseMessage.ReasonPhrase, httpContent);
+            }
         }
         catch (Exception e) when (e is not NotificationOrderException)
         {
-            _telemetry?.RecordNotificationOrder(
-                Telemetry.Notifications.OrderType.Future,
-                Telemetry.Notifications.OrderResult.Error
-            );
+            throw OrderFailed(e, statusCode: null, reasonPhrase: null, content: null);
+        }
+    }
 
-            var ex = new NotificationOrderException(
-                $"Something went wrong when processing the notification order",
-                httpResponseMessage,
-                httpContent,
-                e
-            );
-            _logger.LogError(ex, "Error when processing notification order.");
-            throw ex;
-        }
-        finally
-        {
-            httpResponseMessage?.Dispose();
-        }
+    private NotificationOrderException OrderFailed(
+        Exception innerException,
+        HttpStatusCode? statusCode,
+        string? reasonPhrase,
+        string? content
+    )
+    {
+        _telemetry?.RecordNotificationOrder(
+            Telemetry.Notifications.OrderType.Future,
+            Telemetry.Notifications.OrderResult.Error
+        );
+
+        var ex = new NotificationOrderException(
+            $"Something went wrong when processing the notification order",
+            statusCode,
+            reasonPhrase,
+            content,
+            innerException
+        );
+        _logger.LogError(ex, "Error when processing notification order.");
+        return ex;
     }
 }

@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Features.FileAnalysis;
 /// <summary>
 /// Analyses a file using the registered analyzers on the <see cref="DataType"/>
 /// </summary>
-public class FileAnalysisService : IFileAnalysisService
+internal sealed class FileAnalysisService : IFileAnalysisService
 {
     private readonly IFileAnalyzerFactory _fileAnalyzerFactory;
     private readonly Telemetry? _telemetry;

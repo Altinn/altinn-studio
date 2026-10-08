@@ -73,6 +73,7 @@
         { "$ref": "#/definitions/func-externalApi" },
         { "$ref": "#/definitions/func-displayValue" },
         { "$ref": "#/definitions/func-instanceContext" },
+        { "$ref": "#/definitions/func-gatewayAction" },
         { "$ref": "#/definitions/func-frontendSettings" },
         { "$ref": "#/definitions/func-concat" },
         { "$ref": "#/definitions/func-formatDate" },
@@ -156,7 +157,11 @@
     },
     "list": {
       "title": "Any expression returning a list",
-      "$ref": "#/definitions/strict-list"
+      "anyOf": [
+        { "$ref": "#/definitions/strict-list" },
+        { "$ref": "#/definitions/func-if" },
+        { "$ref": "#/definitions/func-dataModel" }
+      ]
     },
     "strict-list": {
       "title": "Any expression returning a list (strict)",
@@ -167,7 +172,11 @@
     },
     "object": {
       "title": "Any expression returning an object",
-      "$ref": "#/definitions/strict-object"
+      "anyOf": [
+        { "$ref": "#/definitions/strict-object" },
+        { "$ref": "#/definitions/func-if" },
+        { "$ref": "#/definitions/func-dataModel" }
+      ]
     },
     "strict-object": {
       "title": "Any expression returning an object (strict)",
@@ -264,6 +273,13 @@
         { "const":  "instanceContext" },
         { "enum": ["appId", "instanceId", "instanceOwnerPartyId"] }
       ],
+      "additionalItems": false
+    },
+    "func-gatewayAction": {
+      "title": "Gateway action lookup function",
+      "description": "Returns the current gateway action during backend process evaluation. This function is not available in frontend expressions.",
+      "type": "array",
+      "items": [{ "const": "gatewayAction" }],
       "additionalItems": false
     },
     "func-authContext": {

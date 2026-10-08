@@ -9,16 +9,9 @@ The `/AI` folder contains two projects:
 | Altinity agents | Agent service that enables users to develop apps with natural language | `./agents`          |
 | Augmenter agent | Augments caseworker workflow with LLM support                          | `./augmenter-agent` |
 
-These are all R&D projects from the AI lab, that will later be handed off to the Altinn Studio team.
+`./agents` has an architecture guide in [agents/docs](agents/docs/README.md). Before you open a PR with changes in `./agents`, check if the docs need an update too.
 
 See each project's README for setup and architecture details.
-
-## Priorities when coding
-
-1. Security
-2. Avoiding bugs
-3. Performance and avoiding resource leaks
-4. Good architecture decisions
 
 ## Code conventions
 
@@ -48,6 +41,10 @@ function processOrder(order: Order) {
   sendOrderConfirmation(discountedOrder);
 }
 ```
+
+### Python lint and format
+
+In `./agents`, Python code must pass `ruff check .`, `ruff format --check .` and `pyright`. The Ruff and Pyright configuration is in `pyproject.toml`. Do not add `# noqa`, `# pyright: ignore` or ignored rules without a reason in a comment.
 
 ### Naming
 

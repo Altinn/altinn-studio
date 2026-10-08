@@ -3,7 +3,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-from httpx import Response
 
 from api.main import app
 from api.routes.agent import (
@@ -52,7 +51,7 @@ def _stubbed_agent_start(repo_path):
         yield
 
 
-def _post_start(client: TestClient, developer: str) -> Response:
+def _post_start(client: TestClient, developer: str):
     return client.post(START_PATH, json=_start_payload(), headers=_headers(developer))
 
 
@@ -86,9 +85,7 @@ class TestStartAgentRateLimiting:
 
     def test_rejects_a_missing_developer_header_with_400(self, tmp_path):
         with _stubbed_agent_start(tmp_path):
-            response = TestClient(app).post(
-                START_PATH, json=_start_payload(), headers={"X-Api-Key": "test-key"}
-            )
+            response = TestClient(app).post(START_PATH, json=_start_payload(), headers={"X-Api-Key": "test-key"})
 
         assert response.status_code == 400
 
