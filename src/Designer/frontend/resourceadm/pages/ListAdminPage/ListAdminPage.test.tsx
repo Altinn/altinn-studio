@@ -43,8 +43,10 @@ describe('ListAdminPage', () => {
     });
     renderListAdminPage();
 
-    expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/tt02/`, {
-      replace: true,
+    await waitFor(() => {
+      expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/tt02/`, {
+        replace: true,
+      });
     });
   });
 
@@ -66,7 +68,7 @@ describe('ListAdminPage', () => {
     const user = userEvent.setup();
     renderListAdminPage();
 
-    const prodEnvButton = screen.getByText(textMock('resourceadm.deploy_prod_env'));
+    const prodEnvButton = await screen.findByText(textMock('resourceadm.deploy_prod_env'));
     await user.click(prodEnvButton);
 
     expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/prod/`, {

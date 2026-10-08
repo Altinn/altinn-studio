@@ -69,11 +69,18 @@ describe('mapperUtils', () => {
           createdBy: '',
           lastChanged: null,
           identifier: 'resource-1',
-          environments: ['gitea', 'at24', 'at22', 'prod', 'tt02'],
+          environments: ['gitea', 'at24', 'at22', 'prod', 'yt01', 'tt02'],
         },
       ];
       const resultResourceList = setLastChangedAndSortResourceListByDate(loadedResourceList);
-      expect(resultResourceList[0].environments).toEqual(['prod', 'tt02', 'at22', 'at24', 'gitea']);
+      expect(resultResourceList[0].environments).toEqual([
+        'tt02',
+        'prod',
+        'yt01',
+        'at22',
+        'at24',
+        'gitea',
+      ]);
     });
   });
 });
