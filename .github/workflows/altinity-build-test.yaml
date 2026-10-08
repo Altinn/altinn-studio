@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - 'src/AI/agents/**'
+      - 'src/AI/assistant/**'
       - 'src/common/ts/layout-contract/schemas/**'
       - '.github/workflows/altinity-build-test.yaml'
       - '!**/AGENTS.md'
@@ -34,27 +34,27 @@ jobs:
         python-version: '3.12'
 
     - name: Install dependencies
-      working-directory: src/AI/agents
+      working-directory: src/AI/assistant
       run: pip install -r requirements.txt -r requirements-dev.txt
 
     - name: Lint
-      working-directory: src/AI/agents
+      working-directory: src/AI/assistant
       run: ruff check --output-format=github .
 
     - name: Check formatting
-      working-directory: src/AI/agents
+      working-directory: src/AI/assistant
       run: ruff format --check .
 
     - name: Type check
-      working-directory: src/AI/agents
+      working-directory: src/AI/assistant
       run: pyright
 
     - name: Run Altinity unit tests
-      working-directory: src/AI/agents
+      working-directory: src/AI/assistant
       run: python -m pytest
 
     - name: Start Altinity server
-      working-directory: src/AI/agents
+      working-directory: src/AI/assistant
       run: |
         uvicorn api.main:app --host 0.0.0.0 --port 8071 > server.log 2>&1 &
         sleep 5
@@ -62,5 +62,5 @@ jobs:
 
     - name: Output server logs on failure
       if: failure()
-      working-directory: src/AI/agents
+      working-directory: src/AI/assistant
       run: cat server.log

@@ -116,7 +116,7 @@ _Two user actions during a run. The agents service checks that the caller owns t
 
 ## Deploy
 
-A merge to main that changes `src/AI/agents` goes to staging and production. The workflow `deploy-studio-ai-agents.yaml` builds the image, publishes the manifests as an OCI artifact and tags the artifact for each environment. Flux then does the rollout.
+A merge to main that changes `src/AI/assistant` goes to staging and production. The workflow `deploy-studio-ai-agents.yaml` builds the image, publishes the manifests as an OCI artifact and tags the artifact for each environment. Flux then does the rollout.
 
 The pod gets five secrets from Key Vault: the Azure key and four Langfuse values. The model names are not in the manifest, so they come from the defaults in code.
 
@@ -168,7 +168,7 @@ GitHub Actions does not run the benchmark. The workflow `assistant-evals.yaml` o
 
 ```mermaid
 flowchart LR
-  P["Pull request in src/AI/agents"] --> J["Impact job"]
+  P["Pull request in src/AI/assistant"] --> J["Impact job"]
   J --> B["BASELINE.json"]
   J --> D["Digests of actor prompt and tools"]
   J --> V{"Baseline still valid?"}

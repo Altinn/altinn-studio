@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, date, datetime
 from pathlib import Path
 
-AGENTS_ROOT = Path(__file__).resolve().parents[1]
+ASSISTANT_ROOT = Path(__file__).resolve().parents[1]
 
 # code is deliberately not blocking.
 BLOCKING_AXES = (
@@ -36,7 +36,7 @@ def _git(*args: str) -> str | None:
     try:
         out = subprocess.run(
             ("git", *args),
-            cwd=AGENTS_ROOT,
+            cwd=ASSISTANT_ROOT,
             capture_output=True,
             text=True,
             timeout=10,
