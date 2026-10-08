@@ -12,6 +12,7 @@ import { StudioParagraph } from '../StudioParagraph';
 import { StudioResizableLayout } from '../StudioResizableLayout';
 import { StudioSpinner } from '../StudioSpinner';
 import classes from './StudioFileBrowser.module.css';
+import { isFocusInsideOrLost } from './utils';
 
 export type StudioFileBrowserEntry = {
   name: string;
@@ -124,11 +125,6 @@ function StudioFileBrowser(
       </StudioResizableLayout.Container>
     </div>
   );
-}
-
-function isFocusInsideOrLost(root: HTMLElement | null): boolean {
-  const { activeElement } = document;
-  return activeElement === document.body || Boolean(root?.contains(activeElement));
 }
 
 type DirectoryBreadcrumbsProps = {
