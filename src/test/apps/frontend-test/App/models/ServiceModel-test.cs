@@ -117,6 +117,26 @@ namespace Altinn.App.Models
         [JsonPropertyName("neverValidatedInput")]
         public string? neverValidatedInput { get; set; }
 
+        [XmlElement("CustomSimple")]
+        [JsonProperty("CustomSimple")]
+        [JsonPropertyName("CustomSimple")]
+        public string? CustomSimple { get; set; }
+
+        [XmlElement("CustomNamed")]
+        [JsonProperty("CustomNamed")]
+        [JsonPropertyName("CustomNamed")]
+        public string? CustomNamed { get; set; }
+
+        [XmlElement("CustomSecondary")]
+        [JsonProperty("CustomSecondary")]
+        [JsonPropertyName("CustomSecondary")]
+        public string? CustomSecondary { get; set; }
+
+        [XmlElement("CustomMode")]
+        [JsonProperty("CustomMode")]
+        [JsonPropertyName("CustomMode")]
+        public string? CustomMode { get; set; }
+
         [XmlElement("ChooseExtraPages")]
         [JsonProperty("ChooseExtraPages")]
         [JsonPropertyName("ChooseExtraPages")]

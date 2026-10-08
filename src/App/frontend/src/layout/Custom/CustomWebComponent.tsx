@@ -10,11 +10,21 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression, useEvalExpressionMap } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalExpressionDictionary } from 'src/utils/layout/useEvalExpression';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CompExternal, ITextResourceBindings } from 'src/layout/layout';
+
+// React consumes these props instead of forwarding them to the custom element.
+const reactReservedProps = new Set([
+  'ref',
+  'key',
+  'children',
+  'dangerouslySetInnerHTML',
+  'suppressHydrationWarning',
+  'suppressContentEditableWarning',
+]);
 
 export type ICustomComponentProps = PropsFromGenericComponent<'Custom'> & {
   [key: string]: string | number | boolean | object | null | undefined;
@@ -57,7 +67,10 @@ export function CustomWebComponent({
   const readOnly = useEvalExpression(config.readOnly, Expressions.Custom.readOnly);
   const required = useEvalExpression(config.required, Expressions.Custom.required);
   const forceShowInSummary = useEvalExpression(config.forceShowInSummary, Expressions.Custom.forceShowInSummary);
-  const texts = useEvalExpressionMap(config.textResourceBindings, Expressions.Custom.textResourceBindings);
+  const texts = useEvalExpressionDictionary(
+    config.textResourceBindings,
+    Expressions.Custom.textResourceBindings.additionalProperties,
+  );
   const { containerDivRef: _unused, ...restFromGeneric } = passThroughPropsFromGenericComponent;
 
   const passThroughProps: IPassedOnProps = {
@@ -126,6 +139,9 @@ export function CustomWebComponent({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const propsAsAttributes: any = {};
   Object.keys(passThroughProps).forEach((key) => {
+    if (reactReservedProps.has(key)) {
+      return;
+    }
     let prop = passThroughProps[key];
     if (React.isValidElement(prop)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

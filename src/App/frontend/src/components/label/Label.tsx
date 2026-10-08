@@ -75,11 +75,13 @@ export function LabelInner(props: LabelInnerProps) {
     CommonExpressions.FormComponentProps.readOnly,
   );
   const labelSettings =
-    overrideItemProps && 'labelSettings' in overrideItemProps
-      ? overrideItemProps.labelSettings
-      : 'labelSettings' in config
-        ? config.labelSettings
-        : undefined;
+    config.type === 'Custom'
+      ? undefined
+      : overrideItemProps && 'labelSettings' in overrideItemProps
+        ? overrideItemProps.labelSettings
+        : 'labelSettings' in config
+          ? config.labelSettings
+          : undefined;
 
   const id = useIndexedId(overrideId ?? props.baseComponentId);
   const trb = (overriddenTrb ?? overrideItemProps?.textResourceBindings ?? config.textResourceBindings) as
