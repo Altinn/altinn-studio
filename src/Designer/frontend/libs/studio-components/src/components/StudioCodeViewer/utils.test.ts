@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { findJsonFoldRegions } from './utils';
 
 describe('findJsonFoldRegions', () => {
