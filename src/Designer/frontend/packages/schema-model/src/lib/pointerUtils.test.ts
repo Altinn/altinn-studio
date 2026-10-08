@@ -1,4 +1,4 @@
-import { expect } from '@jest/globals';
+import { describe, expect, it, test } from 'vitest';
 import {
   changeNameInPointer,
   createDefinitionPointer,

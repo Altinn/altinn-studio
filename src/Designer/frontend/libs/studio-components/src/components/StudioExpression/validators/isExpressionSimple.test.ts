@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { isExpressionSimple } from './isExpressionSimple';
 import type {
   GenericRelationFunc,

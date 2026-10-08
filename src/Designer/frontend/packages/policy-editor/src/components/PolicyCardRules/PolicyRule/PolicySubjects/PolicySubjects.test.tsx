@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -168,7 +169,7 @@ const subjects = [
 ];
 
 describe('PolicySubjects', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should show subject checkbox checked when subject is added with urn', async () => {
     const user = userEvent.setup();

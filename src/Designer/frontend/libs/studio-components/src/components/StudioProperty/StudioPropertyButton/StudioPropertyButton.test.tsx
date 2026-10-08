@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ForwardedRef } from 'react';
 import type { StudioPropertyButtonProps } from './StudioPropertyButton';
 import { StudioPropertyButton } from './StudioPropertyButton';
@@ -14,8 +15,10 @@ const defaultProps: StudioPropertyButtonProps = {
 };
 
 // Mocks:
-jest.mock('./StudioPropertyButton.module.css', () => ({
-  compact: 'compact',
+vi.mock('./StudioPropertyButton.module.css', () => ({
+  default: {
+    compact: 'compact',
+  },
 }));
 
 describe('StudioPropertyButton', () => {
@@ -56,7 +59,7 @@ describe('StudioPropertyButton', () => {
 
   it('Calls the onClick function when the button is clicked', async () => {
     const user = userEvent.setup();
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     renderButton({ onClick });
     await user.click(screen.getByRole('button'));
     expect(onClick).toHaveBeenCalled();
@@ -69,7 +72,7 @@ describe('StudioPropertyButton', () => {
 
   it('Calls the onClick function with a click event when the button is clicked', async () => {
     const user = userEvent.setup();
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     renderButton({ onClick });
     await user.click(screen.getByRole('button'));
     expect(onClick).toHaveBeenCalledTimes(1);
@@ -78,7 +81,7 @@ describe('StudioPropertyButton', () => {
 
   it('Does not call the onClick function when the button is read-only', async () => {
     const user = userEvent.setup();
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     renderButton({ readOnly: true, onClick });
     await user.click(screen.getByRole('button'));
     expect(onClick).not.toHaveBeenCalled();

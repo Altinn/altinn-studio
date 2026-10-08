@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SavableSchemaModel } from './SavableSchemaModel';
 import type { NodePosition } from '@altinn/schema-model';
 import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
@@ -9,14 +10,14 @@ import {
 } from '../../test/mocks/uiSchemaMock';
 
 describe('SavableSchemaModel', () => {
-  const save = jest.fn();
+  const save = vi.fn();
   const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
   const setupSchema = (): SavableSchemaModel => {
     const schemaClone = schemaModel.deepClone();
     return new SavableSchemaModel(schemaClone, save);
   };
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('addFieldAndSave', () => {
     it('Adds a field, saves the model once and returns the new node', () => {

@@ -4,9 +4,6 @@
   "dependencies": {
     "iso-639-1": "3.1.6"
   },
-  "devDependencies": {
-    "jest": "29.7.0"
-  },
   "license": "MIT",
   "main": "index.ts",
   "peerDependencies": {
@@ -15,6 +12,6 @@
     "typescript": "6.0.3"
   },
   "scripts": {
-    "test": "jest"
+    "test": "yarn workspace studio-designer-frontend vitest run packages/text-editor/"
   }
 }

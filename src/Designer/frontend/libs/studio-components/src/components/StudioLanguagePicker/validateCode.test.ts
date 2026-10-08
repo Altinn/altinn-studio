@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { ErrorMessages, ValidationContext } from './validateCode';
 import { validateCode } from './validateCode';
 import { twoLetterCodes } from './test-data/props';

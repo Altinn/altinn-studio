@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -6,13 +7,13 @@ import { CodeListsActionsBar } from './CodeListsActionsBar';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../test-utils/renderWithProviders';
 
-const onUploadCodeListMock = jest.fn();
-const onSetSearchStringMock = jest.fn();
+const onUploadCodeListMock = vi.fn();
+const onSetSearchStringMock = vi.fn();
 const codeListName1 = 'codeListName1';
 const codeListName2 = 'codeListName2';
 
 describe('CodeListsActionsBar', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('renders the search field with label', () => {
     renderCodeListsActionsBar();
@@ -49,9 +50,9 @@ describe('CodeListsActionsBar', () => {
 
 const defaultCodeListActionBarProps: CodeListsActionsBarProps = {
   onUploadCodeList: onUploadCodeListMock,
-  onCreateCodeList: jest.fn(),
-  onCreateTextResource: jest.fn(),
-  onUpdateTextResource: jest.fn(),
+  onCreateCodeList: vi.fn(),
+  onCreateTextResource: vi.fn(),
+  onUpdateTextResource: vi.fn(),
   codeListNames: [codeListName1, codeListName2],
   onSetSearchString: onSetSearchStringMock,
 };

@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
@@ -6,7 +7,7 @@ import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 
 describe('StudioDropdown', () => {
-  beforeEach(jest.clearAllMocks);
+  beforeEach(vi.clearAllMocks);
 
   it('Displays a dropdown menu when the button is clicked', async () => {
     const user = userEvent.setup();
@@ -131,6 +132,7 @@ describe('StudioDropdown', () => {
 
     const input = screen.getByLabelText(fileUploaderWithoutOnClick);
     input.click = onFileUpload;
+    await openDropdown(user);
     await user.click(screen.getByRole('button', { name: fileUploaderWithoutOnClick }));
     expect(onFileUpload).toHaveBeenCalledTimes(1);
   });
@@ -150,8 +152,8 @@ const fileUploaderEnabledText: string = 'Upload file 1';
 const fileUploaderDisabledText: string = 'Upload file 2';
 const fileUploaderButtonDisabledText: string = 'Upload file 3';
 const fileUploaderWithoutOnClick: string = 'Upload file 4';
-const onFileUpload = jest.fn();
-const list1Item1Action = jest.fn();
+const onFileUpload = vi.fn();
+const list1Item1Action = vi.fn();
 const icon1TestId: string = 'Icon 1';
 const icon2TestId: string = 'Icon 2';
 const icon3TestId: string = 'Icon 3';

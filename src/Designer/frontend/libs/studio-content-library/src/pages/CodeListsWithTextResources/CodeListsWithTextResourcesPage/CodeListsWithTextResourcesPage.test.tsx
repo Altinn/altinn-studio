@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render } from '@testing-library/react';
 import type { CodeListsWithTextResourcesPageProps } from './CodeListsWithTextResourcesPage';
@@ -17,13 +18,13 @@ import type { TextResource } from '../../../types/TextResource';
 import type { TextResourceWithLanguage } from '../../../types/TextResourceWithLanguage';
 import { screen, within } from '@studio/ui-test';
 
-const onCreateCodeList = jest.fn();
-const onCreateTextResource = jest.fn();
-const onDeleteCodeList = jest.fn();
-const onUpdateCodeListId = jest.fn();
-const onUpdateCodeList = jest.fn();
-const onUpdateTextResource = jest.fn();
-const onUploadCodeList = jest.fn();
+const onCreateCodeList = vi.fn();
+const onCreateTextResource = vi.fn();
+const onDeleteCodeList = vi.fn();
+const onUpdateCodeListId = vi.fn();
+const onUpdateCodeList = vi.fn();
+const onUpdateTextResource = vi.fn();
+const onUploadCodeList = vi.fn();
 const defaultCodeListPageProps: CodeListsWithTextResourcesPageProps = {
   codeListDataList,
   onDeleteCodeList,
@@ -38,7 +39,7 @@ const defaultCodeListPageProps: CodeListsWithTextResourcesPageProps = {
 };
 
 describe('CodeListsWithTextResourcesPage', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('renders the codeList page heading', () => {
     renderCodeListsWithTextResourcesPage();
@@ -56,9 +57,11 @@ describe('CodeListsWithTextResourcesPage', () => {
     expect(codeListCounterMessage).toBeInTheDocument();
   });
 
-  it('renders code list actions', () => {
+  it('renders code list actions', async () => {
+    const user = userEvent.setup();
     renderCodeListsWithTextResourcesPage();
     const codeListSearchField = screen.getByRole('searchbox');
+    await openAddCodeListMenu(user);
     const codeListCreatButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists_with_text_resources.create_new_code_list'),
     });
@@ -348,7 +351,15 @@ const renderCodeListsWithTextResourcesPage = (
 ): RenderResult =>
   render(<CodeListsWithTextResourcesPage {...defaultCodeListPageProps} {...props} />);
 
+const openAddCodeListMenu = async (user: UserEvent): Promise<void> => {
+  const addButtonLabel = textMock(
+    'app_content_library.code_lists_with_text_resources.add_new_code_list',
+  );
+  await user.click(screen.getByRole('button', { name: addButtonLabel }));
+};
+
 const openCreateDialog = async (user: UserEvent): Promise<HTMLElement> => {
+  await openAddCodeListMenu(user);
   const createButtonLabel = textMock(
     'app_content_library.code_lists_with_text_resources.create_new_code_list',
   );
