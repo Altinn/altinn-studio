@@ -116,10 +116,15 @@ public sealed class ComponentFormPropertiesMigrationTests : IDisposable
     }
 
     [Fact]
-    public async Task IgnoresRequiredOnComponentsThatStillSupportIt()
+    public async Task LeavesSupportedPropertiesUntouched()
     {
         const string before = """
-            { "data": { "layout": [{ "id": "name", "type": "Input", "required": true }] } }
+            { "data": { "layout": [
+              { "id": "name", "type": "Input", "required": true, "readOnly": true },
+              { "id": "list", "type": "List", "required": true },
+              { "id": "attachment", "type": "FileUpload", "readOnly": true },
+              { "id": "tagged-attachment", "type": "FileUploadWithTag", "readOnly": true }
+            ] } }
             """;
         _app.Write("ui/Task_1/layouts/form.json", before);
 
@@ -190,14 +195,18 @@ public sealed class ComponentFormPropertiesMigrationTests : IDisposable
     }
 
     [Fact]
-    public async Task RemovesRequiredFromKnownContainersWithoutTodo()
+    public async Task RemovesRequiredFromKnownUnsupportedComponentsWithoutTodo()
     {
+        WriteSubformMinimum(1);
         _app.Write(
             "ui/Task_1/layouts/form.json",
             """
             { "data": { "layout": [
               { "id": "optional-group", "type": "Group", "required": false },
-              { "id": "required-accordion", "type": "Accordion", "required": true }
+              { "id": "required-accordion", "type": "Accordion", "required": true },
+              { "id": "required-add-to-list", "type": "AddToList", "required": true },
+              { "id": "required-table", "type": "SimpleTable", "required": true },
+              { "id": "required-subform", "type": "Subform", "layoutSet": "moped-subform", "required": true }
             ] } }
             """
         );
@@ -208,10 +217,16 @@ public sealed class ComponentFormPropertiesMigrationTests : IDisposable
         var components = Assert.IsType<JsonArray>(data["layout"]);
         var optionalGroup = Assert.IsType<JsonObject>(components[0]);
         var requiredAccordion = Assert.IsType<JsonObject>(components[1]);
+        var requiredAddToList = Assert.IsType<JsonObject>(components[2]);
+        var requiredTable = Assert.IsType<JsonObject>(components[3]);
+        var requiredSubform = Assert.IsType<JsonObject>(components[4]);
 
-        Assert.Equal(2, result.PropertiesRemoved);
+        Assert.Equal(5, result.PropertiesRemoved);
         Assert.Null(optionalGroup["required"]);
         Assert.Null(requiredAccordion["required"]);
+        Assert.Null(requiredAddToList["required"]);
+        Assert.Null(requiredTable["required"]);
+        Assert.Null(requiredSubform["required"]);
         Assert.Empty(result.Messages.Warnings);
         Assert.Empty(result.Messages.Todos);
     }
@@ -251,7 +266,7 @@ public sealed class ComponentFormPropertiesMigrationTests : IDisposable
     {
         const string before = """
             { "data": { "layout": [
-              { "id": "third-party", "type": "ExtensionComponent", "required": true }
+              { "id": "third-party", "type": "ExtensionComponent", "required": true, "readOnly": true }
             ] } }
             """;
         _app.Write("ui/Task_1/layouts/form.json", before);
@@ -261,6 +276,144 @@ public sealed class ComponentFormPropertiesMigrationTests : IDisposable
         Assert.Equal(before, _app.Read("ui/Task_1/layouts/form.json"));
         Assert.Equal(0, result.FilesChanged);
         Assert.Empty(result.Messages.Messages);
+    }
+
+    [Theory]
+    [InlineData("AddToList", "true", 2)]
+    [InlineData("List", "false", 1)]
+    [InlineData("SimpleTable", "[\"equals\", 1, 1]", 2)]
+    [InlineData("Subform", "null", 2)]
+    public async Task RemovesUnsupportedReadOnlyAndOnlyUnsupportedRequired(
+        string type,
+        string readOnly,
+        int propertiesRemoved
+    )
+    {
+        if (type == "Subform")
+            WriteSubformMinimum(1);
+        _app.Write(
+            "ui/Task_1/layouts/form.json",
+            $$"""
+            { "data": { "layout": [
+              { "id": "component", "type": "{{type}}", "layoutSet": "moped-subform", "required": true, "readOnly": {{readOnly}} }
+            ] } }
+            """
+        );
+
+        var result = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
+        var root = Assert.IsType<JsonObject>(JsonNode.Parse(_app.Read("ui/Task_1/layouts/form.json")));
+        var data = Assert.IsType<JsonObject>(root["data"]);
+        var components = Assert.IsType<JsonArray>(data["layout"]);
+        var component = Assert.IsType<JsonObject>(components[0]);
+
+        Assert.Equal(1, result.FilesChanged);
+        Assert.Equal(propertiesRemoved, result.PropertiesRemoved);
+        Assert.False(component.ContainsKey("readOnly"));
+        if (type == "List")
+            Assert.True(Assert.IsAssignableFrom<JsonValue>(component["required"]).GetValue<bool>());
+        else
+            Assert.False(component.ContainsKey("required"));
+        Assert.Empty(result.Messages.Messages);
+
+        var secondResult = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
+        Assert.Equal(0, secondResult.FilesChanged);
+        Assert.Equal(0, secondResult.PropertiesRemoved);
+        Assert.Empty(secondResult.Messages.Messages);
+    }
+
+    [Theory]
+    [InlineData("false", 2, true)]
+    [InlineData("true", 0, true)]
+    [InlineData("true", 2, false)]
+    [InlineData("false", 0, false)]
+    public async Task RemovesSubformRequirednessPreservesMetadataMinimumAndReportsOnlyConflicts(
+        string required,
+        int minimum,
+        bool hasConflict
+    )
+    {
+        WriteSubformMinimum(minimum);
+        var metadataBefore = _app.Read("config/applicationmetadata.json");
+        var settingsBefore = _app.Read("ui/moped-subform/Settings.json");
+        _app.Write(
+            "ui/Task_1/layouts/form.json",
+            $$"""
+            { "data": { "layout": [
+              { "id": "mopeds", "type": "Subform", "layoutSet": "moped-subform", "required": {{required}} }
+            ] } }
+            """
+        );
+
+        var result = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
+        var root = Assert.IsType<JsonObject>(JsonNode.Parse(_app.Read("ui/Task_1/layouts/form.json")));
+        var data = Assert.IsType<JsonObject>(root["data"]);
+        var components = Assert.IsType<JsonArray>(data["layout"]);
+        var component = Assert.IsType<JsonObject>(components[0]);
+
+        Assert.Equal(1, result.PropertiesRemoved);
+        Assert.False(component.ContainsKey("required"));
+        Assert.Equal(metadataBefore, _app.Read("config/applicationmetadata.json"));
+        Assert.Equal(settingsBefore, _app.Read("ui/moped-subform/Settings.json"));
+        Assert.Empty(result.Messages.Warnings);
+        if (hasConflict)
+        {
+            var todo = Assert.Single(result.Messages.Todos);
+            Assert.Contains("form.json", todo, StringComparison.Ordinal);
+            Assert.Contains("mopeds", todo, StringComparison.Ordinal);
+            Assert.Contains("moped", todo, StringComparison.Ordinal);
+            Assert.Contains("config/applicationmetadata.json", todo, StringComparison.Ordinal);
+            Assert.Contains("minCount", todo, StringComparison.Ordinal);
+        }
+        else
+            Assert.Empty(result.Messages.Todos);
+
+        var secondResult = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
+        Assert.Equal(0, secondResult.FilesChanged);
+        Assert.Empty(secondResult.Messages.Messages);
+    }
+
+    [Theory]
+    [InlineData("ui/moped-subform/Settings.json", null)]
+    [InlineData("ui/moped-subform/Settings.json", "{}")]
+    [InlineData("ui/moped-subform/Settings.json", "{")]
+    [InlineData("config/applicationmetadata.json", null)]
+    [InlineData("config/applicationmetadata.json", "{")]
+    [InlineData("config/applicationmetadata.json", "{\"dataTypes\":[{\"id\":\"other\",\"minCount\":1}]}")]
+    [InlineData("config/applicationmetadata.json", "{\"dataTypes\":[{\"id\":\"moped\"}]}")]
+    [InlineData("config/applicationmetadata.json", "{\"dataTypes\":[{\"id\":\"moped\",\"minCount\":\"two\"}]}")]
+    public async Task ReportsUnresolvedSubformMinimumWithoutBlockingCleanup(string path, string? content)
+    {
+        WriteSubformMinimum(1);
+        if (content is null)
+            File.Delete(Path.Combine(_app.Root, "App", path));
+        else
+            _app.Write(path, content);
+        _app.Write(
+            "ui/Task_1/layouts/form.json",
+            """
+            { "data": { "layout": [
+              { "id": "mopeds", "type": "Subform", "layoutSet": "moped-subform", "required": true, "readOnly": true },
+              { "id": "group", "type": "Group", "required": false }
+            ] } }
+            """
+        );
+
+        var result = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
+        var root = Assert.IsType<JsonObject>(JsonNode.Parse(_app.Read("ui/Task_1/layouts/form.json")));
+        var data = Assert.IsType<JsonObject>(root["data"]);
+        var components = Assert.IsType<JsonArray>(data["layout"]);
+
+        Assert.Equal(3, result.PropertiesRemoved);
+        Assert.All(components, node => Assert.False(Assert.IsType<JsonObject>(node).ContainsKey("required")));
+        Assert.False(Assert.IsType<JsonObject>(components[0]).ContainsKey("readOnly"));
+        var todo = Assert.Single(result.Messages.Todos);
+        Assert.Contains("mopeds", todo, StringComparison.Ordinal);
+        Assert.Contains("could not resolve", todo, StringComparison.Ordinal);
+        Assert.Contains("minCount", todo, StringComparison.Ordinal);
+        if (content is null)
+            Assert.False(File.Exists(Path.Combine(_app.Root, "App", path)));
+        else
+            Assert.Equal(content, _app.Read(path));
     }
 
     [Fact]
@@ -283,5 +436,14 @@ public sealed class ComponentFormPropertiesMigrationTests : IDisposable
         Assert.Contains("// Keep this explanation.", updated, StringComparison.Ordinal);
         Assert.DoesNotContain("required", updated, StringComparison.Ordinal);
         Assert.Empty(result.Messages.Messages);
+    }
+
+    private void WriteSubformMinimum(int minimum)
+    {
+        _app.Write("ui/moped-subform/Settings.json", """{ "defaultDataType": "moped" }""");
+        _app.Write(
+            "config/applicationmetadata.json",
+            $$"""{ "dataTypes": [{ "id": "moped", "minCount": {{minimum}}, "maxCount": 3 }] }"""
+        );
     }
 }
