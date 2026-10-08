@@ -49,9 +49,7 @@ internal static class ProcessFlowUtils
         }
 
         var (content, document) = parsed;
-        // The runtime binds a single process; with more than one, which it reads is not worth guessing at.
-        var processes = document.Root?.Elements(ProcessFile.Process).ToList();
-        if (processes is not { Count: 1 })
+        if (ProcessFile.SingleProcess(document) is not { } process)
         {
             return;
         }
@@ -66,7 +64,7 @@ internal static class ProcessFlowUtils
         // Elements the runtime does not load, kept only to name them when a flow leads to one.
         var otherElementsById = new Dictionary<string, XElement>(StringComparer.Ordinal);
         var flowsBySource = new Dictionary<string, List<XElement>>(StringComparer.Ordinal);
-        foreach (var element in processes[0].Elements())
+        foreach (var element in process.Elements())
         {
             if (element.Name == ProcessFile.SequenceFlow)
             {
@@ -155,7 +153,7 @@ internal static class ProcessFlowUtils
         {
             var idCounts = new Dictionary<string, int>(StringComparer.Ordinal);
             var duplicates = new List<(string Id, XElement Element)>();
-            foreach (var element in processes[0].Elements())
+            foreach (var element in process.Elements())
             {
                 if ((IsNode(element.Name) || element.Name == ProcessFile.SequenceFlow) && Id(element) is { } id)
                 {
