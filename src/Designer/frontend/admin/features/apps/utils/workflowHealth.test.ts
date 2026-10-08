@@ -5,6 +5,7 @@ import {
   deriveWorkflowHealth,
   extractInstanceGuid,
   isEngineUnavailableError,
+  isShownInPlaceError,
   mergeWorkflowHealth,
   WorkflowHealth,
 } from './workflowHealth';
@@ -77,6 +78,12 @@ describe('extractInstanceGuid', () => {
     expect(extractInstanceGuid('51234/')).toBeUndefined();
     expect(extractInstanceGuid('')).toBeUndefined();
     expect(extractInstanceGuid(undefined)).toBeUndefined();
+  });
+
+  it('gives the GUID in lower case, the way the app runtime keys the collection', () => {
+    expect(extractInstanceGuid('51234/3A0E0F6E-4B1D-4A2A-9D31-6F8E2B7C1D55')).toBe(
+      '3a0e0f6e-4b1d-4a2a-9d31-6f8e2b7c1d55',
+    );
   });
 });
 
@@ -269,3 +276,22 @@ const unavailableError = () => {
   } as AxiosResponse;
   return error;
 };
+
+describe('isShownInPlaceError', () => {
+  const statusError = (status: number) => {
+    const error = new AxiosError();
+    error.response = { status, data: {} } as AxiosResponse;
+    return error;
+  };
+
+  it('covers missing rights and an unreachable engine, which the views explain themselves', () => {
+    expect(isShownInPlaceError(statusError(403))).toBe(true);
+    expect(isShownInPlaceError(statusError(502))).toBe(true);
+  });
+
+  it('leaves every other error to the shared error toast', () => {
+    expect(isShownInPlaceError(statusError(500))).toBe(false);
+    expect(isShownInPlaceError(statusError(404))).toBe(false);
+    expect(isShownInPlaceError(new Error('boom'))).toBe(false);
+  });
+});

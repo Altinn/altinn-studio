@@ -7,7 +7,7 @@ import type {
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { workflowsListPath } from 'admin/features/apps/utils/apiPaths';
 import { getWorkflowEngineResource } from 'admin/features/apps/utils/workflowEngineRequests';
-import { isEngineUnavailableError } from 'admin/features/apps/utils/workflowHealth';
+import { isShownInPlaceError } from 'admin/features/apps/utils/workflowHealth';
 import { INSTANCE_VIEW_REFETCH_INTERVAL_MS } from 'admin/features/apps/utils/workflowRefetch';
 
 export const INSTANCE_WORKFLOWS_PAGE_SIZE = 25;
@@ -52,6 +52,6 @@ export const useInstanceWorkflowsQuery = (
           (first, second) =>
             new Date(first.createdAt).getTime() - new Date(second.createdAt).getTime(),
         ),
-    meta: { hideDefaultError: isEngineUnavailableError },
+    meta: { hideDefaultError: isShownInPlaceError },
   });
 };

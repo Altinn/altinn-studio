@@ -18,7 +18,10 @@ export type ConfirmActionDialogProps = {
   description: string;
   confirmLabel: string;
   color?: string;
+  /** This action is running: the trigger shows a spinner and cannot be used again. */
   isPending?: boolean;
+  /** Another action on the same workflow is running, so this one cannot be started. */
+  disabled?: boolean;
   onConfirm: () => void;
 };
 
@@ -29,6 +32,7 @@ export const ConfirmActionDialog = ({
   confirmLabel,
   color = 'accent',
   isPending = false,
+  disabled = false,
   onConfirm,
 }: ConfirmActionDialogProps): ReactElement => {
   const { t } = useTranslation();
@@ -54,7 +58,7 @@ export const ConfirmActionDialog = ({
         data-size='sm'
         data-color={color}
         variant='secondary'
-        disabled={isPending}
+        disabled={isPending || disabled}
         onClick={handleOpen}
       >
         {isPending && <StudioSpinner aria-label={t('general.loading')} />}

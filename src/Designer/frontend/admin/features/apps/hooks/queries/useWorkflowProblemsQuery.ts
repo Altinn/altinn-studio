@@ -8,7 +8,7 @@ import type {
 } from 'admin/features/apps/types/workflows/WorkflowCollection';
 import { workflowCollectionsPath } from 'admin/features/apps/utils/apiPaths';
 import { getWorkflowEngineResource } from 'admin/features/apps/utils/workflowEngineRequests';
-import { isEngineUnavailableError } from 'admin/features/apps/utils/workflowHealth';
+import { isShownInPlaceError } from 'admin/features/apps/utils/workflowHealth';
 import {
   hasActiveCollectionPages,
   refetchWhileActive,
@@ -55,6 +55,6 @@ export const useWorkflowProblemsQuery = (
       totalCount: data.pages[0]?.totalCount ?? 0,
     }),
     // An engine that is not deployed in this environment is a normal state, not something to toast.
-    meta: { hideDefaultError: isEngineUnavailableError },
+    meta: { hideDefaultError: isShownInPlaceError },
   });
 };

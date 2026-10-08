@@ -120,6 +120,22 @@ describe('WorkflowActions', () => {
     ).toBeInTheDocument();
   });
 
+  it('keeps the other verb out of reach while one is running', async () => {
+    const user = userEvent.setup();
+    jest.mocked(axios.post).mockReturnValue(new Promise(() => {}));
+    renderWorkflowActions(workflow('Requeued'));
+
+    await user.click(nudgeButton());
+    await user.click(confirmButton('admin.workflows.actions.nudge.confirm'));
+
+    // The running verb shows its spinner; the other one cannot be started meanwhile.
+    expect(
+      await screen.findByRole('img', { name: textMock('general.loading') }),
+    ).toBeInTheDocument();
+    expect(failButton()).toBeDisabled();
+    expect(axios.post).toHaveBeenCalledTimes(1);
+  });
+
   it('gives up on a parked workflow only once confirmed, sending no reason of its own', async () => {
     const user = userEvent.setup();
     renderWorkflowActions(workflow('Waiting'));

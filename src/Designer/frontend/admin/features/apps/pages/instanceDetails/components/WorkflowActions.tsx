@@ -55,6 +55,9 @@ export const WorkflowActions = ({
   const canRetry = RESUMABLE_WORKFLOW_STATUSES.includes(workflow.overallStatus);
   const isParked = PARKED_WORKFLOW_STATUSES.includes(workflow.overallStatus);
   const hasOutcome = verbs.some((verb) => verb.isSuccess || verb.isError);
+  // One verb at a time: while one runs, the others cannot start, or the engine would refuse the
+  // second with a conflict and the panel would report a failure next to the first one's success.
+  const isBusy = verbs.some((verb) => verb.isPending);
   const cascadeCount = resume.data?.cascadeResumed?.length ?? 0;
 
   // An error the engine classed as permanent was not retried by the engine either, so a retry
@@ -125,6 +128,7 @@ export const WorkflowActions = ({
               description={t('admin.workflows.actions.nudge.description')}
               confirmLabel={t('admin.workflows.actions.nudge.confirm')}
               isPending={nudge.isPending}
+              disabled={isBusy}
               onConfirm={() => run(nudge)}
             />
           )}
@@ -136,6 +140,7 @@ export const WorkflowActions = ({
               confirmLabel={t('admin.workflows.actions.fail.confirm')}
               color='danger'
               isPending={fail.isPending}
+              disabled={isBusy}
               onConfirm={() => run(fail)}
             />
           )}
@@ -146,6 +151,7 @@ export const WorkflowActions = ({
               description={retryDescription}
               confirmLabel={t('admin.workflows.actions.retry.confirm')}
               isPending={resume.isPending}
+              disabled={isBusy}
               onConfirm={() => run(resume)}
             />
           )}

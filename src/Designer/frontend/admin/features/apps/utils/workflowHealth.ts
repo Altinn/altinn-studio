@@ -102,17 +102,31 @@ export function isEngineUnavailableError(error: unknown): boolean {
 }
 
 /**
+ * Whether the workflow views explain the error in place — the engine is not reachable here, or
+ * the user lacks the rights — so the shared error toast would only say it a second time.
+ */
+export function isShownInPlaceError(error: unknown): boolean {
+  return (
+    isEngineUnavailableError(error) ||
+    (isAxiosError(error) && error.response?.status === HTTP_FORBIDDEN)
+  );
+}
+
+const HTTP_FORBIDDEN = 403;
+
+/**
  * The engine's collection key is the bare instance GUID. The admin instance list already exposes it
  * that way (Storage's Studio endpoint strips the `{partyId}/` prefix), but this also accepts the
- * prefixed form so the join survives either shape. Anything that is not a GUID yields `undefined`
- * and is never sent to the engine as a key.
+ * prefixed form so the join survives either shape. The GUID comes back in lower case, the way the
+ * app runtime writes the key, since the engine matches keys exactly. Anything that is not a GUID
+ * yields `undefined` and is never sent to the engine as a key.
  */
 export function extractInstanceGuid(instanceId: string | undefined): string | undefined {
   if (!instanceId) {
     return undefined;
   }
   const lastSegment = instanceId.slice(instanceId.lastIndexOf('/') + 1);
-  return GUID_PATTERN.test(lastSegment) ? lastSegment : undefined;
+  return GUID_PATTERN.test(lastSegment) ? lastSegment.toLowerCase() : undefined;
 }
 
 const GUID_PATTERN =
