@@ -26,6 +26,7 @@ on:
       - 'src/common/ts/language/src/**'
       - 'src/common/ts/language/package.json'
       - '.github/actions/**'
+      - '.github/scripts/profile-percy.cjs'
       - '.github/workflows/app-frontend-cypress.yml'
       - '!**/AGENTS.md'
   workflow_dispatch:
@@ -279,6 +280,7 @@ jobs:
           PERCY_PARALLEL_NONCE: ${{ github.run_id }}-${{ github.run_attempt }}
           PERCY_BRANCH: ${{ github.head_ref || github.ref_name }}
           PERCY_TARGET_BRANCH: ${{ github.base_ref || 'main' }}
+          PERCY_CPU_PROFILE_DIR: ${{ github.workspace }}/src/App/frontend/test/logs/percy-cpu-profiles
           IS_PR_DRAFT: ${{ github.event.pull_request.draft }}
           E2E_SHARD_TOTAL: 6
           E2E_SHARD_NUMBER: ${{ matrix.containers }}
@@ -295,10 +297,21 @@ jobs:
           )
 
           if [ "${ENABLE_PERCY:-false}" = "true" ]; then
-            npx percy exec --parallel -- npx cypress "${cypress_args[@]}"
+            node --require "${GITHUB_WORKSPACE}/.github/scripts/profile-percy.cjs" \
+              "${GITHUB_WORKSPACE}/node_modules/.bin/percy" exec --parallel -- \
+              npx cypress "${cypress_args[@]}"
           else
             npx cypress "${cypress_args[@]}"
           fi
+
+      - name: Upload Percy CPU profiles
+        if: ${{ always() && env.ENABLE_PERCY == 'true' && steps.cypress.outcome != 'skipped' }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: percy-cpu-profiles-${{ matrix.containers }}
+          path: src/App/frontend/test/logs/percy-cpu-profiles
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Stop localtest
         if: always()
