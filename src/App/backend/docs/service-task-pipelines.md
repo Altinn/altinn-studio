@@ -43,9 +43,10 @@ types that are registered.
 
 Two things about that check are worth knowing:
 
-- **Only the task type is read.** Whether a task is drawn as a `<bpmn:task>` or a `<bpmn:serviceTask>`
-  makes no difference, here or at runtime — a `<bpmn:serviceTask>` typed `data` is an ordinary data task,
-  and a `<bpmn:task>` typed `archive` is your `archive` service task.
+- **The element must match the type.** A task whose type resolves to a service task must be a
+  `<bpmn:serviceTask>` element, and every other task a `<bpmn:task>`; the app refuses to start on a mismatch.
+  The build reports the same mismatch as `ALTINNAPP1003` for the built-in types and for task classes in the
+  app whose `Type` returns a constant, assuming each is registered under the interface it implements.
 - **The type is matched exactly, including case.** `<altinn:taskType>PDF</altinn:taskType>` does not reach
   a task whose `Type` is `pdf`.
 
@@ -98,10 +99,10 @@ process on this step — no worker held, no error recorded, retry counter reset 
 - The total wait is bounded by `ProcessStepOptions.WaitBudget` (or the engine default); expiry fails the
   step. Declare a polling pipeline's wait budget on `Finally`, not on the task — task-level options are
   inherited by every stage, including stages that never wait.
-- Read `ServiceTaskContext.Wait` (`DeferCount`, `StartedAt`, `Deadline`, and the derived
-  `Remaining`/`IsFinalCheck`) to pace the wait or give up early with a message that names what never
-  arrived. `EFormidlingServiceTask` is the worked example in-tree: a send stage, a polling `Finally` that
-  owns the wait budget, a backoff ladder driven by `Wait.DeferCount`, and a `FailedPermanent` on
+- Read `ServiceTaskContext.Wait` (`DeferCount`, `StartedAt`, `Deadline`, `Remaining` and `IsFinalCheck`)
+  to pace the wait, and give up on `IsFinalCheck` with a message that names what never arrived.
+  `EFormidlingServiceTask` is the worked example in-tree: a send stage, a polling `Finally` that owns the
+  wait budget, a backoff ladder driven by `Wait.DeferCount`, and a `FailedPermanent` on
   `Wait.IsFinalCheck`.
 - The `reason` string is persisted on the step and surfaced on status reads (ops dashboards, and the
   frontend's waiting UI via the `workflow.waitingReason` annotation) — phrase it for a reader, not a log

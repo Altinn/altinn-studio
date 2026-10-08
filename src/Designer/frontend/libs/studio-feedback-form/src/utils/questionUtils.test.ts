@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { QuestionConfig } from '../types/QuestionsProps';
 import { getDefaultAnswerValueForQuestion } from './questionUtils';
 

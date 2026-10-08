@@ -283,12 +283,11 @@ public class InstantiationHelperTests
             parsedToken: null,
             isAuthenticated: true,
             appMetadata: new ApplicationMetadata("tdd/test"),
-            getSelectedParty: () => partyId.ToString(),
+            getSelectedPartyCookieValues: () => [partyId.ToString()],
             getUserProfile: (id) => Task.FromResult<UserProfile?>(userProfile),
             lookupUserParty: (id) => Task.FromResult<Party?>(party),
             lookupOrgParty: (orgNo) => Task.FromResult(new Party()),
-            getPartyList: (id) => Task.FromResult<List<Party>?>(new List<Party>()),
-            validateSelectedParty: (uid, pid) => Task.FromResult<bool?>(true)
+            getPartyList: () => Task.FromResult<List<Party>?>(new List<Party>())
         );
 
         return (Authenticated.User)auth;
@@ -311,12 +310,11 @@ public class InstantiationHelperTests
             parsedToken: null,
             isAuthenticated: true,
             appMetadata: new ApplicationMetadata("tdd/test"),
-            getSelectedParty: () => null,
+            getSelectedPartyCookieValues: () => [],
             getUserProfile: (id) => Task.FromResult<UserProfile?>(null),
             lookupUserParty: (id) => Task.FromResult<Party?>(null),
             lookupOrgParty: (orgNoParam) => Task.FromResult(party),
-            getPartyList: (id) => Task.FromResult<List<Party>?>(null),
-            validateSelectedParty: (uid, pid) => Task.FromResult<bool?>(null)
+            getPartyList: () => Task.FromResult<List<Party>?>(null)
         );
 
         return (Authenticated.Org)auth;

@@ -46,6 +46,7 @@ import utilClasses from 'src/styles/utils.module.css';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { getRequired } from 'src/utils/layout/getRequired';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
@@ -280,6 +281,10 @@ function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
     'required' in config ? config.required : undefined,
     CommonExpressions.FormComponentProps.required,
   );
+  const readOnly = useEvalExpression(
+    'readOnly' in config ? config.readOnly : undefined,
+    CommonExpressions.FormComponentProps.readOnly,
+  );
   const title = useEvalExpression(
     config.textResourceBindings && 'title' in config.textResourceBindings
       ? config.textResourceBindings.title
@@ -287,10 +292,19 @@ function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
     CommonExpressions.TRBLabel.title,
   );
 
-  const required = 'required' in config ? evaluatedRequired : false;
+  const required = getRequired(config.type, evaluatedRequired);
+  const showOptionalMarking =
+    config.type === 'Custom' || !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
 
-  const requiredIndicator = required ? ` ${langAsNonProcessedString('form_filler.required_label')}` : '';
-  const headerTitle = `${langAsString(title || '')}${requiredIndicator}`;
+  // The mobile pseudo-header is plain text (rendered through a data attribute), so the indicator tag is
+  // reduced to its text here.
+  let indicator = '';
+  if (required) {
+    indicator = ` ${langAsNonProcessedString('form_filler.required_label')}`;
+  } else if (required === false && showOptionalMarking && !readOnly) {
+    indicator = ` ${langAsString('general.optional')}`;
+  }
+  const headerTitle = `${langAsString(title || '')}${indicator}`;
 
   return (
     <SummaryCellInner
@@ -514,10 +528,16 @@ function SummaryCellWithLabel({
       : undefined,
     CommonExpressions.TRBLabel.title,
   );
-  const required3 = useEvalExpression(
+  const evaluatedRequired = useEvalExpression(
     'required' in config ? config.required : undefined,
     CommonExpressions.FormComponentProps.required,
   );
+  const readOnly = useEvalExpression(
+    'readOnly' in config ? config.readOnly : undefined,
+    CommonExpressions.FormComponentProps.readOnly,
+  );
+  const required = getRequired(config.type, evaluatedRequired);
+  const labelSettings = config.type !== 'Custom' && 'labelSettings' in config ? config.labelSettings : undefined;
 
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
 
@@ -532,7 +552,9 @@ function SummaryCellWithLabel({
       <LabelContent
         id={useIndexedId(cell.labelFrom)}
         label={title2}
-        required={required3}
+        required={required}
+        readOnly={readOnly}
+        labelSettings={labelSettings}
       />
     </CellComponent>
   );

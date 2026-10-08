@@ -126,6 +126,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             DeferCount = context.Step.DeferCount,
             FirstDeferredAt = context.Step.FirstDeferredAt,
             WaitDeadline = context.WaitDeadline,
+            IsFinalWaitCheck = context.IsFinalWaitCheck,
         };
 
         var endpoint = commandData.CommandKey.ToUri(UriKind.Relative);

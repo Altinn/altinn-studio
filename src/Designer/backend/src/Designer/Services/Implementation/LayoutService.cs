@@ -50,7 +50,7 @@ public class LayoutService(
             throw new InvalidOperationException("Cannot add order page to layout using groups.");
         }
 
-        AltinnPageLayout pageLayout = new();
+        AltinnPageLayout pageLayout = new(appRepository.LayoutSchemaUrl);
         if (pages.Order.Count > 0)
         {
             pageLayout = pageLayout.WithNavigationButtons(includeShowBackButton);
@@ -232,10 +232,7 @@ public class LayoutService(
         var deletedPages = originalOrder.Except(order).ToList();
         var createdPages = order.Except(originalOrder).ToList();
         // Validated before the first delete, so a refused name leaves the set untouched.
-        foreach (string pageId in createdPages)
-        {
-            appRepository.EnsureLayoutWriteIsAllowed(layoutSetId, pageId);
-        }
+        appRepository.EnsureLayoutWritesAreAllowed(layoutSetId, createdPages, deletedPages);
         foreach (string pageId in deletedPages)
         {
             appRepository.DeleteLayout(layoutSetId, pageId);
@@ -252,7 +249,7 @@ public class LayoutService(
         bool includeShowBackButton = !appVersionService.IsV9App(editingContext);
         foreach (string pageId in createdPages)
         {
-            AltinnPageLayout altinnPageLayout = new();
+            AltinnPageLayout altinnPageLayout = new(appRepository.LayoutSchemaUrl);
             if (originalOrder.Any())
             {
                 altinnPageLayout = altinnPageLayout.WithNavigationButtons(includeShowBackButton);

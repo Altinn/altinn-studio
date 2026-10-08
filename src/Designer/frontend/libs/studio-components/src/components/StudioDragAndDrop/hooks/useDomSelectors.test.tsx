@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useDomSelectors } from './useDomSelectors';
 import { StudioDragAndDropRootContext } from '../StudioDragAndDropProvider';
@@ -8,13 +9,13 @@ const id = 'id';
 const uniqueDomId = 'baseId';
 
 describe('useDomSelectors', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Returns the base id and selector attributes for list and item components with the given id', () => {
     const { result } = renderHook(() => useDomSelectors(id), {
       wrapper: ({ children }) => (
         <StudioDragAndDropRootContext.Provider
-          value={{ uniqueDomId, rootId: 'rootId', onDrop: jest.fn(), gap: '1rem' }}
+          value={{ uniqueDomId, rootId: 'rootId', onDrop: vi.fn(), gap: '1rem' }}
         >
           {children}
         </StudioDragAndDropRootContext.Provider>
@@ -37,7 +38,7 @@ describe('useDomSelectors', () => {
   });
 
   it('Throws an error if not wrapped by a DragAndDropProvider', () => {
-    jest.spyOn(console, 'error').mockImplementation();
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const renderFn = (): ReturnType<typeof renderHook> => renderHook(() => useDomSelectors(id));
     expect(renderFn).toThrow(
       new Error('useDomSelectors must be used within a DragAndDropRootContext provider.'),

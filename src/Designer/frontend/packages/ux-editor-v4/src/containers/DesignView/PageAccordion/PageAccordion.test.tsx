@@ -14,6 +14,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { PagesModel, PagesModelWithPageGroups } from 'app-shared/types/api/dto/PagesModel';
 import type { useAppContext } from '@altinn/ux-editor-v4/hooks';
 import { ItemType } from '@altinn/ux-editor-v4/components/Properties/ItemType';
+import * as useDeletePageMutationModule from '../../../hooks/mutations/useDeletePageMutation';
 
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
@@ -113,13 +114,16 @@ describe('PageAccordion', () => {
   it('Disables delete button when isPending is true', async () => {
     const user = userEvent.setup();
     const useDeletePageMutationSpy = jest.spyOn(
-      require('../../../hooks/mutations/useDeletePageMutation'),
+      useDeletePageMutationModule,
       'useDeletePageMutation',
     );
-    useDeletePageMutationSpy.mockImplementation(() => ({
-      mutate: queriesMock.deleteFormLayout,
-      isPending: true,
-    }));
+    useDeletePageMutationSpy.mockImplementation(
+      () =>
+        ({
+          mutate: queriesMock.deleteFormLayout,
+          isPending: true,
+        }) as unknown as ReturnType<typeof useDeletePageMutationModule.useDeletePageMutation>,
+    );
 
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
 

@@ -1,0 +1,4 @@
+.indicatorTag {
+  margin-inline-start: var(--ds-size-1);
+  vertical-align: middle;
+}

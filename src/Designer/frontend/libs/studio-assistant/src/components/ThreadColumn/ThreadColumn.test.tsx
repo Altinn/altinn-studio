@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { ThreadColumn } from './ThreadColumn';
 import { render, screen } from '@testing-library/react';
 import type { ThreadColumnProps } from './ThreadColumn';
@@ -5,8 +6,8 @@ import { mockTexts } from '../../mocks/mockTexts';
 import { mockChatThreads } from '../../mocks/mockChatThreads';
 
 // Test data
-const onSelectThread = jest.fn();
-const onToggleCollapse = jest.fn();
+const onSelectThread = vi.fn();
+const onToggleCollapse = vi.fn();
 
 describe('ThreadColumn', () => {
   it('should render the hide threads button', () => {

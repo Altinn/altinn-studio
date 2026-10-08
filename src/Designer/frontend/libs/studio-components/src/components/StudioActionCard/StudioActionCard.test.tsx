@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import type { ForwardedRef } from 'react';
 import { render, screen } from '@testing-library/react';
@@ -10,7 +11,7 @@ import userEvent from '@testing-library/user-event';
 const label = 'Add new action';
 const defaultProps: StudioActionCardProps = {
   label,
-  onAction: jest.fn(),
+  onAction: vi.fn(),
 };
 
 describe('StudioActionCard', () => {
@@ -29,7 +30,7 @@ describe('StudioActionCard', () => {
 
   it('Calls onAction when clicked', async () => {
     const user = userEvent.setup();
-    const onAction = jest.fn();
+    const onAction = vi.fn();
     renderStudioActionCard({ onAction });
     await user.click(screen.getByRole('button'));
     expect(onAction).toHaveBeenCalledTimes(1);
@@ -37,7 +38,7 @@ describe('StudioActionCard', () => {
 
   it('Calls onAction when pressing Enter or Space', async () => {
     const user = userEvent.setup();
-    const onAction = jest.fn();
+    const onAction = vi.fn();
     renderStudioActionCard({ onAction });
     const actionCard = screen.getByRole('button');
     actionCard.focus();

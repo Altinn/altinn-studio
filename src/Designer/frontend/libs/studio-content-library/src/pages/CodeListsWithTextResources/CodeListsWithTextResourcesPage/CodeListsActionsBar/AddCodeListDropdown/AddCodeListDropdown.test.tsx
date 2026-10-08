@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
@@ -8,20 +9,17 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { UserEvent } from '@testing-library/user-event';
 import { externalResources } from '../../../../../test-data/externalResources';
 
-const onUploadCodeListMock = jest.fn();
+const onUploadCodeListMock = vi.fn();
 const codeListName1 = 'codeListName1';
 const codeListName2 = 'codeListName2';
 
 describe('AddCodeListDropdown', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('opens the create new code list modal when clicking on the add new code list button', async () => {
     const user = userEvent.setup();
     renderAddCodeListDropdown();
-    const addNewCodeListButton = screen.getByRole('button', {
-      name: textMock('app_content_library.code_lists_with_text_resources.add_new_code_list'),
-    });
-    await user.click(addNewCodeListButton);
+    await openAddCodeListMenu(user);
     const createNewCodeListModalTitle = screen.getByText(
       textMock('app_content_library.code_lists_with_text_resources.create_new_code_list'),
     );
@@ -91,6 +89,7 @@ describe('AddCodeListDropdown', () => {
   it('opens the import code list dialog when clicking on the import menu button', async () => {
     const user = userEvent.setup();
     renderAddCodeListDropdown({ externalResources });
+    await openAddCodeListMenu(user);
     const importCodeListButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists_with_text_resources.import_from_org_library'),
     });
@@ -110,6 +109,13 @@ describe('AddCodeListDropdown', () => {
   });
 });
 
+const openAddCodeListMenu = async (user: UserEvent): Promise<void> => {
+  const addNewCodeListButton = screen.getByRole('button', {
+    name: textMock('app_content_library.code_lists_with_text_resources.add_new_code_list'),
+  });
+  await user.click(addNewCodeListButton);
+};
+
 const uploadFileWithFileName = async (
   user: UserEvent,
   fileNameWithExtension: string,
@@ -123,10 +129,10 @@ const uploadFileWithFileName = async (
 
 const defaultCodeListActionBarProps: AddCodeListDropdownProps = {
   onUploadCodeList: onUploadCodeListMock,
-  onCreateCodeList: jest.fn(),
-  onCreateTextResource: jest.fn(),
-  onImportCodeListFromOrg: jest.fn(),
-  onUpdateTextResource: jest.fn(),
+  onCreateCodeList: vi.fn(),
+  onCreateTextResource: vi.fn(),
+  onImportCodeListFromOrg: vi.fn(),
+  onUpdateTextResource: vi.fn(),
   codeListNames: [codeListName1, codeListName2],
 };
 

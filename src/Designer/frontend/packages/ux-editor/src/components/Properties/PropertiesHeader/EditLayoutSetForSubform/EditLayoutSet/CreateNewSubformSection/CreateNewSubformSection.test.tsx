@@ -87,12 +87,7 @@ describe('CreateNewSubformSection ', () => {
 
   it('displays loading spinner when save button is clicked', async () => {
     const user = userEvent.setup();
-    const addLayoutSetMock = jest.fn().mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          setTimeout(resolve, 100);
-        }),
-    );
+    const addLayoutSetMock = jest.fn(() => new Promise<void>(() => {}));
     renderCreateNewSubformLayoutSet({
       queries: { addLayoutSet: addLayoutSetMock },
     });

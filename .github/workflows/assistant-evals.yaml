@@ -34,7 +34,12 @@ jobs:
         with:
           python-version: '3.12'
 
-      # No install: stdlib only, so a broken dependency cannot silence the gate.
+      # The actor_prompt and tools digests import the agent code.
+      # If a digest fails, the gate fails. It does not pass.
+      - name: Install dependencies
+        working-directory: src/AI/agents
+        run: pip install -r requirements.txt
+
       - name: What this change means for the baseline
         working-directory: src/AI/agents
         env:
@@ -43,4 +48,4 @@ jobs:
         run: |
           set -euo pipefail
           git diff --name-only "$BASE_REF"...HEAD | tee /tmp/changed.txt
-          python -m benchmarks.impact --strict < /tmp/changed.txt
+          python -m benchmarks.impact --strict --against "$BASE_REF" < /tmp/changed.txt

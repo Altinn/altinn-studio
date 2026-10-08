@@ -1,6 +1,0 @@
-# Checkout-local Agent variants are private by default.
-agent.*.yaml
-
-# Repository-owned variants.
-!agent.nested.yaml
-!agent.worktree.yaml

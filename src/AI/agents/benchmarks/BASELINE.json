@@ -1,18 +1,18 @@
 {
   "axes": {
-    "actor_prompt": "9766b2fc3ce5",
-    "code": "318dbf0 clean",
-    "dataset": "112 items ef83ff6b580d",
+    "actor_prompt": "333710f2f15b",
+    "code": "8a69954 clean",
+    "dataset": "116 items 90d5f6e70f83",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-5.6-sol",
     "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "c8bbdb44ee0f"
+    "tools": "36867ddc0e3f"
   },
-  "check_id": "20261002T081004Z-pyright-typing-516b",
-  "label": "pyright typing",
-  "recorded_at": "2026-10-02T08:14:38+00:00",
-  "why": "Pyright typing only; tool schemas and actor prompt unchanged, no regressions with e2e"
+  "check_id": "20261006T171623Z-remove-the-v9-upgrade-tool-rerun-1-8a699541ee-05ff",
+  "label": "remove the v9 upgrade tool rerun-1 8a699541ee",
+  "recorded_at": "2026-10-06T17:21:03+00:00",
+  "why": "Removes the v9 upgrade tool from #20721, which moves the tools digest. No regressions with e2e."
 }

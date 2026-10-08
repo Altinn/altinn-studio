@@ -1,3 +1,4 @@
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { ItemFieldsTableProps } from './ItemFieldsTable';
 import { ItemFieldsTable } from './ItemFieldsTable';
@@ -36,7 +37,7 @@ const selectedItemChild: FieldNode = {
   children: [],
 };
 const uiSchema: UiSchemaNodes = [rootNode, selectedItem, selectedItemChild];
-const saveDataModel = jest.fn();
+const saveDataModel = vi.fn();
 const model = SchemaModel.fromArray(uiSchema);
 
 const defaultProps: ItemFieldsTableProps = {
@@ -62,7 +63,7 @@ describe('ItemFieldsTable', () => {
     validateTestUiSchema(uiSchema);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('render inputs and delete buttons correctly for all fields', async () => {
     const user = userEvent.setup();

@@ -918,15 +918,16 @@ def test_a_changed_actor_prompt_refuses_a_comparison():
     assert diff.compare(base, cand).refused == ("actor_prompt",)
 
 
-def test_the_actor_prompt_digest_tracks_what_the_agent_sends():
-    """Digesting a copy of the prompt would drift; it digests the function the agent calls."""
-    import hashlib
+def test_the_actor_prompt_digest_tracks_what_the_agent_sends(monkeypatch):
+    """A copy of the prompt can become different from the prompt. Thus the digest uses the function that the agent calls."""
+    from agents.core import context
 
-    from agents.altinn.app_version import V8_PROFILE
-    from agents.core.context import stable_prefix_sections
+    before = provenance.collect().actor_prompt
+    build_system_prompt = context.build_system_prompt
+    monkeypatch.setattr(context, "build_system_prompt", lambda *a, **kw: build_system_prompt(*a, **kw) + "x")
 
-    expected = hashlib.sha256("\n\n".join(stable_prefix_sections(V8_PROFILE)).encode()).hexdigest()[:12]
-    assert provenance.collect().actor_prompt == expected
+    assert before is not None
+    assert provenance.collect().actor_prompt != before
 
 
 def test_a_comparison_across_an_undeclared_axis_is_refused():

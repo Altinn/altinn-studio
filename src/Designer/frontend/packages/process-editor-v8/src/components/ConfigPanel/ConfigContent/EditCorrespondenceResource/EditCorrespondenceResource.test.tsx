@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditCorrespondenceResource } from './EditCorrespondenceResource';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { useGetCorrespondenceResource } from './useGetCorrespondenceResource';
+import { useUpdateCorrespondenceResource } from './useUpdateCorrespondenceResource';
 
 jest.mock('./useGetCorrespondenceResource', () => ({
   useGetCorrespondenceResource: jest.fn(),
@@ -11,10 +13,8 @@ jest.mock('./useUpdateCorrespondenceResource', () => ({
   useUpdateCorrespondenceResource: jest.fn(),
 }));
 
-const mockUseGetCorrespondenceResource = require('./useGetCorrespondenceResource')
-  .useGetCorrespondenceResource as jest.Mock;
-const mockUseUpdateCorrespondenceResource = require('./useUpdateCorrespondenceResource')
-  .useUpdateCorrespondenceResource as jest.Mock;
+const mockUseGetCorrespondenceResource = useGetCorrespondenceResource as jest.Mock;
+const mockUseUpdateCorrespondenceResource = useUpdateCorrespondenceResource as jest.Mock;
 
 describe('EditCorrespondenceResource', (): void => {
   afterEach(() => jest.clearAllMocks());

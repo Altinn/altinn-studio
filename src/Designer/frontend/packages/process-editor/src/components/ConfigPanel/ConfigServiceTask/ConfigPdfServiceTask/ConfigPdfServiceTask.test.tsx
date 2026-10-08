@@ -7,7 +7,7 @@ import { renderWithProviders } from '../../../../../test/renderWithProviders';
 
 jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(() => {
+    StudioModeler: jest.fn().mockImplementation(function () {
       return {
         getElementsByType: jest.fn(() => []),
       };

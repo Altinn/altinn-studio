@@ -156,58 +156,9 @@ LLM_MODEL_ACTOR=gpt-5.6-terra
 
 ## How it works
 
-Each request goes through **pre-graph gates** first:
+Each request goes through two gates first. Then a small LangGraph graph runs the steps **intake → [spec] → agentic loop**. In the loop, the model selects the tools. Chat mode (`allow_app_changes: false`) runs the same loop in read-only mode.
 
-- A scope check runs in the two modes. It refuses all requests that are not about Altinn app development.
-- Intent parsing runs in workflow mode only.
-
-Then a small LangGraph graph connects the three steps: **intake → [spec] → agentic loop**. The graph only sets the sequence of these steps. The agentic loop is our own code in `agents/core/loop.py`. In the loop, the model selects the tools.
-
-### Workflow mode (`allow_app_changes: true`)
-
-1. **Intake**: This step validates the goal. It changes the goal into a change request.
-2. **Spec**: This step runs only when the request has attached files. It gets a structured FormSpec from the files.
-3. **Agentic loop**: One loop does the work. The model calls tools, and the model selects their sequence. The tools can:
-   - scan the repository
-   - read, edit and write files
-   - find the layout and data model schemas
-   - load skills with domain knowledge
-   - verify the changes
-   - commit to a session branch.
-
-The loop commits to the session branch with `commit_session_branch`. There is no automatic rollback. To undo a change, the model uses `discard_file_changes` on one file at a time.
-
-### Chat mode (`allow_app_changes: false`)
-
-Chat mode does not run intake. It runs spec when the request has attached files. Then it runs the same agentic loop in **read-only** mode.
-
-In read-only mode, the loop refuses the write tools. The model answers with the repository scan, the documentation skills and the schema tools. It does not change files.
-
-This refusal is not permanent. When a request must change the app, the first write tool call shows a question to the user. If the user gives permission, the session becomes a usual write session.
-
-## Security model
-
-The security model has three layers. Each layer covers a risk that the other layers do not cover.
-
-**Intent gate.** This layer uses `intent_security.md` and runs in write mode only. It examines the goal text for abuse before the graph starts. It sees the _file names_ of the attachments, but not their content. The reason: a PDF of 13k tokens is expensive to examine, and it gives little signal.
-
-**Structural containment.** This layer runs in the two modes. It is the boundary that actually stops an attack:
-
-- In read-only mode, the loop refuses the write tools until the user gives permission.
-- File access is only possible in the app repository.
-- `web_fetch` can only get pages from an allowlist of Digdir hosts.
-- Each change goes to a session branch. A person examines the branch before the merge.
-
-The prompts that Langfuse serves are also in this layer. CI publishes a prompt after the prompt change merges to main. Thus, each served prompt has a reviewed commit. Refer to [Prompts and Langfuse](#prompts-and-langfuse).
-
-**Spotlighting.** This layer runs in the two modes. It covers the content of uploaded documents, which the intent gate does not see. Users attach PDFs and images as context. This content gets to the model two times:
-
-- as the attachment that the spec extractor reads
-- as the extracted `FormSpec` in the system prompt of the loop.
-
-The code puts the two in `<attachment_content>` and `<form_spec>` delimiters. Each delimiter has an instruction: the block is data to describe, not instructions to obey. The code escapes a closing tag in the content. Thus, a document cannot close its block too early.
-
-`shared/utils/spotlight.py` makes the delimiters. `llm_client.py` applies them to the attachment, and `core/context.py` applies them to the form spec. This control is in the code for a reason. Langfuse serves the system prompts in all configured environments. When a managed version exists, the prompt file has no effect. Thus, a control in a prompt file only does not work. The text in the prompt file supports the control, but it does not make the control.
+For the architecture and the security model, refer to [docs/README.md](docs/README.md).
 
 ## Prompts and Langfuse
 
@@ -235,6 +186,7 @@ src/AI/agents/
 ├── services/             # token_usage and traces, used by the api routes with the same names
 ├── shared/               # Configuration, models, utilities
 ├── benchmarks/           # Evals and the end to end benchmark (refer to benchmarks/EVALS.md)
+├── docs/                 # Architecture, in four levels
 ├── scripts/              # sync_prompts and tools for test fixtures
 ├── infra/kustomize/      # Deployment manifests
 └── tests/                # pytest suite

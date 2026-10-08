@@ -8,6 +8,7 @@ import {
   Input,
   Label,
   NumericInput,
+  OptionalIndicator,
   RequiredIndicator,
 } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -40,6 +41,8 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
     baseComponentId,
     overrideDisplay,
   });
+  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
+
   const [tempSsn, setTempSsn] = useState('');
   const [tempName, setTempName] = useState('');
   const [ssnErrors, setSsnErrors] = useState<string[]>();
@@ -165,6 +168,13 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               label={langAsString('person_lookup.ssn_label')}
               required={required}
               requiredIndicator={<RequiredIndicator required={required} />}
+              optionalIndicator={
+                <OptionalIndicator
+                  required={required}
+                  readOnly={readOnly}
+                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                />
+              }
               description={
                 hasSuccessfullyFetched ? (
                   <Description
@@ -215,6 +225,13 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               htmlFor={`${componentId}_name`}
               required={required}
               requiredIndicator={<RequiredIndicator required={required} />}
+              optionalIndicator={
+                <OptionalIndicator
+                  required={required}
+                  readOnly={readOnly}
+                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                />
+              }
               label={langAsString(hasSuccessfullyFetched ? 'person_lookup.name_label' : 'person_lookup.surname_label')}
               description={
                 hasSuccessfullyFetched ? (

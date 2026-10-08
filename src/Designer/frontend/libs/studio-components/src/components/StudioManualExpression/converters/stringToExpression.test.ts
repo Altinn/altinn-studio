@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { stringToExpression } from './stringToExpression';
 import { GeneralRelationOperator } from '../../StudioExpression/enums/GeneralRelationOperator';
 import { DataLookupFuncName } from '../../StudioExpression/enums/DataLookupFuncName';

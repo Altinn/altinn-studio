@@ -166,6 +166,46 @@ describe('ScopeListContainer', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('should display a membership alert without management controls if the selected scopes are forbidden', async () => {
+    const getMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(maskinportenScopes));
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockRejectedValue(createAxiosError(ServerCodes.Forbidden));
+
+    renderScopeListContainer({
+      getMaskinportenScopes,
+      getSelectedMaskinportenScopes,
+    });
+    await waitForGetScopesCheckIsDone();
+
+    expect(
+      getText(textMock('app_settings.maskinporten_no_org_membership_description')),
+    ).toBeInTheDocument();
+    expect(queryButton(textMock('app_settings.maskinporten_add_scope'))).not.toBeInTheDocument();
+  });
+
+  it('should not display management controls if the selected scopes cannot be loaded', async () => {
+    const getMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(maskinportenScopes));
+    const getSelectedMaskinportenScopes = jest
+      .fn()
+      .mockRejectedValue(createAxiosError(ServerCodes.InternalServerError));
+
+    renderScopeListContainer({
+      getMaskinportenScopes,
+      getSelectedMaskinportenScopes,
+    });
+    await waitForGetScopesCheckIsDone();
+
+    expect(queryButton(textMock('app_settings.maskinporten_add_scope'))).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('app_settings.maskinporten_no_org_membership_description')),
+    ).not.toBeInTheDocument();
+  });
+
   it('should display add default scopes notice for v8.3 apps when no scopes are available', async () => {
     const getMaskinportenScopes = jest
       .fn()
