@@ -11,7 +11,7 @@ import { useHasBindingsAndNoData } from 'src/layout/Summary2/isEmpty/isEmptyComp
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
-import { useFormDataFor, useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -34,7 +34,6 @@ export class Custom extends CustomDef {
   }
 
   renderSummary2(props: Summary2Props): JSX.Element | null {
-    const formData = useFormDataFor<'Custom'>(props.targetBaseComponentId);
     const isEmpty = useHasBindingsAndNoData(props.targetBaseComponentId);
     const config = useComponentConfig(props.targetBaseComponentId, 'Custom');
     const required = useEvalExpression(config.required, Expressions.Custom.required);
@@ -52,7 +51,6 @@ export class Custom extends CustomDef {
       >
         <CustomWebComponent
           summaryMode={true}
-          formData={formData}
           baseComponentId={props.targetBaseComponentId}
           containerDivRef={React.createRef()}
         />

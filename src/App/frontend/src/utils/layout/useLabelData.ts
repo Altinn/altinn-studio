@@ -41,7 +41,8 @@ export function useLabelData({
   const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);
 
   const componentId = useIndexedId(baseComponentId);
-  const showOptionalMarking = !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
+  const showOptionalMarking =
+    config.type === 'Custom' || !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
 
   const shouldShowLabel =
     (overrideDisplay?.renderLabel ?? true) && overrideDisplay?.renderedInTable !== true && !!title;
