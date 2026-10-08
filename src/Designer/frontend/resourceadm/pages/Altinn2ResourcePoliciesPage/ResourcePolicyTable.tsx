@@ -133,7 +133,7 @@ export const ResourcePolicyTable = ({
         ]}
         rows={rows}
       />
-      <StudioDialog ref={dialogRef} placement='right'>
+      <StudioDialog ref={dialogRef} placement='right' onClose={onCloseDialog} closeButton={false}>
         {selectedPolicy && (
           <LocalPolicyEditor
             tableData={selectedPolicy}
