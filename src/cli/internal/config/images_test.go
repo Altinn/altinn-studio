@@ -75,7 +75,7 @@ func TestDefaultImagesEnvOverride(t *testing.T) {
 	if got := images.Core.PgAdmin.Ref(); got != "localhost:5000/pgadmin4:testing" {
 		t.Errorf("pgadmin ref = %q, a registry port should not be read as a tag", got)
 	}
-	if got := images.Monitoring.VictoriaTraces.Ref(); got != "victoriametrics/victoria-traces:v0.11.1" {
+	if got := images.Monitoring.VictoriaTraces.Ref(); got != "victoriametrics/victoria-traces:v0.12.0" {
 		t.Errorf("victoria-traces ref = %q, a blank override should be ignored", got)
 	}
 }

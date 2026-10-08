@@ -79,11 +79,11 @@ func DefaultImages() ImagesConfig {
 			PgAdmin:          ImageSpec{Image: "dpage/pgadmin4", Tag: "9.14", Floating: false},
 		},
 		Monitoring: MonitoringImages{
-			VictoriaMetrics: ImageSpec{Image: "victoriametrics/victoria-metrics", Tag: "v1.152.0", Floating: false},
-			VictoriaTraces:  ImageSpec{Image: "victoriametrics/victoria-traces", Tag: "v0.11.1", Floating: false},
+			VictoriaMetrics: ImageSpec{Image: "victoriametrics/victoria-metrics", Tag: "v1.153.0", Floating: false},
+			VictoriaTraces:  ImageSpec{Image: "victoriametrics/victoria-traces", Tag: "v0.12.0", Floating: false},
 			VictoriaLogs:    ImageSpec{Image: "victoriametrics/victoria-logs", Tag: "v1.52.0", Floating: false},
 			OtelCollector:   ImageSpec{Image: "otel/opentelemetry-collector-contrib", Tag: "0.161.0", Floating: false},
-			Grafana:         ImageSpec{Image: "grafana/grafana", Tag: "13.2.2", Floating: false},
+			Grafana:         ImageSpec{Image: "grafana/grafana", Tag: "12.4.8", Floating: false},
 		},
 	}
 	images.applyEnvOverrides(os.Getenv)
