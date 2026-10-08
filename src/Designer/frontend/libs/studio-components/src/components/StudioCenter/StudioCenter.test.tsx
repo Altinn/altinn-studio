@@ -1,10 +1,13 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { StudioCenter } from './StudioCenter';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 
 // Mocks:
-jest.mock('./StudioCenter.module.css', () => ({
-  root: 'root',
+vi.mock('./StudioCenter.module.css', () => ({
+  default: {
+    root: 'root',
+  },
 }));
 
 describe('StudioCenter', () => {

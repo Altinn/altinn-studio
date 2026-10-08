@@ -8,16 +8,15 @@ namespace Altinn.Studio.Designer.Models;
 
 public class AltinnPageLayout
 {
-    private const string LayoutSchemaUrl = "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json";
     private readonly Random _random = new();
 
     public JsonObject Structure { get; set; }
 
-    public AltinnPageLayout()
+    public AltinnPageLayout(string schemaUrl)
     {
         Structure = new()
         {
-            ["$schema"] = LayoutSchemaUrl,
+            ["$schema"] = schemaUrl,
             ["data"] = new JsonObject { ["layout"] = new JsonArray([]) },
         };
     }

@@ -61,7 +61,9 @@ def load_datasets() -> Iterator[Dataset]:
 
 MESSAGE_BUILDERS = {
     "scope_check": lambda item: build_scope_check_message(item["input"]["goal"], item["input"].get("conversation")),
-    "intent_check": lambda item: build_intent_parse_message(item["input"]["goal"], item["input"].get("attachments")),
+    "intent_check": lambda item: build_intent_parse_message(
+        item["input"]["goal"], item["input"].get("attachments"), item["input"].get("conversation")
+    ),
 }
 
 

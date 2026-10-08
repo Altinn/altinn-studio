@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { deleteProperty, propertyType, setProperty } from './custom-properties';
 import { CustomPropertyType } from '../../types';

@@ -1,16 +1,17 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, render } from '@testing-library/react';
 import type { TextEntryProps } from './TextEntry';
 import { TextEntry } from './TextEntry';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const mockUpsertTextResource = jest.fn();
+const mockUpsertTextResource = vi.fn();
 const textEntryValue = '';
 const APP_NAME = 'appName';
 const textId = APP_NAME;
 
 describe('TextEntry', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render the TextEntry component', () => {
     renderTextEntry();

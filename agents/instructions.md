@@ -27,7 +27,7 @@ Other relevant repositories include:
 - `Altinn/altinn-receipt`
 - `Altinn/altinn-decision-log`
 - `Altinn/altinn-authentication`
-- `Altinn/altinn-authorization-tmp`
+- `Altinn/altinn-auth`
 - `Altinn/altinn-register`
 - `Altinn/altinn-notifications`
 - `Altinn/altinn-correspondence`
@@ -78,7 +78,21 @@ and rerun the evidence that demonstrates the outcome. Benchmark and profile perf
 is impractical, run the lightest meaningful check and state exactly what remains unverified. Say “I am not sure” or
 “I cannot confirm” instead of guessing.
 
-Before using a nested Agent to develop the platform, run `make user-install` in `src/experimental` to get an updated version of `agentctl`.
+- **Subagents** are your harness's own delegated workers, such as Claude Code's Agent tool or Codex subagents. They run
+  inside this Sandbox and need no extra setup; use them for reviews, research and parallel work.
+- **Nested Agents** are separate Agents with their own Sandbox VM, started from inside this one with `agentctl apply`,
+  such as the `nested` and `nested-build` variants under `agents/`. Starting one needs `agentctl`: use the installed one
+  when `command -v agentctl` finds it, and otherwise install it with
+  `curl -fsSL https://raw.githubusercontent.com/digdir/digdir-agents/main/agentctl/install.sh | sh`.
+
+## References in responses
+
+- Link GitHub issues and pull requests as Markdown, such as
+  [altinn-studio#1234](https://github.com/Altinn/altinn-studio/issues/1234), so they are clickable in every harness.
+  In text posted to GitHub itself, keep GitHub's native `#1234` or `OWNER/REPOSITORY#1234` form.
+- Write file paths relative to the session's working directory, normally `/home/agent/code`, including the repository
+  or `.worktrees/<task>/` prefix, such as `.worktrees/fix-x/src/Designer/frontend/app.tsx:42`. A path relative to a
+  repository root does not resolve from there.
 
 ## Pull requests
 

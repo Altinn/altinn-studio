@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SecurityLevelSelectProps } from './SecurityLevelSelect';
@@ -9,10 +10,10 @@ const mockInitialAuthLevelValue: RequiredAuthLevel = '0';
 const mockLabel: string = textMock('policy_editor.select_auth_level_label');
 const removedAuthLevelError: string = textMock('policy_editor.auth_level_removed_error');
 
-const mockOnSave = jest.fn();
+const mockOnSave = vi.fn();
 
 describe('SelectAuthLevel', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('updates the selected value when the user changes the selection', async () => {
     renderSecurityLevelSelect();

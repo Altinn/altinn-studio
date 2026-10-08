@@ -293,17 +293,12 @@
       "commitMessageSuffix": ""
     },
     {
-      "description": "Manage experimental agent platform dependencies manually",
-      "matchFileNames": ["src/experimental/**"],
-      "enabled": false
-    },
-    {
       "description": "Manage all Rust dependencies manually",
       "matchManagers": ["cargo"],
       "enabled": false
     },
     {
-      "description": "Move rust-toolchain.toml and every copy of its version in one pull request, so CI, the runner image and the Agent images build with the toolchain the checkout selects. Comes after the manual-management rules so it also covers the experimental example images.",
+      "description": "Move rust-toolchain.toml and every copy of its version in one pull request, so CI, the runner image and the Agent images build with the toolchain the checkout selects.",
       "matchDatasources": ["rust-version"],
       "matchPackageNames": ["rust"],
       "groupName": "Rust toolchain",

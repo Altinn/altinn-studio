@@ -46,8 +46,7 @@ public class PartySelectionTests
 
         public Authenticated.User Parse(
             IReadOnlyList<string> partyCookies,
-            Func<int, Task<Party?>>? lookupParty = null,
-            bool expectValidateCall = false
+            Func<int, Task<Party?>>? lookupParty = null
         ) =>
             Assert.IsType<Authenticated.User>(
                 Authenticated.From(
@@ -67,11 +66,7 @@ public class PartySelectionTests
                         ),
                     lookupUserParty: lookupParty ?? (partyId => Task.FromResult(Lookup(partyId))),
                     lookupOrgParty: null!,
-                    getPartyList: _ => Task.FromResult<List<Party>?>([User, Org]),
-                    validateSelectedParty: (_, _) =>
-                        expectValidateCall
-                            ? Task.FromResult<bool?>(true)
-                            : throw new Exception("Validation must not run for a selection that was never resolved")
+                    getPartyList: () => Task.FromResult<List<Party>?>([User, Org])
                 )
             );
     }
@@ -121,7 +116,7 @@ public class PartySelectionTests
     [Fact]
     public async Task Agreeing_Cookie_Copies_Are_One_Selection()
     {
-        var auth = new Fixture().Parse([Cookie(OrgPartyId), Cookie(OrgPartyId)], expectValidateCall: true);
+        var auth = new Fixture().Parse([Cookie(OrgPartyId), Cookie(OrgPartyId)]);
 
         Assert.Equal(OrgPartyId, auth.SelectedPartyId);
 

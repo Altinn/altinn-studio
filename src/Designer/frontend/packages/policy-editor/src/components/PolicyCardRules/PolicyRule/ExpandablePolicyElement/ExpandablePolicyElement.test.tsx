@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -15,7 +16,7 @@ const mockTextChildren: string = 'Test Content';
 const mockChildren: React.ReactNode = <p>{mockTextChildren}</p>;
 
 describe('ExpandablePolicyElement', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('renders the component with the provided title and children', () => {
     renderExpandablePolicyElement({}, { usageType: 'resource' });
@@ -98,7 +99,7 @@ describe('ExpandablePolicyElement', () => {
 
   it('calls handleRemoveElement when the "Delete" option in the dropdown menu is clicked', async () => {
     const user = userEvent.setup();
-    const mockHandleRemoveElement = jest.fn();
+    const mockHandleRemoveElement = vi.fn();
     renderExpandablePolicyElement({ handleRemoveElement: mockHandleRemoveElement });
 
     const moreButton = screen.getByRole('button', {
@@ -114,7 +115,7 @@ describe('ExpandablePolicyElement', () => {
 
   it('calls handleCloneElement when the "Copy" option in the dropdown menu is clicked', async () => {
     const user = userEvent.setup();
-    const mockHandleCloneElement = jest.fn();
+    const mockHandleCloneElement = vi.fn();
     renderExpandablePolicyElement({ handleCloneElement: mockHandleCloneElement });
 
     const moreButton = screen.getByRole('button', {
@@ -137,8 +138,8 @@ const renderExpandablePolicyElement = (
 ) => {
   const defaultProps: ExpandablePolicyElementProps = {
     title: mockTitle,
-    handleRemoveElement: jest.fn(),
-    handleCloneElement: jest.fn(),
+    handleRemoveElement: vi.fn(),
+    handleCloneElement: vi.fn(),
     children: mockChildren,
   };
 

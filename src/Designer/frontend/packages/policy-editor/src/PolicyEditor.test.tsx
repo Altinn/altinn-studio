@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PolicyEditor, type PolicyEditorProps } from './PolicyEditor';
@@ -19,7 +20,7 @@ const mockPolicy: Policy = {
 
 const mockUsageType: PolicyEditorUsage = 'app';
 
-const mockOnSave = jest.fn();
+const mockOnSave = vi.fn();
 
 const defaultProps: PolicyEditorProps = {
   policy: mockPolicy,
@@ -33,7 +34,7 @@ const defaultProps: PolicyEditorProps = {
 };
 
 describe('PolicyEditor', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('renders tabs view when usage type is app', () => {
     renderPolicyEditor();

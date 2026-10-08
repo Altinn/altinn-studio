@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Ref } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
@@ -8,8 +9,8 @@ import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 describe('StudioDeleteButton', () => {
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('Renders the button', () => {
@@ -19,7 +20,7 @@ describe('StudioDeleteButton', () => {
 
   it('Calls the onDelete callback when the user clicks the button and confirms', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     renderDeleteButton();
     await user.click(getDeleteButton());
     expect(onDelete).toHaveBeenCalledTimes(1);
@@ -27,7 +28,7 @@ describe('StudioDeleteButton', () => {
 
   it('Does not call the onDelete callback when the user clicks the button and cancels', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => false);
+    vi.spyOn(window, 'confirm').mockImplementation(() => false);
     renderDeleteButton();
     await user.click(getDeleteButton());
     expect(onDelete).toHaveBeenCalledTimes(0);
@@ -42,8 +43,8 @@ describe('StudioDeleteButton', () => {
 
   it('Calls the onClick callback when the user clicks, regardless of confirmation', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => false);
-    const onClick = jest.fn();
+    vi.spyOn(window, 'confirm').mockImplementation(() => false);
+    const onClick = vi.fn();
     renderDeleteButton({ onClick });
     await user.click(getDeleteButton());
     expect(onClick).toHaveBeenCalledTimes(1);
@@ -58,7 +59,7 @@ describe('StudioDeleteButton', () => {
 });
 
 const confirmMessage: string = 'Er du sikker på at du vil slette dette?';
-const onDelete = jest.fn();
+const onDelete = vi.fn();
 const buttonLabel: string = 'Slett';
 const defaultProps: StudioDeleteButtonProps = {
   children: buttonLabel,

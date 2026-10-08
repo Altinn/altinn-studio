@@ -20,6 +20,8 @@ public class TestOidcAuthHandler : AuthenticationHandler<AuthenticationSchemeOpt
     )
         : base(options, logger, encoder) { }
 
+    protected virtual string AuthorizedPartyOrgNumber => "991825827";
+
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var authorizationDetails = new[]
@@ -32,7 +34,7 @@ public class TestOidcAuthHandler : AuthenticationHandler<AuthenticationSchemeOpt
                 {
                     new
                     {
-                        orgno = new { authority = "iso6523-actorid-upis", ID = "0192:991825827" },
+                        orgno = new { authority = "iso6523-actorid-upis", ID = $"0192:{AuthorizedPartyOrgNumber}" },
                         resource = "digdir-selvbetjening-klienter",
                         name = "Test org",
                     },

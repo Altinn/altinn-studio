@@ -29,6 +29,7 @@ export type IFormDesignerContainers = KeyValuePairs<FormContainer>;
 export type IFormLayouts = KeyValuePairs<IInternalLayout>;
 
 export interface IInternalLayout {
+  $schema?: string;
   components: IFormDesignerComponents;
   containers: IFormDesignerContainers;
   order: IFormLayoutOrder;

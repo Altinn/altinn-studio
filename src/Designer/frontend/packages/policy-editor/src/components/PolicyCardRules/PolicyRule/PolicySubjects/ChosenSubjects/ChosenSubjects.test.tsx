@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -7,7 +8,7 @@ describe('ChosenSubjects', () => {
   it('returns null when there are no items', () => {
     const testHeading = 'testHeading';
     render(
-      <ChosenSubjects groups={[{ heading: testHeading, handleRemove: jest.fn(), items: [] }]} />,
+      <ChosenSubjects groups={[{ heading: testHeading, handleRemove: vi.fn(), items: [] }]} />,
     );
     expect(screen.queryByText(testHeading)).not.toBeInTheDocument();
   });
@@ -15,8 +16,8 @@ describe('ChosenSubjects', () => {
   it('renders person heading and items when isPersonSubject is true', () => {
     const itemLabel = 'PersonItem';
     const groups = [
-      { heading: 'Person', handleRemove: jest.fn(), items: [{ urn: 'u1', label: itemLabel }] },
-      { heading: 'Person2', handleRemove: jest.fn(), items: [{ urn: 'u2', label: 'item2' }] },
+      { heading: 'Person', handleRemove: vi.fn(), items: [{ urn: 'u1', label: itemLabel }] },
+      { heading: 'Person2', handleRemove: vi.fn(), items: [{ urn: 'u2', label: 'item2' }] },
     ];
 
     render(<ChosenSubjects groups={groups} isPersonSubject />);
@@ -31,14 +32,14 @@ describe('ChosenSubjects', () => {
     const groups = [
       {
         heading: 'Group A',
-        handleRemove: jest.fn(),
+        handleRemove: vi.fn(),
         items: [
           { urn: 'u2', label: 'Banana' },
           { urn: 'u1', label: 'Apple' },
         ],
       },
-      { heading: 'Group B', handleRemove: jest.fn(), items: [{ urn: 'u3', label: 'Cherry' }] },
-      { heading: 'Group C', handleRemove: jest.fn(), items: [{ urn: 'u4', label: 'Lemon' }] },
+      { heading: 'Group B', handleRemove: vi.fn(), items: [{ urn: 'u3', label: 'Cherry' }] },
+      { heading: 'Group C', handleRemove: vi.fn(), items: [{ urn: 'u4', label: 'Lemon' }] },
     ];
 
     render(<ChosenSubjects groups={groups} />);
@@ -56,7 +57,7 @@ describe('ChosenSubjects', () => {
   it('calls handleRemove when checkbox is unchecked', async () => {
     const user = userEvent.setup();
 
-    const handleRemoveMock = jest.fn();
+    const handleRemoveMock = vi.fn();
     const groups = [
       {
         heading: 'Group A',

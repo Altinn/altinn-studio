@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { UrlUtils } from './UrlUtils';
 
 describe('UrlUtils', () => {

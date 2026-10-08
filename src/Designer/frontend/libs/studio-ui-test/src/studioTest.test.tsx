@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { studioTest } from './studioTest';
 
 describe('studioTest', () => {
   describe('runWithFakeTimers', () => {
     it('Runs the given function with fake timers', () => {
-      const delayedFunction = jest.fn();
+      const delayedFunction = vi.fn();
       studioTest.runWithFakeTimers(() => {
         setTimeout(delayedFunction, 100);
         studioTest.runAllTimers();
@@ -12,7 +13,7 @@ describe('studioTest', () => {
     });
 
     it('Restores the timers', () => {
-      const delayedFunction = jest.fn();
+      const delayedFunction = vi.fn();
       studioTest.runWithFakeTimers(() => {
         setTimeout(delayedFunction, 100);
         studioTest.runAllTimers();

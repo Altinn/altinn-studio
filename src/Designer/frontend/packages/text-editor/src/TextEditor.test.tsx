@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TextEditor } from './TextEditor';
 import type { TextEditorProps } from './TextEditor';
 import { act, render as rtlRender, screen } from '@testing-library/react';
@@ -12,7 +13,7 @@ import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { searchDebounceTimeInMs } from './constants';
 
 const user = userEvent.setup();
-let mockScrollIntoView = jest.fn();
+let mockScrollIntoView = vi.fn();
 
 describe('TextEditor', () => {
   const textId1 = 'textId1';
@@ -33,16 +34,16 @@ describe('TextEditor', () => {
 
   const renderTextEditor = (props: Partial<TextEditorProps> = {}) => {
     const defaultProps: TextEditorProps = {
-      addLanguage: jest.fn(),
+      addLanguage: vi.fn(),
       availableLanguages: ['nb', 'en'],
-      deleteLanguage: jest.fn(),
+      deleteLanguage: vi.fn(),
       searchQuery: undefined,
       selectedLangCodes: ['nb'],
-      setSearchQuery: jest.fn(),
-      setSelectedLangCodes: jest.fn(),
+      setSearchQuery: vi.fn(),
+      setSelectedLangCodes: vi.fn(),
       textResourceFiles,
-      updateTextId: jest.fn(),
-      upsertTextResource: jest.fn(),
+      updateTextId: vi.fn(),
+      upsertTextResource: vi.fn(),
     };
     queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
     const allProps: TextEditorProps = { ...defaultProps, ...props };
@@ -57,14 +58,14 @@ describe('TextEditor', () => {
   };
   beforeEach(() => {
     // Need to mock the scrollIntoView function
-    mockScrollIntoView = jest.fn();
+    mockScrollIntoView = vi.fn();
     window.HTMLElement.prototype.scrollIntoView = mockScrollIntoView;
   });
 
   it('fires upsertTextResource when Add new is clicked', async () => {
-    jest.spyOn(global.Math, 'random').mockReturnValue(0);
+    vi.spyOn(global.Math, 'random').mockReturnValue(0);
 
-    const upsertTextResource = jest.fn();
+    const upsertTextResource = vi.fn();
     renderTextEditor({
       upsertTextResource,
     });
@@ -79,11 +80,11 @@ describe('TextEditor', () => {
       textId: 'id_1000',
       translation: '',
     });
-    jest.spyOn(global.Math, 'random').mockRestore();
+    vi.spyOn(global.Math, 'random').mockRestore();
   });
 
   it('fires onDeleteLang when Delete lang is clicked', async () => {
-    const handleDeleteLang = jest.fn();
+    const handleDeleteLang = vi.fn();
     renderTextEditor({
       deleteLanguage: handleDeleteLang,
     });
@@ -101,8 +102,8 @@ describe('TextEditor', () => {
   });
 
   it('removes nb from selectedLanguages when delete lang is clicked', async () => {
-    const setSelectedLangCodes = jest.fn((langs: string[]) => langs);
-    const handleDeleteLang = jest.fn();
+    const setSelectedLangCodes = vi.fn((langs: string[]) => langs);
+    const handleDeleteLang = vi.fn();
     renderTextEditor({
       selectedLangCodes: ['nb', 'en'],
       setSelectedLangCodes: setSelectedLangCodes,
@@ -122,7 +123,7 @@ describe('TextEditor', () => {
   });
 
   it('calls setSelectedLang code when lang is changed', async () => {
-    const setSelectedLangCodes = jest.fn((langs: string[]) => langs);
+    const setSelectedLangCodes = vi.fn((langs: string[]) => langs);
     renderTextEditor({
       setSelectedLangCodes: setSelectedLangCodes,
     });
@@ -169,7 +170,7 @@ describe('TextEditor', () => {
   });
 
   it('signals correctly when a translation is changed', async () => {
-    const upsertTextResource = jest.fn();
+    const upsertTextResource = vi.fn();
     renderTextEditor({
       upsertTextResource,
     });
@@ -192,7 +193,7 @@ describe('TextEditor', () => {
   });
 
   describe('text-id mutation', () => {
-    const deleteSomething = async (onTextIdChange = jest.fn()) => {
+    const deleteSomething = async (onTextIdChange = vi.fn()) => {
       renderTextEditor({
         updateTextId: onTextIdChange,
       });
@@ -212,7 +213,7 @@ describe('TextEditor', () => {
       await expect(onTextIdChange).toHaveBeenCalledWith({ oldId: nb[0].id });
     };
 
-    const makeChangesToTextIds = async (onTextIdChange = jest.fn()) => {
+    const makeChangesToTextIds = async (onTextIdChange = vi.fn()) => {
       renderTextEditor({
         updateTextId: onTextIdChange,
       });
@@ -236,8 +237,8 @@ describe('TextEditor', () => {
       return textIdInput;
     };
     const setupError = () => {
-      const error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-      const onTextIdChange = jest.fn(() => {
+      const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const onTextIdChange = vi.fn(() => {
         throw 'some error';
       });
       return { error, onTextIdChange };
@@ -279,19 +280,19 @@ describe('TextEditor', () => {
   });
 
   describe('search', () => {
-    beforeEach(() => jest.useFakeTimers());
+    beforeEach(() => vi.useFakeTimers());
 
     afterEach(() => {
-      jest.runOnlyPendingTimers();
-      jest.useRealTimers();
+      vi.runOnlyPendingTimers();
+      vi.useRealTimers();
     });
 
     const getSearchInput = (): HTMLElement =>
       screen.getByRole('searchbox', { name: textMock('text_editor.search_for_text') });
 
     const setupSearch = () => {
-      const setSearchQuery = jest.fn();
-      const searchUser = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      const setSearchQuery = vi.fn();
+      const searchUser = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
       renderTextEditor({ setSearchQuery });
       return { setSearchQuery, searchUser };
     };
@@ -302,7 +303,7 @@ describe('TextEditor', () => {
       await searchUser.type(getSearchInput(), 'abc');
       expect(setSearchQuery).not.toHaveBeenCalled();
 
-      act(() => jest.advanceTimersByTime(searchDebounceTimeInMs));
+      act(() => vi.advanceTimersByTime(searchDebounceTimeInMs));
 
       expect(setSearchQuery).toHaveBeenCalledTimes(1);
       expect(setSearchQuery).toHaveBeenCalledWith('abc');
@@ -312,7 +313,7 @@ describe('TextEditor', () => {
       const { setSearchQuery, searchUser } = setupSearch();
 
       await searchUser.type(getSearchInput(), 'abc');
-      act(() => jest.advanceTimersByTime(searchDebounceTimeInMs));
+      act(() => vi.advanceTimersByTime(searchDebounceTimeInMs));
       setSearchQuery.mockClear();
 
       await searchUser.clear(getSearchInput());
@@ -330,7 +331,7 @@ describe('TextEditor', () => {
       expect(setSearchQuery).toHaveBeenCalledWith('');
       setSearchQuery.mockClear();
 
-      act(() => jest.advanceTimersByTime(searchDebounceTimeInMs * 2));
+      act(() => vi.advanceTimersByTime(searchDebounceTimeInMs * 2));
 
       expect(setSearchQuery).not.toHaveBeenCalled();
       expect(getSearchInput()).toHaveValue('');

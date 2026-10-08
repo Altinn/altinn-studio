@@ -93,7 +93,7 @@ describe('ConfirmUndeployDialog', () => {
 
   it('should disable the undeploy-button while undeploy isPending', async () => {
     const user = userEvent.setup();
-    const undeployMock = jest.fn(() => new Promise((resolve) => setTimeout(resolve, 100)));
+    const undeployMock = jest.fn(() => new Promise<void>(() => {}));
 
     renderConfirmUndeployDialog({
       undeployAppFromEnvMock: undeployMock,

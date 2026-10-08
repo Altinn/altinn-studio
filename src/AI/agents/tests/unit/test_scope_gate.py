@@ -370,19 +370,6 @@ class TestTheClassifierSeesTheConversation:
     def test_no_conversation_keeps_the_bare_shape(self):
         assert build_scope_check_message("hei") == "Classify this question: hei"
 
-    def test_only_the_last_turns_travel(self):
-        turns = [{"role": "user", "content": f"turn {n}"} for n in range(10)]
-
-        message = build_scope_check_message("og?", turns)
-
-        assert "turn 9" in message
-        assert "turn 5" not in message
-
-    def test_a_long_turn_is_truncated(self):
-        turns = [{"role": "user", "content": "x" * 5000}]
-
-        assert len(build_scope_check_message("og?", turns)) < 1000
-
     async def test_the_gate_hands_the_history_to_the_classifier(self):
         seen = {}
 

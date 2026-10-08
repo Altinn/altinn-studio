@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   addCombinationItem,
   deleteNode,
@@ -38,7 +39,6 @@ import {
   unusedDefinitionMock,
 } from '../../../test/uiSchemaMock';
 import { getChildNodesByFieldPointer } from '../selectors';
-import { expect } from '@jest/globals';
 import { CombinationKind, Keyword, ObjectKind, StrRestrictionKey } from '../../types';
 import { getPointers } from '../mappers/getPointers';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
@@ -60,7 +60,7 @@ describe('ui-schema-reducers', () => {
 
   afterEach(() => {
     validateTestUiSchema(result.asArray());
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('deleteNode', () => {
@@ -195,7 +195,7 @@ describe('ui-schema-reducers', () => {
   describe('addCombinationItem', () => {
     it('Adds a new item to the given combination node and calls the callback function with its pointer', () => {
       const { schemaPointer } = allOfNodeMock;
-      const callback = jest.fn();
+      const callback = vi.fn();
       const args: AddCombinationItemArgs = { schemaPointer, callback };
       result = addCombinationItem(createNewModelMock(), args);
       const newItemPointer = callback.mock.calls[0][0];
@@ -207,7 +207,7 @@ describe('ui-schema-reducers', () => {
   describe('setPropertyName', () => {
     const { schemaPointer } = stringNodeMock;
     const name = 'new name';
-    const callback = jest.fn();
+    const callback = vi.fn();
     const args: SetPropertyNameArgs = { path: schemaPointer, name, callback };
     const expectedPointer = StringUtils.substringBeforeLast(schemaPointer, '/') + '/' + name;
 

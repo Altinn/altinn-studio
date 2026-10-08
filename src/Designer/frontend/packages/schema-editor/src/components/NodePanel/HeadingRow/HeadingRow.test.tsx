@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { HeadingRow } from './HeadingRow';
 import type { HeadingRowProps } from './HeadingRow';
 import type { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
@@ -26,9 +27,9 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 // Test data:
 const initialModel = SchemaModel.fromArray(schemaNodesMock);
 const createSchemaModel = () => initialModel.deepClone();
-const setSelectedUniquePointer = jest.fn();
-const setSelectedTypePointer = jest.fn();
-const save = jest.fn();
+const setSelectedUniquePointer = vi.fn();
+const setSelectedTypePointer = vi.fn();
+const save = vi.fn();
 const dataModelName = 'Test';
 
 const defaultProps: HeadingRowProps = {
@@ -44,19 +45,21 @@ const defaultAppContextProps: SchemaEditorAppContextProps = {
   save,
   name: dataModelName,
   prefillConfig: {},
-  savePrefillConfig: jest.fn(),
+  savePrefillConfig: vi.fn(),
 };
 
 // Mocks:
-jest.mock('./HeadingRow.module.css', () => ({
-  root: 'root',
-  selected: 'selected',
-  heading: 'heading',
-  headingButton: 'headingButton',
+vi.mock('./HeadingRow.module.css', () => ({
+  default: {
+    root: 'root',
+    selected: 'selected',
+    heading: 'heading',
+    headingButton: 'headingButton',
+  },
 }));
 
 describe('HeadingRow', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('When no type is selected', () => {
     it('Renders a level one heading with the name of the data model', () => {
@@ -228,7 +231,7 @@ describe('HeadingRow', () => {
         it('Deletes and unselects the node when clicking the delete button and confirming', async () => {
           const user = userEvent.setup();
           const schemaModel = createSchemaModel();
-          jest.spyOn(window, 'confirm').mockImplementation(() => true);
+          vi.spyOn(window, 'confirm').mockImplementation(() => true);
           renderHeadingRowForType(schemaPointer, { schemaModel });
           await user.click(getDeleteButton());
           expect(save).toHaveBeenCalledTimes(1);

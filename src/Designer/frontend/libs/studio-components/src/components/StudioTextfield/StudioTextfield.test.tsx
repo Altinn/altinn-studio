@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { screen, render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioTextfield } from './StudioTextfield';
