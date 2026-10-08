@@ -383,7 +383,7 @@ public class WorkflowsController : ControllerBase
         // streamed the body — the action returning here must not dispose it first.
         return Outcome(
             ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture),
-            new UpstreamPassthroughResult(response)
+            new UpstreamPassthroughResult(response, _logger)
         );
 
         IActionResult Outcome(string outcome, IActionResult result)
