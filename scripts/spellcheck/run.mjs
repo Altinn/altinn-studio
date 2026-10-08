@@ -786,6 +786,7 @@ async function checkSelfTest({ ci }) {
     DRIFT_REGISTRY,
     FIX_SCENARIOS,
     CLASSIFIER_SCENARIOS,
+    RECORD_READER_FAILURES,
   } = await import('./selftest/registry.mjs');
   // The engine-exclude declarations are production policy, not fixture data
   // — they ride along so the liveness arm of the coverage check proves the
@@ -865,6 +866,19 @@ async function checkSelfTest({ ci }) {
   // class, so the checks prove they honor a declaration without going
   // blind, plus one stale entry per kind whose check runs stale detection.
   const fixtureKeys = join(HERE, 'selftest/fixtures/keys.txt');
+
+  // Invalid record definitions must fail rather than silently lose text.
+  for (const [group, message] of RECORD_READER_FAILURES) {
+    assertions += 1;
+    try {
+      await readGroup(group);
+      failures.push(finding('(self-test)', undefined, `record reader did not reject: ${message}`));
+    } catch (err) {
+      if (!(err instanceof HarnessError) || !err.message.includes(message)) {
+        throw err;
+      }
+    }
+  }
 
   const structure = await checkStructure({ registry, root: REPO_ROOT, keysPath: fixtureKeys });
   assertFindings('structure', structure.findings, 'structure');

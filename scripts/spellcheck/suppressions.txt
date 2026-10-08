@@ -134,12 +134,6 @@ Statistisk
 # Only the specific foreign tokens are accepted, and only where they occur
 # — a whole-directory exclude would hide real English typos as collateral.
 
-# Norwegian names, descriptions and wire role codes from the external role catalogue.
-@paths src/Designer/frontend/resourceadm/pages/Altinn2ResourcePoliciesPage/AllRoles.ts
-delt
-mor
-partiets
-
 # KS.Fiks.Arkiv Norwegian model and member names (SvarPaaForespoersel/Som*, …)
 @paths src/App/backend/**/Altinn.App.Clients.Fiks*/**
 Dokument
