@@ -250,6 +250,97 @@ public sealed class AsyncSuffixApiMigrationTests : IDisposable
         AssertCompilesAgainstV9();
     }
 
+    [Fact]
+    public void WithSemantics_CallSiteInAFileProcessedAfterTheImplementation_StillRenamed()
+    {
+        // Pin the order that used to lose the call: the implementation's file is rewritten first.
+        _app.Write("logic/First.cs", "");
+        _app.Write("logic/Second.cs", "");
+        var order = SyntaxScanner().Files.Select(file => file.Path).Where(path => path.Contains("logic")).ToList();
+        var implementation = order[0];
+        var caller = order[1];
+        File.WriteAllText(
+            implementation,
+            """
+            using Altinn.App.Core.Features;
+
+            public class RouteGateway : IProcessExclusiveGateway
+            {
+                public string GatewayId => "Gateway_1";
+
+                public Task<List<string>> FilterAsync(List<string> outgoingFlows) => Task.FromResult(outgoingFlows);
+            }
+            """
+        );
+        File.WriteAllText(
+            caller,
+            """
+            public class GatewayCaller
+            {
+                public Task<List<string>> Run(RouteGateway gateway) => gateway.FilterAsync([]);
+            }
+            """
+        );
+
+        new AsyncSuffixApiMigration(SemanticScanner()).Migrate();
+
+        Assert.Contains("gateway.Filter([])", File.ReadAllText(caller));
+        AssertCompilesAgainstV9();
+    }
+
+    [Fact]
+    public void WithSemantics_ExplicitImplementationAndNameofRenamed()
+    {
+        var provider = _app.Write(
+            "options/CountryOptions.cs",
+            """
+            using Altinn.App.Core.Features;
+            using Altinn.App.Core.Models;
+
+            public class CountryOptions : IAppOptionsProvider
+            {
+                public string Id => nameof(IAppOptionsProvider.GetAppOptionsAsync);
+
+                Task<AppOptions> IAppOptionsProvider.GetAppOptionsAsync(
+                    string? language,
+                    Dictionary<string, string> keyValuePairs
+                ) => Task.FromResult(new AppOptions());
+            }
+            """
+        );
+
+        new AsyncSuffixApiMigration(SemanticScanner()).Migrate();
+
+        var migrated = File.ReadAllText(provider);
+        Assert.Contains("nameof(IAppOptionsProvider.GetAppOptions)", migrated);
+        Assert.Contains("Task<AppOptions> IAppOptionsProvider.GetAppOptions(", migrated);
+        AssertCompilesAgainstV9();
+    }
+
+    [Fact]
+    public void Rerun_FindsNothingLeftToDo()
+    {
+        _app.Write(
+            "logic/RouteGateway.cs",
+            """
+            using Altinn.App.Core.Features;
+
+            public class RouteGateway : IProcessExclusiveGateway
+            {
+                public string GatewayId => "Gateway_1";
+
+                public Task<List<string>> FilterAsync(List<string> outgoingFlows) => Task.FromResult(outgoingFlows);
+            }
+            """
+        );
+        new AsyncSuffixApiMigration(SemanticScanner()).Migrate();
+
+        // A resumed upgrade scans without a compilation.
+        var rerun = new AsyncSuffixApiMigration(SyntaxScanner()).Migrate();
+
+        Assert.Empty(rerun.Messages);
+    }
+
     // --- Without a compilation: only implementations of SDK interfaces -----------------------------
 
     [Fact]
@@ -287,6 +378,30 @@ public sealed class AsyncSuffixApiMigrationTests : IDisposable
         Assert.Contains("public Task<AppOptions> GetAppOptions(string? language", migrated);
         Assert.Contains("public Task<List<string>> Filter(List<string> outgoingFlows)", migrated);
         Assert.Contains("public Task<int> FilterAsync(int value)", migrated);
+    }
+
+    [Fact]
+    public void WithoutSemantics_ExplicitInterfaceImplementationRenamed()
+    {
+        var provider = _app.Write(
+            "options/CountryOptions.cs",
+            """
+            public class CountryOptions : IAppOptionsProvider
+            {
+                public string Id => "countries";
+
+                Task<AppOptions> IAppOptionsProvider.GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs) =>
+                    Task.FromResult(new AppOptions());
+            }
+            """
+        );
+
+        new AsyncSuffixApiMigration(SyntaxScanner()).Migrate();
+
+        Assert.Contains(
+            "Task<AppOptions> IAppOptionsProvider.GetAppOptions(string? language",
+            File.ReadAllText(provider)
+        );
     }
 
     [Fact]
@@ -405,9 +520,33 @@ public sealed class AsyncSuffixApiMigrationTests : IDisposable
         var result = new AsyncSuffixApiMigration(SyntaxScanner()).Migrate();
 
         Assert.Contains("LayoutEvaluator.RemoveHiddenDataAsync(state, option);", File.ReadAllText(processor));
-        Assert.Contains(result.Warnings, w => w.Contains("HiddenData.cs:4") && w.Contains("RemoveHiddenDataAsync"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("HiddenData.cs:4: RemoveHiddenDataAsync (also pass evaluateRemoveWhenHidden: false)")
+        );
         var todo = Assert.Single(result.Todos);
         Assert.Contains("HiddenData.cs:7", todo);
+    }
+
+    [Fact]
+    public void RemoveHiddenData_WithoutSemantics_UsingStaticSyncCallReported()
+    {
+        _app.Write(
+            "logic/HiddenData.cs",
+            """
+            using static Altinn.App.Core.Internal.Expressions.LayoutEvaluator;
+
+            public class HiddenData
+            {
+                public void CleanSync(object state, object option) => RemoveHiddenData(state, option);
+            }
+            """
+        );
+
+        var result = new AsyncSuffixApiMigration(SyntaxScanner()).Migrate();
+
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("HiddenData.cs:5", todo);
     }
 
     // --- String literals are never touched --------------------------------------------------------

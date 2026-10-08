@@ -82,8 +82,11 @@ internal sealed class AsyncSuffixApiMigration
         var unverified = new List<string>();
         var syncRemoveHiddenData = new List<string>();
 
-        // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
-        foreach (var file in _scanner.Files.ToArray())
+        // Every file is rewritten against the same compilation before any is written back: an Update
+        // re-roots the compilation, after which a call in a later file to an app method this step has
+        // already renamed would no longer bind, and would be left behind without a word.
+        var rewrites = new List<(ScannedCSharpFile File, CompilationUnitSyntax Root)>();
+        foreach (var file in _scanner.Files)
         {
             var rewriter = new Rewriter(file);
             var updated = rewriter.Visit(file.Root);
@@ -94,8 +97,13 @@ internal sealed class AsyncSuffixApiMigration
                 continue;
             }
 
-            _scanner.Update(file, (CompilationUnitSyntax)updated);
+            rewrites.Add((file, (CompilationUnitSyntax)updated));
             changes.AddRange(rewriter.Changes);
+        }
+
+        foreach (var (file, root) in rewrites)
+        {
+            _scanner.Update(file, root);
         }
 
         var messages = new List<UpgradeMessage>();
@@ -142,12 +150,21 @@ internal sealed class AsyncSuffixApiMigration
         private readonly ScannedCSharpFile _file;
         private readonly SemanticModel? _semanticModel;
         private readonly HashSet<string> _referencedNames;
+        private readonly bool _importsLayoutEvaluatorStatically;
 
         public Rewriter(ScannedCSharpFile file)
         {
             _file = file;
             _semanticModel = file.SemanticModel;
             _referencedNames = ReferencedNames(file.Root);
+            _importsLayoutEvaluatorStatically = file
+                .Root.DescendantNodes()
+                .OfType<UsingDirectiveSyntax>()
+                .Any(directive =>
+                    directive.StaticKeyword.IsKind(SyntaxKind.StaticKeyword)
+                    && directive.Name is { } name
+                    && TrailingName(name) == LayoutEvaluator
+                );
         }
 
         public List<string> Changes { get; } = [];
@@ -166,7 +183,11 @@ internal sealed class AsyncSuffixApiMigration
                 SyncRemoveHiddenData.Add($"{_file.RelativePath}:{_file.GetLine(node)}");
             }
 
-            var visited = (InvocationExpressionSyntax)base.VisitInvocationExpression(node)!;
+            if (base.VisitInvocationExpression(node) is not InvocationExpressionSyntax visited)
+            {
+                return node;
+            }
+
             var renamed =
                 invokedName == RemoveHiddenDataAsync
                 && CSharpSemanticQueries.InvokedName(visited)?.Identifier.ValueText == RemoveHiddenData;
@@ -211,7 +232,9 @@ internal sealed class AsyncSuffixApiMigration
 
             if (rename.DeclaringTypes.Any(_referencedNames.Contains))
             {
-                Unverified.Add($"{_file.RelativePath}:{_file.GetLine(parent)}: {token.ValueText}");
+                Unverified.Add(
+                    $"{_file.RelativePath}:{_file.GetLine(parent)}: {token.ValueText}{UnverifiedHint(token, parent)}"
+                );
             }
 
             return token;
@@ -237,8 +260,15 @@ internal sealed class AsyncSuffixApiMigration
                     && symbol?.ContainingType.Name == LayoutEvaluator;
             }
 
-            return node.Expression is MemberAccessExpressionSyntax { Expression: var receiver }
-                && receiver.ToString().Split('.')[^1] == LayoutEvaluator;
+            return node.Expression switch
+            {
+                MemberAccessExpressionSyntax { Expression: var receiver } => receiver.ToString().Split('.')[^1]
+                    == LayoutEvaluator,
+                // `using static ...LayoutEvaluator;` makes an unqualified call the SDK's unless the app
+                // declares a method of the same name, which then takes precedence.
+                IdentifierNameSyntax => _importsLayoutEvaluatorStatically && !DeclaresMethod(node, RemoveHiddenData),
+                _ => false,
+            };
         }
 
         /// <summary>
@@ -266,6 +296,22 @@ internal sealed class AsyncSuffixApiMigration
                     )
             );
         }
+
+        /// <summary>
+        /// Extra advice for an occurrence where dropping the suffix alone would not compile: v9 has no
+        /// two-parameter <c>RemoveHiddenData</c>.
+        /// </summary>
+        private static string UnverifiedHint(SyntaxToken token, SyntaxNode parent) =>
+            token.ValueText == RemoveHiddenDataAsync
+            && parent.FirstAncestorOrSelf<InvocationExpressionSyntax>() is { } invocation
+            && CSharpSemanticQueries.InvokedName(invocation) == parent
+            && invocation.ArgumentList.Arguments.Count == 2
+                ? " (also pass evaluateRemoveWhenHidden: false)"
+                : "";
+
+        private static bool DeclaresMethod(SyntaxNode node, string name) =>
+            node.FirstAncestorOrSelf<TypeDeclarationSyntax>() is { } type
+            && type.Members.OfType<MethodDeclarationSyntax>().Any(method => method.Identifier.ValueText == name);
 
         private static bool ImplementsSdkInterface(MethodDeclarationSyntax method, SdkRename rename) =>
             method.Parent is TypeDeclarationSyntax { BaseList: { } baseList }
