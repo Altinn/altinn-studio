@@ -14,15 +14,19 @@ export interface IDataModelBindingsForCustom {
 
 export type CompCustomSerialized = {
   type: 'Custom';
-  textResourceBindings?: { title?: ExprValToActualOrExpr<ExprVal.String> } & TRBFormComp &
+  textResourceBindings?: {
+    title?: ExprValToActualOrExpr<ExprVal.String>;
+    [key: string]: ExprValToActualOrExpr<ExprVal.String> | undefined;
+  } & TRBFormComp &
     TRBSummarizable;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForCustom;
   tagName: string;
+  [key: string]: unknown;
 } & ComponentBase &
   FormComponentProps &
   SummarizableComponentProps;
 
-// Source hash: 16f99fd30cc4b277f550c29442b9e7e7cc0e0b75e6b9982c21ff9cc738cb192f
+// Source hash: 107b19df934f6e9c4238335039fc35d287b3b5a3b2c9b989d27a7f1436a71a14

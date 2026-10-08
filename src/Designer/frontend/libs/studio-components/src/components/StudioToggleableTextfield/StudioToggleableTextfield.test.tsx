@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import {
@@ -9,12 +10,12 @@ import userEvent from '@testing-library/user-event';
 
 const value: string = 'value';
 const label: string = 'label';
-const customValidation = jest.fn();
-const onBlur = jest.fn();
-const onChange = jest.fn();
+const customValidation = vi.fn();
+const onBlur = vi.fn();
+const onChange = vi.fn();
 
 describe('StudioToggleableTextfield', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Renders the view mode by default', () => {
     renderStudioToggleableTextfield();
@@ -83,7 +84,7 @@ describe('StudioToggleableTextfield', () => {
   it('should render error message if customValidation occurred', async () => {
     const user = userEvent.setup();
     const customError = 'Your name cannot include the letter "t"';
-    const customValidationSpy = jest.fn((valueToValidate: string) =>
+    const customValidationSpy = vi.fn((valueToValidate: string) =>
       valueToValidate.includes('t') ? customError : undefined,
     );
     renderStudioToggleableTextfield({ customValidation: customValidationSpy });
@@ -115,7 +116,7 @@ describe('StudioToggleableTextfield', () => {
 
   it('should call onIsViewMode callback when view mode changes', async () => {
     const user = userEvent.setup();
-    const onIsViewModeSpy = jest.fn();
+    const onIsViewModeSpy = vi.fn();
     renderStudioToggleableTextfield({ onIsViewMode: onIsViewModeSpy });
     expect(onIsViewModeSpy).toHaveBeenCalledWith(true);
     await user.click(screen.getByRole('button', { name: label }));
@@ -143,7 +144,7 @@ describe('StudioToggleableTextfield', () => {
 
   it('should handle onChange without custom validation', async () => {
     const user = userEvent.setup();
-    const onChangeSpy = jest.fn();
+    const onChangeSpy = vi.fn();
     renderStudioToggleableTextfield({ customValidation: undefined, onChange: onChangeSpy });
     await user.click(screen.getByRole('button', { name: label }));
     const input = screen.getByRole('textbox', { name: label });

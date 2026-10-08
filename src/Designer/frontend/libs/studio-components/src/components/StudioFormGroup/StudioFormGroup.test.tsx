@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { ReactNode } from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { screen, render } from '@testing-library/react';

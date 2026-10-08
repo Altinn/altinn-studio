@@ -1,11 +1,13 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mocked } from 'vitest';
 import axios from 'axios';
 import { submitFeedback } from './submitUtils';
 
-jest.mock('axios');
-var mockedAxios = axios as jest.Mocked<typeof axios>;
+vi.mock('axios');
+var mockedAxios = axios as Mocked<typeof axios>;
 
 describe('submitFeedback', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should submit feedback', async () => {
     const answers = { question1: 'answer1' };
@@ -18,7 +20,7 @@ describe('submitFeedback', () => {
   it('should throw error if submission fails', async () => {
     const answers = { question1: 'answer1' };
     const path = 'path';
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const error = new Error('Failed to submit feedback');
     mockedAxios.post.mockRejectedValueOnce(error);
     await expect(submitFeedback(answers, path)).rejects.toThrow(error);

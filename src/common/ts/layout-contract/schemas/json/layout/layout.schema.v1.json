@@ -2700,7 +2700,9 @@
                     "summaryAccessibleTitle": true,
                     "title": true
                   },
-                  "additionalProperties": false
+                  "additionalProperties": {
+                    "$ref": "expression.schema.v1.json#/definitions/string"
+                  }
                 }
               ]
             },
@@ -2759,7 +2761,7 @@
             "type",
             "tagName"
           ],
-          "additionalProperties": false
+          "additionalProperties": true
         }
       ]
     },

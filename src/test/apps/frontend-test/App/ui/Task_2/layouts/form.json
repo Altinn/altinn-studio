@@ -1197,6 +1197,10 @@
             "value": "label-data-bindings"
           },
           {
+            "label": "Egendefinerte komponenter",
+            "value": "custom-components"
+          },
+          {
             "label": "Cards",
             "value": "cards"
           },

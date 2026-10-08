@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen, within } from '@testing-library/react';
 import type { StudioCodeListEditorProps } from './StudioCodeListEditor';
@@ -12,8 +13,8 @@ import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAp
 import { studioTest } from '@studio/ui-test';
 
 // Test data:
-const onInvalid = jest.fn();
-const onUpdateCodeList = jest.fn();
+const onInvalid = vi.fn();
+const onUpdateCodeList = vi.fn();
 const fallbackLanguage = 'nb';
 const defaultProps: StudioCodeListEditorProps = {
   codeList,
@@ -41,7 +42,7 @@ const codeListWithDuplicatedValues: CodeList = [
 const numberOfHeadingRows = 1;
 
 describe('StudioCodeListEditor', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Renders a group element with the given title', () => {
     renderCodeListEditor();

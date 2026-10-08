@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -90,7 +91,7 @@ const accessPackageResources = [skdResource, skdResource2, navResource];
 const testEnv = 'tt02';
 
 describe('PolicyAccessPackageAccordionContent', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should show spinner on loading', () => {
     renderPolicyAccessPackageAccordionContent();
@@ -101,7 +102,7 @@ describe('PolicyAccessPackageAccordionContent', () => {
   });
 
   it('should show services', async () => {
-    const getAccessPackageServices = jest
+    const getAccessPackageServices = vi
       .fn()
       .mockImplementation(() => Promise.resolve(accessPackageResources));
 
@@ -113,7 +114,7 @@ describe('PolicyAccessPackageAccordionContent', () => {
   it('should show services of selected environment', async () => {
     const user = userEvent.setup();
 
-    const getAccessPackageServices = jest
+    const getAccessPackageServices = vi
       .fn()
       .mockImplementationOnce(() => Promise.resolve(accessPackageResources))
       .mockImplementationOnce(() => Promise.resolve([prodResource]));
@@ -132,7 +133,7 @@ describe('PolicyAccessPackageAccordionContent', () => {
   it('should only show services of selected service owner', async () => {
     const user = userEvent.setup();
 
-    const getAccessPackageServices = jest
+    const getAccessPackageServices = vi
       .fn()
       .mockImplementation(() => Promise.resolve(accessPackageResources));
 
@@ -151,7 +152,7 @@ describe('PolicyAccessPackageAccordionContent', () => {
   it('should set service owner filter to all service owners when env is changed and selected org has no services in selected env', async () => {
     const user = userEvent.setup();
 
-    const getAccessPackageServices = jest
+    const getAccessPackageServices = vi
       .fn()
       .mockImplementationOnce(() => Promise.resolve(accessPackageResources))
       .mockImplementationOnce(() => Promise.resolve([prodResource]));
@@ -174,7 +175,7 @@ describe('PolicyAccessPackageAccordionContent', () => {
   });
 
   it('should show service owner orgcode if service owner name is missing', async () => {
-    const getAccessPackageServices = jest.fn().mockImplementation(() =>
+    const getAccessPackageServices = vi.fn().mockImplementation(() =>
       Promise.resolve([
         {
           ...skdResource,

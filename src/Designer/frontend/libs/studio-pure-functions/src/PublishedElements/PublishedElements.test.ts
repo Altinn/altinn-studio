@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { PublishedElements } from './PublishedElements';
 
 // Test data:

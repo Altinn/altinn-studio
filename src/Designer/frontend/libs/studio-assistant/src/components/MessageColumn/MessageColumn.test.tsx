@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { MessageColumn } from './MessageColumn';
 import { render, screen } from '@testing-library/react';
 import type { MessageColumnProps } from './MessageColumn';
@@ -42,7 +43,7 @@ describe('MessageColumn', () => {
 const defaultProps: MessageColumnProps = {
   texts: mockTexts,
   messages: [],
-  onSubmitMessage: jest.fn(),
+  onSubmitMessage: vi.fn(),
   enableCompactInterface: false,
 };
 

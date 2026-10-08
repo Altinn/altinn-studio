@@ -1,4 +1,4 @@
-import { CompCategory } from '@app/layout-contract';
+import { CompCategory, ExprVal } from '@app/layout-contract';
 
 import { CG } from 'src/codegen/CG';
 
@@ -42,3 +42,7 @@ export const Config = new CG.component({
         .setDescription('Web component tag name to use', 'Navnet på web component-taggen som skal brukes.'),
     ),
   );
+
+// Custom elements may define their own configuration and translated texts.
+Config.inner.additionalProperties(true);
+Config.inner.getProperty('textResourceBindings')?.type.additionalProperties(new CG.expr(ExprVal.String).optional());

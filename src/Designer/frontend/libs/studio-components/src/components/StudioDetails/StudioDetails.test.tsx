@@ -1,3 +1,4 @@
+import { describe, it } from 'vitest';
 import { StudioDetails } from './';
 import { render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';

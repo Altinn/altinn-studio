@@ -7,7 +7,7 @@ Here are some of the exported modules:
 
 ## `studioTest`
 
-`studioTest` is a facade of the `jest` module.
+`studioTest` is a facade of the `jest` module, for test files that still run with Jest.
 
 ## `renderAndRunTimers`
 

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 // This test file is used to test that all icons in the studio-icons module
 import { render, screen } from '@testing-library/react';
 import * as StudioIcons from './index';

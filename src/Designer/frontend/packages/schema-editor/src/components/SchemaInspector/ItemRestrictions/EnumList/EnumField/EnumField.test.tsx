@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { EnumFieldProps } from './EnumField';
@@ -7,9 +8,9 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 const mockValue: string = 'test';
 const mockIndex: number = 0;
 
-const mockOnChange = jest.fn();
-const mockOnDelete = jest.fn();
-const mockOnEnterKeyPress = jest.fn();
+const mockOnChange = vi.fn();
+const mockOnDelete = vi.fn();
+const mockOnEnterKeyPress = vi.fn();
 
 const defaultProps: EnumFieldProps = {
   value: mockValue,
@@ -22,7 +23,7 @@ const defaultProps: EnumFieldProps = {
 };
 
 describe('EnumField', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('calls onChange when input value changes', async () => {
     const user = userEvent.setup();

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { StudioCodeListEditorWithTextResourcesProps } from './StudioCodeListEditorWithTextResources';
@@ -26,10 +27,10 @@ import { emptyBooleanItem, emptyNumberItem, emptyStringItem } from './utils';
 import { codeListWithoutTextResources } from './test-data/codeListWithoutTextResources';
 
 // Test data:
-const onCreateTextResource = jest.fn();
-const onInvalid = jest.fn();
-const onUpdateCodeList = jest.fn();
-const onUpdateTextResource = jest.fn();
+const onCreateTextResource = vi.fn();
+const onInvalid = vi.fn();
+const onUpdateCodeList = vi.fn();
+const onUpdateTextResource = vi.fn();
 const defaultProps: StudioCodeListEditorWithTextResourcesProps = {
   codeList: codeListWithStrings,
   texts,
@@ -64,7 +65,7 @@ const codeListWithDuplicatedValues: CodeListWithTextResources = [
 const numberOfHeadingRows = 1;
 
 describe('StudioCodeListEditorWithTextResources', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Renders a group element with the given title', () => {
     renderCodeListEditor();

@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fruitsFile } from '../test-data/codeLists';
 import { CodeListDataEditor } from './CodeListDataEditor';
 import type { CodeListDataEditorProps } from './CodeListDataEditor';
@@ -16,9 +17,9 @@ import { PageName } from '../../../../types/PageName';
 const currentFile = fruitsFile;
 const codeListName = FileNameUtils.removeExtension(currentFile.name);
 const extractCodeList = ({ content }: OrdinaryCodeListFile): CodeList => JSON.parse(content);
-const onUpdate = jest.fn();
-const onDelete = jest.fn();
-const onPublish = jest.fn();
+const onUpdate = vi.fn();
+const onDelete = vi.fn();
+const onPublish = vi.fn();
 const defaultProps: CodeListDataEditorProps = {
   currentFile,
   isPublishing: false,
@@ -30,7 +31,7 @@ const defaultProps: CodeListDataEditorProps = {
 };
 
 describe('CodeListDataEditor', () => {
-  beforeEach(jest.clearAllMocks);
+  beforeEach(vi.clearAllMocks);
 
   it('Renders the code list editor with given content', () => {
     renderCodeListDataEditor();
@@ -158,7 +159,7 @@ describe('CodeListDataEditor', () => {
   });
 
   it('Displays the correct error message when there is a JSON syntax error in the code list file', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       const fileWithInvalidJson: OrdinaryCodeListFile = { name: 'invalid.json', content: '{' };
 
@@ -172,7 +173,7 @@ describe('CodeListDataEditor', () => {
   });
 
   it('Displays the correct error message when the code list file has valid syntax, but is not correctly structured', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       const invalidCodeListJson = '{ "Hello": "I am not a code list" }';
       const invalidFile: OrdinaryCodeListFile = {
@@ -196,8 +197,8 @@ function renderCodeListDataEditor(props: Partial<CodeListDataEditorProps> = {}):
       <RouterContextProvider
         value={{
           location: PageName.LandingPage,
-          navigate: jest.fn(),
-          renderLink: jest.fn(),
+          navigate: vi.fn(),
+          renderLink: vi.fn(),
           contactPagePath: '/contact/',
         }}
         {...p}

@@ -393,7 +393,11 @@ export class ComponentConfig {
 
   public generateComponentCatalogEntry(): ComponentDefinition {
     this.beforeFinalizing();
+    const definition = this.inner.toComponentCatalogDefinition();
     return {
+      ...(definition.type === 'object' && definition.additionalProperties
+        ? { additionalProperties: definition.additionalProperties }
+        : {}),
       kind: this.config.category === CompCategory.Container ? 'container' : 'component',
       category: this.config.category,
       capabilities: this.config.capabilities,

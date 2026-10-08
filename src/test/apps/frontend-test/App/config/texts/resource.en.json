@@ -377,6 +377,22 @@
     {
       "id": "err_instantiation",
       "value": "The party you selected is not allowed to instantiate this form. This is a custom error message only for this app. <a href='/ttd/frontend-test/#/party-selection' class='same-window'>Please select another party</a>."
+    },
+    {
+      "id": "customComponent.title",
+      "value": "Custom field"
+    },
+    {
+      "id": "customComponent.caption",
+      "value": "Extra caption"
+    },
+    {
+      "id": "custom-components",
+      "value": "custom-components"
+    },
+    {
+      "id": "customComponent.readOnlyCaption",
+      "value": "Read-only caption"
     }
   ]
 }

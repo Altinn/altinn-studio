@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Menu } from './Menu';
@@ -7,7 +8,7 @@ import { renderWithProviders } from '../../../../test-utils/renderWithProviders'
 import type { ContentLibraryConfig } from '../../../types/ContentLibraryConfig';
 import { mockPagesConfig } from '../../../../mocks/mockPagesConfig';
 
-const navigateMock = jest.fn();
+const navigateMock = vi.fn();
 
 describe('Menu', () => {
   it('renders the pages as navigation titles', () => {

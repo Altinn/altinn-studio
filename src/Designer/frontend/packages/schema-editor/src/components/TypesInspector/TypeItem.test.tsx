@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { FieldNode } from '@altinn/schema-model';
 import { FieldType, ObjectKind, ROOT_POINTER } from '@altinn/schema-model';
 import { screen } from '@testing-library/react';
@@ -20,8 +21,8 @@ describe('TypeItem', () => {
   };
   it('should render the component', () => {
     renderWithProviders()(
-      <StudioDragAndDropTree.Provider onAdd={jest.fn()} onMove={jest.fn()} rootId={ROOT_POINTER}>
-        <TypeItem setSelectedTypePointer={jest.fn()} uiSchemaNode={uiSchemaNode} />
+      <StudioDragAndDropTree.Provider onAdd={vi.fn()} onMove={vi.fn()} rootId={ROOT_POINTER}>
+        <TypeItem setSelectedTypePointer={vi.fn()} uiSchemaNode={uiSchemaNode} />
       </StudioDragAndDropTree.Provider>,
     );
     expect(screen.getByText('MyTestType')).toBeInTheDocument();

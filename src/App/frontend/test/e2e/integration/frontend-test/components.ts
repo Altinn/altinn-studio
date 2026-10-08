@@ -725,15 +725,52 @@ describe('UI Components', () => {
 
   it('should be possible to change language back and forth and reflect the change in the UI', () => {
     cy.goto('changename');
+    cy.waitUntilSaved();
 
-    cy.findByRole('textbox', { name: newFirstNameNb }).should('exist');
+    let saveStarted = false;
+    let saveFinished = false;
+    let releaseSave = () => {};
+    cy.intercept({ method: 'PATCH', url: '**/instances/**/data?*', times: 1 }, (req) => {
+      saveStarted = true;
+      req.on('after:response', () => {
+        saveFinished = true;
+      });
+      // Keep a real save outstanding while selecting a language. The timeout also releases it if an assertion fails.
+      return new Cypress.Promise<void>((resolve) => {
+        const timeout = setTimeout(resolve, 10000);
+        releaseSave = () => {
+          clearTimeout(timeout);
+          resolve();
+        };
+      }).then(() => req.continue());
+    });
+    cy.intercept({ method: 'GET', url: '**/bootstrap-form/Task_2?language=en', times: 1 }, (req) => {
+      expect(saveFinished, 'save completed before language bootstrap').to.equal(true);
+      req.continue();
+    }).as('englishBootstrap');
+
+    cy.findByRole('textbox', { name: newFirstNameNb }).type('Per');
+    cy.findByRole('textbox', { name: newFirstNameNb }).blur();
+    cy.wrap(null).should(() => expect(saveStarted).to.equal(true));
     cy.findByRole('textbox', { name: /new first name/i }).should('not.exist');
-    changeToLang('en');
+    cy.findByRole('button', { name: 'Språkvalg' }).click();
+    cy.findByRole('menuitemradio', { name: 'Engelsk' }).click();
+    // Changes made while the first save is pending must also survive the language switch.
+    cy.findByRole('textbox', { name: newFirstNameNb }).clear();
+    cy.findByRole('textbox', { name: newFirstNameNb }).type('Ada');
+    cy.findByRole('textbox', { name: newFirstNameNb }).blur();
+    cy.then(() => {
+      expect(saveFinished, 'save still outstanding while editing and selecting a language').to.equal(false);
+      releaseSave();
+    });
+    cy.wait('@englishBootstrap').its('response.statusCode').should('equal', 200);
     cy.findByRole('textbox', { name: newFirstNameNb }).should('not.exist');
-    cy.findByRole('textbox', { name: /new first name/i }).should('exist');
+    cy.findByRole('textbox', { name: /new first name/i }).should('have.value', 'Ada');
     changeToLang('nb');
-    cy.findByRole('textbox', { name: newFirstNameNb }).should('exist');
+    cy.findByRole('textbox', { name: newFirstNameNb }).should('have.value', 'Ada');
     cy.findByRole('textbox', { name: /new first name/i }).should('not.exist');
+    cy.reloadAndWait();
+    cy.findByRole('textbox', { name: newFirstNameNb }).should('have.value', 'Ada');
   });
 
   interface Field {
