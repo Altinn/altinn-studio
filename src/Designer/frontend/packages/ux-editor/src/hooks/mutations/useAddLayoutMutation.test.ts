@@ -11,6 +11,7 @@ import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { app, org } from '@studio/testing/testids';
+import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 
 // Test data:
 const layoutName = 'layoutName';
@@ -37,8 +38,8 @@ describe('useAddLayoutMutation', () => {
       layoutName,
       selectedLayoutSet,
       {
-        componentIdsChange: undefined,
         layout: {
+          $schema: layoutSchemaUrl(),
           data: {
             layout: [expect.objectContaining({ type: ComponentType.NavigationButtons })],
             hidden: undefined,
