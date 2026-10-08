@@ -3,10 +3,14 @@ import type { CSSProperties, HTMLAttributes, KeyboardEvent, ReactElement, Ref } 
 import cn from 'classnames';
 import { ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
 import classes from './StudioCodeViewer.module.css';
-import { MAX_FORMATTED_CODE_LENGTH } from './codeLanguage';
-import type { StudioCodeViewerLanguage } from './highlightCode';
+import type { StudioCodeViewerLanguage } from './highlighter';
 import { useHighlightedLines } from './useHighlightedLines';
-import { createCodeLines, findFoldButtonForKey, findVisibleLineIndexes } from './utils';
+import {
+  createCodeLines,
+  findFoldButtonForKey,
+  findVisibleLineIndexes,
+  MAX_FORMATTED_CODE_LENGTH,
+} from './utils';
 import type { CodeLines } from './utils';
 
 export type StudioCodeViewerTexts = {

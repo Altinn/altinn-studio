@@ -1,3 +1,4 @@
+// Import this file only with import(). Then highlight.js stays in a separate chunk.
 import hljs from 'highlight.js/lib/core';
 import bash from 'highlight.js/lib/languages/bash';
 import csharp from 'highlight.js/lib/languages/csharp';
@@ -31,6 +32,4 @@ Object.entries(languageDefinitions).forEach(([name, definition]) =>
   hljs.registerLanguage(name, definition),
 );
 
-export function highlightCode(code: string, language: StudioCodeViewerLanguage): string {
-  return hljs.highlight(code, { language, ignoreIllegals: true }).value;
-}
+export { hljs as highlighter };

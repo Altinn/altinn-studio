@@ -4,8 +4,8 @@ import type { RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StudioCodeViewer } from './StudioCodeViewer';
 import type { StudioCodeViewerProps } from './StudioCodeViewer';
-import { MAX_FORMATTED_CODE_LENGTH } from './codeLanguage';
-import { loadHighlightCode } from './utils';
+import { loadHighlighter } from './highlightUtils';
+import { MAX_FORMATTED_CODE_LENGTH } from './utils';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
@@ -28,7 +28,7 @@ describe('StudioCodeViewer before the highlighter is loaded', () => {
 });
 
 describe('StudioCodeViewer', () => {
-  beforeAll(loadHighlightCode);
+  beforeAll(loadHighlighter);
 
   it('appends custom attributes to the root element', () => {
     testCustomAttributes(renderStudioCodeViewer);

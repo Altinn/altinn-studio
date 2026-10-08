@@ -1,22 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { StudioCodeViewerLanguage } from './highlightCode';
-import { splitHighlightedCodeIntoLines } from './codeLines';
-import { getHighlightCodeIfLoaded, loadHighlightCode } from './utils';
+import type { StudioCodeViewerLanguage } from './highlighter';
+import { getHighlighterIfLoaded, highlightCodeLines, loadHighlighter } from './highlightUtils';
 
 export function useHighlightedLines(
   code: string,
   language?: StudioCodeViewerLanguage,
 ): string[] | undefined {
-  const [highlight, setHighlight] = useState(getHighlightCodeIfLoaded);
+  const [highlighter, setHighlighter] = useState(getHighlighterIfLoaded);
 
   useEffect(() => {
-    if (!language || highlight) return;
-    loadHighlightCode().then((loaded) => setHighlight(() => loaded));
-  }, [language, highlight]);
+    if (!language || highlighter) return;
+    loadHighlighter().then(setHighlighter);
+  }, [language, highlighter]);
 
   return useMemo(
-    () =>
-      language && highlight ? splitHighlightedCodeIntoLines(highlight(code, language)) : undefined,
-    [highlight, code, language],
+    () => (language && highlighter ? highlightCodeLines(highlighter, code, language) : undefined),
+    [highlighter, code, language],
   );
 }

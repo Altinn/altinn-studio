@@ -1,4 +1,4 @@
-import { findJsonFoldRegions, splitHighlightedCodeIntoLines } from './codeLines';
+import { findJsonFoldRegions } from './utils';
 
 describe('findJsonFoldRegions', () => {
   it('maps the first line of each object and array to its last line and closing bracket', () => {
@@ -34,23 +34,5 @@ describe('findJsonFoldRegions', () => {
     expect(findJsonFoldRegions('{\n  "a": "{[\\"",\n  "b": "]}"\n}')).toEqual(
       new Map([[0, { endIndex: 3, closingColumn: 0 }]]),
     );
-  });
-});
-
-describe('splitHighlightedCodeIntoLines', () => {
-  it('splits the HTML at each line break', () => {
-    const html = '<span class="a">1</span>\n<span class="b">2</span>';
-    expect(splitHighlightedCodeIntoLines(html)).toEqual([
-      '<span class="a">1</span>',
-      '<span class="b">2</span>',
-    ]);
-  });
-
-  it('closes and opens again an element that continues on the next line', () => {
-    const html = '<span class="comment">/* one\ntwo */</span> code';
-    expect(splitHighlightedCodeIntoLines(html)).toEqual([
-      '<span class="comment">/* one</span>',
-      '<span class="comment">two */</span> code',
-    ]);
   });
 });
