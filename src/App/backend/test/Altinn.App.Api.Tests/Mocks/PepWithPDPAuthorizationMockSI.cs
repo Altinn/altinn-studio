@@ -42,7 +42,7 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
         try
         {
             XacmlContextRequest decisionRequest = XacmlJsonXmlConverter.ConvertRequest(xacmlJsonRequest.Request);
-            decisionRequest = await Enrich(decisionRequest);
+            decisionRequest = await Enrich(decisionRequest, cancellationToken);
 
             Authorization.ABAC.PolicyDecisionPoint pdp = new();
 
@@ -68,18 +68,18 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
         CancellationToken cancellationToken
     )
     {
-        XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
+        XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest, cancellationToken);
         return DecisionHelper.ValidatePdpDecision(response.Response, user);
     }
 
-    public async Task<XacmlContextRequest> Enrich(XacmlContextRequest request)
+    public async Task<XacmlContextRequest> Enrich(XacmlContextRequest request, CancellationToken cancellationToken)
     {
-        await EnrichResourceAttributes(request);
+        await EnrichResourceAttributes(request, cancellationToken);
 
         return request;
     }
 
-    private async Task EnrichResourceAttributes(XacmlContextRequest request)
+    private async Task EnrichResourceAttributes(XacmlContextRequest request, CancellationToken cancellationToken)
     {
         XacmlContextAttributes resourceContextAttributes = request.GetResourceAttributes();
         XacmlResourceAttributes resourceAttributes = GetResourceAttributeValues(resourceContextAttributes);
@@ -129,7 +129,7 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
                 Convert.ToInt32(resourceAttributes.InstanceValue.Split('/')[0]),
                 new Guid(resourceAttributes.InstanceValue.Split('/')[1]),
                 authenticationMethod: null,
-                CancellationToken.None
+                cancellationToken
             );
 
             if (instanceData != null)

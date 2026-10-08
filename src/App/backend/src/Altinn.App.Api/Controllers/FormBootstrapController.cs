@@ -204,7 +204,7 @@ public class FormBootstrapController : ControllerBase
         }
         else if (!isAnonymousAllowed)
         {
-            var enforcementResult = await AuthorizeStatelessRead(org, app);
+            var enforcementResult = await AuthorizeStatelessRead(org, app, cancellationToken);
             if (!enforcementResult.Authorized)
             {
                 return Forbidden(enforcementResult);
@@ -281,7 +281,11 @@ public class FormBootstrapController : ControllerBase
         return uiConfig?.Folders.GetValueOrDefault(uiFolder);
     }
 
-    private async Task<EnforcementResult> AuthorizeStatelessRead(string org, string app)
+    private async Task<EnforcementResult> AuthorizeStatelessRead(
+        string org,
+        string app,
+        CancellationToken cancellationToken
+    )
     {
         var partyId = await GetStatelessPartyId();
         if (partyId is null)
@@ -297,7 +301,7 @@ public class FormBootstrapController : ControllerBase
             partyId.Value,
             null
         );
-        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request, cancellationToken);
 
         if (response?.Response == null)
         {
