@@ -29,7 +29,7 @@ export interface WorkflowStatusData {
   done?: boolean;
   mode?: string;
   phase?: WorkflowPhase;
-  /** Milliseconds since the run started, stamped by the agents service.
+  /** Milliseconds since the run started, stamped by the assistant service.
    *  Lets a tab that adopts an in-flight run anchor its trail timers at the
    *  actual run start instead of at the first event it happens to receive. */
   elapsed_ms?: number;

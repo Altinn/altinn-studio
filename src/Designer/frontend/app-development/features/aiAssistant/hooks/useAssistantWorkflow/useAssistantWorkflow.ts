@@ -153,7 +153,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
 
   const applyStatusMessage = useCallback(
     (threadId: string, statusMessage: string, toolUseId?: string, elapsedMs?: number) => {
-      // elapsed_ms (time since run start, set by the agents service) is
+      // elapsed_ms (time since run start, set by the assistant service) is
       // authoritative for the trail clock.
       if (elapsedMs !== undefined) {
         workflowStartedAtMsByThreadRef.current[threadId] = performance.now() - elapsedMs;

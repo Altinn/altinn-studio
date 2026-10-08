@@ -286,7 +286,7 @@ public class AssistantProxyHubTests
 
         HttpRequestMessage cancelRequest = Assert.Single(_agentHttpHandler.Requests);
         Assert.EndsWith($"/api/agent/cancel/{threadId}", cancelRequest.RequestUri!.ToString());
-        // The agents service rejects cancellation without the caller's identity.
+        // The assistant service rejects cancellation without the caller's identity.
         Assert.Equal(TestDeveloper, Assert.Single(cancelRequest.Headers.GetValues("X-Developer")));
     }
 
