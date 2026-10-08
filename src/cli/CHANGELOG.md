@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` and `IOnProcessEndingHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+
 ## [0.1.0-preview.28] - 2026-10-07
 
 ### Added
@@ -21,7 +25,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` points out `AppSettings` keys in the appsettings files that v9 no longer reads, and app files and folders whose names differ only in case from the names v9 reads, since v9 matches names case-sensitively on every operating system.
 - `studioctl app upgrade v9` removes `GeneralSettings:HostName` from the appsettings files, such as the old localtest host `altinn3local.no`. The platform sets the host name for a deployed app, and studioctl for a local run. ([#16308](https://github.com/Altinn/altinn-studio/issues/16308))
 - `studioctl app upgrade v9` renames the misspelled `allowedContributers` to `allowedContributors` on data types in `config/applicationmetadata.json`. ([#20846](https://github.com/Altinn/altinn-studio/pull/20846))
-- `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` and `IOnProcessEndingHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `studioctl app upgrade v9` points `$schema` in the app's JSON files at the schemas on `https://altinn.studio/designer/app-dist`, at the same version as the Altinn.App packages.
 
 ### Changed

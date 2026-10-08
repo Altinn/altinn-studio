@@ -9,6 +9,15 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+- `IOnProcessEndedHandler` runs your code after the ended process is saved, before data marked `autoDeleteOnProcessEnd` is deleted and the instance is released. Like the other process hooks, it can read and change instance data. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+
+### Removed
+
+- Breaking: remove `IProcessEnd`. Move its logic to `IOnProcessEndedHandler`, or to `IOnProcessEndingHandler` to run before the end is saved. `studioctl app upgrade v9` lists the classes and registrations to port. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+
 ## [9.0.0-preview.7] - 2026-10-07
 
 ### Added
@@ -18,8 +27,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Custom process tasks can validate their configuration at app startup by implementing `IProcessTask.ValidateConfiguration`. The hook receives the BPMN task id, hosting environment and application metadata.
 - The app logs a startup warning for each service task type it registers, such as your own `IServiceTask` or the one `AddFiksArkiv()` adds, that no `<altinn:taskType>` in `config/process/process.bpmn` uses. ([#20352](https://github.com/Altinn/altinn-studio/issues/20352))
 - Build check `ALTINNAPP1003` (error) reports a task in `process.bpmn` that uses the wrong BPMN element for its type, such as a `pdf` task declared as a `<bpmn:task>`. It knows the built-in types, and your own task classes with a constant `Type`, assuming each is registered under the interface it implements. The PDF checks `ALTINNAPP1000`–`ALTINNAPP1002` now cover such a task too. ([#20352](https://github.com/Altinn/altinn-studio/issues/20352))
-- Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
-- `IOnProcessEndedHandler` runs your code after the ended process is saved, before data marked `autoDeleteOnProcessEnd` is deleted and the instance is released. Like the other process hooks, it can read and change instance data. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 
 ### Changed
 
@@ -56,7 +63,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: remove unused `AppSettings.BaseResourceFolderContainer` and `AppSettings.DefaultBootstrapUrl`. Neither was read by the app libraries. Delete them from any `appsettings.json` that still lists them.
 - `AppSettings.AppBasePath`. The app files are always read relative to the content root of the host. A value left in `appsettings.json` is ignored; code that set the property must drop it.
 - The `AppSettings` folder and file name settings `ConfigurationFolder`, `OptionsFolder`, `UiFolder`, `ModelsFolder`, `TextFolder`, `ProcessFolder`, `AuthorizationFolder`, `FormLayoutSettingsFileName`, `FooterFileName`, `JsonSchemaFileName`, `ValidationConfigurationFileName`, `CalculationConfigurationFileName`, `ApplicationMetadataFileName`, `ApplicationXACMLPolicyFileName` and `ProcessFileName`, with the `JSON_SCHEMA_FILENAME`, `VALIDATION_CONFIG_FILENAME` and `CALCULATION_CONFIG_FILENAME` constants. The layout of an app folder is the one Studio creates and is not configurable. A value left in `appsettings.json` is ignored; code that read or set the properties must drop it.
-- Breaking: remove `IProcessEnd`. Move its logic to `IOnProcessEndedHandler`, or to `IOnProcessEndingHandler` to run before the end is saved. `studioctl app upgrade v9` lists the classes and registrations to port. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Breaking: remove the `POST .../process/start` endpoint. Instances are created with their process already started, so create them through the app's instantiation endpoints instead of starting a process on an instance created outside the app. ([#20903](https://github.com/Altinn/altinn-studio/pull/20903))
 
 ### Security
