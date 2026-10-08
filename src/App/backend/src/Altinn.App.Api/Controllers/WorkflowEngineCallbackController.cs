@@ -269,14 +269,23 @@ public class WorkflowEngineCallbackController : ControllerBase
                 if (success.ProcessNextContinuation is { } processNextContinuation)
                 {
                     return await ContinueWithProcessNext(
-                        processNextContinuation,
+                        collectionKey =>
+                            _serviceProvider
+                                .GetRequiredService<IProcessEngine>()
+                                .EnqueueProcessNext(
+                                    instanceDataUnitOfWork,
+                                    payload.Actor,
+                                    payload.WorkflowId,
+                                    collectionKey,
+                                    updatedState,
+                                    payload.ExecutionReferenceTime,
+                                    processNextContinuation.Action,
+                                    cancellationToken: cancellationToken
+                                ),
                         commandKey,
                         instanceId,
-                        payload,
-                        instanceDataUnitOfWork,
                         updatedState,
-                        activity,
-                        cancellationToken
+                        activity
                     );
                 }
 
@@ -455,17 +464,27 @@ public class WorkflowEngineCallbackController : ControllerBase
                     acquired.UnitOfWork,
                     acquired.Carry
                 );
-                if (acquired.ProcessNextContinuation is { } processNextContinuation)
+                if (acquired.Transition is { } transition)
                 {
+                    // The acquire built the transition before claiming, so no app code runs between the claim and
+                    // the workflow that carries the transition out.
                     return await ContinueWithProcessNext(
-                        processNextContinuation,
+                        collectionKey =>
+                            _serviceProvider
+                                .GetRequiredService<IWorkflowEngineService>()
+                                .EnqueueDependentProcessNext(
+                                    acquired.UnitOfWork.Instance,
+                                    transition,
+                                    payload.WorkflowId,
+                                    collectionKey,
+                                    updatedState,
+                                    payload.Actor,
+                                    cancellationToken: cancellationToken
+                                ),
                         ProcessingStatusAcquirer.Key,
                         instanceId,
-                        payload,
-                        acquired.UnitOfWork,
                         updatedState,
-                        activity,
-                        cancellationToken
+                        activity
                     );
                 }
 
@@ -505,19 +524,16 @@ public class WorkflowEngineCallbackController : ControllerBase
     }
 
     /// <summary>
-    /// Enqueues the dependent process-next workflow and answers the callback. Runs after the save, so the
-    /// continuation's state includes Storage-assigned ids. The enqueue is idempotency-keyed, so a retried callback is
-    /// safe.
+    /// Enqueues the dependent process-next workflow into this callback's collection with <c>enqueue</c>, and answers
+    /// the callback. Runs after the save, so the continuation's state includes Storage-assigned ids. The enqueue is
+    /// idempotency-keyed, so a retried callback is safe.
     /// </summary>
     private async Task<IActionResult> ContinueWithProcessNext(
-        ProcessNextContinuation processNextContinuation,
+        Func<string, Task> enqueue,
         string commandKey,
         InstanceIdentifier instanceId,
-        AppCallbackPayload payload,
-        InstanceDataUnitOfWork unitOfWork,
         string updatedState,
-        Activity? activity,
-        CancellationToken cancellationToken
+        Activity? activity
     )
     {
         string collectionKey = Request.Headers[CollectionKeyHeader].ToString();
@@ -537,17 +553,7 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
-        var processEngine = _serviceProvider.GetRequiredService<IProcessEngine>();
-        await processEngine.EnqueueProcessNext(
-            unitOfWork,
-            payload.Actor,
-            payload.WorkflowId,
-            collectionKey,
-            updatedState,
-            payload.ExecutionReferenceTime,
-            processNextContinuation.Action,
-            cancellationToken: cancellationToken
-        );
+        await enqueue(collectionKey);
 
         activity?.SetStatus(ActivityStatusCode.Ok);
         return Ok(new AppCallbackResponse { State = updatedState });

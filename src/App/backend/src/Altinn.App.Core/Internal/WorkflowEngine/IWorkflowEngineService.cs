@@ -1,3 +1,4 @@
+using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models.Notifications.Future;
@@ -27,6 +28,8 @@ internal interface IWorkflowEngineService
 
     /// <summary>
     /// Enqueues the acquire workflow of a user-triggered process next and waits for the transition to settle.
+    /// <paramref name="nextElement"/> is where the request decided the process goes; the acquire callback builds the
+    /// transition to it once it has claimed the snapshot in <paramref name="state"/>.
     /// <paramref name="language"/> is the language process/next was called with, which the workflow's actor carries
     /// to every callback; null leaves it to the caller's profile language.
     /// </summary>
@@ -35,6 +38,7 @@ internal interface IWorkflowEngineService
         StorageVersionMetadata instanceVersions,
         string state,
         string? action,
+        ProcessElement nextElement,
         string? language,
         CancellationToken cancellationToken = default
     );

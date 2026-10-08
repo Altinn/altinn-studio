@@ -26,10 +26,10 @@ internal abstract record CommandRequestPayload;
 internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayload;
 
 /// <summary>
-/// The process/next acquire step's payload: the action the continuation transitions with. The initial-process
-/// acquire carries no payload. See <see cref="ProcessingStatusAcquirer"/>.
+/// The process/next acquire step's payload: the action the transition is made with, and the element the request
+/// decided it goes to. The initial-process acquire carries no payload. See <see cref="ProcessingStatusAcquirer"/>.
 /// </summary>
-internal sealed record AcquireProcessingStatusPayload(string? Action) : CommandRequestPayload;
+internal sealed record AcquireProcessingStatusPayload(string? Action, string? NextElementId) : CommandRequestPayload;
 
 /// <summary>
 /// Source-generated JSON serialization context for command payloads.

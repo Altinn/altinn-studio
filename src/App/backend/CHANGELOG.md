@@ -14,6 +14,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `PUT .../process/next` with concurrent changes to the instance:
     - when the instance changed after the call read it, the call answers `409 Conflict` with `processNextState: "instanceChanged"` and does nothing; try again
     - a call made while an earlier one has not started yet, or on the same instance version as an earlier one, waits for it instead of being refused
+- Breaking: a direct `IDataClient` call in an `IProcessExclusiveGateway` now acts as the user calling `PUT .../process/next`, not as the app. Read data through the `IInstanceDataAccessor` that `FilterAsync` gets instead, which reads as the app.
+
+### Fixed
+
+- `PUT .../process/next` no longer leaves the instance stuck in `processing` when it cannot work out the next task, for example because an `IProcessExclusiveGateway` throws. The call answers `500` and changes nothing, so it can be made again.
 
 ### Removed
 

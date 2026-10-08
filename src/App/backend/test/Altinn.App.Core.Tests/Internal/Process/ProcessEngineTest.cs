@@ -15,6 +15,7 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
@@ -325,8 +326,8 @@ public sealed class ProcessEngineTest
         Assert.Equal([ProcessingStatusAcquirer.Key], ExtractCommandKeys(acquireRequest));
         await ContinueAcquiredTransition(fixture, acquireRequest, workflowId);
         Assert.NotSame(acquireRequest, capturedRequest);
-        Assert.All(acquireRequest.Labels!, label => Assert.Equal(label.Value, capturedRequest!.Labels![label.Key]));
-        Assert.False(acquireRequest.Labels!.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
+        // The request decided the target, so W1 is labeled like the workflow that carries the transition out.
+        acquireRequest.Labels.Should().BeEquivalentTo(capturedRequest!.Labels);
         Assert.Equal(workflowId, Assert.Single(capturedRequest.Workflows[0].DependsOn!).Id);
 
         // Verify command sequence: EndTask commands followed by StartTask commands
@@ -537,8 +538,8 @@ public sealed class ProcessEngineTest
         Assert.Equal([ProcessingStatusAcquirer.Key], ExtractCommandKeys(acquireRequest));
         await ContinueAcquiredTransition(fixture, acquireRequest, workflowId);
         Assert.NotSame(acquireRequest, capturedRequest);
-        Assert.All(acquireRequest.Labels!, label => Assert.Equal(label.Value, capturedRequest!.Labels![label.Key]));
-        Assert.False(acquireRequest.Labels!.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
+        // The request decided the target, so W1 is labeled like the workflow that carries the transition out.
+        acquireRequest.Labels.Should().BeEquivalentTo(capturedRequest!.Labels);
         Assert.Equal(workflowId, Assert.Single(capturedRequest.Workflows[0].DependsOn!).Id);
 
         // Verify command sequence: AbandonTask commands followed by StartTask commands
@@ -719,8 +720,8 @@ public sealed class ProcessEngineTest
         Assert.Equal([ProcessingStatusAcquirer.Key], ExtractCommandKeys(acquireRequest));
         await ContinueAcquiredTransition(fixture, acquireRequest, workflowId);
         Assert.NotSame(acquireRequest, capturedRequest);
-        Assert.All(acquireRequest.Labels!, label => Assert.Equal(label.Value, capturedRequest!.Labels![label.Key]));
-        Assert.False(acquireRequest.Labels!.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
+        // The request decided the target, so W1 is labeled like the workflow that carries the transition out.
+        acquireRequest.Labels.Should().BeEquivalentTo(capturedRequest!.Labels);
         Assert.Equal(workflowId, Assert.Single(capturedRequest.Workflows[0].DependsOn!).Id);
 
         // Verify command sequence: EndTask commands followed by ProcessEnd commands
@@ -1188,12 +1189,13 @@ public sealed class ProcessEngineTest
                     It.IsAny<StorageVersionMetadata>(),
                     It.IsAny<string>(),
                     "sign",
+                    It.IsAny<ProcessElement>(),
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, StorageVersionMetadata, string, string?, string?, CancellationToken>(
-                (instance, versions, state, _, _, _) =>
+            .Callback<Instance, StorageVersionMetadata, string, string?, ProcessElement, string?, CancellationToken>(
+                (instance, versions, state, _, _, _, _) =>
                 {
                     enqueuedInstance = instance;
                     enqueuedVersions = versions;
@@ -2761,22 +2763,33 @@ public sealed class ProcessEngineTest
             workflow.State!,
             workflowContext.Actor.Language
         );
-        // The acquire callback's success path, minus its Storage compare-and-set: the claimed status travels on in
-        // the state the continuation is enqueued with.
+        // The acquire callback's success path, minus its Storage compare-and-set: it builds the transition to the
+        // element the request decided, and the claimed status travels on in the state the continuation is enqueued
+        // with.
         Assert.Equal(ProcessingStatusAcquirer.Key, commandData.CommandKey);
-        var continuation = Assert.IsType<AcquireProcessingStatusPayload>(
+        var acquirePayload = Assert.IsType<AcquireProcessingStatusPayload>(
             CommandPayloadSerializer.Deserialize<CommandRequestPayload>(commandData.Payload)
         );
-        unitOfWork.Instance.Process!.Status = ProcessStatus.Processing;
-        await fixture.ProcessEngine.EnqueueProcessNext(
-            unitOfWork,
+        ProcessStateChange transition = new ProcessTransitionBuilder(
+            fixture.ServiceProvider.GetRequiredService<IProcessReader>()
+        ).Build(
+            unitOfWork.Instance,
+            acquirePayload.NextElementId!,
+            acquirePayload.Action,
             workflowContext.Actor,
-            workflowId,
-            _collectionKey,
-            await stateService.CaptureState(unitOfWork, carry),
-            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
-            continuation.Action
+            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero)
         );
+        unitOfWork.Instance.Process!.Status = ProcessStatus.Processing;
+        await fixture
+            .ServiceProvider.GetRequiredService<IWorkflowEngineService>()
+            .EnqueueDependentProcessNext(
+                unitOfWork.Instance,
+                transition,
+                workflowId,
+                _collectionKey,
+                await stateService.CaptureState(unitOfWork, carry),
+                workflowContext.Actor
+            );
     }
 
     [Theory]
@@ -2807,7 +2820,14 @@ public sealed class ProcessEngineTest
         Assert.NotNull(initial.ProcessStateChange.Events);
         var requestUser = initial.ProcessStateChange.Events[0].User;
         var factory = fixture.ServiceProvider.GetRequiredService<ProcessNextRequestFactory>();
-        var acquire = await factory.CreateAcquire(instance, null, "state", "acquire-key", language: null);
+        var acquire = await factory.CreateAcquire(
+            instance,
+            null,
+            new ProcessTask { Id = "Task_2" },
+            "state",
+            "acquire-key",
+            language: null
+        );
         var actor = System
             .Text.Json.JsonSerializer.Deserialize<AppWorkflowContext>(acquire.Request.Context!.Value)!
             .Actor;
@@ -3040,16 +3060,18 @@ public sealed class ProcessEngineTest
                     _storageVersions,
                     It.IsAny<string>(),
                     It.IsAny<string?>(),
+                    It.IsAny<ProcessElement>(),
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, StorageVersionMetadata, string, string?, string?, CancellationToken>(
-                (_, _, _, _, _, _) =>
+            .Callback<Instance, StorageVersionMetadata, string, string?, ProcessElement, string?, CancellationToken>(
+                (_, _, _, _, nextElement, _, _) =>
                 {
                     Assert.Same(process, instance.Process);
                     Assert.Equal("Task_1", instance.Process!.CurrentTask.ElementId);
                     Assert.Equal(ProcessStatus.Idle, instance.Process.Status);
+                    Assert.Equal("Task_2", nextElement.Id);
                 }
             )
             .ReturnsAsync(new ProcessNextWorkflowResult(CreateTask2Instance(), _storageVersions, null, true));
@@ -3069,7 +3091,96 @@ public sealed class ProcessEngineTest
         Assert.True(result.Success);
         Assert.Same(process, instance.Process);
         workflowService.VerifyAll();
+        // Deciding where the process goes is the request's last step before the enqueue, and leaves the instance as
+        // it was.
+        fixture
+            .Mock<IProcessNavigator>()
+            .Verify(n => n.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_1", null), Times.Once);
         fixture.Mock<IProcessNavigator>().VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Next_WhenWhereTheProcessGoesCannotBeDecided_AnswersWithAGenericErrorAndEnqueuesNothing()
+    {
+        // As when an app's gateway reads a form field that is null. The call answers before anything is enqueued, so
+        // the instance is left as it was and the call can be made again.
+        var instance = CreateTask1Instance();
+        instance.Process!.Status = ProcessStatus.Idle;
+        var workflowService = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        var services = new ServiceCollection();
+        services.AddSingleton(workflowService.Object);
+        await using var fixture = Fixture.Create(services);
+        fixture
+            .Mock<IProcessNavigator>()
+            .Setup(n => n.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_1", null))
+            .ThrowsAsync(new NullReferenceException("Object reference not set to an instance of an object."));
+
+        ProcessChangeResult result = await fixture.ProcessEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = instance,
+                InstanceVersions = _storageVersions,
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = null,
+            }
+        );
+
+        Assert.False(result.Success);
+        Assert.Equal(ProcessErrorType.Internal, result.ErrorType);
+        // The exception's own text can carry app internals, so it is logged and never answered with.
+        Assert.DoesNotContain("Object reference", result.ErrorMessage, StringComparison.Ordinal);
+        Assert.Equal(ProcessStatus.Idle, instance.Process.Status);
+        workflowService.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Next_DecidesWhereTheProcessGoesWithDataReadAsTheApp()
+    {
+        // The user was authorized and the task validated as them. Carrying out the transition is the app's, and the
+        // gateways that decide where it goes are its first part.
+        var dataType = new DataType { Id = "model", TaskId = "Task_1" };
+        var workflowService = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        workflowService
+            .Setup(s =>
+                s.EnqueueAndWaitForProcessNext(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageVersionMetadata>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<ProcessElement>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new ProcessNextWorkflowResult(CreateTask2Instance(), _storageVersions, null, true));
+        var services = new ServiceCollection();
+        services.AddSingleton(workflowService.Object);
+        var appMetadata = new ApplicationMetadata("org/app") { DataTypes = [dataType] };
+        services.AddSingleton(Mock.Of<IAppMetadata>(m => m.ApplicationMetadata == appMetadata));
+        await using var fixture = Fixture.Create(services);
+        IInstanceDataAccessor? decidedWith = null;
+        fixture
+            .Mock<IProcessNavigator>()
+            .Setup(n => n.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_1", null))
+            .Callback<IInstanceDataAccessor, string, string?>((accessor, _, _) => decidedWith = accessor)
+            .ReturnsAsync(new ProcessTask { Id = "Task_2" });
+
+        ProcessChangeResult result = await fixture.ProcessEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = CreateTask1Instance(),
+                InstanceVersions = _storageVersions,
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = null,
+            }
+        );
+
+        Assert.True(result.Success);
+        var unitOfWork = Assert.IsType<InstanceDataUnitOfWork>(decidedWith);
+        StorageAuthenticationMethod authentication = Assert.Single(unitOfWork.AuthenticationMethodOverrides).Value;
+        Assert.IsType<AuthenticationMethod.AltinnToken>(authentication.Request);
     }
 
     private static WorkflowStatusResponse CreateCompletedWorkflowStatusResponse(Guid workflowId, string operationId) =>
@@ -3288,6 +3399,27 @@ public sealed class ProcessEngineTest
             processReaderMock.Setup(r => r.IsProcessTask("EndEvent_1")).Returns(false);
             processReaderMock.Setup(r => r.IsEndEvent("EndEvent_1")).Returns(true);
             processReaderMock.Setup(r => r.IsProcessTask("EndEvent_1")).Returns(false);
+            processReaderMock
+                .Setup(r => r.GetFlowElement("Task_2"))
+                .Returns(
+                    new ProcessTask()
+                    {
+                        Id = "Task_2",
+                        Incoming = new List<string> { "Flow_2" },
+                        Outgoing = new List<string> { "Flow_3" },
+                        Name = "Bekreft",
+                        ExtensionElements = new() { TaskExtension = new() { TaskType = AltinnTaskTypes.Confirmation } },
+                    }
+                );
+            processReaderMock
+                .Setup(r => r.GetFlowElement("EndEvent_1"))
+                .Returns(
+                    new EndEvent()
+                    {
+                        Id = "EndEvent_1",
+                        Incoming = new List<string> { "Flow_3" },
+                    }
+                );
             services.TryAddSingleton<IProcessReader>(_ => processReaderMock.Object);
 
             Mock<IAuthenticationContext> authenticationContextMock = new(MockBehavior.Strict);

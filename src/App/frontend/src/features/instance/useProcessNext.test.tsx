@@ -162,6 +162,30 @@ describe('useProcessNext workflow error convergence', () => {
     expect(screen.getByRole('button', { name: 'submit-probe' })).toBeInTheDocument();
   });
 
+  it('a server error shows the localized retry message instead of its detail', async () => {
+    const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
+    const user = userEvent.setup();
+    await renderFailingProcessNext(
+      {
+        title: 'The process could not move on from the current task.',
+        detail: 'Where the process goes from the current task could not be decided, so nothing was changed.',
+      },
+      500,
+      { status: 'idle' },
+    );
+
+    await user.click(screen.getByRole('button', { name: 'submit-probe' }));
+
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({ props: { id: 'process_error.submit_error_please_retry' } }),
+        expect.objectContaining({ type: 'error' }),
+      ),
+    );
+    expect(logError).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'submit-probe' })).toBeInTheDocument();
+  });
+
   it('a bodiless timeout uses the refetched processing state instead of showing a toast', async () => {
     const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
     const user = userEvent.setup();

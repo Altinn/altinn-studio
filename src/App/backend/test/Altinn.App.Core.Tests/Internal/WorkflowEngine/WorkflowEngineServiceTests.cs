@@ -27,6 +27,8 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
 public class WorkflowEngineServiceTests
 {
+    private static readonly ProcessTask _nextTask = new() { Id = "Task_2" };
+
     private const string Org = "ttd";
     private const string App = "test-app";
     private const string Namespace = $"{Org}/{App}";
@@ -120,7 +122,7 @@ public class WorkflowEngineServiceTests
         service.WorkflowPollingTimeoutMs = 500;
         // Fails instead of hanging if a poll delay ever bypasses the clock, since the budget would never run out.
         var result = await service
-            .EnqueueAndWaitForProcessNext(instance, versions, "state", action: null, language: null)
+            .EnqueueAndWaitForProcessNext(instance, versions, "state", action: null, _nextTask, language: null)
             .WaitAsync(TimeSpan.FromSeconds(10));
         Assert.True(result.ProcessStateChanged);
         Assert.True(polls >= 2);
@@ -553,6 +555,7 @@ public class WorkflowEngineServiceTests
             versions,
             "state",
             action: null,
+            _nextTask,
             language: null
         );
 
@@ -597,6 +600,7 @@ public class WorkflowEngineServiceTests
                 new StorageVersionMetadata(InstanceVersion: 3, ProcessStateVersion: 2),
                 "state",
                 action: null,
+                _nextTask,
                 language: null
             )
         );

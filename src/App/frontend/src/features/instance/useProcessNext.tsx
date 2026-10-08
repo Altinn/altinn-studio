@@ -157,9 +157,7 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
         return;
       }
 
-      const textId = instanceChanged
-        ? 'process_error.instance_changed'
-        : (error.response?.data?.detail ?? error.message ?? 'process_error.submit_error_please_retry');
+      const textId = instanceChanged ? 'process_error.instance_changed' : getProcessErrorTextId(error);
       toast(<Lang id={textId} />, {
         type: 'error',
         autoClose: false,
@@ -268,12 +266,24 @@ export function useProcessResume() {
         return;
       }
 
-      toast(<Lang id={error.response?.data?.detail ?? error.message ?? 'process_error.submit_error_please_retry'} />, {
+      toast(<Lang id={getProcessErrorTextId(error)} />, {
         type: 'error',
         autoClose: false,
       });
     },
   });
+}
+
+/**
+ * A server error's detail describes the failure for the app's logs, in English, and all the user can do about it is try
+ * again, so they get the localized message that says so.
+ */
+function getProcessErrorTextId(error: HttpClientError<ProcessNextProblemDetails | undefined>) {
+  if ((error.response?.status ?? 0) >= 500) {
+    return 'process_error.submit_error_please_retry';
+  }
+
+  return error.response?.data?.detail ?? error.message ?? 'process_error.submit_error_please_retry';
 }
 
 function isRenderedByWorkflowStateMachine(instance: IInstance | undefined) {

@@ -53,44 +53,41 @@ public class WorkflowEngineCallbackControllerTests
     private const string ContentType = "application/json";
 
     [Theory]
-    [InlineData(null)]
-    [InlineData("reject")]
-    public async Task ExecuteCommand_AcquireWithAction_SavesThenEnqueuesContinuationDependingOnTheWorkflow(
-        string? action
+    [InlineData(null, "Task_2")]
+    [InlineData("reject", "EndEvent_1")]
+    public async Task ExecuteCommand_AcquireWithPayload_SavesThenEnqueuesTheDecidedTransitionDependingOnTheWorkflow(
+        string? action,
+        string nextElementId
     )
     {
-        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        var referenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero);
+        var workflowEngineService = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
         ControllerSetup? setup = null;
-        processEngine
-            .Setup(engine =>
-                engine.EnqueueProcessNext(
-                    It.IsAny<IInstanceDataAccessor>(),
-                    It.IsAny<Actor>(),
+        workflowEngineService
+            .Setup(service =>
+                service.EnqueueDependentProcessNext(
+                    It.IsAny<Instance>(),
+                    It.IsAny<ProcessStateChange>(),
                     It.IsAny<Guid>(),
                     "acquire-chain",
                     It.IsAny<string>(),
-                    It.IsAny<DateTimeOffset>(),
-                    action,
+                    It.IsAny<Actor>(),
                     null,
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<
-                IInstanceDataAccessor,
-                Actor,
-                Guid,
-                string,
-                string,
-                DateTimeOffset,
-                string?,
-                string?,
-                CancellationToken
-            >(
-                (dataAccessor, actor, dependency, _, state, referenceTime, _, _, _) =>
+            .Callback<Instance, ProcessStateChange, Guid, string, string, Actor, string?, CancellationToken>(
+                (instance, transition, dependency, _, state, actor, _, _) =>
                 {
-                    Assert.Equal(new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero), referenceTime);
                     Assert.Equal(setup!.WorkflowId, dependency);
                     Assert.Equal(42, actor.UserId);
+                    Assert.Equal(ProcessStatus.Processing, instance.Process!.Status);
+                    Assert.Equal("Task_1", transition.OldProcessState?.CurrentTask?.ElementId);
+                    Assert.Equal(
+                        nextElementId,
+                        transition.NewProcessState?.CurrentTask?.ElementId ?? transition.NewProcessState?.EndEvent
+                    );
+                    Assert.All(transition.Events!, e => Assert.Equal(referenceTime.UtcDateTime, e.Created));
                     var mutation = DeserializeMutationRequest(
                         Assert.Single(GetMutationRequests(setup!.Services)).RequestBody!
                     );
@@ -101,7 +98,6 @@ public class WorkflowEngineCallbackControllerTests
                     Assert.Equal(2, saved.ProcessStateVersion);
                     Assert.Equal("Task_1", saved.Instance.Process!.CurrentTask.ElementId);
                     Assert.Equal(ProcessStatus.Processing, saved.Instance.Process.Status);
-                    Assert.IsType<InstanceDataUnitOfWork>(dataAccessor);
                     var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(
                         InstanceOwnerPartyId,
                         setup.InstanceGuid
@@ -109,21 +105,22 @@ public class WorkflowEngineCallbackControllerTests
                     Assert.Equal(ProcessStatus.Processing, storedInstance.Process!.Status);
                 }
             )
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(Guid.NewGuid());
         setup = CreateSetup(services =>
         {
-            services.Services.AddSingleton(processEngine.Object);
+            services.Services.AddSingleton(workflowEngineService.Object);
         });
         await using (setup)
         {
             var response = await setup.Execute(
                 ProcessingStatusAcquirer.Key,
                 Guid.NewGuid(),
-                CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(action)),
+                CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(action, nextElementId)),
+                referenceTime,
                 collectionKey: "acquire-chain"
             );
             Assert.IsType<OkObjectResult>(response);
-            processEngine.VerifyAll();
+            workflowEngineService.VerifyAll();
         }
     }
 
@@ -201,35 +198,12 @@ public class WorkflowEngineCallbackControllerTests
                 services.Services.AddSingleton<ProcessStepOptionsResolver>();
                 services.Services.AddSingleton<ProcessNextRequestFactory>();
                 services.Services.AddSingleton<IWorkflowEngineService, WorkflowEngineService>();
-                services.Services.AddTransient<UserActionService>();
-                services.Services.AddTransient<IProcessEngine, ProcessEngine>();
                 services.Mock<IAuthenticationContext>();
-                services.Mock<IProcessEngineAuthorizer>();
-                services
-                    .Mock<IProcessReader>()
-                    .Setup(r => r.IsProcessTask(It.IsAny<string>()))
-                    .Returns((string id) => id.StartsWith("Task_", StringComparison.Ordinal));
-                services
-                    .Mock<IProcessReader>()
-                    .Setup(r => r.IsEndEvent(It.IsAny<string>()))
-                    .Returns((string id) => id == "EndEvent_1");
-                ProcessElement next =
-                    target == "Task_2"
-                        ? new ProcessTask
-                        {
-                            Id = target,
-                            ExtensionElements = new() { TaskExtension = new() { TaskType = "data" } },
-                        }
-                        : new EndEvent { Id = target };
-                services
-                    .Mock<IProcessNavigator>()
-                    .Setup(n => n.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_1", action))
-                    .ReturnsAsync(next);
             },
             (_, instance) => instance.Process!.Status = ProcessStatus.Idle
         );
         Guid stepId = Guid.NewGuid();
-        string payload = CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(action))!;
+        string payload = CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(action, target))!;
         await Assert.ThrowsAsync<HttpRequestException>(() =>
             setup.Execute(ProcessingStatusAcquirer.Key, stepId, payload, referenceTime, "acquire-chain")
         );
@@ -322,7 +296,7 @@ public class WorkflowEngineCallbackControllerTests
             await setup.Execute(
                 ProcessingStatusAcquirer.Key,
                 Guid.NewGuid(),
-                CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(null))
+                CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(null, "Task_2"))
             )
         );
         Assert.Equal(StatusCodes.Status422UnprocessableEntity, response.StatusCode);
@@ -338,10 +312,10 @@ public class WorkflowEngineCallbackControllerTests
     {
         // A process/next acquire that loses is not a failure: the workflow completes, so whatever is queued behind
         // it in the collection runs next, and the instance is left exactly as the other change left it.
-        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        var workflowEngineService = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
         await using var setup = CreateSetup(services =>
         {
-            services.Services.AddSingleton(processEngine.Object);
+            services.Services.AddSingleton(workflowEngineService.Object);
         });
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
         if (statusConflict)
@@ -362,7 +336,7 @@ public class WorkflowEngineCallbackControllerTests
         IActionResult result = await setup.Execute(
             ProcessingStatusAcquirer.Key,
             Guid.NewGuid(),
-            CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload("reject")),
+            CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload("reject", "EndEvent_1")),
             collectionKey: "acquire-chain"
         );
 
@@ -371,20 +345,20 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Null(response.Defer);
         Assert.Equal(statusConflict ? ProcessStatus.Processing : null, storedInstance.Process!.Status);
         Assert.Single(GetMutationRequests(setup.Services));
-        processEngine.VerifyNoOtherCalls();
+        workflowEngineService.VerifyNoOtherCalls();
     }
 
     [Fact]
     public async Task ExecuteCommand_AcquireWithoutPayload_DoesNotEnqueue()
     {
-        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        var workflowEngineService = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
         await using var setup = CreateSetup(services =>
         {
-            services.Services.AddSingleton(processEngine.Object);
+            services.Services.AddSingleton(workflowEngineService.Object);
         });
         Assert.IsType<OkObjectResult>(await setup.Execute(ProcessingStatusAcquirer.Key, Guid.NewGuid()));
         Assert.Single(GetMutationRequests(setup.Services));
-        processEngine.VerifyNoOtherCalls();
+        workflowEngineService.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -418,7 +392,7 @@ public class WorkflowEngineCallbackControllerTests
         IActionResult result = await setup.Execute(
             ProcessingStatusAcquirer.Key,
             Guid.NewGuid(),
-            CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(null)),
+            CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(null, "Task_2")),
             collectionKey: "acquire-chain"
         );
 
@@ -1222,6 +1196,23 @@ public class WorkflowEngineCallbackControllerTests
         configureServices(services);
         services.Services.AddSingleton<WorkflowCallbackStateService>();
         services.Services.AddTransient<ProcessingStatusAcquirer>();
+        services.Services.AddTransient<ProcessTransitionBuilder>();
+        // Where the acquire tests' process goes from Task_1. Inert when a test registers a reader of its own.
+        Mock<IProcessReader> processReader = services.Mock<IProcessReader>();
+        processReader
+            .Setup(r => r.GetFlowElement("Task_2"))
+            .Returns(
+                new ProcessTask
+                {
+                    Id = "Task_2",
+                    ExtensionElements = new() { TaskExtension = new() { TaskType = "data" } },
+                }
+            );
+        processReader.Setup(r => r.GetFlowElement("EndEvent_1")).Returns(new EndEvent { Id = "EndEvent_1" });
+        processReader
+            .Setup(r => r.IsProcessTask(It.IsAny<string>()))
+            .Returns((string id) => id.StartsWith("Task_", StringComparison.Ordinal));
+        processReader.Setup(r => r.IsEndEvent(It.IsAny<string>())).Returns((string id) => id == "EndEvent_1");
         services.Services.AddTransient<WorkflowStateSigner>();
         var stateSigningCode = new AppCode
         {

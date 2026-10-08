@@ -6,6 +6,8 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -34,6 +36,8 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 public class ProcessNextRequestFactoryTests
 {
     private static readonly AppIdentifier TestAppIdentifier = new("ttd", "test-app");
+
+    private static readonly ProcessTask _nextTask = new() { Id = "Task_2" };
 
     private static readonly Instance TestInstance = new()
     {
@@ -453,6 +457,7 @@ public class ProcessNextRequestFactoryTests
         var acquire = await factory.CreateAcquire(
             instance,
             action: null,
+            _nextTask,
             SignedTestState,
             "acquire-key",
             language: null
@@ -507,14 +512,23 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData("reject")]
-    public async Task CreateAcquire_ProducesOneStepWithActionPayloadAndLabels(string? action)
+    [InlineData(null, false)]
+    [InlineData("reject", false)]
+    [InlineData(null, true)]
+    public async Task CreateAcquire_ProducesOneStepWithTheDecidedElementAndLabels(string? action, bool toProcessEnd)
     {
         var factory = CreateFactory();
         var transition = CreateTaskToTaskTransition();
         var instance = new Instance { Id = TestInstance.Id, Process = transition.OldProcessState };
-        var acquire = await factory.CreateAcquire(instance, action, SignedTestState, "acquire-key", language: null);
+        ProcessElement nextElement = toProcessEnd ? new EndEvent { Id = "EndEvent_1" } : _nextTask;
+        var acquire = await factory.CreateAcquire(
+            instance,
+            action,
+            nextElement,
+            SignedTestState,
+            "acquire-key",
+            language: null
+        );
         var workflow = Assert.Single(acquire.Request.Workflows);
         Assert.Equal("Process next: Mark instance as processing", workflow.OperationId);
         var step = Assert.Single(workflow.Steps);
@@ -524,6 +538,7 @@ public class ProcessNextRequestFactoryTests
             CommandPayloadSerializer.Deserialize<CommandRequestPayload>(command.Payload)
         );
         Assert.Equal(action, payload.Action);
+        Assert.Equal(nextElement.Id, payload.NextElementId);
         Assert.Equal(SignedTestState, workflow.State);
         Assert.Null(workflow.IsHead);
         Assert.Null(workflow.DependsOn);
@@ -543,8 +558,17 @@ public class ProcessNextRequestFactoryTests
             "dependent-key"
         );
         Assert.Equal("Task_1:0", acquire.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
-        Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetIdLabel));
-        Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
+        if (toProcessEnd)
+        {
+            Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetIdLabel));
+            Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
+        }
+        else
+        {
+            // The same target as the workflow that enters the task, so status reads name it from the start.
+            Assert.Equal("Task_2:1", acquire.Request.Labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
+            Assert.Equal("Task_2", acquire.Request.Labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
+        }
         Assert.DoesNotContain(ProcessingStatusAcquirer.Key, ExtractCommandKeys(dependent));
     }
 
@@ -567,6 +591,7 @@ public class ProcessNextRequestFactoryTests
         var acquire = await factory.CreateAcquire(
             CreateTask1Instance(),
             action: null,
+            _nextTask,
             SignedTestState,
             "acquire-key",
             requested
@@ -600,6 +625,7 @@ public class ProcessNextRequestFactoryTests
         var acquire = await factory.CreateAcquire(
             CreateTask1Instance(),
             action: null,
+            _nextTask,
             SignedTestState,
             "acquire-key",
             requested
@@ -617,8 +643,8 @@ public class ProcessNextRequestFactoryTests
         var factory = CreateFactory(callbackTokenGenerator: CreateSigningTokenGenerator());
         Instance instance = CreateTask1Instance();
 
-        var english = await factory.CreateAcquire(instance, "confirm", SignedTestState, "acquire-key", "en");
-        var bokmal = await factory.CreateAcquire(instance, "confirm", SignedTestState, "acquire-key", "nb");
+        var english = await factory.CreateAcquire(instance, "confirm", _nextTask, SignedTestState, "acquire-key", "en");
+        var bokmal = await factory.CreateAcquire(instance, "confirm", _nextTask, SignedTestState, "acquire-key", "nb");
 
         Assert.Equal("en", GetActor(english).Language);
         Assert.Equal("nb", GetActor(bokmal).Language);
@@ -643,6 +669,7 @@ public class ProcessNextRequestFactoryTests
         var acquire = await factory.CreateAcquire(
             CreateTask1Instance(),
             action: null,
+            _nextTask,
             SignedTestState,
             "acquire-key",
             "en"

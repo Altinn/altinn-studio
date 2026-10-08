@@ -4,6 +4,9 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -162,13 +165,15 @@ internal sealed class ProcessNextRequestFactory
         );
 
     /// <summary>
-    /// Claims the instance before the callback computes and enqueues the transition's steps.
-    /// Only the source task is known until acquisition succeeds and the callback computes the transition.
+    /// Claims the instance before the callback builds the transition to <paramref name="nextElement"/> and enqueues
+    /// its steps. The request already decided the element, so the workflow is labeled with the task it enters, like
+    /// the workflow that enters it.
     /// <paramref name="language"/> is the language process/next was called with (see <see cref="ExtractActor"/>).
     /// </summary>
     public async Task<WorkflowEnqueueEnvelope> CreateAcquire(
         Instance instance,
         string? action,
+        ProcessElement nextElement,
         string state,
         string idempotencyKey,
         string? language
@@ -182,7 +187,13 @@ internal sealed class ProcessNextRequestFactory
             new WorkflowRequest
             {
                 OperationId = $"{MainOperationIdPrefix} Mark instance as processing",
-                Steps = [CreateCommand(ProcessingStatusAcquirer.Key, new AcquireProcessingStatusPayload(action))],
+                Steps =
+                [
+                    CreateCommand(
+                        ProcessingStatusAcquirer.Key,
+                        new AcquireProcessingStatusPayload(action, nextElement.Id)
+                    ),
+                ],
                 State = state,
             },
         ];
@@ -199,6 +210,14 @@ internal sealed class ProcessNextRequestFactory
         if (CreateProcessNextId(instance.Process?.CurrentTask) is { } sourceId)
         {
             labels[ProcessNextSourceIdLabel] = sourceId;
+        }
+        if (nextElement is ProcessTask)
+        {
+            labels[ProcessNextTargetIdLabel] = CreateProcessNextId(
+                nextElement.Id,
+                ProcessTransitionBuilder.GetNextFlow(instance.Process?.CurrentTask)
+            );
+            labels[ProcessNextTargetTaskLabel] = nextElement.Id;
         }
         labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
         var request = new WorkflowEnqueueRequest

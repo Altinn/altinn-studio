@@ -10,6 +10,8 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -18,6 +20,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
@@ -29,6 +32,7 @@ public class ProcessingStatusAcquirerTests
 {
     private const int PartyId = 1337;
     private static readonly DateTime _started = new(2026, 7, 20, 11, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTimeOffset _executionReferenceTime = new(2026, 7, 21, 9, 30, 0, TimeSpan.Zero);
 
     [Theory]
     [InlineData(false, null)]
@@ -57,7 +61,9 @@ public class ProcessingStatusAcquirerTests
         Guid stepId = Guid.NewGuid();
 
         ProcessingStatusAcquisition result = await setup.Acquire(
-            processNext ? CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(action)) : null,
+            processNext
+                ? CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(action, "Task_2"))
+                : null,
             stepId
         );
 
@@ -86,12 +92,47 @@ public class ProcessingStatusAcquirerTests
         Assert.Equal(new StorageVersionMetadata(13, 9), acquired.UnitOfWork.StorageVersions);
         if (processNext)
         {
-            Assert.Equal(action, Assert.IsType<ProcessNextContinuation>(acquired.ProcessNextContinuation).Action);
+            ProcessStateChange transition = Assert.IsType<ProcessStateChange>(acquired.Transition);
+            Assert.Equal("Task_1", transition.OldProcessState?.CurrentTask?.ElementId);
+            Assert.Equal("Task_2", transition.NewProcessState?.CurrentTask?.ElementId);
+            Assert.Equal(3, transition.NewProcessState?.CurrentTask?.Flow);
+            Assert.Equal(
+                action is "reject"
+                    ? ProcessSequenceFlowType.AbandonCurrentMoveToNext.ToString()
+                    : ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
+                transition.NewProcessState?.CurrentTask?.FlowType
+            );
+            // The workflow's actor and reference time, so every attempt of the step builds the same transition.
+            Assert.All(
+                transition.Events!,
+                instanceEvent =>
+                {
+                    Assert.Equal(PartyId, instanceEvent.User.UserId);
+                    Assert.Equal(_executionReferenceTime.UtcDateTime, instanceEvent.Created);
+                }
+            );
         }
         else
         {
-            Assert.Null(acquired.ProcessNextContinuation);
+            Assert.Null(acquired.Transition);
         }
+    }
+
+    [Fact]
+    public async Task Acquire_WhenTheProcessDefinitionLacksTheDecidedElement_ThrowsBeforeClaiming()
+    {
+        // A request and its callback can reach different versions of the app during a deploy. Nothing is claimed,
+        // so the engine's retry of the step holds nothing while it waits for a version that has the element.
+        var setup = new Setup();
+
+        await Assert.ThrowsAsync<ProcessException>(() =>
+            setup.Acquire(
+                CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(null, "Task_Removed")),
+                Guid.NewGuid()
+            )
+        );
+
+        setup.MutationClient.VerifyNoOtherCalls();
     }
 
     [Theory]
@@ -112,7 +153,7 @@ public class ProcessingStatusAcquirerTests
         setup.SetupCommit((_, _, _) => Task.FromException<InstanceMutationWithStorageMetadata>(exception));
 
         ProcessingStatusAcquisition result = await setup.Acquire(
-            processNext ? CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(null)) : null,
+            processNext ? CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(null, "Task_2")) : null,
             Guid.NewGuid()
         );
 
@@ -140,7 +181,10 @@ public class ProcessingStatusAcquirerTests
         setup.SetupCommit((_, _, _) => Task.FromException<InstanceMutationWithStorageMetadata>(exception));
 
         PlatformHttpException thrown = await Assert.ThrowsAsync<PlatformHttpException>(() =>
-            setup.Acquire(CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(null)), Guid.NewGuid())
+            setup.Acquire(
+                CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(null, "Task_2")),
+                Guid.NewGuid()
+            )
         );
 
         Assert.Same(exception, thrown);
@@ -176,19 +220,20 @@ public class ProcessingStatusAcquirerTests
             );
 
         ProcessingStatusAcquisition result = await setup.Acquire(
-            CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload("confirm")),
+            CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload("confirm", "Task_2")),
             Guid.NewGuid()
         );
 
         var acquired = Assert.IsType<ProcessingStatusAcquisition.Acquired>(result);
         Assert.Equal(ProcessStatus.Processing, acquired.UnitOfWork.Instance.Process?.Status);
         Assert.Equal(new StorageVersionMetadata(13, 9), acquired.UnitOfWork.StorageVersions);
-        Assert.Equal("confirm", acquired.ProcessNextContinuation?.Action);
+        Assert.Equal("Task_2", acquired.Transition?.NewProcessState?.CurrentTask?.ElementId);
     }
 
     [Theory]
     [InlineData("not json")]
     [InlineData("""{"$type":"taskDataLock","taskId":"Task_1"}""")]
+    [InlineData("""{"$type":"acquireProcessingStatus","action":"confirm"}""")]
     public async Task Acquire_WithAnInvalidPayload_RejectsWithoutCallingStorage(string payload)
     {
         var setup = new Setup();
@@ -205,7 +250,7 @@ public class ProcessingStatusAcquirerTests
         var setup = new Setup();
 
         ProcessingStatusAcquisition result = await setup.Acquire(
-            CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(null)),
+            CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(null, "Task_2")),
             Guid.NewGuid(),
             instance => instance.Process = null
         );
@@ -256,7 +301,16 @@ public class ProcessingStatusAcquirerTests
                 Mock.Of<IAppModel>(),
                 _signer
             );
-            _acquirer = new ProcessingStatusAcquirer(stateService, MutationClient.Object, InstanceClient.Object);
+            var processReader = new Mock<IProcessReader>();
+            processReader.Setup(r => r.GetFlowElement("Task_2")).Returns(new ProcessTask { Id = "Task_2" });
+            processReader.Setup(r => r.IsProcessTask("Task_1")).Returns(true);
+            processReader.Setup(r => r.IsProcessTask("Task_2")).Returns(true);
+            _acquirer = new ProcessingStatusAcquirer(
+                stateService,
+                MutationClient.Object,
+                InstanceClient.Object,
+                new ProcessTransitionBuilder(processReader.Object)
+            );
         }
 
         public Guid InstanceGuid { get; } = Guid.NewGuid();
@@ -345,7 +399,7 @@ public class ProcessingStatusAcquirerTests
                     Actor = new Actor { UserId = PartyId, Language = "nb" },
                     WorkflowId = Guid.NewGuid(),
                     StepId = stepId,
-                    ExecutionReferenceTime = DateTimeOffset.UtcNow,
+                    ExecutionReferenceTime = _executionReferenceTime,
                     State = state,
                 },
                 state,

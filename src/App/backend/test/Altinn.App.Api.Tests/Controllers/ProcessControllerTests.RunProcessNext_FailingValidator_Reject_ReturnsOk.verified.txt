@@ -365,6 +365,11 @@
       HasParent: true
     },
     {
+      Name: ProcessReader.GetFlowElement,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
       Name: ProcessReader.GetNextElements,
       IdFormat: W3C,
       HasParent: true

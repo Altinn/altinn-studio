@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
@@ -99,6 +100,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         StorageVersionMetadata instanceVersions,
         string state,
         string? action,
+        ProcessElement nextElement,
         string? language,
         CancellationToken cancellationToken = default
     ) =>
@@ -108,6 +110,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 _processNextRequestFactory.CreateAcquire(
                     instance,
                     action,
+                    nextElement,
                     state,
                     CreateProcessNextIdempotencyKey(instance, instanceVersions),
                     language

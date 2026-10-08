@@ -5,11 +5,13 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -26,6 +28,12 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// next. It is one compare-and-set against the snapshot the request validated: expected status idle, plus that
 /// snapshot's instance and process-state versions. Any change Storage has accepted since then makes the snapshot
 /// stale, and the acquire loses.
+/// </para>
+/// <para>
+/// A process/next acquire also builds the transition its continuation carries out, to the element the request
+/// decided. It builds before claiming: building runs no app code, so only a process definition without that element
+/// can make it fail, as when the request and this callback reach different versions of the app during a deploy. The
+/// engine then retries the step with nothing claimed.
 /// </para>
 /// <para>
 /// A lost process/next acquire is an expected outcome rather than a failure. Nothing was claimed and nothing needs
@@ -48,16 +56,19 @@ internal sealed class ProcessingStatusAcquirer
     private readonly WorkflowCallbackStateService _stateService;
     private readonly IInstanceMutationClient _mutationClient;
     private readonly IInstanceClientWithStorageMetadata _instanceClient;
+    private readonly ProcessTransitionBuilder _transitionBuilder;
 
     public ProcessingStatusAcquirer(
         WorkflowCallbackStateService stateService,
         IInstanceMutationClient mutationClient,
-        IInstanceClientWithStorageMetadata instanceClient
+        IInstanceClientWithStorageMetadata instanceClient,
+        ProcessTransitionBuilder transitionBuilder
     )
     {
         _stateService = stateService;
         _mutationClient = mutationClient;
         _instanceClient = instanceClient;
+        _transitionBuilder = transitionBuilder;
     }
 
     /// <summary>
@@ -65,6 +76,8 @@ internal sealed class ProcessingStatusAcquirer
     /// </summary>
     /// <exception cref="WorkflowCallbackStateException">The state blob cannot be verified or does not target
     /// <paramref name="instanceId"/>.</exception>
+    /// <exception cref="ProcessException">The process definition has no element with the id the request decided the
+    /// process goes to.</exception>
     public async Task<ProcessingStatusAcquisition> Acquire(
         InstanceIdentifier instanceId,
         AppCallbackPayload payload,
@@ -88,6 +101,18 @@ internal sealed class ProcessingStatusAcquirer
                 nameof(InvalidOperationException)
             );
         }
+
+        // Built from the snapshot: if the claim below wins, the acquired instance is that snapshot apart from its
+        // status.
+        ProcessStateChange? transition = acquirePayload is { NextElementId: { } nextElementId }
+            ? _transitionBuilder.Build(
+                callbackState.Instance,
+                nextElementId,
+                acquirePayload.Action,
+                payload.Actor,
+                payload.ExecutionReferenceTime
+            )
+            : null;
 
         // Storage carries the status inside the process payload, so the transition is sent as the snapshot's
         // whole process with the new status. The version preconditions make replacing the process safe.
@@ -159,15 +184,12 @@ internal sealed class ProcessingStatusAcquirer
             payload.Actor.Language
         );
 
-        return new ProcessingStatusAcquisition.Acquired(
-            restored.UnitOfWork,
-            restored.Carry,
-            acquirePayload is null ? null : new ProcessNextContinuation(acquirePayload.Action)
-        );
+        return new ProcessingStatusAcquisition.Acquired(restored.UnitOfWork, restored.Carry, transition);
     }
 
     /// <summary>
-    /// Reads the step payload. An absent payload is the initial-process acquire; a supplied one must be valid.
+    /// Reads the step payload. An absent payload is the initial-process acquire; a supplied one must be valid and
+    /// name the element the process goes to.
     /// </summary>
     private static bool TryReadPayload(string? payload, out AcquireProcessingStatusPayload? acquirePayload)
     {
@@ -187,7 +209,7 @@ internal sealed class ProcessingStatusAcquirer
             return false;
         }
 
-        return acquirePayload is not null;
+        return acquirePayload is { NextElementId.Length: > 0 };
     }
 
     /// <summary>
@@ -208,13 +230,13 @@ internal abstract record ProcessingStatusAcquisition
     private ProcessingStatusAcquisition() { }
 
     /// <summary>
-    /// The instance is now processing. The unit of work holds the acquired snapshot, and the continuation is set
-    /// for a process/next acquire.
+    /// The instance is now processing. The unit of work holds the acquired snapshot, and a process/next acquire
+    /// carries the transition its continuation carries out.
     /// </summary>
     internal sealed record Acquired(
         InstanceDataUnitOfWork UnitOfWork,
         WorkflowCallbackStateCarry Carry,
-        ProcessNextContinuation? ProcessNextContinuation
+        ProcessStateChange? Transition
     ) : ProcessingStatusAcquisition;
 
     /// <summary>

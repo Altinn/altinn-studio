@@ -17,6 +17,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -1009,6 +1010,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     It.IsAny<StorageVersionMetadata>(),
                     It.IsAny<string>(),
                     null,
+                    It.IsAny<ProcessElement>(),
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -1019,6 +1021,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     StorageVersionMetadata versions,
                     string _,
                     string? _,
+                    ProcessElement _,
                     string? _,
                     CancellationToken _
                 ) =>
@@ -1066,6 +1069,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     It.IsAny<StorageVersionMetadata>(),
                     It.IsAny<string>(),
                     null,
+                    It.IsAny<ProcessElement>(),
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -1076,6 +1080,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     StorageVersionMetadata versions,
                     string _,
                     string? _,
+                    ProcessElement _,
                     string? _,
                     CancellationToken _
                 ) =>

@@ -34,6 +34,7 @@ namespace Altinn.App.Core.Internal.Process;
 internal class ProcessEngine : IProcessEngine
 {
     private readonly IProcessReader _processReader;
+    private readonly ProcessTransitionBuilder _transitionBuilder;
     private readonly IProcessNavigator _processNavigator;
     private readonly UserActionService _userActionService;
     private readonly Telemetry? _telemetry;
@@ -64,6 +65,7 @@ internal class ProcessEngine : IProcessEngine
     )
     {
         _processReader = processReader;
+        _transitionBuilder = new ProcessTransitionBuilder(processReader, telemetry);
         _processNavigator = processNavigator;
         _userActionService = userActionService;
         _telemetry = telemetry;
@@ -118,12 +120,14 @@ internal class ProcessEngine : IProcessEngine
         // start process
         ProcessStateChange? startChange = await ProcessStart(request.Instance, validStartElement);
         InstanceEvent? startEvent = startChange?.Events?[0].CopyValues();
-        // A gateway after the start event sees the language the first task's workflow callbacks get.
+        // A gateway after the start event sees the language the first task's workflow callbacks get, and reads data
+        // as the app, like the gateways of every transition after it.
         InstanceDataUnitOfWork dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
             request.Instance,
             StorageVersionMetadata.Empty,
             taskId: null,
-            language: await _authenticationContext.Current.GetLanguage(request.Language)
+            language: await _authenticationContext.Current.GetLanguage(request.Language),
+            StorageAuthenticationMethod.ServiceOwner()
         );
         ProcessStateChange? nextChange = await MoveProcessStateToNextAndGenerateEvents(dataAccessor);
         InstanceEvent? goToNextEvent = nextChange?.Events?[0].CopyValues();
@@ -520,10 +524,46 @@ internal class ProcessEngine : IProcessEngine
             }
         }
 
-        MoveToNextResult moveToNextResult = await HandleMoveToNext(
+        // The user's part of the call ends here: they were authorized, their action was handled and the task was
+        // validated as them. The app carries out the transition from here on, starting with the gateways that decide
+        // where it goes, so they read data as the app. Deciding before anything is enqueued means a gateway that fails
+        // leaves the instance as it was, and the call answers with an error that can be retried.
+        InstanceDataUnitOfWork transitionData = await _instanceDataUnitOfWorkInitializer.Init(
             instance,
             versions,
+            currentTaskId,
+            await _authenticationContext.Current.GetLanguage(request.Language),
+            StorageAuthenticationMethod.ServiceOwner()
+        );
+        ProcessElement nextElement;
+        try
+        {
+            nextElement = await GetNextElement(transitionData, processNextAction);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            _logger.LogError(
+                exception,
+                "Could not decide where the process goes from task {CurrentTaskId}. Action: {ProcessNextAction}.",
+                LogSanitizer.Sanitize(currentTaskId),
+                LogSanitizer.Sanitize(processNextAction ?? "none")
+            );
+            var nextElementFailedResult = new ProcessChangeResult
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Internal,
+                ErrorTitle = "The process could not move on from the current task.",
+                ErrorMessage =
+                    "Where the process goes from the current task could not be decided, so nothing was changed.",
+            };
+            activity?.SetProcessChangeResult(nextElementFailedResult);
+            return nextElementFailedResult;
+        }
+
+        MoveToNextResult moveToNextResult = await HandleMoveToNext(
+            transitionData,
             processNextAction,
+            nextElement,
             request.Language,
             cancellationToken
         );
@@ -710,7 +750,13 @@ internal class ProcessEngine : IProcessEngine
         PlatformUser user = await ExtractPlatformUser();
         List<InstanceEvent> events =
         [
-            CreateInstanceEvent(InstanceEventType.process_StartEvent.ToString(), instance, startState, user, now),
+            ProcessTransitionBuilder.CreateInstanceEvent(
+                InstanceEventType.process_StartEvent.ToString(),
+                instance,
+                startState,
+                user,
+                now
+            ),
         ];
 
         // ! TODO: should probably improve nullability handling in the next major version
@@ -736,10 +782,10 @@ internal class ProcessEngine : IProcessEngine
             return null;
         }
 
-        string changeEventType = action is "reject"
-            ? InstanceEventType.process_AbandonTask.ToString()
-            : InstanceEventType.process_EndTask.ToString();
-        using var activity = _telemetry?.StartProcessGenerateChangeEventActivity(instance, changeEventType);
+        using var activity = _telemetry?.StartProcessGenerateChangeEventActivity(
+            instance,
+            ProcessTransitionBuilder.GetLeaveEventType(action)
+        );
 
         PlatformUser user = await ExtractPlatformUser();
         ProcessStateChange result = await ComputeNextTransition(dataAccessor, action, user, DateTime.UtcNow);
@@ -751,9 +797,9 @@ internal class ProcessEngine : IProcessEngine
     }
 
     /// <summary>
-    /// Core BPMN transition logic. Computes the ProcessStateChange for moving from the current task
-    /// to the next element. Does NOT mutate instance.Process.
-    /// Used for transitions requested by a user and transitions following a successful service task.
+    /// Computes the ProcessStateChange for moving from the current task to the next element. Does NOT mutate
+    /// instance.Process. Used for the transition after instantiation and transitions following a successful service
+    /// task; a transition requested through process/next is decided in the request and built in its acquire callback.
     /// </summary>
     private async Task<ProcessStateChange> ComputeNextTransition(
         IInstanceDataAccessor dataAccessor,
@@ -762,85 +808,22 @@ internal class ProcessEngine : IProcessEngine
         DateTime now
     )
     {
-        Instance instance = dataAccessor.Instance;
-        ProcessState process = instance.Process ?? throw new ProcessException("Process is null");
+        ProcessElement nextElement = await GetNextElement(dataAccessor, action);
+        return _transitionBuilder.Build(dataAccessor.Instance, nextElement, action, user, now);
+    }
+
+    /// <summary>
+    /// Decides which element the process moves to from the current task. This evaluates the gateways on the way,
+    /// which run app code.
+    /// </summary>
+    private async Task<ProcessElement> GetNextElement(IInstanceDataAccessor dataAccessor, string? action)
+    {
+        ProcessState process = dataAccessor.Instance.Process ?? throw new ProcessException("Process is null");
         string currentTaskId =
             process.CurrentTask?.ElementId ?? throw new ProcessException("Current task element ID is null");
 
-        ProcessElement? nextElement = await _processNavigator.GetNextTask(dataAccessor, currentTaskId, action);
-        if (nextElement is null)
-            throw new ProcessException("Next process element was unexpectedly null");
-
-        var events = new List<InstanceEvent>();
-
-        ProcessState oldProcessState = new()
-        {
-            Started = process.Started,
-            CurrentTask = process.CurrentTask,
-            StartEvent = process.StartEvent,
-        };
-
-        // End current task event
-        if (_processReader.IsProcessTask(currentTaskId))
-        {
-            string eventType = action is "reject"
-                ? InstanceEventType.process_AbandonTask.ToString()
-                : InstanceEventType.process_EndTask.ToString();
-            events.Add(CreateInstanceEvent(eventType, instance, oldProcessState, user, now));
-        }
-
-        // Build new process state based on next element
-        ProcessState newProcessState = new() { Started = process.Started, StartEvent = process.StartEvent };
-        string nextElementId = nextElement.Id;
-
-        if (_processReader.IsEndEvent(nextElementId))
-        {
-            using var activity = _telemetry?.StartProcessEndActivity(instance);
-
-            newProcessState.CurrentTask = null;
-            newProcessState.Ended = now;
-            newProcessState.EndEvent = nextElementId;
-
-            events.Add(
-                CreateInstanceEvent(InstanceEventType.process_EndEvent.ToString(), instance, newProcessState, user, now)
-            );
-            // Submit event (to support Altinn2 SBL)
-            events.Add(
-                CreateInstanceEvent(InstanceEventType.Submited.ToString(), instance, newProcessState, user, now)
-            );
-        }
-        else if (_processReader.IsProcessTask(nextElementId))
-        {
-            var task = nextElement as ProcessTask;
-            newProcessState.CurrentTask = new ProcessElementInfo
-            {
-                Flow = (process.CurrentTask?.Flow ?? 0) + 1,
-                ElementId = nextElementId,
-                Name = nextElement.Name,
-                Started = now,
-                AltinnTaskType = task?.ExtensionElements?.TaskExtension?.TaskType,
-                FlowType = action is "reject"
-                    ? ProcessSequenceFlowType.AbandonCurrentMoveToNext.ToString()
-                    : ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
-            };
-
-            events.Add(
-                CreateInstanceEvent(
-                    InstanceEventType.process_StartTask.ToString(),
-                    instance,
-                    newProcessState,
-                    user,
-                    now
-                )
-            );
-        }
-
-        return new ProcessStateChange
-        {
-            OldProcessState = oldProcessState,
-            NewProcessState = newProcessState,
-            Events = events,
-        };
+        return await _processNavigator.GetNextTask(dataAccessor, currentTaskId, action)
+            ?? throw new ProcessException("Next process element was unexpectedly null");
     }
 
     private async Task<PlatformUser> ExtractPlatformUser()
@@ -880,35 +863,27 @@ internal class ProcessEngine : IProcessEngine
     }
 
     private async Task<MoveToNextResult> HandleMoveToNext(
-        Instance instance,
-        StorageVersionMetadata versions,
+        InstanceDataUnitOfWork transitionData,
         string? action,
+        ProcessElement nextElement,
         string? language,
         CancellationToken cancellationToken = default
     )
     {
+        Instance instance = transitionData.Instance;
         using var activity = _telemetry?.StartProcessMoveToNextActivity(instance, action);
 
-        // The acquire callback computes the transition after claiming this authoritative snapshot.
+        // The acquire callback builds the transition to the decided element once it has claimed this snapshot. The
+        // snapshot carries the form data the gateways read, so the transition's steps don't read it again.
         ProcessState? oldProcessState = instance.Process?.Copy();
-        string state;
-        string? currentTaskId = instance.Process?.CurrentTask?.ElementId;
-        {
-            InstanceDataUnitOfWork unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
-                instance,
-                versions,
-                currentTaskId,
-                language: null,
-                StorageAuthenticationMethod.ServiceOwner()
-            );
-            state = await _workflowCallbackStateService.CaptureState(unitOfWork);
-        }
+        string state = await _workflowCallbackStateService.CaptureState(transitionData);
 
         ProcessNextWorkflowResult result = await _workflowEngineService.EnqueueAndWaitForProcessNext(
             instance,
-            versions,
+            transitionData.StorageVersions,
             state,
             action,
+            nextElement,
             language,
             cancellationToken: cancellationToken
         );
@@ -942,12 +917,14 @@ internal class ProcessEngine : IProcessEngine
     )
     {
         Instance instance = dataAccessor.Instance;
-        PlatformUser user = CreatePlatformUser(actor);
-        string changeEventType = action is "reject"
-            ? InstanceEventType.process_AbandonTask.ToString()
-            : InstanceEventType.process_EndTask.ToString();
+        PlatformUser user = ProcessTransitionBuilder.CreatePlatformUser(actor);
         ProcessStateChange processStateChange;
-        using (_telemetry?.StartProcessGenerateChangeEventActivity(instance, changeEventType))
+        using (
+            _telemetry?.StartProcessGenerateChangeEventActivity(
+                instance,
+                ProcessTransitionBuilder.GetLeaveEventType(action)
+            )
+        )
         {
             processStateChange = await ComputeNextTransition(
                 dataAccessor,
@@ -967,64 +944,6 @@ internal class ProcessEngine : IProcessEngine
             idempotencyKey,
             cancellationToken: cancellationToken
         );
-    }
-
-    private static InstanceEvent CreateInstanceEvent(
-        string eventType,
-        Instance instance,
-        ProcessState processInfo,
-        PlatformUser user,
-        DateTime now
-    )
-    {
-        return new InstanceEvent
-        {
-            InstanceId = instance.Id,
-            InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
-            EventType = eventType,
-            Created = now,
-            User = user,
-            ProcessInfo = processInfo,
-        };
-    }
-
-    private static PlatformUser CreatePlatformUser(Actor actor)
-    {
-        if (actor.UserId is int userId)
-        {
-            var platformUser = new PlatformUser
-            {
-                UserId = userId,
-                NationalIdentityNumber = actor.NationalIdentityNumber,
-            };
-            if (actor.AuthenticationLevel is int authenticationLevel)
-            {
-                platformUser.AuthenticationLevel = authenticationLevel;
-            }
-            return platformUser;
-        }
-
-        if (actor.SystemUserId is Guid systemUserId)
-        {
-            var platformUser = new PlatformUser
-            {
-                SystemUserId = systemUserId,
-                SystemUserOwnerOrgNo = actor.SystemUserOwnerOrgNo,
-                SystemUserName = actor.SystemUserName,
-            };
-            if (actor.AuthenticationLevel is int authenticationLevel)
-            {
-                platformUser.AuthenticationLevel = authenticationLevel;
-            }
-            return platformUser;
-        }
-
-        var orgPlatformUser = new PlatformUser { OrgId = actor.OrgId };
-        if (actor.AuthenticationLevel is int orgAuthenticationLevel)
-        {
-            orgPlatformUser.AuthenticationLevel = orgAuthenticationLevel;
-        }
-        return orgPlatformUser;
     }
 
     private sealed record MoveToNextResult(
