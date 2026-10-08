@@ -141,7 +141,7 @@ Do these steps one time. If one is missing, the run fails quickly, and the error
 
 Check **2** is important. If `/health` does not give `models`, `--include-e2e` stops
 immediately. The reason: the runner cannot connect the scores to a model. If `models` is missing,
-build the agent image again.
+build the assistant service image again.
 
 Do step **4** again after you delete the database volume. Do step **5** again after somebody adds
 a new `bench_*` score. A score without a config is sent. But without a data type or a range,

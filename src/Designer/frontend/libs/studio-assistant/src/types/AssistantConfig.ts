@@ -19,7 +19,8 @@ export interface AssistantMessageData {
 /**
  * Activity phase the backend emits with status and chunk events. The UI
  * highlights the matching pill in the activity row. Keep these strings in
- * sync with `_PHASE_*` constants in `agents/graph/nodes/agentic_loop_node.py`.
+ * sync with `_PHASE_*` constants in
+ * `src/AI/assistant/agents/graph/nodes/agentic_loop_node.py`.
  */
 export type WorkflowPhase = 'thinking' | 'reading' | 'writing' | 'verifying' | 'committing';
 

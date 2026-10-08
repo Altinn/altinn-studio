@@ -124,7 +124,7 @@ The pod gets five secrets from Key Vault: the Azure key and four Langfuse values
 flowchart LR
   M["Merge to main"] --> A["GitHub Actions: image and OCI artifact"]
   A --> F["Flux: staging, prod"]
-  F --> P["Agents pod"]
+  F --> P["Assistant service pod"]
   K["Key Vault, through External Secrets"] --> P
 ```
 

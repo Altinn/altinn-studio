@@ -76,7 +76,7 @@ def test_a_test_change_needs_nothing():
     assert not found.needs_check
 
 
-def test_repo_relative_and_agents_relative_paths_both_work():
+def test_repo_relative_and_assistant_relative_paths_both_work():
     """`git diff --name-only` output is repo relative and is fed in as it comes."""
     a = impact.analyze(["src/AI/assistant/benchmarks/datasets/gates_scope.jsonl"])
     b = impact.analyze(["benchmarks/datasets/gates_scope.jsonl"])
