@@ -45,6 +45,15 @@ internal static class ProcessFile
     /// <summary>A sequence flow's condition, which an exclusive gateway evaluates to choose the flow.</summary>
     internal static readonly XName ConditionExpression = Bpmn + "conditionExpression";
 
+    /// <summary>The element of a flow node that holds its Altinn extension.</summary>
+    internal static readonly XName ExtensionElements = Bpmn + "extensionElements";
+
+    /// <summary>The Altinn extension of a task: its type and configuration.</summary>
+    internal static readonly XName TaskExtension = Altinn + "taskExtension";
+
+    /// <summary>The type of a task, which selects the implementation that runs it.</summary>
+    internal static readonly XName TaskType = Altinn + "taskType";
+
     /// <summary>The app's process file; see <see cref="AdditionalFiles.Single"/>.</summary>
     internal static AdditionalText? FindSingle(ImmutableArray<AdditionalText> additionalFiles) =>
         AdditionalFiles.Single(
@@ -91,6 +100,12 @@ internal static class ProcessFile
     /// </summary>
     internal static XElement? FindHostingTask(XElement taskType) =>
         taskType.Ancestors().FirstOrDefault(a => a.Name == Task || a.Name == ServiceTask);
+
+    /// <summary>
+    /// How a message names an element in the Altinn namespace, and, joined, the path to one in a task's
+    /// configuration: <c>&lt;altinn:signatureConfig&gt;&lt;altinn:signatureDataType&gt;</c>.
+    /// </summary>
+    internal static string Tag(string name) => $"<altinn:{name}>";
 
     internal static string NormalizedPath(AdditionalText file) => file.Path.Replace('\\', '/');
 }
