@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -23,16 +25,16 @@ type RenderProps = {
   initialForm?: BotAccountForm;
   availableEnvironments?: string[];
   editingId?: string | null;
-  onClose?: jest.Mock;
-  onCreated?: jest.Mock;
+  onClose?: Mock;
+  onCreated?: Mock;
 };
 
 const renderBotAccountDialog = ({
   initialForm = emptyForm,
   availableEnvironments = ['tt02', 'production'],
   editingId = null,
-  onClose = jest.fn(),
-  onCreated = jest.fn(),
+  onClose = vi.fn(),
+  onCreated = vi.fn(),
 }: RenderProps = {}) =>
   renderWithProviders(
     <BotAccountDialog
@@ -54,7 +56,7 @@ const getSaveButton = () => screen.getByRole('button', { name: textMock('general
 const getCancelButton = () => screen.getByRole('button', { name: textMock('general.cancel') });
 
 describe('BotAccountDialog', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('renders the create title when not editing', () => {
     renderBotAccountDialog();
@@ -171,7 +173,7 @@ describe('BotAccountDialog', () => {
   });
 
   it('calls onClose when cancel is clicked', async () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const user = userEvent.setup();
     renderBotAccountDialog({ onClose });
     await user.click(getCancelButton());

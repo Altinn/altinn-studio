@@ -28,6 +28,7 @@
 }
 
 .filterAndSearch {
+  flex: 1;
   display: flex;
   flex-direction: row;
   align-items: flex-end;
@@ -40,6 +41,10 @@
   display: flex;
   align-items: center;
   white-space: nowrap;
+}
+
+.sortChip {
+  flex-shrink: 0;
 }
 
 .sortChip > input {

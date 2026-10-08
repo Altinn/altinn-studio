@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { StudioTextResourceActionProps } from './StudioTextResourceAction';
@@ -10,36 +11,52 @@ const generatedId = 'generated-id';
 describe('StudioTextResourceAction', () => {
   const getSearchTab = (): HTMLElement => screen.getByRole('tab', { name: texts.tabLabelSearch });
   const getTypeTab = (): HTMLElement => screen.getByRole('tab', { name: texts.tabLabelType });
-  const getPicker = (): HTMLElement => screen.getByRole('combobox', { name: texts.pickerLabel });
+  const getPicker = (): HTMLElement =>
+    screen.getByRole('combobox', { name: RegExp('^' + texts.pickerLabel) });
+  const getOption = (name: string | RegExp): HTMLElement =>
+    screen.getByRole('option', { name, hidden: true });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('uses selected text resource id', async () => {
     const user = userEvent.setup();
     renderStudioTextResourceAction();
 
     await user.click(getSearchTab());
-    await user.selectOptions(getPicker(), textResourceId);
+    await user.click(getPicker());
+    await user.click(getOption(RegExp(textResourceId)));
     await user.click(getTypeTab());
     expect(screen.getAllByText(textResourceId)).toHaveLength(2);
   });
 
-  it('uses generated id when user selects empty option in picker', async () => {
+  it('filters the text resources by text value when the user searches', async () => {
+    const user = userEvent.setup();
+    renderStudioTextResourceAction();
+
+    await user.click(getSearchTab());
+    await user.type(getPicker(), 'Text 2');
+
+    expect(getOption(/text-2/)).toBeVisible();
+    expect(screen.queryByRole('option', { name: /text-1/, hidden: true })).not.toBeInTheDocument();
+  });
+
+  it('uses generated id when user clears the picker', async () => {
     const user = userEvent.setup();
     renderStudioTextResourceAction({ textResourceId });
 
     await user.click(getSearchTab());
-    await user.selectOptions(getPicker(), '');
+    await user.clear(getPicker());
+    await user.tab();
     await user.click(getTypeTab());
 
     expect(screen.getByText(generatedId)).toBeInTheDocument();
   });
 });
 
-const onSetIsOpen = jest.fn();
-const onHandleIdChange = jest.fn();
-const onHandleValueChange = jest.fn();
-const onHandleRemoveTextResource = jest.fn();
+const onSetIsOpen = vi.fn();
+const onHandleIdChange = vi.fn();
+const onHandleValueChange = vi.fn();
+const onHandleRemoveTextResource = vi.fn();
 
 const textResources: TextResource[] = [
   { id: 'text-1', value: 'Text 1' },
@@ -55,7 +72,7 @@ const texts: StudioTextResourceActionProps['texts'] = {
   pickerLabel: 'Pick text resource',
   valueEditorAriaLabel: 'Edit text value',
   valueEditorIdLabel: 'ID:',
-  noTextResourceOptionLabel: 'No text resource',
+  noSearchResultsText: 'No results',
   tabLabelType: 'Type',
   tabLabelSearch: 'Search',
 };

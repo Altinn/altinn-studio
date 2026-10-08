@@ -9,6 +9,7 @@ spec:
     - port: 80
       targetPort: 80
       protocol: TCP
+      appProtocol: http
       name: http
   selector:
     app: fake-oidc

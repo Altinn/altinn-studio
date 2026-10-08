@@ -163,6 +163,11 @@
         "Nullable": true
       },
       {
+        "Name": "isFinalWaitCheck",
+        "Kind": "bool",
+        "Nullable": false
+      },
+      {
         "Name": "mailbox",
         "Kind": "object<AppCallbackMailbox>",
         "Nullable": true

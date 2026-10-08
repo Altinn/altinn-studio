@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { PageLayout } from './PageLayout';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -7,12 +8,12 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { QueryClient } from '@tanstack/react-query';
 
-jest.mock('../components/Menu/Menu', () => ({ Menu: () => <div>Menu</div> }));
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('../components/Menu/Menu', () => ({ Menu: () => <div>Menu</div> }));
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   Outlet: () => <div>Outlet</div>,
 }));
-jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: {} }),
 }));
 

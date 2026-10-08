@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -15,9 +16,9 @@ import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { toast } from 'react-toastify';
 
-jest.mock('react-toastify', () => ({
-  ...jest.requireActual('react-toastify'),
-  toast: { success: jest.fn(), error: jest.fn() },
+vi.mock('react-toastify', async () => ({
+  ...(await vi.importActual('react-toastify')),
+  toast: { success: vi.fn(), error: vi.fn() },
 }));
 
 const testOrg = 'ttd';
@@ -58,7 +59,7 @@ const renderBotAccountApiKeys = (
 const getAddButton = () => screen.getByRole('button', { name: textMock('settings.api_keys.add') });
 
 describe('BotAccountApiKeys', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('renders the loading spinner while data is pending', () => {
     renderBotAccountApiKeys();
@@ -67,7 +68,7 @@ describe('BotAccountApiKeys', () => {
 
   it('renders error message when query fails', async () => {
     const queryClient = createQueryClientMock();
-    const getBotAccountApiKeys = jest.fn().mockRejectedValue(new Error('Failed'));
+    const getBotAccountApiKeys = vi.fn().mockRejectedValue(new Error('Failed'));
     renderWithProviders(<BotAccountApiKeys {...defaultProps} />, {
       queries: { getBotAccountApiKeys },
       queryClient,
@@ -97,7 +98,7 @@ describe('BotAccountApiKeys', () => {
   });
 
   it('calls revokeBotAccountApiKey when delete is confirmed', async () => {
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     const user = userEvent.setup();
     renderBotAccountApiKeys([activeApiKey]);
     const deleteButton = screen.getByRole('button', {
@@ -119,7 +120,7 @@ describe('BotAccountApiKeys', () => {
       expiresAt: '2099-12-31T23:59:59Z',
       createdByUsername: 'testuser',
     };
-    const createBotAccountApiKey = jest.fn().mockResolvedValue(newKeyResponse);
+    const createBotAccountApiKey = vi.fn().mockResolvedValue(newKeyResponse);
     const user = userEvent.setup();
     renderBotAccountApiKeys([], { createBotAccountApiKey });
     await user.click(screen.getByRole('button', { name: textMock('settings.api_keys.add') }));
@@ -139,7 +140,7 @@ describe('BotAccountApiKeys', () => {
       expiresAt: '2099-12-31T23:59:59Z',
       createdByUsername: 'testuser',
     };
-    const createBotAccountApiKey = jest.fn().mockResolvedValue(newKeyResponse);
+    const createBotAccountApiKey = vi.fn().mockResolvedValue(newKeyResponse);
     const user = userEvent.setup();
     renderBotAccountApiKeys([], { createBotAccountApiKey });
     await user.click(screen.getByRole('button', { name: textMock('settings.api_keys.add') }));
@@ -154,7 +155,7 @@ describe('BotAccountApiKeys', () => {
   });
 
   it('shows duplicate name error when server returns 409 Conflict with DuplicateTokenName', async () => {
-    const createBotAccountApiKey = jest.fn().mockRejectedValue({
+    const createBotAccountApiKey = vi.fn().mockRejectedValue({
       response: {
         status: ServerCodes.Conflict,
         data: { errorCode: ApiErrorCodes.DuplicateTokenName },
@@ -174,7 +175,7 @@ describe('BotAccountApiKeys', () => {
   });
 
   it('clears duplicate name error from API when name input changes', async () => {
-    const createBotAccountApiKey = jest.fn().mockRejectedValue({
+    const createBotAccountApiKey = vi.fn().mockRejectedValue({
       response: {
         status: ServerCodes.Conflict,
         data: { errorCode: ApiErrorCodes.DuplicateTokenName },
@@ -196,8 +197,8 @@ describe('BotAccountApiKeys', () => {
   });
 
   it('copies the new api key and shows success toast', async () => {
-    const writeText = jest.fn().mockResolvedValue(undefined);
-    jest.spyOn(navigator.clipboard, 'writeText').mockImplementation(writeText);
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(navigator.clipboard, 'writeText').mockImplementation(writeText);
     const newKeyResponse: CreateBotAccountApiKeyResponse = {
       id: 3,
       key: 'new-secret-key',
@@ -205,7 +206,7 @@ describe('BotAccountApiKeys', () => {
       expiresAt: '2099-12-31T23:59:59Z',
       createdByUsername: 'testuser',
     };
-    const createBotAccountApiKey = jest.fn().mockResolvedValue(newKeyResponse);
+    const createBotAccountApiKey = vi.fn().mockResolvedValue(newKeyResponse);
     const user = userEvent.setup();
     renderBotAccountApiKeys([], { createBotAccountApiKey });
     await user.click(screen.getByRole('button', { name: textMock('settings.api_keys.add') }));

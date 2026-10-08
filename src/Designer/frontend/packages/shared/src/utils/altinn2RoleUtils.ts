@@ -1,6 +1,6 @@
 import type { PolicyRule } from '../types/Policy';
 
-const deprecatedAltinn2Roles: Record<string, string> = {
+export const deprecatedAltinn2Roles: Record<string, string> = {
   'urn:altinn:rolecode:a0238': 'Revisormedarbeider',
   'urn:altinn:rolecode:a0236': 'Post/arkiv',
   'urn:altinn:rolecode:kladm': 'Klientadministrator',

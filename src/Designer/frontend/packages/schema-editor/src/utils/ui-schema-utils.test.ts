@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { makeDomFriendlyID, isValidName } from './ui-schema-utils';
 
 describe('ui-schema-utils', () => {

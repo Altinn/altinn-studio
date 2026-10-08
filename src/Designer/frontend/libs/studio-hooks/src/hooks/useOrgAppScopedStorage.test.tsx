@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import {
   type SupportedStorage,
@@ -6,8 +8,8 @@ import {
 } from './useOrgAppScopedStorage';
 import { useParams } from 'react-router-dom';
 
-jest.mock('react-router-dom', () => ({
-  useParams: jest.fn(),
+vi.mock('react-router-dom', () => ({
+  useParams: vi.fn(),
 }));
 
 const mockedOrg: string = 'testOrg';
@@ -63,7 +65,7 @@ describe('useOrgAppScopedStorage', () => {
 });
 
 const renderUseOrgAppScopedStorage = ({ storage }: UseOrgAppScopedStorage) => {
-  (useParams as jest.Mock).mockReturnValue({ org: mockedOrg, app: mockedApp });
+  (useParams as Mock).mockReturnValue({ org: mockedOrg, app: mockedApp });
   const { result } = renderHook(() =>
     useOrgAppScopedStorage({
       storage,

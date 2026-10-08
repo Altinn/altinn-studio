@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './validation';
 import type { CodeList } from '../types/CodeList';
 import type { ValueErrorMap } from '../types/ValueErrorMap';

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { StudioCodeListEditorWithTextResourcesProps } from './StudioCodeListEditorWithTextResources';
@@ -26,10 +27,10 @@ import { emptyBooleanItem, emptyNumberItem, emptyStringItem } from './utils';
 import { codeListWithoutTextResources } from './test-data/codeListWithoutTextResources';
 
 // Test data:
-const onCreateTextResource = jest.fn();
-const onInvalid = jest.fn();
-const onUpdateCodeList = jest.fn();
-const onUpdateTextResource = jest.fn();
+const onCreateTextResource = vi.fn();
+const onInvalid = vi.fn();
+const onUpdateCodeList = vi.fn();
+const onUpdateTextResource = vi.fn();
 const defaultProps: StudioCodeListEditorWithTextResourcesProps = {
   codeList: codeListWithStrings,
   texts,
@@ -64,7 +65,7 @@ const codeListWithDuplicatedValues: CodeListWithTextResources = [
 const numberOfHeadingRows = 1;
 
 describe('StudioCodeListEditorWithTextResources', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Renders a group element with the given title', () => {
     renderCodeListEditor();
@@ -101,24 +102,15 @@ describe('StudioCodeListEditorWithTextResources', () => {
     });
   });
 
-  it('Does not display the unset option for labels', async () => {
-    const user = userEvent.setup();
-    renderCodeListEditor();
-    const firstLabelCoords: TextPropertyCoords = [1, CodeListItemTextProperty.Label];
-    await switchToSearchMode(user, firstLabelCoords);
-    await openTextResourcePicker(user, firstLabelCoords);
-    expect(hasUnsetTextResourceOption()).toBe(false);
-  });
-
-  it.each([CodeListItemTextProperty.Description, CodeListItemTextProperty.HelpText])(
-    `Displays the unset option for %ss`,
+  it.each(Object.values(CodeListItemTextProperty))(
+    'Does not display an unset option for %ss',
     async (property) => {
       const user = userEvent.setup();
       renderCodeListEditor();
       const propertyCoords: TextPropertyCoords = [1, property];
       await switchToSearchMode(user, propertyCoords);
       await openTextResourcePicker(user, propertyCoords);
-      expect(hasUnsetTextResourceOption()).toBe(true);
+      expect(hasUnsetTextResourceOption()).toBe(false);
     },
   );
 

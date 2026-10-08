@@ -181,10 +181,10 @@ public abstract class Authenticated
         public bool IsSelfIdentified => AuthenticationLevel == 0;
 
         private Details? _extra;
+        private readonly bool _selectionWasUnusable;
         private readonly Func<int, Task<UserProfile?>> _getUserProfile;
         private readonly Func<int, Task<Party?>> _lookupParty;
-        private readonly Func<int, Task<List<Party>?>> _getPartyList;
-        private readonly Func<int, int, Task<bool?>> _validateSelectedParty;
+        private readonly Func<Task<List<Party>?>> _getPartyList;
         private readonly ApplicationMetadata _appMetadata;
 
         internal User(
@@ -194,6 +194,7 @@ public abstract class Authenticated
             int authenticationLevel,
             string authenticationMethod,
             int selectedPartyId,
+            bool selectionWasUnusable,
             ref ParseContext context
         )
             : base(ref context)
@@ -202,13 +203,13 @@ public abstract class Authenticated
             Username = username;
             UserPartyId = userPartyId;
             SelectedPartyId = selectedPartyId;
+            _selectionWasUnusable = selectionWasUnusable;
             AuthenticationLevel = authenticationLevel;
             AuthenticationMethod = authenticationMethod;
             InAltinnPortal = context.IsInAltinnPortal;
             _getUserProfile = context.GetUserProfile;
             _lookupParty = context.LookupUserParty;
             _getPartyList = context.GetPartyList;
-            _validateSelectedParty = context.ValidateSelectedParty;
             _appMetadata = context.AppMetadata;
         }
 
@@ -221,10 +222,14 @@ public abstract class Authenticated
         ///     Selected party and user party will differ when the user has chosen to represent a different entity during party selection (e.g. an organization)
         /// </param>
         /// <param name="Profile">Users profile</param>
-        /// <param name="RepresentsSelf">True if the user represents itself (user party will equal selected party)</param>
+        /// <param name="RepresentsSelf">True if the user selected their own party (or made no selection). False when a different party was selected, or when the selection could not be used.</param>
         /// <param name="Parties">List of parties the user can represent</param>
         /// <param name="PartiesAllowedToInstantiate">List of parties the user can instantiate as</param>
-        /// <param name="CanRepresent">True if the user can represent the selected party. Only set if details were loaded with validateSelectedParty set to true</param>
+        /// <param name="CanRepresent">
+        ///     True if the user can represent the selected party. False if the selection could not be used, in which case
+        ///     <paramref name="SelectedParty"/> holds the user's own party as a stand-in. Otherwise only set if details were
+        ///     loaded with validateSelectedParty set to true.
+        /// </param>
         public sealed record Details(
             Party UserParty,
             Party SelectedParty,
@@ -249,7 +254,7 @@ public abstract class Authenticated
                 while (partiesToCheck.Count > 0)
                 {
                     var party = partiesToCheck.Dequeue();
-                    if (party.PartyId == partyId)
+                    if (party.PartyId == partyId && !party.OnlyHierarchyElementWithNoAccess)
                         return true;
 
                     if (party.ChildParties is not null)
@@ -267,24 +272,8 @@ public abstract class Authenticated
             /// </summary>
             /// <param name="partyId">Party ID</param>
             /// <returns></returns>
-            public bool CanInstantiateAsParty(int partyId)
-            {
-                var partiesToCheck = new Queue<Party>(PartiesAllowedToInstantiate);
-                while (partiesToCheck.Count > 0)
-                {
-                    var party = partiesToCheck.Dequeue();
-                    if (party.PartyId == partyId && !party.OnlyHierarchyElementWithNoAccess)
-                        return true;
-
-                    if (party.ChildParties is not null)
-                    {
-                        foreach (var childParty in party.ChildParties)
-                            partiesToCheck.Enqueue(childParty);
-                    }
-                }
-
-                return false;
-            }
+            public bool CanInstantiateAsParty(int partyId) =>
+                PartyListHelper.ContainsPartyWithAccess(PartiesAllowedToInstantiate, partyId);
         }
 
         /// <summary>
@@ -293,7 +282,8 @@ public abstract class Authenticated
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">If the party couldn't be resolved</exception>
         public async Task<Party> LookupSelectedParty() =>
-            _extra?.SelectedParty
+            // LoadDetails may have cached the user's own party as a stand-in for an unusable selection
+            (_extra?.SelectedParty is { } party && party.PartyId == SelectedPartyId ? party : null)
             ?? await _lookupParty(SelectedPartyId)
             ?? throw new InvalidOperationException($"Could not load party for selected party ID: {SelectedPartyId}");
 
@@ -328,30 +318,28 @@ public abstract class Authenticated
                 SelectedPartyId == userProfile.PartyId
                     ? Task.FromResult((Party?)userProfile.Party)
                     : _lookupParty(SelectedPartyId);
-            var partiesTask = _getPartyList(UserId);
+            var partiesTask = _getPartyList();
             await Task.WhenAll(lookupPartyTask, partiesTask);
 
-            var parties = await partiesTask ?? [];
+            var partyList = await partiesTask;
+            var parties = partyList ?? [];
             if (parties.Count == 0)
                 parties.Add(userProfile.Party);
 
             var selectedParty = await lookupPartyTask;
-            if (selectedParty is null)
-                throw new AuthenticationContextException(
-                    $"Could not load party for selected party ID: {SelectedPartyId}"
-                );
+            var selectionUnusable = _selectionWasUnusable || selectedParty is null;
+            selectedParty ??= userProfile.Party;
 
-            var representsSelf = SelectedPartyId == userProfile.PartyId;
+            var representsSelf = !selectionUnusable && SelectedPartyId == userProfile.PartyId;
             bool? canRepresent = null;
-            if (representsSelf)
+            if (selectionUnusable)
+                canRepresent = false;
+            else if (representsSelf)
                 canRepresent = true;
-
-            if (validateSelectedParty && !representsSelf)
-            {
-                // The selected party must either be the profile/default party or a party the user can represent,
-                // which can be validated against the user's party list.
-                canRepresent = await _validateSelectedParty(UserId, SelectedPartyId);
-            }
+            // The selected party must either be the profile/default party or a party in the user's party list.
+            // If the list could not be loaded, it stays unvalidated.
+            else if (validateSelectedParty && partyList is not null)
+                canRepresent = PartyListHelper.ContainsPartyWithAccess(partyList, SelectedPartyId);
 
             var partiesAllowedToInstantiate = InstantiationHelper.FilterPartiesByAllowedPartyTypes(
                 parties,
@@ -576,12 +564,11 @@ public abstract class Authenticated
         JwtSecurityToken? parsedToken,
         bool isAuthenticated,
         ApplicationMetadata appMetadata,
-        Func<string?> getSelectedParty,
+        Func<IReadOnlyList<string>> getSelectedPartyCookieValues,
         Func<int, Task<UserProfile?>> getUserProfile,
         Func<int, Task<Party?>> lookupUserParty,
         Func<string, Task<Party>> lookupOrgParty,
-        Func<int, Task<List<Party>?>> getPartyList,
-        Func<int, int, Task<bool?>> validateSelectedParty
+        Func<Task<List<Party>?>> getPartyList
     );
 
     internal static Authenticated FromOldLocalTest(
@@ -589,24 +576,22 @@ public abstract class Authenticated
         JwtSecurityToken? parsedToken,
         bool isAuthenticated,
         ApplicationMetadata appMetadata,
-        Func<string?> getSelectedParty,
+        Func<IReadOnlyList<string>> getSelectedPartyCookieValues,
         Func<int, Task<UserProfile?>> getUserProfile,
         Func<int, Task<Party?>> lookupUserParty,
         Func<string, Task<Party>> lookupOrgParty,
-        Func<int, Task<List<Party>?>> getPartyList,
-        Func<int, int, Task<bool?>> validateSelectedParty
+        Func<Task<List<Party>?>> getPartyList
     )
     {
         var context = new ParseContext(
             tokenStr,
             isAuthenticated,
             appMetadata,
-            getSelectedParty,
+            getSelectedPartyCookieValues,
             getUserProfile,
             lookupUserParty,
             lookupOrgParty,
-            getPartyList,
-            validateSelectedParty
+            getPartyList
         );
         if (!context.IsAuthenticated)
             return new None(ref context);
@@ -676,14 +661,11 @@ public abstract class Authenticated
 
         ParseAuthLevel(context.AuthLevelClaim, out authLevel);
 
-        int selectedPartyId = partyId.Value;
-        if (getSelectedParty() is { } selectedPartyStr)
-        {
-            if (!int.TryParse(selectedPartyStr, CultureInfo.InvariantCulture, out var selectedParty))
-                throw new AuthenticationContextException($"Invalid party ID in cookie: {selectedPartyStr}"); // TODO: maybe not throw?
-
-            selectedPartyId = selectedParty;
-        }
+        int selectedPartyId = ResolveSelectedPartyId(
+            getSelectedPartyCookieValues(),
+            tokenPartyId: partyId.Value,
+            out bool selectionWasUnusable
+        );
         context.UsernameClaim.IsValidString(out var usernameClaimValue);
 
         return new User(
@@ -693,6 +675,7 @@ public abstract class Authenticated
             authLevel,
             "localtest",
             selectedPartyId,
+            selectionWasUnusable,
             ref context
         );
     }
@@ -701,12 +684,11 @@ public abstract class Authenticated
         string TokenStr,
         bool IsAuthenticated,
         ApplicationMetadata AppMetadata,
-        Func<string?> GetSelectedParty,
+        Func<IReadOnlyList<string>> GetSelectedPartyCookieValues,
         Func<int, Task<UserProfile?>> GetUserProfile,
         Func<int, Task<Party?>> LookupUserParty,
         Func<string, Task<Party>> LookupOrgParty,
-        Func<int, Task<List<Party>?>> GetPartyList,
-        Func<int, int, Task<bool?>> ValidateSelectedParty
+        Func<Task<List<Party>?>> GetPartyList
     )
     {
         public TokenClaim IssuerClaim = default;
@@ -858,15 +840,14 @@ public abstract class Authenticated
             tokenStr,
             true,
             appMetadata,
-            static () => null,
+            static () => [],
             static _ => Task.FromResult<UserProfile?>(null),
             static _ => Task.FromResult<Party?>(null),
             static _ =>
                 throw new InvalidOperationException(
                     "Org party lookup is not applicable for an app callback principal."
                 ),
-            static _ => Task.FromResult<List<Party>?>(null),
-            static (_, _) => Task.FromResult<bool?>(null)
+            static () => Task.FromResult<List<Party>?>(null)
         );
 
         if (!string.IsNullOrWhiteSpace(tokenStr))
@@ -887,24 +868,22 @@ public abstract class Authenticated
         JwtSecurityToken? parsedToken,
         bool isAuthenticated,
         ApplicationMetadata appMetadata,
-        Func<string?> getSelectedParty,
+        Func<IReadOnlyList<string>> getSelectedPartyCookieValues,
         Func<int, Task<UserProfile?>> getUserProfile,
         Func<int, Task<Party?>> lookupUserParty,
         Func<string, Task<Party>> lookupOrgParty,
-        Func<int, Task<List<Party>?>> getPartyList,
-        Func<int, int, Task<bool?>> validateSelectedParty
+        Func<Task<List<Party>?>> getPartyList
     )
     {
         var context = new ParseContext(
             tokenStr,
             isAuthenticated,
             appMetadata,
-            getSelectedParty,
+            getSelectedPartyCookieValues,
             getUserProfile,
             lookupUserParty,
             lookupOrgParty,
-            getPartyList,
-            validateSelectedParty
+            getPartyList
         );
         if (string.IsNullOrWhiteSpace(tokenStr))
             return new None(ref context);
@@ -1011,14 +990,11 @@ public abstract class Authenticated
 
         ParseAuthLevel(context.AuthLevelClaim, out var authLevel);
 
-        int selectedPartyId = partyId.Value;
-        if (context.GetSelectedParty() is { } selectedPartyStr)
-        {
-            if (!int.TryParse(selectedPartyStr, CultureInfo.InvariantCulture, out var selectedParty))
-                throw new AuthenticationContextException($"Invalid party ID in cookie: {selectedPartyStr}"); // TODO: maybe not throw?
-
-            selectedPartyId = selectedParty;
-        }
+        int selectedPartyId = ResolveSelectedPartyId(
+            context.GetSelectedPartyCookieValues(),
+            tokenPartyId: partyId.Value,
+            out bool selectionWasUnusable
+        );
 
         context.UsernameClaim.IsValidString(out var usernameClaimValue);
 
@@ -1029,8 +1005,40 @@ public abstract class Authenticated
             authLevel,
             authMethodClaimValue,
             selectedPartyId,
+            selectionWasUnusable,
             ref context
         );
+    }
+
+    /// <summary>
+    /// Copies of the party cookie that agree are one selection. Copies that disagree, or a value that isn't a
+    /// party ID, make the selection unusable and fall back to the party from the token.
+    /// </summary>
+    static int ResolveSelectedPartyId(
+        IReadOnlyList<string> cookieValues,
+        int tokenPartyId,
+        out bool selectionWasUnusable
+    )
+    {
+        selectionWasUnusable = false;
+        if (cookieValues.Count == 0)
+            return tokenPartyId;
+
+        var value = cookieValues[0];
+        for (var i = 1; i < cookieValues.Count; i++)
+        {
+            if (!string.Equals(cookieValues[i], value, StringComparison.Ordinal))
+            {
+                selectionWasUnusable = true;
+                return tokenPartyId;
+            }
+        }
+
+        if (int.TryParse(value, CultureInfo.InvariantCulture, out var selectedPartyId))
+            return selectedPartyId;
+
+        selectionWasUnusable = true;
+        return tokenPartyId;
     }
 
     static Org NewOrg(ref ParseContext context)

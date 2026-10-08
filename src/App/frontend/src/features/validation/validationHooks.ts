@@ -12,7 +12,7 @@ import {
 import { getUiFolderSettings } from 'src/features/form/ui';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
-import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
+import { ValidationMask } from 'src/features/validation';
 import { createValidationStateDeriver } from 'src/features/validation/createValidationStateDeriver';
 import {
   buildDerivedValidationState,
@@ -250,24 +250,6 @@ export function useGetNodesWithErrors() {
     },
     [buildFreshDerivedState],
   );
-}
-
-/** Indicates whether a page currently contains a visible required-field validation. */
-export function usePageHasVisibleRequiredValidations(pageKey: string | undefined) {
-  const inputs = useDerivedValidationStateInputs();
-  const derive = useValidationStateDeriver();
-  return FormStore.raw.useMemoSelector((state) => {
-    if (!pageKey) {
-      return false;
-    }
-
-    const derived = derive(state, { ...inputs, includedPageKeys: [pageKey] });
-    return (derived.nodeIdsByPage.get(pageKey) ?? emptyArray).some((nodeId) =>
-      getValidationsForNode(derived, nodeId, 'visible', 'error').some(
-        (validation) => validation.source === FrontendValidationSource.EmptyField,
-      ),
-    );
-  });
 }
 
 /**

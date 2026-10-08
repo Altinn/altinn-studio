@@ -158,4 +158,33 @@ public sealed class ApplicationMetadataPdfRewriterTests : IDisposable
             "expected no UTF-8 BOM to be introduced"
         );
     }
+
+    [Theory]
+    [InlineData("", true)] // v8's default is true
+    [InlineData("\"enablePdfCreation\": true,", true)]
+    [InlineData("\"enablePdfCreation\": false,", false)]
+    [InlineData("\"enablePdfCreation\": \"true\",", false)]
+    public void FormDataType_RequiresPdfUnlessTheFlagIsNotTrue(string flagProperty, bool requiresPdf)
+    {
+        var file = _app.Write(
+            "config/applicationmetadata.json",
+            $$"""
+            {
+              "dataTypes": [
+                {
+                  "id": "model",
+                  "taskId": "Task_1",
+                  {{flagProperty}}
+                  "appLogic": { "classRef": "Altinn.App.Models.model" }
+                }
+              ]
+            }
+            """
+        );
+
+        var tasks = new ApplicationMetadataPdfRewriter(file).GetTasksRequiringPdf();
+
+        (string TaskId, string? DataTypeId)[] expected = requiresPdf ? [("Task_1", "model")] : [];
+        Assert.Equal(expected, tasks);
+    }
 }
