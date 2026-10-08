@@ -12,20 +12,13 @@ import { renderWithProviders } from '../../testing/mocks';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import userEvent from '@testing-library/user-event';
-
-jest.mock('../../testing/componentSchemaMocks', () => ({
-  componentSchemaMocks: {
-    ...jest.requireActual('../../testing/componentSchemaMocks').componentSchemaMocks,
-    CustomComponentType: {},
-  },
-}));
+import { getNestedPropertyDefinition } from '../../data/componentCatalog';
 
 // Test data:
 const labelTextId = 'labelTextId';
@@ -50,8 +43,10 @@ const textResources: ITextResources = {
   [DEFAULT_LANGUAGE]: [titleTextResource1, titleTextResource2, titleTextResource3],
 };
 
-const textResourceBindingsPropertiesForComponentType = (componentType: string) =>
-  Object.keys(componentSchemaMocks[componentType].properties.textResourceBindings.properties);
+const textResourceBindingsPropertiesForComponentType = (componentType: string) => {
+  const definition = getNestedPropertyDefinition(componentType, ['textResourceBindings']);
+  return definition?.type === 'object' ? Object.keys(definition.properties) : [];
+};
 
 describe('TextTab', () => {
   afterEach(jest.clearAllMocks);
@@ -161,10 +156,6 @@ describe('TextTab', () => {
 });
 
 const render = ({ props = {} }: { props: Partial<FormItemContext> }) => {
-  queryClientMock.setQueryData(
-    [QueryKey.FormComponent, props.formItem.type],
-    componentSchemaMocks[props.formItem.type],
-  );
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
 
   return renderWithProviders(

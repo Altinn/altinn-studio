@@ -5,12 +5,13 @@ import { useAddLayoutMutation } from './useAddLayoutMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { externalLayoutsMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { app, org } from '@studio/testing/testids';
+import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 
 // Test data:
 const layoutName = 'layoutName';
@@ -37,8 +38,8 @@ describe('useAddLayoutMutation', () => {
       layoutName,
       selectedLayoutSet,
       {
-        componentIdsChange: undefined,
         layout: {
+          $schema: layoutSchemaUrl(),
           data: {
             layout: [expect.objectContaining({ type: ComponentType.NavigationButtons })],
             hidden: undefined,
@@ -52,7 +53,7 @@ describe('useAddLayoutMutation', () => {
 const renderAndWaitForData = async () => {
   const getFormLayouts = jest
     .fn()
-    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+    .mockImplementation(() => Promise.resolve<SerializedFormLayoutsResponse>(externalLayoutsMock));
   const getFormLayoutSettings = jest
     .fn()
     .mockImplementation(() => Promise.resolve<ILayoutSettings>(formLayoutSettingsMock));

@@ -1,5 +1,5 @@
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { screen } from '@testing-library/react';
 import { ComponentMainConfig } from './ComponentMainConfig';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -9,13 +9,11 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
-import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaMocks';
 
 const mainConfigComponentMock = (type: ComponentType) =>
   ({
     id: '0',
     type,
-    itemType: 'COMPONENT',
     target: {},
   }) as FormItem;
 
@@ -59,7 +57,7 @@ describe('ComponentMainConfig', () => {
   it.each([ComponentType.FileUpload])(
     'should render file upload config when the component type is %s',
     (type) => {
-      renderComponentMainConfig(mainConfigComponentMock(type), true);
+      renderComponentMainConfig(mainConfigComponentMock(type));
       const displayModeText = screen.getByText(
         textMock('ux_editor.component_properties.displayMode'),
       );
@@ -68,31 +66,31 @@ describe('ComponentMainConfig', () => {
   );
 
   it('should render alert config when the component type matches', () => {
-    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Alert), true);
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Alert));
     const alertTextSeverity = screen.getByText(textMock('ux_editor.component_properties.severity'));
     expect(alertTextSeverity).toBeInTheDocument();
   });
 
   it('should render link config when the component type matches', () => {
-    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Link), true);
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Link));
     const linkConfigStyle = screen.getByText(textMock('ux_editor.component_properties.style'));
     expect(linkConfigStyle).toBeInTheDocument();
   });
 
   it('should render panel config when the component type matches', () => {
-    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Panel), true);
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Panel));
     const panelConfigVariant = screen.getByText(textMock('ux_editor.component_properties.variant'));
     expect(panelConfigVariant).toBeInTheDocument();
   });
 
   it('should render header config when the component type matches', () => {
-    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Heading), true);
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Heading));
     const titleConfigSize = screen.getByText(textMock('ux_editor.component_properties.size'));
     expect(titleConfigSize).toBeInTheDocument();
   });
 
   it('should render custom button config when the component type matches', () => {
-    renderComponentMainConfig(mainConfigComponentMock(ComponentType.CustomButton), true);
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.CustomButton));
     const customButtonConfigStyle = screen.getByText(
       textMock('ux_editor.component_properties.buttonStyle'),
     );
@@ -100,7 +98,7 @@ describe('ComponentMainConfig', () => {
   });
 
   it('should render action button config when the component type matches', () => {
-    renderComponentMainConfig(mainConfigComponentMock(ComponentType.ActionButton), true);
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.ActionButton));
     const actionButtonConfigText = screen.getByText(
       textMock('ux_editor.component_properties.action'),
     );
@@ -108,13 +106,13 @@ describe('ComponentMainConfig', () => {
   });
 
   it('should render text config when the component type matches', () => {
-    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Text), true);
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.Text));
     const textConfigValue = screen.getByText(textMock('ux_editor.component_properties.value'));
     expect(textConfigValue).toBeInTheDocument();
   });
 
   it('should render image upload config when the component type matches', () => {
-    renderComponentMainConfig(mainConfigComponentMock(ComponentType.ImageUpload), true);
+    renderComponentMainConfig(mainConfigComponentMock(ComponentType.ImageUpload));
     const imageUploadConfigCropShape = screen.getByText(
       textMock('ux_editor.component_properties.crop_shape'),
     );
@@ -128,18 +126,11 @@ describe('ComponentMainConfig', () => {
   });
 });
 
-const renderComponentMainConfig = (component: FormItem, setSchemaData: boolean = false) => {
+const renderComponentMainConfig = (component: FormItem) => {
   const handleComponentChange = jest.fn();
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
   queryClient.setQueryData([QueryKey.ImageFileNames, org, app], []);
-  if (setSchemaData) {
-    queryClient.setQueryData(
-      [QueryKey.FormComponent, component.type],
-      componentSchemaMocks[component.type],
-    );
-  }
-
   return renderWithProviders(
     <div data-testid='component-wrapper'>
       <ComponentMainConfig component={component} handleComponentChange={handleComponentChange} />

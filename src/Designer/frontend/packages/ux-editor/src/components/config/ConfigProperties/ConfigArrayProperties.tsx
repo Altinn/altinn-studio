@@ -1,18 +1,19 @@
 import { EditStringValue } from '../editModal/EditStringValue';
 import { SelectPropertyEditor } from '../SelectPropertyEditor';
-import type { SchemaConfigProps } from './types';
+import type { CatalogConfigProps } from './types';
 import { componentComparison } from './ConfigPropertiesUtils';
 import { useTranslateKeyValue } from './useTranslateKeyValue';
 import { useConfigProperty } from './useConfigProperty';
+import { getArrayStringChoices } from '../../../data/componentCatalog';
 
-export interface ConfigArrayPropertiesProps extends SchemaConfigProps {
+export interface ConfigArrayPropertiesProps extends CatalogConfigProps {
   arrayPropertyKeys: string[];
   className?: string;
   keepEditOpen?: boolean;
 }
 
 export const ConfigArrayProperties = ({
-  schema,
+  properties,
   component: initialComponent,
   arrayPropertyKeys,
   handleComponentUpdate,
@@ -26,7 +27,7 @@ export const ConfigArrayProperties = ({
         handleComponentChange={(updatedComponent) => handleComponentUpdate(updatedComponent)}
         propertyKey={propertyKey}
         key={propertyKey}
-        enumValues={schema.properties[propertyKey]?.items?.enum}
+        enumValues={getArrayChoices(properties[propertyKey])}
         multiple={true}
       />
     ));
@@ -38,22 +39,25 @@ export const ConfigArrayProperties = ({
         <ConfigArrayProperty
           key={propertyKey}
           propertyKey={propertyKey}
-          schema={schema}
+          properties={properties}
           component={initialComponent}
           handleComponentUpdate={handleComponentUpdate}
           className={className}
-          enumValues={schema.properties[propertyKey]?.items?.enum}
+          enumValues={getArrayChoices(properties[propertyKey])}
         />
       ))}
     </>
   );
 };
 
-type ConfigArrayPropertyProps = Partial<SchemaConfigProps> & {
+type ConfigArrayPropertyProps = Partial<CatalogConfigProps> & {
   propertyKey: string;
   className?: string;
   enumValues?: string[];
 };
+
+const getArrayChoices = (property: CatalogConfigProps['properties'][string]): string[] =>
+  getArrayStringChoices(property);
 
 const ConfigArrayProperty = ({
   component: initialComponent,

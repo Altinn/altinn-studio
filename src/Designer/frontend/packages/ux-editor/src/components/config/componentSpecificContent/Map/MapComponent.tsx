@@ -1,13 +1,17 @@
 import React, { type JSX } from 'react';
 import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { FormField } from '../../../FormField';
+import { FormField } from 'app-shared/components/FormField';
+import {
+  getNestedPropertyDefinition,
+  validateCatalogValue,
+} from '../../../../data/componentCatalog';
 import { useText } from '../../../../hooks';
 import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
-import type { MapLayer } from 'app-shared/types/MapLayer';
+import type { MapLayer } from '@app/layout-contract/generated/components/Map/config.generated';
 import { StudioButton, StudioProperty, StudioTextfield } from '@studio/components';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import cn from 'classnames';
 
 type MapComponentProps = IGenericEditComponent<ComponentType.Map> & {
@@ -43,6 +47,7 @@ const AddMapLayer = ({
   className,
 }: AddMapLayerProps): JSX.Element => {
   const t = useText();
+  const urlDefinition = getNestedPropertyDefinition(component.type, ['layers', 'url']);
 
   const handleOnLayerChange = (index: number, event: React.ChangeEvent<HTMLInputElement>): void => {
     const layers = [...component.layers];
@@ -115,7 +120,8 @@ const AddMapLayer = ({
               label={t('ux_editor.url_label')}
               value={layer.url || ''}
               onChange={(value, event) => handleOnLayerChange(index, event)}
-              propertyPath={`${component.propertyPath}/properties/layers/properties/url`}
+              customRequired={urlDefinition?.required}
+              customValidationRules={(value) => validateCatalogValue(urlDefinition, value)}
               customValidationMessages={(errorCode: string) => {
                 if (errorCode === 'format') return t('validation_errors.value_as_url');
               }}
@@ -136,7 +142,6 @@ const AddMapLayer = ({
               label={t('ux_editor.attribution_label')}
               value={layer.attribution || ''}
               onChange={(value, event) => handleOnLayerChange(index, event)}
-              propertyPath={`${component.propertyPath}/properties/layers/properties/attribution`}
               renderField={({ fieldProps }) => (
                 <StudioTextfield
                   id={component.id}
@@ -153,7 +158,6 @@ const AddMapLayer = ({
               label={t('ux_editor.subdomains_label')}
               value={layer?.subdomains || []}
               onChange={(value: string[]) => handleOnSubDomainChange(index, value)}
-              propertyPath={`${component.propertyPath}/properties/layers/properties/subdomains`}
               renderField={({ fieldProps }) => (
                 <StudioTextfield
                   id={component.id}

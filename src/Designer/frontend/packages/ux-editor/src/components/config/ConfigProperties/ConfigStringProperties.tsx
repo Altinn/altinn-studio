@@ -1,11 +1,13 @@
 import { SelectPropertyEditor } from '../SelectPropertyEditor';
 import { EditStringValue } from '../editModal/EditStringValue';
-import type { SchemaConfigProps } from './types';
+import type { CatalogConfigProps } from './types';
 import { componentComparison } from './ConfigPropertiesUtils';
 import { useTranslateKeyValue } from './useTranslateKeyValue';
 import { useConfigProperty } from './useConfigProperty';
+import { getStringChoices } from '../../../data/componentCatalog';
+import type { PropertyDefinition } from '@app/layout-contract';
 
-export interface ConfigStringPropertiesProps extends SchemaConfigProps {
+export interface ConfigStringPropertiesProps extends CatalogConfigProps {
   stringPropertyKeys: string[];
   className?: string;
   keepEditOpen?: boolean;
@@ -13,7 +15,7 @@ export interface ConfigStringPropertiesProps extends SchemaConfigProps {
 
 export const ConfigStringProperties = ({
   stringPropertyKeys,
-  schema,
+  properties,
   component: initialComponent,
   handleComponentUpdate,
   className,
@@ -26,9 +28,8 @@ export const ConfigStringProperties = ({
         component={initialComponent}
         handleComponentChange={handleComponentUpdate}
         propertyKey={propertyKey}
-        enumValues={
-          schema.properties[propertyKey]?.enum || schema.properties[propertyKey]?.examples
-        }
+        enumValues={getStringChoices(properties[propertyKey])}
+        definition={properties[propertyKey]}
       />
     ));
   }
@@ -42,19 +43,19 @@ export const ConfigStringProperties = ({
           component={initialComponent}
           handleComponentUpdate={handleComponentUpdate}
           className={className}
-          enumValues={
-            schema.properties[propertyKey]?.enum || schema.properties[propertyKey]?.examples
-          }
+          enumValues={getStringChoices(properties[propertyKey])}
+          definition={properties[propertyKey]}
         />
       ))}
     </>
   );
 };
 
-type ConfigStringPropertyProps = Partial<SchemaConfigProps> & {
+type ConfigStringPropertyProps = Partial<CatalogConfigProps> & {
   propertyKey: string;
   className?: string;
   enumValues?: string[];
+  definition?: PropertyDefinition;
 };
 
 const ConfigStringProperty = ({
@@ -63,6 +64,7 @@ const ConfigStringProperty = ({
   handleComponentUpdate,
   className,
   enumValues,
+  definition,
 }: ConfigStringPropertyProps) => {
   const {
     initialPropertyValue,
@@ -89,6 +91,7 @@ const ConfigStringProperty = ({
         handleComponentChange={handleComponentChange}
         propertyKey={propertyKey}
         enumValues={enumValues}
+        definition={definition}
       />
     </SelectPropertyEditor>
   );

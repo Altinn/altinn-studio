@@ -1,5 +1,6 @@
 import type { ExternalConfigState, InternalConfigState } from './ValidateNavigationTypes';
-import { properties } from '../../../../../testing/schemas/json/layout/layout-sets.schema.v1.json';
+import { pageValidationDefinition } from '@app/layout-contract';
+import { getAllowedValues } from '../../../../../data/componentCatalog';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import { ObjectUtils } from '@studio/pure-functions';
@@ -32,13 +33,19 @@ export enum RuleType {
 }
 
 export const getRuleEnums = (ruleType: RuleType) => {
-  const { page, show } = properties.validationOnNavigation.properties;
+  if (pageValidationDefinition.type !== 'object') return [];
+  const { page, show } = pageValidationDefinition.properties;
   if (ruleType === RuleType.Page) {
-    return page.enum ?? [];
+    return (
+      getAllowedValues(page)?.filter((value): value is string => typeof value === 'string') ?? []
+    );
   }
 
-  if (ruleType === RuleType.Show) {
-    return show.items.enum ?? [];
+  if (ruleType === RuleType.Show && show.type === 'array') {
+    return (
+      getAllowedValues(show.items)?.filter((value): value is string => typeof value === 'string') ??
+      []
+    );
   }
   return [];
 };

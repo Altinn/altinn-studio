@@ -1,4 +1,4 @@
-import type { ExternalComponentBase } from 'app-shared/types/api';
+import type { SerializedComponent } from './SerializedComponent';
 
 export type ExportForm = {
   appId: string;
@@ -12,10 +12,14 @@ export type ExportFormPage = {
   components: ExportFormComponent[];
 };
 
-export type ExportFormComponent = ExternalComponentBase & {
+export type ExportFormComponent = {
+  id: string;
+  type: SerializedComponent['type'];
+  dataModelBindings?: SerializedComponent['dataModelBindings'];
   sortOrder?: number;
   texts: ExportTextResource[];
   options?: ExportOption[];
+  [key: string]: unknown;
 };
 
 export type ExportTextResource = {
@@ -30,6 +34,7 @@ export type ExportTextResourceValue = {
 };
 
 export type ExportOption = {
-  value: string;
+  value: IRawOption['value'];
   label: ExportTextResourceValue[];
 };
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { EditSubformTableColumns } from '../../EditSubformTableColumns';
 
 export type SubformMainConfigProps = {

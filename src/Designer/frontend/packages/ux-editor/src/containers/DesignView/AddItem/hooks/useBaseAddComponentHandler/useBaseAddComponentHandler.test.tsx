@@ -1,7 +1,7 @@
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import type { IInternalLayout } from '../../../../../types/global';
 import { layoutMock } from '../../../../../testing/layoutMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useBaseAddComponentHandler } from './useBaseAddComponentHandler';
 import { waitFor } from '@testing-library/react';
@@ -45,26 +45,11 @@ describe('useAddComponentHandler', () => {
     expect(handleEditMock).toHaveBeenCalledWith({
       dataModelBindings: { simpleBinding: '' },
       id: 'new-id',
-      itemType: 'COMPONENT',
-      pageIndex: null,
       type: 'Input',
     });
 
     await waitFor(() => expect(doReloadPreviewMock).toHaveBeenCalled());
     expect(onDoneMock).toHaveBeenCalled();
-  });
-
-  it('does not add a removed component type', () => {
-    const handleEditMock = mockFormItemContext();
-    const doReloadPreviewMock = mockPreviewContext();
-    const onDoneMock = jest.fn();
-
-    const { addItem } = renderUseAddComponentHandler(layoutMock);
-    addItem(ComponentType.FileUploadWithTag, BASE_CONTAINER_ID, 0, 'new-id', onDoneMock);
-
-    expect(handleEditMock).not.toHaveBeenCalled();
-    expect(doReloadPreviewMock).not.toHaveBeenCalled();
-    expect(onDoneMock).not.toHaveBeenCalled();
   });
 });
 

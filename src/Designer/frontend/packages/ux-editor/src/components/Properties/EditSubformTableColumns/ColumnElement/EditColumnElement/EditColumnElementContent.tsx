@@ -1,7 +1,7 @@
 import { StudioCodeFragment } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import { TextResource } from '../../../../TextResource/TextResource';
-import type { TableColumn } from '../../types/TableColumn';
+import { getTableColumnCellValue, type TableColumn } from '../../types/TableColumn';
 import classes from './EditColumnElementContent.module.css';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 
@@ -37,7 +37,7 @@ export const EditColumnElementContent = ({
       <div className={classes.componentCellContent}>
         <Trans
           i18nKey='ux_editor.properties_panel.subform_table_columns.column_cell_content'
-          values={{ cellContent: tableColumn.cellContent?.query }}
+          values={{ cellContent: getTableColumnCellValue(tableColumn) }}
           components={[<StudioCodeFragment key='0' />]}
         />
       </div>

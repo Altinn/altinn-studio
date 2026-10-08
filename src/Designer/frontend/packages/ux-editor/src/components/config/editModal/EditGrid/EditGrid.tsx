@@ -9,7 +9,7 @@ import { ViewSize } from './types/ViewSize';
 import type { GridSizes } from './types/GridSizes';
 import { useTranslation } from 'react-i18next';
 import type { FormItem } from '../../../../types/FormItem';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { StudioTabs } from '@studio/components';
 
 const setGridOnComponent = <T extends ComponentType>(
@@ -31,7 +31,14 @@ export const EditGrid = <T extends ComponentType>({
   handleComponentChange,
   component,
 }: IGenericEditComponent<T>) => {
-  const [gridValues, setGridValues] = useState<GridSizes>(component.grid ?? {});
+  const { xs, sm, md, lg } = component.grid ?? {};
+  const editableSize = (value: typeof xs) => (value === 'auto' ? undefined : value);
+  const [gridValues, setGridValues] = useState<GridSizes>({
+    xs: editableSize(xs),
+    sm: editableSize(sm),
+    md: editableSize(md),
+    lg: editableSize(lg),
+  });
   const [selectedViewSizeForGridProp, setSelectedViewSizeForGridProp] = useState<ViewSize>(
     ViewSize.Xs,
   );
