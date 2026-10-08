@@ -136,7 +136,7 @@ public enum ProcessNextState
     ResumeRequired,
 
     /// <summary>
-    /// The instance changed after the request read it, so the process did not move on and nothing was performed.
+    /// The instance changed after the request read it, so the process did not move on.
     /// Refresh the instance and try again.
     /// </summary>
     InstanceChanged,

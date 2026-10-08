@@ -78,9 +78,14 @@ internal sealed class WorkflowCallbackStateService
             Mailboxes = carry?.Mailboxes,
         };
 
-        string payload = JsonSerializer.Serialize(callbackState);
-        return _stateSigner.Sign(payload, SigningDomain.CallbackState);
+        return SealState(callbackState);
     }
+
+    /// <summary>
+    /// Signs callback state without creating a unit of work.
+    /// </summary>
+    public string SealState(WorkflowCallbackState callbackState) =>
+        _stateSigner.Sign(JsonSerializer.Serialize(callbackState), SigningDomain.CallbackState);
 
     /// <summary>
     /// Restores workflow callback state from a previously captured state string.
@@ -95,55 +100,13 @@ internal sealed class WorkflowCallbackStateService
     /// The instance data this callback acts on, and the non-data bookkeeping it must hand back to
     /// <see cref="CaptureState"/> so the steps after it still see it.
     /// </returns>
-    public Task<RestoredWorkflowCallbackState> RestoreState(
+    public async Task<RestoredWorkflowCallbackState> RestoreState(
         InstanceIdentifier expectedInstance,
         string state,
         string? language
-    ) => RestoreState(ReadState(expectedInstance, state), language);
-
-    /// <summary>
-    /// Verifies a previously captured state string and reads it, without restoring a unit of work from it.
-    /// </summary>
-    /// <param name="expectedInstance">
-    /// The instance the caller is authorized to act on (from the callback route). The state blob must target this
-    /// same instance.
-    /// </param>
-    /// <param name="state">The opaque state blob captured at enqueue time.</param>
-    public WorkflowCallbackState ReadState(InstanceIdentifier expectedInstance, string state)
+    )
     {
-        // Verify the detached HMAC signature and unwrap the inner payload before trusting any of it. A leaked
-        // callback token cannot be combined with a forged/tampered blob: the inner payload is bound to a
-        // secret only the app holds. Any failure (tampering, unknown/expired secret) throws and maps to 422.
-        string payload = _stateSigner.Verify(state, SigningDomain.CallbackState);
-
-        WorkflowCallbackState callbackState;
-        try
-        {
-            callbackState =
-                JsonSerializer.Deserialize<WorkflowCallbackState>(payload)
-                ?? throw new WorkflowCallbackStateException(
-                    "Workflow callback state deserialized to null from callback payload."
-                );
-        }
-        catch (JsonException exception)
-        {
-            throw new WorkflowCallbackStateException(
-                "Failed to deserialize complete workflow callback state from callback payload.",
-                exception
-            );
-        }
-
-        ValidateInstanceIdentity(callbackState.Instance, expectedInstance, "Workflow callback state");
-        return callbackState;
-    }
-
-    /// <summary>
-    /// Restores a unit of work from callback state that has already been verified with <see cref="ReadState"/>.
-    /// </summary>
-    /// <param name="callbackState">The verified state, possibly updated with what the caller has since committed.</param>
-    /// <param name="language">The actor language to initialize the unit of work with.</param>
-    public async Task<RestoredWorkflowCallbackState> RestoreState(WorkflowCallbackState callbackState, string? language)
-    {
+        WorkflowCallbackState callbackState = ReadState(expectedInstance, state);
         Instance instance = callbackState.Instance;
 
         var versions = new StorageVersionMetadata(callbackState.InstanceVersion, callbackState.ProcessStateVersion);
@@ -187,6 +150,40 @@ internal sealed class WorkflowCallbackStateService
         }
 
         return new RestoredWorkflowCallbackState(unitOfWork, new WorkflowCallbackStateCarry(callbackState));
+    }
+
+    /// <summary>
+    /// Verifies a previously captured state string and reads it, without restoring a unit of work from it.
+    /// </summary>
+    /// <param name="expectedInstance">
+    /// The instance the caller is authorized to act on (from the callback route). The state blob must target this
+    /// same instance.
+    /// </param>
+    /// <param name="state">The opaque state blob captured at enqueue time.</param>
+    public WorkflowCallbackState ReadState(InstanceIdentifier expectedInstance, string state)
+    {
+        // The callback token alone must not authorize a forged state blob.
+        string payload = _stateSigner.Verify(state, SigningDomain.CallbackState);
+
+        WorkflowCallbackState callbackState;
+        try
+        {
+            callbackState =
+                JsonSerializer.Deserialize<WorkflowCallbackState>(payload)
+                ?? throw new WorkflowCallbackStateException(
+                    "Workflow callback state deserialized to null from callback payload."
+                );
+        }
+        catch (JsonException exception)
+        {
+            throw new WorkflowCallbackStateException(
+                "Failed to deserialize complete workflow callback state from callback payload.",
+                exception
+            );
+        }
+
+        ValidateInstanceIdentity(callbackState.Instance, expectedInstance, "Workflow callback state");
+        return callbackState;
     }
 
     private static void ValidateInstanceIdentity(Instance instance, InstanceIdentifier expectedInstance, string source)

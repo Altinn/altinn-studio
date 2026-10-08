@@ -1707,52 +1707,40 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public void CreateProcessNextLabels_TaskToTask_LabelsSourceAndTarget()
+    public void CreateProcessNextLabels_TaskToTask_LabelsSourceTargetAndInstance()
     {
-        // Arrange
-        var stateChange = new ProcessStateChange
-        {
-            OldProcessState = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
-            },
-            NewProcessState = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo { ElementId = "Task_2", Flow = 3 },
-            },
-        };
-
         // Act
-        Dictionary<string, string>? labels = ProcessNextRequestFactory.CreateProcessNextLabels(stateChange);
+        Dictionary<string, string> labels = ProcessNextRequestFactory.CreateProcessNextLabels(
+            new InstanceIdentifier(TestInstance),
+            new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
+            new ProcessElementInfo { ElementId = "Task_2", Flow = 3 }
+        );
 
         // Assert
-        Assert.NotNull(labels);
-        Assert.Equal(3, labels.Count);
+        Assert.Equal(4, labels.Count);
         Assert.Equal("Task_1:2", labels[ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
         Assert.Equal("Task_2:3", labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
         Assert.Equal("Task_2", labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
+        Assert.Equal(
+            new InstanceIdentifier(TestInstance).InstanceGuid.ToString("N"),
+            labels[ProcessNextRequestFactory.ProcessNextInstanceGuidLabel]
+        );
     }
 
     [Fact]
-    public void CreateProcessNextLabels_TaskToEnd_LabelsSourceOnly()
+    public void CreateProcessNextLabels_TaskToEnd_LabelsSourceAndInstanceOnly()
     {
-        // Arrange
-        var stateChange = new ProcessStateChange
-        {
-            OldProcessState = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
-            },
-            NewProcessState = new ProcessState { CurrentTask = null, EndEvent = "EndEvent_1" },
-        };
-
         // Act
-        Dictionary<string, string>? labels = ProcessNextRequestFactory.CreateProcessNextLabels(stateChange);
+        Dictionary<string, string> labels = ProcessNextRequestFactory.CreateProcessNextLabels(
+            new InstanceIdentifier(TestInstance),
+            new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
+            targetTask: null
+        );
 
         // Assert
-        Assert.NotNull(labels);
-        Assert.Single(labels);
+        Assert.Equal(2, labels.Count);
         Assert.Equal("Task_1:2", labels[ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
+        Assert.True(labels.ContainsKey(ProcessNextRequestFactory.ProcessNextInstanceGuidLabel));
     }
 
     [Fact]

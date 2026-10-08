@@ -6,8 +6,11 @@ import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AxiosHeaders } from 'axios';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
+import { FormStore } from 'src/features/form/FormContext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
 import { doProcessNext } from 'src/queries/queries';
@@ -43,19 +46,24 @@ function SubmitProbe() {
   );
 }
 
+function FormValueProbe() {
+  const value = FormStore.data.useCurrentPick({ dataType: defaultDataTypeMock, field: 'name' });
+  return (
+    <input
+      aria-label='Name'
+      readOnly
+      value={String(value ?? '')}
+    />
+  );
+}
+
 function createAxiosLikeError(status: number, data: Record<string, unknown>) {
   return Object.assign(new Error(`Request failed with status code ${status}`), {
     response: { status, data },
   });
 }
 
-/**
- * Renders a task (with a submit probe) whose process/next call fails with the given error body;
- * after the failure the instance refetch reports the given live workflow annotation. Because
- * setupTests makes window.logError throw, these tests also prove the mutation's error path is NOT
- * taken — the error body is consumed by the state machine instead of being logged and toasted
- * (which used to surface the backend's raw failure detail to the citizen).
- */
+// setupTests makes window.logError throw, so unhandled workflow failures also fail these tests.
 async function renderFailingProcessNext(
   errorBody: Record<string, unknown>,
   status: number,
@@ -108,9 +116,6 @@ describe('useProcessNext workflow error convergence', () => {
 
     await user.click(screen.getByRole('button', { name: 'submit-probe' }));
 
-    // The refetched workflow.status takes over: the citizen sees the localized failed error page
-    // (with the safe details expander) — not an error toast echoing the backend's detail, and no
-    // Retry affordance (the engine already exhausted its retry budget; recovery is ops-driven).
     expect(await screen.findByRole('heading', { name: /noe gikk galt/i })).toBeInTheDocument();
     expect(screen.getByText('Vis detaljer om feilen').closest('summary')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
@@ -131,24 +136,43 @@ describe('useProcessNext workflow error convergence', () => {
 
     await user.click(screen.getByRole('button', { name: 'submit-probe' }));
 
-    // The engine keeps working after the synchronous wait timed out: the polled processing state
-    // replaces the task instead of a scary error.
     await waitFor(() => expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'workflow-processing'));
     expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
   });
 
-  it('a 409 with processNextState=instanceChanged tells the user the form changed before it was submitted', async () => {
+  it('a 409 with processNextState=instanceChanged reloads the form and tells the user it changed', async () => {
     const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
     const user = userEvent.setup();
-    await renderFailingProcessNext(
-      {
+    let serverValue = 'before';
+    vi.mocked(doProcessNext).mockImplementation(async () => {
+      serverValue = 'changed by another user';
+      throw createAxiosLikeError(409, {
         title: 'The instance changed before the transition started.',
         processNextState: 'instanceChanged',
         validationIssues: null,
+      });
+    });
+
+    await renderWithInstanceAndLayout({
+      renderer: () => (
+        <ProcessWrapper>
+          <FormValueProbe />
+          <SubmitProbe />
+        </ProcessWrapper>
+      ),
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((bootstrap) => {
+            bootstrap.dataModels[defaultDataTypeMock].initialData = { name: serverValue };
+          }),
       },
-      409,
-      { status: 'idle' },
-    );
+      apis: {
+        instanceApi: {
+          getInstance: async () => getInstanceWithWorkflow({ status: 'idle' }),
+        },
+      },
+    });
+    expect(screen.getByRole('textbox', { name: 'Name' })).toHaveValue('before');
 
     await user.click(screen.getByRole('button', { name: 'submit-probe' }));
 
@@ -158,6 +182,7 @@ describe('useProcessNext workflow error convergence', () => {
         expect.objectContaining({ type: 'error' }),
       ),
     );
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Name' })).toHaveValue('changed by another user'));
     expect(logError).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('button', { name: 'submit-probe' })).toBeInTheDocument();
   });

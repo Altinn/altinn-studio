@@ -317,7 +317,6 @@ internal class ProcessEngine : IProcessEngine
         ProcessNextWorkflowResult workflowResult = await _workflowEngineService.ResumeAndWaitForWorkflow(
             instance,
             failedWorkflowId,
-            ProcessNextRequestFactory.CreateCollectionKey(new InstanceIdentifier(instance)),
             cancellationToken
         );
 
@@ -351,9 +350,6 @@ internal class ProcessEngine : IProcessEngine
         return changeResult;
     }
 
-    /// <summary>
-    /// Internal method that performs a single process next operation without automatic service task handling.
-    /// </summary>
     private async Task<ProcessChangeResult> ProcessNext(
         ProcessNextRequest request,
         CancellationToken cancellationToken = default
@@ -423,11 +419,7 @@ internal class ProcessEngine : IProcessEngine
         bool rejectAllowedForTask =
             checkedAction == "reject" && _processReader.IsActionAllowedForTask(currentTaskId, checkedAction);
 
-        // Earlier workflows are not checked here: the instance can move between such a check and the enqueue, so the
-        // outcome of this call's own workflow is what answers it. Its acquire queues behind whatever the instance's
-        // collection holds and claims the instance only if nothing has changed since this request read it. A terminally
-        // failed workflow condemns it without running, so no action, reject included, can supersede a failed task
-        // before it is resumed. While a transition actually owns the instance, this status check refuses the call.
+        // Collection dependencies fence earlier workflows; checking them here would race the enqueue.
         ProcessStatus? blockingProcessStatus = ProcessStatusHelper.GetBlockingStatus(instance);
         if (blockingProcessStatus is not null)
         {
@@ -462,7 +454,6 @@ internal class ProcessEngine : IProcessEngine
             }
         }
 
-        // If the action is 'reject', we should not run any service task and there is no need to check for a user action handler, since 'reject' doesn't have one.
         if (request.Action is not "reject")
         {
             if (request.Action is not null)
@@ -504,7 +495,6 @@ internal class ProcessEngine : IProcessEngine
             }
         }
 
-        // If the action is 'reject' the task is being abandoned, and we should skip validation, but only if reject has been allowed for the task in bpmn.
         if (rejectAllowedForTask)
         {
             _logger.LogInformation(
@@ -524,10 +514,7 @@ internal class ProcessEngine : IProcessEngine
             }
         }
 
-        // The user's part of the call ends here: they were authorized, their action was handled and the task was
-        // validated as them. The app carries out the transition from here on, starting with the gateways that decide
-        // where it goes, so they read data as the app. Deciding before anything is enqueued means a gateway that fails
-        // leaves the instance as it was, and the call answers with an error that can be retried.
+        // The authorized action is complete; gateways now read data as ServiceOwner.
         InstanceDataUnitOfWork transitionData = await _instanceDataUnitOfWorkInitializer.Init(
             instance,
             versions,
@@ -560,7 +547,7 @@ internal class ProcessEngine : IProcessEngine
             return nextElementFailedResult;
         }
 
-        MoveToNextResult moveToNextResult = await HandleMoveToNext(
+        ProcessNextWorkflowResult workflowResult = await HandleMoveToNext(
             transitionData,
             processNextAction,
             nextElement,
@@ -568,36 +555,36 @@ internal class ProcessEngine : IProcessEngine
             cancellationToken
         );
 
-        // A workflow that failed terminally before this call condemned its acquire without running it. That failed
-        // workflow owns the task until it is resumed through process/resume.
-        if (moveToNextResult.WorkflowFailure?.Kind == WorkflowFailureKind.DependencyFailed)
+        if (workflowResult.WorkflowFailure?.Kind == WorkflowFailureKind.DependencyFailed)
         {
             ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.ResumeRequired);
             activity?.SetProcessChangeResult(blockedResult);
             return blockedResult;
         }
 
-        if (moveToNextResult.WorkflowFailure is not null)
+        if (workflowResult.WorkflowFailure is not null)
         {
-            var failureResult = new ProcessChangeResult(moveToNextResult.Instance, moveToNextResult.Versions)
+            var failureResult = new ProcessChangeResult(workflowResult.Instance, workflowResult.InstanceVersions)
             {
                 Success = false,
                 ErrorType = ProcessErrorType.Internal,
                 ErrorTitle = "Something went wrong while moving to the next task.",
-                ErrorMessage = CreateWorkflowFailureMessage(moveToNextResult.WorkflowFailure),
-                WorkflowFailure = moveToNextResult.WorkflowFailure,
-                ProcessStateOnFailure = moveToNextResult.ProcessStateChanged ? moveToNextResult.Instance.Process : null,
+                ErrorMessage = CreateWorkflowFailureMessage(workflowResult.WorkflowFailure),
+                WorkflowFailure = workflowResult.WorkflowFailure,
+                ProcessStateOnFailure = workflowResult.ProcessStateChanged ? workflowResult.Instance.Process : null,
             };
             activity?.SetProcessChangeResult(failureResult);
             return failureResult;
         }
 
-        // A lost acquire completes its workflow without a transition, so no failure does not mean the call worked.
-        // What the caller asked for is that the process moves on from the task they acted on, whether this call's
-        // transition did it or one queued behind it.
-        if (!HasAdvanced(moveToNextResult.ProcessStateChange))
+        // A superseded acquire succeeds without moving the process; check task identity as well.
+        ProcessState? newProcessState = workflowResult.Instance.Process;
+        if (!HasAdvanced(instance.Process, newProcessState))
         {
-            var instanceChangedResult = new ProcessChangeResult(moveToNextResult.Instance, moveToNextResult.Versions)
+            var instanceChangedResult = new ProcessChangeResult(
+                workflowResult.Instance,
+                workflowResult.InstanceVersions
+            )
             {
                 Success = false,
                 ErrorType = ProcessErrorType.Conflict,
@@ -610,23 +597,24 @@ internal class ProcessEngine : IProcessEngine
             return instanceChangedResult;
         }
 
-        var changeResult = new ProcessChangeResult(moveToNextResult.Instance, moveToNextResult.Versions)
+        var changeResult = new ProcessChangeResult(workflowResult.Instance, workflowResult.InstanceVersions)
         {
             Success = true,
-            ProcessStateChange = moveToNextResult.ProcessStateChange,
+            ProcessStateChange = new ProcessStateChange
+            {
+                OldProcessState = instance.Process,
+                NewProcessState = newProcessState,
+            },
         };
 
         activity?.SetProcessChangeResult(changeResult);
         return changeResult;
     }
 
-    /// <summary>
-    /// Whether the process left the task it was on. The flow number rises on every task entry, so a gateway leading
-    /// back to the same task still counts, and an ended process has no current task at all.
-    /// </summary>
-    private static bool HasAdvanced(ProcessStateChange? processStateChange) =>
-        ProcessNextRequestFactory.CreateProcessNextId(processStateChange?.OldProcessState?.CurrentTask)
-        != ProcessNextRequestFactory.CreateProcessNextId(processStateChange?.NewProcessState?.CurrentTask);
+    // Flow distinguishes a new visit when a gateway returns to the same task.
+    private static bool HasAdvanced(ProcessState? oldProcessState, ProcessState? newProcessState) =>
+        ProcessNextRequestFactory.CreateProcessNextId(oldProcessState?.CurrentTask)
+        != ProcessNextRequestFactory.CreateProcessNextId(newProcessState?.CurrentTask);
 
     private async Task<ProcessChangeResult?> GetValidationError(
         Instance instance,
@@ -768,9 +756,6 @@ internal class ProcessEngine : IProcessEngine
         };
     }
 
-    /// <summary>
-    /// Computes the next transition and updates instance.Process to reflect the new state.
-    /// </summary>
     private async Task<ProcessStateChange?> MoveProcessStateToNextAndGenerateEvents(
         IInstanceDataAccessor dataAccessor,
         string? action = null
@@ -782,25 +767,14 @@ internal class ProcessEngine : IProcessEngine
             return null;
         }
 
-        using var activity = _telemetry?.StartProcessGenerateChangeEventActivity(
-            instance,
-            ProcessTransitionBuilder.GetLeaveEventType(action)
-        );
-
         PlatformUser user = await ExtractPlatformUser();
         ProcessStateChange result = await ComputeNextTransition(dataAccessor, action, user, DateTime.UtcNow);
 
-        // Apply the mutation so callers see the updated process state on the instance
         instance.Process = result.NewProcessState;
 
         return result;
     }
 
-    /// <summary>
-    /// Computes the ProcessStateChange for moving from the current task to the next element. Does NOT mutate
-    /// instance.Process. Used for the transition after instantiation and transitions following a successful service
-    /// task; a transition requested through process/next is decided in the request and built in its acquire callback.
-    /// </summary>
     private async Task<ProcessStateChange> ComputeNextTransition(
         IInstanceDataAccessor dataAccessor,
         string? action,
@@ -812,10 +786,6 @@ internal class ProcessEngine : IProcessEngine
         return _transitionBuilder.Build(dataAccessor.Instance, nextElement, action, user, now);
     }
 
-    /// <summary>
-    /// Decides which element the process moves to from the current task. This evaluates the gateways on the way,
-    /// which run app code.
-    /// </summary>
     private async Task<ProcessElement> GetNextElement(IInstanceDataAccessor dataAccessor, string? action)
     {
         ProcessState process = dataAccessor.Instance.Process ?? throw new ProcessException("Process is null");
@@ -862,7 +832,7 @@ internal class ProcessEngine : IProcessEngine
         }
     }
 
-    private async Task<MoveToNextResult> HandleMoveToNext(
+    private async Task<ProcessNextWorkflowResult> HandleMoveToNext(
         InstanceDataUnitOfWork transitionData,
         string? action,
         ProcessElement nextElement,
@@ -870,36 +840,19 @@ internal class ProcessEngine : IProcessEngine
         CancellationToken cancellationToken = default
     )
     {
-        Instance instance = transitionData.Instance;
-        using var activity = _telemetry?.StartProcessMoveToNextActivity(instance, action);
+        using var activity = _telemetry?.StartProcessMoveToNextActivity(transitionData.Instance, action);
 
-        // The acquire callback builds the transition to the decided element once it has claimed this snapshot. The
-        // snapshot carries the form data the gateways read, so the transition's steps don't read it again.
-        ProcessState? oldProcessState = instance.Process?.Copy();
+        // Capture the same snapshot and form data used by the gateways for the acquire fence.
         string state = await _workflowCallbackStateService.CaptureState(transitionData);
 
-        ProcessNextWorkflowResult result = await _workflowEngineService.EnqueueAndWaitForProcessNext(
-            instance,
+        return await _workflowEngineService.EnqueueAndWaitForProcessNext(
+            transitionData.Instance,
             transitionData.StorageVersions,
             state,
             action,
             nextElement,
             language,
             cancellationToken: cancellationToken
-        );
-
-        ProcessStateChange finalProcessStateChange = new()
-        {
-            OldProcessState = oldProcessState,
-            NewProcessState = result.Instance.Process,
-        };
-
-        return new MoveToNextResult(
-            result.Instance,
-            result.InstanceVersions,
-            finalProcessStateChange,
-            result.WorkflowFailure,
-            result.ProcessStateChanged
         );
     }
 
@@ -917,22 +870,12 @@ internal class ProcessEngine : IProcessEngine
     )
     {
         Instance instance = dataAccessor.Instance;
-        PlatformUser user = ProcessTransitionBuilder.CreatePlatformUser(actor);
-        ProcessStateChange processStateChange;
-        using (
-            _telemetry?.StartProcessGenerateChangeEventActivity(
-                instance,
-                ProcessTransitionBuilder.GetLeaveEventType(action)
-            )
-        )
-        {
-            processStateChange = await ComputeNextTransition(
-                dataAccessor,
-                action,
-                user,
-                executionReferenceTime.UtcDateTime
-            );
-        }
+        ProcessStateChange processStateChange = await ComputeNextTransition(
+            dataAccessor,
+            action,
+            ProcessTransitionBuilder.CreatePlatformUser(actor),
+            executionReferenceTime.UtcDateTime
+        );
 
         await _workflowEngineService.EnqueueDependentProcessNext(
             instance,
@@ -946,28 +889,12 @@ internal class ProcessEngine : IProcessEngine
         );
     }
 
-    private sealed record MoveToNextResult(
-        Instance Instance,
-        StorageVersionMetadata Versions,
-        ProcessStateChange? ProcessStateChange,
-        WorkflowFailure? WorkflowFailure = null,
-        bool ProcessStateChanged = false
-    )
-    {
-        [MemberNotNullWhen(true, nameof(ProcessStateChange))]
-        public bool IsEndEvent => ProcessStateChange?.NewProcessState?.Ended is not null;
-    };
-
     /// <summary>
-    /// Returns the action that process/completeProcess performs on a task of the given type. A process next without
-    /// an action also uses it, but only to check whether the result is <c>reject</c>.
+    /// Selects the action performed by process/completeProcess, or the implicit reject for process/next.
     /// </summary>
     /// <remarks>
-    /// This is deliberately not the table in <see cref="ProcessEngineAuthorizer.GetActionsThatAllowProcessNextForTaskType"/>.
-    /// That table lists the actions that authorize a transition; this one picks the action that is performed, which
-    /// reaches user action handlers, gateway filters, the workflow engine and telemetry. A type without an entry,
-    /// including <c>payment</c> and <c>subformPdf</c>, is performed as its own name: mapping <c>payment</c> to
-    /// <c>pay</c> would run the payment action handler.
+    /// This differs from the authorization table: unmapped task types keep their name, so <c>payment</c> does not
+    /// invoke the <c>pay</c> action handler.
     /// </remarks>
     internal static string ConvertTaskTypeToAction(string actionOrTaskType)
     {

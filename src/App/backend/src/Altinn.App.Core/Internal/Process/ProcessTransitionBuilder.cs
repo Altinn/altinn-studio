@@ -9,9 +9,7 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.Process;
 
 /// <summary>
-/// Builds the process state change that moves the process from its current task to an element that has already been
-/// decided. Deciding the element evaluates the gateways, which run app code; building runs none, so a workflow
-/// callback can build a transition the request decided without anything of the app's own that could fail.
+/// Builds a transition to a preselected BPMN element without running gateways or mutating the instance.
 /// </summary>
 internal sealed class ProcessTransitionBuilder
 {
@@ -25,9 +23,7 @@ internal sealed class ProcessTransitionBuilder
     }
 
     /// <summary>
-    /// Builds the transition to the element <paramref name="nextElementId"/> names, as a workflow callback does: the
-    /// events name <paramref name="actor"/> and carry the engine's <paramref name="executionReferenceTime"/>, so every
-    /// attempt of the callback builds the same transition.
+    /// Uses the engine's reference time to keep event timestamps stable across callback retries.
     /// </summary>
     /// <exception cref="ProcessException">The process definition has no element with that id.</exception>
     internal ProcessStateChange Build(
@@ -38,7 +34,6 @@ internal sealed class ProcessTransitionBuilder
         DateTimeOffset executionReferenceTime
     )
     {
-        using var activity = _telemetry?.StartProcessGenerateChangeEventActivity(instance, GetLeaveEventType(action));
         ProcessElement nextElement =
             _processReader.GetFlowElement(nextElementId)
             ?? throw new ProcessException(
@@ -47,10 +42,6 @@ internal sealed class ProcessTransitionBuilder
         return Build(instance, nextElement, action, CreatePlatformUser(actor), executionReferenceTime.UtcDateTime);
     }
 
-    /// <summary>
-    /// Builds the transition from the instance's current task to <paramref name="nextElement"/>. Does not mutate
-    /// <c>instance.Process</c>.
-    /// </summary>
     internal ProcessStateChange Build(
         Instance instance,
         ProcessElement nextElement,
@@ -59,6 +50,7 @@ internal sealed class ProcessTransitionBuilder
         DateTime now
     )
     {
+        using var activity = _telemetry?.StartProcessGenerateChangeEventActivity(instance, GetLeaveEventType(action));
         ProcessState process = instance.Process ?? throw new ProcessException("Process is null");
         string currentTaskId =
             process.CurrentTask?.ElementId ?? throw new ProcessException("Current task element ID is null");
@@ -72,19 +64,17 @@ internal sealed class ProcessTransitionBuilder
             StartEvent = process.StartEvent,
         };
 
-        // End current task event
         if (_processReader.IsProcessTask(currentTaskId))
         {
             events.Add(CreateInstanceEvent(GetLeaveEventType(action), instance, oldProcessState, user, now));
         }
 
-        // Build new process state based on next element
         ProcessState newProcessState = new() { Started = process.Started, StartEvent = process.StartEvent };
         string nextElementId = nextElement.Id;
 
         if (_processReader.IsEndEvent(nextElementId))
         {
-            using var activity = _telemetry?.StartProcessEndActivity(instance);
+            using var endActivity = _telemetry?.StartProcessEndActivity(instance);
 
             newProcessState.CurrentTask = null;
             newProcessState.Ended = now;
@@ -132,17 +122,13 @@ internal sealed class ProcessTransitionBuilder
         };
     }
 
-    /// <summary>
-    /// The event for leaving the current task: a reject abandons it, any other action ends it.
-    /// </summary>
-    internal static string GetLeaveEventType(string? action) =>
+    private static string GetLeaveEventType(string? action) =>
         action is "reject"
             ? InstanceEventType.process_AbandonTask.ToString()
             : InstanceEventType.process_EndTask.ToString();
 
     /// <summary>
-    /// The flow number of the task a transition enters: one more than the task it leaves, so a gateway leading back
-    /// to the same task still enters it anew.
+    /// A gateway loop back to the same task still creates a new task visit.
     /// </summary>
     internal static int GetNextFlow(ProcessElementInfo? currentTask) => (currentTask?.Flow ?? 0) + 1;
 

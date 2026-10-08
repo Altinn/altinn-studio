@@ -346,10 +346,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     public async Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
         Instance instance,
         Guid workflowId,
-        string collectionKey,
         CancellationToken cancellationToken = default
     )
     {
+        string collectionKey = ProcessNextRequestFactory.CreateCollectionKey(new InstanceIdentifier(instance));
         await _workflowEngineClient.ResumeWorkflow(
             GetNamespace(),
             workflowId,
@@ -583,8 +583,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
                     // The engine buffers enqueues, so the workflow we just submitted may not be
                     // visible yet - and a lingering terminal head from a previous transition makes the
-                    // heads look inactive before our workflow has even started. When we know which workflow we submitted, keep
-                    // polling until it is visible and its chain has settled.
+                    // heads look inactive before our workflow has even started. When we know which
+                    // workflow we submitted, keep polling until it is visible and its chain has settled.
                     bool anchoredChainSettled =
                         sinceWorkflowId is null
                         || (
@@ -815,12 +815,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
     internal static WorkflowFailure? BuildWorkflowFailure(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows)
     {
-        // An abandoned workflow is only background noise when a superseding workflow was enqueued
-        // after it. When the newest workflow in view is Abandoned, nothing superseded it, so the
-        // action being waited on never ran - that must be reported as a failure, never success.
-        // Normally unreachable (the engine releases the idempotency key on abandon, so a
-        // superseding enqueue always creates a fresh, newer workflow), but the unscoped fallback
-        // wait can still land on an abandoned head.
+        // A newer enqueue supersedes an abandoned workflow; without one, the action never ran.
         WorkflowStatusResponse? newestWorkflow = hierarchyWorkflows
             .OrderByDescending(workflow => workflow.CreatedAt)
             .FirstOrDefault();
@@ -863,19 +858,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             };
         }
 
-        WorkflowStatusResponse? dependencyFailedWorkflow = hierarchyWorkflows.FirstOrDefault(workflow =>
-            workflow.OverallStatus == PersistentItemStatus.DependencyFailed
-        );
-        if (dependencyFailedWorkflow is not null)
-        {
-            return new WorkflowFailure
-            {
-                Kind = WorkflowFailureKind.DependencyFailed,
-                WorkflowId = dependencyFailedWorkflow.DatabaseId,
-                WorkflowOperationId = dependencyFailedWorkflow.OperationId,
-            };
-        }
-
+        // Resume cascades only to dependents, so their failed or canceled prerequisite must be selected first.
         WorkflowStatusResponse? engineFaultWorkflow = hierarchyWorkflows.FirstOrDefault(workflow =>
             workflow.OverallStatus is PersistentItemStatus.Failed or PersistentItemStatus.Canceled
         );
@@ -893,6 +876,19 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 CommandType = firstFailedStep?.Command.Type,
                 RetryCount = firstFailedStep?.RetryCount,
                 LastError = ToWorkflowFailureError(firstFailedStep?.ErrorHistory?.LastOrDefault()),
+            };
+        }
+
+        WorkflowStatusResponse? dependencyFailedWorkflow = hierarchyWorkflows.FirstOrDefault(workflow =>
+            workflow.OverallStatus == PersistentItemStatus.DependencyFailed
+        );
+        if (dependencyFailedWorkflow is not null)
+        {
+            return new WorkflowFailure
+            {
+                Kind = WorkflowFailureKind.DependencyFailed,
+                WorkflowId = dependencyFailedWorkflow.DatabaseId,
+                WorkflowOperationId = dependencyFailedWorkflow.OperationId,
             };
         }
 

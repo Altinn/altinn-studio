@@ -91,7 +91,6 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
-        // State must always be provided — every workflow is enqueued with a captured state blob.
         if (payload.State is null)
         {
             _logger.LogError(
@@ -131,7 +130,6 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
-        // Restore instance and form data from the opaque state blob.
         InstanceDataUnitOfWork instanceDataUnitOfWork;
         WorkflowCallbackStateCarry stateCarry;
         try
@@ -197,8 +195,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                 try
                 {
                     DataElementChanges changes = instanceDataUnitOfWork.GetDataElementChanges(false);
-                    // The engine's step id is stable across every attempt of this step, so a retried
-                    // callback presents Storage the same key and cannot apply the mutation twice.
+                    // StepId is stable across retries and prevents duplicate Storage mutations.
                     WorkflowAggregateSaveOutcome saveOutcome = await instanceDataUnitOfWork.SaveWorkflowOwnedAggregate(
                         changes,
                         payload.StepId.ToString(),
@@ -246,8 +243,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                     stateCarry
                 );
 
-                // The relay runs here, not in the command: whatever it starts must begin on the state the
-                // handler *published* — saved, re-captured, re-signed above.
+                // Successors need the saved, signed state, including Storage-assigned IDs.
                 if (success.MailboxContinuation is { } continuation)
                 {
                     await RunMailboxRelay(
@@ -294,9 +290,7 @@ public class WorkflowEngineCallbackController : ControllerBase
             }
 
             case DeferredProcessEngineCommandResult deferred:
-                // A deferral is stateless by contract: nothing is saved and the incoming state is echoed back
-                // unchanged. Enforced rather than silently discarded — dropping a deferring handler's writes
-                // quietly would be the one worse outcome.
+                // Deferrals echo the incoming state, so staged writes would be lost.
                 DataElementChanges deferredChanges = instanceDataUnitOfWork.GetDataElementChanges(false);
                 if (deferredChanges.AllChanges.Count > 0)
                 {
@@ -421,10 +415,6 @@ public class WorkflowEngineCallbackController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Serves the acquire step. It commits its own compare-and-set instead of staging changes for the save path
-    /// above, because its outcome decides what happens next (see <see cref="ProcessingStatusAcquirer"/>).
-    /// </summary>
     private async Task<IActionResult> AcquireProcessingStatus(
         InstanceIdentifier instanceId,
         AppCallbackPayload payload,
@@ -458,43 +448,31 @@ public class WorkflowEngineCallbackController : ControllerBase
 
         switch (acquisition)
         {
-            case ProcessingStatusAcquisition.Acquired acquired:
-            {
-                string updatedState = await _workflowCallbackStateService.CaptureState(
-                    acquired.UnitOfWork,
-                    acquired.Carry
+            case ProcessingStatusAcquisition.Acquired { Transition: { } transition } acquired:
+                return await ContinueWithProcessNext(
+                    collectionKey =>
+                        _serviceProvider
+                            .GetRequiredService<IWorkflowEngineService>()
+                            .EnqueueDependentProcessNext(
+                                acquired.Instance,
+                                transition,
+                                payload.WorkflowId,
+                                collectionKey,
+                                acquired.State,
+                                payload.Actor,
+                                cancellationToken: cancellationToken
+                            ),
+                    ProcessingStatusAcquirer.Key,
+                    instanceId,
+                    acquired.State,
+                    activity
                 );
-                if (acquired.Transition is { } transition)
-                {
-                    // The acquire built the transition before claiming, so no app code runs between the claim and
-                    // the workflow that carries the transition out.
-                    return await ContinueWithProcessNext(
-                        collectionKey =>
-                            _serviceProvider
-                                .GetRequiredService<IWorkflowEngineService>()
-                                .EnqueueDependentProcessNext(
-                                    acquired.UnitOfWork.Instance,
-                                    transition,
-                                    payload.WorkflowId,
-                                    collectionKey,
-                                    updatedState,
-                                    payload.Actor,
-                                    cancellationToken: cancellationToken
-                                ),
-                        ProcessingStatusAcquirer.Key,
-                        instanceId,
-                        updatedState,
-                        activity
-                    );
-                }
 
+            case ProcessingStatusAcquisition.Acquired acquired:
                 activity?.SetStatus(ActivityStatusCode.Ok);
-                return Ok(new AppCallbackResponse { State = updatedState });
-            }
+                return Ok(new AppCallbackResponse { State = acquired.State });
 
             case ProcessingStatusAcquisition.Superseded superseded:
-                // Expected whenever another change reaches the instance between a process/next request and its
-                // acquire. The workflow completes without a transition, and whatever is queued behind it runs next.
                 _logger.LogInformation(
                     "Process/next acquire lost to a newer change and completes without a transition. Instance: {InstanceId}, Storage status: {StatusCode}.",
                     instanceId,
@@ -523,11 +501,6 @@ public class WorkflowEngineCallbackController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Enqueues the dependent process-next workflow into this callback's collection with <c>enqueue</c>, and answers
-    /// the callback. Runs after the save, so the continuation's state includes Storage-assigned ids. The enqueue is
-    /// idempotency-keyed, so a retried callback is safe.
-    /// </summary>
     private async Task<IActionResult> ContinueWithProcessNext(
         Func<string, Task> enqueue,
         string commandKey,
@@ -559,7 +532,6 @@ public class WorkflowEngineCallbackController : ControllerBase
         return Ok(new AppCallbackResponse { State = updatedState });
     }
 
-    /// <summary>Hands one verdict to the relay. The controller decides only <em>when</em> it runs.</summary>
     private Task RunMailboxRelay(
         MailboxContinuation continuation,
         AppIdentifier appId,

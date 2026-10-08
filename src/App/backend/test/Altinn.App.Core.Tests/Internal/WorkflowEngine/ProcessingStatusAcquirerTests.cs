@@ -88,8 +88,15 @@ public class ProcessingStatusAcquirerTests
         Assert.IsType<AuthenticationMethod.AltinnToken>(sentAuthentication?.Request);
 
         var acquired = Assert.IsType<ProcessingStatusAcquisition.Acquired>(result);
-        Assert.Equal(ProcessStatus.Processing, acquired.UnitOfWork.Instance.Process?.Status);
-        Assert.Equal(new StorageVersionMetadata(13, 9), acquired.UnitOfWork.StorageVersions);
+        Assert.Equal(ProcessStatus.Processing, acquired.Instance.Process?.Status);
+        WorkflowCallbackState acquiredState = setup.ReadState(acquired.State);
+        Assert.Equal(ProcessStatus.Processing, acquiredState.Instance.Process?.Status);
+        Assert.Equal(13, acquiredState.InstanceVersion);
+        Assert.Equal(9, acquiredState.ProcessStateVersion);
+        Assert.Equal(
+            JsonSerializer.Serialize(Setup.SnapshotFormData),
+            JsonSerializer.Serialize(acquiredState.FormData)
+        );
         if (processNext)
         {
             ProcessStateChange transition = Assert.IsType<ProcessStateChange>(acquired.Transition);
@@ -102,7 +109,6 @@ public class ProcessingStatusAcquirerTests
                     : ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
                 transition.NewProcessState?.CurrentTask?.FlowType
             );
-            // The workflow's actor and reference time, so every attempt of the step builds the same transition.
             Assert.All(
                 transition.Events!,
                 instanceEvent =>
@@ -121,8 +127,7 @@ public class ProcessingStatusAcquirerTests
     [Fact]
     public async Task Acquire_WhenTheProcessDefinitionLacksTheDecidedElement_ThrowsBeforeClaiming()
     {
-        // A request and its callback can reach different versions of the app during a deploy. Nothing is claimed,
-        // so the engine's retry of the step holds nothing while it waits for a version that has the element.
+        // Request and callback can reach different app versions during deployment.
         var setup = new Setup();
 
         await Assert.ThrowsAsync<ProcessException>(() =>
@@ -225,8 +230,10 @@ public class ProcessingStatusAcquirerTests
         );
 
         var acquired = Assert.IsType<ProcessingStatusAcquisition.Acquired>(result);
-        Assert.Equal(ProcessStatus.Processing, acquired.UnitOfWork.Instance.Process?.Status);
-        Assert.Equal(new StorageVersionMetadata(13, 9), acquired.UnitOfWork.StorageVersions);
+        Assert.Equal(ProcessStatus.Processing, acquired.Instance.Process?.Status);
+        WorkflowCallbackState acquiredState = setup.ReadState(acquired.State);
+        Assert.Equal(13, acquiredState.InstanceVersion);
+        Assert.Equal(9, acquiredState.ProcessStateVersion);
         Assert.Equal("Task_2", acquired.Transition?.NewProcessState?.CurrentTask?.ElementId);
     }
 
@@ -313,6 +320,16 @@ public class ProcessingStatusAcquirerTests
             );
         }
 
+        public static readonly List<FormDataEntry> SnapshotFormData =
+        [
+            new FormDataEntry
+            {
+                Id = Guid.Empty.ToString(),
+                DataType = "model",
+                Data = JsonSerializer.SerializeToElement(new { name = "Ola" }),
+            },
+        ];
+
         public Guid InstanceGuid { get; } = Guid.NewGuid();
 
         public string InstanceId => $"{PartyId}/{InstanceGuid}";
@@ -384,7 +401,7 @@ public class ProcessingStatusAcquirerTests
                         Instance = snapshot,
                         InstanceVersion = 12,
                         ProcessStateVersion = 8,
-                        FormData = [],
+                        FormData = SnapshotFormData,
                     }
                 ),
                 SigningDomain.CallbackState
@@ -406,6 +423,9 @@ public class ProcessingStatusAcquirerTests
                 CancellationToken.None
             );
         }
+
+        public WorkflowCallbackState ReadState(string state) =>
+            JsonSerializer.Deserialize<WorkflowCallbackState>(_signer.Verify(state, SigningDomain.CallbackState))!;
 
         private static WorkflowStateSigner CreateStateSigner()
         {

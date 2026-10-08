@@ -542,9 +542,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     }
 
     /// <summary>
-    /// Stages the release from processing to idle, alone or together with a staged process state change. This is
-    /// the only status change a workflow-owned save makes: they all expect processing, which
-    /// <see cref="WorkflowEngine.ProcessingStatusAcquirer"/> claims outside the unit of work.
+    /// Stages release to idle; workflow-owned saves always require processing ownership.
     /// </summary>
     internal void ReleaseProcessingStatus()
     {
@@ -1095,10 +1093,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     private void ApplyStagedProcessState(StorageInstanceMutationRequest request)
     {
-        // Storage carries the status inside the process payload, and a process update replaces the whole
-        // process object, so a release without a process state change rides an update synthesized from the
-        // in-memory process. Every workflow-owned process update is therefore authoritative for the entire
-        // process shape, which the instance and process state version preconditions make safe.
+        // Storage replaces the whole process object, including status; version fences protect this snapshot copy.
         ProcessState? state =
             _stagedProcessStateChange?.NewProcessState?.Copy()
             ?? (_stagedProcessingRelease ? _instance.Process?.Copy() : null);

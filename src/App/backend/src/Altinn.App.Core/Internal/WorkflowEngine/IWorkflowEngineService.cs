@@ -11,8 +11,7 @@ internal interface IWorkflowEngineService
 {
     /// <summary>
     /// Enqueues the workflow that starts the process of a new instance and waits for it to settle.
-    /// <paramref name="language"/> is the language the instance was created with, which the workflow's actor
-    /// carries to every callback; null leaves it to the caller's profile language.
+    /// Callbacks inherit <paramref name="language"/>; null uses the caller's profile language.
     /// </summary>
     Task<ProcessNextWorkflowResult> EnqueueAndWaitForInitialProcessState(
         Instance instance,
@@ -27,11 +26,8 @@ internal interface IWorkflowEngineService
     );
 
     /// <summary>
-    /// Enqueues the acquire workflow of a user-triggered process next and waits for the transition to settle.
-    /// <paramref name="nextElement"/> is where the request decided the process goes; the acquire callback builds the
-    /// transition to it once it has claimed the snapshot in <paramref name="state"/>.
-    /// <paramref name="language"/> is the language process/next was called with, which the workflow's actor carries
-    /// to every callback; null leaves it to the caller's profile language.
+    /// Enqueues the acquire workflow and waits for its dependent transition to settle.
+    /// Callbacks inherit <paramref name="language"/>; null uses the caller's profile language.
     /// </summary>
     Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
         Instance instance,
@@ -44,10 +40,7 @@ internal interface IWorkflowEngineService
     );
 
     /// <summary>
-    /// Resolves the live status of the current task's transition: whether a workflow is idle,
-    /// processing (executing / auto-retrying) or failed, together with the task the transition
-    /// targets and — for the failed case — the failure detail. Read-path enrichment projects it for
-    /// clients, and process/resume resumes the failed workflow it names.
+    /// Returns the current task's transition status, destination, and failure for reads and process/resume.
     /// </summary>
     Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(
         Instance instance,
@@ -57,14 +50,12 @@ internal interface IWorkflowEngineService
     Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
         Instance instance,
         Guid workflowId,
-        string collectionKey,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Enqueues a process-next workflow that depends on another. <c>idempotencyKey</c> defaults to
-    /// one derived from <c>dependsOnWorkflowId</c>; a caller that must key on something narrower —
-    /// the mailbox relay keys on the step that concluded the exchange — supplies its own.
+    /// Enqueues a dependent transition, keyed by its parent workflow unless <paramref name="idempotencyKey"/>
+    /// is supplied. Mailbox continuations use the concluding step's key.
     /// </summary>
     Task<Guid> EnqueueDependentProcessNext(
         Instance instance,
