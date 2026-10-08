@@ -164,41 +164,45 @@ steps:
   - task: AzureCLI@2
     displayName: 'Extract app scopes from docker image'
     condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
-    continueOnError: true
     inputs:
       azureSubscription: 'altinn-studio-apps-deploy'
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        set +e  # Don't exit on errors, this needs testing
+        # Any error here must fail the deploy. Falling back to no scopes would drop the
+        # MaskinportenClient CR from the artifact, and Flux pruning would delete the app's client.
+        set -euo pipefail
 
         ACR_NAME="${APP_OWNER}altinnregistry01"
         IMAGE_REF="${ACR_NAME}.azurecr.io/${RELEASE_NAME}:${TAGNAME}"
+        SCOPES_LABEL="studio.altinn.maskinporten.scopes"
 
         echo "Extracting Maskinporten scopes from image: ${IMAGE_REF}"
 
-        az acr login --name ${ACR_NAME}
+        az acr login --name "${ACR_NAME}"
 
-        docker pull ${IMAGE_REF}
+        docker pull "${IMAGE_REF}"
 
-        SCOPES_JSON=$(docker inspect ${IMAGE_REF} --format='{{index .Config.Labels "studio.altinn.maskinporten.scopes"}}' 2>/dev/null || echo "[]")
+        # Read all labels as JSON, so a missing label is not confused with an empty one.
+        # Docker prints null when the image has no labels at all.
+        LABELS_JSON=$(docker image inspect --format '{{json .Config.Labels}}' "${IMAGE_REF}")
+        SCOPES_LABEL_VALUE=$(echo "${LABELS_JSON}" | jq -r --arg label "${SCOPES_LABEL}" '(. // {})[$label] // ""')
 
-        if [ "$SCOPES_JSON" == "<no value>" ] || [ "$SCOPES_JSON" == "null" ] || [ -z "$SCOPES_JSON" ]; then
-          echo "No Maskinporten scopes label found on image, defaulting to empty array"
-          SCOPES_JSON="[]"
+        # Images built before scopes were recorded have no label, or an empty one if the
+        # build was queued without APP_MASKINPORTEN_SCOPES. Both mean the app has no scopes.
+        if [ -z "${SCOPES_LABEL_VALUE}" ]; then
+          echo "No Maskinporten scopes recorded on image"
+          SCOPES_LABEL_VALUE="[]"
         fi
 
-        if ! echo "${SCOPES_JSON}" | jq empty 2>/dev/null; then
-          echo "##[warning]Invalid JSON in Maskinporten scopes label: ${SCOPES_JSON}"
-          echo "##[warning]Defaulting to empty array"
-          SCOPES_JSON="[]"
+        if ! SCOPES_JSON=$(echo "${SCOPES_LABEL_VALUE}" | jq -cs 'if length == 1 and (.[0] | type == "array" and all(.[]; type == "string")) then .[0] else error("expected one JSON array of strings") end'); then
+          echo "##[error]Invalid Maskinporten scopes label on image, expected a JSON array of strings: ${SCOPES_LABEL_VALUE}"
+          exit 1
         fi
 
         echo "##vso[task.setvariable variable=APP_MASKINPORTEN_SCOPES_JSON;]${SCOPES_JSON}"
 
         echo "Extracted Maskinporten scopes: ${SCOPES_JSON}"
-
-        exit 0  # Always succeed, this needs testing
       failOnStderr: false
 
   - task: CmdLine@2
@@ -721,16 +725,16 @@ steps:
   - task: Bash@3
     displayName: 'Generate MaskinportenClient CR'
     condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
-    continueOnError: true
     inputs:
       workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
       script: |
-        set +e  # Don't exit on errors, this needs testing
+        # Any error here must fail the deploy, see 'Extract app scopes from docker image'
+        set -euo pipefail
 
-        SCOPES_ARRAY="${APP_MASKINPORTEN_SCOPES_JSON:-[]}"
+        : "${APP_MASKINPORTEN_SCOPES_JSON:?Maskinporten scopes were not extracted}"
 
-        SCOPE_COUNT=$(echo "${SCOPES_ARRAY}" | jq 'length' 2>/dev/null || echo "0")
+        SCOPE_COUNT=$(echo "${APP_MASKINPORTEN_SCOPES_JSON}" | jq 'length')
 
         if [ "${SCOPE_COUNT}" -eq 0 ]; then
           echo "No Maskinporten scopes configured, skipping MaskinportenClient CR generation"
@@ -754,16 +758,12 @@ steps:
             }
           },
           "spec": {
-            "scopes": []
+            "scopes": (env(APP_MASKINPORTEN_SCOPES_JSON) | .. style="")
           }
         }' > "${MASKINPORTEN_CR_FILE}"
 
-        yq eval --inplace ".spec.scopes = $(echo "${SCOPES_ARRAY}" | yq eval --input-format json --output-format json '.')" "${MASKINPORTEN_CR_FILE}"
-
         echo "Generated MaskinportenClient CR:"
         cat "${MASKINPORTEN_CR_FILE}"
-
-        exit 0  # Always succeed, this needs testing
       failOnStderr: false
 
   - task: AzureCLI@2
