@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Ref } from 'react';
 import { render, screen, within } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
@@ -38,8 +39,8 @@ const defaultProps: StudioFileBrowserProps = {
       },
     ],
   },
-  onOpenDirectory: jest.fn(),
-  onOpenFile: jest.fn(),
+  onOpenDirectory: vi.fn(),
+  onOpenFile: vi.fn(),
   texts,
 };
 
@@ -50,7 +51,7 @@ const textsDirectory: StudioFileBrowserDirectory = {
 };
 
 describe('StudioFileBrowser', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('appends custom attributes to the root element', () => {
     testCustomAttributes(renderStudioFileBrowser);
