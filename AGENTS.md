@@ -178,8 +178,8 @@ Issues are tracked in GitHub Issues for Altinn/altinn-studio, using the `gh` CLI
 
 ### Triage labels
 
-Categories map to `kind/bug` and `kind/feature-request`; states use the `status/` prefix (`needs-triage`
-is the existing `status/triage`), and `wontfix` means closing as not planned, with no label. See
+Categories are the GitHub issue types `Bug` and `Enhancement`, not labels; states use the `status/` prefix
+(`needs-triage` is the existing `status/triage`), and `wontfix` means closing as not planned, with no label. See
 [`docs/agents/triage-labels.md`](docs/agents/triage-labels.md).
 
 ### Domain docs
