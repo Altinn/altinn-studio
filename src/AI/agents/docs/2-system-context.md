@@ -164,7 +164,7 @@ sequenceDiagram
 
 _One end to end eval. The items run one at a time, because each run pushes to the same test repository._
 
-GitHub Actions does not run the benchmark. The workflow `assistant-evals.yaml` only checks if a pull request makes the current baseline invalid. Scores change between runs, and a run costs money and secrets. For these reasons, the bench is a local command.
+GitHub Actions does not run the benchmark. The workflow `assistant-evals.yaml` only checks if a pull request makes the current baseline invalid. Scores change between runs, and a run costs money and needs secrets. For these reasons, the bench is a local command.
 
 ```mermaid
 flowchart LR

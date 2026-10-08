@@ -4,7 +4,7 @@ Code: `agents/core/loop.py`, `agents/core/compaction.py`, `agents/core/messages.
 
 ## The loop
 
-`run_loop` is the only place that decides what happens next. Each turn sends the messages to the model. If the response has no tool calls, the loop stops with `COMPLETED`. If it has tool calls, the loop runs the tools and adds the results as a new user message.
+`run_loop` is the only place that decides what happens next. Each turn sends the messages to the model. If the response has no tool calls and the model did not stop at the token limit, the loop stops with `COMPLETED`. If it has tool calls, the loop runs the tools and adds the results as a new user message.
 
 ```mermaid
 flowchart TD
