@@ -26,11 +26,17 @@ i18next.use(initReactI18next).init({
   },
 });
 
+const defaultDocumentTitle = document.title;
+
 export function App() {
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const org = match?.params?.org ?? '';
   const app = match?.params?.app ?? '';
+
+  useEffect(() => {
+    document.title = app ? `${defaultDocumentTitle}: ${app}` : defaultDocumentTitle;
+  }, [app]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
