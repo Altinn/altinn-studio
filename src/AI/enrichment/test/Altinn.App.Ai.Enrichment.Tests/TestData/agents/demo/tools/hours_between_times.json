@@ -1,0 +1,12 @@
+{
+  "name": "hours_between_times",
+  "description": "Antall timer fra et starttidspunkt til et sluttidspunkt samme døgn eller over midnatt. Bruk dette for å beregne varighet når du kjenner klokkeslettene.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "start_time": { "type": "string", "description": "Starttidspunkt (HH:MM)." },
+      "end_time":   { "type": "string", "description": "Sluttidspunkt (HH:MM)." }
+    },
+    "required": ["start_time", "end_time"]
+  }
+}

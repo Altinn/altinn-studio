@@ -1,0 +1,14 @@
+{
+  "output": {
+    "meta": {
+      "dato":          { "kind": "today" },
+      "saksbehandler": { "kind": "const", "value": "KI-agent" }
+    },
+    "soker": {
+      "navn": { "kind": "chain", "sources": ["Innsender.Navn"], "default": "ukjent" }
+    },
+    "sjekkliste": {
+      "erstattes": { "kind": "const", "value": "overskrives av aggregerte verdicts" }
+    }
+  }
+}
