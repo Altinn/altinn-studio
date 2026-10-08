@@ -1,4 +1,4 @@
-import type { StudioCodeViewerLanguage } from './highlighter';
+import type { StudioCodeViewerLanguage } from './registerHighlighter';
 
 /**
  * Larger code is shown as plain text in one element, without colors and folds,

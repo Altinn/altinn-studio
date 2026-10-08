@@ -1,5 +1,5 @@
 import type { HLJSApi } from 'highlight.js';
-import type { StudioCodeViewerLanguage } from './highlighter';
+import type { StudioCodeViewerLanguage } from './registerHighlighter';
 
 const languagesByFileExtension: Record<string, StudioCodeViewerLanguage> = {
   bpmn: 'xml',
@@ -43,7 +43,7 @@ export function getHighlighterIfLoaded(): HLJSApi | undefined {
 }
 
 export async function loadHighlighter(): Promise<HLJSApi> {
-  highlighterCache ??= (await import('./highlighter')).highlighter;
+  highlighterCache ??= (await import('./registerHighlighter')).registerHighlighter();
   return highlighterCache;
 }
 

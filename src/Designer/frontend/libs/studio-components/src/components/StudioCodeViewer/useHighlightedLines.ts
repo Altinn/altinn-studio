@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { StudioCodeViewerLanguage } from './highlighter';
+import type { StudioCodeViewerLanguage } from './registerHighlighter';
 import { getHighlighterIfLoaded, highlightCodeLines, loadHighlighter } from './highlightUtils';
 
 export function useHighlightedLines(

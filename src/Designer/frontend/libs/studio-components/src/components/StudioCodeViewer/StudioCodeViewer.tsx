@@ -3,7 +3,7 @@ import type { CSSProperties, HTMLAttributes, KeyboardEvent, ReactElement, Ref } 
 import cn from 'classnames';
 import { ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
 import classes from './StudioCodeViewer.module.css';
-import type { StudioCodeViewerLanguage } from './highlighter';
+import type { StudioCodeViewerLanguage } from './registerHighlighter';
 import { useHighlightedLines } from './useHighlightedLines';
 import {
   createCodeLines,
