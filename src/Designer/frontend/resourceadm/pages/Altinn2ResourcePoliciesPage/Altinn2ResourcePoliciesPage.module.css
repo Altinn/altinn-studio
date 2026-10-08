@@ -22,6 +22,8 @@
   top: 0;
   z-index: 1;
   background-color: var(--ds-color-neutral-background-default);
+  box-shadow: 0px 1px 1px 1px var(--ds-color-neutral-background-default);
+  border-bottom: 1px solid var(--dsc-dialog-divider-border-color);
 }
 
 .buttonRow {
