@@ -4,7 +4,7 @@ using Altinn.Studio.Cli.Upgrade.v8Tov9;
 
 namespace Studioctl.Tests.Upgrade.v8Tov9;
 
-public sealed class ComponentRequiredMigrationTests : IDisposable
+public sealed class ComponentFormPropertiesMigrationTests : IDisposable
 {
     private readonly TempAppFolder _app = new();
 
@@ -29,7 +29,7 @@ public sealed class ComponentRequiredMigrationTests : IDisposable
             """
         );
 
-        var result = await new ComponentRequiredMigration(_app.Root).Migrate();
+        var result = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
         var root = Assert.IsType<JsonObject>(JsonNode.Parse(_app.Read("ui/Task_1/layouts/form.json")));
         var data = Assert.IsType<JsonObject>(root["data"]);
         var components = Assert.IsType<JsonArray>(data["layout"]);
@@ -43,7 +43,7 @@ public sealed class ComponentRequiredMigrationTests : IDisposable
         Assert.Null(required["minNumberOfAttachments"]);
         Assert.Equal(2, Assert.IsAssignableFrom<JsonValue>(requiredTwo["minNumberOfAttachments"]).GetValue<int>());
 
-        var secondResult = await new ComponentRequiredMigration(_app.Root).Migrate();
+        var secondResult = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
         Assert.Equal(0, secondResult.FilesChanged);
         Assert.Equal(0, secondResult.PropertiesRemoved);
         Assert.Empty(secondResult.Messages.Messages);
@@ -61,7 +61,7 @@ public sealed class ComponentRequiredMigrationTests : IDisposable
             """;
         _app.Write("ui/Task_1/layouts/form.json", before);
 
-        var result = await new ComponentRequiredMigration(_app.Root).Migrate();
+        var result = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
 
         var root = Assert.IsType<JsonObject>(JsonNode.Parse(_app.Read("ui/Task_1/layouts/form.json")));
         var data = Assert.IsType<JsonObject>(root["data"]);
@@ -98,7 +98,7 @@ public sealed class ComponentRequiredMigrationTests : IDisposable
             """
         );
 
-        var result = await new ComponentRequiredMigration(_app.Root).Migrate();
+        var result = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
         var root = Assert.IsType<JsonObject>(JsonNode.Parse(_app.Read("ui/Task_1/layouts/form.json")));
         var data = Assert.IsType<JsonObject>(root["data"]);
         var components = Assert.IsType<JsonArray>(data["layout"]);
@@ -123,7 +123,7 @@ public sealed class ComponentRequiredMigrationTests : IDisposable
             """;
         _app.Write("ui/Task_1/layouts/form.json", before);
 
-        var result = await new ComponentRequiredMigration(_app.Root).Migrate();
+        var result = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
 
         Assert.Equal(before, _app.Read("ui/Task_1/layouts/form.json"));
         Assert.Equal(0, result.FilesChanged);
@@ -143,7 +143,7 @@ public sealed class ComponentRequiredMigrationTests : IDisposable
             """
         );
 
-        var result = await new ComponentRequiredMigration(_app.Root).Migrate();
+        var result = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
         var root = Assert.IsType<JsonObject>(JsonNode.Parse(_app.Read("ui/Task_1/layouts/form.json")));
         var data = Assert.IsType<JsonObject>(root["data"]);
         var components = Assert.IsType<JsonArray>(data["layout"]);
@@ -174,7 +174,7 @@ public sealed class ComponentRequiredMigrationTests : IDisposable
             """
         );
 
-        var result = await new ComponentRequiredMigration(_app.Root).Migrate();
+        var result = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
         var root = Assert.IsType<JsonObject>(JsonNode.Parse(_app.Read("ui/Task_1/layouts/form.json")));
         var data = Assert.IsType<JsonObject>(root["data"]);
         var components = Assert.IsType<JsonArray>(data["layout"]);
@@ -202,7 +202,7 @@ public sealed class ComponentRequiredMigrationTests : IDisposable
             """
         );
 
-        var result = await new ComponentRequiredMigration(_app.Root).Migrate();
+        var result = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
         var root = Assert.IsType<JsonObject>(JsonNode.Parse(_app.Read("ui/Task_1/layouts/form.json")));
         var data = Assert.IsType<JsonObject>(root["data"]);
         var components = Assert.IsType<JsonArray>(data["layout"]);
@@ -229,7 +229,7 @@ public sealed class ComponentRequiredMigrationTests : IDisposable
             """
         );
 
-        var result = await new ComponentRequiredMigration(_app.Root).Migrate();
+        var result = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
 
         var root = Assert.IsType<JsonObject>(JsonNode.Parse(_app.Read("ui/Task_1/layouts/form.json")));
         var data = Assert.IsType<JsonObject>(root["data"]);
@@ -256,7 +256,7 @@ public sealed class ComponentRequiredMigrationTests : IDisposable
             """;
         _app.Write("ui/Task_1/layouts/form.json", before);
 
-        var result = await new ComponentRequiredMigration(_app.Root).Migrate();
+        var result = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
 
         Assert.Equal(before, _app.Read("ui/Task_1/layouts/form.json"));
         Assert.Equal(0, result.FilesChanged);
@@ -276,7 +276,7 @@ public sealed class ComponentRequiredMigrationTests : IDisposable
             """
         );
 
-        var result = await new ComponentRequiredMigration(_app.Root).Migrate();
+        var result = await new ComponentFormPropertiesMigration(_app.Root).Migrate();
         var updated = _app.Read("ui/Task_1/layouts/form.json");
 
         Assert.Equal(1, result.PropertiesRemoved);

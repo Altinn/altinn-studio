@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- `studioctl app upgrade v9` removes unsupported `required` properties from known components. It keeps `minNumberOfAttachments` and `minCount`; when either conflicts with `required`, it reports a TODO for you to verify the minimum. ([#16618](https://github.com/Altinn/altinn-studio/issues/16618))
+- `studioctl app upgrade v9` removes unsupported `required` and `readOnly` properties from known components. It preserves `minNumberOfAttachments` and `minCount`; conflicts with `required` produce a TODO asking you to verify the minimum. ([#16618](https://github.com/Altinn/altinn-studio/issues/16618))
 
 ## [0.1.0-preview.28] - 2026-10-07
 

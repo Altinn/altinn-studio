@@ -1241,7 +1241,7 @@ internal static class V8Tov9Upgrade
             DatepickerTimeStampMigrator.Apply(workspace);
             HeadingLayoutMigration.Apply(workspace);
             FileUploadWithTagLayoutMigration.Apply(workspace);
-            var requirednessResult = ComponentRequiredMigration.Apply(workspace);
+            var formPropertiesResult = ComponentFormPropertiesMigration.Apply(workspace);
             DatepickerFormatMigration.Apply(workspace);
             GridXlMigration.Apply(workspace);
             var saveWhileTypingWarning = SaveWhileTypingMigration.Apply(workspace);
@@ -1249,7 +1249,7 @@ internal static class V8Tov9Upgrade
             InvalidValidationMaskMigration.Apply(workspace);
 
             var messages = new List<UpgradeMessage>();
-            messages.AddRange(requirednessResult.Messages.Messages);
+            messages.AddRange(formPropertiesResult.Messages.Messages);
             if (saveWhileTypingWarning is not null)
                 messages.Warn(saveWhileTypingWarning);
             foreach (var issue in workspace.Conflicts)
