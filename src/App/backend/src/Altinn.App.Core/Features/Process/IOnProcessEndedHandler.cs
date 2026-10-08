@@ -7,8 +7,9 @@ namespace Altinn.App.Core.Features.Process;
 /// <para><strong>IMPORTANT: Implementations MUST be idempotent - this hook may be retried on failure.</strong></para>
 /// <para>
 /// Runs after the ended process state is saved to Storage, and before the configured process-end cleanup
-/// (<c>autoDeleteOnProcessEnd</c>) and the release of the instance. Unlike <see cref="IOnProcessEndingHandler"/>,
-/// a failure here cannot stop the process from ending; it leaves the ended instance processing until resumed.
+/// (<c>autoDeleteOnProcessEnd</c>) and the release of the instance. A failure here cannot stop the process from
+/// ending; it leaves the ended instance processing until resumed. Logic that must be able to stop the process from
+/// ending belongs in an <see cref="IOnTaskEndingHandler"/> for the last task.
 /// </para>
 /// </remarks>
 [ImplementableByApps]

@@ -95,14 +95,6 @@ public class ProcessStepOptionsResolverTests
         return mock;
     }
 
-    private static Mock<IOnProcessEndingHandler> EndingHook(ProcessStepOptions? stepOptions)
-    {
-        var mock = new Mock<IOnProcessEndingHandler>();
-        if (stepOptions is not null)
-            mock.Setup(h => h.StepOptions).Returns(stepOptions);
-        return mock;
-    }
-
     [Fact]
     public void Resolve_OrdinaryCommand_NoTierApplies_ReturnsNull()
     {
@@ -207,31 +199,6 @@ public class ProcessStepOptionsResolverTests
 
         Assert.NotNull(result);
         Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, result.MaxExecutionTime);
-    }
-
-    [Fact]
-    public void Resolve_ProcessEndingHook_TaskIdNull_StillResolvesImplementationOptions()
-    {
-        // Regression guard: the process_EndEvent carries CurrentTask = null, so this step is always
-        // resolved with taskId = null. Process-ending resolution must NOT be gated on taskId (unlike the
-        // task hooks) or the handler's configured options would be silently dropped.
-        var handler = EndingHook(new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(15) });
-        var resolver = CreateResolver(services => services.AddSingleton<IOnProcessEndingHandler>(handler.Object));
-
-        var result = resolver.Resolve(OnProcessEndingHook.Key, taskId: null, serviceTaskType: null);
-
-        Assert.NotNull(result);
-        Assert.Equal(TimeSpan.FromMinutes(15), result.MaxExecutionTime);
-    }
-
-    [Fact]
-    public void Resolve_ProcessEndingHook_NoHandler_ReturnsNull()
-    {
-        var resolver = CreateResolver(_ => { });
-
-        var result = resolver.Resolve(OnProcessEndingHook.Key, taskId: null, serviceTaskType: null);
-
-        Assert.Null(result);
     }
 
     // The three task hooks (start/end/abandon) share identical resolution logic — matched by

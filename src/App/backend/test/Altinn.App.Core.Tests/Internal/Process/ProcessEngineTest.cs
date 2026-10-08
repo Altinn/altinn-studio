@@ -741,8 +741,6 @@ public sealed class ProcessEngineTest
                 "LockTaskData",
                 // Advance in-memory process state to NEW
                 "MutateProcessState",
-                // ProcessEnd commands (see NEW state)
-                "OnProcessEndingHook",
                 // Persist to Storage
                 "CommitProcessState",
                 // Enqueues the side-effects workflow at the commit boundary

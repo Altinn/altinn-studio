@@ -16,7 +16,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Removed
 
-- Breaking: remove `IProcessEnd`. Move its logic to `IOnProcessEndedHandler`, or to `IOnProcessEndingHandler` to run before the end is saved. `studioctl app upgrade v9` lists the classes and registrations to port. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+- Breaking: remove `IOnProcessEndingHandler`. Move its logic to an `IOnTaskEndingHandler` for the last task to run before the end is saved, or to `IOnProcessEndedHandler` to run after. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+- Breaking: remove `IProcessEnd`. Move its logic to `IOnProcessEndedHandler`, or to an `IOnTaskEndingHandler` for the last task to run before the end is saved. `studioctl app upgrade v9` lists the classes and registrations to port. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 
 ## [9.0.0-preview.7] - 2026-10-07
 
