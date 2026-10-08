@@ -16,6 +16,7 @@ import { getConfig as getCardsConfig } from 'src/layout/Cards/config.runtime.gen
 import { getConfig as getCheckboxesConfig } from 'src/layout/Checkboxes/config.runtime.generated';
 import { getConfig as getCustomConfig } from 'src/layout/Custom/config.runtime.generated';
 import { getConfig as getCustomButtonConfig } from 'src/layout/CustomButton/config.runtime.generated';
+import { getConfig as getCustomReactConfig } from 'src/layout/CustomReact/config.runtime.generated';
 import { getConfig as getDateConfig } from 'src/layout/Date/config.runtime.generated';
 import { getConfig as getDatepickerConfig } from 'src/layout/Datepicker/config.runtime.generated';
 import { getConfig as getDividerConfig } from 'src/layout/Divider/config.runtime.generated';
@@ -79,6 +80,7 @@ function createComponentConfigs() {
     Checkboxes: getCheckboxesConfig(),
     Custom: getCustomConfig(),
     CustomButton: getCustomButtonConfig(),
+    CustomReact: getCustomReactConfig(),
     Date: getDateConfig(),
     Datepicker: getDatepickerConfig(),
     Divider: getDividerConfig(),
@@ -135,4 +137,4 @@ export function getComponentConfigs() {
 
 export type ComponentTypeConfigs = GeneratedComponentTypeConfigs;
 
-// Source hash: 21f57c6038e3d0b81a8f231d17aa2794fbdc7403cb3a75e7e75c4bb405d56421
+// Source hash: 56ce4ac18e8f024c7cdffb1e168b20141aa4c396a7ec5c625706ee1e7ea6ac34

@@ -14,6 +14,7 @@ import type { CompCardsSerialized } from '@app/layout-contract/generated/compone
 import type { CompCheckboxesSerialized } from '@app/layout-contract/generated/components/Checkboxes/serialized.generated';
 import type { CompCustomSerialized } from '@app/layout-contract/generated/components/Custom/serialized.generated';
 import type { CompCustomButtonSerialized } from '@app/layout-contract/generated/components/CustomButton/serialized.generated';
+import type { CompCustomReactSerialized } from '@app/layout-contract/generated/components/CustomReact/serialized.generated';
 import type { CompDateSerialized } from '@app/layout-contract/generated/components/Date/serialized.generated';
 import type { CompDatepickerSerialized } from '@app/layout-contract/generated/components/Datepicker/serialized.generated';
 import type { CompDividerSerialized } from '@app/layout-contract/generated/components/Divider/serialized.generated';
@@ -75,6 +76,7 @@ export enum ComponentType {
   Checkboxes = 'Checkboxes',
   Custom = 'Custom',
   CustomButton = 'CustomButton',
+  CustomReact = 'CustomReact',
   Date = 'Date',
   Datepicker = 'Datepicker',
   Divider = 'Divider',
@@ -137,6 +139,7 @@ export type SerializedComponent =
   | CompCheckboxesSerialized
   | CompCustomSerialized
   | CompCustomButtonSerialized
+  | CompCustomReactSerialized
   | CompDateSerialized
   | CompDatepickerSerialized
   | CompDividerSerialized
@@ -183,4 +186,4 @@ export type SerializedComponent =
   | CompTimePickerSerialized
   | CompVideoSerialized;
 
-// Source hash: b2e8d5fcbbde3565ee47ac2caa9ffc14a58ac0908459334dd3c7046230a032d0
+// Source hash: 80817b2b98b63fd212bd98678af06ba5fa1ef60f1fe217cdd99867058b704d87

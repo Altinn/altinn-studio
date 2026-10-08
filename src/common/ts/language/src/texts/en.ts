@@ -29,6 +29,7 @@ export function en() {
     'confirm.title': 'Check your responses before submitting',
     'custom_actions.general_error':
       'Something went wrong with this action. Please try again later.',
+    'custom_react.not_registered': 'This part of the form could not be displayed. Try reloading the page.',
     'date_picker.invalid_date_message': 'Invalid date format. Use the format {0}.',
     'date_picker.cancel_label': 'Cancel',
     'date_picker.clear_label': 'Clear',
