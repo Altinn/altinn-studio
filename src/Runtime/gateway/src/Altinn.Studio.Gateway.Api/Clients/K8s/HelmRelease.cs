@@ -26,23 +26,6 @@ internal sealed class HelmRelease
         return null;
     }
 
-    public string? GetImageTag()
-    {
-        if (
-            _root.TryGetProperty("spec", out var spec)
-            && spec.TryGetProperty("values", out var values)
-            && values.TryGetProperty("image", out var image)
-            && image.TryGetProperty("tag", out var tag)
-            && tag.ValueKind == JsonValueKind.String
-            && tag.GetString() is { Length: > 0 } imageTag
-        )
-        {
-            return imageTag;
-        }
-
-        return null;
-    }
-
     public IReadOnlyDictionary<string, string> GetLabels() => GetMetadataMap("labels");
 
     public IReadOnlyDictionary<string, string> GetAnnotations() => GetMetadataMap("annotations");
