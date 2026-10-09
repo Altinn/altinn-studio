@@ -197,8 +197,10 @@ func (w *browserSession) handleRequests() {
 			w.cdpEventsDrop.Store(0)
 			w.tryUpdateTestModeOutput(&req, "Before", false)
 
+			// The request logger already has the URL, add the session so every log line of the request has both
+			req.logger = req.logger.With("id", w.id)
 			w.currentRequest.Store(&req)
-			w.logger = w.rootLogger.With("url", req.request.URL)
+			w.logger = req.logger
 			w.handleRequest(&req)
 			w.logger = w.rootLogger
 			w.currentRequest.Store(nil)
@@ -332,8 +334,8 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err())
 	}
 
-	w.openPage(req)
-	if req.hasResponded() || respondIfClientDropped(req) {
+	page, ok := w.openPage(req)
+	if !ok || respondIfClientDropped(req) {
 		return nil
 	}
 
@@ -347,7 +349,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return nil
 	}
 
-	if err := w.navigateToPage(req); err != nil {
+	if err := w.navigateToPage(req, page); err != nil {
 		return err
 	}
 
@@ -355,7 +357,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return nil
 	}
 
-	if err := w.waitForRequest(req); err != nil {
+	if err := w.waitForRequest(req, page); err != nil {
 		return err
 	}
 
@@ -363,13 +365,16 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return nil
 	}
 
-	return w.printPDF(req)
+	return w.printPDF(req, page)
 }
 
 // openPage creates a new browser context with a single page for the request. Everything the page
 // leaves behind on any origin (cookies, web storage, IndexedDB, cache, window.name, history, popups,
-// ...) lives in that context, and cleanupAfterRequest disposes it.
-func (w *browserSession) openPage(req *workerRequest) {
+// ...) lives in that context, and cleanupAfterRequest disposes it. If the page can't be opened,
+// openPage responds to the request with an error and returns false.
+//
+//nolint:ireturn // The page is a CDP session, which the cdp package exposes as an interface.
+func (w *browserSession) openPage(req *workerRequest) (cdp.Commander, bool) {
 	openCtx, openSpan := w.tracer.Start(req.ctx, "pdf.session.open_page", trace.WithSpanKind(trace.SpanKindInternal))
 	defer openSpan.End()
 	start := time.Now()
@@ -377,6 +382,7 @@ func (w *browserSession) openPage(req *workerRequest) {
 	// Not cancelled with the request: if the client drops while the browser creates the
 	// context, we still need its ID so that cleanup can dispose it.
 	ctx := context.WithoutCancel(openCtx)
+	var page cdp.Commander
 	err := func() error {
 		resp, err := w.conn.SendCommand(ctx, "Target.createBrowserContext", map[string]any{
 			// If the worker loses its connection, the browser disposes the context by itself
@@ -405,13 +411,12 @@ func (w *browserSession) openPage(req *workerRequest) {
 		}
 		sessionID := w.resultString(resp, "sessionId")
 		w.pageSessionID.Store(&sessionID)
-		page := w.conn.Session(sessionID)
+		page = w.conn.Session(sessionID)
 
 		commands := []cdp.Command{{Method: "Page.enable"}, {Method: "Runtime.enable"}, {Method: "Log.enable"}}
 		if err := commandBatchError(commands, page.SendCommandBatch(ctx, commands)); err != nil {
 			return fmt.Errorf("enable page domains: %w", err)
 		}
-		req.page = page
 		return nil
 	}()
 	if err != nil {
@@ -420,10 +425,11 @@ func (w *browserSession) openPage(req *workerRequest) {
 			openSpan.SetStatus(codes.Error, "open_page_failed")
 		}
 		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "open page", err))
-		return
+		return nil, false
 	}
 
 	w.logger.Info("Opened page in new browser context", "duration", time.Since(start))
+	return page, true
 }
 
 // resultString returns a string field of a successful Target domain response.
@@ -611,11 +617,11 @@ func (w *browserSession) buildCookieData(cookie types.Cookie) (map[string]any, b
 	return cookieData, true
 }
 
-func (w *browserSession) navigateToPage(req *workerRequest) error {
+func (w *browserSession) navigateToPage(req *workerRequest, page cdp.Commander) error {
 	_, navigateSpan := w.tracer.Start(req.ctx, "pdf.session.navigate", trace.WithSpanKind(trace.SpanKindInternal))
 	defer navigateSpan.End()
 
-	_, err := req.page.SendCommand(req.ctx, "Page.navigate", map[string]any{"url": req.request.URL})
+	_, err := page.SendCommand(req.ctx, "Page.navigate", map[string]any{"url": req.request.URL})
 	if err == nil {
 		return nil
 	}
@@ -627,18 +633,18 @@ func (w *browserSession) navigateToPage(req *workerRequest) error {
 	return nil
 }
 
-func (w *browserSession) waitForRequest(req *workerRequest) error {
+func (w *browserSession) waitForRequest(req *workerRequest, page cdp.Commander) error {
 	const maxWaitMs int32 = types.MaxTimeoutMs
 	waitFor := req.request.WaitFor
 	if waitFor == nil {
 		// Without an explicit waitFor contract, we still wait for the page load event so
 		// PrintToPDF does not race obviously incomplete navigations.
-		return w.waitForPageLoad(req, maxWaitMs)
+		return w.waitForPageLoad(req, page, maxWaitMs)
 	}
 
 	if selector, ok := waitFor.AsString(); ok {
 		return w.runWait(req, func() error {
-			return w.waitForElement(req, selector, maxWaitMs, false, false)
+			return w.waitForElement(req, page, selector, maxWaitMs, false, false)
 		})
 	}
 	if timeout, ok := waitFor.AsTimeout(); ok {
@@ -652,7 +658,7 @@ func (w *browserSession) waitForRequest(req *workerRequest) error {
 		checkVisible := opts.Visible != nil && *opts.Visible
 		checkHidden := opts.Hidden != nil && *opts.Hidden
 		return w.runWait(req, func() error {
-			return w.waitForElement(req, opts.Selector, timeoutMs, checkVisible, checkHidden)
+			return w.waitForElement(req, page, opts.Selector, timeoutMs, checkVisible, checkHidden)
 		})
 	}
 	return nil
@@ -690,12 +696,12 @@ func (w *browserSession) waitForTimeout(req *workerRequest, timeout int32) error
 	}
 }
 
-func (w *browserSession) waitForPageLoad(req *workerRequest, timeoutMs int32) error {
+func (w *browserSession) waitForPageLoad(req *workerRequest, page cdp.Commander, timeoutMs int32) error {
 	_, waitSpan := w.tracer.Start(req.ctx, "pdf.session.wait", trace.WithSpanKind(trace.SpanKindInternal))
 	defer waitSpan.End()
 
 	expression := fmt.Sprintf("(function(timeoutMs){ return %s; })(%d)", loadWaitSnippet(), timeoutMs)
-	waitResp, waitErr := req.page.SendCommand(req.ctx, "Runtime.evaluate", map[string]any{
+	waitResp, waitErr := page.SendCommand(req.ctx, "Runtime.evaluate", map[string]any{
 		"expression":    expression,
 		"awaitPromise":  true,
 		"returnByValue": true,
@@ -722,11 +728,11 @@ func (w *browserSession) waitForPageLoad(req *workerRequest, timeoutMs int32) er
 	return nil
 }
 
-func (w *browserSession) printPDF(req *workerRequest) error {
+func (w *browserSession) printPDF(req *workerRequest, page cdp.Commander) error {
 	_, printSpan := w.tracer.Start(req.ctx, "pdf.session.print_to_pdf", trace.WithSpanKind(trace.SpanKindInternal))
 	defer printSpan.End()
 
-	resp, err := req.page.SendCommand(req.ctx, "Page.printToPDF", buildPrintToPDFParams(w.logger, req.request))
+	resp, err := page.SendCommand(req.ctx, "Page.printToPDF", buildPrintToPDFParams(w.logger, req.request))
 	if err != nil {
 		if printSpan.IsRecording() {
 			printSpan.RecordError(err)
@@ -826,6 +832,7 @@ func decodePDFData(resp *cdp.CDPResponse) ([]byte, error) {
 // For visibility checks, adds polling to catch CSS rule changes.
 func (w *browserSession) waitForElement(
 	req *workerRequest,
+	page cdp.Commander,
 	selector string,
 	timeoutMs int32,
 	checkVisible, checkHidden bool,
@@ -850,7 +857,7 @@ func (w *browserSession) waitForElement(
 		expression = w.buildSimpleWaitExpression(selector, timeoutMs)
 	}
 
-	resp, err := req.page.SendCommand(req.ctx, "Runtime.evaluate", map[string]any{
+	resp, err := page.SendCommand(req.ctx, "Runtime.evaluate", map[string]any{
 		"expression":    expression,
 		"awaitPromise":  true,
 		"returnByValue": true,
@@ -1223,7 +1230,6 @@ func (w *browserSession) cleanupBrowser(ctx context.Context, req *workerRequest)
 		return fmt.Errorf("%w: %w", errBrowserCleanupFailed, err)
 	}
 
-	req.page = nil
 	req.cleanedUp = true
 	return nil
 }

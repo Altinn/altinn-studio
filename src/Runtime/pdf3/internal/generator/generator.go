@@ -361,7 +361,6 @@ type workerRequest struct {
 	enqueuedAt time.Time
 	//nolint:containedctx // The request context is the ownership boundary for request cancellation and test-mode state.
 	ctx       context.Context
-	page      cdp.Commander // the request's page, set once its browser context is ready
 	responder chan workerResponse
 	logger    *slog.Logger
 	// browserContextID is the context that holds all browser state of the request
