@@ -15,6 +15,9 @@ export default mergeConfig(
       // Tests expect URLs on http://localhost/, the Jest default. Vitest defaults to http://localhost:3000.
       environmentOptions: { jsdom: { url: 'http://localhost/' } },
       setupFiles: ['./testing/setupTests.vitest.ts'],
+      // html-react-parser loads a CommonJS build that requires domhandler, which is an ES module only. Node 22, which CI
+      // uses, cannot do that in VM threads. Bundling html-react-parser first avoids it, as in the App frontend.
+      deps: { optimizer: { client: { enabled: true, include: ['html-react-parser'] } } },
       // Creating jsdom dominates the run time. VM threads create it once per worker and still isolate each test
       // file. A worker is restarted when it reaches the memory limit, since VM contexts keep growing.
       pool: 'vmThreads',
