@@ -22,6 +22,8 @@ export const Config = asAttachmentUploader(
     },
   }),
 )
+  .addProperty(CG.common('required'))
+  .addProperty(CG.common('readOnly'))
   .extendTextResources(CG.common('TRBLabel'))
   .addProperty(
     new CG.prop(

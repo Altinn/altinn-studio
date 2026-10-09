@@ -44,5 +44,5 @@ export function textResourcesQuery({
 const EMPTY_TEXT_RESOURCES: TextResourceMap = {};
 
 export function resourcesAsMap(resources: IRawTextResource[]): TextResourceMap {
-  return resources.reduce((acc, { id, ...resource }) => ({ ...acc, [id]: resource }), {});
+  return Object.fromEntries(resources.flatMap(({ id, ...resource }) => [[id, resource]]));
 }

@@ -10,6 +10,7 @@ import { GenerateUnion } from 'src/codegen/dataTypes/GenerateUnion';
 import { generateExpressionDescriptors } from 'src/codegen/ExpressionDescriptors';
 import { ExprVal } from 'src/features/expressions/types';
 import type { DescribableCodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
+import type { CommonPropertyKeys } from 'src/codegen/Common';
 import type { CompBehaviors, RequiredComponentConfig } from 'src/codegen/Config';
 import type { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
@@ -90,7 +91,7 @@ export class ComponentConfig {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public addProperty(prop: GenerateProperty<any>): this {
+  public addProperty(prop: GenerateProperty<any> | GenerateCommonImport<CommonPropertyKeys>): this {
     this.inner.addProperty(prop);
     return this;
   }
