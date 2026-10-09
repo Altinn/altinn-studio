@@ -9,6 +9,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- End users with `write` can now retry a failed service task that your app registers itself, such as your own `IServiceTask`. They previously needed an action named after the task type, which your policy no longer needs to grant. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
+- Build check `ALTINNAPP0800` no longer asks you to grant the app owner task-specific actions in `config/authorization/policy.xml`, such as `confirm`, `reject` or an action named after a custom task type. The app owner still needs `read` and `write`. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
+
 ## [9.0.0-preview.7] - 2026-10-07
 
 ### Added
@@ -38,8 +43,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: `AppSettings.RequiredValidation`, `ExpressionValidation` and `RemoveHiddenData` now default to `true`. Apps that are not ready can set each key to `false` under `AppSettings` in `appsettings.json`.
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
-- End users with `write` can now retry a failed service task that your app registers itself, such as your own `IServiceTask`. They previously needed an action named after the task type, which your policy no longer needs to grant. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
-- Build check `ALTINNAPP0800` no longer asks you to grant the app owner task-specific actions in `config/authorization/policy.xml`, such as `confirm`, `reject` or an action named after a custom task type. The app owner still needs `read` and `write`. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 - The workflow that marks an instance as processing at the start of a process next is named `Process next: Mark instance as processing` instead of `Process next: acquire`.
 - Party selection now lists the parties from Access Management's `enduser/authorizedparties` API. A party the user can only reach through a single delegated instance, for example to sign it, can no longer be chosen, but the instance can still be opened. Update localtest to run locally. ([#20637](https://github.com/Altinn/altinn-studio/issues/20637))
 - Breaking: `GetPartyList` and `ValidateSelectedParty` on `IAuthorizationClient` and `IAuthorizationService` no longer take a `userId`, and always use the authenticated user. Remove the argument from your calls. ([#20637](https://github.com/Altinn/altinn-studio/issues/20637))
