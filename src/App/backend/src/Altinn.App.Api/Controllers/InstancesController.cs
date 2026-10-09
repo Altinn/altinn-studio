@@ -554,7 +554,8 @@ public class InstancesController : ControllerBase
                 processStateChange,
                 isInstantiation: true,
                 notification: notification,
-                language: language
+                language: language,
+                cancellationToken: CancellationToken.None
             );
         }
         catch (InstanceStateConflictException)
@@ -891,7 +892,10 @@ public class InstancesController : ControllerBase
                 await CopyDataFromSourceInstance(application, instance, source);
             }
 
-            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(instance);
+            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                instance,
+                cancellationToken: CancellationToken.None
+            );
             instance = fetchedInstance.Instance;
 
             // An instance must never exist without a process to enqueue in the workflow engine.
@@ -910,7 +914,8 @@ public class InstancesController : ControllerBase
                 isInstantiation: true,
                 prefill: instantiationInstance.Prefill,
                 notification: instantiationInstance.Notification,
-                language: language
+                language: language,
+                cancellationToken: CancellationToken.None
             );
         }
         catch (InstanceStateConflictException)
@@ -1134,7 +1139,8 @@ public class InstancesController : ControllerBase
                     fetchedTargetInstance.Metadata,
                     startResult.ProcessStateChange,
                     isInstantiation: true,
-                    language: language
+                    language: language,
+                    cancellationToken: CancellationToken.None
                 );
             }
 

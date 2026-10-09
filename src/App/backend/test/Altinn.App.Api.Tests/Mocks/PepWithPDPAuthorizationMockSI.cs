@@ -51,6 +51,10 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
 
             return XacmlJsonXmlConverter.ConvertResponse(contextResponse);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch
         {
             return null!;
