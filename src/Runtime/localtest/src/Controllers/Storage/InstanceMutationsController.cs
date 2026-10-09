@@ -267,6 +267,7 @@ public class InstanceMutationsController(
         List<InstanceEvent> mutationInstanceEvents = [];
         List<DataElement> postCommitBlobCleanupDataElements = [];
         InstanceMutationApplyResult applyResult;
+        bool applyAttempted = false;
 
         async Task CleanupStagedBlobs()
         {
@@ -750,6 +751,7 @@ public class InstanceMutationsController(
                 mutationLastChangedBy
             );
 
+            applyAttempted = true;
             applyResult = await _instanceMutationRepository.Apply(
                 instanceGuid,
                 instanceInternalId,
@@ -777,6 +779,13 @@ public class InstanceMutationsController(
         {
             await CleanupStagedBlobs();
             return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
+        }
+        catch when (!applyAttempted)
+        {
+            // Nothing references the staged blobs before Apply. A failure from Apply itself may come
+            // after the mutation committed, so only the typed failures above clean up after it.
+            await CleanupStagedBlobs();
+            throw;
         }
 
         if (applyResult.Replayed)
