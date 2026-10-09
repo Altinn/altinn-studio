@@ -116,3 +116,21 @@ Prefer `restore-keys` prefixes on hash-keyed caches (dependency-bump PRs get
 partial hits from the latest main entry) but never on content-addressed ones (a
 partial restore is silently stale). A new heavy per-run download belongs in the
 runner image, not in a workflow step.
+
+## Reading pull request checks
+
+- **A PR with merge conflicts runs no suites.** Every `pull_request` workflow checks out
+  `refs/pull/N/merge`, which cannot be computed, so the suites never start, and the Azure checks
+  (`altinn-studio-build-app-image-v2`, `bruksmønster-*`) show as failed. Check
+  `gh pr view <n> --json mergeable,mergeStateStatus` first; only resolving the conflict helps.
+  A concurrent `CHANGELOG.md` bullet landing on `main` is the usual cause.
+- **`gh pr checks --watch` and `gh run watch --exit-status` can report success before or despite
+  the work.** Workflows register over the first minutes, so a watch started right after a push can
+  end green with only the labeler done. Wait for the expected suites to appear, and read the verdict
+  with `gh run view <id> --json conclusion`.
+- **A matrix shows one cause as several failures.** Fail-fast cancels the sibling legs ("The
+  operation was canceled"); find the job that failed on its own with `gh run view <id> --json jobs`.
+- **Re-running a cancelled App Frontend Cypress shard** fails at once with "The focused App Frontend
+  dependency cache was not populated by the prerequisite job", because `--failed` does not re-run
+  the job that seeded the cache. Re-run the whole workflow instead. A failure screenshot showing a
+  502 page means the app never started, not that the change broke it.

@@ -111,6 +111,13 @@ internal static class WorkflowTestHelper
         workflow.LeaseToken = leaseToken;
     }
 
+    /// <summary>
+    /// Enqueues a workflow and sets its row to <paramref name="status"/>. The returned workflow's
+    /// in-memory <see cref="Workflow.Status"/> stays <c>Enqueued</c>: set it before a write-back, or
+    /// the write-back stores <c>Enqueued</c>, clears the lease and makes the next write a silent no-op.
+    /// Each call gets a new random namespace unless <paramref name="ns"/> is passed, and dependencies
+    /// across namespaces are refused, so pass the same <paramref name="ns"/> to related workflows.
+    /// </summary>
     public static async Task<Workflow> InsertAndSetStatus(
         IEngineRepository repository,
         EngineDbContext context,

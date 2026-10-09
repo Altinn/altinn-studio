@@ -118,6 +118,14 @@ The unit tests are moving from Jest to Vitest, one directory at a time. The dire
 - Create helper functions like `getFirstEditButton` to make test cases easy to read.
 - Prefer semantic role queries like `screen.getByRole('button', { name: text })` over `screen.getByText(text)` or `screen.getByTitle(text)`.
 
+## Process editor
+
+Importing XML into the live bpmn-js modeler clears and redraws the canvas, which fires the shape
+add and remove handlers and with them the task add/remove side effects (UI folder, policy and
+metadata mutations). Re-import only through `useReloadSavedProcess`, which suppresses them with
+`isReloadingRef`. Unit tests with a mocked modeler cannot catch this; check in a browser that a
+re-import sends no mutation.
+
 ## Imports
 
 - Use ES modules (import/export) syntax, not CommonJS (require).

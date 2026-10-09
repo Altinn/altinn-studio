@@ -34,5 +34,7 @@ is a full .NET app (with `App.sln` + Dockerfile), e.g. `frontend-test`, `compone
   members use types the generator cannot emit (`Dates.String` and `Dates.DateOnly` in
   `component-library`, non-nullable `bool` in `datalist` and `moped`, initializers such as
   `GwTargetTask`). When a model changes, change its schema with it.
+- The apps do not build with warnings as errors, in CI or anywhere else: `apps/Directory.Build.props`
+  does not import the App backend's settings. A warning here never fails a build.
 - k6 scripts target running environments; keep environment/use-case config in the `use-cases*.yaml`
   files rather than hard-coding it in scripts.

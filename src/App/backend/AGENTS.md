@@ -32,6 +32,13 @@ dotnet test test/Altinn.App.Core.Tests/ -v m
 dotnet test test/Altinn.App.Integration.Tests/ -v m --filter "<test-method-name>"
 ```
 
+**Reproduce CI's build** (warnings are errors only under `CI=true`, and only for projects that
+actually recompile):
+
+```bash
+CI=true dotnet build solutions/All.slnx --no-incremental
+```
+
 **Output logs from tests:**
 
 - Replace `-v m` with `--logger "console;verbosity=detailed` in the arguments of `dotnet test`
@@ -63,9 +70,14 @@ Raw string literals inherit their source file's line endings. Keep explicit newl
 Avoid `AppendLine()` and `Environment.NewLine` when generating source, since they introduce CRLF
 on Windows.
 
-`Altinn.App.SourceGenerator.Tests` enables `AutoVerify(includeBuildServer: false)`, which can silently
-accept changed snapshots on a developer machine. Set `TF_BUILD=true` (or another build-server
-variable) when validating changes so snapshot mismatches fail as they do in CI.
+The Verify test projects here enable `AutoVerify(includeBuildServer: false)`, so a local run
+silently accepts changed snapshots and still passes. Check `git status` for rewritten
+`*.verified.*` files after any test run, or set `TF_BUILD=true` (or another build-server variable)
+so snapshot mismatches fail as they do in CI. A failed `Altinn.App.Integration.Tests` run
+overwrites its snapshots with the failure output; restore them before rerunning.
+
+**Packing `Altinn.App.Api`** requires `src/App/frontend/dist` (the `ValidateAppFrontendDistForPack`
+target): run `yarn build` in `src/App/frontend` first.
 
 ## Architecture Overview
 
@@ -152,7 +164,9 @@ The libraries integrate with:
 
 - Use internal accessibility on types by default
 - Use sealed for classes unless we consider inheritance a valid use-case
-- Use Nullable Reference Types
+- Use Nullable Reference Types, without the null-forgiving operator `!`: accept a nullable value,
+  handle absence (`?? []`), or `?? throw` with a message naming what is missing
+- Write XML doc `<summary>` tags on their own lines, never `/// <summary>Text</summary>`
 - Remember to dispose `IDisposable`/`IAsyncDisposable` instances
 - We want to minimize external dependencies
 - For HTTP APIs we should have `...Request` and `...Response` DTOs (see `LookupPersonRequest.cs` and the corresponding response as an example)
@@ -181,6 +195,34 @@ New features should follow the established pattern in `/src/Altinn.App.Core/Feat
 - Prefer xUnit asserts over FluentAssertions
 - Mock external dependencies with Moq
 - Include integration tests for platform service interactions
+- The tests run on **xUnit v2**: `TestContext.Current` does not exist here (it does in the xUnit v3
+  suites under `src/Runtime` and `src/cli`)
+- Moq traps: a mock does not run default interface members (`Mock<IServiceTask>().Define(...)`
+  returns `null`), so code that dispatches through one needs a real fake; and a setup that omits an
+  optional `CancellationToken` matches only `default`, which passes in Core.Tests and fails in
+  Api.Tests, where the token comes from the request. Use `It.IsAny<CancellationToken>()`.
+- `Altinn.App.Api.Tests`: `TestData.PrepareInstance` throws when two test files prepare the same
+  instance; copy the fixture under new instance and data-element ids. `FakeWorkflowEngineClient`
+  constructs `WorkflowEngineCallbackController` directly, so a change to callback authentication
+  shows up as ~100 unrelated failures; fix the fake, not the tests.
+- `BasicAppTests.HostedServices.verified.txt` lists the hosted services in registration order. A
+  background service that must not run on localtest stays registered and checks
+  `RuntimeEnvironment.IsLocaltestPlatform()` in `ExecuteAsync`.
+- Scenario code under `Altinn.App.Integration.Tests/_testapps/**` is excluded from the solution
+  build (`Compile Remove`); a compile error there only shows as the app failing to start. See that
+  project's [README](test/Altinn.App.Integration.Tests/README.md) for the environment it needs and
+  how to diagnose a run that fails wholesale.
+
+### Syncing from app-lib-dotnet
+
+v8 fixes still land upstream in `Altinn/app-lib-dotnet` and are merged into `src/App/backend` with
+`git merge -X subtree=src/App/backend <upstream-sha>`, never the other way. The sync must reach
+`main` as a real merge commit: squashing it freezes the merge base and makes every later sync
+re-conflict, so the PR is merged with merge commits enabled for that merge only (the repository is
+otherwise squash-only). Previous syncs are the merge commits found by
+`git log --merges --oneline -- src/App/backend`. Resolve conflicts inside the merge commit, put any
+porting work for v9 in a separate commit, and keep test names identical to upstream so Verify
+snapshot files line up.
 
 ### Configuration
 
