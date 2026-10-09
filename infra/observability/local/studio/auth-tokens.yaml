@@ -1,0 +1,14 @@
+# Fixed tokens, because they only exist on a developer's kind cluster: the
+# runtime collectors ingest as runtime-local (../runtime) and
+# Grafana queries as grafana.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: observability-proxy-auth
+type: Opaque
+stringData:
+  auth-tokens.json: |
+    {
+      "ingest": { "runtime-local": ["local-runtime-ingest-token-not-a-secret"] },
+      "query": { "grafana": ["local-grafana-query-token-not-a-secret"] }
+    }
