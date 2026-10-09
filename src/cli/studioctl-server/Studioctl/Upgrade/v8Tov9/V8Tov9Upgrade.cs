@@ -181,6 +181,12 @@ internal static class V8Tov9Upgrade
         );
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(
+            returnCode,
+            MigrateExclusiveGatewayDataAccessor(scanner, options.CancellationToken)
+        );
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, MigrateCorrespondenceApis(scanner, options.CancellationToken));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -731,6 +737,32 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating CancellationToken parameters", ex);
+        }
+    }
+
+    /// <summary>
+    /// Adds the <c>dataAccessor</c> parameter to app implementations of <c>IProcessExclusiveGateway.FilterAsync</c>,
+    /// whose overload without it v9 removed.
+    /// </summary>
+    static int MigrateExclusiveGatewayDataAccessor(CSharpSourceScanner scanner, CancellationToken cancellationToken)
+    {
+        UpgradeConsole.BeginStep("IProcessExclusiveGateway data accessor");
+        try
+        {
+            var result = new ExclusiveGatewayDataAccessorMigration(scanner).Migrate(cancellationToken);
+            return ReportMigrationResult(
+                result,
+                cleanText: $"No {ExclusiveGatewayDataAccessorMigration.InterfaceName} implementations to update",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating IProcessExclusiveGateway implementations", ex);
         }
     }
 

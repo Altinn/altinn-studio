@@ -4,6 +4,9 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -162,13 +165,12 @@ internal sealed class ProcessNextRequestFactory
         );
 
     /// <summary>
-    /// Claims the instance before the callback computes and enqueues the transition's steps.
-    /// Only the source task is known until acquisition succeeds and the callback computes the transition.
-    /// <paramref name="language"/> is the language process/next was called with (see <see cref="ExtractActor"/>).
+    /// Creates the acquire-only workflow for process/next.
     /// </summary>
     public async Task<WorkflowEnqueueEnvelope> CreateAcquire(
         Instance instance,
         string? action,
+        ProcessElement nextElement,
         string state,
         string idempotencyKey,
         string? language
@@ -182,7 +184,13 @@ internal sealed class ProcessNextRequestFactory
             new WorkflowRequest
             {
                 OperationId = $"{MainOperationIdPrefix} Mark instance as processing",
-                Steps = [CreateCommand(AcquireProcessingStatus.Key, new AcquireProcessingStatusPayload(action))],
+                Steps =
+                [
+                    CreateCommand(
+                        ProcessingStatusAcquirer.Key,
+                        new AcquireProcessingStatusPayload(action, nextElement.Id)
+                    ),
+                ],
                 State = state,
             },
         ];
@@ -195,15 +203,17 @@ internal sealed class ProcessNextRequestFactory
             InstanceGuid = instanceId.InstanceGuid,
             CallbackToken = _callbackTokenGenerator.GenerateToken(instanceId.InstanceGuid, actor, workflows),
         };
-        var labels = new Dictionary<string, string>(StringComparer.Ordinal);
-        if (CreateProcessNextId(instance.Process?.CurrentTask) is { } sourceId)
-        {
-            labels[ProcessNextSourceIdLabel] = sourceId;
-        }
-        labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
+        ProcessElementInfo? targetTask =
+            nextElement is ProcessTask
+                ? new ProcessElementInfo
+                {
+                    ElementId = nextElement.Id,
+                    Flow = ProcessTransitionBuilder.GetNextFlow(instance.Process?.CurrentTask),
+                }
+                : null;
         var request = new WorkflowEnqueueRequest
         {
-            Labels = labels,
+            Labels = CreateProcessNextLabels(instanceId, instance.Process?.CurrentTask, targetTask),
             Context = JsonSerializer.SerializeToElement(context),
             Workflows = workflows,
         };
@@ -277,9 +287,11 @@ internal sealed class ProcessNextRequestFactory
 
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
         string? collectionKey = CreateCollectionKey(instanceId);
-        Dictionary<string, string> labels =
-            CreateProcessNextLabels(processStateChange) ?? new Dictionary<string, string>(StringComparer.Ordinal);
-        labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
+        Dictionary<string, string> labels = CreateProcessNextLabels(
+            instanceId,
+            processStateChange.OldProcessState?.CurrentTask,
+            processStateChange.NewProcessState?.CurrentTask
+        );
 
         // The Main workflow's step sequence: everything through the CommitProcessState
         // commit, then - when the transition has side effects - the EnqueueSideEffectsWorkflow
@@ -364,22 +376,27 @@ internal sealed class ProcessNextRequestFactory
 
     internal static string CreateProcessNextId(string taskId, int flow) => $"{taskId}:{flow}";
 
-    internal static Dictionary<string, string>? CreateProcessNextLabels(ProcessStateChange processStateChange)
+    internal static Dictionary<string, string> CreateProcessNextLabels(
+        InstanceIdentifier instanceId,
+        ProcessElementInfo? sourceTask,
+        ProcessElementInfo? targetTask
+    )
     {
         var labels = new Dictionary<string, string>(StringComparer.Ordinal);
 
-        if (CreateProcessNextId(processStateChange.OldProcessState?.CurrentTask) is { } sourceId)
+        if (CreateProcessNextId(sourceTask) is { } sourceId)
         {
             labels[ProcessNextSourceIdLabel] = sourceId;
         }
 
-        if (processStateChange.NewProcessState?.CurrentTask is { ElementId.Length: > 0 } targetTask)
+        if (targetTask is { ElementId.Length: > 0 })
         {
             labels[ProcessNextTargetIdLabel] = CreateProcessNextId(targetTask.ElementId, targetTask.Flow ?? 0);
             labels[ProcessNextTargetTaskLabel] = targetTask.ElementId;
         }
 
-        return labels.Count > 0 ? labels : null;
+        labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
+        return labels;
     }
 
     /// <summary>
@@ -482,7 +499,7 @@ internal sealed class ProcessNextRequestFactory
         var commands = new List<StepRequest>();
         if (acquireProcessingStatus)
         {
-            commands.Add(CreateCommand(AcquireProcessingStatus.Key));
+            commands.Add(CreateCommand(ProcessingStatusAcquirer.Key));
         }
         commands.AddRange(taskEndSteps);
         if (taskEndSteps.Count > 0)

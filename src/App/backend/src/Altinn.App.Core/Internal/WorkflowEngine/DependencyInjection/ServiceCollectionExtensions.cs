@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.AltinnEvents;
@@ -76,7 +77,8 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, EndProcessLegacyHook>();
 
         // Process engine callback handlers - State Management
-        services.AddTransient<IWorkflowEngineCommand, AcquireProcessingStatus>();
+        services.AddTransient<ProcessingStatusAcquirer>();
+        services.AddTransient<ProcessTransitionBuilder>();
         services.AddTransient<IWorkflowEngineCommand, MutateProcessState>();
         services.AddTransient<IWorkflowEngineCommand, CommitProcessState>();
         services.AddTransient<IWorkflowEngineCommand, EnqueueSideEffectsWorkflow>();

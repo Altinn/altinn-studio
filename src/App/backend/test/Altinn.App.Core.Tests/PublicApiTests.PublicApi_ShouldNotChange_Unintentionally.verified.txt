@@ -1570,9 +1570,6 @@ namespace Altinn.App.Core.Features
     public interface IProcessExclusiveGateway
     {
         string GatewayId { get; }
-        [System.Obsolete("Use FilterAsync(List<SequenceFlow>, Instance, IInstanceDataAccessor, ProcessGatew" +
-            "ayInformation) instead")]
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow>> FilterAsync(System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow> outgoingFlows, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Models.Process.ProcessGatewayInformation processGatewayInformation);
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow>> FilterAsync(System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.SequenceFlow> outgoingFlows, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.Process.ProcessGatewayInformation processGatewayInformation);
     }
     public interface ISmsNotificationClient
@@ -5198,6 +5195,7 @@ namespace Altinn.App.Core.Models.Process
     {
         Retrying = 0,
         ResumeRequired = 1,
+        InstanceChanged = 2,
     }
     public class ProcessStartRequest
     {
@@ -5251,7 +5249,6 @@ namespace Altinn.App.Core.Models.Process
         DependencyFailed = 1,
         EngineFault = 2,
         Timeout = 3,
-        AcquireConflict = 4,
     }
     [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Process.JsonCamelCaseEnumConverter))]
     public enum WorkflowSubmissionFailureKind

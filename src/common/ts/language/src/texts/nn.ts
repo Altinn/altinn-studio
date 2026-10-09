@@ -474,6 +474,8 @@ export function nn() {
     'likert.left_column_default_header_text': 'Spørsmål',
     'process_error.submit_error_please_retry':
       'Noko gjekk gale med innsending, prøv igjen om nokre minutt.',
+    'process_error.instance_changed':
+      'Skjemaet blei endra medan du sende det inn, så det blei ikkje sendt. Sjå over skjemaet og prøv igjen.',
     'process_workflow.failed_heading': 'Noko gjekk gale',
     'process_workflow.failed_description':
       'Vi klarte ikkje å fullføre handsaminga av skjemaet ditt, og feilen rettar seg ikkje av seg sjølv. Du må ta kontakt for å få hjelp til å komme vidare.',

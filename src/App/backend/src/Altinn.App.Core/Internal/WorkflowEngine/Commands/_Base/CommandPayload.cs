@@ -26,6 +26,11 @@ internal abstract record CommandRequestPayload;
 internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayload;
 
 /// <summary>
+/// Process/next's decided action and destination; instantiation carries no payload.
+/// </summary>
+internal sealed record AcquireProcessingStatusPayload(string? Action, string? NextElementId) : CommandRequestPayload;
+
+/// <summary>
 /// Source-generated JSON serialization context for command payloads.
 /// Provides AOT-compatible, high-performance serialization.
 /// </summary>

@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl app upgrade v9` adds the `dataAccessor` parameter that `FilterAsync` needs in your app's own `IProcessExclusiveGateway` implementations, and removes explicit implementations of the old overload. Each change is listed, with a reminder to read the instance's data through the accessor instead of `IDataClient`.
+
 ### Fixed
 
 - `studioctl app upgrade v9` renames every call to an app's own `Analyse` method on an `IFileAnalyser` implementation, even when the call is in a different file from the class. Some were left unchanged, and the app then failed to build.

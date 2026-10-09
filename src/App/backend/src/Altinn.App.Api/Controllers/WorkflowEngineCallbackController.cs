@@ -5,7 +5,6 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
-using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -92,6 +91,26 @@ public class WorkflowEngineCallbackController : ControllerBase
             );
         }
 
+        if (payload.State is null)
+        {
+            _logger.LogError(
+                "State blob is missing from callback payload. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                commandKey,
+                instanceId
+            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Missing state blob");
+            return NonRetryableProblem(
+                "Missing State",
+                "State blob is missing from callback payload.",
+                StatusCodes.Status422UnprocessableEntity
+            );
+        }
+
+        if (commandKey == ProcessingStatusAcquirer.Key)
+        {
+            return await AcquireProcessingStatus(instanceId, payload, payload.State, activity, cancellationToken);
+        }
+
         IWorkflowEngineCommand? command = _serviceProvider
             .GetServices<IWorkflowEngineCommand>()
             .FirstOrDefault(x => x.GetKey() == commandKey);
@@ -108,23 +127,6 @@ public class WorkflowEngineCallbackController : ControllerBase
                 "Command Not Found",
                 "Workflow app command not found.",
                 StatusCodes.Status404NotFound
-            );
-        }
-
-        // Restore instance and form data from the opaque state blob.
-        // State must always be provided — every workflow is enqueued with a captured state blob.
-        if (payload.State is null)
-        {
-            _logger.LogError(
-                "State blob is missing from callback payload. CommandKey: {CommandKey}, Instance: {InstanceId}.",
-                commandKey,
-                instanceId
-            );
-            activity?.SetStatus(ActivityStatusCode.Error, "Missing state blob");
-            return NonRetryableProblem(
-                "Missing State",
-                "State blob is missing from callback payload.",
-                StatusCodes.Status422UnprocessableEntity
             );
         }
 
@@ -193,8 +195,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                 try
                 {
                     DataElementChanges changes = instanceDataUnitOfWork.GetDataElementChanges(false);
-                    // The engine's step id is stable across every attempt of this step, so a retried
-                    // callback presents Storage the same key and cannot apply the mutation twice.
+                    // StepId is stable across retries and prevents duplicate Storage mutations.
                     WorkflowAggregateSaveOutcome saveOutcome = await instanceDataUnitOfWork.SaveWorkflowOwnedAggregate(
                         changes,
                         payload.StepId.ToString(),
@@ -220,25 +221,6 @@ public class WorkflowEngineCallbackController : ControllerBase
                         currentTaskId
                     );
                 }
-                catch (Exception ex)
-                    when (commandKey == AcquireProcessingStatus.Key
-                        && ex is StorageProcessStatusConflictException or InstanceDataStaleException
-                    )
-                {
-                    _logger.LogWarning(
-                        ex,
-                        "Storage rejected workflow process-status acquisition. Instance: {InstanceId}, Task: {TaskId}.",
-                        instanceId,
-                        currentTaskId
-                    );
-                    activity?.SetStatus(ActivityStatusCode.Error, "Workflow acquire conflict");
-                    return NonRetryableProblem(
-                        "WorkflowAcquireConflict",
-                        "The instance changed before the process transition could start. Refresh the instance and try again.",
-                        StatusCodes.Status409Conflict,
-                        AcquireProcessingStatus.ConcurrencyFailureCode
-                    );
-                }
                 catch (InstanceDataStaleException ex)
                 {
                     _logger.LogError(
@@ -261,8 +243,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                     stateCarry
                 );
 
-                // The relay runs here, not in the command: whatever it starts must begin on the state the
-                // handler *published* — saved, re-captured, re-signed above.
+                // Successors need the saved, signed state, including Storage-assigned IDs.
                 if (success.MailboxContinuation is { } continuation)
                 {
                     await RunMailboxRelay(
@@ -281,37 +262,26 @@ public class WorkflowEngineCallbackController : ControllerBase
                     return Ok(new AppCallbackResponse { State = updatedState });
                 }
 
-                // Process-next continuation runs AFTER save so its state includes Storage-assigned IDs; the enqueue is
-                // idempotency-keyed, so a retried callback is safe.
                 if (success.ProcessNextContinuation is { } processNextContinuation)
                 {
-                    string collectionKey = Request.Headers[CollectionKeyHeader].ToString();
-                    if (string.IsNullOrWhiteSpace(collectionKey))
-                    {
-                        _logger.LogError(
-                            "Workflow callback is missing the '{Header}' header required for process-next continuation. CommandKey: {CommandKey}, Instance: {InstanceId}.",
-                            CollectionKeyHeader,
-                            commandKey,
-                            instanceId
-                        );
-                        activity?.SetStatus(ActivityStatusCode.Error, "Missing Collection-Key header");
-                        return NonRetryableProblem(
-                            "Missing Collection-Key",
-                            "Workflow callback is missing the Collection-Key header required for process-next continuation.",
-                            StatusCodes.Status422UnprocessableEntity
-                        );
-                    }
-
-                    var processEngine = _serviceProvider.GetRequiredService<IProcessEngine>();
-                    await processEngine.EnqueueProcessNext(
-                        instanceDataUnitOfWork,
-                        payload.Actor,
-                        payload.WorkflowId,
-                        collectionKey,
+                    return await ContinueWithProcessNext(
+                        collectionKey =>
+                            _serviceProvider
+                                .GetRequiredService<IProcessEngine>()
+                                .EnqueueProcessNext(
+                                    instanceDataUnitOfWork,
+                                    payload.Actor,
+                                    payload.WorkflowId,
+                                    collectionKey,
+                                    updatedState,
+                                    payload.ExecutionReferenceTime,
+                                    processNextContinuation.Action,
+                                    cancellationToken: cancellationToken
+                                ),
+                        commandKey,
+                        instanceId,
                         updatedState,
-                        payload.ExecutionReferenceTime,
-                        processNextContinuation.Action,
-                        cancellationToken: cancellationToken
+                        activity
                     );
                 }
 
@@ -320,9 +290,7 @@ public class WorkflowEngineCallbackController : ControllerBase
             }
 
             case DeferredProcessEngineCommandResult deferred:
-                // A deferral is stateless by contract: nothing is saved and the incoming state is echoed back
-                // unchanged. Enforced rather than silently discarded — dropping a deferring handler's writes
-                // quietly would be the one worse outcome.
+                // Deferrals echo the incoming state, so staged writes would be lost.
                 DataElementChanges deferredChanges = instanceDataUnitOfWork.GetDataElementChanges(false);
                 if (deferredChanges.AllChanges.Count > 0)
                 {
@@ -447,7 +415,139 @@ public class WorkflowEngineCallbackController : ControllerBase
         }
     }
 
-    /// <summary>Hands one verdict to the relay. The controller decides only <em>when</em> it runs.</summary>
+    private async Task<IActionResult> AcquireProcessingStatus(
+        InstanceIdentifier instanceId,
+        AppCallbackPayload payload,
+        string state,
+        Activity? activity,
+        CancellationToken cancellationToken
+    )
+    {
+        // A payload means process/next, whose continuation needs the collection key; refuse before claiming.
+        if (payload.Payload is not null && GetCollectionKey() is null)
+        {
+            return MissingCollectionKey(ProcessingStatusAcquirer.Key, instanceId, activity);
+        }
+
+        ProcessingStatusAcquisition acquisition;
+        try
+        {
+            acquisition = await _serviceProvider
+                .GetRequiredService<ProcessingStatusAcquirer>()
+                .Acquire(instanceId, payload, state, cancellationToken);
+        }
+        catch (WorkflowCallbackStateException e)
+        {
+            _logger.LogError(
+                e,
+                "Failed to restore workflow callback state. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                ProcessingStatusAcquirer.Key,
+                instanceId
+            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Invalid callback state");
+            return NonRetryableProblem(
+                "Invalid State",
+                "Workflow callback state could not be restored for this instance.",
+                StatusCodes.Status422UnprocessableEntity
+            );
+        }
+
+        switch (acquisition)
+        {
+            case ProcessingStatusAcquisition.Acquired { Transition: { } transition } acquired:
+                return await ContinueWithProcessNext(
+                    collectionKey =>
+                        _serviceProvider
+                            .GetRequiredService<IWorkflowEngineService>()
+                            .EnqueueDependentProcessNext(
+                                acquired.Instance,
+                                transition,
+                                payload.WorkflowId,
+                                collectionKey,
+                                acquired.State,
+                                payload.Actor,
+                                cancellationToken: cancellationToken
+                            ),
+                    ProcessingStatusAcquirer.Key,
+                    instanceId,
+                    acquired.State,
+                    activity
+                );
+
+            case ProcessingStatusAcquisition.Acquired acquired:
+                activity?.SetStatus(ActivityStatusCode.Ok);
+                return Ok(new AppCallbackResponse { State = acquired.State });
+
+            case ProcessingStatusAcquisition.Superseded superseded:
+                _logger.LogInformation(
+                    "Process/next acquire lost to a newer change and completes without a transition. Instance: {InstanceId}, Storage status: {StatusCode}.",
+                    instanceId,
+                    (int)superseded.Exception.Response.StatusCode
+                );
+                activity?.SetStatus(ActivityStatusCode.Ok);
+                return Ok(new AppCallbackResponse { State = state });
+
+            case ProcessingStatusAcquisition.Rejected rejected:
+                _logger.LogError(
+                    "Callback handler failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Error: {ErrorMessage}, ExceptionType: {ExceptionType}",
+                    ProcessingStatusAcquirer.Key,
+                    instanceId,
+                    rejected.Message,
+                    rejected.ExceptionType
+                );
+                activity?.SetStatus(ActivityStatusCode.Error, rejected.Message);
+                return NonRetryableProblem(
+                    rejected.ExceptionType,
+                    rejected.Message,
+                    StatusCodes.Status422UnprocessableEntity
+                );
+
+            default:
+                throw new UnreachableException($"Unknown acquisition outcome: {acquisition.GetType().Name}");
+        }
+    }
+
+    private async Task<IActionResult> ContinueWithProcessNext(
+        Func<string, Task> enqueue,
+        string commandKey,
+        InstanceIdentifier instanceId,
+        string updatedState,
+        Activity? activity
+    )
+    {
+        if (GetCollectionKey() is not { } collectionKey)
+        {
+            return MissingCollectionKey(commandKey, instanceId, activity);
+        }
+
+        await enqueue(collectionKey);
+
+        activity?.SetStatus(ActivityStatusCode.Ok);
+        return Ok(new AppCallbackResponse { State = updatedState });
+    }
+
+    private string? GetCollectionKey()
+    {
+        string collectionKey = Request.Headers[CollectionKeyHeader].ToString();
+        return string.IsNullOrWhiteSpace(collectionKey) ? null : collectionKey;
+    }
+
+    private ObjectResult MissingCollectionKey(string commandKey, InstanceIdentifier instanceId, Activity? activity)
+    {
+        _logger.LogError(
+            "Workflow callback is missing the '{Header}' header required for process-next continuation. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+            CollectionKeyHeader,
+            commandKey,
+            instanceId
+        );
+        activity?.SetStatus(ActivityStatusCode.Error, "Missing Collection-Key header");
+        return NonRetryableProblem(
+            "Missing Collection-Key",
+            "Workflow callback is missing the Collection-Key header required for process-next continuation.",
+            StatusCodes.Status422UnprocessableEntity
+        );
+    }
+
     private Task RunMailboxRelay(
         MailboxContinuation continuation,
         AppIdentifier appId,
@@ -477,12 +577,7 @@ public class WorkflowEngineCallbackController : ControllerBase
         );
     }
 
-    private static ObjectResult NonRetryableProblem(
-        string title,
-        string detail,
-        int statusCode,
-        string? workflowFailureCode = null
-    )
+    private static ObjectResult NonRetryableProblem(string title, string detail, int statusCode)
     {
         var problemDetails = new ProblemDetails
         {
@@ -491,10 +586,6 @@ public class WorkflowEngineCallbackController : ControllerBase
             Status = statusCode,
         };
         problemDetails.Extensions["nonRetryable"] = true;
-        if (workflowFailureCode is not null)
-        {
-            problemDetails.Extensions["workflowFailureCode"] = workflowFailureCode;
-        }
         return new ObjectResult(problemDetails) { StatusCode = statusCode };
     }
 }
