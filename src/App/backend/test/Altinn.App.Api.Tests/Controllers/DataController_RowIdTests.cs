@@ -490,7 +490,9 @@ public sealed class DataControllerRowIdTests : ApiTestBase, IClassFixture<WebApp
         var mutationClient = dataClient.As<IInstanceMutationClient>();
         var metadataInstanceClient = instanceClient.As<IInstanceClientWithStorageMetadata>();
         var pdp = new Mock<IPDP>(MockBehavior.Strict);
-        pdp.Setup(client => client.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+        pdp.Setup(client =>
+                client.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(new XacmlJsonResponse { Response = [new XacmlJsonResult { Decision = "Permit" }] });
 
         return GetRootedUserClient(

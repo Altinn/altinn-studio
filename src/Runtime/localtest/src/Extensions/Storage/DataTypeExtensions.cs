@@ -11,6 +11,7 @@ public static class DataTypeExtensions
         this DataType dataType,
         IAuthorization authorizationService,
         Instance instance,
+        CancellationToken cancellationToken,
         string task = null
     )
     {
@@ -22,7 +23,8 @@ public static class DataTypeExtensions
         return await authorizationService.AuthorizeInstanceAction(
             instance,
             dataType.ActionRequiredToRead,
-            task ?? instance.Process?.CurrentTask?.ElementId
+            task ?? instance.Process?.CurrentTask?.ElementId,
+            cancellationToken
         );
     }
 
@@ -30,6 +32,7 @@ public static class DataTypeExtensions
         this DataType dataType,
         IAuthorization authorizationService,
         Instance instance,
+        CancellationToken cancellationToken,
         string task = null
     )
     {
@@ -41,7 +44,8 @@ public static class DataTypeExtensions
         return await authorizationService.AuthorizeInstanceAction(
             instance,
             dataType.ActionRequiredToWrite,
-            task ?? instance.Process?.CurrentTask?.ElementId
+            task ?? instance.Process?.CurrentTask?.ElementId,
+            cancellationToken
         );
     }
 }

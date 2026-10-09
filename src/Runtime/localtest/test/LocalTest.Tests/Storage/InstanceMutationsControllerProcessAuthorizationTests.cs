@@ -46,7 +46,12 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
         Assert.IsType<ForbidResult>(result.Result);
         authorization.Verify(
             service =>
-                service.AuthorizeInstanceAction(It.IsAny<Instance>(), "write", CurrentTaskId),
+                service.AuthorizeInstanceAction(
+                    It.IsAny<Instance>(),
+                    "write",
+                    CurrentTaskId,
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
         Instance stored = await GetStoredInstance(storage, instance);
@@ -61,7 +66,12 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
         var authorization = new Mock<IAuthorization>();
         authorization
             .Setup(service =>
-                service.AuthorizeInstanceAction(It.IsAny<Instance>(), "write", CurrentTaskId)
+                service.AuthorizeInstanceAction(
+                    It.IsAny<Instance>(),
+                    "write",
+                    CurrentTaskId,
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync(true);
         InstanceMutationsController controller = CreateController(
@@ -92,7 +102,8 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
                 service.AuthorizeInstanceAction(
                     It.IsAny<Instance>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(true);
@@ -129,7 +140,8 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
                 service.AuthorizeInstanceAction(
                     It.IsAny<Instance>(),
                     permittedAction,
-                    CurrentTaskId
+                    CurrentTaskId,
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(true);
@@ -189,7 +201,12 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
         var permitWrite = new Mock<IAuthorization>();
         permitWrite
             .Setup(service =>
-                service.AuthorizeInstanceAction(It.IsAny<Instance>(), "write", CurrentTaskId)
+                service.AuthorizeInstanceAction(
+                    It.IsAny<Instance>(),
+                    "write",
+                    CurrentTaskId,
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync(true);
         ActionResult<InstanceMutationResponse> first = await CreateController(
@@ -221,7 +238,12 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
         var authorization = new Mock<IAuthorization>();
         authorization
             .Setup(service =>
-                service.AuthorizeInstanceAction(It.IsAny<Instance>(), "write", CurrentTaskId)
+                service.AuthorizeInstanceAction(
+                    It.IsAny<Instance>(),
+                    "write",
+                    CurrentTaskId,
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync(true);
         var endProcessBeforeApply = new Mock<IInstanceMutationRepository>();

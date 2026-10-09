@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Altinn.Common.AccessTokenClient" Version="1.1.5" />
-    <PackageVersion Include="Altinn.Common.PEP" Version="4.2.2" />
+    <PackageVersion Include="Altinn.Common.PEP" Version="4.2.3" />
     <PackageVersion Include="Altinn.Platform.Models" Version="1.6.1" />
     <PackageVersion Include="Altinn.Platform.Storage.Interface" Version="5.0.0-rc.1" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.1" />

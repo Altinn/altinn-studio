@@ -157,7 +157,7 @@ internal sealed class AuthorizationClient : IAuthorizationClient
             instanceIdentifier.InstanceGuid,
             taskId
         );
-        XacmlJsonResponse response = await GetDecisionForRequest(request, cancellationToken);
+        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request, cancellationToken);
         if (response?.Response == null)
         {
             _logger.LogWarning(
@@ -181,7 +181,7 @@ internal sealed class AuthorizationClient : IAuthorizationClient
     {
         using var activity = _telemetry?.StartClientAuthorizeActionsActivity(instance);
         XacmlJsonRequestRoot request = MultiDecisionHelper.CreateMultiDecisionRequest(user, instance, actions);
-        XacmlJsonResponse response = await GetDecisionForRequest(request, cancellationToken);
+        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request, cancellationToken);
         if (response?.Response == null)
         {
             _logger.LogWarning(
@@ -206,7 +206,7 @@ internal sealed class AuthorizationClient : IAuthorizationClient
     )
     {
         XacmlJsonRequestRoot request = CreateXacmlJsonRequest(userId, orgNumbers);
-        XacmlJsonResponse response = await GetDecisionForRequest(request, cancellationToken);
+        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request, cancellationToken);
 
         if (response?.Response == null)
         {
@@ -224,19 +224,6 @@ internal sealed class AuthorizationClient : IAuthorizationClient
         ];
 
         return organizations;
-    }
-
-    /// <summary>
-    /// <see cref="IPDP"/> (Altinn.Common.PEP) exposes no cancellation token, so cancellation can only be honored
-    /// before the decision request is sent.
-    /// </summary>
-    private Task<XacmlJsonResponse> GetDecisionForRequest(
-        XacmlJsonRequestRoot request,
-        CancellationToken cancellationToken
-    )
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        return _pdp.GetDecisionForRequest(request);
     }
 
     private static XacmlJsonRequestRoot CreateXacmlJsonRequest(int userId, List<string> orgNumbers)

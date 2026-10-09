@@ -260,7 +260,7 @@ public class HomeControllerTest_SetQueryParams : ApiTestBase, IClassFixture<WebA
         };
 
         _pdpMock
-            .Setup(pdp => pdp.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup(pdp => pdp.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new XacmlJsonResponse()
                 {
