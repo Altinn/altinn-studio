@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { useState, type ReactNode } from 'react';
 import BpmnModdle from 'bpmn-moddle';
 import type Modeler from 'bpmn-js/lib/Modeler';
@@ -36,11 +37,11 @@ export function createBpmnTestModeler(
     listeners.triggerEvent('elements.changed', { elements: [element] });
   const emitCommandStackChanged = () => listeners.triggerEvent('commandStack.changed');
   const modeling = {
-    updateModdleProperties: jest.fn((_element, target: ModdleElement, values: object) => {
+    updateModdleProperties: vi.fn((_element, target: ModdleElement, values: object) => {
       Object.entries(values).forEach(([key, value]) => target.set(key, value));
       emitElementsChanged();
     }),
-    updateProperties: jest.fn((_element, values: object) => {
+    updateProperties: vi.fn((_element, values: object) => {
       Object.entries(values).forEach(([key, value]) => businessObject.set(key, value));
       emitElementsChanged();
     }),

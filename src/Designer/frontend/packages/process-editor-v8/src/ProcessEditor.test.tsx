@@ -11,7 +11,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import { useBpmnContext } from './contexts/BpmnContext';
-import type { BpmnApiContextProps } from './contexts/BpmnApiContext';
+import type { BpmnApiContextProps, BpmnApiContextProvider } from './contexts/BpmnApiContext';
+import type * as React from 'react';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { toast } from 'react-toastify';
@@ -34,8 +35,10 @@ vi.mock('app-shared/utils/featureToggleUtils', () => ({
 
 const mockBpmnApiContextProps = vi.fn();
 vi.mock('./contexts/BpmnApiContext', async () => {
-  const actual = await vi.importActual('./contexts/BpmnApiContext');
-  const { createElement } = await vi.importActual('react');
+  const actual = await vi.importActual<{ BpmnApiContextProvider: typeof BpmnApiContextProvider }>(
+    './contexts/BpmnApiContext',
+  );
+  const { createElement } = await vi.importActual<typeof React>('react');
   return {
     ...actual,
     BpmnApiContextProvider: (props: BpmnApiContextProps) => {
@@ -109,10 +112,11 @@ describe('ProcessEditor', () => {
     ).toBeInTheDocument();
   });
 
-  it('uses the v8 BPMN context for the editor and configuration panel', () => {
-    vi.mocked(useBpmnContext).mockImplementation(
-      vi.requireActual('./contexts/BpmnContext').useBpmnContext,
+  it('uses the v8 BPMN context for the editor and configuration panel', async () => {
+    const actualBpmnContext = await vi.importActual<{ useBpmnContext: typeof useBpmnContext }>(
+      './contexts/BpmnContext',
     );
+    vi.mocked(useBpmnContext).mockImplementation(actualBpmnContext.useBpmnContext);
 
     renderProcessEditor({ bpmnXml: mockBpmnXml, queryClient: queryClientWithAppData() });
 

@@ -77,7 +77,9 @@ const element: TaskEvent['element'] = {
 };
 const xml = '<testxml></testxml>';
 
-vi.mock('bpmn-js/lib/Modeler', () => vi.fn().mockImplementation(bpmnModelerImplementation));
+vi.mock('bpmn-js/lib/Modeler', () => ({
+  default: vi.fn().mockImplementation(bpmnModelerImplementation),
+}));
 
 function bpmnModelerImplementation(): BpmnModeler {
   return {

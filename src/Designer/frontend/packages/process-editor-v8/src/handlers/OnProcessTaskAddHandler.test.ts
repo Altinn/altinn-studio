@@ -7,14 +7,17 @@ import type { BpmnTaskType } from '@altinn/process-editor-v8/types/BpmnTaskType'
 import { app, org } from '@studio/testing/testids';
 import { getMockBpmnElementForTask } from '../../test/mocks/bpmnDetailsMock';
 import type { BpmnBusinessObjectEditor } from '@altinn/process-editor-v8/types/BpmnBusinessObjectEditor';
+import type * as StudioModelerModule from '@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler';
 
 vi.mock('@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler', async () => {
-  const actual = await vi.importActual('@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler');
+  const actual = await vi.importActual<typeof StudioModelerModule>(
+    '@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler',
+  );
   return {
     ...actual,
     StudioModeler: vi.fn().mockImplementation(function (args) {
       const instance = new actual.StudioModeler(args);
-      instance.getElement = vi.fn().mockReturnValue(instance.element);
+      instance.getElement = vi.fn().mockReturnValue(instance['element']);
       return instance;
     }),
   };

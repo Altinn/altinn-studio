@@ -10,7 +10,8 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useBpmnContext } from './contexts/BpmnContext';
-import type { BpmnApiContextProps } from './contexts/BpmnApiContext';
+import type { BpmnApiContextProps, BpmnApiContextProvider } from './contexts/BpmnApiContext';
+import type * as React from 'react';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { toast } from 'react-toastify';
@@ -32,8 +33,10 @@ vi.mock('app-shared/utils/featureToggleUtils', () => ({
 
 const mockBpmnApiContextProps = vi.fn();
 vi.mock('./contexts/BpmnApiContext', async () => {
-  const actual = await vi.importActual('./contexts/BpmnApiContext');
-  const { createElement } = await vi.importActual('react');
+  const actual = await vi.importActual<{ BpmnApiContextProvider: typeof BpmnApiContextProvider }>(
+    './contexts/BpmnApiContext',
+  );
+  const { createElement } = await vi.importActual<typeof React>('react');
   return {
     ...actual,
     BpmnApiContextProvider: (props: BpmnApiContextProps) => {

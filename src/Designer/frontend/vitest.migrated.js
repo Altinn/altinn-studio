@@ -19,6 +19,8 @@ module.exports = [
   'libs/studio-pure-functions',
   'libs/studio-ui-test',
   'packages/policy-editor',
+  'packages/process-editor',
+  'packages/process-editor-v8',
   'packages/schema-editor',
   'packages/schema-model',
   'packages/shared',

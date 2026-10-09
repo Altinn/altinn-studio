@@ -6,6 +6,7 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { BpmnTypeEnum } from '@altinn/process-editor-v8/enum/BpmnTypeEnum';
 import type { TaskEvent } from '@altinn/process-editor-v8/types/TaskEvent';
 import type { BpmnBusinessObjectEditor } from '@altinn/process-editor-v8/types/BpmnBusinessObjectEditor';
+import type * as StudioModelerModule from '@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler';
 import { app, org } from '@studio/testing/testids';
 import type { BpmnTaskType } from '@altinn/process-editor-v8/types/BpmnTaskType';
 import { getMockBpmnElementForTask } from '../../test/mocks/bpmnDetailsMock';
@@ -13,12 +14,14 @@ import { StudioModeler } from '@altinn/process-editor-v8/utils/bpmnModeler/Studi
 import type { Element } from 'bpmn-js/lib/model/Types';
 
 vi.mock('@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler', async () => {
-  const actual = await vi.importActual('@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler');
+  const actual = await vi.importActual<typeof StudioModelerModule>(
+    '@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler',
+  );
   return {
     ...actual,
     StudioModeler: vi.fn().mockImplementation(function (args) {
       const instance = new actual.StudioModeler(args);
-      instance.getElement = vi.fn().mockReturnValue(instance.element);
+      instance.getElement = vi.fn().mockReturnValue(instance['element']);
       instance.getAllTasksByType = vi.fn().mockReturnValue(signingTasks);
       return instance;
     }),
