@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MemoryRouter, Route, Routes, useNavigate } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
@@ -175,6 +175,95 @@ async function statefulRender(props: RenderProps) {
 }
 
 describe('FormData', () => {
+  describe('batched effect writes', () => {
+    function Writer({ field, value, enabled }: { field: string; value: string; enabled: boolean }) {
+      const setValue = FormStore.data.useBatchedSetLeafValue();
+      useEffect(() => {
+        if (enabled) {
+          return setValue({ reference: { dataType: defaultDataTypeMock, field }, newValue: value });
+        }
+      }, [enabled, field, setValue, value]);
+      return null;
+    }
+
+    function Harness() {
+      const [enabled, setEnabled] = useState(false);
+      const store = FormStore.raw.useStore();
+      const values = FormStore.data.useFreshBindings(
+        {
+          first: { dataType: defaultDataTypeMock, field: 'obj1.prop1' },
+          second: { dataType: defaultDataTypeMock, field: 'obj1.prop2' },
+        },
+        'raw',
+      );
+      return (
+        <>
+          <button onClick={() => setEnabled(true)}>Run effects</button>
+          <button
+            onClick={() => {
+              store.getState().data.setLeafValue({
+                reference: { dataType: defaultDataTypeMock, field: 'obj1.prop1' },
+                newValue: 'immediate',
+              });
+              expect(dot.pick('obj1.prop1', store.getState().data.models[defaultDataTypeMock].currentData)).toBe(
+                'immediate',
+              );
+            }}
+          >
+            Write synchronously
+          </button>
+          <Writer
+            field='obj1.prop1'
+            value='first'
+            enabled={enabled}
+          />
+          <Writer
+            field='obj1.prop2'
+            value='second'
+            enabled={enabled}
+          />
+          <output>{JSON.stringify(values)}</output>
+        </>
+      );
+    }
+
+    it('shares one proxied multi-value write between independent effects and keeps ordinary writes synchronous', async () => {
+      const { formDataMethods } = await statefulRender({ renderer: <Harness /> });
+      await userEvent.click(screen.getByRole('button', { name: 'Run effects' }));
+      await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('{"first":"first","second":"second"}'));
+      expect(formDataMethods.setMultiLeafValues).toHaveBeenCalledTimes(1);
+      expect(formDataMethods.setMultiLeafValues).toHaveBeenCalledWith({
+        changes: [
+          { reference: { dataType: defaultDataTypeMock, field: 'obj1.prop1' }, newValue: 'first' },
+          { reference: { dataType: defaultDataTypeMock, field: 'obj1.prop2' }, newValue: 'second' },
+        ],
+      });
+      await userEvent.click(screen.getByRole('button', { name: 'Write synchronously' }));
+      expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(1);
+      expect(formDataMethods.setMultiLeafValues).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps pending writes separate for different form stores', async () => {
+      const first = await statefulRender({ renderer: <Harness /> });
+      const second = await statefulRender({ renderer: <Harness /> });
+      act(() => {
+        screen.getAllByRole('button', { name: 'Run effects' }).forEach((button) => button.click());
+      });
+      await waitFor(() => {
+        expect(first.formDataMethods.setMultiLeafValues).toHaveBeenCalledTimes(1);
+        expect(second.formDataMethods.setMultiLeafValues).toHaveBeenCalledTimes(1);
+      });
+      const expected = {
+        changes: [
+          { reference: { dataType: defaultDataTypeMock, field: 'obj1.prop1' }, newValue: 'first' },
+          { reference: { dataType: defaultDataTypeMock, field: 'obj1.prop2' }, newValue: 'second' },
+        ],
+      };
+      expect(first.formDataMethods.setMultiLeafValues).toHaveBeenCalledWith(expected);
+      expect(second.formDataMethods.setMultiLeafValues).toHaveBeenCalledWith(expected);
+    });
+  });
+
   describe('Rendering and re-rendering', () => {
     function RenderCountingReader({ path, countKey, renderCounts }: Props) {
       // eslint-disable-next-line react-compiler/react-compiler
