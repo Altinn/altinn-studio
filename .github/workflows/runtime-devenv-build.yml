@@ -5,6 +5,15 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/Runtime/devenv/**'
+      # The manifests the fixture deploys with monitoring, which its tests render.
+      - 'infra/observability/**'
+      - 'infra/runtime/syncroot/base/observability.yaml'
+      - 'infra/studio/otel-operator/**'
+      - 'infra/studio/victoriametrics-operator/**'
+      - 'infra/studio/syncroot/base/observability.yaml'
+      - 'infra/studio/syncroot/base/observability-victoria.yaml'
+      - 'infra/studio/syncroot/base/otel-operator.yaml'
+      - 'infra/studio/syncroot/base/victoriametrics-operator.yaml'
       - '.github/workflows/runtime-devenv-build.yml'
       - '!**/AGENTS.md'
   workflow_dispatch:

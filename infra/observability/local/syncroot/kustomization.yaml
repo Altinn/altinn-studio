@@ -1,0 +1,47 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# The runtime and Studio syncroot entries for the observability stack, pointed at
+# an artifact of infra/observability in the devenv kind fixture's registry and at
+# the local overlays beside this directory. Applied by devenv (src/Runtime/devenv,
+# run with monitoring) once ../operators is ready.
+resources:
+  - ../../../runtime/syncroot/base/observability.yaml
+  - ../../../studio/syncroot/base/observability.yaml
+  - ../../../studio/syncroot/base/observability-victoria.yaml
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/url
+        value: oci://kind-registry:5000/observability-repo
+    target:
+      kind: OCIRepository
+  - path: ../oci-repository.yaml
+    target:
+      kind: OCIRepository
+  - path: ../environment.yaml
+    target:
+      kind: Kustomization
+  - patch: |-
+      - op: replace
+        path: /spec/path
+        value: ./local/runtime
+    target:
+      kind: Kustomization
+      namespace: runtime-obs
+      name: observability
+  - patch: |-
+      - op: replace
+        path: /spec/path
+        value: ./local/studio
+    target:
+      kind: Kustomization
+      namespace: default
+      name: observability
+  - patch: |-
+      - op: replace
+        path: /spec/path
+        value: ./local/victoria
+    target:
+      kind: Kustomization
+      name: observability-victoria
