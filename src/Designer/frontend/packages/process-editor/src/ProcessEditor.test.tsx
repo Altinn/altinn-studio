@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import { ProcessEditor } from './ProcessEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -15,23 +17,23 @@ import { toast } from 'react-toastify';
 
 const mockBpmnXml: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
-jest.mock('./contexts/BpmnContext', () => ({
-  ...jest.requireActual('./contexts/BpmnContext'),
-  useBpmnContext: jest.fn(),
+vi.mock('./contexts/BpmnContext', async () => ({
+  ...(await vi.importActual('./contexts/BpmnContext')),
+  useBpmnContext: vi.fn(),
 }));
 
-jest.mock('./components/Canvas', () => ({
+vi.mock('./components/Canvas', () => ({
   Canvas: () => <div></div>,
 }));
 
-jest.mock('app-shared/utils/featureToggleUtils', () => ({
-  shouldDisplayFeature: jest.fn().mockReturnValue(true),
+vi.mock('app-shared/utils/featureToggleUtils', () => ({
+  shouldDisplayFeature: vi.fn().mockReturnValue(true),
 }));
 
-const mockBpmnApiContextProps = jest.fn();
-jest.mock('./contexts/BpmnApiContext', () => {
-  const actual = jest.requireActual('./contexts/BpmnApiContext');
-  const { createElement } = jest.requireActual('react');
+const mockBpmnApiContextProps = vi.fn();
+vi.mock('./contexts/BpmnApiContext', async () => {
+  const actual = await vi.importActual('./contexts/BpmnApiContext');
+  const { createElement } = await vi.importActual('react');
   return {
     ...actual,
     BpmnApiContextProvider: (props: BpmnApiContextProps) => {
@@ -41,14 +43,14 @@ jest.mock('./contexts/BpmnApiContext', () => {
   };
 });
 
-jest.mock('react-toastify', () => ({
-  ...jest.requireActual('react-toastify'),
-  toast: { error: jest.fn() },
+vi.mock('react-toastify', async () => ({
+  ...(await vi.importActual('react-toastify')),
+  toast: { error: vi.fn() },
 }));
 
 describe('ProcessEditor', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('shows a spinner while loading application metadata', () => {
@@ -84,7 +86,7 @@ describe('ProcessEditor', () => {
   });
 
   it('shows the empty configuration panel when no element is selected', () => {
-    (useBpmnContext as jest.Mock).mockReturnValue({ bpmnDetails: null });
+    (useBpmnContext as Mock).mockReturnValue({ bpmnDetails: null });
 
     renderProcessEditor({ bpmnXml: mockBpmnXml, queryClient: queryClientWithAppData() });
 
@@ -95,7 +97,7 @@ describe('ProcessEditor', () => {
 
   it('shows the end event configuration when an end event is selected', () => {
     const queryClient = queryClientWithAppData({ dataTypes: [{ id: 'dataType1' }] });
-    (useBpmnContext as jest.Mock).mockReturnValue({
+    (useBpmnContext as Mock).mockReturnValue({
       bpmnDetails: { type: 'bpmn:EndEvent' },
     });
 
@@ -108,14 +110,14 @@ describe('ProcessEditor', () => {
   describe('saveBpmn', () => {
     it('resolves when the process definition is saved', async () => {
       const { saveBpmn } = renderProcessEditorAndGetProps({
-        updateBpmnXml: jest.fn().mockResolvedValue(undefined),
+        updateBpmnXml: vi.fn().mockResolvedValue(undefined),
       });
       await act(() => expect(saveBpmn('<xml></xml>')).resolves.toBeUndefined());
     });
 
     it('rejects and shows an error when saving the process definition fails', async () => {
       const { saveBpmn } = renderProcessEditorAndGetProps({
-        updateBpmnXml: jest.fn().mockRejectedValue(createApiErrorMock(ServerCodes.BadRequest)),
+        updateBpmnXml: vi.fn().mockRejectedValue(createApiErrorMock(ServerCodes.BadRequest)),
       });
       await act(() => expect(saveBpmn('<xml></xml>')).rejects.toEqual(expect.anything()));
       expect(toast.error).toHaveBeenCalledWith(textMock('process_editor.save_bpmn_xml_error'));
@@ -125,7 +127,7 @@ describe('ProcessEditor', () => {
   describe('getSavedBpmn', () => {
     it('fetches the process definition from the server', async () => {
       const savedXml = '<saved></saved>';
-      const getBpmnFile = jest.fn().mockResolvedValue(savedXml);
+      const getBpmnFile = vi.fn().mockResolvedValue(savedXml);
       const { getSavedBpmn } = renderProcessEditorAndGetProps({ getBpmnFile });
       getBpmnFile.mockClear();
 
@@ -146,10 +148,8 @@ const queryClientWithAppData = (appMetadata: unknown = []) => {
   return queryClient;
 };
 
-const renderProcessEditorAndGetProps = (
-  queries: Record<string, jest.Mock>,
-): BpmnApiContextProps => {
-  (useBpmnContext as jest.Mock).mockReturnValue({ bpmnDetails: null, isEditAllowed: true });
+const renderProcessEditorAndGetProps = (queries: Record<string, Mock>): BpmnApiContextProps => {
+  (useBpmnContext as Mock).mockReturnValue({ bpmnDetails: null, isEditAllowed: true });
   renderProcessEditor({ bpmnXml: mockBpmnXml, queryClient: queryClientWithAppData(), queries });
   return mockBpmnApiContextProps.mock.lastCall[0] as BpmnApiContextProps;
 };
@@ -161,7 +161,7 @@ const renderProcessEditor = ({
 }: {
   bpmnXml?: string | null;
   queryClient?: ReturnType<typeof createQueryClientMock>;
-  queries?: Record<string, jest.Mock>;
+  queries?: Record<string, Mock>;
 } = {}) => {
   queryClient.setQueryData([QueryKey.FetchBpmn, org, app], bpmnXml);
   return render(

@@ -1,3 +1,4 @@
+import { expect, it } from 'vitest';
 import BpmnModdle from 'bpmn-moddle';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -13,7 +14,7 @@ import {
 } from '../../../../../../test/mocks/bpmnContextMock';
 
 const connectedTaskId = mockBpmnApiContextValue.layoutSets[0].taskId;
-const mockOnClose = jest.fn();
+const mockOnClose = vi.fn();
 
 const defaultSelectDataTypeProps: SelectDataTypesProps = {
   connectedTaskId,
@@ -23,11 +24,11 @@ const defaultSelectDataTypeProps: SelectDataTypesProps = {
 };
 
 describe('SelectDataTypes', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should call updateDataTypes with new data type when new option is clicked', async () => {
     const user = userEvent.setup();
-    const mutateDataTypesMock = jest.fn();
+    const mutateDataTypesMock = vi.fn();
     const dataTypeToConnect = 'dataModel0';
     const dataModelIds = [dataTypeToConnect, 'dataModel1', 'dataModel2'];
 
@@ -71,7 +72,7 @@ describe('SelectDataTypes', () => {
 
   it('should call updateDataTypes with new data type when data type is changed', async () => {
     const user = userEvent.setup();
-    const mutateDataTypesMock = jest.fn();
+    const mutateDataTypesMock = vi.fn();
     const existingDataType = 'dataModel0';
     const dataTypeToConnect = 'dataModel1';
     const dataModelIds = [existingDataType, dataTypeToConnect, 'dataModel2'];
@@ -98,7 +99,7 @@ describe('SelectDataTypes', () => {
 
   it('should call updateDataTypes with no data type when data type is deleted', async () => {
     const user = userEvent.setup();
-    const mutateDataTypesMock = jest.fn();
+    const mutateDataTypesMock = vi.fn();
     const existingDataType = 'dataModel0';
     const dataModelIds = [existingDataType, 'dataModel1', 'dataModel2'];
     renderSelectDataTypes(
@@ -120,7 +121,7 @@ describe('SelectDataTypes', () => {
 
   it('should not call updateDataTypes when data type is set to existing', async () => {
     const user = userEvent.setup();
-    const mutateDataTypesMock = jest.fn();
+    const mutateDataTypesMock = vi.fn();
     const existingDataType = 'dataModel0';
     const dataModelIds = [existingDataType, 'dataModel1', 'dataModel2'];
     renderSelectDataTypes(

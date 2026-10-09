@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditCorrespondenceResource } from './EditCorrespondenceResource';
@@ -5,19 +7,19 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useGetCorrespondenceResource } from './useGetCorrespondenceResource';
 import { useUpdateCorrespondenceResource } from './useUpdateCorrespondenceResource';
 
-jest.mock('./useGetCorrespondenceResource', () => ({
-  useGetCorrespondenceResource: jest.fn(),
+vi.mock('./useGetCorrespondenceResource', () => ({
+  useGetCorrespondenceResource: vi.fn(),
 }));
 
-jest.mock('./useUpdateCorrespondenceResource', () => ({
-  useUpdateCorrespondenceResource: jest.fn(),
+vi.mock('./useUpdateCorrespondenceResource', () => ({
+  useUpdateCorrespondenceResource: vi.fn(),
 }));
 
-const mockUseGetCorrespondenceResource = useGetCorrespondenceResource as jest.Mock;
-const mockUseUpdateCorrespondenceResource = useUpdateCorrespondenceResource as jest.Mock;
+const mockUseGetCorrespondenceResource = useGetCorrespondenceResource as Mock;
+const mockUseUpdateCorrespondenceResource = useUpdateCorrespondenceResource as Mock;
 
 describe('EditCorrespondenceResource', (): void => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should render as button with content', (): void => {
     renderEditCorrespondenceResource();
@@ -27,7 +29,7 @@ describe('EditCorrespondenceResource', (): void => {
   it('should render with label, description and default value', async (): Promise<void> => {
     const user = userEvent.setup();
     mockUseGetCorrespondenceResource.mockReturnValue('default value');
-    mockUseUpdateCorrespondenceResource.mockReturnValue(jest.fn());
+    mockUseUpdateCorrespondenceResource.mockReturnValue(vi.fn());
 
     renderEditCorrespondenceResource();
     await user.click(getToggableTextFieldButton());
@@ -39,7 +41,7 @@ describe('EditCorrespondenceResource', (): void => {
 
   it('should call updateCorrespondenceResource on blur with the new value', async (): Promise<void> => {
     const user = userEvent.setup();
-    const mockUpdate = jest.fn();
+    const mockUpdate = vi.fn();
     mockUseGetCorrespondenceResource.mockReturnValue('initial value');
     mockUseUpdateCorrespondenceResource.mockReturnValue(mockUpdate);
 

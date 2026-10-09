@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigServiceTask } from './ConfigServiceTask';
@@ -66,34 +67,34 @@ const tasks = [
   },
 ];
 
-jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
+vi.mock('../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(function () {
+    StudioModeler: vi.fn().mockImplementation(function () {
       return {
-        getAllTasksByType: jest.fn().mockReturnValue(tasks),
+        getAllTasksByType: vi.fn().mockReturnValue(tasks),
       };
     }),
   };
 });
 
-jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+vi.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: () => ({ org: 'test-org', app: 'test-app' }),
 }));
 
-jest.mock('app-shared/hooks/queries', () => ({
+vi.mock('app-shared/hooks/queries', () => ({
   useTextResourcesQuery: () => ({ data: { nb: [] } }),
 }));
 
-jest.mock('app-shared/hooks/mutations', () => ({
-  useUpsertTextResourceMutation: () => ({ mutate: jest.fn() }),
+vi.mock('app-shared/hooks/mutations', () => ({
+  useUpsertTextResourceMutation: () => ({ mutate: vi.fn() }),
 }));
 
-jest.mock('../../../hooks/useUpdatePdfConfigTaskIds', () => ({
-  useUpdatePdfConfigTaskIds: () => jest.fn(),
+vi.mock('../../../hooks/useUpdatePdfConfigTaskIds', () => ({
+  useUpdatePdfConfigTaskIds: () => vi.fn(),
 }));
 
 describe('ConfigServiceTask', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should render EditTaskId component', () => {
     renderConfigServiceTask();

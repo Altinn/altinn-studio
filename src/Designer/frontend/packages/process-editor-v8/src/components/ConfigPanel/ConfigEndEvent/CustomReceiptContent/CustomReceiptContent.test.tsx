@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CustomReceiptContent } from './CustomReceiptContent';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -15,7 +16,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 describe('CustomReceiptContent', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('Shows the spinner when there are pending API operations', () => {
     renderCustomReceiptContent({ pendingApiOperations: true });

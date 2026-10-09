@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   CreateCustomReceiptFormLegacy,
   type CreateCustomReceiptFormLegacyProps,
@@ -14,8 +15,8 @@ import {
 } from '../../../../../../test/mocks/bpmnContextMock';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
-const mockAddCustomReceipt = jest.fn();
-const mockOnCloseForm = jest.fn();
+const mockAddCustomReceipt = vi.fn();
+const mockOnCloseForm = vi.fn();
 const mockAllDataModelIds: string[] = ['model1', 'model2'];
 
 const defaultProps: CreateCustomReceiptFormLegacyProps = {
@@ -30,7 +31,7 @@ const defaultBpmnApiContextProps: BpmnApiContextProps = {
 };
 
 describe('CreateCustomReceiptFormLegacy', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('Submits the form with valid inputs and calls "addCustomReceipt" when submit button is clicked', async () => {
     const user = userEvent.setup();

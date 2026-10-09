@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import UpdateTaskIdCommandHandlerModule from './UpdateTaskIdCommandHandler';
 import type { UpdateTaskIdContext } from './UpdateTaskIdCommandHandler';
 import type { Element } from 'bpmn-js/lib/model/Types';
@@ -43,23 +44,23 @@ describe('UpdateTaskIdCommandHandler', () => {
 
   beforeEach(() => {
     mockModeling = {
-      updateProperties: jest.fn(),
-      updateModdleProperties: jest.fn(),
+      updateProperties: vi.fn(),
+      updateModdleProperties: vi.fn(),
     };
 
     mockElementRegistry = {
-      filter: jest.fn(() => []),
+      filter: vi.fn(() => []),
     };
 
     mockCommandStack = {
-      register: jest.fn(),
+      register: vi.fn(),
     };
 
     handler = new UpdateTaskIdCommandHandler(mockModeling, mockElementRegistry, mockCommandStack);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('constructor', () => {
@@ -86,7 +87,7 @@ describe('UpdateTaskIdCommandHandler', () => {
     it('should call updateAutoPdfTaskIds with old and new ids', () => {
       const element = createTaskElement('task_1');
       const context = createContext(element);
-      const updateAutoPdfTaskIdsSpy = jest.spyOn(handler as any, 'updateAutoPdfTaskIds');
+      const updateAutoPdfTaskIdsSpy = vi.spyOn(handler as any, 'updateAutoPdfTaskIds');
 
       handler.preExecute(context);
 

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -8,11 +9,11 @@ const fieldLabel = 'Document type';
 const globalLabel = textMock('process_editor.configuration_panel.environment_config.scope_global');
 
 describe('EnvTextConfigField', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('saves text without surrounding spaces', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvTextConfigField({ onChange });
 
     await user.click(screen.getByRole('button', { name: fieldLabel }));
@@ -24,7 +25,7 @@ describe('EnvTextConfigField', () => {
 
   it('does not save when only surrounding spaces change', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvTextConfigField({ entries: [{ value: 'arkivmelding' }], onChange });
 
     await user.click(screen.getByRole('button', { name: fieldLabel }));
@@ -40,6 +41,6 @@ type RenderProps = {
   onChange?: (entries: EnvironmentEntry<string>[]) => void;
 };
 
-function renderEnvTextConfigField({ entries = [], onChange = jest.fn() }: RenderProps = {}): void {
+function renderEnvTextConfigField({ entries = [], onChange = vi.fn() }: RenderProps = {}): void {
   render(<EnvTextConfigField entries={entries} label={fieldLabel} onChange={onChange} />);
 }

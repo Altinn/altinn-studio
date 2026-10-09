@@ -1,12 +1,14 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useUpdateUserControlledImplementation } from './useUpdateUserControlledImplementation';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 
-jest.mock('../../../../contexts/BpmnContext');
+vi.mock('../../../../contexts/BpmnContext');
 
 describe('useUpdateUserControlledImplementation', () => {
   it('throws an error and does not call updateModdleProperties when ensureHasSignatureConfig fails', () => {
-    const mockUpdateModdleProperties = jest.fn();
+    const mockUpdateModdleProperties = vi.fn();
 
     const faultyElement = {
       businessObject: {
@@ -16,7 +18,7 @@ describe('useUpdateUserControlledImplementation', () => {
       },
     };
 
-    (useBpmnContext as jest.Mock).mockReturnValue({
+    (useBpmnContext as Mock).mockReturnValue({
       bpmnDetails: { element: faultyElement },
       modelerRef: {
         current: {
@@ -39,7 +41,7 @@ describe('useUpdateUserControlledImplementation', () => {
   });
 
   it('calls updateModdleProperties when ensureHasSignatureConfig does not throw', () => {
-    const mockUpdateModdleProperties = jest.fn();
+    const mockUpdateModdleProperties = vi.fn();
 
     const element = {
       businessObject: {
@@ -53,7 +55,7 @@ describe('useUpdateUserControlledImplementation', () => {
       },
     };
 
-    (useBpmnContext as jest.Mock).mockReturnValue({
+    (useBpmnContext as Mock).mockReturnValue({
       bpmnDetails: { element },
       modelerRef: {
         current: {

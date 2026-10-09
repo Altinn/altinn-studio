@@ -1,19 +1,21 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useUpdateLayoutSetId } from './useUpdateLayoutSetId';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
 
-const reloadSavedProcess = jest.fn();
-jest.mock('./useReloadSavedProcess', () => ({ useReloadSavedProcess: () => reloadSavedProcess }));
-jest.mock('../contexts/BpmnApiContext', () => ({ useBpmnApiContext: jest.fn() }));
+const reloadSavedProcess = vi.fn();
+vi.mock('./useReloadSavedProcess', () => ({ useReloadSavedProcess: () => reloadSavedProcess }));
+vi.mock('../contexts/BpmnApiContext', () => ({ useBpmnApiContext: vi.fn() }));
 
 const oldId = 'Activity_0abc123';
 const newId = 'NamedTask';
-const mutateLayoutSetId = jest.fn();
+const mutateLayoutSetId = vi.fn();
 
 describe('useUpdateLayoutSetId', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    (useBpmnApiContext as jest.Mock).mockReturnValue({ mutateLayoutSetId });
+    vi.clearAllMocks();
+    (useBpmnApiContext as Mock).mockReturnValue({ mutateLayoutSetId });
   });
 
   it('renames the layout set and then reloads the process with the renamed task selected in a v9 app', () => {
