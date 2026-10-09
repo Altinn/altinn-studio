@@ -86,6 +86,7 @@ filbane
 filbanen
 filendelse
 filendringene
+filinnhold
 filopplastingskomponent
 filopplastingskomponenter
 filskanning
@@ -129,6 +130,7 @@ kvitteringsside
 lagringsnavn
 lønnsrelaterte
 låsstatus
+mappesti
 medieposisjon
 medlemsprofil
 meldingsboks
