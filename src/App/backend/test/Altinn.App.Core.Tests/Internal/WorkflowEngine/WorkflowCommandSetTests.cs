@@ -82,10 +82,22 @@ public class WorkflowCommandSetTests
 
         // The end hook runs pre-commit; the configured cleanup/hard delete is staged by
         // CommitProcessState into the commit save itself.
-        Assert.Equal([OnProcessEndingHook.Key, EndProcessLegacyHook.Key], Keys(commandSet.Commands));
+        Assert.Equal([OnProcessEndingHook.Key], Keys(commandSet.Commands));
 
         Assert.Empty(commandSet.CriticalPostCommitCommands);
 
+        Assert.Equal([CompletedAltinnEvent.Key], Keys(commandSet.SideEffectCommands));
+    }
+
+    [Fact]
+    public void GetProcessEndSteps_WithProcessEndedHandler_RunsTheHookAndTheReleaseAfterTheCommit()
+    {
+        var commandSet = WorkflowCommandSet.GetProcessEndSteps(
+            new ProcessEndContext { RegisterEvents = true, HasProcessEndedHandler = true }
+        );
+
+        Assert.Equal([OnProcessEndingHook.Key], Keys(commandSet.Commands));
+        Assert.Equal([OnProcessEndedHook.Key, ReleaseEndedInstance.Key], Keys(commandSet.CriticalPostCommitCommands));
         Assert.Equal([CompletedAltinnEvent.Key], Keys(commandSet.SideEffectCommands));
     }
 

@@ -1563,10 +1563,6 @@ namespace Altinn.App.Core.Features
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Models.Notifications.Future.NotificationOrderResponse> Order(Altinn.App.Core.Models.Notifications.Future.NotificationOrderRequest request, System.Threading.CancellationToken cancellationToken);
     }
-    public interface IProcessEnd
-    {
-        System.Threading.Tasks.Task End(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.InstanceEvent>? events);
-    }
     public interface IProcessExclusiveGateway
     {
         string GatewayId { get; }
@@ -2146,6 +2142,10 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.FailedHookResult FailedRetryable(string errorMessage) { }
         public static Altinn.App.Core.Features.Process.SuccessfulHookResult Success() { }
     }
+    public interface IOnProcessEndedHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
+    {
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnProcessEndedContext context);
+    }
     public interface IOnProcessEndingHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnProcessEndingContext context);
@@ -2191,6 +2191,12 @@ namespace Altinn.App.Core.Features.Process
     {
         public MailboxOptions() { }
         public required System.TimeSpan Timeout { get; init; }
+    }
+    public sealed class OnProcessEndedContext
+    {
+        public OnProcessEndedContext() { }
+        public System.Threading.CancellationToken CancellationToken { get; init; }
+        public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
     }
     public sealed class OnProcessEndingContext
     {

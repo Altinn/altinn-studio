@@ -98,6 +98,60 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Empty(result.Warnings);
     }
 
+    // --- RemovedProcessEndInterfaceDetector ------------------------------------------------------
+
+    [Fact]
+    public void ProcessEndDetector_FlagsImplementationsAndDiRegistrations()
+    {
+        _app.Write(
+            "logic/MyProcessEnd.cs",
+            """
+            using Altinn.App.Core.Features;
+            public class MyProcessEnd : IProcessEnd
+            {
+                public Task End(Instance instance, List<InstanceEvent>? events) => Task.CompletedTask;
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddTransient<IProcessEnd, MyProcessEnd>();
+            """
+        );
+
+        var result = new RemovedProcessEndInterfaceDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Summaries(result), s => s.Contains("IOnProcessEndedHandler"));
+        Assert.Contains(
+            Locations(result),
+            w => w.Contains("MyProcessEnd.cs") && w.Contains("MyProcessEnd : IProcessEnd")
+        );
+        Assert.Contains(Locations(result), w => w.Contains("Program.cs") && w.Contains("IProcessEnd"));
+    }
+
+    [Fact]
+    public void ProcessEndDetector_IgnoresTheV9Handlers()
+    {
+        _app.Write(
+            "logic/MyProcessEnded.cs",
+            """
+            using Altinn.App.Core.Features.Process;
+            public class MyProcessEnded : IOnProcessEndedHandler
+            {
+                public Task<HookResult> Execute(OnProcessEndedContext context) => Task.FromResult<HookResult>(HookResult.Success());
+            }
+            """
+        );
+
+        var result = new RemovedProcessEndInterfaceDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
     // --- RemovedPdfFormatterDetector ------------------------------------------------------------
 
     [Fact]
