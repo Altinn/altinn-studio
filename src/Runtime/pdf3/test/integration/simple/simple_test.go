@@ -339,6 +339,53 @@ func Test_CookieIsolation(t *testing.T) {
 	harness.Snapshot(t, []byte(output2.SnapshotString()), "second_request", "json")
 }
 
+// Test_StorageIsolation renders a page that leaves sessionStorage, localStorage, IndexedDB and
+// window.name behind, on its own origin and from a popup on a second origin. Later renders on the
+// same worker must not see any of it. The check page logs a console error for every leak.
+func Test_StorageIsolation(t *testing.T) {
+	// The trailing dot makes a different origin that still reaches the testserver
+	otherOrigin := harness.TestServerURL + "."
+
+	write := harness.GetDefaultPdfRequest(t)
+	write.URL = harness.TestServerURL + "/app/?render=light&storage=write&storagepopup=" + url.QueryEscape(otherOrigin)
+	writeResp, err := harness.RequestNewPDF(t, write)
+	if err != nil {
+		t.Fatalf("Request writing browser state failed: %v", err)
+	}
+
+	for _, origin := range []string{harness.TestServerURL, otherOrigin} {
+		check := harness.GetDefaultPdfRequest(t)
+		check.URL = origin + "/app/?render=light&storage=check"
+
+		// The worker replicas sit behind a service, so retry until a check lands on the
+		// worker that rendered the writing page.
+		const maxAttempts = 20
+		for attempt := 1; ; attempt++ {
+			checkResp, err := harness.RequestNewPDF(t, check)
+			if err != nil {
+				t.Fatalf("Request checking browser state on %s failed: %v", origin, err)
+			}
+			if checkResp.WorkerIP != writeResp.WorkerIP {
+				if attempt == maxAttempts {
+					t.Fatalf("No check on %s reached worker %s in %d attempts", origin, writeResp.WorkerIP, maxAttempts)
+				}
+				continue
+			}
+
+			output, err := checkResp.LoadOutput(t)
+			if err != nil {
+				t.Fatalf("Failed to load check output: %v", err)
+			}
+			states := output.BrowserStates
+			if states[len(states)-1].ConsoleErrorLogs != 0 {
+				t.Errorf("Browser state from an earlier request leaked into a render on %s, see worker logs for "+
+					"'Isolation leak':\n%s", origin, output.String())
+			}
+			break
+		}
+	}
+}
+
 func Test_TADForm(t *testing.T) {
 	req := harness.GetDefaultPdfRequest(t)
 	req.URL = harness.TestServerURL + "/app/tad/eur1/"
