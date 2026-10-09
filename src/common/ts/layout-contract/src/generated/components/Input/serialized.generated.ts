@@ -20,6 +20,8 @@ export type CompInputSerialized = {
   } & TRBFormComp &
     TRBSummarizable &
     TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   saveWhileTyping?: SaveWhileTyping;
@@ -85,4 +87,4 @@ export type CompInputSerialized = {
   SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 8085c5396f4a42a44ffb33ea0e7af13749e24a78ee301163829227a5da067ba9
+// Source hash: a90a0b8cf9894642031e8b49c535fd2386d149e77f0624fcda46a38e049ba679

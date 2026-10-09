@@ -3,9 +3,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
-using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
@@ -33,11 +31,8 @@ public class PdfControllerTests
     private readonly string _taskId = "Task_1";
 
     private readonly Mock<IAppResources> _appResources = new();
-    private readonly Mock<IDataClient> _dataClient = new();
     private readonly IOptions<PlatformSettings> _platformSettingsOptions = Options.Create<PlatformSettings>(new() { });
     private readonly Mock<IInstanceClient> _instanceClient = new();
-    private readonly Mock<IPdfFormatter> _pdfFormatter = new();
-    private readonly Mock<IAppModel> _appModel = new();
 
     private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions = Options.Create<PdfGeneratorSettings>(
         new() { }
@@ -119,14 +114,7 @@ public class PdfControllerTests
             authenticationTokenResolver.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
-        var pdfController = new PdfController(
-            _instanceClient.Object,
-            _pdfFormatter.Object,
-            _appResources.Object,
-            _appModel.Object,
-            _dataClient.Object,
-            pdfService
-        );
+        var pdfController = new PdfController(_instanceClient.Object, pdfService);
 
         string? requestBody = null;
         using (
@@ -187,14 +175,7 @@ public class PdfControllerTests
             authenticationTokenResolver.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
-        var pdfController = new PdfController(
-            _instanceClient.Object,
-            _pdfFormatter.Object,
-            _appResources.Object,
-            _appModel.Object,
-            _dataClient.Object,
-            pdfService
-        );
+        var pdfController = new PdfController(_instanceClient.Object, pdfService);
 
         string? requestBody = null;
         using (

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { AppConfigForm } from './AppConfigForm';
 import type { AppConfigFormProps } from './AppConfigForm';
@@ -8,12 +9,12 @@ import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 import type { ApplicationMetadata, ContactPoint } from 'app-shared/types/ApplicationMetadata';
 import { DEFAULT_RIGHTS_DESCRIPTION } from 'app-shared/constants';
 
-jest.mock('../hooks/useScrollIntoView', () => ({
-  useScrollIntoView: jest.fn(),
+vi.mock('../hooks/useScrollIntoView', () => ({
+  useScrollIntoView: vi.fn(),
 }));
 
 describe('AppConfigForm', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('does not render error summary when the save button is pressed and there are no errors', async () => {
     const user = userEvent.setup();
@@ -168,7 +169,7 @@ describe('AppConfigForm', () => {
 
   it('sets default right description when delegable is toggled on and there is no right description set', async () => {
     const user = userEvent.setup();
-    const saveAppConfig = jest.fn();
+    const saveAppConfig = vi.fn();
     renderAppConfigForm({
       appConfig: { ...mockAppConfig, access: { visible: false, delegable: false } },
       saveAppConfig,
@@ -200,7 +201,7 @@ describe('AppConfigForm', () => {
 
   it('resets right description when delegable is toggled off and there is a right description set', async () => {
     const user = userEvent.setup();
-    const saveAppConfig = jest.fn();
+    const saveAppConfig = vi.fn();
     renderAppConfigForm({
       appConfig: {
         ...mockAppConfig,
@@ -255,7 +256,7 @@ describe('AppConfigForm', () => {
 
   it('updates keywords in app config when keywords inline edit is saved and form is saved', async () => {
     const user = userEvent.setup();
-    const saveAppConfig = jest.fn();
+    const saveAppConfig = vi.fn();
     renderAppConfigForm({
       appConfig: mockAppConfigComplete,
       saveAppConfig,
@@ -313,7 +314,7 @@ describe('AppConfigForm', () => {
 
   it('calls saveAppConfig with correct data when fields are changed and there are no errors', async () => {
     const user = userEvent.setup();
-    const saveAppConfig = jest.fn();
+    const saveAppConfig = vi.fn();
     renderAppConfigForm({
       appConfig: mockAppConfigComplete,
       saveAppConfig,
@@ -339,7 +340,7 @@ describe('AppConfigForm', () => {
 
   it('should not reset the form when the cancel button is clicked without confirmation', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => false);
+    vi.spyOn(window, 'confirm').mockImplementation(() => false);
     renderAppConfigForm();
 
     const titleInput = getServiceNameNbTextbox();
@@ -354,7 +355,7 @@ describe('AppConfigForm', () => {
 
   it('should reset the form to the original values when the cancel button is clicked', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
 
     renderAppConfigForm();
 
@@ -418,7 +419,7 @@ const mockAppConfigComplete: ApplicationMetadata = {
 
 const defaultProps: AppConfigFormProps = {
   appConfig: mockAppConfig,
-  saveAppConfig: jest.fn(),
+  saveAppConfig: vi.fn(),
 };
 
 function renderAppConfigForm(props: Partial<AppConfigFormProps> = {}) {
@@ -434,7 +435,7 @@ async function getOptionalInlineEditTextbox(
 ): Promise<HTMLInputElement> {
   const viewButton = screen.getByRole('button', { name: label });
   await user.click(viewButton);
-  return screen.getByRole('textbox', { name: `${label} ${optionalText}` }) as HTMLInputElement;
+  return screen.getByRole('textbox', { name: `${label}${optionalText}` }) as HTMLInputElement;
 }
 
 function getInlineEditSaveButton(): HTMLElement {

@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ResourcesRepoList } from './ResourcesRepoList';
@@ -31,9 +33,9 @@ const getResourceListResponse = [
   },
 ];
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: jest.fn(),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
+  useParams: vi.fn(),
 }));
 
 const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
@@ -61,12 +63,12 @@ describe('RepoList', () => {
       configurable: true,
       value: {
         ...originalWindowLocation,
-        assign: jest.fn(),
+        assign: vi.fn(),
       },
     });
   });
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     Object.defineProperty(window, 'location', {
       configurable: true,
       value: originalWindowLocation,
@@ -74,7 +76,7 @@ describe('RepoList', () => {
   });
 
   test('Should show spinner on loading', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       selectedContext: 'ttd',
     });
     renderWithMockServices({
@@ -88,7 +90,7 @@ describe('RepoList', () => {
   });
 
   test('Should show error when loading fails', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       selectedContext: 'ttd',
     });
     renderWithMockServices({
@@ -102,7 +104,7 @@ describe('RepoList', () => {
   });
 
   test('Should show correct header', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       selectedContext: 'ttd',
     });
     renderWithMockServices({
@@ -119,7 +121,7 @@ describe('RepoList', () => {
   });
 
   test('Should have link to resources dashboard', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       selectedContext: 'ttd',
     });
     renderWithMockServices({
@@ -136,7 +138,7 @@ describe('RepoList', () => {
   });
 
   test('Should navigate to resourceadm editor on resource edit click', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       selectedContext: 'ttd',
     });
     renderWithMockServices({

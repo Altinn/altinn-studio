@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { LandingPage } from './LandingPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -10,26 +12,26 @@ import { userMock } from 'app-development/test/userMock';
 import { layoutSet3SubformNameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import { useParams } from 'react-router-dom';
 
-jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
 }));
-jest.mock('@studio/hooks/src/hooks/useMediaQuery');
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: jest.fn(() => ({
+vi.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
+  useParams: vi.fn(() => ({
     org,
     app,
     layoutSet,
   })),
 }));
-jest.mock('app-shared/api/mutations', () => ({
-  createPreviewInstance: jest.fn().mockReturnValue(Promise.resolve({ id: 1 })),
+vi.mock('app-shared/api/mutations', () => ({
+  createPreviewInstance: vi.fn().mockReturnValue(Promise.resolve({ id: 1 })),
 }));
 
 describe('LandingPage', () => {
   afterEach(() => {
-    jest.restoreAllMocks();
-    jest.clearAllMocks();
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should display a spinner initially when loading user', () => {
@@ -39,7 +41,7 @@ describe('LandingPage', () => {
   });
 
   it('should render the app title if on a large screen', async () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(false);
+    (useMediaQuery as Mock).mockReturnValue(false);
     renderLandingPage();
 
     await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
@@ -48,7 +50,7 @@ describe('LandingPage', () => {
   });
 
   it('should not render the app title if on a small screen', async () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    (useMediaQuery as Mock).mockReturnValue(true);
     renderLandingPage();
 
     await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
@@ -58,9 +60,9 @@ describe('LandingPage', () => {
 
   it('should display the user profile menu', async () => {
     const user = userEvent.setup();
-    (useMediaQuery as jest.Mock).mockReturnValue(false);
+    (useMediaQuery as Mock).mockReturnValue(false);
     renderLandingPage({
-      getUser: jest.fn().mockImplementation(() => Promise.resolve(userMock)),
+      getUser: vi.fn().mockImplementation(() => Promise.resolve(userMock)),
     });
 
     await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
@@ -96,7 +98,7 @@ describe('LandingPage', () => {
   it('should display a warning message when previewing a subform', async () => {
     renderLandingPage(
       {
-        getLayoutSets: jest
+        getLayoutSets: vi
           .fn()
           .mockImplementation(() =>
             Promise.resolve([{ id: layoutSet3SubformNameMock, type: 'subform' }]),
@@ -117,7 +119,7 @@ const renderLandingPage = async (
   queries: Partial<ServicesContextProps> = {},
   previewLayoutSet = layoutSet,
 ) => {
-  jest.mocked(useParams).mockReturnValue({
+  vi.mocked(useParams).mockReturnValue({
     org,
     app,
     layoutSet: previewLayoutSet,

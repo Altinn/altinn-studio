@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import { PreviewButton } from './PreviewButton';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -9,15 +11,15 @@ import { pageHeaderContextMock, previewContextMock } from 'app-development/test/
 import { PreviewContext } from 'app-shared/contexts/PreviewContext';
 import { app, org } from '@studio/testing/testids';
 
-jest.mock('@studio/hooks/src/hooks/useMediaQuery');
-jest.mock('app-shared/navigation/PackagesRouter');
+vi.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('app-shared/navigation/PackagesRouter');
 
 const layoutMock: string = 'layout1';
 
-const mockSetSearchParams = jest.fn();
+const mockSetSearchParams = vi.fn();
 const mockSearchParams = { layout: layoutMock };
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     org,
     app,
@@ -28,16 +30,16 @@ jest.mock('react-router-dom', () => ({
 }));
 
 const urlMock: string = `/preview/${org}/${app}/`;
-const mockGetPackageNavigationUrl = jest.fn().mockImplementation(() => urlMock);
+const mockGetPackageNavigationUrl = vi.fn().mockImplementation(() => urlMock);
 
-(PackagesRouter as jest.Mock).mockImplementation(function () {
+(PackagesRouter as Mock).mockImplementation(function () {
   return {
     getPackageNavigationUrl: mockGetPackageNavigationUrl,
   };
 });
 
 describe('PreviewButton', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should render the button with text on a large screen', () => {
     renderPreviewButton();
@@ -48,7 +50,7 @@ describe('PreviewButton', () => {
   });
 
   it('should not render the button text on a small screen', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    (useMediaQuery as Mock).mockReturnValue(true);
     renderPreviewButton();
 
     expect(screen.queryByText(textMock('top_menu.preview'))).not.toBeInTheDocument();

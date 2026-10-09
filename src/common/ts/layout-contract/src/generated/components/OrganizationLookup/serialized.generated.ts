@@ -17,6 +17,8 @@ export type CompOrganizationLookupSerialized = {
     help?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: { orgnr: IRawDataModelBinding; name?: IRawDataModelBinding };
 } & ComponentBase &
@@ -24,4 +26,4 @@ export type CompOrganizationLookupSerialized = {
   SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 6872a65688c43f8d3736beb7443af8210bd2dc922eac6555e5d8a878f7a33426
+// Source hash: 346c8336e853aa009e616349130b1fb76c9c222f9051d995a4f9c5c771aec7c9

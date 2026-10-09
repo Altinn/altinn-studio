@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -8,12 +9,12 @@ import { renderWithProviders } from '../../../../mocks/renderWithProviders';
 const defaultProps: DeleteBranchDialogProps = {
   branchName: 'feature-branch',
   isOpen: true,
-  onClose: jest.fn(),
-  onDelete: jest.fn(),
+  onClose: vi.fn(),
+  onDelete: vi.fn(),
 };
 
 describe('DeleteBranchDialog', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should disable confirm button when input does not match branch name', async () => {
     const user = userEvent.setup();
@@ -39,7 +40,7 @@ describe('DeleteBranchDialog', () => {
 
   it('should call onDelete with branch name when confirmed', async () => {
     const user = userEvent.setup();
-    const onDelete = jest.fn();
+    const onDelete = vi.fn();
     renderDeleteBranchDialog({ onDelete });
 
     const confirmInput = getConfirmInput();
@@ -53,7 +54,7 @@ describe('DeleteBranchDialog', () => {
 
   it('should call onClose when cancel button is clicked', async () => {
     const user = userEvent.setup();
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     renderDeleteBranchDialog({ onClose });
 
     const cancelButton = screen.getByRole('button', {

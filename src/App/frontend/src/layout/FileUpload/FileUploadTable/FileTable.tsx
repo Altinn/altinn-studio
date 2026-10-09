@@ -94,7 +94,7 @@ export function FileTable({
               </th>
             )}
 
-            {!pdfModeActive && (
+            {!pdfModeActive && !readOnly && (
               <th>
                 <span className='sr-only'>
                   <Lang id={actionColumnLabelKey} />

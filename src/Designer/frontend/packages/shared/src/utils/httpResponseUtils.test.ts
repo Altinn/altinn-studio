@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { HttpResponseUtils } from './httpResponseUtils';
 import type { AxiosError } from 'axios';
 

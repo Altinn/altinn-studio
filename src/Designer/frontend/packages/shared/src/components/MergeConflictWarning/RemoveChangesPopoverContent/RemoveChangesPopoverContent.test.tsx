@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -14,21 +15,21 @@ import {
 } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
-jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
+vi.mock('react-router-dom', async () => await vi.importActual('react-router-dom'));
 
-const resetRepoChanges = jest.fn().mockImplementation(() => Promise.resolve({}));
+const resetRepoChanges = vi.fn().mockImplementation(() => Promise.resolve({}));
 
-const mockOnClose = jest.fn();
+const mockOnClose = vi.fn();
 
 const mockLocationReload = () => {
   Object.defineProperty(window, 'location', {
     value: {
       ...window.location,
-      reload: jest.fn(),
+      reload: vi.fn(),
     },
     writable: true,
   });
-  return jest.spyOn(window.location, 'reload').mockImplementation(() => {});
+  return vi.spyOn(window.location, 'reload').mockImplementation(() => {});
 };
 
 const defaultProps: RemoveChangesPopoverContentProps = {
@@ -38,7 +39,7 @@ const defaultProps: RemoveChangesPopoverContentProps = {
 };
 
 describe('DownloadRepoPopoverContent', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('enables the confirm button when the correct app name is typed', async () => {
     const user = userEvent.setup();

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { SyncUtils } from './SyncUtils';
 import type { ErrorCode, SyncError } from 'app-shared/types/api/SyncResponses';
 
