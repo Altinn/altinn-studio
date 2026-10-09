@@ -62,7 +62,7 @@ test: manifests generate fmt vet envtest ## Run unit tests.
 test-e2e: manifests generate fmt vet ## Run e2e tests
 	cd test && go run ./cmd/tester test-e2e --keep-running
 
-.PHONY: start start-minimal start-standard
+.PHONY: start start-minimal start-standard start-minimal-monitoring start-standard-monitoring
 start: start-minimal ## Start the Kind cluster (alias for start-minimal)
 
 start-minimal: ## Start with minimal variant
@@ -70,6 +70,12 @@ start-minimal: ## Start with minimal variant
 
 start-standard: ## Start with standard variant
 	cd test && go run ./cmd/tester start standard
+
+start-minimal-monitoring: ## Start minimal with the platform observability stack
+	cd test && go run ./cmd/tester start minimal --monitoring
+
+start-standard-monitoring: ## Start standard with the platform observability stack
+	cd test && go run ./cmd/tester start standard --monitoring
 
 .PHONY: stop
 stop: ## Stop the Kind cluster and runtime fixture.

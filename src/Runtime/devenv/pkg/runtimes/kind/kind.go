@@ -19,6 +19,7 @@ import (
 	"altinn.studio/devenv/pkg/kindclient"
 	"altinn.studio/devenv/pkg/kubernetes"
 	"altinn.studio/devenv/pkg/oci"
+	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/resource/executor"
 	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
@@ -89,7 +90,11 @@ func (v KindContainerRuntimeVariant) String() string {
 
 // KindContainerRuntimeOptions holds configuration options for the Kind runtime.
 type KindContainerRuntimeOptions struct {
-	// IncludeMonitoring is currently a no-op (reserved for future lightweight monitoring).
+	// IncludeMonitoring controls whether the platform observability stack is deployed.
+	// When true, the runtime collectors, the observability-proxy and a Victoria backend
+	// are deployed from infra/observability, with their operators, so the runtime
+	// services' telemetry can be queried as it would be in Studio prod. It needs the
+	// Altinn Studio repository, which it finds from the working directory.
 	IncludeMonitoring bool
 
 	// IncludeTestserver controls whether the testserver deployment is deployed.
@@ -201,6 +206,16 @@ func (r *KindContainerRuntime) Graph() (*resource.Graph, error) {
 	}
 	if addErr := addRuntimeResource(graph, testserver); addErr != nil {
 		return nil, addErr
+	}
+
+	if r.options.IncludeMonitoring {
+		root, rootErr := projectroot.Find(projectroot.RepositoryMarker)
+		if rootErr != nil {
+			return nil, fmt.Errorf("find repository root for monitoring: %w", rootErr)
+		}
+		if addErr := addMonitoringResources(graph, root, r.ClusterRef(), r.RegistryRef(), baseInfra); addErr != nil {
+			return nil, addErr
+		}
 	}
 
 	return graph, nil

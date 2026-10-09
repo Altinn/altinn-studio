@@ -234,13 +234,18 @@ func runUnitTest() int {
 	return 0
 }
 
-func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainerRuntime, error) {
+func setupRuntime(
+	variant kind.KindContainerRuntimeVariant,
+	includeMonitoring bool,
+) (*kind.KindContainerRuntime, error) {
 	projectRoot, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find project root: %w", err)
 	}
 
-	runtime, err := kind.New(variant, filepath.Join(projectRoot, ".cache"), kind.DefaultOptions())
+	options := kind.DefaultOptions()
+	options.IncludeMonitoring = includeMonitoring
+	runtime, err := kind.New(variant, filepath.Join(projectRoot, ".cache"), options)
 	if err != nil {
 		return nil, fmt.Errorf("create kind runtime: %w", err)
 	}
@@ -543,7 +548,14 @@ func runStart() int {
 		return 1
 	}
 
-	runtime, err := setupRuntime(variant)
+	startFlags := flag.NewFlagSet("start", flag.ExitOnError)
+	includeMonitoring := startFlags.Bool("monitoring", false, "Include the platform observability stack")
+	if parseErr := startFlags.Parse(os.Args[3:]); parseErr != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing flags: %v\n", parseErr)
+		return 1
+	}
+
+	runtime, err := setupRuntime(variant, *includeMonitoring)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start runtime: %v\n", err)
 		return 1
@@ -635,7 +647,7 @@ func runE2ETest() int {
 			return 1
 		}
 	} else {
-		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal)
+		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal, false)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
 			return 1

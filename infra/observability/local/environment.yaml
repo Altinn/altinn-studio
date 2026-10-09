@@ -1,0 +1,5 @@
+# The syncroot entries are applied as they are here, without the Flux
+# substitution that fills in ${ENVIRONMENT} in a real cluster.
+- op: replace
+  path: /spec/postBuild/substitute/ENVIRONMENT
+  value: local

@@ -1,4 +1,4 @@
-.PHONY: help start start-minimal start-standard stop test test-e2e build restore lint lint-fix lint-config fmt clean tidy
+.PHONY: help start start-minimal start-standard start-minimal-monitoring start-standard-monitoring stop test test-e2e build restore lint lint-fix lint-config fmt clean tidy
 .DEFAULT_GOAL := help
 
 CACHE_DIR := .cache
@@ -21,6 +21,12 @@ start-minimal: ## Start with minimal variant
 
 start-standard: ## Start with standard variant
 	@cd test && go run ./cmd/tester start standard
+
+start-minimal-monitoring: ## Start minimal with the platform observability stack
+	@cd test && go run ./cmd/tester start minimal --monitoring
+
+start-standard-monitoring: ## Start standard with the platform observability stack
+	@cd test && go run ./cmd/tester start standard --monitoring
 
 stop: ## Stop the runtime fixture/cluster
 	@cd test && go run ./cmd/tester stop
