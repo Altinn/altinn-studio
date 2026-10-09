@@ -7,8 +7,8 @@
     <PackageVersion Include="Altinn.Common.AccessTokenClient" Version="1.1.5" />
     <PackageVersion Include="Altinn.Common.PEP" Version="4.2.3" />
     <PackageVersion Include="Altinn.Platform.Models" Version="1.6.1" />
-    <PackageVersion Include="Altinn.Platform.Storage.Interface" Version="5.0.0-rc.1" />
-    <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.1" />
+    <PackageVersion Include="Altinn.Platform.Storage.Interface" Version="5.0.0-rc.2" />
+    <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.2" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
     <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.7.0" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
@@ -19,7 +19,7 @@
     <PackageVersion Include="CSharpier.MsBuild" Version="1.3.0" />
     <PackageVersion Include="FluentAssertions" Version="7.2.2" />
     <!-- Keeps transitive Humanizer satellites aligned with JsonPointer.Net's Humanizer.Core dependency. -->
-    <PackageVersion Include="Humanizer" Version="3.0.1" />
+    <PackageVersion Include="Humanizer" Version="3.0.10" />
     <PackageVersion Include="JmesPath.Net" Version="1.1.0" />
     <PackageVersion Include="JsonPatch.Net" Version="4.0.1" />
     <PackageVersion Include="JWTCookieAuthentication" Version="3.0.1" />
@@ -50,7 +50,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.17.0" />
     <PackageVersion Include="PolySharp" Version="1.15.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.2.3" />
-    <PackageVersion Include="System.Formats.Asn1" Version="10.0.8" />
+    <PackageVersion Include="System.Formats.Asn1" Version="10.0.12" />
     <PackageVersion Include="Verify.AspNetCore" Version="4.0.0" />
     <PackageVersion Include="Verify.Moq" Version="2.2.0" />
     <PackageVersion Include="Verify.Xunit" Version="30.20.1" />
@@ -61,7 +61,7 @@
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="Xunit.Combinatorial" Version="1.7.31" />
-    <PackageVersion Include="System.IO.Hashing" Version="10.0.7" />
+    <PackageVersion Include="System.IO.Hashing" Version="10.0.12" />
     <PackageVersion Include="PublicApiGenerator" Version="11.5.4" />
   </ItemGroup>
   <ItemGroup>
