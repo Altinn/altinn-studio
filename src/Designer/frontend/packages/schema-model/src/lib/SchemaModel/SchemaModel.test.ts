@@ -4,6 +4,7 @@ import {
   allOfNodeChildMock,
   allOfNodeMock,
   combinationDefNodeChild1Mock,
+  combinationDefNodeMock,
   combinationNodeWithMultipleChildrenMock,
   defNodeMock,
   defNodeWithChildrenChildMock,
@@ -29,7 +30,7 @@ import {
 } from '../../../test/uiSchemaMock';
 import { validateTestUiSchema } from '../../../test/validateTestUiSchema';
 import type { NodePosition, UiSchemaNodes } from '../../types';
-import { CombinationKind, FieldType, ObjectKind } from '../../types';
+import { CombinationKind, FieldType, Keyword, ObjectKind } from '../../types';
 import type { FieldNode } from '../../types/FieldNode';
 import type { ReferenceNode } from '../../types/ReferenceNode';
 import { extractNameFromPointer } from '../pointerUtils';
@@ -37,6 +38,9 @@ import { isArray, isDefinition } from '../utils';
 import { ROOT_POINTER, UNIQUE_POINTER_PREFIX } from '../constants';
 import type { CombinationNode } from '../../types/CombinationNode';
 import { ArrayUtils } from '@studio/pure-functions';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import { buildUiSchema } from '../build-ui-schema';
+import { buildJsonSchema } from '../build-json-schema';
 
 // Test data:
 
@@ -664,11 +668,51 @@ describe('SchemaModel', () => {
       validateTestUiSchema(result.asArray());
     });
 
+    it('Renumbers the remaining children when a child of a combination in a definition is deleted', () => {
+      const model = schemaModel.deepClone();
+      const [firstChildPointer, secondChildPointer] = combinationDefNodeMock.children;
+      const result = model.deleteNode(firstChildPointer);
+      const parent = result.getNodeBySchemaPointer(
+        combinationDefNodeMock.schemaPointer,
+      ) as CombinationNode;
+      expect(parent.children).toEqual([firstChildPointer]);
+      expect(result.hasNode(secondChildPointer)).toBe(false);
+      validateTestUiSchema(result.asArray());
+    });
+
     it('Deletes the given node when it is an unused definition', () => {
       const model = schemaModel.deepClone();
       const result = model.deleteNode(unusedDefinitionMock.schemaPointer);
       expect(result.hasNode(unusedDefinitionMock.schemaPointer)).toBe(false);
       validateTestUiSchema(result.asArray());
+    });
+
+    it('Keeps the other definitions unchanged when an unused definition is deleted and the root is a combination', () => {
+      // Schemas converted from an XSD whose root element has a named type have this shape.
+      const rootSchema: JsonSchema = {
+        [Keyword.Type]: FieldType.Object,
+        [CombinationKind.OneOf]: [{ [Keyword.Reference]: '#/$defs/RootType' }],
+      };
+      const usedDefinitions: JsonSchema['$defs'] = {
+        RootType: {
+          [Keyword.Properties]: { name: { [Keyword.Reference]: '#/$defs/NameType' } },
+        },
+        NameType: { [Keyword.Type]: FieldType.String },
+      };
+      const model = SchemaModel.fromArray(
+        buildUiSchema({
+          ...rootSchema,
+          [Keyword.Definitions]: {
+            ...usedDefinitions,
+            UnusedType: { [Keyword.Type]: FieldType.String },
+          },
+        }),
+      );
+      const result = model.deleteNode('#/$defs/UnusedType');
+      expect(buildJsonSchema(result.asArray())).toEqual({
+        ...rootSchema,
+        [Keyword.Definitions]: usedDefinitions,
+      });
     });
 
     it('Throws an error and keeps the model unchanged if trying to delete the root node', () => {
