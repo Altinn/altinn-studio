@@ -27,7 +27,7 @@ import {
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
-import { getVisiblePageOrder, useHiddenPages } from 'src/utils/layout/hidden';
+import { getPageHiddenExpressions, getVisiblePageOrder, useHiddenPages } from 'src/utils/layout/hidden';
 import type { NodeRefValidation } from 'src/features/validation';
 
 export interface NavigateToPageOptions {
@@ -209,7 +209,8 @@ function useVisiblePageOrderSnapshot() {
   const rawOrderRef = useAsRef(rawOrder);
   const layoutCollection = FormStore.bootstrap.useLaxLayoutCollection();
   const layoutCollectionRef = useAsRef(layoutCollection);
-  const dataSources = useExpressionDataSourcesForStoreSelector(layoutCollection);
+  const hiddenExpressions = useMemo(() => getPageHiddenExpressions(layoutCollection), [layoutCollection]);
+  const dataSources = useExpressionDataSourcesForStoreSelector(hiddenExpressions);
 
   return useCallback(
     () =>

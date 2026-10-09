@@ -1,27 +1,14 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
+import { createOptionsEffectNodeSelector } from 'src/features/options/createOptionsEffectNodeSelector';
 import { RunOptionsEffectsForNode } from 'src/features/options/RunOptionsEffectsForNode';
-import { getComponentBehaviors, getComponentDef } from 'src/layout';
 import { DataModelLocationProviderFromRowContexts } from 'src/utils/layout/DataModelLocation';
-import { deriveRuntimeNodeRefs } from 'src/utils/layout/deriveRuntimeNodeRefs';
 
 export function RunOptionsEffects() {
-  const nodes = FormStore.raw.useMemoSelector((state) =>
-    deriveRuntimeNodeRefs(state).flatMap((node) => {
-      const component = state.bootstrap.layoutLookups.getComponent(node.baseId);
-      if (!getComponentBehaviors(component.type)?.canHaveOptions) {
-        return [];
-      }
-
-      const valueType = getComponentDef(component.type).getOptionsEffectValueType();
-      if (!valueType) {
-        return [];
-      }
-
-      return [{ node, valueType }];
-    }),
-  );
+  const selector = useRef<ReturnType<typeof createOptionsEffectNodeSelector>>(undefined);
+  selector.current ??= createOptionsEffectNodeSelector();
+  const nodes = FormStore.raw.useMemoSelector(selector.current);
 
   return (
     <>

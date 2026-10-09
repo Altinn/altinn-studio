@@ -46,6 +46,10 @@ export function FileTableButtons({
 
   // Edit button
   const handleEdit = (index: number) => {
+    if (readOnly) {
+      return;
+    }
+
     if (editIndex === -1 || editIndex !== index) {
       setEditIndex(index);
     } else {
@@ -54,7 +58,7 @@ export function FileTableButtons({
   };
 
   const handleDeleteFile = async () => {
-    if (!isAttachmentUploaded(attachment)) {
+    if (readOnly || !isAttachmentUploaded(attachment)) {
       return;
     }
 
@@ -69,6 +73,10 @@ export function FileTableButtons({
     confirmChange,
     cancelChange,
   } = useAlertOnChange(Boolean(alertOnDelete), handleDeleteFile);
+
+  if (readOnly) {
+    return null;
+  }
 
   return (
     <ConditionalWrapper
