@@ -58,6 +58,36 @@ const selectOption = (container: HTMLElement, value: string, label: string) => {
 };
 
 describe('Dropdown', () => {
+  it.each([
+    ['en', 'Clear text', 'Suggestions'],
+    ['nb', 'Fjern tekst', 'Forslag'],
+    ['nn', 'Fjern tekst', 'Forslag'],
+  ] as const)(
+    'supplies screen-reader announcements in %s before the web component connects',
+    (language, clear, toggle) => {
+      const { container } = render(undefined, { language });
+      const suggestion = container.querySelector('ds-suggestion');
+      expect(suggestion).toHaveAttribute('data-sr-clear', clear);
+      expect(suggestion).toHaveAttribute('data-sr-toggle', toggle);
+      for (const key of [
+        'added',
+        'clear',
+        'empty',
+        'found',
+        'invalid',
+        'items',
+        'of',
+        'plural',
+        'remove',
+        'removed',
+        'singular',
+        'toggle',
+      ]) {
+        expect(suggestion?.getAttribute(`data-sr-${key}`)).toBeTruthy();
+      }
+    },
+  );
+
   it('renders the label and associates it with the input', () => {
     const { container } = render({ title: 'dropdown.title' });
     expect(screen.getByLabelText('Bostedsland')).toBe(getInput(container));
