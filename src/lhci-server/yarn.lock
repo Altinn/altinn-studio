@@ -678,17 +678,18 @@ __metadata:
   linkType: hard
 
 "compression@npm:^1.7.4":
-  version: 1.8.1
-  resolution: "compression@npm:1.8.1"
+  version: 1.8.2
+  resolution: "compression@npm:1.8.2"
   dependencies:
     bytes: "npm:3.1.2"
     compressible: "npm:~2.0.18"
     debug: "npm:2.6.9"
+    destroy: "npm:1.2.0"
     negotiator: "npm:~0.6.4"
     on-headers: "npm:~1.1.0"
     safe-buffer: "npm:5.2.1"
     vary: "npm:~1.1.2"
-  checksum: 10/e7552bfbd780f2003c6fe8decb44561f5cc6bc82f0c61e81122caff5ec656f37824084f52155b1e8ef31d7656cecbec9a2499b7a68e92e20780ffb39b479abb7
+  checksum: 10/5b17675cf4abcaff03b83f4be417fb256df4568c7626a65fc4b38cb8ebeb9c0f3917ee79df20cbec90e53d5758ad0d9ae51d5d4669256e22247b16308d290a04
   languageName: node
   linkType: hard
 
@@ -1116,9 +1117,9 @@ __metadata:
   linkType: hard
 
 "fast-uri@npm:^3.0.1":
-  version: 3.1.7
-  resolution: "fast-uri@npm:3.1.7"
-  checksum: 10/6d62ea818841e1b460f60482fd31582faa23ea9d9b33f856412b24c42da11fd72bd003be6696390ec896dbe4e9e78d3bb8d93bf70a511c7f69e5e807ac9b284f
+  version: 3.1.8
+  resolution: "fast-uri@npm:3.1.8"
+  checksum: 10/d3dfa29fd2e5fa2371833699f3f78c975b79f65e52e0ce37604db10dffb85b5b448b5075e93453272cb95fb1c6a759495164e60649ffd69e59ec43f20d44f791
   languageName: node
   linkType: hard
 
@@ -1411,9 +1412,9 @@ __metadata:
   linkType: hard
 
 "ip-address@npm:^10.0.1":
-  version: 10.5.0
-  resolution: "ip-address@npm:10.5.0"
-  checksum: 10/239645a11ae56f1f8721df22fa852dec51039a0add5371a474ad858810a6b6a4924c9346e467821c4e614bc9b8c8947a58ba1fdfb155a7a30437a440072ffbf5
+  version: 10.7.3
+  resolution: "ip-address@npm:10.7.3"
+  checksum: 10/04655aa25ad682bb26ecb82281c9d3ecd99da8ecde9c95146f0a96685de90a359432d905bf6c53b5732fed0bfb1f93763cd3c91c3f266eec96cc41bfea987197
   languageName: node
   linkType: hard
 
@@ -1804,22 +1805,22 @@ __metadata:
   linkType: hard
 
 "moment@npm:^2.29.4":
-  version: 2.30.1
-  resolution: "moment@npm:2.30.1"
-  checksum: 10/ae42d876d4ec831ef66110bdc302c0657c664991e45cf2afffc4b0f6cd6d251dde11375c982a5c0564ccc0fa593fc564576ddceb8c8845e87c15f58aa6baca69
+  version: 2.31.0
+  resolution: "moment@npm:2.31.0"
+  checksum: 10/fd3708d46f820c64fe1e064a60747533a55ee0aefd944490e18f08b2a83a5b6418bb4f42e1de47ef1f1a29f450c7ac41edd1fa6f940db30ded247c9717301b9f
   languageName: node
   linkType: hard
 
 "morgan@npm:^1.9.1":
-  version: 1.11.0
-  resolution: "morgan@npm:1.11.0"
+  version: 1.12.1
+  resolution: "morgan@npm:1.12.1"
   dependencies:
     basic-auth: "npm:~2.0.1"
     debug: "npm:2.6.9"
     depd: "npm:~2.0.0"
     on-finished: "npm:~2.4.1"
     on-headers: "npm:~1.1.0"
-  checksum: 10/d6e72d98ccaab1eb191f9455b224711b626e235e7ace217060b3d44e23a3cdc4ba6d9097b30e9195728ef86ecd53589685f211b8acb4c16dbf958fa787bc5ec0
+  checksum: 10/b907f5265409fffd6d8b56575d47d8d13e479313dc1dd59c0c8228e9c68b3418c131daddc3011329d0e8071d6e7fc23dd23ea1ec6f4474a1556f7a37777d4a59
   languageName: node
   linkType: hard
 
@@ -2125,12 +2126,12 @@ __metadata:
   linkType: hard
 
 "proxy-addr@npm:~2.0.7":
-  version: 2.0.7
-  resolution: "proxy-addr@npm:2.0.7"
+  version: 2.0.8
+  resolution: "proxy-addr@npm:2.0.8"
   dependencies:
     forwarded: "npm:0.2.0"
     ipaddr.js: "npm:1.9.1"
-  checksum: 10/f24a0c80af0e75d31e3451398670d73406ec642914da11a2965b80b1898ca6f66a0e3e091a11a4327079b2b268795f6fa06691923fef91887215c3d0e8ea3f68
+  checksum: 10/6922b732c5625a9ba174c053bf3a750a80c87f19b7c62919f88ff01834eb80e2467834cfa72fc48b3a7ed6b3d18daadf773f6efb21db1c5fcc76d784509fcf1f
   languageName: node
   linkType: hard
 
