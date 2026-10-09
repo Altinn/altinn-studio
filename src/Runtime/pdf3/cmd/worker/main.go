@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
@@ -277,7 +278,7 @@ func generateLocalPdfHandler(
 		result, pdfErr := gen.Generate(requestContext, req)
 
 		if pdfErr != nil {
-			recordPDFError(span, pdfErr)
+			recordPDFError(r.Context(), span, pdfErr)
 			errStr := pdfErr.Error()
 			errorCode := http.StatusInternalServerError
 
@@ -448,7 +449,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 		result, pdfErr := gen.Generate(requestContext, req)
 
 		if pdfErr != nil {
-			recordPDFError(span, pdfErr)
+			recordPDFError(r.Context(), span, pdfErr)
 			errStr := pdfErr.Error()
 			errorCode := http.StatusInternalServerError
 
@@ -553,15 +554,45 @@ func setWorkerSpanAttrs(span trace.Span) {
 	)
 }
 
-func recordPDFError(span trace.Span, pdfErr *types.PDFError) {
-	if pdfErr == nil || !span.IsRecording() {
+// recordPDFError records a failed generation on the request's span and, as error.type, on its
+// HTTP server metrics, which otherwise only show a 500 whatever the reason.
+func recordPDFError(ctx context.Context, span trace.Span, pdfErr *types.PDFError) {
+	if pdfErr == nil {
 		return
 	}
 	// Queue-full 429s are expected; proxy retries handle them.
-	// Record as an event, not an error, to avoid false error noise.
+	// Record as an event, not an error, to avoid false error noise. Like other 4xx they are
+	// not server errors, so they get no error.type; the status code tells them apart.
 	if pdfErr.Is(types.ErrQueueFull) {
-		span.AddEvent("pdf.queue.full")
+		if span.IsRecording() {
+			span.AddEvent("pdf.queue.full")
+		}
 		return
 	}
-	span.RecordError(pdfErr)
+	labeler, _ := otelhttp.LabelerFromContext(ctx)
+	labeler.Add(attribute.String("error.type", errorType(pdfErr)))
+	if span.IsRecording() {
+		span.RecordError(pdfErr)
+	}
+}
+
+// errorType is the error.type value for a failed generation: low-cardinality and stable,
+// unlike the error messages.
+func errorType(pdfErr *types.PDFError) string {
+	switch {
+	case pdfErr.Is(types.ErrTimeout):
+		return "timeout"
+	case pdfErr.Is(types.ErrClientDropped):
+		return "client_dropped"
+	case pdfErr.Is(types.ErrSetCookieFail):
+		return "set_cookie_failed"
+	case pdfErr.Is(types.ErrElementNotReady):
+		return "element_not_ready"
+	case pdfErr.Is(types.ErrGenerationFail):
+		return "generation_failed"
+	case pdfErr.Is(types.ErrUnhandledBrowserError):
+		return "unhandled_browser_error"
+	default:
+		return "_OTHER"
+	}
 }

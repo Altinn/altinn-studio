@@ -13,9 +13,15 @@ import (
 	"altinn.studio/pdf3/internal/types"
 )
 
-type stubGenerator struct{}
+// stubGenerator returns a fixed PDF, or err when it is set.
+type stubGenerator struct {
+	err *types.PDFError
+}
 
-func (stubGenerator) Generate(context.Context, types.PdfRequest) (*types.PdfResult, *types.PDFError) {
+func (g stubGenerator) Generate(context.Context, types.PdfRequest) (*types.PdfResult, *types.PDFError) {
+	if g.err != nil {
+		return nil, g.err
+	}
 	return &types.PdfResult{Data: []byte("%PDF-")}, nil
 }
 
