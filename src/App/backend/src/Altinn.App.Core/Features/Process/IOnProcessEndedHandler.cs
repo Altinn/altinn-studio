@@ -13,6 +13,7 @@ namespace Altinn.App.Core.Features.Process;
 /// process from ending belongs in the <see cref="IOnTaskEndingHandler"/> of the task that leads to the end event;
 /// when a rejection ends the process, that task's <see cref="IOnTaskAbandonHandler"/> runs instead.
 /// </para>
+/// <para>An app registers at most one implementation; with more, it does not start.</para>
 /// </remarks>
 [ImplementableByApps]
 public interface IOnProcessEndedHandler : IProcessStepConfigurable
