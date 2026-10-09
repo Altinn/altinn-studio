@@ -9,6 +9,20 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- A service task that gives up when `Wait.IsFinalCheck` is `true` can no longer fail with the generic error for an exhausted wait budget instead of its own. In unit tests, set `IsFinalCheck` directly: a past `Deadline` no longer implies it.
+
+### Removed
+
+- Breaking: `IPdfFormatter` and the `pdf/format` endpoint. Leave pages or components out of the PDF with `excludeFromPdf` in the task's `Settings.json`, or, for conditional logic, use a PDF service task with a custom layout. `studioctl app upgrade v9` points out the implementations it finds. ([#19785](https://github.com/Altinn/altinn-studio/issues/19785))
+
+### Changed
+- Breaking: built-in validation messages, such as a file that is too large or missing signatures, now use `backend.validation_errors.*` text keys. They appear in the user's language, and apps can change the wording by adding the key to their texts.
+- Breaking: for clients calling the API directly, `description` on built-in validation issues is now translated text instead of the issue code or an English message. Use `code` to tell issues apart.
+
+## [9.0.0-preview.7] - 2026-10-07
+
 ### Added
 
 - The live `workflow` status on process reads now includes `failedAttempts` while a transition is processing: how many attempts of its current step in a row have failed and are being retried automatically. It also includes `resumedAt` when the transition has been resumed, because a resume reruns the transition and keeps its original `startedAt`. The app frontend uses it to tell the user when a transition is having trouble, rather than showing an unexplained long wait.
@@ -37,8 +51,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
 - The workflow that marks an instance as processing at the start of a process next is named `Process next: Mark instance as processing` instead of `Process next: acquire`.
-- Breaking: built-in validation messages, such as a file that is too large or missing signatures, now use `backend.validation_errors.*` text keys. They appear in the user's language, and apps can change the wording by adding the key to their texts.
-- Breaking: for clients calling the API directly, `description` on built-in validation issues is now translated text instead of the issue code or an English message. Use `code` to tell issues apart.
 
 ### Fixed
 

@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import type { ForwardedRef, RefObject } from 'react';
 import { createRef } from 'react';
 import type { RenderResult } from '@testing-library/react';
@@ -23,7 +24,7 @@ function testObjectRefForwarding<Element extends HTMLElement>(
 function testCallbackRefForwarding<Element extends HTMLElement>(
   ...[renderComponent, getTargetElement]: Parameters<typeof testRefForwarding<Element>>
 ): void {
-  const ref = jest.fn();
+  const ref = vi.fn();
   const { container, unmount } = renderComponent(ref);
   expect(ref).toHaveBeenCalledTimes(1);
   expect(ref).toHaveBeenCalledWith(getTargetElement?.(container));

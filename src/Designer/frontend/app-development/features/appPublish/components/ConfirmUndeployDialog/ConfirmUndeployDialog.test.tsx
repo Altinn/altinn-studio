@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { renderWithProviders } from '../../../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
@@ -10,7 +12,7 @@ import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 describe('ConfirmUndeployDialog', () => {
   it('should provide a input field to confirm the app to undeploy and button is disabled', async () => {
     renderConfirmUndeployDialog({
-      undeployAppFromEnvMock: jest.fn(),
+      undeployAppFromEnvMock: vi.fn(),
     });
     await openDialog();
 
@@ -24,7 +26,7 @@ describe('ConfirmUndeployDialog', () => {
   it('should enable undeploy button when confirm text field matches the app name', async () => {
     const user = userEvent.setup();
     renderConfirmUndeployDialog({
-      undeployAppFromEnvMock: jest.fn(),
+      undeployAppFromEnvMock: vi.fn(),
     });
     await openDialog();
 
@@ -39,7 +41,7 @@ describe('ConfirmUndeployDialog', () => {
   it('should not be case-sensitive when confirming the app-name', async () => {
     const user = userEvent.setup();
     renderConfirmUndeployDialog({
-      undeployAppFromEnvMock: jest.fn(),
+      undeployAppFromEnvMock: vi.fn(),
     });
     await openDialog();
 
@@ -55,7 +57,7 @@ describe('ConfirmUndeployDialog', () => {
 
   it('should trigger undeploy when undeploy button is clicked', async () => {
     const user = userEvent.setup();
-    const undeployMock = jest.fn();
+    const undeployMock = vi.fn();
     renderConfirmUndeployDialog({
       undeployAppFromEnvMock: undeployMock,
     });
@@ -70,7 +72,7 @@ describe('ConfirmUndeployDialog', () => {
 
   it('should display an error alert when the undeploy mutation fails', async () => {
     const user = userEvent.setup();
-    const undeployMock = jest.fn(() => Promise.reject(createApiErrorMock()));
+    const undeployMock = vi.fn(() => Promise.reject(createApiErrorMock()));
     renderConfirmUndeployDialog({
       undeployAppFromEnvMock: undeployMock,
     });
@@ -93,7 +95,7 @@ describe('ConfirmUndeployDialog', () => {
 
   it('should disable the undeploy-button while undeploy isPending', async () => {
     const user = userEvent.setup();
-    const undeployMock = jest.fn(() => new Promise((resolve) => setTimeout(resolve, 100)));
+    const undeployMock = vi.fn(() => new Promise<void>(() => {}));
 
     renderConfirmUndeployDialog({
       undeployAppFromEnvMock: undeployMock,
@@ -128,7 +130,7 @@ function getUndeployButton(): HTMLButtonElement | null {
 
 type RenderConfirmUndeployDialog = {
   environment?: string;
-  undeployAppFromEnvMock: jest.Mock;
+  undeployAppFromEnvMock: Mock;
 };
 
 function renderConfirmUndeployDialog({

@@ -32,6 +32,7 @@ export interface CompFileUploadExternal
   hasCustomFileEndings?: boolean;
   validFileEndings?: string | string[];
   alertOnDelete?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
 }
 
 export const componentConfig = {
@@ -62,4 +63,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: f1c8cd80ad11b68cefb2dce4748a0892e71feb693661c94a39b7e106ce08d210
+// Source hash: 0409c9cafede63a8fa1dacf30fd7712971f2b58f058dc9cc9a51415eb2dafdc7

@@ -21,9 +21,9 @@ describe('PDF', () => {
       enableResponseFuzzing: true,
       callback: () => {
         cy.findByRole('heading', { level: 1, name: /frontend-test/i }).should('be.visible');
-        cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
+        cy.findByRole('cell', { name: 'Mottaker:' }).parent().should('contain.text', 'Testdepartementet');
         cy.findByRole('heading', { level: 2, name: /appen for test av app frontend/i }).should('be.visible');
-        cy.findByRole('heading', { level: 2, name: /vedlegg/i }).should('be.visible');
+        cy.findByRole('heading', { name: /vedlegg/i }).should('not.exist');
       },
     });
   });
@@ -53,7 +53,7 @@ describe('PDF', () => {
       callback: () => {
         cy.get('@allRequests.all').then((_intercepts) => {
           const intercepts = _intercepts as unknown as Interception[];
-          expect(intercepts.length).to.be.greaterThan(4);
+          expect(intercepts.length).to.be.greaterThan(3);
 
           // We explicitly do not want keepAlive requests, since those should be disabled in PDF mode
           expect(
@@ -123,7 +123,7 @@ describe('PDF', () => {
       returnToForm: true,
       enableResponseFuzzing: true,
       callback: () => {
-        cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
+        cy.findByRole('cell', { name: 'Mottaker:' }).parent().should('contain.text', 'Testdepartementet');
         cy.getSummary('Nytt fornavn').should('contain.text', 'Ola');
         cy.getSummary('Nytt etternavn').should('contain.text', 'Nordmann');
         cy.getSummary('Nytt mellomnavn').should('contain.text', '"Big G"');
@@ -135,7 +135,7 @@ describe('PDF', () => {
         cy.getSummary('Bruksnummer').should('not.exist');
         cy.getSummary('Forklar din tilknytning til gårdsbruket').should('not.exist');
         cy.getSummary('Når vil du at navnendringen').should('contain.text', '01/01/2020');
-        cy.getSummary('Mobilnummer').should('contain.text', '+47 987 65 432');
+        cy.get('[data-summary-target="mobilnummer"]').should('contain.text', '+47 987 65 432');
         cy.getSummary('hvor fikk du vite om skjemaet').should('contain.text', 'Digitaliseringsdirektoratet');
         cy.getSummary('Referanse').should('contain.text', 'Sophie Salt');
         cy.getSummary('Referanse 2').should('contain.text', 'Dole');
@@ -167,7 +167,7 @@ describe('PDF', () => {
       callback: () =>
         // prettier-ignore
         {
-        cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
+        cy.findByRole('cell', { name: 'Mottaker:' }).parent().should('contain.text', 'Testdepartementet');
         cy.getSummary('Nytt fornavn').should('contain.text', 'Ola');
         cy.getSummary('Nytt etternavn').should('contain.text', 'Nordmann');
         cy.getSummary('Nytt mellomnavn').should('contain.text', '"Big G"');
@@ -179,16 +179,16 @@ describe('PDF', () => {
         cy.getSummary('Bruksnummer').should('contain.text', '56');
         cy.getSummary('Forklar din tilknytning til gårdsbruket').should('contain.text', 'Gris');
         cy.getSummary('Når vil du at navnendringen').should('contain.text', '01/01/2020');
-        cy.getSummary('Mobilnummer').should('contain.text', '+47 987 65 432');
+        cy.get('[data-summary-target="mobilnummer"]').should('contain.text', '+47 987 65 432');
         cy.getSummary('hvor fikk du vite om skjemaet').should('contain.text', 'Altinn');
         cy.getSummary('Referanse').should('contain.text', 'Ola Nordmann');
         cy.getSummary('Referanse 2').should('contain.text', 'Ole');
         cy.getSummary('Adresse').should('contain.text', 'Økern 1');
-        cy.getSummary('Velg lokasjon').findByRole('img', { name: 'Marker', description: '' }).should('be.visible');
-        cy.getSummary('Velg lokasjon').findByRole('tooltip', { name: 'Hankabakken 4' }).should('be.visible');
-        cy.getSummary('Velg lokasjon').findByRole('img', { name: 'Marker', description: 'Hankabakken 6' }).should('be.visible');
-        cy.getSummary('Velg lokasjon').findByRole('tooltip', { name: 'Hankabakken 6' }).should('be.visible');
-        cy.getSummary('Velg lokasjon').findByText(/Valgt lokasjon: 67(\.\d{1,6})?° nord, 16(\.\d{1,6})?° øst/).should('be.visible');
+        cy.get('[data-summary-target="map"]').findByRole('img', { name: 'Marker', description: '' }).should('be.visible');
+        cy.get('[data-summary-target="map"]').findByRole('tooltip', { name: 'Hankabakken 4' }).should('be.visible');
+        cy.get('[data-summary-target="map"]').findByRole('img', { name: 'Marker', description: 'Hankabakken 6' }).should('be.visible');
+        cy.get('[data-summary-target="map"]').findByRole('tooltip', { name: 'Hankabakken 6' }).should('be.visible');
+        cy.get('[data-summary-target="map"]').findByText(/Valgt lokasjon: 67(\.\d{1,6})?° nord, 16(\.\d{1,6})?° øst/).should('be.visible');
       },
     });
   });
@@ -224,16 +224,16 @@ describe('PDF', () => {
       snapshotName: 'group',
       enableResponseFuzzing: true,
       callback: () => {
-        cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
+        cy.findByRole('cell', { name: 'Mottaker:' }).parent().should('contain.text', 'Testdepartementet');
 
-        cy.getSummary('Group summary title').should('contain.text', 'Endre fra : NOK 1');
-        cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 1 til : NOK 5');
+        cy.getSummary('Group summary title').should('contain.text', 'Endre fraNOK 1');
+        cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 1 til NOK 5');
 
-        cy.getSummary('Group summary title').should('contain.text', 'Endre fra : NOK 120');
-        cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 120 til : NOK 350');
+        cy.getSummary('Group summary title').should('contain.text', 'Endre fraNOK 120');
+        cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 120 til NOK 350');
 
-        cy.getSummary('Group summary title').should('contain.text', 'Endre fra : NOK 1 233');
-        cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 1233 til : NOK 3 488');
+        cy.getSummary('Group summary title').should('contain.text', 'Endre fraNOK 1 233');
+        cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 1233 til NOK 3 488');
       },
     });
   });
@@ -273,8 +273,7 @@ describe('PDF', () => {
     });
   });
 
-  it('should generate PDF for group step (using Summary2 automatic PDF)', { retries: 0 }, () => {
-    cy.setFeatureToggle('betaPDFenabled', true);
+  it('should generate PDF for group step (using Summary2 automatic PDF by default)', { retries: 0 }, () => {
     cy.goto('group');
     cy.findByRole('checkbox', { name: /liten/i }).check();
     cy.findByRole('checkbox', { name: /middels/i }).check();
@@ -321,20 +320,20 @@ describe('PDF', () => {
       snapshotName: 'likert',
       enableResponseFuzzing: true,
       callback: () => {
-        cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
+        cy.findByRole('cell', { name: 'Mottaker:' }).parent().should('contain.text', 'Testdepartementet');
 
-        cy.getSummary('Skolearbeid').should('contain.text', 'Gjør du leksene dine? : Alltid');
-        cy.getSummary('Skolearbeid').should('contain.text', 'Fungerer kalkulatoren din? : Nesten alltid');
-        cy.getSummary('Skolearbeid').should('contain.text', 'Er pulten din ryddig? : Ofte');
+        cy.getSummary('Gjør du leksene dine?').should('contain.text', 'Alltid');
+        cy.getSummary('Fungerer kalkulatoren din?').should('contain.text', 'Nesten alltid');
+        cy.getSummary('Er pulten din ryddig?').should('contain.text', 'Ofte');
 
-        cy.getSummary('Medvirkning').should('contain.text', 'Hører skolen på elevenes forslag? : Alltid');
-        cy.getSummary('Medvirkning').should(
+        cy.getSummary('Hører skolen på elevenes forslag?').should('contain.text', 'Alltid');
+        cy.getSummary('Er dere elever med på å lage regler for hvordan dere skal ha det i klassen/gruppa?').should(
           'contain.text',
-          'Er dere elever med på å lage regler for hvordan dere skal ha det i klassen/gruppa? : Nesten alltid',
+          'Nesten alltid',
         );
-        cy.getSummary('Medvirkning').should(
+        cy.getSummary('De voksne på skolen synes det er viktig at vi elever er greie med hverandre.').should(
           'contain.text',
-          'De voksne på skolen synes det er viktig at vi elever er greie med hverandre. : Ofte',
+          'Ofte',
         );
       },
     });
@@ -355,7 +354,7 @@ describe('PDF', () => {
       snapshotName: 'datalist',
       enableResponseFuzzing: true,
       callback: () => {
-        cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
+        cy.findByRole('cell', { name: 'Mottaker:' }).parent().should('contain.text', 'Testdepartementet');
         cy.getSummary('Hvem gjelder saken?').should('contain.text', 'Caroline');
       },
     });
@@ -479,8 +478,10 @@ describe('PDF', () => {
     cy.testPdf({
       callback: () => {
         cy.findByRole('heading', { name: /grid gruppe/i }).should('be.visible');
-        cy.findByText('Prosentandel av gjeld i boliglån').should('be.visible');
-        cy.findByText('Utregnet totalprosent').should('be.visible');
+        cy.get('[data-summary-target="page3-grid"]').within(() => {
+          cy.findByRole('columnheader', { name: 'Fordeling' }).should('be.visible');
+          cy.findByRole('cell', { name: 'SUM' }).should('be.visible');
+        });
       },
     });
   });

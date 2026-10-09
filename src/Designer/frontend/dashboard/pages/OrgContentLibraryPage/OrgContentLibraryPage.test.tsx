@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrgContentLibraryPage } from './OrgContentLibraryPage';
 import type { RenderResult } from '@testing-library/react';
 import { screen, waitFor, act } from '@testing-library/react';
@@ -59,17 +60,17 @@ const publishedCodeListsQueryKey: string[] = [
 ];
 
 // Mocks:
-jest.mock('@studio/content-library', () => ({
-  ...jest.requireActual('@studio/content-library'),
+vi.mock('@studio/content-library', async () => ({
+  ...(await vi.importActual('@studio/content-library')),
   ContentLibrary: (props) => MockContentLibrary(props),
 }));
 
-const MockContentLibrary = jest
+const MockContentLibrary = vi
   .fn()
   .mockImplementation(() => <div data-testid={resourceLibraryTestId} />);
 const resourceLibraryTestId = 'resource-library';
 
-jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
+vi.mock('react-router-dom', async () => await vi.importActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 describe('OrgContentLibraryPage', () => {
   beforeEach(MockContentLibrary.mockClear);
@@ -145,7 +146,7 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('calls updateOrgCodeList with correct data when onUpdateCodeList is triggered', async () => {
-    const updateOrgCodeList = jest.fn();
+    const updateOrgCodeList = vi.fn();
     renderOrgContentLibraryWithData({ queries: { updateOrgCodeList } });
     const { title, data } = codeList1Data;
 
@@ -160,7 +161,7 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('calls updateOrgCodeListId with correct data when onUpdateCodeListId is triggered', async () => {
-    const updateOrgCodeListId = jest.fn();
+    const updateOrgCodeListId = vi.fn();
     renderOrgContentLibraryWithData({ queries: { updateOrgCodeListId } });
     const codeListId: string = codeList1Data.title;
     const newCodeListId: string = 'new-id';
@@ -173,7 +174,7 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('calls createOrgCodeList with correct data when onCreateCodeList is triggered', async () => {
-    const createOrgCodeList = jest.fn();
+    const createOrgCodeList = vi.fn();
     renderOrgContentLibraryWithData({ queries: { createOrgCodeList } });
     const { title, data } = codeList1Data;
 
@@ -188,7 +189,7 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('calls uploadOrgCodeList with correct data when onUploadCodeList is triggered', async () => {
-    const uploadOrgCodeList = jest.fn();
+    const uploadOrgCodeList = vi.fn();
     const file = new File([''], 'list.json');
     renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
@@ -202,7 +203,7 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('renders success toast when uploadOrgCodeList is run successfully', async () => {
-    const uploadOrgCodeList = jest.fn();
+    const uploadOrgCodeList = vi.fn();
     const file = new File([''], 'list.json');
     renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
@@ -214,7 +215,7 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('renders error toast when onUploadCodeList is rejected with unknown error code', async () => {
-    const uploadOrgCodeList = jest.fn().mockImplementation(() => Promise.reject({ response: {} }));
+    const uploadOrgCodeList = vi.fn().mockImplementation(() => Promise.reject({ response: {} }));
     const file = new File([''], 'list.json');
     renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
@@ -226,7 +227,7 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('calls deleteOrgCodeList with correct data when onDeleteCodeList is triggered', async () => {
-    const deleteOrgCodeList = jest.fn();
+    const deleteOrgCodeList = vi.fn();
     renderOrgContentLibraryWithData({ queries: { deleteOrgCodeList } });
 
     retrievePagesConfig().codeListsWithTextResources.onDeleteCodeList(codeList1Data.title);
@@ -255,7 +256,7 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('renders merge conflict warning when there is a merge conflict', async () => {
-    const getRepoStatus = jest
+    const getRepoStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: true }));
 
@@ -272,7 +273,7 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('does not render merge conflict warning when there is no merge conflict', async () => {
-    const getRepoStatus = jest
+    const getRepoStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
@@ -329,7 +330,7 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('Calls updateSharedResources with correct data when code list saving is triggered on the new code list page', async () => {
-    const updateSharedResources = jest.fn();
+    const updateSharedResources = vi.fn();
     renderOrgContentLibraryWithData({
       featureFlags: [FeatureFlag.NewCodeLists],
       queries: { updateSharedResources },
@@ -368,7 +369,7 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('Publishes a code list when publish is triggered on the new code list page', async () => {
-    const publishCodeList = jest.fn();
+    const publishCodeList = vi.fn();
     renderOrgContentLibraryWithData({
       featureFlags: [FeatureFlag.NewCodeLists],
       queries: { publishCodeList },

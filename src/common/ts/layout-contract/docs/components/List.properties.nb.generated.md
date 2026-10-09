@@ -12,19 +12,6 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir hvilken komponenttype konfigurasjonen gjelder.</div></div>
 </details>
 
-<details class="card adocs-expand adocs-expand-small component-property" id="readonly">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="readOnly">readOnly</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Valgfri</span>
-      <span class="component-property-default">Standardverdi: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.</div></div>
-</details>
-
 <details class="card adocs-expand adocs-expand-small component-property" id="required">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
@@ -94,10 +81,11 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
     <span class="component-property-name" title="labelSettings.optionalIndicator">labelSettings.optionalIndicator</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Valgfri</span>
+      <span class="component-property-default">Standardverdi: <span class="component-property-value">true</span></span>
       <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Viser en markering for valgfrie felt ved ledeteksten.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.</div></div>
 </details>
 
 <details class="component-property-group" id="textresourcebindings">
@@ -235,7 +223,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
     </span>
   </summary>
   <div class="component-property-group-content">
-    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler verdiene i komponenten til felter i datamodellen.</div></div>
+    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler verdiene i komponenten til felter i datamodellen. Andre egenskapsnavn er tillatt. Verditype: datamodellbinding.</div></div>
     <div class="component-property-list">
       <details class="card adocs-expand adocs-expand-small component-property" id="datamodelbindings.group">
         <summary class="component-property-summary">
@@ -286,7 +274,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler feltene i datalisten til kolonneoverskrifter.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler feltene i datalisten til kolonneoverskrifter. Andre egenskapsnavn er tillatt. Verditype: string.</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="sortablecolumns">
@@ -371,7 +359,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler parametere i spørringsstrengen til verdier. Parameterne legges til URL-en når alternativer hentes.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler parametere i spørringsstrengen til verdier. Parameterne legges til URL-en når alternativer hentes. Andre egenskapsnavn er tillatt. Verditype: string | expression&lt;string&gt;.</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="summarybinding">

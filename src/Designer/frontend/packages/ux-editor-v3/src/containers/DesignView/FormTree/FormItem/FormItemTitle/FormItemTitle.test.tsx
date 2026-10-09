@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';
 import type { FormComponent } from '../../../../../types/FormComponent';
@@ -9,13 +10,13 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // Mocks:
-const mockDeleteItem = jest.fn();
-jest.mock('./useDeleteItem', () => ({
+const mockDeleteItem = vi.fn();
+vi.mock('./useDeleteItem', () => ({
   useDeleteItem: () => mockDeleteItem,
 }));
 
 describe('FormItemTitle', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Renders children', () => {
     const component = componentMocks[ComponentType.Input];
@@ -31,7 +32,7 @@ describe('FormItemTitle', () => {
     const label = 'Test label';
 
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+    vi.spyOn(window, 'confirm').mockImplementation(vi.fn(() => true));
 
     render(component, label);
 
@@ -46,7 +47,7 @@ describe('FormItemTitle', () => {
     const label = 'Test label';
 
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => false));
+    vi.spyOn(window, 'confirm').mockImplementation(vi.fn(() => false));
     render(component, label);
 
     await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
@@ -59,8 +60,8 @@ describe('FormItemTitle', () => {
     const label = 'Test label';
 
     const user = userEvent.setup();
-    const mockedConfirm = jest.fn(() => true);
-    jest.spyOn(window, 'confirm').mockImplementation(mockedConfirm);
+    const mockedConfirm = vi.fn(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(mockedConfirm);
 
     render(component, label);
 
@@ -73,8 +74,8 @@ describe('FormItemTitle', () => {
     const label = 'Test label';
 
     const user = userEvent.setup();
-    const mockedConfirm = jest.fn(() => true);
-    jest.spyOn(window, 'confirm').mockImplementation(mockedConfirm);
+    const mockedConfirm = vi.fn(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(mockedConfirm);
 
     render(groupComponent, label);
 

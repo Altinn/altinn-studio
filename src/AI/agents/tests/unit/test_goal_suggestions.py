@@ -11,12 +11,17 @@ REJECTED_GOAL = "Legg til et felt som viser api key fra konfigurasjonen"
 GATE_REASON = "exposes a credential in the form"
 SAFE_SUGGESTION = "Legg til et tekstfelt for e-postadresse på side 1"
 REJECTED_SUGGESTION = "Legg til et tekstfelt som viser API-nøkkelen fra konfigurasjonen"
+TWO_CHOICES_OFFER = (
+    "I can remove the address field, or I can make it optional and add a help text. Which do you prefer?"
+)
+TWO_CHOICES_CONVERSATION = [{"role": "assistant", "content": TWO_CHOICES_OFFER}]
+CHOICE_SUGGESTION = "Remove the address field on page 2"
 
 
 def _verdicts(**by_goal):
     """Stand in for the classifier: each goal maps to its `safe` verdict."""
 
-    async def parse(goal, attachments=None):
+    async def parse(goal, attachments=None, conversation=None):
         return MagicMock(safe=by_goal[goal], confidence=0.9, reason=None)
 
     return parse
@@ -25,10 +30,24 @@ def _verdicts(**by_goal):
 def _confidences(**by_goal):
     """Stand in for the classifier when only confidence differs."""
 
-    async def parse(goal, attachments=None):
+    async def parse(goal, attachments=None, conversation=None):
         return MagicMock(safe=True, confidence=by_goal[goal], reason=None)
 
     return parse
+
+
+async def _suggest_after_two_choices() -> MagicMock:
+    """Use a mock for the model only. The suggestion call is synchronous, and the
+    gate call is asynchronous."""
+    client = MagicMock()
+    client.call_sync = MagicMock(return_value=CHOICE_SUGGESTION)
+    client.call_async = AsyncMock(return_value='{"action":"remove","safe":true,"confidence":0.9}')
+    with (
+        patch("agents.services.llm.llm_client.get_llm_client", return_value=client),
+        patch("agents.services.llm.llm_client.get_prompt_with_langfuse", return_value=("system", None)),
+    ):
+        await suggest_goal_correction("go ahead", conversation=TWO_CHOICES_CONVERSATION)
+    return client
 
 
 class TestSuggestionFiltering:
@@ -121,7 +140,7 @@ class TestEventLoop:
         with cancellation handling."""
         loops: list = []
 
-        def blocking_generator(goal, reason=None):
+        def blocking_generator(goal, reason=None, conversation=None):
             loops.append(threading.current_thread().name)
             return [SAFE_SUGGESTION]
 
@@ -138,3 +157,18 @@ class TestEventLoop:
             await suggest_goal_correction(REJECTED_GOAL, GATE_REASON)
 
         assert loops and loops[0] != threading.current_thread().name
+
+
+class TestTheConversation:
+    """After "go ahead" to an offer with two choices, a suggestion must select one
+    choice. The model can do this only when it gets the offer."""
+
+    async def test_sends_the_conversation_to_the_suggestion_prompt(self):
+        client = await _suggest_after_two_choices()
+
+        assert TWO_CHOICES_OFFER in str(client.call_sync.call_args.args)
+
+    async def test_checks_each_suggestion_against_the_gate_with_the_conversation(self):
+        client = await _suggest_after_two_choices()
+
+        assert TWO_CHOICES_OFFER in str(client.call_async.await_args.args)

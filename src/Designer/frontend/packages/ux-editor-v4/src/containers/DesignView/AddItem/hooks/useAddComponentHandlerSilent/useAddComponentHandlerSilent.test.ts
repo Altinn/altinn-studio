@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { useAddComponentHandlerSilent } from './useAddComponentHandlerSilent';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import type { IInternalLayout } from '../../../../../types/global';
@@ -6,8 +8,8 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useBaseAddComponentHandler } from '../useBaseAddComponentHandler/useBaseAddComponentHandler';
 
-jest.mock('../useBaseAddComponentHandler/useBaseAddComponentHandler', () => ({
-  useBaseAddComponentHandler: jest.fn(),
+vi.mock('../useBaseAddComponentHandler/useBaseAddComponentHandler', () => ({
+  useBaseAddComponentHandler: vi.fn(),
 }));
 
 const mockedItemToAdd: [ComponentType, string, number, string] = [
@@ -19,8 +21,8 @@ const mockedItemToAdd: [ComponentType, string, number, string] = [
 
 describe('useAddComponentHandlerSilent', () => {
   it('should call baseAddItem with correct arguments and an empty callback (silent)', () => {
-    const mockBaseAddItem = jest.fn();
-    (useBaseAddComponentHandler as jest.Mock).mockReturnValue({ addItem: mockBaseAddItem });
+    const mockBaseAddItem = vi.fn();
+    (useBaseAddComponentHandler as Mock).mockReturnValue({ addItem: mockBaseAddItem });
 
     const { addItem } = renderUseAddComponentHandlerSilent(layoutMock);
     addItem(...mockedItemToAdd);

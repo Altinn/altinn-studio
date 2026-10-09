@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, test, vi } from 'vitest';
 import type { IEditFormComponentProps } from './EditFormComponent';
 import { EditFormComponent } from './EditFormComponent';
 import { screen } from '@testing-library/react';
@@ -13,13 +14,13 @@ const srcValueLabel = 'Source';
 
 // Mocks:
 const imageSpecificContentId = 'image-specific-content';
-jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
+vi.mock('./componentSpecificContent/Image/ImageComponent', () => ({
   ImageComponent: () => <div data-testid={imageSpecificContentId} />,
 }));
 
 describe('EditFormComponent', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('should render Image component when component type is Image', async () => {
@@ -39,7 +40,7 @@ describe('EditFormComponent', () => {
 const defaultProps: IEditFormComponentProps = {
   editFormId: componentMocks[ComponentType.Input].id,
   component: componentMocks[ComponentType.Input],
-  handleComponentUpdate: jest.fn(),
+  handleComponentUpdate: vi.fn(),
 };
 
 const render = async (props: Partial<IEditFormComponentProps> = {}) => {

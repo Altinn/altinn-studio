@@ -8,7 +8,6 @@ import { Label, LabelInner } from 'src/components/label/Label';
 import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { FormStore } from 'src/features/form/FormContext';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
@@ -27,7 +26,8 @@ import { LayoutSetSummary } from 'src/layout/Summary2/SummaryComponent2/LayoutSe
 import { useSummaryOverrides } from 'src/layout/Summary2/summaryStoreContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { typedBoolean } from 'src/utils/typing';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -53,6 +53,7 @@ const SummarySubformWrapperInner = ({
             baseComponentId={targetBaseComponentId}
             id={`subform-summary2-${componentId}`}
             renderLabelAs='span'
+            hideIndicators
             weight='regular'
             textResourceBindings={{
               title,
@@ -140,6 +141,7 @@ const DoSummaryWrapper = ({
                   baseComponentId={baseComponentId}
                   id={`subform-summary2-${dataElement.id}`}
                   renderLabelAs='span'
+                  hideIndicators
                   weight='regular'
                   textResourceBindings={{ title }}
                 />
@@ -186,11 +188,8 @@ export function SubformSummaryComponent2({ targetBaseComponentId }: Summary2Prop
   const config = useComponentConfig(targetBaseComponentId, 'Subform');
   const dataType = getDefaultDataTypeFromUiFolder(config.layoutSet);
   const dataElements = useInstanceDataElements(dataType);
-  const minCount = getApplicationMetadata().dataTypes.find((dt) => dt.id === dataType)?.minCount;
   const hasElements = !!(dataType && dataElements.length > 0);
-  const config2 = useComponentConfig(targetBaseComponentId, 'Subform');
-  const evaluatedRequired = useEvalExpression(config2.required, Expressions.Subform.required);
-  const required = evaluatedRequired || (minCount !== undefined && minCount > 0);
+  const required = useComponentIsRequired(config);
 
   const inner =
     displayType === 'table' ? (

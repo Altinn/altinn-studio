@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { CreateFromTemplate, type CreateFromTemplateProps } from './CreateFromTemplate';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -102,7 +103,7 @@ function renderCreateFromTemplate(
 ) {
   const defaultProps: CreateFromTemplateProps = {
     selectedTemplate: null,
-    onChange: jest.fn(),
+    onChange: vi.fn(),
     username: 'testuser',
     organizations: [],
   };

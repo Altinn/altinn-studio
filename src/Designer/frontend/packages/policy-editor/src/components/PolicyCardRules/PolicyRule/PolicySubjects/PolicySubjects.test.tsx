@@ -1,6 +1,7 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { PolicyEditorContext } from '@altinn/policy-editor/contexts/PolicyEditorContext';
 import { PolicyRuleContext } from '@altinn/policy-editor/contexts/PolicyRuleContext';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -168,11 +169,12 @@ const subjects = [
 ];
 
 describe('PolicySubjects', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should show subject checkbox checked when subject is added with urn', async () => {
     const user = userEvent.setup();
     renderPolicySubjects();
+    await openOrgSubjects(user);
 
     const altinnRolesTab = screen.getByText(
       textMock('policy_editor.rule_card_subjects_altinn_roles'),
@@ -188,6 +190,7 @@ describe('PolicySubjects', () => {
   it('should show subject checkbox checked when subject is added with legacyUrn', async () => {
     const user = userEvent.setup();
     renderPolicySubjects();
+    await openOrgSubjects(user);
 
     const checkbox = screen.getByLabelText(
       `${revisorRoleSubject.name} (${revisorRoleSubject.legacyRoleCode})`,
@@ -263,8 +266,10 @@ describe('PolicySubjects', () => {
     ).toBeInTheDocument();
   });
 
-  it('should show ccr subjects in first tab', () => {
+  it('should show ccr subjects in first tab', async () => {
+    const user = userEvent.setup();
     renderPolicySubjects();
+    await openOrgSubjects(user);
 
     expect(
       screen.getByText(`${revisorRoleSubject.name} (${revisorRoleSubject.legacyRoleCode})`),
@@ -274,11 +279,12 @@ describe('PolicySubjects', () => {
   it('should show person access packages in first tab', async () => {
     const user = userEvent.setup();
     renderPolicySubjects();
+    await openPersonSubjects(user);
 
-    const accessPackagesTab = screen.getAllByRole('tab', {
+    const accessPackagesTab = screen.getByRole('tab', {
       name: textMock('policy_editor.rule_card_subjects_access_packages'),
     });
-    await user.click(accessPackagesTab[1]);
+    await user.click(accessPackagesTab);
 
     expect(screen.getByText(skatteforhold.name)).toBeInTheDocument();
   });
@@ -286,6 +292,7 @@ describe('PolicySubjects', () => {
   it('should show altinn 2 and altinn 3 roles in third tab', async () => {
     const user = userEvent.setup();
     renderPolicySubjects();
+    await openOrgSubjects(user);
 
     const altinnRolesTab = screen.getByText(
       textMock('policy_editor.rule_card_subjects_altinn_roles'),
@@ -301,11 +308,12 @@ describe('PolicySubjects', () => {
   it('should show org subject in fourth tab', async () => {
     const user = userEvent.setup();
     renderPolicySubjects();
+    await openOrgSubjects(user);
 
-    const otherRolesTab = screen.getAllByRole('tab', {
+    const otherRolesTab = screen.getByRole('tab', {
       name: textMock('policy_editor.rule_card_subjects_other_roles'),
     });
-    await user.click(otherRolesTab[0]);
+    await user.click(otherRolesTab);
 
     expect(
       screen.getByText(`${policySubjectOrg.name} (${policySubjectOrg.legacyRoleCode})`),
@@ -315,17 +323,29 @@ describe('PolicySubjects', () => {
   it('should show priv subject in person tab', async () => {
     const user = userEvent.setup();
     renderPolicySubjects();
+    await openPersonSubjects(user);
 
-    const otherRolesTab = screen.getAllByRole('tab', {
+    const otherRolesTab = screen.getByRole('tab', {
       name: textMock('policy_editor.rule_card_subjects_other_roles'),
     });
-    await user.click(otherRolesTab[1]);
+    await user.click(otherRolesTab);
 
     expect(
       screen.getByText(`${privRoleSubject.name} (${privRoleSubject.legacyRoleCode})`),
     ).toBeInTheDocument();
   });
 });
+
+const openOrgSubjects = async (user: UserEvent): Promise<void> => {
+  await user.click(getDetailsSummary(textMock('policy_editor.org_subjects_header')));
+};
+
+const openPersonSubjects = async (user: UserEvent): Promise<void> => {
+  await user.click(getDetailsSummary(textMock('policy_editor.person_subjects_header')));
+};
+
+// The header text is also shown above the chosen subjects, so pick the details summary rendered last
+const getDetailsSummary = (text: string): HTMLElement => screen.getAllByText(text).at(-1);
 
 const renderPolicySubjects = () => {
   const queryClient = createQueryClientMock();

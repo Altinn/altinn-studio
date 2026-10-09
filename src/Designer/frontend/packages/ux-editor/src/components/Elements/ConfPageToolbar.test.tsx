@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import {
@@ -57,7 +58,7 @@ describe('ConfPageToolbar', () => {
 
 const renderConfPageToolbar = (confPageType: ConfPageType) => {
   return renderWithProviders(
-    <StudioDragAndDropTree.Provider rootId='test' onAdd={jest.fn()} onMove={jest.fn()}>
+    <StudioDragAndDropTree.Provider rootId='test' onAdd={vi.fn()} onMove={vi.fn()}>
       <ConfPageToolbar confPageType={confPageType} />
     </StudioDragAndDropTree.Provider>,
   );

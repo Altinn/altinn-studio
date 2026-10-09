@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { getComponentSelection } from './AddItemUtils';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';

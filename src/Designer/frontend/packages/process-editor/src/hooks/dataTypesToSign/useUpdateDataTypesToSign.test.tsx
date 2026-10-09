@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { ReactNode } from 'react';
 import { act, renderHook } from '@testing-library/react';
 import BpmnModdle from 'bpmn-moddle';

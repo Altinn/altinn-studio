@@ -71,9 +71,6 @@ export const getCreateInstancesUrl = (partyId: number, language?: string) => {
   return `${appPath}/instances${queryString}`;
 };
 
-export const getPdfFormatUrl = (instanceId: string, dataElementId: string) =>
-  `${appPath}/instances/${instanceId}/data/${dataElementId}/pdf/format`;
-
 export const getPdfPreviewUrl = (instanceId: string, language: string) => {
   const queryString = getQueryStringFromObject({ language });
   return `${appPath}/instances/${instanceId}/pdf/preview${queryString}`;

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import React, { useEffect } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { AppContextProps, WindowWithQueryClient } from './AppContext';
@@ -52,8 +53,8 @@ const clickButton = async () => {
 
 const renderAppContext = (children: (appContext: AppContextProps) => React.ReactNode) => {
   const queryClient = createQueryClientMock();
-  queryClient.invalidateQueries = jest.fn();
-  queryClient.resetQueries = jest.fn();
+  queryClient.invalidateQueries = vi.fn();
+  queryClient.resetQueries = vi.fn();
   queryClient.setQueryData(
     [QueryKey.LayoutSets, org, app],
     [
@@ -77,8 +78,8 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
         <ServicesContextProvider {...queriesMock} client={queryClient}>
           <AppContextProvider
             shouldReloadPreview={false}
-            previewHasLoaded={jest.fn()}
-            onLayoutSetNameChange={jest.fn()}
+            previewHasLoaded={vi.fn()}
+            onLayoutSetNameChange={vi.fn()}
           >
             <TestComponent queryClient={queryClient}>
               {(appContext: AppContextProps) => children(appContext)}
@@ -92,7 +93,7 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
 };
 
 describe('AppContext', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('sets selectedFormLayoutName correctly', async () => {
     renderAppContext(({ selectedFormLayoutName, setSelectedFormLayoutName }: AppContextProps) => (

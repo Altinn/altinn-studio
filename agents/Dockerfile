@@ -6,6 +6,7 @@ ENV PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sb
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
+        btop \
         build-essential \
         ca-certificates \
         curl \
@@ -72,6 +73,8 @@ RUN case "${TARGETARCH}" in \
         --no-path \
         --version "${DOTNET_VERSION}" \
     && ln -s "${DOTNET_ROOT}/dotnet" /usr/local/bin/dotnet \
+    && install -d /etc/dotnet \
+    && printf '%s\n' "${DOTNET_ROOT}" >/etc/dotnet/install_location \
     && rm -f /tmp/dotnet-install.sh /tmp/go.tar.gz /tmp/node.tar.xz
 
 ARG YARN_VERSION=4.18.0
@@ -169,8 +172,25 @@ RUN case "${TARGETARCH}" in \
     && rm -f /tmp/typos.tar.gz /tmp/typos \
     && test "$(typos --version)" = "typos-cli ${TYPOS_VERSION}"
 
-ARG CODEX_VERSION=0.159.3
-ARG CLAUDE_CODE_VERSION=2.1.286
+# Installs the .NET tools listed in dotnet-tools.json, kept in the .NET tool manifest format so
+# Renovate updates it, to a shared path because the host resynchronizes the Agent's home directory.
+COPY dotnet-tools.json /tmp/dotnet-tools.json
+RUN set -eu; \
+    scratch="$(mktemp -d)"; \
+    export HOME="${scratch}" TMPDIR="${scratch}" DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1; \
+    for tool in $(jq -r '.tools | keys[]' /tmp/dotnet-tools.json); do \
+        dotnet tool install "${tool}" --tool-path /usr/local/share/dotnet-tools \
+            --version "$(jq -r --arg tool "${tool}" '.tools[$tool].version' /tmp/dotnet-tools.json)"; \
+        for command in $(jq -r --arg tool "${tool}" '.tools[$tool].commands[]' /tmp/dotnet-tools.json); do \
+            ln -s "/usr/local/share/dotnet-tools/${command}" "/usr/local/bin/${command}"; \
+            "${command}" --version; \
+        done; \
+    done; \
+    find /usr/local/share/dotnet-tools/.store -name '*.nupkg' -delete; \
+    rm -rf "${scratch}" /tmp/dotnet-tools.json
+
+ARG CODEX_VERSION=0.160.1
+ARG CLAUDE_CODE_VERSION=2.1.292
 ARG STUDIOCTL_VERSION=v0.1.0-preview.26
 ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=41654173a78f09fdb9ed8bfc0e223169fba7158ef5e5a8401201133b5b1bad51
 
@@ -282,6 +302,7 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && codex --version \
     && test "$(id -u agent)" = 1000 \
     && hunspell -v \
+    && btop --version \
     && nvim --version \
     && nvim --headless \
         "+lua assert(vim.g.colors_name == 'habamax'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
@@ -324,34 +345,52 @@ ENV PATH=/home/agent/.cargo/bin:${PATH}
 
 # Podman's netavark backend invokes nft for rootful bridge networking and aardvark-dns for
 # container-name resolution between compose services. libcap-ng-dev links the Microsandbox runtime,
-# as in the self-dev example.
+# as in the self-dev example. python3-venv and pip let the Python projects under src/AI create their
+# own virtual environments; the system interpreter stays externally managed. postgresql-client
+# inspects the Postgres instances the compose stacks start, and the network tools debug LocalTest,
+# studioctl and container ports.
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         aardvark-dns \
+        bind9-dnsutils \
         catatonit \
         clang \
         ffmpeg \
+        file \
+        hyperfine \
         iproute2 \
+        less \
         libcap-ng-dev \
         libnss3-tools \
         lldb \
         linux-perf \
+        lsof \
+        netcat-openbsd \
         nftables \
         podman \
         podman-compose \
         podman-docker \
+        postgresql-client \
+        python3-pip \
+        python3-venv \
         qemu-system \
+        rsync \
         rustup \
+        shellcheck \
+        socat \
         strace \
+        tcpdump \
+        unzip \
+        zip \
     && rm -rf /var/lib/apt/lists/* \
     && CARGO_HOME=/usr/local/cargo rustup set profile minimal \
     && CARGO_HOME=/usr/local/cargo rustup default "${RUST_VERSION}" \
     && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt \
     && chown -R agent:agent /usr/local/rustup
 
-# The Rust workspaces' `make deps-check` (src/experimental, src/ci/github-runner/coordinator) runs
-# cargo-machete. The release binary is published per architecture, so the digests are pinned here;
-# the version matches the CI workflows that install it and must move together with them.
+# The Rust workspace's `make deps-check` (src/ci/github-runner/coordinator) runs cargo-machete. The
+# release binary is published per architecture, so the digests are pinned here; the version matches
+# the CI workflows that install it and must move together with them.
 ARG CARGO_MACHETE_VERSION=0.9.2
 
 RUN case "${TARGETARCH}" in \
@@ -453,7 +492,65 @@ RUN case "${TARGETARCH}" in \
     && kubectl version --client \
     && helm version --short \
     && flux --version \
-    && ffmpeg -version
+    && ffmpeg -version \
+    && python3 -m venv /tmp/venv-check \
+    && /tmp/venv-check/bin/pip --version \
+    && rm -rf /tmp/venv-check \
+    && psql --version \
+    && shellcheck --version \
+    && hyperfine --version \
+    && socat -V | head -1 \
+    && tcpdump --version \
+    && dig -v \
+    && unzip -v | head -1
+
+# Docker API clients such as agentctl's image builds and Testcontainers read DOCKER_HOST, not the
+# CONTAINER_HOST that agentd gives a Session. podman-docker's profile script would otherwise point
+# it at a rootless socket under XDG_RUNTIME_DIR that nothing serves, so use the rootful socket the
+# agent group can reach, as /run/docker.sock does.
+ENV DOCKER_HOST=unix:///run/podman/podman.sock
+
+# yq edits the manifests the deploy workflows patch, actionlint checks the GitHub workflows, and
+# cargo-deny runs the root deny.toml that CI checks with cargo-deny-action. All three are static
+# binaries published per architecture, so the digests are pinned here and must move together with
+# the version.
+ARG ACTIONLINT_VERSION=1.7.12
+ARG CARGO_DENY_VERSION=0.20.2
+ARG YQ_VERSION=4.54.1
+
+RUN case "${TARGETARCH}" in \
+        amd64) PORTABLE_ARCH=amd64; RUST_ARCH=x86_64; \
+            ACTIONLINT_SHA256=8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8; \
+            CARGO_DENY_SHA256=9f12ed4c49936e09b48bf862b595cde2fe64fcbd9d74dfacac6131ca824c8d5f; \
+            YQ_SHA256=8e34fc298390875de416e6a4afcb8cabeceb25d9aa8506c1a2f9353cf702ea5f ;; \
+        arm64) PORTABLE_ARCH=arm64; RUST_ARCH=aarch64; \
+            ACTIONLINT_SHA256=325e971b6ba9bfa504672e29be93c24981eeb1c07576d730e9f7c8805afff0c6; \
+            CARGO_DENY_SHA256=995c82be0defc7a025cae49a2aa2644ce8245c9a3318fc4103907c6a285e8c7d; \
+            YQ_SHA256=189088da0c6429ec5178dfaab1a114805f6cab0b61b165ab236efedf1d57a71b ;; \
+        *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL \
+        "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_${PORTABLE_ARCH}.tar.gz" \
+        -o /tmp/actionlint.tar.gz \
+    && echo "${ACTIONLINT_SHA256}  /tmp/actionlint.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/actionlint.tar.gz -C /tmp actionlint \
+    && install -m 0755 /tmp/actionlint /usr/local/bin/actionlint \
+    && CARGO_DENY_NAME="cargo-deny-${CARGO_DENY_VERSION}-${RUST_ARCH}-unknown-linux-musl" \
+    && curl -fsSL \
+        "https://github.com/EmbarkStudios/cargo-deny/releases/download/${CARGO_DENY_VERSION}/${CARGO_DENY_NAME}.tar.gz" \
+        -o /tmp/cargo-deny.tar.gz \
+    && echo "${CARGO_DENY_SHA256}  /tmp/cargo-deny.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/cargo-deny.tar.gz -C /tmp "${CARGO_DENY_NAME}/cargo-deny" \
+    && install -m 0755 "/tmp/${CARGO_DENY_NAME}/cargo-deny" /usr/local/bin/cargo-deny \
+    && curl -fsSL \
+        "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${PORTABLE_ARCH}" \
+        -o /tmp/yq \
+    && echo "${YQ_SHA256}  /tmp/yq" | sha256sum -c - \
+    && install -m 0755 /tmp/yq /usr/local/bin/yq \
+    && rm -rf /tmp/actionlint /tmp/actionlint.tar.gz /tmp/cargo-deny.tar.gz "/tmp/${CARGO_DENY_NAME}" /tmp/yq \
+    && test "$(actionlint --version | head -1)" = "${ACTIONLINT_VERSION}" \
+    && test "$(cargo-deny --version)" = "cargo-deny ${CARGO_DENY_VERSION}" \
+    && yq --version | grep -qF "v${YQ_VERSION}"
 
 # Kind bind-mounts /lib/modules read-only into every node container. Podman fails the run when the
 # source path is missing where Docker would create it, and the Sandbox kernel is built without

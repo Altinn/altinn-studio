@@ -1,0 +1,51 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+  margin: var(--ds-size-4);
+}
+
+.a2subjectsAndOtherSubjects {
+  border-left: 4px solid var(--ds-color-warning-base-default);
+  padding-left: var(--ds-size-2);
+  margin-bottom: var(--ds-size-8);
+}
+
+.onlyA2Subjects {
+  border-left: 4px solid var(--ds-color-danger-base-default);
+  padding-left: var(--ds-size-2);
+  margin-bottom: var(--ds-size-8);
+}
+
+.dialogHeading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--ds-color-neutral-background-default);
+  box-shadow: 0px 1px 1px 1px var(--ds-color-neutral-background-default);
+  border-bottom: 1px solid var(--dsc-dialog-divider-border-color);
+}
+
+.buttonRow {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  position: sticky;
+  bottom: 0;
+  background-color: var(--ds-color-neutral-background-default);
+}
+
+.altinn2RolesAlert {
+  margin-left: auto;
+}
+
+.subject {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  background-color: var(--ds-color-neutral-background-tinted);
+  margin-bottom: var(--ds-size-2);
+  border: 1px solid var(--ds-color-neutral-border-subtle);
+  padding: var(--ds-size-1) var(--ds-size-2);
+  border-radius: var(--ds-border-radius-md);
+}

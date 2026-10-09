@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { useAppSettingsMenuTabConfigs } from './useAppSettingsMenuTabConfigs';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderHookWithProviders } from 'app-development/test/mocks';

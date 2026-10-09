@@ -1,3 +1,4 @@
+import { describe, expect, test, vi } from 'vitest';
 import type { EditTextResourceBindingProps } from './EditTextResourceBinding';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
 import { screen, waitFor } from '@testing-library/react';
@@ -45,7 +46,7 @@ describe('EditTextResourceBindings component', () => {
   });
 
   test('that handleComponentChange is called when adding a new text', async () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     await renderEditTextResourceBindingsComponent({
       handleComponentChange,
       textKey: 'does-not-exist',
@@ -55,7 +56,7 @@ describe('EditTextResourceBindings component', () => {
   });
 
   test('that handleComponentChange is called when choosing existing text', async () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     await renderEditTextResourceBindingsComponent({
       handleComponentChange,
       textKey: 'does-not-exist',
@@ -84,8 +85,8 @@ describe('EditTextResourceBindings component', () => {
   });
 
   test('That handleComponentChange and removeTextResourceBinding are called when confirm delete textResourceBinding button is clicked', async () => {
-    const handleComponentChange = jest.fn();
-    const removeTextResourceBinding = jest.fn();
+    const handleComponentChange = vi.fn();
+    const removeTextResourceBinding = vi.fn();
     await renderEditTextResourceBindingsComponent({
       handleComponentChange,
       removeTextResourceBinding,
@@ -110,7 +111,7 @@ describe('EditTextResourceBindings component', () => {
     const { result } = renderHookWithMockStore(
       {},
       {
-        getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
+        getTextLanguages: vi.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
         getTextResources: (_o, _a, lang) =>
           Promise.resolve<ITextResourcesWithLanguage>({
             language: lang,

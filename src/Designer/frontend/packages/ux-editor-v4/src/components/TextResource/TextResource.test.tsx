@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { createQueryClientMock, queryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -14,8 +15,8 @@ import { app, org } from '@studio/testing/testids';
 const user = userEvent.setup();
 
 // Test data:
-const handleIdChange = jest.fn();
-const handleRemoveTextResource = jest.fn();
+const handleIdChange = vi.fn();
+const handleRemoveTextResource = vi.fn();
 const defaultProps: TextResourceProps = { handleIdChange, handleRemoveTextResource };
 const textValue = 'Some text value';
 const idText = 'test';
@@ -28,7 +29,7 @@ const textResources: ITextResource[] = [
 
 describe('TextResource', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     queryClientMock.clear();
   });
 
@@ -99,16 +100,16 @@ describe('TextResource', () => {
     const combobox = screen.getByRole('combobox');
     expect(combobox).toBeInTheDocument();
     await user.click(combobox);
-    expect(screen.getAllByRole('option')).toHaveLength(textResources.length + 1); // + 1 because of the "none" option
+    await user.clear(combobox);
+    expect(screen.getAllByRole('option')).toHaveLength(textResources.length);
   });
 
   it('Calls handleIdChange when selection in search section is changed and saved', async () => {
     await renderAndOpenSearchSection();
 
-    await user.selectOptions(
-      screen.getByRole('combobox'),
-      screen.getByRole('option', { name: textResources[1].id }),
-    );
+    await user.click(screen.getByRole('combobox'));
+    await user.clear(screen.getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: RegExp(textResources[1].value) }));
     await user.click(getSaveButton());
 
     expect(handleIdChange).toHaveBeenCalledTimes(1);
@@ -116,7 +117,7 @@ describe('TextResource', () => {
   });
 
   it('Calls handleRemoveTextResourceBinding when the user clicks the delete button and confirms', async () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     const label = 'Test';
     const testTextResource = { id: idText, value: textValue };
     renderTextResource({ label, textResourceId: idText }, [testTextResource]);
@@ -126,7 +127,7 @@ describe('TextResource', () => {
   });
 
   it('Does not call handleRemoveTextResourceBinding when the user cancels the deletion', async () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(false);
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
     const label = 'Test';
     const testTextResource = { id: idText, value: textValue };
     renderTextResource({ label, textResourceId: idText }, [testTextResource]);
@@ -164,7 +165,7 @@ describe('TextResource', () => {
   it('Does not show scrollbar when text content is shorter than default min height', async () => {
     const label = 'Test';
     const textResourceId = textResources[0].id;
-    const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
+    const upsertTextResources = vi.fn().mockImplementation(() => Promise.resolve());
     renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
     await user.click(screen.getByRole('button', { name: label }));
     const textbox = screen.getByRole('textbox', {

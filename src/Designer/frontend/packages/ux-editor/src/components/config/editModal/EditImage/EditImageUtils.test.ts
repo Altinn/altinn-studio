@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { componentMocks } from '../../../../testing/componentMocks';
 import {
   extractFileNameFromImageSrc,

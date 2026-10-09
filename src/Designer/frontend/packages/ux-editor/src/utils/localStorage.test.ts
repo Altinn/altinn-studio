@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { cleanupStaleLocalStorageKeys } from './localStorageUtils';
 import { typedLocalStorage } from '@studio/pure-functions';
 

@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { ColumnElement, type ColumnElementProps } from './ColumnElement';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -33,18 +34,18 @@ const defaultProps: ColumnElementProps = {
   tableColumn: mockTableColumn,
   columnNumber: columnNumberMock,
   isInitialOpenForEdit: false,
-  onDeleteColumn: jest.fn(),
-  onChange: jest.fn(),
+  onDeleteColumn: vi.fn(),
+  onChange: vi.fn(),
   subformLayout: layoutSet3SubformNameMock,
 };
 
 describe('ColumnElement', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should call onChange with component values when selecting component', async () => {
-    const onChangeMock = jest.fn();
+    const onChangeMock = vi.fn();
 
     const user = userEvent.setup();
     renderColumnElement({
@@ -90,7 +91,7 @@ describe('ColumnElement', () => {
   });
 
   it('should call onDeleteColumn when delete button is clicked', async () => {
-    const onDeleteColumnMock = jest.fn();
+    const onDeleteColumnMock = vi.fn();
 
     const user = userEvent.setup();
     renderColumnElement({

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ActionLinks } from './ActionLinks';
@@ -43,7 +44,7 @@ describe('ActionLinks', () => {
 
   it('should open a new tab when clicking "Open in new tab" in the dropdown menu', async () => {
     const user = userEvent.setup();
-    window.open = jest.fn();
+    window.open = vi.fn();
     const queryClient = createQueryClientMock();
     mockUserAndOrganizationsQueries(queryClient);
     renderWithProviders(<ActionLinks repo={repo} />, { queryClient });

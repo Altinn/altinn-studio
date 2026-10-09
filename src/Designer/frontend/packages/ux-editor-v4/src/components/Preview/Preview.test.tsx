@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Preview } from './Preview';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';
@@ -12,11 +13,11 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 describe('Preview', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('Renders an iframe with the ref from AppContext', async () => {
@@ -127,10 +128,10 @@ describe('Preview', () => {
   it('should show a warning that subform is unsupported in preview', async () => {
     render({
       queries: {
-        getLayoutSets: jest
+        getLayoutSets: vi
           .fn()
           .mockImplementation(() => Promise.resolve([{ id: layoutSet, type: 'subform' }])),
-        createPreviewInstance: jest
+        createPreviewInstance: vi
           .fn()
           .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),
       },
@@ -146,7 +147,7 @@ describe('Preview', () => {
   it('should show error message when preview instance creation fails', async () => {
     render({
       queries: {
-        createPreviewInstance: jest.fn().mockImplementation(() => Promise.reject('Error')),
+        createPreviewInstance: vi.fn().mockImplementation(() => Promise.reject('Error')),
       },
     });
     await waitForElementToBeRemoved(() =>
@@ -157,12 +158,12 @@ describe('Preview', () => {
   });
 });
 
-const collapseToggle = jest.fn();
+const collapseToggle = vi.fn();
 const mockInstanceId = '1';
 
 export const render = (options: Partial<ExtendedRenderOptions> = {}) => {
   const defaultQueries = {
-    createPreviewInstance: jest
+    createPreviewInstance: vi
       .fn()
       .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),
   };

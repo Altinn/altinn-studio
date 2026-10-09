@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { RenderResult } from '@testing-library/react';
@@ -8,14 +10,14 @@ import { mockBpmnContextValue } from '../../../../../../test/mocks/bpmnContextMo
 import { BpmnActionModeler, type Action } from '../../../../../utils/bpmnModeler/BpmnActionModeler';
 import { BpmnConfigPanelFormContextProvider } from '../../../../../contexts/BpmnConfigPanelContext';
 
-jest.mock('../../../../../utils/bpmnModeler/BpmnActionModeler');
+vi.mock('../../../../../utils/bpmnModeler/BpmnActionModeler');
 
 const actionElementMock: Action = {
   $type: 'altinn:Action',
   action: 'reject',
 };
 
-const onDeleteClick = jest.fn();
+const onDeleteClick = vi.fn();
 const defaultActionsEditorProps: ActionsEditorProps = {
   actionElement: actionElementMock,
   mode: 'view',
@@ -24,7 +26,7 @@ const defaultActionsEditorProps: ActionsEditorProps = {
 };
 
 describe('ActionsEditor', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should display action in view mode by default', () => {
     renderActionsEditor();
@@ -91,12 +93,12 @@ describe('ActionsEditor', () => {
 
   it('should be possible to delete action from task', async () => {
     const user = userEvent.setup();
-    const deleteActionFromTaskMock = jest.fn();
+    const deleteActionFromTaskMock = vi.fn();
 
-    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+    (BpmnActionModeler as Mock).mockImplementation(function () {
       return {
         deleteActionFromTask: deleteActionFromTaskMock,
-        getTypeForAction: jest.fn(),
+        getTypeForAction: vi.fn(),
       };
     });
 
@@ -128,12 +130,12 @@ describe('ActionsEditor', () => {
 
   it('should invoke onDeleteClick callback', async () => {
     const user = userEvent.setup();
-    const deleteActionFromTaskMock = jest.fn();
+    const deleteActionFromTaskMock = vi.fn();
 
-    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+    (BpmnActionModeler as Mock).mockImplementation(function () {
       return {
         deleteActionFromTask: deleteActionFromTaskMock,
-        getTypeForAction: jest.fn(),
+        getTypeForAction: vi.fn(),
       };
     });
     renderActionsEditor({ mode: 'edit' });
@@ -149,12 +151,12 @@ describe('ActionsEditor', () => {
 
   it('should invoke onDelete callback when closing edit mode without adding an action', async () => {
     const user = userEvent.setup();
-    const deleteActionFromTaskMock = jest.fn();
+    const deleteActionFromTaskMock = vi.fn();
 
-    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+    (BpmnActionModeler as Mock).mockImplementation(function () {
       return {
         deleteActionFromTask: deleteActionFromTaskMock,
-        getTypeForAction: jest.fn(),
+        getTypeForAction: vi.fn(),
       };
     });
     renderActionsEditor({
@@ -171,7 +173,7 @@ describe('ActionsEditor', () => {
 
   it('should be possible to toggle between predefined and custom actions', async () => {
     const user = userEvent.setup();
-    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+    (BpmnActionModeler as Mock).mockImplementation(function () {
       return {
         getTypeForAction: () => 'serverAction',
       };
@@ -200,7 +202,7 @@ describe('ActionsEditor', () => {
   });
 
   it('should display custom action view when action is of type custom', () => {
-    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+    (BpmnActionModeler as Mock).mockImplementation(function () {
       return {
         getTypeForAction: () => 'serverAction',
       };

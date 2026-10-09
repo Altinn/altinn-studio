@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -20,6 +21,8 @@ from shared.utils.spotlight import (
     defang_delimiter,
     open_delimiter,
 )
+
+from .recent_turns import prepend_recent_turns
 
 if TYPE_CHECKING:
     from anthropic import Anthropic
@@ -553,20 +556,29 @@ def get_llm_client(role: str = "default") -> LLMClient:
     return client
 
 
-def build_intent_parse_message(goal: str, attachment_names: list[str] | None = None) -> str:
+def build_intent_parse_message(
+    goal: str,
+    attachment_names: list[str] | None = None,
+    conversation: Sequence[Any] | None = None,
+) -> str:
     """The user message the safety gate sees, as a value so a dataset can send
     exactly what production sends."""
     message = f"Parse this goal: {goal}"
     if attachment_names:
         names = ", ".join(attachment_names)
         message = f"{message}\n\nAttachment filenames (content not shown): {names}"
-    return message
+    return prepend_recent_turns(message, conversation)
 
 
-async def parse_intent_with_llm(goal: str, attachments: list[AgentAttachment] | None = None) -> dict[str, Any]:
+async def parse_intent_with_llm(
+    goal: str,
+    attachments: list[AgentAttachment] | None = None,
+    conversation: Sequence[Any] | None = None,
+) -> dict[str, Any]:
     """Parse user intent using LLM."""
     system_prompt, lf_prompt = get_prompt_with_langfuse("intent_check", local_path="intent_security")
-    user_prompt = build_intent_parse_message(goal, [a.name for a in attachments] if attachments else None)
+    attachment_names = [attachment.name for attachment in attachments or []]
+    user_prompt = build_intent_parse_message(goal, attachment_names, conversation=conversation)
 
     client = get_llm_client()
     response = await client.call_async(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
@@ -599,7 +611,11 @@ async def parse_intent_with_llm(goal: str, attachments: list[AgentAttachment] | 
         }
 
 
-def suggest_goals_with_llm(rejected_goal: str, rejection_reason: str | None = None) -> list[str]:
+def suggest_goals_with_llm(
+    rejected_goal: str,
+    rejection_reason: str | None = None,
+    conversation: Sequence[Any] | None = None,
+) -> list[str]:
     """Generate goal suggestions using LLM"""
     system_prompt, lf_prompt = get_prompt_with_langfuse("goal_suggestions")
 
@@ -613,6 +629,7 @@ def suggest_goals_with_llm(rejected_goal: str, rejection_reason: str | None = No
     )
     # The chips sit next to a rejection written in the user's language.
     user_prompt += "\nWrite them in the same language as the goal above.\nOne goal per line, no numbering."
+    user_prompt = prepend_recent_turns(user_prompt, conversation)
 
     try:
         client = get_llm_client()

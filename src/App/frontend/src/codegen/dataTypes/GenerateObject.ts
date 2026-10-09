@@ -3,10 +3,11 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
 import { DescribableCodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
-import { getSourceForCommon } from 'src/codegen/Common';
+import { getCommonProperty, getSourceForCommon } from 'src/codegen/Common';
 import { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
 import { prefixExpressionDescriptors } from 'src/codegen/ExpressionDescriptors';
 import type { CodeGenerator, CodeGeneratorWithProperties, Extract } from 'src/codegen/CodeGenerator';
+import type { CommonPropertyKeys } from 'src/codegen/Common';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
 import type { ExpressionDescriptorEntry } from 'src/codegen/ExpressionDescriptors';
 
@@ -29,7 +30,7 @@ export class GenerateObject<P extends Props>
 {
   private readonly properties: P;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private _additionalProperties: CodeGenerator<any> | false = false;
+  private _additionalProperties: CodeGenerator<any> | boolean = false;
   private _extends: Extendables[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _extendedBy: GenerateObject<any>[] = [];
@@ -78,7 +79,7 @@ export class GenerateObject<P extends Props>
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  additionalProperties(type: CodeGenerator<any> | false) {
+  additionalProperties(type: CodeGenerator<any> | boolean) {
     this.ensureMutable();
     this._additionalProperties = type;
     return this;
@@ -89,8 +90,9 @@ export class GenerateObject<P extends Props>
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  addProperty(prop: GenerateProperty<any>): this {
+  addProperty(property: GenerateProperty<any> | GenerateCommonImport<CommonPropertyKeys>): this {
     this.ensureMutable();
+    const prop = property instanceof GenerateCommonImport ? getCommonProperty(property.key) : property;
     const { name, insertBefore, insertAfter, insertFirst } = prop.toObject();
     prop.setAsAdded();
 
@@ -173,7 +175,7 @@ export class GenerateObject<P extends Props>
     return [...properties.values()];
   }
 
-  getAdditionalProperties(): CodeGenerator<unknown> | false {
+  getAdditionalProperties(): CodeGenerator<unknown> | boolean {
     return this._additionalProperties;
   }
 
@@ -181,9 +183,10 @@ export class GenerateObject<P extends Props>
     const properties = this.getAllProperties().flatMap((property) =>
       prefixExpressionDescriptors(property.name, property.type.expressionDescriptors()),
     );
-    const additional = this._additionalProperties
-      ? prefixExpressionDescriptors('additionalProperties', this._additionalProperties.expressionDescriptors())
-      : [];
+    const additional =
+      typeof this._additionalProperties !== 'boolean'
+        ? prefixExpressionDescriptors('additionalProperties', this._additionalProperties.expressionDescriptors())
+        : [];
     return [...properties, ...additional];
   }
 
@@ -206,7 +209,11 @@ export class GenerateObject<P extends Props>
 
   toComponentCatalogDefinition(): PropertyValueDefinition {
     const additionalProperties =
-      this._additionalProperties === false ? false : this._additionalProperties.toComponentCatalog();
+      typeof this._additionalProperties === 'boolean'
+        ? this._additionalProperties
+          ? { type: 'any' as const }
+          : false
+        : this._additionalProperties.toComponentCatalog();
     return {
       type: 'object',
       properties: this.componentCatalogProperties(),
@@ -270,7 +277,12 @@ export class GenerateObject<P extends Props>
     const properties: string[] = this.getPropertiesAsExtensions().map((prop) => prop.toTypeScript());
 
     if (this._additionalProperties) {
-      if (this._additionalProperties instanceof MaybeOptionalCodeGenerator && this._additionalProperties.isOptional()) {
+      if (this._additionalProperties === true) {
+        properties.push('[key: string]: unknown;');
+      } else if (
+        this._additionalProperties instanceof MaybeOptionalCodeGenerator &&
+        this._additionalProperties.isOptional()
+      ) {
         properties.push(`[key: string]: ${this._additionalProperties.toTypeScript()} | undefined;`);
       } else {
         properties.push(`[key: string]: ${this._additionalProperties.toTypeScript()};`);
@@ -413,8 +425,8 @@ export class GenerateObject<P extends Props>
       throw new Error(`Cannot extend an object that has additionalProperties set`);
     }
 
-    if (this._additionalProperties === false) {
-      return false;
+    if (typeof this._additionalProperties === 'boolean') {
+      return this._additionalProperties;
     }
 
     return this._additionalProperties?.toJsonSchema();

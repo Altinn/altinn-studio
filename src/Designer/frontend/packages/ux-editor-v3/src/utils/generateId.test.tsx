@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { IFormLayouts } from '../types/global';
 import { generateComponentId, generateTextResourceId } from './generateId';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';

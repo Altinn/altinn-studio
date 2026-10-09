@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { RenderHookResult } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
 import { FeatureFlag } from './FeatureFlag';

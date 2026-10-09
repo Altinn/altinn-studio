@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SelectAllowedPartyTypes } from './SelectAllowedPartyTypes';
 import type { SelectAllowedPartyTypesProps } from './SelectAllowedPartyTypes';
 import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
@@ -12,7 +13,7 @@ import { app, org } from '@studio/testing/testids';
 import { renderWithProviders } from 'app-development/test/mocks';
 
 describe('SelectAllowedPartyTypes', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('renders the table', () => {
     renderSelectAllowedPartyTypes();
@@ -125,7 +126,7 @@ describe('SelectAllowedPartyTypes', () => {
 
   it('should display an error toast when the update fails', async () => {
     const user = userEvent.setup();
-    const updateAppMetadata = jest.fn().mockImplementation(() => Promise.reject({ response: {} }));
+    const updateAppMetadata = vi.fn().mockImplementation(() => Promise.reject({ response: {} }));
     renderSelectAllowedPartyTypes({ queries: { updateAppMetadata } });
 
     const allTypeCheckbox = getCheckbox(

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderAndRunTimers } from '@studio/ui-test';
 import { ValidateRuleConfig, type ValidateRuleConfigProps } from './ValidateRuleConfig';
 import userEvent from '@testing-library/user-event';
@@ -7,7 +8,7 @@ import { selectSuggestionOption } from '../utils/ValidateNavigationTestUtils';
 describe('ValidateRuleConfig', () => {
   it('should call onChange with correct values when types are changed', async () => {
     const user = userEvent.setup();
-    const mockOnChange = jest.fn();
+    const mockOnChange = vi.fn();
     renderValidateRuleConfig({ onChange: mockOnChange });
 
     const selectorLabel = textMock('ux_editor.settings.navigation_validation_type_label');
@@ -22,7 +23,7 @@ const renderValidateRuleConfig = (props: Partial<ValidateRuleConfigProps> = {}) 
   const defaultProps: ValidateRuleConfigProps = {
     selectedTypes: [],
     selectedPageScope: null,
-    onChange: jest.fn(),
+    onChange: vi.fn(),
   };
   return renderAndRunTimers(<ValidateRuleConfig {...defaultProps} {...props} />);
 };

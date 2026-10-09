@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import {
   StudioPageHeaderProfileMenu,
@@ -19,7 +21,7 @@ const menuItem4: string = 'Item4';
 const menuItem2Link: string = '/a';
 const menuItem3Link: string = '/b';
 
-const mockOnClick = jest.fn();
+const mockOnClick = vi.fn();
 
 const mockProfileMenuItems1: StudioProfileMenuItem[] = [
   {
@@ -57,14 +59,14 @@ const defaultProps: StudioPageHeaderProfileMenuProps = {
 };
 
 describe('StudioProfileMenu', () => {
-  let consoleSpy: jest.SpyInstance;
+  let consoleSpy: MockInstance;
 
   beforeEach(() => {
-    consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     consoleSpy.mockRestore();
   });
 
@@ -91,7 +93,7 @@ describe('StudioProfileMenu', () => {
     const user = userEvent.setup();
 
     const originalClose = window.close;
-    window.close = jest.fn();
+    window.close = vi.fn();
 
     renderStudioProfileMenu();
 
@@ -134,7 +136,7 @@ describe('StudioProfileMenu', () => {
     const user = userEvent.setup();
 
     const originalClose = window.close;
-    window.close = jest.fn();
+    window.close = vi.fn();
 
     renderStudioProfileMenu();
 
@@ -172,7 +174,7 @@ describe('StudioProfileMenu', () => {
     await user.click(triggerButton);
   });
 
-  it('should not close the dropdown when a link item is clicked and openInNewTab is true', async () => {
+  it('should close the dropdown when a link item is clicked and openInNewTab is true', async () => {
     const user = userEvent.setup();
     renderStudioProfileMenu();
 
@@ -182,7 +184,7 @@ describe('StudioProfileMenu', () => {
     const link = screen.getByRole('menuitem', { name: menuItem3 });
     await user.click(link);
 
-    expect(screen.getByRole('menuitemradio', { name: menuItem1 })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitemradio', { name: menuItem1 })).not.toBeInTheDocument();
   });
 
   it('should not set target or rel attributes if openInNewTab is false', async () => {

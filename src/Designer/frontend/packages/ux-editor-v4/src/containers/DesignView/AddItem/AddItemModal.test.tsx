@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AddItemModal, type AddItemModalProps } from './AddItemModal';
@@ -50,7 +51,7 @@ const renderAddItemModal = (props: Partial<AddItemModalProps>) => {
       customDataProperties: {},
       customRootProperties: {},
     },
-    onAddComponent: jest.fn(),
+    onAddComponent: vi.fn(),
     availableComponents: {
       formComponents: [],
     },

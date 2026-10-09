@@ -2,6 +2,7 @@ import type { LocalizedText } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
+import { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
 import { ExprVal } from 'src/features/expressions/types';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import type { Extract, MaybeOptionalCodeGenerator, MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -109,8 +110,11 @@ const common = {
         'optionalIndicator',
         new CG.bool()
           .setTitle('Optional indicator', 'Markering av valgfritt felt')
-          .setDescription('Show optional indicator on label', 'Viser en markering for valgfrie felt ved ledeteksten.')
-          .optional(),
+          .setDescription(
+            'Show the optional indicator on the label of non-required fields. Enabled by default.',
+            'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.',
+          )
+          .optional({ default: true }),
       ),
     )
       .setTitle('Label settings', 'Innstillinger for ledetekst')
@@ -708,29 +712,28 @@ const common = {
       new CG.prop('grid', CG.common('IGrid').optional()),
       new CG.prop('pageBreak', CG.common('IPageBreak').optional()),
     ),
-  FormComponentProps: () =>
-    new CG.obj(
-      new CG.prop(
-        'readOnly',
-        new CG.expr(ExprVal.Boolean)
-          .optional({ default: false })
-          .setTitle('Read only/disabled?', 'Skrivebeskyttet/deaktivert')
-          .setDescription(
-            'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
-            'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
-          ),
-      ),
-      new CG.prop(
-        'required',
-        new CG.expr(ExprVal.Boolean)
-          .optional({ default: false })
-          .setTitle('Required?', 'Påkrevd')
-          .setDescription(
-            'Boolean value or expression indicating if the component should be required. Defaults to false.',
-            'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
-          ),
-      ),
-      new CG.prop('showValidations', CG.common('AllowedValidationMasks').optional()),
+  FormComponentProps: () => new CG.obj(new CG.prop('showValidations', CG.common('AllowedValidationMasks').optional())),
+  readOnly: () =>
+    new CG.prop(
+      'readOnly',
+      new CG.expr(ExprVal.Boolean)
+        .optional({ default: false })
+        .setTitle('Read only/disabled?', 'Skrivebeskyttet/deaktivert')
+        .setDescription(
+          'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+          'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+        ),
+    ),
+  required: () =>
+    new CG.prop(
+      'required',
+      new CG.expr(ExprVal.Boolean)
+        .optional({ default: false })
+        .setTitle('Required?', 'Påkrevd')
+        .setDescription(
+          'Boolean value or expression indicating if the component should be required. Defaults to false.',
+          'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+        ),
     ),
   SummarizableComponentProps: () =>
     new CG.obj(
@@ -1241,6 +1244,16 @@ const common = {
 
 export type ValidCommonKeys = keyof typeof common;
 export type CommonValue<K extends ValidCommonKeys> = Extract<ReturnType<(typeof common)[K]>>;
+export type CommonPropertyKeys = {
+  [K in ValidCommonKeys]: ReturnType<(typeof common)[K]> extends GenerateProperty<MaybeSymbolizedCodeGenerator<unknown>>
+    ? K
+    : never;
+}[ValidCommonKeys];
+
+/** Each object gets its own property instance, so adding or modifying it does not affect other objects. */
+export function getCommonProperty(key: CommonPropertyKeys) {
+  return common[key]();
+}
 
 interface TRB {
   title: LocalizedText;
@@ -1283,8 +1296,8 @@ export function getSourceForCommon(
     return impl;
   }
 
-  const impl = common[key]();
-  impl.exportAs(key);
+  const source = common[key]();
+  const impl = source instanceof GenerateProperty ? source.type : source.exportAs(key);
   implementationsCache[cacheKey] = impl;
   return impl;
 }

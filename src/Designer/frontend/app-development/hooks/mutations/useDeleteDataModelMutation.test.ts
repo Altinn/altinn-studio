@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../test/mocks';
 import { useDeleteDataModelMutation } from './useDeleteDataModelMutation';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -20,7 +21,7 @@ const modelMetadataJson = createJsonMetadataMock(modelName);
 const modelMetadataXsd = createXsdMetadataMock(modelName);
 
 describe('useDeleteDataModelMutation', () => {
-  beforeEach(jest.clearAllMocks);
+  beforeEach(vi.clearAllMocks);
 
   it('Calls deleteDataModel with correct parameters', async () => {
     const client = createQueryClientMock();
@@ -90,7 +91,7 @@ describe('useDeleteDataModelMutation', () => {
 
   it('Invalidates the appMetadataModelIds, appMetadata, and appValidation from the cache', async () => {
     const client = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(client, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(client, 'invalidateQueries');
     client.setQueryData([QueryKey.DataModelsJson, org, app], [modelMetadataJson]);
     client.setQueryData([QueryKey.DataModelsXsd, org, app], [modelMetadataXsd]);
     const {

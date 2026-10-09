@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../testing/mocks';
 import { EditNameAction, type EditNameActionProps } from './EditNameAction';
 import { screen } from '@testing-library/react';
@@ -30,7 +31,7 @@ const textResources: ITextResources = {
 };
 
 describe('EditNameAction', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render the task type in the text area if no name is set', async () => {
     const taskWithoutName: TaskNavigationGroup = {
@@ -70,11 +71,9 @@ describe('EditNameAction', () => {
     });
     await user.click(textResourcesTab);
 
-    const combobox = screen.getByRole('combobox');
-    const textResorceId2Option = screen.getByRole('option', {
-      name: textResorceId2,
-    });
-    await user.selectOptions(combobox, textResorceId2Option);
+    await user.click(screen.getByRole('combobox'));
+    await user.clear(screen.getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: RegExp(textResorceId2) }));
 
     const textInputTab = screen.getByRole('tab', {
       name: textMock('ux_editor.text_resource_binding_write'),
@@ -82,6 +81,29 @@ describe('EditNameAction', () => {
     await user.click(textInputTab);
     const textarea = screen.getByRole('textbox');
     expect(textarea).toHaveValue(newName);
+  });
+
+  it('should use a new text resource id when the selected text resource is cleared', async () => {
+    const user = userEvent.setup();
+    const handleUpdateTaskNavigationGroup = vi.fn();
+    renderEditNameAction({ task: { taskType: 'data' }, handleUpdateTaskNavigationGroup });
+
+    await clickEditNameButton();
+    await user.click(
+      screen.getByRole('tab', { name: textMock('ux_editor.text_resource_binding_search') }),
+    );
+    await user.click(screen.getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: RegExp(textResorceId2) }));
+    await user.clear(screen.getByRole('combobox'));
+    await user.tab();
+    await user.click(
+      screen.getByRole('tab', { name: textMock('ux_editor.text_resource_binding_write') }),
+    );
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
+
+    const [[updatedTasks]] = handleUpdateTaskNavigationGroup.mock.calls;
+    expect(updatedTasks[0].name).toBeTruthy();
+    expect(updatedTasks[0].name).not.toBe(textResorceId2);
   });
 
   it('should close the modal when clicking the cancel button', async () => {
@@ -120,8 +142,8 @@ const renderEditNameAction = (props: Partial<EditNameActionProps> = {}) => {
     },
     tasks: [],
     index: 0,
-    handleUpdateTaskNavigationGroup: jest.fn(),
-    setPopoverOpen: jest.fn(),
+    handleUpdateTaskNavigationGroup: vi.fn(),
+    setPopoverOpen: vi.fn(),
   };
 
   const queryClient = createQueryClientMock();

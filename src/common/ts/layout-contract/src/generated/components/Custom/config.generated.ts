@@ -11,11 +11,17 @@ import {
 export interface CompCustomExternal
   extends ComponentBase, FormComponentProps, SummarizableComponentProps {
   type: 'Custom';
-  textResourceBindings?: { title?: ExprValToActualOrExpr<ExprVal.String> } & TRBFormComp &
+  textResourceBindings?: {
+    title?: ExprValToActualOrExpr<ExprVal.String>;
+    [key: string]: ExprValToActualOrExpr<ExprVal.String> | undefined;
+  } & TRBFormComp &
     TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForCustom;
   tagName: string;
+  [key: string]: unknown;
 }
 
 export interface IDataModelBindingsForCustom {
@@ -50,4 +56,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: a81ca9053f1959f3b8fde4b8ab607525bb4fb78e32cad524a0426fd63525dcf2
+// Source hash: 332e268a6902f197bb2f781883bb0d6d8194c86dd702fe751154b9166b25f3ba

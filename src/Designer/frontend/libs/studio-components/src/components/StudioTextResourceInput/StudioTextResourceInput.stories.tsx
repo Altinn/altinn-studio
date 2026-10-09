@@ -41,7 +41,6 @@ export const WithId: Story = {
       modeToggle: 'Modus',
       search: 'Søk',
       textResourcePickerLabel: 'Velg tekstressurs',
-      noTextResourceOptionLabel: 'Ikke oppgitt',
       valueLabel: 'Tekstverdi',
     },
   },

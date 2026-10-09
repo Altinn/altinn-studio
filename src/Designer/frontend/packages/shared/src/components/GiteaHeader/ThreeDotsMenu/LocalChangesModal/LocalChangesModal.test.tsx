@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -5,7 +6,7 @@ import { LocalChangesModal } from './LocalChangesModal';
 import { renderWithProviders } from '../../mocks/renderWithProviders';
 
 describe('LocalChanges', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Does not display any dialog by default', () => {
     renderLocalChangesModal();

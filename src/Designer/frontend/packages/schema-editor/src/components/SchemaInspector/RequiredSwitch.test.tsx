@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { RequiredSwitchProps } from './RequiredSwitch';
 import { RequiredSwitch } from './RequiredSwitch';
@@ -12,10 +13,10 @@ const defaultProps: RequiredSwitchProps = {
   schemaPointer: fieldNode1Mock.schemaPointer,
   isRequired: fieldNode1Mock.isRequired,
 };
-const saveDataModel = jest.fn();
+const saveDataModel = vi.fn();
 
 describe('RequiredSwitch', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Saves the model when the required checkbox is checked', async () => {
     renderRequiredSwitch();

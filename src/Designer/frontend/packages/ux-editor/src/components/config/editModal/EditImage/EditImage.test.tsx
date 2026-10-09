@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { EditImage } from './EditImage';
 import type { FormItem } from '../../../../types/FormItem';
@@ -14,12 +15,12 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import type { QueryClient } from '@tanstack/react-query';
 
-const handleComponentChangeMock = jest.fn();
+const handleComponentChangeMock = vi.fn();
 const imageComponentMock = componentMocks[ComponentType.Image];
 
 describe('EditImage', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   it('renders tabs for adding image and for pasting url', () => {
     renderEditImage();

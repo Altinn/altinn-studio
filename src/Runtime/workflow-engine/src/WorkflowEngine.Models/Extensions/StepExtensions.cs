@@ -46,6 +46,16 @@ public static class StepExtensions
             step.FirstDeferredAt?.Add(step.ResolveWaitBudget(settings));
 
         /// <summary>
+        /// Whether the current attempt started at or past the wait deadline, so a deferral from it fails
+        /// the step. Read from <see cref="Step.ExecutionStartedAt"/>, so the command and the engine's
+        /// decision always agree.
+        /// </summary>
+        public bool IsFinalWaitCheck(EngineSettings settings) =>
+            step.ExecutionStartedAt is { } startedAt
+            && step.ResolveWaitDeadline(settings) is { } deadline
+            && startedAt >= deadline;
+
+        /// <summary>
         /// Step metadata useful for enriching telemetry activities.
         /// </summary>
         public (string key, object? value)[] GetActivityTags() =>

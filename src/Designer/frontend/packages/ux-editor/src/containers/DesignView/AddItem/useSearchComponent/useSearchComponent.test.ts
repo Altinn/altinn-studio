@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useSearchComponent } from './useSearchComponent';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { IToolbarElement } from '../../../../types/global';
@@ -63,12 +64,12 @@ const translations = {
   'ux_editor.component_title.Checkboxes': 'Avmerkingsbokser',
 };
 
-jest.useFakeTimers();
+vi.useFakeTimers();
 
 describe('useSearchComponent', () => {
   afterEach(() => {
-    jest.clearAllTimers();
-    jest.clearAllMocks();
+    vi.clearAllTimers();
+    vi.clearAllMocks();
   });
 
   describe('Initial state', () => {

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { layoutMock } from '@altinn/ux-editor-v4/testing/layoutMock';
 import {
   convertToExternalConfig,

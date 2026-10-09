@@ -12,19 +12,6 @@ The component also supports the [common component properties](../common-properti
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Identifies which component type this configuration represents.</div></div>
 </details>
 
-<details class="card adocs-expand adocs-expand-small component-property" id="readonly">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="readOnly">readOnly</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Optional</span>
-      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/></div></div>
-</details>
-
 <details class="card adocs-expand adocs-expand-small component-property" id="required">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
@@ -94,10 +81,11 @@ The component also supports the [common component properties](../common-properti
     <span class="component-property-name" title="labelSettings.optionalIndicator">labelSettings.optionalIndicator</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Optional</span>
+      <span class="component-property-default">Default: <span class="component-property-value">true</span></span>
       <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show optional indicator on label</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the optional indicator on the label of non-required fields. Enabled by default.</div></div>
 </details>
 
 <details class="component-property-group" id="textresourcebindings">
@@ -235,7 +223,7 @@ The component also supports the [common component properties](../common-properti
     </span>
   </summary>
   <div class="component-property-group-content">
-    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Connects component values to fields in the data model.</div></div>
+    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Connects component values to fields in the data model. Additional property names are allowed. Value type: data model binding.</div></div>
     <div class="component-property-list">
       <details class="card adocs-expand adocs-expand-small component-property" id="datamodelbindings.group">
         <summary class="component-property-summary">
@@ -286,7 +274,7 @@ The component also supports the [common component properties](../common-properti
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">An object where the fields in the datalist is mapped to headers. Must correspond to datalist representing a row. Can be added to the resource files to change between languages.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">An object where the fields in the datalist is mapped to headers. Must correspond to datalist representing a row. Can be added to the resource files to change between languages. Additional property names are allowed. Value type: string.</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="sortablecolumns">
@@ -371,7 +359,7 @@ The component also supports the [common component properties](../common-properti
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">A mapping of query string parameters to values. Will be appended to the URL when fetching options.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">A mapping of query string parameters to values. Will be appended to the URL when fetching options. Additional property names are allowed. Value type: string | expression&lt;string&gt;.</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="summarybinding">

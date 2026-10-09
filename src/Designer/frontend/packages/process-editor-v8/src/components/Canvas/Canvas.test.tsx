@@ -1,14 +1,15 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Canvas } from './Canvas';
 import { BpmnContextProvider } from '../../contexts/BpmnContext';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 
-jest.mock('./BPMNViewer', () => ({
+vi.mock('./BPMNViewer', () => ({
   BPMNViewer: () => <div data-testid='bpmn-viewer' />,
 }));
 
-jest.mock('./BPMNEditor', () => ({
+vi.mock('./BPMNEditor', () => ({
   BPMNEditor: () => <div data-testid='bpmn-editor' />,
 }));
 

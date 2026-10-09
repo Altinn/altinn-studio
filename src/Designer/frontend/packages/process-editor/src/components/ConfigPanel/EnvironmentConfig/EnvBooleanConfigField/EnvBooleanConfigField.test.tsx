@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { render, screen, within } from '@testing-library/react';
@@ -18,7 +19,7 @@ const yesLabel = textMock('general.yes');
 const noLabel = textMock('general.no');
 
 describe('EnvBooleanConfigField', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('reads boolean values regardless of case or surrounding spaces', async () => {
     const user = userEvent.setup();
@@ -34,7 +35,7 @@ describe('EnvBooleanConfigField', () => {
 
   it('saves boolean values in lowercase', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvBooleanConfigField({ entries: [{ value: 'TRUE' }], onChange });
     await user.click(getCollapsedButton());
 
@@ -77,7 +78,7 @@ describe('EnvBooleanConfigField', () => {
 
   it('provides a delete button for the default boolean value', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvBooleanConfigField({ onChange });
     await user.click(getCollapsedButton());
 

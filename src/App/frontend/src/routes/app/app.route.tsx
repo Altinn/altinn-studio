@@ -8,6 +8,7 @@ import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { UiPreferencesProvider } from 'src/features/form/layout/UiPreferencesContext';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
+import { CurrentLanguageProvider } from 'src/features/language/LanguageProvider';
 import { NavigationFocusStateProvider } from 'src/features/navigation/NavigationFocusStateContext';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
@@ -15,30 +16,32 @@ import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
 export default function AppLayout() {
   return (
     <>
-      <AppLanguageTranslatorProvider>
-        <NavigationFocusStateProvider>
-          <ErrorBoundary>
-            <ViewportWrapper>
-              <UiPreferencesProvider>
-                <GlobalFormDataReadersProvider>
-                  <PartyProvider>
-                    <KeepAliveProvider>
-                      <Outlet />
-                      <ToastContainer
-                        position='top-center'
-                        theme='colored'
-                        transition={Slide}
-                        draggable={false}
-                      />
-                    </KeepAliveProvider>
-                  </PartyProvider>
-                  <PartyPrefetcher />
-                </GlobalFormDataReadersProvider>
-              </UiPreferencesProvider>
-            </ViewportWrapper>
-          </ErrorBoundary>
-        </NavigationFocusStateProvider>
-      </AppLanguageTranslatorProvider>
+      <CurrentLanguageProvider>
+        <AppLanguageTranslatorProvider>
+          <NavigationFocusStateProvider>
+            <ErrorBoundary>
+              <ViewportWrapper>
+                <UiPreferencesProvider>
+                  <GlobalFormDataReadersProvider>
+                    <PartyProvider>
+                      <KeepAliveProvider>
+                        <Outlet />
+                        <ToastContainer
+                          position='top-center'
+                          theme='colored'
+                          transition={Slide}
+                          draggable={false}
+                        />
+                      </KeepAliveProvider>
+                    </PartyProvider>
+                    <PartyPrefetcher />
+                  </GlobalFormDataReadersProvider>
+                </UiPreferencesProvider>
+              </ViewportWrapper>
+            </ErrorBoundary>
+          </NavigationFocusStateProvider>
+        </AppLanguageTranslatorProvider>
+      </CurrentLanguageProvider>
       <ScrollRestoration />
     </>
   );

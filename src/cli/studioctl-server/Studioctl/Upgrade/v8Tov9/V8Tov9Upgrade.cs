@@ -128,8 +128,12 @@ internal static class V8Tov9Upgrade
                 }
             }
 
+            // Runs on resumed upgrades too, so an app already moved to v9 gets its test project fixed.
             if (returnCode == 0)
+            {
                 returnCode = await MigrateDockerfile(projectFolder, options.TargetFramework);
+                returnCode = CombineExitCodes(returnCode, await MigrateDependentProjects(projectFolder, projectFile));
+            }
         }
 
         // Run every remaining migration and report the worst result. Their order is deliberate:
@@ -212,6 +216,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await CheckAppSettingsRemovedKeys(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveGeneralSettingsHostName(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckAppFileNameCase(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -225,6 +232,11 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, layoutOutcome.ExitCode);
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateRequiredIndicatorTexts(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateOptionalIndicatorSettings(projectFolder));
+
         var dataProcessorOutcome = await GenerateDataProcessors(projectFolder);
         returnCode = CombineExitCodes(returnCode, dataProcessorOutcome.ExitCode);
 
@@ -423,6 +435,19 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Dockerfile", ex);
+        }
+    }
+
+    static async Task<int> MigrateDependentProjects(string projectFolder, string projectFile)
+    {
+        UpgradeConsole.BeginStep("Dependent projects");
+        try
+        {
+            return await DependentProjectsMigration.Migrate(projectFolder, projectFile);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error moving dependent projects to the new target framework", ex);
         }
     }
 
@@ -901,6 +926,7 @@ internal static class V8Tov9Upgrade
 
             var result = WarnOnlyDetector.Combine(
                 new RemovedTaskEventInterfaceDetector(scanner).Detect(),
+                new RemovedPdfFormatterDetector(scanner).Detect(),
                 new RemovedEventsReceiveStackDetector(scanner).Detect(),
                 new ServiceTaskResultApiDetector(pristineView).Detect(),
                 new LegacyEFormidlingCodeDetector(pristineView).Detect(),
@@ -1014,6 +1040,29 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Removes GeneralSettings:HostName from the appsettings files: the platform and studioctl set it for a v9 app,
+    /// so a value in the file only goes stale.
+    /// </summary>
+    static async Task<int> RemoveGeneralSettingsHostName(string projectFile)
+    {
+        UpgradeConsole.BeginStep("GeneralSettings host name");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = await GeneralSettingsHostNameMigration.Migrate(appFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No GeneralSettings:HostName in the appsettings files",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing GeneralSettings:HostName from the appsettings files", ex);
+        }
+    }
+
+    /// <summary>
     /// Reports app files and folders whose names differ only in case from the names v9 reads, since v9 matches
     /// names case-sensitively on every operating system.
     /// </summary>
@@ -1050,6 +1099,84 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Datepicker text-resource keys", ex);
+        }
+    }
+
+    static async Task<int> MigrateRequiredIndicatorTexts(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Required field marker texts");
+        try
+        {
+            var result = await RequiredIndicatorTextMigration.Migrate(projectFolder);
+            foreach (var warning in result.Warnings)
+            {
+                UpgradeConsole.Warning(warning);
+            }
+
+            if (result.AsteriskOverridesRemoved > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Removed {result.AsteriskOverridesRemoved} override(s) of form_filler.required_label that repeated the old '*' marker"
+                );
+            }
+
+            if (result.DescriptionOverridesRemoved > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Removed {result.DescriptionOverridesRemoved} override(s) of form_filler.required_description, which is no longer shown"
+                );
+            }
+
+            if (result.FilesChanged == 0 && result.Warnings.Count == 0)
+            {
+                UpgradeConsole.Skip("No overrides of the required field marker texts found");
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating required field marker texts", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes <c>labelSettings.optionalIndicator: true</c> from layouts, which is the default in v9, and
+    /// tells the developer about the new default markers for required and optional fields.
+    /// </summary>
+    static async Task<int> MigrateOptionalIndicatorSettings(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Required and optional field markers");
+        try
+        {
+            var result = await OptionalIndicatorLayoutMigration.Migrate(projectFolder);
+            foreach (var warning in result.Warnings)
+            {
+                UpgradeConsole.Warning(warning);
+            }
+
+            if (result.PropertiesRemoved > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Removed {result.PropertiesRemoved} redundant labelSettings.optionalIndicator setting(s) from {result.FilesChanged} layout file(s)"
+                );
+            }
+            else if (result.Warnings.Count == 0)
+            {
+                UpgradeConsole.Skip("No redundant labelSettings.optionalIndicator settings found");
+            }
+
+            UpgradeConsole.Info(
+                "Following Designsystemet, required fields are now marked with a 'Må fylles ut' tag instead of '*', "
+                    + "and fields that are not required are marked 'Valgfritt' by default. Set "
+                    + "labelSettings.optionalIndicator to false on a component to hide the optional marker."
+            );
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating required and optional field marker settings", ex);
         }
     }
 
@@ -1115,6 +1242,7 @@ internal static class V8Tov9Upgrade
             DatepickerTimeStampMigrator.Apply(workspace);
             HeadingLayoutMigration.Apply(workspace);
             FileUploadWithTagLayoutMigration.Apply(workspace);
+            var formPropertiesResult = ComponentFormPropertiesMigration.Apply(workspace);
             DatepickerFormatMigration.Apply(workspace);
             GridXlMigration.Apply(workspace);
             var saveWhileTypingWarning = SaveWhileTypingMigration.Apply(workspace);
@@ -1122,6 +1250,7 @@ internal static class V8Tov9Upgrade
             InvalidValidationMaskMigration.Apply(workspace);
 
             var messages = new List<UpgradeMessage>();
+            messages.AddRange(formPropertiesResult.Messages.Messages);
             if (saveWhileTypingWarning is not null)
                 messages.Warn(saveWhileTypingWarning);
             foreach (var issue in workspace.Conflicts)

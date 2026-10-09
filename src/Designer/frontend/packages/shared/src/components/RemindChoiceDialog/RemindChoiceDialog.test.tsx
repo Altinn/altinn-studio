@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -6,7 +7,7 @@ import { RemindChoiceDialog, type RemindChoiceDialogProps } from './RemindChoice
 describe('RemindChoiceDialog', () => {
   it('should call closeDialog when the "do show again" button is clicked', async () => {
     const props = {
-      closeDialog: jest.fn(),
+      closeDialog: vi.fn(),
     };
 
     renderRemindChoiceDialog(props);
@@ -29,7 +30,7 @@ describe('RemindChoiceDialog', () => {
 
   it('should call closeDialogPermanently when the "do not show again" is clicked', async () => {
     const props = {
-      closeDialog: jest.fn(),
+      closeDialog: vi.fn(),
     };
 
     renderRemindChoiceDialog(props);

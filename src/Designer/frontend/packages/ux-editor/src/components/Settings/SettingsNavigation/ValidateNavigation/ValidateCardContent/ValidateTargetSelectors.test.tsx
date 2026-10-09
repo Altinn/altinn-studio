@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import {
   PagesSelector,
@@ -32,7 +33,7 @@ const layoutSets = [
 describe('TasksSelector and TaskSelector', () => {
   it('should render correct label and call onChange when a task is selected in multiple mode', async () => {
     const user = userEvent.setup();
-    const mockOnChange = jest.fn();
+    const mockOnChange = vi.fn();
     renderTasksSelector({ onChange: mockOnChange });
     const selectorLabel = textMock(
       'ux_editor.settings.navigation_validation_specific_task_label_several',
@@ -45,7 +46,7 @@ describe('TasksSelector and TaskSelector', () => {
 
   it('should render correct label and call onChange when a task is selected in single mode', async () => {
     const user = userEvent.setup();
-    const mockOnChange = jest.fn();
+    const mockOnChange = vi.fn();
     renderTaskSelector({ onChange: mockOnChange });
     const selectorLabel = textMock('ux_editor.settings.navigation_validation_specific_task_label');
     await selectSuggestionOption({ user, selectorLabel, optionLabel: layoutSet1NameMock });
@@ -65,7 +66,7 @@ describe('TasksSelector and TaskSelector', () => {
 
     const defaultProps: TasksSelectorProps = {
       selectedTasks: [],
-      onChange: jest.fn(),
+      onChange: vi.fn(),
     };
     return renderWithProviders(<TasksSelector {...defaultProps} {...props} />, {
       queryClient,
@@ -82,7 +83,7 @@ describe('TasksSelector and TaskSelector', () => {
 
     const defaultProps: TaskSelectorProps = {
       selectedTask: null,
-      onChange: jest.fn(),
+      onChange: vi.fn(),
     };
     return renderWithProviders(<TaskSelector {...defaultProps} {...props} />, {
       queryClient,
@@ -112,7 +113,7 @@ describe('PagesSelector', () => {
     queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], layouts); // mock form layouts query to return two pages (Side1 and Side2)
 
     const user = userEvent.setup();
-    const mockOnChange = jest.fn();
+    const mockOnChange = vi.fn();
     renderPagesSelector({ taskName: layoutSet1NameMock, onChange: mockOnChange }, queryClient);
     const selectorLabel = textMock('ux_editor.settings.navigation_validation_specific_page_label');
     await selectSuggestionOption({ user, selectorLabel, optionLabel: 'Side1' });
@@ -130,7 +131,7 @@ describe('PagesSelector', () => {
     const defaultProps: PagesSelectorProps = {
       taskName: undefined,
       selectedPages: [],
-      onChange: jest.fn(),
+      onChange: vi.fn(),
     };
     return renderWithProviders(<PagesSelector {...defaultProps} {...props} />, {
       queryClient: queryClientMock,

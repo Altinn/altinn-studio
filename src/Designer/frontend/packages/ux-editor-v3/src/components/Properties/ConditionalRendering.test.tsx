@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { ConditionalRendering } from './ConditionalRendering';
 import { screen } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -143,7 +144,7 @@ const renderComponent = () => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   const queries = {
-    getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
+    getRuleModel: vi.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
   };
   return renderWithProviders(<ConditionalRendering />, { queries, queryClient });
 };

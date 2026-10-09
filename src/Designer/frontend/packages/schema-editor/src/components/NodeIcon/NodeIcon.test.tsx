@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { CombinationNode, ReferenceNode, UiSchemaNode } from '@altinn/schema-model';
 import { CombinationKind, FieldType, ObjectKind } from '@altinn/schema-model';
 import { render, screen } from '@testing-library/react';
@@ -5,9 +6,11 @@ import type { NodeIconProps } from './';
 import { NodeIcon } from './';
 import { nodeMockBase } from '../../../test/mocks/uiSchemaMock';
 
-jest.mock('./NodeIcon.module.css', () => ({
-  icon: 'icon',
-  isArray: 'isArray',
+vi.mock('./NodeIcon.module.css', () => ({
+  default: {
+    icon: 'icon',
+    isArray: 'isArray',
+  },
 }));
 
 describe('NodeIcon', () => {

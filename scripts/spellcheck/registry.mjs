@@ -69,6 +69,20 @@ export const GROUPS = [
     english: 'en-gb',
   },
   {
+    // Check the displayed Norwegian text, not external role codes and URNs.
+    name: 'resourceadm role catalog',
+    format: 'esm-records',
+    files: {
+      nb: 'src/Designer/frontend/resourceadm/pages/Altinn2ResourcePoliciesPage/AllRoles.ts',
+    },
+    exportName: 'AllRoles',
+    keyField: 'id',
+    fields: ['name', 'description', 'provider.name'],
+    parity: 'none',
+    english: null,
+    checkKeys: false,
+  },
+  {
     // An { nb, nn, en } triplet declared inline in code; the rest of
     // constants.js is route constants with no prose. The file is excluded
     // from the root en-US pass, so this entry is what checks its text.
@@ -211,4 +225,5 @@ export const SCAN_PATTERNS = [
   '**/news.*.json',
   '**/resource.*.json',
   '**/applicationmetadata.json',
+  '**/AllRoles.ts',
 ];

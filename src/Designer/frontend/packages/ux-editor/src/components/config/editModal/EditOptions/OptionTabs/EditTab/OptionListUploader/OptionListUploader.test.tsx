@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { OptionListUploader } from './OptionListUploader';
 import { screen } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -12,8 +13,8 @@ const mockComponent = componentMocks[ComponentType.RadioButtons];
 const optionsIdMock = optionListIdsMock[0];
 mockComponent.optionsId = optionsIdMock;
 
-const handleComponentChangeMock = jest.fn();
-const getOptionListIds = jest
+const handleComponentChangeMock = vi.fn();
+const getOptionListIds = vi
   .fn()
   .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock));
 

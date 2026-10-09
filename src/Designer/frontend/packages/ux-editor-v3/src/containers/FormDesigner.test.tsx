@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import {
   formLayoutSettingsMock,
@@ -13,11 +14,11 @@ import { layoutSet1NameMock } from '../testing/layoutSetsMock';
 
 const render = () => {
   const queries = {
-    getFormLayoutSettings: jest
+    getFormLayoutSettings: vi
       .fn()
       .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
-    getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>(ruleHandlerMock)),
-    getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('test')),
+    getRuleModel: vi.fn().mockImplementation(() => Promise.resolve<string>(ruleHandlerMock)),
+    getInstanceIdForPreview: vi.fn().mockImplementation(() => Promise.resolve<string>('test')),
   };
   const props = {
     selectedLayout: 'test-layout',

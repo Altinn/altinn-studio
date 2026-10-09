@@ -6,11 +6,9 @@ on:
     paths:
       - 'Cargo.toml'
       - 'Cargo.lock'
+      - 'clippy.toml'
       - 'rust-toolchain.toml'
       - 'rustfmt.toml'
-      - 'src/experimental/sandbox/**'
-      - 'src/experimental/sandbox-authorization/**'
-      - 'src/experimental/sandbox-microsandbox/**'
       - 'src/ci/github-runner/Dockerfile.coordinator'
       - 'src/ci/github-runner/coordinator/**'
       - '.github/workflows/github-runner-build.yaml'

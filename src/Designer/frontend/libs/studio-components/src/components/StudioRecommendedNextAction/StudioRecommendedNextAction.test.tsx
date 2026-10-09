@@ -1,13 +1,14 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { StudioRecommendedNextAction } from './StudioRecommendedNextAction';
 import userEvent from '@testing-library/user-event';
 
 describe('StudioRecommendedNextAction', () => {
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
-  const onSave = jest.fn();
-  const onSkip = jest.fn();
+  const onSave = vi.fn();
+  const onSkip = vi.fn();
 
   it('renders correctly', () => {
     render(

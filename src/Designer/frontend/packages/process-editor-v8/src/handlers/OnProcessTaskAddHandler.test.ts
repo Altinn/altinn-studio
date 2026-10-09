@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor-v8/types/OnProcessTask';
 import { OnProcessTaskAddHandler, AllowedContributor } from './OnProcessTaskAddHandler';
@@ -6,14 +7,17 @@ import type { BpmnTaskType } from '@altinn/process-editor-v8/types/BpmnTaskType'
 import { app, org } from '@studio/testing/testids';
 import { getMockBpmnElementForTask } from '../../test/mocks/bpmnDetailsMock';
 import type { BpmnBusinessObjectEditor } from '@altinn/process-editor-v8/types/BpmnBusinessObjectEditor';
+import type * as StudioModelerModule from '@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler';
 
-jest.mock('@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler', () => {
-  const actual = jest.requireActual('@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler');
+vi.mock('@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler', async () => {
+  const actual = await vi.importActual<typeof StudioModelerModule>(
+    '@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler',
+  );
   return {
     ...actual,
-    StudioModeler: jest.fn().mockImplementation(function (args) {
+    StudioModeler: vi.fn().mockImplementation(function (args) {
       const instance = new actual.StudioModeler(args);
-      instance.getElement = jest.fn().mockReturnValue(instance.element);
+      instance.getElement = vi.fn().mockReturnValue(instance['element']);
       return instance;
     }),
   };
@@ -24,9 +28,9 @@ const currentPolicyMock: Policy = {
   requiredAuthenticationLevelEndUser: '3',
   rules: [],
 };
-const addLayoutSetMock = jest.fn();
-const mutateApplicationPolicyMock = jest.fn();
-const addDataTypeToAppMetadataMock = jest.fn();
+const addLayoutSetMock = vi.fn();
+const mutateApplicationPolicyMock = vi.fn();
+const addDataTypeToAppMetadataMock = vi.fn();
 
 const createOnProcessTaskHandler = () =>
   new OnProcessTaskAddHandler(
@@ -56,7 +60,7 @@ const createTaskEvent = (businessObject?: BpmnBusinessObjectEditor): TaskEvent =
 
 describe('OnProcessTaskAddHandler', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should add layoutSet when data-task is added', () => {

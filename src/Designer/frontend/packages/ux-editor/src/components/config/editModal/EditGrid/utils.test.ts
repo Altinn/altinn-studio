@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { ViewSize } from './types/ViewSize';
 import type { GridSizes } from './types/GridSizes';
 import { findEffectiveGridSize } from './utils';

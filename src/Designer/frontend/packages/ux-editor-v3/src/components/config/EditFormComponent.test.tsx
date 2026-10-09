@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EditFormComponent } from './EditFormComponent';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -20,11 +21,11 @@ const srcValueLabel = 'Source';
 
 // Mocks:
 const buttonSpecificContentId = 'button-specific-content';
-jest.mock('./componentSpecificContent/Button/ButtonComponent', () => ({
+vi.mock('./componentSpecificContent/Button/ButtonComponent', () => ({
   ButtonComponent: () => <div data-testid={buttonSpecificContentId} />,
 }));
 const imageSpecificContentId = 'image-specific-content';
-jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
+vi.mock('./componentSpecificContent/Image/ImageComponent', () => ({
   ImageComponent: () => <div data-testid={imageSpecificContentId} />,
 }));
 
@@ -71,7 +72,7 @@ const getDataModelMetadata = () =>
 describe('EditFormComponent', () => {
   beforeEach(() => {
     removeFeatureFlagFromLocalStorage(FeatureFlag.ComponentConfigBeta);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return input specific content when type input', async () => {
@@ -232,7 +233,7 @@ const waitForData = async () => {
 
 const render = async ({
   componentProps = {},
-  handleComponentUpdate = jest.fn(),
+  handleComponentUpdate = vi.fn(),
 }: {
   componentProps?: Partial<FormComponent>;
   handleComponentUpdate?: (component: FormComponent) => {

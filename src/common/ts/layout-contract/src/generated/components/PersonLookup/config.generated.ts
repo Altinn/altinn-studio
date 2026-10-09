@@ -4,13 +4,14 @@ import {
   FormComponentProps,
   IDataModelReference,
   ISummaryOverridesCommon,
+  LabeledComponentProps,
   SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
 export interface CompPersonLookupExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps {
+  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
   type: 'PersonLookup';
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
@@ -18,6 +19,8 @@ export interface CompPersonLookupExternal
     help?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForPersonLookup;
 }
@@ -62,4 +65,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: PersonLookupSummaryOverridesWithRef;
 };
 
-// Source hash: 4262ba903bd26eaa33143af1ca17c7c39c0f9420f5d2208f4063c4d491805b91
+// Source hash: a724aca0673897bf96fabc4edff688c0aae664f11c0eb45b77cc082f7166469d

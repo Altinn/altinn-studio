@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { Expression, SubExpression } from '../types/Expressions';
 import {
   DataSource,

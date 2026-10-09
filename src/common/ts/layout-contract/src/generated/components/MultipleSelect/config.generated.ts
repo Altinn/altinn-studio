@@ -22,6 +22,8 @@ export interface CompMultipleSelectExternal
     LabeledComponentProps {
   type: 'MultipleSelect';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   alertOnChange?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForGroupMultiselect;
@@ -69,4 +71,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: MultipleSelectSummaryOverridesWithRef;
 };
 
-// Source hash: 8d0b245d534c172d1d1b8b632d7ec965637834e888efaae9d0a7e5fda64bd5c0
+// Source hash: c371177062f2db0e0b49d25637584dafd2cb92571604cab22e5a43872f86c931

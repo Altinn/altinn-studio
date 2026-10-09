@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UncommittedChangesDialogProps } from './UncommittedChangesDialog';
@@ -6,8 +7,8 @@ import type { UncommittedChangesError, UncommittedFile } from 'app-shared/types/
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../mocks/renderWithProviders';
 
-const onClose = jest.fn();
-const onDiscardAndSwitch = jest.fn();
+const onClose = vi.fn();
+const onDiscardAndSwitch = vi.fn();
 const filePath1 = 'App/ui/form/layouts/Side1.json';
 const filePath2 = 'App/ui/form/layouts/Side2.json';
 const fileStatus1 = 'ModifiedInWorkdir';
@@ -32,7 +33,7 @@ const error: UncommittedChangesError = {
 
 describe('UncommittedChangesDialog', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render dialog', () => {
@@ -81,7 +82,7 @@ describe('UncommittedChangesDialog', () => {
 
   it('should display a browser confirm alert when pressing discard changes button', async () => {
     const user = userEvent.setup();
-    const confirm = jest.spyOn(window, 'confirm').mockImplementation(() => undefined);
+    const confirm = vi.spyOn(window, 'confirm').mockImplementation(() => undefined);
     renderUncommittedChangesDialog();
 
     const discardChangesButton = getDiscardChangesButton();
@@ -95,7 +96,7 @@ describe('UncommittedChangesDialog', () => {
 
   it('should call onDiscardAndSwitch when confirming the browser alert', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     renderUncommittedChangesDialog();
 
     const discardChangesButton = getDiscardChangesButton();
@@ -107,7 +108,7 @@ describe('UncommittedChangesDialog', () => {
 
   it('should not call onDiscardAndSwitch when canceling the browser alert', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(false);
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
     renderUncommittedChangesDialog();
 
     const discardChangesButton = getDiscardChangesButton();

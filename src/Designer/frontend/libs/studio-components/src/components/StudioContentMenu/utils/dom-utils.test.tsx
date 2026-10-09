@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 import type { HTMLTabElement } from './dom-utils';
@@ -39,7 +40,7 @@ function simulateFocusMove(key: string, initialTabId: string, expectedFocusedTab
   const event = {
     key,
     currentTarget: initialTab,
-    preventDefault: jest.fn(),
+    preventDefault: vi.fn(),
   } as unknown as React.KeyboardEvent<HTMLTabElement>;
   moveFocus(event);
   expect(screen.getByTestId(expectedFocusedTabId)).toHaveFocus();

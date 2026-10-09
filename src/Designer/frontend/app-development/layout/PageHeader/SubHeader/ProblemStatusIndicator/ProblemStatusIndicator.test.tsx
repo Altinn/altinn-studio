@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { ProblemStatusIndicator, type ProblemStatusIndicatorProps } from './ProblemStatusIndicator';
 import { renderWithProviders } from '../../../../test/mocks';
@@ -48,7 +49,7 @@ describe('ProblemStatusIndicator', () => {
 const renderProblemStatusIndicator = (props: Partial<ProblemStatusIndicatorProps> = {}) => {
   const defaultProps: ProblemStatusIndicatorProps = {
     validationResult: undefined,
-    refetchValidation: jest.fn(),
+    refetchValidation: vi.fn(),
     validationPending: false,
   };
 

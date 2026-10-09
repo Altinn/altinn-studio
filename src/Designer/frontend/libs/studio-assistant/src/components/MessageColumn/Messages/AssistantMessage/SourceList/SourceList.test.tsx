@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { SourceList, type SourceListProps } from './SourceList';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';

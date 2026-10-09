@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { ActivityTrail, type ActivityTrailProps } from './ActivityTrail';
 import { render, type RenderResult, screen } from '@testing-library/react';
 import type { TrailStep } from '../../../../types/WorkflowStatus';

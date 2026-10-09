@@ -1,28 +1,30 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConsentBanner } from './ConsentBanner';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import * as consentHooks from '../../utils/consent';
 
-jest.mock('../../utils/consent', () => ({
-  useConsent: jest.fn(),
-  useConsentMutation: jest.fn(),
+vi.mock('../../utils/consent', () => ({
+  useConsent: vi.fn(),
+  useConsentMutation: vi.fn(),
 }));
 
 describe('ConsentBanner', () => {
-  const mockSetConsentPreferences = jest.fn();
-  const mockDenyAllConsent = jest.fn();
+  const mockSetConsentPreferences = vi.fn();
+  const mockDenyAllConsent = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (consentHooks.useConsentMutation as jest.Mock).mockReturnValue({
+    vi.clearAllMocks();
+    (consentHooks.useConsentMutation as Mock).mockReturnValue({
       setConsentPreferences: mockSetConsentPreferences,
       denyAllConsent: mockDenyAllConsent,
     });
   });
 
   it('should show banner when user has not made a decision', () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasDecision: false,
       hasAnalyticsConsent: false,
       hasSessionRecordingConsent: false,
@@ -35,7 +37,7 @@ describe('ConsentBanner', () => {
   });
 
   it('should not show banner when user has made a decision', () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasDecision: true,
     });
 
@@ -45,7 +47,7 @@ describe('ConsentBanner', () => {
   });
 
   it('should have analytics switch unchecked by default for GDPR compliance', () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasDecision: false,
       hasAnalyticsConsent: false,
       hasSessionRecordingConsent: false,
@@ -60,7 +62,7 @@ describe('ConsentBanner', () => {
   });
 
   it('should have session recording switch unchecked by default for GDPR compliance', () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasDecision: false,
       hasAnalyticsConsent: false,
       hasSessionRecordingConsent: false,
@@ -75,7 +77,7 @@ describe('ConsentBanner', () => {
   });
 
   it('should disable session recording switch when analytics is disabled', async () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasDecision: false,
       hasAnalyticsConsent: false,
       hasSessionRecordingConsent: false,
@@ -92,7 +94,7 @@ describe('ConsentBanner', () => {
   });
 
   it('should enable session recording switch when analytics is enabled', async () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasDecision: false,
       hasAnalyticsConsent: false,
       hasSessionRecordingConsent: false,
@@ -114,7 +116,7 @@ describe('ConsentBanner', () => {
   });
 
   it('should call setConsentPreferences with all enabled when user enables both and saves', async () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasDecision: false,
       hasAnalyticsConsent: false,
       hasSessionRecordingConsent: false,
@@ -142,7 +144,7 @@ describe('ConsentBanner', () => {
   });
 
   it('should call setConsentPreferences with only analytics when user enables analytics but not session recording', async () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasDecision: false,
       hasAnalyticsConsent: false,
       hasSessionRecordingConsent: false,
@@ -166,7 +168,7 @@ describe('ConsentBanner', () => {
   });
 
   it('should call denyAllConsent when decline all is clicked', async () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasDecision: false,
       hasAnalyticsConsent: false,
       hasSessionRecordingConsent: false,
@@ -184,7 +186,7 @@ describe('ConsentBanner', () => {
   });
 
   it('should hide banner after save is clicked', async () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasDecision: false,
       hasAnalyticsConsent: false,
       hasSessionRecordingConsent: false,
@@ -207,7 +209,7 @@ describe('ConsentBanner', () => {
   });
 
   it('should hide banner after decline all is clicked', async () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasDecision: false,
       hasAnalyticsConsent: false,
       hasSessionRecordingConsent: false,
@@ -227,7 +229,7 @@ describe('ConsentBanner', () => {
   });
 
   it('should have save button disabled by default when no consent is given', () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasDecision: false,
       hasAnalyticsConsent: false,
       hasSessionRecordingConsent: false,
@@ -241,7 +243,7 @@ describe('ConsentBanner', () => {
   });
 
   it('should enable save button when analytics is enabled', async () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasDecision: false,
       hasAnalyticsConsent: false,
       hasSessionRecordingConsent: false,
@@ -261,7 +263,7 @@ describe('ConsentBanner', () => {
   });
 
   it('should uncheck session recording when analytics is unchecked', async () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasDecision: false,
       hasAnalyticsConsent: false,
       hasSessionRecordingConsent: false,

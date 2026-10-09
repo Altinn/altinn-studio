@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import {
   internalParsableComplexExpression,
@@ -12,7 +13,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('ComplexExpression', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   it('displays textArea with complex expression as value', () => {
     render({});
@@ -65,7 +66,7 @@ const render = ({
 }) => {
   const defaultProps: ComplexExpressionProps = {
     expression: internalUnParsableComplexExpression,
-    onChange: jest.fn(),
+    onChange: vi.fn(),
     isStudioFriendly: false,
   };
   return renderWithMockStore({}, queries)(<ComplexExpression {...defaultProps} {...props} />);

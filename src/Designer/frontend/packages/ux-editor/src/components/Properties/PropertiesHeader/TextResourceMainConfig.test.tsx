@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { TextResourceMainConfig } from './TextResourceMainConfig';
 import { screen } from '@testing-library/react';
 import { component1Mock } from '../../../testing/layoutMock';
@@ -10,7 +11,7 @@ import { app, org } from '@studio/testing/testids';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
-const mockHandleComponentUpdate = jest.fn();
+const mockHandleComponentUpdate = vi.fn();
 const schemaTextResourceKeys = ['title'];
 const textResources: ITextResource[] = [
   { id: '1', value: 'Text 1' },
@@ -19,7 +20,7 @@ const textResources: ITextResource[] = [
 ];
 
 describe('TextBindingMainConfig', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('return null if the schema of component does not have a title prop', () => {
     renderTextMainConfig({});
@@ -42,10 +43,8 @@ describe('TextBindingMainConfig', () => {
     });
     await user.click(searchButton);
 
-    await user.selectOptions(
-      screen.getByRole('combobox'),
-      screen.getByRole('option', { name: textResources[1].id }),
-    );
+    await user.click(screen.getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: RegExp(textResources[1].value) }));
     await user.click(screen.getByRole('button', { name: textMock('general.save') }));
     expect(mockHandleComponentUpdate).toHaveBeenCalledWith({
       ...component1Mock,
@@ -56,7 +55,7 @@ describe('TextBindingMainConfig', () => {
   });
 
   it('removes text resource binding title when it is deleted', async () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     const user = userEvent.setup();
     const component = {
       ...component1Mock,

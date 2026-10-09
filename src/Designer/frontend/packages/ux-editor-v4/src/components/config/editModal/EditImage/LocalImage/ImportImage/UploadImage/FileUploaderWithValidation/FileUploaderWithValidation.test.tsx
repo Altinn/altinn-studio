@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import type { FileValidation, FileUploaderWithValidationProps } from './FileUploaderWithValidation';
@@ -6,14 +7,14 @@ import userEvent from '@testing-library/user-event';
 
 // Test data:
 const uploaderButtonText = 'Upload file';
-const onUploadFile = jest.fn();
+const onUploadFile = vi.fn();
 const defaultProps: FileUploaderWithValidationProps = {
   onUploadFile,
   uploaderButtonText,
 };
 
 describe('FileUploaderWithValidation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render only studioButton by default ', () => {
     renderFileUploader({ uploaderButtonText: undefined });
@@ -76,7 +77,7 @@ describe('FileUploaderWithValidation', () => {
 
   it('should call onInvalidFileName and not upload callback when validateFileName returns false', async () => {
     const user = userEvent.setup();
-    const onInvalidFileName = jest.fn();
+    const onInvalidFileName = vi.fn();
     const customFileValidation: FileValidation = {
       validateFileName: () => false,
       onInvalidFileName,
@@ -90,7 +91,7 @@ describe('FileUploaderWithValidation', () => {
 
   it('should not call onInvalidFileName and upload callback when validateFileName returns true', async () => {
     const user = userEvent.setup();
-    const onInvalidFileName = jest.fn();
+    const onInvalidFileName = vi.fn();
     const customFileValidation: FileValidation = {
       validateFileName: () => true,
       onInvalidFileName,
@@ -104,7 +105,7 @@ describe('FileUploaderWithValidation', () => {
 
   it('should call onInvalidFileSize and not upload callback when fileSize is larger than fileSizeLimit', async () => {
     const user = userEvent.setup();
-    const onInvalidFileSize = jest.fn();
+    const onInvalidFileSize = vi.fn();
     const fileSizeLimitMb = 1;
     const customFileValidation: FileValidation = {
       onInvalidFileSize,
@@ -123,7 +124,7 @@ describe('FileUploaderWithValidation', () => {
 
   it('should not call onInvalidFileSize and upload callback when fileSize is smaller than fileSizeLimit', async () => {
     const user = userEvent.setup();
-    const onInvalidFileSize = jest.fn();
+    const onInvalidFileSize = vi.fn();
     const fileSizeLimitMb = 1;
     const customFileValidation: FileValidation = {
       onInvalidFileSize,

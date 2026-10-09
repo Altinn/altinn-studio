@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import SupportedPaletteProviderModule from './SupportedPaletteProvider';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -21,29 +22,29 @@ describe('SupportedPaletteProvider', () => {
 
   beforeEach(() => {
     mockBpmnFactory = {
-      create: jest.fn((type, props) => ({
+      create: vi.fn((type, props) => ({
         $type: type,
         ...props,
       })),
     };
 
     mockCreate = {
-      start: jest.fn(),
+      start: vi.fn(),
     };
 
     mockElementFactory = {
-      createShape: jest.fn((config) => ({
+      createShape: vi.fn((config) => ({
         type: config.type,
         businessObject: config.businessObject,
       })),
     };
 
     mockPalette = {
-      registerProvider: jest.fn(),
+      registerProvider: vi.fn(),
     };
 
     mockModeling = {
-      updateProperties: jest.fn(),
+      updateProperties: vi.fn(),
     };
 
     provider = new SupportedPaletteProvider(
@@ -57,7 +58,7 @@ describe('SupportedPaletteProvider', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('constructor', () => {
@@ -322,13 +323,13 @@ describe('SupportedPaletteProvider', () => {
 
   describe('PDF service task version validation', () => {
     it('should show alert and not create task when appLibVersion is below minimum', () => {
-      const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
       const providerWithOldAppLibVersion = new SupportedPaletteProvider(
         mockBpmnFactory,
         mockCreate,
         mockElementFactory,
-        { registerProvider: jest.fn() },
+        { registerProvider: vi.fn() },
         mockModeling,
         { backendVersion: '8.0.0', frontendVersion: mockFrontendVersion },
       );
@@ -349,13 +350,13 @@ describe('SupportedPaletteProvider', () => {
     });
 
     it('should show alert and not create task when frontendVersion is below minimum', () => {
-      const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
       const providerWithOldFrontendVersion = new SupportedPaletteProvider(
         mockBpmnFactory,
         mockCreate,
         mockElementFactory,
-        { registerProvider: jest.fn() },
+        { registerProvider: vi.fn() },
         mockModeling,
         { backendVersion: mockAppLibVersion, frontendVersion: '4.0.0' },
       );

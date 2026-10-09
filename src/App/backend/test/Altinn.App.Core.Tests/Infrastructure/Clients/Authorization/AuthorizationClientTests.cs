@@ -11,6 +11,7 @@ using Altinn.App.Core.Tests.TestUtils;
 using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -34,7 +35,9 @@ public class AuthorizationClientTests
         Mock<HttpClient> httpClientMock = new();
         Mock<IOptionsMonitor<AppSettings>> appSettingsMock = new();
         var pdpResponse = GetXacmlJsonRespons("one-action-denied");
-        pdpMock.Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>())).ReturnsAsync(pdpResponse);
+        pdpMock
+            .Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pdpResponse);
         AuthorizationClient client = CreateClient(
             pdpMock.Object,
             httpContextAccessorMock.Object,
@@ -79,7 +82,7 @@ public class AuthorizationClientTests
         Mock<HttpContextAccessor> httpContextAccessorMock = new();
         Mock<HttpClient> httpClientMock = new();
         pdpMock
-            .Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new XacmlJsonResponse());
         AuthorizationClient client = CreateClient(
             pdpMock.Object,
@@ -126,7 +129,7 @@ public class AuthorizationClientTests
         var cancelled = new CancellationToken(canceled: true);
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            client.GetPartyList(1337, cancellationToken: cancelled)
+            client.GetPartyList(cancellationToken: cancelled)
         );
     }
 
@@ -140,14 +143,165 @@ public class AuthorizationClientTests
         );
         AuthorizationClient client = CreateClient(new Mock<IPDP>().Object, new HttpContextAccessor(), httpClient);
 
-        List<Party>? result = await client.GetPartyList(1337, cancellationToken: CancellationToken.None);
+        List<Party>? result = await client.GetPartyList(cancellationToken: CancellationToken.None);
 
         Assert.Null(result);
     }
 
     [Fact]
-    public Task AuthorizeAction_does_not_call_pdp_when_already_cancelled() =>
-        AssertPdpNotCalledWhenCancelled(
+    public async Task GetPartyList_maps_authorized_parties_from_access_management()
+    {
+        Uri? requestUri = null;
+        using var httpClient = new HttpClient(
+            new DelegatingHandlerStub(
+                (request, _) =>
+                {
+                    requestUri = request.RequestUri;
+                    return Task.FromResult(JsonResponse(AuthorizedPartiesJson));
+                }
+            )
+        );
+        AuthorizationClient client = CreateClient(new Mock<IPDP>().Object, new HttpContextAccessor(), httpClient);
+
+        List<Party>? parties = await client.GetPartyList();
+
+        Assert.NotNull(requestUri);
+        Assert.Equal("/accessmanagement/api/v1/enduser/authorizedparties", requestUri.AbsolutePath);
+        Assert.Contains("includeInstances=true", requestUri.Query, StringComparison.Ordinal);
+        // Access Management falls back to the user's profile settings for these, which would hide parties the user
+        // can act for.
+        Assert.Contains("includePartiesViaKeyRoles=true", requestUri.Query, StringComparison.Ordinal);
+        Assert.Contains("includeSubParties=true", requestUri.Query, StringComparison.Ordinal);
+        Assert.Contains("includeInactiveParties=true", requestUri.Query, StringComparison.Ordinal);
+
+        Assert.NotNull(parties);
+        Assert.Equal([501337, 500000, 500600], parties.Select(p => p.PartyId));
+
+        Party person = parties[0];
+        Assert.Equal(PartyType.Person, person.PartyTypeName);
+        Assert.Equal("01039012345", person.SSN);
+        Assert.Null(person.OrgNumber);
+        Assert.Null(person.ChildParties);
+
+        // The main unit only reaches its subunit through an instance delegation, so that subunit is left out.
+        Party organisation = parties[1];
+        Assert.Equal(PartyType.Organisation, organisation.PartyTypeName);
+        Assert.Equal("897069650", organisation.OrgNumber);
+        Assert.Null(organisation.SSN);
+        Assert.False(organisation.OnlyHierarchyElementWithNoAccess);
+        Party subunit = Assert.Single(organisation.ChildParties!);
+        Assert.Equal(500001, subunit.PartyId);
+        Assert.Equal("BEDR", subunit.UnitType);
+
+        // The user has no access to this main unit themselves, but to one of its subunits.
+        Party hierarchyOnly = parties[2];
+        Assert.True(hierarchyOnly.OnlyHierarchyElementWithNoAccess);
+        Assert.Equal(500601, Assert.Single(hierarchyOnly.ChildParties!).PartyId);
+    }
+
+    [Fact]
+    public async Task GetPartyList_returns_null_when_access_management_fails()
+    {
+        using var httpClient = new HttpClient(
+            new DelegatingHandlerStub(
+                (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError))
+            )
+        );
+        AuthorizationClient client = CreateClient(new Mock<IPDP>().Object, new HttpContextAccessor(), httpClient);
+
+        Assert.Null(await client.GetPartyList());
+    }
+
+    [Theory]
+    [InlineData(501337, true)]
+    [InlineData(500001, true)]
+    [InlineData(500002, false)] // Only reached through an instance delegation
+    [InlineData(500600, false)] // Only listed as the parent of a subunit
+    [InlineData(123, false)]
+    public async Task ValidateSelectedParty_checks_the_authorized_parties(int partyId, bool expected)
+    {
+        using var httpClient = new HttpClient(
+            new DelegatingHandlerStub((_, _) => Task.FromResult(JsonResponse(AuthorizedPartiesJson)))
+        );
+        AuthorizationClient client = CreateClient(new Mock<IPDP>().Object, new HttpContextAccessor(), httpClient);
+
+        Assert.Equal(expected, await client.ValidateSelectedParty(partyId));
+    }
+
+    private static HttpResponseMessage JsonResponse(string json) =>
+        new(HttpStatusCode.OK) { Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json") };
+
+    private const string AuthorizedPartiesJson = """
+        {
+          "links": { "next": null },
+          "data": [
+            {
+              "partyUuid": "2f6ee1a7-8d7b-4e1f-9a8f-1b0c3a2d4e5f",
+              "partyId": 501337,
+              "name": "Sophie Salt",
+              "personId": "01039012345",
+              "type": "Person",
+              "authorizedRoles": ["PRIV"]
+            },
+            {
+              "partyId": 500000,
+              "name": "DDG Fitness AS",
+              "organizationNumber": "897069650",
+              "type": "Organization",
+              "unitType": "AS",
+              "authorizedRoles": ["DAGL"],
+              "subunits": [
+                {
+                  "partyId": 500001,
+                  "organizationNumber": "897069651",
+                  "type": "Organization",
+                  "unitType": "BEDR",
+                  "authorizedRoles": ["DAGL"]
+                },
+                {
+                  "partyId": 500002,
+                  "organizationNumber": "897069652",
+                  "type": "Organization",
+                  "unitType": "BEDR",
+                  "authorizedInstances": [{ "resourceId": "app_ttd_test", "instanceId": "2f6ee1a7-8d7b-4e1f-9a8f-1b0c3a2d4e50" }]
+                }
+              ]
+            },
+            {
+              "partyId": 500600,
+              "organizationNumber": "910000000",
+              "type": "Organization",
+              "unitType": "AS",
+              "onlyHierarchyElementWithNoAccess": true,
+              "subunits": [
+                {
+                  "partyId": 500601,
+                  "organizationNumber": "910000001",
+                  "type": "Organization",
+                  "unitType": "BEDR",
+                  "authorizedResources": ["app_ttd_test"]
+                }
+              ]
+            },
+            {
+              "partyId": 500700,
+              "organizationNumber": "920000000",
+              "type": "Organization",
+              "unitType": "AS",
+              "authorizedInstances": [{ "resourceId": "app_ttd_test", "instanceId": "2f6ee1a7-8d7b-4e1f-9a8f-1b0c3a2d4e51" }]
+            },
+            {
+              "partyId": 500800,
+              "type": "SomethingNew",
+              "authorizedRoles": ["DAGL"]
+            }
+          ]
+        }
+        """;
+
+    [Fact]
+    public Task AuthorizeAction_forwards_cancellation_token_to_pdp() =>
+        AssertCancellationTokenForwardedToPdp(
             (client, cancellationToken) =>
                 client.AuthorizeAction(
                     new AppIdentifier("tdd", "test-app"),
@@ -160,8 +314,8 @@ public class AuthorizationClientTests
         );
 
     [Fact]
-    public Task AuthorizeActions_does_not_call_pdp_when_already_cancelled() =>
-        AssertPdpNotCalledWhenCancelled(
+    public Task AuthorizeActions_forwards_cancellation_token_to_pdp() =>
+        AssertCancellationTokenForwardedToPdp(
             (client, cancellationToken) =>
                 client.AuthorizeActions(
                     new Instance
@@ -179,25 +333,26 @@ public class AuthorizationClientTests
         );
 
     [Fact]
-    public Task GetKeyRoleOrganizationParties_does_not_call_pdp_when_already_cancelled() =>
-        AssertPdpNotCalledWhenCancelled(
+    public Task GetKeyRoleOrganizationParties_forwards_cancellation_token_to_pdp() =>
+        AssertCancellationTokenForwardedToPdp(
             (client, cancellationToken) => client.GetKeyRoleOrganizationParties(1337, ["123456789"], cancellationToken)
         );
 
-    /// <summary>
-    /// IPDP has no cancellation token parameter, so the client is expected to honour cancellation by not
-    /// starting the PDP call at all when the token is already cancelled.
-    /// </summary>
-    private static async Task AssertPdpNotCalledWhenCancelled(Func<AuthorizationClient, CancellationToken, Task> act)
+    private static async Task AssertCancellationTokenForwardedToPdp(
+        Func<AuthorizationClient, CancellationToken, Task> act
+    )
     {
+        using var cts = new CancellationTokenSource();
         Mock<IPDP> pdpMock = new(MockBehavior.Strict);
+        pdpMock
+            .Setup(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), cts.Token))
+            .ReturnsAsync(new XacmlJsonResponse());
         using var httpClient = new HttpClient(new DelegatingHandlerStub());
         AuthorizationClient client = CreateClient(pdpMock.Object, new HttpContextAccessor(), httpClient);
-        var cancelled = new CancellationToken(canceled: true);
 
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => act(client, cancelled));
+        await act(client, cts.Token);
 
-        pdpMock.Verify(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()), Times.Never);
+        pdpMock.Verify(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), cts.Token), Times.Once);
     }
 
     private static AuthorizationClient CreateClient(

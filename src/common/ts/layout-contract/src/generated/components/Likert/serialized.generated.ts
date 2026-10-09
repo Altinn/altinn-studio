@@ -4,6 +4,7 @@ import {
   FormComponentProps,
   ILikertColumnProperties,
   ISelectionComponent,
+  LabeledComponentProps,
   SummarizableComponentProps,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
@@ -22,6 +23,8 @@ export type CompLikertSerialized = {
     questionDescriptions?: ExprValToActualOrExpr<ExprVal.String>;
     questionHelpTexts?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsLikert;
   filter?: ILikertFilter;
@@ -29,6 +32,7 @@ export type CompLikertSerialized = {
   SummarizableComponentProps &
   ISelectionComponent &
   FormComponentProps &
+  LabeledComponentProps &
   ILikertColumnProperties;
 
-// Source hash: 62117e032b5c3af0a09c2dadf242c70b96b12dcc6709bab7c6844846579e3291
+// Source hash: 60e579a8925d8f24239642d3205d84088d9ff8a3f089f4b5662841a2e80c9db2

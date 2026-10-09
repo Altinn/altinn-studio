@@ -153,6 +153,7 @@ export function SubformSummaryTable({
           baseComponentId={targetBaseComponentId}
           id={`subform-summary2-${componentId}`}
           renderLabelAs='span'
+          hideIndicators
           weight='regular'
           textResourceBindings={{
             title,
