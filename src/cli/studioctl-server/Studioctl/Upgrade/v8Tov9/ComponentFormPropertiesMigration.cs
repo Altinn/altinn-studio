@@ -177,13 +177,20 @@ internal sealed class ComponentFormPropertiesMigration(string projectFolder)
         }
         else
         {
-            if (
-                !_minimumProperties.TryGetValue(type, out var minimumProperty)
-                || component[minimumProperty] is not JsonValue minimumValue
-                || !minimumValue.TryGetValue<int>(out minimum)
-            )
+            if (!_minimumProperties.TryGetValue(type, out var minimumProperty))
                 return;
-            minimumDescription = $"`{minimumProperty}`";
+
+            if (!component.TryGetPropertyValue(minimumProperty, out var minimumNode))
+            {
+                minimum = 0;
+                minimumDescription = $"the default `{minimumProperty}`";
+            }
+            else
+            {
+                if (minimumNode is not JsonValue minimumValue || !minimumValue.TryGetValue<int>(out minimum))
+                    return;
+                minimumDescription = $"`{minimumProperty}`";
+            }
         }
 
         if ((minimum > 0) == required)
