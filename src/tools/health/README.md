@@ -1,65 +1,42 @@
 ## Health utility
 
-Utility for running health checks across clusters (that the logged in user has access to).
-
-Run it from `src/tools/health`.
-
-- Must have `az` CLI installed, logged into ai-dev account (that has access to relevant env)
-- Must have `kubectl` CLI installed (this tool will fetch creds for you if you don't have them)
-- Must have Go 1.26.4 installed
-
-```sh
-# Run this to trigger prompt for az cli extension installation
-# We use graph query to more efficiently query available clusters
-az graph query -h
-```
+Run health checks and commands across Kubernetes clusters from `src/tools/health`.
+Requires Go 1.26.4, `kubectl`, and `az` logged into an account with cluster access.
+Run `az graph query -h` once to install the Resource Graph extension if prompted.
 
 ### Usage
 
 ```sh
-$ make help
-Usage: make [target]
-
-Available targets:
-  help            Show this help message
-  build           Build all packages
-
-CLI usage:
-usage: go run cmd/main.go <command> [arguments]
-
-Available commands:
-  help            Print CLI usage
-  init            Discover clusters and configure credentials
-  status          Check status of resources across clusters
-  set-weight      Update HTTPRoute weights
-  exec            Execute kubectl/helm/flux commands across clusters
-
-Examples:
-  # Discover clusters and fetch credentials (single or multiple environments)
-  go run cmd/main.go init tt02
-  go run cmd/main.go init at22,at24
-  go run cmd/main.go init -s ttd tt02,prod
-  go run cmd/main.go init --kubeconfig ./kubeconfigs/tt02.yaml tt02
-
-  # Check resource status
-  go run cmd/main.go status tt02 hr traefik/altinn-traefik
-  go run cmd/main.go status tt02 ks runtime-pdf3/pdf3-app
-  go run cmd/main.go status at22,at24 dep runtime-pdf3/pdf3-proxy
-  go run cmd/main.go status -s ttd tt02,prod ks runtime-pdf3/pdf3-app
-
-  # Update HTTPRoute weights
-  go run cmd/main.go set-weight tt02 pdf/pdf3-migration 50 50
-  go run cmd/main.go set-weight at22,at24 pdf/pdf3-migration 0 100
-  go run cmd/main.go set-weight --dry-run tt02,prod pdf/pdf3-migration 0 100
-
-  # Execute commands across clusters
-  go run cmd/main.go exec tt02 kubectl get pods -n default
-  go run cmd/main.go exec at22,at24 flux get kustomizations -A
-  go run cmd/main.go exec -s ttd prod,tt02 helm list -A
-
-Run 'go run cmd/main.go <command> -h' for more information on a specific command.
+go run cmd/main.go init tt02
+go run cmd/main.go status -s ttd tt02,prod ks runtime-pdf3/pdf3-app
+go run cmd/main.go set-weight --dry-run tt02 pdf/pdf3-migration 50 50
+go run cmd/main.go exec tt02 kubectl get pods -n default
 ```
 
-By default, `init` reads contexts from `$HOME/.kube/config` and lets Azure CLI use its default
-credentials destination. Pass `--kubeconfig PATH` to inspect contexts in a specific file and write
-new credentials to that same file. The custom file may be new, but its parent directory must exist.
+Use comma-separated environments and `-s OWNER` to select clusters. Run
+`go run cmd/main.go help` for all commands, or `make build` to build.
+`exec` shows stdout and stderr in one row per cluster, with line breaks and tabs escaped;
+select specific fields for compact output.
+
+### Initialize and refresh contexts
+
+`init` fetches missing credentials and reports contexts absent from Azure discovery.
+
+- `--update`: also refresh existing credentials and connection details.
+- `--prune`: offer to remove contexts absent from discovery.
+- `--dry-run`: preview without changing files.
+- `--exclude-service-owner a,b`: exclude owners from fetching and pruning.
+- `--kubeconfig PATH`: use another file instead of `$HOME/.kube/config`; its parent must exist.
+
+For `tt02`, scope discovery to the active account: dev for `ttd`, prod for other owners.
+The examples below use the `aze` account wrapper:
+
+```sh
+aze dev -- go run cmd/main.go init --prune -s ttd tt02
+aze prod -- go run cmd/main.go init --prune --exclude-service-owner ttd tt02
+aze prod -- go run cmd/main.go init --update -s nsm tt02
+```
+
+Missing account access can look like deleted clusters: review removals before confirming.
+Pruning requires `y` or `yes`, saves a `<kubeconfig>.backup-*`, removes only unreferenced
+associated cluster/user entries, and clears `current-context` if removed.
