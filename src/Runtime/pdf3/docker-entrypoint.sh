@@ -11,16 +11,38 @@ install_ca_bundle() {
     return 1
   fi
 
+  # The database only holds this bundle, so it is rebuilt on every start.
   nss_db="$HOME/.local/share/pki/nssdb"
+  rm -rf "$nss_db"
   mkdir -p "$nss_db"
-  if [ -f "$nss_db/cert9.db" ] && ! certutil -d "sql:$nss_db" -L >/dev/null 2>&1; then
-    rm -f "$nss_db/cert9.db" "$nss_db/key4.db" "$nss_db/pkcs11.txt"
-  fi
-  if [ ! -f "$nss_db/cert9.db" ]; then
-    certutil -d "sql:$nss_db" -N --empty-password >/dev/null 2>&1 < /dev/null
-  fi
-  certutil -d "sql:$nss_db" -D -n studio-ca-bundle >/dev/null 2>&1 || true
-  certutil -d "sql:$nss_db" -A -t "C,," -n studio-ca-bundle -i "$STUDIO_CA_BUNDLE"
+  certutil -d "sql:$nss_db" -N --empty-password
+
+  # certutil -A imports only the first certificate of a PEM file, so each certificate is imported on its own.
+  work=$(mktemp -d)
+  awk -v directory="$work" '
+    /-----BEGIN CERTIFICATE-----/ {
+      count++
+      output = sprintf("%s/certificate-%04d.pem", directory, count)
+    }
+    output != "" { print > output }
+    /-----END CERTIFICATE-----/ {
+      close(output)
+      output = ""
+    }
+    END {
+      if (output != "" || count == 0) exit 1
+    }
+  ' "$STUDIO_CA_BUNDLE" || {
+    echo "pdf3 worker: STUDIO_CA_BUNDLE must contain complete PEM certificates" >&2
+    rm -rf "$work"
+    return 1
+  }
+
+  for certificate in "$work"/certificate-*.pem; do
+    name=${certificate##*/}
+    certutil -d "sql:$nss_db" -A -t "C,," -n "studio-ca-bundle-${name%.pem}" -i "$certificate"
+  done
+  rm -rf "$work"
 }
 
 install_ca_bundle
