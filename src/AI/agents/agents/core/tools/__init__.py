@@ -16,7 +16,6 @@ from .git_tool import CommitSessionBranchTool
 from .preview_check_tool import PreviewRenderCheckTool
 from .repo_tool import ScanRepoTool
 from .skill_tool import SkillTool
-from .upgrade_app_tool import UpgradeAppToV9Tool
 from .verify_tool import VerifyChangesTool
 from .web_fetch_tool import WebFetchTool
 
@@ -30,7 +29,6 @@ __all__ = [
     "ReadFileTool",
     "ScanRepoTool",
     "SkillTool",
-    "UpgradeAppToV9Tool",
     "VerifyChangesTool",
     "WebFetchTool",
     "WriteFileTool",

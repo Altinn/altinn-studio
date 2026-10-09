@@ -128,8 +128,12 @@ internal static class V8Tov9Upgrade
                 }
             }
 
+            // Runs on resumed upgrades too, so an app already moved to v9 gets its test project fixed.
             if (returnCode == 0)
+            {
                 returnCode = await MigrateDockerfile(projectFolder, options.TargetFramework);
+                returnCode = CombineExitCodes(returnCode, await MigrateDependentProjects(projectFolder, projectFile));
+            }
         }
 
         // Run every remaining migration and report the worst result. Their order is deliberate:
@@ -210,6 +214,9 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckAppSettingsRemovedKeys(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveGeneralSettingsHostName(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckAppFileNameCase(projectFile));
@@ -428,6 +435,19 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Dockerfile", ex);
+        }
+    }
+
+    static async Task<int> MigrateDependentProjects(string projectFolder, string projectFile)
+    {
+        UpgradeConsole.BeginStep("Dependent projects");
+        try
+        {
+            return await DependentProjectsMigration.Migrate(projectFolder, projectFile);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error moving dependent projects to the new target framework", ex);
         }
     }
 
@@ -906,6 +926,7 @@ internal static class V8Tov9Upgrade
 
             var result = WarnOnlyDetector.Combine(
                 new RemovedTaskEventInterfaceDetector(scanner).Detect(),
+                new RemovedPdfFormatterDetector(scanner).Detect(),
                 new RemovedEventsReceiveStackDetector(scanner).Detect(),
                 new ServiceTaskResultApiDetector(pristineView).Detect(),
                 new LegacyEFormidlingCodeDetector(pristineView).Detect(),
@@ -1015,6 +1036,29 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error checking the appsettings files for removed keys", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes GeneralSettings:HostName from the appsettings files: the platform and studioctl set it for a v9 app,
+    /// so a value in the file only goes stale.
+    /// </summary>
+    static async Task<int> RemoveGeneralSettingsHostName(string projectFile)
+    {
+        UpgradeConsole.BeginStep("GeneralSettings host name");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = await GeneralSettingsHostNameMigration.Migrate(appFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No GeneralSettings:HostName in the appsettings files",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing GeneralSettings:HostName from the appsettings files", ex);
         }
     }
 

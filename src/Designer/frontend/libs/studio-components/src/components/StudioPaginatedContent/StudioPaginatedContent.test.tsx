@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -6,8 +7,8 @@ import { StudioPaginatedContent, type StudioPaginatedContentProps } from './Stud
 const navigationMock: StudioPaginatedContentProps['navigation'] = {
   canGoNext: true,
   canGoPrevious: true,
-  onNext: jest.fn(),
-  onPrevious: jest.fn(),
+  onNext: vi.fn(),
+  onPrevious: vi.fn(),
 };
 
 const buttonTextsMock: StudioPaginatedContentProps['navigationButtonTexts'] = {

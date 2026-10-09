@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import React, { useEffect, useRef } from 'react';
 import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
@@ -9,12 +10,12 @@ import type { CreateNewCodeListDialogProps } from './CreateNewCodeListDialog';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { textResourcesNb } from '../../../../../../test-data/textResources';
 
-const onCreateCodeList = jest.fn();
+const onCreateCodeList = vi.fn();
 const newCodeListTitleMock = 'newCodeListTitleMock';
 const existingCodeListTitle = 'existingCodeListTitle';
 
 describe('CreateNewCodeListDialog', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('renders an empty textfield for inputting code list name', async () => {
     renderCreateNewCodeListDialog();
@@ -158,8 +159,8 @@ const queryDialog = (): HTMLDialogElement | null => {
 
 const defaultProps: CreateNewCodeListDialogProps = {
   onCreateCodeList,
-  onCreateTextResource: jest.fn(),
-  onUpdateTextResource: jest.fn(),
+  onCreateTextResource: vi.fn(),
+  onUpdateTextResource: vi.fn(),
   codeListNames: [existingCodeListTitle],
   textResources: textResourcesNb,
 };

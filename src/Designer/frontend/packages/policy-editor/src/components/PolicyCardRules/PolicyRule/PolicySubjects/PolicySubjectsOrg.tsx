@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StudioDetails, StudioTabs } from '@studio/components';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicySubjects.module.css';
@@ -32,58 +33,74 @@ export const PolicySubjectsOrg = ({
 }: PolicySubjectsOrgProps) => {
   const { t } = useTranslation();
   const { policyRule } = usePolicyRuleContext();
+  // The subject lists are large, so they are only rendered while visible
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>(TabId.ErRoles);
 
   return (
-    <StudioDetails data-color='neutral'>
+    <StudioDetails
+      data-color='neutral'
+      onToggle={(event: Event) => setIsOpen((event.target as HTMLDetailsElement).open)}
+    >
       <StudioDetails.Summary className={classes.orgAccordion}>
         <Buildings3Icon fontSize={28} /> {t('policy_editor.org_subjects_header')}
       </StudioDetails.Summary>
       <StudioDetails.Content className={classes.subjectBlock}>
-        <StudioTabs defaultValue={TabId.ErRoles}>
-          <StudioTabs.List>
-            <StudioTabs.Tab value={TabId.ErRoles}>
-              {t('policy_editor.rule_card_subjects_ccr_roles')}
-            </StudioTabs.Tab>
-            <StudioTabs.Tab value={TabId.AccessPackages}>
-              {t('policy_editor.rule_card_subjects_access_packages')}
-            </StudioTabs.Tab>
-            <StudioTabs.Tab value={TabId.AltinnRoles}>
-              {t('policy_editor.rule_card_subjects_altinn_roles')}
-            </StudioTabs.Tab>
-            {otherSubjects.length > 0 && (
-              <StudioTabs.Tab value={TabId.Other}>
-                {t('policy_editor.rule_card_subjects_other_roles')}
+        {isOpen && (
+          <StudioTabs value={activeTab} onChange={setActiveTab}>
+            <StudioTabs.List>
+              <StudioTabs.Tab value={TabId.ErRoles}>
+                {t('policy_editor.rule_card_subjects_ccr_roles')}
               </StudioTabs.Tab>
-            )}
-          </StudioTabs.List>
-          <StudioTabs.Panel value={TabId.ErRoles}>
-            <RoleList
-              selectedSubjects={policyRule.subject}
-              subjects={ccrSubjects}
-              heading={t('policy_editor.rule_card_subjects_ccr_roles')}
-              handleChange={handleSubjectChange}
-            />
-          </StudioTabs.Panel>
-          <StudioTabs.Panel value={TabId.AccessPackages}>
-            <PolicyAccessPackages accessPackages={accessPackages} />
-          </StudioTabs.Panel>
-          <StudioTabs.Panel value={TabId.AltinnRoles}>
-            <RoleList
-              selectedSubjects={policyRule.subject}
-              subjects={altinnSubjects}
-              heading={t('policy_editor.rule_card_subjects_altinn_roles')}
-              handleChange={handleSubjectChange}
-            />
-          </StudioTabs.Panel>
-          <StudioTabs.Panel value={TabId.Other}>
-            <RoleList
-              selectedSubjects={policyRule.subject}
-              subjects={otherSubjects}
-              heading={t('policy_editor.rule_card_subjects_other_roles')}
-              handleChange={handleSubjectChange}
-            />
-          </StudioTabs.Panel>
-        </StudioTabs>
+              <StudioTabs.Tab value={TabId.AccessPackages}>
+                {t('policy_editor.rule_card_subjects_access_packages')}
+              </StudioTabs.Tab>
+              <StudioTabs.Tab value={TabId.AltinnRoles}>
+                {t('policy_editor.rule_card_subjects_altinn_roles')}
+              </StudioTabs.Tab>
+              {otherSubjects.length > 0 && (
+                <StudioTabs.Tab value={TabId.Other}>
+                  {t('policy_editor.rule_card_subjects_other_roles')}
+                </StudioTabs.Tab>
+              )}
+            </StudioTabs.List>
+            <StudioTabs.Panel value={TabId.ErRoles}>
+              {activeTab === TabId.ErRoles && (
+                <RoleList
+                  selectedSubjects={policyRule.subject}
+                  subjects={ccrSubjects}
+                  heading={t('policy_editor.rule_card_subjects_ccr_roles')}
+                  handleChange={handleSubjectChange}
+                />
+              )}
+            </StudioTabs.Panel>
+            <StudioTabs.Panel value={TabId.AccessPackages}>
+              {activeTab === TabId.AccessPackages && (
+                <PolicyAccessPackages accessPackages={accessPackages} />
+              )}
+            </StudioTabs.Panel>
+            <StudioTabs.Panel value={TabId.AltinnRoles}>
+              {activeTab === TabId.AltinnRoles && (
+                <RoleList
+                  selectedSubjects={policyRule.subject}
+                  subjects={altinnSubjects}
+                  heading={t('policy_editor.rule_card_subjects_altinn_roles')}
+                  handleChange={handleSubjectChange}
+                />
+              )}
+            </StudioTabs.Panel>
+            <StudioTabs.Panel value={TabId.Other}>
+              {activeTab === TabId.Other && (
+                <RoleList
+                  selectedSubjects={policyRule.subject}
+                  subjects={otherSubjects}
+                  heading={t('policy_editor.rule_card_subjects_other_roles')}
+                  handleChange={handleSubjectChange}
+                />
+              )}
+            </StudioTabs.Panel>
+          </StudioTabs>
+        )}
       </StudioDetails.Content>
     </StudioDetails>
   );

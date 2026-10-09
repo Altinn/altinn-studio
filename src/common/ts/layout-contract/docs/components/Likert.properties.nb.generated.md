@@ -97,7 +97,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler parametere i spørringsstrengen til verdier. Parameterne legges til URL-en når alternativer hentes.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler parametere i spørringsstrengen til verdier. Parameterne legges til URL-en når alternativer hentes. Andre egenskapsnavn er tillatt. Verditype: string | expression&lt;string&gt;.</div></div>
 </details>
 
 <details class="component-property-group" id="options">

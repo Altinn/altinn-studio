@@ -144,7 +144,6 @@ jobs:
 
       - name: Build workspace
         run: |
-          make -C src/experimental build
           make -C src/ci/github-runner/coordinator build
 
   localtest-image-registry-cache:

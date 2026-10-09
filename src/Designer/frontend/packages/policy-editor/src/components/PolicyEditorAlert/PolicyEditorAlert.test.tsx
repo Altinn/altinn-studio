@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PolicyEditorAlert } from './PolicyEditorAlert';
@@ -9,7 +10,7 @@ import { mockPolicyEditorContextValue } from '../../../test/mocks/policyEditorCo
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('PolicyEditorAlert', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('only displays the alert title when the policy has no rules', async () => {
     renderPolicyEditorAlert({ policyRules: [] });

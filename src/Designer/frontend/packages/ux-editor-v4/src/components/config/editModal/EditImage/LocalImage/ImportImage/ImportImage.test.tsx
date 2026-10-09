@@ -29,9 +29,7 @@ describe('ImportImage', () => {
   it('should show spinner when image is being uploaded', async () => {
     const user = userEvent.setup();
     const imageFileName = 'image.png';
-    const addImageMock = jest
-      .fn()
-      .mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 1000)));
+    const addImageMock = jest.fn(() => new Promise<FormData>(() => {}));
     renderImportImage({ addImage: addImageMock });
     const fileInput = getFileInputElement();
     const file = new File(['test'], imageFileName, { type: 'image/png' });

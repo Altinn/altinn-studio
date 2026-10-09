@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ForwardedRef } from 'react';
 import type { StudioTextResourceInputProps } from './StudioTextResourceInput';
 import { StudioTextResourceInput } from './StudioTextResourceInput';
@@ -26,10 +27,10 @@ const texts: TextResourceInputTexts = {
   valueLabel: 'Tekstverdi',
 };
 const currentId = 'land.NO';
-const onChangeCurrentId = jest.fn();
-const onChangeTextResource = jest.fn();
-const onCreateTextResource = jest.fn();
-const onUpdateTextResource = jest.fn();
+const onChangeCurrentId = vi.fn();
+const onChangeTextResource = vi.fn();
+const onCreateTextResource = vi.fn();
+const onUpdateTextResource = vi.fn();
 const defaultProps: StudioTextResourceInputProps = {
   textResources,
   texts,
@@ -42,7 +43,7 @@ const defaultProps: StudioTextResourceInputProps = {
 const currentTextResource = TextResourceUtils.fromArray(textResources).get(currentId);
 
 describe('StudioTextResourceInput', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Renders the "edit value" input field by default', () => {
     renderTextResourceInput();
@@ -176,7 +177,7 @@ describe('StudioTextResourceInput', () => {
 
   it('Calls the onBlur callback when provided and the field is blurred', async () => {
     const user = userEvent.setup();
-    const onBlur = jest.fn();
+    const onBlur = vi.fn();
     renderTextResourceInput({ onBlur });
     await user.type(getValueField(), 'test');
     await user.tab();
@@ -185,7 +186,7 @@ describe('StudioTextResourceInput', () => {
 
   it('Calls the onChange callback when provided and the field value changes', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderTextResourceInput({ onChange });
     await user.type(getValueField(), 'a');
     expect(onChange).toHaveBeenCalledTimes(1);

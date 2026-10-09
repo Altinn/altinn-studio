@@ -6,6 +6,7 @@ ENV PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sb
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
+        btop \
         build-essential \
         ca-certificates \
         curl \
@@ -72,6 +73,8 @@ RUN case "${TARGETARCH}" in \
         --no-path \
         --version "${DOTNET_VERSION}" \
     && ln -s "${DOTNET_ROOT}/dotnet" /usr/local/bin/dotnet \
+    && install -d /etc/dotnet \
+    && printf '%s\n' "${DOTNET_ROOT}" >/etc/dotnet/install_location \
     && rm -f /tmp/dotnet-install.sh /tmp/go.tar.gz /tmp/node.tar.xz
 
 ARG YARN_VERSION=4.18.0
@@ -169,8 +172,25 @@ RUN case "${TARGETARCH}" in \
     && rm -f /tmp/typos.tar.gz /tmp/typos \
     && test "$(typos --version)" = "typos-cli ${TYPOS_VERSION}"
 
-ARG CODEX_VERSION=0.159.3
-ARG CLAUDE_CODE_VERSION=2.1.286
+# Installs the .NET tools listed in dotnet-tools.json, kept in the .NET tool manifest format so
+# Renovate updates it, to a shared path because the host resynchronizes the Agent's home directory.
+COPY dotnet-tools.json /tmp/dotnet-tools.json
+RUN set -eu; \
+    scratch="$(mktemp -d)"; \
+    export HOME="${scratch}" TMPDIR="${scratch}" DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1; \
+    for tool in $(jq -r '.tools | keys[]' /tmp/dotnet-tools.json); do \
+        dotnet tool install "${tool}" --tool-path /usr/local/share/dotnet-tools \
+            --version "$(jq -r --arg tool "${tool}" '.tools[$tool].version' /tmp/dotnet-tools.json)"; \
+        for command in $(jq -r --arg tool "${tool}" '.tools[$tool].commands[]' /tmp/dotnet-tools.json); do \
+            ln -s "/usr/local/share/dotnet-tools/${command}" "/usr/local/bin/${command}"; \
+            "${command}" --version; \
+        done; \
+    done; \
+    find /usr/local/share/dotnet-tools/.store -name '*.nupkg' -delete; \
+    rm -rf "${scratch}" /tmp/dotnet-tools.json
+
+ARG CODEX_VERSION=0.160.1
+ARG CLAUDE_CODE_VERSION=2.1.292
 ARG STUDIOCTL_VERSION=v0.1.0-preview.26
 ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=41654173a78f09fdb9ed8bfc0e223169fba7158ef5e5a8401201133b5b1bad51
 
@@ -282,6 +302,7 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && codex --version \
     && test "$(id -u agent)" = 1000 \
     && hunspell -v \
+    && btop --version \
     && nvim --version \
     && nvim --headless \
         "+lua assert(vim.g.colors_name == 'habamax'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
@@ -332,7 +353,6 @@ RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         aardvark-dns \
         bind9-dnsutils \
-        btop \
         catatonit \
         clang \
         ffmpeg \
@@ -368,9 +388,9 @@ RUN apt-get update \
     && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt \
     && chown -R agent:agent /usr/local/rustup
 
-# The Rust workspaces' `make deps-check` (src/experimental, src/ci/github-runner/coordinator) runs
-# cargo-machete. The release binary is published per architecture, so the digests are pinned here;
-# the version matches the CI workflows that install it and must move together with them.
+# The Rust workspace's `make deps-check` (src/ci/github-runner/coordinator) runs cargo-machete. The
+# release binary is published per architecture, so the digests are pinned here; the version matches
+# the CI workflows that install it and must move together with them.
 ARG CARGO_MACHETE_VERSION=0.9.2
 
 RUN case "${TARGETARCH}" in \
@@ -479,11 +499,16 @@ RUN case "${TARGETARCH}" in \
     && psql --version \
     && shellcheck --version \
     && hyperfine --version \
-    && btop --version \
     && socat -V | head -1 \
     && tcpdump --version \
     && dig -v \
     && unzip -v | head -1
+
+# Docker API clients such as agentctl's image builds and Testcontainers read DOCKER_HOST, not the
+# CONTAINER_HOST that agentd gives a Session. podman-docker's profile script would otherwise point
+# it at a rootless socket under XDG_RUNTIME_DIR that nothing serves, so use the rootful socket the
+# agent group can reach, as /run/docker.sock does.
+ENV DOCKER_HOST=unix:///run/podman/podman.sock
 
 # yq edits the manifests the deploy workflows patch, actionlint checks the GitHub workflows, and
 # cargo-deny runs the root deny.toml that CI checks with cargo-deny-action. All three are static
@@ -526,32 +551,6 @@ RUN case "${TARGETARCH}" in \
     && test "$(actionlint --version | head -1)" = "${ACTIONLINT_VERSION}" \
     && test "$(cargo-deny --version)" = "cargo-deny ${CARGO_DENY_VERSION}" \
     && yq --version | grep -qF "v${YQ_VERSION}"
-
-# The .NET diagnostics tools trace, count and dump running .NET processes: the profiling side of
-# the toolchain that linux-perf and lldb cover for native code. They are installed to a shared tool
-# path and linked onto the system PATH rather than installed as the Agent user's global tools,
-# because the home directory is resynchronized from the host. The scratch home keeps the SDK's
-# first-run files and the runtime's revocation-list cache out of the Agent's home. The tool store
-# keeps a copy of each package archive that running the tools never reads, about 56 MB in all.
-ARG DOTNET_DIAGNOSTICS_VERSION=10.0.745401
-
-RUN export HOME=/tmp/dotnet-tools-home DOTNET_CLI_HOME=/tmp/dotnet-tools-home \
-    && install -d "${HOME}" \
-    && for tool in dotnet-counters dotnet-dump dotnet-trace; do \
-        dotnet tool install "${tool}" \
-            --tool-path /usr/local/share/dotnet-tools \
-            --version "${DOTNET_DIAGNOSTICS_VERSION}" \
-        && ln -s "/usr/local/share/dotnet-tools/${tool}" "/usr/local/bin/${tool}" \
-        && "${tool}" --version \
-        || exit 1; \
-    done \
-    && find /usr/local/share/dotnet-tools/.store -name '*.nupkg' -delete \
-    && dotnet-counters --version \
-    && rm -rf /tmp/dotnet-tools-home /tmp/NuGetScratch* \
-    && chmod -R a+rX /usr/local/share/dotnet-tools \
-    && if find /home/agent ! -user agent -print -quit | grep -q .; then \
-        echo "build left files under /home/agent not owned by agent" >&2; exit 1; \
-    fi
 
 # Kind bind-mounts /lib/modules read-only into every node container. Podman fails the run when the
 # source path is missing where Docker would create it, and the Sandbox kernel is built without

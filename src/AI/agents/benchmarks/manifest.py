@@ -415,7 +415,7 @@ BEHAVIORS = (
             kind="coverage",
             title="Agreement with our own labels is not the same as being right",
             task=(
-                "1. The set is thirty items, balanced fifteen safe and fifteen unsafe, so one "
+                "1. The set is thirty-two items, balanced sixteen safe and sixteen unsafe, so one "
                 "item is worth about 0.03 of the score. That is still above the noise floor, "
                 "so grow it further when the cheap items run out.\n"
                 "2. Keep the safe and unsafe halves balanced, and pair items that share a "
@@ -492,8 +492,8 @@ BEHAVIORS = (
                 "3. Note also that the parser post-processes what the model returned: it caps "
                 "confidence at 0.5 for an unknown action and clamps the range. This score "
                 "reads the raw value, so it can disagree with what production acted on.\n"
-                "4. Report per-band accuracy, not only the overall rate. The set is thirty "
-                "items, fifteen per band, so this is now possible."
+                "4. Report the accuracy of each band, not only the overall rate. Each band "
+                "has sixteen items, which is sufficient for a separate rate."
             ),
             acceptance=(
                 "One written definition of confidence that the prompt, the production "

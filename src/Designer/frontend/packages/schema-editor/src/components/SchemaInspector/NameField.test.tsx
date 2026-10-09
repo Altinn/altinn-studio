@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -14,9 +15,9 @@ const defaultProps: NameFieldProps = {
   id: 'test-id',
   label: 'test-label',
   schemaPointer: combinationNodeMock.schemaPointer,
-  onKeyDown: jest.fn(),
+  onKeyDown: vi.fn(),
   disabled: false,
-  handleSave: jest.fn(),
+  handleSave: vi.fn(),
 };
 
 const render = async (props?: Partial<NameFieldProps>) =>
@@ -30,7 +31,7 @@ async function typeAndBlurNameField(text: string) {
 }
 
 describe('NameField', () => {
-  const mockOnChange = jest.fn();
+  const mockOnChange = vi.fn();
 
   beforeEach(() => {
     mockOnChange.mockClear();

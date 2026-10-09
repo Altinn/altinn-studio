@@ -1,14 +1,17 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import { StudioPropertyFieldset } from './StudioPropertyFieldset';
 import { testRootClassNameAppending } from '../../../test-utils/testRootClassNameAppending';
 import { testRefForwarding } from '../../../test-utils/testRefForwarding';
 import { FieldsetContent } from './test-data/FieldsetContent';
 
-jest.mock('./StudioPropertyFieldset.module.css', () => ({
-  propertyFieldset: 'propertyFieldset',
-  menubar: 'menubar',
-  content: 'content',
-  compact: 'compact',
+vi.mock('./StudioPropertyFieldset.module.css', () => ({
+  default: {
+    propertyFieldset: 'propertyFieldset',
+    menubar: 'menubar',
+    content: 'content',
+    compact: 'compact',
+  },
 }));
 
 describe('StudioPropertyFieldset', () => {

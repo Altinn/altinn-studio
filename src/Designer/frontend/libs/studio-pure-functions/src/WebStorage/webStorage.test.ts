@@ -1,3 +1,4 @@
+import { afterAll, describe, expect, it, vi } from 'vitest';
 import { typedLocalStorage } from './webStorage';
 
 describe('typedLocalStorage', () => {
@@ -53,7 +54,7 @@ describe('typedLocalStorage', () => {
   it('should remove invalid values', async () => {
     const key = 'invalidValueKey';
     const value = undefined;
-    const warSpy = jest.spyOn(global.console, 'warn').mockImplementation(() => undefined);
+    const warSpy = vi.spyOn(global.console, 'warn').mockImplementation(() => undefined);
     window?.localStorage.setItem(key, value as unknown as string);
     expect(typedLocalStorage.getItem(key)).toBe(value);
     expect(window?.localStorage.getItem(key)).toBe(null);
