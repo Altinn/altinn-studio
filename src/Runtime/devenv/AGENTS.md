@@ -25,3 +25,6 @@ make run / make stop # start/stop the standard runtime-fixture container
   `infra/observability`, through the local overlays in `infra/observability/local`. Change those
   overlays rather than the fixture when production's manifests change; `TestMonitoringOverlaysRender`
   renders them.
+- The monitoring Grafana reads `products/studio` from `Altinn/altinn-dashboards-grafana` (a clone in the
+  cache, or `DEVENV_DASHBOARDS_REPOSITORY`). Unit tests use `pkg/runtimes/kind/testdata/dashboards` so
+  they never clone.

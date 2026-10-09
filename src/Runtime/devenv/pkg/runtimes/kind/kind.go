@@ -90,11 +90,18 @@ func (v KindContainerRuntimeVariant) String() string {
 
 // KindContainerRuntimeOptions holds configuration options for the Kind runtime.
 type KindContainerRuntimeOptions struct {
+	// DashboardsRepository is a local checkout of Altinn/altinn-dashboards-grafana for the
+	// monitoring Grafana. When empty, DEVENV_DASHBOARDS_REPOSITORY is used, and when that is
+	// empty too, the repository is cloned into the cache directory.
+	DashboardsRepository string
+
 	// IncludeMonitoring controls whether the platform observability stack is deployed.
 	// When true, the runtime collectors, the observability-proxy and a Victoria backend
 	// are deployed from infra/observability, with their operators, so the runtime
 	// services' telemetry can be queried as it would be in Studio prod. It needs the
-	// Altinn Studio repository, which it finds from the working directory.
+	// Altinn Studio repository, which it finds from the working directory. A Grafana with
+	// the Studio datasources and dashboards from Altinn/altinn-dashboards-grafana, and an
+	// MCP server for it, are deployed with it.
 	IncludeMonitoring bool
 
 	// IncludeTestserver controls whether the testserver deployment is deployed.
@@ -124,18 +131,18 @@ func DefaultOptions() KindContainerRuntimeOptions {
 
 type KindContainerRuntime struct {
 	ContainerClient      container.ContainerClient
-	KubernetesClient     *kubernetes.KubernetesClient
+	OCIClient            *oci.Client
 	kindConfig           *v1alpha4.Cluster
 	FluxClient           *flux.FluxClient
 	HelmClient           *helm.Client
 	KindClient           *kindclient.KindClient
-	OCIClient            *oci.Client
+	KubernetesClient     *kubernetes.KubernetesClient
 	RegistryStartedEvent chan<- error
 	IngressReadyEvent    chan<- error
 	cachePath            string
 	clusterName          string
-	variant              KindContainerRuntimeVariant
 	options              KindContainerRuntimeOptions
+	variant              KindContainerRuntimeVariant
 }
 
 // Graph returns the desired resource graph for the kind fixture itself.
@@ -209,11 +216,7 @@ func (r *KindContainerRuntime) Graph() (*resource.Graph, error) {
 	}
 
 	if r.options.IncludeMonitoring {
-		root, rootErr := projectroot.Find(projectroot.RepositoryMarker)
-		if rootErr != nil {
-			return nil, fmt.Errorf("find repository root for monitoring: %w", rootErr)
-		}
-		if addErr := addMonitoringResources(graph, root, r.ClusterRef(), r.RegistryRef(), baseInfra); addErr != nil {
+		if addErr := r.addMonitoring(graph, baseInfra); addErr != nil {
 			return nil, addErr
 		}
 	}
@@ -671,4 +674,24 @@ func (r *KindContainerRuntime) RegistryRef() resource.ResourceRef {
 // BaseInfrastructureRef returns a reference to the base Kubernetes object set managed by this runtime.
 func (r *KindContainerRuntime) BaseInfrastructureRef() resource.ResourceRef {
 	return resource.RefID(resource.KubernetesObjectSetID(baseInfrastructureName))
+}
+
+func (r *KindContainerRuntime) addMonitoring(graph *resource.Graph, baseInfra *resource.KubernetesObjectSet) error {
+	root, err := projectroot.Find(projectroot.RepositoryMarker)
+	if err != nil {
+		return fmt.Errorf("find repository root for monitoring: %w", err)
+	}
+	if err = addMonitoringResources(graph, root, r.ClusterRef(), r.RegistryRef(), baseInfra); err != nil {
+		return err
+	}
+	dashboards, err := resolveDashboardsRepository(r.options.DashboardsRepository, r.cachePath)
+	if err != nil {
+		return err
+	}
+	content, err := loadGrafanaContent(dashboards)
+	if err != nil {
+		return err
+	}
+	stack := resource.RefID(resource.KubernetesObjectSetID(monitoringStackName))
+	return addGrafanaResources(graph, content, r.ClusterRef(), stack)
 }
