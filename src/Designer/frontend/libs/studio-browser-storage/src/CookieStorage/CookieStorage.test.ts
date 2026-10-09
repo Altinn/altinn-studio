@@ -1,3 +1,4 @@
+import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
 import { CookieStorage } from './CookieStorage';
 
 function clearAllCookies(): void {
@@ -83,7 +84,7 @@ describe('CookieStorage', () => {
     });
 
     test('setItem should log warning and not store cookie when value is undefined', () => {
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
       CookieStorage.setItem('undefinedKey', undefined);
       const result = CookieStorage.getItem<string>('undefinedKey');
       expect(result).toBeNull();
@@ -94,7 +95,7 @@ describe('CookieStorage', () => {
     });
 
     test('setItem should log warning and not store cookie when value is null', () => {
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
       CookieStorage.setItem('nullKey', null);
       const result = CookieStorage.getItem<string>('nullKey');
       expect(result).toBeNull();
@@ -159,7 +160,7 @@ describe('CookieStorage', () => {
 
   describe('integration with CookieSerializer', () => {
     test('setItem should delegate cookie string building to CookieSerializer with all options', () => {
-      const setDocumentCookieSpy = jest.spyOn(document, 'cookie', 'set');
+      const setDocumentCookieSpy = vi.spyOn(document, 'cookie', 'set');
 
       CookieStorage.setItem('optionsKey', 'value', {
         expires: 7,
@@ -181,7 +182,7 @@ describe('CookieStorage', () => {
     test('removeItem should delegate cookie removal string building to CookieSerializer with path option', () => {
       CookieStorage.setItem('removeOptionsKey', 'value', { path: '/admin' });
 
-      const setDocumentCookieSpy = jest.spyOn(document, 'cookie', 'set');
+      const setDocumentCookieSpy = vi.spyOn(document, 'cookie', 'set');
       CookieStorage.removeItem('removeOptionsKey', { path: '/admin' });
 
       const capturedCookieString = setDocumentCookieSpy.mock.calls[0][0];
@@ -197,7 +198,7 @@ describe('CookieStorage', () => {
     test('getItem should return null and log warning when cookie value is malformed JSON', () => {
       document.cookie = 'malformedKey=not-valid-json; path=/';
 
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
       const result = CookieStorage.getItem<string>('malformedKey');
 
       expect(result).toBeNull();
@@ -210,7 +211,7 @@ describe('CookieStorage', () => {
     });
 
     test('setItem should throw TypeError and log error when value contains circular reference', () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
       interface CircularObject {
         a: number;

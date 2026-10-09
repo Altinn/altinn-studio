@@ -436,10 +436,10 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
             Mock.Of<IAuthorizationService>(),
             new ProcessAuthorizer(
                 authorization,
-                settings,
                 Mock.Of<IClaimsPrincipalProvider>(provider =>
                     provider.GetUser() == httpContext.User
-                )
+                ),
+                settings
             )
         )
         {

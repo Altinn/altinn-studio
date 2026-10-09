@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -34,11 +35,11 @@ const subjects = [
 const item1Title = `${subjects[0].name}`;
 const item2Title = `${subjects[1].name} (${subjects[1].legacyRoleCode})`;
 const selectedSubjects = [subjects[0].legacyUrn];
-const handleChange = jest.fn();
+const handleChange = vi.fn();
 const heading = 'Roles';
 
 describe('RoleList', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should display role list items', async () => {
     renderRoleList();

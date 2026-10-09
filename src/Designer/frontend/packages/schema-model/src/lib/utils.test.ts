@@ -1,3 +1,4 @@
+import { describe, expect, it, test } from 'vitest';
 import {
   combinationIsNullable,
   createNodeBase,
@@ -9,7 +10,6 @@ import {
 } from './utils';
 import type { UiSchemaNode } from '../types';
 import { FieldType, Keyword } from '../types';
-import { expect } from '@jest/globals';
 import { buildUiSchema } from './build-ui-schema';
 import { selectorsTestSchema } from '../../test/testUtils';
 import { makePointerFromArray } from './pointerUtils';

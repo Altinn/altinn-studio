@@ -1,15 +1,16 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BlobDownloader } from './BlobDownloader';
 
 describe('BlobDownloader', () => {
   const data = { test: 'test' };
 
   beforeEach(() => {
-    global.URL.createObjectURL = jest.fn();
-    global.URL.revokeObjectURL = jest.fn();
+    global.URL.createObjectURL = vi.fn();
+    global.URL.revokeObjectURL = vi.fn();
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should generate a download url', () => {
@@ -36,10 +37,10 @@ describe('BlobDownloader', () => {
 
   it('should handle clicking the download link', () => {
     const blobDownloader = new BlobDownloader(JSON.stringify(data));
-    const mockGetDownloadURL = jest.fn();
-    const mockGetRevokeDownloadURL = jest.fn();
-    jest.spyOn(blobDownloader, 'getDownloadURL').mockImplementation(mockGetDownloadURL);
-    jest.spyOn(blobDownloader, 'revokeDownloadURL').mockImplementation(mockGetRevokeDownloadURL);
+    const mockGetDownloadURL = vi.fn();
+    const mockGetRevokeDownloadURL = vi.fn();
+    vi.spyOn(blobDownloader, 'getDownloadURL').mockImplementation(mockGetDownloadURL);
+    vi.spyOn(blobDownloader, 'revokeDownloadURL').mockImplementation(mockGetRevokeDownloadURL);
     blobDownloader.handleDownloadClick();
     expect(mockGetDownloadURL).toHaveBeenCalled();
     expect(mockGetRevokeDownloadURL).toHaveBeenCalled();

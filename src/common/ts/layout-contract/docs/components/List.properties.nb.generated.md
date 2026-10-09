@@ -236,7 +236,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
     </span>
   </summary>
   <div class="component-property-group-content">
-    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler verdiene i komponenten til felter i datamodellen.</div></div>
+    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler verdiene i komponenten til felter i datamodellen. Andre egenskapsnavn er tillatt. Verditype: datamodellbinding.</div></div>
     <div class="component-property-list">
       <details class="card adocs-expand adocs-expand-small component-property" id="datamodelbindings.group">
         <summary class="component-property-summary">
@@ -287,7 +287,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler feltene i datalisten til kolonneoverskrifter.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler feltene i datalisten til kolonneoverskrifter. Andre egenskapsnavn er tillatt. Verditype: string.</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="sortablecolumns">
@@ -372,7 +372,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler parametere i spørringsstrengen til verdier. Parameterne legges til URL-en når alternativer hentes.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler parametere i spørringsstrengen til verdier. Parameterne legges til URL-en når alternativer hentes. Andre egenskapsnavn er tillatt. Verditype: string | expression&lt;string&gt;.</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="summarybinding">

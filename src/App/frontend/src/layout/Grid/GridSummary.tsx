@@ -293,7 +293,8 @@ function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
   );
 
   const required = getRequired(config.type, evaluatedRequired);
-  const showOptionalMarking = !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
+  const showOptionalMarking =
+    config.type === 'Custom' || !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
 
   // The mobile pseudo-header is plain text (rendered through a data attribute), so the indicator tag is
   // reduced to its text here.
@@ -536,7 +537,7 @@ function SummaryCellWithLabel({
     CommonExpressions.FormComponentProps.readOnly,
   );
   const required = getRequired(config.type, evaluatedRequired);
-  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
+  const labelSettings = config.type !== 'Custom' && 'labelSettings' in config ? config.labelSettings : undefined;
 
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
 

@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mocked } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { FeedbackForm } from './FeedbackForm';
 import type { ButtonTexts } from '../types/QuestionsProps';
@@ -15,12 +17,12 @@ const buttonTexts: ButtonTexts = {
 const heading = 'Heading';
 const description = 'Description';
 
-jest.mock('axios');
-var mockedAxios = axios as jest.Mocked<typeof axios>;
+vi.mock('axios');
+var mockedAxios = axios as Mocked<typeof axios>;
 
 describe('FeedbackForm', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   it('should render FeedbackForm', () => {
     renderFeedbackForm({ questions: mockQuestions });
@@ -68,7 +70,7 @@ describe('FeedbackForm', () => {
   it('should close FeedbackForm modal when submit button is clicked and submission fails', async () => {
     const user = userEvent.setup();
     renderFeedbackForm({ questions: mockQuestions });
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const trigger = screen.getByRole('button', { name: buttonTexts.trigger });
     await user.click(trigger);
@@ -109,7 +111,7 @@ describe('FeedbackForm', () => {
   });
 
   it('should update answers when a question is answered', async () => {
-    const mockSetAnswers = jest.fn();
+    const mockSetAnswers = vi.fn();
     const user = userEvent.setup();
     renderFeedbackForm({ questions: mockQuestions, setAnswers: mockSetAnswers });
 
@@ -135,7 +137,7 @@ const renderFeedbackForm = ({
 }) => {
   render(
     <FeedbackFormContext.Provider
-      value={{ answers: {}, setAnswers: setAnswers || jest.fn(), submitPath: '/test' }}
+      value={{ answers: {}, setAnswers: setAnswers || vi.fn(), submitPath: '/test' }}
     >
       <FeedbackForm
         id='test'

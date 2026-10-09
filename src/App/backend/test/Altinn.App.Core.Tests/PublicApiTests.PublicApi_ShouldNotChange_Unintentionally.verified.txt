@@ -2376,7 +2376,7 @@ namespace Altinn.App.Core.Features.Process
         public ServiceTaskWait() { }
         public System.DateTimeOffset? Deadline { get; init; }
         public int DeferCount { get; init; }
-        public bool IsFinalCheck { get; }
+        public bool IsFinalCheck { get; init; }
         public System.TimeSpan? Remaining { get; }
         public System.DateTimeOffset? StartedAt { get; init; }
     }
@@ -3925,6 +3925,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         public required System.DateTimeOffset ExecutionReferenceTime { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("firstDeferredAt")]
         public System.DateTimeOffset? FirstDeferredAt { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("isFinalWaitCheck")]
+        public bool IsFinalWaitCheck { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("mailbox")]
         public Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackMailbox? Mailbox { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("payload")]

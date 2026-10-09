@@ -236,7 +236,7 @@ The component also supports the [common component properties](../common-properti
     </span>
   </summary>
   <div class="component-property-group-content">
-    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Connects component values to fields in the data model.</div></div>
+    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Connects component values to fields in the data model. Additional property names are allowed. Value type: data model binding.</div></div>
     <div class="component-property-list">
       <details class="card adocs-expand adocs-expand-small component-property" id="datamodelbindings.group">
         <summary class="component-property-summary">
@@ -287,7 +287,7 @@ The component also supports the [common component properties](../common-properti
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">An object where the fields in the datalist is mapped to headers. Must correspond to datalist representing a row. Can be added to the resource files to change between languages.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">An object where the fields in the datalist is mapped to headers. Must correspond to datalist representing a row. Can be added to the resource files to change between languages. Additional property names are allowed. Value type: string.</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="sortablecolumns">
@@ -372,7 +372,7 @@ The component also supports the [common component properties](../common-properti
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">A mapping of query string parameters to values. Will be appended to the URL when fetching options.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">A mapping of query string parameters to values. Will be appended to the URL when fetching options. Additional property names are allowed. Value type: string | expression&lt;string&gt;.</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="summarybinding">

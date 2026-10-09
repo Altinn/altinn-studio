@@ -16,6 +16,7 @@ ansattporten
 bankid
 buypass
 commfides
+dibk
 digdir
 eformidling
 entraid
@@ -23,6 +24,8 @@ figma
 gitea
 github
 grafana
+helfo
+luftfartstilsynet
 maskinporten
 minid
 studioctl
@@ -130,10 +133,12 @@ anyof
 oneof
 
 # Abbreviations and literals
+arvl        # arveloven in legal citations
 dd          # yyyy-mm-dd
 orgnr
 param
 personnr
+vgml        # vergemålsloven in legal citations
 yyyy
 æøå         # quoted as literal letters in a validation message
 

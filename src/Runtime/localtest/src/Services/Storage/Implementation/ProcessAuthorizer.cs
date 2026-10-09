@@ -9,26 +9,27 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Platform.Storage.Authorization;
 
 /// <summary>
-/// Authorizer for process operations.
+/// Authorizer for process operations. The service owner is always allowed: it commits process
+/// transitions and their data on behalf of a user the app has already authorized.
 /// </summary>
 public class ProcessAuthorizer : IProcessAuthorizer
 {
     private readonly IAuthorization _authorizationService;
-    private readonly GeneralSettings _generalSettings;
     private readonly IClaimsPrincipalProvider _claimsPrincipalProvider;
+    private readonly GeneralSettings _generalSettings;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessAuthorizer"/> class.
     /// </summary>
     public ProcessAuthorizer(
         IAuthorization authorizationService,
-        IOptions<GeneralSettings> settings,
-        IClaimsPrincipalProvider claimsPrincipalProvider
+        IClaimsPrincipalProvider claimsPrincipalProvider,
+        IOptions<GeneralSettings> settings
     )
     {
         _authorizationService = authorizationService;
-        _generalSettings = settings.Value;
         _claimsPrincipalProvider = claimsPrincipalProvider;
+        _generalSettings = settings.Value;
     }
 
     /// <inheritdoc/>
@@ -83,6 +84,11 @@ public class ProcessAuthorizer : IProcessAuthorizer
 
     private async Task<bool> Authorize(Instance instance)
     {
+        if (IsServiceOwner(instance))
+        {
+            return true;
+        }
+
         string? taskId = instance.Process?.CurrentTask?.ElementId;
         string? altinnTaskType = instance.Process?.CurrentTask?.AltinnTaskType;
 
@@ -106,9 +112,14 @@ public class ProcessAuthorizer : IProcessAuthorizer
 
     private async Task<bool> Authorize(Instance instance, ProcessState nextProcessState)
     {
+        if (IsServiceOwner(instance))
+        {
+            return true;
+        }
+
         if (instance.Process?.CurrentTask is null)
         {
-            return IsServiceOwner(instance);
+            return false;
         }
 
         string? taskId = instance.Process.CurrentTask.ElementId;

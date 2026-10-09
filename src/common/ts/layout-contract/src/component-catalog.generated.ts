@@ -5590,6 +5590,7 @@ const generatedContract = {
       },
     },
     Custom: {
+      additionalProperties: { type: 'any' },
       kind: 'component',
       category: 'Form',
       capabilities: {
@@ -5647,7 +5648,7 @@ const generatedContract = {
               required: false,
             },
           },
-          additionalProperties: false,
+          additionalProperties: { type: 'string', expression: true },
           title: { en: 'Text resources', nb: 'Tekstressurser' },
           description: {
             en: 'Connects component texts to text resources or expressions.',

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useParentId } from './useParentId';
 import { StudioDragAndDrop } from '../';
@@ -7,7 +8,7 @@ describe('useParentId', () => {
     const parentId = 'parentId';
     const { result } = renderHook(() => useParentId(), {
       wrapper: ({ children }) => (
-        <StudioDragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()}>
+        <StudioDragAndDrop.Provider rootId='root' onAdd={vi.fn()} onMove={vi.fn()}>
           <StudioDragAndDrop.List>
             <StudioDragAndDrop.ListItem itemId={parentId} renderItem={() => children} />
           </StudioDragAndDrop.List>
@@ -21,7 +22,7 @@ describe('useParentId', () => {
     const rootId = 'rootId';
     const { result } = renderHook(() => useParentId(), {
       wrapper: ({ children }) => (
-        <StudioDragAndDrop.Provider rootId={rootId} onAdd={jest.fn()} onMove={jest.fn()}>
+        <StudioDragAndDrop.Provider rootId={rootId} onAdd={vi.fn()} onMove={vi.fn()}>
           {children}
         </StudioDragAndDrop.Provider>
       ),
@@ -30,7 +31,7 @@ describe('useParentId', () => {
   });
 
   it('Throws an error if not wrapped by a DragAndDropProvider', () => {
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const renderFn = (): ReturnType<typeof renderHook> =>
       renderHook(() => useParentId(), {
         wrapper: ({ children }) => <div>{children}</div>,

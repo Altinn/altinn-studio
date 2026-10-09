@@ -619,6 +619,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 step.UpdatedAt = DateTimeOffset.UtcNow;
 
                 DateTimeOffset attemptStartedAt = DateTimeOffset.UtcNow;
+                TimeSpan waitBudget = step.WaitBudget ?? DefaultStepWaitBudget;
                 AppCallbackPayload payload = new()
                 {
                     CommandKey = appCommandData.CommandKey,
@@ -635,11 +636,12 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     DeferCount = step.DeferCount,
                     FirstDeferredAt = step.FirstDeferredAt,
                     // Projected from the compressed wait: what is left of the budget after the
-                    // delays the handler has already asked for. Once that is spent the deadline
-                    // falls in the past, which is what the handler reads as its final check.
+                    // delays the handler has already asked for. Once that is spent the attempt
+                    // starts at or past the deadline, which is what the engine calls a final check.
                     WaitDeadline = step.FirstDeferredAt is null
                         ? null
-                        : attemptStartedAt + ((step.WaitBudget ?? DefaultStepWaitBudget) - step.WaitElapsed),
+                        : attemptStartedAt + (waitBudget - step.WaitElapsed),
+                    IsFinalWaitCheck = step.FirstDeferredAt is not null && step.WaitElapsed >= waitBudget,
                 };
 
                 if (await AuthenticateCallback(workflow.Context, appCommandData.CommandKey) is not { } principal)
@@ -681,6 +683,26 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 {
                     if (response.Defer is { } defer)
                     {
+                        if (payload.IsFinalWaitCheck)
+                        {
+                            // What the engine does with a deferral from the final check: the wait has
+                            // expired, so the step fails without retrying.
+                            step.ErrorHistory.Add(
+                                new ErrorEntry(
+                                    DateTimeOffset.UtcNow,
+                                    $"Wait budget of {waitBudget} exhausted after {step.DeferCount} deferral(s): "
+                                        + (defer.Reason ?? "the awaited outcome never became available"),
+                                    (int)HttpStatusCode.OK,
+                                    WasRetryable: false
+                                )
+                            );
+                            step.Status = PersistentItemStatus.Failed;
+                            step.UpdatedAt = DateTimeOffset.UtcNow;
+                            workflow.Status = PersistentItemStatus.Failed;
+                            workflow.UpdatedAt = DateTimeOffset.UtcNow;
+                            return;
+                        }
+
                         // Not a completion: no error recorded, retry counter reset, and the next
                         // attempt starts from the state this one received (the app echoes it back
                         // unchanged, so currentState stays put).
@@ -698,9 +720,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                             throw new InvalidOperationException(
                                 $"Step '{step.OperationId}' deferred {step.DeferCount} times without concluding. "
                                     + "This fake compresses the wait rather than sleeping, so a handler that keeps "
-                                    + "deferring loops here instead of parking. Give the step a wait budget its "
-                                    + "handler observes (ProcessStepOptions.WaitBudget, read back as "
-                                    + "ServiceTaskContext.Wait), or make the handler conclude."
+                                    + "deferring loops here instead of parking. Give the step a smaller wait "
+                                    + "budget (ProcessStepOptions.WaitBudget), or make the handler conclude."
                             );
                         }
 

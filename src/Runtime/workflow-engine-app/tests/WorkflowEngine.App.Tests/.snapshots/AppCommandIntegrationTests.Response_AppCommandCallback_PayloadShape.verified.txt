@@ -14,5 +14,6 @@
   executionDeadline: DateTimeOffset_2,
   deferCount: 0,
   firstDeferredAt: null,
-  waitDeadline: null
+  waitDeadline: null,
+  isFinalWaitCheck: false
 }

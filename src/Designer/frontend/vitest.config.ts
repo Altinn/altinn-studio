@@ -19,7 +19,10 @@ export default mergeConfig(
       // file. A worker is restarted when it reaches the memory limit, since VM contexts keep growing.
       pool: 'vmThreads',
       vmMemoryLimit: '2GB',
-      testTimeout: 20000,
+      // CI runs tests several times slower than a developer machine, and some tests are slow in jsdom 30 because the
+      // design system's web components query and compute styles on every DOM change. A test that takes 3 s locally
+      // can take more than 20 s in CI.
+      testTimeout: 60000,
       coverage: {
         // Codecov and Sonar read lcov.info, see sonar-project.properties.
         reporter: ['lcov'],

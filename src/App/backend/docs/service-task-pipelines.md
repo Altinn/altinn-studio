@@ -99,10 +99,10 @@ process on this step — no worker held, no error recorded, retry counter reset 
 - The total wait is bounded by `ProcessStepOptions.WaitBudget` (or the engine default); expiry fails the
   step. Declare a polling pipeline's wait budget on `Finally`, not on the task — task-level options are
   inherited by every stage, including stages that never wait.
-- Read `ServiceTaskContext.Wait` (`DeferCount`, `StartedAt`, `Deadline`, and the derived
-  `Remaining`/`IsFinalCheck`) to pace the wait or give up early with a message that names what never
-  arrived. `EFormidlingServiceTask` is the worked example in-tree: a send stage, a polling `Finally` that
-  owns the wait budget, a backoff ladder driven by `Wait.DeferCount`, and a `FailedPermanent` on
+- Read `ServiceTaskContext.Wait` (`DeferCount`, `StartedAt`, `Deadline`, `Remaining` and `IsFinalCheck`)
+  to pace the wait, and give up on `IsFinalCheck` with a message that names what never arrived.
+  `EFormidlingServiceTask` is the worked example in-tree: a send stage, a polling `Finally` that owns the
+  wait budget, a backoff ladder driven by `Wait.DeferCount`, and a `FailedPermanent` on
   `Wait.IsFinalCheck`.
 - The `reason` string is persisted on the step and surfaced on status reads (ops dashboards, and the
   frontend's waiting UI via the `workflow.waitingReason` annotation) — phrase it for a reader, not a log
