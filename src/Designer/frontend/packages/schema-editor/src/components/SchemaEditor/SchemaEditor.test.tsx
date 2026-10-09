@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, test, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SchemaEditor } from './SchemaEditor';
@@ -24,7 +25,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 const user = userEvent.setup();
 
 // Mocks:
-const save = jest.fn();
+const save = vi.fn();
 
 const renderEditor = (
   data: Partial<RenderWithProvidersData> = {},
@@ -88,7 +89,7 @@ const jsonSchemaTypePanel: JsonSchema = {
 };
 
 describe('SchemaEditor', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   test('should show context menu and trigger correct dispatch when adding a field on root', async () => {
     const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
@@ -138,7 +139,7 @@ describe('SchemaEditor', () => {
     const uiSchema = buildUiSchema(jsonSchema);
     const schemaModel = SchemaModel.fromArray(uiSchema);
     renderEditor({ appContextProps: { schemaModel } });
-    jest.spyOn(window, 'prompt').mockImplementation(() => definitionName);
+    vi.spyOn(window, 'prompt').mockImplementation(() => definitionName);
     await clickOpenAddNodeButtonInTree();
     await clickButton(textMock('schema_editor.add_reference'));
     expect(save).toHaveBeenCalledTimes(1);
@@ -147,7 +148,7 @@ describe('SchemaEditor', () => {
   });
 
   test('should trigger correct dispatch when deleting a specific node', async () => {
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
     const numberOfRootNodes = schemaModel.getRootChildren().length;
     renderEditor({ appContextProps: { schemaModel } });
@@ -164,7 +165,7 @@ describe('SchemaEditor', () => {
   });
 
   test('should close the dialog and not delete the node when the user just cancels deletion dialog', async () => {
-    jest.spyOn(window, 'confirm').mockImplementation(() => false);
+    vi.spyOn(window, 'confirm').mockImplementation(() => false);
     const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
     renderEditor({ appContextProps: { schemaModel } });
     const tree = screen.getByRole('tree');
@@ -251,7 +252,7 @@ describe('SchemaEditor', () => {
   });
 
   it('when a type is selected, the type edit panel should be rendered', async () => {
-    const setSelectedTypePointerMock = jest.fn();
+    const setSelectedTypePointerMock = vi.fn();
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
     renderEditor({
       appContextProps: {
@@ -266,8 +267,8 @@ describe('SchemaEditor', () => {
   });
 
   it('Navigates back to the data model when clicking the "back to data model" link', async () => {
-    const setSelectedTypePointer = jest.fn();
-    const setSelectedUniquePointer = jest.fn();
+    const setSelectedTypePointer = vi.fn();
+    const setSelectedUniquePointer = vi.fn();
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
     const dataModelName = 'TestDataModel';
 
@@ -305,9 +306,9 @@ describe('SchemaEditor', () => {
 
   it('should close the type panel when deleting the selected unused type', async () => {
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
-    const setSelectedTypePointer = jest.fn();
-    const setSelectedUniquePointer = jest.fn();
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
+    const setSelectedTypePointer = vi.fn();
+    const setSelectedUniquePointer = vi.fn();
     renderEditor({
       appContextProps: {
         schemaModel,
@@ -327,9 +328,9 @@ describe('SchemaEditor', () => {
 
   it('should not close the type panel when deleting a property of the selected type', async () => {
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
-    const setSelectedTypePointer = jest.fn();
-    const setSelectedUniquePointer = jest.fn();
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
+    const setSelectedTypePointer = vi.fn();
+    const setSelectedUniquePointer = vi.fn();
 
     renderEditor({
       appContextProps: {

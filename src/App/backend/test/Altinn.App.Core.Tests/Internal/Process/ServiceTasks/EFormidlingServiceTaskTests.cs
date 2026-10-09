@@ -765,7 +765,12 @@ public class EFormidlingServiceTaskTests
         // classification, so the task ends it on its own terms instead.
         var context = CreateContext(
             unitOfWork,
-            new ServiceTaskWait { DeferCount = 40, Deadline = DateTimeOffset.UtcNow.AddSeconds(-1) }
+            new ServiceTaskWait
+            {
+                DeferCount = 40,
+                Deadline = DateTimeOffset.UtcNow.AddSeconds(-1),
+                IsFinalCheck = true,
+            }
         );
         var result = await AwaitDelivery(_serviceTask, context);
 

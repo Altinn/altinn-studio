@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { PolicySummary } from './PolicySummary';
 import {
@@ -47,7 +48,7 @@ const mockPolicyEditorContextValue: PolicyEditorContextProps = {
       ],
     },
   ],
-  setPolicyRules: jest.fn(),
+  setPolicyRules: vi.fn(),
   actions: [mockAction1, mockAction2],
   subjects: mockSubjects,
   accessPackages: [],
@@ -55,7 +56,7 @@ const mockPolicyEditorContextValue: PolicyEditorContextProps = {
   resourceType: 'urn',
   resourceId: '[app]',
   showAllErrors: false,
-  savePolicy: jest.fn(),
+  savePolicy: vi.fn(),
 };
 
 describe('PolicySummary', () => {

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, type RenderResult, screen } from '@testing-library/react';
 import { StudioConfigCardFooter, type StudioConfigCardFooterProps } from './StudioConfigCardFooter';
 import userEvent from '@testing-library/user-event';
@@ -11,7 +12,7 @@ describe('StudioConfigCardFooter', () => {
 
   it('should call save when clicking on save button', async () => {
     const user = userEvent.setup();
-    const onSaveMock = jest.fn();
+    const onSaveMock = vi.fn();
     renderStudioConfigCardFooter({ onSave: onSaveMock });
 
     const saveButton = screen.getByRole('button', { name: 'Save' });
@@ -21,7 +22,7 @@ describe('StudioConfigCardFooter', () => {
 
   it('should call cancel when clicking on cancel button', async () => {
     const user = userEvent.setup();
-    const onCancelMock = jest.fn();
+    const onCancelMock = vi.fn();
     renderStudioConfigCardFooter({ onCancel: onCancelMock });
 
     const cancelButton = screen.getByRole('button', { name: 'Cancel' });
@@ -36,8 +37,8 @@ const renderStudioConfigCardFooter = (
   const defaultProps: StudioConfigCardFooterProps = {
     saveLabel: 'Save',
     cancelLabel: 'Cancel',
-    onSave: jest.fn(),
-    onCancel: jest.fn(),
+    onSave: vi.fn(),
+    onCancel: vi.fn(),
     isDisabled: false,
     isLoading: false,
   };

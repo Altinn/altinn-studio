@@ -2,6 +2,8 @@
 
 # TODO: Not sure if this is necessary at all
 import asyncio
+from collections.abc import Sequence
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -34,7 +36,11 @@ class IntentParsingError(Exception):
     pass
 
 
-async def parse_intent_async(goal: str, attachments: list[AgentAttachment] | None = None) -> ParsedIntent:
+async def parse_intent_async(
+    goal: str,
+    attachments: list[AgentAttachment] | None = None,
+    conversation: Sequence[Any] | None = None,
+) -> ParsedIntent:
     """Parse user goal into structured intent using LLM with safety checks"""
 
     # Quick safety check before LLM processing
@@ -50,7 +56,7 @@ async def parse_intent_async(goal: str, attachments: list[AgentAttachment] | Non
         )
 
     try:
-        result = await parse_intent_with_llm(goal, attachments=attachments)
+        result = await parse_intent_with_llm(goal, attachments=attachments, conversation=conversation)
 
         # Validate LLM response structure
         parsed = ParsedIntent(
@@ -85,28 +91,6 @@ async def parse_intent_async(goal: str, attachments: list[AgentAttachment] | Non
         )
 
 
-def parse_intent(goal: str, attachments: list[AgentAttachment] | None = None) -> ParsedIntent:
-    """Synchronous wrapper for intent parsing - requires working LLM"""
-    try:
-        # Check if we're already in an async context
-        try:
-            loop = asyncio.get_running_loop()
-            # We're in an async context, cannot use sync wrapper
-            raise Exception("Cannot use sync parse_intent from async context - use parse_intent_async instead")
-        except RuntimeError:
-            # No running loop, safe to create one
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                result = loop.run_until_complete(parse_intent_async(goal, attachments=attachments))
-                return result
-            finally:
-                loop.close()
-    except Exception as e:
-        log.error(f"Intent parsing failed: {e}")
-        raise
-
-
 def _validate_goal_safety_quick(goal: str) -> tuple[bool, str | None]:
     """Quick safety check for dangerous keywords before LLM processing"""
     goal_lower = goal.lower().strip()
@@ -135,37 +119,43 @@ def _validate_goal_safety_quick(goal: str) -> tuple[bool, str | None]:
     return True, None
 
 
-async def suggest_goal_correction(goal: str, rejection_reason: str | None = None) -> list[str]:
+async def suggest_goal_correction(
+    goal: str,
+    rejection_reason: str | None = None,
+    conversation: Sequence[Any] | None = None,
+) -> list[str]:
     """Suggest goals the user could ask for instead of the rejected one.
 
     Never raises: a rejection must not turn into a generic error because the
     suggestions could not be produced.
     """
     try:
-        candidates = await asyncio.to_thread(suggest_goals_with_llm, goal, rejection_reason)
+        candidates = await asyncio.to_thread(suggest_goals_with_llm, goal, rejection_reason, conversation)
     except Exception as e:
         log.warning(f"Could not generate goal suggestions: {e}")
         return []
-    return await _drop_suggestions_the_gate_would_reject(candidates)
+    return await _drop_suggestions_the_gate_would_reject(candidates, conversation)
 
 
-async def _drop_suggestions_the_gate_would_reject(candidates: list[str]) -> list[str]:
+async def _drop_suggestions_the_gate_would_reject(
+    candidates: list[str], conversation: Sequence[Any] | None
+) -> list[str]:
     """Offering a suggestion the gate rejects sends the user round in a circle."""
     if not candidates:
         return []
-    verdicts = await asyncio.gather(*(_would_be_accepted(candidate) for candidate in candidates))
+    verdicts = await asyncio.gather(*(_would_be_accepted(candidate, conversation) for candidate in candidates))
     kept = [candidate for candidate, ok in zip(candidates, verdicts, strict=False) if ok]
     if len(kept) != len(candidates):
         log.info(f"Dropped {len(candidates) - len(kept)} suggestion(s) the gate would reject")
     return kept
 
 
-async def _would_be_accepted(goal: str) -> bool:
+async def _would_be_accepted(goal: str, conversation: Sequence[Any] | None) -> bool:
     is_safe, _ = _validate_goal_safety_quick(goal)
     if not is_safe:
         return False
     try:
-        parsed = await parse_intent_async(goal)
+        parsed = await parse_intent_async(goal, conversation=conversation)
     except Exception:
         return False
     # The workflow gate rejects on confidence too, so a suggestion below the

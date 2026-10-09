@@ -1,3 +1,4 @@
+import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { ItemFieldsTabProps } from './ItemFieldsTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
@@ -47,7 +48,7 @@ const textRequired = textMock('schema_editor.required');
 const textType = textMock('schema_editor.type');
 
 const defaultProps: ItemFieldsTabProps = { selectedItem };
-const saveDataModel = jest.fn();
+const saveDataModel = vi.fn();
 const model = SchemaModel.fromArray(uiSchema);
 const createModel = () => model.deepClone();
 
@@ -66,7 +67,7 @@ const renderItemFieldsTab = (
 
 describe('ItemFieldsTab', () => {
   beforeAll(() => validateTestUiSchema(uiSchema));
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   test('Header texts appear', () => {
     renderItemFieldsTab();

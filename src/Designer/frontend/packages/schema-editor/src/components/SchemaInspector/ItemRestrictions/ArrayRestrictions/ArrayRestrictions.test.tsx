@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, test, vi } from 'vitest';
 import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrayRestrictions } from './ArrayRestrictions';
@@ -6,7 +7,7 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 // Test data:
-const onChangeRestrictionValueMock = jest.fn();
+const onChangeRestrictionValueMock = vi.fn();
 const pathMock = '#/properties/xxsfds';
 
 const render = (props: Partial<RestrictionItemProps> = {}) => {
@@ -14,7 +15,7 @@ const render = (props: Partial<RestrictionItemProps> = {}) => {
     path: pathMock,
     readonly: false,
     restrictions: [],
-    onChangeRestrictions: jest.fn(),
+    onChangeRestrictions: vi.fn(),
     onChangeRestrictionValue: onChangeRestrictionValueMock,
     ...props,
   };
@@ -23,7 +24,7 @@ const render = (props: Partial<RestrictionItemProps> = {}) => {
 
 describe('ArrayRestrictions', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('ArrayRestrictions should render correctly', async () => {

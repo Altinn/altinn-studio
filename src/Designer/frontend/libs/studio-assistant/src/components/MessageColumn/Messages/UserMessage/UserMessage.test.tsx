@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { UserMessage, type UserMessageProps } from './UserMessage';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';

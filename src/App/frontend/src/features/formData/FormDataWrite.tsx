@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
+import { useStore } from 'zustand';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { AxiosRequestConfig } from 'axios';
 
@@ -315,6 +316,7 @@ function FormDataEffects() {
   const store = FormStore.raw.useStore();
   const parent = store.getState().parent;
   const rootStore = getRootFormStore(store);
+  const rootManualSaveRequested = useStore(rootStore, (state) => state.data.manualSaveRequested);
   const [autoSaving, lockedBy, debounceTimeout, manualSaveRequested] = FormStore.raw.useShallowSelector((s) => [
     s.data.autoSaving,
     s.data.lockedBy,
@@ -328,6 +330,7 @@ function FormDataEffects() {
     state.nestedFormStatus.unsaved,
     state.nestedFormStatus.unloadWarnings,
   ]);
+  const publishedStatus = useRef({ unsaved: 0, unloadWarnings: 0 });
   const setUnsavedAttrTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const { mutate: performSave, error } = useFormDataSaveMutation();
@@ -349,12 +352,24 @@ function FormDataEffects() {
       return;
     }
 
-    adjustNestedFormStatus(rootStore, Number(hasUnsavedChanges), Number(shouldWarnBeforeUnload));
-
-    return () => {
-      adjustNestedFormStatus(rootStore, -Number(hasUnsavedChanges), -Number(shouldWarnBeforeUnload));
-    };
+    const next = { unsaved: Number(hasUnsavedChanges), unloadWarnings: Number(shouldWarnBeforeUnload) };
+    const previous = publishedStatus.current;
+    publishedStatus.current = next;
+    // Update both counters atomically. Removing and adding the status on every effect change could
+    // briefly report no nested changes and resolve a pending root save too early.
+    adjustNestedFormStatus(rootStore, next.unsaved - previous.unsaved, next.unloadWarnings - previous.unloadWarnings);
   }, [parent, rootStore, hasUnsavedChanges, shouldWarnBeforeUnload]);
+
+  useEffect(
+    () => () => {
+      if (parent) {
+        const previous = publishedStatus.current;
+        publishedStatus.current = { unsaved: 0, unloadWarnings: 0 };
+        adjustNestedFormStatus(rootStore, -previous.unsaved, -previous.unloadWarnings);
+      }
+    },
+    [parent, rootStore],
+  );
 
   // The data attribute tracks saveable changes for tests. Invalid input also requires an unload warning.
   useEffect(() => {
@@ -402,13 +417,15 @@ function FormDataEffects() {
   // Save the data model when the data has been frozen/debounced, and we're ready
   const needsToSave = FormStore.raw.useSelector((state) => hasDebouncedUnsavedChanges(state));
   const canSaveNow = !isSaving && !lockedBy && !isUpdatingInitialValidations;
-  const shouldSave = needsToSave && (autoSaving || manualSaveRequested);
+  // A root save also flushes mounted subforms, including forms that only autosave on page changes.
+  const shouldSave =
+    (autoSaving && needsToSave) || ((manualSaveRequested || rootManualSaveRequested) && hasUnsavedChangesNow());
 
   useEffect(() => {
-    if (manualSaveRequested && !needsToSave) {
+    if (manualSaveRequested && !hasUnsavedChangesNow() && nestedUnsaved === 0) {
       requestManualSave(false);
     }
-  }, [manualSaveRequested, needsToSave, requestManualSave]);
+  }, [manualSaveRequested, hasUnsavedChanges, nestedUnsaved, hasUnsavedChangesNow, requestManualSave]);
 
   useEffect(() => {
     canSaveNow && shouldSave && performSave();
@@ -543,28 +560,35 @@ const useHasUnsavedChangesNow = () => {
   }, [store, queryClient]);
 };
 
-const useWaitForSave = () => {
-  const requestSave = useRequestManualSave();
-  const waitFor = useWaitForState<undefined, FormStoreState | typeof ContextNotProvided>(FormStore.raw.useLaxStore());
+const useWaitForSave = ({ includeRoot = false }: { includeRoot?: boolean } = {}) => {
+  const currentStore = FormStore.raw.useLaxStore();
+  const store = currentStore !== ContextNotProvided && includeRoot ? getRootFormStore(currentStore) : currentStore;
+  const waitFor = useWaitForState<undefined, FormStoreState | typeof ContextNotProvided>(store);
 
   return useCallback(
     async (
       requestManualSave = false,
       extraReady?: (state: FormStoreState) => boolean,
-    ): Promise<BackendValidationIssueGroups | undefined> =>
-      await waitFor((state) => {
+    ): Promise<BackendValidationIssueGroups | undefined> => {
+      if (store === ContextNotProvided) {
+        return;
+      }
+
+      return await waitFor((state) => {
         if (state === ContextNotProvided) {
           return true;
         }
 
-        if (requestManualSave && !state.data.manualSaveRequested && hasDebouncedUnsavedChanges(state)) {
-          requestSave();
+        const hasChanges = hasUnsavedChanges(state) || state.nestedFormStatus.unsaved > 0;
+        if (requestManualSave && !state.data.manualSaveRequested && hasChanges) {
+          state.data.requestManualSave();
           return false;
         }
 
-        return !hasUnsavedChanges(state) && (extraReady ? extraReady(state) : true);
-      }),
-    [requestSave, waitFor],
+        return !hasChanges && (extraReady ? extraReady(state) : true);
+      });
+    },
+    [store, waitFor],
   );
 };
 
@@ -1013,6 +1037,7 @@ export const formDataHooks = {
 
   /**
    * Returns a function you can use to wait until the form data is saved.
+   * Set includeRoot to wait for the root form and its mounted subforms, even when called inside a subform.
    * This will work (and return immediately) even if there is no form store in the tree.
    */
   useWaitForSave,

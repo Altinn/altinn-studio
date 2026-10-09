@@ -120,8 +120,7 @@ export function nn() {
     'form_filler.placeholder_receipt_header': 'Skjemaet er no fullført og sendt inn.',
     'form_filler.placeholder_user': 'OLA PRIVATPERSON',
     'form_filler.radiobutton_alert_label': 'Er du sikker på at du vil endre frå {0}?',
-    'form_filler.required_description': 'Obligatoriske felt er markerte med *',
-    'form_filler.required_label': '*',
+    'form_filler.required_label': 'Må fyllast ut',
     'form_filler.summary_item_change': 'Endre',
     'form_filler.summary_go_to_correct_page': 'Gå til riktig side i skjema',
     'form_filler.address': 'Gateadresse',
@@ -176,7 +175,7 @@ export function nn() {
     'general.customer_service_slack': 'https://digdir-samarbeid.slack.com',
     'general.customer_service_email': 'servicedesk@altinn.no',
     'general.customer_service_error_message':
-      'Om du treng hjelp kan du nå Altinn på:<br/><br/>Telefon: <a href="tel:{0}">{0}</a><br/>E-post: {1}<br/>Slack: {2}',
+      'Om du treng hjelp kan du nå Altinn på:<br/><br/><ul><li>Telefon: <a href="tel:{0}">{0}</a></li><li>E-post: {1}</li><li>Slack: {2}</li></ul>',
     'general.delete': 'Slett',
     'general.download': 'Nedlasting {0}',
     'general.disabled': 'Deaktivert',
@@ -197,7 +196,7 @@ export function nn() {
     'general.log_out': 'Logg ut',
     'general.next': 'Neste',
     'general.no_options': 'Ingen alternativ tilgjengeleg',
-    'general.optional': 'Valfri',
+    'general.optional': 'Valfritt',
     'general.page_number': 'Side {0}',
     'general.print_button_text': 'Print / Lagre PDF',
     'general.progress': 'Side {0} av {1}',
@@ -221,6 +220,9 @@ export function nn() {
     'general.part_of_form_completed':
       'Denne delen av skjemaet er ikkje tilgjengeleg. Du kan ikkje gjere endringar her no',
     'general.invalid_task_id': 'Denne delen av skjemaet finst ikkje.',
+    'general.unsupported_task_type': 'Denne delen av skjemaet kan ikkje visast.',
+    'general.unsupported_task_type_details':
+      'Steget {0} i prosessen har typen {1}, som appen ikkje kan vise.',
     'general.navigate_to_current_process': 'Gå til rett prosesstrinn',
     'group.row_error':
       'Ei av radene er ikkje fylt ut riktig. Dette må bli retta før skjema kan sendast inn.',

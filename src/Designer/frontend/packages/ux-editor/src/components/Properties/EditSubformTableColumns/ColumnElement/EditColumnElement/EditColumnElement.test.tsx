@@ -220,10 +220,11 @@ describe('EditColumnElementComponentSelect', () => {
         name: textMock('ux_editor.text_resource_binding_search'),
       }),
     );
-    await user.selectOptions(
-      screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
-      textKeyMock,
-    );
+    const textResourcePicker = screen.getByRole('combobox', {
+      name: (name) => name.startsWith(textMock('ux_editor.search_text_resources_label')),
+    });
+    await user.click(textResourcePicker);
+    await user.click(screen.getByRole('option', { name: RegExp(textKeyMock) }));
     await user.click(
       screen.getAllByRole('button', {
         name: textMock('general.save'),

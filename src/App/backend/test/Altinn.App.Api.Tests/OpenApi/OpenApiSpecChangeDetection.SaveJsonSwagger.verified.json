@@ -716,6 +716,9 @@
               }
             }
           },
+          "204": {
+            "description": "No Content"
+          },
           "401": {
             "description": "Unauthorized"
           }
@@ -1258,15 +1261,6 @@
             }
           },
           {
-            "name": "dataType",
-            "in": "path",
-            "description": "Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "includeRowId",
             "in": "query",
             "description": "Whether to initialize or remove AltinnRowId fields in the model",
@@ -1342,15 +1336,6 @@
             "schema": {
               "type": "string",
               "format": "uuid"
-            }
-          },
-          {
-            "name": "dataType",
-            "in": "path",
-            "description": "Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec,",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           },
           {
@@ -1624,15 +1609,6 @@
             "schema": {
               "type": "string",
               "format": "uuid"
-            }
-          },
-          {
-            "name": "dataType",
-            "in": "path",
-            "description": "Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec,",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           },
           {
@@ -5404,173 +5380,6 @@
         }
       }
     },
-    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/start": {
-      "post": {
-        "tags": [
-          "Process"
-        ],
-        "summary": "Starts the process of an instance.",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "unique identifier of the organization responsible for the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "application identifier which is unique within an organization",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "instanceOwnerPartyId",
-            "in": "path",
-            "description": "unique id of the party that is the owner of the instance",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "instanceGuid",
-            "in": "path",
-            "description": "unique id to identify the instance",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "startEvent",
-            "in": "query",
-            "description": "a specific start event id to start the process, must be used if there are more than one start events",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AppProcessState"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AppProcessState"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AppProcessState"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ProblemDetails"
-                    }
-                  ]
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ProblemDetails"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/next": {
       "put": {
         "tags": [
@@ -8582,6 +8391,9 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "isFinalWaitCheck": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -12512,7 +12324,7 @@
           }
         },
         "additionalProperties": {},
-        "description": "Structured problem details returned when the workflow engine rejects or fails the initial process\nworkflow, for both instance creation and process start of an existing instance. Extends\nMicrosoft.AspNetCore.Mvc.ProblemDetails so the response remains valid `application/problem+json`; the\nworkflow-specific members are serialized alongside the standard ones and form a stable recovery\ncontract clients can react to."
+        "description": "Structured problem details returned when the workflow engine rejects or fails the initial process\nworkflow of a new instance. Extends Microsoft.AspNetCore.Mvc.ProblemDetails so the response remains valid\n`application/problem+json`; the workflow-specific members are serialized alongside the standard\nones and form a stable recovery contract clients can react to."
       },
       "WorkflowInitializationState": {
         "enum": [
@@ -12526,7 +12338,6 @@
       "WorkflowRecommendedAction": {
         "enum": [
           "retryInstanceCreation",
-          "retryStartProcess",
           "inspectInstance",
           "resumeCurrentTask"
         ],

@@ -2,12 +2,14 @@ import { CommonExpressions, Expressions } from '@app/layout-contract/generated/e
 import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { useExpressionDataSourcesBaseForStoreSelector } from 'src/features/expressions/runtime/useExpressionDataSources';
 import {
   useEvalExpression,
   useEvalExpressionCallback,
   useEvalOptionalText,
   useEvalOptionalTrb,
 } from 'src/utils/layout/useEvalExpression';
+import type { TextResourceMap } from 'src/features/language/textResources';
 import type { IApplicationSettings } from 'src/types/shared';
 
 const mockInputs: {
@@ -29,9 +31,18 @@ const mockExternalApiQueries = {
   getCached: vi.fn(() => ({})),
   getState: vi.fn(() => undefined),
 };
+const mockTextResourcesApi = vi.fn();
+const emptyReaders = {
+  getReader: () => ({
+    getAsString: (): string | undefined => undefined,
+    isLoading: () => true,
+    hasError: () => false,
+  }),
+};
+let mockDataModelReaders = emptyReaders;
 const mockTextResourceQueries = {
   ensureLoaded: vi.fn(),
-  getCached: vi.fn(() => undefined),
+  getCached: vi.fn((): TextResourceMap | undefined => undefined),
 };
 
 vi.mock('src/features/applicationSettings/ApplicationSettingsProvider', () => ({
@@ -47,10 +58,10 @@ vi.mock('src/features/form/FormContext', () => ({
   FormStore: { raw: { useLaxStore: () => ContextNotProvided } },
 }));
 vi.mock('src/core/contexts/ApiProvider', () => ({
-  useTextResourcesApi: () => vi.fn(),
+  useTextResourcesApi: () => mockTextResourcesApi,
 }));
 vi.mock('src/features/formData/FormDataReaders', () => ({
-  useDataModelReaders: () => ({}),
+  useDataModelReaders: () => mockDataModelReaders,
 }));
 vi.mock('src/core/queries/expressionQueryReaders', () => ({
   useExpressionQueryReaders: () => ({
@@ -65,6 +76,8 @@ beforeEach(() => {
   mockInputs.currentLanguage = 'nb';
   mockInputs.currentPage = 'page-1';
   mockInputs.applicationSettings = null;
+  mockDataModelReaders = emptyReaders;
+  mockTextResourceQueries.getCached.mockReturnValue(undefined);
 });
 
 it('updates a language expression when the current language changes', async () => {
@@ -211,4 +224,34 @@ it('uses descriptor fallbacks for callback evaluation failures', () => {
   expect(logError).not.toHaveBeenCalled();
   expect(result.current()).toBe(true);
   expect(logError).toHaveBeenCalled();
+});
+
+it('advances the validation cache revision when an external text-variable reader loads, with a stable runtime', () => {
+  const resourceKey: string = 'external';
+  mockTextResourceQueries.getCached.mockReturnValue({
+    [resourceKey]: {
+      value: 'Value {0}',
+      variables: [{ key: 'TextField', dataSource: 'dataModel.external' }],
+    },
+  });
+  const { result, rerender } = renderHook(useExpressionDataSourcesBaseForStoreSelector);
+  const runtime = result.current;
+  const initialRevision = runtime.getSnapshotRevision!();
+  expect(runtime.langToolsSelector(undefined).langAsNonProcessedString(resourceKey)).toBe('Value ...');
+
+  rerender();
+  expect(result.current).toBe(runtime);
+  expect(runtime.getSnapshotRevision!()).toBe(initialRevision);
+
+  mockDataModelReaders = {
+    getReader: () => ({
+      getAsString: () => 'loaded',
+      isLoading: () => false,
+      hasError: () => false,
+    }),
+  };
+  rerender();
+  expect(result.current).toBe(runtime);
+  expect(runtime.getSnapshotRevision!()).toBeGreaterThan(initialRevision);
+  expect(runtime.langToolsSelector(undefined).langAsNonProcessedString(resourceKey)).toBe('Value loaded');
 });

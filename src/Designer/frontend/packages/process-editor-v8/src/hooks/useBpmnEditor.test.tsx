@@ -149,7 +149,7 @@ describe('useBpmnEditor', () => {
     const saveBpmn = jest.fn();
     await setup({ bpmnApiContextProps: { saveBpmn } });
     eventListeners.triggerEvent('commandStack.changed');
-    await waitFor(expect(saveBpmn).toHaveBeenCalled);
+    await waitFor(() => expect(saveBpmn).toHaveBeenCalled());
     expect(saveBpmn).toHaveBeenCalledTimes(1);
     expect(saveBpmn).toHaveBeenCalledWith(xml, null);
   });
@@ -160,7 +160,7 @@ describe('useBpmnEditor', () => {
     await setup({ bpmnApiContextProps: { onProcessTaskAdd } });
 
     act(() => eventListeners.triggerEvent('shape.added', taskEvent)); // Need to use act here because this event also triggers the addAction function from useStudioRecommendedNextActionContext, which in turn triggers another state update
-    await waitFor(expect(onProcessTaskAdd).toHaveBeenCalled);
+    await waitFor(() => expect(onProcessTaskAdd).toHaveBeenCalled());
 
     const expectedInput: OnProcessTaskEvent = { taskEvent, taskType };
     expect(onProcessTaskAdd).toHaveBeenCalledTimes(1);
@@ -173,7 +173,7 @@ describe('useBpmnEditor', () => {
     await setup({ bpmnApiContextProps: { onProcessTaskRemove } });
 
     eventListeners.triggerEvent('shape.remove', taskEvent);
-    await waitFor(expect(onProcessTaskRemove).toHaveBeenCalled);
+    await waitFor(() => expect(onProcessTaskRemove).toHaveBeenCalled());
 
     const expectedInput: OnProcessTaskEvent = { taskEvent, taskType };
     expect(onProcessTaskRemove).toHaveBeenCalledTimes(1);
@@ -212,7 +212,7 @@ describe('useBpmnEditor', () => {
     rerender();
 
     eventListeners.triggerEvent('commandStack.changed');
-    await waitFor(expect(saveBpmn2).toHaveBeenCalled);
+    await waitFor(() => expect(saveBpmn2).toHaveBeenCalled());
     expect(saveBpmn1).not.toHaveBeenCalled();
     expect(saveBpmn2).toHaveBeenCalledTimes(1);
   });

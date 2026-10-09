@@ -7,5 +7,4 @@ export type TextResourceInputTexts = {
   textResourcePickerLabel: string;
   clearSelection?: string;
   emptyTextResourceList?: string;
-  noTextResourceOptionLabel?: string;
 };

@@ -5,6 +5,7 @@ import { evaluateDescriptor } from 'src/features/expressions/evaluateDescriptor'
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
+import { evalRequiredValidationTextResourceBindings } from 'src/features/validation/nodeValidation/requiredValidationTextResourceBindings';
 import { getFieldNameKey } from 'src/utils/formComponentUtils';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { ComponentValidation } from 'src/features/validation';
@@ -24,26 +25,7 @@ export function validateGroupIsEmpty<T extends Extract<CompTypes, 'Checkboxes' |
     ctx.expressionDataSources,
   );
   const dataModelBindings = (ctx.component as { dataModelBindings?: IDataModelBindings<T> }).dataModelBindings;
-  const bindings = component.textResourceBindings;
-  const textResourceBindings = bindings
-    ? {
-        requiredValidation: evaluateDescriptor(
-          bindings.requiredValidation as ExprValToActualOrExpr<ExprVal.String> | undefined,
-          CommonExpressions.TRBFormComp.requiredValidation,
-          ctx.expressionDataSources,
-        ),
-        shortName: evaluateDescriptor(
-          bindings.shortName as ExprValToActualOrExpr<ExprVal.String> | undefined,
-          CommonExpressions.TRBFormComp.shortName,
-          ctx.expressionDataSources,
-        ),
-        title: evaluateDescriptor(
-          bindings.title as ExprValToActualOrExpr<ExprVal.String> | undefined,
-          CommonExpressions.TRBLabel.title,
-          ctx.expressionDataSources,
-        ),
-      }
-    : undefined;
+
   if (!required || !dataModelBindings) {
     return [];
   }
@@ -78,6 +60,7 @@ export function validateGroupIsEmpty<T extends Extract<CompTypes, 'Checkboxes' |
     return [];
   }
 
+  const textResourceBindings = evalRequiredValidationTextResourceBindings(ctx);
   return [
     {
       message: {

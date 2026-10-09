@@ -61,6 +61,39 @@ export async function readGroup(group, root = REPO_ROOT) {
       }
       return out;
     }
+    case 'esm-records': {
+      const out = {};
+      for (const [lang, path] of Object.entries(group.files)) {
+        const mod = await import(pathToFileURL(abs(path)));
+        const records = mod[group.exportName];
+        if (!Array.isArray(records)) {
+          throw new HarnessError(`${path}: expected exported array ${group.exportName}`);
+        }
+        if (!group.fields?.length || !group.keyField) {
+          throw new HarnessError(`${group.name}: record fields and keyField are required`);
+        }
+        const entries = new Map();
+        for (const record of records) {
+          const id = record?.[group.keyField];
+          if (typeof id !== 'string' || id === '') {
+            throw new HarnessError(`${path}: expected a nonempty string at ${group.keyField}`);
+          }
+          for (const field of group.fields) {
+            const value = field.split('.').reduce((node, part) => node?.[part], record);
+            const key = `${id}.${field}`;
+            if (typeof value !== 'string') {
+              throw new HarnessError(`${path}: expected a string at ${key}`);
+            }
+            if (entries.has(key)) {
+              throw new HarnessError(`${path}: duplicate record key ${key}`);
+            }
+            entries.set(key, value);
+          }
+        }
+        out[lang] = entries;
+      }
+      return out;
+    }
     case 'json-paths': {
       const doc = JSON.parse(readFileSync(abs(group.file), 'utf8'));
       const out = {};
@@ -785,7 +818,9 @@ export function parseKeyDeclarations(text, name) {
 
 function assignKind(section, kind, where) {
   if (section.kind !== undefined) {
-    throw new HarnessError(`${where}: a section declares exactly one of @empty/@key-contract/@language`);
+    throw new HarnessError(
+      `${where}: a section declares exactly one of @empty/@key-contract/@language`,
+    );
   }
   return kind;
 }
@@ -804,7 +839,8 @@ export function compileKeyDeclarations(entries) {
   return entries.map((e, i) => {
     const where = `key declaration #${i} ('${e.key ?? '?'}')`;
     if (!e.key) throw new HarnessError(`${where} needs a key`);
-    if (!e.kind) throw new HarnessError(`${where} declares no kind (@empty/@key-contract/@language)`);
+    if (!e.kind)
+      throw new HarnessError(`${where} declares no kind (@empty/@key-contract/@language)`);
     if (!e.files) throw new HarnessError(`${where} declares no @files scope`);
     return { ...e, res: e.files.map(globToRegExp), hits: 0 };
   });

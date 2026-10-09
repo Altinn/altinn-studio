@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ForwardedRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
@@ -25,7 +26,7 @@ describe('StudioChip', () => {
 
     it('Calls the onClick callback when the user clicks the chip', async () => {
       const user = userEvent.setup();
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       renderButton({ onClick });
       await user.click(getButton());
       expect(onClick).toHaveBeenCalledTimes(1);
@@ -52,7 +53,7 @@ describe('StudioChip', () => {
 
     it('Calls the onClick callback when the user clicks the chip', async () => {
       const user = userEvent.setup();
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       renderRemovable({ onClick });
       await user.click(getButton());
       expect(onClick).toHaveBeenCalledTimes(1);
@@ -78,13 +79,13 @@ describe('StudioChip', () => {
     });
 
     it('Reflects the checked state', () => {
-      renderCheckbox({ checked: true, onChange: jest.fn() });
+      renderCheckbox({ checked: true, onChange: vi.fn() });
       expect(getCheckbox()).toBeChecked();
     });
 
     it('Calls the onChange callback when the user clicks the chip', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderCheckbox({ onChange });
       await user.click(getCheckbox());
       expect(onChange).toHaveBeenCalledTimes(1);
@@ -110,13 +111,13 @@ describe('StudioChip', () => {
     });
 
     it('Reflects the checked state', () => {
-      renderRadio({ checked: true, onChange: jest.fn() });
+      renderRadio({ checked: true, onChange: vi.fn() });
       expect(getRadio()).toBeChecked();
     });
 
     it('Calls the onChange callback when the user clicks the chip', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderRadio({ onChange });
       await user.click(getRadio());
       expect(onChange).toHaveBeenCalledTimes(1);

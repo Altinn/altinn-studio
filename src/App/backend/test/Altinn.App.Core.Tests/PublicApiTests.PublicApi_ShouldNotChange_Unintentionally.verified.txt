@@ -2370,7 +2370,7 @@ namespace Altinn.App.Core.Features.Process
         public ServiceTaskWait() { }
         public System.DateTimeOffset? Deadline { get; init; }
         public int DeferCount { get; init; }
-        public bool IsFinalCheck { get; }
+        public bool IsFinalCheck { get; init; }
         public System.TimeSpan? Remaining { get; }
         public System.DateTimeOffset? StartedAt { get; init; }
     }
@@ -2963,15 +2963,15 @@ namespace Altinn.App.Core.Internal.Auth
         System.Threading.Tasks.Task<bool> AuthorizeAction(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Security.Claims.ClaimsPrincipal user, string action, string? taskId = null, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, bool>> AuthorizeActions(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Security.Claims.ClaimsPrincipal user, System.Collections.Generic.List<string> actions, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<System.Collections.Generic.List<string>> GetKeyRoleOrganizationParties(int userId, System.Collections.Generic.List<string> orgNumbers, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(int userId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int userId, int partyId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int partyId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
     }
     public interface IAuthorizationService
     {
         System.Threading.Tasks.Task<bool> AuthorizeAction(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Security.Claims.ClaimsPrincipal user, string action, string? taskId = null, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.UserAction>> AuthorizeActions(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Security.Claims.ClaimsPrincipal user, System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnAction> actions, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(int userId, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int userId, int partyId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int partyId, System.Threading.CancellationToken cancellationToken = default);
     }
     public interface IUserTokenProvider
     {
@@ -3929,6 +3929,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         public required System.DateTimeOffset ExecutionReferenceTime { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("firstDeferredAt")]
         public System.DateTimeOffset? FirstDeferredAt { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("isFinalWaitCheck")]
+        public bool IsFinalWaitCheck { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("mailbox")]
         public Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackMailbox? Mailbox { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("payload")]
@@ -5219,6 +5221,7 @@ namespace Altinn.App.Core.Models.Process
     {
         public ProcessStartRequest() { }
         public Altinn.Platform.Storage.Interface.Models.Instance Instance { get; set; }
+        public string? Language { get; set; }
         public System.Collections.Generic.Dictionary<string, string>? Prefill { get; set; }
         public string? StartEventId { get; set; }
         public System.Security.Claims.ClaimsPrincipal User { get; set; }

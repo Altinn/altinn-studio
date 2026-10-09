@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import type React from 'react';
 import { type RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -17,7 +18,7 @@ async function testNativeClickEvent<Element extends HTMLElement>(
   >
 ): Promise<void> {
   const user = userEvent.setup();
-  const onClickMock = jest.fn();
+  const onClickMock = vi.fn();
   const { container, unmount } = renderComponent(onClickMock);
 
   const targetElement = getTargetElement(container);

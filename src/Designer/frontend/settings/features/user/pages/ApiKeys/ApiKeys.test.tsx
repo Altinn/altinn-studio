@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiKeys } from './ApiKeys';
@@ -11,9 +12,9 @@ import { toast } from 'react-toastify';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 import { formatLocalDate } from '../../../../components/ApiKeys/ApiKeyDialog';
 
-jest.mock('react-toastify', () => ({
-  ...jest.requireActual('react-toastify'),
-  toast: { success: jest.fn(), error: jest.fn() },
+vi.mock('react-toastify', async () => ({
+  ...(await vi.importActual('react-toastify')),
+  toast: { success: vi.fn(), error: vi.fn() },
 }));
 
 const today = formatLocalDate(new Date());
@@ -80,7 +81,7 @@ const getDeleteButton = (name: string) =>
   screen.getByRole('button', { name: textMock('settings.api_keys.delete', { name }) });
 
 describe('ApiKeys', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('renders the open dialog button', () => {
     renderApiKeys();
@@ -131,7 +132,7 @@ describe('ApiKeys', () => {
 
   it('resets expiry to the max date after successful api key creation', async () => {
     const user = userEvent.setup();
-    const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
+    const addUserApiKey = vi.fn().mockResolvedValue(mockNewApiKey);
     renderApiKeys({ addUserApiKey });
     await openDialog(user);
     await user.type(getNameInput(), 'New api key');
@@ -155,7 +156,7 @@ describe('ApiKeys', () => {
 
   it('shows duplicate name error when server returns 409 Conflict', async () => {
     const user = userEvent.setup();
-    const addUserApiKey = jest.fn().mockRejectedValue({
+    const addUserApiKey = vi.fn().mockRejectedValue({
       response: { status: 409, data: { errorCode: ApiErrorCodes.DuplicateTokenName } },
     });
     renderApiKeys({ addUserApiKey });
@@ -173,7 +174,7 @@ describe('ApiKeys', () => {
 
   it('calls addUserApiKey with correct payload', async () => {
     const user = userEvent.setup();
-    const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
+    const addUserApiKey = vi.fn().mockResolvedValue(mockNewApiKey);
     renderApiKeys({ addUserApiKey });
     await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
@@ -186,7 +187,7 @@ describe('ApiKeys', () => {
 
   it('shows the new api key after successful creation', async () => {
     const user = userEvent.setup();
-    const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
+    const addUserApiKey = vi.fn().mockResolvedValue(mockNewApiKey);
     renderApiKeys({ addUserApiKey });
     await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
@@ -196,7 +197,7 @@ describe('ApiKeys', () => {
 
   it('closes the success dialog when the dialog close button is clicked', async () => {
     const user = userEvent.setup();
-    const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
+    const addUserApiKey = vi.fn().mockResolvedValue(mockNewApiKey);
     renderApiKeys({ addUserApiKey });
     await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
@@ -207,10 +208,10 @@ describe('ApiKeys', () => {
   });
 
   it('copies the api key to clipboard and shows success toast when copy button is clicked', async () => {
-    const writeText = jest.fn().mockResolvedValue(undefined);
-    jest.spyOn(navigator.clipboard, 'writeText').mockImplementation(writeText);
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(navigator.clipboard, 'writeText').mockImplementation(writeText);
     const user = userEvent.setup();
-    const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
+    const addUserApiKey = vi.fn().mockResolvedValue(mockNewApiKey);
     renderApiKeys({ addUserApiKey });
     await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
@@ -225,9 +226,9 @@ describe('ApiKeys', () => {
   });
 
   it('shows error toast when clipboard write fails', async () => {
-    jest.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('Permission denied'));
+    vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('Permission denied'));
     const user = userEvent.setup();
-    const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
+    const addUserApiKey = vi.fn().mockResolvedValue(mockNewApiKey);
     renderApiKeys({ addUserApiKey });
     await openDialog(user);
     await fillForm(user, 'New api key', validExpiresAt);
@@ -247,7 +248,7 @@ describe('ApiKeys', () => {
   });
 
   it('renders error message when api keys query fails', async () => {
-    const getUserApiKeys = jest.fn().mockRejectedValue(new Error('Failed'));
+    const getUserApiKeys = vi.fn().mockRejectedValue(new Error('Failed'));
     const queryClient = createQueryClientMock();
     renderWithProviders(<ApiKeys />, { queryClient, queries: { getUserApiKeys } });
     expect(await screen.findByText(textMock('settings.api_keys.load_error'))).toBeInTheDocument();
@@ -259,8 +260,8 @@ describe('ApiKeys', () => {
   });
 
   it('calls deleteUserApiKey when delete is confirmed', async () => {
-    const deleteUserApiKey = jest.fn().mockResolvedValue(undefined);
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    const deleteUserApiKey = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     const user = userEvent.setup();
     renderApiKeys({ deleteUserApiKey });
     await user.click(getDeleteButton('Existing api key'));

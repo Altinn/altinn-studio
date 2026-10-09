@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { StudioDialog, StudioHeading, StudioLink, StudioParagraph } from '@studio/components';
 import { ExternalLinkIcon, InformationIcon } from '@studio/icons';
 import type { AboutAssistantDialogTexts } from '../../../types/AssistantTexts';
+import classes from './AboutAssistantDialog.module.css';
 
 export const assistantDocsUrl =
   'https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/assistant/';
@@ -27,7 +28,11 @@ export function AboutAssistantDialog({ texts }: AboutAssistantDialogProps): Reac
 
   return (
     <StudioDialog.TriggerContext>
-      <StudioDialog.Trigger variant='tertiary' icon={<InformationIcon />}>
+      <StudioDialog.Trigger
+        variant='tertiary'
+        icon={<InformationIcon />}
+        className={classes.trigger}
+      >
         {texts.heading}
       </StudioDialog.Trigger>
       <StudioDialog closedby='any' ref={dialogRef} onClose={handleClose}>

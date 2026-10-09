@@ -1,3 +1,4 @@
+import { describe } from 'vitest';
 import { uiSchemaNodesMock } from './uiSchemaMock';
 import { testSchemaNodes } from '@altinn/schema-model';
 

@@ -11,6 +11,7 @@ using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.FileAnalysis;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.Data;
@@ -366,6 +367,113 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         Assert.NotNull(readDataElementResponseParsed.Melding);
         Assert.Equal("TestName", readDataElementResponseParsed.Melding.Name);
         TestData.DeleteInstanceAndData(org, app, instanceId);
+    }
+
+    [Theory]
+    [InlineData("en", "en")]
+    [InlineData(null, "nn")]
+    public async Task PostNewInstance_Simplified_TaskStartGetsTheLanguageTheUserChose_OrTheirProfileLanguage(
+        string? language,
+        string expected
+    )
+    {
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        var taskStart = new LanguageCapturingTaskStartHandler();
+        OverrideServicesForThisTest = services => services.AddSingleton<IOnTaskStartingHandler>(taskStart);
+        using HttpClient client = GetRootedClient(org, app);
+        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
+
+        var (instance, _) = await InstancesControllerFixture.CreateInstanceSimplified(
+            org,
+            app,
+            instanceOwnerPartyId,
+            client,
+            token,
+            language: language
+        );
+
+        // The task start runs in a workflow-engine callback; user 1337's profile language is nn.
+        Assert.Equal(expected, taskStart.Language);
+        TestData.DeleteInstanceAndData(org, app, instance.Id);
+    }
+
+    [Theory]
+    [InlineData("en", "Task_1")]
+    [InlineData(null, "Task_Other")]
+    public async Task PostNewInstance_Simplified_StartGatewayRoutesOnTheLanguageTheUserChose_OrTheirProfileLanguage(
+        string? language,
+        string expectedTask
+    )
+    {
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        string bpmn = await File.ReadAllTextAsync(
+            Path.Join(TestData.GetApplicationDirectory(org, app), "config/process/process.bpmn")
+        );
+        bpmn = bpmn.Replace(
+            "sourceRef=\"StartEvent_1\" targetRef=\"Task_1\"",
+            "sourceRef=\"StartEvent_1\" targetRef=\"Gateway_Start\"",
+            StringComparison.Ordinal
+        );
+        // No branch matches nb, so a gateway evaluated without the user's language fails the instantiation.
+        bpmn = bpmn.Replace(
+            "</bpmn:process>",
+            """
+            <bpmn:exclusiveGateway id="Gateway_Start">
+              <bpmn:incoming>SequenceFlow_1n56yn5</bpmn:incoming>
+              <bpmn:outgoing>Flow_en</bpmn:outgoing>
+              <bpmn:outgoing>Flow_nn</bpmn:outgoing>
+            </bpmn:exclusiveGateway>
+            <bpmn:task id="Task_Other" name="Other">
+              <bpmn:incoming>Flow_nn</bpmn:incoming>
+              <bpmn:extensionElements><altinn:taskExtension><altinn:taskType>data</altinn:taskType></altinn:taskExtension></bpmn:extensionElements>
+            </bpmn:task>
+            <bpmn:sequenceFlow id="Flow_en" sourceRef="Gateway_Start" targetRef="Task_1">
+              <bpmn:conditionExpression>["equals", ["language"], "en"]</bpmn:conditionExpression>
+            </bpmn:sequenceFlow>
+            <bpmn:sequenceFlow id="Flow_nn" sourceRef="Gateway_Start" targetRef="Task_Other">
+              <bpmn:conditionExpression>["equals", ["language"], "nn"]</bpmn:conditionExpression>
+            </bpmn:sequenceFlow>
+            </bpmn:process>
+            """,
+            StringComparison.Ordinal
+        );
+        var processClient = new Mock<IProcessClient>(MockBehavior.Strict);
+        processClient
+            .Setup(p => p.GetProcessDefinition())
+            .Returns(() => new MemoryStream(Encoding.UTF8.GetBytes(bpmn)));
+        OverrideServicesForThisTest = services => services.AddSingleton(processClient.Object);
+        using HttpClient client = GetRootedClient(org, app);
+        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
+
+        var (instance, _) = await InstancesControllerFixture.CreateInstanceSimplified(
+            org,
+            app,
+            instanceOwnerPartyId,
+            client,
+            token,
+            language: language
+        );
+
+        // User 1337's profile language is nn.
+        Assert.Equal(expectedTask, instance.Process.CurrentTask.ElementId);
+        TestData.DeleteInstanceAndData(org, app, instance.Id);
+    }
+
+    private sealed class LanguageCapturingTaskStartHandler : IOnTaskStartingHandler
+    {
+        public string? Language { get; private set; }
+
+        public bool ShouldRunForTask(string taskId) => true;
+
+        public Task<HookResult> Execute(OnTaskStartingContext context)
+        {
+            Language = context.InstanceDataMutator.Language;
+            return Task.FromResult<HookResult>(HookResult.Success());
+        }
     }
 
     [Fact]
@@ -1380,6 +1488,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             bool isInstantiation = false,
             Dictionary<string, string>? prefill = null,
             InstantiationNotification? notification = null,
+            string? language = null,
             CancellationToken cancellationToken = default
         ) => Task.FromResult(instance);
 

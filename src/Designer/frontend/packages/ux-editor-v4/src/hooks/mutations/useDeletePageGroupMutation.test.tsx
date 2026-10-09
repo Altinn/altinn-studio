@@ -69,9 +69,7 @@ describe('useDeletePageGroupMutation', () => {
       queryClient,
     );
 
-    await waitFor(() => {
-      expect(result.current.mutateAsync(pageGroups)).rejects.toThrow('Failed');
-    });
+    await expect(result.current.mutateAsync(pageGroups)).rejects.toThrow('Failed');
 
     await waitFor(() => {
       expect(changePageGroupsMock).toHaveBeenCalledWith(org, app, selectedLayoutSet, pageGroups);

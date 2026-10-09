@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
@@ -17,6 +18,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.App.PlatformServices.Tests.Mocks;
+using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -313,6 +315,59 @@ public class PdfServiceTests
 
         await Verify(telemetrySink.GetSnapshot());
     }
+
+    [Theory]
+    [InlineData("en", null, "en")]
+    [InlineData(null, "nn", "nn")]
+    [InlineData(" ", "nn", "nn")]
+    public async Task GeneratePdf_RendersInTheGivenLanguage_ElseTheUsers(
+        string? language,
+        string? profileLanguage,
+        string expected
+    )
+    {
+        // A PDF service task passes its data mutator's language, the one the user chose for the transition
+        Uri? pdfUri = null;
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Uri, string?, StorageAuthenticationMethod?, CancellationToken>((uri, _, _, _) => pdfUri = uri)
+            .ReturnsAsync(Array.Empty<byte>());
+        var authenticationContext = new Mock<IAuthenticationContext>();
+        authenticationContext
+            .Setup(s => s.Current)
+            .Returns(
+                TestAuthentication.GetUserAuthentication(
+                    profileSettingPreference: profileLanguage is null
+                        ? null
+                        : new ProfileSettingPreference { Language = profileLanguage }
+                )
+            );
+        var target = SetupPdfService(authenticationContext: authenticationContext);
+
+        await target.GeneratePdf(CreateTask1Instance(), "Task_1", language: language);
+
+        Assert.NotNull(pdfUri);
+        Assert.Equal(expected, GetLangParameter(pdfUri));
+    }
+
+    private static Instance CreateTask1Instance() =>
+        new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+        };
+
+    private static string? GetLangParameter(Uri uri) =>
+        Regex.Match(uri.AbsoluteUri, "[?&]lang=([^&#]*)") is { Success: true } match ? match.Groups[1].Value : null;
 
     [Fact]
     public async Task GeneratePdf_WithAutoGeneratePdfForTaskIds_ShouldIncludeTaskIdsInUri()

@@ -63,10 +63,12 @@ describe('ConfigSequenceFlow', () => {
 
     const createExpressionElementMock = jest.fn();
     const addChildElementToParentMock = jest.fn();
-    (BpmnExpressionModeler as jest.Mock).mockImplementation(() => ({
-      createExpressionElement: createExpressionElementMock,
-      addChildElementToParent: addChildElementToParentMock,
-    }));
+    (BpmnExpressionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        createExpressionElement: createExpressionElementMock,
+        addChildElementToParent: addChildElementToParentMock,
+      };
+    });
 
     renderConfigSequenceFlow({
       bpmnDetails: { ...mockBpmnDetails, element: {} as unknown as Element },
@@ -112,11 +114,13 @@ describe('ConfigSequenceFlow', () => {
     window.confirm = jest.fn(() => true);
 
     const updateElementPropertiesMock = jest.fn();
-    (BpmnExpressionModeler as jest.Mock).mockImplementation(() => ({
-      updateElementProperties: updateElementPropertiesMock,
-      createExpressionElement: jest.fn(),
-      addChildElementToParent: jest.fn(),
-    }));
+    (BpmnExpressionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        updateElementProperties: updateElementPropertiesMock,
+        createExpressionElement: jest.fn(),
+        addChildElementToParent: jest.fn(),
+      };
+    });
 
     const user = userEvent.setup();
 

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Ref } from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
@@ -10,14 +11,14 @@ import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 // Test data:
 const uploaderButtonText = 'Upload file';
-const onSubmit = jest.fn();
+const onSubmit = vi.fn();
 const defaultProps: StudioFileUploaderProps = {
   onSubmit,
   uploaderButtonText,
 };
 
 describe('StudioFileUploader', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render only studioButton by default ', () => {
     renderFileUploader({ uploaderButtonText: undefined });
@@ -33,7 +34,7 @@ describe('StudioFileUploader', () => {
   it('should call input click method when clicking the studioButton', async () => {
     const user = userEvent.setup();
     renderFileUploader();
-    const clickSpy = jest.spyOn(getFileInputElement(), 'click');
+    const clickSpy = vi.spyOn(getFileInputElement(), 'click');
     await user.click(getUploadButton());
     expect(clickSpy).toHaveBeenCalledTimes(1);
   });

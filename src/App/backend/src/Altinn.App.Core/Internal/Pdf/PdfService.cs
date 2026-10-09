@@ -118,9 +118,7 @@ internal sealed class PdfService : IPdfService
     {
         using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
 
-        string language = string.IsNullOrWhiteSpace(requestedLanguage)
-            ? await _authenticationContext.Current.GetLanguage()
-            : requestedLanguage;
+        string language = await _authenticationContext.Current.GetLanguage(requestedLanguage);
 
         return await GeneratePdfContent(
             instance,

@@ -20,6 +20,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -31,6 +32,8 @@ namespace Altinn.App.Api.Tests;
 /// directly per command while keeping an in-memory workflow store for polling and failure handling.
 /// </summary>
 /// <remarks>
+/// Each callback runs as a request of its own, as the engine sends it (see <see cref="WorkflowCallbackHttpContextAccessor"/>):
+/// it sees neither the query string nor the user of the request that enqueued its workflow.
 /// Time is compressed rather than simulated: a deferring step re-executes immediately with the
 /// requested delay added to a virtual elapsed wait, so a test of a long wait finishes in milliseconds.
 /// The consequence worth knowing is that a workflow never actually rests in
@@ -584,11 +587,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             _serviceProvider.GetRequiredService<ILogger<WorkflowEngineCallbackController>>(),
             _serviceProvider.GetService<Telemetry>()
         );
-        controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
-        if (!string.IsNullOrWhiteSpace(workflow.CollectionKey))
-        {
-            controller.HttpContext.Request.Headers["Collection-Key"] = workflow.CollectionKey;
-        }
 
         foreach (StoredStep step in workflow.Steps)
         {
@@ -621,6 +619,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 step.UpdatedAt = DateTimeOffset.UtcNow;
 
                 DateTimeOffset attemptStartedAt = DateTimeOffset.UtcNow;
+                TimeSpan waitBudget = step.WaitBudget ?? DefaultStepWaitBudget;
                 AppCallbackPayload payload = new()
                 {
                     CommandKey = appCommandData.CommandKey,
@@ -637,11 +636,12 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     DeferCount = step.DeferCount,
                     FirstDeferredAt = step.FirstDeferredAt,
                     // Projected from the compressed wait: what is left of the budget after the
-                    // delays the handler has already asked for. Once that is spent the deadline
-                    // falls in the past, which is what the handler reads as its final check.
+                    // delays the handler has already asked for. Once that is spent the attempt
+                    // starts at or past the deadline, which is what the engine calls a final check.
                     WaitDeadline = step.FirstDeferredAt is null
                         ? null
-                        : attemptStartedAt + ((step.WaitBudget ?? DefaultStepWaitBudget) - step.WaitElapsed),
+                        : attemptStartedAt + (waitBudget - step.WaitElapsed),
+                    IsFinalWaitCheck = step.FirstDeferredAt is not null && step.WaitElapsed >= waitBudget,
                 };
 
                 if (await AuthenticateCallback(workflow.Context, appCommandData.CommandKey) is not { } principal)
@@ -661,21 +661,48 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     workflow.UpdatedAt = DateTimeOffset.UtcNow;
                     return;
                 }
-                controller.HttpContext.User = principal;
-                IActionResult result = await controller.ExecuteCommand(
-                    workflow.Context.Org,
-                    workflow.Context.App,
-                    workflow.Context.InstanceOwnerPartyId,
-                    workflow.Context.InstanceGuid,
-                    appCommandData.CommandKey,
-                    payload,
-                    cancellationToken
+                controller.ControllerContext = new ControllerContext
+                {
+                    HttpContext = CreateCallbackRequest(workflow, appCommandData.CommandKey, principal),
+                };
+                IActionResult result = await WorkflowCallbackHttpContextAccessor.RunCallback(
+                    controller.HttpContext,
+                    () =>
+                        controller.ExecuteCommand(
+                            workflow.Context.Org,
+                            workflow.Context.App,
+                            workflow.Context.InstanceOwnerPartyId,
+                            workflow.Context.InstanceGuid,
+                            appCommandData.CommandKey,
+                            payload,
+                            cancellationToken
+                        )
                 );
 
                 if (result is OkObjectResult { Value: AppCallbackResponse response })
                 {
                     if (response.Defer is { } defer)
                     {
+                        if (payload.IsFinalWaitCheck)
+                        {
+                            // What the engine does with a deferral from the final check: the wait has
+                            // expired, so the step fails without retrying.
+                            step.ErrorHistory.Add(
+                                new ErrorEntry(
+                                    DateTimeOffset.UtcNow,
+                                    $"Wait budget of {waitBudget} exhausted after {step.DeferCount} deferral(s): "
+                                        + (defer.Reason ?? "the awaited outcome never became available"),
+                                    (int)HttpStatusCode.OK,
+                                    WasRetryable: false
+                                )
+                            );
+                            step.Status = PersistentItemStatus.Failed;
+                            step.UpdatedAt = DateTimeOffset.UtcNow;
+                            workflow.Status = PersistentItemStatus.Failed;
+                            workflow.UpdatedAt = DateTimeOffset.UtcNow;
+                            return;
+                        }
+
                         // Not a completion: no error recorded, retry counter reset, and the next
                         // attempt starts from the state this one received (the app echoes it back
                         // unchanged, so currentState stays put).
@@ -693,9 +720,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                             throw new InvalidOperationException(
                                 $"Step '{step.OperationId}' deferred {step.DeferCount} times without concluding. "
                                     + "This fake compresses the wait rather than sleeping, so a handler that keeps "
-                                    + "deferring loops here instead of parking. Give the step a wait budget its "
-                                    + "handler observes (ProcessStepOptions.WaitBudget, read back as "
-                                    + "ServiceTaskContext.Wait), or make the handler conclude."
+                                    + "deferring loops here instead of parking. Give the step a smaller wait "
+                                    + "budget (ProcessStepOptions.WaitBudget), or make the handler conclude."
                             );
                         }
 
@@ -946,6 +972,37 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 WorkflowEngineCallbackDefaults.AuthenticationScheme
             )
         );
+    }
+
+    /// <summary>
+    /// The request a callback is: one of its own, as the engine sends it. It has no query string, is routed to the
+    /// callback endpoint and carries the callback token, so the app authenticates it as itself.
+    /// </summary>
+    private static DefaultHttpContext CreateCallbackRequest(
+        StoredWorkflow workflow,
+        string commandKey,
+        ClaimsPrincipal principal
+    )
+    {
+        AppWorkflowContext context = workflow.Context;
+        var httpContext = new DefaultHttpContext { User = principal };
+        httpContext.Request.Method = HttpMethods.Post;
+        httpContext.Request.Path =
+            $"/{context.Org}/{context.App}/instances/{context.InstanceOwnerPartyId}/{context.InstanceGuid}/workflow-engine-callbacks/{commandKey}";
+        httpContext.Request.RouteValues = new RouteValueDictionary
+        {
+            ["org"] = context.Org,
+            ["app"] = context.App,
+            ["instanceOwnerPartyId"] = context.InstanceOwnerPartyId,
+            ["instanceGuid"] = context.InstanceGuid,
+            ["commandKey"] = commandKey,
+        };
+        httpContext.Request.Headers.Authorization = $"Bearer {context.CallbackToken}";
+        if (!string.IsNullOrWhiteSpace(workflow.CollectionKey))
+        {
+            httpContext.Request.Headers["Collection-Key"] = workflow.CollectionKey;
+        }
+        return httpContext;
     }
 
     private static bool IsAltinnEventCommand(string commandKey) =>

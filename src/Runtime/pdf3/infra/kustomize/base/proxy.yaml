@@ -68,6 +68,7 @@ spec:
   - port: 80
     targetPort: 5030
     protocol: TCP
+    appProtocol: http
     name: http
   selector:
     app: pdf3-proxy

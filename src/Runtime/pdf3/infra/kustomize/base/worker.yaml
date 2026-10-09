@@ -76,6 +76,7 @@ spec:
   - port: 80
     targetPort: 5031
     protocol: TCP
+    appProtocol: http
     name: http
   selector:
     app: pdf3-worker
