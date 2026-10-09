@@ -30,6 +30,30 @@ var (
 	veraPDFDuration = regexp.MustCompile(`(<duration[^>]*>)[^<]*(</duration>)`)
 )
 
+func withContainerClient(t *testing.T, run func(container.ContainerClient)) {
+	t.Helper()
+
+	if Runtime != nil {
+		run(Runtime.ContainerClient)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	client, err := container.Detect(ctx)
+	if err != nil {
+		t.Fatalf("Failed to detect container runtime: %v", err)
+	}
+	defer func() {
+		if closeErr := client.Close(); closeErr != nil {
+			t.Logf("Failed to close container client: %v", closeErr)
+		}
+	}()
+
+	run(client)
+}
+
 func EnsureVeraPDFImage(t *testing.T) string {
 	t.Helper()
 
@@ -42,7 +66,7 @@ func EnsureVeraPDFImage(t *testing.T) string {
 	}
 
 	dockerfilePath := filepath.Join(projectRoot, "Dockerfile.verapdf")
-	WithContainerClient(t, func(client container.ContainerClient) {
+	withContainerClient(t, func(client container.ContainerClient) {
 		if buildErr := client.Build(ctx, projectRoot, dockerfilePath, veraPDFImageTag); buildErr != nil {
 			t.Fatalf("Failed to build veraPDF image: %v", buildErr)
 		}
@@ -66,7 +90,7 @@ func ValidatePDFWithVeraPDF(t *testing.T, pdf []byte) *VeraPDFResult {
 	defer waitCancel()
 
 	var result *VeraPDFResult
-	WithContainerClient(t, func(client container.ContainerClient) {
+	withContainerClient(t, func(client container.ContainerClient) {
 		containerID, err := client.CreateContainer(waitCtx, container.ContainerConfig{
 			Name:   containerName,
 			Image:  image,
