@@ -148,6 +148,11 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await EnableImplicitUsings(projectFile));
 
+        // First of the C# rewrites: it finds what to remove through the semantic models, which only bind
+        // reliably to the v8 source as it was.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveUnusedPdfFormatters(scanner));
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(scanner));
 
@@ -876,6 +881,28 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating IAppResources parameter names", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes the IPdfFormatter implementations that cannot change the PDF, with their registrations, so
+    /// the removed-API check reports only the ones with logic to port.
+    /// </summary>
+    static async Task<int> RemoveUnusedPdfFormatters(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("Unused IPdfFormatter");
+        try
+        {
+            var result = new UnusedPdfFormatterMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IPdfFormatter implementations that can be removed safely",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing unused IPdfFormatter implementations", ex);
         }
     }
 
