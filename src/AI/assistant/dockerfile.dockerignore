@@ -2,7 +2,7 @@
 # Ignore everything, then include only what the image needs.
 *
 
-!src/AI/agents
+!src/AI/assistant
 !src/common/ts/layout-contract/schemas/json/layout
 
 # Heavy or irrelevant paths inside the included dirs.

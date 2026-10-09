@@ -59,7 +59,7 @@ Each area below links to its own `AGENTS.md` where one exists.
 
 ### AI — [`src/AI`](src/AI/AGENTS.md)
 
-R&D projects from the AI lab (to be handed off to the Studio team): `agents` (Altinity natural-language
+R&D projects from the AI lab (to be handed off to the Studio team): `assistant` (Studio Assistant natural-language
 app builder) and `augmenter-agent` (document/PDF augmentation microservice).
 
 ### Continuous integration — [`src/ci`](src/ci/AGENTS.md)

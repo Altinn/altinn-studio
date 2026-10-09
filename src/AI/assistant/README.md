@@ -167,7 +167,7 @@ The files in `agents/prompts/` are a **fallback**. When Langfuse is configured, 
 ## Project structure
 
 ```
-src/AI/agents/
+src/AI/assistant/
 ├── api/                  # FastAPI server
 │   ├── routes/           # Endpoints: agent, websocket, token_usage, traces
 │   └── main.py           # Entry point of the application

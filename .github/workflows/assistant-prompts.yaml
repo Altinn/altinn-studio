@@ -4,15 +4,15 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - 'src/AI/agents/agents/prompts/**'
-      - 'src/AI/agents/scripts/sync_prompts.py'
+      - 'src/AI/assistant/agents/prompts/**'
+      - 'src/AI/assistant/scripts/sync_prompts.py'
       - '.github/workflows/assistant-prompts.yaml'
       - '!**/AGENTS.md'
   push:
     branches: [main]
     paths:
-      - 'src/AI/agents/agents/prompts/**'
-      - 'src/AI/agents/scripts/sync_prompts.py'
+      - 'src/AI/assistant/agents/prompts/**'
+      - 'src/AI/assistant/scripts/sync_prompts.py'
       - '.github/workflows/assistant-prompts.yaml'
       - '!**/AGENTS.md'
 
@@ -41,11 +41,11 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        working-directory: src/AI/agents
+        working-directory: src/AI/assistant
         run: pip install -r requirements.txt
 
       - name: What this change means for the served prompts
-        working-directory: src/AI/agents
+        working-directory: src/AI/assistant
         env:
           LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST }}
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
@@ -81,11 +81,11 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        working-directory: src/AI/agents
+        working-directory: src/AI/assistant
         run: pip install -r requirements.txt
 
       - name: Publish drifted prompts as production
-        working-directory: src/AI/agents
+        working-directory: src/AI/assistant
         env:
           ALLOW_PROMPT_PUSH: '1'
           COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}

@@ -19,7 +19,8 @@ export interface AssistantMessageData {
 /**
  * Activity phase the backend emits with status and chunk events. The UI
  * highlights the matching pill in the activity row. Keep these strings in
- * sync with `_PHASE_*` constants in `agents/graph/nodes/agentic_loop_node.py`.
+ * sync with `_PHASE_*` constants in
+ * `src/AI/assistant/agents/graph/nodes/agentic_loop_node.py`.
  */
 export type WorkflowPhase = 'thinking' | 'reading' | 'writing' | 'verifying' | 'committing';
 
@@ -29,7 +30,7 @@ export interface WorkflowStatusData {
   done?: boolean;
   mode?: string;
   phase?: WorkflowPhase;
-  /** Milliseconds since the run started, stamped by the agents service.
+  /** Milliseconds since the run started, stamped by the assistant service.
    *  Lets a tab that adopts an in-flight run anchor its trail timers at the
    *  actual run start instead of at the first event it happens to receive. */
   elapsed_ms?: number;

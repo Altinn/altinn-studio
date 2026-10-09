@@ -11,12 +11,12 @@ from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
-AGENTS_ROOT = Path(__file__).resolve().parents[1]
+ASSISTANT_ROOT = Path(__file__).resolve().parents[1]
 
 # The gate compares a change with this ref if the caller gives no ref.
 DEFAULT_BASE_REF = "origin/main"
 
-# Gets an agents-relative path. Returns None if the file does not exist.
+# Gets an assistant-relative path. Returns None if the file does not exist.
 SourceReader = Callable[[str], str | None]
 
 # Returns the digest of each axis in DIGESTS. A None value means that the digest failed.
@@ -31,7 +31,7 @@ DIGESTS: tuple[tuple[str, str], ...] = (
 # BASELINE.json has this value for an axis that a run did not record.
 NOT_RECORDED = "not recorded"
 
-# The paths are agents-relative. The first rule that matches applies. actor_prompt and tools
+# The paths are assistant-relative. The first rule that matches applies. actor_prompt and tools
 # have no path rule, because the gate compares their digests with BASELINE.json (see DIGESTS).
 YARDSTICK: tuple[tuple[str, str, str], ...] = (
     (
@@ -266,7 +266,7 @@ def report(
     print("  4. commit benchmarks/BASELINE.json in this pull request")
     print()
     print("If you did not mean to change the yardstick, revert that change instead.")
-    print("Details: src/AI/agents/benchmarks/EVALS.md")
+    print("Details: src/AI/assistant/benchmarks/EVALS.md")
     return 1 if strict else 0
 
 
@@ -307,7 +307,7 @@ def analyze(
     Without `before`, only the paths decide. With `before`, a Python file moves
     no axis if only its docstrings, comments or formatting change.
     """
-    prefix = "src/AI/agents/"
+    prefix = "src/AI/assistant/"
     hits: list[Hit] = []
     docs_only: list[str] = []
     for raw in changed:
@@ -360,7 +360,7 @@ def _code_without_docstrings(source: str) -> str | None:
 
 def read_working_tree(path: str) -> str | None:
     try:
-        return (AGENTS_ROOT / path).read_text(encoding="utf-8")
+        return (ASSISTANT_ROOT / path).read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError):
         return None
 
@@ -375,7 +375,7 @@ def git_reader(against: str) -> SourceReader | None:
 
 def _git(*args: str, strip: bool = True) -> str | None:
     try:
-        out = subprocess.run(("git", *args), cwd=AGENTS_ROOT, capture_output=True, text=True, check=False)
+        out = subprocess.run(("git", *args), cwd=ASSISTANT_ROOT, capture_output=True, text=True, check=False)
     except OSError:
         return None
     if out.returncode != 0:

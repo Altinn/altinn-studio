@@ -25,7 +25,7 @@ public interface IAssistantServiceClient
     Task ClearFeedbackAsync(string developer, string traceId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Triggers deletion of Langfuse traces older than the agents service's retention window.
+    /// Triggers deletion of Langfuse traces older than the assistant service's retention window.
     /// </summary>
     Task TriggerTraceCleanupAsync(CancellationToken cancellationToken);
 }

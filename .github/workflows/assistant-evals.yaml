@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - 'src/AI/agents/**'
+      - 'src/AI/assistant/**'
       - '.github/workflows/assistant-evals.yaml'
       - '!**/AGENTS.md'
 
@@ -37,11 +37,11 @@ jobs:
       # The actor_prompt and tools digests import the agent code.
       # If a digest fails, the gate fails. It does not pass.
       - name: Install dependencies
-        working-directory: src/AI/agents
+        working-directory: src/AI/assistant
         run: pip install -r requirements.txt
 
       - name: What this change means for the baseline
-        working-directory: src/AI/agents
+        working-directory: src/AI/assistant
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha }}
         shell: bash

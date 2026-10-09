@@ -55,10 +55,10 @@ def _agent_models_or_die(agent_base: str) -> dict[str, str]:
     models = agent_role_models(agent_base)
     if not models:
         raise SystemExit(
-            "The agent service did not report which models it runs, so an end to end "
+            "The assistant service did not report which models it runs, so an end to end "
             "score cannot be attributed to a model. This would otherwise record the "
             "models this checkout resolves, which is not what built the apps. Rebuild "
-            "the agent image so /health reports its models, or drop --include-e2e."
+            "the assistant service image so /health reports its models, or drop --include-e2e."
         )
     return models
 

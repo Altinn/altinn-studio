@@ -4,7 +4,7 @@ services:
     # (see dockerfile). dockerfile.dockerignore scopes the context.
     build:
       context: ../../..
-      dockerfile: src/AI/agents/dockerfile
+      dockerfile: src/AI/assistant/dockerfile
     image: altinity-agents
     container_name: altinity-agents
     ports:

@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - src/AI/agents/**
+      - src/AI/assistant/**
       - src/common/ts/layout-contract/schemas/json/layout/**
       - .github/workflows/deploy-studio-ai-agents.yaml
   workflow_dispatch:
@@ -36,7 +36,7 @@ jobs:
       CONFIG_REPO: ${{ steps.vars.outputs.config-repo }}
     defaults:
       run:
-        working-directory: src/AI/agents
+        working-directory: src/AI/assistant
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -66,13 +66,13 @@ jobs:
       - name: docker build
         # Build from the repo root in order to bundle the v9 layout schemas
         working-directory: ${{ github.workspace }}
-        run: docker build -t ${{ steps.vars.outputs.image-repo }} -f src/AI/agents/dockerfile .
+        run: docker build -t ${{ steps.vars.outputs.image-repo }} -f src/AI/assistant/dockerfile .
 
       - name: push image
         run: docker push ${{ steps.vars.outputs.image-repo }}
 
       - name: patch base with image tag
-        working-directory: src/AI/agents/infra/kustomize
+        working-directory: src/AI/assistant/infra/kustomize
         run: |
           export IMAGE="${{ steps.vars.outputs.image-repo }}"
           export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
@@ -80,7 +80,7 @@ jobs:
           yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' deployment.yaml
 
       - name: push artifact
-        working-directory: src/AI/agents/infra/kustomize
+        working-directory: src/AI/assistant/infra/kustomize
         run: |
           flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
             --provider=azure \

@@ -1,6 +1,6 @@
 # Studio Assistant architecture
 
-The agents service is the engine of the Studio assistant in Altinn Studio Designer. It reads an Altinn app repository, calls a language model in a loop, and lets the model use tools. The tools read files, change files, validate them, and commit the result to a separate branch. A benchmark workbench in the same folder measures the agent before a change goes to production.
+The assistant service is the engine of the Studio assistant in Altinn Studio Designer. It reads an Altinn app repository, calls a language model in a loop, and lets the model use tools. The tools read files, change files, validate them, and commit the result to a separate branch. A benchmark workbench in the same folder measures the agent before a change goes to production.
 
 These pages explain the service at four levels. Each level goes one step deeper.
 
