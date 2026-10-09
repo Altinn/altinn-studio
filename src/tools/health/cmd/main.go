@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"text/tabwriter"
 	"time"
 
 	"altinn.studio/runtime-health/internal/az"
@@ -165,19 +166,6 @@ func listContextRuntimes(environments []string, serviceowner string) ([]kubernet
 	runtimes, err := dis.ListFromContext(environments, serviceowner)
 	if err != nil {
 		return nil, fmt.Errorf("list runtimes from context: %w", err)
-	}
-
-	return runtimes, nil
-}
-
-func listAzureRuntimes(
-	environments []string,
-	serviceowner string,
-	kubeconfigPath string,
-) ([]kubernetes.KubernetesRuntime, error) {
-	runtimes, err := dis.ListFromAzure(environments, serviceowner, kubeconfigPath)
-	if err != nil {
-		return nil, fmt.Errorf("list runtimes from azure: %w", err)
 	}
 
 	return runtimes, nil
@@ -602,7 +590,7 @@ func getContextFlag(command string) (string, error) {
 	return "", fmt.Errorf("%w: %s (supported: kubectl, flux, helm)", errUnsupportedCommand, command)
 }
 
-//nolint:funlen,gocognit,gocyclo,maintidx,nestif // CLI subcommand flow mixes parsing, confirmation, concurrency, and grouped reporting.
+//nolint:funlen,gocognit,gocyclo,maintidx // CLI subcommand flow mixes parsing, confirmation, concurrency, and grouped reporting.
 func runExec() error {
 	execCmd := flag.NewFlagSet("exec", flag.ExitOnError)
 	serviceowner := execCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
@@ -753,7 +741,6 @@ func runExec() error {
 	// Group results by environment
 	fmt.Println("\nResults:")
 	var totalSuccessCount, totalFailureCount int
-	var allFailedResults []ExecResult
 
 	for i, environment := range environments {
 		if i > 0 {
@@ -773,54 +760,37 @@ func runExec() error {
 		}
 
 		fmt.Printf("=== Environment: %s ===\n", environment)
-		fmt.Println(strings.Repeat("-", 80))
-		fmt.Printf("%-40s %-10s %-10s %s\n", "CLUSTER", "STATUS", "EXIT CODE", "ERROR")
-		fmt.Println(strings.Repeat("-", 80))
+		table := tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
+		if _, printErr := fmt.Fprintln(table, "CLUSTER\tSTATUS\tEXIT CODE\tSTDOUT\tSTDERR / ERROR"); printErr != nil {
+			return fmt.Errorf("print command results header: %w", printErr)
+		}
 
 		var successCount, failureCount int
 		for _, result := range envResults {
+			status := "✓ SUCCESS"
+			diagnostic := result.Stderr
 			if result.Error != nil || result.ExitCode != 0 {
 				failureCount++
-				allFailedResults = append(allFailedResults, result)
-				errMsg := ""
+				status = "✗ FAILED"
 				if result.Error != nil {
-					errMsg = result.Error.Error()
-				} else if result.Stderr != "" {
-					// Truncate stderr for table display
-					errMsg = strings.Split(result.Stderr, "\n")[0]
-					if len(errMsg) > 40 {
-						errMsg = errMsg[:37] + "..."
-					}
+					diagnostic = result.Error.Error() + " " + diagnostic
 				}
-				fmt.Printf("%-40s %-10s %-10d %s\n", result.ClusterName, "✗ FAILED", result.ExitCode, errMsg)
 			} else {
 				successCount++
-				fmt.Printf("%-40s %-10s %-10d\n", result.ClusterName, "✓ SUCCESS", result.ExitCode)
+			}
+			if _, printErr := fmt.Fprintf(table, "%s\t%s\t%d\t%s\t%s\n",
+				result.ClusterName, status, result.ExitCode,
+				execTableCell(result.Stdout), execTableCell(diagnostic)); printErr != nil {
+				return fmt.Errorf("print command result: %w", printErr)
 			}
 		}
-
-		fmt.Println(strings.Repeat("-", 80))
+		if err := table.Flush(); err != nil {
+			return fmt.Errorf("print command results: %w", err)
+		}
 		fmt.Printf("Summary: %d succeeded, %d failed\n", successCount, failureCount)
 
 		totalSuccessCount += successCount
 		totalFailureCount += failureCount
-	}
-
-	// Show detailed output for failed clusters
-	if len(allFailedResults) > 0 {
-		fmt.Println("\n--- Detailed output for failed clusters ---")
-		for _, result := range allFailedResults {
-			fmt.Printf("\n[%s] Exit code: %d\n", result.ClusterName, result.ExitCode)
-			if result.Error != nil {
-				fmt.Printf("Error: %v\n", result.Error)
-			}
-			if result.Stderr != "" {
-				fmt.Printf("Stderr:\n%s\n", result.Stderr)
-			}
-			if result.Stdout != "" {
-				fmt.Printf("Stdout:\n%s\n", result.Stdout)
-			}
-		}
 	}
 
 	if totalFailureCount > 0 {
@@ -831,6 +801,11 @@ func runExec() error {
 	return nil
 }
 
+// execTableCell keeps field-selected output on one row while preserving embedded line breaks visibly.
+func execTableCell(value string) string {
+	return strings.NewReplacer("\r", `\r`, "\n", `\n`, "\t", `\t`).Replace(strings.TrimRight(value, "\r\n"))
+}
+
 // executeCommand executes a command on a specific cluster.
 func executeCommand(command string, args []string, contextFlag string, clusterName string) ExecResult {
 	// Build the full command with context
@@ -838,16 +813,16 @@ func executeCommand(command string, args []string, contextFlag string, clusterNa
 
 	//nolint:gosec // The command is restricted to kubectl, flux, or helm before this function is called.
 	cmd := exec.CommandContext(context.Background(), command, cmdArgs...)
+	var stderr strings.Builder
+	cmd.Stderr = &stderr
 
 	stdout, err := cmd.Output()
-	var stderr []byte
 	var exitCode int
 
 	if err != nil {
-		// Try to get exit code and stderr
+		// Try to get the exit code.
 		exitErr := &exec.ExitError{}
 		if errors.As(err, &exitErr) {
-			stderr = exitErr.Stderr
 			exitCode = exitErr.ExitCode()
 		} else {
 			// Command failed to start
@@ -863,17 +838,21 @@ func executeCommand(command string, args []string, contextFlag string, clusterNa
 		ClusterName: clusterName,
 		ExitCode:    exitCode,
 		Stdout:      string(stdout),
-		Stderr:      string(stderr),
+		Stderr:      stderr.String(),
 		Error:       nil,
 	}
 }
 
-//nolint:funlen,gocognit,gocyclo,nestif // CLI init mixes discovery, prompting, and environment-grouped reporting.
+//nolint:funlen,gocognit,gocyclo // CLI init mixes discovery, prompting, and environment-grouped reporting.
 func runInit() error {
 	initCmd := flag.NewFlagSet("init", flag.ExitOnError)
 	serviceowner := initCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
 	initCmd.StringVar(serviceowner, "s", "", "Optional: specific serviceowner ID (shorthand)")
 	kubeconfigPath := initCmd.String("kubeconfig", "", "Optional: kubeconfig file to inspect and update")
+	excludeOwners := initCmd.String("exclude-service-owner", "", "Comma-separated serviceowner IDs to exclude")
+	prune := initCmd.Bool("prune", false, "Offer to remove contexts not found in Azure discovery")
+	update := initCmd.Bool("update", false, "Refresh credentials and connection details for existing contexts")
+	dryRun := initCmd.Bool("dry-run", false, "Preview credential fetching and pruning without changes")
 
 	args, err := parseCommandArgs(initCmd)
 	if err != nil {
@@ -889,9 +868,14 @@ func runInit() error {
 			"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)\n\n" +
 			"  --kubeconfig path\n" +
 			"                  Optional: kubeconfig file to inspect and update\n\n" +
+			"  --exclude-service-owner owners\n" +
+			"                  Exclude comma-separated serviceowner IDs from discovery and pruning\n" +
+			"  --prune         Confirm removal of contexts not found in Azure discovery\n" +
+			"  --update        Also refresh credentials and connection details for existing contexts\n" +
+			"  --dry-run       Preview without fetching credentials or changing kubeconfig\n\n" +
 			"Description:\n" +
-			"  Discovers AKS clusters for the specified environment(s) and ensures\n" +
-			"  kubectl credentials are configured. Maintains a cache of discovered\n")
+			"  Discovers AKS clusters for the specified environment(s), configures credentials,\n" +
+			"  and optionally removes contexts not found in Azure discovery.\n")
 	}
 
 	environments, err := validateEnvironments(args[0])
@@ -899,6 +883,18 @@ func runInit() error {
 		return err
 	}
 
+	excludedOwners, err := parseExcludedOwners(*excludeOwners, *serviceowner)
+	if err != nil {
+		return err
+	}
+	selectedPath, err := kubernetes.ResolveKubeconfigPath(*kubeconfigPath)
+	if err != nil {
+		return fmt.Errorf("resolve kubeconfig: %w", err)
+	}
+	fmt.Printf("Kubeconfig: %s\n", selectedPath)
+	if len(excludedOwners) > 0 {
+		fmt.Printf("Excluded service owners: %s\n", strings.Join(excludedOwners, ", "))
+	}
 	fmt.Println("Validating prerequisites...")
 
 	if validateErr := validateAzurePrerequisites(); validateErr != nil {
@@ -906,12 +902,12 @@ func runInit() error {
 	}
 
 	fmt.Println("Querying all container runtimes and contexts")
-	runtimes, err := listAzureRuntimes(environments, *serviceowner, *kubeconfigPath)
+	discovery, err := dis.Discover(environments, *serviceowner, excludedOwners, selectedPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("discover clusters and contexts: %w", err)
 	}
 
-	totalRuntimes := 0
+	input := bufio.NewReader(os.Stdin)
 	totalCredentialsFetched := 0
 
 	for i, environment := range environments {
@@ -924,14 +920,10 @@ func runInit() error {
 			fmt.Printf("Service owner filter: %s\n", *serviceowner)
 		}
 
-		// Filter runtimes for this environment and cast to concrete type for init operations
-		envRuntimes := make([]*dis.DisContainerRuntime, 0, len(runtimes))
-		for _, runtime := range runtimes {
-			if runtime.GetEnvironment() == environment {
-				// Type assertion since init operations need access to DIS-specific fields
-				if disRuntime, ok := runtime.(*dis.DisContainerRuntime); ok {
-					envRuntimes = append(envRuntimes, disRuntime)
-				}
+		envRuntimes := make([]*dis.DisContainerRuntime, 0, len(discovery.Runtimes))
+		for _, runtime := range discovery.Runtimes {
+			if runtime.Environment == environment {
+				envRuntimes = append(envRuntimes, runtime)
 			}
 		}
 
@@ -942,61 +934,145 @@ func runInit() error {
 
 		fmt.Printf("Found %d cluster(s) in Azure\n", len(envRuntimes))
 
-		var completeRuntimes []*dis.DisContainerRuntime
-		var runtimesMissingCredentials []*dis.DisContainerRuntime
-
-		for _, runtime := range envRuntimes {
-			if runtime.Context != nil {
-				completeRuntimes = append(completeRuntimes, runtime)
-			} else {
-				runtimesMissingCredentials = append(runtimesMissingCredentials, runtime)
-			}
-		}
-
+		var credentialsToFetch []*dis.DisContainerRuntime
 		fmt.Println("\nCluster status:")
-		for _, runtime := range completeRuntimes {
-			fmt.Printf("  ✓ %s (credentials already configured)\n", runtime.ClusterName)
-		}
-		for _, runtime := range runtimesMissingCredentials {
-			fmt.Printf("  → %s (needs credentials)\n", runtime.ClusterName)
+		for _, runtime := range envRuntimes {
+			switch {
+			case runtime.Context == nil:
+				fmt.Printf("  → %s (needs credentials)\n", runtime.ClusterName)
+			case *update:
+				fmt.Printf("  → %s (will refresh credentials and connection details)\n", runtime.ClusterName)
+			default:
+				fmt.Printf("  ✓ %s (credentials already configured)\n", runtime.ClusterName)
+				continue
+			}
+			credentialsToFetch = append(credentialsToFetch, runtime)
 		}
 
-		if len(runtimesMissingCredentials) > 0 {
-			fmt.Printf("\n%d cluster(s) need credentials\n", len(runtimesMissingCredentials))
-			confirmed, err := promptConfirmation(fmt.Sprintf("Fetch credentials for %s clusters?", environment))
-			if err != nil {
-				return err
-			}
-
-			if confirmed {
-				fmt.Println("\nFetching credentials...")
-				for _, runtime := range runtimesMissingCredentials {
-					fmt.Printf("  Fetching credentials for %s...\n", runtime.ClusterName)
-					if err := az.EnsureCredentials(runtime.Cluster, *kubeconfigPath); err != nil {
-						fmt.Printf("  ✗ Failed: %v\n", err)
-						return fmt.Errorf("failed to fetch credentials for %s: %w", runtime.ClusterName, err)
-					}
-					fmt.Printf("  ✓ Success\n")
-					totalCredentialsFetched++
-				}
-			} else {
-				fmt.Println("Skipped credential fetching")
-			}
-		} else {
+		if len(credentialsToFetch) == 0 {
 			fmt.Println("\nAll clusters already have configured credentials")
+			continue
+		}
+		if *dryRun {
+			fmt.Printf("\nDry run: would fetch credentials for %d cluster(s)\n", len(credentialsToFetch))
+			continue
+		}
+		fmt.Printf("\n%d cluster(s) selected for credential fetching\n", len(credentialsToFetch))
+		confirmed, err := readConfirmation(input, fmt.Sprintf("Fetch credentials for %s clusters?", environment), true)
+		if err != nil {
+			return err
+		}
+		if !confirmed {
+			fmt.Println("Skipped credential fetching")
+			continue
 		}
 
-		totalRuntimes += len(envRuntimes)
+		fmt.Println("\nFetching credentials...")
+		for _, runtime := range credentialsToFetch {
+			fmt.Printf("  Fetching credentials for %s...\n", runtime.ClusterName)
+			if err := az.EnsureCredentials(runtime.Cluster, selectedPath); err != nil {
+				fmt.Printf("  ✗ Failed: %v\n", err)
+				return fmt.Errorf("failed to fetch credentials for %s: %w", runtime.ClusterName, err)
+			}
+			fmt.Printf("  ✓ Success\n")
+			totalCredentialsFetched++
+		}
+	}
+
+	if err := pruneInitContexts(selectedPath, discovery.StaleContexts, *prune, *dryRun, input); err != nil {
+		return err
 	}
 
 	fmt.Println("\n=== Summary ===")
 	fmt.Printf("  Environments processed: %s\n", strings.Join(environments, ", "))
-	fmt.Printf("  Total clusters discovered: %d\n", totalRuntimes)
+	fmt.Printf("  Total clusters discovered: %d\n", len(discovery.Runtimes))
 	if totalCredentialsFetched > 0 {
 		fmt.Printf("  Credentials fetched: %d\n", totalCredentialsFetched)
 	}
 
 	fmt.Println("\n✓ Initialization complete")
+	return nil
+}
+
+func parseExcludedOwners(raw, includedOwner string) ([]string, error) {
+	var owners []string
+	if raw == "" {
+		return owners, nil
+	}
+	for value := range strings.SplitSeq(raw, ",") {
+		owner := strings.TrimSpace(value)
+		if owner == "" || strings.IndexFunc(owner, func(r rune) bool { return r < 'a' || r > 'z' }) >= 0 {
+			return nil, fmt.Errorf(
+				"%w: invalid excluded service owner %q (expected lowercase letters)",
+				errUsage,
+				value,
+			)
+		}
+		if owner == includedOwner {
+			return nil, fmt.Errorf("%w: service owner %q is both included and excluded", errUsage, owner)
+		}
+		owners = append(owners, owner)
+	}
+	return owners, nil
+}
+
+func pruneInitContexts(
+	path string,
+	candidates []kubernetes.ContextInfo,
+	prune, dryRun bool,
+	input *bufio.Reader,
+) error {
+	if len(candidates) == 0 {
+		return nil
+	}
+	// Fetching credentials can change current-context. Report the current file state.
+	contexts, err := kubernetes.ListContexts(path)
+	if err != nil {
+		return fmt.Errorf("list contexts before pruning: %w", err)
+	}
+	current := ""
+	for _, ctx := range contexts {
+		if ctx.Current {
+			current = ctx.Name
+		}
+	}
+	fmt.Println("\nContexts not found in Azure discovery:")
+	for _, candidate := range candidates {
+		fmt.Printf("  → %s", candidate.Name)
+		if candidate.Name == current {
+			fmt.Print(" (current-context will be cleared if removed)")
+		}
+		fmt.Println()
+	}
+	if !prune {
+		fmt.Println("Use --prune to remove these contexts from kubeconfig.")
+		return nil
+	}
+	fmt.Println("The selected Azure account must have access to all clusters in this scope.")
+	if dryRun {
+		fmt.Printf("Dry run: would remove %d context(s) and their unreferenced cluster/user entries\n", len(candidates))
+		return nil
+	}
+	confirmed, err := readConfirmation(
+		input,
+		"Remove these local contexts and their unreferenced cluster/user entries?",
+		false,
+	)
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		fmt.Println("Skipped context pruning")
+		return nil
+	}
+	backup, err := kubernetes.PruneContexts(path, candidates)
+	if backup != "" {
+		fmt.Printf("Kubeconfig backup: %s\n", backup)
+	}
+	if err != nil {
+		return fmt.Errorf("prune contexts: %w", err)
+	}
+	fmt.Printf("Removed %d context(s)\n", len(candidates))
 	return nil
 }
 
@@ -1205,9 +1281,16 @@ func runNodes() error {
 
 // promptConfirmation prompts the user for confirmation.
 func promptConfirmation(message string) (bool, error) {
-	fmt.Printf("%s [Y/n]: ", message)
+	return readConfirmation(bufio.NewReader(os.Stdin), message, true)
+}
 
-	reader := bufio.NewReader(os.Stdin)
+func readConfirmation(reader *bufio.Reader, message string, defaultYes bool) (bool, error) {
+	choices := "y/N"
+	if defaultYes {
+		choices = "Y/n"
+	}
+	fmt.Printf("%s [%s]: ", message, choices)
+
 	response, err := reader.ReadString('\n')
 	if err != nil {
 		return false, fmt.Errorf("%w: %w", errReadUserInput, err)
@@ -1215,7 +1298,7 @@ func promptConfirmation(message string) (bool, error) {
 
 	response = strings.ToLower(strings.TrimSpace(response))
 
-	if response == "" || response == "y" || response == "yes" {
+	if (response == "" && defaultYes) || response == "y" || response == "yes" {
 		return true, nil
 	}
 
