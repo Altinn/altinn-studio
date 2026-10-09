@@ -26,8 +26,3 @@ type CDPResponse struct {
 	Result any    `json:"result,omitempty"`
 	Error  any    `json:"error,omitempty"`
 }
-
-// CDPVersion is the response of the /json/version discovery endpoint.
-type CDPVersion struct {
-	WebSocketDebuggerURL string `json:"webSocketDebuggerUrl"`
-}

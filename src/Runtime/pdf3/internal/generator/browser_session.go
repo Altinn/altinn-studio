@@ -22,6 +22,7 @@ import (
 	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
 	"altinn.studio/pdf3/internal/config"
+	"altinn.studio/pdf3/internal/frontendcache"
 	"altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
@@ -36,6 +37,13 @@ type browserSession struct {
 	currentRequest atomic.Pointer[workerRequest]
 	// pageSessionID is the CDP session of the current request's page, events from other sessions are ignored
 	pageSessionID atomic.Pointer[string]
+	activePage    atomic.Pointer[renderPage]
+	seedPage      atomic.Pointer[compilationSeed]
+	prepared      *preparedPage
+	frontendCache *frontendcache.Cache
+	compileQueue  chan *frontendcache.Asset
+	compileDone   chan struct{}
+	requestsDone  chan struct{}
 	// logger carries the URL of the current request and is only used from the request goroutine,
 	// rootLogger is safe to use from any goroutine.
 	logger        *slog.Logger
@@ -81,36 +89,62 @@ func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 		queue = make(chan workerRequest)
 	}
 	w := &browserSession{
-		id:         id,
-		logger:     sessionLogger,
-		rootLogger: sessionLogger,
-		queue:      queue,
-		state:      atomic.Uint32{},
-		ctx:        ctx,
-		cancel:     cancel,
-		tracer:     telemetry.Tracer(),
+		id:            id,
+		logger:        sessionLogger,
+		rootLogger:    sessionLogger,
+		queue:         queue,
+		state:         atomic.Uint32{},
+		ctx:           ctx,
+		cancel:        cancel,
+		tracer:        telemetry.Tracer(),
+		frontendCache: frontendcache.New(publicFrontendClient()),
+		compileQueue:  make(chan *frontendcache.Asset, 1),
+		compileDone:   make(chan struct{}),
+		requestsDone:  make(chan struct{}),
 	}
 
 	// Start browser process
 	var err error
 	w.browser, err = browser.Start(id)
 	if err != nil {
+		cancel()
 		return nil, fmt.Errorf("start browser: %w", err)
 	}
 
 	// Connect to the browser with event handler
-	w.conn, err = cdp.Connect(ctx, id, w.browser.DebugBaseURL, w.handleEvent)
+	w.conn, err = cdp.ConnectPipe(ctx, id, w.browser.Reader, w.browser.Writer, w.handleEvent)
 	if err != nil {
+		cancel()
 		if closeErr := w.browser.Close(); closeErr != nil {
 			w.logger.Error("Failed to connect AND failed to close browser", "error", closeErr)
 		}
 		return nil, fmt.Errorf("failed to connect to browser: %w", err)
 	}
 
+	w.prepared, err = w.createPage(ctx)
+	if err != nil {
+		cancel()
+		if closeErr := w.conn.Close(); closeErr != nil {
+			w.rootLogger.Warn("Failed to close CDP after page preparation failed", "error", closeErr)
+		}
+		if closeErr := w.browser.Close(); closeErr != nil {
+			w.rootLogger.Warn("Failed to close browser after page preparation failed", "error", closeErr)
+		}
+		return nil, fmt.Errorf("prepare initial page: %w", err)
+	}
+	go w.watchConnection()
+	go w.compileFrontendBundles()
 	go w.handleRequests()
 
 	w.logger.Info("Browser worker initialized successfully")
 	return w, nil
+}
+
+// watchConnection preserves fail-fast recovery if Chrome exits or the protocol
+// connection becomes unusable. Normal shutdown cancels the worker first.
+func (w *browserSession) watchConnection() {
+	<-w.conn.Done()
+	w.assert(w.ctx.Err() != nil, "Browser connection closed while worker is running")
 }
 
 // tryEnqueue attempts to enqueue a request if the session is ready
@@ -138,6 +172,12 @@ func (w *browserSession) eventLogger(sessionID string) (*slog.Logger, bool) {
 
 // handleEvent runs on the CDP reader goroutine.
 func (w *browserSession) handleEvent(sessionID, method string, params any) {
+	if !w.handleFrontendEvent(sessionID, method, params) {
+		w.handlePageEvent(sessionID, method, params)
+	}
+}
+
+func (w *browserSession) handlePageEvent(sessionID, method string, params any) {
 	logger, ok := w.eventLogger(sessionID)
 	if !ok {
 		return
@@ -172,6 +212,7 @@ func (w *browserSession) handleEvent(sessionID, method string, params any) {
 }
 
 func (w *browserSession) handleRequests() {
+	defer close(w.requestsDone)
 	defer func() {
 		w.assert(w.ctx.Err() != nil, "Exited worker loop, but process isn't shutting down")
 	}()
@@ -187,6 +228,7 @@ func (w *browserSession) handleRequests() {
 				return
 			}
 
+			busyStart := time.Now()
 			w.recordQueueWait(&req)
 
 			// Reset error counters for this request
@@ -203,7 +245,6 @@ func (w *browserSession) handleRequests() {
 			w.logger = req.logger
 			w.handleRequest(&req)
 			w.logger = w.rootLogger
-			w.currentRequest.Store(nil)
 
 			w.assertA(
 				req.hasResponded(),
@@ -211,6 +252,13 @@ func (w *browserSession) handleRequests() {
 			)
 
 			w.tryUpdateTestModeOutput(&req, "After", true)
+			if w.ctx.Err() == nil && w.prepared == nil {
+				var err error
+				w.prepared, err = w.createPage(w.ctx)
+				w.assertA(err == nil || w.ctx.Err() != nil, "Failed to prepare the next isolated page", "error", err)
+			}
+			w.currentRequest.Store(nil)
+			w.rootLogger.Info("Worker ready for next request", "busy_duration", time.Since(busyStart))
 		}
 	}
 }
@@ -334,8 +382,9 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err())
 	}
 
-	page, ok := w.openPage(req)
-	if !ok || respondIfClientDropped(req) {
+	prepared := w.openPage(req)
+	page := prepared.commander
+	if respondIfClientDropped(req) {
 		return nil
 	}
 
@@ -368,68 +417,22 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 	return w.printPDF(req, page)
 }
 
-// openPage creates a new browser context with a single page for the request. Everything the page
-// leaves behind on any origin (cookies, web storage, IndexedDB, cache, window.name, history, popups,
-// ...) lives in that context, and cleanupAfterRequest disposes it. If the page can't be opened,
-// openPage responds to the request with an error and returns false.
-//
-//nolint:ireturn // The page is a CDP session, which the cdp package exposes as an interface.
-func (w *browserSession) openPage(req *workerRequest) (cdp.Commander, bool) {
-	openCtx, openSpan := w.tracer.Start(req.ctx, "pdf.session.open_page", trace.WithSpanKind(trace.SpanKindInternal))
+// openPage consumes the pristine context prepared before the request. Cleanup
+// disposes all state on every origin before a replacement is prepared.
+func (w *browserSession) openPage(req *workerRequest) *preparedPage {
+	_, openSpan := w.tracer.Start(req.ctx, "pdf.session.open_page", trace.WithSpanKind(trace.SpanKindInternal))
 	defer openSpan.End()
-	start := time.Now()
-
-	// Not cancelled with the request: if the client drops while the browser creates the
-	// context, we still need its ID so that cleanup can dispose it.
-	ctx := context.WithoutCancel(openCtx)
-	var page cdp.Commander
-	err := func() error {
-		resp, err := w.conn.SendCommand(ctx, "Target.createBrowserContext", map[string]any{
-			// If the worker loses its connection, the browser disposes the context by itself
-			"disposeOnDetach": true,
-		})
-		if err != nil {
-			return fmt.Errorf("create browser context: %w", err)
-		}
-		req.browserContextID = w.resultString(resp, "browserContextId")
-
-		resp, err = w.conn.SendCommand(ctx, "Target.createTarget", map[string]any{
-			"url":              "about:blank",
-			"browserContextId": req.browserContextID,
-		})
-		if err != nil {
-			return fmt.Errorf("create page: %w", err)
-		}
-		targetID := w.resultString(resp, "targetId")
-
-		resp, err = w.conn.SendCommand(ctx, "Target.attachToTarget", map[string]any{
-			"targetId": targetID,
-			"flatten":  true,
-		})
-		if err != nil {
-			return fmt.Errorf("attach to page: %w", err)
-		}
-		sessionID := w.resultString(resp, "sessionId")
-		w.pageSessionID.Store(&sessionID)
-		page = w.conn.Session(sessionID)
-
-		commands := []cdp.Command{{Method: "Page.enable"}, {Method: "Runtime.enable"}, {Method: "Log.enable"}}
-		if err := commandBatchError(commands, page.SendCommandBatch(ctx, commands)); err != nil {
-			return fmt.Errorf("enable page domains: %w", err)
-		}
-		return nil
-	}()
-	if err != nil {
-		if openSpan.IsRecording() {
-			openSpan.RecordError(err)
-			openSpan.SetStatus(codes.Error, "open_page_failed")
-		}
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "open page", err))
-		return nil, false
-	}
-
-	w.logger.Info("Opened page in new browser context", "duration", time.Since(start))
-	return page, true
+	w.assert(w.prepared != nil, "Every request must start with a pristine page")
+	prepared := w.prepared
+	w.prepared = nil
+	req.browserContextID = prepared.contextID
+	w.pageSessionID.Store(&prepared.sessionID)
+	pageCtx, cancel := context.WithCancel(req.ctx)
+	w.activePage.Store(
+		&renderPage{ctx: pageCtx, cancel: cancel, preparedPage: prepared, cacheSlots: make(chan struct{}, 4)},
+	)
+	w.logger.Info("Using prepared page in new browser context")
+	return prepared
 }
 
 // resultString returns a string field of a successful Target domain response.
@@ -513,7 +516,12 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest) {
 	}
 	// Disposing a context either succeeds or leaves the browser in a state we can't trust,
 	// a retry would only fail with "context not found". Crash and let the pod restart instead.
-	w.assertA(err == nil, "Failed to dispose browser context, we're in an unsafe state and can't proceed", "error", err)
+	w.assertA(
+		err == nil || w.ctx.Err() != nil,
+		"Failed to dispose browser context, we're in an unsafe state and can't proceed",
+		"error",
+		err,
+	)
 
 	w.logger.Info("Cleanup completed", "duration", time.Since(cleanupStart))
 }
@@ -1218,6 +1226,9 @@ func (w *browserSession) tryUpdateTestModeOutput(req *workerRequest, state strin
 
 func (w *browserSession) cleanupBrowser(ctx context.Context, req *workerRequest) error {
 	now := time.Now()
+	if page := w.activePage.Swap(nil); page != nil {
+		page.stop()
+	}
 	// Disposing the context closes its pages and drops everything stored in it, on every origin.
 	// The context is not cancelled with the request, the client might have dropped out already and
 	// we should always complete cleanup.
@@ -1263,8 +1274,14 @@ func (w *browserSession) close() {
 	if w.cancel != nil {
 		w.cancel()
 	}
-	if w.queue != nil {
-		close(w.queue)
+	if w.requestsDone != nil {
+		<-w.requestsDone
+	}
+	if w.compileDone != nil {
+		<-w.compileDone
+	}
+	if w.frontendCache != nil {
+		w.frontendCache.Close()
 	}
 
 	if w.conn != nil {

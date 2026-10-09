@@ -37,6 +37,34 @@ func Test_Simple(t *testing.T) {
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
 }
 
+// Public frontend versions share only immutable assets and compiled code. User
+// cookies/storage and seed-page diagnostics must not survive into other renders.
+func Test_FrontendBundleVersions(t *testing.T) {
+	for _, version := range []string{"4.21.4", "4.21.3", "4.21.4", "4.21.3"} {
+		req := harness.GetDefaultPdfRequest(t)
+		req.URL = harness.TestServerURL + "/app/?render=light&bundle=" + version
+		req.WaitFor = types.NewWaitForString("body:has(#readyForPrint):has(#frontend-loaded)")
+		resp, err := harness.RequestNewPDF(t, req)
+		if err != nil {
+			t.Fatalf("render frontend %s: %v", version, err)
+		}
+		if !harness.IsPDF(resp.Data) {
+			t.Fatalf("frontend %s did not produce a PDF", version)
+		}
+		output, err := resp.LoadOutput(t)
+		if err != nil {
+			t.Fatalf("load frontend %s diagnostics: %v", version, err)
+		}
+		if output.HadErrors() {
+			t.Fatalf("frontend %s had user-page errors: %s", version, output.String())
+		}
+		last := output.BrowserStates[len(output.BrowserStates)-1]
+		if len(last.Cookies) != 0 {
+			t.Fatalf("frontend %s retained cookies: %v", version, last.Cookies)
+		}
+	}
+}
+
 func Test_Networking(t *testing.T) {
 	url := harness.JumpboxURL + "/health/startup"
 
@@ -290,6 +318,18 @@ func Test_RequestCancellation(t *testing.T) {
 	requestPDFWithCancellation(t, req, 250*time.Millisecond)
 }
 
+func Test_RequestCancellationFrontendBundle(t *testing.T) {
+	req := harness.GetDefaultPdfRequest(t)
+	req.URL = harness.TestServerURL + "/app/?render=light&bundle=4.21.4&neverready"
+	requestPDFWithCancellation(t, req, 250*time.Millisecond)
+
+	// A subsequent render must work after paused fetch/compilation work drains.
+	req.URL = harness.TestServerURL + "/app/?render=light&bundle=4.21.4"
+	if _, err := harness.RequestNewPDF(t, req); err != nil {
+		t.Fatalf("render after frontend cancellation: %v", err)
+	}
+}
+
 func Test_RequestCancellationWaitForTimeout(t *testing.T) {
 	req := harness.GetDefaultPdfRequest(t)
 	req.URL = harness.TestServerURL + "/app/?render=heavy" // Heavy targets ~2s
@@ -344,11 +384,20 @@ func Test_CookieIsolation(t *testing.T) {
 // open that watches its opener. Later renders on the same worker must not see any of it. The check
 // page, and the popup if it can reach the check page, log a console error for every leak.
 func Test_StorageIsolation(t *testing.T) {
+	for _, bundle := range []string{"", "&bundle=4.21.4"} {
+		t.Run("bundle="+bundle, func(t *testing.T) { testStorageIsolation(t, bundle) })
+	}
+}
+
+func testStorageIsolation(t *testing.T, bundle string) {
+	t.Helper()
 	// The trailing dot makes a different origin that still reaches the testserver
 	otherOrigin := harness.TestServerURL + "."
 
 	write := harness.GetDefaultPdfRequest(t)
-	write.URL = harness.TestServerURL + "/app/?render=light&storage=write&storagepopup=" + url.QueryEscape(otherOrigin)
+	write.URL = harness.TestServerURL + "/app/?render=light&storage=write&storagepopup=" + url.QueryEscape(
+		otherOrigin,
+	) + bundle
 	writeResp, err := harness.RequestNewPDF(t, write)
 	if err != nil {
 		t.Fatalf("Request writing browser state failed: %v", err)
@@ -356,7 +405,7 @@ func Test_StorageIsolation(t *testing.T) {
 
 	for _, origin := range []string{harness.TestServerURL, otherOrigin} {
 		check := harness.GetDefaultPdfRequest(t)
-		check.URL = origin + "/app/?render=light&storage=check"
+		check.URL = origin + "/app/?render=light&storage=check" + bundle
 
 		// The worker replicas sit behind a service, so retry until a check lands on the
 		// worker that rendered the writing page.

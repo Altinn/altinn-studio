@@ -49,6 +49,20 @@
         // With storage=write, also open a popup that writes the state on this other origin
         const storagePopupOrigin = urlParams.get('storagepopup');
         const storageMarker = 'pdf3-isolation-marker';
+        // Exercise the real public bundle without mounting an application/backend.
+        const bundleVersion = urlParams.get('bundle');
+        if (bundleVersion && /^\d+\.\d+\.\d+$/.test(bundleVersion)) {
+            const script = document.createElement('script');
+            script.src = `https://altinncdn.no/toolkits/altinn-app-frontend/${bundleVersion}/altinn-app-frontend.js`;
+            script.onload = () => {
+                const marker = document.createElement('p');
+                marker.id = 'frontend-loaded';
+                marker.textContent = `Loaded frontend ${bundleVersion}`;
+                document.body.appendChild(marker);
+            };
+            script.onerror = () => console.error(`Could not load frontend ${bundleVersion}`);
+            document.head.appendChild(script);
+        }
 
         async function writeStorage() {
             sessionStorage.setItem(storageMarker, location.origin);
@@ -191,7 +205,7 @@
                     const promises = [];
                     for (let i = 0; i < fetchCount; i++) {
                         promises.push(
-                            fetch(`api/data${i}`).catch(() => null)
+                            fetch(`/app/api/data${i}`).catch(() => null)
                         );
                     }
                     await Promise.all(promises);

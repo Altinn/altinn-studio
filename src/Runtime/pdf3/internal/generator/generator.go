@@ -3,7 +3,6 @@ package generator
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"sync/atomic"
 	"time"
@@ -13,7 +12,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"altinn.studio/pdf3/internal/assert"
-	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
 	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/log"
@@ -32,40 +30,6 @@ type Custom struct {
 	browserVersion   types.BrowserVersion
 	sessionIDCounter atomic.Int32
 	convertToPDFA    bool
-}
-
-// getBrowserVersion starts a temporary browser and retrieves its version information.
-func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
-	// Start temporary browser instance
-	browserProc, err := browser.Start(-1)
-	if err != nil {
-		return types.BrowserVersion{}, fmt.Errorf("failed to create temporary browser for version info: %w", err)
-	}
-	defer func() {
-		if closeErr := browserProc.Close(); closeErr != nil {
-			logger.Error("Failed to close temporary browser", "error", closeErr)
-		}
-	}()
-
-	// Connect to get version only (no event handler needed)
-	conn, err := cdp.Connect(context.Background(), -1, browserProc.DebugBaseURL, nil)
-	if err != nil {
-		return types.BrowserVersion{}, fmt.Errorf("failed to connect to temporary browser: %w", err)
-	}
-	defer func() {
-		// Closing connection during init - will be recreated anyway
-		if closeErr := conn.Close(); closeErr != nil {
-			logger.Error("Failed to close temporary browser connection", "error", closeErr)
-		}
-	}()
-
-	// Get browser version using CDP command
-	version, err := cdp.GetBrowserVersion(conn)
-	if err != nil {
-		return types.BrowserVersion{}, fmt.Errorf("failed to get browser version: %w", err)
-	}
-
-	return *version, nil
 }
 
 func New() (*Custom, error) {
@@ -97,8 +61,19 @@ func New() (*Custom, error) {
 
 		logger.Info("Initializing Custom CDP")
 
+		init := func(id int) *browserSession {
+			logger.Info("Starting browser worker", "id", id)
+
+			session, err := newBrowserSession(logger, id)
+			assert.That(err == nil, "Failed to create worker", "id", id, "error", err)
+
+			return session
+		}
+
+		generator.sessionIDCounter.Store(1)
+		firstSession := init(1)
 		// Get and set browser version
-		version, err := getBrowserVersion(logger)
+		version, err := cdp.GetBrowserVersion(firstSession.conn)
 		if err != nil {
 			if span.IsRecording() {
 				span.RecordError(err)
@@ -107,7 +82,7 @@ func New() (*Custom, error) {
 			assert.That(err == nil, "Failed to get browser version", "error", err)
 		}
 
-		generator.browserVersion = version
+		generator.browserVersion = *version
 		if span.IsRecording() {
 			span.SetAttributes(
 				attribute.String("browser.version.product", version.Product),
@@ -121,17 +96,6 @@ func New() (*Custom, error) {
 			"protocol", version.ProtocolVersion,
 		)
 
-		init := func(id int) *browserSession {
-			logger.Info("Starting browser worker", "id", id)
-
-			session, err := newBrowserSession(logger, id)
-			assert.That(err == nil, "Failed to create worker", "id", id, "error", err)
-
-			return session
-		}
-
-		generator.sessionIDCounter.Store(1)
-		firstSession := init(1)
 		generator.activeSession.Store(firstSession)
 		if span.IsRecording() {
 			span.SetAttributes(attribute.Int("pdf.session.id", firstSession.id))
