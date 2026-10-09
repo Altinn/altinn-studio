@@ -43,6 +43,46 @@
         const becomesHidden = parseInt(urlParams.get('becomeshidden') || '0', 10);
         const useClass = urlParams.has('useclass'); // Use class-based visibility instead of style attribute
         const setCookie = urlParams.has('setcookie');
+        // 'write' leaves browser state behind, 'check' reports state left by an earlier page
+        const storageMode = urlParams.get('storage');
+        // With storage=write, also open a popup that writes the state on this other origin
+        const storagePopupOrigin = urlParams.get('storagepopup');
+        const storageMarker = 'pdf3-isolation-marker';
+
+        async function writeStorage() {
+            sessionStorage.setItem(storageMarker, location.origin);
+            localStorage.setItem(storageMarker, location.origin);
+            window.name = storageMarker;
+            await new Promise((resolve, reject) => {
+                const open = indexedDB.open(storageMarker);
+                open.onsuccess = () => { open.result.close(); resolve(); };
+                open.onerror = () => reject(open.error);
+            });
+            if (storagePopupOrigin) {
+                await new Promise((resolve) => {
+                    window.addEventListener('message', (e) => {
+                        if (e.data === 'storage-written') resolve();
+                    });
+                    window.open(`${storagePopupOrigin}/app/?render=light&storage=write`, '_blank');
+                });
+            }
+            if (window.opener) {
+                window.opener.postMessage('storage-written', '*');
+                window.close();
+            }
+        }
+
+        async function checkStorage() {
+            const leaks = [];
+            if (sessionStorage.getItem(storageMarker) !== null) leaks.push('sessionStorage');
+            if (localStorage.getItem(storageMarker) !== null) leaks.push('localStorage');
+            if (window.name === storageMarker) leaks.push('window.name');
+            const databases = await indexedDB.databases();
+            if (databases.some(db => db.name === storageMarker)) leaks.push('indexedDB');
+            for (const leak of leaks) {
+                console.error(`Isolation leak: ${leak} written by an earlier page is visible on ${location.origin}`);
+            }
+        }
 
         const readyDiv = document.createElement('div');
         readyDiv.id = 'readyForPrint';
@@ -73,6 +113,12 @@
                 } catch (e) {
                     console.error('Failed to set cookies:', e);
                 }
+            }
+
+            if (storageMode === 'write') {
+                await writeStorage();
+            } else if (storageMode === 'check') {
+                await checkStorage();
             }
 
             // Log errors if requested

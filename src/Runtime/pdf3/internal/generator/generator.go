@@ -48,7 +48,7 @@ func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 	}()
 
 	// Connect to get version only (no event handler needed)
-	conn, _, err := cdp.Connect(context.Background(), -1, browserProc.DebugBaseURL, nil)
+	conn, err := cdp.Connect(context.Background(), -1, browserProc.DebugBaseURL, nil)
 	if err != nil {
 		return types.BrowserVersion{}, fmt.Errorf("failed to connect to temporary browser: %w", err)
 	}
@@ -361,10 +361,13 @@ type workerRequest struct {
 	enqueuedAt time.Time
 	//nolint:containedctx // The request context is the ownership boundary for request cancellation and test-mode state.
 	ctx       context.Context
+	page      cdp.Commander // the request's page, set once its browser context is ready
 	responder chan workerResponse
 	logger    *slog.Logger
-	request   types.PdfRequest
-	cleanedUp bool
+	// browserContextID is the context that holds all browser state of the request
+	browserContextID string
+	request          types.PdfRequest
+	cleanedUp        bool
 }
 
 func (r *workerRequest) tryGetTestModeInput() *testing.PdfInternalsTestInput {

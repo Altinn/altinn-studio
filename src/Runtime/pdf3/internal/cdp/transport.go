@@ -30,8 +30,8 @@ type CommandResponse struct {
 	Err  error
 }
 
-// Connection represents a Chrome DevTools Protocol connection.
-type Connection interface {
+// Commander sends CDP commands to one target.
+type Commander interface {
 	// SendCommand sends a CDP command and waits for the response
 	// This method is NOT threadsafe. We use this from the processing go routine of a
 	// browser session. There should only ever be 1 thread sending commands at a time.
@@ -40,6 +40,16 @@ type Connection interface {
 
 	// SendCommandBatch sends a batch of unrelated commands
 	SendCommandBatch(ctx context.Context, batch []Command) []*CommandResponse
+}
+
+// Connection represents a Chrome DevTools Protocol connection to the browser target.
+// Commands sent directly on the connection go to the browser, commands for a page go
+// through the Commander returned by Session.
+type Connection interface {
+	Commander
+
+	// Session returns a Commander for a target attached with Target.attachToTarget in flatten mode
+	Session(sessionID string) Commander
 
 	// Close closes the connection and cleans up resources
 	Close() error
@@ -53,31 +63,25 @@ var (
 	errInvalidCDPResponseFormat    = errors.New("invalid response format")
 	errConnectionClosed            = errors.New("connection closed")
 	errCDPBatchTimeout             = fmt.Errorf("cdp batch timeout after %s", types.RequestTimeout())
-	errNoPageTarget                = errors.New("no page target found")
-	errListTargetsStatus           = errors.New("failed to list targets with unexpected status")
+	errBrowserVersionStatus        = errors.New("failed to get browser version with unexpected status")
 	errCDPCommandSend              = errors.New("failed to send cdp command")
 	errCDPCommandResponse          = errors.New("cdp returned an error response")
 	errCDPCommandCancelled         = errors.New("cdp command context cancelled")
 	errCDPCommandTimeout           = fmt.Errorf("cdp command timeout after %s", types.RequestTimeout())
 )
 
-// Connect establishes a connection to a Chrome DevTools Protocol endpoint.
-// Returns: Connection, targetID, error.
-func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler EventHandler) (Connection, string, error) {
+// Connect establishes a connection to the browser target of a Chrome DevTools Protocol endpoint.
+func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler EventHandler) (Connection, error) {
 	logger := log.NewComponent("cdp").With("id", id)
-	target, err := discoverPageTarget(ctx, logger, id, debugBaseURL)
+	version, err := fetchVersion(ctx, logger, debugBaseURL)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
-	targetID := target.ID
 
-	// Connect to the page's WebSocket
-	wsURL := target.WebSocketDebuggerURL
+	wsURL := version.WebSocketDebuggerURL
 	if wsURL == "" {
-		return nil, "", errMissingWebSocketDebuggerURL
+		return nil, errMissingWebSocketDebuggerURL
 	}
-	// Chrome page targets must have a WebSocket URL - this is a protocol invariant
-	assert.That(wsURL != "", "Page target missing WebSocketDebuggerURL - protocol violation", "id", id)
 
 	// Add debugging to understand what URL we're trying to connect to
 	logger.Info("Attempting to connect to WebSocket", "url", wsURL)
@@ -86,7 +90,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	connCtx, cancel := context.WithCancel(ctx)
 	if err != nil {
 		cancel()
-		return nil, "", fmt.Errorf("failed to dial WebSocket: %w", err)
+		return nil, fmt.Errorf("failed to dial WebSocket: %w", err)
 	}
 	// Successful dial must return a valid connection
 	assert.That(wsConn != nil, "WebSocket dial succeeded but returned nil connection", "id", id)
@@ -112,43 +116,19 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	go conn.handleMessages()
 	go conn.watchdog()
 
-	return conn, targetID, nil
+	return conn, nil
 }
 
-func discoverPageTarget(ctx context.Context, logger *slog.Logger, id int, debugBaseURL string) (*CDPTarget, error) {
-	targets, err := fetchTargets(ctx, logger, debugBaseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	// Chrome should always return at least one target (the page we created)
-	assert.That(len(targets) > 0, "Chrome returned zero targets - browser in invalid state", "id", id)
-
-	logger.Debug("Found targets", "count", len(targets))
-	for i, target := range targets {
-		logger.Debug("Target info", "index", i, "target_type", target.Type, "target_id", target.ID, "url", target.URL)
-	}
-
-	for i, target := range targets {
-		if target.Type == "page" {
-			return &targets[i], nil
-		}
-	}
-
-	assert.That(false, "no page target found", "id", id)
-	return nil, errNoPageTarget
-}
-
-func fetchTargets(ctx context.Context, logger *slog.Logger, debugBaseURL string) ([]CDPTarget, error) {
-	listURL := debugBaseURL + "/json"
+func fetchVersion(ctx context.Context, logger *slog.Logger, debugBaseURL string) (*CDPVersion, error) {
+	versionURL := debugBaseURL + "/json/version"
 
 	var resp *http.Response
 	var err error
 	start := time.Now()
 	for {
-		req, reqErr := http.NewRequestWithContext(ctx, http.MethodGet, listURL, nil)
+		req, reqErr := http.NewRequestWithContext(ctx, http.MethodGet, versionURL, nil)
 		if reqErr != nil {
-			return nil, fmt.Errorf("create target discovery request: %w", reqErr)
+			return nil, fmt.Errorf("create browser version request: %w", reqErr)
 		}
 		resp, err = http.DefaultClient.Do(req)
 		if err == nil && resp.StatusCode == http.StatusOK {
@@ -158,38 +138,38 @@ func fetchTargets(ctx context.Context, logger *slog.Logger, debugBaseURL string)
 			break
 		}
 		if err == nil {
-			// Failed discovery attempts still open a response body; close it before retrying
+			// Failed attempts still open a response body; close it before retrying
 			// or we slowly leak the node's HTTP connection pool.
 			if closeErr := resp.Body.Close(); closeErr != nil {
-				logger.Warn("Failed to close target discovery response body", "error", closeErr)
+				logger.Warn("Failed to close browser version response body", "error", closeErr)
 			}
 		}
 		select {
 		case <-time.After(50 * time.Millisecond):
 		case <-ctx.Done():
-			return nil, fmt.Errorf("wait for target discovery: %w", ctx.Err())
+			return nil, fmt.Errorf("wait for browser version: %w", ctx.Err())
 		}
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to list targets: %w", err)
+		return nil, fmt.Errorf("failed to get browser version: %w", err)
 	}
 	defer func() {
-		// Successful discovery still holds the body open until decoding finishes.
+		// Successful requests still hold the body open until decoding finishes.
 		if closeErr := resp.Body.Close(); closeErr != nil {
 			logger.Warn("Failed to close HTTP response body", "error", closeErr)
 		}
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w: status %d", errListTargetsStatus, resp.StatusCode)
+		return nil, fmt.Errorf("%w: status %d", errBrowserVersionStatus, resp.StatusCode)
 	}
 
-	var targets []CDPTarget
-	if err := json.NewDecoder(resp.Body).Decode(&targets); err != nil {
-		return nil, fmt.Errorf("failed to decode targets response: %w", err)
+	var version CDPVersion
+	if err := json.NewDecoder(resp.Body).Decode(&version); err != nil {
+		return nil, fmt.Errorf("failed to decode browser version response: %w", err)
 	}
-	return targets, nil
+	return &version, nil
 }
 
 func dialTargetWebSocket(ctx context.Context, logger *slog.Logger, id int, wsURL string) (*websocket.Conn, error) {
@@ -316,8 +296,36 @@ type connection struct {
 	nextBatchID    int64
 }
 
-// SendCommand sends a CDP command and waits for the response.
+// SendCommand sends a CDP command to the browser target and waits for the response.
 func (c *connection) SendCommand(ctx context.Context, method string, params any) (*CDPResponse, error) {
+	return c.sendCommand(ctx, "", method, params)
+}
+
+// SendCommandBatch sends a batch of unrelated commands to the browser target.
+func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*CommandResponse {
+	return c.sendCommandBatch(ctx, "", batch)
+}
+
+func (c *connection) Session(sessionID string) Commander {
+	c.assert(sessionID != "", "Attempted to create a session commander without a session ID")
+	return &session{conn: c, id: sessionID}
+}
+
+// session sends commands to a target attached to the connection in flatten mode.
+type session struct {
+	conn *connection
+	id   string
+}
+
+func (s *session) SendCommand(ctx context.Context, method string, params any) (*CDPResponse, error) {
+	return s.conn.sendCommand(ctx, s.id, method, params)
+}
+
+func (s *session) SendCommandBatch(ctx context.Context, batch []Command) []*CommandResponse {
+	return s.conn.sendCommandBatch(ctx, s.id, batch)
+}
+
+func (c *connection) sendCommand(ctx context.Context, sessionID, method string, params any) (*CDPResponse, error) {
 	// Connection must be valid when sending commands
 	c.assert(c.wsConn != nil, "Attempted to send command on nil WebSocket connection")
 	c.assert(c.pendingCmds != nil, "Attempted to send command with nil pendingCmds map")
@@ -326,9 +334,10 @@ func (c *connection) SendCommand(ctx context.Context, method string, params any)
 	c.nextCommandID++
 
 	cmd := CDPCommand{
-		ID:     cmdID,
-		Method: method,
-		Params: params,
+		ID:        cmdID,
+		SessionID: sessionID,
+		Method:    method,
+		Params:    params,
 	}
 
 	responseCh := make(chan CDPResponse, 1)
@@ -375,7 +384,7 @@ func (c *connection) SendCommand(ctx context.Context, method string, params any)
 }
 
 //nolint:gocognit,gocyclo,funlen // Batch routing mirrors the wire protocol state machine.
-func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*CommandResponse {
+func (c *connection) sendCommandBatch(ctx context.Context, sessionID string, batch []Command) []*CommandResponse {
 	// Connection must be valid when sending commands
 	c.assert(c.wsConn != nil, "Attempted to send command on nil WebSocket connection")
 	c.assert(c.pendingBatches != nil, "Attempted to send command with nil pendingCmds map")
@@ -406,9 +415,10 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 		c.cmdIDToBatchID.Set(cmdID, batchID)
 
 		cmd := CDPCommand{
-			ID:     cmdID,
-			Method: cmdInfo.Method,
-			Params: cmdInfo.Params,
+			ID:        cmdID,
+			SessionID: sessionID,
+			Method:    cmdInfo.Method,
+			Params:    cmdInfo.Params,
 		}
 		outbox[i] = cmd
 	}
