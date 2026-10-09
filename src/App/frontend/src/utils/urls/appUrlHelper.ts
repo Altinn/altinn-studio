@@ -71,9 +71,6 @@ export const getCreateInstancesUrl = (partyId: number, language?: string) => {
   return `${appPath}/instances${queryString}`;
 };
 
-export const getPdfFormatUrl = (instanceId: string, dataElementId: string) =>
-  `${appPath}/instances/${instanceId}/data/${dataElementId}/pdf/format`;
-
 export const getLayoutsUrl = (uiFolder: string) => `${appPath}/api/layouts/${uiFolder}`;
 
 export interface PdfPreviewTarget {

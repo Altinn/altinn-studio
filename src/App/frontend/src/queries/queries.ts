@@ -22,7 +22,6 @@ import {
   getLayoutsUrl,
   getOrderDetailsUrl,
   getPaymentInformationForTaskUrl,
-  getPdfFormatUrl,
   getProcessNextUrl,
   getProcessResumeUrl,
   getUpdateFileTagsUrl,
@@ -35,7 +34,6 @@ import type { IDataList } from 'src/features/dataLists';
 import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
-import type { IPdfFormat } from 'src/features/pdf/types';
 import type { BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
@@ -181,9 +179,6 @@ export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTo
 export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promise<any> => httpGet(url, options);
 
 export const fetchLayouts = (uiFolder: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(uiFolder));
-
-export const fetchPdfFormat = (instanceId: string, dataElementId: string): Promise<IPdfFormat> =>
-  httpGet(getPdfFormatUrl(instanceId, dataElementId));
 
 export const fetchPaymentInformationForTask = (
   instanceId: string,

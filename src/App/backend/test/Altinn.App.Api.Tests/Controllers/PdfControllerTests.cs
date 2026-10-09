@@ -38,10 +38,8 @@ public class PdfControllerTests
     private const string SubformDataElementId = "3c9e2d1f-8a7b-4c6d-9e5f-0a1b2c3d4e5f";
 
     private readonly Mock<IAppResources> _appResources = new();
-    private readonly Mock<IDataClient> _dataClient = new();
     private readonly IOptions<PlatformSettings> _platformSettingsOptions = Options.Create<PlatformSettings>(new() { });
     private readonly Mock<IInstanceClient> _instanceClient = new();
-    private readonly Mock<IPdfFormatter> _pdfFormatter = new();
     private readonly Mock<IAppModel> _appModel = new();
     private readonly Mock<IProcessReader> _processReader = new();
     private readonly Mock<IAppMetadata> _appMetadata = new();
@@ -75,8 +73,8 @@ public class PdfControllerTests
     public PdfControllerTests()
     {
         _instanceClientWithStorageMetadata = _instanceClient.As<IInstanceClientWithStorageMetadata>();
-        _dataClientWithStorageMetadata = _dataClient.As<IDataClientWithStorageMetadata>();
-        _mutationClient = _dataClient.As<IInstanceMutationClient>();
+        _dataClientWithStorageMetadata = new Mock<IDataClientWithStorageMetadata>();
+        _mutationClient = new Mock<IInstanceMutationClient>();
         _instanceClient
             .Setup(a =>
                 a.GetInstance(
@@ -123,15 +121,7 @@ public class PdfControllerTests
 
     private PdfController NewPdfController(IPdfService pdfService)
     {
-        return new PdfController(
-            _instanceClient.Object,
-            _pdfFormatter.Object,
-            _appResources.Object,
-            _appModel.Object,
-            _dataClient.Object,
-            pdfService,
-            _processReader.Object
-        );
+        return new PdfController(_instanceClient.Object, pdfService, _processReader.Object);
     }
 
     [Fact]
