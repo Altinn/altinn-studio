@@ -108,14 +108,6 @@ internal sealed class SigningTaskValidator : IValidator
             return [];
         }
 
-        return
-        [
-            new ValidationIssue
-            {
-                Code = ValidationIssueCodes.DataElementCodes.MissingSignatures,
-                Severity = ValidationIssueSeverity.Error,
-                CustomTextKey = "backend.validation_errors.missing_signatures",
-            },
-        ];
+        return [BuiltInValidationIssues.MissingSignatures()];
     }
 }

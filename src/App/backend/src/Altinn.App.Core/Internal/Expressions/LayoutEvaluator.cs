@@ -1,4 +1,5 @@
 using System.Globalization;
+using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
@@ -168,23 +169,13 @@ public static class LayoutEvaluator
                     {
                         var field = await state.AddInidicies(binding, context);
 
-                        var customTextParameters = new Dictionary<string, string>()
-                        {
-                            ["field"] = field.Field,
-                            ["layoutId"] = context.Component.LayoutId,
-                            ["pageId"] = context.Component.PageId,
-                            ["componentId"] = context.Component.Id,
-                            ["bindingName"] = bindingName,
-                            ["pageName"] = await state.TranslateText(context.Component.PageId, context),
-                        };
+                        var pageName = await state.TranslateText(context.Component.PageId, context);
+                        string? componentTitle = null;
                         if (context.Component.TextResourceBindings.TryGetValue("title", out var titleBinding))
                         {
                             if (titleBinding.IsLiteralString)
                             {
-                                customTextParameters["componentTitle"] = await state.TranslateText(
-                                    titleBinding.ValueUnion.String,
-                                    context
-                                );
+                                componentTitle = await state.TranslateText(titleBinding.ValueUnion.String, context);
                             }
                             else
                             {
@@ -193,15 +184,16 @@ public static class LayoutEvaluator
                         }
 
                         validationIssues.Add(
-                            new ValidationIssue()
-                            {
-                                Severity = ValidationIssueSeverity.Error,
-                                DataElementId = field.DataElementIdentifier.ToString(),
-                                Field = field.Field,
-                                Code = "required",
-                                CustomTextKey = "backend.validation_errors.required",
-                                CustomTextParameters = customTextParameters,
-                            }
+                            BuiltInValidationIssues.Required(
+                                dataElementId: field.DataElementIdentifier.ToString(),
+                                field: field.Field,
+                                layoutId: context.Component.LayoutId,
+                                pageId: context.Component.PageId,
+                                componentId: context.Component.Id,
+                                bindingName: bindingName,
+                                pageName: pageName,
+                                componentTitle: componentTitle
+                            )
                         );
                     }
                 }

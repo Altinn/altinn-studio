@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Language;
@@ -286,17 +287,13 @@ internal sealed class TranslationService : ITranslationService
 
     private static TextResourceElement? GetBackendFallbackResource(string key, string language)
     {
-        // When the list of backend text resources grows, we might want to have these in a separate file or similar.
+        if (BuiltInValidationIssues.TextResources.TryGetValue(key, out var textResource))
+        {
+            return textResource.GetDefaultResource(language);
+        }
+
         switch (key)
         {
-            case "backend.validation_errors.required":
-                return Localized(
-                    key,
-                    language,
-                    nb: "Feltet er påkrevd",
-                    nn: "Feltet er påkravd",
-                    en: "Field is required"
-                );
             case "backend.pdf_default_file_name":
                 return new TextResourceElement()
                 {
@@ -320,108 +317,15 @@ internal sealed class TranslationService : ITranslationService
                     nn: "Dokumentet er ein førehandsvisning",
                     en: "The document is a preview"
                 );
-            case "backend.xsd_validation":
-                return Localized(
-                    key,
-                    language,
-                    nb: "Et felt bryter reglene satt av XSD. Melding: {0}",
-                    nn: "Eit felt bryt reglane sette av XSD. Melding: {0}",
-                    en: "A field is in violation of the rules set by the XSD schema. Message: {0}",
-                    customTextParameterKeys: ["message"]
-                );
-            case "altinn.standard_validation.file_content_type_not_allowed":
-                return Localized(
-                    key,
-                    language,
-                    nb: "Det ser ut som du prøver å laste opp en filtype som ikke er tillatt. Sjekk at filen faktisk er av den typen den utgir seg for å være. Tillatte filtyper er: {0}.",
-                    nn: "Det ser ut som du prøver å lasta opp ein filtype som ikkje er tillaten. Sjekk at fila faktisk er av den typen han gir seg ut for å vera. Tillatne filtypar er: {0}.",
-                    en: "It looks like you are trying to upload a file type that is not allowed. Please make sure that the file is actually the type it claims to be. Allowed file types are: {0}.",
-                    customTextParameterKeys: ["allowedContentTypes"]
-                );
-            case "backend.validation_errors.missing_content_type":
-                return Localized(
-                    key,
-                    language,
-                    nb: "Filen har ingen filtype.",
-                    nn: "Fila har ingen filtype.",
-                    en: "The file is missing a content type."
-                );
-            case "backend.validation_errors.file_too_large":
-                return Localized(
-                    key,
-                    language,
-                    nb: "Filen er for stor. Største tillatte filstørrelse er {0} MB.",
-                    nn: "Fila er for stor. Største tillatne filstorleik er {0} MB.",
-                    en: "The file is too large. The maximum file size is {0} MB.",
-                    customTextParameterKeys: ["maxSize"]
-                );
-            case "backend.validation_errors.file_infected":
-                return Localized(
-                    key,
-                    language,
-                    nb: "Filen er infisert med skadelig programvare og kan ikke brukes.",
-                    nn: "Fila er infisert med skadeleg programvare og kan ikkje brukast.",
-                    en: "The file is infected with malware and cannot be used."
-                );
-            case "backend.validation_errors.file_scan_pending":
-                return Localized(
-                    key,
-                    language,
-                    nb: "Filen blir skannet for skadelig programvare. Vent til skanningen er ferdig.",
-                    nn: "Fila blir skanna for skadeleg programvare. Vent til skanninga er ferdig.",
-                    en: "The file is being scanned for malware. Please wait until the scan is complete."
-                );
-            case "backend.validation_errors.too_many_data_elements":
-                return Localized(
-                    key,
-                    language,
-                    nb: "Det er lagt til flere enn {0} elementer av typen {1}.",
-                    nn: "Det er lagt til fleire enn {0} element av typen {1}.",
-                    en: "More than {0} items of type {1} have been added.",
-                    customTextParameterKeys: ["maxCount", "dataType"]
-                );
-            case "backend.validation_errors.too_few_data_elements":
-                return Localized(
-                    key,
-                    language,
-                    nb: "Det må legges til minst {0} elementer av typen {1}.",
-                    nn: "Det må leggjast til minst {0} element av typen {1}.",
-                    en: "At least {0} items of type {1} must be added.",
-                    customTextParameterKeys: ["minCount", "dataType"]
-                );
-            case "backend.validation_errors.missing_signatures":
-                return Localized(
-                    key,
-                    language,
-                    nb: "Det mangler påkrevde signaturer.",
-                    nn: "Det manglar påkravde signaturar.",
-                    en: "Required signatures are missing."
-                );
-            case "backend.validation_errors.invalid_signature_hash":
-                return Localized(
-                    key,
-                    language,
-                    nb: "Signerte data er endret etter at signaturen ble utført.",
-                    nn: "Signerte data er endra etter at signaturen vart utført.",
-                    en: "The signed data has been modified after the signature was made."
-                );
         }
 
         return null;
     }
 
     /// <summary>
-    /// Builds a built-in text in the requested language. Each key in <paramref name="customTextParameterKeys"/>
-    /// fills the placeholder at its position ({0}, {1}, ...) from the issue's customTextParameters.
+    /// Builds a built-in text in the requested language.
     /// </summary>
-    private static TextResourceElement Localized(
-        string key,
-        string language,
-        string nb,
-        string nn,
-        string en,
-        string[]? customTextParameterKeys = null
-    )
+    private static TextResourceElement Localized(string key, string language, string nb, string nn, string en)
     {
         return new TextResourceElement()
         {
@@ -432,14 +336,6 @@ internal sealed class TranslationService : ITranslationService
                 LanguageConst.Nn => nn,
                 _ => en,
             },
-            Variables = (customTextParameterKeys ?? [])
-                .Select(parameter => new TextResourceVariable()
-                {
-                    DataSource = "customTextParameters",
-                    Key = parameter,
-                    DefaultValue = "",
-                })
-                .ToList(),
         };
     }
 
