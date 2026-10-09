@@ -1,5 +1,4 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 import type { FrontendTestTask } from 'test/e2e/support/global';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
@@ -25,17 +24,6 @@ describe('Page load times', () => {
           cy.goto(task);
 
           if (PDF) {
-            if (task === 'datalist') {
-              // This fixture skips previous tasks, so their data models referenced by Summary2 do not exist.
-              interceptAltinnAppGlobalData((data) => {
-                if ('order' in data.ui.folders.Task_5.pages) {
-                  data.ui.folders.Task_5.pages.order = data.ui.folders.Task_5.pages.order.filter(
-                    (page) => page !== 'summary2',
-                  );
-                }
-              });
-            }
-
             cy.location('href').then((href) => {
               const regex = getInstanceIdRegExp();
               const instanceId = regex.exec(href)?.[1];

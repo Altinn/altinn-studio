@@ -60,7 +60,6 @@ runs:
           run_diagnostic docker stats --no-stream
           run_diagnostic df -h
           run_diagnostic free -h
-          run_diagnostic ps -eo pid,ppid,nlwp,pcpu,pmem,rss,stat,etimes,comm --sort=-pcpu
           run_diagnostic ps -eLf
           run_diagnostic sh -c 'printf "Runner thread count: "; ps -eLf --no-headers | wc -l'
           run_diagnostic sh -c 'printf "Open system file handles: "; cat /proc/sys/fs/file-nr'
