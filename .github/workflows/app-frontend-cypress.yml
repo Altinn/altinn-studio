@@ -304,10 +304,10 @@ jobs:
         if: always()
         uses: ./.github/actions/app-stop-local-env
         with:
-          collect-diagnostics: ${{ steps.cypress.outcome == 'failure' }}
+          collect-diagnostics: ${{ steps.cypress.outcome != 'success' }}
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        if: ${{ always() && steps.cypress.outcome == 'failure' }}
+        if: ${{ always() && steps.cypress.outcome != 'success' }}
         with:
           name: app-frontend-logs-${{ matrix.containers }}
           path: |
@@ -377,10 +377,10 @@ jobs:
         if: always()
         uses: ./.github/actions/app-stop-local-env
         with:
-          collect-diagnostics: ${{ steps.cypress.outcome == 'failure' }}
+          collect-diagnostics: ${{ steps.cypress.outcome != 'success' }}
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        if: ${{ always() && steps.cypress.outcome == 'failure' }}
+        if: ${{ always() && steps.cypress.outcome != 'success' }}
         with:
           name: app-frontend-external-logs
           path: |
