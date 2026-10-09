@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { userEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { render, screen } from '@testing-library/react';
@@ -11,8 +13,8 @@ import {
 } from '../../../../../../utils/bpmnModeler/BpmnActionModeler';
 import { BpmnConfigPanelFormContextProvider } from '../../../../../../contexts/BpmnConfigPanelContext';
 
-jest.mock('../hooks/useOnActionChange');
-jest.mock('../../../../../../utils/bpmnModeler/BpmnActionModeler');
+vi.mock('../hooks/useOnActionChange');
+vi.mock('../../../../../../utils/bpmnModeler/BpmnActionModeler');
 
 const actionElementMock: Action = {
   $type: 'altinn:Action',
@@ -20,14 +22,14 @@ const actionElementMock: Action = {
 
 describe('CustomActions', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('preserves the full custom action while typing and saves it when leaving the field', async () => {
     const user = userEvent.setup();
 
-    const handleOnActionChangeMock = jest.fn();
-    (useActionHandler as jest.Mock).mockImplementation(() => ({
+    const handleOnActionChangeMock = vi.fn();
+    (useActionHandler as Mock).mockImplementation(() => ({
       handleOnActionChange: handleOnActionChangeMock,
     }));
 
@@ -54,15 +56,15 @@ describe('CustomActions', () => {
   it('should be possible to change action type', async () => {
     const user = userEvent.setup();
 
-    (useActionHandler as jest.Mock).mockImplementation(() => ({
-      handleOnActionChange: jest.fn(),
+    (useActionHandler as Mock).mockImplementation(() => ({
+      handleOnActionChange: vi.fn(),
     }));
 
-    const updateTypeForActionMock = jest.fn();
-    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+    const updateTypeForActionMock = vi.fn();
+    (BpmnActionModeler as Mock).mockImplementation(function () {
       return {
         updateTypeForAction: updateTypeForActionMock,
-        getTypeForAction: jest.fn().mockReturnValue('processAction'),
+        getTypeForAction: vi.fn().mockReturnValue('processAction'),
       };
     });
 
@@ -84,15 +86,15 @@ describe('CustomActions', () => {
   it('should be possible to change action type to process', async () => {
     const user = userEvent.setup();
 
-    (useActionHandler as jest.Mock).mockImplementation(() => ({
-      handleOnActionChange: jest.fn(),
+    (useActionHandler as Mock).mockImplementation(() => ({
+      handleOnActionChange: vi.fn(),
     }));
 
-    const updateTypeForActionMock = jest.fn();
-    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+    const updateTypeForActionMock = vi.fn();
+    (BpmnActionModeler as Mock).mockImplementation(function () {
       return {
         updateTypeForAction: updateTypeForActionMock,
-        getTypeForAction: jest.fn().mockReturnValue('serverAction'),
+        getTypeForAction: vi.fn().mockReturnValue('serverAction'),
       };
     });
 
@@ -110,15 +112,15 @@ describe('CustomActions', () => {
   it('should not be possible to change action type if action is predefined', async () => {
     const user = userEvent.setup();
 
-    (useActionHandler as jest.Mock).mockImplementation(() => ({
-      handleOnActionChange: jest.fn(),
+    (useActionHandler as Mock).mockImplementation(() => ({
+      handleOnActionChange: vi.fn(),
     }));
 
-    const updateTypeForActionMock = jest.fn();
-    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+    const updateTypeForActionMock = vi.fn();
+    (BpmnActionModeler as Mock).mockImplementation(function () {
       return {
         updateTypeForAction: updateTypeForActionMock,
-        getTypeForAction: jest.fn().mockReturnValue('Process'),
+        getTypeForAction: vi.fn().mockReturnValue('Process'),
       };
     });
 
@@ -133,8 +135,8 @@ describe('CustomActions', () => {
   });
 
   it('should display help text for action type', () => {
-    (useActionHandler as jest.Mock).mockImplementation(() => ({
-      handleOnActionChange: jest.fn(),
+    (useActionHandler as Mock).mockImplementation(() => ({
+      handleOnActionChange: vi.fn(),
     }));
 
     renderCustomAction();

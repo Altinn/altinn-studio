@@ -45,7 +45,6 @@ __metadata:
     "@types/bpmn-moddle": "npm:9.0.1"
     bpmn-js: "npm:18.22.1"
     bpmn-moddle: "npm:9.0.4"
-    jest: "npm:29.7.0"
   peerDependencies:
     react: 18.3.1
     react-dom: 18.3.1
@@ -61,7 +60,6 @@ __metadata:
     "@types/bpmn-moddle": "npm:9.0.1"
     bpmn-js: "npm:18.22.1"
     bpmn-moddle: "npm:9.0.4"
-    jest: "npm:29.7.0"
   peerDependencies:
     react: 18.3.1
     react-dom: 18.3.1

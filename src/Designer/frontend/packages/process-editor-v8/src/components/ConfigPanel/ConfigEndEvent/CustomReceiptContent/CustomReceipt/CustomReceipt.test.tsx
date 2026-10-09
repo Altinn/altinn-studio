@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CustomReceipt } from './CustomReceipt';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -36,7 +37,7 @@ const defaultBpmnApiContextProps: BpmnApiContextProps = {
 };
 
 describe('CustomReceipt', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('renders the editable name field for apps older than v9', () => {
     renderCustomReceipt({ appVersion: legacyVersion });
@@ -50,7 +51,7 @@ describe('CustomReceipt', () => {
 
   it('calls "deleteLayoutSet" when clicking the delete button', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     renderCustomReceipt({ appVersion: v9Version });
 
     const deleteButton = screen.getByRole('button', {

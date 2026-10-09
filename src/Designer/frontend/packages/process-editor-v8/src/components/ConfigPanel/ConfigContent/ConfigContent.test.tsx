@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { ConfigContent } from './ConfigContent';
 import { render } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -35,32 +37,32 @@ const tasks = [
   },
 ];
 
-jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
+vi.mock('../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(function () {
+    StudioModeler: vi.fn().mockImplementation(function () {
       return {
-        getAllTasksByType: jest.fn().mockReturnValue(tasks),
+        getAllTasksByType: vi.fn().mockReturnValue(tasks),
       };
     }),
   };
 });
 
-(useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
-  removeAction: jest.fn(),
-  addAction: jest.fn(),
-  shouldDisplayAction: jest.fn(),
+(useStudioRecommendedNextActionContext as Mock).mockReturnValue({
+  removeAction: vi.fn(),
+  addAction: vi.fn(),
+  shouldDisplayAction: vi.fn(),
 });
 
-jest.mock(
+vi.mock(
   '@studio/components/src/components/StudioRecommendedNextAction/context/useStudioRecommendedNextActionContext.ts',
   () => ({
-    useStudioRecommendedNextActionContext: jest.fn(),
+    useStudioRecommendedNextActionContext: vi.fn(),
   }),
 );
 
 describe('ConfigContent', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   it('should render heading for selected task', () => {
     renderConfigContent();
@@ -223,10 +225,10 @@ describe('ConfigContent', () => {
     });
 
     it('should show recommended action when task is data and is in recommended action queue', async () => {
-      const shouldDisplayAction = jest.fn().mockReturnValue(true);
-      (useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
-        removeAction: jest.fn(),
-        addAction: jest.fn(),
+      const shouldDisplayAction = vi.fn().mockReturnValue(true);
+      (useStudioRecommendedNextActionContext as Mock).mockReturnValue({
+        removeAction: vi.fn(),
+        addAction: vi.fn(),
         shouldDisplayAction,
       });
       renderConfigContent();

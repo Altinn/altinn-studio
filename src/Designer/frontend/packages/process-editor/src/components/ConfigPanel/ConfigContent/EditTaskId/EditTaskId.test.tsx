@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditTaskId } from './EditTaskId';
@@ -10,30 +12,30 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 const task1IdMock = 'task_1';
 const startEventIdMock = 'StartEvent_1';
 let mockLayoutSets: LayoutSets = [];
-jest.mock('../../../../contexts/BpmnContext', () => ({
+vi.mock('../../../../contexts/BpmnContext', () => ({
   useBpmnContext: () => ({
     modelerRef: mockModelerRef,
     bpmnDetails: mockBpmnDetails,
   }),
 }));
 
-jest.mock('../../../../contexts/BpmnApiContext', () => ({
+vi.mock('../../../../contexts/BpmnApiContext', () => ({
   useBpmnApiContext: () => ({ layoutSets: mockLayoutSets }),
 }));
 
-jest.mock('../../../../contexts/BpmnConfigPanelContext', () => ({
-  useBpmnConfigPanelFormContext: jest.fn(),
+vi.mock('../../../../contexts/BpmnConfigPanelContext', () => ({
+  useBpmnConfigPanelFormContext: vi.fn(),
 }));
 
-(useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
+(useBpmnConfigPanelFormContext as Mock).mockReturnValue({
   metadataFormRef: { current: undefined },
 });
 
-jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
+vi.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(function () {
+    StudioModeler: vi.fn().mockImplementation(function () {
       return {
-        getAllElementIds: jest
+        getAllElementIds: vi
           .fn()
           .mockReturnValue([task1IdMock, 'task_2', 'task_3', startEventIdMock]),
       };
@@ -43,7 +45,7 @@ jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
 
 describe('EditTaskId', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockLayoutSets = [];
   });
   it('should render task id as view mode by default', () => {
@@ -74,7 +76,7 @@ describe('EditTaskId', () => {
     const user = userEvent.setup();
     const newId = 'newId';
     const metadataFormRefMock = { current: undefined };
-    (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
+    (useBpmnConfigPanelFormContext as Mock).mockReturnValue({
       metadataFormRef: metadataFormRefMock,
     });
 
@@ -233,7 +235,7 @@ describe('EditTaskId', () => {
   it('should not update id if new id is the same as the old id', async () => {
     const user = userEvent.setup();
     const metadataFormRefMock = { current: undefined };
-    (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
+    (useBpmnConfigPanelFormContext as Mock).mockReturnValue({
       metadataFormRef: metadataFormRefMock,
     });
 

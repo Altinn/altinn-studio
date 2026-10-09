@@ -1,22 +1,24 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useUpdatePdfConfigTaskIds } from './useUpdatePdfConfigTaskIds';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import { useDebounce } from '@studio/hooks';
 
-jest.mock('../contexts/BpmnContext');
-jest.mock('@studio/hooks');
+vi.mock('../contexts/BpmnContext');
+vi.mock('@studio/hooks');
 
 describe('useUpdatePdfConfigTaskIds', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    (useDebounce as jest.Mock).mockReturnValue({
+    vi.clearAllMocks();
+    (useDebounce as Mock).mockReturnValue({
       debounce: (fn: () => void) => fn(),
     });
   });
 
   it('calls updateModdleProperties with correct arguments when updating task ids', async () => {
-    const mockUpdateModdleProperties = jest.fn();
-    const mockCreate = jest.fn((type: string, props?: any) => {
+    const mockUpdateModdleProperties = vi.fn();
+    const mockCreate = vi.fn((type: string, props?: any) => {
       if (type === 'altinn:AutoPdfTaskIds') {
         return { taskIds: [] };
       }
@@ -39,7 +41,7 @@ describe('useUpdatePdfConfigTaskIds', () => {
       },
     };
 
-    (useBpmnContext as jest.Mock).mockReturnValue({
+    (useBpmnContext as Mock).mockReturnValue({
       bpmnDetails: { element },
       modelerRef: {
         current: {
@@ -78,8 +80,8 @@ describe('useUpdatePdfConfigTaskIds', () => {
   });
 
   it('updates with empty array when no task ids are provided', async () => {
-    const mockUpdateModdleProperties = jest.fn();
-    const mockCreate = jest.fn((type: string) => {
+    const mockUpdateModdleProperties = vi.fn();
+    const mockCreate = vi.fn((type: string) => {
       if (type === 'altinn:AutoPdfTaskIds') {
         return { taskIds: [] };
       }
@@ -99,7 +101,7 @@ describe('useUpdatePdfConfigTaskIds', () => {
       },
     };
 
-    (useBpmnContext as jest.Mock).mockReturnValue({
+    (useBpmnContext as Mock).mockReturnValue({
       bpmnDetails: { element },
       modelerRef: {
         current: {
@@ -136,9 +138,9 @@ describe('useUpdatePdfConfigTaskIds', () => {
   });
 
   it('creates TaskId elements for each task id in the array', async () => {
-    const mockUpdateModdleProperties = jest.fn();
+    const mockUpdateModdleProperties = vi.fn();
     const taskIds = ['task_1', 'task_2', 'task_3'];
-    const mockCreate = jest.fn((type: string, props?: any) => {
+    const mockCreate = vi.fn((type: string, props?: any) => {
       if (type === 'altinn:AutoPdfTaskIds') {
         return { taskIds: [] };
       }
@@ -161,7 +163,7 @@ describe('useUpdatePdfConfigTaskIds', () => {
       },
     };
 
-    (useBpmnContext as jest.Mock).mockReturnValue({
+    (useBpmnContext as Mock).mockReturnValue({
       bpmnDetails: { element },
       modelerRef: {
         current: {
@@ -193,13 +195,13 @@ describe('useUpdatePdfConfigTaskIds', () => {
   });
 
   it('uses debounce when updating task ids', () => {
-    const debounceMock = jest.fn((fn: () => void) => fn());
-    (useDebounce as jest.Mock).mockReturnValue({
+    const debounceMock = vi.fn((fn: () => void) => fn());
+    (useDebounce as Mock).mockReturnValue({
       debounce: debounceMock,
     });
 
-    const mockUpdateModdleProperties = jest.fn();
-    const mockCreate = jest.fn(() => ({ taskIds: [] }));
+    const mockUpdateModdleProperties = vi.fn();
+    const mockCreate = vi.fn(() => ({ taskIds: [] }));
 
     const pdfConfig = {
       filename: { value: 'test.pdf' },
@@ -214,7 +216,7 @@ describe('useUpdatePdfConfigTaskIds', () => {
       },
     };
 
-    (useBpmnContext as jest.Mock).mockReturnValue({
+    (useBpmnContext as Mock).mockReturnValue({
       bpmnDetails: { element },
       modelerRef: {
         current: {

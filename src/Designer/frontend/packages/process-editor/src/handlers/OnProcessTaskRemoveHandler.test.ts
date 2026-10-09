@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import { OnProcessTaskRemoveHandler } from './OnProcessTaskRemoveHandler';
@@ -17,8 +18,8 @@ import {
 import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
 import type { Element } from 'bpmn-js/lib/model/Types';
 
-jest.mock('@altinn/process-editor/utils/bpmnModeler/StudioModeler', () => ({
-  StudioModeler: jest.fn().mockImplementation(function () {
+vi.mock('@altinn/process-editor/utils/bpmnModeler/StudioModeler', () => ({
+  StudioModeler: vi.fn().mockImplementation(function () {
     return {
       getElementsByType: (type: BpmnTypeEnum) => (type === BpmnTypeEnum.Task ? signingTasks : []),
     };
@@ -32,9 +33,9 @@ const currentPolicyMock: Policy = {
 };
 const layoutSetsMock = [];
 
-const mutateApplicationPolicyMock = jest.fn();
-const deleteDataTypeFromAppMetadataMock = jest.fn();
-const deleteLayoutSetMock = jest.fn();
+const mutateApplicationPolicyMock = vi.fn();
+const deleteDataTypeFromAppMetadataMock = vi.fn();
+const deleteLayoutSetMock = vi.fn();
 
 const createTaskMetadataMock = (
   taskType: string,
@@ -90,7 +91,7 @@ const createOnRemoveProcessTaskHandler = ({ currentPolicy, layoutSets }: any) =>
 
 describe('OnProcessTaskRemoveHandler', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     signingTasks = [
       createSigningTask('task_1', 'dataType1', []),
       createSigningTask('task_2', 'dataType2', ['dataType1']),

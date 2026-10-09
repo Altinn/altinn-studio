@@ -1,15 +1,16 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BPMNEditor } from './BPMNEditor';
 import { BpmnApiContextProvider } from '../../../contexts/BpmnApiContext';
 import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-jest.mock('../../../hooks/useBpmnEditor', () => ({
-  useBpmnEditor: jest.fn().mockReturnValue(jest.fn()),
+vi.mock('../../../hooks/useBpmnEditor', () => ({
+  useBpmnEditor: vi.fn().mockReturnValue(vi.fn()),
 }));
 
 describe('BPMNEditor', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('does not render spinner when pendingApiOperations is false', () => {
     renderBpmnEditor({ pendingApiOperations: false });
