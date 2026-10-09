@@ -20,11 +20,24 @@ make lint      # 5. Lint
 make test      # 6. Unit tests
 ```
 
+CI builds the .NET projects with warnings as errors (`CI=true`), and compiles `studioctl-server`
+through `dotnet publish` in `make dev-install`, where analyzer rules such as `NX0001`
+(null-forgiving `!`) and Sonar `S127` fail the build although `dotnet build` and `dotnet test` pass.
+Before pushing .NET changes, run `dotnet clean studioctl.slnx`, then `CI=true make test` and
+`make dev-install`.
+
+On macOS, `make dev-run` from a deeply nested checkout (an agent worktree) fails with
+`connect: invalid argument`: the server socket path exceeds the 104-character limit. Point
+`STUDIOCTL_SOCKET_DIR` at a short directory.
+
 ### Principles
 
 - Handle errors
 - Avoid nolint, the bar should be high
 - Respect fieldalignment lints (`make lint-fix` auto-corrects struct field ordering)
+- The top level of `internal/cmd/` holds only CLI parsing, orchestration and rendering; the work lives in its subpackages and the rest of `internal/`
+- Output states facts in a line: what is configured or wrong, and the command that changes it.
+  No advice prose, and no paths to files studioctl manages
 
 ### Bundled app-development skill
 

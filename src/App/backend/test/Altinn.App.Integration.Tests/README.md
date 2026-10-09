@@ -197,6 +197,28 @@ Generated apps are written to `_testapps/generated/`, which is ignored by git.
 7. Run requests through localtest at `http://local.altinn.cloud:8000`.
 8. Stop the app process and delete the generated app folder on fixture disposal.
 
+## Troubleshooting
+
+When most tests fail at once, the cause is almost always the environment, not the change. Run one
+test with `--logger "console;verbosity=detailed"` (the fixture logs every `studioctl` call, the app's
+port and its log path), or run `BasicAppTests` on an unmodified `main` checkout to compare.
+
+- **An environment that is already up keeps the images it started with.** The harness reuses a
+  running localtest, and `env up` returns early on a converged environment, so after changing
+  `src/Runtime/localtest`, `pdf3` or `workflow-engine`, run `studioctl env down` before the tests.
+- **More than one `studioctl-server` process** (`ps aux | grep '[s]tudioctl-server'`) corrupts the
+  host bridge localtest uses to reach the app: connection refused, 502s, or `NotFound` from
+  `AppCommand`. Run `studioctl env down`, stop every server process, and start again.
+- **A locally built `studioctl`** (`studioctl version` prints `v0.1.0-preview.0`) turns failures into
+  15-minute timeouts. `studioctl self update` restores a released one.
+- **A full Docker disk** shows as a failed `localtest-workflow-engine` or `-db` health check; the
+  database container's log says `No space left on device`. Check with
+  `docker run --rm alpine df -h /`.
+- **`yarn install` running in the same checkout** fails every test with
+  `Command 'yarn install' failed`, because the fixture installs the test apps' frontends.
+- **A compile error in scenario `services`** shows only as the app failing to start. The test project
+  excludes `_testapps/**` from its own build, so `dotnet build` does not catch it.
+
 ## Available Test Apps
 
 - `TestApps.Basic` - Basic app used by the current integration tests.
