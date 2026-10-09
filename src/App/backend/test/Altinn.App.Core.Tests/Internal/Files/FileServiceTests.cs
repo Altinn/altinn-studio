@@ -1,6 +1,7 @@
 ﻿using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Internal.Files;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -17,7 +18,11 @@ public class FileServiceTests
         // Arrange
         var fileAnalysisService = new Mock<IFileAnalysisService>();
         var fileValidationService = new Mock<IFileValidationService>();
-        var fileService = new FileService(fileAnalysisService.Object, fileValidationService.Object);
+        var fileService = new FileService(
+            fileAnalysisService.Object,
+            fileValidationService.Object,
+            Mock.Of<ITranslationService>()
+        );
 
         var dataType = new DataType
         {
@@ -29,7 +34,7 @@ public class FileServiceTests
         var filename = "test.txt";
 
         // Act
-        var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename);
+        var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename, language: null);
 
         // Assert
         result.Should().BeNull();
@@ -49,7 +54,11 @@ public class FileServiceTests
         // Arrange
         var fileAnalysisService = new Mock<IFileAnalysisService>();
         var fileValidationService = new Mock<IFileValidationService>();
-        var fileService = new FileService(fileAnalysisService.Object, fileValidationService.Object);
+        var fileService = new FileService(
+            fileAnalysisService.Object,
+            fileValidationService.Object,
+            Mock.Of<ITranslationService>()
+        );
 
         var dataType = new DataType
         {
@@ -65,7 +74,7 @@ public class FileServiceTests
         fileAnalysisService.Setup(x => x.Analyze(dataType, It.IsAny<Stream>(), filename)).ReturnsAsync(analysisResults);
 
         // Act
-        var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename);
+        var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename, language: null);
 
         // Assert
         result.Should().BeNull();
@@ -82,7 +91,11 @@ public class FileServiceTests
         // Arrange
         var fileAnalysisService = new Mock<IFileAnalysisService>();
         var fileValidationService = new Mock<IFileValidationService>();
-        var fileService = new FileService(fileAnalysisService.Object, fileValidationService.Object);
+        var fileService = new FileService(
+            fileAnalysisService.Object,
+            fileValidationService.Object,
+            Mock.Of<ITranslationService>()
+        );
 
         var dataType = new DataType
         {
@@ -98,7 +111,7 @@ public class FileServiceTests
             .ReturnsAsync((true, new List<ValidationIssueWithSource>()));
 
         // Act
-        var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename);
+        var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename, language: null);
 
         // Assert
         result.Should().BeNull();
@@ -115,7 +128,11 @@ public class FileServiceTests
         // Arrange
         var fileAnalysisService = new Mock<IFileAnalysisService>();
         var fileValidationService = new Mock<IFileValidationService>();
-        var fileService = new FileService(fileAnalysisService.Object, fileValidationService.Object);
+        var fileService = new FileService(
+            fileAnalysisService.Object,
+            fileValidationService.Object,
+            Mock.Of<ITranslationService>()
+        );
 
         var dataType = new DataType
         {
@@ -138,7 +155,7 @@ public class FileServiceTests
             .ReturnsAsync((true, new List<ValidationIssueWithSource>()));
 
         // Act
-        var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename);
+        var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename, language: null);
 
         // Assert
         result.Should().BeNull();
@@ -155,7 +172,11 @@ public class FileServiceTests
         // Arrange
         var fileAnalysisService = new Mock<IFileAnalysisService>();
         var fileValidationService = new Mock<IFileValidationService>();
-        var fileService = new FileService(fileAnalysisService.Object, fileValidationService.Object);
+        var fileService = new FileService(
+            fileAnalysisService.Object,
+            fileValidationService.Object,
+            Mock.Of<ITranslationService>()
+        );
 
         var dataType = new DataType
         {
@@ -189,7 +210,7 @@ public class FileServiceTests
             .ReturnsAsync((false, validationIssues));
 
         // Act
-        var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename);
+        var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename, language: null);
 
         // Assert
         result.Should().NotBeNull();
@@ -206,7 +227,11 @@ public class FileServiceTests
         // Arrange
         var fileAnalysisService = new Mock<IFileAnalysisService>();
         var fileValidationService = new Mock<IFileValidationService>();
-        var fileService = new FileService(fileAnalysisService.Object, fileValidationService.Object);
+        var fileService = new FileService(
+            fileAnalysisService.Object,
+            fileValidationService.Object,
+            Mock.Of<ITranslationService>()
+        );
 
         var dataType = new DataType
         {
@@ -244,7 +269,7 @@ public class FileServiceTests
             .ReturnsAsync((false, validationIssues));
 
         // Act
-        var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename);
+        var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename, language: null);
 
         // Assert
         result.Should().NotBeNull();
@@ -259,7 +284,11 @@ public class FileServiceTests
         // Arrange
         var fileAnalysisService = new Mock<IFileAnalysisService>();
         var fileValidationService = new Mock<IFileValidationService>();
-        var fileService = new FileService(fileAnalysisService.Object, fileValidationService.Object);
+        var fileService = new FileService(
+            fileAnalysisService.Object,
+            fileValidationService.Object,
+            Mock.Of<ITranslationService>()
+        );
 
         var dataType = new DataType
         {
@@ -282,11 +311,77 @@ public class FileServiceTests
             .ReturnsAsync((true, new List<ValidationIssueWithSource>()));
 
         // Act
-        var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename);
+        var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename, language: null);
 
         // Assert
         result.Should().BeNull();
         fileAnalysisService.Verify(x => x.Analyze(dataType, It.IsAny<Stream>(), null), Times.Once);
         fileValidationService.Verify(x => x.Validate(dataType, It.IsAny<List<FileAnalysisResult>>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RunFileAnalysisAndValidation_ValidationFails_TranslatesIssuesWithOnlyATextKey()
+    {
+        // Arrange
+        var fileAnalysisService = new Mock<IFileAnalysisService>();
+        var fileValidationService = new Mock<IFileValidationService>();
+        var translationService = new Mock<ITranslationService>();
+        var fileService = new FileService(
+            fileAnalysisService.Object,
+            fileValidationService.Object,
+            translationService.Object
+        );
+
+        var dataType = new DataType
+        {
+            Id = "test-datatype",
+            EnabledFileAnalysers = new List<string> { "analyzer1" },
+            EnabledFileValidators = new List<string> { "validator1" },
+        };
+        var bytes = new byte[] { 1, 2, 3 };
+        var filename = "malicious.exe";
+
+        var validationIssues = new List<ValidationIssueWithSource>
+        {
+            new()
+            {
+                Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
+                Severity = ValidationIssueSeverity.Error,
+                Description = null,
+                CustomTextKey = "altinn.standard_validation.file_content_type_not_allowed",
+                Source = ValidationIssueSources.File,
+            },
+            new()
+            {
+                Code = ValidationIssueCodes.DataElementCodes.InvalidFileNameFormat,
+                Severity = ValidationIssueSeverity.Error,
+                Description = "Invalid filename extension",
+                CustomTextKey = "custom.key",
+                Source = ValidationIssueSources.File,
+            },
+        };
+
+        fileAnalysisService
+            .Setup(x => x.Analyze(dataType, It.IsAny<Stream>(), filename))
+            .ReturnsAsync(new List<FileAnalysisResult>());
+        fileValidationService
+            .Setup(x => x.Validate(dataType, It.IsAny<List<FileAnalysisResult>>()))
+            .ReturnsAsync((false, validationIssues));
+        translationService
+            .Setup(x => x.TranslateTextKey("altinn.standard_validation.file_content_type_not_allowed", "nn", null))
+            .ReturnsAsync("Filtypen er ikkje tillaten");
+
+        // Act
+        var result = await fileService.RunFileAnalysisAndValidation(dataType, bytes, filename, language: "nn");
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().HaveCount(2);
+        result[0].Description.Should().Be("Filtypen er ikkje tillaten");
+        result[1].Description.Should().Be("Invalid filename extension");
+        translationService.Verify(
+            x => x.TranslateTextKey("custom.key", It.IsAny<string?>(), It.IsAny<Dictionary<string, string>?>()),
+            Times.Never
+        );
     }
 }

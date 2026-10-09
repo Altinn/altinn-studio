@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- The "file type not allowed" message from the MIME type validator now names the allowed file types for clients calling the API, in the user's language. Needs Altinn.App.Core 9.0.0-preview.7 or later.
+
 ## [9.0.0-preview.1] - 2026-09-09
 
 ### Changed

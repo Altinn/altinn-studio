@@ -1,5 +1,6 @@
 ﻿using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -7,14 +8,18 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.Files;
 
 /// <inheritdoc />
-internal class FileService(IFileAnalysisService fileAnalyzerService, IFileValidationService fileValidationService)
-    : IFileService
+internal class FileService(
+    IFileAnalysisService fileAnalyzerService,
+    IFileValidationService fileValidationService,
+    ITranslationService translationService
+) : IFileService
 {
     /// <inheritdoc />
     public async Task<List<ValidationIssueWithSource>?> RunFileAnalysisAndValidation(
         DataType dataTypeFromMetadata,
         byte[] bytes,
-        string? fileName
+        string? fileName,
+        string? language
     )
     {
         List<FileAnalysisResult> fileAnalysisResults = [];
@@ -37,6 +42,7 @@ internal class FileService(IFileAnalysisService fileAnalyzerService, IFileValida
 
         if (!fileValidationSuccess)
         {
+            await translationService.TranslateValidationIssues(validationIssues, language);
             return validationIssues;
         }
 

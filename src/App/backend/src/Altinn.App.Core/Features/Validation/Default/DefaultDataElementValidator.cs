@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -31,7 +32,7 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
                     Code = ValidationIssueCodes.DataElementCodes.MissingContentType,
                     DataElementId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = ValidationIssueCodes.DataElementCodes.MissingContentType,
+                    CustomTextKey = "backend.validation_errors.missing_content_type",
                 }
             );
         }
@@ -53,8 +54,11 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
                         DataElementId = dataElement.Id,
                         Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                         Severity = ValidationIssueSeverity.Error,
-                        Description =
-                            $"ContentType {contentTypeWithoutEncoding} not allowed for {string.Join(",", dataType.AllowedContentTypes)}",
+                        CustomTextKey = "altinn.standard_validation.file_content_type_not_allowed",
+                        CustomTextParameters = new Dictionary<string, string>
+                        {
+                            ["allowedContentTypes"] = string.Join(", ", dataType.AllowedContentTypes),
+                        },
                         Field = dataType.Id,
                     }
                 );
@@ -73,7 +77,11 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
                     DataElementId = dataElement.Id,
                     Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
+                    CustomTextKey = "backend.validation_errors.file_too_large",
+                    CustomTextParameters = new Dictionary<string, string>
+                    {
+                        ["maxSize"] = dataType.MaxSize.Value.ToString(CultureInfo.InvariantCulture),
+                    },
                     Field = dataType.Id,
                 }
             );
@@ -87,7 +95,7 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
                     DataElementId = dataElement.Id,
                     Code = ValidationIssueCodes.DataElementCodes.DataElementFileInfected,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = ValidationIssueCodes.DataElementCodes.DataElementFileInfected,
+                    CustomTextKey = "backend.validation_errors.file_infected",
                     Field = dataType.Id,
                 }
             );
@@ -105,7 +113,7 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
                     DataElementId = dataElement.Id,
                     Code = ValidationIssueCodes.DataElementCodes.DataElementFileScanPending,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = ValidationIssueCodes.DataElementCodes.DataElementFileScanPending,
+                    CustomTextKey = "backend.validation_errors.file_scan_pending",
                     Field = dataType.Id,
                 }
             );
