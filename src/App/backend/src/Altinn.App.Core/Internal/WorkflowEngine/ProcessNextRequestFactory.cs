@@ -419,7 +419,10 @@ internal sealed class ProcessNextRequestFactory
             if (!Enum.TryParse(instanceEvent.EventType, true, out InstanceEventType instanceEventType))
                 continue;
 
-            endsProcess |= instanceEventType is InstanceEventType.process_EndEvent;
+            if (instanceEventType is InstanceEventType.process_EndEvent)
+            {
+                endsProcess = true;
+            }
 
             string? altinnTaskType = instanceEvent.ProcessInfo?.CurrentTask?.AltinnTaskType;
             string? serviceTaskType = GetServiceTaskType(altinnTaskType);
