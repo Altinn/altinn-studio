@@ -283,7 +283,7 @@ internal sealed class ProcessNextRequestFactory
 
         // One EnqueueSideEffectsWorkflow step after the CommitProcessState commit schedules the
         // transition's side effects, so they exist if and only if the transition committed.
-        List<StepRequest> enqueueSideEffects = [];
+        List<StepRequest> sideEffects = [];
         if (commands.SideEffects.Count > 0)
         {
             var sideEffectsEnqueueRequest = new WorkflowEnqueueRequest
@@ -312,22 +312,22 @@ internal sealed class ProcessNextRequestFactory
                     })
                     .ToList(),
             };
-            enqueueSideEffects.Add(CreateEnqueueSideEffectsWorkflowCommand(sideEffectsEnqueueRequest));
+            sideEffects.Add(CreateEnqueueSideEffectsWorkflowCommand(sideEffectsEnqueueRequest));
         }
 
         // Side effects announce a transition once it is complete. A task transition is complete at
         // the commit, so they go before slow post-commit work such as a service task. A process end
         // is complete only after its post-commit steps release the instance, so they wait for those.
-        List<StepRequest> mainSteps = commands.EndsProcess
-            ? [.. commands.ThroughCommit, .. commands.CriticalPostCommit, .. enqueueSideEffects]
-            : [.. commands.ThroughCommit, .. enqueueSideEffects, .. commands.CriticalPostCommit];
+        List<StepRequest> steps = commands.EndsProcess
+            ? [.. commands.ThroughCommit, .. commands.CriticalPostCommit, .. sideEffects]
+            : [.. commands.ThroughCommit, .. sideEffects, .. commands.CriticalPostCommit];
 
         List<WorkflowRequest> workflows =
         [
             new WorkflowRequest
             {
                 OperationId = $"{MainOperationIdPrefix} {fromTaskId} -> {toTaskId}",
-                Steps = mainSteps,
+                Steps = steps,
                 State = state,
                 DependsOn = dependsOn,
             },
