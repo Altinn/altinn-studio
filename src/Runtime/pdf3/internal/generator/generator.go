@@ -28,6 +28,7 @@ type Custom struct {
 	tracer           trace.Tracer
 	logger           *slog.Logger
 	activeSession    atomic.Pointer[browserSession]
+	metrics          *generatorMetrics
 	pdfaConverter    *pdfa.Converter
 	browserVersion   types.BrowserVersion
 	sessionIDCounter atomic.Int32
@@ -78,6 +79,11 @@ func New() (*Custom, error) {
 		tracer:        telemetry.Tracer(),
 		convertToPDFA: cfg.ShouldConvertToPDFA(),
 	}
+	metrics, err := newGeneratorMetrics(telemetry.Meter())
+	if err != nil {
+		return nil, err
+	}
+	generator.metrics = metrics
 	if generator.convertToPDFA {
 		generator.pdfaConverter = pdfa.NewConverter()
 		logger.Info(
@@ -176,6 +182,7 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		if span.IsRecording() {
 			span.AddEvent("pdf.queue.full")
 		}
+		g.metrics.recordGeneration(ctx, pdfErr)
 		return nil, pdfErr
 	}
 
@@ -183,13 +190,16 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 	case response := <-responder:
 		if response.Error != nil {
 			recordPDFError(span, response.Error)
+			g.metrics.recordGeneration(ctx, response.Error)
 			return nil, response.Error
 		}
 		pdfData, pdfErr := g.prepareResponsePDF(ctx, requestSpan, span, request.URL, response.Data)
 		if pdfErr != nil {
 			recordPDFError(span, pdfErr)
+			g.metrics.recordGeneration(ctx, pdfErr)
 			return nil, pdfErr
 		}
+		g.metrics.recordGeneration(ctx, nil)
 		return &types.PdfResult{
 			Data:    pdfData,
 			Browser: g.browserVersion,
@@ -197,11 +207,14 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 	case <-ctx.Done():
 		pdfErr := types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
 		recordPDFError(span, pdfErr)
+		// The request's context is done, so count the drop without it.
+		g.metrics.recordGeneration(context.WithoutCancel(ctx), pdfErr)
 		return nil, pdfErr
 	case <-time.After(types.RequestTimeout()):
 		assert.That(false, "generator failed to respond to request, something must be stuck", "url", request.URL)
 		pdfErr := types.NewPDFError(types.ErrGenerationFail, "internal request timeout", nil)
 		recordPDFError(span, pdfErr)
+		g.metrics.recordGeneration(ctx, pdfErr)
 		return nil, pdfErr
 	}
 }
