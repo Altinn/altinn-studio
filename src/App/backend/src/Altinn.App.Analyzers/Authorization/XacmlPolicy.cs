@@ -130,14 +130,13 @@ internal sealed class XacmlPolicy
         string org,
         string app,
         IReadOnlyList<string> anyOfActions,
-        HashSet<string>? taskScope,
         HashSet<string>? endEventIds
     )
     {
         var result = GrantResult.Missing;
         foreach (var action in anyOfActions)
         {
-            switch (EvaluateSingleAction(org, app, action, taskScope, endEventIds))
+            switch (EvaluateSingleAction(org, app, action, endEventIds))
             {
                 case GrantResult.Granted:
                     return GrantResult.Granted;
@@ -150,13 +149,7 @@ internal sealed class XacmlPolicy
         return result;
     }
 
-    private GrantResult EvaluateSingleAction(
-        string org,
-        string app,
-        string action,
-        HashSet<string>? taskScope,
-        HashSet<string>? endEventIds
-    )
+    private GrantResult EvaluateSingleAction(string org, string app, string action, HashSet<string>? endEventIds)
     {
         var result = GrantResult.Missing;
         foreach (var rule in Rules())
@@ -166,7 +159,7 @@ internal sealed class XacmlPolicy
                 continue;
             }
 
-            var outcome = EvaluateTarget(rule, org, app, action, taskScope, endEventIds);
+            var outcome = EvaluateTarget(rule, org, app, action, endEventIds);
 
             // A Condition narrows the rule in ways this analysis cannot evaluate, so a rule that
             // would otherwise apply can only ever be inconclusive.
@@ -197,7 +190,6 @@ internal sealed class XacmlPolicy
         string org,
         string app,
         string action,
-        HashSet<string>? taskScope,
         HashSet<string>? endEventIds
     )
     {
@@ -216,7 +208,7 @@ internal sealed class XacmlPolicy
                 var allOfOutcome = MatchOutcome.Satisfied;
                 foreach (var match in Children(allOf, "Match"))
                 {
-                    allOfOutcome = And(allOfOutcome, Evaluate(match, org, app, action, taskScope, endEventIds));
+                    allOfOutcome = And(allOfOutcome, Evaluate(match, org, app, action, endEventIds));
                 }
 
                 anyOfOutcome = Or(anyOfOutcome, allOfOutcome);
@@ -236,7 +228,6 @@ internal sealed class XacmlPolicy
         string org,
         string app,
         string action,
-        HashSet<string>? taskScope,
         HashSet<string>? endEventIds
     )
     {
@@ -273,15 +264,9 @@ internal sealed class XacmlPolicy
 
         if (category == ResourceCategory && attributeId == TaskAttributeId)
         {
-            // A task-scoped grant counts for a transition inside that task. For an action the app
-            // needs in any process state there is no task to check it against, so such a grant may
-            // or may not cover what the app does - hence unknown rather than unsatisfied.
-            if (taskScope is null)
-            {
-                return MatchOutcome.Unknown;
-            }
-
-            return ValueIsOneOf(match, taskScope);
+            // Every action the app owner needs is needed in any process state, so a grant scoped to
+            // a task may or may not cover what the app does - hence unknown rather than unsatisfied.
+            return MatchOutcome.Unknown;
         }
 
         if (category == ResourceCategory && attributeId == EndEventAttributeId)

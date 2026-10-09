@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useLocalStorage } from './useLocalStorage';
 import { typedLocalStorage } from '@studio/pure-functions';
@@ -13,9 +14,7 @@ describe('useLocalStorage', () => {
 
   it('Gets and parses value on first render only', () => {
     const key = 'someKey';
-    const getItemSpy = jest
-      .spyOn(window.Storage.prototype, 'getItem')
-      .mockImplementation(() => null);
+    const getItemSpy = vi.spyOn(window.Storage.prototype, 'getItem').mockImplementation(() => null);
     const { rerender } = renderHook(() => useLocalStorage(key));
     rerender();
     expect(getItemSpy).toHaveBeenCalledTimes(1);

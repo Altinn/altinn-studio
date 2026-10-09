@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { AllAccessPackages, type AllAccessPackagesProps } from './AllAccessPackages';
 import type {
@@ -55,7 +56,7 @@ const defaultProps = {
   chosenAccessPackages: [],
   accessPackagesToRender: groupedAccessPackagesByArea,
   searchValue: '',
-  handleSelectAccessPackage: jest.fn(),
+  handleSelectAccessPackage: vi.fn(),
 };
 
 describe('AllAccessPackages', () => {

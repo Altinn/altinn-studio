@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UserInput } from './UserInput';
 import { render, screen } from '@testing-library/react';
 import type { UserInputProps } from './UserInput';
@@ -5,11 +6,11 @@ import { mockTexts } from '../../../mocks/mockTexts';
 import userEvent from '@testing-library/user-event';
 
 // Test data
-const onSubmitMessage = jest.fn();
+const onSubmitMessage = vi.fn();
 
 describe('UserInput', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render textarea with placeholder', () => {

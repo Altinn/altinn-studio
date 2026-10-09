@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useSchemaEditorAppContext } from './useSchemaEditorAppContext';
 import type { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
@@ -8,15 +9,15 @@ import { SchemaModel } from '@altinn/schema-model';
 describe('useSchemaEditorAppContext', () => {
   it('Returns the provided context value if used inside a SchemaEditorAppContextProvider', () => {
     const schemaModel: SchemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
-    const save = jest.fn();
+    const save = vi.fn();
     const providedContext: SchemaEditorAppContextProps = {
       schemaModel,
       save,
-      setSelectedTypePointer: jest.fn(),
-      setSelectedUniquePointer: jest.fn(),
+      setSelectedTypePointer: vi.fn(),
+      setSelectedUniquePointer: vi.fn(),
       name: 'test',
       prefillConfig: {},
-      savePrefillConfig: jest.fn(),
+      savePrefillConfig: vi.fn(),
     };
     const { result } = renderHook(() => useSchemaEditorAppContext(), {
       wrapper: ({ children }) => (
@@ -30,7 +31,7 @@ describe('useSchemaEditorAppContext', () => {
 
   it('Throws an error if used outside a SchemaEditorAppContextProvider', () => {
     const renderHookFn = () => renderHook(() => useSchemaEditorAppContext());
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
     expect(renderHookFn).toThrow(
       'useSchemaEditorAppContext must be used within a SchemaEditorAppContextProvider.',
     );

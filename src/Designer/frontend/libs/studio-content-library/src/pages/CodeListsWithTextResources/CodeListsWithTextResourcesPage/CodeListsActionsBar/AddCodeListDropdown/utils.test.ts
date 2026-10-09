@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { getCodeListIdsFromExternalResources } from './utils';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import { externalResources } from '../../../../../test-data/externalResources';

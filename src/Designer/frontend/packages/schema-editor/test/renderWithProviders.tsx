@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import type { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
@@ -20,14 +21,14 @@ export const renderWithProviders =
 
     const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
       schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
-      save: jest.fn(),
+      save: vi.fn(),
       selectedUniquePointer: null,
-      setSelectedUniquePointer: jest.fn(),
+      setSelectedUniquePointer: vi.fn(),
       selectedTypePointer: null,
-      setSelectedTypePointer: jest.fn(),
+      setSelectedTypePointer: vi.fn(),
       name,
       prefillConfig: {},
-      savePrefillConfig: jest.fn(),
+      savePrefillConfig: vi.fn(),
       ...appContextProps,
     };
 
@@ -44,14 +45,14 @@ export const renderWithProviders =
     ) => {
       const newAppContextProps: SchemaEditorAppContextProps = {
         schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
-        save: jest.fn(),
+        save: vi.fn(),
         selectedUniquePointer: null,
-        setSelectedUniquePointer: jest.fn(),
+        setSelectedUniquePointer: vi.fn(),
         selectedTypePointer: null,
-        setSelectedTypePointer: jest.fn(),
+        setSelectedTypePointer: vi.fn(),
         name,
         prefillConfig: {},
-        savePrefillConfig: jest.fn(),
+        savePrefillConfig: vi.fn(),
         ...rerenderAppContextProps,
       };
 

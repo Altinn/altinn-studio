@@ -1,5 +1,5 @@
 {
-  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/application/application-metadata.schema.v1.json",
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.7/schemas/json/application/application-metadata.schema.v1.json",
   "id": "[ORG]/[APP]",
   "org": "[ORG]",
   "title": { "nb": "[APP]" },
