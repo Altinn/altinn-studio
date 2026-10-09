@@ -52,7 +52,7 @@ public class WorkflowEngineHooksTests(ITestOutputHelper output, AppFixtureClassF
             "WorkflowEngineHooks.OnTaskStarting.Task_Service",
             "WorkflowEngineHooks.IServiceTask.Execute.Success",
             "WorkflowEngineHooks.OnTaskEnding.Task_Service",
-            "WorkflowEngineHooks.OnProcessEnding"
+            "WorkflowEngineHooks.OnProcessEnded"
         );
     }
 
@@ -120,7 +120,7 @@ public class WorkflowEngineHooksTests(ITestOutputHelper output, AppFixtureClassF
             "WorkflowEngineHooks.OnTaskStarting.Task_Service",
             "WorkflowEngineHooks.IServiceTask.Execute.Success",
             "WorkflowEngineHooks.OnTaskEnding.Task_Service",
-            "WorkflowEngineHooks.OnProcessEnding"
+            "WorkflowEngineHooks.OnProcessEnded"
         );
     }
 
@@ -158,7 +158,7 @@ public class WorkflowEngineHooksTests(ITestOutputHelper output, AppFixtureClassF
             "WorkflowEngineHooks.OnTaskStarting.Task_Service",
             "WorkflowEngineHooks.IServiceTask.Execute.Success",
             "WorkflowEngineHooks.OnTaskEnding.Task_Service",
-            "WorkflowEngineHooks.OnProcessEnding"
+            "WorkflowEngineHooks.OnProcessEnded"
         );
         Assert.DoesNotContain("WorkflowEngineHooks.OnTaskEnding.Task_1.Success", logs);
         Assert.DoesNotContain("WorkflowEngineHooks.OnTaskEnding.Task_1.Failed", logs);

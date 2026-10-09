@@ -42,7 +42,6 @@ internal sealed class WorkflowStepOptionsValidator : IHostedService
         ValidateHandlers<IOnTaskStartingHandler>(sp, errors);
         ValidateHandlers<IOnTaskEndingHandler>(sp, errors);
         ValidateHandlers<IOnTaskAbandonHandler>(sp, errors);
-        ValidateHandlers<IOnProcessEndingHandler>(sp, errors);
         ValidateHandlers<IOnProcessEndedHandler>(sp, errors);
 
         if (errors.Count > 0)

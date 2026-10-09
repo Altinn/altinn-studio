@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - `studioctl app upgrade v9` points out `IPdfFormatter` implementations and their registrations, which no longer compile in v9, and suggests `excludeFromPdf` or, for conditional logic, a PDF service task with a custom layout instead. ([#19785](https://github.com/Altinn/altinn-studio/issues/19785))
-- `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` and `IOnProcessEndingHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+- `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 
 ### Changed
 
