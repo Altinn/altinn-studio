@@ -519,6 +519,138 @@ public class ProcessTaskConfigurationValidationServiceTests
         Assert.Contains($"({typeof(OtherSimpleTask).FullName})", warning.Message, StringComparison.Ordinal);
     }
 
+    public static TheoryData<Type> TaskHookTypes =>
+        [typeof(IOnTaskStartingHandler), typeof(IOnTaskEndingHandler), typeof(IOnTaskAbandonHandler)];
+
+    [Theory]
+    [MemberData(nameof(TaskHookTypes))]
+    public async Task StartAsync_TwoTaskHooksRunForTheSameTask_FailsValidation(Type hookType)
+    {
+        var exception = await Validate(
+            s =>
+            {
+                s.AddSingleton(hookType, new Hook(_ => true));
+                s.AddSingleton(hookType, new OtherHook(taskId => taskId == "Task1"));
+            },
+            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn")
+        );
+
+        Assert.NotNull(exception);
+        string finding = Assert.Single(
+            exception.Message.Split(Environment.NewLine),
+            line => line.StartsWith("  - ", StringComparison.Ordinal)
+        );
+        Assert.Equal(
+            $"  - Task 'Task1' has 2 {hookType.Name} implementations that run for it "
+                + $"({typeof(Hook).FullName}, {typeof(OtherHook).FullName}). Only one may run for a task: combine them, "
+                + "or change ShouldRunForTask so that only one returns true.",
+            finding
+        );
+    }
+
+    [Theory]
+    [MemberData(nameof(TaskHookTypes))]
+    public async Task StartAsync_TaskHooksForDifferentTasks_PassValidation(Type hookType)
+    {
+        var exception = await Validate(
+            s =>
+            {
+                s.AddSingleton(hookType, new Hook(taskId => taskId == "Task1"));
+                s.AddSingleton(hookType, new OtherHook(taskId => taskId == "Task2"));
+            },
+            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn")
+        );
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task StartAsync_TwoProcessEndedHooks_FailsValidation()
+    {
+        var exception = await Validate(
+            s =>
+            {
+                s.AddSingleton<IOnProcessEndedHandler>(new Hook(_ => true));
+                s.AddSingleton<IOnProcessEndedHandler>(new OtherHook(_ => true));
+            },
+            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn")
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains(
+            $"  - 2 {nameof(IOnProcessEndedHandler)} implementations are registered "
+                + $"({typeof(Hook).FullName}, {typeof(OtherHook).FullName}). Register only one.",
+            exception.Message,
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public async Task StartAsync_OneHookOfEachKind_PassesValidation()
+    {
+        var hook = new Hook(_ => true);
+        var exception = await Validate(
+            s =>
+            {
+                s.AddSingleton<IOnTaskStartingHandler>(hook);
+                s.AddSingleton<IOnTaskEndingHandler>(hook);
+                s.AddSingleton<IOnTaskAbandonHandler>(hook);
+                s.AddSingleton<IOnProcessEndedHandler>(hook);
+            },
+            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn")
+        );
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task StartAsync_HookThatCannotBeCreated_IsSkippedWithAWarning()
+    {
+        var logger = new FakeLogger<ProcessTaskConfigurationValidationService>();
+
+        var exception = await Validate(
+            s =>
+            {
+                s.AddTransient<IOnTaskEndingHandler>(_ => throw new InvalidOperationException("needs request state"));
+                s.AddSingleton<IOnTaskEndingHandler>(new Hook(_ => true));
+            },
+            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn"),
+            logger
+        );
+
+        Assert.Null(exception);
+        FakeLogRecord warning = Assert.Single(
+            logger.Collector.GetSnapshot(),
+            record => record.Level == LogLevel.Warning
+        );
+        Assert.StartsWith(
+            $"Could not create the {nameof(IOnTaskEndingHandler)} implementations at startup",
+            warning.Message,
+            StringComparison.Ordinal
+        );
+    }
+
+    private class Hook(Func<string, bool> runsForTask)
+        : IOnTaskStartingHandler,
+            IOnTaskEndingHandler,
+            IOnTaskAbandonHandler,
+            IOnProcessEndedHandler
+    {
+        public bool ShouldRunForTask(string taskId) => runsForTask(taskId);
+
+        public Task<HookResult> Execute(OnTaskStartingContext context) => throw NotExecuted();
+
+        public Task<HookResult> Execute(OnTaskEndingContext context) => throw NotExecuted();
+
+        public Task<HookResult> Execute(OnTaskAbandonContext context) => throw NotExecuted();
+
+        public Task<HookResult> Execute(OnProcessEndedContext context) => throw NotExecuted();
+
+        private static InvalidOperationException NotExecuted() => new("Validation must not execute the hook.");
+    }
+
+    private sealed class OtherHook(Func<string, bool> runsForTask) : Hook(runsForTask);
+
     private sealed class OtherSimpleTask(string type) : IServiceTask
     {
         public string Type => type;

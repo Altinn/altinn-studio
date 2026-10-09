@@ -11,6 +11,7 @@ namespace Altinn.App.Core.Features.Process;
 /// ending; it leaves the ended instance processing until resumed. Logic that must be able to stop the process from
 /// ending belongs in an <see cref="IOnTaskEndingHandler"/> for the last task.
 /// </para>
+/// <para>An app registers at most one implementation; with more, it does not start.</para>
 /// </remarks>
 [ImplementableByApps]
 public interface IOnProcessEndedHandler : IProcessStepConfigurable

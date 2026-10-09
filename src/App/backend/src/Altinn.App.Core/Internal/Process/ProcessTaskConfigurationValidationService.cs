@@ -13,11 +13,13 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.Process;
 
 /// <summary>
-/// Validates BPMN task types, the BPMN element each task uses, and task configuration at startup.
+/// Validates BPMN task types, the BPMN element each task uses, task configuration, and that at most one process
+/// hook of each kind runs for each task, at startup.
 /// </summary>
 /// <remarks>
 /// Creates a dependency injection scope so task implementations can use scoped services.
-/// Stops startup if configuration cannot be read.
+/// Stops startup if configuration cannot be read. A hook that cannot be created at startup is skipped with a
+/// warning, and the hook step checks for duplicates when it runs.
 /// </remarks>
 internal sealed class ProcessTaskConfigurationValidationService(
     IServiceScopeFactory scopeFactory,
@@ -35,12 +37,12 @@ internal sealed class ProcessTaskConfigurationValidationService(
         List<IPipelineServiceTask> serviceTasks;
         ApplicationMetadata appMetadata;
         HostingEnvironment environment;
+        var factory = new AppImplementationFactory(services);
         try
         {
             bpmnTasks = services.GetRequiredService<IProcessReader>().GetProcessTasks();
             appMetadata = services.GetRequiredService<IAppMetadata>().ApplicationMetadata;
             environment = AltinnEnvironments.GetHostingEnvironment(services.GetRequiredService<IHostEnvironment>());
-            var factory = new AppImplementationFactory(services);
             serviceTasks = factory.GetServiceTasks().ToList();
             processTasks = factory.GetAll<IProcessTask>().ToList();
         }
@@ -122,6 +124,26 @@ internal sealed class ProcessTaskConfigurationValidationService(
             }
         }
 
+        List<IOnTaskStartingHandler> taskStartingHooks = ResolveHooks<IOnTaskStartingHandler>(factory);
+        List<IOnTaskEndingHandler> taskEndingHooks = ResolveHooks<IOnTaskEndingHandler>(factory);
+        List<IOnTaskAbandonHandler> taskAbandonHooks = ResolveHooks<IOnTaskAbandonHandler>(factory);
+        List<IOnProcessEndedHandler> processEndedHooks = ResolveHooks<IOnProcessEndedHandler>(factory);
+
+        foreach (ProcessTask bpmnTask in bpmnTasks)
+        {
+            AddMultipleTaskHooksFinding(findings, bpmnTask.Id, taskStartingHooks, h => h.ShouldRunForTask(bpmnTask.Id));
+            AddMultipleTaskHooksFinding(findings, bpmnTask.Id, taskEndingHooks, h => h.ShouldRunForTask(bpmnTask.Id));
+            AddMultipleTaskHooksFinding(findings, bpmnTask.Id, taskAbandonHooks, h => h.ShouldRunForTask(bpmnTask.Id));
+        }
+
+        if (processEndedHooks.Count > 1)
+        {
+            findings.Add(
+                $"{processEndedHooks.Count} {nameof(IOnProcessEndedHandler)} implementations are registered "
+                    + $"({ImplementationNames(processEndedHooks)}). Register only one."
+            );
+        }
+
         WarnAboutUnreferencedServiceTasks(bpmnTasks, serviceTasks);
 
         if (listRegisteredTypes)
@@ -150,6 +172,52 @@ internal sealed class ProcessTaskConfigurationValidationService(
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    /// <summary>
+    /// Returns the registered <typeparamref name="THook"/> implementations, or none if they cannot be created at
+    /// startup, for example because one needs request state.
+    /// </summary>
+    private List<THook> ResolveHooks<THook>(AppImplementationFactory factory)
+        where THook : class
+    {
+        try
+        {
+            return factory.GetAll<THook>().ToList();
+        }
+        catch (Exception e)
+        {
+            logger.LogWarning(
+                e,
+                "Could not create the {HookType} implementations at startup to check that at most one runs for each "
+                    + "task. The hook step checks this when it runs.",
+                typeof(THook).Name
+            );
+            return [];
+        }
+    }
+
+    private static void AddMultipleTaskHooksFinding<THook>(
+        List<string> findings,
+        string taskId,
+        List<THook> hooks,
+        Func<THook, bool> runsForTask
+    )
+        where THook : class
+    {
+        List<THook> running = hooks.Where(runsForTask).ToList();
+        if (running.Count > 1)
+        {
+            findings.Add(
+                $"Task '{taskId}' has {running.Count} {typeof(THook).Name} implementations that run for it "
+                    + $"({ImplementationNames(running)}). Only one may run for a task: combine them, or change "
+                    + "ShouldRunForTask so that only one returns true."
+            );
+        }
+    }
+
+    private static string ImplementationNames<T>(IEnumerable<T> implementations)
+        where T : class =>
+        string.Join(", ", implementations.Select(implementation => implementation.GetType().FullName));
 
     /// <summary>
     /// Warns once per service task type that is registered on purpose but that no BPMN task declares.
