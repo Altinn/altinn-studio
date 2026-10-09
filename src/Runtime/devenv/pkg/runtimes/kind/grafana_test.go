@@ -1,9 +1,9 @@
 package kind
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"sigs.k8s.io/yaml"
@@ -63,7 +63,7 @@ func TestLoadGrafanaContent(t *testing.T) {
 	}
 }
 
-func TestLoadGrafanaContent_RejectsDatasourceOutsideProxy(t *testing.T) {
+func TestLoadGrafanaContent_SkipsDatasourceOutsideProxy(t *testing.T) {
 	repository := t.TempDir()
 	dir := filepath.Join(repository, "products", dashboardsProduct, "datasources")
 	if err := os.MkdirAll(dir, 0o750); err != nil {
@@ -80,7 +80,11 @@ spec:
 	if err := os.WriteFile(filepath.Join(dir, "other.yaml"), datasource, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := loadGrafanaContent(repository); !errors.Is(err, errDashboardsDatasourceURL) {
-		t.Fatalf("loadGrafanaContent() error = %v, want %v", err, errDashboardsDatasourceURL)
+	content, err := loadGrafanaContent(repository)
+	if err != nil {
+		t.Fatalf("loadGrafanaContent() error = %v", err)
+	}
+	if strings.Contains(content.Datasources, "example.invalid") {
+		t.Errorf("datasources include one outside the proxy:\n%s", content.Datasources)
 	}
 }

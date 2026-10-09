@@ -16,6 +16,8 @@ const (
 	// GrafanaImage matches the version of the shared Grafana, grafana.dis.altinn.cloud.
 	GrafanaImage    = "grafana/grafana:12.4.8"
 	grafanaMCPImage = "grafana/mcp-grafana:2.0.1"
+	// grafanaLogsPluginVersion is the VictoriaLogs datasource plugin the local Grafana installs.
+	grafanaLogsPluginVersion = "0.32.0"
 	// GrafanaAdminPassword is the local Grafana's admin password, which the MCP server uses.
 	GrafanaAdminPassword = "admin"
 
@@ -91,7 +93,8 @@ func buildGrafanaDeployment(digest string, caBundle *GrafanaCABundle) *appsv1.De
 			{Name: "GF_AUTH_ANONYMOUS_ENABLED", Value: "true"},
 			{Name: "GF_AUTH_ANONYMOUS_ORG_ROLE", Value: "Admin"},
 			{Name: "GF_SECURITY_ADMIN_PASSWORD", Value: GrafanaAdminPassword},
-			{Name: "GF_INSTALL_PLUGINS", Value: "victoriametrics-logs-datasource"},
+			// Pinned, so a restart does not bring a newer plugin than the shared Grafana's.
+			{Name: "GF_INSTALL_PLUGINS", Value: "victoriametrics-logs-datasource " + grafanaLogsPluginVersion},
 			// Keep the datasources bundled with the pinned image instead of fetching newer ones.
 			{Name: "GF_PLUGINS_PREINSTALL_AUTO_UPDATE", Value: "false"},
 			{Name: "GF_LOG_LEVEL", Value: "warn"},

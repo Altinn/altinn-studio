@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"maps"
 	"os"
 	"path/filepath"
@@ -46,7 +47,7 @@ const (
 var errDashboardsDatasourceURL = errors.New("datasource URL is not on the observability-proxy")
 
 // resolveDashboardsRepository returns the dashboards checkout to read: the one given, or a
-// clone in the fixture's cache, updated to the repository's main branch.
+// clone in the fixture's cache, updated to the repository's main branch when it can be.
 func resolveDashboardsRepository(explicit, cachePath string) (string, error) {
 	if explicit == "" {
 		explicit = os.Getenv(EnvDashboardsRepository)
@@ -69,7 +70,11 @@ func resolveDashboardsRepository(explicit, cachePath string) (string, error) {
 		Path:    filepath.Join(cachePath, "altinn-dashboards-grafana"),
 	}
 	if err := localbackend.EnsureGitCheckout(checkout); err != nil {
-		return "", fmt.Errorf("check out dashboards repository: %w", err)
+		// Offline, or with GitHub unavailable, the copy from an earlier start will do.
+		if _, statErr := os.Stat(filepath.Join(checkout.Path, ".git")); statErr != nil {
+			return "", fmt.Errorf("check out dashboards repository: %w", err)
+		}
+		log.Printf("warning: using the cached dashboards repository, which could not be updated: %v", err)
 	}
 	return checkout.Path, nil
 }
@@ -177,6 +182,12 @@ func readGrafanaResourceFile(path string) ([]map[string]any, string, error) {
 			}
 		case "GrafanaDatasource":
 			datasource, err := localDatasource(object.Spec)
+			// The local stack has only the observability-proxy's backends, so a datasource
+			// for anything else is left out rather than stopping the fixture.
+			if errors.Is(err, errDashboardsDatasourceURL) {
+				log.Printf("warning: skipping a Grafana datasource in %s: %v", path, err)
+				continue
+			}
 			if err != nil {
 				return nil, "", fmt.Errorf("%s: %w", path, err)
 			}
