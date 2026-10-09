@@ -36,7 +36,7 @@ public sealed class ComponentFormPropertiesMigrationTests : IDisposable
 
         Assert.Equal(1, result.FilesChanged);
         Assert.Equal(4, result.PropertiesRemoved);
-        Assert.Empty(result.Messages.Messages);
+        Assert.Single(result.Messages.Todos);
         Assert.All(components, component => Assert.Null(Assert.IsType<JsonObject>(component)["required"]));
         var required = Assert.IsType<JsonObject>(components[2]);
         var requiredTwo = Assert.IsType<JsonObject>(components[3]);
@@ -159,7 +159,7 @@ public sealed class ComponentFormPropertiesMigrationTests : IDisposable
         Assert.Null(requiredGroup["minCount"]);
         Assert.Null(requiredGroup["required"]);
         Assert.Null(optionalGroup["required"]);
-        Assert.Empty(result.Messages.Messages);
+        Assert.Single(result.Messages.Todos);
     }
 
     [Theory]
