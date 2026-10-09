@@ -315,7 +315,7 @@ public class TranslationServiceTests
     }
 
     [Fact]
-    public async Task TranslateTextKey_ContentTypeNotAllowed_MatchesFrontendText()
+    public async Task TranslateTextKey_ContentTypeNotAllowed_NamesAllowedTypes()
     {
         await using var provider = _services.BuildServiceProvider();
         var translationService = provider.GetRequiredService<ITranslationService>();
@@ -326,10 +326,7 @@ public class TranslationServiceTests
             new() { ["allowedContentTypes"] = "application/pdf, image/png" }
         );
 
-        Assert.Equal(
-            "It looks like you are trying to upload a file type that is not allowed. Please make sure that the file is actually the type it claims to be.",
-            result
-        );
+        Assert.EndsWith("Allowed file types are: application/pdf, image/png.", result);
     }
 
     [Fact]

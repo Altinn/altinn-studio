@@ -329,14 +329,14 @@ internal sealed class TranslationService : ITranslationService
                     en: "A field is in violation of the rules set by the XSD schema. Message: {0}",
                     customTextParameterKeys: ["message"]
                 );
-            // Same texts as the frontend language package, which the form uses for this key.
             case "altinn.standard_validation.file_content_type_not_allowed":
                 return Localized(
                     key,
                     language,
-                    nb: "Det ser ut som du prøver å laste opp en filtype som ikke er tillatt. Sjekk at filen faktisk er av den typen den utgir seg for å være.",
-                    nn: "Det ser ut som du prøver å lasta opp ein filtype som ikkje er tillaten. Sjekk at fila faktisk er av den typen han gir seg ut for å vera.",
-                    en: "It looks like you are trying to upload a file type that is not allowed. Please make sure that the file is actually the type it claims to be."
+                    nb: "Det ser ut som du prøver å laste opp en filtype som ikke er tillatt. Sjekk at filen faktisk er av den typen den utgir seg for å være. Tillatte filtyper er: {0}.",
+                    nn: "Det ser ut som du prøver å lasta opp ein filtype som ikkje er tillaten. Sjekk at fila faktisk er av den typen han gir seg ut for å vera. Tillatne filtypar er: {0}.",
+                    en: "It looks like you are trying to upload a file type that is not allowed. Please make sure that the file is actually the type it claims to be. Allowed file types are: {0}.",
+                    customTextParameterKeys: ["allowedContentTypes"]
                 );
             case "backend.validation_errors.missing_content_type":
                 return Localized(
