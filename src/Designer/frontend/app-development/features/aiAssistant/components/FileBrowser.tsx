@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { get } from 'app-shared/utils/networking';
 import { StudioFileBrowser } from '@studio/components';
@@ -14,11 +15,9 @@ import classes from './FileBrowser.module.css';
 
 export type FileSystemObject = {
   name: string;
-  sha?: string;
-  encoding?: string;
-  content?: string | null;
   path: string;
   type: string;
+  content?: string | null;
 };
 
 const ROOT_PATH = '';
@@ -31,7 +30,7 @@ export const FileBrowser = (): ReactElement => {
     path: ROOT_PATH,
     status: 'loading',
   });
-  const [file, setFile] = useState<StudioFileBrowserFile | undefined>(undefined);
+  const [file, setFile] = useState<StudioFileBrowserFile>();
 
   const texts: StudioFileBrowserTexts = {
     breadcrumbsLabel: t('ai_assistant.file_browser_breadcrumbs_label'),
@@ -46,69 +45,33 @@ export const FileBrowser = (): ReactElement => {
     expandCode: t('ai_assistant.file_browser_expand_code'),
   };
 
+  // The requests can complete in a different order.
+  // Only the response to the last folder or file that the user opened can change the view.
+  const latestRequest = useRef(0);
+
   // The current folder stays visible until the next folder has loaded, so the user does not see a spinner.
-  // Only the last request can update the folder or the file, in case the requests complete in a different order.
-  const latestDirectoryRequest = useRef(0);
-  const latestFileRequest = useRef(0);
-
-  const closeFile = useCallback((): void => {
-    latestFileRequest.current++;
-    setFile(undefined);
-  }, []);
-
   const openDirectory = useCallback(
     async (path: string): Promise<void> => {
-      const request = ++latestDirectoryRequest.current;
-      const isOutdated = (): boolean => request !== latestDirectoryRequest.current;
-      try {
-        const data = await get<FileSystemObject[]>(contentsUrl(org, app, path));
-        if (isOutdated()) return;
-        const entries = Array.isArray(data) ? data.map(toFileBrowserEntry) : [];
-        setDirectory({ path, status: 'loaded', entries });
-        closeFile();
-      } catch {
-        if (isOutdated()) return;
-        closeFile();
-        setDirectory({
-          path,
-          status: 'error',
-          errorMessage: t('ai_assistant.file_browser_directory_error'),
-        });
-      }
+      const request = ++latestRequest.current;
+      const nextDirectory = await fetchDirectory(org, app, path, t);
+      if (request !== latestRequest.current) return;
+      setDirectory(nextDirectory);
+      setFile(undefined);
     },
-    [org, app, t, closeFile],
+    [org, app, t],
   );
 
   const openFile = async (path: string): Promise<void> => {
-    const request = ++latestFileRequest.current;
-    const isOutdated = (): boolean => request !== latestFileRequest.current;
+    const request = ++latestRequest.current;
     setFile({ path, status: 'loading' });
-    try {
-      const data = await get<FileSystemObject[] | FileSystemObject | null>(
-        contentsUrl(org, app, path),
-      );
-      if (isOutdated()) return;
-      const entry = Array.isArray(data) ? data[0] : data;
-      if (entry?.content == null) {
-        setFile({
-          path,
-          status: 'error',
-          errorMessage: t('ai_assistant.file_browser_file_unavailable'),
-        });
-      } else {
-        setFile({ path, status: 'loaded', content: entry.content });
-      }
-    } catch {
-      if (isOutdated()) return;
-      setFile({ path, status: 'error', errorMessage: t('ai_assistant.file_browser_file_error') });
-    }
+    const nextFile = await fetchFile(org, app, path, t);
+    if (request !== latestRequest.current) return;
+    setFile(nextFile);
   };
 
   useEffect(() => {
-    if (org && app) {
-      void openDirectory(ROOT_PATH);
-    }
-  }, [org, app, openDirectory]);
+    void openDirectory(ROOT_PATH);
+  }, [openDirectory]);
 
   return (
     <StudioFileBrowser
@@ -121,6 +84,41 @@ export const FileBrowser = (): ReactElement => {
     />
   );
 };
+
+async function fetchDirectory(
+  org: string,
+  app: string,
+  path: string,
+  t: TFunction,
+): Promise<StudioFileBrowserDirectory> {
+  try {
+    const entries = await get<FileSystemObject[]>(contentsUrl(org, app, path));
+    return { path, status: 'loaded', entries: entries.map(toFileBrowserEntry) };
+  } catch {
+    return { path, status: 'error', errorMessage: t('ai_assistant.file_browser_directory_error') };
+  }
+}
+
+async function fetchFile(
+  org: string,
+  app: string,
+  path: string,
+  t: TFunction,
+): Promise<StudioFileBrowserFile> {
+  try {
+    const [entry] = await get<FileSystemObject[]>(contentsUrl(org, app, path));
+    if (entry?.content == null) {
+      return {
+        path,
+        status: 'error',
+        errorMessage: t('ai_assistant.file_browser_file_unavailable'),
+      };
+    }
+    return { path, status: 'loaded', content: entry.content };
+  } catch {
+    return { path, status: 'error', errorMessage: t('ai_assistant.file_browser_file_error') };
+  }
+}
 
 function contentsUrl(org: string, app: string, path: string): string {
   const query = path ? `?path=${encodeURIComponent(path)}` : '';

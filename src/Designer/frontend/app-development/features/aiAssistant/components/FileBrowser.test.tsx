@@ -30,14 +30,14 @@ describe('FileBrowser', () => {
     mockContents({
       '': Promise.resolve([firstFile, secondFile]),
       [firstFile.path]: firstFileResponse.promise,
-      [secondFile.path]: Promise.resolve({ ...secondFile, content: 'Second' }),
+      [secondFile.path]: Promise.resolve([{ ...secondFile, content: 'Second' }]),
     });
     renderFileBrowser();
 
     await user.click(await findEntryButton(firstFile.name));
     await user.click(await findEntryButton(secondFile.name));
     await screen.findByRole('region', { name: secondFile.path });
-    await act(async () => firstFileResponse.resolve({ ...firstFile, content: 'First' }));
+    await act(async () => firstFileResponse.resolve([{ ...firstFile, content: 'First' }]));
 
     expect(screen.getByRole('region', { name: secondFile.path })).toBeInTheDocument();
     expect(screen.queryByRole('region', { name: firstFile.path })).not.toBeInTheDocument();
@@ -56,12 +56,31 @@ describe('FileBrowser', () => {
     await user.click(await findEntryButton(firstFile.name));
     await user.click(await findEntryButton(folder.name));
     await screen.findByText(textMock('ai_assistant.file_browser_empty_directory'));
-    await act(async () => fileResponse.resolve({ ...firstFile, content: 'First' }));
+    await act(async () => fileResponse.resolve([{ ...firstFile, content: 'First' }]));
 
     expect(screen.queryByRole('region', { name: firstFile.path })).not.toBeInTheDocument();
     expect(
       screen.getByText(textMock('ai_assistant.file_browser_no_file_selected')),
     ).toBeInTheDocument();
+  });
+
+  it('opens the file and keeps the current folder when the user opens the file while another folder loads', async () => {
+    const user = userEvent.setup();
+    const folderResponse = createDelayedResponse();
+    mockContents({
+      '': Promise.resolve([firstFile, folder]),
+      [firstFile.path]: Promise.resolve([{ ...firstFile, content: 'First' }]),
+      [folder.path]: folderResponse.promise,
+    });
+    renderFileBrowser();
+
+    await user.click(await findEntryButton(folder.name));
+    await user.click(await findEntryButton(firstFile.name));
+    await screen.findByRole('region', { name: firstFile.path });
+    await act(async () => folderResponse.resolve([]));
+
+    expect(screen.getByRole('region', { name: firstFile.path })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: folder.name })).toBeInTheDocument();
   });
 });
 
