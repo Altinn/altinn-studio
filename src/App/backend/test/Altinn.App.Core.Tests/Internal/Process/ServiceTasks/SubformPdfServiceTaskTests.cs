@@ -1,8 +1,10 @@
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Models;
@@ -10,7 +12,10 @@ using Altinn.App.Core.Tests.Features.Process;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
@@ -546,7 +551,145 @@ public class SubformPdfServiceTaskTests
         );
     }
 
-    private void SetupProcessReader()
+    // ===== STARTUP VALIDATION TESTS =====
+
+    [Fact]
+    public void ValidateConfiguration_CompleteConfiguration_ReturnsNoFindings()
+    {
+        SetupProcessReader();
+
+        Assert.Empty(_serviceTask.ValidateConfiguration(ValidationContext()));
+    }
+
+    [Fact]
+    public void ValidateConfiguration_MissingConfiguration_ReturnsFinding()
+    {
+        _processReaderMock
+            .Setup(x => x.GetAltinnTaskExtension("Task_SubformPdf"))
+            .Returns(new AltinnTaskExtension { TaskType = "subformPdf" });
+
+        string finding = Assert.Single(_serviceTask.ValidateConfiguration(ValidationContext()));
+
+        Assert.Contains("<altinn:subformPdfConfig>", finding);
+    }
+
+    [Theory]
+    [InlineData(null, SubformDataTypeId, nameof(AltinnSubformPdfConfiguration.SubformComponentId))]
+    [InlineData(" ", SubformDataTypeId, nameof(AltinnSubformPdfConfiguration.SubformComponentId))]
+    [InlineData(SubformComponentId, null, nameof(AltinnSubformPdfConfiguration.SubformDataTypeId))]
+    [InlineData(SubformComponentId, "", nameof(AltinnSubformPdfConfiguration.SubformDataTypeId))]
+    public void ValidateConfiguration_MissingRequiredField_ReturnsFinding(
+        string? subformComponentId,
+        string? subformDataTypeId,
+        string field
+    )
+    {
+        SetupProcessReader(subformComponentId, subformDataTypeId);
+
+        string finding = Assert.Single(_serviceTask.ValidateConfiguration(ValidationContext()));
+
+        Assert.Contains($"{field} is missing", finding);
+    }
+
+    [Theory]
+    [InlineData("other-data-type")]
+    // Execute matches data elements by exact data type id.
+    [InlineData("Subform-Data-Type")]
+    public void ValidateConfiguration_UndeclaredSubformDataType_ReturnsFinding(string declaredDataTypeId)
+    {
+        SetupProcessReader();
+
+        string finding = Assert.Single(
+            _serviceTask.ValidateConfiguration(ValidationContext([new DataType { Id = declaredDataTypeId }]))
+        );
+
+        Assert.Contains($"subform data type '{SubformDataTypeId}'", finding);
+        Assert.Contains("applicationmetadata.json", finding);
+    }
+
+    [Fact]
+    public async Task StartupValidation_InvalidConfiguration_StopsStartup()
+    {
+        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() => RunStartupValidation("undeclared"));
+
+        string message = exception.Message;
+        Assert.Contains("Task 'Task_SubformPdf': ", message);
+        Assert.Contains($"subform data type '{SubformDataTypeId}'", message);
+    }
+
+    [Fact]
+    public async Task StartupValidation_ValidConfiguration_Passes()
+    {
+        await RunStartupValidation();
+    }
+
+    private static ProcessTaskValidationContext ValidationContext(List<DataType>? dataTypes = null) =>
+        new()
+        {
+            TaskId = "Task_SubformPdf",
+            Environment = HostingEnvironment.Production,
+            ApplicationMetadata = new ApplicationMetadata("ttd/app")
+            {
+                DataTypes = dataTypes ?? [new DataType { Id = SubformDataTypeId }],
+            },
+        };
+
+    private async Task RunStartupValidation(string declaredDataTypeId = SubformDataTypeId)
+    {
+        List<ProcessTask> tasks =
+        [
+            new ServiceTask
+            {
+                Id = "Task_SubformPdf",
+                ExtensionElements = new ExtensionElements
+                {
+                    TaskExtension = new AltinnTaskExtension
+                    {
+                        TaskType = "subformPdf",
+                        SubformPdfConfiguration = new AltinnSubformPdfConfiguration
+                        {
+                            SubformComponentId = SubformComponentId,
+                            SubformDataTypeId = SubformDataTypeId,
+                            FilenameTextResourceKey = FileName,
+                        },
+                    },
+                },
+            },
+        ];
+        _processReaderMock.Setup(x => x.GetProcessTasks()).Returns(tasks);
+        _processReaderMock
+            .Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>()))
+            .Returns((string taskId) => tasks.Single(task => task.Id == taskId).ExtensionElements?.TaskExtension);
+        var appMetadata = new Mock<IAppMetadata>();
+        appMetadata
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("ttd/app") { DataTypes = [new DataType { Id = declaredDataTypeId }] });
+        var hostEnvironment = new Mock<IHostEnvironment>();
+        hostEnvironment.Setup(x => x.EnvironmentName).Returns("Production");
+
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddAppImplementationFactory();
+        services.AddSingleton(_processReaderMock.Object);
+        services.AddSingleton(appMetadata.Object);
+        services.AddSingleton(hostEnvironment.Object);
+        services.AddSingleton(_pdfServiceMock.Object);
+        services.AddTransient<IServiceTask, SubformPdfServiceTask>();
+        await using ServiceProvider provider = services.BuildServiceProvider(
+            new ServiceProviderOptions { ValidateScopes = true }
+        );
+        var validationService = new ProcessTaskConfigurationValidationService(
+            provider.GetRequiredService<IServiceScopeFactory>(),
+            NullLogger<ProcessTaskConfigurationValidationService>.Instance
+        );
+
+        await validationService.StartAsync(CancellationToken.None);
+    }
+
+    private void SetupProcessReader(
+        string? subformComponentId = SubformComponentId,
+        string? subformDataTypeId = SubformDataTypeId
+    )
     {
         _processReaderMock
             .Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>()))
@@ -556,8 +699,8 @@ public class SubformPdfServiceTaskTests
                     TaskType = "subformPdf",
                     SubformPdfConfiguration = new AltinnSubformPdfConfiguration
                     {
-                        SubformComponentId = SubformComponentId,
-                        SubformDataTypeId = SubformDataTypeId,
+                        SubformComponentId = subformComponentId,
+                        SubformDataTypeId = subformDataTypeId,
                         FilenameTextResourceKey = FileName,
                     },
                 }
