@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
@@ -51,7 +52,7 @@ const newLayout: IInternalLayout = {
 };
 
 describe('useFormLayoutMutation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Calls saveFormLayoutV3 with correct arguments and payload', async () => {
     await renderAndMutate(newLayout);
@@ -83,7 +84,7 @@ describe('useFormLayoutMutation', () => {
   });
 
   it('Reloads preview iframe', async () => {
-    const reload = jest.fn();
+    const reload = vi.fn();
     const previewIframeRefMock = createRef<HTMLIFrameElement>();
     const previewIframeRef: RefObject<HTMLIFrameElement> = {
       current: {

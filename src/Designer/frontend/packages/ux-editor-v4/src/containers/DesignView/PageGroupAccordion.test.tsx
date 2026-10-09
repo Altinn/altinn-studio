@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { renderWithProviders } from '../../testing/mocks';
@@ -38,7 +39,7 @@ const singlePageGroupMock: PagesModel = {
 
 describe('PageGroupAccordion', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should disable move-up for first group, and move-down for last group', async () => {
@@ -51,7 +52,7 @@ describe('PageGroupAccordion', () => {
 
   it('should correctly call mutation on changePageGroupOrder when moving a group up', async () => {
     const user = userEvent.setup();
-    const changePageGroups = jest.fn();
+    const changePageGroups = vi.fn();
     await renderPageGroupAccordion({ queries: { changePageGroups } });
     await user.click(moveGroupUpButton(1));
     expect(changePageGroups).toHaveBeenCalledTimes(1);
@@ -61,7 +62,7 @@ describe('PageGroupAccordion', () => {
 
   it('should correctly call mutation on changePageGroupOrder when moving a group up', async () => {
     const user = userEvent.setup();
-    const changePageGroups = jest.fn();
+    const changePageGroups = vi.fn();
     await renderPageGroupAccordion({ queries: { changePageGroups } });
     await user.click(moveGroupDownButton(0));
     expect(changePageGroups).toHaveBeenCalledTimes(1);
@@ -85,7 +86,7 @@ describe('PageGroupAccordion', () => {
 
   it('should set selectedItem when group header is clicked', async () => {
     const user = userEvent.setup();
-    const setSelectedItem = jest.fn();
+    const setSelectedItem = vi.fn();
     await renderPageGroupAccordion({
       appContextProps: { setSelectedItem },
     });
@@ -98,8 +99,8 @@ describe('PageGroupAccordion', () => {
 
   it('should set selectedItem to null if group is selected and deleted', async () => {
     const user = userEvent.setup();
-    const setSelectedItem = jest.fn();
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+    const setSelectedItem = vi.fn();
+    vi.spyOn(window, 'confirm').mockImplementation(vi.fn(() => true));
     await renderPageGroupAccordion({
       appContextProps: { selectedItem: { type: ItemType.Group, id: 0 }, setSelectedItem },
     });
@@ -158,7 +159,7 @@ const renderPageGroupAccordion = async ({ props, queries, appContextProps }: ren
       selectedFormLayoutName={layoutSet1NameMock}
       pages={pagesMock}
       layouts={layouts}
-      onAccordionClick={jest.fn()}
+      onAccordionClick={vi.fn()}
       isAddPagePending={false}
       {...props}
     ></PageGroupAccordion>,

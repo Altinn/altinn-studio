@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { TasksTable, type TasksTableProps } from './TasksTable';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -15,7 +16,7 @@ const tasksMock: TaskNavigationGroup[] = [
 const allTasksMock: TaskNavigationGroup[] = [...tasksMock, { taskType: 'type3', name: 'Task 3' }];
 
 describe('TasksTable', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks());
 
   it('should render the table with tasks', () => {
     renderTasksTable();
@@ -44,7 +45,7 @@ describe('TasksTable', () => {
   });
 
   it('should remove all tasks from navigation table when hide all button is clicked and confirmed', async () => {
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+    vi.spyOn(window, 'confirm').mockImplementation(vi.fn(() => true));
     const user = userEvent.setup();
     renderTasksTable();
 

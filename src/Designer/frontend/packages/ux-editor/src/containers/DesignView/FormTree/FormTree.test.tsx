@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { FormTree } from './FormTree';
 import { StudioDragAndDropTree } from '@studio/components';
@@ -21,8 +22,8 @@ const user = userEvent.setup();
 const textResources: ITextResources = {
   [DEFAULT_LANGUAGE]: [],
 };
-const onAdd = jest.fn();
-const onMove = jest.fn();
+const onAdd = vi.fn();
+const onMove = vi.fn();
 
 const rootComponent: FormComponent = {
   id: 'rootComponent',
@@ -82,19 +83,19 @@ const subSubComponentName = textMock(`ux_editor.component_title.${subSubComponen
 const rootContainerName = textMock(`ux_editor.component_title.${rootContainerWithChildren.type}`);
 const emptyRootContainerName = textMock(`ux_editor.component_title.${emptyRootContainer.type}`);
 const subContainerName = textMock(`ux_editor.component_title.${subContainer.type}`);
-const handleEdit = jest.fn();
+const handleEdit = vi.fn();
 const formItemContext: FormItemContext = {
-  debounceSave: jest.fn(),
+  debounceSave: vi.fn(),
   formItem: null,
   formItemId: '',
-  handleDiscard: jest.fn(),
+  handleDiscard: vi.fn(),
   handleEdit,
-  handleSave: jest.fn(),
-  handleUpdate: jest.fn(),
+  handleSave: vi.fn(),
+  handleUpdate: vi.fn(),
 };
 
 describe('FormTree', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Renders top level items only by default', () => {
     render();

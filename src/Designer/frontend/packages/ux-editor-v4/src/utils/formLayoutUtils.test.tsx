@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import {
   addComponent,
   addContainer,
@@ -146,7 +147,7 @@ describe('formLayoutUtils', () => {
       const navigationButtonsComponent: FormComponent<ComponentType.NavigationButtons> = {
         id: navigationButtonsId,
         itemType: 'COMPONENT',
-        onClickAction: jest.fn(),
+        onClickAction: vi.fn(),
         type: ComponentType.NavigationButtons,
         dataModelBindings: {},
       };

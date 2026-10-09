@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import {
   useFormLayouts,
   useFormLayout,
@@ -18,7 +19,7 @@ const selectedLayoutName = layout1NameMock;
 const selectedLayoutSet = layoutSet1NameMock;
 
 const render = async (callback: () => IFormLayouts | IInternalLayout | IInternalLayoutWithName) => {
-  const getFormLayoutsV3 = jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock));
+  const getFormLayoutsV3 = vi.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock));
   const formLayoutsResult = renderHookWithMockStore(
     {},
     { getFormLayoutsV3 },

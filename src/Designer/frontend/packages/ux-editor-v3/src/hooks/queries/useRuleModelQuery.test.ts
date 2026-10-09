@@ -1,3 +1,4 @@
+import { afterAll, describe, expect, it, vi } from 'vitest';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import type { WindowWithRuleModel } from './useRuleModelQuery';
@@ -31,7 +32,7 @@ import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock'
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;
 
-const getRuleModel = jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock));
+const getRuleModel = vi.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock));
 
 describe('useRuleModelQuery', () => {
   afterAll(() => {

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { AvailableAttachmentLists, InternalDataTypesFormat } from '../types';
 import { reservedDataTypes } from '../attachmentListUtils';

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useDeleteFormComponentMutation } from './useDeleteFormComponentMutation';
@@ -12,17 +13,17 @@ import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;
 
-jest.mock('bpmn-moddle', () =>
-  jest.fn(() => ({
-    fromXML: jest.fn().mockResolvedValue({
+vi.mock('bpmn-moddle', () =>
+  vi.fn(() => ({
+    fromXML: vi.fn().mockResolvedValue({
       rootElement: getDataTypesToSignMock([componentMocks[ComponentType.FileUpload].id]),
     }),
-    toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
+    toXML: vi.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
   })),
 );
 
 describe('useDeleteFormComponentMutation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Should save layout without deleted component', async () => {
     const { result } = await renderDeleteFormComponentsMutation();
@@ -88,7 +89,7 @@ describe('useDeleteFormComponentMutation', () => {
 });
 
 const renderDeleteFormComponentsMutation = async () => {
-  const getFormLayouts = jest
+  const getFormLayouts = vi
     .fn()
     .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
 

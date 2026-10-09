@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderHookWithMockStore } from '../../../../../testing/mocks';
 import { useDeleteItem } from './useDeleteItem';
 import type { FormComponent } from '../../../../../types/FormComponent';
@@ -7,17 +8,17 @@ import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { container1IdMock, layoutMock } from '../../../../../testing/layoutMock';
 
 // Mocks:
-const mockContainerMutation = jest.fn();
-const mockComponentMutation = jest.fn();
-jest.mock('../../../../../hooks/mutations/useDeleteFormContainerMutation', () => ({
+const mockContainerMutation = vi.fn();
+const mockComponentMutation = vi.fn();
+vi.mock('../../../../../hooks/mutations/useDeleteFormContainerMutation', () => ({
   useDeleteFormContainerMutation: () => ({ mutate: mockContainerMutation }),
 }));
-jest.mock('../../../../../hooks/mutations/useDeleteFormComponentMutation', () => ({
+vi.mock('../../../../../hooks/mutations/useDeleteFormComponentMutation', () => ({
   useDeleteFormComponentMutation: () => ({ mutate: mockComponentMutation }),
 }));
 
 describe('useDeleteItem', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Calls component mutation when formItem is a component', () => {
     const { result } = render(componentMocks[ComponentTypeV3.Input]);

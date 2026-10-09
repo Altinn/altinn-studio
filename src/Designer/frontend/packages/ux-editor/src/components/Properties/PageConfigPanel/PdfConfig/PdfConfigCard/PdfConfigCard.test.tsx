@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { PdfConfigCard, type PdfConfigCardProps } from './PdfConfigCard';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -13,10 +14,10 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const selectedLayoutSet: string = layoutSet1NameMock;
 const pdfLayoutNameMock: string = 'pdfLayoutNameMock';
-const mutateLayoutSettings = jest.fn();
+const mutateLayoutSettings = vi.fn();
 
 describe('PdfConfigCard', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('renders convertToPdf label when current page is not pdf', () => {
     renderPdfConfigCard();
@@ -71,7 +72,7 @@ describe('PdfConfigCard', () => {
   });
 });
 
-const mockOnClickConvert = jest.fn();
+const mockOnClickConvert = vi.fn();
 
 const defaultProps: PdfConfigCardProps = {
   onClickConvert: mockOnClickConvert,

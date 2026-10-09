@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useDeleteFormContainerMutation } from './useDeleteFormContainerMutation';
@@ -23,20 +24,20 @@ import { convertExternalLayoutsToInternalFormat } from '@altinn/ux-editor-v4/uti
 const selectedLayoutSet = layoutSet1NameMock;
 const id = container1IdMock;
 
-jest.mock('bpmn-moddle', () =>
-  jest.fn(() => ({
-    fromXML: jest.fn().mockResolvedValue({
+vi.mock('bpmn-moddle', () =>
+  vi.fn(() => ({
+    fromXML: vi.fn().mockResolvedValue({
       rootElement: getDataTypesToSignMock([
         componentMocks[ComponentType.FileUpload].id,
         componentMocks[ComponentType.FileUploadWithTag].id,
       ]),
     }),
-    toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
+    toXML: vi.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
   })),
 );
 
 describe('useDeleteFormContainerMutation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Should save layout without deleted container and send componentIds that has been deleted for syncing', async () => {
     const { result } = await renderDeleteFormContainerMutation();

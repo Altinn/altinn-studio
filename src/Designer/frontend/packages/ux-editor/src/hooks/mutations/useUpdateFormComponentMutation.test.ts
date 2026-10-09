@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithProviders } from '../../testing/mocks';
@@ -46,17 +47,17 @@ const fileUploadDataType = {
   minCount: 1,
 };
 
-jest.mock('bpmn-moddle', () =>
-  jest.fn(() => ({
-    fromXML: jest.fn().mockResolvedValue({
+vi.mock('bpmn-moddle', () =>
+  vi.fn(() => ({
+    fromXML: vi.fn().mockResolvedValue({
       rootElement: getDataTypesToSignMock([componentMocks[ComponentType.FileUpload].id]),
     }),
-    toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
+    toXML: vi.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
   })),
 );
 
 describe('useUpdateFormComponentMutation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Saves layout with updated component', async () => {
     renderAndWaitForData();

@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import React, { useEffect } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { AppContextProps, SelectedItem, WindowWithQueryClient } from './AppContext';
@@ -17,12 +19,12 @@ import { AppRouter } from './testing/mocks';
 import { useSearchParams } from 'react-router-dom';
 import { ItemType } from './components/Properties/ItemType';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useSearchParams: jest.fn(),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
+  useSearchParams: vi.fn(),
 }));
 
-const mockUseSearchParams = useSearchParams as unknown as jest.Mock;
+const mockUseSearchParams = useSearchParams as unknown as Mock;
 const mockSelectedFormLayoutSetName = layoutSet;
 const mockSelectedFormLayoutName = layout1NameMock;
 
@@ -84,15 +86,15 @@ const ItemSelector = ({
 );
 
 const renderAppContext = (children: (appContext: AppContextProps) => React.ReactNode) => {
-  const doReloadPreview = jest.fn();
+  const doReloadPreview = vi.fn();
   const previewContextValue: PreviewContextProps = {
     shouldReloadPreview: false,
     doReloadPreview,
-    previewHasLoaded: jest.fn(),
+    previewHasLoaded: vi.fn(),
   };
   const queryClient = createQueryClientMock();
-  queryClient.invalidateQueries = jest.fn();
-  queryClient.resetQueries = jest.fn();
+  queryClient.invalidateQueries = vi.fn();
+  queryClient.resetQueries = vi.fn();
   queryClient.setQueryData(
     [QueryKey.LayoutSets, org, app],
     [
@@ -116,8 +118,8 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
           <PreviewContext.Provider value={previewContextValue}>
             <AppContextProvider
               shouldReloadPreview={false}
-              previewHasLoaded={jest.fn()}
-              onLayoutSetNameChange={jest.fn()}
+              previewHasLoaded={vi.fn()}
+              onLayoutSetNameChange={vi.fn()}
             >
               <TestComponent queryClient={queryClient}>
                 {(appContext: AppContextProps) => children(appContext)}
@@ -134,12 +136,12 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
 
 describe('AppContext', () => {
   beforeEach(() => {
-    mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()]);
+    mockUseSearchParams.mockReturnValue([new URLSearchParams(), vi.fn()]);
   });
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('sets selectedFormLayoutName correctly', async () => {
-    const setSearchParamsMock = jest.fn();
+    const setSearchParamsMock = vi.fn();
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), setSearchParamsMock]);
     renderAppContext(({ selectedFormLayoutName, setSelectedFormLayoutName }: AppContextProps) => (
       <>
@@ -154,10 +156,7 @@ describe('AppContext', () => {
 
   it('initializes selectedItem from layout query parameter', async () => {
     const layoutFromUrl = 'Side1';
-    mockUseSearchParams.mockReturnValue([
-      new URLSearchParams(`layout=${layoutFromUrl}`),
-      jest.fn(),
-    ]);
+    mockUseSearchParams.mockReturnValue([new URLSearchParams(`layout=${layoutFromUrl}`), vi.fn()]);
     renderAppContext(({ selectedItem }: AppContextProps) => (
       <div data-testid='selectedItemId'>{selectedItem ? selectedItem.id : ''}</div>
     ));
@@ -169,10 +168,7 @@ describe('AppContext', () => {
   it('setSelectedItem updates selectedItem at runtime', async () => {
     const layoutFromUrl = 'Side1';
     const componentId = 'component-1';
-    mockUseSearchParams.mockReturnValue([
-      new URLSearchParams(`layout=${layoutFromUrl}`),
-      jest.fn(),
-    ]);
+    mockUseSearchParams.mockReturnValue([new URLSearchParams(`layout=${layoutFromUrl}`), vi.fn()]);
     renderAppContext(({ selectedItem, setSelectedItem }: AppContextProps) => (
       <ItemSelector
         setSelectedItem={setSelectedItem}
@@ -190,7 +186,7 @@ describe('AppContext', () => {
 
   it('initializes selectedItem as null when no layout query parameter is set', async () => {
     const pageId = 'override-page';
-    mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()]);
+    mockUseSearchParams.mockReturnValue([new URLSearchParams(), vi.fn()]);
     renderAppContext(({ selectedItem, setSelectedItem }: AppContextProps) => (
       <ItemSelector
         setSelectedItem={setSelectedItem}

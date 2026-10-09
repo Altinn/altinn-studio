@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { FormComponentConfigProps } from './FormComponentConfig';
 import { FormComponentConfig } from './FormComponentConfig';
 import { renderWithMockStore } from '../../testing/mocks';
@@ -142,7 +143,7 @@ describe('FormComponentConfig', () => {
       schema: InputSchema,
       editFormId: '',
       component: inputComponent,
-      handleComponentUpdate: jest.fn(),
+      handleComponentUpdate: vi.fn(),
       hideUnsupported: false,
     };
     return renderWithMockStore({}, queries)(<FormComponentConfig {...defaultProps} {...props} />);

@@ -1,11 +1,12 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SavableFormLayoutSettings } from '@altinn/ux-editor-v4/classes/SavableFormLayoutSettings';
 import { formLayoutSettingsMock } from '../testing/mocks';
 import { FormLayoutSettings } from '@altinn/ux-editor-v4/classes/FormLayoutSettings';
 
-const saveFormLayoutSettings = jest.fn();
+const saveFormLayoutSettings = vi.fn();
 
 describe('SavableFormLayoutSettings', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
   it('saves layoutSettings when save function is called', () => {
     const savableLayoutSettings = setupLayoutSettings();
     savableLayoutSettings.save();

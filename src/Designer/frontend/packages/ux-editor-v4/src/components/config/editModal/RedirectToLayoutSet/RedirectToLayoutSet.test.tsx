@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RedirectToLayoutSet } from './RedirectToLayoutSet';
 import { screen } from '@testing-library/react';
@@ -7,16 +8,16 @@ import { AppContext } from '../../../../AppContext';
 import { appContextMock } from '../../../../testing/appContextMock';
 
 const subformLayoutSetIdMock = 'subformLayoutSetId';
-const mockNavigate = jest.fn();
+const mockNavigate = vi.fn();
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockNavigate,
 }));
 
 describe('RedirectToLayoutSet', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('displays a redirect button to design layout set for the subform if set', () => {

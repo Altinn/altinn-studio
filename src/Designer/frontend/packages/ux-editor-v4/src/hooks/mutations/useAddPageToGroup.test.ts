@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAddPageToGroup } from './useAddPageToGroup';
 import type { PagesModel, PagesModelWithPageGroups } from 'app-shared/types/api/dto/PagesModel';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -8,7 +9,7 @@ import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock'
 
 describe('useAddPageToGroup', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should add a page to the group and call the mutation', async () => {

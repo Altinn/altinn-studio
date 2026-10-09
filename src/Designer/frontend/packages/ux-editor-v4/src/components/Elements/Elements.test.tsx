@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { Elements } from './Elements';
 import { renderWithProviders } from '../../testing/mocks';
@@ -12,17 +13,17 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 
-jest.mock('app-shared/hooks/useCustomReceiptLayoutSetName');
-jest.mock('../../hooks/useGetLayoutSetByName', () => ({
+vi.mock('app-shared/hooks/useCustomReceiptLayoutSetName');
+vi.mock('../../hooks/useGetLayoutSetByName', () => ({
   useGetLayoutSetByName: () => ({
     id: 'test',
   }),
 }));
-const mockUseCustomReceiptLayoutSetName = jest.mocked(useCustomReceiptLayoutSetName);
+const mockUseCustomReceiptLayoutSetName = vi.mocked(useCustomReceiptLayoutSetName);
 
 describe('Elements', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render', () => {
@@ -69,7 +70,7 @@ describe('Elements', () => {
   });
 
   it('should render conf page toolbar when processTaskType is payment', async () => {
-    const getProcessTaskType = jest.fn(() => Promise.resolve('payment'));
+    const getProcessTaskType = vi.fn(() => Promise.resolve('payment'));
     const queryClient = createQueryClientMock();
     renderElements({}, { getProcessTaskType }, queryClient);
     const paymentComponent = await screen.findAllByText(
@@ -81,7 +82,7 @@ describe('Elements', () => {
   it('should render loading spinner when fetching processTaskType', async () => {
     renderElements(
       {},
-      { getProcessTaskType: jest.fn(() => Promise.resolve('data')) },
+      { getProcessTaskType: vi.fn(() => Promise.resolve('data')) },
       createQueryClientMock(),
     );
 
@@ -93,7 +94,7 @@ describe('Elements', () => {
   it('should render error message when processTaskType fetch fails', async () => {
     renderElements(
       {},
-      { getProcessTaskType: jest.fn(() => Promise.reject(new Error())) },
+      { getProcessTaskType: vi.fn(() => Promise.reject(new Error())) },
       createQueryClientMock(),
     );
 
@@ -128,7 +129,7 @@ describe('Elements', () => {
   });
 });
 
-const collapseToggle = jest.fn();
+const collapseToggle = vi.fn();
 const renderElements = (
   appContextProps?: Partial<AppContextProps>,
   queries?: Partial<ServicesContextProps>,
@@ -137,7 +138,7 @@ const renderElements = (
   uxEditorParams?: UxEditorParams,
 ) => {
   return renderWithProviders(
-    <StudioDragAndDropTree.Provider rootId='test' onAdd={jest.fn()} onMove={jest.fn()}>
+    <StudioDragAndDropTree.Provider rootId='test' onAdd={vi.fn()} onMove={vi.fn()}>
       <Elements collapsed={false} onCollapseToggle={collapseToggle} />
     </StudioDragAndDropTree.Provider>,
     {

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { useChecksum } from './useChecksum';
 import { renderHook } from '@testing-library/react';
 

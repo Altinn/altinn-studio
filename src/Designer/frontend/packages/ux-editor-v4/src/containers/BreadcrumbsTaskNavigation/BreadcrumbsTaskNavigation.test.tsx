@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { BreadcrumbsTaskNavigation } from './BreadcrumbsTaskNavigation';
 import { screen, within } from '@testing-library/react';
 import { renderWithProviders } from 'dashboard/testing/mocks';
@@ -7,20 +9,20 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, layoutSet, org } from '@studio/testing/testids';
 
-jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
-  useStudioEnvironmentParams: jest.fn(),
+vi.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+  useStudioEnvironmentParams: vi.fn(),
 }));
 
-jest.mock('app-development/hooks/queries', () => ({
-  useAppConfigQuery: jest.fn(),
+vi.mock('app-development/hooks/queries', () => ({
+  useAppConfigQuery: vi.fn(),
 }));
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useLocation: () => ({
     pathname: '/ui-editor',
   }),
-  useNavigate: jest.fn(),
+  useNavigate: vi.fn(),
   useParams: () => ({
     org: org,
     app: app,
@@ -29,16 +31,16 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('BreadcrumbsTaskNavigation', () => {
-  const mockNavigate = jest.fn();
+  const mockNavigate = vi.fn();
 
   beforeEach(() => {
-    (useStudioEnvironmentParams as jest.Mock).mockReturnValue({ org: 'test-org', app: 'test-app' });
-    (useAppConfigQuery as jest.Mock).mockReturnValue({ data: {} });
-    jest.requireMock('react-router-dom').useNavigate.mockReturnValue(mockNavigate);
+    (useStudioEnvironmentParams as Mock).mockReturnValue({ org: 'test-org', app: 'test-app' });
+    (useAppConfigQuery as Mock).mockReturnValue({ data: {} });
+    vi.requireMock('react-router-dom').useNavigate.mockReturnValue(mockNavigate);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const renderBreadcrumbsTaskNavigation = () => {

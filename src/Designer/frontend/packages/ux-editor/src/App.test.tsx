@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { formLayoutSettingsMock, renderWithProviders } from './testing/mocks';
 import { App } from './App';
@@ -12,10 +13,8 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { PreviewContextProvider } from 'app-shared/contexts/PreviewContext';
 
 const mockQueries: Partial<ServicesContextProps> = {
-  getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
-  getFormLayoutSettings: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
+  getLayoutSets: vi.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
+  getFormLayoutSettings: vi.fn().mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
 };
 
 const renderApp = (
@@ -39,7 +38,7 @@ const renderApp = (
 describe('App', () => {
   afterEach(() => {
     typedLocalStorage.setItem('featureFlags', []);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render the spinner', () => {
@@ -56,9 +55,9 @@ describe('App', () => {
     'should render errorPage for %s when component has errors',
     async (resource) => {
       const errorQueries = {
-        layout_sets: { getLayoutSets: jest.fn().mockImplementation(() => Promise.reject()) },
-        data_model: { getDataModelMetadata: jest.fn().mockImplementation(() => Promise.reject()) },
-        widget: { getWidgetSettings: jest.fn().mockImplementation(() => Promise.reject()) },
+        layout_sets: { getLayoutSets: vi.fn().mockImplementation(() => Promise.reject()) },
+        data_model: { getDataModelMetadata: vi.fn().mockImplementation(() => Promise.reject()) },
+        widget: { getWidgetSettings: vi.fn().mockImplementation(() => Promise.reject()) },
       };
       const errorQuery = errorQueries[resource];
 

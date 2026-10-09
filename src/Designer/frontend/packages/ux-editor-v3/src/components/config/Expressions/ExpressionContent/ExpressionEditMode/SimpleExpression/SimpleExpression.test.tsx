@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { internalExpressionWithMultipleSubExpressions } from '../../../../../../testing/expressionMocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -19,7 +20,7 @@ const layouts: IFormLayouts = {
 
 describe('SimpleExpression', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('displays two data source selector components from subExpressionContent when there are two subExpressions in the expression', () => {
@@ -53,9 +54,9 @@ const render = ({
 }) => {
   const defaultProps: SimpleExpressionProps = {
     expression: internalExpressionWithMultipleSubExpressions,
-    onRemoveSubExpression: jest.fn(),
-    onUpdateExpressionOperator: jest.fn(),
-    onUpdateSubExpression: jest.fn(),
+    onRemoveSubExpression: vi.fn(),
+    onUpdateExpressionOperator: vi.fn(),
+    onUpdateSubExpression: vi.fn(),
   };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);

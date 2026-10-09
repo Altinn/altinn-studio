@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { ErrorCode, useValidateComponent } from './useValidateComponent';
 import type {
@@ -145,7 +146,7 @@ describe('useValidateComponent', () => {
 
 const render = (component: FormComponent) => {
   const queries = {
-    getOptionListIds: jest
+    getOptionListIds: vi
       .fn()
       .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
   };
