@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { useItemTitle } from './useItemTitle';
 import { renderHookWithMockStore } from '../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
 import { layoutSet1NameMock } from '../../testing/layoutSetsMock';
@@ -126,8 +127,8 @@ const renderComponent = () => {
     },
   });
   const queries = {
-    getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
-    getRuleConfig: jest.fn().mockImplementation(() =>
+    getRuleModel: vi.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
+    getRuleConfig: vi.fn().mockImplementation(() =>
       Promise.resolve({
         data: {
           ruleConnection: {},
@@ -135,7 +136,7 @@ const renderComponent = () => {
         },
       }),
     ),
-    saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve()),
+    saveRuleConfig: vi.fn().mockImplementation(() => Promise.resolve()),
   };
   return { ...renderWithProviders(<RuleModal />, { queries, queryClient }), queries };
 };
@@ -174,8 +175,8 @@ const renderComponentWithConnection = (connectionId: string, ruleName: string) =
     ],
   );
   const queries = {
-    getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
-    getRuleConfig: jest.fn().mockImplementation(() =>
+    getRuleModel: vi.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
+    getRuleConfig: vi.fn().mockImplementation(() =>
       Promise.resolve({
         data: {
           ruleConnection: {
@@ -189,7 +190,7 @@ const renderComponentWithConnection = (connectionId: string, ruleName: string) =
         },
       }),
     ),
-    saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve()),
+    saveRuleConfig: vi.fn().mockImplementation(() => Promise.resolve()),
   };
   return { ...renderWithProviders(<RuleModal />, { queries, queryClient }), queries, queryClient };
 };

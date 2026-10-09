@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
@@ -38,7 +39,7 @@ describe('useDeleteFormContainerMutation', () => {
 });
 
 const renderDeleteFormContainerMutation = async () => {
-  const getFormLayoutsV3 = jest
+  const getFormLayoutsV3 = vi
     .fn()
     .mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>(externalLayoutsMock));
   const formLayoutsResult = renderHookWithMockStore(

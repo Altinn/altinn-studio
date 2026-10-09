@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
@@ -24,7 +25,7 @@ const createTestPageGroups = (): PagesModel => ({
 
 describe('useDeletePageGroupMutation', () => {
   it('should call changePageGroups and invalidate queries on mutation success', async () => {
-    const changePageGroupsMock = jest.fn().mockResolvedValue(undefined);
+    const changePageGroupsMock = vi.fn().mockResolvedValue(undefined);
     const queryClient = new QueryClient({
       defaultOptions: {
         mutations: {},
@@ -54,10 +55,10 @@ describe('useDeletePageGroupMutation', () => {
   });
 
   it('should handle mutation error', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const changePageGroupsMock = jest.fn().mockRejectedValue(new Error('Failed'));
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const changePageGroupsMock = vi.fn().mockRejectedValue(new Error('Failed'));
     const queryClient = new QueryClient();
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     const pageGroups = createTestPageGroups();
     const { result } = renderUseDeletePageGroupMutation(
       org,
@@ -97,7 +98,7 @@ export const renderUseDeletePageGroupMutation = (
   }),
 ) => {
   const allQueries: ServicesContextProps = {
-    changePageGroups: jest.fn().mockResolvedValue(undefined),
+    changePageGroups: vi.fn().mockResolvedValue(undefined),
     ...queries,
   };
 

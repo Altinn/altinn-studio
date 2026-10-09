@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -17,7 +18,7 @@ const queryClient = createQueryClientMock();
 queryClient.setQueryData([QueryKey.TextResources, org, app], { nb: [], nn: [], en: [] });
 
 describe('OptionTabs', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render component', () => {
     renderOptionTabs();
@@ -160,7 +161,7 @@ type RenderOptionTabsProps<T extends ComponentType.Checkboxes | ComponentType.Ra
 
 function renderOptionTabs<T extends ComponentType.Checkboxes | ComponentType.RadioButtons>({
   componentProps = {},
-  handleComponentChange = jest.fn(),
+  handleComponentChange = vi.fn(),
   queries = {},
   optionListIdsFromLibrary = [],
 }: RenderOptionTabsProps<T> = {}) {

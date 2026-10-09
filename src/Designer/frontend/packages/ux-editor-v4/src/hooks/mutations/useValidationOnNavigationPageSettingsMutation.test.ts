@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import type { IValidationOnNavigationPageSettings } from 'app-shared/types/global';
 import { renderHookWithProviders } from '../../testing/mocks';
@@ -23,7 +24,7 @@ const settings: IValidationOnNavigationPageSettings[] = [
 ];
 
 describe('useValidationOnNavigationPageSettingsMutation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('calls updateValidationOnNavigationPageSettings with the correct parameters', async () => {
     const { result } = renderMutation();

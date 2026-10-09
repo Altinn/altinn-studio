@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { Properties } from './Properties';
 import { render as rtlRender, screen, waitFor, within } from '@testing-library/react';
 import { FormItemContext } from '../../containers/FormItemContext';
@@ -18,16 +19,16 @@ const expressionsTestId = 'expressions';
 const calculationsTestId = 'calculations';
 
 // Mocks:
-jest.mock('./Content', () => ({
+vi.mock('./Content', () => ({
   Content: () => <div data-testid={contentTestId} />,
 }));
-jest.mock('./ConditionalRendering', () => ({
+vi.mock('./ConditionalRendering', () => ({
   ConditionalRendering: () => <div data-testid={conditionalRenderingTestId} />,
 }));
-jest.mock('../config/Expressions', () => ({
+vi.mock('../config/Expressions', () => ({
   Expressions: () => <div data-testid={expressionsTestId} />,
 }));
-jest.mock('./Calculations', () => ({
+vi.mock('./Calculations', () => ({
   Calculations: () => <div data-testid={calculationsTestId} />,
 }));
 

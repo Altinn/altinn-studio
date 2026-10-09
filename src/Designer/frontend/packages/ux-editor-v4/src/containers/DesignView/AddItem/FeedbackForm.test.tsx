@@ -1,14 +1,16 @@
+import { afterAll, describe, expect, it, vi } from 'vitest';
+import type { Mocked } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FeedbackForm } from './FeedbackForm';
 import axios from 'axios';
 
-jest.mock('axios');
-var mockedAxios = axios as jest.Mocked<typeof axios>;
+vi.mock('axios');
+var mockedAxios = axios as Mocked<typeof axios>;
 
 describe('FeedbackForm', () => {
   afterAll(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render feedback form', () => {

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { FormItemContext, FormItemContextProvider } from './FormItemContext';
@@ -21,7 +22,7 @@ import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock'
 const layoutName = layout1NameMock;
 const layoutSetName = layoutSet1NameMock;
 
-jest.useFakeTimers({ advanceTimers: true });
+vi.useFakeTimers({ shouldAdvanceTime: true });
 
 const buttonTestId = 'button';
 const Button = ({ onClick }: { onClick: () => void }) => (
@@ -41,14 +42,14 @@ const render = (ChildComponent: React.ElementType) => {
     {
       queryClient: createQueryClientMock(),
       queries: {
-        getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
+        getFormLayouts: vi.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
       },
     },
   );
 };
 
 describe('FormItemContext', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should update the form item when calling handleUpdate', async () => {
     render(() => {
@@ -188,7 +189,7 @@ describe('FormItemContext', () => {
       );
     });
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
 
     await clickButton();
 
@@ -266,7 +267,7 @@ describe('FormItemContext', () => {
       return <Button onClick={() => debounceSave(component1IdMock, component1Mock)} />;
     });
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
 
     await clickButton();
 

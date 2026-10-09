@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import type { NavigationMenuProps } from './NavigationMenu';
 import { NavigationMenu } from './NavigationMenu';
@@ -17,10 +18,10 @@ import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock'
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
 
-const mockSetSearchParams = jest.fn();
+const mockSetSearchParams = vi.fn();
 const mockSearchParams = { layout: mockPageName1 };
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     org,
     app,
@@ -36,7 +37,7 @@ const defaultProps: NavigationMenuProps = {
 };
 
 describe('NavigationMenu', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should open the menu when clicking the menu icon', async () => {
     const user = userEvent.setup();
@@ -155,7 +156,7 @@ describe('NavigationMenu', () => {
     expect(menuButtons[0]).toHaveAttribute('aria-expanded', 'false');
 
     await user.click(menuButtons[1]);
-    const menuItemUp = getMenuItem(textMock('ux_editor.page_menu_up'), 1);
+    const menuItemUp = getMenuItem(textMock('ux_editor.page_menu_up'));
     await user.click(menuItemUp);
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(2);
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
@@ -170,11 +171,10 @@ describe('NavigationMenu', () => {
 const getMenuButtons = (): HTMLElement[] =>
   screen.getAllByRole('button', { name: textMock('general.options') });
 
-const getMenuItem = (name: string, index: number = 0): HTMLElement =>
-  screen.getAllByRole('menuitem', { name })[index];
+const getMenuItem = (name: string): HTMLElement => screen.getByRole('menuitem', { name });
 
 const waitForData = async () => {
-  const getFormLayoutSettings = jest
+  const getFormLayoutSettings = vi
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const settingsResult = renderHookWithMockStore(

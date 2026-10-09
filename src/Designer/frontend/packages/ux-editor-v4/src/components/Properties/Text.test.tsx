@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Text } from './Text';
 import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -20,9 +21,13 @@ import { componentMocks } from '@altinn/ux-editor-v4/testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 
-jest.mock('../../testing/componentSchemaMocks', () => ({
+vi.mock('../../testing/componentSchemaMocks', async () => ({
   componentSchemaMocks: {
-    ...jest.requireActual('../../testing/componentSchemaMocks').componentSchemaMocks,
+    ...(
+      await vi.importActual<{ componentSchemaMocks: typeof componentSchemaMocks }>(
+        '../../testing/componentSchemaMocks',
+      )
+    ).componentSchemaMocks,
     CustomComponentType: {},
   },
 }));
@@ -54,7 +59,7 @@ const textResourceBindingsPropertiesForComponentType = (componentType: string) =
   Object.keys(componentSchemaMocks[componentType].properties.textResourceBindings.properties);
 
 describe('TextTab', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('when editing a container', () => {
     const props = {

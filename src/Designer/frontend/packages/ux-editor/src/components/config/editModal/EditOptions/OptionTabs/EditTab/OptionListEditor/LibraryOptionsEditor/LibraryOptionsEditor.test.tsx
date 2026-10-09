@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../../../../../../../testing/componentMocks';
@@ -19,8 +20,8 @@ import { LibraryOptionsEditor, type LibraryOptionsEditorProps } from './LibraryO
 const mockComponent = componentMocks[ComponentType.RadioButtons];
 const optionListId = 'someId';
 const componentWithOptionsId = { ...mockComponent, options: undefined, optionsId: optionListId };
-const onDeleteButtonClick = jest.fn();
-const doReloadPreview = jest.fn();
+const onDeleteButtonClick = vi.fn();
+const doReloadPreview = vi.fn();
 const optionList: OptionList = [
   { value: 'value 1', label: 'some-id', description: 'description-id', helpText: 'help text' },
   { value: 'value 2', label: 'another-id', description: null, helpText: null },
@@ -35,7 +36,7 @@ const textResources: ITextResources = {
 };
 
 describe('LibraryOptionEditor', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render the open Dialog button', async () => {
     renderLibraryOptionsEditorWithData();

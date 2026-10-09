@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { renderWithProviders } from '../../testing/mocks';
@@ -9,6 +10,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org, pageGroupAccordionHeader } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import userEvent from '@testing-library/user-event';
+import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppContextProps } from '../../AppContext';
@@ -38,21 +40,25 @@ const singlePageGroupMock: PagesModel = {
 
 describe('PageGroupAccordion', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should disable move-up for first group, and move-down for last group', async () => {
+    const user = userEvent.setup();
     await renderPageGroupAccordion({});
+    await openGroupMenu(user, 0);
     expect(moveGroupUpButton(0)).toBeDisabled();
     expect(moveGroupDownButton(0)).toBeEnabled();
+    await openGroupMenu(user, 1);
     expect(moveGroupUpButton(1)).toBeEnabled();
     expect(moveGroupDownButton(1)).toBeDisabled();
   });
 
   it('should correctly call mutation on changePageGroupOrder when moving a group up', async () => {
     const user = userEvent.setup();
-    const changePageGroups = jest.fn();
+    const changePageGroups = vi.fn();
     await renderPageGroupAccordion({ queries: { changePageGroups } });
+    await openGroupMenu(user, 1);
     await user.click(moveGroupUpButton(1));
     expect(changePageGroups).toHaveBeenCalledTimes(1);
     const expectedPagesMock = { ...pagesMock, groups: pagesMock.groups.toReversed() };
@@ -61,8 +67,9 @@ describe('PageGroupAccordion', () => {
 
   it('should correctly call mutation on changePageGroupOrder when moving a group up', async () => {
     const user = userEvent.setup();
-    const changePageGroups = jest.fn();
+    const changePageGroups = vi.fn();
     await renderPageGroupAccordion({ queries: { changePageGroups } });
+    await openGroupMenu(user, 0);
     await user.click(moveGroupDownButton(0));
     expect(changePageGroups).toHaveBeenCalledTimes(1);
     const expectedPagesMock = { ...pagesMock, groups: pagesMock.groups.toReversed() };
@@ -85,7 +92,7 @@ describe('PageGroupAccordion', () => {
 
   it('should set selectedItem when group header is clicked', async () => {
     const user = userEvent.setup();
-    const setSelectedItem = jest.fn();
+    const setSelectedItem = vi.fn();
     await renderPageGroupAccordion({
       appContextProps: { setSelectedItem },
     });
@@ -98,8 +105,8 @@ describe('PageGroupAccordion', () => {
 
   it('should set selectedItem to null if group is selected and deleted', async () => {
     const user = userEvent.setup();
-    const setSelectedItem = jest.fn();
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+    const setSelectedItem = vi.fn();
+    vi.spyOn(window, 'confirm').mockImplementation(vi.fn(() => true));
     await renderPageGroupAccordion({
       appContextProps: { selectedItem: { type: ItemType.Group, id: 0 }, setSelectedItem },
     });
@@ -135,6 +142,8 @@ describe('PageGroupAccordion', () => {
 });
 
 const groupAccordionHeader = (nth: number) => screen.getByTestId(pageGroupAccordionHeader(nth));
+const openGroupMenu = async (user: UserEvent, nth: number): Promise<void> =>
+  user.click(within(groupAccordionHeader(nth)).getByRole('button', { name: '' }));
 const moveGroupUpButton = (nth: number) =>
   within(groupAccordionHeader(nth)).getByRole('button', {
     name: textMock('ux_editor.page_menu_up'),
@@ -158,7 +167,7 @@ const renderPageGroupAccordion = async ({ props, queries, appContextProps }: ren
       selectedFormLayoutName={layoutSet1NameMock}
       pages={pagesMock}
       layouts={layouts}
-      onAccordionClick={jest.fn()}
+      onAccordionClick={vi.fn()}
       isAddPagePending={false}
       {...props}
     ></PageGroupAccordion>,

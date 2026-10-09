@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormAttachmentListComponent } from '../../../../types/FormComponent';
 import type { IGenericEditComponent } from '../../componentConfig';
@@ -53,7 +54,7 @@ const defaultComponent: FormAttachmentListComponent = {
   itemType: 'COMPONENT',
 };
 
-const handleComponentChange = jest.fn();
+const handleComponentChange = vi.fn();
 
 const defaultProps: IGenericEditComponent<ComponentType.AttachmentList> = {
   component: defaultComponent,
@@ -82,7 +83,7 @@ const render = async (
 
 describe('AttachmentListComponent', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render spinner when appMetadata is pending', () => {

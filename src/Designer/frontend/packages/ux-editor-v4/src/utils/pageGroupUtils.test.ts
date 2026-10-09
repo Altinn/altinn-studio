@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { GroupModel } from 'app-shared/types/api/dto/PageModel';
 import {
   movePageToGroup,
@@ -8,7 +9,7 @@ import {
   changeGroupName,
 } from './pageGroupUtils';
 
-jest.mock('i18next', () => ({
+vi.mock('i18next', () => ({
   t: (key: string) => key,
 }));
 

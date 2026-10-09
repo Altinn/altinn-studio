@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import { formLayoutSettingsMock, renderWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
 import { ConvertChoicesModal } from '@altinn/ux-editor-v4/components/Properties/PageConfigPanel/PdfConfig/ConvertPageToPdfWhenExistingModal/ConvertChoicesModal';
@@ -14,14 +15,14 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 const selectedLayoutSet = layoutSet1NameMock;
-const handleModalActionMock = jest.fn();
+const handleModalActionMock = vi.fn();
 
 describe('ConvertChoicesModal', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
   it('converts existing pdf back to formLayout when clicking convert in conversion choices modal', async () => {
     const user = userEvent.setup();
     const pdfLayoutNameMock = 'pdfLayoutNameMock';
-    const mutateLayoutSettingsMock = jest.fn();
+    const mutateLayoutSettingsMock = vi.fn();
     await renderConvertChoicesModal(
       { pages: { order: [layout1NameMock], pdfLayoutName: pdfLayoutNameMock } },
       {},
@@ -40,8 +41,8 @@ describe('ConvertChoicesModal', () => {
   it('deletes existing pdf when clicking delete in conversion choices modal', async () => {
     const user = userEvent.setup();
     const pdfLayoutNameMock = 'pdfLayoutNameMock';
-    const mutateLayoutSettingsMock = jest.fn();
-    const deleteLayoutMock = jest.fn();
+    const mutateLayoutSettingsMock = vi.fn();
+    const deleteLayoutMock = vi.fn();
     await renderConvertChoicesModal(
       { pages: { order: [layout1NameMock], pdfLayoutName: pdfLayoutNameMock } },
       {},

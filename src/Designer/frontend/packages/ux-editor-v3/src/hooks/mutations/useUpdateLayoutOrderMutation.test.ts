@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
@@ -12,7 +13,7 @@ import { app, org } from '@studio/testing/testids';
 const selectedLayoutSet = layoutSet1NameMock;
 
 describe('useUpdateLayoutOrderMutation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Moves layout down when direction is set to "down"', async () => {
     await renderAndWaitForData();
@@ -68,7 +69,7 @@ describe('useUpdateLayoutOrderMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const getFormLayoutSettings = jest
+  const getFormLayoutSettings = vi
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const settingsResult = renderHookWithMockStore(

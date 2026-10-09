@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useComponentPropertyHelpText } from './useComponentPropertyHelpText';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -16,7 +17,7 @@ const customTextMockToHandleUndefined = (
     : '[mockedText(' + key + ')]';
 };
 
-jest.mock('react-i18next', () => ({
+vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: customTextMockToHandleUndefined,
   }),

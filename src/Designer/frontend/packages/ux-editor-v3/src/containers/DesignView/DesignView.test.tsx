@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { formLayoutSettingsMock, renderWithMockStore } from '../../testing/mocks';
 import { DesignView } from './DesignView';
 import { screen } from '@testing-library/react';
@@ -23,10 +24,10 @@ const mockSelectedLayoutSet = layoutSet1NameMock;
 const mockPageName1: string = layout1NameMock;
 const mockPageName2: string = layout2NameMock;
 
-const mockSetSearchParams = jest.fn();
+const mockSetSearchParams = vi.fn();
 const mockSearchParams = { layout: mockPageName1 };
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     org,
     app,
@@ -38,7 +39,7 @@ jest.mock('react-router-dom', () => ({
 
 describe('DesignView', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('displays the correct number of accordions', async () => {
@@ -103,7 +104,7 @@ const render = async () => {
     {},
     queryClient,
   )(
-    <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
+    <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={vi.fn()} onAdd={vi.fn()}>
       <FormItemContextProvider>
         <DesignView />
       </FormItemContextProvider>

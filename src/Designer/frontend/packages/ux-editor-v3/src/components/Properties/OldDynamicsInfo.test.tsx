@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithMockStore } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';

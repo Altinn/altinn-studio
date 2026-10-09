@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { waitFor, screen } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../../../../../../testing/mocks';
@@ -26,7 +27,7 @@ import type { Option } from 'app-shared/types/Option';
 
 // Test data:
 const component = componentMocks[ComponentType.RadioButtons];
-const handleComponentChange = jest.fn();
+const handleComponentChange = vi.fn();
 const textResources: ITextResources = {
   [DEFAULT_LANGUAGE]: textResourcesMock.resources,
 };
@@ -37,10 +38,10 @@ const defaultProps: ManualOptionsDialogProps = {
 };
 
 // Mocks:
-jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
+vi.mock('react-router-dom', async () => await vi.importActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 describe('ManualOptionsDialog', () => {
-  beforeEach(jest.clearAllMocks);
+  beforeEach(vi.clearAllMocks);
 
   it('Renders a dialog', async () => {
     renderCodeListDialog();
@@ -115,7 +116,7 @@ describe('ManualOptionsDialog', () => {
     const org = 'org';
     const app = 'app';
     const appRouteParams = { org, app };
-    const upsertTextResources = jest.fn();
+    const upsertTextResources = vi.fn();
     const queries: Partial<ServicesContextProps> = { upsertTextResources };
     const text = 'test';
 
