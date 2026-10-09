@@ -226,6 +226,94 @@ describe('useUpdateFormComponentMutation', () => {
     );
   });
 
+  it('Keeps the settings of the old data type when updating the id of a FileUpload component', async () => {
+    const oldId = componentMocks[ComponentType.FileUpload].id;
+    const newId = 'newId';
+    const oldDataType = {
+      id: oldId,
+      allowedContentTypes: ['application/pdf'],
+      validationErrorOnPendingFileScan: true,
+      enableFileScan: false,
+    };
+    renderAndWaitForData();
+    queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
+      dataTypes: [oldDataType],
+    });
+    const updateFormComponentResult = renderHookWithProviders(() =>
+      useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+    ).result;
+
+    await updateFormComponentResult.current.mutateAsync({
+      id: oldId,
+      updatedComponent: { ...componentMocks[ComponentType.FileUpload], id: newId },
+    });
+
+    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledTimes(1);
+    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(
+      org,
+      app,
+      expect.objectContaining({ ...oldDataType, id: newId }),
+    );
+  });
+
+  describe('Update ImageUpload components', () => {
+    const oldId = componentMocks[ComponentType.FileUpload].id;
+    const imageUploadComponent: FormComponent = {
+      id: oldId,
+      itemType: 'COMPONENT',
+      type: ComponentType.ImageUpload,
+    };
+    const imageUploadDataType = {
+      id: oldId,
+      taskId: 'Task_1',
+      maxCount: 1,
+      minCount: 0,
+      maxSize: 5,
+      allowedContentTypes: ['image/png'],
+      enableFileScan: false,
+    };
+
+    it('Moves the old data type to the new id when updating the id of an ImageUpload component', async () => {
+      const newId = 'newId';
+      renderAndWaitForData();
+      queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
+        dataTypes: [imageUploadDataType],
+      });
+      const updateFormComponentResult = renderHookWithProviders(() =>
+        useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+      ).result;
+
+      await updateFormComponentResult.current.mutateAsync({
+        id: oldId,
+        updatedComponent: { ...imageUploadComponent, id: newId },
+      });
+
+      expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledTimes(1);
+      expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
+        ...imageUploadDataType,
+        id: newId,
+      });
+      expect(queriesMock.deleteAppAttachmentMetadata).toHaveBeenCalledWith(org, app, oldId);
+      expect(queriesMock.updateBpmnXml).toHaveBeenCalledTimes(1);
+    });
+
+    it('Does not run attachment metadata queries when the id of an ImageUpload component is unchanged', async () => {
+      renderAndWaitForData();
+      const updateFormComponentResult = renderHookWithProviders(() =>
+        useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+      ).result;
+
+      await updateFormComponentResult.current.mutateAsync({
+        id: oldId,
+        updatedComponent: imageUploadComponent,
+      });
+
+      expect(queriesMock.addAppAttachmentMetadata).not.toHaveBeenCalled();
+      expect(queriesMock.deleteAppAttachmentMetadata).not.toHaveBeenCalled();
+      expect(queriesMock.updateAppAttachmentMetadata).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Updating dataType for fileupload components in repeating groups', () => {
     it('Does not update maxCount and minCount when maxCount decreases', async () => {
       renderAndWaitForData();

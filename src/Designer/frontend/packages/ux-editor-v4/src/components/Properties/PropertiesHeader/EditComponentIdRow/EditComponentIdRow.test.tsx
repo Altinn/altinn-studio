@@ -159,4 +159,31 @@ describe('EditComponentIdRow', () => {
       screen.getByText(textMock('ux_editor.error_component_id_exists_as_data_type')),
     ).toBeInTheDocument();
   });
+
+  it('should show error message when id of an ImageUpload component has duplicate id', async () => {
+    const user = userEvent.setup();
+    queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
+      dataTypes: [{ id: 'newTestId' }],
+    });
+    await studioRender({
+      component: {
+        type: ComponentType.ImageUpload,
+        id: '',
+        itemType: 'COMPONENT',
+      },
+    });
+    const testIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
+    await user.click(testIdButton);
+    const textField = screen.getByRole('textbox', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
+    await user.clear(textField);
+    await user.type(textField, 'newTestId');
+    await user.click(document.body);
+    expect(
+      screen.getByText(textMock('ux_editor.error_component_id_exists_as_data_type')),
+    ).toBeInTheDocument();
+  });
 });
