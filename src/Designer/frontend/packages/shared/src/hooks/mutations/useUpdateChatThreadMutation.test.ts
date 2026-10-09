@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-development/test/mocks';
 import { app, org } from '@studio/testing/testids';
@@ -9,7 +10,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 const updateArgs = { id: 'thread-1', title: 'Updated title' };
 
 describe('useUpdateChatThreadMutation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Calls updateChatThread with the new title', async () => {
     const result = renderHookWithProviders()(() => useUpdateChatThreadMutation()).renderHookResult
@@ -26,7 +27,7 @@ describe('useUpdateChatThreadMutation', () => {
 
   it('Invalidates ChatThreads when updating a thread', async () => {
     const client = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(client, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(client, 'invalidateQueries');
     const result = renderHookWithProviders({}, client)(() => useUpdateChatThreadMutation())
       .renderHookResult.result;
 

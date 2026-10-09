@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
@@ -5,9 +6,9 @@ import { LargeProfileMenu, type LargeProfileMenuProps } from './LargeProfileMenu
 import type { User } from 'app-shared/types/Repository';
 import { StudioPageHeader } from '@studio/components';
 
-const mockUseUserQuery = jest.fn();
+const mockUseUserQuery = vi.fn();
 
-jest.mock('app-shared/hooks/queries', () => ({
+vi.mock('app-shared/hooks/queries', () => ({
   useUserQuery: (...args: unknown[]) => mockUseUserQuery(...args),
 }));
 
@@ -20,7 +21,7 @@ const userMock: User = {
   userType: 0,
 };
 
-const onPrimaryAction = jest.fn();
+const onPrimaryAction = vi.fn();
 
 const defaultProps: LargeProfileMenuProps = {
   triggerButtonText: 'Profile menu trigger text',
@@ -64,7 +65,7 @@ const renderProfileMenu = (options: RenderOptions = {}) => {
 
 describe('LargeProfileMenu', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders nothing when user data is not loaded', () => {

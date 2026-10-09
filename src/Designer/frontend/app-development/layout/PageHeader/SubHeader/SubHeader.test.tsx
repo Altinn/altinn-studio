@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { LeftContent, type LeftContentProps, SubHeader, type SubHeaderProps } from './SubHeader';
 import { renderWithProviders } from '../../../test/mocks';
@@ -11,10 +12,10 @@ import { RepositoryType } from 'app-shared/types/global';
 import userEvent from '@testing-library/user-event';
 import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
-const mockNavigate = jest.fn();
+const mockNavigate = vi.fn();
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockNavigate,
 }));
 
@@ -23,7 +24,7 @@ const defaultProps: SubHeaderProps = {
 };
 
 describe('SubHeader', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render the GiteaHeader with left content if repository type is not DataModels', () => {
     renderSubHeader();
@@ -34,8 +35,8 @@ describe('SubHeader', () => {
   });
 
   it('should render the left content if repository type is not DataModels', () => {
-    jest.mock('react-router-dom', () => ({
-      ...jest.requireActual('react-router-dom'),
+    vi.mock('react-router-dom', async () => ({
+      ...(await vi.importActual('react-router-dom')),
       useParams: () => ({
         org,
         app,
@@ -60,7 +61,7 @@ describe('SubHeader', () => {
 
 describe('LeftContent', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render the returnTo button if returnTo is set', () => {

@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { AppsTable, type AppsTableProps } from './AppsTable';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -36,28 +38,28 @@ const defaultProps: AppsTableProps = {
   org,
 };
 
-jest.mock('axios', () => ({
-  ...jest.requireActual('axios'),
-  get: jest.fn(),
+vi.mock('axios', async () => ({
+  ...(await vi.importActual('axios')),
+  get: vi.fn(),
 }));
-jest.mock('admin/features/apps/hooks/useQueryParamState');
+vi.mock('admin/features/apps/hooks/useQueryParamState');
 
-const mockSetRange = jest.fn();
-const mockSetEnvironment = jest.fn();
+const mockSetRange = vi.fn();
+const mockSetEnvironment = vi.fn();
 
 describe('AppsTable', () => {
   beforeEach(() => {
-    jest.mocked(useQueryParamState).mockImplementation((key, defaultValue) => {
+    vi.mocked(useQueryParamState).mockImplementation((key, defaultValue) => {
       if (key === 'range') {
         return [1440, mockSetRange];
       }
       if (key === 'environment') {
         return [defaultValue, mockSetEnvironment];
       }
-      return [defaultValue, jest.fn()];
+      return [defaultValue, vi.fn()];
     });
   });
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('Metrics', () => {
     it('should render loading state', () => {
@@ -81,7 +83,7 @@ describe('AppsTable', () => {
 
     it('should render error state with danger alert for non-403 errors', async () => {
       const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
-      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+      (axios.get as Mock).mockRejectedValue(axiosError);
 
       const queryClient = createQueryClientMock();
 
@@ -109,7 +111,7 @@ describe('AppsTable', () => {
 
     it('should render info alert when missing rights', async () => {
       const axiosError = createApiErrorMock(ServerCodes.Forbidden);
-      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+      (axios.get as Mock).mockRejectedValue(axiosError);
 
       const queryClient = createQueryClientMock();
 
@@ -141,7 +143,7 @@ describe('AppsTable', () => {
 
     it('should use org username when full name is missing in missing rights alert', async () => {
       const axiosError = createApiErrorMock(ServerCodes.Forbidden);
-      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+      (axios.get as Mock).mockRejectedValue(axiosError);
 
       const queryClient = createQueryClientMock();
 
@@ -211,10 +213,10 @@ describe('AppsTable', () => {
 
   describe('environment fallback', () => {
     beforeEach(() => {
-      jest.mocked(useQueryParamState).mockImplementation((key, defaultValue) => {
+      vi.mocked(useQueryParamState).mockImplementation((key, defaultValue) => {
         if (key === 'range') return [1440, mockSetRange];
         if (key === 'environment') return ['production', mockSetEnvironment];
-        return [defaultValue, jest.fn()];
+        return [defaultValue, vi.fn()];
       });
     });
 

@@ -1,25 +1,27 @@
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { LoggerContextProvider, type LoggerContextProviderProps } from './LoggerContext';
 import { render, waitFor } from '@testing-library/react';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 import { useEnvironmentConfig } from './EnvironmentConfigContext';
 
-jest.mock('@microsoft/applicationinsights-web', () => ({
-  ApplicationInsights: jest.fn().mockImplementation(function () {
+vi.mock('@microsoft/applicationinsights-web', () => ({
+  ApplicationInsights: vi.fn().mockImplementation(function () {
     return {
-      loadAppInsights: jest.fn(),
-      trackException: jest.fn(),
+      loadAppInsights: vi.fn(),
+      trackException: vi.fn(),
     };
   }),
 }));
 
-jest.mock('./EnvironmentConfigContext', () => ({
-  useEnvironmentConfig: jest.fn(),
+vi.mock('./EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: vi.fn(),
 }));
 
 const mockConnectionString = 'my-unit-test-connection-string';
 
 function mockEnvironmentConfig(environment: { aiConnectionString?: string } | null = {}): void {
-  (useEnvironmentConfig as jest.Mock).mockReturnValue({
+  (useEnvironmentConfig as Mock).mockReturnValue({
     environment,
     isLoading: false,
     error: null,
@@ -28,7 +30,7 @@ function mockEnvironmentConfig(environment: { aiConnectionString?: string } | nu
 
 describe('LoggerContextProvider', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('does not initialize ApplicationInsights without connectionString', () => {
@@ -74,7 +76,7 @@ describe('LoggerContextProvider', () => {
       loadAppInsights: () => {
         throw new Error('loadAppInsights failed');
       },
-      trackException: jest.fn(),
+      trackException: vi.fn(),
     }));
   });
 });
@@ -82,10 +84,10 @@ describe('LoggerContextProvider', () => {
 async function expectGracefulFailureWhenSdkThrows(
   mockImplementation: () => unknown,
 ): Promise<void> {
-  const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
   mockEnvironmentConfig({ aiConnectionString: mockConnectionString });
 
-  (ApplicationInsights as jest.Mock).mockImplementation(mockImplementation);
+  (ApplicationInsights as Mock).mockImplementation(mockImplementation);
 
   const { container } = renderLoggerContext();
   expect(container.textContent).toBe('child');

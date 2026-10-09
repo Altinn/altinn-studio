@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DataModeling } from './DataModeling';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -19,15 +20,15 @@ import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation((query) => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
+    addListener: vi.fn(), // deprecated
+    removeListener: vi.fn(), // deprecated
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
   })),
 });
 
@@ -52,7 +53,7 @@ const render = (
 };
 
 describe('DataModeling', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('fetches models on mount', () => {
     render();
@@ -80,7 +81,7 @@ describe('DataModeling', () => {
   });
 
   it('does not show start dialog when there are models present', async () => {
-    const getDataModelsJson = jest
+    const getDataModelsJson = vi
       .fn()
       .mockImplementation(() => Promise.resolve([jsonMetadata1Mock]));
     render({ getDataModelsJson });
@@ -94,7 +95,7 @@ describe('DataModeling', () => {
 
   it('shows schema errors panel first when "generate model" button is clicked and returns errors', async () => {
     const queryClient = createQueryClientMock();
-    const generateModels = jest
+    const generateModels = vi
       .fn()
       .mockImplementation(() =>
         Promise.reject(
@@ -122,7 +123,7 @@ describe('DataModeling', () => {
 
   it('closes schemaErrorsPanel when "close" button is clicked', async () => {
     const queryClient = createQueryClientMock();
-    const generateModels = jest
+    const generateModels = vi
       .fn()
       .mockImplementation(() =>
         Promise.reject(

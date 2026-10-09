@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import type { QueryClient } from '@tanstack/react-query';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -14,11 +15,11 @@ const pendingText = textMock('schema_editor.generate_model_files_pending');
 const buttonText = textMock('schema_editor.generate_model_files');
 const defaultProps: GenerateModelsButtonProps = {
   modelPath,
-  onSetSchemaGenerationErrorMessages: jest.fn(),
+  onSetSchemaGenerationErrorMessages: vi.fn(),
 };
 
 describe('GenerateModelsButton', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('asks the backend whether the model files are out of date', async () => {
     renderGenerateModelsButton();
@@ -43,7 +44,7 @@ describe('GenerateModelsButton', () => {
 });
 
 const modelFilesOutOfDate = (isOutOfDate: boolean) =>
-  jest.fn().mockImplementation(() => Promise.resolve(isOutOfDate));
+  vi.fn().mockImplementation(() => Promise.resolve(isOutOfDate));
 
 const renderGenerateModelsButton = (
   props: Partial<GenerateModelsButtonProps> = {},

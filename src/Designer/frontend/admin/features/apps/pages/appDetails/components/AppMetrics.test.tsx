@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { AppMetrics, type AppMetricsProps } from './AppMetrics';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -31,23 +33,23 @@ const orgMockWithoutFullName = {
   id: 1,
 };
 
-jest.mock('react-chartjs-2');
-jest.mock('admin/hooks/useRequiredRoutePathsParams', () => ({
+vi.mock('react-chartjs-2');
+vi.mock('admin/hooks/useRequiredRoutePathsParams', () => ({
   useRequiredRoutePathsParams: () => ({ owner: org, environment: env, app }),
 }));
-jest.mock('axios', () => ({
-  ...jest.requireActual('axios'),
-  get: jest.fn(),
+vi.mock('axios', async () => ({
+  ...(await vi.importActual('axios')),
+  get: vi.fn(),
 }));
-jest.mock('admin/features/apps/hooks/useQueryParamState');
+vi.mock('admin/features/apps/hooks/useQueryParamState');
 
 const defaultProps: AppMetricsProps = {
   range,
-  setRange: jest.fn(),
+  setRange: vi.fn(),
 };
 
 describe('AppMetrics', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('app health metrics', () => {
     it('should render loading state', () => {
@@ -60,7 +62,7 @@ describe('AppMetrics', () => {
 
     it('should render info alert when missing rights', async () => {
       const axiosError = createApiErrorMock(ServerCodes.Forbidden);
-      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+      (axios.get as Mock).mockRejectedValue(axiosError);
 
       renderAppMetrics();
 
@@ -85,7 +87,7 @@ describe('AppMetrics', () => {
       'should use org username when full name is missing in %s missing rights alert',
       async (_section, missingRightsKey, loadingKey) => {
         const axiosError = createApiErrorMock(ServerCodes.Forbidden);
-        (axios.get as jest.Mock).mockRejectedValue(axiosError);
+        (axios.get as Mock).mockRejectedValue(axiosError);
 
         renderAppMetrics(createQueryClientMock(), defaultProps, orgMockWithoutFullName);
 
@@ -101,7 +103,7 @@ describe('AppMetrics', () => {
 
     it('should render error state', async () => {
       const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
-      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+      (axios.get as Mock).mockRejectedValue(axiosError);
 
       renderAppMetrics();
 
@@ -177,7 +179,7 @@ describe('AppMetrics', () => {
 
     it('should render info alert when missing rights', async () => {
       const axiosError = createApiErrorMock(ServerCodes.Forbidden);
-      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+      (axios.get as Mock).mockRejectedValue(axiosError);
 
       renderAppMetrics();
 
@@ -196,7 +198,7 @@ describe('AppMetrics', () => {
 
     it('should render error state', async () => {
       const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
-      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+      (axios.get as Mock).mockRejectedValue(axiosError);
 
       renderAppMetrics();
 
@@ -296,7 +298,7 @@ describe('AppMetrics', () => {
 
     it('should render info alert when missing rights', async () => {
       const axiosError = createApiErrorMock(ServerCodes.Forbidden);
-      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+      (axios.get as Mock).mockRejectedValue(axiosError);
 
       renderAppMetrics();
 
@@ -315,7 +317,7 @@ describe('AppMetrics', () => {
 
     it('should render error state', async () => {
       const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
-      (axios.get as jest.Mock).mockRejectedValue(axiosError);
+      (axios.get as Mock).mockRejectedValue(axiosError);
 
       renderAppMetrics();
 

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import AppContentLibrary from './AppContentLibrary';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -22,12 +23,12 @@ import { codeListTitles } from './test-data/codeListTitles';
 import { RoutePaths } from '../../enums/RoutePaths';
 
 // Mocks:
-jest.mock('@studio/content-library', () => ({
-  ...jest.requireActual('@studio/content-library'),
+vi.mock('@studio/content-library', async () => ({
+  ...(await vi.importActual('@studio/content-library')),
   ContentLibrary: (props) => MockContentLibrary(props),
 }));
 
-const MockContentLibrary = jest
+const MockContentLibrary = vi
   .fn()
   .mockImplementation(() => <div data-testid={resourceLibraryTestId} />);
 const resourceLibraryTestId = 'resource-library';
@@ -37,7 +38,7 @@ const org = 'test-org';
 const app = 'test-app';
 
 describe('AppContentLibrary', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Renders the content library', async () => {
     renderAppContentLibraryWithData();
@@ -100,7 +101,7 @@ describe('AppContentLibrary', () => {
   });
 
   it('calls uploadOptionList with correct data when onUploadCodeList is triggered', async () => {
-    const uploadOptionList = jest.fn();
+    const uploadOptionList = vi.fn();
     const file = new File([''], 'list.json');
     renderAppContentLibraryWithData({ queries: { uploadOptionList } });
 
@@ -125,7 +126,7 @@ describe('AppContentLibrary', () => {
   });
 
   it('renders error toast when onUploadOptionList is rejected with unknown error code', async () => {
-    const uploadOptionList = jest.fn().mockImplementation(() => Promise.reject({ response: {} }));
+    const uploadOptionList = vi.fn().mockImplementation(() => Promise.reject({ response: {} }));
     const file = new File([''], 'list.json');
     renderAppContentLibraryWithData({ queries: { uploadOptionList } });
 

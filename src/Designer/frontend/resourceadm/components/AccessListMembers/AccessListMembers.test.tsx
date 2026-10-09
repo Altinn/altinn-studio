@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -39,11 +40,11 @@ const defaultProps: AccessListMembersProps = {
     description: 'This is a description',
   },
   latestEtag: '',
-  setLatestEtag: jest.fn(),
+  setLatestEtag: vi.fn(),
 };
 
 describe('AccessListMembers', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should show special party name if name is not found', async () => {
     await renderAndWaitForData();
@@ -51,7 +52,7 @@ describe('AccessListMembers', () => {
   });
 
   it('should show message when list is empty', async () => {
-    const getAccessListMembersMock = jest
+    const getAccessListMembersMock = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ data: [] }));
     renderAccessListMembers({ getAccessListMembers: getAccessListMembersMock });
@@ -61,7 +62,7 @@ describe('AccessListMembers', () => {
 
   it('should remove member from table when remove member button is clicked', async () => {
     const user = userEvent.setup();
-    const removeAccessListMemberMock = jest.fn().mockImplementation(() => Promise.resolve({}));
+    const removeAccessListMemberMock = vi.fn().mockImplementation(() => Promise.resolve({}));
     await renderAndWaitForData({
       removeAccessListMember: removeAccessListMemberMock,
     });
@@ -77,13 +78,13 @@ describe('AccessListMembers', () => {
 
   it('should show new member in list after member is added', async () => {
     const user = userEvent.setup();
-    const addAccessListMemberMock = jest.fn().mockImplementation(() => Promise.resolve({}));
+    const addAccessListMemberMock = vi.fn().mockImplementation(() => Promise.resolve({}));
 
     const searchResultText = 'Digdir';
     const searchResultOrgNr = '987654321';
     await renderAndWaitForData({
       addAccessListMember: addAccessListMemberMock,
-      getParties: jest.fn().mockImplementation(() =>
+      getParties: vi.fn().mockImplementation(() =>
         Promise.resolve({
           _embedded: {
             enheter: [{ organisasjonsnummer: searchResultOrgNr, navn: searchResultText }],
@@ -115,7 +116,7 @@ describe('AccessListMembers', () => {
     const user = userEvent.setup();
 
     await renderAndWaitForData({
-      getParties: jest.fn().mockImplementation(() => Promise.resolve({})),
+      getParties: vi.fn().mockImplementation(() => Promise.resolve({})),
     });
 
     const addMoreButton = screen.getByRole('button', {
@@ -133,7 +134,7 @@ describe('AccessListMembers', () => {
     const user = userEvent.setup();
 
     await renderAndWaitForData({
-      getSubParties: jest.fn().mockImplementation(() => Promise.resolve({})),
+      getSubParties: vi.fn().mockImplementation(() => Promise.resolve({})),
     });
 
     const addMoreButton = screen.getByRole('button', {
@@ -156,7 +157,7 @@ describe('AccessListMembers', () => {
     const user = userEvent.setup();
 
     await renderAndWaitForData({
-      getParties: jest.fn().mockImplementation(() => Promise.resolve({})),
+      getParties: vi.fn().mockImplementation(() => Promise.resolve({})),
     });
 
     const addMoreButton = screen.getByRole('button', {
@@ -176,10 +177,10 @@ describe('AccessListMembers', () => {
     const searchResultOrgNr = '987654321';
 
     await renderAndWaitForData({
-      addAccessListMember: jest
+      addAccessListMember: vi
         .fn()
         .mockImplementation(() => Promise.reject({ response: { data: { code: 'RR-00001' } } })),
-      getParties: jest.fn().mockImplementation(() =>
+      getParties: vi.fn().mockImplementation(() =>
         Promise.resolve({
           _embedded: {
             enheter: [{ organisasjonsnummer: searchResultOrgNr, navn: searchResultText }],
@@ -210,12 +211,12 @@ describe('AccessListMembers', () => {
     const searchResultOrgNr = '987654321';
 
     await renderAndWaitForData({
-      addAccessListMember: jest
+      addAccessListMember: vi
         .fn()
         .mockImplementation(() =>
           Promise.reject({ response: { status: ServerCodes.PreconditionFailed, data: {} } }),
         ),
-      getParties: jest.fn().mockImplementation(() =>
+      getParties: vi.fn().mockImplementation(() =>
         Promise.resolve({
           _embedded: {
             enheter: [{ organisasjonsnummer: searchResultOrgNr, navn: searchResultText }],
@@ -246,7 +247,7 @@ describe('AccessListMembers', () => {
     const user = userEvent.setup();
 
     await renderAndWaitForData({
-      removeAccessListMember: jest
+      removeAccessListMember: vi
         .fn()
         .mockImplementation(() =>
           Promise.reject({ response: { status: ServerCodes.PreconditionFailed, data: {} } }),
@@ -266,7 +267,7 @@ describe('AccessListMembers', () => {
     const nextPageUrl = 'brreg/next';
     const searchResultText = 'Digdir';
 
-    const getSubPartiesMock = jest.fn().mockImplementation(() =>
+    const getSubPartiesMock = vi.fn().mockImplementation(() =>
       Promise.resolve({
         _embedded: {
           underenheter: [{ organisasjonsnummer: '112233445', navn: searchResultText }],
@@ -310,7 +311,7 @@ describe('AccessListMembers', () => {
 
     const searchResultText = 'Digdir';
 
-    const getPartiesMock = jest.fn().mockImplementation(() =>
+    const getPartiesMock = vi.fn().mockImplementation(() =>
       Promise.resolve({
         _embedded: {
           enheter: [{ organisasjonsnummer: '987654321', navn: searchResultText }],
@@ -349,7 +350,7 @@ describe('AccessListMembers', () => {
 
   it('should show more members when load more button is clicked', async () => {
     const user = userEvent.setup();
-    const getAccessListMembersMock = jest
+    const getAccessListMembersMock = vi
       .fn()
       .mockImplementationOnce(() => Promise.resolve(membersResults))
       .mockImplementationOnce(() => Promise.resolve(membersResultsPage2));
@@ -375,7 +376,7 @@ describe('AccessListMembers', () => {
 });
 
 const renderAccessListMembers = (queries: Partial<ServicesContextProps> = {}) => {
-  const defaultGetAccessListMembersMock = jest
+  const defaultGetAccessListMembersMock = vi
     .fn()
     .mockImplementation(() => Promise.resolve(membersResults));
 

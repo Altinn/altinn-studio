@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { org } from '@studio/testing/testids';
 import { queriesMock } from '../../mocks/queriesMock';
@@ -29,7 +30,7 @@ const codeListResponse: CodeListsResponse = [
 ];
 
 describe('useUploadOrgCodeListMutation', () => {
-  beforeEach(jest.clearAllMocks);
+  beforeEach(vi.clearAllMocks);
 
   it('Calls uploadOrgCodeList with correct parameters', async () => {
     const { result } = renderHookWithProviders(() => useUploadOrgCodeListMutation(org));
@@ -40,7 +41,7 @@ describe('useUploadOrgCodeListMutation', () => {
 
   it('Replaces cache with api response', async () => {
     const queryClient = createQueryClientMock();
-    const uploadOrgCodeList = jest.fn(() => Promise.resolve(codeListResponse));
+    const uploadOrgCodeList = vi.fn(() => Promise.resolve(codeListResponse));
     const { result } = renderHookWithProviders(() => useUploadOrgCodeListMutation(org), {
       queryClient,
       queries: { uploadOrgCodeList },

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useUpdateBpmn } from './useUpdateBpmn';
 import { queriesMock } from '../mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
@@ -9,17 +10,17 @@ import { renderHook } from '@testing-library/react';
 
 const dataTypesToSignMock = getDataTypesToSignMock(['dataType1', 'dataType2']);
 const moddle = {
-  fromXML: jest.fn().mockResolvedValue({
+  fromXML: vi.fn().mockResolvedValue({
     rootElement: dataTypesToSignMock,
   }),
-  toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
+  toXML: vi.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
 };
-jest.mock('bpmn-moddle', () => jest.fn(() => moddle));
+vi.mock('bpmn-moddle', () => vi.fn(() => moddle));
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
 describe('useUpdateBpmn', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('removeDataTypeIdsToSign', () => {
     it('update the bpmn file if the deleted data type ids are present', async () => {
@@ -48,7 +49,7 @@ describe('useUpdateBpmn', () => {
   });
 
   describe('updateDataTypeIdsToSign', () => {
-    afterEach(jest.clearAllMocks);
+    afterEach(vi.clearAllMocks);
 
     it('update the bpmn file if the updated data type ids are present', async () => {
       const { result } = renderUpdateBpmnHook();
@@ -84,7 +85,7 @@ describe('useUpdateBpmn', () => {
 const renderUpdateBpmnHook = () => {
   const queries: Partial<ServicesContextProps> = {
     ...queriesMock,
-    getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve(mockBPMNXML)),
+    getBpmnFile: vi.fn().mockImplementation(() => Promise.resolve(mockBPMNXML)),
   };
 
   return renderHook(() => useUpdateBpmn(org, app), {

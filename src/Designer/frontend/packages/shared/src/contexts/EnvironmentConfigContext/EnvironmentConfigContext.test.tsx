@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mocked } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { EnvironmentConfigProvider, useEnvironmentConfig } from './EnvironmentConfigContext';
@@ -5,11 +7,11 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import axios from 'axios';
 import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 
-jest.mock('axios');
-const axiosMock = axios as jest.Mocked<typeof axios>;
+vi.mock('axios');
+const axiosMock = axios as Mocked<typeof axios>;
 
-jest.mock('app-shared/api/paths', () => ({
-  envFilePath: jest.fn(() => '/designer/api/v1/environment'),
+vi.mock('app-shared/api/paths', () => ({
+  envFilePath: vi.fn(() => '/designer/api/v1/environment'),
 }));
 
 const TestComponent = () => {
@@ -38,7 +40,7 @@ const renderWithProvider = () => {
 
 describe('EnvironmentConfigContext', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should fetch and provide environment config successfully', async () => {
@@ -60,7 +62,7 @@ describe('EnvironmentConfigContext', () => {
   });
 
   it('should handle fetch errors gracefully', async () => {
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     axiosMock.get.mockRejectedValueOnce(new Error('Network error'));
 
     renderWithProvider();
@@ -78,7 +80,7 @@ describe('EnvironmentConfigContext', () => {
   });
 
   it('should handle null response data', async () => {
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     axiosMock.get.mockResolvedValueOnce({ data: null });
 
     renderWithProvider();
@@ -91,7 +93,7 @@ describe('EnvironmentConfigContext', () => {
   });
 
   it('should throw error when useEnvironmentConfig is used outside provider', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     expect(() => {
       render(<TestComponent />);

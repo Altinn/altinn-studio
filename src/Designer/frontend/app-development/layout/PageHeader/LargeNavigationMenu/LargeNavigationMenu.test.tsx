@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { LargeNavigationMenu, type LargeNavigationMenuProps } from './LargeNavigationMenu';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -14,7 +15,7 @@ const defaultProps: LargeNavigationMenuProps = {
 };
 
 describe('LargeNavigationMenu', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should render all menu items passed as props', () => {
     renderLargeNavigationMenu();

@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import axios from 'axios';
 import { waitFor } from '@testing-library/react';
 import { useInstanceDeletionMutation } from './useInstanceDeletionMutation';
@@ -6,9 +8,9 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { instanceDeletePath } from 'admin/features/apps/utils/apiPaths';
 
-jest.mock('axios', () => ({
-  ...jest.requireActual('axios'),
-  delete: jest.fn(),
+vi.mock('axios', async () => ({
+  ...(await vi.importActual('axios')),
+  delete: vi.fn(),
 }));
 
 const org = 'ttd';
@@ -17,12 +19,12 @@ const app = 'test-app';
 const instanceId = '51e58b12-6de1-4d0f-9052-ec2ee9d43adf';
 
 describe('useInstanceDeletionMutation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('deletes the instance and invalidates instance queries on success', async () => {
-    (axios.delete as jest.Mock).mockResolvedValue({});
+    (axios.delete as Mock).mockResolvedValue({});
     const queryClient = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     const { result } = renderHookWithProviders(
       () => useInstanceDeletionMutation(org, environment, app, instanceId),
       { queryClient },
@@ -44,9 +46,9 @@ describe('useInstanceDeletionMutation', () => {
   });
 
   it('does not invalidate instance queries when deletion fails', async () => {
-    (axios.delete as jest.Mock).mockRejectedValue(new Error('Network error'));
+    (axios.delete as Mock).mockRejectedValue(new Error('Network error'));
     const queryClient = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     const { result } = renderHookWithProviders(
       () => useInstanceDeletionMutation(org, environment, app, instanceId),
       { queryClient },

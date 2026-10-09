@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { VersionControlButtons } from './VersionControlButtons';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -10,10 +11,10 @@ import {
 } from './test/mocks/versionControlContextMock';
 import { renderWithProviders } from '../mocks/renderWithProviders';
 
-const mockOnPullSuccess = jest.fn();
+const mockOnPullSuccess = vi.fn();
 
 describe('VersionControlButtons', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render FetchChangesPopover and ShareChangesPopover components', () => {
     renderVersionControlButtons();
@@ -28,7 +29,7 @@ describe('VersionControlButtons', () => {
 
   it('should disable ShareChangesPopover button if user has no push rights', () => {
     renderVersionControlButtons({
-      getRepoMetadata: jest.fn().mockReturnValue({ data: { hasPushRights: false } }),
+      getRepoMetadata: vi.fn().mockReturnValue({ data: { hasPushRights: false } }),
     });
 
     const shareChangesButton = screen.getByRole('button', {
@@ -39,7 +40,7 @@ describe('VersionControlButtons', () => {
 
   it('should disable FetchChangesPopover button if there are merge conflicts', () => {
     renderVersionControlButtons({
-      getRepoStatus: jest.fn().mockReturnValue({ ...mockRepoStatus, hasMergeConflict: true }),
+      getRepoStatus: vi.fn().mockReturnValue({ ...mockRepoStatus, hasMergeConflict: true }),
     });
 
     const fetchChangesButton = screen.getByRole('button', {

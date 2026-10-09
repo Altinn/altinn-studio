@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { TextResource, TextResourceWithLanguage } from '@studio/content-library';
 import { convertTextResourceToMutationArgs } from './convertTextResourceToMutationArgs';
 

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
@@ -17,7 +18,7 @@ describe('useOptionListQuery', () => {
 
   it('getOptionList returns optionList as is', async () => {
     const optionsList: OptionList = [{ value: 'value', label: 'label' }];
-    const getOptionList = jest.fn().mockImplementation(() => Promise.resolve(optionsList));
+    const getOptionList = vi.fn().mockImplementation(() => Promise.resolve(optionsList));
     const { current: currentResult } = await render({ getOptionList });
     expect(currentResult.data).toBe(optionsList);
   });

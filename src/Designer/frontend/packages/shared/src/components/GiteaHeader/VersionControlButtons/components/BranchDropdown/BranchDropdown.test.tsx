@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import { BranchDropdown } from './BranchDropdown';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -12,18 +14,18 @@ import { useBranchData } from '../../hooks/useBranchData/useBranchData';
 import { useBranchOperations } from '../../hooks/useBranchOperations/useBranchOperations';
 import { useMediaQuery } from '@studio/hooks';
 
-jest.mock('../../hooks/useBranchData/useBranchData');
-jest.mock('../../hooks/useBranchOperations/useBranchOperations');
-jest.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('../../hooks/useBranchData/useBranchData');
+vi.mock('../../hooks/useBranchOperations/useBranchOperations');
+vi.mock('@studio/hooks/src/hooks/useMediaQuery');
 
-const mockUseBranchData = jest.mocked(useBranchData);
-const mockUseBranchOperations = jest.mocked(useBranchOperations);
+const mockUseBranchData = vi.mocked(useBranchData);
+const mockUseBranchOperations = vi.mocked(useBranchOperations);
 
-const checkoutExistingBranch = jest.fn();
-const checkoutNewBranch = jest.fn();
-const discardChangesAndCheckout = jest.fn();
-const deleteCurrentBranch = jest.fn();
-const clearUncommittedChangesError = jest.fn();
+const checkoutExistingBranch = vi.fn();
+const checkoutNewBranch = vi.fn();
+const discardChangesAndCheckout = vi.fn();
+const deleteCurrentBranch = vi.fn();
+const clearUncommittedChangesError = vi.fn();
 
 const mockBranchData = (overrides = {}) => {
   mockUseBranchData.mockReturnValue({
@@ -54,7 +56,7 @@ describe('BranchDropdown', () => {
     mockBranchOperations();
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Should show loading spinner when loading branch data', () => {
     mockBranchData({ isLoading: true });
@@ -80,7 +82,7 @@ describe('BranchDropdown', () => {
   });
 
   it('Should render dropdown trigger without text on small screen', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    (useMediaQuery as Mock).mockReturnValue(true);
     renderBranchDropdown();
 
     const dropdownTrigger = getDropdownTrigger();
@@ -174,7 +176,7 @@ describe('BranchDropdown', () => {
   it('Should call discardChangesAndCheckout when clicking discard button', async () => {
     const user = userEvent.setup();
     mockBranchOperations({ uncommittedChangesError: uncommittedChangesErrorMock });
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
 
     renderBranchDropdown();
 

@@ -1,8 +1,9 @@
+import { describe, expect, it, vi } from 'vitest';
 import { app, org } from '@studio/testing/testids';
 import { renderHook } from '@testing-library/react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-jest.mock('react-router-dom', () => ({
+vi.mock('react-router-dom', () => ({
   useParams: () => ({ org, app }),
 }));
 
