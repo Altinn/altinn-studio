@@ -113,34 +113,31 @@ internal sealed class ComponentFormPropertiesMigration(string projectFolder)
         List<UpgradeMessage> messages
     )
     {
-        var propertiesRemoved = 0;
-        if (node is JsonObject component)
-        {
-            if (component["type"] is JsonValue typeValue && typeValue.TryGetValue<string>(out var type))
-            {
-                if (
-                    _knownUnsupportedRequiredComponentTypes.Contains(type)
-                    && component.TryGetPropertyValue("required", out var requiredNode)
-                )
-                {
-                    ReportConflict(component, type, requiredNode, fileName, uiDirectory, messages);
-                    component.Remove("required");
-                    propertiesRemoved++;
-                }
+        if (
+            node is not JsonObject root
+            || root["data"] is not JsonObject data
+            || data["layout"] is not JsonArray components
+        )
+            return 0;
 
-                if (_knownUnsupportedReadOnlyComponentTypes.Contains(type) && component.Remove("readOnly"))
-                    propertiesRemoved++;
+        var propertiesRemoved = 0;
+        foreach (var component in components.OfType<JsonObject>())
+        {
+            if (component["type"] is not JsonValue typeValue || !typeValue.TryGetValue<string>(out var type))
+                continue;
+
+            if (
+                _knownUnsupportedRequiredComponentTypes.Contains(type)
+                && component.TryGetPropertyValue("required", out var requiredNode)
+            )
+            {
+                ReportConflict(component, type, requiredNode, fileName, uiDirectory, messages);
+                component.Remove("required");
+                propertiesRemoved++;
             }
 
-            foreach (var child in component.Select(static property => property.Value).ToList())
-                if (child is not null)
-                    propertiesRemoved += MigrateComponents(child, fileName, uiDirectory, messages);
-        }
-        else if (node is JsonArray array)
-        {
-            foreach (var child in array.ToList())
-                if (child is not null)
-                    propertiesRemoved += MigrateComponents(child, fileName, uiDirectory, messages);
+            if (_knownUnsupportedReadOnlyComponentTypes.Contains(type) && component.Remove("readOnly"))
+                propertiesRemoved++;
         }
 
         return propertiesRemoved;
