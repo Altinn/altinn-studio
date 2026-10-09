@@ -39,8 +39,9 @@ public sealed record Step : PersistentItem
 
     /// <summary>
     /// When this step deferred for the first time. Anchors the wait budget
-    /// (<see cref="CommandDefinition.WaitBudget"/>): once <c>FirstDeferredAt + budget</c> passes, the
-    /// next deferral fails the step. Kept after completion as a historical record; cleared on resume.
+    /// (<see cref="CommandDefinition.WaitBudget"/>): a deferral from an attempt that started at or past
+    /// <c>FirstDeferredAt + budget</c> fails the step. Kept after completion as a historical record;
+    /// cleared on resume.
     /// </summary>
     public DateTimeOffset? FirstDeferredAt { get; set; }
 

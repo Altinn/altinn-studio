@@ -95,6 +95,12 @@ public sealed record AppCallbackPayload
     /// </summary>
     [JsonPropertyName("waitDeadline")]
     public DateTimeOffset? WaitDeadline { get; init; }
+
+    /// <summary>
+    /// Whether this attempt is the step's final check, so deferring fails the step as expired.
+    /// </summary>
+    [JsonPropertyName("isFinalWaitCheck")]
+    public bool IsFinalWaitCheck { get; init; }
 }
 
 /// <summary>

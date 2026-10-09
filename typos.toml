@@ -65,6 +65,7 @@ extend-exclude = [
     "src/common/ts/language/src/texts/*.ts",
     "src/Designer/frontend/language/src/*.json",
     "src/Designer/frontend/resourceadm/language/src/*.json",
+    "src/Designer/frontend/resourceadm/pages/Altinn2ResourcePoliciesPage/AllRoles.ts",
     "src/Designer/frontend/packages/shared/src/constants.js",
     "src/Designer/frontend/app-development/features/overview/components/News/NewsContent/news.*.json",
     "src/App/template/*/src/App/config/applicationmetadata.json",

@@ -467,7 +467,7 @@ function CellWithLabel({
   const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);
   const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);
 
-  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
+  const labelSettings = config.type !== 'Custom' && 'labelSettings' in config ? config.labelSettings : undefined;
   const required = getRequired(config.type, evaluatedRequired);
   const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, CommonExpressions.IGridColumnProperties.colSpan);
   useWarnIfColSpanOverlapsHiddenColumns({

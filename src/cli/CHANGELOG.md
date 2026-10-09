@@ -13,6 +13,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` and `IOnTaskEndingHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 
+### Changed
+
+- `studioctl app upgrade v9` no longer asks you to grant the app owner task-specific actions in `policy.xml`, such as `confirm`, `reject` or an action named after a custom task type. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
+
+### Fixed
+
+- `studioctl app upgrade v9` renames every call to an app's own `Analyse` method on an `IFileAnalyser` implementation, even when the call is in a different file from the class. Some were left unchanged, and the app then failed to build.
+
 ## [0.1.0-preview.28] - 2026-10-07
 
 ### Added

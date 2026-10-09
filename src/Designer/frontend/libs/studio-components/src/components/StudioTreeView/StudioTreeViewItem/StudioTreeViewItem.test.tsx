@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { StudioTreeViewItemProps } from './StudioTreeViewItem';
 import type { ByRoleOptions } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
@@ -16,8 +17,8 @@ const defaultProps: StudioTreeViewItemProps = {
   nodeId,
 };
 const rootId = 'rootId';
-const setFocusedId = jest.fn();
-const setSelectedId = jest.fn();
+const setFocusedId = vi.fn();
+const setSelectedId = vi.fn();
 const focusableId = 'focusableId';
 const defaultRootContextProps: TreeViewRootContextProps = {
   rootId,
@@ -37,7 +38,7 @@ const renderItem = (
   );
 
 describe('StudioTreeViewItem', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Renders a treeitem component with the given label', () => {
     renderItem({ label });

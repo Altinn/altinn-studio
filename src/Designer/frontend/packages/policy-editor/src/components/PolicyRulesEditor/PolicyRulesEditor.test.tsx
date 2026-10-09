@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { PolicyRulesEditor } from './PolicyRulesEditor';
 import { mockPolicyEditorContextValue } from '../../../test/mocks/policyEditorContextMock';
 import { PolicyEditorContext } from '../../contexts/PolicyEditorContext';

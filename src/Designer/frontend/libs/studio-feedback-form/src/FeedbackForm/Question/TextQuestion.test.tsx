@@ -1,24 +1,25 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { TextQuestion } from './TextQuestion';
 import { userEvent } from '@testing-library/user-event';
 
 describe('TextQuestion', () => {
   it('should render TextQuestion', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     render(<TextQuestion id='1' value='' label='Question' onChange={onChange} />);
 
     expect(screen.getByRole('textbox', { name: 'Question' })).toBeInTheDocument();
   });
 
   it('should render TextQuestion with expected value', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     render(<TextQuestion id='1' value='This is a test' label='Question' onChange={onChange} />);
 
     expect(screen.getByRole('textbox', { name: 'Question' })).toHaveValue('This is a test');
   });
 
   it('should call onChange when input is changed', async () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const user = userEvent.setup();
     render(<TextQuestion id='1' value='' label='Question' onChange={onChange} />);
 

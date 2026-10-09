@@ -676,6 +676,12 @@ export const Expressions = {
         defaultValue: undefined,
         errorIntroText: 'Invalid expression for Custom, property textResourceBindings.title',
       } satisfies ExpressionDescriptor<ExprVal.String>,
+      additionalProperties: {
+        returnType: ExprVal.String,
+        defaultValue: undefined,
+        errorIntroText:
+          'Invalid expression for Custom, property textResourceBindings.additionalProperties',
+      } satisfies ExpressionDescriptor<ExprVal.String>,
     },
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
@@ -4593,4 +4599,4 @@ export const CommonExpressions = {
   },
 } as const;
 
-// Source hash: 09f95677116c1f1dcdeabee445085b6c7967152e59fd51e9d47a20afabec981a
+// Source hash: 05dbf45a902ef133ea38443d7e5ead4de4e9bf0d8b1a45493dff6b235b57648f

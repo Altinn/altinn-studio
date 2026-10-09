@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -6,7 +7,7 @@ import type { StudioContentMenuButtonTabProps } from './StudioContentMenuButtonT
 
 type StudioMenuTabName = 'tab1' | 'tab2' | 'tab3';
 
-const onChangeTabMock = jest.fn();
+const onChangeTabMock = vi.fn();
 
 const tab1Name = 'My tab';
 const tab1Id: StudioMenuTabName = 'tab1';
@@ -24,7 +25,7 @@ const tab2: StudioContentMenuButtonTabProps<StudioMenuTabName> = {
 };
 
 describe('StudioContentMenu', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('renders first tab as selected if selectedTab is not provided', () => {
     renderStudioContentMenu({

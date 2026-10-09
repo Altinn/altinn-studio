@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen, within } from '@testing-library/react';
 import type { Expression, LogicalTupleFunc } from './types/Expression';
@@ -16,10 +17,10 @@ import { SimpleSubexpressionValueType } from './enums/SimpleSubexpressionValueTy
 import { expressionToString } from '../StudioManualExpression/converters';
 import { LogicalTupleOperator } from './enums/LogicalTupleOperator';
 
-const onChange = jest.fn();
+const onChange = vi.fn();
 
 describe('StudioExpression', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Renders with the simpified tab open when the expression is simplifiable', () => {
     renderExpression(logicalExpression);
@@ -126,7 +127,7 @@ describe('StudioExpression', () => {
 
   it('Calls the onChange function with the new expression when the user removes a subexpression', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     renderExpression(logicalExpression);
     const subexpressionToDelete = screen.getByRole('group', { name: texts.subexpression(0) });
     const deleteButton = within(subexpressionToDelete).getByRole('button', { name: texts.delete });
@@ -239,7 +240,7 @@ describe('StudioExpression', () => {
     expect(input).toHaveValue(typedString);
     rerender(
       <StudioExpression
-        expression={onChange.mock.lastCall[0]}
+        expression={onChange.mock.lastCall?.[0]}
         onChange={onChange}
         dataLookupOptions={dataLookupOptions}
         texts={texts}
@@ -282,7 +283,7 @@ describe('StudioExpression', () => {
 
   it('Asks for confirmation when the user has unsaved valid changes in the manual editor and tries to switch tab', async () => {
     const user = userEvent.setup();
-    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
     renderExpression(tooComplexExpression);
     const input = screen.getByRole('textbox');
     await user.clear(input);
@@ -297,7 +298,7 @@ describe('StudioExpression', () => {
 
   it('Switches tab without asking for confirmation when there are no unsaved changes in the manual editor', async () => {
     const user = userEvent.setup();
-    const confirmSpy = jest.spyOn(window, 'confirm');
+    const confirmSpy = vi.spyOn(window, 'confirm');
     renderExpression(tooComplexExpression);
     await user.click(screen.getByRole('tab', { name: texts.simplified }));
     expect(confirmSpy).not.toHaveBeenCalled();
@@ -340,7 +341,7 @@ describe('StudioExpression', () => {
 
   it('Switches tab without asking for confirmation when the expression is changed externally after the user has typed in the manual editor', async () => {
     const user = userEvent.setup();
-    const confirmSpy = jest.spyOn(window, 'confirm');
+    const confirmSpy = vi.spyOn(window, 'confirm');
     const { rerender } = renderExpression(tooComplexExpression);
     const input = screen.getByRole('textbox');
     await user.clear(input);
@@ -399,7 +400,7 @@ describe('StudioExpression', () => {
 
   it('Does not call the onChange function and does not change the tab when the user types an invalid expression in the manual editor, tries to switch and rejects the confirm dialog', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(false);
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
     renderExpression(tooComplexExpression);
     const input = screen.getByRole('textbox');
     await user.clear(input);
@@ -414,7 +415,7 @@ describe('StudioExpression', () => {
 
   it('Switches the tab without calling the onChange function when the user types an invalid expression in the manual editor, tries to switch and accepts the confirm dialog', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     renderExpression(tooComplexExpression);
     const input = screen.getByRole('textbox');
     await user.clear(input);
@@ -463,7 +464,7 @@ describe('StudioExpression', () => {
       <StudioExpression
         dataLookupOptions={dataLookupOptions}
         expression={generalOperatorRelation}
-        onChange={jest.fn()}
+        onChange={vi.fn()}
         texts={texts}
         types={selectedTypes}
       />,

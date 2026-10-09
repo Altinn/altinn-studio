@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { PolicyRuleCard, PolicyRuleResource } from '../../types';
 import {

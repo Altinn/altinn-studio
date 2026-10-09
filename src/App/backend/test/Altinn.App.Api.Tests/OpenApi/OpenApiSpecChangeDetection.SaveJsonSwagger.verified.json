@@ -8252,6 +8252,9 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "isFinalWaitCheck": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false

@@ -409,11 +409,7 @@ public class WorkflowEngineCallbackController : ControllerBase
 
                     _logger.LogError(
                         "{ServiceOwnerAuthorizationDiagnosis} CommandKey: {CommandKey}, Instance: {InstanceId}.",
-                        ServiceOwnerAuthorizationDiagnostics.Describe(
-                            appMetadata,
-                            currentTaskId,
-                            instanceDataUnitOfWork.Instance.Process?.CurrentTask?.AltinnTaskType
-                        ),
+                        ServiceOwnerAuthorizationDiagnostics.Describe(appMetadata),
                         command.GetKey(),
                         instanceId
                     );
