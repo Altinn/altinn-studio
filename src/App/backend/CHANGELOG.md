@@ -14,6 +14,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - End users with `write` can now retry a failed service task that your app registers itself, such as your own `IServiceTask`. They previously needed an action named after the task type, which your policy no longer needs to grant. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 - Build check `ALTINNAPP0800` no longer asks you to grant the app owner task-specific actions in `config/authorization/policy.xml`, such as `confirm`, `reject` or an action named after a custom task type. The app owner still needs `read` and `write`. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 
+### Fixed
+
+- A service task that gives up when `Wait.IsFinalCheck` is `true` can no longer fail with the generic error for an exhausted wait budget instead of its own. In unit tests, set `IsFinalCheck` directly: a past `Deadline` no longer implies it.
+
+### Removed
+
+- Breaking: `IPdfFormatter` and the `pdf/format` endpoint. Leave pages or components out of the PDF with `excludeFromPdf` in the task's `Settings.json`, or, for conditional logic, use a PDF service task with a custom layout. `studioctl app upgrade v9` points out the implementations it finds. ([#19785](https://github.com/Altinn/altinn-studio/issues/19785))
+
 ## [9.0.0-preview.7] - 2026-10-07
 
 ### Added
@@ -53,7 +61,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - An eFormidling task whose `<altinn:disabled>` is neither `true` nor `false` now stops startup with an error naming the field and the environment, instead of an unexplained parse failure. Leaving it out or blank still enables eFormidling. ([#20832](https://github.com/Altinn/altinn-studio/pull/20832))
 - PDFs from PDF, subform PDF, signing and payment tasks are now in the language the user selected in the app, not always Norwegian bokmål. Service tasks, process hooks and gateways that run when an instance is created or moves to the next task get that language in `IInstanceDataAccessor.Language` too. ([#20910](https://github.com/Altinn/altinn-studio/pull/20910))
 - Creating an instance no longer fails with an internal server error when the start event leads straight to an exclusive gateway with conditions. ([#20910](https://github.com/Altinn/altinn-studio/pull/20910))
-- A service task that gives up when `Wait.IsFinalCheck` is `true` can no longer fail with the generic error for an exhausted wait budget instead of its own. In unit tests, set `IsFinalCheck` directly: a past `Deadline` no longer implies it.
 
 ### Removed
 

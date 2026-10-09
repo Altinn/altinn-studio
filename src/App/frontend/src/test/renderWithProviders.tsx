@@ -28,6 +28,7 @@ import { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
+import { CurrentLanguageProvider } from 'src/features/language/LanguageProvider';
 import { NavigationFocusStateProvider } from 'src/features/navigation/NavigationFocusStateContext';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
@@ -140,7 +141,6 @@ const defaultQueryMocks: AppQueries = {
   },
   fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IRawOption[], unknown>,
   fetchDataList: async () => getDataListMock(),
-  fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
   fetchLayoutSchema: async () => ({}) as JSONSchema7,
   fetchPaymentInformationForTask: async () => paymentResponsePayload,
   fetchOrderDetails: async () => orderDetailsResponsePayload,
@@ -328,11 +328,13 @@ function DefaultProviders({ children, queries, apis, queryClient, Router = Defau
       >
         <UiPreferencesProvider>
           <Router>
-            <NavigationFocusStateProvider>
-              <GlobalFormDataReadersProvider>
-                <PartyProvider>{children}</PartyProvider>
-              </GlobalFormDataReadersProvider>
-            </NavigationFocusStateProvider>
+            <CurrentLanguageProvider>
+              <NavigationFocusStateProvider>
+                <GlobalFormDataReadersProvider>
+                  <PartyProvider>{children}</PartyProvider>
+                </GlobalFormDataReadersProvider>
+              </NavigationFocusStateProvider>
+            </CurrentLanguageProvider>
           </Router>
         </UiPreferencesProvider>
       </AppQueriesProvider>
@@ -364,7 +366,9 @@ function MinimalProviders({ children, queries, apis, queryClient, Router = Defau
         queryClient={queryClient}
       >
         <Router>
-          <NavigationFocusStateProvider>{children}</NavigationFocusStateProvider>
+          <CurrentLanguageProvider>
+            <NavigationFocusStateProvider>{children}</NavigationFocusStateProvider>
+          </CurrentLanguageProvider>
         </Router>
       </AppQueriesProvider>
     </ApiProvider>

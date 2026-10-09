@@ -95,6 +95,7 @@ export function en() {
     'form_filler.file_uploader_remove_infected_files': 'Remove infected files before submission.',
     'form_filler.file_uploader_max_size_mb': 'Maximum file size {0} MB',
     'form_filler.file_uploader_upload': 'Upload file',
+    'form_filler.file_uploader_read_only': 'Attachments cannot be changed.',
     'form_filler.file_uploader_number_of_files': 'Number of files {0}.',
     'form_filler.file_uploader_show_more_errors': 'Show {0} more',
     'form_filler.file_uploader_show_fewer_errors': 'Show fewer',

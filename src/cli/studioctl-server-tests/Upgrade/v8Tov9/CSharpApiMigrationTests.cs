@@ -98,6 +98,79 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Empty(result.Warnings);
     }
 
+    // --- RemovedPdfFormatterDetector ------------------------------------------------------------
+
+    [Fact]
+    public void PdfFormatterDetector_FlagsImplementationsAndDiRegistrations()
+    {
+        _app.Write(
+            "logic/Pdf/PdfFormatter.cs",
+            """
+            using Altinn.App.Core.Models;
+            public class PdfFormatter : IPdfFormatter
+            {
+                public Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data) =>
+                    Task.FromResult(layoutSettings);
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddTransient<IPdfFormatter, PdfFormatter>();
+            """
+        );
+
+        var result = new RemovedPdfFormatterDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("PdfFormatter.cs") && w.Contains("PdfFormatter : IPdfFormatter")
+        );
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("IPdfFormatter"));
+        Assert.Contains(Summaries(result), s => s.Contains("excludeFromPdf") && s.Contains("pdfLayoutName"));
+    }
+
+    [Fact]
+    public void PdfFormatterDetector_FlagsNullPdfFormatterReference()
+    {
+        _app.Write(
+            "logic/Pdf/Wrapper.cs",
+            """
+            public class Wrapper
+            {
+                private readonly NullPdfFormatter _inner = new();
+            }
+            """
+        );
+
+        var result = new RemovedPdfFormatterDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Locations(result), w => w.Contains("Wrapper.cs") && w.Contains("NullPdfFormatter"));
+    }
+
+    [Fact]
+    public void PdfFormatterDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/MyService.cs",
+            """
+            public class MyService
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new RemovedPdfFormatterDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
     // --- ServiceTaskResultApiDetector ------------------------------------------------------------
 
     [Fact]

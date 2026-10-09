@@ -12,32 +12,6 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir hvilken komponenttype konfigurasjonen gjelder.</div></div>
 </details>
 
-<details class="card adocs-expand adocs-expand-small component-property" id="readonly">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="readOnly">readOnly</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Valgfri</span>
-      <span class="component-property-default">Standardverdi: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.</div></div>
-</details>
-
-<details class="card adocs-expand adocs-expand-small component-property" id="required">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="required">required</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Valgfri</span>
-      <span class="component-property-default">Standardverdi: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.</div></div>
-</details>
-
 <details class="card adocs-expand adocs-expand-small component-property" id="showvalidations">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>

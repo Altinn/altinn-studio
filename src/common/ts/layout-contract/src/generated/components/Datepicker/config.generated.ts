@@ -15,6 +15,8 @@ export interface CompDatepickerExternal
   extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
   type: 'Datepicker';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   autocomplete?: 'bday';
@@ -68,4 +70,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: DatepickerSummaryOverridesWithRef;
 };
 
-// Source hash: 92490f5d42ac9a658807bcbf25092710cfc6f754093d0f01f7ddc99f0f3dd72e
+// Source hash: 7be61173a3d0921060388a4946915564560090d0012f24ded6e1c281599be6ed

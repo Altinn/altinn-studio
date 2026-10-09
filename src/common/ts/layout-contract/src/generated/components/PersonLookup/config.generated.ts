@@ -19,6 +19,8 @@ export interface CompPersonLookupExternal
     help?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForPersonLookup;
 }
@@ -63,4 +65,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: PersonLookupSummaryOverridesWithRef;
 };
 
-// Source hash: 2f994316153079ebe7bd1be0b295205ed4c55de53a5fe22808f59f98c9d6b15a
+// Source hash: a724aca0673897bf96fabc4edff688c0aae664f11c0eb45b77cc082f7166469d
