@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import axios from 'axios';
+import type { AxiosStatic } from 'axios';
 import { waitFor } from '@testing-library/react';
 import { useInstanceDeletionMutation } from './useInstanceDeletionMutation';
 import { renderHookWithProviders } from '../../../../testing/mocks';
@@ -8,10 +9,10 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { instanceDeletePath } from 'admin/features/apps/utils/apiPaths';
 
-vi.mock('axios', async () => ({
-  ...(await vi.importActual('axios')),
-  delete: vi.fn(),
-}));
+vi.mock('axios', async () => {
+  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
+  return { ...actual, default: { ...actual.default, delete: vi.fn() } };
+});
 
 const org = 'ttd';
 const environment = 'tt02';

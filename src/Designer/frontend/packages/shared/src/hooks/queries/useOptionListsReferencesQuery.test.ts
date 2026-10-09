@@ -6,8 +6,8 @@ import { waitFor } from '@testing-library/react';
 import { useOptionListsReferencesQuery } from './useOptionListsReferencesQuery';
 
 describe('useOptionListsReferencesQuery', () => {
-  it('calls getOptionListsReferences with the correct parameters', () => {
-    render();
+  it('calls getOptionListsReferences with the correct parameters', async () => {
+    await render();
     expect(queriesMock.getOptionListsReferences).toHaveBeenCalledWith(org, app);
   });
 });

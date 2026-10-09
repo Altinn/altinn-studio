@@ -6,8 +6,8 @@ import { useOptionListsQuery } from './useOptionListsQuery';
 import { app, org } from '@studio/testing/testids';
 
 describe('useOptionListsQuery', () => {
-  it('calls getOptionLists with the correct parameters', () => {
-    render();
+  it('calls getOptionLists with the correct parameters', async () => {
+    await render();
     expect(queriesMock.getOptionLists).toHaveBeenCalledWith(org, app);
   });
 });

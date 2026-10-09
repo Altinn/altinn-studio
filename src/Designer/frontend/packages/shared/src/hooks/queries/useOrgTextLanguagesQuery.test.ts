@@ -6,8 +6,8 @@ import { org } from '@studio/testing/testids';
 import { useOrgTextLanguagesQuery } from './useOrgTextLanguagesQuery';
 
 describe('useOrgTextLanguagesQuery', () => {
-  it('calls getOrgTextLanguages with the correct parameters', () => {
-    render();
+  it('calls getOrgTextLanguages with the correct parameters', async () => {
+    await render();
     expect(queriesMock.getOrgTextLanguages).toHaveBeenCalledWith(org);
   });
 });

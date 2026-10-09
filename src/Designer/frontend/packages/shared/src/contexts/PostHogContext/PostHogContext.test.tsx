@@ -7,7 +7,7 @@ import { PostHogContextProvider } from './PostHogContext';
 import * as EnvironmentConfigContext from '../EnvironmentConfigContext';
 
 vi.mock('posthog-js', () => ({
-  init: vi.fn(),
+  default: { init: vi.fn() },
 }));
 
 vi.mock('@posthog/react', () => ({

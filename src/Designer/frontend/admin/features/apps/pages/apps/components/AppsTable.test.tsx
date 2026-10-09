@@ -11,6 +11,7 @@ import { app, org } from '@studio/testing/testids';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import axios from 'axios';
+import type { AxiosStatic } from 'axios';
 import userEvent from '@testing-library/user-event';
 import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState';
 import { OrgContext } from 'admin/contexts/OrgContext';
@@ -38,10 +39,10 @@ const defaultProps: AppsTableProps = {
   org,
 };
 
-vi.mock('axios', async () => ({
-  ...(await vi.importActual('axios')),
-  get: vi.fn(),
-}));
+vi.mock('axios', async () => {
+  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
+  return { ...actual, default: { ...actual.default, get: vi.fn() } };
+});
 vi.mock('admin/features/apps/hooks/useQueryParamState');
 
 const mockSetRange = vi.fn();

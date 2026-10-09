@@ -11,8 +11,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 const optionsListId = 'optionsListId';
 
 describe('useOptionListQuery', () => {
-  it('calls getOptionList with the correct parameters', () => {
-    render();
+  it('calls getOptionList with the correct parameters', async () => {
+    await render();
     expect(queriesMock.getOptionList).toHaveBeenCalledWith(org, app, optionsListId);
   });
 

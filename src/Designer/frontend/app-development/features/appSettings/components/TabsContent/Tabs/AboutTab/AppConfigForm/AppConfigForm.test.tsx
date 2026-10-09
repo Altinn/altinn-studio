@@ -435,7 +435,7 @@ async function getOptionalInlineEditTextbox(
 ): Promise<HTMLInputElement> {
   const viewButton = screen.getByRole('button', { name: label });
   await user.click(viewButton);
-  return screen.getByRole('textbox', { name: `${label} ${optionalText}` }) as HTMLInputElement;
+  return screen.getByRole('textbox', { name: `${label}${optionalText}` }) as HTMLInputElement;
 }
 
 function getInlineEditSaveButton(): HTMLElement {

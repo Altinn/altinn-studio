@@ -29,14 +29,16 @@ const deleteConfirmText = textMock('schema_editor.delete_model_confirm', {
   schemaName: selectedOption.label,
 });
 
-vi.mock('bpmn-moddle', () =>
-  vi.fn(() => ({
-    fromXML: vi.fn().mockResolvedValue({
-      rootElement: getDataTypesToSignMock(['dataModel1', 'dataModel2', 'dataModel3']),
-    }),
-    toXML: vi.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
-  })),
-);
+vi.mock('bpmn-moddle', () => ({
+  default: vi.fn(function () {
+    return {
+      fromXML: vi.fn().mockResolvedValue({
+        rootElement: getDataTypesToSignMock(['dataModel1', 'dataModel2', 'dataModel3']),
+      }),
+      toXML: vi.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
+    };
+  }),
+}));
 
 describe('DataModelMenu', () => {
   afterEach(vi.clearAllMocks);

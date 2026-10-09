@@ -5,7 +5,6 @@ import { renderWithProviders } from '../../../test/mocks';
 import { PreviewContext } from 'app-shared/contexts/PreviewContext';
 import { pageHeaderContextMock, previewContextMock } from '../../../test/headerMocks';
 import { PageHeaderContext } from '../../../contexts/PageHeaderContext';
-import { app, org } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { PageHeaderContextProps } from '../../../contexts/PageHeaderContext';
 import { RepositoryType } from 'app-shared/types/global';
@@ -35,13 +34,6 @@ describe('SubHeader', () => {
   });
 
   it('should render the left content if repository type is not DataModels', () => {
-    vi.mock('react-router-dom', async () => ({
-      ...(await vi.importActual('react-router-dom')),
-      useParams: () => ({
-        org,
-        app,
-      }),
-    }));
     renderSubHeader();
 
     expect(screen.getByRole('link', { name: textMock('top_menu.preview') })).toBeInTheDocument();

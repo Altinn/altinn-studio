@@ -66,18 +66,20 @@ describe('LoggerContextProvider', () => {
   });
 
   test('does not crash when ApplicationInsights constructor throws', async () => {
-    await expectGracefulFailureWhenSdkThrows(() => {
+    await expectGracefulFailureWhenSdkThrows(function () {
       throw new Error('SDK initialization failed');
     });
   });
 
   test('does not crash when loadAppInsights throws', async () => {
-    await expectGracefulFailureWhenSdkThrows(() => ({
-      loadAppInsights: () => {
-        throw new Error('loadAppInsights failed');
-      },
-      trackException: vi.fn(),
-    }));
+    await expectGracefulFailureWhenSdkThrows(function () {
+      return {
+        loadAppInsights: () => {
+          throw new Error('loadAppInsights failed');
+        },
+        trackException: vi.fn(),
+      };
+    });
   });
 });
 

@@ -799,11 +799,13 @@ describe('useAssistantWorkflow', () => {
 
   it('creates thread and starts workflow for new session', async () => {
     const threads = createThreadState();
-    const startWorkflow = vi.fn<Promise<AgentResponse>, [WorkflowRequest]>().mockResolvedValue({
-      accepted: false,
-      session_id: 'backend-session',
-      message: 'Rejected',
-    });
+    const startWorkflow = vi
+      .fn<(request: WorkflowRequest) => Promise<AgentResponse>>()
+      .mockResolvedValue({
+        accepted: false,
+        session_id: 'backend-session',
+        message: 'Rejected',
+      });
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',

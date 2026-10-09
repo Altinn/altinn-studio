@@ -2,27 +2,24 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { WSConnectorMissingWebSocketUrlsException } from 'app-shared/websockets/WSConnectorMissingWebSocketUrlsException';
 
-vi.mock('@microsoft/signalr', async () => {
-  const connection = {
-    start: vi.fn().mockResolvedValue('started'),
-    on: vi.fn(),
-    off: vi.fn(),
-  };
-  return {
-    ...(await vi.importActual('@microsoft/signalr')),
-    __mockConnection: connection,
-    HubConnection: vi.fn().mockReturnValue(connection),
-    HubConnectionBuilder: vi.fn(function () {
-      return {
-        withUrl: vi.fn().mockReturnThis(),
-        withAutomaticReconnect: vi.fn().mockReturnThis(),
-        build: vi.fn().mockReturnValue(connection),
-      };
-    }),
-  };
-});
+const mockConnection = vi.hoisted(() => ({
+  start: vi.fn().mockResolvedValue('started'),
+  on: vi.fn(),
+  off: vi.fn(),
+}));
 
-const { __mockConnection: mockConnection } = vi.requireMock('@microsoft/signalr');
+vi.mock('@microsoft/signalr', async () => ({
+  ...(await vi.importActual('@microsoft/signalr')),
+  HubConnection: vi.fn().mockReturnValue(mockConnection),
+  HubConnectionBuilder: vi.fn(function () {
+    return {
+      withUrl: vi.fn().mockReturnThis(),
+      withAutomaticReconnect: vi.fn().mockReturnThis(),
+      build: vi.fn().mockReturnValue(mockConnection),
+    };
+  }),
+}));
+
 const clientOne = 'MessageClientOne';
 const clientTwo = 'MessageClientTwo';
 

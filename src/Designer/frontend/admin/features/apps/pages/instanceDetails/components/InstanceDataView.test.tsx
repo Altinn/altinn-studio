@@ -3,6 +3,7 @@ import type { Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
+import type { AxiosStatic } from 'axios';
 import type { QueryClient } from '@tanstack/react-query';
 import { InstanceDataView } from './InstanceDataView';
 import { renderWithProviders } from '../../../../../testing/mocks';
@@ -13,11 +14,10 @@ import { instanceDeletePath } from 'admin/features/apps/utils/apiPaths';
 import type { SimpleInstanceDetails } from 'admin/features/apps/types/SimpleInstanceDetails';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
-vi.mock('axios', async () => ({
-  ...(await vi.importActual('axios')),
-  get: vi.fn(),
-  delete: vi.fn(),
-}));
+vi.mock('axios', async () => {
+  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
+  return { ...actual, default: { ...actual.default, get: vi.fn(), delete: vi.fn() } };
+});
 
 const org = 'ttd';
 const environment = 'tt02';

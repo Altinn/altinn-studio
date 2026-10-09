@@ -9,6 +9,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 import axios from 'axios';
+import type { AxiosStatic } from 'axios';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import userEvent from '@testing-library/user-event';
@@ -37,10 +38,10 @@ vi.mock('react-chartjs-2');
 vi.mock('admin/hooks/useRequiredRoutePathsParams', () => ({
   useRequiredRoutePathsParams: () => ({ owner: org, environment: env, app }),
 }));
-vi.mock('axios', async () => ({
-  ...(await vi.importActual('axios')),
-  get: vi.fn(),
-}));
+vi.mock('axios', async () => {
+  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
+  return { ...actual, default: { ...actual.default, get: vi.fn() } };
+});
 vi.mock('admin/features/apps/hooks/useQueryParamState');
 
 const defaultProps: AppMetricsProps = {

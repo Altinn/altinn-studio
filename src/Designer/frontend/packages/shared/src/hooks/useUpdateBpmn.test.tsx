@@ -15,7 +15,11 @@ const moddle = {
   }),
   toXML: vi.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
 };
-vi.mock('bpmn-moddle', () => vi.fn(() => moddle));
+vi.mock('bpmn-moddle', () => ({
+  default: vi.fn(function () {
+    return moddle;
+  }),
+}));
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
