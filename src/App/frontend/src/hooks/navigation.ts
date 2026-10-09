@@ -59,8 +59,7 @@ let cachedParams: PathParams = {};
 
 export const useNavigationParam = <T extends keyof PathParams>(key: T) => {
   const location = useLocation();
-  const matches = matchers.map((matcher) => matchPath(matcher, location.pathname));
-  return paramFrom(matches, key) as PathParams[T];
+  return matchParams(location.pathname)[key];
 };
 
 export const useAllNavigationParams = () => matchParams(useLocation().pathname);
@@ -70,8 +69,6 @@ export const useQueryKey = (key: SearchParams) => new URLSearchParams(useLocatio
 
 export const useIsSubformPage = () => {
   const location = useLocation();
-  const matches = matchers.map((matcher) => matchPath(matcher, location.pathname));
-  const mainPageKey = paramFrom(matches, 'mainPageKey');
-  const subformPageKey = paramFrom(matches, 'pageKey');
+  const { mainPageKey, pageKey: subformPageKey } = matchParams(location.pathname);
   return !!(mainPageKey && subformPageKey);
 };
