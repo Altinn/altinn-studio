@@ -31,7 +31,7 @@ export function EffectStoreLabel({ baseComponentId, parent, valueType, options }
     [dataModelBindings?.label],
   );
   const formData = FormStore.data.useFreshBindings(labelBindings, 'raw');
-  const write = FormStore.data.useSetLeafValue();
+  const write = FormStore.data.useBatchedSetLeafValue();
   const { selectedValues } = useSetOptions(valueType, dataModelBindings, options);
 
   const translatedLabels = useMemo(
@@ -52,7 +52,7 @@ export function EffectStoreLabel({ baseComponentId, parent, valueType, options }
     if (!shouldSetData || !dataModelBindings?.label) {
       return;
     }
-    write({ reference: dataModelBindings.label, newValue: labelValue });
+    return write({ reference: dataModelBindings.label, newValue: labelValue });
   }, [dataModelBindings, labelValue, shouldSetData, write]);
 
   return null;
