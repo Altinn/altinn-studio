@@ -13,17 +13,19 @@ import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;
 
-vi.mock('bpmn-moddle', () =>
-  vi.fn(() => ({
-    fromXML: vi.fn().mockResolvedValue({
-      rootElement: getDataTypesToSignMock([
-        componentMocks[ComponentType.FileUpload].id,
-        componentMocks[ComponentType.FileUploadWithTag].id,
-      ]),
-    }),
-    toXML: vi.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
-  })),
-);
+vi.mock('bpmn-moddle', () => ({
+  default: vi.fn(function () {
+    return {
+      fromXML: vi.fn().mockResolvedValue({
+        rootElement: getDataTypesToSignMock([
+          componentMocks[ComponentType.FileUpload].id,
+          componentMocks[ComponentType.FileUploadWithTag].id,
+        ]),
+      }),
+      toXML: vi.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
+    };
+  }),
+}));
 
 describe('useDeleteFormComponentMutation', () => {
   afterEach(vi.clearAllMocks);

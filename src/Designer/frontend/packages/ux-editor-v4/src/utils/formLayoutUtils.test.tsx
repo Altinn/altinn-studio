@@ -667,15 +667,17 @@ describe('formLayoutUtils', () => {
   });
 
   describe('getAllFormItemIds', () => {
-    const layout = { ...mockInternal };
-    expect(getAllFormItemIds(layout)).toEqual([
-      headerId,
-      paragraphId,
-      groupId,
-      paragraphInGroupId,
-      groupInGroupId,
-      paragraphInGroupInGroupId,
-    ]);
+    it('Returns the ids of all form items in the given layout', () => {
+      const layout = { ...mockInternal };
+      expect(getAllFormItemIds(layout)).toEqual([
+        headerId,
+        paragraphId,
+        groupId,
+        paragraphInGroupId,
+        groupInGroupId,
+        paragraphInGroupInGroupId,
+      ]);
+    });
   });
 
   describe('getAvailableChildComponentsForContainer', () => {

@@ -48,17 +48,19 @@ const fileUploadWithTagDataType = {
   minCount: 1,
 };
 
-vi.mock('bpmn-moddle', () =>
-  vi.fn(() => ({
-    fromXML: vi.fn().mockResolvedValue({
-      rootElement: getDataTypesToSignMock([
-        componentMocks[ComponentType.FileUpload].id,
-        componentMocks[ComponentType.FileUploadWithTag].id,
-      ]),
-    }),
-    toXML: vi.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
-  })),
-);
+vi.mock('bpmn-moddle', () => ({
+  default: vi.fn(function () {
+    return {
+      fromXML: vi.fn().mockResolvedValue({
+        rootElement: getDataTypesToSignMock([
+          componentMocks[ComponentType.FileUpload].id,
+          componentMocks[ComponentType.FileUploadWithTag].id,
+        ]),
+      }),
+      toXML: vi.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
+    };
+  }),
+}));
 
 describe('useUpdateFormComponentMutation', () => {
   afterEach(vi.clearAllMocks);

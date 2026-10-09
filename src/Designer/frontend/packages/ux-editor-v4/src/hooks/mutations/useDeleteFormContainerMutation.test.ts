@@ -24,17 +24,19 @@ import { convertExternalLayoutsToInternalFormat } from '@altinn/ux-editor-v4/uti
 const selectedLayoutSet = layoutSet1NameMock;
 const id = container1IdMock;
 
-vi.mock('bpmn-moddle', () =>
-  vi.fn(() => ({
-    fromXML: vi.fn().mockResolvedValue({
-      rootElement: getDataTypesToSignMock([
-        componentMocks[ComponentType.FileUpload].id,
-        componentMocks[ComponentType.FileUploadWithTag].id,
-      ]),
-    }),
-    toXML: vi.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
-  })),
-);
+vi.mock('bpmn-moddle', () => ({
+  default: vi.fn(function () {
+    return {
+      fromXML: vi.fn().mockResolvedValue({
+        rootElement: getDataTypesToSignMock([
+          componentMocks[ComponentType.FileUpload].id,
+          componentMocks[ComponentType.FileUploadWithTag].id,
+        ]),
+      }),
+      toXML: vi.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
+    };
+  }),
+}));
 
 describe('useDeleteFormContainerMutation', () => {
   afterEach(vi.clearAllMocks);

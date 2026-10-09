@@ -23,7 +23,11 @@ import userEvent from '@testing-library/user-event';
 
 vi.mock('../../testing/componentSchemaMocks', async () => ({
   componentSchemaMocks: {
-    ...(await vi.importActual('../../testing/componentSchemaMocks')).componentSchemaMocks,
+    ...(
+      await vi.importActual<{ componentSchemaMocks: typeof componentSchemaMocks }>(
+        '../../testing/componentSchemaMocks',
+      )
+    ).componentSchemaMocks,
     CustomComponentType: {},
   },
 }));

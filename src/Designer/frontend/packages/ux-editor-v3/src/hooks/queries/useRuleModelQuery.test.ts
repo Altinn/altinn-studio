@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import type { WindowWithRuleModel } from './useRuleModelQuery';
@@ -35,9 +35,6 @@ const selectedLayoutSet = layoutSet1NameMock;
 const getRuleModel = vi.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock));
 
 describe('useRuleModelQuery', () => {
-  afterAll(() => {
-    delete global.window;
-  });
   it('Calls getRuleModel with correct parameters', async () => {
     await renderAndWaitForSuccess({ getRuleModel });
     expect(getRuleModel).toHaveBeenCalledTimes(1);

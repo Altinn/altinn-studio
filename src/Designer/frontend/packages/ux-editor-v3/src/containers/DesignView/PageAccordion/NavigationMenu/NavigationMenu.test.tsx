@@ -156,7 +156,7 @@ describe('NavigationMenu', () => {
     expect(menuButtons[0]).toHaveAttribute('aria-expanded', 'false');
 
     await user.click(menuButtons[1]);
-    const menuItemUp = getMenuItem(textMock('ux_editor.page_menu_up'), 1);
+    const menuItemUp = getMenuItem(textMock('ux_editor.page_menu_up'));
     await user.click(menuItemUp);
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(2);
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
@@ -171,8 +171,7 @@ describe('NavigationMenu', () => {
 const getMenuButtons = (): HTMLElement[] =>
   screen.getAllByRole('button', { name: textMock('general.options') });
 
-const getMenuItem = (name: string, index: number = 0): HTMLElement =>
-  screen.getAllByRole('menuitem', { name })[index];
+const getMenuItem = (name: string): HTMLElement => screen.getByRole('menuitem', { name });
 
 const waitForData = async () => {
   const getFormLayoutSettings = vi

@@ -10,6 +10,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org, pageGroupAccordionHeader } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import userEvent from '@testing-library/user-event';
+import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppContextProps } from '../../AppContext';
@@ -43,9 +44,12 @@ describe('PageGroupAccordion', () => {
   });
 
   it('should disable move-up for first group, and move-down for last group', async () => {
+    const user = userEvent.setup();
     await renderPageGroupAccordion({});
+    await openGroupMenu(user, 0);
     expect(moveGroupUpButton(0)).toBeDisabled();
     expect(moveGroupDownButton(0)).toBeEnabled();
+    await openGroupMenu(user, 1);
     expect(moveGroupUpButton(1)).toBeEnabled();
     expect(moveGroupDownButton(1)).toBeDisabled();
   });
@@ -54,6 +58,7 @@ describe('PageGroupAccordion', () => {
     const user = userEvent.setup();
     const changePageGroups = vi.fn();
     await renderPageGroupAccordion({ queries: { changePageGroups } });
+    await openGroupMenu(user, 1);
     await user.click(moveGroupUpButton(1));
     expect(changePageGroups).toHaveBeenCalledTimes(1);
     const expectedPagesMock = { ...pagesMock, groups: pagesMock.groups.toReversed() };
@@ -64,6 +69,7 @@ describe('PageGroupAccordion', () => {
     const user = userEvent.setup();
     const changePageGroups = vi.fn();
     await renderPageGroupAccordion({ queries: { changePageGroups } });
+    await openGroupMenu(user, 0);
     await user.click(moveGroupDownButton(0));
     expect(changePageGroups).toHaveBeenCalledTimes(1);
     const expectedPagesMock = { ...pagesMock, groups: pagesMock.groups.toReversed() };
@@ -136,6 +142,8 @@ describe('PageGroupAccordion', () => {
 });
 
 const groupAccordionHeader = (nth: number) => screen.getByTestId(pageGroupAccordionHeader(nth));
+const openGroupMenu = async (user: UserEvent, nth: number): Promise<void> =>
+  user.click(within(groupAccordionHeader(nth)).getByRole('button', { name: '' }));
 const moveGroupUpButton = (nth: number) =>
   within(groupAccordionHeader(nth)).getByRole('button', {
     name: textMock('ux_editor.page_menu_up'),
