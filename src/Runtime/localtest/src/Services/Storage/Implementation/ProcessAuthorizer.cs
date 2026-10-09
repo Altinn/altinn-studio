@@ -112,14 +112,14 @@ public class ProcessAuthorizer : IProcessAuthorizer
 
     private async Task<bool> Authorize(Instance instance, ProcessState nextProcessState)
     {
-        if (instance.Process?.CurrentTask is null)
-        {
-            return false;
-        }
-
         if (IsServiceOwner(instance))
         {
             return true;
+        }
+
+        if (instance.Process?.CurrentTask is null)
+        {
+            return false;
         }
 
         string? taskId = instance.Process.CurrentTask.ElementId;

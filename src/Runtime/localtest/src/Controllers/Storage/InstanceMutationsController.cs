@@ -198,14 +198,9 @@ public class InstanceMutationsController(
             return completeConfirmationAuthorizationError;
         }
 
-        // AuthorizeProcessNext rejects every caller when the instance has no current task, as
-        // Storage does for an ended or not-started process.
         if (
-            mutationRequest.ProcessState?.State is not null
-            && !await _processAuthorizer.AuthorizeProcessNext(
-                instance,
-                mutationRequest.ProcessState.State
-            )
+            mutationRequest.ProcessState?.State is { } nextProcessState
+            && !await _processAuthorizer.AuthorizeProcessNext(instance, nextProcessState)
         )
         {
             return Forbid();
