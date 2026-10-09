@@ -5,22 +5,17 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
-using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 
 /// <summary>
-/// Generates one PDF per subform data element. There is deliberately no pre-generation cleanup
-/// here: stale PDFs from a previous visit to the task are removed by the CleanupGeneratedFromTask
-/// task-start command, and a failed attempt persists nothing (data changes commit only on callback
-/// success), so any element this task could see in its state-blob instance is already gone. The one
-/// remaining duplication window - a retry after a success the engine failed to record - cannot be
-/// closed from the blob (it predates the lost save) and is accepted until Storage-side idempotent
-/// aggregate mutations land (altinn-storage#1049).
+/// Generates a PDF of each subform data element and adds it to the instance. PDFs from an earlier visit to the task
+/// are removed when the task starts, not here.
 /// </summary>
 internal sealed class SubformPdfServiceTask(
     IProcessReader processReader,
     IPdfService pdfService,
+    IPdfFileNameResolver pdfFileNameResolver,
     ILogger<SubformPdfServiceTask> logger
 ) : IServiceTask
 {
@@ -28,8 +23,9 @@ internal sealed class SubformPdfServiceTask(
 
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
-        string taskId = context.InstanceDataMutator.Instance.Process.CurrentTask.ElementId;
-        Instance instance = context.InstanceDataMutator.Instance;
+        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
+        string taskId = dataMutator.Instance.Process.CurrentTask.ElementId;
+        Instance instance = dataMutator.Instance;
 
         logger.LogDebug("Calling PdfService for Subform PDF Service Task {TaskId}.", taskId);
 
@@ -50,19 +46,35 @@ internal sealed class SubformPdfServiceTask(
                 taskId
             );
 
-            var metadata = new List<KeyValueEntry>
-            {
-                new() { Key = "subformComponentId", Value = subformComponentId },
-                new() { Key = "subformDataElementId", Value = dataElement.Id },
-            };
-
-            _ = await pdfService.GenerateAndStoreSubformPdf(
-                context.InstanceDataMutator,
-                filenameTextResourceKey,
-                new SubformPdfContext(subformComponentId, dataElement.Id),
-                metadata: metadata,
+            var subformPdfContext = new SubformPdfContext(subformComponentId, dataElement.Id);
+            // The actor's language, since a workflow callback is authenticated as the app, whose language is nb
+            byte[] pdf = await pdfService.GenerateSubformPdf(
+                instance,
+                taskId,
+                subformPdfContext,
+                dataMutator.Language,
                 authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
                 cancellationToken: context.CancellationToken
+            );
+            string fileName = await pdfFileNameResolver.GetFileName(
+                dataMutator,
+                filenameTextResourceKey,
+                subformPdfContext
+            );
+
+            // Generated from the task, so the PDF is removed if the task starts again, and says which subform it
+            // was made from
+            dataMutator.AddBinaryDataElement(
+                PdfService.PdfElementType,
+                PdfService.PdfContentType,
+                fileName,
+                pdf,
+                generatedFromTask: taskId,
+                metadata:
+                [
+                    new() { Key = "subformComponentId", Value = subformComponentId },
+                    new() { Key = "subformDataElementId", Value = dataElement.Id },
+                ]
             );
 
             logger.LogDebug(

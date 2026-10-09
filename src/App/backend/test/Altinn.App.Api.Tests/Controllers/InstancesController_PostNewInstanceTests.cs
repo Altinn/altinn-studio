@@ -985,7 +985,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     public async Task InstantiationAllowedByOrg_Returns_Ok_For_User_When_Copying_SimplifiedEndpoint()
     {
         var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
-        using var pdfReturnStream = new MemoryStream();
         pdfMock
             .Setup(p =>
                 p.GeneratePdf(
@@ -995,7 +994,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(pdfReturnStream);
+            .ReturnsAsync(Array.Empty<byte>());
 
         // Setup test data
         string org = "tdd";
@@ -1159,10 +1158,9 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     public async Task CopyInstance_CopyInstanceValidator_Returns_Forbidden_When_Validation_Fails()
     {
         var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
-        using var pdfReturnStream = new MemoryStream();
         pdfMock
             .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pdfReturnStream);
+            .ReturnsAsync(Array.Empty<byte>());
 
         var copyInstanceValidatorMock = new Mock<ICopyInstanceValidator>();
         copyInstanceValidatorMock

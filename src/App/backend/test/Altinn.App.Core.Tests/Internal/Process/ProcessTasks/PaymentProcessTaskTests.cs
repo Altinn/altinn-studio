@@ -209,12 +209,12 @@ public class PaymentProcessTaskTests
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
         SetupPaymentInformation(dataMutator, paymentDataElement, PaymentStatus.Paid);
         _pdfServiceMock
-            .Setup(x => x.GeneratePdf(dataMutator.Object, taskId, false, null, CancellationToken.None))
-            .ReturnsAsync(new MemoryStream([1, 2, 3]));
+            .Setup(x => x.GeneratePdf(instance, taskId, null, null, false, null, CancellationToken.None))
+            .ReturnsAsync(new byte[] { 1, 2, 3 });
 
         await _paymentProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
 
-        _pdfServiceMock.Verify(x => x.GeneratePdf(dataMutator.Object, taskId, false, null, CancellationToken.None));
+        _pdfServiceMock.Verify(x => x.GeneratePdf(instance, taskId, null, null, false, null, CancellationToken.None));
         dataMutator.Verify(x =>
             x.AddBinaryDataElement(
                 validPaymentConfiguration.PaymentReceiptPdfDataType,
@@ -244,7 +244,7 @@ public class PaymentProcessTaskTests
         await _paymentProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
 
         _pdfServiceMock.Verify(
-            x => x.GeneratePdf(dataMutator.Object, taskId, false, null, CancellationToken.None),
+            x => x.GeneratePdf(instance, taskId, null, null, false, null, CancellationToken.None),
             Times.Never
         );
         dataMutator.Verify(
@@ -276,7 +276,7 @@ public class PaymentProcessTaskTests
         SetupPaymentInformation(dataMutator, paymentDataElement, PaymentStatus.Created);
 
         _pdfServiceMock.Verify(
-            x => x.GeneratePdf(dataMutator.Object, taskId, false, null, CancellationToken.None),
+            x => x.GeneratePdf(instance, taskId, null, null, false, null, CancellationToken.None),
             Times.Never
         );
         dataMutator.Verify(
@@ -383,14 +383,16 @@ public class PaymentProcessTaskTests
         _pdfServiceMock
             .Setup(ps =>
                 ps.GeneratePdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
+                    null,
+                    null,
                     false,
                     null,
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new MemoryStream([1, 2, 3]));
+            .ReturnsAsync(new byte[] { 1, 2, 3 });
 
         Func<Task> act = async () => await _paymentProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
 

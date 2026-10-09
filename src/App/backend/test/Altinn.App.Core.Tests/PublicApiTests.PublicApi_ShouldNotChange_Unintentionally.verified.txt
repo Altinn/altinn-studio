@@ -3248,18 +3248,20 @@ namespace Altinn.App.Core.Internal.Language
 }
 namespace Altinn.App.Core.Internal.Pdf
 {
+    public interface IPdfFileNameResolver
+    {
+        System.Threading.Tasks.Task<string> GetFileName(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string? customFileNameTextResourceKey = null, Altinn.App.Core.Internal.Pdf.SubformPdfContext? subformPdfContext = null);
+    }
     public interface IPdfGeneratorClient
     {
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(System.Uri uri, System.Threading.CancellationToken cancellationToken);
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(System.Uri uri, string? footerContent, System.Threading.CancellationToken cancellationToken);
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(System.Uri uri, string? footerContent, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(System.Uri uri, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(System.Uri uri, string? footerContent, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(System.Uri uri, string? footerContent, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod, System.Threading.CancellationToken cancellationToken);
     }
     public interface IPdfService
     {
-        System.Threading.Tasks.Task GenerateAndStorePdf(Altinn.App.Core.Features.IInstanceDataMutator instanceDataMutator, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.BinaryDataChange> GenerateAndStorePdf(Altinn.App.Core.Features.IInstanceDataMutator instanceDataMutator, string? customFileNameTextResourceKey, System.Collections.Generic.List<string>? autoGeneratePdfForTaskIds = null, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, System.Threading.CancellationToken cancellationToken);
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, bool isPreview, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, System.Collections.Generic.List<string>? autoGeneratePdfForTaskIds = null, string? language = null, bool isPreview = false, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<byte[]> GenerateSubformPdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, Altinn.App.Core.Internal.Pdf.SubformPdfContext subformPdfContext, string? language = null, bool isPreview = false, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
     }
     public class PdfGenerationException : Altinn.App.Core.Exceptions.AltinnException
     {
@@ -3272,8 +3274,16 @@ namespace Altinn.App.Core.Internal.Pdf
         public PdfGeneratorSettings() { }
         public string AppPdfPagePathTemplate { get; set; }
         public bool DisplayFooter { get; set; }
+        public Altinn.App.Core.Internal.Pdf.PdfPreviewRateLimitSettings PreviewRateLimit { get; set; }
         public string WaitForSelector { get; set; }
         public int WaitForTime { get; set; }
+    }
+    public class PdfPreviewRateLimitSettings
+    {
+        public PdfPreviewRateLimitSettings() { }
+        public int PermitLimit { get; set; }
+        public int QueueLimit { get; set; }
+        public System.TimeSpan Window { get; set; }
     }
     public sealed class SubformPdfContext : System.IEquatable<Altinn.App.Core.Internal.Pdf.SubformPdfContext>
     {

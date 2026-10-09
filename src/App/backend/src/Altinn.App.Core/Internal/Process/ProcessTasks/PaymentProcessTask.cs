@@ -94,21 +94,20 @@ internal sealed class PaymentProcessTask : IProcessTask
         if (paymentStatus != PaymentStatus.Paid)
             throw new PaymentException("The payment is not completed.");
 
-        await using Stream pdfStream = await _pdfService.GeneratePdf(
-            dataMutator,
+        // The actor's language, since a workflow callback is authenticated as the app, whose language is nb
+        byte[] pdf = await _pdfService.GeneratePdf(
+            dataMutator.Instance,
             taskId,
-            false,
+            language: dataMutator.Language,
             cancellationToken: cancellationToken
         );
-        using var memoryStream = new MemoryStream();
-        await pdfStream.CopyToAsync(memoryStream, cancellationToken);
 
         ValidAltinnPaymentConfiguration validatedPaymentConfiguration = paymentConfiguration.Validate();
         dataMutator.AddBinaryDataElement(
             validatedPaymentConfiguration.PaymentReceiptPdfDataType,
             PdfContentType,
             ReceiptFileName,
-            memoryStream.ToArray(),
+            pdf,
             generatedFromTask: taskId
         );
     }

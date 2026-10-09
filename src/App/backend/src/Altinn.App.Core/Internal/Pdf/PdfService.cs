@@ -3,7 +3,6 @@ using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Helpers.Extensions;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
@@ -12,21 +11,16 @@ using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
-using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
 namespace Altinn.App.Core.Internal.Pdf;
 
 /// <summary>
-/// Service for handling the creation and storage of receipt Pdf.
+/// Generates PDFs of an instance with the PDF generator.
 /// </summary>
 internal sealed class PdfService : IPdfService
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IPdfGeneratorClient _pdfGeneratorClient;
     private readonly PdfGeneratorSettings _pdfGeneratorSettings;
     private readonly ILogger<PdfService> _logger;
@@ -34,16 +28,15 @@ internal sealed class PdfService : IPdfService
     private readonly ITranslationService _translationService;
     private readonly GeneralSettings _generalSettings;
     private readonly IAppResources _resources;
-    private readonly InstanceDataUnitOfWorkInitializer? _instanceDataUnitOfWorkInitializer;
+    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly Telemetry? _telemetry;
     internal const string PdfElementType = "ref-data-as-pdf";
-    private const string PdfContentType = "application/pdf";
+    internal const string PdfContentType = "application/pdf";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfService"/> class.
     /// </summary>
     public PdfService(
-        IHttpContextAccessor httpContextAccessor,
         IPdfGeneratorClient pdfGeneratorClient,
         IOptions<PdfGeneratorSettings> pdfGeneratorSettings,
         IOptions<GeneralSettings> generalSettings,
@@ -51,11 +44,10 @@ internal sealed class PdfService : IPdfService
         IAuthenticationContext authenticationContext,
         ITranslationService translationService,
         IAppResources resources,
-        IServiceProvider? serviceProvider = null,
+        InstanceDataUnitOfWorkInitializer instanceDataUnitOfWorkInitializer,
         Telemetry? telemetry = null
     )
     {
-        _httpContextAccessor = httpContextAccessor;
         _pdfGeneratorClient = pdfGeneratorClient;
         _pdfGeneratorSettings = pdfGeneratorSettings.Value;
         _generalSettings = generalSettings.Value;
@@ -63,207 +55,96 @@ internal sealed class PdfService : IPdfService
         _authenticationContext = authenticationContext;
         _translationService = translationService;
         _resources = resources;
-        _instanceDataUnitOfWorkInitializer = serviceProvider?.GetService<InstanceDataUnitOfWorkInitializer>();
+        _instanceDataUnitOfWorkInitializer = instanceDataUnitOfWorkInitializer;
         _telemetry = telemetry;
     }
 
     /// <inheritdoc/>
-    public async Task GenerateAndStorePdf(
-        IInstanceDataMutator instanceDataMutator,
-        StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
-    )
-    {
-        Instance instance = instanceDataMutator.Instance;
-        string taskId =
-            instance.Process?.CurrentTask?.ElementId
-            ?? throw new InvalidOperationException("Instance does not have a current task");
-        using var activity = _telemetry?.StartGenerateAndStorePdfActivity(instance, taskId);
-
-        _ = await GenerateAndStorePdfInternal(
-            instanceDataMutator,
-            taskId,
-            null,
-            null,
-            null,
-            authenticationMethod,
-            cancellationToken: cancellationToken
-        );
-    }
-
-    /// <inheritdoc/>
-    public async Task<BinaryDataChange> GenerateAndStorePdf(
-        IInstanceDataMutator instanceDataMutator,
-        string? customFileNameTextResourceKey,
-        List<string>? autoGeneratePdfForTaskIds = null,
-        StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
-    )
-    {
-        Instance instance = instanceDataMutator.Instance;
-        string taskId =
-            instance.Process?.CurrentTask?.ElementId
-            ?? throw new InvalidOperationException("Instance does not have a current task");
-        using var activity = _telemetry?.StartGenerateAndStorePdfActivity(instance, taskId);
-
-        return await GenerateAndStorePdfInternal(
-            instanceDataMutator,
-            taskId,
-            customFileNameTextResourceKey,
-            null,
-            autoGeneratePdfForTaskIds,
-            authenticationMethod,
-            cancellationToken: cancellationToken
-        );
-    }
-
-    /// <inheritdoc/>
-    public async Task<BinaryDataChange> GenerateAndStoreSubformPdf(
-        IInstanceDataMutator instanceDataMutator,
-        string? customFileNameTextResourceKey,
-        SubformPdfContext subformPdfContext,
-        List<KeyValueEntry>? metadata = null,
-        StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
-    )
-    {
-        Instance instance = instanceDataMutator.Instance;
-        string taskId =
-            instance.Process?.CurrentTask?.ElementId
-            ?? throw new InvalidOperationException("Instance does not have a current task");
-
-        return await GenerateAndStorePdfInternal(
-            instanceDataMutator,
-            taskId,
-            customFileNameTextResourceKey,
-            subformPdfContext,
-            null,
-            authenticationMethod,
-            metadata,
-            cancellationToken
-        );
-    }
-
-    /// <inheritdoc/>
-    public async Task<Stream> GeneratePdf(
+    public async Task<byte[]> GeneratePdf(
         Instance instance,
         string taskId,
-        bool isPreview,
+        List<string>? autoGeneratePdfForTaskIds = null,
+        string? language = null,
+        bool isPreview = false,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     )
     {
-        using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
-
-        string language = await GetLanguage(dataAccessor: null);
-
-        return await GeneratePdfContent(
+        return await GeneratePdfInternal(
             instance,
             taskId,
+            autoGeneratePdfForTaskIds,
+            subformPdfContext: null,
             language,
             isPreview,
-            null,
-            null,
             authenticationMethod,
-            dataAccessor: null,
             cancellationToken
         );
     }
 
     /// <inheritdoc/>
-    public async Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken cancellationToken)
+    public async Task<byte[]> GenerateSubformPdf(
+        Instance instance,
+        string taskId,
+        SubformPdfContext subformPdfContext,
+        string? language = null,
+        bool isPreview = false,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
-        return await GeneratePdf(instance, taskId, false, cancellationToken: cancellationToken);
+        return await GeneratePdfInternal(
+            instance,
+            taskId,
+            autoGeneratePdfForTaskIds: null,
+            subformPdfContext,
+            language,
+            isPreview,
+            authenticationMethod,
+            cancellationToken
+        );
     }
 
-    async Task<Stream> IPdfService.GeneratePdf(
-        IInstanceDataAccessor dataAccessor,
+    private async Task<byte[]> GeneratePdfInternal(
+        Instance instance,
         string taskId,
+        List<string>? autoGeneratePdfForTaskIds,
+        SubformPdfContext? subformPdfContext,
+        string? requestedLanguage,
         bool isPreview,
         StorageAuthenticationMethod? authenticationMethod,
         CancellationToken cancellationToken
     )
     {
-        Instance instance = dataAccessor.Instance;
         using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
 
-        string language = await GetLanguage(dataAccessor);
+        string language = await _authenticationContext.Current.GetLanguage(requestedLanguage);
 
         return await GeneratePdfContent(
             instance,
             taskId,
             language,
-            isPreview,
-            null,
-            null,
-            authenticationMethod,
-            dataAccessor,
-            cancellationToken
-        );
-    }
-
-    private async Task<BinaryDataChange> GenerateAndStorePdfInternal(
-        IInstanceDataMutator instanceDataMutator,
-        string taskId,
-        string? customFileNameTextResourceKey,
-        SubformPdfContext? subformPdfContext,
-        List<string>? autoGeneratePdfForTaskIds,
-        StorageAuthenticationMethod? authenticationMethod,
-        List<KeyValueEntry>? metadata = null,
-        CancellationToken cancellationToken = default
-    )
-    {
-        Instance instance = instanceDataMutator.Instance;
-
-        string language = await GetLanguage(instanceDataMutator);
-
-        await using Stream pdfContent = await GeneratePdfContent(
-            instance,
-            taskId,
-            language,
-            false,
+            isPreview
+                ? await GetPreviewFooter(language)
+                : await GetFooterContent(instance, taskId, language, authenticationMethod),
             subformPdfContext,
             autoGeneratePdfForTaskIds,
             authenticationMethod,
-            instanceDataMutator,
+            // The frontend renders the current task by default, so only another task goes in the URL
+            includeTaskIdInUrl: taskId != instance.Process?.CurrentTask?.ElementId,
             cancellationToken
         );
-
-        string fileName = await GetFileName(
-            instanceDataMutator,
-            instance,
-            taskId,
-            language,
-            customFileNameTextResourceKey,
-            subformPdfContext?.DataElementId
-        );
-
-        // Read stream to byte array for the mutator
-        using var memoryStream = new MemoryStream();
-        await pdfContent.CopyToAsync(memoryStream, cancellationToken);
-        ReadOnlyMemory<byte> pdfBytes = memoryStream.ToArray();
-
-        BinaryDataChange change = instanceDataMutator.AddBinaryDataElement(
-            PdfElementType,
-            PdfContentType,
-            fileName,
-            pdfBytes,
-            generatedFromTask: taskId,
-            metadata: metadata
-        );
-
-        return change;
     }
 
-    private async Task<Stream> GeneratePdfContent(
+    private async Task<byte[]> GeneratePdfContent(
         Instance instance,
         string taskId,
         string language,
-        bool isPreview,
+        string? footerContent,
         SubformPdfContext? subformPdfContext,
         List<string>? autoGeneratePdfForTaskIds,
         StorageAuthenticationMethod? authenticationMethod,
-        IInstanceDataAccessor? dataAccessor,
+        bool includeTaskIdInUrl,
         CancellationToken cancellationToken
     )
     {
@@ -276,29 +157,17 @@ internal sealed class PdfService : IPdfService
             autoGeneratePdfForTaskIds
         );
 
-        Uri uri = BuildUri(baseUrl, pagePath, taskId, language, subformPdfContext, autoPdfTaskIdsQueryParams);
-
-        bool displayFooter = _pdfGeneratorSettings.DisplayFooter;
-
-        string? footerContent = null;
-
-        if (isPreview)
-        {
-            footerContent = await GetPreviewFooter(language);
-        }
-        else if (displayFooter)
-        {
-            footerContent = await GetFooterContent(instance, taskId, language, dataAccessor);
-        }
-
-        Stream pdfContent = await _pdfGeneratorClient.GeneratePdf(
-            uri,
-            footerContent,
-            authenticationMethod,
-            cancellationToken
+        Uri uri = BuildUri(
+            baseUrl,
+            pagePath,
+            taskId,
+            language,
+            subformPdfContext,
+            includeTaskIdInUrl,
+            autoPdfTaskIdsQueryParams
         );
 
-        return pdfContent;
+        return await _pdfGeneratorClient.GeneratePdf(uri, footerContent, authenticationMethod, cancellationToken);
     }
 
     private static Uri BuildUri(
@@ -307,6 +176,7 @@ internal sealed class PdfService : IPdfService
         string taskId,
         string language,
         SubformPdfContext? subformPdfContext,
+        bool includeTaskIdInUrl,
         List<KeyValuePair<string, string>>? additionalQueryParams = null
     )
     {
@@ -328,6 +198,12 @@ internal sealed class PdfService : IPdfService
             {
                 url += $"/{taskId}/subform/{subformPdfContext.ComponentId}/{subformPdfContext.DataElementId}";
             }
+        }
+        // Insert the task id in the url, so the frontend renders that task instead of the current one
+        else if (includeTaskIdInUrl)
+        {
+            int pdfIndex = url.IndexOf("?pdf=1", StringComparison.OrdinalIgnoreCase);
+            url = pdfIndex > 0 ? $"{url[..pdfIndex]}/{taskId}{url[pdfIndex..]}" : $"{url}/{taskId}";
         }
 
         string lang = Uri.EscapeDataString(language);
@@ -351,69 +227,6 @@ internal sealed class PdfService : IPdfService
         return new Uri(url);
     }
 
-    /// <summary>
-    /// The language a PDF is rendered in: a <c>language</c> or <c>lang</c> override on the current request, else the
-    /// language of <paramref name="dataAccessor"/>, else the caller's. A workflow callback has no such query and is
-    /// authenticated as the app, so there the accessor's language, the one the user chose for the transition, decides.
-    /// </summary>
-    private async Task<string> GetLanguage(IInstanceDataAccessor? dataAccessor) =>
-        GetOverriddenLanguage(_httpContextAccessor.HttpContext?.Request.Query)
-        ?? await _authenticationContext.Current.GetLanguage(dataAccessor?.Language);
-
-    internal static string? GetOverriddenLanguage(IQueryCollection? queries)
-    {
-        if (queries is null)
-        {
-            return null;
-        }
-
-        if (
-            queries.TryGetValue("language", out StringValues queryLanguage)
-            || queries.TryGetValue("lang", out queryLanguage)
-        )
-        {
-            return queryLanguage.ToString();
-        }
-
-        return null;
-    }
-
-    private async Task<string> GetFileName(
-        IInstanceDataAccessor dataAccessor,
-        Instance instance,
-        string taskId,
-        string? language,
-        string? customFileNameTextResourceKey,
-        string? subformDataElementId
-    )
-    {
-        string? fileName;
-
-        if (customFileNameTextResourceKey != null)
-        {
-            fileName = await GetVariableSubstitutedFileName(
-                dataAccessor,
-                customFileNameTextResourceKey,
-                subformDataElementId
-            );
-        }
-        else
-        {
-            // Fall back to simple translation without variable substitution
-            fileName = await _translationService.TranslateTextKey("backend.pdf_default_file_name", language);
-        }
-
-        if (string.IsNullOrEmpty(fileName))
-        {
-            // translation for backend.pdf_default_file_name should always be present (it has a fallback in the translation service),
-            // but just in case, we default to a hardcoded string.
-            fileName = "Altinn PDF.pdf";
-        }
-
-        fileName = fileName.AsFileName(false);
-        return fileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? fileName : $"{fileName}.pdf";
-    }
-
     private async Task<string> GetPreviewFooter(string language)
     {
         var previewText = await _translationService.TranslateTextKey("pdfPreviewText", language);
@@ -424,13 +237,18 @@ internal sealed class PdfService : IPdfService
             </div>";
     }
 
-    private async Task<string> GetFooterContent(
+    private async Task<string?> GetFooterContent(
         Instance instance,
         string taskId,
-        string? language,
-        IInstanceDataAccessor? dataAccessor
+        string language,
+        StorageAuthenticationMethod? authenticationMethod
     )
     {
+        if (!_pdfGeneratorSettings.DisplayFooter)
+        {
+            return null;
+        }
+
         TimeZoneInfo timeZone = TimeZoneInfo.Utc;
         try
         {
@@ -444,7 +262,7 @@ internal sealed class PdfService : IPdfService
 
         DateTimeOffset now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, timeZone);
 
-        bool hideAppName = await GetHideAppNameInPdf(instance, taskId, language, dataAccessor);
+        bool hideAppName = await GetHideAppNameInPdf(instance, taskId, language, authenticationMethod);
 
         string dateGenerated = now.ToString("dd.MM.yyyy HH:mm", new CultureInfo("nb-NO"));
         string altinnReferenceId = instance.Id.Split("/")[1].Split("-")[4];
@@ -477,8 +295,8 @@ internal sealed class PdfService : IPdfService
     private async Task<bool> GetHideAppNameInPdf(
         Instance instance,
         string taskId,
-        string? language,
-        IInstanceDataAccessor? dataAccessor
+        string language,
+        StorageAuthenticationMethod? authenticationMethod
     )
     {
         try
@@ -491,26 +309,14 @@ internal sealed class PdfService : IPdfService
             if (expression.IsLiteralValue)
                 return expression.ValueUnion.Bool;
 
-            // Reuse the in-flight unit of work when the caller already has one (mutator path), and only
-            // initialize a standalone one for callers using an Instance overload (e.g. preview).
-            if (dataAccessor is null)
-            {
-                if (_instanceDataUnitOfWorkInitializer is null)
-                {
-                    _logger.LogWarning(
-                        "Cannot evaluate hideAppNameInPdf expression: no data accessor or InstanceDataUnitOfWorkInitializer is available"
-                    );
-                    return false;
-                }
-
-                dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
-                    instance,
-                    StorageVersionMetadata.Empty,
-                    taskId,
-                    language
-                );
-            }
-
+            // Read the data from Storage, as the PDF generator does
+            IInstanceDataAccessor dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
+                instance,
+                StorageVersionMetadata.Empty,
+                taskId,
+                language,
+                authenticationMethod
+            );
             var state = dataAccessor.GetLayoutEvaluatorState();
 
             var settings = _resources.GetLayoutSettingsForFolder(taskId);
@@ -549,31 +355,6 @@ internal sealed class PdfService : IPdfService
         }
 
         return additionalQueryParams;
-    }
-
-    private async Task<string?> GetVariableSubstitutedFileName(
-        IInstanceDataAccessor dataAccessor,
-        string customFileNameTextResourceKey,
-        string? subformDataElementId
-    )
-    {
-        DataElementIdentifier? dataElementIdentifier =
-            subformDataElementId != null
-                ? new DataElementIdentifier(subformDataElementId)
-                : (DataElementIdentifier?)null;
-
-        var componentContext = new ComponentContext(
-            dataAccessor,
-            component: null,
-            rowIndices: null,
-            dataElementIdentifier: dataElementIdentifier
-        );
-
-        return await _translationService.TranslateTextKey(
-            customFileNameTextResourceKey,
-            dataAccessor,
-            componentContext
-        );
     }
 }
 
