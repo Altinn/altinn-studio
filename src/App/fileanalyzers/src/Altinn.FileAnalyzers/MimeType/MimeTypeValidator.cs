@@ -32,14 +32,8 @@ internal sealed class MimeTypeValidator : IFileValidator
             {
                 Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                 Severity = ValidationIssueSeverity.Error,
-                CustomTextKey = "altinn.standard_validation.file_content_type_not_allowed",
-                CustomTextParameters = new Dictionary<string, string>
-                {
-                    ["filename"] = fileMimeTypeResult?.Filename ?? "",
-                    ["dataType"] = dataType.Id,
-                    ["contentType"] = fileMimeTypeResult?.MimeType ?? "",
-                    ["allowedContentTypes"] = string.Join(", ", dataType.AllowedContentTypes),
-                },
+                Description =
+                    $"The {fileMimeTypeResult?.Filename + " "}file does not appear to be of the allowed content type according to the configuration for data type {dataType.Id}. Allowed content types are {string.Join(", ", dataType.AllowedContentTypes)}",
             };
 
             errors.Add(error);

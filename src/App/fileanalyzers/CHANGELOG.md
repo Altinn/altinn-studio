@@ -9,10 +9,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
-### Changed
-
-- The "file type not allowed" error from the MIME type validator now names the allowed file types for clients calling the API, in the user's language. Your own text for `altinn.standard_validation.file_content_type_not_allowed` can also name the file with the `filename` parameter. Needs Altinn.App.Core 9.0.0-preview.8 or later. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
-
 ## [9.0.0-preview.1] - 2026-09-09
 
 ### Changed

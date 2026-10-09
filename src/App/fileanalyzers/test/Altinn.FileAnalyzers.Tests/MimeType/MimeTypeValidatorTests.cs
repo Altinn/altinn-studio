@@ -42,7 +42,6 @@ public class MimeTypeValidatorTests
     { // Simulate config in applicationMetadata.json
         var dataType = new DataType()
         {
-            Id = "attachment",
             EnabledFileValidators = new List<string>() { "mimeTypeValidator" },
             AllowedContentTypes = new List<string>() { "application/pdf" },
         };
@@ -68,21 +67,6 @@ public class MimeTypeValidatorTests
         Assert.Equal(
             ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
             errors.FirstOrDefault()?.Code
-        );
-        var error = Assert.Single(errors);
-        Assert.Equal(
-            "altinn.standard_validation.file_content_type_not_allowed",
-            error.CustomTextKey
-        );
-        Assert.Equal(
-            new Dictionary<string, string>
-            {
-                ["filename"] = "test.png",
-                ["dataType"] = "attachment",
-                ["contentType"] = "application/pdfx",
-                ["allowedContentTypes"] = "application/pdf",
-            },
-            error.CustomTextParameters
         );
     }
 }
