@@ -1,24 +1,26 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mocked } from 'vitest';
 import { PostHogAnalyticsProvider } from './analyticsProvider';
 import type { PostHog } from 'posthog-js';
 
 describe('PostHogAnalyticsProvider', () => {
-  let mockPostHog: jest.Mocked<PostHog>;
+  let mockPostHog: Mocked<PostHog>;
   let provider: PostHogAnalyticsProvider;
 
   beforeEach(() => {
     mockPostHog = {
-      opt_in_capturing: jest.fn(),
-      opt_out_capturing: jest.fn(),
-      set_config: jest.fn(),
-      startSessionRecording: jest.fn(),
-      stopSessionRecording: jest.fn(),
-    } as unknown as jest.Mocked<PostHog>;
+      opt_in_capturing: vi.fn(),
+      opt_out_capturing: vi.fn(),
+      set_config: vi.fn(),
+      startSessionRecording: vi.fn(),
+      stopSessionRecording: vi.fn(),
+    } as unknown as Mocked<PostHog>;
 
     provider = new PostHogAnalyticsProvider(mockPostHog);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('syncConsent', () => {

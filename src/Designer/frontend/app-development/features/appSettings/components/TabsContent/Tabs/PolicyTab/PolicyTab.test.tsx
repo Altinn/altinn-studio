@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { MockedFunction } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { PolicyTab } from './PolicyTab';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -65,9 +67,9 @@ const mockSubjects: PolicySubject[] = [
   },
 ];
 
-jest.mock('app-development/hooks/mutations/useAppPolicyMutation');
-const updateAppPolicyMutation = jest.fn();
-const mockUpdateAppPolicyMutation = useAppPolicyMutation as jest.MockedFunction<
+vi.mock('app-development/hooks/mutations/useAppPolicyMutation');
+const updateAppPolicyMutation = vi.fn();
+const mockUpdateAppPolicyMutation = useAppPolicyMutation as MockedFunction<
   typeof useAppPolicyMutation
 >;
 mockUpdateAppPolicyMutation.mockReturnValue({
@@ -75,7 +77,7 @@ mockUpdateAppPolicyMutation.mockReturnValue({
 } as unknown as UseMutationResult<void, Error, Policy, unknown>);
 
 describe('PolicyTab', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('initially displays the spinner when loading data', () => {
     renderPolicyTab();
@@ -83,19 +85,19 @@ describe('PolicyTab', () => {
   });
 
   it('fetches policy on mount', () => {
-    const getAppPolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
+    const getAppPolicy = vi.fn().mockImplementation(() => Promise.resolve({}));
     renderPolicyTab({ getAppPolicy });
     expect(getAppPolicy).toHaveBeenCalledTimes(1);
   });
 
   it('fetches actions on mount', () => {
-    const getPolicyActions = jest.fn().mockImplementation(() => Promise.resolve({}));
+    const getPolicyActions = vi.fn().mockImplementation(() => Promise.resolve({}));
     renderPolicyTab({ getPolicyActions });
     expect(getPolicyActions).toHaveBeenCalledTimes(1);
   });
 
   it('fetches subjects on mount', () => {
-    const getPolicySubjects = jest.fn().mockImplementation(() => Promise.resolve(null));
+    const getPolicySubjects = vi.fn().mockImplementation(() => Promise.resolve(null));
     renderPolicyTab({ getPolicySubjects });
     expect(getPolicySubjects).toHaveBeenCalledTimes(1);
   });
@@ -126,7 +128,7 @@ describe('PolicyTab', () => {
 
   it('displays the PolicyEditor component with alert if policy rule list is empty', async () => {
     const user = userEvent.setup();
-    const getAppPolicy = jest
+    const getAppPolicy = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ ...mockPolicy, rules: [] }));
     await resolveAndWaitForSpinnerToDisappear({ getAppPolicy });
@@ -166,9 +168,9 @@ const renderPolicyTab = (queries: Partial<ServicesContextProps> = {}) => {
 };
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
-  const getAppPolicy = jest.fn().mockImplementation(() => Promise.resolve(mockPolicy));
-  const getPolicyActions = jest.fn().mockImplementation(() => Promise.resolve(mockActions));
-  const getPolicySubjects = jest.fn().mockImplementation(() => Promise.resolve(mockSubjects));
+  const getAppPolicy = vi.fn().mockImplementation(() => Promise.resolve(mockPolicy));
+  const getPolicyActions = vi.fn().mockImplementation(() => Promise.resolve(mockActions));
+  const getPolicySubjects = vi.fn().mockImplementation(() => Promise.resolve(mockSubjects));
 
   renderPolicyTab({
     getAppPolicy,

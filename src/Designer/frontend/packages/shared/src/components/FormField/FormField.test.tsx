@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StudioTextfield } from '@studio/components';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -47,7 +48,7 @@ const render = async (props: Partial<FormFieldProps<string, string>> = {}) => {
 };
 
 describe('FormField', () => {
-  const mockOnChange = jest.fn();
+  const mockOnChange = vi.fn();
 
   beforeEach(() => {
     mockOnChange.mockClear();

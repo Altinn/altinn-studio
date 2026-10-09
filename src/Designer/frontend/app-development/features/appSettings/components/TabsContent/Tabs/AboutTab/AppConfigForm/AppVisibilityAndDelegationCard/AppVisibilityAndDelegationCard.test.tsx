@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
@@ -16,9 +17,9 @@ const renderAppVisibilityAndDelegationCard = (
     visible: false,
     delegable: false,
     descriptionValue: defaultDescriptionValue,
-    onChangeVisible: jest.fn(),
-    onChangeDelegable: jest.fn(),
-    onChangeDescription: jest.fn(),
+    onChangeVisible: vi.fn(),
+    onChangeDelegable: vi.fn(),
+    onChangeDescription: vi.fn(),
   };
 
   return render(
@@ -99,7 +100,7 @@ describe('AppVisibilityAndDelegationCard', () => {
 
   it('should not be possible to toggle visible switch when delegable is false', async () => {
     const user = userEvent.setup();
-    const onChangeVisible = jest.fn();
+    const onChangeVisible = vi.fn();
     renderAppVisibilityAndDelegationCard({
       visible: false,
       delegable: false,
@@ -115,7 +116,7 @@ describe('AppVisibilityAndDelegationCard', () => {
 
   it('should be possible to toggle visible switch when delegable is true', async () => {
     const user = userEvent.setup();
-    const onChangeVisible = jest.fn();
+    const onChangeVisible = vi.fn();
     renderAppVisibilityAndDelegationCard({
       visible: false,
       delegable: true,
@@ -131,7 +132,7 @@ describe('AppVisibilityAndDelegationCard', () => {
 
   it('calls change handler when delegable switch is toggled', async () => {
     const user = userEvent.setup();
-    const onChangeDelegable = jest.fn();
+    const onChangeDelegable = vi.fn();
     renderAppVisibilityAndDelegationCard({
       visible: false,
       delegable: false,
@@ -147,7 +148,7 @@ describe('AppVisibilityAndDelegationCard', () => {
 
   it('calls change handler when visible switch is toggled', async () => {
     const user = userEvent.setup();
-    const onChangeVisible = jest.fn();
+    const onChangeVisible = vi.fn();
     renderAppVisibilityAndDelegationCard({
       visible: false,
       delegable: true,

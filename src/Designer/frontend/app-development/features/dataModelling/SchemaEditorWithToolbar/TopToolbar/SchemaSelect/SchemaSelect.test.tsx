@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render as renderRtl, screen } from '@testing-library/react';
 import type { ISchemaSelectProps } from './SchemaSelect';
 import { SchemaSelect } from './SchemaSelect';
@@ -15,7 +16,7 @@ const user = userEvent.setup();
 const metadata: DataModelMetadata[] = [jsonMetadata1Mock, jsonMetadata2Mock];
 const jsonOption1 = convertMetadataToOption(jsonMetadata1Mock);
 const jsonOption2 = convertMetadataToOption(jsonMetadata2Mock);
-const setSelectedOption = jest.fn();
+const setSelectedOption = vi.fn();
 const defaultProps: ISchemaSelectProps = {
   dataModels: metadata,
   disabled: false,
@@ -24,7 +25,7 @@ const defaultProps: ISchemaSelectProps = {
 };
 
 describe('SchemaSelect', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Renders empty select when there are no provided options', () => {
     render({ dataModels: [] });

@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { useCreateOrgTextResourcesMutation } from './useCreateOrgTextResourcesMutation';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -17,7 +18,7 @@ const response: ITextResourcesWithLanguage = {
 };
 type Request = ServicesContextProps['createOrgTextResources'];
 const mockRequest: Request = () => Promise.resolve(response);
-const createOrgTextResources = jest.fn().mockImplementation(mockRequest);
+const createOrgTextResources = vi.fn().mockImplementation(mockRequest);
 
 describe('useCreateOrgTextResourcesMutation', () => {
   beforeEach(createOrgTextResources.mockClear);

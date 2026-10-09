@@ -1,13 +1,14 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { TimeScaleOptions, TooltipItem, TooltipModel } from 'chart.js';
 import { getChartOptions } from './charts';
 
 describe('getChartOptions', () => {
   beforeEach(() => {
-    jest.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
+    vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('sets min and max based on bucket size and range', () => {

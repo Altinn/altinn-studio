@@ -30,6 +30,7 @@ import utilClasses from 'src/styles/utils.module.css';
 import { getColumnStyles, useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { BaseRow } from 'src/utils/layout/types';
 
@@ -275,12 +276,8 @@ function DataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
   const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
   const displayData = useDisplayData(baseComponentId);
   const config = useComponentConfig(baseComponentId);
-  const evaluatedRequired = useEvalExpression(
-    'required' in config ? config.required : undefined,
-    CommonExpressions.FormComponentProps.required,
-  );
 
-  const required = 'required' in config ? evaluatedRequired : false;
+  const required = useComponentIsRequired(config);
 
   useReportSummaryRender(
     displayData.trim() === ''

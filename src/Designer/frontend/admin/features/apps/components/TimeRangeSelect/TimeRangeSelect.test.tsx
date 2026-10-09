@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { TimeRangeSelect, type TimeRangeSelectProps } from './TimeRangeSelect';
 import userEvent from '@testing-library/user-event';
@@ -5,12 +6,12 @@ import userEvent from '@testing-library/user-event';
 const defaultProps: TimeRangeSelectProps = {
   label: 'Time Range',
   value: 5,
-  onChange: jest.fn(),
+  onChange: vi.fn(),
 };
 
 describe('TimeRangeSelect', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render component', () => {

@@ -18,7 +18,7 @@ import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTable
 import classes from 'src/layout/FileUpload/Tag/EditWindowComponent.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { optionFilter } from 'src/utils/options';
 import type { IAttachment } from 'src/features/attachments';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
@@ -43,6 +43,7 @@ export function EditWindowComponent({
   isFetching,
 }: EditWindowProps): React.JSX.Element {
   const config = useComponentConfig(baseComponentId, 'FileUpload');
+  const readOnly = useEvalExpression(config.readOnly, Expressions.FileUpload.readOnly);
   const tagTitle = useEvalOptionalText(
     config.textResourceBindings?.tagTitle,
     Expressions.FileUpload.textResourceBindings.tagTitle,
@@ -68,7 +69,7 @@ export function EditWindowComponent({
   };
 
   const handleSave = async () => {
-    if (!uploadedAttachment) {
+    if (readOnly || !uploadedAttachment) {
       return;
     }
 
@@ -87,7 +88,7 @@ export function EditWindowComponent({
   };
 
   const setAttachmentTag = async (tags: string[]) => {
-    if (!isAttachmentUploaded(attachment)) {
+    if (readOnly || !isAttachmentUploaded(attachment)) {
       return;
     }
 

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
@@ -8,7 +9,7 @@ import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 
 describe('InputfieldsWithTranslation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('renders NB field with correct label and description', () => {
     renderInputfieldsWithTranslation();
@@ -27,7 +28,7 @@ describe('InputfieldsWithTranslation', () => {
 
   it('calls updateLanguage when NB field is typed into', async () => {
     const user = userEvent.setup();
-    const updateLanguage = jest.fn();
+    const updateLanguage = vi.fn();
     renderInputfieldsWithTranslation({ updateLanguage });
 
     const input = getTextbox(`${label} (${textMock('language.nb')})`);
@@ -58,7 +59,7 @@ const defaultProps: InputfieldsWithTranslationProps = {
   label,
   description,
   value,
-  updateLanguage: jest.fn(),
+  updateLanguage: vi.fn(),
   errors: [],
   isTextArea: false,
   required: true,

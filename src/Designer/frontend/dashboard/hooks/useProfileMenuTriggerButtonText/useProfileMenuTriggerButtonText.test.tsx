@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { useProfileMenuTriggerButtonText } from './useProfileMenuTriggerButtonText';
 import { HeaderContext, type HeaderContextProps } from '../../context/HeaderContext';
 import { SelectedContextType } from '../../enums/SelectedContextType';
@@ -8,7 +10,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { mockOrg1 } from '../../testing/organizationMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 
-jest.mock('../useSelectedContext');
+vi.mock('../useSelectedContext');
 
 const renderUseProfileMenuTriggerButtonTextHook = (
   headerContextValueProps: Partial<HeaderContextProps> = {},
@@ -24,11 +26,11 @@ const renderUseProfileMenuTriggerButtonTextHook = (
 
 describe('useProfileMenuTriggerButtonText', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return the full name of the user when selected context is Self', () => {
-    (useSelectedContext as jest.Mock).mockReturnValue(SelectedContextType.Self);
+    (useSelectedContext as Mock).mockReturnValue(SelectedContextType.Self);
 
     const { result } = renderUseProfileMenuTriggerButtonTextHook();
 
@@ -36,7 +38,7 @@ describe('useProfileMenuTriggerButtonText', () => {
   });
 
   it('should return the login name of the user when full_name is not available', () => {
-    (useSelectedContext as jest.Mock).mockReturnValue(SelectedContextType.Self);
+    (useSelectedContext as Mock).mockReturnValue(SelectedContextType.Self);
 
     const { result } = renderUseProfileMenuTriggerButtonTextHook({
       user: { ...userMock, full_name: '' },
@@ -46,7 +48,7 @@ describe('useProfileMenuTriggerButtonText', () => {
   });
 
   it('should return the organization and username when selected context is an organization', () => {
-    (useSelectedContext as jest.Mock).mockReturnValue(mockOrg1.username);
+    (useSelectedContext as Mock).mockReturnValue(mockOrg1.username);
     const { result } = renderUseProfileMenuTriggerButtonTextHook();
 
     expect(result.current).toBe(
@@ -55,7 +57,7 @@ describe('useProfileMenuTriggerButtonText', () => {
   });
 
   it('should return the username when selected context is All', () => {
-    (useSelectedContext as jest.Mock).mockReturnValue(SelectedContextType.All);
+    (useSelectedContext as Mock).mockReturnValue(SelectedContextType.All);
 
     const { result } = renderUseProfileMenuTriggerButtonTextHook();
 

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { Item, ItemWithLink } from '../consequences.data';
 import { isItemWithLink } from './isItemWithLink';
 

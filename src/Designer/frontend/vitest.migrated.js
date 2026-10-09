@@ -2,6 +2,10 @@
 // Jest ignores these directories and Vitest only includes them, so every test runs exactly once.
 // Remove this file together with Jest when the last directory has been migrated.
 module.exports = [
+  'admin',
+  'app-development',
+  'app-preview',
+  'dashboard',
   'language',
   'libs/studio-assistant',
   'libs/studio-browser-storage',
@@ -17,6 +21,9 @@ module.exports = [
   'packages/policy-editor',
   'packages/schema-editor',
   'packages/schema-model',
+  'packages/shared',
   'packages/text-editor',
+  'resourceadm',
   'settings',
+  'studio-root',
 ];

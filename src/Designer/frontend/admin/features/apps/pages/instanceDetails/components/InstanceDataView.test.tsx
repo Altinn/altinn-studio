@@ -1,6 +1,9 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
+import type { AxiosStatic } from 'axios';
 import type { QueryClient } from '@tanstack/react-query';
 import { InstanceDataView } from './InstanceDataView';
 import { renderWithProviders } from '../../../../../testing/mocks';
@@ -11,11 +14,10 @@ import { instanceDeletePath } from 'admin/features/apps/utils/apiPaths';
 import type { SimpleInstanceDetails } from 'admin/features/apps/types/SimpleInstanceDetails';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
-jest.mock('axios', () => ({
-  ...jest.requireActual('axios'),
-  get: jest.fn(),
-  delete: jest.fn(),
-}));
+vi.mock('axios', async () => {
+  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
+  return { ...actual, default: { ...actual.default, get: vi.fn(), delete: vi.fn() } };
+});
 
 const org = 'ttd';
 const environment = 'tt02';
@@ -37,10 +39,10 @@ const appMetadataMock: ApplicationMetadata = {
 };
 
 describe('InstanceDataView', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('shows a spinner while loading', () => {
-    (axios.get as jest.Mock).mockReturnValue(new Promise(() => {}));
+    (axios.get as Mock).mockReturnValue(new Promise(() => {}));
 
     renderInstanceDataView({ instance: null });
 
@@ -63,10 +65,10 @@ describe('InstanceDataView', () => {
 
   it('deletes the instance and invalidates instance queries when the user confirms', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
-    (axios.delete as jest.Mock).mockResolvedValue({});
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    (axios.delete as Mock).mockResolvedValue({});
     const queryClient = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     renderInstanceDataView({ queryClient });
 
     await user.click(getDeleteButton());
@@ -89,8 +91,8 @@ describe('InstanceDataView', () => {
 
   it('disables the delete button while the deletion is pending so only one request is sent', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
-    (axios.delete as jest.Mock).mockReturnValue(new Promise(() => {}));
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    (axios.delete as Mock).mockReturnValue(new Promise(() => {}));
     renderInstanceDataView();
 
     await user.click(getDeleteButton());
@@ -102,7 +104,7 @@ describe('InstanceDataView', () => {
 
   it('does not delete the instance when the user cancels the confirmation', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(false);
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
     renderInstanceDataView();
 
     await user.click(getDeleteButton());

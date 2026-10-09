@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourcePage } from './ResourcePage';
 import userEvent from '@testing-library/user-event';
@@ -36,12 +38,12 @@ const mockResource2: Resource = {
 };
 
 const mockOrg: string = 'test';
-const mockedNavigate = jest.fn();
+const mockedNavigate = vi.fn();
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockedNavigate,
-  useParams: jest.fn().mockImplementation(() => {
+  useParams: vi.fn().mockImplementation(() => {
     return {
       pageType: 'about',
       resourceId: mockResource1.identifier,
@@ -52,7 +54,7 @@ jest.mock('react-router-dom', () => ({
 
 describe('ResourcePage', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('fetches validate policy on mount', () => {
@@ -94,10 +96,8 @@ describe('ResourcePage', () => {
 
   it('should navigate to policy page from modal when resource has errors', async () => {
     const user = userEvent.setup();
-    const getResource = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve<Resource>(mockResource2));
-    const getValidateResource = jest.fn().mockImplementation(() => Promise.reject(null));
+    const getResource = vi.fn().mockImplementation(() => Promise.resolve<Resource>(mockResource2));
+    const getValidateResource = vi.fn().mockImplementation(() => Promise.reject(null));
 
     renderResourcePage({ getResource, getValidateResource });
     await waitForElementToBeRemoved(() =>
@@ -120,9 +120,7 @@ describe('ResourcePage', () => {
 
   it('should navigate to policy page when resource has no errors', async () => {
     const user = userEvent.setup();
-    const getResource = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
+    const getResource = vi.fn().mockImplementation(() => Promise.resolve<Resource>(mockResource1));
 
     renderResourcePage({ getResource });
     await waitForElementToBeRemoved(() =>
@@ -143,11 +141,9 @@ describe('ResourcePage', () => {
 
   it('opens navigation modal when policy has errors when navigating from policy to about page', async () => {
     const user = userEvent.setup();
-    const getResource = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve<Resource>(mockResource2));
-    const getValidatePolicy = jest.fn().mockImplementation(() => Promise.reject(null));
-    (useParams as jest.Mock).mockReturnValue({
+    const getResource = vi.fn().mockImplementation(() => Promise.resolve<Resource>(mockResource2));
+    const getValidatePolicy = vi.fn().mockImplementation(() => Promise.reject(null));
+    (useParams as Mock).mockReturnValue({
       pageType: 'policy',
       resourceId: mockResource1.identifier,
       org: mockOrg,
@@ -170,11 +166,9 @@ describe('ResourcePage', () => {
 
   it('should call editResource when resource data is changed', async () => {
     const user = userEvent.setup();
-    const getResource = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
+    const getResource = vi.fn().mockImplementation(() => Promise.resolve<Resource>(mockResource1));
 
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       pageType: 'deploy',
       resourceId: mockResource1.identifier,
       org: mockOrg,
@@ -201,7 +195,7 @@ describe('ResourcePage', () => {
 
   it('fetches consent templates when resource is consent resource', async () => {
     const resource = { ...mockResource1, resourceType: 'Consent' as ResourceTypeOption };
-    const getResource = jest.fn().mockImplementation(() => Promise.resolve<Resource>(resource));
+    const getResource = vi.fn().mockImplementation(() => Promise.resolve<Resource>(resource));
 
     renderResourcePage({ getResource });
     await waitForElementToBeRemoved(() =>

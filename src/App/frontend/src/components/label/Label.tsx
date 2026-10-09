@@ -12,8 +12,8 @@ import classes from 'src/components/label/Label.module.css';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { getRequired } from 'src/utils/layout/getRequired';
 import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import type { LabelContentProps } from 'src/components/label/LabelContent';
 import type { ExprResolved } from 'src/features/expressions/types';
@@ -57,22 +57,17 @@ export function LabelInner(props: LabelInnerProps) {
   } = props;
 
   const overrideItemProps = useFormComponentCtx()?.overrideItemProps;
-  const evaluatedRequired = useEvalExpression(
-    overrideItemProps && 'required' in overrideItemProps
-      ? overrideItemProps.required
-      : 'required' in config
-        ? config.required
-        : undefined,
-    CommonExpressions.FormComponentProps.required,
+  const required = useComponentIsRequired(
+    config,
+    overrideItemProps && 'required' in overrideItemProps ? overrideItemProps.required : undefined,
   );
-  const required = getRequired(config.type, evaluatedRequired);
   const readOnly = useEvalExpression(
     overrideItemProps && 'readOnly' in overrideItemProps
       ? overrideItemProps.readOnly
       : 'readOnly' in config
         ? config.readOnly
         : undefined,
-    CommonExpressions.FormComponentProps.readOnly,
+    CommonExpressions.readOnly,
   );
   const labelSettings =
     config.type === 'Custom'

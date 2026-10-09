@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import type { ReactNode } from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -14,17 +16,17 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { EntityUpdated } from 'app-shared/types/api/EntityUpdated';
 import { EntityUpdatedQueriesInvalidator } from 'app-shared/queryInvalidator/EntityUpdatedQueriesInvalidator';
 
-jest.mock('app-shared/hooks/useWebSocket', () => ({
-  useWebSocket: jest.fn(),
+vi.mock('app-shared/hooks/useWebSocket', () => ({
+  useWebSocket: vi.fn(),
 }));
 
 describe('WebSocketSyncWrapper', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should call useWebSocket with the correct parameters', () => {
-    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
+    (useWebSocket as Mock).mockReturnValue({ onWSMessageReceived: vi.fn() });
     renderWebSocketSyncWrapper();
 
     expect(useWebSocket).toHaveBeenCalledWith({
@@ -45,7 +47,7 @@ describe('WebSocketSyncWrapper', () => {
       details: '',
     };
 
-    (useWebSocket as jest.Mock).mockImplementation(({ onWSMessageReceived }) => {
+    (useWebSocket as Mock).mockImplementation(({ onWSMessageReceived }) => {
       onWSMessageReceived(syncErrorMock);
     });
 
@@ -65,9 +67,9 @@ describe('WebSocketSyncWrapper', () => {
     const queryClientMock = createQueryClientMock();
     const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
 
-    invalidator.invalidateQueriesByFileLocation = jest.fn();
+    invalidator.invalidateQueriesByFileLocation = vi.fn();
 
-    (useWebSocket as jest.Mock).mockImplementation(({ onWSMessageReceived }) => {
+    (useWebSocket as Mock).mockImplementation(({ onWSMessageReceived }) => {
       onWSMessageReceived(syncSuccessMock);
     });
 
@@ -85,9 +87,9 @@ describe('WebSocketSyncWrapper', () => {
     };
     const queryClientMock = createQueryClientMock();
     const invalidator = EntityUpdatedQueriesInvalidator.getInstance(queryClientMock, org, app);
-    invalidator.invalidateQueriesByResourceName = jest.fn();
+    invalidator.invalidateQueriesByResourceName = vi.fn();
 
-    (useWebSocket as jest.Mock).mockImplementation(({ onWSMessageReceived }) => {
+    (useWebSocket as Mock).mockImplementation(({ onWSMessageReceived }) => {
       onWSMessageReceived(entityUpdateMock);
     });
 

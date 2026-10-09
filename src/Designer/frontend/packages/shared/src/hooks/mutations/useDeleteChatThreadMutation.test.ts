@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-development/test/mocks';
 import { app, org } from '@studio/testing/testids';
@@ -9,7 +10,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 const threadId = 'thread-1';
 
 describe('useDeleteChatThreadMutation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Calls deleteChatThread with correct arguments', async () => {
     const result = renderHookWithProviders()(() => useDeleteChatThreadMutation()).renderHookResult
@@ -24,7 +25,7 @@ describe('useDeleteChatThreadMutation', () => {
 
   it('Invalidates ChatThreads when deleting a thread', async () => {
     const client = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(client, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(client, 'invalidateQueries');
     const result = renderHookWithProviders({}, client)(() => useDeleteChatThreadMutation())
       .renderHookResult.result;
 

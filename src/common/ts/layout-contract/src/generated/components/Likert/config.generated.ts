@@ -29,6 +29,8 @@ export interface CompLikertExternal
     questionDescriptions?: ExprValToActualOrExpr<ExprVal.String>;
     questionHelpTexts?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsLikert;
   filter?: ILikertFilter;
@@ -68,4 +70,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: LikertSummaryOverridesWithRef;
 };
 
-// Source hash: 668578f964b13d41565f2d14c88597527531375c74c01291295ac62cb32fb40d
+// Source hash: ce3cee983a8fcacd89cabe2c7d81761997aa40fdc227f50e33da5b65e8c0cef1

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { useEffect } from 'react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -10,10 +11,10 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../test/testUtils';
 
 // Mocks:
-jest.mock('@altinn/ux-editor-v3/SubApp', () => ({
+vi.mock('@altinn/ux-editor-v3/SubApp', () => ({
   SubApp: () => <div data-testid='version 3' />,
 }));
-jest.mock('@altinn/ux-editor-v4/SubApp', () => ({
+vi.mock('@altinn/ux-editor-v4/SubApp', () => ({
   SubApp: ({ onLayoutSetNameChange }: { onLayoutSetNameChange: (name: string) => void }) => {
     useEffect(() => {
       onLayoutSetNameChange('test-layout');
@@ -24,7 +25,7 @@ jest.mock('@altinn/ux-editor-v4/SubApp', () => ({
 
 describe('UiEditor', () => {
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('Returns null when there is no AppVersion', async () => {
