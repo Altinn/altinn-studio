@@ -19,7 +19,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` points out `AppSettings` keys in the appsettings files that v9 no longer reads, and app files and folders whose names differ only in case from the names v9 reads, since v9 matches names case-sensitively on every operating system.
 - `studioctl app upgrade v9` renames the misspelled `allowedContributers` to `allowedContributors` on data types in `config/applicationmetadata.json`. ([#20846](https://github.com/Altinn/altinn-studio/pull/20846))
 - `studioctl app upgrade v9` points `$schema` in the app's JSON files at the schemas on `https://altinn.studio/designer/app-dist`, at the same version as the Altinn.App packages.
-- `studioctl app upgrade v9` points out `IPdfFormatter` implementations and their registrations, which no longer compile in v9, and suggests `hidden` expressions, `excludeFromPdf` or a custom PDF layout instead. ([#20938](https://github.com/Altinn/altinn-studio/pull/20938))
+- `studioctl app upgrade v9` points out `IPdfFormatter` implementations and their registrations, which no longer compile in v9, and suggests `excludeFromPdf` or, for conditional logic, a PDF service task with a custom layout instead. ([#19785](https://github.com/Altinn/altinn-studio/issues/19785))
 
 ### Changed
 

@@ -113,7 +113,7 @@ describe('processLayoutSettings', () => {
 
   describe('pdfExclusions', () => {
     it('returns empty lists when not specified', () => {
-      const result = process({ order: ['first'] });
+      const result = processLayoutSettings({ pages: { order: ['first'] } } as ILayoutSettings);
       expect(result.pdfExclusions).toEqual({ pages: [], components: [] });
     });
 
