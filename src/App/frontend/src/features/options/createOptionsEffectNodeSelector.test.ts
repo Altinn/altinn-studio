@@ -96,14 +96,32 @@ describe('private options node discovery', () => {
     const added = withDebounced(state, {
       Group: [{ [ALTINN_ROW_ID]: 'first' }, { [ALTINN_ROW_ID]: 'second' }, { [ALTINN_ROW_ID]: 'third' }],
     });
-    expect(select(added).map(({ node }) => node.rowIds)).toEqual([['first'], ['second'], ['third']]);
+    const afterAddition = select(added);
+    expect(afterAddition.map(({ node }) => node.rowIds)).toEqual([['first'], ['second'], ['third']]);
+    expect(afterAddition[0]).toBe(first[0]);
+    expect(afterAddition[1]).toBe(first[1]);
     const reordered = withDebounced(added, { Group: [{ [ALTINN_ROW_ID]: 'third' }, { [ALTINN_ROW_ID]: 'first' }] });
     const result = select(reordered);
     expect(result).not.toBe(first);
+    expect(result[0]).not.toBe(afterAddition[0]);
+    expect(result[1]).not.toBe(afterAddition[1]);
     expect(result.map(({ node }) => [node.id, node.rowIds])).toEqual([
       ['choice-0', ['third']],
       ['choice-1', ['first']],
     ]);
+  });
+
+  it('keeps effect locations stable when only values in existing rows change', () => {
+    const state = fixture();
+    const select = createOptionsEffectNodeSelector();
+    const first = select(state);
+    const edited = withDebounced(state, {
+      Group: [
+        { [ALTINN_ROW_ID]: 'first', Value: 'two' },
+        { [ALTINN_ROW_ID]: 'second', Value: 'one' },
+      ],
+    });
+    expect(select(edited)).toBe(first);
   });
 
   it('keeps malformed-row errors visible after an earlier valid snapshot', () => {

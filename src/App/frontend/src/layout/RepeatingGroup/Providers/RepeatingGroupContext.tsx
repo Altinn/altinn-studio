@@ -33,6 +33,7 @@ interface Store {
 }
 
 interface ZustandHiddenMethods {
+  getVisibleRows: () => BaseRow[];
   startAddingRow: (uuid: string) => void;
   endAddingRow: (uuid: string) => void;
   startDeletingRow: (row: BaseRow) => void;
@@ -159,6 +160,7 @@ interface NewStoreProps {
 function newStore({ baseComponentId, getVisibleRows, isEditable, editMode, pagination }: NewStoreProps) {
   return createStore<ZustandState>((set) => ({
     baseComponentId,
+    getVisibleRows,
     editingAll: editMode === 'showAll',
     editingNone: editMode === 'onlyTable',
     isFirstRender: true,
@@ -387,6 +389,9 @@ export function useRepeatingGroupSelector<T>(selector: (state: Store) => T): T {
 }
 
 export const RepGroupContext = {
+  useGetVisibleRows() {
+    return ZStore.useStaticSelector((state) => state.getVisibleRows);
+  },
   useIsEditingRow(uuid: string | undefined) {
     return ZStore.useSelector((state) => {
       if (state.editingAll) {
