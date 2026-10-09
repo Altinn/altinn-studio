@@ -15,6 +15,8 @@ export interface CompMapExternal
   extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
   type: 'Map';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForMap;
   layers?: MapLayer[];
@@ -106,4 +108,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: MapSummaryOverridesWithRef;
 };
 
-// Source hash: 49929a850b988b61ce610559bb49d4878367eda4463bcbad74da70debc245812
+// Source hash: 9f08823c5e28298ec230af031a95f87753d542dfdc3a6d7a523c2a2d8f43a473

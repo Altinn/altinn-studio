@@ -16,6 +16,7 @@ export interface CompListExternal
   extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
   type: 'List';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForList;
   deletionStrategy?: 'soft' | 'hard';
@@ -72,4 +73,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: ListSummaryOverridesWithRef;
 };
 
-// Source hash: a7ec97269c691a72f8a81e4adc7e7f692a1f0de0f3b845283c9925d418ff7e4e
+// Source hash: e9cb36311f83d5b53698cfb4ea6544f9939ebd8450d4f08c80f7e87c4d8960eb

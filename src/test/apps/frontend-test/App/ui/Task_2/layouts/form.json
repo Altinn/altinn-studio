@@ -945,7 +945,6 @@
         "maxNumberOfAttachments": 3,
         "minNumberOfAttachments": 0,
         "displayMode": "list",
-        "required": false,
         "hasCustomFileEndings": true,
         "validFileEndings": ".pdf"
       },
@@ -960,7 +959,6 @@
         "maxNumberOfAttachments": 3,
         "minNumberOfAttachments": 0,
         "displayMode": "list",
-        "required": false,
         "hasCustomFileEndings": true,
         "validFileEndings": [".jpeg", ".jpg", ".pdf"],
         "optionsId": "tags"

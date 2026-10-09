@@ -22,6 +22,8 @@ export interface CompRadioButtonsExternal
     LabeledComponentProps {
   type: 'RadioButtons';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsOptionsSimple;
   layout?: LayoutStyle;
@@ -62,4 +64,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: RadioButtonsSummaryOverridesWithRef;
 };
 
-// Source hash: fe7550f0582d4f233f8cb49f8d5f60488850c21c99d2b3509482fc5d686efe64
+// Source hash: 0aca4ed2b0e90e32347a5ea8391a614c80ed1e8b57a4d189a69dd2c358681634
