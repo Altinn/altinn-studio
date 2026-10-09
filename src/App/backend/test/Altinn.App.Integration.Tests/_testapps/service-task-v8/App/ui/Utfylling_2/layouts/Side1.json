@@ -1,0 +1,61 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "size": "L",
+        "id": "Header-8uV9Vw",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Side1.Header-8uV9Vw.title"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "property1",
+            "dataType": "Model2"
+          }
+        },
+        "id": "Input-jIfPYc",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Side1.Input-jIfPYc.title"
+        },
+        "required": true
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "fail",
+            "dataType": "Model2"
+          }
+        },
+        "id": "RadioButtons-aoZwvK",
+        "type": "RadioButtons",
+        "required": true,
+        "options": [
+          {
+            "value": true,
+            "label": "id_B7xyV6j6PmmR"
+          },
+          {
+            "value": false,
+            "label": "id_6SGllQXPgInV"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "Side1.RadioButtons-aoZwvK.title"
+        },
+        "preselectedOptionIndex": 1
+      },
+      {
+        "id": "Button-wCUmrv",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Side1.Button-wCUmrv.title"
+        }
+      }
+    ]
+  }
+}
