@@ -20,11 +20,11 @@ export const useSourceOptions = (source: IOptionSource): IOptionInternal[] => {
   const langTools = useLanguage();
   const groupReference = useGroupReference(source);
   const valueSubPath = getValueSubPath(source);
-  const rawValues = FormStore.data.useDebouncedSelect((pick) => {
+  const groupRows = FormStore.data.useDebouncedPick(groupReference);
+  const rawValues = useMemoDeepEqual(() => {
     if (!groupReference || !valueSubPath) {
       return [];
     }
-    const groupRows = pick(groupReference);
     if (!Array.isArray(groupRows)) {
       return [];
     }
@@ -42,7 +42,7 @@ export const useSourceOptions = (source: IOptionSource): IOptionInternal[] => {
     }
 
     return output;
-  });
+  }, [groupReference, valueSubPath, groupRows]);
 
   const dataSources = useExpressionDataSources(source);
   return useMemoDeepEqual(() => {
