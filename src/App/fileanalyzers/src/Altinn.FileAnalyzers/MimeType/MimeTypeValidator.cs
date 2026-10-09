@@ -35,6 +35,9 @@ internal sealed class MimeTypeValidator : IFileValidator
                 CustomTextKey = "altinn.standard_validation.file_content_type_not_allowed",
                 CustomTextParameters = new Dictionary<string, string>
                 {
+                    ["filename"] = fileMimeTypeResult?.Filename ?? "",
+                    ["dataType"] = dataType.Id,
+                    ["contentType"] = fileMimeTypeResult?.MimeType ?? "",
                     ["allowedContentTypes"] = string.Join(", ", dataType.AllowedContentTypes),
                 },
             };

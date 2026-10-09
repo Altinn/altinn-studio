@@ -290,16 +290,13 @@ internal sealed class TranslationService : ITranslationService
         switch (key)
         {
             case "backend.validation_errors.required":
-                return new TextResourceElement()
-                {
-                    Id = "backend.validation_errors.required",
-                    Value = language switch
-                    {
-                        LanguageConst.Nb => "Feltet er påkrevd",
-                        LanguageConst.Nn => "Feltet er påkravd",
-                        _ => "Field is required",
-                    },
-                };
+                return Localized(
+                    key,
+                    language,
+                    nb: "Feltet er påkrevd",
+                    nn: "Feltet er påkravd",
+                    en: "Field is required"
+                );
             case "backend.pdf_default_file_name":
                 return new TextResourceElement()
                 {
@@ -316,44 +313,30 @@ internal sealed class TranslationService : ITranslationService
                     ],
                 };
             case "pdfPreviewText":
-                return new TextResourceElement()
-                {
-                    Id = "pdfPreviewText",
-                    Value = language switch
-                    {
-                        LanguageConst.En => "The document is a preview",
-                        LanguageConst.Nn => "Dokumentet er ein førehandsvisning",
-                        _ => "Dokumentet er en forhåndsvisning",
-                    },
-                };
+                return Localized(
+                    key,
+                    language,
+                    nb: "Dokumentet er en forhåndsvisning",
+                    nn: "Dokumentet er ein førehandsvisning",
+                    en: "The document is a preview"
+                );
             case "backend.xsd_validation":
-                return new TextResourceElement()
-                {
-                    Id = "backend.xsd_validation",
-                    Value = language switch
-                    {
-                        LanguageConst.Nb => "Et felt bryter reglene satt av XSD. Melding: {0}",
-                        LanguageConst.Nn => "Eit felt bryt reglane sette av XSD. Melding: {0}",
-                        _ => "A field is in violation of the rules set by the XSD schema. Message: {0}",
-                    },
-                    Variables =
-                    [
-                        new TextResourceVariable()
-                        {
-                            DataSource = "customTextParameters",
-                            Key = "message",
-                            DefaultValue = "",
-                        },
-                    ],
-                };
+                return Localized(
+                    key,
+                    language,
+                    nb: "Et felt bryter reglene satt av XSD. Melding: {0}",
+                    nn: "Eit felt bryt reglane sette av XSD. Melding: {0}",
+                    en: "A field is in violation of the rules set by the XSD schema. Message: {0}",
+                    customTextParameterKeys: ["message"]
+                );
+            // Same texts as the frontend language package, which the form uses for this key.
             case "altinn.standard_validation.file_content_type_not_allowed":
                 return Localized(
                     key,
                     language,
-                    nb: "Det ser ut som du prøver å laste opp en filtype som ikke er tillatt. Sjekk at filen faktisk er av den typen den utgir seg for å være. Tillatte filtyper er: {0}.",
-                    nn: "Det ser ut som du prøver å lasta opp ein filtype som ikkje er tillaten. Sjekk at fila faktisk er av den typen han gir seg ut for å vera. Tillatne filtypar er: {0}.",
-                    en: "It looks like you are trying to upload a file type that is not allowed. Please make sure that the file is actually the type it claims to be. Allowed file types are: {0}.",
-                    customTextParameterKeys: ["allowedContentTypes"]
+                    nb: "Det ser ut som du prøver å laste opp en filtype som ikke er tillatt. Sjekk at filen faktisk er av den typen den utgir seg for å være.",
+                    nn: "Det ser ut som du prøver å lasta opp ein filtype som ikkje er tillaten. Sjekk at fila faktisk er av den typen han gir seg ut for å vera.",
+                    en: "It looks like you are trying to upload a file type that is not allowed. Please make sure that the file is actually the type it claims to be."
                 );
             case "backend.validation_errors.missing_content_type":
                 return Localized(

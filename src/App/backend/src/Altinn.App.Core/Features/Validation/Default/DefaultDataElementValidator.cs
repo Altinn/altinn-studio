@@ -33,6 +33,7 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
                     DataElementId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
                     CustomTextKey = "backend.validation_errors.missing_content_type",
+                    CustomTextParameters = FileTextParameters(dataElement, dataType),
                 }
             );
         }
@@ -48,6 +49,9 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
                 )
             )
             {
+                var parameters = FileTextParameters(dataElement, dataType);
+                parameters["contentType"] = contentTypeWithoutEncoding;
+                parameters["allowedContentTypes"] = string.Join(", ", dataType.AllowedContentTypes);
                 issues.Add(
                     new ValidationIssue
                     {
@@ -55,10 +59,7 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
                         Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                         Severity = ValidationIssueSeverity.Error,
                         CustomTextKey = "altinn.standard_validation.file_content_type_not_allowed",
-                        CustomTextParameters = new Dictionary<string, string>
-                        {
-                            ["allowedContentTypes"] = string.Join(", ", dataType.AllowedContentTypes),
-                        },
+                        CustomTextParameters = parameters,
                         Field = dataType.Id,
                     }
                 );
@@ -71,6 +72,8 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
             && (long)dataType.MaxSize * 1024 * 1024 < dataElement.Size
         )
         {
+            var parameters = FileTextParameters(dataElement, dataType);
+            parameters["maxSize"] = dataType.MaxSize.Value.ToString(CultureInfo.InvariantCulture);
             issues.Add(
                 new ValidationIssue
                 {
@@ -78,10 +81,7 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
                     Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
                     Severity = ValidationIssueSeverity.Error,
                     CustomTextKey = "backend.validation_errors.file_too_large",
-                    CustomTextParameters = new Dictionary<string, string>
-                    {
-                        ["maxSize"] = dataType.MaxSize.Value.ToString(CultureInfo.InvariantCulture),
-                    },
+                    CustomTextParameters = parameters,
                     Field = dataType.Id,
                 }
             );
@@ -96,6 +96,7 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
                     Code = ValidationIssueCodes.DataElementCodes.DataElementFileInfected,
                     Severity = ValidationIssueSeverity.Error,
                     CustomTextKey = "backend.validation_errors.file_infected",
+                    CustomTextParameters = FileTextParameters(dataElement, dataType),
                     Field = dataType.Id,
                 }
             );
@@ -114,6 +115,7 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
                     Code = ValidationIssueCodes.DataElementCodes.DataElementFileScanPending,
                     Severity = ValidationIssueSeverity.Error,
                     CustomTextKey = "backend.validation_errors.file_scan_pending",
+                    CustomTextParameters = FileTextParameters(dataElement, dataType),
                     Field = dataType.Id,
                 }
             );
@@ -121,4 +123,10 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
 
         return Task.FromResult(issues);
     }
+
+    /// <summary>
+    /// Text parameters that identify the file, so that apps can name it in their own texts for these issues.
+    /// </summary>
+    private static Dictionary<string, string> FileTextParameters(DataElement dataElement, DataType dataType) =>
+        new() { ["filename"] = dataElement.Filename ?? "", ["dataType"] = dataType.Id };
 }
