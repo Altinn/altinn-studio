@@ -47,8 +47,14 @@ export const FileBrowser = (): ReactElement => {
   };
 
   // The current folder stays visible until the next folder has loaded, so the user does not see a spinner.
-  // Only the last request can update the folder, in case the requests complete in a different order.
+  // Only the last request can update the folder or the file, in case the requests complete in a different order.
   const latestDirectoryRequest = useRef(0);
+  const latestFileRequest = useRef(0);
+
+  const closeFile = useCallback((): void => {
+    latestFileRequest.current++;
+    setFile(undefined);
+  }, []);
 
   const openDirectory = useCallback(
     async (path: string): Promise<void> => {
@@ -59,10 +65,10 @@ export const FileBrowser = (): ReactElement => {
         if (isOutdated()) return;
         const entries = Array.isArray(data) ? data.map(toFileBrowserEntry) : [];
         setDirectory({ path, status: 'loaded', entries });
-        setFile(undefined);
+        closeFile();
       } catch {
         if (isOutdated()) return;
-        setFile(undefined);
+        closeFile();
         setDirectory({
           path,
           status: 'error',
@@ -70,15 +76,18 @@ export const FileBrowser = (): ReactElement => {
         });
       }
     },
-    [org, app, t],
+    [org, app, t, closeFile],
   );
 
   const openFile = async (path: string): Promise<void> => {
+    const request = ++latestFileRequest.current;
+    const isOutdated = (): boolean => request !== latestFileRequest.current;
     setFile({ path, status: 'loading' });
     try {
       const data = await get<FileSystemObject[] | FileSystemObject | null>(
         contentsUrl(org, app, path),
       );
+      if (isOutdated()) return;
       const entry = Array.isArray(data) ? data[0] : data;
       if (entry?.content == null) {
         setFile({
@@ -90,6 +99,7 @@ export const FileBrowser = (): ReactElement => {
         setFile({ path, status: 'loaded', content: entry.content });
       }
     } catch {
+      if (isOutdated()) return;
       setFile({ path, status: 'error', errorMessage: t('ai_assistant.file_browser_file_error') });
     }
   };
