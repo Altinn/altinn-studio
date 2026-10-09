@@ -8,22 +8,27 @@ type TraversableDerivedNode = {
 
 const emptyArray: never[] = [];
 
-export function getDerivedNodeDescendantIds<T extends TraversableDerivedNode>(
-  nodes: T[],
-  nodeId: string,
-  restriction?: number,
-): string[] {
-  const childrenByParent = new Map<string, T[]>();
-  let parentRowContextCount: number | undefined;
+type NodeTopology = {
+  childrenByParent: Map<string, TraversableDerivedNode[]>;
+  rowContextCounts: Map<string, number>;
+};
 
+// Runtime node arrays are immutable snapshots. Validation requests many row scopes
+// from the same snapshot, so build its parent index once instead of once per row.
+const topologyByNodes = new WeakMap<TraversableDerivedNode[], NodeTopology>();
+
+function getTopology(nodes: TraversableDerivedNode[]): NodeTopology {
+  const cached = topologyByNodes.get(nodes);
+  if (cached) {
+    return cached;
+  }
+  const childrenByParent = new Map<string, TraversableDerivedNode[]>();
+  const rowContextCounts = new Map<string, number>();
   for (const node of nodes) {
-    if (node.id === nodeId) {
-      parentRowContextCount = node.rowContexts.length;
-    }
+    rowContextCounts.set(node.id, node.rowContexts.length);
     if (!node.parentId) {
       continue;
     }
-
     const children = childrenByParent.get(node.parentId);
     if (children) {
       children.push(node);
@@ -31,6 +36,18 @@ export function getDerivedNodeDescendantIds<T extends TraversableDerivedNode>(
       childrenByParent.set(node.parentId, [node]);
     }
   }
+  const topology = { childrenByParent, rowContextCounts };
+  topologyByNodes.set(nodes, topology);
+  return topology;
+}
+
+export function getDerivedNodeDescendantIds<T extends TraversableDerivedNode>(
+  nodes: T[],
+  nodeId: string,
+  restriction?: number,
+): string[] {
+  const { childrenByParent, rowContextCounts } = getTopology(nodes);
+  const parentRowContextCount = rowContextCounts.get(nodeId);
 
   if (parentRowContextCount === undefined) {
     return emptyArray;
