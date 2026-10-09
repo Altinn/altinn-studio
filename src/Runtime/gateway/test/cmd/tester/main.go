@@ -229,6 +229,7 @@ func setupRuntime(
 
 func gatewayClusterOptions(includeMonitoring bool) kind.KindContainerRuntimeOptions {
 	return kind.KindContainerRuntimeOptions{
+		DashboardsRepository:              "",
 		IncludeMonitoring:                 includeMonitoring,
 		IncludeTestserver:                 false,
 		IncludeLinkerd:                    false,
