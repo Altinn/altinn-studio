@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { DeployDropdownProps } from './DeployDropdown';
@@ -14,9 +15,9 @@ import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 const defaultProps: DeployDropdownProps = {
   appDeployedVersion: '',
   disabled: false,
-  setSelectedImageTag: jest.fn(),
+  setSelectedImageTag: vi.fn(),
   selectedImageTag: 'test1',
-  startDeploy: jest.fn(),
+  startDeploy: vi.fn(),
   isPending: false,
 };
 
@@ -61,7 +62,7 @@ const imageOptions: ImageOption[] = [
 ];
 
 describe('DeployDropdown', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('renders a spinner while loading data', () => {
     renderDeployDropdown();
@@ -73,7 +74,7 @@ describe('DeployDropdown', () => {
     renderDeployDropdown(
       {},
       {
-        getAppReleases: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
+        getAppReleases: vi.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
       },
     );
     await waitForElementToBeRemoved(() =>
@@ -89,7 +90,7 @@ describe('DeployDropdown', () => {
     renderDeployDropdown(
       {},
       {
-        getAppReleases: jest.fn().mockImplementation(() =>
+        getAppReleases: vi.fn().mockImplementation(() =>
           Promise.resolve({
             results: [],
           }),
@@ -200,7 +201,7 @@ const renderDeployDropdown = (
   queries?: Partial<ServicesContextProps>,
 ) => {
   return renderWithProviders({
-    getAppReleases: jest.fn().mockImplementation(() =>
+    getAppReleases: vi.fn().mockImplementation(() =>
       Promise.resolve({
         results: appReleases,
       }),

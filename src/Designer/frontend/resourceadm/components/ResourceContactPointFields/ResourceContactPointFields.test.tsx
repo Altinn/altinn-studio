@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { ResourceContactPointFieldsProps } from './ResourceContactPointFields';
 import { ResourceContactPointFields } from './ResourceContactPointFields';
@@ -21,7 +22,7 @@ const mockContactPointList: ResourceContactPoint[] = [mockContactPoint1];
 const mockNewInput: string = '123';
 
 describe('ResourceContactPointFields', () => {
-  const mockOnContactPointsChanged = jest.fn();
+  const mockOnContactPointsChanged = vi.fn();
 
   const defaultProps: ResourceContactPointFieldsProps = {
     contactPointList: mockContactPointList,

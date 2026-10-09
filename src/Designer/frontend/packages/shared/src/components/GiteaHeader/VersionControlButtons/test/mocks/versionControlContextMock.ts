@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { type VersionControlButtonsContextProps } from '../../context/VersionControlButtonsContext';
 
@@ -11,11 +12,11 @@ export const mockRepoStatus: RepoStatus = {
 
 export const mockVersionControlButtonsContextValue: VersionControlButtonsContextProps = {
   isLoading: false,
-  setIsLoading: jest.fn(),
+  setIsLoading: vi.fn(),
   hasPushRights: false,
   hasMergeConflict: false,
-  setHasMergeConflict: jest.fn(),
+  setHasMergeConflict: vi.fn(),
   repoStatus: mockRepoStatus,
-  commitAndPushChanges: jest.fn(),
-  onPullSuccess: jest.fn(),
+  commitAndPushChanges: vi.fn(),
+  onPullSuccess: vi.fn(),
 };

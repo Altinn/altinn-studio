@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { screen } from '@testing-library/react';
@@ -18,7 +19,7 @@ const defaultProps: DeleteModalProps = {
 };
 
 describe('DeleteModal', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Closes the dialog when the Cancel button is clicked', async () => {
     const user = userEvent.setup();
@@ -40,11 +41,11 @@ describe('DeleteModal', () => {
     Object.defineProperty(window, 'location', {
       value: {
         ...window.location,
-        reload: jest.fn(),
+        reload: vi.fn(),
       },
       writable: true,
     });
-    jest.spyOn(window.location, 'reload').mockImplementation(() => {});
+    vi.spyOn(window.location, 'reload').mockImplementation(() => {});
     const user = userEvent.setup();
     await renderDeleteModal();
     expect(getDeleteButton()).toBeDisabled();
@@ -56,7 +57,7 @@ describe('DeleteModal', () => {
 
   it('does not call the onClose function when the Delete button is clicked and an error is received', async () => {
     const user = userEvent.setup();
-    const mockDelete = jest.fn().mockImplementation(() => Promise.reject());
+    const mockDelete = vi.fn().mockImplementation(() => Promise.reject());
     await renderDeleteModal({ resetRepoChanges: mockDelete });
     expect(getDeleteButton()).toBeDisabled();
     await user.type(getNameField(), app);

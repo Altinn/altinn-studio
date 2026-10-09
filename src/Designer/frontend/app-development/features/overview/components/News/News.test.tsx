@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { NewsList } from 'app-shared/types/api/NewsList';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -6,7 +7,7 @@ import { News } from './News';
 
 let mockNewsList: NewsList = { news: [] };
 
-jest.mock('./NewsContent/news.nb.json', () => ({
+vi.mock('./NewsContent/news.nb.json', () => ({
   __esModule: true,
   default: {
     get news() {

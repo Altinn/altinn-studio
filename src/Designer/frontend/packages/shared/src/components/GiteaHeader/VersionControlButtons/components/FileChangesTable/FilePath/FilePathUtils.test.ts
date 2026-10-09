@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { convertPureGitDiffToUserFriendlyDiff } from './FilePathUtils';
 
 const diffStringMock = `diff --git a/fileName.json b/fileName.json

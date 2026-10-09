@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useWebSocket } from './useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
@@ -5,17 +7,17 @@ import { WSConnector } from 'app-shared/websockets/WSConnector';
 const clientsNameMock = ['MessageClientOne', 'MessageClientTwo'];
 const webSocketUrlsMock = ['ws://jest-test-mocked-url.com'];
 
-jest.mock('app-shared/websockets/WSConnector', () => ({
+vi.mock('app-shared/websockets/WSConnector', () => ({
   WSConnector: {
-    getInstance: jest.fn().mockReturnValue({
-      onMessageReceived: jest.fn().mockReturnValue(jest.fn()),
+    getInstance: vi.fn().mockReturnValue({
+      onMessageReceived: vi.fn().mockReturnValue(vi.fn()),
     }),
   },
 }));
 
 describe('useWebSocket', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should create web socket connection with provided webSocketUrl', () => {
@@ -25,7 +27,7 @@ describe('useWebSocket', () => {
   });
 
   it('should provide a function to listen to messages', () => {
-    const callback = jest.fn();
+    const callback = vi.fn();
 
     renderUseWebSocket(callback);
 
@@ -43,10 +45,10 @@ describe('useWebSocket', () => {
   });
 });
 
-const getOnMessageReceivedMock = (): jest.Mock =>
-  (WSConnector.getInstance as jest.Mock).mock.results[0].value.onMessageReceived;
+const getOnMessageReceivedMock = (): Mock =>
+  (WSConnector.getInstance as Mock).mock.results[0].value.onMessageReceived;
 
-const renderUseWebSocket = (onWSMessageReceived = jest.fn()) =>
+const renderUseWebSocket = (onWSMessageReceived = vi.fn()) =>
   renderHook(() =>
     useWebSocket({
       webSocketUrls: webSocketUrlsMock,

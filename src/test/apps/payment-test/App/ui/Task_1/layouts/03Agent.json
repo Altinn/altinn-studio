@@ -185,7 +185,6 @@
         "maxFileSizeInMB": 10,
         "maxNumberOfAttachments": 1,
         "minNumberOfAttachments": 0,
-        "required": false,
         "displayMode": "list",
         "hasCustomFileEndings": true,
         "validFileEndings": ".pdf, .doc, .docx, .xls, .xlsx, .jpeg, .jpg, .png, .gif, .txt"

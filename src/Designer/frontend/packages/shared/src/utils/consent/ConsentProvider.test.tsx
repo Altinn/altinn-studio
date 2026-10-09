@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock, Mocked } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConsentProvider, CONSENT_COOKIE_KEY, CONSENT_COOKIE_EXPIRY_DAYS } from './ConsentProvider';
@@ -6,20 +8,20 @@ import type { AnalyticsProvider } from './analyticsProvider';
 import type { ConsentProviderProps } from './ConsentProvider';
 import { CookieStorage } from '@studio/browser-storage';
 
-jest.mock('@posthog/react', () => ({
-  usePostHog: jest.fn(() => ({
-    opt_in_capturing: jest.fn(),
-    opt_out_capturing: jest.fn(),
-    set_config: jest.fn(),
-    startSessionRecording: jest.fn(),
-    stopSessionRecording: jest.fn(),
+vi.mock('@posthog/react', () => ({
+  usePostHog: vi.fn(() => ({
+    opt_in_capturing: vi.fn(),
+    opt_out_capturing: vi.fn(),
+    set_config: vi.fn(),
+    startSessionRecording: vi.fn(),
+    stopSessionRecording: vi.fn(),
   })),
 }));
 
-jest.mock('@studio/browser-storage', () => ({
+vi.mock('@studio/browser-storage', () => ({
   CookieStorage: {
-    getItem: jest.fn(),
-    setItem: jest.fn(),
+    getItem: vi.fn(),
+    setItem: vi.fn(),
   },
 }));
 
@@ -51,19 +53,19 @@ const expectConsentState = (expected: ConsentStateExpectation): void => {
 };
 
 const mockStoredConsent = (analytics: boolean, sessionRecording: boolean): void => {
-  (CookieStorage.getItem as jest.Mock).mockReturnValue({
+  (CookieStorage.getItem as Mock).mockReturnValue({
     preferences: { analytics, sessionRecording },
     timestamp: Date.now(),
   });
 };
 
 const mockNoStoredConsent = (): void => {
-  (CookieStorage.getItem as jest.Mock).mockReturnValue(null);
+  (CookieStorage.getItem as Mock).mockReturnValue(null);
 };
 
 describe('useConsentContext', () => {
   it('should throw error when used outside ConsentProvider', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     const ThrowingComponent = () => {
       useConsent();
@@ -80,7 +82,7 @@ describe('useConsentContext', () => {
 
 describe('useConsentMutationContext', () => {
   it('should throw error when used outside ConsentProvider', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     const ThrowingComponent = () => {
       useConsentMutation();
@@ -96,8 +98,8 @@ describe('useConsentMutationContext', () => {
 });
 
 describe('ConsentProvider', () => {
-  const mockAnalyticsProvider: jest.Mocked<AnalyticsProvider> = {
-    syncConsent: jest.fn(),
+  const mockAnalyticsProvider: Mocked<AnalyticsProvider> = {
+    syncConsent: vi.fn(),
   };
 
   const renderConsentProvider = (props?: Partial<ConsentProviderProps>) => {
@@ -111,7 +113,7 @@ describe('ConsentProvider', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockNoStoredConsent();
   });
 
@@ -204,7 +206,7 @@ describe('ConsentProvider', () => {
   });
 
   it('should log error but not crash when analytics provider syncConsent fails', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const syncError = new Error('Sync failed');
     mockAnalyticsProvider.syncConsent.mockImplementation(() => {
       throw syncError;
@@ -229,7 +231,7 @@ describe('ConsentProvider', () => {
   });
 
   it('should treat malformed cookie as no decision', () => {
-    (CookieStorage.getItem as jest.Mock).mockReturnValue({
+    (CookieStorage.getItem as Mock).mockReturnValue({
       preferences: { analytics: 'not-a-boolean' },
       timestamp: 'invalid',
     });
@@ -240,7 +242,7 @@ describe('ConsentProvider', () => {
   });
 
   it('should treat cookie with missing preferences as no decision', () => {
-    (CookieStorage.getItem as jest.Mock).mockReturnValue({
+    (CookieStorage.getItem as Mock).mockReturnValue({
       timestamp: Date.now(),
     });
 
@@ -250,7 +252,7 @@ describe('ConsentProvider', () => {
   });
 
   it('should handle CookieStorage.getItem throwing an error', () => {
-    (CookieStorage.getItem as jest.Mock).mockImplementation(() => {
+    (CookieStorage.getItem as Mock).mockImplementation(() => {
       throw new Error('Cookie read failed');
     });
 
@@ -260,13 +262,13 @@ describe('ConsentProvider', () => {
   });
 
   it('should log error and not update state when CookieStorage.setItem fails', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const storageError = new Error('Storage full');
-    (CookieStorage.setItem as jest.Mock).mockImplementation(() => {
+    (CookieStorage.setItem as Mock).mockImplementation(() => {
       throw storageError;
     });
 
-    const errorHandler = jest.fn();
+    const errorHandler = vi.fn();
     window.addEventListener('error', errorHandler);
 
     const { user } = renderConsentProvider();

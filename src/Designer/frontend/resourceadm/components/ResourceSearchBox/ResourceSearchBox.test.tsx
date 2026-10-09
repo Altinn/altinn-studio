@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SearchBoxProps } from './ResourceSearchBox';
@@ -5,7 +6,7 @@ import { SearchBox } from './ResourceSearchBox';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('SearchBox', () => {
-  const mockOnChange = jest.fn();
+  const mockOnChange = vi.fn();
 
   const defaultProps: SearchBoxProps = {
     onChange: mockOnChange,

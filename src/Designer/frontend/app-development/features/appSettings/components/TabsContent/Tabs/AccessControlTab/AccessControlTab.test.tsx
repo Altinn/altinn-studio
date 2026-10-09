@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AccessControlTab } from './AccessControlTab';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -9,7 +10,7 @@ import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 describe('AccessControlTab', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('initially displays the spinner when loading data', () => {
     renderAccessControlTab();
@@ -17,7 +18,7 @@ describe('AccessControlTab', () => {
   });
 
   it('fetches getAppMetadata on mount', () => {
-    const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
+    const getAppMetadata = vi.fn().mockImplementation(() => Promise.resolve({}));
     renderAccessControlTab({ getAppMetadata });
     expect(getAppMetadata).toHaveBeenCalledTimes(1);
   });
@@ -72,7 +73,7 @@ const renderAccessControlTab = (queries: Partial<ServicesContextProps> = {}) => 
 };
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
-  const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve(mockAppMetadata));
+  const getAppMetadata = vi.fn().mockImplementation(() => Promise.resolve(mockAppMetadata));
 
   renderAccessControlTab({
     getAppMetadata,

@@ -1,10 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { AppMetricPlaceholder } from './AppMetricPlaceholder';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppMetric } from 'admin/features/apps/types/metrics/AppMetric';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
-jest.mock('react-chartjs-2');
+vi.mock('react-chartjs-2');
 
 const metricName = 'altinn_app_lib_processes_started';
 

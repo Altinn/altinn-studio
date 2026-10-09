@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { SubHeader } from './SubHeader';
@@ -10,22 +12,22 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useParams } from 'react-router-dom';
 import { SelectedContextType } from '../../../../enums/SelectedContextType';
 
-jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
 }));
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: jest.fn().mockReturnValue({
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
+  useParams: vi.fn().mockReturnValue({
     subroute: 'org-library',
     selectedContext: 'ttd',
   }),
-  useLocation: jest.fn().mockReturnValue({ pathname: 'app-dashboard/self' }),
+  useLocation: vi.fn().mockReturnValue({ pathname: 'app-dashboard/self' }),
 }));
 
 describe('SubHeader', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('initially shows the spinner', () => {
@@ -34,7 +36,7 @@ describe('SubHeader', () => {
   });
 
   it('renders GiteaHeader when orgRepoName is defined and no merge conflict', async () => {
-    const getRepoStatus = jest
+    const getRepoStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
@@ -46,11 +48,11 @@ describe('SubHeader', () => {
   });
 
   it('does not render GiteaHeader when orgRepoName is not defined and no merge conflict', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       selectedContext: SelectedContextType.Self,
     });
 
-    const getRepoStatus = jest
+    const getRepoStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
@@ -62,7 +64,7 @@ describe('SubHeader', () => {
   });
 
   it('does not render GiteaHeader when there is a merge conflict', async () => {
-    const getRepoStatus = jest
+    const getRepoStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: true }));
 
@@ -74,7 +76,7 @@ describe('SubHeader', () => {
   });
 
   it('passes hasRepoError as true when there is a repo status error', async () => {
-    const getRepoStatus = jest
+    const getRepoStatus = vi
       .fn()
       .mockImplementation(() => Promise.reject(new Error('An error occurred')));
 
