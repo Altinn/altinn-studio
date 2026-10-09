@@ -1,9 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mocked } from 'vitest';
 import type { AxiosError } from 'axios';
 import axios from 'axios';
 import { del, get, patch, post, put } from './networking';
 
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+vi.mock('axios');
+const mockedAxios = axios as Mocked<typeof axios>;
 const testUrl = 'test';
 
 describe('get', () => {

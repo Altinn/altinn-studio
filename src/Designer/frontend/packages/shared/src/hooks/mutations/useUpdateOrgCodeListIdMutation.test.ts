@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -13,10 +14,10 @@ const newCodeListId: string = 'newCodeListId';
 const codeListMock: CodeListWithTextResources = [{ value: 'value', label: 'label' }];
 
 // Mocks
-jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
+vi.mock('react-router-dom', async () => await vi.importActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 describe('useUpdateOrgCodeListIdMutation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Calls updateOrgCodeListId with correct parameters', async () => {
     const { result } = renderHookWithProviders(() => useUpdateOrgCodeListIdMutation(org));

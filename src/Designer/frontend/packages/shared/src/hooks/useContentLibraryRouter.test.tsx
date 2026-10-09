@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { act, render, renderHook, screen } from '@testing-library/react';
 import type { RenderHookResult, RenderOptions } from '@testing-library/react';
 import { useContentLibraryRouter } from 'app-shared/hooks/useContentLibraryRouter';
@@ -27,7 +28,7 @@ describe('useContentLibraryRouter', () => {
   });
 
   it('Returns a function that renders a link component to some given page', async () => {
-    const captureLocation = jest.fn();
+    const captureLocation = vi.fn();
     const linkText = 'Code lists';
     const TestComponent = (): React.ReactElement => {
       const { renderLink, location } = useContentLibraryRouter(basePath);

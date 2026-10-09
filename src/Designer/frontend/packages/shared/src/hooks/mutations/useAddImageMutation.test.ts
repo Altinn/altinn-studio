@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-development/test/mocks';
 import { app, org } from '@studio/testing/testids';
@@ -8,7 +9,7 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 describe('useAddImageMutation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Calls addImage with correct arguments and payload', async () => {
     const result = renderHookWithProviders()(() => useAddImageMutation(org, app)).renderHookResult
@@ -23,7 +24,7 @@ describe('useAddImageMutation', () => {
   });
 
   it('Shows toast error when file size upload triggers 413 error', async () => {
-    const addImageMock = jest.fn().mockImplementation(() => {
+    const addImageMock = vi.fn().mockImplementation(() => {
       return Promise.reject(createApiErrorMock(ServerCodes.TooLargeContent));
     });
 

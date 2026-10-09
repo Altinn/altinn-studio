@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -63,12 +65,12 @@ const defaultProps: ResourceAccessListsProps = {
   },
 };
 
-const checkListMock = jest.fn();
-const uncheckListMock = jest.fn();
-const mockedNavigate = jest.fn();
+const checkListMock = vi.fn();
+const uncheckListMock = vi.fn();
+const mockedNavigate = vi.fn();
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockedNavigate,
   useParams: () => ({
     org: org,
@@ -76,7 +78,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('ResourceAccessLists', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should show show spinner on loading', () => {
     renderResourceAccessLists();
@@ -144,7 +146,7 @@ describe('ResourceAccessLists', () => {
 
   it('should load more lists when load more button is clicked', async () => {
     const user = userEvent.setup();
-    const getResourceAccessListsMock = jest
+    const getResourceAccessListsMock = vi
       .fn()
       .mockImplementationOnce(() => Promise.resolve(accessListResults))
       .mockImplementationOnce(() => Promise.resolve(accessListResultsPage2));
@@ -172,7 +174,7 @@ describe('ResourceAccessLists', () => {
   });
 
   it('should show error when loading fails', async () => {
-    const getResourceAccessListsMock = jest
+    const getResourceAccessListsMock = vi
       .fn()
       .mockImplementation(() => Promise.reject({ response: { status: 500 } }));
     renderResourceAccessLists(getResourceAccessListsMock);
@@ -184,7 +186,7 @@ describe('ResourceAccessLists', () => {
   });
 
   it('should show error when user does not have permission to change access lists', async () => {
-    const getResourceAccessListsMock = jest
+    const getResourceAccessListsMock = vi
       .fn()
       .mockImplementation(() => Promise.reject({ response: { status: 403 } }));
     renderResourceAccessLists(getResourceAccessListsMock);
@@ -217,10 +219,10 @@ describe('ResourceAccessLists', () => {
   });
 });
 
-const renderResourceAccessLists = (getResourceAccessListsMock?: jest.Mock) => {
+const renderResourceAccessLists = (getResourceAccessListsMock?: Mock) => {
   const getResourceAccessListsMockFn =
     getResourceAccessListsMock ??
-    jest.fn().mockImplementation(() => Promise.resolve(accessListResults));
+    vi.fn().mockImplementation(() => Promise.resolve(accessListResults));
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     removeResourceAccessList: uncheckListMock,

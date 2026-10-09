@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CommitAndPushContent, type CommitAndPushContentProps } from './CommitAndPushContent';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -6,7 +7,7 @@ import { VersionControlButtonsContext } from '../../../context';
 import { mockVersionControlButtonsContextValue } from '../../../test/mocks/versionControlContextMock';
 import { renderWithProviders } from '../../../../mocks/renderWithProviders';
 
-const mockOnClosePopover = jest.fn();
+const mockOnClosePopover = vi.fn();
 
 const defaultProps: CommitAndPushContentProps = {
   onClosePopover: mockOnClosePopover,
@@ -14,7 +15,7 @@ const defaultProps: CommitAndPushContentProps = {
 };
 
 describe('CommitAndPushContent', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render the component with all texts and textarea', () => {
     renderCommitAndPushContent();

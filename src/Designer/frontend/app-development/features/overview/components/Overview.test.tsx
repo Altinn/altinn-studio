@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import Overview from './Overview';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
@@ -11,10 +12,10 @@ import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 const title = 'test';
 const appNameTextResource = 'appName text resource';
 
-const orgListQuery = () => jest.fn().mockImplementation(() => Promise.resolve({ orgs: [org] }));
+const orgListQuery = () => vi.fn().mockImplementation(() => Promise.resolve({ orgs: [org] }));
 
 const appMetadataQueryWithTitle = () =>
-  jest.fn().mockImplementation(() =>
+  vi.fn().mockImplementation(() =>
     Promise.resolve({
       ...applicationMetadata,
       title: { nb: title },
@@ -22,8 +23,8 @@ const appMetadataQueryWithTitle = () =>
   );
 
 const appNameTextResourceQueries = () => ({
-  getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(['nb'])),
-  getTextResources: jest.fn().mockImplementation(() =>
+  getTextLanguages: vi.fn().mockImplementation(() => Promise.resolve(['nb'])),
+  getTextResources: vi.fn().mockImplementation(() =>
     Promise.resolve({
       language: 'nb',
       resources: [{ id: 'appName', value: appNameTextResource }],
@@ -33,7 +34,7 @@ const appNameTextResourceQueries = () => ({
 
 describe('Overview', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   it('renders the app title from the application metadata', async () => {
     renderOverview({
@@ -84,7 +85,7 @@ describe('Overview', () => {
 
   it('should display DeploymentLogList if environments exist', async () => {
     renderOverview({
-      getOrgList: jest.fn().mockImplementation(() =>
+      getOrgList: vi.fn().mockImplementation(() =>
         Promise.resolve({
           orgs: {
             [org]: {
@@ -93,7 +94,7 @@ describe('Overview', () => {
           },
         }),
       ),
-      getRepoMetadata: jest.fn().mockImplementation(() =>
+      getRepoMetadata: vi.fn().mockImplementation(() =>
         Promise.resolve({
           ...repository,
           owner: {
@@ -110,7 +111,7 @@ describe('Overview', () => {
 
   it('should not display DeploymentLogList if environments do not exist for repo owned by org', async () => {
     renderOverview({
-      getRepoMetadata: jest.fn().mockImplementation(() =>
+      getRepoMetadata: vi.fn().mockImplementation(() =>
         Promise.resolve({
           ...repository,
           owner: {
@@ -119,7 +120,7 @@ describe('Overview', () => {
           },
         }),
       ),
-      getOrgList: jest.fn().mockImplementation(() =>
+      getOrgList: vi.fn().mockImplementation(() =>
         Promise.resolve({
           orgs: {
             [org]: {

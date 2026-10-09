@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
 import type { SubformComponent } from 'app-shared/types/api/SubformComponent';
@@ -16,7 +17,7 @@ const subformComponents: SubformComponent[] = [
 
 describe('useSubformComponentsQuery', () => {
   it('returns the subform components of the app', async () => {
-    const getSubformComponents = jest.fn().mockResolvedValue(subformComponents);
+    const getSubformComponents = vi.fn().mockResolvedValue(subformComponents);
     const { result } = renderHookWithProviders(() => useSubformComponentsQuery(org, app), {
       queries: { getSubformComponents },
     });
