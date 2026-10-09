@@ -23,6 +23,8 @@ export type CompLikertSerialized = {
     questionDescriptions?: ExprValToActualOrExpr<ExprVal.String>;
     questionHelpTexts?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsLikert;
   filter?: ILikertFilter;
@@ -33,4 +35,4 @@ export type CompLikertSerialized = {
   LabeledComponentProps &
   ILikertColumnProperties;
 
-// Source hash: 337972442c3bebd3937c2437cf1f1ed50e0ef75e76886c40ef443ca00259a21a
+// Source hash: 60e579a8925d8f24239642d3205d84088d9ff8a3f089f4b5662841a2e80c9db2

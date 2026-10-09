@@ -27,6 +27,8 @@ export interface CompLikertItemExternal
     help?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsOptionsSimple;
   showLabelsInTable?: boolean;
@@ -61,4 +63,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: a62b8db2b07b0cebea3cba954ae1ecc3ae27a0aee5382595cd7a99c5ebe7a133
+// Source hash: fa736e420fe7bd57fb82f50deddb9a6d3ee6470024bd4df3757e7a963fd811b9
