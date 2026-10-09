@@ -47,8 +47,9 @@ A Grafana 12.4.8, the version of the shared Grafana at grafana.dis.altinn.cloud,
 [`Altinn/altinn-dashboards-grafana`](https://github.com/Altinn/altinn-dashboards-grafana)
 (`products/studio`). The datasources keep their names and uids (`altinn-studio-metrics`,
 `altinn-studio-traces`, `altinn-studio-logs`) and query this proxy, so a dashboard built here works
-there unchanged. Without a checkout, devenv clones the repository into the fixture's cache; to work
-on dashboards in your own checkout, point devenv at it:
+there unchanged. A datasource that does not query the proxy is left out with a warning. Without a
+checkout, devenv clones the repository into the fixture's cache, updates it on every start, and uses
+the cached copy when it cannot. To work on dashboards in your own checkout, point devenv at it:
 
 ```bash
 export DEVENV_DASHBOARDS_REPOSITORY=~/code/altinn-dashboards-grafana
