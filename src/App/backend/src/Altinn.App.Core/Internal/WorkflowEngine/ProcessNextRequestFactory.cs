@@ -281,18 +281,9 @@ internal sealed class ProcessNextRequestFactory
             CreateProcessNextLabels(processStateChange) ?? new Dictionary<string, string>(StringComparer.Ordinal);
         labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
 
-        // The Main workflow's step sequence: everything through the CommitProcessState
-        // commit, then - when the transition has side effects - the EnqueueSideEffectsWorkflow
-        // step that schedules them, then the critical post-commit commands. Enqueueing at the
-        // commit boundary makes the side effects exist if and only if the transition committed,
-        // and lets them run promptly without waiting for e.g. a service task. A process end is
-        // the exception: its post-commit steps finish the end itself, so the side effects that
-        // announce it wait for them.
-        List<StepRequest> mainSteps = commands.ThroughCommit;
-        if (commands.EndsProcess)
-        {
-            mainSteps.AddRange(commands.CriticalPostCommit);
-        }
+        // One EnqueueSideEffectsWorkflow step after the CommitProcessState commit schedules the
+        // transition's side effects, so they exist if and only if the transition committed.
+        List<StepRequest> enqueueSideEffects = [];
         if (commands.SideEffects.Count > 0)
         {
             var sideEffectsEnqueueRequest = new WorkflowEnqueueRequest
@@ -321,12 +312,15 @@ internal sealed class ProcessNextRequestFactory
                     })
                     .ToList(),
             };
-            mainSteps.Add(CreateEnqueueSideEffectsWorkflowCommand(sideEffectsEnqueueRequest));
+            enqueueSideEffects.Add(CreateEnqueueSideEffectsWorkflowCommand(sideEffectsEnqueueRequest));
         }
-        if (!commands.EndsProcess)
-        {
-            mainSteps.AddRange(commands.CriticalPostCommit);
-        }
+
+        // Side effects announce a transition once it is complete. A task transition is complete at
+        // the commit, so they go before slow post-commit work such as a service task. A process end
+        // is complete only after its post-commit steps release the instance, so they wait for those.
+        List<StepRequest> mainSteps = commands.EndsProcess
+            ? [.. commands.ThroughCommit, .. commands.CriticalPostCommit, .. enqueueSideEffects]
+            : [.. commands.ThroughCommit, .. enqueueSideEffects, .. commands.CriticalPostCommit];
 
         List<WorkflowRequest> workflows =
         [
