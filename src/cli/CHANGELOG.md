@@ -26,6 +26,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` removes `GeneralSettings:HostName` from the appsettings files, such as the old localtest host `altinn3local.no`. The platform sets the host name for a deployed app, and studioctl for a local run. ([#16308](https://github.com/Altinn/altinn-studio/issues/16308))
 - `studioctl app upgrade v9` renames the misspelled `allowedContributers` to `allowedContributors` on data types in `config/applicationmetadata.json`. ([#20846](https://github.com/Altinn/altinn-studio/pull/20846))
 - `studioctl app upgrade v9` points `$schema` in the app's JSON files at the schemas on `https://altinn.studio/designer/app-dist`, at the same version as the Altinn.App packages.
+- `studioctl app upgrade v9` points out `IPdfFormatter` implementations and their registrations, which no longer compile in v9, and suggests `excludeFromPdf` or, for conditional logic, a PDF service task with a custom layout instead. ([#19785](https://github.com/Altinn/altinn-studio/issues/19785))
 
 ### Changed
 
