@@ -40,6 +40,36 @@ Everything else is production's: tail sampling (errors, slow traces and 10% of t
 `altinn.studio.sampling=always`), logs at WARN and above, and the metric allowlist
 (`altinn*` and `http*`). Telemetry that production drops is missing here as well.
 
+## Grafana
+
+A Grafana 12.4.8, the version of the shared Grafana at grafana.dis.altinn.cloud, runs in the
+`grafana` namespace with Studio's datasources, folder and dashboards from
+[`Altinn/altinn-dashboards-grafana`](https://github.com/Altinn/altinn-dashboards-grafana)
+(`products/studio`). The datasources keep their names and uids (`altinn-studio-metrics`,
+`altinn-studio-traces`, `altinn-studio-logs`) and query this proxy, so a dashboard built here works
+there unchanged. Without a checkout, devenv clones the repository into the fixture's cache; to work
+on dashboards in your own checkout, point devenv at it:
+
+```bash
+export DEVENV_DASHBOARDS_REPOSITORY=~/code/altinn-dashboards-grafana
+make start-minimal-monitoring      # again, after changing the checkout
+```
+
+Grafana and its MCP server are not exposed through the fixture's ingress, which listens on every
+host interface: Grafana lets anyone in as an admin, and the MCP server can change dashboards. Reach
+them on localhost:
+
+```bash
+kubectl -n grafana port-forward svc/grafana 3000:80              # http://localhost:3000
+kubectl -n grafana port-forward deploy/grafana-mcp 8000:8000     # MCP, only on local port 8000
+claude mcp add --transport http grafana-local http://localhost:8000/mcp
+```
+
+To add a dashboard to the shared Grafana, build it here in the Altinn Studio folder, export its
+JSON into `products/studio/dashboards/` in the dashboards repository with its `GrafanaDashboard`
+resource (see that repository's README), and start the fixture again to see it provisioned from the
+file. Changes made in the Grafana UI are lost when the pod restarts.
+
 ## Querying
 
 Through the proxy, with the query token, on the same paths Grafana uses:

@@ -1,0 +1,29 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: altinn-studio-metrics
+  namespace: grafana
+spec:
+  uid: altinn-studio-metrics
+  instanceSelector:
+    matchLabels:
+      dashboards: external-grafana
+  datasource:
+    name: altinn-studio-metrics
+    type: prometheus
+    access: proxy
+    url: https://altinn.studio/internal/observability/metrics
+    isDefault: false
+    editable: false
+    jsonData:
+      httpHeaderName1: Authorization
+    secureJsonData:
+      httpHeaderValue1: "${authorization}"
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: altinn-studio-metrics-auth
+spec:
+  target:
+    name: altinn-studio-metrics-auth
