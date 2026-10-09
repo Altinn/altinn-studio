@@ -65,8 +65,10 @@ The optional fixed-arrival runs use one worker and emulate the proxy's 250 ms
 retry interval, up to 40 attempts. They do not include an actual proxy hop.
 `test/load/proxy-benchmark.py` instead measures fixed arrivals through the actual
 Go proxy in the Kind fixture, at 2, 3 and 3.5 rps by default. Deploy each worker
-image separately with the same two-worker configuration and queue/retry policy;
-the client does not retry. The script serves a 500 ms page without external
+image separately with the same two-worker configuration and queue/retry policy.
+Suspend the fixture's `pdf3-app` Flux Kustomization while changing benchmark images
+and resume it afterwards, so reconciliation cannot replace a worker mid-run.
+The client does not retry. The script serves a 500 ms page without external
 resources, and `--container-origin` must point to the host address reachable by
 the worker pods:
 
