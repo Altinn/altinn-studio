@@ -258,11 +258,11 @@ func generateLocalPdfHandler(
 			req.URL = normalizedURL
 		}
 
-		logger = logger.With("url", req.URL)
+		reqLogger := logger.With("url", req.URL)
 		data.SetPdfRequest(req)
 
 		if err := req.Validate(); err != nil {
-			ihttp.WriteProblemDetails(logger, w, r, http.StatusBadRequest, ihttp.ProblemDetails{
+			ihttp.WriteProblemDetails(reqLogger, w, r, http.StatusBadRequest, ihttp.ProblemDetails{
 				Type:                 "https://tools.ietf.org/html/rfc7231#section-6.5.1",
 				Title:                "Bad Request",
 				Status:               http.StatusBadRequest,
@@ -291,13 +291,13 @@ func generateLocalPdfHandler(
 
 			data.SetPDFError(pdfErr)
 			data.SetResponseStatus(errorCode)
-			ihttp.WriteProblemDetails(logger, w, r, errorCode, ihttp.ProblemDetails{
+			ihttp.WriteProblemDetails(reqLogger, w, r, errorCode, ihttp.ProblemDetails{
 				Type:   problemType,
 				Title:  problemTitle,
 				Status: errorCode,
 				Detail: errStr,
 			})
-			logger.Error(
+			reqLogger.Error(
 				"Error during generation",
 				"status_code", errorCode,
 				"detail", errStr,
@@ -312,7 +312,7 @@ func generateLocalPdfHandler(
 
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write(result.Data); err != nil {
-			logger.Error("Failed to write PDF response", "error", err)
+			reqLogger.Error("Failed to write PDF response", "error", err)
 		}
 	}
 }
@@ -434,7 +434,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 			return
 		}
 
-		logger = logger.With("url", req.URL)
+		reqLogger := logger.With("url", req.URL)
 		data.SetPdfRequest(req)
 
 		requestContext := r.Context()
@@ -459,7 +459,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 
 			data.SetPDFError(pdfErr)
 			data.SetResponseStatus(errorCode)
-			ihttp.WriteText(logger, w, errorCode, errStr)
+			ihttp.WriteText(reqLogger, w, errorCode, errStr)
 			return
 		}
 
@@ -470,7 +470,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write(result.Data); err != nil {
-			logger.Error("Failed to write PDF response", "error", err)
+			reqLogger.Error("Failed to write PDF response", "error", err)
 		}
 	}
 }
