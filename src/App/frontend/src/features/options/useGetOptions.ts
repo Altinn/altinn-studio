@@ -7,7 +7,7 @@ import { useExpressionDataSources } from 'src/features/expressions/runtime/useEx
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
-import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
+import { useSaveDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
@@ -78,7 +78,13 @@ export function useSetOptions(
   dataModelBindings: IDataModelBindingsOptionsSimple | undefined,
   options: IOptionInternal[],
 ): SetOptionsResult {
-  const { formData, setValue } = useDataModelBindings(dataModelBindings);
+  const valueBindings = useMemo(
+    () => (dataModelBindings?.simpleBinding ? { simpleBinding: dataModelBindings.simpleBinding } : undefined),
+    [dataModelBindings?.simpleBinding],
+  );
+  // Option selection depends on the value, not the label or metadata written by other effects.
+  const formData = FormStore.data.useFreshBindings(valueBindings, 'string');
+  const { setValue } = useSaveDataModelBindings(valueBindings);
   const value = formData.simpleBinding ?? '';
 
   const currentValues = useMemo(
