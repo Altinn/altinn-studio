@@ -55,8 +55,9 @@ type Connection interface {
 	Close() error
 }
 
-// EventHandler handles CDP events.
-type EventHandler func(method string, params any)
+// EventHandler handles CDP events. sessionID is the session of the target that sent the
+// event, empty for events from the browser target.
+type EventHandler func(sessionID, method string, params any)
 
 var (
 	errMissingWebSocketDebuggerURL = errors.New("no webSocketDebuggerUrl in response")
@@ -86,7 +87,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	// Add debugging to understand what URL we're trying to connect to
 	logger.Info("Attempting to connect to WebSocket", "url", wsURL)
 
-	wsConn, err := dialTargetWebSocket(ctx, logger, id, wsURL)
+	wsConn, err := dialWebSocket(ctx, logger, id, wsURL)
 	connCtx, cancel := context.WithCancel(ctx)
 	if err != nil {
 		cancel()
@@ -172,7 +173,7 @@ func fetchVersion(ctx context.Context, logger *slog.Logger, debugBaseURL string)
 	return &version, nil
 }
 
-func dialTargetWebSocket(ctx context.Context, logger *slog.Logger, id int, wsURL string) (*websocket.Conn, error) {
+func dialWebSocket(ctx context.Context, logger *slog.Logger, id int, wsURL string) (*websocket.Conn, error) {
 	dialer := websocket.Dialer{HandshakeTimeout: 2 * time.Second}
 	start := time.Now()
 
@@ -653,7 +654,7 @@ func (c *connection) handleMessages() {
 			} else if msg.Method != "" {
 				// This is an event - call the event handler
 				if c.eventHandler != nil {
-					c.eventHandler(msg.Method, msg.Params)
+					c.eventHandler(msg.SessionID, msg.Method, msg.Params)
 				}
 			}
 		}
