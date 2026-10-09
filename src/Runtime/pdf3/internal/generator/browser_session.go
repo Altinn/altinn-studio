@@ -34,17 +34,22 @@ type browserSession struct {
 	tracer         trace.Tracer
 	ctx            context.Context
 	currentRequest atomic.Pointer[workerRequest]
-	logger         *slog.Logger
-	browser        *browser.Process
-	cancel         context.CancelFunc
-	queue          chan workerRequest
-	id             int
-	consoleErrors  atomic.Int32
-	browserErrors  atomic.Int32
-	jsExceptions   atomic.Int32
-	cdpEventsSent  atomic.Int32
-	cdpEventsDrop  atomic.Int32
-	state          atomic.Uint32
+	// pageSessionID is the CDP session of the current request's page, events from other sessions are ignored
+	pageSessionID atomic.Pointer[string]
+	// logger carries the URL of the current request and is only used from the request goroutine,
+	// rootLogger is safe to use from any goroutine.
+	logger        *slog.Logger
+	rootLogger    *slog.Logger
+	browser       *browser.Process
+	cancel        context.CancelFunc
+	queue         chan workerRequest
+	id            int
+	consoleErrors atomic.Int32
+	browserErrors atomic.Int32
+	jsExceptions  atomic.Int32
+	cdpEventsSent atomic.Int32
+	cdpEventsDrop atomic.Int32
+	state         atomic.Uint32
 }
 
 const (
@@ -57,7 +62,6 @@ var (
 	errWaitTimedOut                = errors.New("timeout")
 	errWaitConditionError          = errors.New("wait condition failed")
 	errBrowserCleanupFailed        = errors.New("browser cleanup failed")
-	errInvalidTargetResponse       = errors.New("invalid target response")
 	errCommandBatchFailed          = errors.New("command batch failed")
 	errInvalidEvaluateResult       = errors.New("invalid runtime evaluate response format")
 	errEvaluateException           = errors.New("javascript exception during runtime evaluate")
@@ -77,13 +81,14 @@ func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 		queue = make(chan workerRequest)
 	}
 	w := &browserSession{
-		id:     id,
-		logger: sessionLogger,
-		queue:  queue,
-		state:  atomic.Uint32{},
-		ctx:    ctx,
-		cancel: cancel,
-		tracer: telemetry.Tracer(),
+		id:         id,
+		logger:     sessionLogger,
+		rootLogger: sessionLogger,
+		queue:      queue,
+		state:      atomic.Uint32{},
+		ctx:        ctx,
+		cancel:     cancel,
+		tracer:     telemetry.Tracer(),
 	}
 
 	// Start browser process
@@ -119,13 +124,31 @@ func (w *browserSession) tryEnqueue(req workerRequest) bool {
 	}
 }
 
-func (w *browserSession) handleEvent(method string, params any) {
+// eventLogger returns the logger for an event from the given session, or false if the event
+// does not come from the current request's page.
+func (w *browserSession) eventLogger(sessionID string) (*slog.Logger, bool) {
+	if pageSessionID := w.pageSessionID.Load(); pageSessionID == nil || sessionID != *pageSessionID {
+		return nil, false
+	}
+	if req := w.currentRequest.Load(); req != nil {
+		return req.logger, true
+	}
+	return w.rootLogger, true
+}
+
+// handleEvent runs on the CDP reader goroutine.
+func (w *browserSession) handleEvent(sessionID, method string, params any) {
+	logger, ok := w.eventLogger(sessionID)
+	if !ok {
+		return
+	}
+
 	switch method {
 	case "Runtime.consoleAPICalled":
 		if p, ok := params.(map[string]any); ok {
 			if apiType, ok := p["type"].(string); ok && apiType == "error" {
 				w.consoleErrors.Add(1)
-				w.logger.Warn("Console error", "details", p)
+				logger.Warn("Console error", "details", p)
 				w.emitCDPEvent("cdp.console.error", method, p)
 			}
 		}
@@ -134,7 +157,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 			if entry, ok := p["entry"].(map[string]any); ok {
 				if level, ok := entry["level"].(string); ok && level == "error" {
 					w.browserErrors.Add(1)
-					w.logger.Warn("Log error", "details", entry)
+					logger.Warn("Log error", "details", entry)
 					w.emitCDPEvent("cdp.log.error", method, entry)
 				}
 			}
@@ -142,7 +165,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 	case "Runtime.exceptionThrown":
 		if p, ok := params.(map[string]any); ok {
 			w.jsExceptions.Add(1)
-			w.logger.Warn("Runtime exception observed")
+			logger.Warn("Runtime exception observed")
 			w.emitCDPEvent("cdp.runtime.exception", method, p)
 		}
 	}
@@ -175,10 +198,9 @@ func (w *browserSession) handleRequests() {
 			w.tryUpdateTestModeOutput(&req, "Before", false)
 
 			w.currentRequest.Store(&req)
-			rootLogger := w.logger
-			w.logger = w.logger.With("url", req.request.URL)
+			w.logger = w.rootLogger.With("url", req.request.URL)
 			w.handleRequest(&req)
-			w.logger = rootLogger
+			w.logger = w.rootLogger
 			w.currentRequest.Store(nil)
 
 			w.assertA(
@@ -310,8 +332,9 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err())
 	}
 
-	if err := w.openPage(req); err != nil {
-		return err
+	w.openPage(req)
+	if req.hasResponded() || respondIfClientDropped(req) {
+		return nil
 	}
 
 	if len(req.request.Cookies) > 0 {
@@ -344,54 +367,48 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 }
 
 // openPage creates a new browser context with a single page for the request. Everything the page
-// leaves behind on any origin (cookies, web storage, IndexedDB, cache, window.name, history, ...)
-// lives in that context, and cleanupAfterRequest disposes it.
-func (w *browserSession) openPage(req *workerRequest) error {
-	_, openSpan := w.tracer.Start(req.ctx, "pdf.session.open_page", trace.WithSpanKind(trace.SpanKindInternal))
+// leaves behind on any origin (cookies, web storage, IndexedDB, cache, window.name, history, popups,
+// ...) lives in that context, and cleanupAfterRequest disposes it.
+func (w *browserSession) openPage(req *workerRequest) {
+	openCtx, openSpan := w.tracer.Start(req.ctx, "pdf.session.open_page", trace.WithSpanKind(trace.SpanKindInternal))
 	defer openSpan.End()
 	start := time.Now()
 
-	// Not using the request context here: if the client drops while the browser creates the
+	// Not cancelled with the request: if the client drops while the browser creates the
 	// context, we still need its ID so that cleanup can dispose it.
+	ctx := context.WithoutCancel(openCtx)
 	err := func() error {
-		resp, err := w.conn.SendCommand(w.ctx, "Target.createBrowserContext", map[string]any{
+		resp, err := w.conn.SendCommand(ctx, "Target.createBrowserContext", map[string]any{
 			// If the worker loses its connection, the browser disposes the context by itself
 			"disposeOnDetach": true,
 		})
 		if err != nil {
 			return fmt.Errorf("create browser context: %w", err)
 		}
-		if req.browserContextID, err = resultString(resp, "browserContextId"); err != nil {
-			return err
-		}
+		req.browserContextID = w.resultString(resp, "browserContextId")
 
-		resp, err = w.conn.SendCommand(w.ctx, "Target.createTarget", map[string]any{
+		resp, err = w.conn.SendCommand(ctx, "Target.createTarget", map[string]any{
 			"url":              "about:blank",
 			"browserContextId": req.browserContextID,
 		})
 		if err != nil {
 			return fmt.Errorf("create page: %w", err)
 		}
-		targetID, err := resultString(resp, "targetId")
-		if err != nil {
-			return err
-		}
+		targetID := w.resultString(resp, "targetId")
 
-		resp, err = w.conn.SendCommand(w.ctx, "Target.attachToTarget", map[string]any{
+		resp, err = w.conn.SendCommand(ctx, "Target.attachToTarget", map[string]any{
 			"targetId": targetID,
 			"flatten":  true,
 		})
 		if err != nil {
 			return fmt.Errorf("attach to page: %w", err)
 		}
-		sessionID, err := resultString(resp, "sessionId")
-		if err != nil {
-			return err
-		}
+		sessionID := w.resultString(resp, "sessionId")
+		w.pageSessionID.Store(&sessionID)
 		page := w.conn.Session(sessionID)
 
 		commands := []cdp.Command{{Method: "Page.enable"}, {Method: "Runtime.enable"}, {Method: "Log.enable"}}
-		if err := commandBatchError(commands, page.SendCommandBatch(w.ctx, commands)); err != nil {
+		if err := commandBatchError(commands, page.SendCommandBatch(ctx, commands)); err != nil {
 			return fmt.Errorf("enable page domains: %w", err)
 		}
 		req.page = page
@@ -402,23 +419,20 @@ func (w *browserSession) openPage(req *workerRequest) error {
 			openSpan.RecordError(err)
 			openSpan.SetStatus(codes.Error, "open_page_failed")
 		}
-		return fmt.Errorf("open page: %w", err)
+		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "open page", err))
+		return
 	}
 
 	w.logger.Info("Opened page in new browser context", "duration", time.Since(start))
-	return nil
 }
 
-func resultString(resp *cdp.CDPResponse, key string) (string, error) {
+// resultString returns a string field of a successful Target domain response.
+func (w *browserSession) resultString(resp *cdp.CDPResponse, key string) string {
 	result, ok := resp.Result.(map[string]any)
-	if !ok {
-		return "", fmt.Errorf("%w: missing result", errInvalidTargetResponse)
-	}
+	w.assert(ok, "Target domain response has no result object")
 	value, ok := result[key].(string)
-	if !ok || value == "" {
-		return "", fmt.Errorf("%w: missing %s", errInvalidTargetResponse, key)
-	}
-	return value, nil
+	w.assertA(ok && value != "", "Target domain response is missing a field", "field", key)
+	return value
 }
 
 // commandBatchError joins the errors of a command batch, or returns nil if all commands succeeded.
@@ -454,7 +468,11 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest) {
 	if cleanupCtx == nil {
 		cleanupCtx = context.Background()
 	}
-	_, cleanupSpan := w.tracer.Start(cleanupCtx, "pdf.session.cleanup", trace.WithSpanKind(trace.SpanKindInternal))
+	cleanupCtx, cleanupSpan := w.tracer.Start(
+		cleanupCtx,
+		"pdf.session.cleanup",
+		trace.WithSpanKind(trace.SpanKindInternal),
+	)
 	cleanupStart := time.Now()
 	defer cleanupSpan.End()
 
@@ -478,14 +496,18 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest) {
 		time.Sleep(time.Duration(testInput.CleanupDelaySeconds) * time.Second)
 	}
 
-	cleanupAttempts := w.cleanupBrowserWithRetry(req)
+	err := w.cleanupBrowser(context.WithoutCancel(cleanupCtx), req)
 	if data := telemetry.RequestEventDataFromContext(cleanupCtx); data != nil {
 		data.SetSessionID(w.id)
-		data.SetCleanup(cleanupAttempts, req.cleanedUp, false)
+		data.SetCleanup(1, req.cleanedUp, false)
 	}
-	if !req.cleanedUp {
+	if err != nil && cleanupSpan.IsRecording() {
+		cleanupSpan.RecordError(err)
 		cleanupSpan.SetStatus(codes.Error, "cleanup_failed")
 	}
+	// Disposing a context either succeeds or leaves the browser in a state we can't trust,
+	// a retry would only fail with "context not found". Crash and let the pod restart instead.
+	w.assertA(err == nil, "Failed to dispose browser context, we're in an unsafe state and can't proceed", "error", err)
 
 	w.logger.Info("Cleanup completed", "duration", time.Since(cleanupStart))
 }
@@ -511,35 +533,6 @@ func parseEvaluateBooleanResult(resp *cdp.CDPResponse) (bool, any, error) {
 	}
 
 	return value, nil, nil
-}
-
-func (w *browserSession) cleanupBrowserWithRetry(req *workerRequest) int {
-	cleanupAttempts := 0
-	var err error
-
-	err = w.cleanupBrowser(req)
-	cleanupAttempts++
-	if req.cleanedUp {
-		w.assertA(err == nil, "Got error but reports successful cleanup", "error", err)
-		return cleanupAttempts
-	}
-
-	w.logger.Warn("Failed to dispose browser context, retrying", "error", err)
-	for range 3 {
-		err = w.cleanupBrowser(req)
-		cleanupAttempts++
-		if req.cleanedUp {
-			return cleanupAttempts
-		}
-	}
-
-	w.assertA(
-		req.cleanedUp,
-		"Failed to dispose browser context, we're in an unsafe state and can't proceed",
-		"error",
-		err,
-	)
-	return cleanupAttempts
 }
 
 func respondIfClientDropped(req *workerRequest) bool {
@@ -1123,11 +1116,11 @@ func (w *browserSession) getCookies() ([]map[string]any, error) {
 	}
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
-		return nil, errInvalidTargetResponse
+		return nil, errInvalidCookieResponseFormat
 	}
 	contextIDs, ok := result["browserContextIds"].([]any)
 	if !ok {
-		return nil, errInvalidTargetResponse
+		return nil, errInvalidCookieResponseFormat
 	}
 
 	// The default context has no ID and is not listed
@@ -1167,14 +1160,8 @@ func (w *browserSession) getBrowserState(state string) testing.BrowserState {
 	w.assert(runtime.IsTestInternalsMode, "Should only run as part of testing")
 
 	cookies, err := w.getCookies()
-	if err != nil {
-		return testing.BrowserState{
-			State:            state,
-			Cookies:          []testing.CookieInfo{},
-			ConsoleErrorLogs: int(w.consoleErrors.Load()),
-			BrowserErrors:    int(w.browserErrors.Load()),
-		}
-	}
+	// An empty cookie list must mean the browser has no cookies, not that reading them failed
+	w.assertA(err == nil, "Failed to read cookies for test output", "error", err)
 
 	cookieInfos := make([]testing.CookieInfo, 0, len(cookies))
 	for _, cookie := range cookies {
@@ -1222,18 +1209,16 @@ func (w *browserSession) tryUpdateTestModeOutput(req *workerRequest, state strin
 	})
 }
 
-func (w *browserSession) cleanupBrowser(req *workerRequest) error {
-	if req.cleanedUp {
-		return nil
-	}
-
+func (w *browserSession) cleanupBrowser(ctx context.Context, req *workerRequest) error {
 	now := time.Now()
-	// Disposing the context closes its page and drops everything stored in it, on every origin.
-	// Not using request context here, the client might have dropped out already and we should always complete cleanup
-	_, err := w.conn.SendCommand(w.ctx, "Target.disposeBrowserContext", map[string]any{
+	// Disposing the context closes its pages and drops everything stored in it, on every origin.
+	// The context is not cancelled with the request, the client might have dropped out already and
+	// we should always complete cleanup.
+	_, err := w.conn.SendCommand(ctx, "Target.disposeBrowserContext", map[string]any{
 		"browserContextId": req.browserContextID,
 	})
 	w.logger.Info("Dispose browser context completed", "duration", time.Since(now))
+	w.pageSessionID.Store(nil)
 	if err != nil {
 		return fmt.Errorf("%w: %w", errBrowserCleanupFailed, err)
 	}
@@ -1267,7 +1252,7 @@ func (w *browserSession) assertA(condition bool, message string, userArgs ...any
 }
 
 func (w *browserSession) close() {
-	w.logger.Info("Closing worker")
+	w.rootLogger.Info("Closing worker")
 
 	if w.cancel != nil {
 		w.cancel()
@@ -1278,17 +1263,17 @@ func (w *browserSession) close() {
 
 	if w.conn != nil {
 		if err := w.conn.Close(); err != nil {
-			w.logger.Error("Failed to close connection", "error", err)
+			w.rootLogger.Error("Failed to close connection", "error", err)
 		}
 	}
 
 	if w.browser != nil {
 		if err := w.browser.Close(); err != nil {
-			w.logger.Error("Failed to close browser", "error", err)
+			w.rootLogger.Error("Failed to close browser", "error", err)
 		}
 	}
 
-	w.logger.Info("Worker closed")
+	w.rootLogger.Info("Worker closed")
 }
 
 // isProcessing returns true if a request is currently being processed, or if there is a queue.
@@ -1305,13 +1290,13 @@ func (w *browserSession) waitForDrain(timeout time.Duration) bool {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
 		if !w.isProcessing() {
-			w.logger.Info("Session drained successfully")
+			w.rootLogger.Info("Session drained successfully")
 			return true
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
 	// Timeout - log warning but don't crash
-	w.logger.Warn("Session drain timeout, forcing close", "timeout", timeout)
+	w.rootLogger.Warn("Session drain timeout, forcing close", "timeout", timeout)
 	return false
 }
 

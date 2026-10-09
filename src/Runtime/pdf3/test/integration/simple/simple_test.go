@@ -340,8 +340,9 @@ func Test_CookieIsolation(t *testing.T) {
 }
 
 // Test_StorageIsolation renders a page that leaves sessionStorage, localStorage, IndexedDB and
-// window.name behind, on its own origin and from a popup on a second origin. Later renders on the
-// same worker must not see any of it. The check page logs a console error for every leak.
+// window.name behind, on its own origin and from a popup on a second origin, and leaves a popup
+// open that watches its opener. Later renders on the same worker must not see any of it. The check
+// page, and the popup if it can reach the check page, log a console error for every leak.
 func Test_StorageIsolation(t *testing.T) {
 	// The trailing dot makes a different origin that still reaches the testserver
 	otherOrigin := harness.TestServerURL + "."
@@ -377,6 +378,9 @@ func Test_StorageIsolation(t *testing.T) {
 				t.Fatalf("Failed to load check output: %v", err)
 			}
 			states := output.BrowserStates
+			if len(states) == 0 {
+				t.Fatalf("Check output on %s has no browser states", origin)
+			}
 			if states[len(states)-1].ConsoleErrorLogs != 0 {
 				t.Errorf("Browser state from an earlier request leaked into a render on %s, see worker logs for "+
 					"'Isolation leak':\n%s", origin, output.String())
