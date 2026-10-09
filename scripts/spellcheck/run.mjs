@@ -28,7 +28,7 @@
  *
  * Usage:
  *   node scripts/spellcheck/run.mjs [check ...]     default: self-test + all
- *   node scripts/spellcheck/run.mjs quick [files…]  changed files only, for
+ *   node scripts/spellcheck/run.mjs quick [files…]  the branch's changed files, for
  *           the inner dev loop and the pre-commit hook; never fetches
  *           dictionaries. `yarn spell:quick`.
  *   --fix   apply unambiguous corrections through the suppression registry
@@ -674,8 +674,9 @@ async function checkNorwegian({
 
 /**
  * Fast feedback for the inner dev loop and the pre-commit hook: only the
- * given files (default: everything changed relative to HEAD, plus staged and
- * untracked), only the checks that can run instantly. The Norwegian pass
+ * given files (default: everything the branch changed since it left
+ * origin/main, committed or not, plus untracked files), only the checks that
+ * can run instantly. The Norwegian pass
  * runs offline-only — it never fetches dictionaries here.
  */
 async function checkQuick(ctx, fileArgs) {
@@ -752,16 +753,18 @@ async function checkQuick(ctx, fileArgs) {
 }
 
 function gitChangedFiles(root) {
+  const git = (args) =>
+    spawnSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
+  // Diffing against the fork point keeps committed branch work in scope; a
+  // checkout without origin/main falls back to the uncommitted changes alone.
+  const forkPoint = git(['merge-base', 'HEAD', 'origin/main']);
+  const base = forkPoint.status === 0 ? forkPoint.stdout.trim() : 'HEAD';
   const out = new Set();
   for (const args of [
-    ['diff', '--name-only', '--diff-filter=ACMR', 'HEAD'],
+    ['diff', '--name-only', '--diff-filter=ACMR', base],
     ['ls-files', '-o', '--exclude-standard'],
   ]) {
-    const res = spawnSync('git', args, {
-      cwd: root,
-      encoding: 'utf8',
-      maxBuffer: 16 * 1024 * 1024,
-    });
+    const res = git(args);
     if (res.status !== 0) throw new HarnessError(`git ${args[0]} failed: ${res.stderr}`);
     for (const f of res.stdout.split('\n').filter(Boolean)) out.add(f);
   }
