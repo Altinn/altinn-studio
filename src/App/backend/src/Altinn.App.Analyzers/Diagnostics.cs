@@ -169,6 +169,95 @@ public static class Diagnostics
                 + "Change it to a <{4}> element.",
             WellKnownDiagnosticTags.CompilationEnd
         );
+
+        // The flow rules below have no runtime backstop at startup: a broken flow surfaces as a ProcessException,
+        // or worse, only when an instance tries to leave the element in question. ProcessFlowUtils documents the
+        // model they share: which nodes and flows they check, and the two rules (ALTINNAPP1005 for an unlisted flow,
+        // and ALTINNAPP1009) that go beyond what fails at runtime.
+        // '{0}' names the flow, and '{1}' completes the sentence with what is wrong, such as "has no targetRef".
+        public static readonly DiagnosticDescriptor SequenceFlowLeadsToUnsupportedElement = Error(
+            "ALTINNAPP1004",
+            Category.Process,
+            "Sequence flow leads to an element the app cannot move to",
+            "{0} {1}. An instance can move only to the tasks, service tasks, exclusive gateways and end events of "
+                + "the process. Point the flow at one of them, or remove it."
+        );
+
+        // '{1}' completes the sentence with the discrepancy, naming the flow.
+        public static readonly DiagnosticDescriptor GatewayOutgoingMismatch = Error(
+            "ALTINNAPP1005",
+            Category.Process,
+            "Exclusive gateway's outgoing list does not match its sequence flows",
+            "Exclusive gateway '{0}' {1}. The app leaves a gateway only through the sequence flows it lists in "
+                + "<bpmn:outgoing>, so every flow that starts at the gateway must be listed, and every listed flow "
+                + "must start there. List exactly those flows in <bpmn:outgoing>."
+        );
+
+        // Only a warning: a default the app cannot find is ignored, which fails only when the gateway's other
+        // flows do not narrow the choice to one.
+        public static readonly DiagnosticDescriptor GatewayDefaultNotOutgoing = Warning(
+            "ALTINNAPP1006",
+            Category.Process,
+            "Exclusive gateway's default is not one of the flows it lists",
+            "Exclusive gateway '{0}' has default '{1}', which is not a sequence flow it lists in <bpmn:outgoing>, "
+                + "so the app ignores the default. Set default to one of the listed flows, or remove it."
+        );
+
+        public static readonly DiagnosticDescriptor ElementHasSeveralOutgoingFlows = Error(
+            "ALTINNAPP1007",
+            Category.Process,
+            "Element has more than one outgoing sequence flow",
+            "{0} '{1}' has {2} outgoing sequence flows ({3}), so the app cannot tell which one to follow and "
+                + "fails when an instance leaves it. Route the flows through an exclusive gateway."
+        );
+
+        public static readonly DiagnosticDescriptor ElementHasNoOutgoingFlow = Error(
+            "ALTINNAPP1008",
+            Category.Process,
+            "Element has no outgoing sequence flow",
+            "{0} '{1}' has no outgoing sequence flow, so an instance that reaches it can never move on. Connect it "
+                + "to the next element of the process."
+        );
+
+        // '{1}' counts the nodes and sequence flows with the id; see ProcessFlowUtils for why they share one count.
+        public static readonly DiagnosticDescriptor DuplicateProcessElementId = Error(
+            "ALTINNAPP1009",
+            Category.Process,
+            "Duplicate element id in the process",
+            "The id '{0}' is used by {1} elements of the process. Give each element its own id."
+        );
+
+        // A condition on one listed flow makes the app evaluate them all with ExpressionsExclusiveGateway, which
+        // counts a flow without a condition as a match, and more than one match fails. '{1}' lists the flows
+        // without a condition, and '{2}' completes the sentence with when that fails: one such flow fails only
+        // alongside a condition that holds, two or more always match together.
+        public static readonly DiagnosticDescriptor GatewayMixesConditions = Error(
+            "ALTINNAPP1010",
+            Category.Process,
+            "Exclusive gateway mixes flows with and without a condition",
+            "Exclusive gateway '{0}' has a condition on some outgoing sequence flows, but none on {1}. The app "
+                + "treats a flow without a condition as always true, {2}. Give every outgoing flow a condition."
+        );
+
+        // Only a warning: the conditions on the flows may keep every instance out of the loop. '{1}' completes the
+        // sentence with the other gateways in the loop.
+        public static readonly DiagnosticDescriptor GatewayLoop = Warning(
+            "ALTINNAPP1011",
+            Category.Process,
+            "Exclusive gateways form a loop",
+            "Exclusive gateway '{0}' {1}, with no task in between. An instance that follows the loop makes the app "
+                + "recurse until the process crashes. Put a task in the loop, or remove one of its sequence flows."
+        );
+
+        // ExpressionsExclusiveGateway evaluates every listed flow, and parsing an empty condition throws
+        // (GetExpressionFromCondition), so the gateway fails whatever the instance data. '{1}' names the flow.
+        public static readonly DiagnosticDescriptor GatewayEmptyCondition = Error(
+            "ALTINNAPP1012",
+            Category.Process,
+            "Exclusive gateway lists a flow with an empty condition",
+            "Exclusive gateway '{0}' lists {1}, which has an empty condition, so the app fails every time an instance "
+                + "leaves the gateway. Give the flow a condition, or remove the empty <bpmn:conditionExpression>."
+        );
     }
 
     internal static class Deprecations
