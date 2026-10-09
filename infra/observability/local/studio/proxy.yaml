@@ -8,8 +8,10 @@ spec:
     spec:
       containers:
         - name: observability-proxy
-          # Built from src/observability-proxy and pushed to the fixture's registry.
+          # Built from src/observability-proxy and pushed to the fixture's registry
+          # under the same tag each time, so a restarted pod pulls the latest build.
           image: localhost:5001/observability-proxy:local
+          imagePullPolicy: Always
           env:
             # Without agents, writes go straight to storage, which accepts the
             # same OTLP paths. Both read addresses name the one instance, since
