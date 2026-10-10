@@ -48,7 +48,7 @@ func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 	}()
 
 	// Connect to get version only (no event handler needed)
-	conn, _, err := cdp.Connect(context.Background(), -1, browserProc.DebugBaseURL, nil)
+	conn, err := cdp.Connect(context.Background(), -1, browserProc.DebugBaseURL, nil)
 	if err != nil {
 		return types.BrowserVersion{}, fmt.Errorf("failed to connect to temporary browser: %w", err)
 	}
@@ -162,7 +162,6 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		responder:  responder,
 		ctx:        ctx,
 		enqueuedAt: time.Now(),
-		cleanedUp:  false,
 		logger:     g.logger.With("url", request.URL),
 	}
 
@@ -363,8 +362,9 @@ type workerRequest struct {
 	ctx       context.Context
 	responder chan workerResponse
 	logger    *slog.Logger
-	request   types.PdfRequest
-	cleanedUp bool
+	// browserContextID is the context that holds all browser state of the request
+	browserContextID string
+	request          types.PdfRequest
 }
 
 func (r *workerRequest) tryGetTestModeInput() *testing.PdfInternalsTestInput {

@@ -58,8 +58,7 @@ func Start(id int) (*Process, error) {
 	}
 	assert.That(dataDir != "", "Should always initialize dataDir", "id", id)
 
-	// Add about:blank argument to create default page target
-	args = append(args, "about:blank")
+	// No start URL: every request opens its own page in its own browser context
 
 	// Only log args for the init worker (id == -1)
 	if id == -1 {
