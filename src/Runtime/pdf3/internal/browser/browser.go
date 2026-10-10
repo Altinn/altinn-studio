@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"sort"
-	"strings"
 	"syscall"
 	"time"
 
@@ -33,18 +32,10 @@ type Process struct {
 // id: identifier for this browser instance
 func Start(id int) (*Process, error) {
 	logger := log.NewComponent("browser").With("id", id)
-	args := createBrowserArgs()
+	dataDir := fmt.Sprintf("/tmp/browser-%d", id)
+	args := append(createBrowserArgs(), "--user-data-dir="+dataDir)
 
 	logger.Info("Starting browser", "path", browserPath)
-
-	var dataDir string
-	for i, arg := range args {
-		if strings.HasPrefix(arg, "--user-data-dir=") {
-			dataDir = fmt.Sprintf("/tmp/browser-%d", id)
-			args[i] = "--user-data-dir=" + dataDir
-		}
-	}
-	assert.That(dataDir != "", "Should always initialize dataDir", "id", id)
 
 	// No start URL: every request opens its own page in its own browser context
 
@@ -228,7 +219,6 @@ func createBrowserArgs() []string {
 		"--remote-debugging-pipe",
 		"--safebrowsing-disable-auto-update",
 		"--use-mock-keychain",
-		"--user-data-dir=/tmp/browser-init",
 	}
 }
 

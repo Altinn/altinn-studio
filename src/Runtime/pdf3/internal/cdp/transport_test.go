@@ -91,7 +91,7 @@ func TestPipeConnectionRoutesSessionsAndEvents(t *testing.T) {
 		go func() {
 			response, err := conn.Session(sessionID).SendCommand(ctx, "Page.command", nil)
 			if err == nil && response.Result != sessionID {
-				err = fmt.Errorf("response routed to wrong session: %w", errInvalidCDPResponseFormat)
+				err = fmt.Errorf("response routed to wrong session: %w", errInvalidCDPMessageFormat)
 			}
 			results <- err
 		}()
@@ -137,7 +137,7 @@ func TestPipeConnectionBatchKeepsOrder(t *testing.T) {
 				return
 			}
 			if command.Method != methods[i] || command.SessionID != "page" {
-				peerResult <- fmt.Errorf("command %d = %+v: %w", i, command, errInvalidCDPResponseFormat)
+				peerResult <- fmt.Errorf("command %d = %+v: %w", i, command, errInvalidCDPMessageFormat)
 				return
 			}
 			commands[i] = command

@@ -441,7 +441,7 @@ func (w *browserSession) openPage(req *workerRequest) (cdp.Commander, bool) {
 }
 
 // resultString returns a string field of a successful Target domain response.
-func (w *browserSession) resultString(resp *cdp.CDPResponse, key string) string {
+func (w *browserSession) resultString(resp *cdp.CDPMessage, key string) string {
 	result, ok := resp.Result.(map[string]any)
 	w.assert(ok, "Target domain response has no result object")
 	value, ok := result[key].(string)
@@ -525,7 +525,7 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest) {
 	w.logger.Info("Cleanup completed", "duration", time.Since(cleanupStart))
 }
 
-func parseEvaluateBooleanResult(resp *cdp.CDPResponse) (bool, any, error) {
+func parseEvaluateBooleanResult(resp *cdp.CDPMessage) (bool, any, error) {
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
 		return false, resp.Result, errInvalidEvaluateResult
@@ -819,7 +819,7 @@ func buildPrintToPDFParams(logger *slog.Logger, request types.PdfRequest) map[st
 }
 
 // decodeStreamChunk returns the data of an IO.read response and whether the stream ended.
-func decodeStreamChunk(resp *cdp.CDPResponse) ([]byte, bool, error) {
+func decodeStreamChunk(resp *cdp.CDPMessage) ([]byte, bool, error) {
 	chunk, ok := resp.Result.(map[string]any)
 	if !ok {
 		return nil, false, errInvalidPDFResponseFormat
@@ -850,7 +850,7 @@ func readPDFStream(
 	ctx context.Context,
 	logger *slog.Logger,
 	page cdp.Commander,
-	resp *cdp.CDPResponse,
+	resp *cdp.CDPMessage,
 ) ([]byte, error) {
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
@@ -933,7 +933,7 @@ func (w *browserSession) waitForElement(
 	return nil
 }
 
-func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResponse) error {
+func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPMessage) error {
 	value, errorData, err := parseEvaluateBooleanResult(resp)
 	if err != nil {
 		switch {

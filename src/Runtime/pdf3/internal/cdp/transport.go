@@ -29,14 +29,14 @@ type Command struct {
 }
 
 type CommandResponse struct {
-	Resp *CDPResponse
+	Resp *CDPMessage
 	Err  error
 }
 
 // Commander sends CDP commands to one target. It is safe for concurrent use.
 type Commander interface {
 	// SendCommand sends a CDP command and waits for the response
-	SendCommand(ctx context.Context, method string, params any) (*CDPResponse, error)
+	SendCommand(ctx context.Context, method string, params any) (*CDPMessage, error)
 
 	// SendCommandBatch sends the commands in order without waiting for each response, then
 	// waits for all of them. The responses are in the order of the commands.
@@ -64,13 +64,13 @@ type Connection interface {
 type EventHandler func(sessionID, method string, params any)
 
 var (
-	errInvalidCDPResponseFormat = errors.New("invalid response format")
-	errConnectionClosed         = errors.New("connection closed")
-	errInvalidPipeEndpoints     = errors.New("CDP pipe requires reader and writer")
-	errCDPCommandSend           = errors.New("failed to send cdp command")
-	errCDPCommandResponse       = errors.New("cdp returned an error response")
-	errCDPCommandCancelled      = errors.New("cdp command context cancelled")
-	errCDPCommandTimeout        = fmt.Errorf("cdp command timeout after %s", types.RequestTimeout())
+	errInvalidCDPMessageFormat = errors.New("invalid response format")
+	errConnectionClosed        = errors.New("connection closed")
+	errInvalidPipeEndpoints    = errors.New("CDP pipe requires reader and writer")
+	errCDPCommandSend          = errors.New("failed to send cdp command")
+	errCDPCommandResponse      = errors.New("cdp returned an error response")
+	errCDPCommandCancelled     = errors.New("cdp command context cancelled")
+	errCDPCommandTimeout       = fmt.Errorf("cdp command timeout after %s", types.RequestTimeout())
 )
 
 // responseIDPattern matches the start of a command response, Chrome writes the ID first.
@@ -104,7 +104,6 @@ func newConnection(ctx context.Context, id int, transport messageTransport, even
 	}
 
 	go conn.handleMessages()
-	go conn.watchdog()
 	go func() {
 		// Closing the pipe unblocks the reader, whichever way the connection ended
 		<-conn.ctx.Done()
@@ -120,30 +119,6 @@ func (c *connection) assert(condition bool, message string) {
 	assert.That(condition, message, "id", c.id)
 }
 
-func (c *connection) watchdog() {
-	defer func() {
-		c.assert(
-			c.ctx.Err() != nil,
-			"Exited CDP watchdog loop, but connection context isn't cancelled",
-		)
-	}()
-
-	ticker := time.NewTicker(60 * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			c.logger.Info("CDP connection watchdog tick")
-			const threshold int = 32
-			c.assert(c.pendingCmds.Len() <= threshold, "CDP connection cmd datastructure overflowing")
-		case <-c.ctx.Done():
-			c.logger.Info("CDP connection watchdog shutting down")
-			return
-		}
-	}
-}
-
 // GetBrowserVersion retrieves the browser version information.
 func GetBrowserVersion(conn Connection) (*types.BrowserVersion, error) {
 	resp, err := conn.SendCommand(context.Background(), "Browser.getVersion", nil)
@@ -153,7 +128,7 @@ func GetBrowserVersion(conn Connection) (*types.BrowserVersion, error) {
 
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
-		return nil, errInvalidCDPResponseFormat
+		return nil, errInvalidCDPMessageFormat
 	}
 
 	return &types.BrowserVersion{
@@ -176,7 +151,7 @@ func getStringFromMap(m map[string]any, key string) string {
 // it couldn't be read.
 type commandResult struct {
 	err  error
-	resp CDPResponse
+	resp CDPMessage
 }
 
 // connection implements the Connection interface.
@@ -196,7 +171,7 @@ type connection struct {
 }
 
 // SendCommand sends a CDP command to the browser target and waits for the response.
-func (c *connection) SendCommand(ctx context.Context, method string, params any) (*CDPResponse, error) {
+func (c *connection) SendCommand(ctx context.Context, method string, params any) (*CDPMessage, error) {
 	return c.sendCommand(ctx, "", method, params)
 }
 
@@ -216,7 +191,7 @@ type session struct {
 	id   string
 }
 
-func (s *session) SendCommand(ctx context.Context, method string, params any) (*CDPResponse, error) {
+func (s *session) SendCommand(ctx context.Context, method string, params any) (*CDPMessage, error) {
 	return s.conn.sendCommand(ctx, s.id, method, params)
 }
 
@@ -224,7 +199,7 @@ func (s *session) SendCommandBatch(ctx context.Context, batch []Command) []*Comm
 	return s.conn.sendCommandBatch(ctx, s.id, batch)
 }
 
-func (c *connection) sendCommand(ctx context.Context, sessionID, method string, params any) (*CDPResponse, error) {
+func (c *connection) sendCommand(ctx context.Context, sessionID, method string, params any) (*CDPMessage, error) {
 	cmdID, responseCh, err := c.startCommand(ctx, sessionID, method, params)
 	defer c.pendingCmds.GetAndDelete(cmdID)
 	if err != nil {
@@ -290,7 +265,7 @@ func (c *connection) awaitResponse(
 	ctx context.Context,
 	method string,
 	responseCh chan commandResult,
-) (*CDPResponse, error) {
+) (*CDPMessage, error) {
 	select {
 	case result := <-responseCh:
 		if result.err != nil {
@@ -369,7 +344,7 @@ func (c *connection) handleMessages() {
 			return
 		}
 		if msg.ID != nil {
-			c.deliver(*msg.ID, commandResult{resp: CDPResponse{ID: msg.ID, Result: msg.Result, Error: msg.Error}})
+			c.deliver(*msg.ID, commandResult{resp: msg})
 		} else if msg.Method != "" && c.eventHandler != nil {
 			c.eventHandler(msg.SessionID, msg.Method, msg.Params)
 		}

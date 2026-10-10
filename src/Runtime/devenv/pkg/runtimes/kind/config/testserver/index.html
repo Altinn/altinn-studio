@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+        // Make the worker's own wait script fail with an error message this many characters long, so
+        // the reply to the worker's command is too large for its CDP connection. The wait script ends
+        // by destructuring [loaded, found], which is [true, true] once the page is ready: iterating
+        // exactly that array throws. Nothing else on this page iterates such an array.
+        const hugeWaitError = parseInt(new URLSearchParams(location.search).get('hugewaiterror') || '0', 10);
+        if (hugeWaitError > 0) {
+            const iterate = Array.prototype[Symbol.iterator];
+            Array.prototype[Symbol.iterator] = function () {
+                if (this.length === 2 && this[0] === true && this[1] === true) {
+                    throw new Error('y'.repeat(hugeWaitError));
+                }
+                return iterate.call(this);
+            };
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Test Page</title>

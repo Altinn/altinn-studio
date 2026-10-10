@@ -1,7 +1,7 @@
 package cdp
 
-// CDPMessage represents a Chrome DevTools Protocol message
-// Used for both incoming events and command responses.
+// CDPMessage is a message from the browser: a response to a command (ID set) or an event
+// (Method set).
 type CDPMessage struct {
 	Params    any    `json:"params,omitempty"`
 	Result    any    `json:"result,omitempty"`
@@ -18,11 +18,4 @@ type CDPCommand struct {
 	Method    string `json:"method"`
 	SessionID string `json:"sessionId,omitempty"`
 	ID        int64  `json:"id"`
-}
-
-// CDPResponse represents a response from the browser.
-type CDPResponse struct {
-	ID     *int64 `json:"id,omitempty"`
-	Result any    `json:"result,omitempty"`
-	Error  any    `json:"error,omitempty"`
 }
