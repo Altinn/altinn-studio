@@ -9,17 +9,21 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Breaking: built-in validation messages, such as a file that is too large or missing signatures, now use `backend.validation_errors.*` text keys and appear in the user's language. An app that changed such a text under the issue code, such as `DataElementTooLarge`, must use the new key; `studioctl app upgrade v9` renames it. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- Breaking: for clients calling the API directly, `description` on built-in validation issues is now translated text instead of the issue code or an English message. Use `code` to tell issues apart. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- Breaking: the form shows a validation issue's `Description` as text and no longer looks it up as a text key. To show a text from your app's text resources, set `CustomTextKey` instead; `studioctl app upgrade v9` moves the text keys it finds. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+
 ### Fixed
 
 - A service task that gives up when `Wait.IsFinalCheck` is `true` can no longer fail with the generic error for an exhausted wait budget instead of its own. In unit tests, set `IsFinalCheck` directly: a past `Deadline` no longer implies it.
+- Validation messages with texts from the app backend, such as XSD errors, now show as text in the form instead of a raw key like `backend.xsd_validation`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- File validation errors during upload are now in the user's language. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 
 ### Removed
 
 - Breaking: `IPdfFormatter` and the `pdf/format` endpoint. Leave pages or components out of the PDF with `excludeFromPdf` in the task's `Settings.json`, or, for conditional logic, use a PDF service task with a custom layout. `studioctl app upgrade v9` points out the implementations it finds. ([#19785](https://github.com/Altinn/altinn-studio/issues/19785))
-
-### Changed
-- Breaking: built-in validation messages, such as a file that is too large or missing signatures, now use `backend.validation_errors.*` text keys. They appear in the user's language, and apps can change the wording by adding the key to their texts.
-- Breaking: for clients calling the API directly, `description` on built-in validation issues is now translated text instead of the issue code or an English message. Use `code` to tell issues apart.
 
 ## [9.0.0-preview.7] - 2026-10-07
 
@@ -51,6 +55,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
 - The workflow that marks an instance as processing at the start of a process next is named `Process next: Mark instance as processing` instead of `Process next: acquire`.
+- Party selection now lists the parties from Access Management's `enduser/authorizedparties` API. A party the user can only reach through a single delegated instance, for example to sign it, can no longer be chosen, but the instance can still be opened. Update localtest to run locally. ([#20637](https://github.com/Altinn/altinn-studio/issues/20637))
+- Breaking: `GetPartyList` and `ValidateSelectedParty` on `IAuthorizationClient` and `IAuthorizationService` no longer take a `userId`, and always use the authenticated user. Remove the argument from your calls. ([#20637](https://github.com/Altinn/altinn-studio/issues/20637))
 
 ### Fixed
 
@@ -58,8 +64,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - An eFormidling task whose `<altinn:disabled>` is neither `true` nor `false` now stops startup with an error naming the field and the environment, instead of an unexplained parse failure. Leaving it out or blank still enables eFormidling. ([#20832](https://github.com/Altinn/altinn-studio/pull/20832))
 - PDFs from PDF, subform PDF, signing and payment tasks are now in the language the user selected in the app, not always Norwegian bokmål. Service tasks, process hooks and gateways that run when an instance is created or moves to the next task get that language in `IInstanceDataAccessor.Language` too. ([#20910](https://github.com/Altinn/altinn-studio/pull/20910))
 - Creating an instance no longer fails with an internal server error when the start event leads straight to an exclusive gateway with conditions. ([#20910](https://github.com/Altinn/altinn-studio/pull/20910))
-- Validation messages with texts from the app backend, such as XSD errors, now show as text in the form instead of a raw key like `backend.xsd_validation`.
-- File validation errors during upload are now in the user's language.
 
 ### Removed
 

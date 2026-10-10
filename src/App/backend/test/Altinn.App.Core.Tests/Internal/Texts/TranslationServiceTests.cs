@@ -35,6 +35,15 @@ public class TranslationServiceTests
                                 new TextResourceVariable() { Key = "second", DataSource = "customTextParameters" },
                             },
                         },
+                        new TextResourceElement
+                        {
+                            Id = "backend.validation_errors.file_infected",
+                            Value = "Filen {0} inneholder virus.",
+                            Variables =
+                            [
+                                new TextResourceVariable() { Key = "filename", DataSource = "customTextParameters" },
+                            ],
+                        },
                     ],
                 }
             );
@@ -208,6 +217,9 @@ public class TranslationServiceTests
     }
 
     [Theory]
+    [InlineData("pdfPreviewText", LanguageConst.Nb, "Dokumentet er en forhåndsvisning")]
+    [InlineData("pdfPreviewText", LanguageConst.Nn, "Dokumentet er ein førehandsvisning")]
+    [InlineData("pdfPreviewText", LanguageConst.En, "The document is a preview")]
     [InlineData("backend.validation_errors.missing_signatures", LanguageConst.Nb, "Det mangler påkrevde signaturer.")]
     [InlineData("backend.validation_errors.missing_signatures", LanguageConst.Nn, "Det manglar påkravde signaturar.")]
     [InlineData("backend.validation_errors.missing_signatures", LanguageConst.En, "Required signatures are missing.")]
@@ -248,6 +260,12 @@ public class TranslationServiceTests
         "maxSize",
         "25",
         "Filen er for stor. Største tillatte filstørrelse er 25 MB."
+    )]
+    [InlineData(
+        "backend.xsd_validation",
+        "message",
+        "Ugyldig dato",
+        "Et felt bryter reglene satt av XSD. Melding: Ugyldig dato"
     )]
     public async Task TranslateTextKey_BackendValidationFallback_WithParameter(
         string key,
@@ -309,5 +327,20 @@ public class TranslationServiceTests
         );
 
         Assert.EndsWith("Allowed file types are: application/pdf, image/png.", result);
+    }
+
+    [Fact]
+    public async Task TranslateTextKey_AppOverridesBuiltInValidationText_WithParameters()
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+
+        var result = await translationService.TranslateTextKey(
+            "backend.validation_errors.file_infected",
+            LanguageConst.Nb,
+            new() { ["filename"] = "skjema.pdf", ["dataType"] = "vedlegg" }
+        );
+
+        Assert.Equal("Filen skjema.pdf inneholder virus.", result);
     }
 }

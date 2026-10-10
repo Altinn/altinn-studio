@@ -1,4 +1,3 @@
-using System.Globalization;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -27,13 +26,11 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
         if (dataElement.ContentType == null)
         {
             issues.Add(
-                new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.DataElementCodes.MissingContentType,
-                    DataElementId = dataElement.Id,
-                    Severity = ValidationIssueSeverity.Error,
-                    CustomTextKey = "backend.validation_errors.missing_content_type",
-                }
+                BuiltInValidationIssues.MissingContentType(
+                    dataElementId: dataElement.Id,
+                    filename: dataElement.Filename,
+                    dataType: dataType.Id
+                )
             );
         }
         else
@@ -49,18 +46,13 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
             )
             {
                 issues.Add(
-                    new ValidationIssue
-                    {
-                        DataElementId = dataElement.Id,
-                        Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
-                        Severity = ValidationIssueSeverity.Error,
-                        CustomTextKey = "altinn.standard_validation.file_content_type_not_allowed",
-                        CustomTextParameters = new Dictionary<string, string>
-                        {
-                            ["allowedContentTypes"] = string.Join(", ", dataType.AllowedContentTypes),
-                        },
-                        Field = dataType.Id,
-                    }
+                    BuiltInValidationIssues.ContentTypeNotAllowed(
+                        dataElementId: dataElement.Id,
+                        filename: dataElement.Filename,
+                        dataType: dataType.Id,
+                        contentType: contentTypeWithoutEncoding,
+                        allowedContentTypes: dataType.AllowedContentTypes
+                    )
                 );
             }
         }
@@ -72,32 +64,23 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
         )
         {
             issues.Add(
-                new ValidationIssue
-                {
-                    DataElementId = dataElement.Id,
-                    Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
-                    Severity = ValidationIssueSeverity.Error,
-                    CustomTextKey = "backend.validation_errors.file_too_large",
-                    CustomTextParameters = new Dictionary<string, string>
-                    {
-                        ["maxSize"] = dataType.MaxSize.Value.ToString(CultureInfo.InvariantCulture),
-                    },
-                    Field = dataType.Id,
-                }
+                BuiltInValidationIssues.FileTooLarge(
+                    dataElementId: dataElement.Id,
+                    filename: dataElement.Filename,
+                    dataType: dataType.Id,
+                    maxSize: dataType.MaxSize.Value
+                )
             );
         }
 
         if (dataType.EnableFileScan && dataElement.FileScanResult == FileScanResult.Infected)
         {
             issues.Add(
-                new ValidationIssue
-                {
-                    DataElementId = dataElement.Id,
-                    Code = ValidationIssueCodes.DataElementCodes.DataElementFileInfected,
-                    Severity = ValidationIssueSeverity.Error,
-                    CustomTextKey = "backend.validation_errors.file_infected",
-                    Field = dataType.Id,
-                }
+                BuiltInValidationIssues.FileInfected(
+                    dataElementId: dataElement.Id,
+                    filename: dataElement.Filename,
+                    dataType: dataType.Id
+                )
             );
         }
 
@@ -108,14 +91,11 @@ internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO
         )
         {
             issues.Add(
-                new ValidationIssue
-                {
-                    DataElementId = dataElement.Id,
-                    Code = ValidationIssueCodes.DataElementCodes.DataElementFileScanPending,
-                    Severity = ValidationIssueSeverity.Error,
-                    CustomTextKey = "backend.validation_errors.file_scan_pending",
-                    Field = dataType.Id,
-                }
+                BuiltInValidationIssues.FileScanPending(
+                    dataElementId: dataElement.Id,
+                    filename: dataElement.Filename,
+                    dataType: dataType.Id
+                )
             );
         }
 

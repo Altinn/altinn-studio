@@ -225,7 +225,11 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTextResourceKeys(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await MigrateTextResourceKeys(projectFolder));
+
+        // After the text key renames, so a description set to a renamed key moves to the new key.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateValidationDescriptionTextKeys(scanner, projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         var layoutOutcome = await MigrateLayouts(projectFolder);
@@ -1086,19 +1090,47 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Rewrites the renamed datepicker text-resource keys in app-owned resource.*.json overrides,
-    /// so a customized validation message keeps applying after the v9 key rename.
+    /// Rewrites the built-in text-resource keys v9 renamed in app-owned resource.*.json overrides,
+    /// so a customized message keeps applying after the upgrade.
     /// </summary>
-    static async Task<int> MigrateDatepickerTextResourceKeys(string projectFolder)
+    static async Task<int> MigrateTextResourceKeys(string projectFolder)
     {
-        UpgradeConsole.BeginStep("Datepicker text keys");
+        UpgradeConsole.BeginStep("Renamed text keys");
         try
         {
-            return await DatepickerTextResourceKeyMigration.Migrate(projectFolder);
+            return await TextResourceKeyMigration.Migrate(projectFolder);
         }
         catch (Exception ex)
         {
-            return Fail("Error migrating Datepicker text-resource keys", ex);
+            return Fail("Error migrating renamed text-resource keys", ex);
+        }
+    }
+
+    /// <summary>
+    /// Moves text keys that app code sets as a validation issue's Description to CustomTextKey, since the v9 form
+    /// shows the description as text.
+    /// </summary>
+    static async Task<int> MigrateValidationDescriptionTextKeys(CSharpSourceScanner scanner, string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Validation issue text keys");
+        try
+        {
+            var textIds = await AppTextResources.ReadIds(projectFolder);
+            var renamedTextIds = TextResourceKeyMigration.KeyRenames.ToDictionary(
+                rename => rename.Old,
+                rename => rename.New,
+                StringComparer.Ordinal
+            );
+            var result = new ValidationDescriptionTextKeyMigration(scanner, textIds, renamedTextIds).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No validation issue sets Description to a text key",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error moving validation issue text keys to CustomTextKey", ex);
         }
     }
 

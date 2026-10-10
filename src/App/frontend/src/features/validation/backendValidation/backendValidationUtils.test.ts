@@ -12,36 +12,34 @@ function issue(overrides: Partial<BackendValidationIssue>): BackendValidationIss
 }
 
 describe('getValidationIssueMessage', () => {
-  it('uses the custom text key with its parameters', () => {
+  it('uses the custom text key with its parameters, and the description as fallback', () => {
     expect(
       getValidationIssueMessage(
         issue({ customTextKey: 'my.text', customTextParameters: { a: 'b' }, description: 'Translated' }),
       ),
-    ).toEqual({ key: 'my.text', customTextParameters: { a: 'b' } });
+    ).toEqual({ key: 'my.text', customTextParameters: { a: 'b' }, fallback: 'Translated' });
   });
 
-  it('uses the description the backend translated for a backend text key', () => {
+  it('uses the custom text key for backend texts too', () => {
     expect(
       getValidationIssueMessage(
         issue({ customTextKey: 'backend.xsd_validation', description: 'Et felt bryter reglene satt av XSD.' }),
       ),
-    ).toEqual({ key: 'Et felt bryter reglene satt av XSD.' });
-  });
-
-  it('keeps a backend text key when there is no description', () => {
-    expect(getValidationIssueMessage(issue({ customTextKey: 'backend.xsd_validation' }))).toEqual({
+    ).toEqual({
       key: 'backend.xsd_validation',
       customTextParameters: undefined,
+      fallback: 'Et felt bryter reglene satt av XSD.',
     });
   });
 
-  it('falls back to the description', () => {
+  it('shows the description as it is when there is no key', () => {
     expect(getValidationIssueMessage(issue({ description: 'Some message', code: 'SomeCode' }))).toEqual({
-      key: 'Some message',
+      key: undefined,
+      fallback: 'Some message',
     });
   });
 
   it('falls back to the code', () => {
-    expect(getValidationIssueMessage(issue({ code: 'SomeCode' }))).toEqual({ key: 'SomeCode' });
+    expect(getValidationIssueMessage(issue({ code: 'SomeCode' }))).toEqual({ key: undefined, fallback: 'SomeCode' });
   });
 });

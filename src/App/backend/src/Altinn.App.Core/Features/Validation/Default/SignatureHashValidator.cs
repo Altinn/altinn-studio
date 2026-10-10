@@ -131,12 +131,7 @@ internal sealed class SignatureHashValidator(
                 sha256Hash
             );
 
-            return new ValidationIssue
-            {
-                Code = ValidationIssueCodes.DataElementCodes.InvalidSignatureHash,
-                Severity = ValidationIssueSeverity.Error,
-                CustomTextKey = "backend.validation_errors.invalid_signature_hash",
-            };
+            return BuiltInValidationIssues.InvalidSignatureHash();
         }
 
         return null;

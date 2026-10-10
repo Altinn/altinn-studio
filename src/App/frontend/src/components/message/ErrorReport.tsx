@@ -91,6 +91,7 @@ export function ErrorReportList({ formErrors, taskErrors }: ErrorReportListProps
         <ErrorReportListItem key={getUniqueKeyFromObject(error)}>
           <Lang
             id={error.message.key}
+            fallback={error.message.fallback}
             customTextParameters={error.message.customTextParameters}
             params={error.message.params}
           />
@@ -169,6 +170,7 @@ function ErrorWithLink({ error }: { error: NodeRefValidation }) {
         <DataModelLocationProviderFromNode nodeId={error.nodeId}>
           <Lang
             id={error.message.key}
+            fallback={error.message.fallback}
             params={error.message.params}
             customTextParameters={error.message.customTextParameters}
           />

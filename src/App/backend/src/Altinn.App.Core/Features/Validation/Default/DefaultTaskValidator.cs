@@ -1,4 +1,3 @@
-using System.Globalization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -35,36 +34,16 @@ internal sealed class DefaultTaskValidator : ITaskValidator //TODO: Implement IV
 
             if (dataType.MaxCount > 0 && dataType.MaxCount < elements.Count)
             {
-                var message = new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,
-                    Severity = ValidationIssueSeverity.Error,
-                    CustomTextKey = "backend.validation_errors.too_many_data_elements",
-                    CustomTextParameters = new Dictionary<string, string>
-                    {
-                        ["maxCount"] = dataType.MaxCount.ToString(CultureInfo.InvariantCulture),
-                        ["dataType"] = dataType.Id,
-                    },
-                    Field = dataType.Id,
-                };
-                messages.Add(message);
+                messages.Add(
+                    BuiltInValidationIssues.TooManyDataElements(maxCount: dataType.MaxCount, dataType: dataType.Id)
+                );
             }
 
             if (dataType.MinCount > 0 && dataType.MinCount > elements.Count)
             {
-                var message = new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
-                    Severity = ValidationIssueSeverity.Error,
-                    CustomTextKey = "backend.validation_errors.too_few_data_elements",
-                    CustomTextParameters = new Dictionary<string, string>
-                    {
-                        ["minCount"] = dataType.MinCount.ToString(CultureInfo.InvariantCulture),
-                        ["dataType"] = dataType.Id,
-                    },
-                    Field = dataType.Id,
-                };
-                messages.Add(message);
+                messages.Add(
+                    BuiltInValidationIssues.TooFewDataElements(minCount: dataType.MinCount, dataType: dataType.Id)
+                );
             }
         }
 

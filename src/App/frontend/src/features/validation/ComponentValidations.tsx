@@ -76,6 +76,7 @@ export function ComponentValidations({ validations, baseComponentId }: Props) {
         message: (
           <Lang
             id={validation.message.key}
+            fallback={validation.message.fallback}
             params={validation.message.params}
             customTextParameters={validation.message.customTextParameters}
           />
