@@ -31,6 +31,11 @@ services:
       - '6161:6161'
     environment:
       - DESIGNER_HOST=studio-loadbalancer
+      # The studioctl environment on the host, for the admin app's workflow and instance views.
+      - LOCALTEST_URL=${LOCALTEST_URL:-http://host.docker.internal:8000}
+      - INSTANCES_FROM_LOCALTEST=${INSTANCES_FROM_LOCALTEST:-false}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
 
   studio_loadbalancer:
     container_name: studio-loadbalancer
@@ -114,6 +119,9 @@ services:
       - ASPNETCORE_URLS=http://+:6000
       - GeneralSettings:AltinnStudioEndpoint=http://studio.localhost/
       - GeneralSettings:EnvironmentsUrl=http://studio-azure-mock:6161/environments.json
+      # The image never loads appsettings.Development.json, so the local app cluster address (the
+      # mock, which also bridges to the studioctl environment) has to be set here.
+      - PlatformSettings:AppClusterUrlPattern=http://host.docker.internal:6161/apps/{org}/{env}
       - GeneralSettings:LanguageFilesLocation=Languages/
       - GeneralSettings:TemplateLocation=Templates/AspNet
       - GeneralSettings:DefaultAppTemplate=v8
