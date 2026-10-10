@@ -406,6 +406,36 @@ func Test_OversizedCDPEvent(t *testing.T) {
 	}
 }
 
+// Test_Prewarm checks that the worker warms each browser context before handing it to a request:
+// the local manifests configure warm.js and warm.css as warm-up assets, so the page must find them
+// in its HTTP cache. cold.js has the same headers but isn't warmed, so it must come from the
+// network. The page logs a console error for every asset that doesn't match.
+func Test_Prewarm(t *testing.T) {
+	req := harness.GetDefaultPdfRequest(t)
+	req.URL = harness.TestServerURL + "/app/?render=light&prewarmcheck"
+
+	// Several requests, so that both worker replicas are likely to be checked. A request that
+	// arrives while the assets still load joins those downloads, which also counts as a cache hit.
+	for range 4 {
+		resp, err := harness.RequestNewPDF(t, req)
+		if err != nil {
+			t.Fatalf("Failed to generate PDF: %v", err)
+		}
+		output, err := resp.LoadOutput(t)
+		if err != nil {
+			t.Fatalf("Failed to load test output: %v", err)
+		}
+		states := output.BrowserStates
+		if len(states) == 0 {
+			t.Fatal("Test output has no browser states")
+		}
+		if states[len(states)-1].ConsoleErrorLogs != 0 {
+			t.Errorf("Warm-up check failed on worker %s, see worker logs for 'Prewarm check':\n%s",
+				resp.WorkerIP, output.String())
+		}
+	}
+}
+
 func Test_TADForm(t *testing.T) {
 	req := harness.GetDefaultPdfRequest(t)
 	req.URL = harness.TestServerURL + "/app/tad/eur1/"

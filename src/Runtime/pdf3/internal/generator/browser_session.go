@@ -38,18 +38,23 @@ type browserSession struct {
 	pageSessionID atomic.Pointer[string]
 	// logger carries the URL of the current request and is only used from the request goroutine,
 	// rootLogger is safe to use from any goroutine.
-	logger        *slog.Logger
-	rootLogger    *slog.Logger
-	browser       *browser.Process
-	cancel        context.CancelFunc
-	queue         chan workerRequest
-	id            int
-	consoleErrors atomic.Int32
-	browserErrors atomic.Int32
-	jsExceptions  atomic.Int32
-	cdpEventsSent atomic.Int32
-	cdpEventsDrop atomic.Int32
-	state         atomic.Uint32
+	logger     *slog.Logger
+	rootLogger *slog.Logger
+	browser    *browser.Process
+	cancel     context.CancelFunc
+	queue      chan workerRequest
+	// prepared is the page for the next request, only used from the request goroutine
+	prepared *preparedPage
+	// prewarmExpression loads the configured assets into a prepared context, empty if warming is disabled
+	prewarmExpression string
+	prewarmAssets     int
+	id                int
+	consoleErrors     atomic.Int32
+	browserErrors     atomic.Int32
+	jsExceptions      atomic.Int32
+	cdpEventsSent     atomic.Int32
+	cdpEventsDrop     atomic.Int32
+	state             atomic.Uint32
 }
 
 const (
@@ -73,7 +78,7 @@ func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	sessionLogger := logger.With("id", id)
 	cfg := config.ReadConfig()
-	sessionLogger.Info("Starting browser session", "queueSize", cfg.QueueSize)
+	sessionLogger.Info("Starting browser session", "queueSize", cfg.QueueSize, "prewarmURLs", cfg.PrewarmURLs)
 	var queue chan workerRequest
 	if cfg.QueueSize > 0 {
 		queue = make(chan workerRequest, cfg.QueueSize)
@@ -89,6 +94,10 @@ func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 		ctx:        ctx,
 		cancel:     cancel,
 		tracer:     telemetry.Tracer(),
+	}
+	if len(cfg.PrewarmURLs) > 0 {
+		w.prewarmExpression = prewarmExpression(cfg.PrewarmURLs)
+		w.prewarmAssets = len(cfg.PrewarmURLs)
 	}
 
 	// Start browser process
@@ -185,7 +194,9 @@ func (w *browserSession) handleRequests() {
 	defer func() {
 		w.assert(w.ctx.Err() != nil, "Exited worker loop, but process isn't shutting down")
 	}()
+	defer w.discardPreparedPage()
 
+	w.prepareNextPage()
 	for {
 		select {
 		case <-w.ctx.Done():
@@ -221,6 +232,8 @@ func (w *browserSession) handleRequests() {
 			)
 
 			w.tryUpdateTestModeOutput(&req, "After", true)
+			// The request's context is disposed, cleanup asserts otherwise
+			w.prepareNextPage()
 		}
 	}
 }
@@ -378,10 +391,11 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 	return w.printPDF(req, page)
 }
 
-// openPage creates a new browser context with a single page for the request. Everything the page
-// leaves behind on any origin (cookies, web storage, IndexedDB, cache, window.name, history, popups,
-// ...) lives in that context, and cleanupAfterRequest disposes it. If the page can't be opened,
-// openPage responds to the request with an error and returns false.
+// openPage gives the request its own browser context with a single page: the prepared one, or a
+// new one if none was prepared. Everything the page leaves behind on any origin (cookies, web
+// storage, IndexedDB, cache, window.name, history, popups, ...) lives in that context, and
+// cleanupAfterRequest disposes it. If the page can't be opened, openPage responds to the request
+// with an error and returns false.
 //
 //nolint:ireturn // The page is a CDP session, which the cdp package exposes as an interface.
 func (w *browserSession) openPage(req *workerRequest) (cdp.Commander, bool) {
@@ -389,57 +403,79 @@ func (w *browserSession) openPage(req *workerRequest) (cdp.Commander, bool) {
 	defer openSpan.End()
 	start := time.Now()
 
-	// Not cancelled with the request: if the client drops while the browser creates the
-	// context, we still need its ID so that cleanup can dispose it.
-	ctx := context.WithoutCancel(openCtx)
-	var page cdp.Commander
-	err := func() error {
-		resp, err := w.conn.SendCommand(ctx, "Target.createBrowserContext", map[string]any{
-			// If the worker loses its connection, the browser disposes the context by itself
-			"disposeOnDetach": true,
-		})
+	page := w.takePreparedPage(openSpan)
+	if page == nil {
+		// Not cancelled with the request: if the client drops while the browser creates the
+		// context, we still need its ID so that cleanup can dispose it.
+		var err error
+		page, err = w.newPage(context.WithoutCancel(openCtx))
+		if page != nil {
+			req.browserContextID = page.contextID
+		}
 		if err != nil {
-			return fmt.Errorf("create browser context: %w", err)
+			recordSpanError(openSpan, err, "open_page_failed")
+			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "open page", err))
+			return nil, false
 		}
-		req.browserContextID = w.resultString(resp, "browserContextId")
-
-		resp, err = w.conn.SendCommand(ctx, "Target.createTarget", map[string]any{
-			"url":              "about:blank",
-			"browserContextId": req.browserContextID,
-		})
-		if err != nil {
-			return fmt.Errorf("create page: %w", err)
-		}
-		targetID := w.resultString(resp, "targetId")
-
-		resp, err = w.conn.SendCommand(ctx, "Target.attachToTarget", map[string]any{
-			"targetId": targetID,
-			"flatten":  true,
-		})
-		if err != nil {
-			return fmt.Errorf("attach to page: %w", err)
-		}
-		sessionID := w.resultString(resp, "sessionId")
-		w.pageSessionID.Store(&sessionID)
-		page = w.conn.Session(sessionID)
-
-		commands := []cdp.Command{{Method: "Page.enable"}, {Method: "Runtime.enable"}, {Method: "Log.enable"}}
-		if err := commandBatchError(commands, page.SendCommandBatch(ctx, commands)); err != nil {
-			return fmt.Errorf("enable page domains: %w", err)
-		}
-		return nil
-	}()
-	if err != nil {
-		if openSpan.IsRecording() {
-			openSpan.RecordError(err)
-			openSpan.SetStatus(codes.Error, "open_page_failed")
-		}
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "open page", err))
-		return nil, false
+		w.logger.Info("Opened page in new browser context", "duration", time.Since(start))
 	}
 
-	w.logger.Info("Opened page in new browser context", "duration", time.Since(start))
-	return page, true
+	req.browserContextID = page.contextID
+	w.pageSessionID.Store(&page.sessionID)
+	return w.conn.Session(page.sessionID), true
+}
+
+func recordSpanError(span trace.Span, err error, status string) {
+	if span.IsRecording() {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, status)
+	}
+}
+
+// newPage creates a browser context with a single blank page, and enables the domains the render
+// listens to. If it fails after creating the context, the returned page holds the context so that
+// the caller can dispose it.
+func (w *browserSession) newPage(ctx context.Context) (*preparedPage, error) {
+	resp, err := w.conn.SendCommand(ctx, "Target.createBrowserContext", map[string]any{
+		// If the worker loses its connection, the browser disposes the context by itself
+		"disposeOnDetach": true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("create browser context: %w", err)
+	}
+	page := &preparedPage{contextID: w.resultString(resp, "browserContextId")}
+
+	_, sessionID, err := w.attachBlankPage(ctx, page.contextID)
+	if err != nil {
+		return page, err
+	}
+	commands := []cdp.Command{{Method: "Page.enable"}, {Method: "Runtime.enable"}, {Method: "Log.enable"}}
+	if err := commandBatchError(commands, w.conn.Session(sessionID).SendCommandBatch(ctx, commands)); err != nil {
+		return page, fmt.Errorf("enable page domains: %w", err)
+	}
+	page.sessionID = sessionID
+	return page, nil
+}
+
+// attachBlankPage opens about:blank in the browser context and attaches to it.
+func (w *browserSession) attachBlankPage(ctx context.Context, contextID string) (string, string, error) {
+	resp, err := w.conn.SendCommand(ctx, "Target.createTarget", map[string]any{
+		"url":              "about:blank",
+		"browserContextId": contextID,
+	})
+	if err != nil {
+		return "", "", fmt.Errorf("create page: %w", err)
+	}
+	targetID := w.resultString(resp, "targetId")
+
+	resp, err = w.conn.SendCommand(ctx, "Target.attachToTarget", map[string]any{
+		"targetId": targetID,
+		"flatten":  true,
+	})
+	if err != nil {
+		return "", "", fmt.Errorf("attach to page: %w", err)
+	}
+	return targetID, w.resultString(resp, "sessionId"), nil
 }
 
 // resultString returns a string field of a successful Target domain response.
@@ -1176,6 +1212,8 @@ func (w *browserSession) buildVisibilityWaitExpression(
 // state that outlived the request it belongs to.
 func (w *browserSession) getCookies() ([]map[string]any, error) {
 	w.assert(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	// This runs on the request goroutine, the only one that creates and disposes contexts (a
+	// prepared one included), so none of them can disappear while we read them.
 
 	resp, err := w.conn.SendCommand(w.ctx, "Target.getBrowserContexts", nil)
 	if err != nil {

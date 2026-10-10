@@ -20,6 +20,12 @@ patches:
         value:
           name: PDF3_BROWSER_RESTART_INTERVAL
           value: "2m"
+      # Warm assets from the testserver instead of the CDN, the cluster may have no internet
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: PDF3_PREWARM_URLS
+          value: "http://testserver.default.svc.cluster.local/app/prewarm/warm.js,http://testserver.default.svc.cluster.local/app/prewarm/warm.css"
       - op: replace
         path: /spec/template/spec/containers/0/image
         value: "localhost:5001/runtime-pdf3-worker:latest"

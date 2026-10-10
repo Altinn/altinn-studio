@@ -1,6 +1,9 @@
 package config
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestShouldConfigureOTel(t *testing.T) {
 	tests := []struct {
@@ -219,4 +222,38 @@ func TestReadConfigIncludesPDFAConfig(t *testing.T) {
 			t.Fatalf("ReadConfig().ShouldConvertToPDFA() = true, want false")
 		}
 	})
+}
+
+func TestParsePrewarmURLs(t *testing.T) {
+	tests := []struct {
+		name  string
+		value string
+		want  []string
+		set   bool
+	}{
+		{name: "unset uses the default", set: false, want: DefaultPrewarmURLs},
+		{name: "empty disables warming", value: "", set: true, want: []string{}},
+		{name: "whitespace disables warming", value: " , ", set: true, want: []string{}},
+		{
+			name:  "comma separated list",
+			value: " http://a.test/app.js ,https://b.test/app.css",
+			set:   true,
+			want:  []string{"http://a.test/app.js", "https://b.test/app.css"},
+		},
+		{
+			name:  "invalid entries are skipped",
+			value: "/relative.js,ftp://a.test/x.js,https://,https://ok.test/x.js",
+			set:   true,
+			want:  []string{"https://ok.test/x.js"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := parsePrewarmURLs(tc.value, tc.set)
+			if strings.Join(got, "|") != strings.Join(tc.want, "|") || got == nil {
+				t.Fatalf("parsePrewarmURLs(%q, %v) = %q, want %q", tc.value, tc.set, got, tc.want)
+			}
+		})
+	}
 }

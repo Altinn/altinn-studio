@@ -52,6 +52,38 @@
         // Throw an uncaught error with a message this many characters long. The exception event
         // carries the message twice, which makes it too large for the worker's CDP connection.
         const hugeError = parseInt(urlParams.get('hugeerror') || '0', 10);
+        // Load the warm-up test assets like a v8 app loads the frontend, and report any that
+        // came from the HTTP cache when they shouldn't have, or the other way around
+        const prewarmCheck = urlParams.has('prewarmcheck');
+        const prewarmAssets = { '/app/prewarm/warm.js': true, '/app/prewarm/warm.css': true, '/app/prewarm/cold.js': false };
+        if (prewarmCheck) {
+            for (const path of Object.keys(prewarmAssets)) {
+                const element = path.endsWith('.css') ? document.createElement('link') : document.createElement('script');
+                if (path.endsWith('.css')) {
+                    element.rel = 'stylesheet';
+                    element.href = path;
+                } else {
+                    element.src = path;
+                }
+                document.head.appendChild(element);
+            }
+        }
+
+        function checkPrewarm() {
+            for (const [path, warmed] of Object.entries(prewarmAssets)) {
+                const entry = performance.getEntriesByName(new URL(path, location.href).href)[0];
+                if (!entry) {
+                    console.error(`Prewarm check: ${path} was not loaded`);
+                    continue;
+                }
+                // Same origin, so the size is visible: 0 means it was served from the HTTP cache
+                const fromCache = entry.transferSize === 0;
+                console.log(`Prewarm check: ${path} transferSize=${entry.transferSize}`);
+                if (fromCache !== warmed) {
+                    console.error(`Prewarm check: ${path} was ${fromCache ? '' : 'not '}served from the HTTP cache`);
+                }
+            }
+        }
 
         async function writeStorage() {
             sessionStorage.setItem(storageMarker, location.origin);
@@ -149,6 +181,10 @@
                 spyOnOpener();
             } else if (storageMode === 'check') {
                 await checkStorage();
+            }
+
+            if (prewarmCheck) {
+                checkPrewarm();
             }
 
             if (hugeError > 0) {

@@ -116,13 +116,15 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 2. Proxy validates and forwards to Worker
 3. Worker queues request (returns 429 if queue full)
 4. Browser session:
-   - Opens a page in a new browser context, so no state is shared between requests
+   - Takes the browser context prepared after the previous request, so no state is shared between requests. While
+     idle, the worker warms it with the public assets in `PDF3_PREWARM_URLS` (default: the v8 frontend on the CDN),
+     loaded from a separate blank page, so the render finds them in that context's HTTP cache
    - Sets cookies
    - Navigates to URL
    - Waits for element/timeout (if `waitFor` specified)
    - Calls `Page.printToPDF` via CDP
    - Returns base64-encoded PDF
-   - Cleans up by disposing the browser context, which drops all its state on every origin
+   - Cleans up by disposing the browser context, which drops all its state on every origin, then prepares the next one
 5. Worker returns PDF to Proxy
 6. Proxy retries on 429 (configurable)
 7. Proxy returns PDF to client

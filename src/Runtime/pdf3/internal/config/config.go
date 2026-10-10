@@ -1,7 +1,9 @@
 package config
 
 import (
+	"net/url"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -19,7 +21,18 @@ const (
 	LocaltestPublicBaseURLEnv = "PDF3_LOCALTEST_PUBLIC_BASE_URL"
 	// ServiceOwnerEnv provides the service owner for the current runtime cluster.
 	ServiceOwnerEnv = "PDF3_SERVICEOWNER"
+	// PrewarmURLsEnv lists, comma-separated, the public assets to load into each browser context
+	// before a request uses it. Unset means DefaultPrewarmURLs, empty disables warming.
+	PrewarmURLsEnv = "PDF3_PREWARM_URLS"
 )
+
+// DefaultPrewarmURLs are the frontend assets v8 apps load from the CDN, see
+// src/App/template/v8/src/App/views/Home/Index.cshtml. The default lives here rather than in the
+// manifests because the worker also runs without them, for example in localtest.
+var DefaultPrewarmURLs = []string{
+	"https://altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.js",
+	"https://altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.css",
+}
 
 var defaultPDFAConversionConfig = PDFAConversionConfig{
 	Targets: []PDFATarget{
@@ -42,6 +55,7 @@ type Config struct {
 	LocaltestPublicBaseURL string
 	ServiceOwner           string
 	PDFA                   PDFAConversionConfig
+	PrewarmURLs            []string
 	QueueSize              int
 	BrowserRestartInterval time.Duration
 }
@@ -90,7 +104,30 @@ func ReadConfig() *Config {
 		LocaltestPublicBaseURL: os.Getenv(LocaltestPublicBaseURLEnv),
 		ServiceOwner:           os.Getenv(ServiceOwnerEnv),
 		PDFA:                   defaultPDFAConversionConfig,
+		PrewarmURLs:            parsePrewarmURLs(os.LookupEnv(PrewarmURLsEnv)),
 	}
+}
+
+// parsePrewarmURLs parses the value of PrewarmURLsEnv, set is false if the variable is unset.
+// Entries that aren't absolute http(s) URLs are skipped with a warning.
+func parsePrewarmURLs(value string, set bool) []string {
+	if !set {
+		return slices.Clone(DefaultPrewarmURLs)
+	}
+	urls := []string{}
+	for entry := range strings.SplitSeq(value, ",") {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+		parsed, err := url.Parse(entry)
+		if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
+			logger.Warn("Ignoring invalid "+PrewarmURLsEnv+" entry", "value", entry, "error", err)
+			continue
+		}
+		urls = append(urls, entry)
+	}
+	return urls
 }
 
 func (c *Config) ShouldConvertToPDFA() bool {

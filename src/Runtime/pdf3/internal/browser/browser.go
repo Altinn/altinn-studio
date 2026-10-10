@@ -201,7 +201,14 @@ func createBrowserArgs() []string {
 		"--disable-default-apps",
 		"--disable-dev-shm-usage",
 		"--disable-extensions",
-		"--disable-features=site-per-process,Translate,BlinkGenPropertyTrees",
+		// SplitCacheByNetworkIsolationKey: Chrome can partition its HTTP cache by top-level site, so
+		// that one site can't probe which resources another site loaded. The headless shell doesn't
+		// enable this today, and it must stay off: the assets warmed into a prepared context (see
+		// internal/generator/prewarm.go) are loaded from about:blank, and the request's page must
+		// find them in the cache. Partitioning protects nothing here, because every browser context
+		// belongs to a single request and is disposed after it, so there is no other site's history
+		// to probe.
+		"--disable-features=site-per-process,Translate,BlinkGenPropertyTrees,SplitCacheByNetworkIsolationKey",
 		"--disable-font-subpixel-positioning",
 		"--disable-hang-monitor",
 		"--disable-ipc-flooding-protection",
