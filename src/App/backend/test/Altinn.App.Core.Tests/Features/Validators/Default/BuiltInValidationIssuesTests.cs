@@ -44,19 +44,6 @@ public class BuiltInValidationIssuesTests
     }
 
     [Fact]
-    public void EveryDefinitionHasNbNnAndEn()
-    {
-        Assert.All(
-            BuiltInValidationIssues.All,
-            definition =>
-                Assert.Equal(
-                    [LanguageConst.En, LanguageConst.Nb, LanguageConst.Nn],
-                    definition.TextResource.Texts.Keys.Order()
-                )
-        );
-    }
-
-    [Fact]
     public void EveryDefinitionHasAFactory()
     {
         Assert.Equal(
@@ -130,9 +117,9 @@ public class BuiltInValidationIssuesTests
             markdown.Append($"{definition.Description}\n\n");
             markdown.Append($"Code `{definition.Code}`, severity {definition.Severity}.\n\n");
             markdown.Append("| Language | Default text |\n|---|---|\n");
-            foreach (var language in new[] { LanguageConst.Nb, LanguageConst.Nn, LanguageConst.En })
+            foreach (var (language, text) in definition.TextResource.Texts.RawTexts)
             {
-                markdown.Append($"| {language} | {definition.TextResource.Texts[language]} |\n");
+                markdown.Append($"| {language} | {text} |\n");
             }
 
             if (definition.TextResource.CustomTextParameters.Count > 0)

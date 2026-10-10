@@ -31,13 +31,6 @@ public class BuiltInTextResourcesTests
     }
 
     [Fact]
-    public void EveryTextHasEnglish()
-    {
-        // English is the language every other language falls back to.
-        Assert.All(BuiltInTextResources.All, text => Assert.Contains(LanguageConst.En, text.Texts.Keys));
-    }
-
-    [Fact]
     public void EveryPlaceholderIsADeclaredVariable()
     {
         Assert.All(
@@ -46,14 +39,8 @@ public class BuiltInTextResourcesTests
             {
                 var names = text.Variables.Select(variable => variable.Name).ToList();
                 Assert.Equal(names.Count, names.Distinct().Count());
-                Assert.All(
-                    text.Texts.Values,
-                    value =>
-                        Assert.All(
-                            _placeholderRegex.Matches(value),
-                            match => Assert.Contains(match.Groups[1].Value, names)
-                        )
-                );
+                Assert.All(text.Texts.ReplacementKeys, key => Assert.Contains(key, names));
+                Assert.Equal(text.Texts.ReplacementKeys.Count, text.ReplacementVariables.Count);
             }
         );
     }
@@ -65,7 +52,8 @@ public class BuiltInTextResourcesTests
             BuiltInTextResources.All,
             text =>
                 Assert.Single(
-                    text.Texts.Values.Select(value =>
+                    text.Texts.RawTexts.Select(raw => raw.Text)
+                        .Select(value =>
                             string.Join(",", _placeholderRegex.Matches(value).Select(m => m.Value).Order())
                         )
                         .Distinct()
@@ -95,15 +83,16 @@ public class BuiltInTextResourcesTests
         {
             markdown.Append($"\n## `{text.Key}`\n\n");
             markdown.Append("| Language | Default text |\n|---|---|\n");
-            if (text.Texts.Count == 1 && text.Texts.ContainsKey(LanguageConst.En))
+            var rawTexts = text.Texts.RawTexts.ToList();
+            if (rawTexts.Select(raw => raw.Text).Distinct().Count() == 1)
             {
-                markdown.Append($"| all | {text.Texts[LanguageConst.En]} |\n");
+                markdown.Append($"| all | {rawTexts[0].Text} |\n");
             }
             else
             {
-                foreach (var language in new[] { LanguageConst.Nb, LanguageConst.Nn, LanguageConst.En })
+                foreach (var (language, value) in rawTexts)
                 {
-                    markdown.Append($"| {language} | {text.Texts[language]} |\n");
+                    markdown.Append($"| {language} | {value} |\n");
                 }
             }
 

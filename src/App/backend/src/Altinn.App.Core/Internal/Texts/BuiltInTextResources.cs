@@ -11,7 +11,7 @@ internal static class BuiltInTextResources
     public static readonly BackendTextResource PdfPreviewText = new()
     {
         Key = "pdfPreviewText",
-        Texts = LocalizedText.Create(
+        Texts = new LocalizedText(
             nb: "Dokumentet er en forhåndsvisning",
             nn: "Dokumentet er ein førehandsvisning",
             en: "The document is a preview"

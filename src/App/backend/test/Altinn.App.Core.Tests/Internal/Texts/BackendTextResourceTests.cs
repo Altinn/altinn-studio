@@ -7,7 +7,7 @@ public class BackendTextResourceTests
     private readonly BackendTextResource _textResource = new()
     {
         Key = "backend.test",
-        Texts = LocalizedText.Create(
+        Texts = new LocalizedText(
             nb: "{count} av {name} på bokmål",
             nn: "{count} av {name} på nynorsk",
             en: "{count} of {name} in English"
@@ -40,73 +40,54 @@ public class BackendTextResourceTests
     [Fact]
     public void CreateCustomTextParameters_ReturnsNullWithoutParameters()
     {
-        var textResource = new BackendTextResource
-        {
-            Key = "backend.test",
-            Texts = LocalizedText.Create(nb: "nb", nn: "nn", en: "en"),
-        };
+        var textResource = new BackendTextResource { Key = "backend.test", Texts = LocalizedText.Invariant("Text") };
 
         Assert.Null(textResource.CreateCustomTextParameters([]));
     }
 
-    [Theory]
-    [InlineData("nb", "{1} av {0} på bokmål")]
-    [InlineData("nn", "{1} av {0} på nynorsk")]
-    [InlineData("en", "{1} of {0} in English")]
-    [InlineData("se", "{1} of {0} in English")]
-    public void GetDefaultResource_UsesTheLanguageOrEnglish(string language, string expected)
+    [Fact]
+    public void ReplacementVariables_FollowTheOrderOfTheReplacementKeys()
     {
-        var resource = _textResource.GetDefaultResource(language);
-
-        Assert.NotNull(resource);
-        Assert.Equal("backend.test", resource.Id);
-        Assert.Equal(expected, resource.Value);
-        Assert.Equal(["name", "count"], resource.Variables.Select(variable => variable.Key));
-        Assert.All(resource.Variables, variable => Assert.Equal("customTextParameters", variable.DataSource));
+        // The texts use {count} first, so it is the first replacement key, while the variables list name first.
+        Assert.Equal(["count", "name"], _textResource.Texts.ReplacementKeys);
+        Assert.Equal(["count", "name"], _textResource.ReplacementVariables.Select(variable => variable.Name));
     }
 
     [Fact]
-    public void GetDefaultResource_EmitsEveryVariableWithItsOwnDataSource()
+    public void ReplacementVariables_ThrowsForAPlaceholderWithoutAVariable()
     {
         var textResource = new BackendTextResource
         {
             Key = "backend.test",
-            Texts = LocalizedText.Invariant("{a} {b} {c} {d} {e}"),
-            Variables =
-            [
-                new CustomTextParameter("a", "A parameter"),
-                new TextVariable("b", "appName", "The app name", Fallback: "Altinn"),
-                new DataModelVariable("c", "model", "person.name", "A field"),
-                new InstanceContextVariable("d", "instanceOwnerPartyId", "The party"),
-                new ApplicationSettingVariable("e", "homeLink", "A setting"),
-            ],
+            Texts = LocalizedText.Invariant("{missing}"),
         };
 
-        var resource = textResource.GetDefaultResource("nb");
-
-        Assert.NotNull(resource);
-        Assert.Equal("{0} {1} {2} {3} {4}", resource.Value);
-        Assert.Equal(
-            [
-                ("customTextParameters", "a", ""),
-                ("text", "appName", "Altinn"),
-                ("dataModel.model", "person.name", null),
-                ("instanceContext", "instanceOwnerPartyId", null),
-                ("applicationSettings", "homeLink", null),
-            ],
-            resource.Variables.Select(variable => (variable.DataSource, variable.Key, (string?)variable.DefaultValue))
-        );
-        Assert.Equal(["a"], textResource.CustomTextParameters.Select(parameter => parameter.Name));
+        Assert.Throws<InvalidOperationException>(() => textResource.ReplacementVariables);
     }
 
-    [Theory]
-    [InlineData("nb")]
-    [InlineData("nn")]
-    [InlineData("en")]
-    public void GetDefaultResource_UsesAnInvariantTextForEveryLanguage(string language)
+    [Fact]
+    public void Variables_DescribeTheirDataSource()
     {
-        var textResource = new BackendTextResource { Key = "backend.test", Texts = LocalizedText.Invariant("Same") };
+        BackendTextVariable[] variables =
+        [
+            new CustomTextParameter("a", "A parameter"),
+            new TextVariable("b", "appName", "The app name", Fallback: "Altinn"),
+            new DataModelVariable("c", "model", "person.name", "A field"),
+            new InstanceContextVariable("d", "instanceOwnerPartyId", "The party"),
+            new ApplicationSettingVariable("e", "homeLink", "A setting"),
+        ];
 
-        Assert.Equal("Same", textResource.GetDefaultResource(language)?.Value);
+        Assert.Equal(
+            [
+                ("customTextParameters", "a", "", false),
+                ("text", "appName", "Altinn", false),
+                ("dataModel.model", "person.name", null, true),
+                ("instanceContext", "instanceOwnerPartyId", null, true),
+                ("applicationSettings", "homeLink", null, true),
+            ],
+            variables.Select(variable =>
+                (variable.DataSource, variable.Key, variable.DefaultValue, variable.NeedsLayoutState)
+            )
+        );
     }
 }

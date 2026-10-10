@@ -50,9 +50,7 @@ internal sealed class TranslationService : ITranslationService
         Dictionary<string, string>? customTextParameters = null
     )
     {
-        var resourceElement = await GetTextResourceElement(key, language);
-        var value = await ReplaceVariables(resourceElement, state: null, context: null, customTextParameters, language);
-        return value;
+        return await Translate(key, language, state: null, context: null, customTextParameters);
     }
 
     public async Task<string?> TranslateTextKey(
@@ -62,10 +60,7 @@ internal sealed class TranslationService : ITranslationService
         Dictionary<string, string>? customTextParameters = null
     )
     {
-        string language = state.GetLanguage();
-        var resourceElement = await GetTextResourceElement(key, language);
-        var value = await ReplaceVariables(resourceElement, state, context, customTextParameters, language);
-        return value;
+        return await Translate(key, state.GetLanguage(), state, context, customTextParameters);
     }
 
     public async Task<string?> TranslateTextKey(
@@ -75,18 +70,75 @@ internal sealed class TranslationService : ITranslationService
         Dictionary<string, string>? customTextParameters = null
     )
     {
-        var resourceElement = await GetTextResourceElement(key, instanceDataAccessor.Language);
-        var value = await ReplaceVariables(
-            resourceElement,
+        return await Translate(
+            key,
+            instanceDataAccessor.Language,
             instanceDataAccessor.GetLayoutEvaluatorState(),
             context,
-            customTextParameters,
-            instanceDataAccessor.Language
+            customTextParameters
         );
-        return value;
     }
 
     private readonly Regex _cleanPathRegex = new(@"\[\{\d+\}\]", RegexOptions.Compiled, TimeSpan.FromMilliseconds(10));
+
+    /// <summary>
+    /// Translates the app's text resource for the key, or the built-in default text when the app has none.
+    /// </summary>
+    private async Task<string?> Translate(
+        string key,
+        string? language,
+        LayoutEvaluatorState? state,
+        ComponentContext? context,
+        Dictionary<string, string>? customTextParameters
+    )
+    {
+        var resourceElement = await GetTextResourceElement(key, language);
+        if (resourceElement is null && BuiltInTextResources.ByKey.TryGetValue(key, out var builtInText))
+        {
+            return await ApplyBuiltInText(
+                builtInText,
+                language ?? LanguageConst.Nb,
+                state,
+                context,
+                customTextParameters
+            );
+        }
+
+        return await ReplaceVariables(resourceElement, state, context, customTextParameters, language);
+    }
+
+    /// <summary>
+    /// Resolves the built-in text's variables in the order of its replacement keys, and fills them in.
+    /// </summary>
+    private async Task<string> ApplyBuiltInText(
+        BackendTextResource textResource,
+        string language,
+        LayoutEvaluatorState? state,
+        ComponentContext? context,
+        Dictionary<string, string>? customTextParameters
+    )
+    {
+        var variables = textResource.ReplacementVariables;
+        var values = new string?[variables.Count];
+        for (var i = 0; i < variables.Count; i++)
+        {
+            var variable = variables[i];
+            values[i] =
+                await EvaluateTextVariable(
+                    textResource.Key,
+                    variable.DataSource,
+                    variable.Key,
+                    state,
+                    language,
+                    context,
+                    customTextParameters
+                )
+                ?? variable.DefaultValue
+                ?? variable.Key;
+        }
+
+        return textResource.Texts.Apply(language, values);
+    }
 
     private async Task<string?> ReplaceVariables(
         TextResourceElement? resourceElement,
@@ -104,8 +156,9 @@ internal sealed class TranslationService : ITranslationService
             {
                 var replacement =
                     await EvaluateTextVariable(
-                        resourceElement,
-                        variable,
+                        resourceElement.Id,
+                        variable.DataSource,
+                        variable.Key,
                         state,
                         language,
                         context,
@@ -120,8 +173,9 @@ internal sealed class TranslationService : ITranslationService
     }
 
     private async Task<string?> EvaluateTextVariable(
-        TextResourceElement resourceElement,
-        TextResourceVariable variable,
+        string textResourceId,
+        string dataSource,
+        string variableKey,
         LayoutEvaluatorState? state,
         string? language,
         ComponentContext? context,
@@ -129,23 +183,23 @@ internal sealed class TranslationService : ITranslationService
     )
     {
         // Do replacements for
-        if (variable.DataSource.StartsWith("dataModel.", StringComparison.Ordinal))
+        if (dataSource.StartsWith("dataModel.", StringComparison.Ordinal))
         {
             if (state == null)
             {
                 _logger.LogWarning(
                     "Text resource variable with dataSource '{DataSource}' is not supported in this context. In text resource with id = {TextResourceId}",
-                    variable.DataSource,
-                    resourceElement.Id
+                    dataSource,
+                    textResourceId
                 );
                 return null;
             }
 
-            var dataModelName = variable.DataSource.Substring("dataModel.".Length);
+            var dataModelName = dataSource.Substring("dataModel.".Length);
 
             // For compatibility with docs, we allow {[0]} indexes in the path, even though we don't need them
             // when we know what part of the path is a list.
-            var cleanPath = _cleanPathRegex.Replace(variable.Key, "");
+            var cleanPath = _cleanPathRegex.Replace(variableKey, "");
 
             // Resolve "default" to the actual data type from the layout-set.
             // If there's no layout-set (e.g., some service tasks), GetDefaultDataType() returns null.
@@ -154,7 +208,7 @@ internal sealed class TranslationService : ITranslationService
             if (resolvedDataType is null)
             {
                 throw new InvalidOperationException(
-                    $"Text resource '{resourceElement.Id}' uses 'dataModel.default' but no layout-set is available to determine the default data type. "
+                    $"Text resource '{textResourceId}' uses 'dataModel.default' but no layout-set is available to determine the default data type. "
                         + "Use an explicit data type name instead (e.g., 'dataModel.MyDataType')."
                 );
             }
@@ -175,69 +229,69 @@ internal sealed class TranslationService : ITranslationService
                 _logger.LogError(
                     e,
                     "Error getting value for text resource variable with dataSource '{DataSource}' and key '{Key}'. In text resource with id = {TextResourceId}",
-                    variable.DataSource,
-                    variable.Key,
-                    resourceElement.Id
+                    dataSource,
+                    variableKey,
+                    textResourceId
                 );
                 return null;
             }
         }
 
-        if (variable.DataSource == "instanceContext")
+        if (dataSource == "instanceContext")
         {
             if (state == null)
             {
                 _logger.LogWarning(
                     "Text resource variable with dataSource '{DataSource}' is not supported in this context. In text resource with id = {TextResourceId}",
-                    variable.DataSource,
-                    resourceElement.Id
+                    dataSource,
+                    textResourceId
                 );
                 return null;
             }
 
-            return state.GetInstanceContext(variable.Key);
+            return state.GetInstanceContext(variableKey);
         }
 
-        if (variable.DataSource == "applicationSettings")
+        if (dataSource == "applicationSettings")
         {
             if (state == null)
             {
                 _logger.LogWarning(
                     "Text resource variable with dataSource '{DataSource}' is not supported in this context. In text resource with id = {TextResourceId}",
-                    variable.DataSource,
-                    resourceElement.Id
+                    dataSource,
+                    textResourceId
                 );
                 return null;
             }
 
-            return state.GetFrontendSetting(variable.Key);
+            return state.GetFrontendSetting(variableKey);
         }
 
-        if (variable.DataSource == "customTextParameters")
+        if (dataSource == "customTextParameters")
         {
-            return customTextParameters?.GetValueOrDefault(variable.Key);
+            return customTextParameters?.GetValueOrDefault(variableKey);
         }
 
-        if (variable.DataSource == "text")
+        if (dataSource == "text")
         {
-            if (variable.Key == resourceElement.Id)
+            if (variableKey == textResourceId)
             {
                 // TODO: Detect bigger cycles?
                 _logger.LogWarning(
                     "Text resource variable with dataSource 'text' cannot reference itself. In text resource with id = {TextResourceId}",
-                    resourceElement.Id
+                    textResourceId
                 );
                 return null;
             }
             return state == null
-                ? await TranslateTextKey(variable.Key, language, customTextParameters)
-                : await TranslateTextKey(variable.Key, state, context, customTextParameters);
+                ? await TranslateTextKey(variableKey, language, customTextParameters)
+                : await TranslateTextKey(variableKey, state, context, customTextParameters);
         }
 
         _logger.LogWarning(
             "Text resource variable with dataSource '{DataSource}' is not supported. Only 'dataModel.*', instanceContext, applicationSettings, text and customTextParameters is supported. In text resource with id = {TextResourceId}",
-            variable.DataSource,
-            resourceElement.Id
+            dataSource,
+            textResourceId
         );
 
         return null;
@@ -281,13 +335,8 @@ internal sealed class TranslationService : ITranslationService
             return new TextResourceElement() { Id = "appName", Value = _app };
         }
 
-        return GetBackendFallbackResource(key, language);
+        return null;
     }
-
-    private static TextResourceElement? GetBackendFallbackResource(string key, string language) =>
-        BuiltInTextResources.ByKey.TryGetValue(key, out var textResource)
-            ? textResource.GetDefaultResource(language)
-            : null;
 
     /// <summary>
     /// Get the first matching text resource value for the specified keys in the specified language.

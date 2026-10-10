@@ -30,7 +30,7 @@ internal static class BuiltInValidationIssues
         TextResource = new()
         {
             Key = "backend.validation_errors.missing_content_type",
-            Texts = LocalizedText.Create(
+            Texts = new LocalizedText(
                 nb: "Filen har ingen filtype.",
                 nn: "Fila har ingen filtype.",
                 en: "The file is missing a content type."
@@ -51,7 +51,7 @@ internal static class BuiltInValidationIssues
         TextResource = new()
         {
             Key = "altinn.standard_validation.file_content_type_not_allowed",
-            Texts = LocalizedText.Create(
+            Texts = new LocalizedText(
                 nb: "Det ser ut som du prøver å laste opp en filtype som ikke er tillatt. Sjekk at filen faktisk er av den typen den utgir seg for å være. Tillatte filtyper er: {allowedContentTypes}.",
                 nn: "Det ser ut som du prøver å lasta opp ein filtype som ikkje er tillaten. Sjekk at fila faktisk er av den typen han gir seg ut for å vera. Tillatne filtypar er: {allowedContentTypes}.",
                 en: "It looks like you are trying to upload a file type that is not allowed. Please make sure that the file is actually the type it claims to be. Allowed file types are: {allowedContentTypes}."
@@ -87,7 +87,7 @@ internal static class BuiltInValidationIssues
         TextResource = new()
         {
             Key = "backend.validation_errors.file_too_large",
-            Texts = LocalizedText.Create(
+            Texts = new LocalizedText(
                 nb: "Filen er for stor. Største tillatte filstørrelse er {maxSize} MB.",
                 nn: "Fila er for stor. Største tillatne filstorleik er {maxSize} MB.",
                 en: "The file is too large. The maximum file size is {maxSize} MB."
@@ -111,7 +111,7 @@ internal static class BuiltInValidationIssues
         TextResource = new()
         {
             Key = "backend.validation_errors.file_infected",
-            Texts = LocalizedText.Create(
+            Texts = new LocalizedText(
                 nb: "Filen er infisert med skadelig programvare og kan ikke brukes.",
                 nn: "Fila er infisert med skadeleg programvare og kan ikkje brukast.",
                 en: "The file is infected with malware and cannot be used."
@@ -132,7 +132,7 @@ internal static class BuiltInValidationIssues
         TextResource = new()
         {
             Key = "backend.validation_errors.file_scan_pending",
-            Texts = LocalizedText.Create(
+            Texts = new LocalizedText(
                 nb: "Filen blir skannet for skadelig programvare. Vent til skanningen er ferdig.",
                 nn: "Fila blir skanna for skadeleg programvare. Vent til skanninga er ferdig.",
                 en: "The file is being scanned for malware. Please wait until the scan is complete."
@@ -154,7 +154,7 @@ internal static class BuiltInValidationIssues
         TextResource = new()
         {
             Key = "backend.validation_errors.too_many_data_elements",
-            Texts = LocalizedText.Create(
+            Texts = new LocalizedText(
                 nb: "Det er lagt til flere enn {maxCount} elementer av typen {dataType}.",
                 nn: "Det er lagt til fleire enn {maxCount} element av typen {dataType}.",
                 en: "More than {maxCount} items of type {dataType} have been added."
@@ -178,7 +178,7 @@ internal static class BuiltInValidationIssues
         TextResource = new()
         {
             Key = "backend.validation_errors.too_few_data_elements",
-            Texts = LocalizedText.Create(
+            Texts = new LocalizedText(
                 nb: "Det må legges til minst {minCount} elementer av typen {dataType}.",
                 nn: "Det må leggjast til minst {minCount} element av typen {dataType}.",
                 en: "At least {minCount} items of type {dataType} must be added."
@@ -202,7 +202,7 @@ internal static class BuiltInValidationIssues
         TextResource = new()
         {
             Key = "backend.validation_errors.missing_signatures",
-            Texts = LocalizedText.Create(
+            Texts = new LocalizedText(
                 nb: "Det mangler påkrevde signaturer.",
                 nn: "Det manglar påkravde signaturar.",
                 en: "Required signatures are missing."
@@ -237,7 +237,7 @@ internal static class BuiltInValidationIssues
         TextResource = new()
         {
             Key = "backend.validation_errors.invalid_signature_hash",
-            Texts = LocalizedText.Create(
+            Texts = new LocalizedText(
                 nb: "Signerte data er endret etter at signaturen ble utført.",
                 nn: "Signerte data er endra etter at signaturen vart utført.",
                 en: "The signed data has been modified after the signature was made."
@@ -268,7 +268,7 @@ internal static class BuiltInValidationIssues
         TextResource = new()
         {
             Key = "backend.validation_errors.required",
-            Texts = LocalizedText.Create(nb: "Feltet er påkrevd", nn: "Feltet er påkravd", en: "Field is required"),
+            Texts = new LocalizedText(nb: "Feltet er påkrevd", nn: "Feltet er påkravd", en: "Field is required"),
             Variables =
             [
                 new CustomTextParameter("field", "Path of the field in the data model."),
@@ -309,7 +309,7 @@ internal static class BuiltInValidationIssues
         TextResource = new()
         {
             Key = "backend.xsd_validation",
-            Texts = LocalizedText.Create(
+            Texts = new LocalizedText(
                 nb: "Et felt bryter reglene satt av XSD. Melding: {message}",
                 nn: "Eit felt bryt reglane sette av XSD. Melding: {message}",
                 en: "A field is in violation of the rules set by the XSD schema. Message: {message}"
