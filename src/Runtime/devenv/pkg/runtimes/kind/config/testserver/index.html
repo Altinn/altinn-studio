@@ -49,6 +49,9 @@
         // With storage=write, also open a popup that writes the state on this other origin
         const storagePopupOrigin = urlParams.get('storagepopup');
         const storageMarker = 'pdf3-isolation-marker';
+        // Throw an uncaught error with a message this many characters long. The exception event
+        // carries the message twice, which makes it too large for the worker's CDP connection.
+        const hugeError = parseInt(urlParams.get('hugeerror') || '0', 10);
 
         async function writeStorage() {
             sessionStorage.setItem(storageMarker, location.origin);
@@ -146,6 +149,10 @@
                 spyOnOpener();
             } else if (storageMode === 'check') {
                 await checkStorage();
+            }
+
+            if (hugeError > 0) {
+                setTimeout(() => { throw new Error('y'.repeat(hugeError)); });
             }
 
             // Log errors if requested
