@@ -227,6 +227,10 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateTextResourceKeys(projectFolder));
 
+        // After the text key renames, so a description set to a renamed key moves to the new key.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateValidationDescriptionTextKeys(scanner, projectFolder));
+
         options.CancellationToken.ThrowIfCancellationRequested();
         var layoutOutcome = await MigrateLayouts(projectFolder);
         returnCode = CombineExitCodes(returnCode, layoutOutcome.ExitCode);
@@ -1099,6 +1103,34 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating renamed text-resource keys", ex);
+        }
+    }
+
+    /// <summary>
+    /// Moves text keys that app code sets as a validation issue's Description to CustomTextKey, since the v9 form
+    /// shows the description as text.
+    /// </summary>
+    static async Task<int> MigrateValidationDescriptionTextKeys(CSharpSourceScanner scanner, string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Validation issue text keys");
+        try
+        {
+            var textIds = await AppTextResources.ReadIds(projectFolder);
+            var renamedTextIds = TextResourceKeyMigration.KeyRenames.ToDictionary(
+                rename => rename.Old,
+                rename => rename.New,
+                StringComparer.Ordinal
+            );
+            var result = new ValidationDescriptionTextKeyMigration(scanner, textIds, renamedTextIds).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No validation issue sets Description to a text key",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error moving validation issue text keys to CustomTextKey", ex);
         }
     }
 

@@ -11,7 +11,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 /// </summary>
 internal static class TextResourceKeyMigration
 {
-    private static readonly (string Old, string New)[] _keyRenames =
+    /// <summary>The renamed keys, from the v8 key to the v9 key.</summary>
+    public static readonly IReadOnlyList<(string Old, string New)> KeyRenames =
     [
         // The app frontend corrected the spelling of the datepicker validation keys.
         ("date_picker.min_date_exeeded", "date_picker.min_date_exceeded"),
@@ -28,7 +29,7 @@ internal static class TextResourceKeyMigration
 
     public static async Task<int> Migrate(string projectFolder)
     {
-        var textsDirectory = ResolveTextsDirectory(projectFolder);
+        var textsDirectory = AppTextResources.ResolveTextsDirectory(projectFolder);
         if (textsDirectory is null)
         {
             UpgradeConsole.Skip("No texts directory found");
@@ -51,7 +52,7 @@ internal static class TextResourceKeyMigration
 
             var migrated = decoded.Text;
             var fileRenames = 0;
-            foreach (var (oldKey, newKey) in _keyRenames)
+            foreach (var (oldKey, newKey) in KeyRenames)
             {
                 var structural = CountIds(resources, oldKey);
                 if (structural == 0)
@@ -103,14 +104,4 @@ internal static class TextResourceKeyMigration
         resources.Count(r =>
             r is JsonObject entry && entry["id"] is JsonValue id && id.TryGetValue<string>(out var v) && v == key
         );
-
-    private static string? ResolveTextsDirectory(string projectFolder)
-    {
-        var appTexts = Path.Combine(projectFolder, "App", "config", "texts");
-        if (Directory.Exists(appTexts))
-            return appTexts;
-
-        var texts = Path.Combine(projectFolder, "config", "texts");
-        return Directory.Exists(texts) ? texts : null;
-    }
 }
