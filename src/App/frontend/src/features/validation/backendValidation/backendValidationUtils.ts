@@ -127,26 +127,18 @@ export function mapBackendValidationsToValidatorGroups(
 }
 
 /**
- * Text keys in this namespace are built-in texts owned by the app backend, which does not share them with the
- * frontend. The backend translates them itself and puts the result in the description of the issue.
- */
-const BACKEND_TEXT_KEY_PREFIX = 'backend.';
-
-/**
- * Gets the message to show for a backend validation issue.
+ * Gets the message to show for a backend validation issue. The text key is translated here when the app or the
+ * language package has it. Otherwise the description, which the backend translates, is shown as it is.
  */
 export function getValidationIssueMessage(issue: BackendValidationIssue): TextReference {
   const { customTextKey, customTextParameters, description, code } = issue;
+  const fallback = description || code || customTextKey;
 
-  if (customTextKey && !(customTextKey.startsWith(BACKEND_TEXT_KEY_PREFIX) && description)) {
-    return { key: customTextKey, customTextParameters };
+  if (customTextKey) {
+    return { key: customTextKey, customTextParameters, fallback };
   }
 
-  if (description) {
-    return { key: description };
-  }
-
-  return { key: customTextKey ?? code };
+  return { key: undefined, fallback };
 }
 
 export function mapValidatorGroupsToDataModelValidations(

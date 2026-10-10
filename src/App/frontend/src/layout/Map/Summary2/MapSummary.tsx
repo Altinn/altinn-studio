@@ -102,9 +102,11 @@ export function MapSummary({ targetBaseComponentId }: Summary2Props) {
           </Paragraph>
         )}
         {errors?.map(({ message }) => (
-          <ValidationMessage key={message.key}>
+          <ValidationMessage key={message.key ?? message.fallback}>
             <Lang
               id={message.key}
+              customTextParameters={message.customTextParameters}
+              fallback={message.fallback}
               params={message.params}
             />
           </ValidationMessage>

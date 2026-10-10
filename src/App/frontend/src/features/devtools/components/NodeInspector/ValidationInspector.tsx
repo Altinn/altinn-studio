@@ -155,7 +155,7 @@ const ValidationItems = ({ grouping, validations, visibility }: ValidationItemsP
       <ul style={{ padding: 0 }}>
         {validations.map((validation) => (
           <ValidationItem
-            key={`${validation.nodeId}-${validation.source}-${validation.message.key}-${validation.severity}`}
+            key={`${validation.nodeId}-${validation.source}-${validation.message.key ?? validation.message.fallback}-${validation.severity}`}
             validation={validation}
             visibility={visibility}
           />
@@ -191,6 +191,7 @@ const ValidationItem = ({ validation, visibility }: ValidationItemProps) => {
         )}
         <Lang
           id={validation.message.key}
+          fallback={validation.message.fallback}
           params={validation.message.params}
           customTextParameters={validation.message.customTextParameters}
         />

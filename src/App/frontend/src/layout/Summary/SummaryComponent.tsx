@@ -217,6 +217,8 @@ const SummaryComponentInner = React.forwardRef(function (
                   message={
                     <Lang
                       id={message.key}
+                      customTextParameters={message.customTextParameters}
+                      fallback={message.fallback}
                       params={message.params}
                     />
                   }

@@ -111,13 +111,15 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
       </Table>
       {errors?.map(({ message }) => (
         <ValidationMessage
-          key={message.key}
+          key={message.key ?? message.fallback}
           data-size='sm'
           className={classes.errorMessage}
         >
           <ExclamationmarkTriangleIcon fontSize='1.5rem' />
           <Lang
             id={message.key}
+            customTextParameters={message.customTextParameters}
+            fallback={message.fallback}
             params={message.params}
           />
         </ValidationMessage>
@@ -300,12 +302,14 @@ function DataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
       </span>
       {errors.map((validation, index) => (
         <ValidationMessage
-          key={`${baseComponentId}-${validation.message.key}-${index}`}
+          key={`${baseComponentId}-${validation.message.key ?? validation.message.fallback}-${index}`}
           data-size='sm'
           className={cn(classes.errorMessage, tableClasses.cellValidationMessage)}
         >
           <Lang
             id={validation.message.key}
+            customTextParameters={validation.message.customTextParameters}
+            fallback={validation.message.fallback}
             params={validation.message.params}
           />
         </ValidationMessage>

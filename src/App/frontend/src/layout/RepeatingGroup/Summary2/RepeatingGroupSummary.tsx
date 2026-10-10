@@ -120,11 +120,13 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
         </div>
         {errors?.map(({ message }) => (
           <ValidationMessage
-            key={message.key}
+            key={message.key ?? message.fallback}
             className={classes.errorMessage}
           >
             <Lang
               id={message.key}
+              customTextParameters={message.customTextParameters}
+              fallback={message.fallback}
               params={message.params}
             />
           </ValidationMessage>

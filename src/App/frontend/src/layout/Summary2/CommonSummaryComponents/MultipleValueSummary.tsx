@@ -128,11 +128,13 @@ export const MultipleValueSummary = ({
         {errors.length > 0 &&
           errors.map(({ message }) => (
             <ValidationMessage
-              key={message.key}
+              key={message.key ?? message.fallback}
               data-size='sm'
             >
               <Lang
                 id={message.key}
+                customTextParameters={message.customTextParameters}
+                fallback={message.fallback}
                 params={message.params}
               />
             </ValidationMessage>
