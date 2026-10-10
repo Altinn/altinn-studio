@@ -23,13 +23,13 @@ import (
 )
 
 type Custom struct {
-	tracer           trace.Tracer
-	logger           *slog.Logger
-	activeSession    atomic.Pointer[browserSession]
-	pdfaConverter    *pdfa.Converter
-	browserVersion   types.BrowserVersion
-	sessionIDCounter atomic.Int32
-	convertToPDFA    bool
+	tracer trace.Tracer
+	logger *slog.Logger
+	// session is set once the browser has started, the worker isn't ready before
+	session        atomic.Pointer[browserSession]
+	pdfaConverter  *pdfa.Converter
+	browserVersion types.BrowserVersion
+	convertToPDFA  bool
 }
 
 func New() (*Custom, error) {
@@ -61,20 +61,12 @@ func New() (*Custom, error) {
 
 		logger.Info("Initializing Custom CDP")
 
-		init := func(id int) *browserSession {
-			logger.Info("Starting browser worker", "id", id)
+		// The worker runs one browser for its whole lifetime. Every request gets its own browser
+		// context, disposed afterwards, so no request leaves state behind in the browser.
+		session, err := newBrowserSession(logger, 1)
+		assert.That(err == nil, "Failed to create worker", "error", err)
 
-			session, err := newBrowserSession(logger, id)
-			assert.That(err == nil, "Failed to create worker", "id", id, "error", err)
-
-			return session
-		}
-
-		generator.sessionIDCounter.Store(1)
-		firstSession := init(1)
-
-		// Every session runs the same browser binary, so the first one's version holds for all
-		version, err := cdp.GetBrowserVersion(firstSession.conn)
+		version, err := cdp.GetBrowserVersion(session.conn)
 		if err != nil {
 			if span.IsRecording() {
 				span.RecordError(err)
@@ -97,23 +89,18 @@ func New() (*Custom, error) {
 			"protocol", version.ProtocolVersion,
 		)
 
-		generator.activeSession.Store(firstSession)
-		if span.IsRecording() {
-			span.SetAttributes(attribute.Int("pdf.session.id", firstSession.id))
-		}
-
-		go generator.periodicRestart()
+		generator.session.Store(session)
 	}()
 
 	return generator, nil
 }
 
 func (g *Custom) IsReady() bool {
-	return g.activeSession.Load() != nil
+	return g.session.Load() != nil
 }
 
 func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types.PdfResult, *types.PDFError) {
-	session := g.activeSession.Load()
+	session := g.session.Load()
 	assert.That(session != nil, "The worker should not call the generator unless it is ready", "url", request.URL)
 	assert.That(request.Validate() == nil, "Invalid request passed through to worker", "url", request.URL)
 
@@ -246,79 +233,11 @@ func (g *Custom) addPDFAEvent(
 
 func (g *Custom) Close() error {
 	g.logger.Info("Closing PDF generator")
-	session := g.activeSession.Load()
+	session := g.session.Load()
 	if session != nil {
 		session.close()
 	}
 	return nil
-}
-
-func (g *Custom) periodicRestart() {
-	const recheckInterval = 1 * time.Minute // How often to recheck if restart is disabled
-
-	for {
-		interval := config.ReadConfig().BrowserRestartInterval
-
-		// If interval is 0 or negative, periodic restart is disabled
-		if interval <= 0 {
-			g.logger.Info("Periodic browser restart is disabled, will recheck", "recheck_in", recheckInterval)
-			time.Sleep(recheckInterval)
-			continue
-		}
-
-		g.logger.Info("Periodic browser restart enabled", "interval", interval)
-		ticker := time.NewTicker(interval)
-
-		// Wait for first tick
-		<-ticker.C
-		ticker.Stop()
-
-		// Perform restart
-		g.logger.Info("Starting periodic browser restart")
-		_, restartSpan := g.tracer.Start(context.Background(), "pdf.generator.restart")
-		if restartSpan.IsRecording() {
-			restartSpan.SetAttributes(attribute.Int64("pdf.restart.interval_ms", interval.Milliseconds()))
-		}
-
-		nextID := int(g.sessionIDCounter.Add(1))
-
-		g.logger.Info("Creating new browser session for restart", "id", nextID)
-		newSession, err := newBrowserSession(g.logger, nextID)
-		if err != nil {
-			g.logger.Error("Failed to create new browser session, keeping old session", "id", nextID, "error", err)
-			if restartSpan.IsRecording() {
-				restartSpan.RecordError(err)
-				restartSpan.SetStatus(codes.Error, "new_session_failed")
-			}
-			restartSpan.End()
-			// Wait a bit before retrying to avoid tight loop on persistent errors
-			time.Sleep(1 * time.Minute)
-			continue
-		}
-
-		oldSession := g.activeSession.Swap(newSession)
-		g.logger.Info("Swapped to new browser session", "old_id", oldSession.id, "new_id", nextID)
-		if restartSpan.IsRecording() {
-			restartSpan.SetAttributes(
-				attribute.Int("pdf.session.old_id", oldSession.id),
-				attribute.Int("pdf.session.new_id", nextID),
-			)
-		}
-
-		drained := oldSession.waitForDrain(types.SessionDrainTimeout)
-		if restartSpan.IsRecording() {
-			restartSpan.SetAttributes(
-				attribute.Bool("pdf.session.drained", drained),
-				attribute.Int64("pdf.session.drain_timeout_ms", types.SessionDrainTimeout.Milliseconds()),
-			)
-		}
-
-		oldSession.close()
-		g.logger.Info("Browser restart complete", "old_id", oldSession.id, "new_id", nextID)
-		restartSpan.End()
-
-		// Loop back to recheck interval (allows dynamic config changes)
-	}
 }
 
 type workerRequest struct {
