@@ -93,22 +93,32 @@ func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 	var err error
 	w.browser, err = browser.Start(id)
 	if err != nil {
+		cancel()
 		return nil, fmt.Errorf("start browser: %w", err)
 	}
 
 	// Connect to the browser with event handler
-	w.conn, err = cdp.Connect(ctx, id, w.browser.DebugBaseURL, w.handleEvent)
+	w.conn, err = cdp.ConnectPipe(ctx, id, w.browser.Reader, w.browser.Writer, w.handleEvent)
 	if err != nil {
+		cancel()
 		if closeErr := w.browser.Close(); closeErr != nil {
 			w.logger.Error("Failed to connect AND failed to close browser", "error", closeErr)
 		}
 		return nil, fmt.Errorf("failed to connect to browser: %w", err)
 	}
 
+	go w.watchConnection()
 	go w.handleRequests()
 
 	w.logger.Info("Browser worker initialized successfully")
 	return w, nil
+}
+
+// watchConnection crashes the worker if the browser exits or the connection to it breaks while
+// the session is running, so that the pod restarts instead of failing every request.
+func (w *browserSession) watchConnection() {
+	<-w.conn.Done()
+	w.assert(w.ctx.Err() != nil, "Browser connection closed while the session is running")
 }
 
 // tryEnqueue attempts to enqueue a request if the session is ready
@@ -739,13 +749,13 @@ func (w *browserSession) printPDF(req *workerRequest, page cdp.Commander) error 
 		return nil
 	}
 
-	pdfBytes, err := decodePDFData(resp)
+	pdfBytes, err := readPDFStream(req.ctx, w.logger, page, resp)
 	if err != nil {
 		if printSpan.IsRecording() {
 			printSpan.RecordError(err)
 			printSpan.SetStatus(codes.Error, "print_failed")
 		}
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
+		req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, ""))
 		return nil
 	}
 
@@ -768,6 +778,8 @@ func buildPrintToPDFParams(logger *slog.Logger, request types.PdfRequest) map[st
 		"generateDocumentOutline": false,
 		"paperWidth":              8.5,
 		"paperHeight":             11.0,
+		// See readPDFStream
+		"transferMode": "ReturnAsStream",
 	}
 
 	if request.Options.Format != "" {
@@ -806,22 +818,70 @@ func buildPrintToPDFParams(logger *slog.Logger, request types.PdfRequest) map[st
 	return pdfParams
 }
 
-func decodePDFData(resp *cdp.CDPResponse) ([]byte, error) {
+// decodeStreamChunk returns the data of an IO.read response and whether the stream ended.
+func decodeStreamChunk(resp *cdp.CDPResponse) ([]byte, bool, error) {
+	chunk, ok := resp.Result.(map[string]any)
+	if !ok {
+		return nil, false, errInvalidPDFResponseFormat
+	}
+	data, ok := chunk["data"].(string)
+	if !ok {
+		return nil, false, errInvalidPDFResponseFormat
+	}
+	eof, ok := chunk["eof"].(bool)
+	eof = ok && eof
+	if base64Encoded, ok := chunk["base64Encoded"].(bool); !ok || !base64Encoded {
+		return []byte(data), eof, nil
+	}
+	decoded, err := base64.StdEncoding.DecodeString(data)
+	if err != nil {
+		return nil, false, fmt.Errorf("decode pdf data: %w", err)
+	}
+	return decoded, eof, nil
+}
+
+// pdfStreamChunkSize is how much of the PDF each IO.read returns, about 11 MB once base64 encoded.
+const pdfStreamChunkSize = 8 * 1024 * 1024
+
+// readPDFStream reads the PDF that Page.printToPDF returned as a stream. Reading it in chunks keeps
+// every CDP message small, however large the PDF. The stream belongs to the page's session, so if
+// reading fails, disposing the browser context releases it.
+func readPDFStream(
+	ctx context.Context,
+	logger *slog.Logger,
+	page cdp.Commander,
+	resp *cdp.CDPResponse,
+) ([]byte, error) {
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
 		return nil, errInvalidPDFResponseFormat
 	}
-
-	dataStr, ok := result["data"].(string)
-	if !ok {
-		return nil, errMissingPDFData
+	handle, ok := result["stream"].(string)
+	if !ok || handle == "" {
+		return nil, errMissingPDFStream
 	}
 
-	pdfBytes, err := base64.StdEncoding.DecodeString(dataStr)
-	if err != nil {
-		return nil, fmt.Errorf("decode pdf data: %w", err)
+	var pdf []byte
+	for {
+		chunkResp, err := page.SendCommand(ctx, "IO.read", map[string]any{"handle": handle, "size": pdfStreamChunkSize})
+		if err != nil {
+			return nil, fmt.Errorf("read pdf stream: %w", err)
+		}
+		chunk, eof, err := decodeStreamChunk(chunkResp)
+		if err != nil {
+			return nil, err
+		}
+		pdf = append(pdf, chunk...)
+		if eof {
+			break
+		}
 	}
-	return pdfBytes, nil
+
+	if _, err := page.SendCommand(ctx, "IO.close", map[string]any{"handle": handle}); err != nil {
+		// The PDF is complete, and disposing the context releases the stream anyway
+		logger.Warn("Failed to close the PDF stream", "error", err)
+	}
+	return pdf, nil
 }
 
 // waitForElement waits for an element to match the given criteria using MutationObserver.
@@ -1372,7 +1432,7 @@ var htmlIDSelectorPattern = regexp.MustCompile(`^#[^\s.:\[\]>+~,()]+$`)
 
 var (
 	errInvalidPDFResponseFormat    = errors.New("invalid PDF response format")
-	errMissingPDFData              = errors.New("no PDF data in response")
+	errMissingPDFStream            = errors.New("no PDF stream in response")
 	errInvalidCookieResponseFormat = errors.New("invalid cookie response format")
 )
 

@@ -390,6 +390,22 @@ func Test_StorageIsolation(t *testing.T) {
 	}
 }
 
+// Test_OversizedCDPEvent renders a page that throws an error with a 70 MB message. Chrome sends
+// the message twice in the exception event, which is larger than the CDP connection accepts in one
+// message. The worker must skip the event and still render the page.
+func Test_OversizedCDPEvent(t *testing.T) {
+	req := harness.GetDefaultPdfRequest(t)
+	req.URL = harness.TestServerURL + "/app/?render=light&hugeerror=70000000"
+
+	resp, err := harness.RequestNewPDF(t, req)
+	if err != nil {
+		t.Fatalf("Failed to generate PDF for a page with an oversized CDP event: %v", err)
+	}
+	if !harness.IsPDF(resp.Data) {
+		t.Error("Response is not a valid PDF")
+	}
+}
+
 func Test_TADForm(t *testing.T) {
 	req := harness.GetDefaultPdfRequest(t)
 	req.URL = harness.TestServerURL + "/app/tad/eur1/"
