@@ -33,7 +33,7 @@ Code `MissingContentType`, severity Error.
 
 ## `altinn.standard_validation.file_content_type_not_allowed`
 
-The content type of the data element is not in the data type's allowedContentTypes.
+The content type of the data element is not in the data type's allowedContentTypes. MimeTypeValidator in Altinn.FileAnalyzers raises it too, for the content type it detects in the file, with the same key and parameters.
 
 Code `ContentTypeNotAllowed`, severity Error.
 

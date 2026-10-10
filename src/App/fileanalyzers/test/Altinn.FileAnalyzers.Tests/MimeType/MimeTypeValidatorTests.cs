@@ -69,4 +69,46 @@ public class MimeTypeValidatorTests
             errors.FirstOrDefault()?.Code
         );
     }
+
+    [Fact]
+    public async Task Validate_ContentTypeNotAllowed_SetsTextKeyAndParameters()
+    {
+        var dataType = new DataType()
+        {
+            Id = "attachment",
+            EnabledFileValidators = new List<string>() { "mimeTypeValidator" },
+            AllowedContentTypes = new List<string>() { "application/pdf", "image/png" },
+        };
+        IEnumerable<FileAnalysisResult> fileAnalysisResults = new List<FileAnalysisResult>()
+        {
+            new FileAnalysisResult("mimeTypeValidator")
+            {
+                MimeType = "text/plain",
+                Filename = "notes.txt",
+            },
+        };
+
+        var validator = new MimeTypeValidator();
+        (_, IEnumerable<ValidationIssue> errors) = await validator.Validate(
+            dataType,
+            fileAnalysisResults
+        );
+
+        var issue = Assert.Single(errors);
+        Assert.Null(issue.Description);
+        Assert.Equal(
+            "altinn.standard_validation.file_content_type_not_allowed",
+            issue.CustomTextKey
+        );
+        Assert.Equal(
+            new Dictionary<string, string>
+            {
+                ["filename"] = "notes.txt",
+                ["dataType"] = "attachment",
+                ["contentType"] = "text/plain",
+                ["allowedContentTypes"] = "application/pdf, image/png",
+            },
+            issue.CustomTextParameters
+        );
+    }
 }
