@@ -13,6 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Breaking: built-in validation messages, such as a file that is too large or missing signatures, now use `backend.validation_errors.*` text keys and appear in the user's language. An app that changed such a text under the issue code, such as `DataElementTooLarge`, must use the new key; `studioctl app upgrade v9` renames it. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - Breaking: for clients calling the API directly, `description` on built-in validation issues is now translated text instead of the issue code or an English message. Use `code` to tell issues apart. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- Breaking: the form shows a validation issue's `Description` as text and no longer looks it up as a text key. To show a text from your app's text resources, set `CustomTextKey` instead. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 
 ### Fixed
 
