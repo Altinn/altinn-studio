@@ -233,10 +233,6 @@ func MaxWaitForTimeout() time.Duration {
 	return time.Duration(MaxTimeoutMs) * time.Millisecond
 }
 
-// SessionDrainTimeout is the maximum time to wait for an active request to complete
-// when draining a browser session during restart.
-const SessionDrainTimeout = 60 * time.Second
-
 // Validate validates the PdfRequest according to browserless schema rules.
 //
 //nolint:gocognit,gocyclo,err113 // Validation is intentionally kept as a single rule set for the request contract.

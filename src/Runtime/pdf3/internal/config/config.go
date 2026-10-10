@@ -43,7 +43,6 @@ type Config struct {
 	ServiceOwner           string
 	PDFA                   PDFAConversionConfig
 	QueueSize              int
-	BrowserRestartInterval time.Duration
 }
 
 func ReadConfig() *Config {
@@ -68,25 +67,9 @@ func ReadConfig() *Config {
 		}
 	}
 
-	browserRestartIntervalStr := os.Getenv("PDF3_BROWSER_RESTART_INTERVAL")
-	browserRestartInterval := 30 * time.Minute // default value
-	if browserRestartIntervalStr != "" {
-		if parsed, err := time.ParseDuration(browserRestartIntervalStr); err == nil {
-			browserRestartInterval = parsed
-		} else {
-			logger.Warn(
-				"Failed to parse PDF3_BROWSER_RESTART_INTERVAL, using default",
-				"value", browserRestartIntervalStr,
-				"default", browserRestartInterval,
-				"error", err,
-			)
-		}
-	}
-
 	return &Config{
 		Environment:            environment,
 		QueueSize:              queueSize,
-		BrowserRestartInterval: browserRestartInterval,
 		LocaltestPublicBaseURL: os.Getenv(LocaltestPublicBaseURLEnv),
 		ServiceOwner:           os.Getenv(ServiceOwnerEnv),
 		PDFA:                   defaultPDFAConversionConfig,
