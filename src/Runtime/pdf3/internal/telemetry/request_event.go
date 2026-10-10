@@ -158,15 +158,15 @@ func (d *RequestEventData) SetCDPEventsDropped(count int) {
 	d.setKVLocked(attribute.Int("pdf.process.cdp_events_dropped", count))
 }
 
-func (d *RequestEventData) SetCleanup(attempts int, succeeded bool, skipped bool) {
+// SetCleanupSkipped records whether cleanup was skipped because the request never opened a page.
+// A failed cleanup crashes the worker, so there is no outcome to record otherwise.
+func (d *RequestEventData) SetCleanupSkipped(skipped bool) {
 	if d == nil {
 		return
 	}
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	d.setKVLocked(attribute.Int("pdf.process.cleanup_attempts", attempts))
-	d.setKVLocked(attribute.Bool("pdf.process.cleanup_succeeded", succeeded))
 	d.setKVLocked(attribute.Bool("pdf.process.cleanup_skipped", skipped))
 }
 

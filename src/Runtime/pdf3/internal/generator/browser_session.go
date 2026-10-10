@@ -49,7 +49,6 @@ type browserSession struct {
 	jsExceptions  atomic.Int32
 	cdpEventsSent atomic.Int32
 	cdpEventsDrop atomic.Int32
-	state         atomic.Uint32
 }
 
 const (
@@ -85,7 +84,6 @@ func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 		logger:     sessionLogger,
 		rootLogger: sessionLogger,
 		queue:      queue,
-		state:      atomic.Uint32{},
 		ctx:        ctx,
 		cancel:     cancel,
 		tracer:     telemetry.Tracer(),
@@ -489,10 +487,9 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest) {
 	if req.browserContextID == "" {
 		w.logger.Info("No browser context was created, skipping cleanup")
 		// No page ever held user-controlled state, so there is nothing to dispose.
-		req.cleanedUp = true
 		if data := telemetry.RequestEventDataFromContext(cleanupCtx); data != nil {
 			data.SetSessionID(w.id)
-			data.SetCleanup(0, true, true)
+			data.SetCleanupSkipped(true)
 		}
 		return
 	}
@@ -505,7 +502,7 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest) {
 	err := w.cleanupBrowser(context.WithoutCancel(cleanupCtx), req)
 	if data := telemetry.RequestEventDataFromContext(cleanupCtx); data != nil {
 		data.SetSessionID(w.id)
-		data.SetCleanup(1, req.cleanedUp, false)
+		data.SetCleanupSkipped(false)
 	}
 	if err != nil && cleanupSpan.IsRecording() {
 		cleanupSpan.RecordError(err)
@@ -1229,8 +1226,6 @@ func (w *browserSession) cleanupBrowser(ctx context.Context, req *workerRequest)
 	if err != nil {
 		return fmt.Errorf("%w: %w", errBrowserCleanupFailed, err)
 	}
-
-	req.cleanedUp = true
 	return nil
 }
 

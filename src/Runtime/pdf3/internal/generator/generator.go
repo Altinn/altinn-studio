@@ -162,7 +162,6 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		responder:  responder,
 		ctx:        ctx,
 		enqueuedAt: time.Now(),
-		cleanedUp:  false,
 		logger:     g.logger.With("url", request.URL),
 	}
 
@@ -366,7 +365,6 @@ type workerRequest struct {
 	// browserContextID is the context that holds all browser state of the request
 	browserContextID string
 	request          types.PdfRequest
-	cleanedUp        bool
 }
 
 func (r *workerRequest) tryGetTestModeInput() *testing.PdfInternalsTestInput {
