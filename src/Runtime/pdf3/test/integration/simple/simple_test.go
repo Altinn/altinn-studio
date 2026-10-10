@@ -390,6 +390,48 @@ func Test_StorageIsolation(t *testing.T) {
 	}
 }
 
+// Test_OversizedCDPEvent renders a page that throws an error with a 70 MB message. Chrome sends
+// the message twice in the exception event, which is larger than the CDP connection accepts in one
+// message. The worker must skip the event and still render the page.
+func Test_OversizedCDPEvent(t *testing.T) {
+	req := harness.GetDefaultPdfRequest(t)
+	req.URL = harness.TestServerURL + "/app/?render=light&hugeerror=70000000"
+
+	resp, err := harness.RequestNewPDF(t, req)
+	if err != nil {
+		t.Fatalf("Failed to generate PDF for a page with an oversized CDP event: %v", err)
+	}
+	if !harness.IsPDF(resp.Data) {
+		t.Error("Response is not a valid PDF")
+	}
+}
+
+// Test_OversizedCDPResponse renders a page that makes the worker's own wait script throw an error
+// with a 70 MB message, so Chrome's reply to that command is larger than the CDP connection accepts.
+// Only that request may fail: the worker must keep running, which the test checks by loading the
+// failed request's output, held in the worker's memory, from the same worker.
+func Test_OversizedCDPResponse(t *testing.T) {
+	req := harness.GetDefaultPdfRequest(t)
+	req.URL = harness.TestServerURL + "/app/?render=light&hugewaiterror=70000000"
+
+	resp, err := harness.RequestNewPDF(t, req)
+	if err == nil {
+		t.Fatal("Expected the request to fail when the reply to the wait script is too large")
+	}
+	if resp == nil || resp.WorkerIP == "" {
+		t.Fatalf("Failed request did not report its worker: %v", err)
+	}
+	t.Logf("Request failed as expected: %v", err)
+
+	output, err := resp.LoadOutput(t)
+	if err != nil {
+		t.Fatalf("Worker lost the failed request's output, so it probably crashed: %v", err)
+	}
+	if output == nil || len(output.BrowserStates) == 0 {
+		t.Fatalf("Failed request has no output: %+v", output)
+	}
+}
+
 func Test_TADForm(t *testing.T) {
 	req := harness.GetDefaultPdfRequest(t)
 	req.URL = harness.TestServerURL + "/app/tad/eur1/"
