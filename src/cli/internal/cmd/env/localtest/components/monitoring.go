@@ -9,6 +9,10 @@ import (
 	"altinn.studio/studioctl/internal/envtopology"
 )
 
+// grafanaLogsPluginVersion pins the VictoriaLogs datasource plugin to the version the shared Altinn Studio
+// datasource settings in grafana-datasources.yaml were verified with.
+const grafanaLogsPluginVersion = "0.32.0"
+
 func registerMonitoringComponents(manifest *Manifest, opts *Options) {
 	enabled := opts.IncludeMonitoring
 	manifest.addContainer(
@@ -118,7 +122,7 @@ func monitoringGrafanaContainer(ctx *Options) *ContainerSpec {
 		nil,
 		map[string]string{
 			"GF_AUTH_ANONYMOUS_ENABLED": "true",
-			"GF_INSTALL_PLUGINS":        "victoriametrics-logs-datasource",
+			"GF_INSTALL_PLUGINS":        "victoriametrics-logs-datasource " + grafanaLogsPluginVersion,
 			// Keep the datasources bundled with the pinned image instead of fetching newer ones from grafana.com.
 			"GF_PLUGINS_PREINSTALL_AUTO_UPDATE": "false",
 			"GF_AUTH_ANONYMOUS_ORG_ROLE":        "Admin",

@@ -20,6 +20,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
   - metrics keep their OpenTelemetry names, such as `http.server.request.duration`
   - `STUDIOCTL_IMAGE_VICTORIA_METRICS`, `_TRACES` and `_LOGS` replace the Tempo, Mimir and Loki variables
   - dashboards built locally also work in the shared Altinn Studio Grafana
+  - traces link to their logs and to request metrics
   - starting needs network access
 
 ### Fixed
