@@ -23,6 +23,7 @@ instead of repeating it. Each skill we maintain has one source of truth in `agen
 | A component: what it is, how it fits with the rest, where and how it runs          | The component's `README.md`, with longer material in a `docs/` folder next to it     |
 | Diagrams                                                                           | `docs/diagrams/` when they span components, otherwise the component's `docs/` folder |
 | Decisions and their reasoning                                                      | `docs/adr/`                                                                          |
+| How we write documentation: the rules this ADR decides                             | `docs/development/documentation.md`                                                  |
 | Direction for agents in every session                                              | `AGENTS.md`                                                                          |
 | Agent knowledge and procedures needed only for some tasks                          | Skills in `agents/skills/`                                                           |
 | How our agent images behave                                                        | `agents/`                                                                            |
@@ -34,9 +35,13 @@ instead of repeating it. Each skill we maintain has one source of truth in `agen
 - Facts about another repository live in that repository. Our docs describe how we use it and link there. For
   example, `altinn-platform` documents the DIS operators and their CRDs.
 - An ADR records a decision at a point in time. `docs/` describes the current state and links to the ADRs behind it.
+- The instructions in our agent images (`agents/instructions.md`) cover only the sandbox environment. They do not
+  repeat `AGENTS.md` files or other documentation in the repository.
+- Knowledge an agent learns about the product or how we work goes into the repository through a pull request,
+  not into the memory of one person's harness.
 - Infrastructure is documented like the rest of the product, since most of it is open source. Private
-  information stays out of the repository and out of agent context, and remains in Confluence. How agents get
-  access to private information is decided separately.
+  information is not copied into this repository, and remains in Confluence. How agents get access to private
+  information is decided separately.
 - Development documentation lives in the repository, not in the GitHub wiki, so people and agents read and
   update it like any other file.
 
@@ -106,9 +111,10 @@ A change updates the documentation it affects: in this repository, and on
 
 An `AGENTS.md` adds only direction that is specific to agents: rules for how an agent works that do not apply
 to the people on the team. Anything a person working on the code would also need goes in a README, in `docs/`,
-in `CONTRIBUTING.md` or in the code, where everyone reads and reviews it. Agents find that documentation on their
-own. Examples of agent-specific direction:
+in `CONTRIBUTING.md` or in the code, where everyone reads and reviews it. Examples of agent-specific direction:
 
+- what to read before a change: the README of the component it changes, and `CONTRIBUTING.md` before opening a
+  pull request. Unlike a person on the team, an agent starts every session without knowing this.
 - where skills live, and how to install a skill that is missing
 - what an agent asks about before it acts, such as before pushing a branch or posting on GitHub
 - how an agent marks the commits and comments it writes
@@ -119,7 +125,9 @@ takes attention from the task, and every detail can go stale, so shorter is bett
 #### Skills
 
 A skill describes how to do a kind of task. It links to README files and `docs/` for facts about the system
-instead of restating them, so that the facts keep one home.
+instead of restating them, so that the facts keep one home. A skill shipped outside the team, such as the
+studioctl skill, links to [docs.altinn.studio](https://docs.altinn.studio) instead, since its readers do not have
+this repository.
 
 ### Checks
 
@@ -130,6 +138,7 @@ instead of restating them, so that the facts keep one home.
 - every file in `docs/` listed in `docs/README.md`
 - generated structure, such as the repository map, is up to date
 - no `SKILL.md` outside `agents/skills/`
+- no harness-specific imports such as `@README.md`
 - no `CLAUDE.md`
 
 ## Problem context
