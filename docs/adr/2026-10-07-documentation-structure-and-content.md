@@ -35,8 +35,9 @@ instead of repeating it. Each skill we maintain has one source of truth in `agen
 - Facts about another repository live in that repository. Our docs describe how we use it and link there. For
   example, `altinn-platform` documents the DIS operators and their CRDs.
 - An ADR records a decision at a point in time. `docs/` describes the current state and links to the ADRs behind it.
-- The instructions in our agent images (`agents/instructions.md`) cover only the sandbox environment. They do not
-  repeat `AGENTS.md` files or other documentation in the repository.
+- The instructions in our agent definitions under `agents/`, such as `agents/instructions.md`, hold what is
+  specific to an agent definition, for example its environment or its role. They do not repeat `AGENTS.md` files
+  or other documentation in the repository.
 - Knowledge an agent learns about the product or how we work goes into the repository through a pull request,
   not into the memory of one person's harness.
 - Infrastructure is documented like the rest of the product, since most of it is open source. Private
