@@ -3,6 +3,7 @@ package kind
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -60,6 +61,36 @@ func TestLoadGrafanaContent(t *testing.T) {
 	}
 	if content.Digest == "" {
 		t.Error("digest is empty")
+	}
+}
+
+func TestLocalDatasource_EscapesTemplateVariables(t *testing.T) {
+	entry, err := localDatasource(map[string]any{
+		"uid": "altinn-studio-traces",
+		"datasource": map[string]any{
+			"url": publicObservabilityURL + "traces",
+			"jsonData": map[string]any{
+				"tracesToLogsV2": map[string]any{"query": `trace_id:="${__span.traceId}"`},
+				"tags":           []any{map[string]any{"value": "$__tags"}},
+			},
+			"secureJsonData": map[string]any{"httpHeaderValue1": authorizationValue},
+		},
+	})
+	if err != nil {
+		t.Fatalf("localDatasource() error = %v", err)
+	}
+	want := map[string]any{
+		"uid":   "altinn-studio-traces",
+		"orgId": 1,
+		"url":   localObservabilityURL + "traces",
+		"jsonData": map[string]any{
+			"tracesToLogsV2": map[string]any{"query": `trace_id:="$${__span.traceId}"`},
+			"tags":           []any{map[string]any{"value": "$$__tags"}},
+		},
+		"secureJsonData": map[string]any{"httpHeaderValue1": "Bearer " + localQueryToken},
+	}
+	if !reflect.DeepEqual(entry, want) {
+		t.Errorf("localDatasource() = %#v, want template variables escaped and the local query token: %#v", entry, want)
 	}
 }
 

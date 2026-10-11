@@ -249,7 +249,36 @@ func localDatasource(spec map[string]any) (map[string]any, error) {
 		}
 		entry["secureJsonData"] = local
 	}
-	return entry, nil
+	// Grafana expands environment variables in provisioning files, which would empty template
+	// variables such as ${__span.traceId} or $__rate_interval. The operator passes them through.
+	return escapeProvisioningMap(entry), nil
+}
+
+// escapeProvisioningMap doubles every '$' in the strings of a provisioning entry, which
+// Grafana reads back as a literal '$'.
+func escapeProvisioningMap(entry map[string]any) map[string]any {
+	escaped := make(map[string]any, len(entry))
+	for key, item := range entry {
+		escaped[key] = escapeProvisioningValue(item)
+	}
+	return escaped
+}
+
+func escapeProvisioningValue(value any) any {
+	switch v := value.(type) {
+	case string:
+		return strings.ReplaceAll(v, "$", "$$")
+	case map[string]any:
+		return escapeProvisioningMap(v)
+	case []any:
+		escaped := make([]any, len(v))
+		for i, item := range v {
+			escaped[i] = escapeProvisioningValue(item)
+		}
+		return escaped
+	default:
+		return value
+	}
 }
 
 func readDashboards(dir string) (map[string]string, error) {
