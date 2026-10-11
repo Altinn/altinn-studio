@@ -9,7 +9,7 @@
 A2: Information specific to agents lives in `AGENTS.md` files, skills and `agents/`. Everything else lives in
 ordinary Markdown files (`README.md` and `docs/`) that are useful to everyone. Technical information is kept high
 level and refers to where the truth is. When the truth is in code or configuration, documentation points to it
-instead of repeating it.
+instead of repeating it. All skills live in `agents/skills/`, the single source of truth they are installed from.
 
 ### Structure
 
@@ -23,8 +23,8 @@ instead of repeating it.
 | A component: what it is, how it fits with the rest, where and how it runs          | The component's `README.md`, with longer material in a `docs/` folder next to it     |
 | Diagrams                                                                           | `docs/diagrams/` when they span components, otherwise the component's `docs/` folder |
 | Decisions and their reasoning                                                      | `docs/adr/`                                                                          |
-| Direction for agents                                                               | `AGENTS.md`                                                                          |
-| Repeatable multi-step procedures for agents                                        | Skills                                                                               |
+| Direction for agents in every session                                              | `AGENTS.md`                                                                          |
+| Agent knowledge and procedures needed only for some tasks                          | Skills in `agents/skills/`                                                           |
 | How our agent images behave                                                        | `agents/`                                                                            |
 
 - Each fact has one home. Other files link to it instead of repeating it.
@@ -36,7 +36,30 @@ instead of repeating it.
 - Facts about another repository live in that repository. Our docs describe how we use it and link there. For
   example, `altinn-platform` documents the DIS operators and their CRDs.
 - An ADR records a decision at a point in time. `docs/` describes the current state and links to the ADRs behind it.
-- Where skills live, and how they reach our agent images, is decided separately.
+- Infrastructure is documented like the rest of the product, since most of it is open source. Private
+  information stays out of the repository and out of agent context, and remains in Confluence. How agents get
+  access to private information is decided separately.
+- The GitHub wiki is not used. Relevant wiki content moves into `docs/`, where people and agents read and update
+  it like any other file.
+
+### `AGENTS.md` or skill
+
+Information that is useful in all sessions, for every role working on Altinn Studio (developers, designers and
+product owners), goes in an `AGENTS.md`. Everything else goes in a skill. The rule applies at each level of the
+hierarchy: a nested `AGENTS.md` holds what every session working in that directory needs.
+
+### Skills
+
+- Every skill in the repository lives in `agents/skills/`, one directory per skill. This includes the skills
+  for developing Altinn Studio, the skills shipped with products such as studioctl, and the skills used by the
+  agents in `src/AI/`.
+- Distribution is separate from the source. An installation tool or script installs skills from
+  `agents/skills/` into a harness, our agent images install from there, and products that ship skills take
+  them from there. How the distribution works is decided later.
+- Harness-specific skill directories in the repository, such as `.claude/skills/` and `.codex/skills/`, are
+  ignored by Git. The repository does not depend on one harness discovering skills on its own.
+- The root `AGENTS.md` says that a skill that is not installed can be read from `agents/skills/`, or installed
+  with the installation tool.
 
 ### Content
 
@@ -69,18 +92,31 @@ give general programming advice. An agent reads the `AGENTS.md` files on its pat
 of the repository. Every extra line takes attention from the task, and every detail can go stale, so shorter is
 better.
 
+The root `AGENTS.md` tells agents to update documentation as part of a change: the documentation in this
+repository, and [docs.altinn.studio](https://docs.altinn.studio) (`altinn-studio-docs`) when the change affects
+service owners or app developers.
+
 ### Checks and migration
 
-`yarn docs:validate` checks the structure:
+`yarn docs:validate` runs in CI. It already checks that links in `AGENTS.md` files resolve, that the repository
+map covers every directory, and that there is no `CLAUDE.md`. It will be extended to check:
 
 - a `README.md` next to each `AGENTS.md`
-- resolvable links in `AGENTS.md`, `README.md` and `docs/**`
+- resolvable links in `README.md` and `docs/**`
 - every file in `docs/` listed in `docs/README.md`
 - generated structure, such as the repository map, is up to date
-- no `CLAUDE.md`
+- no `SKILL.md` outside `agents/skills/`
 
-Existing documentation moves over gradually. Infrastructure and pdf3 come first because of the DIS migration.
-After that, content moves out of an `AGENTS.md`, or is removed, when a change touches it.
+Existing documentation moves over gradually:
+
+- Infrastructure and pdf3 come first because of the DIS migration.
+- Existing skills move into `agents/skills/`.
+- Relevant wiki content moves into `docs/`.
+- Team members who use the memory of their agent harness, such as Claude Code memory, review it for knowledge
+  that belongs in the repository, and move it there.
+- Cleanup pull requests apply one principle at a time across the repository, for example replacing restated
+  code with links to it.
+- After that, content moves out of an `AGENTS.md`, or is removed, when a change touches it.
 
 ## Problem context
 
@@ -130,6 +166,14 @@ Some content is also tied to particular agents:
 - Agent-specific content is starting to appear in `docs/`
   ([#20953](https://github.com/Altinn/altinn-studio/pull/20953) proposes `docs/agents/`).
 - Some `AGENTS.md` files use `@file` imports, which only Claude Code understands.
+- Skills are spread across `.claude/skills/`, `agents/skills/`, `src/cli/resources/agent/skills/` and
+  `src/AI/agents/agents/skills/`. Skills in `.claude/skills/` are found automatically only by Claude Code, and
+  the agent image manifests collect skills from several of these folders.
+
+Some knowledge lives outside the repository:
+
+- in the memory of individual team members' agent harnesses, where nobody else can read or review it
+- in the GitHub wiki, which few people use and which agents cannot read or update without extra tooling
 
 ## Decision drivers
 
@@ -147,7 +191,8 @@ Some content is also tied to particular agents:
 - A1: Keep the current approach. There is no agreed structure or content. Many facts live only in `AGENTS.md`,
   often with detailed descriptions of structure and implementation.
 - A2: Agent-specific information goes in `AGENTS.md` and skills, and everything else goes in ordinary Markdown.
-  Technical information is high level and points to the code where the truth is.
+  Technical information is high level and points to the code where the truth is. Skills have one source of
+  truth.
 - A3: Agents get their own documentation (`AGENTS.md`, `docs/agents/`), with their own copy of the facts.
 
 ## Pros and cons
@@ -167,6 +212,7 @@ Some content is also tied to particular agents:
 - Good, because documentation that points to code stays correct when the code changes (B4).
 - Good, because `AGENTS.md` files shrink to direction and links (B5).
 - Good, because it is plain Markdown that `docs:validate` can check (B6, B7).
+- Good, because each skill has one source and can be installed into any harness (B2, B6).
 - Bad, because a reader sometimes has to follow a link into the code instead of reading a summary.
 - Bad, because many files have to change. Doing it gradually limits the cost (B8).
 
