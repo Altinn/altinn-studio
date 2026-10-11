@@ -9,7 +9,7 @@
 A2: Information specific to agents lives in `AGENTS.md` files, skills and `agents/`. Everything else lives in
 ordinary Markdown files (`README.md` and `docs/`) that are useful to everyone. Technical information is kept high
 level and refers to where the truth is. When the truth is in code or configuration, documentation points to it
-instead of repeating it. All skills live in `agents/skills/`, the single source of truth they are installed from.
+instead of repeating it. Each skill we maintain has one source of truth in `agents/skills/`.
 
 ### Structure
 
@@ -30,8 +30,6 @@ instead of repeating it. All skills live in `agents/skills/`, the single source 
 - Each fact has one home. Other files link to it instead of repeating it.
 - Every directory with an `AGENTS.md` also has a `README.md`. The `AGENTS.md` links to the README and adds only
   direction for agents.
-- `docs/` has no agent-specific content.
-- Each diagram is linked from the document that explains it.
 - Use plain Markdown links, not harness-specific imports such as `@README.md`.
 - Facts about another repository live in that repository. Our docs describe how we use it and link there. For
   example, `altinn-platform` documents the DIS operators and their CRDs.
@@ -44,18 +42,18 @@ instead of repeating it. All skills live in `agents/skills/`, the single source 
 
 ### `AGENTS.md` or skill
 
-Information that is useful in all sessions, for every role working on Altinn Studio (developers, designers and
-product owners), goes in an `AGENTS.md`. Everything else goes in a skill. The rule applies at each level of the
-hierarchy: a nested `AGENTS.md` holds what every session working in that directory needs.
+Agent-specific information that is useful in all sessions, for every role working on Altinn Studio (developers,
+designers and product owners), goes in an `AGENTS.md`. Other agent-specific information goes in a skill. The
+rule applies at each level of the hierarchy: a nested `AGENTS.md` holds what every session working in that
+directory needs.
 
 ### Skills
 
-- Every skill in the repository lives in `agents/skills/`, one directory per skill. This includes the skills
-  for developing Altinn Studio, the skills shipped with products such as studioctl, and the skills used by the
-  agents in `src/AI/`.
+- Each skill we maintain has one source of truth in `agents/skills/`, one directory per skill. Harness
+  directories, agent images and products such as studioctl get copies from there. This includes the skills for
+  developing Altinn Studio, the skills shipped with studioctl, and the skills used by the agents in `src/AI/`.
 - Skills use the standard Agent Skills format and do not depend on the tools of one harness or runtime.
-  Guidance for a specific runtime lives in that runtime. A skill that does depend on one runtime is named after
-  it, for example with an `altinity-` prefix, so the dependency is explicit.
+  Guidance for a specific runtime lives in that runtime.
 - Distribution is separate from the source. An installation tool installs selected skills from `agents/skills/`
   at repository level or user level, as `studioctl agent skills` does for its skills. Our agent images select
   and install skills from there, and products that ship skills take them from there. How the distribution works
@@ -67,11 +65,22 @@ hierarchy: a nested `AGENTS.md` holds what every session working in that directo
 
 ### Content
 
+These rules apply to all documentation we write while developing Altinn Studio: Markdown files, `AGENTS.md`
+files, skills and code comments.
+
+Put each fact where it is easiest to keep correct:
+
+1. Enforce it in code, types, tests or CI when that is practical. Then it needs no documentation.
+2. Otherwise, write it as a comment next to the code it is about.
+3. Write it in a README or in `docs/` when it spans components, is enforced outside the code, for example by
+   infrastructure, a pipeline or another service, or has no natural place in the code. A code comment can link
+   to it.
+
 Document what the code cannot tell the reader:
 
 - what something is for, and how the parts fit together
-- where it runs, and who owns it
-- invariants, constraints and pitfalls that are not visible in the code
+- connections that are hard to find from the code, linked to where they are defined. For example, apps are
+  deployed by `src/App/azure-pipelines/deploy-app.yaml` with the Helm chart in `altinn-studio-charts`.
 - why it is built the way it is, linking the ADR where there is one
 
 Keep technical information high level and referential:
@@ -83,13 +92,11 @@ Keep technical information high level and referential:
 - When a description of structure is worth having, such as the repository map, generate it from the source and
   check in CI that it is up to date.
 
-An `AGENTS.md` contains only what an agent would otherwise get wrong, or would spend effort finding out:
-
-- which documentation to read before changing something
-- which commands verify a change
-- invariants and pitfalls the code does not show
-- boundaries, such as code owned by other teams or branches that deploy to production
-- conventions that no tool enforces
+An `AGENTS.md` adds only direction that is specific to agents. Anything a person working on the code would also
+need, such as invariants, boundaries and conventions, goes in a README, in `docs/` or in the code, where everyone
+reads and reviews it. Agents find that documentation on their own. Agent-specific direction includes where
+skills live and how to install a skill that is missing, and what we expect of agents during a change, such as
+updating documentation.
 
 It does not repeat the README, describe the architecture, restate rules that linters and formatters enforce, or
 give general programming advice. An agent reads the `AGENTS.md` files on its path for every task in that part
@@ -156,8 +163,9 @@ These details go stale with every refactoring, and agents read them for every ta
 
 Some content is also tied to particular agents:
 
-- Agent-specific content is starting to appear in `docs/`
-  ([#20953](https://github.com/Altinn/altinn-studio/pull/20953) proposes `docs/agents/`).
+- Separate documentation for agents is starting to appear
+  ([#20953](https://github.com/Altinn/altinn-studio/pull/20953) proposes `docs/agents/`), holding facts that
+  everyone needs, such as label conventions and a glossary.
 - Some `AGENTS.md` files use `@file` imports, which only Claude Code understands.
 - Skills are spread across `.claude/skills/`, `agents/skills/`, `src/cli/resources/agent/skills/` and
   `src/AI/agents/agents/skills/`. Skills in `.claude/skills/` are found automatically only by Claude Code, and
