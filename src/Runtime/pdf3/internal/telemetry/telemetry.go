@@ -122,7 +122,8 @@ func newMeterProvider(ctx context.Context, res *resource.Resource) (*metric.Mete
 	}
 
 	return metric.NewMeterProvider(
-		metric.WithReader(metric.NewPeriodicReader(exporter, metric.WithInterval(30*time.Second))),
+		// OTEL_METRIC_EXPORT_INTERVAL, set in the deployment manifests, sets the export interval.
+		metric.WithReader(metric.NewPeriodicReader(exporter)),
 		metric.WithResource(res),
 		metric.WithView(httpDurationView),
 	), nil
