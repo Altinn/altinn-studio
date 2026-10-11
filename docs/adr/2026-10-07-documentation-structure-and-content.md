@@ -65,47 +65,61 @@ directory needs.
 
 ### Content
 
-These rules apply to all documentation we write while developing Altinn Studio: Markdown files, `AGENTS.md`
-files, skills and code comments.
+Code comments, README files, `docs/`, `AGENTS.md` files and skills have different readers and different
+purposes, so they have different rules.
 
-Put each fact where it is easiest to keep correct:
+#### Code comments
 
-1. Enforce it in code, types, tests or CI when that is practical. Then it needs no documentation.
-2. Otherwise, write it as a comment next to the code it is about.
-3. Write it in a README or in `docs/` when it spans components, is enforced outside the code, for example by
-   infrastructure, a pipeline or another service, or has no natural place in the code. A code comment can link
-   to it.
+A code comment explains the code next to it, to someone who is already reading that code. It is reviewed and
+changed together with the code.
 
-Document what the code cannot tell the reader:
+- Explain why the code is the way it is, and constraints on it that the code cannot show.
+- Do not describe what the code does, the rest of the component or the architecture.
+- When the code can enforce a rule, through types, validation or tests, enforce it instead of describing it.
+- Link to a README, `docs/` or an ADR when the reason is bigger than the code next to it.
 
-- what something is for, and how the parts fit together
-- connections that are hard to find from the code, linked to where they are defined. For example, apps are
-  deployed by `src/App/azure-pipelines/deploy-app.yaml` with the Helm chart in `altinn-studio-charts`.
-- why it is built the way it is, linking the ADR where there is one
+#### README files and `docs/`
 
-Keep technical information high level and referential:
+A component's `README.md` is for someone who arrives at the component: what it is for, how it fits with the
+rest, and how it is built, run and deployed. Longer material about the component goes in a `docs/` folder next
+to it. The root `docs/` covers what no single component owns, such as architecture, environments and clusters,
+and how we work.
 
-- When the truth is in code or configuration, point to it: a file, a type, a workflow, a Makefile target. For
+All of them are kept high level and refer to where the truth is:
+
+- Point to code and configuration instead of restating it: a file, a type, a workflow, a Makefile target. For
   example, link the kustomization that lists the services on a cluster, or the type that defines a CRD's fields.
+- Write down connections that are hard to find from the code, and link to where they are defined. For example,
+  apps are deployed by `src/App/azure-pipelines/deploy-app.yaml` with the Helm chart in `altinn-studio-charts`.
+- Write down constraints and pitfalls that have no single place in the code, such as those that span components
+  or are enforced by infrastructure, a pipeline or another service.
 - Leave out what the reader can easily get from the code: folder trees, lists of packages, classes or files,
   method signatures, configuration field by field, and dependency or framework versions.
 - When a description of structure is worth having, such as the repository map, generate it from the source and
   check in CI that it is up to date.
 
-An `AGENTS.md` adds only direction that is specific to agents. Anything a person working on the code would also
-need, such as invariants, boundaries and conventions, goes in a README, in `docs/` or in the code, where everyone
-reads and reviews it. Agents find that documentation on their own. Agent-specific direction includes where
-skills live and how to install a skill that is missing, and what we expect of agents during a change, such as
-updating documentation.
+A change updates the documentation it affects: in this repository, and on
+[docs.altinn.studio](https://docs.altinn.studio) when the change affects service owners or app developers.
+`CONTRIBUTING.md` says so, for people and agents alike.
 
-It does not repeat the README, describe the architecture, restate rules that linters and formatters enforce, or
-give general programming advice. An agent reads the `AGENTS.md` files on its path for every task in that part
-of the repository. Every extra line takes attention from the task, and every detail can go stale, so shorter is
-better.
+#### `AGENTS.md`
 
-The root `AGENTS.md` tells agents to update documentation as part of a change: the documentation in this
-repository, and [docs.altinn.studio](https://docs.altinn.studio) (`altinn-studio-docs`) when the change affects
-service owners or app developers.
+An `AGENTS.md` adds only direction that is specific to agents: rules for how an agent works that do not apply
+to the people on the team. Anything a person working on the code would also need goes in a README, in `docs/`,
+in `CONTRIBUTING.md` or in the code, where everyone reads and reviews it. Agents find that documentation on their
+own. Examples of agent-specific direction:
+
+- where skills live, and how to install a skill that is missing
+- what an agent asks about before it acts, such as before pushing a branch or posting on GitHub
+- how an agent marks the commits and comments it writes
+
+An agent reads the `AGENTS.md` files on its path for every task in that part of the repository. Every extra line
+takes attention from the task, and every detail can go stale, so shorter is better.
+
+#### Skills
+
+A skill describes how to do a kind of task. It links to README files and `docs/` for facts about the system
+instead of restating them, so that the facts keep one home.
 
 ### Checks
 
