@@ -53,11 +53,15 @@ hierarchy: a nested `AGENTS.md` holds what every session working in that directo
 - Every skill in the repository lives in `agents/skills/`, one directory per skill. This includes the skills
   for developing Altinn Studio, the skills shipped with products such as studioctl, and the skills used by the
   agents in `src/AI/`.
-- Distribution is separate from the source. An installation tool or script installs skills from
-  `agents/skills/` into a harness, our agent images install from there, and products that ship skills take
-  them from there. How the distribution works is decided later.
-- Harness-specific skill directories in the repository, such as `.claude/skills/` and `.codex/skills/`, are
-  ignored by Git. The repository does not depend on one harness discovering skills on its own.
+- Skills use the standard Agent Skills format and do not depend on the tools of one harness or runtime.
+  Guidance for a specific runtime lives in that runtime. A skill that does depend on one runtime is named after
+  it, for example with an `altinity-` prefix, so the dependency is explicit.
+- Distribution is separate from the source. An installation tool installs selected skills from `agents/skills/`
+  at repository level or user level, as `studioctl agent skills` does for its skills. Our agent images select
+  and install skills from there, and products that ship skills take them from there. How the distribution works
+  is decided later.
+- Repository-level skill directories that harnesses discover, such as `.claude/skills/` and `.agents/skills/`,
+  are ignored by Git. The repository does not depend on one harness discovering skills on its own.
 - The root `AGENTS.md` says that a skill that is not installed can be read from `agents/skills/`, or installed
   with the installation tool.
 
