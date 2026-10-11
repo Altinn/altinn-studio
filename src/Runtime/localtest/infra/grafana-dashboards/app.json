@@ -43,7 +43,6 @@
           },
           "decimals": 0,
           "mappings": [],
-          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -109,7 +108,6 @@
           },
           "decimals": 0,
           "mappings": [],
-          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -175,7 +173,6 @@
           },
           "decimals": 0,
           "mappings": [],
-          "noValue": "0%",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -241,7 +238,6 @@
             "mode": "thresholds"
           },
           "mappings": [],
-          "noValue": "0s",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -308,7 +304,6 @@
           },
           "decimals": 0,
           "mappings": [],
-          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -374,7 +369,6 @@
             "mode": "thresholds"
           },
           "mappings": [],
-          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -388,7 +382,7 @@
               }
             ]
           },
-          "unit": "SMS"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -423,7 +417,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "increase({\"http.server.request.duration_count\", \"service.name\"=\"$app\", \"http.response.status_code\"=~\"5..\"}[$__range])",
+          "expr": "sum(increase({\"http.server.request.duration_count\", \"service.name\"=\"$app\", \"http.response.status_code\"=~\"5..\"}[$__range]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -739,7 +733,6 @@
           },
           "decimals": 0,
           "mappings": [],
-          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -806,7 +799,6 @@
           },
           "decimals": 0,
           "mappings": [],
-          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -973,7 +965,6 @@
           },
           "decimals": 0,
           "mappings": [],
-          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1040,7 +1031,6 @@
           },
           "decimals": 0,
           "mappings": [],
-          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
