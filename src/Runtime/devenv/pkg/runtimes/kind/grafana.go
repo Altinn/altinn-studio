@@ -1,10 +1,13 @@
 package kind
 
 import (
+	"bufio"
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"maps"
 	"os"
@@ -13,6 +16,7 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
+	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/yaml"
 
 	"altinn.studio/devenv/pkg/cabundle"
@@ -165,14 +169,18 @@ func readGrafanaResourceFile(path string) ([]map[string]any, string, error) {
 	if err != nil {
 		return nil, "", fmt.Errorf("read %s: %w", path, err)
 	}
+	docs, err := yamlDocuments(data)
+	if err != nil {
+		return nil, "", fmt.Errorf("%s: %w", path, err)
+	}
 	var datasources []map[string]any
 	folder := ""
-	for doc := range strings.SplitSeq(string(data), "\n---") {
+	for _, doc := range docs {
 		var object struct {
 			Spec map[string]any `json:"spec"`
 			Kind string         `json:"kind"`
 		}
-		if err := yaml.Unmarshal([]byte(doc), &object); err != nil {
+		if err := yaml.Unmarshal(doc, &object); err != nil {
 			return nil, "", fmt.Errorf("parse %s: %w", path, err)
 		}
 		switch object.Kind {
@@ -195,6 +203,24 @@ func readGrafanaResourceFile(path string) ([]map[string]any, string, error) {
 		}
 	}
 	return datasources, folder, nil
+}
+
+// yamlDocuments splits multi-document YAML into its non-empty documents.
+func yamlDocuments(data []byte) ([][]byte, error) {
+	reader := utilyaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(data)))
+	var docs [][]byte
+	for {
+		doc, err := reader.Read()
+		if errors.Is(err, io.EOF) {
+			return docs, nil
+		}
+		if err != nil {
+			return nil, fmt.Errorf("split YAML documents: %w", err)
+		}
+		if len(bytes.TrimSpace(doc)) > 0 {
+			docs = append(docs, doc)
+		}
+	}
 }
 
 // localDatasource turns a GrafanaDatasource spec into a provisioning entry that reaches the

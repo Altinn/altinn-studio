@@ -88,3 +88,37 @@ spec:
 		t.Errorf("datasources include one outside the proxy:\n%s", content.Datasources)
 	}
 }
+
+func TestReadGrafanaResourceFile_MultipleDocuments(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "resources.yaml")
+	resources := []byte(`---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+spec:
+  title: Altinn Studio
+---
+---
+# A document with only a comment.
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+spec:
+  uid: altinn-studio-metrics
+  datasource:
+    type: prometheus
+    url: https://altinn.studio/internal/observability/metrics
+`)
+	if err := os.WriteFile(path, resources, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	datasources, folder, err := readGrafanaResourceFile(path)
+	if err != nil {
+		t.Fatalf("readGrafanaResourceFile() error = %v", err)
+	}
+	if folder != "Altinn Studio" {
+		t.Errorf("folder = %q, want the GrafanaFolder's title", folder)
+	}
+	if len(datasources) != 1 || datasources[0]["uid"] != "altinn-studio-metrics" {
+		t.Errorf("datasources = %v, want the one GrafanaDatasource", datasources)
+	}
+}
