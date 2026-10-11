@@ -39,8 +39,8 @@ instead of repeating it. All skills live in `agents/skills/`, the single source 
 - Infrastructure is documented like the rest of the product, since most of it is open source. Private
   information stays out of the repository and out of agent context, and remains in Confluence. How agents get
   access to private information is decided separately.
-- The GitHub wiki is not used. Relevant wiki content moves into `docs/`, where people and agents read and update
-  it like any other file.
+- Development documentation lives in the repository, not in the GitHub wiki, so people and agents read and
+  update it like any other file.
 
 ### `AGENTS.md` or skill
 
@@ -96,27 +96,16 @@ The root `AGENTS.md` tells agents to update documentation as part of a change: t
 repository, and [docs.altinn.studio](https://docs.altinn.studio) (`altinn-studio-docs`) when the change affects
 service owners or app developers.
 
-### Checks and migration
+### Checks
 
-`yarn docs:validate` runs in CI. It already checks that links in `AGENTS.md` files resolve, that the repository
-map covers every directory, and that there is no `CLAUDE.md`. It will be extended to check:
+`yarn docs:validate` checks the structure in CI:
 
 - a `README.md` next to each `AGENTS.md`
-- resolvable links in `README.md` and `docs/**`
+- resolvable links in `AGENTS.md`, `README.md` and `docs/**`
 - every file in `docs/` listed in `docs/README.md`
 - generated structure, such as the repository map, is up to date
 - no `SKILL.md` outside `agents/skills/`
-
-Existing documentation moves over gradually:
-
-- Infrastructure and pdf3 come first because of the DIS migration.
-- Existing skills move into `agents/skills/`.
-- Relevant wiki content moves into `docs/`.
-- Team members who use the memory of their agent harness, such as Claude Code memory, review it for knowledge
-  that belongs in the repository, and move it there.
-- Cleanup pull requests apply one principle at a time across the repository, for example replacing restated
-  code with links to it.
-- After that, content moves out of an `AGENTS.md`, or is removed, when a change touches it.
+- no `CLAUDE.md`
 
 ## Problem context
 
