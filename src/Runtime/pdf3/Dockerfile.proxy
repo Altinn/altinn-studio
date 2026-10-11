@@ -15,12 +15,17 @@ ARG SERVICE_VERSION=dev
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -ldflags "-X altinn.studio/pdf3/internal/telemetry.serviceVersion=${SERVICE_VERSION}" \
     -o main ./cmd/proxy
+# The relay ships in the proxy image; its Deployment runs ./relay
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
+    -ldflags "-X altinn.studio/pdf3/internal/telemetry.serviceVersion=${SERVICE_VERSION}" \
+    -o relay ./cmd/relay
 
 FROM scratch
 
 WORKDIR /app
 
 COPY --from=builder /app/main .
+COPY --from=builder /app/relay .
 
 EXPOSE 5030
 

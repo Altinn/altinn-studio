@@ -66,15 +66,26 @@ make check                # Complete CI check (tidy, fmt, lint, test)
    - Endpoint: `POST /pdf` - accepts PDF generation requests
    - Health: `/health/startup`, `/health/ready`, `/health/live`
    - Retries on worker queue-full (429) responses
-   - Forwards requests to worker via HTTP
+   - Forwards requests to worker via HTTP, passing on the relay's `X-Altinn-Service-Owner` header
+   - When `PDF3_API_KEYS_FILE` is set, requires `Authorization: Bearer <key>` (see `internal/auth`);
+     off by default, as in tenant clusters
 
 2. **cmd/worker/main.go** - PDF generator (port 5031)
    - Endpoint: `POST /generate` - generates PDFs
    - Health: `/health/startup`, `/health/ready`, `/health/live`
    - Manages 1 browser session with Chrome CDP
    - Returns 429 when queue is full
+   - A request's service owner is `PDF3_SERVICEOWNER` where it is set (tenant clusters), otherwise
+     the `X-Altinn-Service-Owner` header (a cluster shared by all service owners). It decides
+     PDF/A conversion and is recorded as `altinn.service_owner`
 
-3. **test/cmd/tester/main.go** - Test orchestration CLI
+3. **cmd/relay/main.go** - Forwards apps' requests to a pdf3 shared by all service owners (port 5032)
+   - Endpoint: `POST /pdf` - sends the request to `PDF3_UPSTREAM_URL` with the key in
+     `PDF3_API_KEY_FILE` and the cluster's `PDF3_SERVICEOWNER` in `X-Altinn-Service-Owner`
+   - Only retries requests that failed to connect; the shared proxy retries busy workers
+   - Ships in the proxy image as `./relay`
+
+4. **test/cmd/tester/main.go** - Test orchestration CLI
    - Subcommands: `start`, `stop`, `test`, `loadtest-local`, `loadtest-env`
    - Handles cluster setup, Docker builds, image pushes, Flux deployments
    - Used by Makefile for all orchestration tasks
@@ -108,7 +119,14 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 
 - **internal/appurl** - Parses and classifies a request's URL as an app URL
   (`https://{org}.apps.{hostname}/{org}/{app}/...`). The proxy records the classification as
-  `altinn.pdf.url_kind`; it never changes how a request is served
+  `altinn.pdf.url_kind`, and the proxy and worker the app as `altinn.app`; it never changes how a
+  request is served
+
+- **internal/auth** - API keys read from a file, one per line, reread every 30 seconds so a
+  rotated Secret takes effect; compared in constant time
+
+- **internal/serviceowner** - The `X-Altinn-Service-Owner` header and how the worker resolves a
+  request's service owner; a header value that isn't a lowercase DNS label is ignored
 
 - **internal/telemetry** - OpenTelemetry setup, the attributes of a request's entry span, and URL
   redaction

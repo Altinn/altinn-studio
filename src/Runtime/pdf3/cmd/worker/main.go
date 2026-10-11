@@ -19,12 +19,14 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 	"go.opentelemetry.io/otel/trace"
 
+	"altinn.studio/pdf3/internal/appurl"
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/generator"
 	ihttp "altinn.studio/pdf3/internal/http"
 	"altinn.studio/pdf3/internal/log"
 	iruntime "altinn.studio/pdf3/internal/runtime"
+	"altinn.studio/pdf3/internal/serviceowner"
 	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/telemetry/attr"
 	"altinn.studio/pdf3/internal/testing"
@@ -120,10 +122,10 @@ func main() {
 	if cfg.Environment == config.EnvironmentLocaltest {
 		http.Handle(
 			"/pdf",
-			telemetry.WrapHandler("POST /pdf", generateLocalPdfHandler(logger, gen, cfg.LocaltestPublicBaseURL)),
+			telemetry.WrapHandler("POST /pdf", generateLocalPdfHandler(logger, gen, cfg)),
 		)
 	} else {
-		http.Handle("/generate", telemetry.WrapHandler("POST /generate", generatePdfHandler(logger, gen)))
+		http.Handle("/generate", telemetry.WrapHandler("POST /generate", generatePdfHandler(logger, gen, cfg)))
 	}
 	// Only register test output endpoint in test internals mode
 	if iruntime.IsTestInternalsMode {
@@ -179,7 +181,7 @@ func main() {
 func generateLocalPdfHandler(
 	logger *slog.Logger,
 	gen types.PdfGenerator,
-	localtestPublicBaseURL string,
+	cfg *config.Config,
 ) http.HandlerFunc {
 	assert.That(!iruntime.IsTestInternalsMode, "Localtest env should not run internals test mode")
 
@@ -189,6 +191,7 @@ func generateLocalPdfHandler(
 		span := trace.SpanFromContext(r.Context())
 		setWorkerSpanAttrs(span)
 		defer telemetry.SetOnSpan(span, data)
+		r = withServiceOwner(r, data, cfg.ServiceOwner)
 
 		if r.Method != http.MethodPost {
 			ihttp.WriteProblemDetails(logger, w, r, http.StatusMethodNotAllowed, ihttp.ProblemDetails{
@@ -243,7 +246,7 @@ func generateLocalPdfHandler(
 			return
 		}
 
-		normalizedURL, rewriteReason, normalizeErr := normalizeLocaltestURL(req.URL, localtestPublicBaseURL)
+		normalizedURL, rewriteReason, normalizeErr := normalizeLocaltestURL(req.URL, cfg.LocaltestPublicBaseURL)
 		if normalizeErr != nil {
 			logger.WarnContext(
 				r.Context(),
@@ -264,6 +267,7 @@ func generateLocalPdfHandler(
 
 		reqLogger := logger.With(attr.RequestURL, telemetry.RedactURL(req.URL))
 		data.SetPdfRequest(req)
+		data.SetApp(appName(req.URL, cfg.AppHostname))
 
 		if err := req.Validate(); err != nil {
 			ihttp.WriteProblemDetails(reqLogger, w, r, http.StatusBadRequest, ihttp.ProblemDetails{
@@ -377,8 +381,8 @@ func parseCanonicalLocaltestBaseURL(localtestBaseURL string) (*url.URL, error) {
 
 var errInvalidLocaltestPublicBaseURL = errors.New("invalid localtest public base URL")
 
-//nolint:gocognit // This handler keeps telemetry bookkeeping and response mapping in one flow.
-func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.HandlerFunc {
+//nolint:funlen,gocognit // This handler keeps telemetry bookkeeping and response mapping in one flow.
+func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator, cfg *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Worker-Id", workerId)
 		w.Header().Set("X-Worker-Ip", workerIP)
@@ -388,6 +392,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 		span := trace.SpanFromContext(r.Context())
 		setWorkerSpanAttrs(span)
 		defer telemetry.SetOnSpan(span, data)
+		r = withServiceOwner(r, data, cfg.ServiceOwner)
 
 		if r.Method != http.MethodPost {
 			data.SetRejection("method_not_allowed")
@@ -428,6 +433,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 
 		reqLogger := logger.With(attr.RequestURL, telemetry.RedactURL(req.URL))
 		data.SetPdfRequest(req)
+		data.SetApp(appName(req.URL, cfg.AppHostname))
 
 		requestContext := r.Context()
 		if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
@@ -535,6 +541,25 @@ func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {
 			logger.Error("Failed to write test output response", attr.Error, err)
 		}
 	}
+}
+
+// withServiceOwner resolves the service owner the request is for: configured, this cluster's
+// PDF3_SERVICEOWNER, or else the one the relay sent. It records it on the request's entry span and
+// puts it on the request's context, where the generator decides on PDF/A conversion by it.
+func withServiceOwner(r *http.Request, data *telemetry.RequestAttributes, configured string) *http.Request {
+	serviceOwner := serviceowner.Resolve(configured, r.Header.Get(serviceowner.Header))
+	data.SetServiceOwner(serviceOwner)
+	return r.WithContext(serviceowner.WithContext(r.Context(), serviceOwner))
+}
+
+// appName returns the name of the app whose page requestURL is, for telemetry, or "" if it isn't
+// an app's page or the environment's app hostname is not known.
+func appName(requestURL string, appHostname string) string {
+	app, err := appurl.Parse(requestURL, appHostname)
+	if err != nil {
+		return ""
+	}
+	return app.App
 }
 
 func setWorkerSpanAttrs(span trace.Span) {

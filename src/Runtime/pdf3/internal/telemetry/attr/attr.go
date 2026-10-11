@@ -19,9 +19,11 @@ const (
 // key. A value that isn't an error would be: log a recovered panic's value under Panic.
 const Error = "error"
 
-// The shared Altinn vocabulary.
+// The shared Altinn vocabulary. ServiceOwner and App are the service owner and app a PDF request
+// is for, on the entry spans of the proxy and the worker, never on metrics.
 const (
 	ServiceOwner = "altinn.service_owner"
+	App          = "altinn.app"
 )
 
 const prefix = "altinn.pdf."
@@ -107,6 +109,16 @@ const (
 	// ErrorDetail is the problem details a failed request was answered with.
 	ErrorDetail = prefix + "error.detail"
 )
+
+// The API keys the proxy requires when PDF3_API_KEYS_FILE is set, and the relay sends.
+const (
+	APIKeysFile  = prefix + "api_keys.file"
+	APIKeysCount = prefix + "api_keys.count"
+)
+
+// UpstreamURL is the PDF endpoint the relay forwards requests to, without user information,
+// query or fragment.
+const UpstreamURL = prefix + "upstream.url"
 
 // The worker that generated the PDF, as the proxy and the worker itself record it.
 const (

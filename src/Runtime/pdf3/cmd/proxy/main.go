@@ -18,10 +18,12 @@ import (
 
 	"altinn.studio/pdf3/internal/appurl"
 	"altinn.studio/pdf3/internal/assert"
+	"altinn.studio/pdf3/internal/auth"
 	"altinn.studio/pdf3/internal/config"
 	ihttp "altinn.studio/pdf3/internal/http"
 	"altinn.studio/pdf3/internal/log"
 	iruntime "altinn.studio/pdf3/internal/runtime"
+	"altinn.studio/pdf3/internal/serviceowner"
 	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/telemetry/attr"
 	"altinn.studio/pdf3/internal/testing"
@@ -50,6 +52,8 @@ func main() {
 		logger.Error("Failed to initialize telemetry", attr.Error, err)
 		os.Exit(1)
 	}
+
+	apiKeys := loadAPIKeys(logger, cfg)
 
 	hostParams := config.ResolveHostParametersForEnvironment(cfg.Environment)
 
@@ -82,10 +86,12 @@ func main() {
 		ihttp.WriteText(r.Context(), logger, w, http.StatusOK, "OK")
 	})
 
-	http.Handle(
-		"/pdf",
-		telemetry.WrapHandler("POST /pdf", generatePdf(logger, httpClient, workerHTTPAddr, cfg.AppHostname)),
-	)
+	pdfHandler := generatePdf(logger, httpClient, workerHTTPAddr, cfg.AppHostname)
+	if apiKeys != nil {
+		go apiKeys.Watch(host.ServerContext(), auth.ReloadInterval)
+		pdfHandler = auth.RequireAPIKey(logger, apiKeys, pdfHandler)
+	}
+	http.Handle("/pdf", telemetry.WrapHandler("POST /pdf", pdfHandler))
 
 	// Only register test output endpoint in test internals mode
 	if iruntime.IsTestInternalsMode {
@@ -135,6 +141,26 @@ func main() {
 	logger.Info("Server shut down gracefully")
 }
 
+// loadAPIKeys returns the API keys callers must present, or nil if PDF3_API_KEYS_FILE is not set
+// and no API key is required. It exits if the keys can't be loaded.
+func loadAPIKeys(logger *slog.Logger, cfg *config.Config) *auth.KeyFile {
+	if cfg.APIKeysFile == "" {
+		return nil
+	}
+	keys, err := auth.Load(logger, cfg.APIKeysFile)
+	if err != nil {
+		logger.Error(
+			"Failed to load API keys",
+			attr.ConfigEnvVar, config.APIKeysFileEnv,
+			attr.APIKeysFile, cfg.APIKeysFile,
+			attr.Error, err,
+		)
+		os.Exit(1)
+	}
+	logger.Info("Requiring an API key", attr.APIKeysFile, cfg.APIKeysFile)
+	return keys
+}
+
 //nolint:funlen,gocognit // This request path keeps validation, retry policy, and response mapping in one handler.
 func generatePdf(
 	logger *slog.Logger,
@@ -144,6 +170,9 @@ func generatePdf(
 ) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
+		if serviceOwner := requestServiceOwner(r); serviceOwner != "" {
+			trace.SpanFromContext(r.Context()).SetAttributes(attribute.String(attr.ServiceOwner, serviceOwner))
+		}
 		if r.Method != http.MethodPost {
 			ihttp.WriteProblemDetails(logger, w, r, http.StatusMethodNotAllowed, ihttp.ProblemDetails{
 				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.5",
@@ -201,6 +230,7 @@ func generatePdf(
 			return
 		}
 		recordURLKind(r.Context(), appHostname, req.URL)
+		recordApp(r.Context(), appHostname, req.URL)
 
 		// Validate request
 		if err := req.Validate(); err != nil {
@@ -297,6 +327,9 @@ func callWorker(
 	// Done manually because we don't use otelhttp.NewTransport (it would mark each
 	// retried 429 response as a span error, creating false error noise).
 	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(httpReq.Header))
+	if serviceOwner := requestServiceOwner(r); serviceOwner != "" {
+		httpReq.Header.Set(serviceowner.Header, serviceOwner)
+	}
 	if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
 		testing.CopyTestInput(httpReq.Header, r.Header)
 	}
@@ -464,6 +497,23 @@ func recordURLKind(ctx context.Context, appHostname string, rawURL string) {
 	if reason != "" {
 		span.SetAttributes(urlRejectionKey.String(reason))
 	}
+}
+
+// recordApp records the app whose page rawURL is on the request's HTTP server span, not on its
+// metrics. It records nothing if rawURL isn't an app's page or the environment's app hostname is
+// not known.
+func recordApp(ctx context.Context, appHostname string, rawURL string) {
+	app, err := appurl.Parse(rawURL, appHostname)
+	if err != nil {
+		return
+	}
+	trace.SpanFromContext(ctx).SetAttributes(attribute.String(attr.App, app.App))
+}
+
+// requestServiceOwner returns the service owner the relay sent with the request, which the worker
+// gets too, or "" if there is none or it isn't valid.
+func requestServiceOwner(r *http.Request) string {
+	return serviceowner.FromHeader(r.Header.Get(serviceowner.Header))
 }
 
 func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(http.ResponseWriter, *http.Request) {
