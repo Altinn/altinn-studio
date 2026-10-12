@@ -140,10 +140,9 @@ Altinn events must tolerate out-of-order (and duplicate) delivery. Should a side
 genuinely need to run after another, express it with an explicit `DependsOn` between the siblings —
 never by step order.
 
-Post-commit categorization: `ExecuteServiceTask`, `OnProcessEndedHook` and `ReleaseEndedInstance` are **critical** (stay in Main);
+Post-commit categorization: `ExecuteServiceTask`, `OnProcessEndedHook`, `DeleteDataOnProcessEnd` and `ReleaseProcessingStatus` are **critical** (stay in Main);
 `MovedToAltinnEvent`, `InstanceCreatedAltinnEvent`, `CompletedAltinnEvent`, and
-`NotifyInstanceOwnerOnInstantiation` are **side effects**. (The configured process-end cleanup/hard
-delete is staged into `ReleaseEndedInstance`, the save that releases an ended instance.)
+`NotifyInstanceOwnerOnInstantiation` are **side effects**.
 
 ### Task-to-Task Transition (e.g., Task_1 → Task_2)
 
@@ -158,8 +157,9 @@ EndTask → CommonTaskFinalization → OnTaskEndingHook → LockTaskData
   ── MutateProcessState (in-memory: CurrentTask → Task_2) ──
 ── instance.Process.CurrentTask = Task_2 (NEW) ──
 UnlockTaskData → CleanupGeneratedFromTask → OnTaskStartingHook → CommonTaskInitialization → StartTask
-  ── CommitProcessState (stages process state; controller save commits it) ──
-EnqueueSideEffectsWorkflow → [ExecuteServiceTask if the target is a service task — one engine step per
+  ── CommitProcessState (stages process state, keeps processing; controller save commits it) ──
+EnqueueSideEffectsWorkflow → [ReleaseProcessingStatus (processing → idle), or, if the target is a service task,
+                              ExecuteServiceTask — one engine step per
                               pipeline stage, then the concluding one; or, if the pipeline opens a mailbox,
                               MintMailbox immediately before the declaring stage and then that stage, which
                               ends Main. Main's last step carries nothing about what follows it: it derives
@@ -191,7 +191,8 @@ EndTask → CommonTaskFinalization → OnTaskEndingHook → LockTaskData
 OnProcessEndingHook
   ── CommitProcessState (stages ended state/events; keeps processing) ──
 OnProcessEndedHook (no-op without an IOnProcessEndedHandler)
-  ── ReleaseEndedInstance (configured element cleanup + processing → idle + optional hard delete) ──
+DeleteDataOnProcessEnd (data types with autoDeleteOnProcessEnd; no-op without any)
+  ── ReleaseProcessingStatus (processing → idle + hard delete if autoDeleteOnProcessEnd) ──
 EnqueueSideEffectsWorkflow
 
 Side-effects workflow (single-step independent root, IsHead=false, own commit-time state, links→Main):
@@ -199,7 +200,7 @@ CompletedAltinnEvent
 ```
 
 `CommitProcessState` accepts only an active shape (`Ended` null and `CurrentTask` present) or a terminal shape (`Ended` present, `CurrentTask` null, and `EndEvent` nonblank); every other shape fails before any process/status staging. A terminal shape is always committed with `processing` kept, and a commit payload that would release it fails permanently.
-Every process end saves twice. The commit saves the ended state with `processing` kept, `OnProcessEndedHook` runs any `IOnProcessEndedHandler` against the committed end, and `ReleaseEndedInstance` stages the configured cleanup, `processing` → `idle` and the optional hard delete in the workflow's last save, so `idle` marks the end of the whole workflow. Configured elements are staged for deletion in that save; an in-aggregate unlock is staged first so locked task data is emitted with `ignoreLock=true`. Storage must admit that release save on an instance whose stored process has already ended. There is no version-bumping Storage callback after the clearing/hard-delete commit. The side effects of a process end are enqueued after the release, so `completed` is announced for the finished end.
+The commit saves the ended state with `processing` kept, `OnProcessEndedHook` runs any `IOnProcessEndedHandler` against the committed end, `DeleteDataOnProcessEnd` deletes the configured data elements, and `ReleaseProcessingStatus` releases the instance in the workflow's last save, so `idle` marks the end of the whole workflow. A step that stages nothing makes no save. `DeleteDataOnProcessEnd` stages an in-aggregate unlock before each removal so locked task data is emitted with `ignoreLock=true`. The hard delete stays in the release save: Storage accepts a workflow-owned hard delete only together with the ended state moving `processing` → `idle`, and it must admit that save on an instance whose stored process has already ended. There is no version-bumping Storage callback after the hard-delete commit. The side effects of a process end are enqueued after the release, so `completed` is announced for the finished end.
 `CompletedAltinnEvent` remains after the commit; it only publishes through `IEventsClient.AddEvent` and does not perform an instance-version/process-version save.
 
 ### Initial Task Start (process just created)
@@ -209,8 +210,9 @@ Main workflow:
 AcquireProcessingStatus (idle → processing)
 ── instance.Process.CurrentTask = Task_1 (already set by CreateInitialProcessState) ──
 UnlockTaskData → CleanupGeneratedFromTask → OnTaskStartingHook → CommonTaskInitialization → StartTask
-  ── CommitProcessState (stages process state; controller save commits it) ──
-EnqueueSideEffectsWorkflow → [ExecuteServiceTask if service task — one engine step per pipeline stage, then the concluding one]
+  ── CommitProcessState (stages process state, keeps processing; controller save commits it) ──
+EnqueueSideEffectsWorkflow → [ReleaseProcessingStatus, or ExecuteServiceTask if service task — one engine step per
+                              pipeline stage, then the concluding one]
 
 Side-effects workflows (one single-step independent root per effect, IsHead=false, own commit-time state, links→Main):
 MovedToAltinnEvent ∥ [InstanceCreatedAltinnEvent if instantiation] ∥ [NotifyInstanceOwnerOnInstantiation if configured]
@@ -228,8 +230,9 @@ Main continuation workflow (W2; no acquire):
 AbandonTask → OnTaskAbandonHook
   ── MutateProcessState (in-memory: CurrentTask → null or next task) ──
 [OnProcessEndingHook if ending] / [task-start commands if moving to next task]
-  ── CommitProcessState (stages process state; controller save commits it) ──
-[EnqueueSideEffectsWorkflow if the target emits side effects] → [critical post-commit commands]
+  ── CommitProcessState (stages process state, keeps processing; controller save commits it) ──
+[EnqueueSideEffectsWorkflow if the target emits side effects] → [critical post-commit commands, ending with
+                                                                ReleaseProcessingStatus unless a service task follows]
 
 Side-effects workflows (only when the target emits side effects, one per effect):
 [side-effect commands]
@@ -280,11 +283,11 @@ Task-generated-data cleanup lives in `CleanupGeneratedFromTask`, which runs righ
 
 `CommitProcessState` is the commit boundary in the workflow sequence, but it does not write to Storage itself. It validates and stages the `ProcessStateChange` on the `InstanceDataUnitOfWork`; the controller's workflow-owned save (`SaveWorkflowOwnedAggregate`) in that same callback commits that process-state mutation. Other callbacks use the same controller-owned workflow save for their own data changes, pending lock statuses, and derived instance-field updates.
 
-`AcquireProcessingStatus` stages exactly expected `idle` → new `processing` and updates the in-memory snapshot before it is re-signed; because the status lives inside the process payload, its save also sends a full `processState` update synthesized from that snapshot. Every subsequent workflow-owned save defaults to expected `processing`. `CommitProcessState` normally stages expected `processing` → new `idle`. When the sequence constructed by the factory has critical post-commit commands (a service task, or on every process end the process-ended hook and its release), the factory sets `StepsFollowCommit` in the private commit payload and the commit instead keeps `processing`; the last of those steps owns the release. The indicator is derived from the assembled sequence; it is not a task-type classifier, app-facing option, hidden global, or signed runtime continuation result.
+`AcquireProcessingStatus` stages exactly expected `idle` → new `processing` and updates the in-memory snapshot before it is re-signed; because the status lives inside the process payload, its save also sends a full `processState` update synthesized from that snapshot. Every subsequent workflow-owned save defaults to expected `processing`. `CommitProcessState` never changes the status. `ReleaseProcessingStatus` stages expected `processing` → new `idle` as the last step of every workflow the factory builds, except one that a service task continues: `WorkflowCommandSet.ServiceTaskFollowsCommit` tells the factory to leave the release to the continuation workflow.
 
 A successful acquire with an action payload returns `ProcessNextContinuation(Action)`. After saving and re-capturing state, the controller calls `ProcessEngine.EnqueueProcessNext` with the workflow actor, W1's id and the restored unit of work. The navigator uses that service-owner-loaded data for gateway expressions, never a fresh unit of work authenticated as the callback principal. The actor's event fields match the request's `PlatformUser` (including the service owner's org name and the currently empty organization user). An acquire without a payload, used by initial process starts, returns no continuation.
 
-The target service task is therefore durable before its side effects run. `ExecuteServiceTask` keeps `processing` throughout the pipeline. `ServiceTaskSuccessResult` concludes the task and returns `ProcessNextContinuation` with the result’s action. Stages and deferrals keep ownership while work remains. Failure results clear/enqueue nothing, and an unrecognized result type fails permanently. The controller saves any service-task data mutation and captures updated state before enqueueing the dependent workflow. A service-task failure leaves Storage at the target service task plus `processing`, so resuming the existing workflow retries `ExecuteServiceTask` without reacquiring. The dependent workflow does not acquire and its final commit clears to `idle`.
+The target service task is therefore durable before its side effects run. `ExecuteServiceTask` keeps `processing` throughout the pipeline. `ServiceTaskSuccessResult` concludes the task and returns `ProcessNextContinuation` with the result’s action. Stages and deferrals keep ownership while work remains. Failure results clear/enqueue nothing, and an unrecognized result type fails permanently. The controller saves any service-task data mutation and captures updated state before enqueueing the dependent workflow. A service-task failure leaves Storage at the target service task plus `processing`, so resuming the existing workflow retries `ExecuteServiceTask` without reacquiring. The dependent workflow does not acquire, and its `ReleaseProcessingStatus` clears to `idle`.
 
 Workflow-owned mutations in callbacks must be staged through `InstanceDataUnitOfWork` and persisted by the controller's standard save path. Direct `IDataClient`/`IInstanceClient` writes from commands or app hooks are unsupported; while ownership is `processing`, Storage rejects ordinary data and process mutations that do not supply the workflow aggregate's expected status. Do not add a separate pre-enqueue acquire call or a command-owned Storage save.
 
