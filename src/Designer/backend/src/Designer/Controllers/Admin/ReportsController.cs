@@ -15,7 +15,7 @@ namespace Altinn.Studio.Designer.Controllers.Admin;
 public class ReportsController(IReportService reportService) : ControllerBase
 {
     [HttpPost("send")]
-    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
+    [Authorize(Policy = AltinnPolicy.MustHaveAdminPermission)]
     public async Task<IActionResult> SendReport(
         string org,
         string env,
@@ -23,6 +23,12 @@ public class ReportsController(IReportService reportService) : ControllerBase
         CancellationToken cancellationToken = default
     )
     {
+        // Model binding rejects undefined values, but None is a defined value that means no report.
+        if (frequency == ReportFrequency.None)
+        {
+            return BadRequest("frequency must be daily, weekly or monthly.");
+        }
+
         await reportService.SendReportAsync(org, env, frequency, cancellationToken);
         return Ok();
     }
