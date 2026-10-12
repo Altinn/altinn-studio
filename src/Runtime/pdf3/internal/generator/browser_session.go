@@ -38,15 +38,18 @@ type browserSession struct {
 	cleanupNavigationWaiter atomic.Pointer[cleanupNavigationWaiter]
 	currentPageErrors       atomic.Pointer[pageErrors]
 	logger                  *slog.Logger
-	browser                 *browser.Process
-	cancel                  context.CancelFunc
-	queue                   chan workerRequest
-	targetID                string
-	id                      int
-	consoleErrors           atomic.Int32
-	browserErrors           atomic.Int32
-	jsExceptions            atomic.Int32
-	state                   atomic.Uint32
+	// sessionLogger is logger without a request's attributes. It never changes, so the restart
+	// goroutine can use it while handleRequests swaps logger per request.
+	sessionLogger *slog.Logger
+	browser       *browser.Process
+	cancel        context.CancelFunc
+	queue         chan workerRequest
+	targetID      string
+	id            int
+	consoleErrors atomic.Int32
+	browserErrors atomic.Int32
+	jsExceptions  atomic.Int32
+	state         atomic.Uint32
 }
 
 const (
@@ -83,13 +86,14 @@ func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 		queue = make(chan workerRequest)
 	}
 	w := &browserSession{
-		id:     id,
-		logger: sessionLogger,
-		queue:  queue,
-		state:  atomic.Uint32{},
-		ctx:    ctx,
-		cancel: cancel,
-		tracer: telemetry.Tracer(),
+		id:            id,
+		logger:        sessionLogger,
+		sessionLogger: sessionLogger,
+		queue:         queue,
+		state:         atomic.Uint32{},
+		ctx:           ctx,
+		cancel:        cancel,
+		tracer:        telemetry.Tracer(),
 	}
 
 	// Start browser process
@@ -1355,7 +1359,7 @@ func (w *browserSession) assertA(condition bool, message string, userArgs ...any
 }
 
 func (w *browserSession) close() {
-	w.logger.Info("Closing worker")
+	w.sessionLogger.Info("Closing worker")
 
 	if w.cancel != nil {
 		w.cancel()
@@ -1366,17 +1370,17 @@ func (w *browserSession) close() {
 
 	if w.conn != nil {
 		if err := w.conn.Close(); err != nil {
-			w.logger.Error("Failed to close connection", "error", err)
+			w.sessionLogger.Error("Failed to close connection", "error", err)
 		}
 	}
 
 	if w.browser != nil {
 		if err := w.browser.Close(); err != nil {
-			w.logger.Error("Failed to close browser", "error", err)
+			w.sessionLogger.Error("Failed to close browser", "error", err)
 		}
 	}
 
-	w.logger.Info("Worker closed")
+	w.sessionLogger.Info("Worker closed")
 }
 
 // isProcessing returns true if a request is currently being processed, or if there is a queue.
@@ -1393,13 +1397,13 @@ func (w *browserSession) waitForDrain(timeout time.Duration) bool {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
 		if !w.isProcessing() {
-			w.logger.Info("Session drained successfully")
+			w.sessionLogger.Info("Session drained successfully")
 			return true
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
 	// Timeout - log warning but don't crash
-	w.logger.Warn("Session drain timeout, forcing close", "timeout", timeout)
+	w.sessionLogger.Warn("Session drain timeout, forcing close", "timeout", timeout)
 	return false
 }
 
