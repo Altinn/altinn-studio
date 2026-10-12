@@ -25,6 +25,10 @@ guardrails.
 Rehearsing: `npm run dev` gives you HMR, and a deep link (`#/5/2`) drops you straight onto a build
 step. `O` is the overview grid — the whole deck fits one screen, click to jump.
 
+Published: every push to `docs/v9-pitch-deck` that touches the deck builds it and deploys it to the
+`v9deck` preview environment of the Studio Components Storybook's Static Web App
+(`.github/workflows/v9-pitch-deck-deploy.yaml`). The URL is public.
+
 ## Commands
 
 | Command               | What it does                                                        |
