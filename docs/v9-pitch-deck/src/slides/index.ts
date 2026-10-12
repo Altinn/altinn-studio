@@ -7,6 +7,7 @@ import FrontendFolgerAppen from './05-frontend-folger-appen';
 import InfraNyttIV9 from './07-infra-nytt-i-v9';
 import Prosessmotor from './08-prosessmotor';
 import ForUtviklere from './09-for-utviklere';
+import Bakgrunn from './10-bakgrunn';
 import Dashbord from './11-dashbord';
 import EttKlikk from './12-ett-klikk';
 import ScenarioFeil from './13-scenario-feil';
@@ -85,6 +86,13 @@ export const slides: SlideDef[] = [
     component: ForUtviklere,
     notes:
       'For dere som bygger apper: tjenesteoppgaver kan deles i steg som hver lagres når de er ferdige. En oppgave kan vente i timer eller dager på svar fra et annet system. Oppgaven er sitt eget ventesteg, så et eget «feedback»-steg trengs ikke lenger. Og dere kan selv velge hvor lenge et steg skal prøves igjen.',
+  },
+  {
+    id: 'bakgrunn',
+    component: Bakgrunn,
+    steps: 3,
+    notes:
+      'Under panseret kan prosessmotoren mer enn appene bruker i dag. Arbeid kan vente på annet arbeid. Første klikk: når Kari er ferdig med første steg, starter appen en jobb i bakgrunnen, her å opprette saken i arkivet, og Kari går videre som før. Andre klikk: arkiveringen trenger saken, så den venter på jobben. Tredje klikk: jobben blir ferdig, og prosessen går videre av seg selv. Eksempelet er laget for å vise muligheten. I dag bruker appene dette til hendelser, men motoren støtter det allerede.',
   },
   {
     id: 'dashbord',

@@ -10,18 +10,18 @@ import { test, expect, type Page } from '@playwright/test';
  */
 const FIRST_ID = 'forside';
 /** A slide deep in the deck, and a build step inside it, for the deep-link test. */
-const DEEP = { hash: '/#/12/7', id: 'scenario-feil', step: '7' };
+const DEEP = { hash: '/#/13/7', id: 'scenario-feil', step: '7' };
 const LAST_ID = 'bli-med';
-const TOTAL = 16;
+const TOTAL = 17;
 /** Build steps on slide 1 (the cover has none, so the first `→` navigates). */
 const FIRST_SLIDE_STEPS = 0;
 /** Build steps on the last slide, so `→` parks there fully built. */
 const LAST_SLIDE_STEPS = 0;
 /**
- * 16 slides + 25 build steps = every state a presenter clicks through. Each
+ * 17 slides + 28 build steps = every state a presenter clicks through. Each
  * scenario slide contributes 7: six paired beats, and the comparison.
  */
-const TOTAL_STATES = 41;
+const TOTAL_STATES = 45;
 
 const root = (page: Page) => page.locator('[data-deck-root]');
 
