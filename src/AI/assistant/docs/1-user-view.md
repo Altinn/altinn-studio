@@ -2,11 +2,11 @@
 
 _How does the user see and use the service?_
 
-The user does not see the agents service directly. The user opens the assistant page of an app in Altinn Studio Designer. During the beta, only selected service owners get access. A backend check (`CanUseAiAssistantEvaluator`) controls this list.
+The user does not see the assistant service directly. The user opens the assistant page of an app in Altinn Studio Designer. During the beta, only selected service owners get access. A backend check (`CanUseAiAssistantEvaluator`) controls this list.
 
 The page has three columns:
 
-- **Threads** ("Tråder"). Each thread is one conversation. The thread id is also the session id in the agents service.
+- **Threads** ("Tråder"). Each thread is one conversation. The thread id is also the session id in the assistant service.
 - **Messages**. The user writes a request here. The user can attach PDF files or images, for example a paper form.
 - **Tool column**. It shows a preview of the app, or a file browser.
 
