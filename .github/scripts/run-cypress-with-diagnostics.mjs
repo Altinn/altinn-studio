@@ -336,7 +336,11 @@ if (Date.now() >= deadline) {
       state.launchError = error.message;
       resolve(1);
     });
-    child.once('close', (code) => resolve(code ?? 1));
+    child.once('close', (code, signal) => {
+      if (signal) state.signal = signal;
+      const signalNumber = signal && os.constants.signals[signal];
+      resolve(code ?? (signalNumber ? 128 + signalNumber : 1));
+    });
   });
   saveState();
   await capture('started');
