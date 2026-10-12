@@ -1,8 +1,8 @@
 # API layer
 
-Code: `api/main.py`, `api/routes/agent.py`, `api/routes/websocket.py`, `api/rate_limiting.py`
+Code: `src/AI/assistant/api/main.py`, `src/AI/assistant/api/routes/agent.py`, `src/AI/assistant/api/routes/websocket.py`, `src/AI/assistant/api/rate_limiting.py`
 
-`api/main.py` makes the FastAPI app and adds the routes. At startup it starts Langfuse and gives the event sink a reference to the main event loop. The start route needs two headers: `X-Api-Key` (else 401) and `X-Developer` (else 400). A sliding-window limiter counts starts for each developer and for all developers.
+`src/AI/assistant/api/main.py` makes the FastAPI app and adds the routes. At startup it starts Langfuse and gives the event sink a reference to the main event loop. The start route needs two headers: `X-Api-Key` (else 401) and `X-Developer` (else 400). A sliding-window limiter counts starts for each developer and for all developers.
 
 ```mermaid
 flowchart TD

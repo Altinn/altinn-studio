@@ -1,6 +1,6 @@
 # Prompt and skills
 
-Code: `agents/core/context.py`, `agents/core/skills.py`, `agents/skills/`, `agents/prompts/`, `scripts/sync_prompts.py`
+Code: `src/AI/assistant/agents/core/context.py`, `src/AI/assistant/agents/core/skills.py`, `src/AI/assistant/agents/skills/`, `src/AI/assistant/agents/prompts/`, `src/AI/assistant/scripts/sync_prompts.py`
 
 ## The loop system prompt
 
@@ -18,7 +18,7 @@ _The parts of the loop system prompt. The final answer rules are different for c
 
 ## Skills
 
-Skills use progressive disclosure. The prompt has only the name and a short description of each skill. The model calls the `skill` tool to get the full text. If the app is v9, a `v9.md` file adds version-specific text. Each folder in `agents/skills/` is one skill.
+Skills use progressive disclosure. The prompt has only the name and a short description of each skill. The model calls the `skill` tool to get the full text. If the app is v9, a `v9.md` file adds version-specific text. Each folder in `src/AI/assistant/agents/skills/` is one skill.
 
 ```mermaid
 sequenceDiagram
@@ -44,6 +44,6 @@ flowchart TD
 
 _Prompt loading. The CI workflow `assistant-prompts.yaml` publishes a changed prompt after the merge to main._
 
-One prompt file has a different name in Langfuse: `intent_security.md` is published as `intent_check` (`SERVED_FROM` in `scripts/sync_prompts.py`).
+One prompt file has a different name in Langfuse: `intent_security.md` is published as `intent_check` (`SERVED_FROM` in `src/AI/assistant/scripts/sync_prompts.py`).
 
 For publication, drift and retired prompts, refer to [agents/prompts/README.md](../../agents/prompts/README.md).

@@ -1,8 +1,8 @@
 # Tools
 
-Code: `agents/core/tool.py`, `agents/core/registry.py`, `agents/core/tools/`
+Code: `src/AI/assistant/agents/core/tool.py`, `src/AI/assistant/agents/core/registry.py`, `src/AI/assistant/agents/core/tools/`
 
-Each tool is a class with a name, a description, a Pydantic input schema and a `run` method. A tool that changes the app inherits `WriteToolMixin`. This mixin refuses the call when the session is read-only, and marks the refusal as one the user can lift. The loop node registers the tools in `_internal_tools()` in `agents/graph/nodes/agentic_loop_node.py`.
+Each tool is a class with a name, a description, a Pydantic input schema and a `run` method. A tool that changes the app inherits `WriteToolMixin`. This mixin refuses the call when the session is read-only, and marks the refusal as one the user can lift. The loop node registers the tools in `_internal_tools()` in `src/AI/assistant/agents/graph/nodes/agentic_loop_node.py`.
 
 | Tool                    | Job                                              | Parallel | Needs write mode |
 | ----------------------- | ------------------------------------------------ | -------- | ---------------- |

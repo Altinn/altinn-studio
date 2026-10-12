@@ -1,6 +1,6 @@
 # Altinn domain library
 
-Code: `agents/altinn/app_version/`, `agents/altinn/layout/`, `agents/altinn/resources/`, `agents/altinn/datamodel/`
+Code: `src/AI/assistant/agents/altinn/app_version/`, `src/AI/assistant/agents/altinn/layout/`, `src/AI/assistant/agents/altinn/resources/`, `src/AI/assistant/agents/altinn/datamodel/`
 
 This library is plain Python with no model calls. The tools call it in the same process. It does four jobs: it finds the app version, validates layouts against the official schema, validates text resources, and converts data models.
 
