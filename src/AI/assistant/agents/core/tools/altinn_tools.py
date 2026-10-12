@@ -116,17 +116,17 @@ class DatamodelSyncTool(WriteToolMixin[DatamodelSyncArgs]):
                 is_error=True,
             )
 
-        repo_root = Path(ctx.repo_path).resolve()
+        schema_dir = Path(args.schema_path).parent
         written: list[str] = []
         changed: set[str] = ctx.extras.setdefault("changed_files", set())
         verified: set[str] = ctx.extras.setdefault("verified_files", set())
         for entry in result.get("generated") or []:
-            out_path = schema_file.parent / entry["path"]
+            rel = str(schema_dir / entry["path"])
             try:
+                out_path = _resolve_repo_path(ctx.repo_path, rel)
                 out_path.write_text(entry["content"], encoding="utf-8")
-            except OSError as exc:
-                return ToolResult(content=f"Could not write {entry['path']}: {exc}", is_error=True)
-            rel = str(out_path.relative_to(repo_root))
+            except (PathError, OSError) as exc:
+                return ToolResult(content=f"Could not write {rel}: {exc}", is_error=True)
             written.append(rel)
             changed.add(rel)
             # Generated files must be re-verified before commit like any

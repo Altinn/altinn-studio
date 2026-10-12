@@ -58,3 +58,18 @@ async def test_refuses_a_schema_outside_the_repo(tmp_path: Path, schema_path: st
 
     assert result.is_error
     assert not (tmp_path / "model.xsd").exists()
+
+
+async def test_refuses_to_write_through_a_symlink_out_of_the_repo(tmp_path: Path):
+    repo = tmp_path / "repo"
+    models = repo / "App" / "models"
+    models.mkdir(parents=True)
+    (models / "model.schema.json").write_text("{}", encoding="utf-8")
+    outside_file = tmp_path / "outside.txt"
+    outside_file.write_text("original", encoding="utf-8")
+    (models / "model.xsd").symlink_to(outside_file)
+
+    result = await _run(_ctx(repo), "App/models/model.schema.json")
+
+    assert result.is_error
+    assert outside_file.read_text(encoding="utf-8") == "original"
