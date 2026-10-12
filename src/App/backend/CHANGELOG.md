@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- Breaking: an exclusive gateway in `process.bpmn` takes its `default` flow only when no other flow's condition holds. The app does not start if a flow other than the default has no condition; add one, or make that flow the default.
+- Breaking: an exclusive gateway in `process.bpmn` takes its `default` flow only when no other flow's condition holds. The app does not start if a flow other than the default has no condition; add one, or make that flow the default. ([#21105](https://github.com/Altinn/altinn-studio/pull/21105))
 
 ### Fixed
 
