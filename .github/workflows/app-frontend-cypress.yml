@@ -27,7 +27,7 @@ on:
       - 'src/common/ts/language/src/**'
       - 'src/common/ts/language/package.json'
       - '.github/actions/**'
-      - '.github/scripts/run-cypress-with-diagnostics*'
+      - '.github/scripts/*cypress*.mjs'
       - '.github/workflows/app-frontend-cypress.yml'
       - '!**/AGENTS.md'
   workflow_dispatch:

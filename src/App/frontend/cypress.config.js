@@ -41,7 +41,12 @@ export default defineConfig({
       );
 
       on('before:browser:launch', (browser, launchOptions) => {
-        reportProgress('before:browser:launch', { browser: browser.displayName, version: browser.version });
+        const debuggerPortArg = launchOptions.args.find((arg) => arg.startsWith('--remote-debugging-port='));
+        reportProgress('before:browser:launch', {
+          browser: browser.displayName,
+          version: browser.version,
+          debuggerPort: Number(debuggerPortArg?.split('=')[1]) || undefined,
+        });
         if (browser.name === 'electron') {
           launchOptions.preferences.width = CYPRESS_WINDOW_WIDTH;
           launchOptions.preferences.height = CYPRESS_WINDOW_HEIGHT;
