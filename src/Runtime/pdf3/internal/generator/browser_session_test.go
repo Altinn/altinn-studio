@@ -68,15 +68,9 @@ func TestHtmlIDPattern(t *testing.T) {
 	}
 }
 
-func TestHandleEvent_LogsBrowserErrorsWithoutPayloads(t *testing.T) {
-	var logs bytes.Buffer
-	w := &browserSession{
-		ctx:    t.Context(),
-		logger: slog.New(slog.NewTextHandler(&logs, nil)),
-	}
-	requestAttributes := telemetry.NewRequestAttributes()
-	w.currentRequest.Store(&workerRequest{ctx: telemetry.WithRequestAttributes(t.Context(), requestAttributes)})
-
+// sendPageErrors sends the page's three kinds of error event, with payloads that must not be
+// logged.
+func sendPageErrors(w *browserSession) {
 	w.handleEvent("Runtime.consoleAPICalled", map[string]any{
 		"type": "error",
 		"args": []any{
@@ -91,26 +85,44 @@ func TestHandleEvent_LogsBrowserErrorsWithoutPayloads(t *testing.T) {
 	}})
 	w.handleEvent("Runtime.exceptionThrown", map[string]any{"exceptionDetails": map[string]any{
 		"text":      "Uncaught",
-		"exception": map[string]any{"description": "TypeError: x is undefined\n    at main.js:1"},
+		"exception": map[string]any{"description": strings.Repeat("TypeError: x is undefined ", 100)},
 	}})
+}
+
+func newTestSession(logs *bytes.Buffer) *browserSession {
+	return &browserSession{logger: slog.New(slog.NewTextHandler(logs, nil))}
+}
+
+func TestPageErrors_OneWarningPerRequest(t *testing.T) {
+	var logs bytes.Buffer
+	w := newTestSession(&logs)
+	requestAttributes := telemetry.NewRequestAttributes()
+	requestErrors := &pageErrors{attributes: requestAttributes}
+	w.currentPageErrors.Store(requestErrors)
+
+	sendPageErrors(w)
+	sendPageErrors(w)
+	if logs.Len() != 0 {
+		t.Fatalf("logged while the request ran, want one record at its end:\n%s", logs.String())
+	}
+	w.currentPageErrors.Store(nil)
+	w.logPageErrors(t.Context(), requestErrors)
 
 	got := logs.String()
-	for _, want := range []string{
-		`level=WARN msg="Browser console error" cdp.method=Runtime.consoleAPICalled message="Failed to load Object"`,
-		`level=WARN msg="Browser log error" cdp.method=Log.entryAdded message="Failed to load resource: 401" ` +
-			`source=https://app.local/ttd/app/api/data`,
-		`level=WARN msg="Browser JavaScript exception" cdp.method=Runtime.exceptionThrown ` +
-			`message="TypeError: x is undefined\n    at main.js:1"`,
-	} {
-		if !strings.Contains(got, want) {
-			t.Errorf("logs missing %q:\n%s", want, got)
-		}
+	if n := strings.Count(got, "\n"); n != 1 {
+		t.Fatalf("logged %d records, want 1:\n%s", n, got)
+	}
+	want := `level=WARN msg="Page reported errors" console_errors=2 browser_errors=2 js_exceptions=2 ` +
+		`cdp.method=Runtime.consoleAPICalled message="Failed to load Object"`
+	if !strings.Contains(got, want) {
+		t.Errorf("log = %q, want %q", got, want)
 	}
 	for _, leaked := range []string{"page data", "token=secret"} {
 		if strings.Contains(got, leaked) {
-			t.Errorf("logs contain %q:\n%s", leaked, got)
+			t.Errorf("log contains %q:\n%s", leaked, got)
 		}
 	}
+
 	// The counts are on the request's attributes as soon as the errors arrive, before the
 	// response ends the entry span.
 	spans := tracetest.NewSpanRecorder()
@@ -126,29 +138,82 @@ func TestHandleEvent_LogsBrowserErrorsWithoutPayloads(t *testing.T) {
 		"pdf.process.browser_errors",
 		"pdf.process.js_exceptions",
 	} {
-		if counts[key] != 1 {
-			t.Errorf("%s = %d, want 1", key, counts[key])
+		if counts[key] != 2 {
+			t.Errorf("%s = %d, want 2", key, counts[key])
 		}
 	}
 }
 
-func TestLogBrowserError_CapsLogsPerRequest(t *testing.T) {
+func TestPageErrors_FirstErrorIsTruncatedAndRedacted(t *testing.T) {
 	var logs bytes.Buffer
-	w := &browserSession{
-		ctx:    t.Context(),
-		logger: slog.New(slog.NewTextHandler(&logs, nil)),
-	}
-	for range maxBrowserLogsPerRequest + 3 {
-		w.logBrowserError("Browser console error", "Runtime.consoleAPICalled", strings.Repeat("x", 2000), "")
-	}
+	w := newTestSession(&logs)
+	requestErrors := &pageErrors{attributes: telemetry.NewRequestAttributes()}
+	w.currentPageErrors.Store(requestErrors)
 
-	if got := strings.Count(logs.String(), "\n"); got != maxBrowserLogsPerRequest {
-		t.Errorf("logged %d browser errors, want %d", got, maxBrowserLogsPerRequest)
+	w.handleEvent("Log.entryAdded", map[string]any{"entry": map[string]any{
+		"level": "error",
+		"text":  strings.Repeat("x", 2000),
+		"url":   "https://user:pass@app.local/ttd/app/api/data?token=secret#frag",
+	}})
+	w.logPageErrors(t.Context(), requestErrors)
+
+	got := logs.String()
+	if !strings.Contains(got, " source=https://app.local/ttd/app/api/data") {
+		t.Errorf("log = %q, want the source without user, query or fragment", got)
 	}
-	if got := w.browserLogsDropped.Load(); got != 3 {
-		t.Errorf("dropped = %d, want 3", got)
-	}
-	if strings.Contains(logs.String(), strings.Repeat("x", maxBrowserMessageLength+1)) {
+	if strings.Contains(got, strings.Repeat("x", maxBrowserMessageLength+1)) {
 		t.Errorf("message not truncated to %d bytes", maxBrowserMessageLength)
+	}
+	for _, leaked := range []string{"pass", "secret", "frag"} {
+		if strings.Contains(got, leaked) {
+			t.Errorf("log contains %q:\n%s", leaked, got)
+		}
+	}
+}
+
+func TestPageErrors_NoneOrLateLogNothing(t *testing.T) {
+	var logs bytes.Buffer
+	w := newTestSession(&logs)
+	requestErrors := &pageErrors{attributes: telemetry.NewRequestAttributes()}
+
+	// No errors while the request ran.
+	w.currentPageErrors.Store(requestErrors)
+	w.currentPageErrors.Store(nil)
+	// An error that arrives after the request finished belongs to no request.
+	sendPageErrors(w)
+	w.logPageErrors(t.Context(), requestErrors)
+
+	if logs.Len() != 0 {
+		t.Errorf("logged %q, want nothing", logs.String())
+	}
+}
+
+// TestPageErrors_LateErrorsDoNotRace sends page errors from another goroutine, as the CDP reader
+// does, while requests start and finish. Run with -race.
+func TestPageErrors_LateErrorsDoNotRace(t *testing.T) {
+	var logs bytes.Buffer
+	w := newTestSession(&logs)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for range 200 {
+			sendPageErrors(w)
+		}
+	}()
+
+	records := 0
+	for range 50 {
+		requestErrors := &pageErrors{attributes: telemetry.NewRequestAttributes()}
+		w.currentPageErrors.Store(requestErrors)
+		w.currentPageErrors.Store(nil)
+		before := logs.Len()
+		w.logPageErrors(t.Context(), requestErrors)
+		if logs.Len() != before {
+			records++
+		}
+	}
+	<-done
+	if got := strings.Count(logs.String(), "\n"); got != records || records > 50 {
+		t.Errorf("logged %d records for %d requests with errors, want at most one per request", got, records)
 	}
 }
