@@ -114,6 +114,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
       <StudioDropdown
         icon={<MenuElipsisVerticalIcon className={classes.ellipsisIcon} />}
         triggerButtonVariant='tertiary'
+        triggerButtonTitle={t('general.options')}
       >
         <StudioDropdown.List>
           <StudioDropdown.Item>

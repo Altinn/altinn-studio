@@ -139,7 +139,9 @@ describe('PageGroupAccordion', () => {
 
 const groupAccordionHeader = (nth: number) => screen.getByTestId(pageGroupAccordionHeader(nth));
 const openGroupMenu = async (user: UserEvent, nth: number): Promise<void> =>
-  user.click(within(groupAccordionHeader(nth)).getByRole('button', { name: '' }));
+  user.click(
+    within(groupAccordionHeader(nth)).getByRole('button', { name: textMock('general.options') }),
+  );
 const moveGroupUpButton = (nth: number) =>
   within(groupAccordionHeader(nth)).getByRole('button', {
     name: textMock('ux_editor.page_menu_up'),

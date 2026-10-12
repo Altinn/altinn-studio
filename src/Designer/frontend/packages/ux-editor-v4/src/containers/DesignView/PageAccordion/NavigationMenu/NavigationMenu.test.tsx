@@ -129,7 +129,8 @@ describe('NavigationMenu', () => {
   });
 });
 
-const contextMenuTriggerButton = () => screen.getByRole('button', { name: '' });
+const contextMenuTriggerButton = () =>
+  screen.getByRole('button', { name: textMock('general.options') });
 const movePageDownButton = () =>
   screen.getByRole('button', { name: textMock('ux_editor.page_menu_down') });
 const movePageUpButton = () =>
