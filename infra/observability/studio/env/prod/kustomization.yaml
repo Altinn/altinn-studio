@@ -26,3 +26,16 @@ patches:
       - op: replace
         path: /spec/config/exporters/otlp_http~1victoria/endpoint
         value: http://observability-proxy.observability.svc.cluster.local/internal/observability/otlp
+  # deployment.environment.name takes the semantic conventions' well-known value, not ENVIRONMENT (#21073).
+  - target:
+      group: opentelemetry.io
+      version: v1beta1
+      kind: OpenTelemetryCollector
+      name: otel-router
+    patch: |-
+      - op: test
+        path: /spec/config/processors/resource~1environment/attributes/0/key
+        value: deployment.environment.name
+      - op: replace
+        path: /spec/config/processors/resource~1environment/attributes/0/value
+        value: production

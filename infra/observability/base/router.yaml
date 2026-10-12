@@ -86,7 +86,7 @@ spec:
       resource/environment:
         attributes:
           - key: deployment.environment.name
-            value: ${ENVIRONMENT}
+            value: ${ENVIRONMENT} # the prod and dev overlays replace it with production and development
             action: upsert
       filter/logs:
         error_mode: ignore
