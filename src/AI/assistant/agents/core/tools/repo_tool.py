@@ -46,7 +46,6 @@ class ScanRepoTool(Tool[ScanRepoArgs]):
     )
     input_schema = ScanRepoArgs
     is_concurrency_safe = True
-    is_read_only = True
 
     async def run(self, args: ScanRepoArgs, ctx: LoopContext) -> ToolResult:
         try:

@@ -95,29 +95,28 @@ class Tool[ArgsT: BaseModel](ABC):
     """Base class for all tools.
 
     Subclasses declare class attributes (name, description, input_schema,
-    is_concurrency_safe, is_read_only) and implement `run`.  Override
+    is_concurrency_safe) and implement `run`.  Override
     `check_permission` to gate execution; the default allows every call.
 
-    Safety predicates come in two forms:
+    Concurrency safety comes in two forms:
 
-    - `is_concurrency_safe` / `is_read_only` are class attributes that
-      cover the common case (a tool's behavior does not depend on its
-      input).  Both default to `False` — fail-closed: an unclassified
-      tool is assumed to mutate state and to conflict with others.
-    - `concurrency_safe_for(args)` / `read_only_for(args)` are
-      input-aware methods that consult the class attributes by default.
-      Tools whose safety depends on the call (a future Bash tool would
-      classify per command) override these instead of the attributes.
+    - `is_concurrency_safe` is a class attribute that covers the common
+      case (a tool's behavior does not depend on its input).  It
+      defaults to `False` — fail-closed: an unclassified tool is
+      assumed to conflict with others.
+    - `concurrency_safe_for(args)` is an input-aware method that
+      consults the class attribute by default.  Tools whose safety
+      depends on the call (a future Bash tool would classify per
+      command) override it instead of the attribute.
 
-    The dispatcher calls the methods, never the attributes, so the
-    two paths stay consistent.
+    The dispatcher calls the method, never the attribute, so the two
+    paths stay consistent.
     """
 
     name: str
     description: str
     input_schema: type[ArgsT]
     is_concurrency_safe: bool = False
-    is_read_only: bool = False
 
     def concurrency_safe_for(self, args: ArgsT) -> bool:
         """Whether this specific call can run in parallel with other
@@ -125,13 +124,6 @@ class Tool[ArgsT: BaseModel](ABC):
         treats safety as a property of the tool rather than the input.
         Override when safety is per-input."""
         return self.is_concurrency_safe
-
-    def read_only_for(self, args: ArgsT) -> bool:
-        """Whether this specific call mutates any external state.
-        Default: the class attribute.  Override when read/write status
-        is per-input (e.g. a shell tool where `ls` is read-only and
-        `rm` is not)."""
-        return self.is_read_only
 
     async def check_permission(self, args: ArgsT, ctx: LoopContext) -> PermissionResult:
         return PermissionResult.allow()

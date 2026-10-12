@@ -125,14 +125,6 @@ class TestRegisterValidation:
         with pytest.raises(TypeError, match="is_concurrency_safe"):
             ToolRegistry().register(WeirdSafety())
 
-    def test_rejects_non_bool_read_only(self):
-        class WeirdReadOnly(_MinimalGoodTool):
-            name = "weird_ro"
-            is_read_only = 1  # type: ignore[assignment]
-
-        with pytest.raises(TypeError, match="is_read_only"):
-            ToolRegistry().register(WeirdReadOnly())
-
     def test_rejects_non_callable_predicate(self):
         class BrokenPredicate(_MinimalGoodTool):
             name = "broken_pred"
