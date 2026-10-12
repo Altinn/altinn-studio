@@ -37,6 +37,8 @@ internal static class ValidationIssueTranslation
     {
         if (string.IsNullOrEmpty(issue.Description) && !string.IsNullOrEmpty(issue.CustomTextKey))
         {
+            // TODO: Translate with the context from issue.DataElementId and issue.Field, so the text can use data model
+            // variables from the right data element and repeating group row. Only the language is used for now.
             issue.Description =
                 await translationService.TranslateTextKey(issue.CustomTextKey, language, issue.CustomTextParameters)
                 ?? issue.Description;
@@ -51,6 +53,8 @@ internal static class ValidationIssueTranslation
     {
         if (string.IsNullOrEmpty(issue.Description) && !string.IsNullOrEmpty(issue.CustomTextKey))
         {
+            // TODO: Translate with the context from issue.DataElementId and issue.Field, so the text can use data model
+            // variables from the right data element and repeating group row. Only the language is used for now.
             issue.Description =
                 await translationService.TranslateTextKey(issue.CustomTextKey, language, issue.CustomTextParameters)
                 ?? issue.Description;
