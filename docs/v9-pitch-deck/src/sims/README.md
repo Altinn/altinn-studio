@@ -10,7 +10,7 @@ left always sits next to row 3 on the right, and the presenter sets the pace.
 ## The template
 
 There is exactly **one** stage component, `parts/ScenarioStage.tsx`, and one data file,
-`scenarios.ts`. The slide's own header carries the kicker («Scenario 1»), the scenario's `title`
+`scenarios.ts`. The slide's own header carries the kicker («Tilbake til Kari»), the scenario's `title`
 and its one-sentence `headline`; the stage fills the body:
 
 ```
@@ -32,7 +32,7 @@ import { SimFeil, FEIL, SIM_STEPS } from '../sims';
 
 export default function ScenarioFeilSlide({ step }: SlideProps) {
   return (
-    <Slide variant="full" kicker="Scenario 1" title={FEIL.title} subtitle={FEIL.headline}>
+    <Slide variant="full" kicker="Tilbake til Kari" title={FEIL.title} subtitle={FEIL.headline}>
       <SimFeil step={step} />
     </Slide>
   );
@@ -45,7 +45,7 @@ export default function ScenarioFeilSlide({ step }: SlideProps) {
 | Export       | Scenario                                                   |
 | ------------ | ---------------------------------------------------------- |
 | `SimFeil`    | A service the app depends on does not answer for a moment |
-| `SimOmstart` | A new version rolls out while Kari submits                 |
+| `SimLukker`  | Kari closes the tab, and a service fails while she is away |
 
 ## How a scene is driven
 

@@ -18,9 +18,9 @@ Open <http://localhost:4173> in **Chrome** and press `f` for fullscreen. That is
 procedure — the deck needs no network once it is built (Inter is self-hosted), so it presents fine
 on a dead conference Wi-Fi.
 
-**[`NOTES.md`](NOTES.md) is the run sheet**: speaker notes per slide, how many clicks each slide
-takes, the total (35), the keyboard cheat sheet, and the "do not overclaim" guardrails.
-Print it or keep it on the second screen.
+Speaker notes are the `notes` field of each slide in `src/slides/index.ts`, and the overview (`O`)
+shows them. [The deck](#the-deck) below lists every slide, its clicks and the "do not overclaim"
+guardrails.
 
 Rehearsing: `npm run dev` gives you HMR, and a deep link (`#/5/2`) drops you straight onto a build
 step. `O` is the overview grid — the whole deck fits one screen, click to jump.
@@ -224,36 +224,64 @@ to close.
 
 ## The deck
 
-A cover that maps the talk, three parts — infrastruktur, frontend, backend — then the ask, in norsk
-bokmål, authored from `CONTENT.md`. Speaker notes live in the `notes` field of each entry in
-`src/slides/index.ts`, are surfaced in the overview (`O`), and are laid out as a run sheet in
-[`NOTES.md`](NOTES.md). 15 slides + 21 build steps = **35 presses of `→`**.
+A cover that maps the talk, a short hook, then three parts — det brukerne merker, bak kulissene,
+kom i gang — in norsk bokmål. Speaker notes live in the `notes` field of each entry in
+`src/slides/index.ts` and are surfaced in the overview (`O`). 16 slides + 25 build steps =
+**40 presses of `→`**.
 
 | #  | `id`                       | Slide                                                        | Steps |
 | -- | -------------------------- | ------------------------------------------------------------ | ----- |
 | 1  | `forside`                  | Hva blir bedre med v9? — the three parts                     | 0     |
-| 2  | `seksjon-infrastruktur`    | Del 1 — Infrastruktur                                        | 0     |
-| 3  | `infra-nytt-i-v9`          | Nytt med v9, and a banner for what v8 apps already have      | 0     |
-| 4  | `seksjon-frontend`         | Del 2 — Frontend                                             | 0     |
+| 2  | `kari`                     | Hva skjer når noe feiler? — Kari's first example, v8 only    | 4     |
+| 3  | `seksjon-brukerne`         | Del 1 — Det brukerne merker                                  | 0     |
+| 4  | `frontend-brukerne-merker` | Brukeropplevelsen                                            | 0     |
 | 5  | `frontend-folger-appen`    | Raskere, og i takt med appen — speed bars, one package       | 1     |
-| 6  | `frontend-brukerne-merker` | Brukeropplevelsen                                            | 0     |
-| 7  | `seksjon-backend`          | Del 3 — Backend                                              | 0     |
+| 6  | `seksjon-bak-kulissene`    | Del 2 — Bak kulissene                                        | 0     |
+| 7  | `infra-nytt-i-v9`          | Nytt med v9, and a banner for what v8 apps already have      | 0     |
 | 8  | `prosessmotor`             | En motor for prosessene — app, engine, saved steps           | 0     |
 | 9  | `for-utviklere`            | Nye muligheter for utviklere — what service tasks can do now | 0     |
 | 10 | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard               | 3     |
 | 11 | `ett-klikk`                | Ett klikk, ti ting — then every one of them saved            | 2     |
-| 12 | `scenario-feil`            | Scenario 1: a service does not answer for a moment           | 7     |
-| 13 | `scenario-omstart`         | Scenario 2: the app restarts mid-submission                  | 7     |
-| 14 | `oppgradering`             | Slik oppgraderer du til v9 — from Studio or studioctl        | 1     |
-| 15 | `bli-med`                  | Kom i gang med v9 — open beta, self-serve                    | 0     |
+| 12 | `scenario-feil`            | Tilbake til Kari — the first example, v9 side catches up     | 7     |
+| 13 | `scenario-lukker`          | Et eksempel til — Kari closes the tab before it is sent      | 7     |
+| 14 | `seksjon-kom-i-gang`       | Del 3 — Kom i gang                                           | 0     |
+| 15 | `oppgradering`             | Slik oppgraderer du til v9 — from Studio or studioctl        | 1     |
+| 16 | `bli-med`                  | Kom i gang med v9 — open beta, self-serve                    | 0     |
 
 Slides 12 and 13 render the scenarios from `src/sims` under the standard slide header. Each one is
 clicked through: every press lands the next line on both sides — v8 left, v9 right — and a last
-press shows both outcomes; see [`src/sims/README.md`](src/sims/README.md). Slide-specific styling
+press shows both outcomes; see [`src/sims/README.md`](src/sims/README.md). Slide 2 plays the
+first four lines of the first example, v8 side only, with the same frame; slide 12 opens on that
+picture and lets the v9 side catch up before the last lines land in pairs. Slide-specific styling
 lives in `src/styles/slides.css`; shared slide primitives (backdrop, feature cards, section
 dividers, wires) live in `src/slides/_kit.tsx`.
 
-Accuracy rules the copy follows: never «nøyaktig én gang»; the engine is mandatory in v9; v9 is a
-open beta (re-check before presenting); the frontend is not a rebuild and has one speed measurement; most platform gains reach
-v8 apps too; never name an archive-system vendor. They are on the run sheet as the "do not
-overclaim" guardrails — every claim on a slide traces back to the fact sheet in `CONTENT.md`.
+### Kari's two examples (slides 2, 12 and 13)
+
+**Med v8** is on the left and **Med v9** on the right, and row 3 on the left always sits next to
+row 3 on the right. Read the left line, then the right one.
+
+| Slide | Presses | On stage                                                                           |
+| ----- | ------- | ---------------------------------------------------------------------------------- |
+| 2     | 1–4     | One more v8 line each; the v9 side stays empty, then «Vi kommer tilbake til Kari.» |
+| 12    | —       | Opens where slide 2 left off: four v8 lines, an empty v9 side                      |
+| 12    | 1–4     | The v9 side catches up, one line per press                                         |
+| 12    | 5–6     | One more line on each side                                                         |
+| 12    | 7       | Both outcomes side by side, and the closing sentence                               |
+| 13    | 1–6     | One more line on each side, and Kari's two phones change with them                 |
+| 13    | 7       | Both outcomes side by side, and the closing sentence                               |
+
+### Do not overclaim
+
+The copy, the speaker notes and anything said on stage follow these rules.
+
+1. **Never «nøyaktig én gang».** The engine is at-least-once, so never claim that nothing can
+   happen twice either. Say «det som er fullført, kjøres ikke på nytt».
+2. **The engine is mandatory in v9, not a feature you switch on.** Do not offer it as opt-in.
+3. **v9 is in open beta, and the upgrade runs from Studio.** Both are planned before the talk;
+   check that they happened. Never «ferdig» or «oppgrader i produksjon i dag».
+4. **The frontend is not a rebuild,** and the only speed figure is one early measurement in a test
+   app. Never «mye raskere».
+5. **Much of the platform work already reaches v8 apps.** The banner on slide 7 says so.
+6. **The admin-page status is stated as fact.** It is merged before the talk; check that it was.
+7. **Never name an archive-system vendor.** Say *arkivintegrasjon* / *arkivsystem*.

@@ -155,9 +155,15 @@ export interface ScenarioStageProps {
   scenario: Scenario;
   /** The deck's build step for this slide. */
   step: number;
+  /**
+   * v8 beats already on stage when the slide opens, because a teaser earlier in
+   * the talk played them. The first presses then land only v9 lines until the
+   * two sides are level, and from there each press lands one line on both.
+   */
+  v8Lead?: number;
 }
 
-export function ScenarioStage({ scenario, step }: ScenarioStageProps) {
+export function ScenarioStage({ scenario, step, v8Lead = 0 }: ScenarioStageProps) {
   const phase = phaseAt(scenario, step);
   const phaseKey = phase.kind === 'run' ? 'run' : 'summary';
 
@@ -176,7 +182,7 @@ export function ScenarioStage({ scenario, step }: ScenarioStageProps) {
           // contents without moving or resizing either box.
           <div className="scn__summary">
             <div className="scn__pair">
-              <RunColumn scenario={scenario} side="v8" cursor={phase.cursor} />
+              <RunColumn scenario={scenario} side="v8" cursor={Math.max(phase.cursor, v8Lead)} />
               <RunColumn scenario={scenario} side="v9" cursor={phase.cursor} />
             </div>
             <p className="scn__takeaway is-placeholder" aria-hidden>
@@ -188,6 +194,53 @@ export function ScenarioStage({ scenario, step }: ScenarioStageProps) {
           <SummaryView scenario={scenario} />
         )}
       </motion.div>
+    </div>
+  );
+}
+
+export interface ScenarioTeaserProps {
+  scenario: Scenario;
+  /** How many of the v8 beats the teaser plays. */
+  beats: number;
+  /** The deck's build step: one beat per step. */
+  step: number;
+  /** What the empty v9 side says once the last beat has landed. */
+  promise: string;
+}
+
+/**
+ * The opening of a scenario, v8 side only: the same frame as the full slide,
+ * with the v9 side held back as an empty, dashed box. The full scenario later
+ * in the talk plays both sides and pays off the promise.
+ */
+export function ScenarioTeaser({ scenario, beats, step, promise }: ScenarioTeaserProps) {
+  const shortened: Scenario = { ...scenario, v8: { ...scenario.v8, beats: scenario.v8.beats.slice(0, beats) } };
+  const done = step >= beats;
+
+  return (
+    <div className="sim" data-sim={`${scenario.name}-teaser`} data-phase="run">
+      <div className="scn__body">
+        <div className="scn__summary">
+          <div className="scn__pair">
+            <RunColumn scenario={shortened} side="v8" cursor={step} />
+            <section className="scn__col pane--v9 scn__col--v9 scn__col--later">
+              <h3 className="scn__col-title">{SIDE_TITLE.v9}</h3>
+              <motion.p
+                className="scn__later"
+                initial={false}
+                animate={{ opacity: done ? 1 : 0, y: done ? 0 : 8 }}
+                transition={{ duration: 0.35, ease: EASE }}
+              >
+                {promise}
+              </motion.p>
+            </section>
+          </div>
+          <p className="scn__takeaway is-placeholder" aria-hidden>
+            <span className="scn__takeaway-rule" />
+            {scenario.takeaway}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -8,5 +8,4 @@ review and is **never to be merged into `main`**, and it is not part of the prod
 onto `main` when a current build is needed; nobody else works on the branch.
 
 Run it with `npm ci && npm run build && npm run preview`, then open <http://localhost:4173> and press
-`f`. `README.md` documents the deck engine, `NOTES.md` is the presenter run sheet, and `CONTENT.md` is
-the fact sheet every claim in the deck traces back to.
+`f`. `README.md` documents the deck engine, the slides and the "do not overclaim" guardrails.

@@ -3,7 +3,7 @@ import { Slide } from '../components';
 import { FeatureGrid, type Feature } from './_kit';
 
 /**
- * What v9 opens up for app developers (CONTENT.md §1, «For developers»):
+ * What v9 opens up for app developers:
  * `IPipelineServiceTask` (durable stages, a completed stage never runs again),
  * mailbox replies (up to 21 days by default), service tasks as their own
  * waiting step, and per-step retry options (`ProcessStepOptions.RetryStrategy`).
@@ -40,7 +40,7 @@ export default function ForUtviklereSlide(_: SlideProps) {
   return (
     <Slide
       variant="full"
-      kicker="Backend"
+      kicker="Bak kulissene"
       title="Nye muligheter for utviklere"
       subtitle="Tjenesteoppgaver kan gjøre mer og tåle mer."
     >

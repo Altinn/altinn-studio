@@ -10,14 +10,16 @@
  *   { id: 'scenario-feil', component: FeilSlide, steps: SIM_STEPS.feil }
  */
 import { scenarioSteps } from './parts';
-import { FEIL, OMSTART } from './scenarios';
+import { FEIL, LUKKER } from './scenarios';
+import { TEASER_BEATS } from './Sims';
 
 export type { SimProps } from './types';
-export { SimFeil, SimOmstart } from './Sims';
-export { FEIL, OMSTART } from './scenarios';
+export { SimFeil, SimFeilTeaser, SimLukker } from './Sims';
+export { FEIL, LUKKER } from './scenarios';
 
 /** Build steps each scenario slide declares. */
 export const SIM_STEPS = {
+  teaser: TEASER_BEATS,
   feil: scenarioSteps(FEIL),
-  omstart: scenarioSteps(OMSTART),
+  lukker: scenarioSteps(LUKKER),
 } as const;

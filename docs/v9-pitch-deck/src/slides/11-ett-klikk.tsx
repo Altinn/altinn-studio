@@ -35,7 +35,7 @@ export default function EttKlikkSlide({ step }: SlideProps) {
 
       <div className="s-cover">
         <div className="s-cover__col">
-          <p className="s-cover__kicker">Backend</p>
+          <p className="s-cover__kicker">Bak kulissene</p>
           <h1 className="s-cover__title">
             Ett klikk,
             <br />

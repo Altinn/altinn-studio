@@ -1,14 +1,14 @@
 import { SectionSlide } from './_kit';
 
 /** The dividers between the parts of the talk. */
-export function SeksjonInfrastruktur() {
-  return <SectionSlide no="Del 1" title="Infrastruktur" lead="Plattformen appene kjører på." />;
+export function SeksjonBrukerne() {
+  return <SectionSlide part={0} />;
 }
 
-export function SeksjonFrontend() {
-  return <SectionSlide no="Del 2" title="Frontend" lead="Det brukerne ser og klikker i." />;
+export function SeksjonBakKulissene() {
+  return <SectionSlide part={1} />;
 }
 
-export function SeksjonBackend() {
-  return <SectionSlide no="Del 3" title="Backend" lead="Det appen gjør bak kulissene." />;
+export function SeksjonKomIGang() {
+  return <SectionSlide part={2} />;
 }

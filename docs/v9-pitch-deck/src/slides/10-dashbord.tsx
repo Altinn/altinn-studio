@@ -36,7 +36,7 @@ const CHAINS: {
   {
     id: 'skjema-b · 7d31…',
     segs: ['ok', 'ok', 'bad', 'idle', 'idle', 'idle'],
-    time: '41 s',
+    time: '1 min',
     state: 'Nytt forsøk',
     tone: 'bad',
     selected: true,
@@ -68,7 +68,7 @@ export default function DashbordSlide({ step }: SlideProps) {
   return (
     <Slide
       variant="full"
-      kicker="Backend"
+      kicker="Bak kulissene"
       title="Vi kan se hva som skjer"
       subtitle="Hver prosess, hvert steg og hvert nytt forsøk, med tidsbruk og hele feilhistorikken."
     >

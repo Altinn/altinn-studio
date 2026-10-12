@@ -204,25 +204,60 @@ export function FeatureGrid({
 }
 
 /* ---------------------------------------------------------------
-   Section divider — one per part of the talk.
+   The parts of the talk — the cover's map, and each divider.
    --------------------------------------------------------------- */
 
-export function SectionSlide({
-  no,
-  title,
-  lead,
-}: {
-  no: ReactNode;
-  title: ReactNode;
-  lead: ReactNode;
-}) {
+export interface Part {
+  icon: IconName;
+  no: string;
+  title: string;
+  body: string;
+}
+
+export const PARTS: readonly Part[] = [
+  { icon: 'eye', no: 'Del 1', title: 'Det brukerne merker', body: 'Skjemaet, ventingen og feilene' },
+  { icon: 'server', no: 'Del 2', title: 'Bak kulissene', body: 'Prosessmotoren og plattformen' },
+  { icon: 'send', no: 'Del 3', title: 'Kom i gang', body: 'Oppgraderingen og hva den krever' },
+];
+
+/** The map of the talk: every part, with `current` lit and the rest dimmed. */
+export function PartList({ current }: { current?: number }) {
+  return (
+    <ol className="s-pillars">
+      {PARTS.map((part, i) => (
+        <Enter key={part.title} index={i}>
+          <li className={`s-pillar${current !== undefined && current !== i ? ' is-dim' : ''}`}>
+            <span className="s-pillar__icon">
+              <Icon name={part.icon} size={40} />
+            </span>
+            <span className="s-pillar__text">
+              <span className="s-pillar__no">{part.no}</span>
+              <span className="s-pillar__title">{part.title}</span>
+              <span className="s-pillar__body">{part.body}</span>
+            </span>
+          </li>
+        </Enter>
+      ))}
+    </ol>
+  );
+}
+
+/**
+ * Section divider: the cover's map again, with the part about to start lit, so
+ * the room always knows where it is in the talk.
+ */
+export function SectionSlide({ part }: { part: number }) {
+  const { no, title, body } = PARTS[part];
   return (
     <Slide variant="full">
-      <Backdrop variant="closing" />
-      <div className="s-section">
-        <p className="s-section__no">{no}</p>
-        <h1 className="s-section__title">{title}</h1>
-        <p className="s-section__lead">{lead}</p>
+      <Backdrop />
+      <div className="s-cover">
+        <div className="s-cover__col">
+          <p className="s-cover__kicker">{no}</p>
+          <h1 className="s-cover__title">{title}</h1>
+          <p className="s-cover__lead">{body}.</p>
+        </div>
+        <PartList current={part} />
       </div>
     </Slide>
   );

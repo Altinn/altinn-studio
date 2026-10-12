@@ -4,9 +4,15 @@ import type { Scenario, Screen } from './parts';
  * The scenario scripts. Each one is the same accident told twice; see
  * `parts/scenario.ts` for the model and `parts/ScenarioStage.tsx` for the stage.
  *
- * The screens use the product's own words: the v8 toast is
- * `process_error.submit_error_please_retry`, and the v9 waiting view is
- * `process_workflow.still_working`, shown after 8 s (CONTENT.md §1).
+ * The screens show what the person actually sees:
+ *
+ *  - v8 (frontend 4.x) toasts the error's raw text. Only a failed PDF
+ *    generation gets the friendly `process_error.submit_error_please_retry`;
+ *    anything else shows the backend's exception message, or the HTTP client's
+ *    own message when the connection itself broke.
+ *  - v9 shows `process_workflow.having_trouble` once an attempt has failed twice
+ *    (or once after 20 s), and `process_workflow.still_working` after 8 s
+ *    otherwise. Both say the answers are saved and the page can be closed.
  */
 
 const READY: Screen = {
@@ -17,18 +23,25 @@ const READY: Screen = {
 };
 const SENDING: Screen = { title: 'Sender inn …', tone: 'busy' };
 /** v8 keeps the user on the same page, with the form's button still there. */
-const V8_ERROR: Screen = {
-  title: 'Noe gikk galt',
-  body: 'Prøv igjen om noen minutter.',
+const V8_SERVICE_DOWN: Screen = {
+  title: '503 (Service Unavailable)',
+  body: 'Response status code does not indicate success.',
   tone: 'bad',
   button: 'Send inn',
 };
+const V9_TROUBLE: Screen = {
+  title: 'Vi kan ikke behandle skjemaet ditt akkurat nå',
+  body: 'Vi prøver igjen automatisk. Opplysningene dine er lagret.',
+  tone: 'wait',
+};
 const V9_WORKING: Screen = {
   title: 'Dette tar uvanlig lang tid',
-  body: 'Opplysningene dine er lagret. Du kan trygt lukke siden.',
+  body: 'Du kan trygt lukke siden og komme tilbake senere.',
   tone: 'busy',
 };
 const RECEIPT: Screen = { title: 'Kvittering klar', body: 'Skjemaet er levert.', tone: 'ok' };
+/** The tab is gone: nothing on screen any more. */
+const CLOSED: Screen = { title: 'Siden er lukket', tone: 'idle' };
 
 /**
  * (1) NOE FEILER UNDER INNSENDING — a service the app depends on does not
@@ -36,16 +49,15 @@ const RECEIPT: Screen = { title: 'Kvittering klar', body: 'Skjemaet er levert.',
  *
  *  - v8 saves the process state only after every hook has run, so the user
  *    never moves: they stay on the same page with the toast. Nothing retries by
- *    itself, and a retry runs every hook of the transition again, so a message
- *    an app hook sent (v8's correspondence client has no idempotency key) can
- *    go out twice. (A duplicate PDF is cleaned up, so it is not the example.)
+ *    itself: the form is only sent because Kari tries again, and a retry runs
+ *    every hook of the transition from the start. The comparison ends on who
+ *    did the retrying, not on duplicates — v9 is at-least-once, so a duplicate
+ *    is not a contrast the deck can draw.
  *  - v9 retries the step automatically, and a completed step is not run again.
- *    The slide never promises that nothing runs twice (delivery is
- *    at-least-once).
  */
 export const FEIL: Scenario = {
   name: 'feil',
-  title: 'Noe feiler under innsending',
+  title: 'Hva skjer når noe feiler?',
   headline: 'En tjeneste appen er avhengig av, er nede en kort stund.',
   frame: 'skjema.altinn.no',
   v8: {
@@ -53,24 +65,24 @@ export const FEIL: Scenario = {
     beats: [
       { id: 'send', text: 'Kari trykker «Send inn»', status: 'running', screen: SENDING },
       { id: 'fail', text: 'En tjeneste er nede', status: 'fail' },
-      { id: 'seen', text: 'Kari står igjen på samme side', status: 'fail', screen: V8_ERROR },
+      { id: 'seen', text: 'Kari får en teknisk feilmelding', status: 'fail', screen: V8_SERVICE_DOWN },
       { id: 'retry', text: 'Hun må prøve på nytt selv', status: 'wait' },
       { id: 'again', text: 'Alt kjøres på nytt fra start', status: 'fail' },
       {
-        id: 'twice',
-        text: 'Meldinger kan gå ut to ganger',
-        status: 'fail',
-        screen: { title: 'Kvittering klar', body: 'Etter et nytt forsøk.', tone: 'wait' },
+        id: 'retried',
+        text: 'Sendt, fordi Kari prøvde igjen',
+        status: 'wait',
+        screen: { title: 'Kvittering klar', body: 'Etter at Kari prøvde igjen.', tone: 'wait' },
       },
     ],
-    outcome: 'Kari måtte prøve igjen selv.',
+    outcome: 'Skjemaet ble bare sendt fordi Kari prøvde igjen.',
   },
   v9: {
     start: READY,
     beats: [
       { id: 'send', text: 'Kari trykker «Send inn»', status: 'running', screen: SENDING },
       { id: 'fail', text: 'En tjeneste er nede', status: 'fail' },
-      { id: 'seen', text: 'Kari ser at arbeidet fortsetter', status: 'running', screen: V9_WORKING },
+      { id: 'seen', text: 'Kari får vite at vi prøver igjen', status: 'running', screen: V9_TROUBLE },
       { id: 'retry', text: 'Plattformen prøver igjen selv', status: 'running' },
       { id: 'only', text: 'Bare det som feilet, kjøres igjen', status: 'ok' },
       { id: 'end', text: 'Kvitteringen er klar', status: 'ok', screen: RECEIPT },
@@ -78,50 +90,61 @@ export const FEIL: Scenario = {
     outcome: 'Kari trengte ikke å gjøre noe.',
   },
   takeaway:
-    'En kort feil gir litt ventetid, ikke en ny innsending. Plattformen prøver igjen selv, og det som er fullført, kjøres ikke på nytt.',
+    'I v8 er det brukeren som prøver igjen. I v9 gjør plattformen det, og det som er fullført, kjøres ikke på nytt.',
 };
 
 /**
- * (2) SERVEREN STARTES PÅ NYTT: the app restarts while Kari submits, as it does
- * for maintenance or scaling. Deliberately not framed as a deploy: resuming
- * work under a *new* app version raises version compatibility, which v9 does
- * not solve, so the deck never promises «deploy whenever you like».
+ * (2) KARI LUKKER SIDEN — Kari closes the tab before the submission is done,
+ * and a service the app depends on does not answer while she is away.
  *
- *  - v8 has no durable record of a transition in flight, and the side effects
- *    run before the process state is saved, so a PDF can be stored while the
- *    rest never happens and the process stays where it was.
- *  - v9 keeps every step in the engine's database. A step whose server went
- *    away is picked up again once a server is back, from the last completed
- *    step. The waiting view stays up, and a reload shows the same state.
+ *  - v8 runs the transition inside Kari's own request. The server does not
+ *    abort it when she leaves (the task-end work never sees the request's
+ *    cancellation token), so it carries on — but if something fails after she
+ *    has gone, nobody retries and nobody tells her. The process state is saved
+ *    last, so the instance stays where it was: still a draft.
+ *  - v9 hands the transition to the process engine, which owns it whether or
+ *    not anyone is watching. The waiting view says it is safe to close the
+ *    page (`process_workflow.still_working`), the engine retries, and the
+ *    finished instance is in her inbox when she looks.
  */
-export const OMSTART: Scenario = {
-  name: 'omstart',
-  title: 'Serveren startes på nytt',
-  headline: 'Appen startes på nytt midt i Karis innsending.',
+export const LUKKER: Scenario = {
+  name: 'lukker',
+  title: 'Kari lukker siden',
+  headline: 'Kari går fra skjemaet før det er sendt, og en tjeneste svarer ikke.',
   frame: 'skjema.altinn.no',
   v8: {
     start: READY,
     beats: [
       { id: 'send', text: 'Kari trykker «Send inn»', status: 'running', screen: SENDING },
-      { id: 'restart', text: 'Serveren startes på nytt', status: 'fail' },
-      { id: 'seen', text: 'Kari får en feilmelding', status: 'fail', screen: V8_ERROR },
-      { id: 'half', text: 'PDF-en er laget, resten ikke', status: 'fail' },
-      { id: 'unknown', text: 'Ingen vet hvor langt det kom', status: 'fail' },
-      { id: 'retry', text: 'Kari må prøve igjen og håpe', status: 'wait' },
+      { id: 'close', text: 'Det tar tid, og Kari lukker siden', status: 'wait', screen: CLOSED },
+      { id: 'fail', text: 'En tjeneste svarer ikke', status: 'fail' },
+      { id: 'noretry', text: 'Ingen prøver igjen', status: 'fail' },
+      {
+        id: 'unsent',
+        text: 'Skjemaet er ikke sendt',
+        status: 'fail',
+        screen: { title: 'Fortsatt et utkast', body: 'Skjemaet ble aldri sendt.', tone: 'bad' },
+      },
+      { id: 'unknown', text: 'Kari får ikke vite det', status: 'fail' },
     ],
-    outcome: 'Arbeidet stoppet halvveis.',
+    outcome: 'Kari tror skjemaet er sendt. Det er det ikke.',
   },
   v9: {
     start: READY,
     beats: [
       { id: 'send', text: 'Kari trykker «Send inn»', status: 'running', screen: SENDING },
-      { id: 'restart', text: 'Serveren startes på nytt', status: 'fail' },
-      { id: 'seen', text: 'Kari ser at arbeidet fortsetter', status: 'running', screen: V9_WORKING },
-      { id: 'saved', text: 'Hvert steg er lagret', status: 'ok' },
-      { id: 'resume', text: 'Arbeidet fortsetter der det slapp', status: 'running' },
-      { id: 'end', text: 'Kvitteringen er klar', status: 'ok', screen: RECEIPT },
+      { id: 'close', text: 'Siden sier at hun kan lukke den', status: 'running', screen: V9_WORKING },
+      { id: 'fail', text: 'En tjeneste svarer ikke', status: 'fail', screen: CLOSED },
+      { id: 'retry', text: 'Plattformen prøver igjen selv', status: 'running' },
+      { id: 'done', text: 'Skjemaet blir levert', status: 'ok' },
+      {
+        id: 'receipt',
+        text: 'Kvitteringen ligger i innboksen',
+        status: 'ok',
+        screen: { title: 'Kvittering klar', body: 'Ligger i innboksen.', tone: 'ok' },
+      },
     ],
-    outcome: 'Ferdig, med litt venting.',
+    outcome: 'Kari kunne gå. Arbeidet gjorde seg ferdig.',
   },
-  takeaway: 'En omstart koster litt ventetid, ikke en ny innsending. Arbeidet fortsetter der det slapp.',
+  takeaway: 'I v9 er det plattformen som gjør jobben, ikke nettleseren. Brukeren kan gå fra siden.',
 };

@@ -3,7 +3,7 @@ import type { SlideProps } from '../deck';
 import { Slide, Icon, Reveal } from '../components';
 
 /**
- * The frontend part's lead slide, as two pictures (CONTENT.md §1.29–31).
+ * Two pictures of the frontend: speed, and one version with the app.
  *
  * Left: the one speed measurement there is — page navigation in a 32-page
  * form went from ~280–310 ms to ~150–180 ms (#18987); the bars use the
@@ -23,7 +23,7 @@ export default function FrontendFolgerAppenSlide({ step }: SlideProps) {
   return (
     <Slide
       variant="full"
-      kicker="Frontend"
+      kicker="Det brukerne merker"
       title="Raskere og i takt med appen"
       subtitle="Ny arkitektur under panseret, og en frontend som alltid har samme versjon som appen."
     >

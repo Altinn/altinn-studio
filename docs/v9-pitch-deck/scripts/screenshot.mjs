@@ -27,13 +27,6 @@ const NAV_TIMEOUT_MS = 30_000;
 const READY_TIMEOUT_MS = 20_000;
 /** Let reveal/step animations finish before the shutter. */
 const SETTLE_MS = 450;
-/**
- * A simulation slide plays itself for ~16 s, and `animations: 'disabled'` does
- * not touch it: the scene is driven by a timer, not by CSS. Waiting for the run
- * to park is what makes this capture deterministic — without it the shutter
- * lands on whichever beat happened to be on screen 450 ms after arrival, so the
- * "deterministic" mode produced a different picture on every run.
- */
 
 function parseArgs(argv) {
   const args = { steps: false, url: null, out: 'shots', port: 4173 };

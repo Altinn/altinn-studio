@@ -1,7 +1,7 @@
 import '../sims.css';
 
-export { ScenarioStage } from './ScenarioStage';
-export type { ScenarioStageProps } from './ScenarioStage';
+export { ScenarioStage, ScenarioTeaser } from './ScenarioStage';
+export type { ScenarioStageProps, ScenarioTeaserProps } from './ScenarioStage';
 
 export { phaseAt, scenarioSteps, screenAt } from './scenario';
 export type { Beat, Phase, RowStatus, Run, Scenario, Screen, ScreenTone } from './scenario';

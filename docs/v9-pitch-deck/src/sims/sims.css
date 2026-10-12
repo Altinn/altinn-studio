@@ -360,6 +360,19 @@
   background: var(--t-soft);
 }
 
+/* The teaser's v9 side: held back, with only the promise in it. */
+.scn__col--later {
+  border-style: dashed;
+  background: transparent;
+}
+
+.scn__later {
+  margin: auto;
+  font-size: 40px;
+  font-weight: var(--fw-semibold);
+  color: var(--t);
+}
+
 /* ===== The comparison ========================================= */
 
 .scn__summary {
@@ -381,7 +394,7 @@
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
   grid-template-rows: auto auto;
-  align-content: center;
+  align-content: start;
   column-gap: 36px;
   row-gap: 18px;
   padding: 26px 30px;
@@ -439,6 +452,7 @@
   flex: 0 0 auto;
   display: flex;
   align-items: center;
+  min-height: 2.4em;
   gap: 20px;
   font-size: 36px;
   font-weight: var(--fw-semibold);

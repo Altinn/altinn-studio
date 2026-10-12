@@ -7,7 +7,7 @@ export default function ProsessmotorSlide(_: SlideProps) {
   return (
     <Slide
       variant='full'
-      kicker='Backend'
+      kicker='Bak kulissene'
       title='En motor for prosessene'
       subtitle='Appen sier hva som skal skje. Prosessmotoren sørger for at det blir gjort.'
     >

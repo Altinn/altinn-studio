@@ -4,7 +4,7 @@ import { FeatureGrid, type Feature } from './_kit';
 
 /**
  * The platform part in one slide: what v9 brings, and a banner for what v8
- * apps already have (CONTENT.md §1.26–28). The admin-page status is stated as
+ * apps already have. The admin-page status is stated as
  * fact because it is merged before the talk; re-check #20233–#20236.
  */
 const FEATURES: Feature[] = [
@@ -33,7 +33,7 @@ export default function InfraNyttIV9Slide(_: SlideProps) {
   return (
     <Slide
       variant="full"
-      kicker="Infrastruktur"
+      kicker="Bak kulissene"
       title="Nytt med v9"
       subtitle="Plattformen tar mer av jobben, så appen kan gjøre mindre."
     >

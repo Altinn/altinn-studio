@@ -26,11 +26,12 @@ export default function OppgraderingSlide({ step }: SlideProps) {
     <Slide
       variant="split"
       splitRatio="820px 788px"
-      kicker="Backend"
+      className="s-upgrade"
+      kicker="Kom i gang"
       title="Slik oppgraderer du til v9"
-      subtitle="Prosessen din er den samme. Oppgraderingen kjøres rett fra Studio, eller med studioctl."
+      subtitle="Verktøyet gjør det meste. Oppgraderingen kjøres rett fra Studio, eller med studioctl."
     >
-      <div className="s-fill" style={{ justifyContent: 'flex-start', gap: 'var(--sp-4)' }}>
+      <div className="s-fill" style={{ justifyContent: 'center', gap: 'var(--sp-4)' }}>
         <div className="s-bpmn">
           <svg viewBox="0 0 756 130" width={756} height={130} aria-hidden>
             <circle cx="30" cy="65" r="26" fill="none" stroke="#6b7a8f" strokeWidth="3" />

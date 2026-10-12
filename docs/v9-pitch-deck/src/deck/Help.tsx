@@ -17,10 +17,6 @@ const SHORTCUTS: Array<[string[], string]> = [
   [['?'], 'Toggle this help'],
   [['Esc'], 'Close overlay / leave fullscreen'],
   [['Swipe'], 'Swipe left / right on touch devices'],
-  // On the three simulation slides `Space` belongs to the scene, not the deck
-  // (src/sims/parts/useScenario.ts takes it in the capture phase), so the sheet
-  // has to say so — otherwise it contradicts the row above it, and the run sheet.
-  [['Space', 'R'], 'On a simulation: pause / resume, and replay'],
 ];
 
 /** Keyboard cheat sheet. Toggled with `?`. */

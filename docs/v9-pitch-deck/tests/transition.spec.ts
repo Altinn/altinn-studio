@@ -230,12 +230,12 @@ test('a slide change crossfades without a gap, a ghost or a flash', async ({ pag
 });
 
 test('tiles enter with their slide without blinking', async ({ page }) => {
-  await page.goto('/#/2'); // the next slide, `infra-nytt-i-v9`, has tiles that enter
+  await page.goto('/#/3'); // the next slide, `frontend-brukerne-merker`, has tiles that enter
   await settle(page);
   const { frames } = await record(page, () => page.keyboard.press('ArrowDown'));
   await settle(page);
   const id = (await root(page).getAttribute('data-slide-id'))!;
-  expect(id).toBe('infra-nytt-i-v9');
+  expect(id).toBe('frontend-brukerne-merker');
 
   const tracks = framesOf(frames, id).map((f) => f.layer.reveals);
   // Prove the check ran: the tiles must actually have animated in.
@@ -281,10 +281,10 @@ test('five presses in one second leave a settled, correct stage', async ({ page 
   ).toBeGreaterThan(MIN_COVERAGE);
 
   await settle(page);
-  // Slides 1-4 have no build steps and slide 5 has one, so five presses land
-  // on slide 5's build step.
-  await expect(root(page)).toHaveAttribute('data-slide-index', '4');
-  await expect(root(page)).toHaveAttribute('data-slide-step', '1');
+  // The cover has no build steps and slide 2 has four, so five presses land on
+  // slide 2's last build step.
+  await expect(root(page)).toHaveAttribute('data-slide-index', '1');
+  await expect(root(page)).toHaveAttribute('data-slide-step', '4');
 
   // Exactly one layer left, and it is the slide the deck claims to be on.
   const layers = page.locator('.deck__slide');
@@ -307,9 +307,9 @@ test('keyboard repeat never strands the deck on a stale slide', async ({ page })
     'data-slide-layer',
     (await root(page).getAttribute('data-slide-id'))!,
   );
-  // Slides 1-7 hold 0 + 0 + 0 + 0 + 1 + 0 + 0 build steps, so the eighth
-  // press opens slide 8. Anything short of that means presses were swallowed.
-  await expect(root(page)).toHaveAttribute('data-slide-index', '7');
+  // Slides 1-4 hold 0 + 4 + 0 + 0 build steps, so the eighth press opens
+  // slide 5. Anything short of that means presses were swallowed.
+  await expect(root(page)).toHaveAttribute('data-slide-index', '4');
   await expect(root(page)).toHaveAttribute('data-slide-step', '0');
 });
 
