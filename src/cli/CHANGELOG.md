@@ -16,7 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - `studioctl app upgrade v9` keeps your validation message texts showing: ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
-  - renames texts for built-in validation messages that used the issue code as key, such as `DataElementTooLarge`, to their v9 keys, such as `backend.validation_errors.file_too_large`
+  - renames your texts for built-in validation messages and PDF texts to their v9 keys, such as `DataElementTooLarge` to `validation_errors.file_too_large` and `pdfPreviewText` to `pdf.preview_text`
   - moves a text key your code sets as a validation issue's `Description` to `CustomTextKey`, and removes a description that repeats the text key, also in `CreateValidationIssue` calls
 - `studioctl app upgrade v9` removes unsupported `required` and `readOnly` properties from known components. It preserves `minNumberOfAttachments` and `minCount`; conflicts with `required` produce a TODO asking you to verify the minimum. ([#16618](https://github.com/Altinn/altinn-studio/issues/16618))
 

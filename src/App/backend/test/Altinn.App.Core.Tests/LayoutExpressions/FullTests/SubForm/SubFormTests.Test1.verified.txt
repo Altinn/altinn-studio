@@ -24,7 +24,7 @@
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
-    CustomTextKey: backend.validation_errors.required,
+    CustomTextKey: validation_errors.required,
     CustomTextParameters: {
       bindingName: simpleBinding,
       componentId: Address,
@@ -41,7 +41,7 @@
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
-    CustomTextKey: backend.validation_errors.required,
+    CustomTextKey: validation_errors.required,
     CustomTextParameters: {
       bindingName: simpleBinding,
       componentId: Name,
@@ -67,7 +67,7 @@
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
-    CustomTextKey: backend.validation_errors.required,
+    CustomTextKey: validation_errors.required,
     CustomTextParameters: {
       bindingName: simpleBinding,
       componentId: Phone,
@@ -84,7 +84,7 @@
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
-    CustomTextKey: backend.validation_errors.required,
+    CustomTextKey: validation_errors.required,
     CustomTextParameters: {
       bindingName: simpleBinding,
       componentId: Email,
@@ -119,7 +119,7 @@
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
-    CustomTextKey: backend.validation_errors.required,
+    CustomTextKey: validation_errors.required,
     CustomTextParameters: {
       bindingName: simpleBinding,
       componentId: Address,
@@ -136,7 +136,7 @@
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
-    CustomTextKey: backend.validation_errors.required,
+    CustomTextKey: validation_errors.required,
     CustomTextParameters: {
       bindingName: simpleBinding,
       componentId: Name,
@@ -162,7 +162,7 @@
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
-    CustomTextKey: backend.validation_errors.required,
+    CustomTextKey: validation_errors.required,
     CustomTextParameters: {
       bindingName: simpleBinding,
       componentId: Phone,

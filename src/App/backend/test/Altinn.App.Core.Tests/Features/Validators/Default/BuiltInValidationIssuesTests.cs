@@ -84,7 +84,7 @@ public class BuiltInValidationIssuesTests
         Assert.Equal(ValidationIssueSeverity.Error, issue.Severity);
         Assert.Equal("element", issue.DataElementId);
         Assert.Equal("attachment", issue.Field);
-        Assert.Equal("backend.validation_errors.file_too_large", issue.CustomTextKey);
+        Assert.Equal("validation_errors.file_too_large", issue.CustomTextKey);
         Assert.Equal(
             new Dictionary<string, string>
             {

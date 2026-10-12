@@ -10,7 +10,7 @@ internal static class BuiltInTextResources
 {
     public static readonly BackendTextResource PdfPreviewText = new()
     {
-        Key = "pdfPreviewText",
+        Key = "pdf.preview_text",
         Texts = new LocalizedText(
             nb: "Dokumentet er en forhåndsvisning",
             nn: "Dokumentet er ein førehandsvisning",
@@ -20,7 +20,7 @@ internal static class BuiltInTextResources
 
     public static readonly BackendTextResource PdfDefaultFileName = new()
     {
-        Key = "backend.pdf_default_file_name",
+        Key = "pdf.default_file_name",
         Texts = LocalizedText.Invariant("{appName}.pdf"),
         Variables =
         [

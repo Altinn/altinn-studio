@@ -2,19 +2,19 @@
 
 | Code | Severity | Text key | Custom text parameters |
 |---|---|---|---|
-| `MissingContentType` | Error | `backend.validation_errors.missing_content_type` | `filename`, `dataType` |
-| `ContentTypeNotAllowed` | Error | `altinn.standard_validation.file_content_type_not_allowed` | `filename`, `dataType`, `contentType`, `allowedContentTypes` |
-| `DataElementTooLarge` | Error | `backend.validation_errors.file_too_large` | `filename`, `dataType`, `maxSize` |
-| `DataElementFileInfected` | Error | `backend.validation_errors.file_infected` | `filename`, `dataType` |
-| `DataElementFileScanPending` | Error | `backend.validation_errors.file_scan_pending` | `filename`, `dataType` |
-| `TooManyDataElementsOfType` | Error | `backend.validation_errors.too_many_data_elements` | `maxCount`, `dataType` |
-| `TooFewDataElementsOfType` | Error | `backend.validation_errors.too_few_data_elements` | `minCount`, `dataType` |
-| `MissingSignatures` | Error | `backend.validation_errors.missing_signatures` | `signedCount`, `signeeCount`, `minCount`, `dataType` |
-| `InvalidSignatureHash` | Error | `backend.validation_errors.invalid_signature_hash` | `dataElementId`, `filename`, `dataType` |
-| `required` | Error | `backend.validation_errors.required` | `field`, `layoutId`, `pageId`, `componentId`, `bindingName`, `pageName`, `componentTitle` |
-| `Xsd` | Error | `backend.xsd_validation` | `schema`, `message` |
+| `MissingContentType` | Error | `validation_errors.missing_content_type` | `filename`, `dataType` |
+| `ContentTypeNotAllowed` | Error | `validation_errors.file_content_type_not_allowed` | `filename`, `dataType`, `contentType`, `allowedContentTypes` |
+| `DataElementTooLarge` | Error | `validation_errors.file_too_large` | `filename`, `dataType`, `maxSize` |
+| `DataElementFileInfected` | Error | `validation_errors.file_infected` | `filename`, `dataType` |
+| `DataElementFileScanPending` | Error | `validation_errors.file_scan_pending` | `filename`, `dataType` |
+| `TooManyDataElementsOfType` | Error | `validation_errors.too_many_data_elements` | `maxCount`, `dataType` |
+| `TooFewDataElementsOfType` | Error | `validation_errors.too_few_data_elements` | `minCount`, `dataType` |
+| `MissingSignatures` | Error | `validation_errors.missing_signatures` | `signedCount`, `signeeCount`, `minCount`, `dataType` |
+| `InvalidSignatureHash` | Error | `validation_errors.invalid_signature_hash` | `dataElementId`, `filename`, `dataType` |
+| `required` | Error | `validation_errors.required` | `field`, `layoutId`, `pageId`, `componentId`, `bindingName`, `pageName`, `componentTitle` |
+| `Xsd` | Error | `validation_errors.xsd` | `schema`, `message` |
 
-## `backend.validation_errors.missing_content_type`
+## `validation_errors.missing_content_type`
 
 The data element has no content type.
 
@@ -31,7 +31,7 @@ Code `MissingContentType`, severity Error.
 | `filename` | Name of the file. Empty if the name is unknown. |
 | `dataType` | Id of the data type. |
 
-## `altinn.standard_validation.file_content_type_not_allowed`
+## `validation_errors.file_content_type_not_allowed`
 
 The content type of the data element is not in the data type's allowedContentTypes. MimeTypeValidator in Altinn.FileAnalyzers raises it too, for the content type it detects in the file, with the same key and parameters.
 
@@ -50,7 +50,7 @@ Code `ContentTypeNotAllowed`, severity Error.
 | `contentType` | Content type of the file, without parameters like charset. |
 | `allowedContentTypes` | The allowed content types, separated by commas. |
 
-## `backend.validation_errors.file_too_large`
+## `validation_errors.file_too_large`
 
 The data element is larger than the data type's maxSize.
 
@@ -68,7 +68,7 @@ Code `DataElementTooLarge`, severity Error.
 | `dataType` | Id of the data type. |
 | `maxSize` | Largest allowed file size in MB. |
 
-## `backend.validation_errors.file_infected`
+## `validation_errors.file_infected`
 
 The file scan found malware in the data element.
 
@@ -85,7 +85,7 @@ Code `DataElementFileInfected`, severity Error.
 | `filename` | Name of the file. Empty if the name is unknown. |
 | `dataType` | Id of the data type. |
 
-## `backend.validation_errors.file_scan_pending`
+## `validation_errors.file_scan_pending`
 
 The file scan of the data element has not finished, and the data type has validationErrorOnPendingFileScan.
 
@@ -102,7 +102,7 @@ Code `DataElementFileScanPending`, severity Error.
 | `filename` | Name of the file. Empty if the name is unknown. |
 | `dataType` | Id of the data type. |
 
-## `backend.validation_errors.too_many_data_elements`
+## `validation_errors.too_many_data_elements`
 
 The task has more data elements of a data type than its maxCount.
 
@@ -119,7 +119,7 @@ Code `TooManyDataElementsOfType`, severity Error.
 | `maxCount` | Largest allowed number of data elements. |
 | `dataType` | Id of the data type. |
 
-## `backend.validation_errors.too_few_data_elements`
+## `validation_errors.too_few_data_elements`
 
 The task has fewer data elements of a data type than its minCount.
 
@@ -136,7 +136,7 @@ Code `TooFewDataElementsOfType`, severity Error.
 | `minCount` | Smallest allowed number of data elements. |
 | `dataType` | Id of the data type. |
 
-## `backend.validation_errors.missing_signatures`
+## `validation_errors.missing_signatures`
 
 A signing task has fewer signatures than required, or not every signee has signed.
 
@@ -155,7 +155,7 @@ Code `MissingSignatures`, severity Error.
 | `minCount` | Smallest number of signatures the signature data type requires. |
 | `dataType` | Id of the signature data type. |
 
-## `backend.validation_errors.invalid_signature_hash`
+## `validation_errors.invalid_signature_hash`
 
 A signed data element has changed after it was signed.
 
@@ -173,7 +173,7 @@ Code `InvalidSignatureHash`, severity Error.
 | `filename` | Name of the file. Empty if the name is unknown. |
 | `dataType` | Id of the data type. |
 
-## `backend.validation_errors.required`
+## `validation_errors.required`
 
 A required component that is not hidden has an empty data model binding.
 
@@ -195,7 +195,7 @@ Code `required`, severity Error.
 | `pageName` | The page id translated as a text resource. |
 | `componentTitle` | The component's title. Only set when the title is a text, not an expression. |
 
-## `backend.xsd_validation`
+## `validation_errors.xsd`
 
 The serialized form data does not follow the data type's XSD schema.
 

@@ -30,7 +30,7 @@ internal static class BuiltInValidationIssues
         Description = "The data element has no content type.",
         TextResource = new()
         {
-            Key = "backend.validation_errors.missing_content_type",
+            Key = "validation_errors.missing_content_type",
             Texts = new LocalizedText(
                 nb: "Filen har ingen filtype.",
                 nn: "Fila har ingen filtype.",
@@ -51,7 +51,7 @@ internal static class BuiltInValidationIssues
             "The content type of the data element is not in the data type's allowedContentTypes. MimeTypeValidator in Altinn.FileAnalyzers raises it too, for the content type it detects in the file, with the same key and parameters.",
         TextResource = new()
         {
-            Key = "altinn.standard_validation.file_content_type_not_allowed",
+            Key = "validation_errors.file_content_type_not_allowed",
             Texts = new LocalizedText(
                 nb: "Det ser ut som du prøver å laste opp en filtype som ikke er tillatt. Sjekk at filen faktisk er av den typen den utgir seg for å være. Tillatte filtyper er: {allowedContentTypes}.",
                 nn: "Det ser ut som du prøver å lasta opp ein filtype som ikkje er tillaten. Sjekk at fila faktisk er av den typen han gir seg ut for å vera. Tillatne filtypar er: {allowedContentTypes}.",
@@ -87,7 +87,7 @@ internal static class BuiltInValidationIssues
         Description = "The data element is larger than the data type's maxSize.",
         TextResource = new()
         {
-            Key = "backend.validation_errors.file_too_large",
+            Key = "validation_errors.file_too_large",
             Texts = new LocalizedText(
                 nb: "Filen er for stor. Største tillatte filstørrelse er {maxSize} MB.",
                 nn: "Fila er for stor. Største tillatne filstorleik er {maxSize} MB.",
@@ -111,7 +111,7 @@ internal static class BuiltInValidationIssues
         Description = "The file scan found malware in the data element.",
         TextResource = new()
         {
-            Key = "backend.validation_errors.file_infected",
+            Key = "validation_errors.file_infected",
             Texts = new LocalizedText(
                 nb: "Filen er infisert med skadelig programvare og kan ikke brukes.",
                 nn: "Fila er infisert med skadeleg programvare og kan ikkje brukast.",
@@ -132,7 +132,7 @@ internal static class BuiltInValidationIssues
             "The file scan of the data element has not finished, and the data type has validationErrorOnPendingFileScan.",
         TextResource = new()
         {
-            Key = "backend.validation_errors.file_scan_pending",
+            Key = "validation_errors.file_scan_pending",
             Texts = new LocalizedText(
                 nb: "Filen blir skannet for skadelig programvare. Vent til skanningen er ferdig.",
                 nn: "Fila blir skanna for skadeleg programvare. Vent til skanninga er ferdig.",
@@ -154,7 +154,7 @@ internal static class BuiltInValidationIssues
         Description = "The task has more data elements of a data type than its maxCount.",
         TextResource = new()
         {
-            Key = "backend.validation_errors.too_many_data_elements",
+            Key = "validation_errors.too_many_data_elements",
             Texts = new LocalizedText(
                 nb: "Det er lagt til flere enn {maxCount} elementer av typen {dataType}.",
                 nn: "Det er lagt til fleire enn {maxCount} element av typen {dataType}.",
@@ -178,7 +178,7 @@ internal static class BuiltInValidationIssues
         Description = "The task has fewer data elements of a data type than its minCount.",
         TextResource = new()
         {
-            Key = "backend.validation_errors.too_few_data_elements",
+            Key = "validation_errors.too_few_data_elements",
             Texts = new LocalizedText(
                 nb: "Det må legges til minst {minCount} elementer av typen {dataType}.",
                 nn: "Det må leggjast til minst {minCount} element av typen {dataType}.",
@@ -202,7 +202,7 @@ internal static class BuiltInValidationIssues
         Description = "A signing task has fewer signatures than required, or not every signee has signed.",
         TextResource = new()
         {
-            Key = "backend.validation_errors.missing_signatures",
+            Key = "validation_errors.missing_signatures",
             Texts = new LocalizedText(
                 nb: "Det mangler påkrevde signaturer.",
                 nn: "Det manglar påkravde signaturar.",
@@ -237,7 +237,7 @@ internal static class BuiltInValidationIssues
         Description = "A signed data element has changed after it was signed.",
         TextResource = new()
         {
-            Key = "backend.validation_errors.invalid_signature_hash",
+            Key = "validation_errors.invalid_signature_hash",
             Texts = new LocalizedText(
                 nb: "Signerte data er endret etter at signaturen ble utført.",
                 nn: "Signerte data er endra etter at signaturen vart utført.",
@@ -268,7 +268,7 @@ internal static class BuiltInValidationIssues
         Description = "A required component that is not hidden has an empty data model binding.",
         TextResource = new()
         {
-            Key = "backend.validation_errors.required",
+            Key = "validation_errors.required",
             Texts = new LocalizedText(nb: "Feltet er påkrevd", nn: "Feltet er påkravd", en: "Field is required"),
             Variables =
             [
@@ -309,7 +309,7 @@ internal static class BuiltInValidationIssues
         Description = "The serialized form data does not follow the data type's XSD schema.",
         TextResource = new()
         {
-            Key = "backend.xsd_validation",
+            Key = "validation_errors.xsd",
             Texts = new LocalizedText(
                 nb: "Et felt bryter reglene satt av XSD. Melding: {message}",
                 nn: "Eit felt bryt reglane sette av XSD. Melding: {message}",

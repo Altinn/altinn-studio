@@ -96,10 +96,7 @@ public class MimeTypeValidatorTests
 
         var issue = Assert.Single(errors);
         Assert.Null(issue.Description);
-        Assert.Equal(
-            "altinn.standard_validation.file_content_type_not_allowed",
-            issue.CustomTextKey
-        );
+        Assert.Equal("validation_errors.file_content_type_not_allowed", issue.CustomTextKey);
         Assert.Equal(
             new Dictionary<string, string>
             {

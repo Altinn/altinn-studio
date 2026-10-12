@@ -10,7 +10,7 @@ internal sealed class MimeTypeValidator : IFileValidator
     // Altinn.App.Core owns the default texts and the parameters for this key, in
     // BuiltInValidationIssues.ContentTypeNotAllowedDefinition. Keep the parameters below in line with it.
     private const string ContentTypeNotAllowedTextKey =
-        "altinn.standard_validation.file_content_type_not_allowed";
+        "validation_errors.file_content_type_not_allowed";
 
     /// <inheritDoc/>
     public string Id { get; private set; } = "mimeTypeValidator";

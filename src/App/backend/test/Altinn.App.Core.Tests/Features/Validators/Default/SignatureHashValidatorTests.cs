@@ -90,7 +90,7 @@ public class SignatureHashValidatorTests
         Assert.Single(result);
         Assert.Equal(ValidationIssueCodes.DataElementCodes.InvalidSignatureHash, result[0].Code);
         Assert.Equal(ValidationIssueSeverity.Error, result[0].Severity);
-        Assert.Equal("backend.validation_errors.invalid_signature_hash", result[0].CustomTextKey);
+        Assert.Equal("validation_errors.invalid_signature_hash", result[0].CustomTextKey);
         Assert.Null(result[0].Description);
         Assert.Equal(
             new Dictionary<string, string>

@@ -68,13 +68,21 @@ public sealed class TextResourceKeyMigrationTests : IDisposable
     }
 
     [Theory]
-    [InlineData("MissingContentType", "backend.validation_errors.missing_content_type")]
-    [InlineData("DataElementTooLarge", "backend.validation_errors.file_too_large")]
-    [InlineData("DataElementFileInfected", "backend.validation_errors.file_infected")]
-    [InlineData("DataElementFileScanPending", "backend.validation_errors.file_scan_pending")]
-    [InlineData("TooManyDataElementsOfType", "backend.validation_errors.too_many_data_elements")]
-    [InlineData("TooFewDataElementsOfType", "backend.validation_errors.too_few_data_elements")]
-    public async Task RenamesValidationIssueCodeKeys(string oldKey, string newKey)
+    [InlineData("MissingContentType", "validation_errors.missing_content_type")]
+    [InlineData("DataElementTooLarge", "validation_errors.file_too_large")]
+    [InlineData("DataElementFileInfected", "validation_errors.file_infected")]
+    [InlineData("DataElementFileScanPending", "validation_errors.file_scan_pending")]
+    [InlineData("TooManyDataElementsOfType", "validation_errors.too_many_data_elements")]
+    [InlineData("TooFewDataElementsOfType", "validation_errors.too_few_data_elements")]
+    [InlineData("backend.validation_errors.required", "validation_errors.required")]
+    [InlineData("backend.xsd_validation", "validation_errors.xsd")]
+    [InlineData(
+        "altinn.standard_validation.file_content_type_not_allowed",
+        "validation_errors.file_content_type_not_allowed"
+    )]
+    [InlineData("backend.pdf_default_file_name", "pdf.default_file_name")]
+    [InlineData("pdfPreviewText", "pdf.preview_text")]
+    public async Task RenamesBuiltInTextKeys(string oldKey, string newKey)
     {
         _app.Write(
             "config/texts/resource.nb.json",
@@ -102,7 +110,7 @@ public sealed class TextResourceKeyMigrationTests : IDisposable
               "language": "nb",
               "resources": [
                 { "id": "DataElementTooLarge", "value": "Gammel tekst" },
-                { "id": "backend.validation_errors.file_too_large", "value": "Ny tekst" }
+                { "id": "validation_errors.file_too_large", "value": "Ny tekst" }
               ]
             }
             """;
@@ -112,6 +120,27 @@ public sealed class TextResourceKeyMigrationTests : IDisposable
 
         Assert.Equal(content, _app.Read("config/texts/resource.nb.json"));
         Assert.Contains("'DataElementTooLarge'", output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task KeepsBothRequiredTextsWhenTheAppChangedTheFrontendTextToo()
+    {
+        // The backend and frontend required texts now share validation_errors.required.
+        var content = """
+            {
+              "language": "nb",
+              "resources": [
+                { "id": "backend.validation_errors.required", "value": "Må fylles ut" },
+                { "id": "validation_errors.required", "value": "Du må fylle ut feltet" }
+              ]
+            }
+            """;
+        _app.Write("config/texts/resource.nb.json", content);
+
+        var output = await Migrate();
+
+        Assert.Equal(content, _app.Read("config/texts/resource.nb.json"));
+        Assert.Contains("'backend.validation_errors.required'", output, StringComparison.Ordinal);
     }
 
     [Fact]

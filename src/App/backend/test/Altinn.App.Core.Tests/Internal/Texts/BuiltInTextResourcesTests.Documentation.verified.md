@@ -2,7 +2,7 @@
 
 An app changes one of these texts by adding a text resource with the same key.
 
-## `backend.validation_errors.missing_content_type`
+## `validation_errors.missing_content_type`
 
 | Language | Default text |
 |---|---|
@@ -15,7 +15,7 @@ An app changes one of these texts by adding a text resource with the same key.
 | `filename` | `customTextParameters` | Name of the file. Empty if the name is unknown. |
 | `dataType` | `customTextParameters` | Id of the data type. |
 
-## `altinn.standard_validation.file_content_type_not_allowed`
+## `validation_errors.file_content_type_not_allowed`
 
 | Language | Default text |
 |---|---|
@@ -30,7 +30,7 @@ An app changes one of these texts by adding a text resource with the same key.
 | `contentType` | `customTextParameters` | Content type of the file, without parameters like charset. |
 | `allowedContentTypes` | `customTextParameters` | The allowed content types, separated by commas. |
 
-## `backend.validation_errors.file_too_large`
+## `validation_errors.file_too_large`
 
 | Language | Default text |
 |---|---|
@@ -44,7 +44,7 @@ An app changes one of these texts by adding a text resource with the same key.
 | `dataType` | `customTextParameters` | Id of the data type. |
 | `maxSize` | `customTextParameters` | Largest allowed file size in MB. |
 
-## `backend.validation_errors.file_infected`
+## `validation_errors.file_infected`
 
 | Language | Default text |
 |---|---|
@@ -57,7 +57,7 @@ An app changes one of these texts by adding a text resource with the same key.
 | `filename` | `customTextParameters` | Name of the file. Empty if the name is unknown. |
 | `dataType` | `customTextParameters` | Id of the data type. |
 
-## `backend.validation_errors.file_scan_pending`
+## `validation_errors.file_scan_pending`
 
 | Language | Default text |
 |---|---|
@@ -70,7 +70,7 @@ An app changes one of these texts by adding a text resource with the same key.
 | `filename` | `customTextParameters` | Name of the file. Empty if the name is unknown. |
 | `dataType` | `customTextParameters` | Id of the data type. |
 
-## `backend.validation_errors.too_many_data_elements`
+## `validation_errors.too_many_data_elements`
 
 | Language | Default text |
 |---|---|
@@ -83,7 +83,7 @@ An app changes one of these texts by adding a text resource with the same key.
 | `maxCount` | `customTextParameters` | Largest allowed number of data elements. |
 | `dataType` | `customTextParameters` | Id of the data type. |
 
-## `backend.validation_errors.too_few_data_elements`
+## `validation_errors.too_few_data_elements`
 
 | Language | Default text |
 |---|---|
@@ -96,7 +96,7 @@ An app changes one of these texts by adding a text resource with the same key.
 | `minCount` | `customTextParameters` | Smallest allowed number of data elements. |
 | `dataType` | `customTextParameters` | Id of the data type. |
 
-## `backend.validation_errors.missing_signatures`
+## `validation_errors.missing_signatures`
 
 | Language | Default text |
 |---|---|
@@ -111,7 +111,7 @@ An app changes one of these texts by adding a text resource with the same key.
 | `minCount` | `customTextParameters` | Smallest number of signatures the signature data type requires. |
 | `dataType` | `customTextParameters` | Id of the signature data type. |
 
-## `backend.validation_errors.invalid_signature_hash`
+## `validation_errors.invalid_signature_hash`
 
 | Language | Default text |
 |---|---|
@@ -125,7 +125,7 @@ An app changes one of these texts by adding a text resource with the same key.
 | `filename` | `customTextParameters` | Name of the file. Empty if the name is unknown. |
 | `dataType` | `customTextParameters` | Id of the data type. |
 
-## `backend.validation_errors.required`
+## `validation_errors.required`
 
 | Language | Default text |
 |---|---|
@@ -143,7 +143,7 @@ An app changes one of these texts by adding a text resource with the same key.
 | `pageName` | `customTextParameters` | The page id translated as a text resource. |
 | `componentTitle` | `customTextParameters` | The component's title. Only set when the title is a text, not an expression. |
 
-## `backend.xsd_validation`
+## `validation_errors.xsd`
 
 | Language | Default text |
 |---|---|
@@ -156,7 +156,7 @@ An app changes one of these texts by adding a text resource with the same key.
 | `schema` | `customTextParameters` | Id of the data type whose schema was violated. |
 | `message` | `customTextParameters` | The message from the XML schema validation. |
 
-## `pdfPreviewText`
+## `pdf.preview_text`
 
 | Language | Default text |
 |---|---|
@@ -164,7 +164,7 @@ An app changes one of these texts by adding a text resource with the same key.
 | nn | Dokumentet er ein førehandsvisning |
 | en | The document is a preview |
 
-## `backend.pdf_default_file_name`
+## `pdf.default_file_name`
 
 | Language | Default text |
 |---|---|

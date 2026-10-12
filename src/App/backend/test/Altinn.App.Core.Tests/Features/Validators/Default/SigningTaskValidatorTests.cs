@@ -131,7 +131,7 @@ public class SigningTaskValidatorTest
         // Assert
         Assert.Single(result);
         Assert.Equal(ValidationIssueCodes.DataElementCodes.MissingSignatures, result[0].Code);
-        Assert.Equal("backend.validation_errors.missing_signatures", result[0].CustomTextKey);
+        Assert.Equal("validation_errors.missing_signatures", result[0].CustomTextKey);
         Assert.Null(result[0].Description);
         Assert.Equal(
             new Dictionary<string, string>

@@ -23,10 +23,10 @@ describe('getValidationIssueMessage', () => {
   it('uses the custom text key for backend texts too', () => {
     expect(
       getValidationIssueMessage(
-        issue({ customTextKey: 'backend.xsd_validation', description: 'Et felt bryter reglene satt av XSD.' }),
+        issue({ customTextKey: 'validation_errors.xsd', description: 'Et felt bryter reglene satt av XSD.' }),
       ),
     ).toEqual({
-      key: 'backend.xsd_validation',
+      key: 'validation_errors.xsd',
       customTextParameters: undefined,
       fallback: 'Et felt bryter reglene satt av XSD.',
     });

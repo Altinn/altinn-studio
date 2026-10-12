@@ -19,12 +19,19 @@ internal static class TextResourceKeyMigration
         ("date_picker.max_date_exeeded", "date_picker.max_date_exceeded"),
         // Built-in backend validation issues used their issue code as the message, so the code was the
         // text key an app could override. They now set a text key of their own.
-        ("MissingContentType", "backend.validation_errors.missing_content_type"),
-        ("DataElementTooLarge", "backend.validation_errors.file_too_large"),
-        ("DataElementFileInfected", "backend.validation_errors.file_infected"),
-        ("DataElementFileScanPending", "backend.validation_errors.file_scan_pending"),
-        ("TooManyDataElementsOfType", "backend.validation_errors.too_many_data_elements"),
-        ("TooFewDataElementsOfType", "backend.validation_errors.too_few_data_elements"),
+        ("MissingContentType", "validation_errors.missing_content_type"),
+        ("DataElementTooLarge", "validation_errors.file_too_large"),
+        ("DataElementFileInfected", "validation_errors.file_infected"),
+        ("DataElementFileScanPending", "validation_errors.file_scan_pending"),
+        ("TooManyDataElementsOfType", "validation_errors.too_many_data_elements"),
+        ("TooFewDataElementsOfType", "validation_errors.too_few_data_elements"),
+        // The built-in validation texts moved to validation_errors.*, next to the frontend's validation texts,
+        // and the built-in PDF texts to pdf.*.
+        ("backend.validation_errors.required", "validation_errors.required"),
+        ("backend.xsd_validation", "validation_errors.xsd"),
+        ("altinn.standard_validation.file_content_type_not_allowed", "validation_errors.file_content_type_not_allowed"),
+        ("backend.pdf_default_file_name", "pdf.default_file_name"),
+        ("pdfPreviewText", "pdf.preview_text"),
     ];
 
     public static async Task<int> Migrate(string projectFolder)

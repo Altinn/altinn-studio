@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- The "file type not allowed" error from the MIME type validator is now in the user's language. Change it with the text key `altinn.standard_validation.file_content_type_not_allowed`, which can use parameters such as `filename`. Needs Altinn.App.Core 9.0.0-preview.8 or later. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- The "file type not allowed" error from the MIME type validator is now in the user's language. Change it with the text key `validation_errors.file_content_type_not_allowed`, which can use parameters such as `filename`. Needs Altinn.App.Core 9.0.0-preview.8 or later. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 
 ## [9.0.0-preview.1] - 2026-09-09
 

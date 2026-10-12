@@ -37,7 +37,7 @@ public class TranslationServiceTests
                         },
                         new TextResourceElement
                         {
-                            Id = "backend.validation_errors.file_infected",
+                            Id = "validation_errors.file_infected",
                             Value = "Filen {0} inneholder virus.",
                             Variables =
                             [
@@ -197,50 +197,41 @@ public class TranslationServiceTests
         await using var provider = _services.BuildServiceProvider();
         var translationService = provider.GetRequiredService<ITranslationService>();
 
-        var resultNn = await translationService.TranslateTextKey(
-            "backend.validation_errors.required",
-            LanguageConst.Nn
-        );
+        var resultNn = await translationService.TranslateTextKey("validation_errors.required", LanguageConst.Nn);
         Assert.Equal("Feltet er påkravd", resultNn);
 
-        var resultEn = await translationService.TranslateTextKey(
-            "backend.validation_errors.required",
-            LanguageConst.En
-        );
+        var resultEn = await translationService.TranslateTextKey("validation_errors.required", LanguageConst.En);
         Assert.Equal("Field is required", resultEn);
 
-        var resultNb = await translationService.TranslateTextKey(
-            "backend.validation_errors.required",
-            LanguageConst.Nb
-        );
+        var resultNb = await translationService.TranslateTextKey("validation_errors.required", LanguageConst.Nb);
         Assert.Equal("Feltet er påkrevd", resultNb);
     }
 
     [Theory]
-    [InlineData("pdfPreviewText", LanguageConst.Nb, "Dokumentet er en forhåndsvisning")]
-    [InlineData("pdfPreviewText", LanguageConst.Nn, "Dokumentet er ein førehandsvisning")]
-    [InlineData("pdfPreviewText", LanguageConst.En, "The document is a preview")]
-    [InlineData("backend.validation_errors.missing_signatures", LanguageConst.Nb, "Det mangler påkrevde signaturer.")]
-    [InlineData("backend.validation_errors.missing_signatures", LanguageConst.Nn, "Det manglar påkravde signaturar.")]
-    [InlineData("backend.validation_errors.missing_signatures", LanguageConst.En, "Required signatures are missing.")]
-    [InlineData("backend.validation_errors.missing_signatures", null, "Det mangler påkrevde signaturer.")]
+    [InlineData("pdf.preview_text", LanguageConst.Nb, "Dokumentet er en forhåndsvisning")]
+    [InlineData("pdf.preview_text", LanguageConst.Nn, "Dokumentet er ein førehandsvisning")]
+    [InlineData("pdf.preview_text", LanguageConst.En, "The document is a preview")]
+    [InlineData("validation_errors.missing_signatures", LanguageConst.Nb, "Det mangler påkrevde signaturer.")]
+    [InlineData("validation_errors.missing_signatures", LanguageConst.Nn, "Det manglar påkravde signaturar.")]
+    [InlineData("validation_errors.missing_signatures", LanguageConst.En, "Required signatures are missing.")]
+    [InlineData("validation_errors.missing_signatures", null, "Det mangler påkrevde signaturer.")]
     [InlineData(
-        "backend.validation_errors.invalid_signature_hash",
+        "validation_errors.invalid_signature_hash",
         LanguageConst.Nb,
         "Signerte data er endret etter at signaturen ble utført."
     )]
     [InlineData(
-        "backend.validation_errors.invalid_signature_hash",
+        "validation_errors.invalid_signature_hash",
         LanguageConst.Nn,
         "Signerte data er endra etter at signaturen vart utført."
     )]
     [InlineData(
-        "backend.validation_errors.invalid_signature_hash",
+        "validation_errors.invalid_signature_hash",
         LanguageConst.En,
         "The signed data has been modified after the signature was made."
     )]
     [InlineData(
-        "backend.validation_errors.file_infected",
+        "validation_errors.file_infected",
         LanguageConst.En,
         "The file is infected with malware and cannot be used."
     )]
@@ -256,13 +247,13 @@ public class TranslationServiceTests
 
     [Theory]
     [InlineData(
-        "backend.validation_errors.file_too_large",
+        "validation_errors.file_too_large",
         "maxSize",
         "25",
         "Filen er for stor. Største tillatte filstørrelse er 25 MB."
     )]
     [InlineData(
-        "backend.xsd_validation",
+        "validation_errors.xsd",
         "message",
         "Ugyldig dato",
         "Et felt bryter reglene satt av XSD. Melding: Ugyldig dato"
@@ -284,13 +275,13 @@ public class TranslationServiceTests
 
     [Theory]
     [InlineData(
-        "backend.validation_errors.too_many_data_elements",
+        "validation_errors.too_many_data_elements",
         "maxCount",
         "3",
         "Det er lagt til flere enn 3 elementer av typen vedlegg."
     )]
     [InlineData(
-        "backend.validation_errors.too_few_data_elements",
+        "validation_errors.too_few_data_elements",
         "minCount",
         "2",
         "Det må legges til minst 2 elementer av typen vedlegg."
@@ -321,7 +312,7 @@ public class TranslationServiceTests
         var translationService = provider.GetRequiredService<ITranslationService>();
 
         var result = await translationService.TranslateTextKey(
-            "altinn.standard_validation.file_content_type_not_allowed",
+            "validation_errors.file_content_type_not_allowed",
             LanguageConst.En,
             new() { ["allowedContentTypes"] = "application/pdf, image/png" }
         );
@@ -336,7 +327,7 @@ public class TranslationServiceTests
         var translationService = provider.GetRequiredService<ITranslationService>();
 
         var result = await translationService.TranslateTextKey(
-            "backend.validation_errors.file_infected",
+            "validation_errors.file_infected",
             LanguageConst.Nb,
             new() { ["filename"] = "skjema.pdf", ["dataType"] = "vedlegg" }
         );

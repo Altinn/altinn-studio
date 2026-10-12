@@ -25,7 +25,7 @@ public class DefaultDataElementValidatorTests
 
         var issue = Assert.Single(issues);
         Assert.Equal(ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed, issue.Code);
-        Assert.Equal("altinn.standard_validation.file_content_type_not_allowed", issue.CustomTextKey);
+        Assert.Equal("validation_errors.file_content_type_not_allowed", issue.CustomTextKey);
         Assert.Equal(
             new Dictionary<string, string>
             {
@@ -53,7 +53,7 @@ public class DefaultDataElementValidatorTests
         var issues = await _sut.ValidateDataElement(_instance, dataElement, dataType, null);
 
         var issue = Assert.Single(issues);
-        Assert.Equal("backend.validation_errors.file_too_large", issue.CustomTextKey);
+        Assert.Equal("validation_errors.file_too_large", issue.CustomTextKey);
         Assert.Equal(
             new Dictionary<string, string>
             {
@@ -79,7 +79,7 @@ public class DefaultDataElementValidatorTests
         var issues = await _sut.ValidateDataElement(_instance, dataElement, dataType, null);
 
         var issue = Assert.Single(issues);
-        Assert.Equal("backend.validation_errors.file_infected", issue.CustomTextKey);
+        Assert.Equal("validation_errors.file_infected", issue.CustomTextKey);
         Assert.Equal(
             new Dictionary<string, string> { ["filename"] = "", ["dataType"] = "attachment" },
             issue.CustomTextParameters
