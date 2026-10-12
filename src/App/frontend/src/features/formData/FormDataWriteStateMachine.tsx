@@ -483,6 +483,7 @@ function makeActions(
         }
 
         existingValue.splice(index, 1);
+        debounce(state, 'listChanges');
       }),
 
     removeValueFromList: ({ reference, value }) =>
@@ -497,6 +498,7 @@ function makeActions(
         }
 
         existingValue.splice(existingValue.indexOf(value), 1);
+        debounce(state, 'listChanges');
       }),
     removeFromListCallback: ({ reference, startAtIndex, callback }) =>
       set((state) => {
