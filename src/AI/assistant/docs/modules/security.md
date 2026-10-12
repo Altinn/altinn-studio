@@ -14,7 +14,7 @@ The security model has three layers. Each layer covers a risk that the other lay
 - Each change goes to a session branch. A person examines the branch before the merge.
 - The prompts that Langfuse serves are published by CI after the merge to main, so each served prompt has a reviewed commit.
 
-**[Spotlighting](https://arxiv.org/abs/2403.14720).** This layer marks untrusted text, so that the model reads it as data and not as instructions. This layer runs in both modes. It covers the content of uploaded documents, which the intent gate does not see. Document content gets to the model two times: as the attachment that the spec extractor reads, and as the extracted `FormSpec` in the system prompt of the loop. The code puts the two in `<attachment_content>` and `<form_spec>` tags, with a notice that the content is data, not instructions. The code escapes a closing tag in the content, so a document cannot close its block too early.
+**Spotlighting.** This layer marks untrusted text, so that the model reads it as data and not as instructions. This layer runs in both modes. It covers the content of uploaded documents, which the intent gate does not see. Document content gets to the model two times: as the attachment that the spec extractor reads, and as the extracted `FormSpec` in the system prompt of the loop. The code puts the two in `<attachment_content>` and `<form_spec>` tags, with a notice that the content is data, not instructions. The code escapes a closing tag in the content, so a document cannot close its block too early.
 
 ```mermaid
 flowchart LR
