@@ -94,6 +94,11 @@ func TestGeneratePdfHandler_ErrorType(t *testing.T) {
 				t.Errorf("http.server.request.duration by status/error.type = %v, want {%s: 1}", got, want)
 			}
 			assertEntrySpanOutcome(t, spans, tt.wantErrorType)
+			if tt.invalidJSON {
+				assertEntrySpanAttribute(t, spans, "pdf.response.rejection_reason", "invalid_json")
+			} else {
+				assertEntrySpanAttribute(t, spans, "pdf.request.wait_for.type", "load_event")
+			}
 			failedLogged := strings.Contains(logs.String(), `level=ERROR msg="PDF generation failed"`) &&
 				strings.Contains(logs.String(), " error.type="+tt.wantErrorType+" ")
 			if failedLogged != (tt.wantErrorType != "") {
@@ -128,11 +133,25 @@ func assertEntrySpanOutcome(t *testing.T, spans *tracetest.SpanRecorder, wantErr
 	if got := span.Status().Code; got != wantStatus {
 		t.Errorf("entry span status = %v, want %v", got, wantStatus)
 	}
-	for _, event := range span.Events() {
-		if event.Name == "exception" {
-			t.Errorf("entry span has an exception event: %v", event.Attributes)
+	if events := span.Events(); len(events) != 0 {
+		t.Errorf("entry span events = %v, want none: the request's details are attributes", events)
+	}
+}
+
+// assertEntrySpanAttribute checks that the request's details are attributes on its entry span.
+func assertEntrySpanAttribute(t *testing.T, spans *tracetest.SpanRecorder, key attribute.Key, want string) {
+	t.Helper()
+	for _, span := range spans.Ended() {
+		for _, kv := range span.Attributes() {
+			if kv.Key == key {
+				if got := kv.Value.String(); got != want {
+					t.Errorf("entry span %s = %q, want %q", key, got, want)
+				}
+				return
+			}
 		}
 	}
+	t.Errorf("entry span has no %s attribute", key)
 }
 
 var errUnknown = errors.New("unknown")

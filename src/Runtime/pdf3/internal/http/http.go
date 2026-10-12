@@ -6,14 +6,10 @@ import (
 	"log/slog"
 	"net/http"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
-
 	"altinn.studio/pdf3/internal/telemetry"
 )
 
 type ProblemDetails struct {
-	TraceRejectionError  error          `json:"-"`
 	Extensions           map[string]any `json:"extensions,omitempty"`
 	Type                 string         `json:"type,omitempty"`
 	Title                string         `json:"title,omitempty"`
@@ -23,7 +19,6 @@ type ProblemDetails struct {
 	Status               int            `json:"status,omitempty"`
 }
 
-//nolint:nestif // The rejection bookkeeping is intentionally colocated with response encoding.
 func WriteProblemDetails(
 	logger *slog.Logger,
 	w http.ResponseWriter,
@@ -31,26 +26,8 @@ func WriteProblemDetails(
 	statusCode int,
 	problem ProblemDetails,
 ) {
-	if r != nil {
-		span := trace.SpanFromContext(r.Context())
-		if span.IsRecording() && problem.TraceRejectionReason != "" {
-			attrs := []attribute.KeyValue{attribute.String("pdf.request.rejected.reason", problem.TraceRejectionReason)}
-			span.SetAttributes(attribute.Bool("pdf.request.rejected", true))
-			if problem.TraceRejectionError != nil {
-				span.RecordError(problem.TraceRejectionError, trace.WithAttributes(attrs...))
-			} else {
-				span.AddEvent("pdf.request.rejected", trace.WithAttributes(attrs...))
-			}
-		}
-		if data := telemetry.RequestEventDataFromContext(r.Context()); data != nil {
-			data.SetResponseStatus(statusCode)
-			if problem.Detail != "" {
-				data.SetErrorMessageIfEmpty(problem.Detail)
-			}
-			if problem.TraceRejectionReason != "" {
-				data.SetRejection(problem.TraceRejectionReason, problem.TraceRejectionError)
-			}
-		}
+	if r != nil && problem.TraceRejectionReason != "" {
+		telemetry.RequestAttributesFromContext(r.Context()).SetRejection(problem.TraceRejectionReason)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

@@ -182,11 +182,11 @@ func generateLocalPdfHandler(
 	assert.That(!iruntime.IsTestInternalsMode, "Localtest env should not run internals test mode")
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := telemetry.NewRequestEventData()
-		r = r.WithContext(telemetry.WithRequestEventData(r.Context(), data))
+		data := telemetry.NewRequestAttributes()
+		r = r.WithContext(telemetry.WithRequestAttributes(r.Context(), data))
 		span := trace.SpanFromContext(r.Context())
 		setWorkerSpanAttrs(span)
-		defer telemetry.EmitRequestSummary(span, data)
+		defer telemetry.SetOnSpan(span, data)
 
 		if r.Method != http.MethodPost {
 			ihttp.WriteProblemDetails(logger, w, r, http.StatusMethodNotAllowed, ihttp.ProblemDetails{
@@ -237,7 +237,6 @@ func generateLocalPdfHandler(
 				Status:               http.StatusBadRequest,
 				Detail:               fmt.Sprintf("Invalid JSON payload: %v", err),
 				TraceRejectionReason: "invalid_json",
-				TraceRejectionError:  err,
 			})
 			return
 		}
@@ -270,7 +269,6 @@ func generateLocalPdfHandler(
 				Status:               http.StatusBadRequest,
 				Detail:               fmt.Sprintf("Validation error: %v", err),
 				TraceRejectionReason: "validation_error",
-				TraceRejectionError:  err,
 			})
 			return
 		}
@@ -291,8 +289,6 @@ func generateLocalPdfHandler(
 				errorCode = http.StatusTooManyRequests
 			}
 
-			data.SetPDFError(pdfErr)
-			data.SetResponseStatus(errorCode)
 			ihttp.WriteProblemDetails(reqLogger, w, r, errorCode, ihttp.ProblemDetails{
 				Type:   problemType,
 				Title:  problemTitle,
@@ -303,8 +299,6 @@ func generateLocalPdfHandler(
 		}
 
 		// Success - return PDF bytes
-		data.SetResponseStatus(http.StatusOK)
-		data.SetResponseSize(len(result.Data))
 		w.Header().Set("Content-Type", "application/pdf")
 
 		w.WriteHeader(http.StatusOK)
@@ -380,38 +374,32 @@ func parseCanonicalLocaltestBaseURL(localtestBaseURL string) (*url.URL, error) {
 
 var errInvalidLocaltestPublicBaseURL = errors.New("invalid localtest public base URL")
 
-//nolint:funlen,gocognit // This handler keeps telemetry bookkeeping and response mapping in one flow.
+//nolint:gocognit // This handler keeps telemetry bookkeeping and response mapping in one flow.
 func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Worker-Id", workerId)
 		w.Header().Set("X-Worker-Ip", workerIP)
 
-		data := telemetry.NewRequestEventData()
-		r = r.WithContext(telemetry.WithRequestEventData(r.Context(), data))
+		data := telemetry.NewRequestAttributes()
+		r = r.WithContext(telemetry.WithRequestAttributes(r.Context(), data))
 		span := trace.SpanFromContext(r.Context())
 		setWorkerSpanAttrs(span)
-		defer telemetry.EmitRequestSummary(span, data)
+		defer telemetry.SetOnSpan(span, data)
 
 		if r.Method != http.MethodPost {
-			data.SetRejection("method_not_allowed", nil)
-			data.SetErrorMessageIfEmpty("Only POST method is allowed")
-			data.SetResponseStatus(http.StatusMethodNotAllowed)
+			data.SetRejection("method_not_allowed")
 			ihttp.WriteText(logger, w, http.StatusMethodNotAllowed, "Only POST method is allowed")
 			return
 		}
 
 		ct := strings.ToLower(r.Header.Get("Content-Type"))
 		if !strings.HasPrefix(ct, "application/json") {
-			data.SetRejection("unsupported_media_type", nil)
-			data.SetErrorMessageIfEmpty("Content-Type must be application/json")
-			data.SetResponseStatus(http.StatusUnsupportedMediaType)
+			data.SetRejection("unsupported_media_type")
 			ihttp.WriteText(logger, w, http.StatusUnsupportedMediaType, "Content-Type must be application/json")
 			return
 		}
 		if !iruntime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
-			data.SetRejection("illegal_test_header", nil)
-			data.SetErrorMessageIfEmpty("Illegal internals test mode header")
-			data.SetResponseStatus(http.StatusBadRequest)
+			data.SetRejection("illegal_test_header")
 			ihttp.WriteText(logger, w, http.StatusBadRequest, "Illegal internals test mode header")
 			return
 		}
@@ -424,9 +412,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			data.SetRejection("invalid_json", err)
-			data.SetErrorMessageIfEmpty(fmt.Sprintf("Invalid JSON payload: %v", err))
-			data.SetResponseStatus(http.StatusBadRequest)
+			data.SetRejection("invalid_json")
 			ihttp.WriteText(logger, w, http.StatusBadRequest, fmt.Sprintf("Invalid JSON payload: %v", err))
 			return
 		}
@@ -454,15 +440,11 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 				errorCode = http.StatusTooManyRequests
 			}
 
-			data.SetPDFError(pdfErr)
-			data.SetResponseStatus(errorCode)
 			ihttp.WriteText(reqLogger, w, errorCode, errStr)
 			return
 		}
 
 		// Success - return PDF bytes
-		data.SetResponseStatus(http.StatusOK)
-		data.SetResponseSize(len(result.Data))
 		w.Header().Set("Content-Type", "application/pdf")
 
 		w.WriteHeader(http.StatusOK)
@@ -557,13 +539,9 @@ func recordPDFError(ctx context.Context, logger *slog.Logger, span trace.Span, p
 	if pdfErr == nil {
 		return
 	}
-	// Queue-full 429s are expected; proxy retries handle them.
-	// Record as an event, not an error, to avoid false error noise. Like other 4xx they are
-	// not server errors, so they get no error.type; the status code tells them apart.
+	// Queue-full 429s are expected; proxy retries handle them. Like other 4xx they are not
+	// server errors, so they get no error.type; the status code tells them apart.
 	if pdfErr.Is(types.ErrQueueFull) {
-		if span.IsRecording() {
-			span.AddEvent("pdf.queue.full")
-		}
 		return
 	}
 	errorType := pdfErr.ErrorType()

@@ -148,7 +148,6 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 	assert.That(session != nil, "The worker should not call the generator unless it is ready", "url", request.URL)
 	assert.That(request.Validate() == nil, "Invalid request passed through to worker", "url", request.URL)
 
-	requestSpan := trace.SpanFromContext(ctx)
 	ctx, span := g.tracer.Start(ctx, "pdf.generate", trace.WithSpanKind(trace.SpanKindInternal))
 	defer span.End()
 
@@ -162,17 +161,10 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		logger:     g.logger.With("url", request.URL),
 	}
 
-	if session.tryEnqueue(req) {
-		// Successfully enqueued
-	} else {
+	if !session.tryEnqueue(req) {
+		// Queue-full 429s are expected; proxy retries handle them, so no span error.
 		g.logger.Warn("Request queue full, rejecting request", "url", request.URL)
-		pdfErr := types.NewPDFError(types.ErrQueueFull, "", nil)
-		// Queue-full 429s are expected; proxy retries handle them.
-		// Mark as an event, not a span error, to avoid false error noise.
-		if span.IsRecording() {
-			span.AddEvent("pdf.queue.full")
-		}
-		return nil, pdfErr
+		return nil, types.NewPDFError(types.ErrQueueFull, "", nil)
 	}
 
 	select {
@@ -181,7 +173,7 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 			recordPDFError(span, response.Error)
 			return nil, response.Error
 		}
-		pdfData, pdfErr := g.prepareResponsePDF(ctx, requestSpan, span, request.URL, response.Data)
+		pdfData, pdfErr := g.prepareResponsePDF(ctx, request.URL, response.Data)
 		if pdfErr != nil {
 			recordPDFError(span, pdfErr)
 			return nil, pdfErr
@@ -202,31 +194,26 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 	}
 }
 
-func (g *Custom) prepareResponsePDF(
-	ctx context.Context,
-	requestSpan trace.Span,
-	generateSpan trace.Span,
-	requestURL string,
-	data []byte,
-) ([]byte, *types.PDFError) {
+func (g *Custom) prepareResponsePDF(ctx context.Context, requestURL string, data []byte) ([]byte, *types.PDFError) {
+	requestAttributes := telemetry.RequestAttributesFromContext(ctx)
 	if !g.convertToPDFA {
-		g.addPDFAEvent(requestSpan, generateSpan, "skipped", false, len(data), 0)
+		requestAttributes.SetPDFAConversion(g.convertToPDFA, "skipped", len(data), 0)
 		return data, nil
 	}
 
 	if ctx.Err() != nil {
-		g.addPDFAEvent(requestSpan, generateSpan, "canceled", false, len(data), 0)
+		requestAttributes.SetPDFAConversion(g.convertToPDFA, "canceled", len(data), 0)
 		return nil, types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
 	}
 
 	converted, pdfErr := g.postProcessPDF(ctx, data)
 	if pdfErr != nil {
-		g.addPDFAEvent(requestSpan, generateSpan, "failed", false, len(data), 0)
+		requestAttributes.SetPDFAConversion(g.convertToPDFA, "failed", len(data), 0)
 		g.logger.Warn("PDF/A conversion failed, returning original PDF", "url", requestURL, "error", pdfErr)
 		return data, nil
 	}
 
-	g.addPDFAEvent(requestSpan, generateSpan, "success", true, len(data), len(converted))
+	requestAttributes.SetPDFAConversion(g.convertToPDFA, "success", len(data), len(converted))
 	return converted, nil
 }
 
@@ -242,35 +229,6 @@ func (g *Custom) postProcessPDF(ctx context.Context, data []byte) ([]byte, *type
 		return nil, types.NewPDFError(types.ErrGenerationFail, "PDF/A conversion failed", err)
 	}
 	return converted, nil
-}
-
-func (g *Custom) addPDFAEvent(
-	requestSpan trace.Span,
-	fallbackSpan trace.Span,
-	status string,
-	applied bool,
-	inputSize int,
-	outputSize int,
-) {
-	targetSpan := requestSpan
-	if !targetSpan.IsRecording() {
-		targetSpan = fallbackSpan
-	}
-	if !targetSpan.IsRecording() {
-		return
-	}
-
-	attrs := []attribute.KeyValue{
-		attribute.Bool("pdf.convert_to_pdfa.enabled", g.convertToPDFA),
-		attribute.Bool("pdf.convert_to_pdfa.applied", applied),
-		attribute.String("pdf.convert_to_pdfa.status", status),
-		attribute.Int("pdf.convert_to_pdfa.input_size_bytes", inputSize),
-	}
-	if outputSize > 0 {
-		attrs = append(attrs, attribute.Int("pdf.convert_to_pdfa.output_size_bytes", outputSize))
-	}
-
-	targetSpan.AddEvent("pdf.convert_to_pdfa", trace.WithAttributes(attrs...))
 }
 
 func (g *Custom) Close() error {

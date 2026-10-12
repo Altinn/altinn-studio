@@ -277,7 +277,7 @@ func (w *browserSession) recordQueueWait(req *workerRequest) {
 		start = now
 	}
 	_, span := w.tracer.Start(ctx, "pdf.queue.wait", trace.WithTimestamp(start))
-	if data := telemetry.RequestEventDataFromContext(ctx); data != nil {
+	if data := telemetry.RequestAttributesFromContext(ctx); data != nil {
 		data.SetSessionID(w.id)
 		data.SetQueueStats(len(w.queue), cap(w.queue))
 	}
@@ -307,7 +307,7 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, req.request.URL, err))
 		}
 
-		if data := telemetry.RequestEventDataFromContext(ctx); data != nil {
+		if data := telemetry.RequestAttributesFromContext(ctx); data != nil {
 			data.SetSessionID(w.id)
 			data.SetConsoleErrors(int(w.consoleErrors.Load()))
 			data.SetBrowserErrors(int(w.browserErrors.Load()))
@@ -425,7 +425,7 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest, startedProcessi
 		w.logger.Info("Never started processing, skipping cleanup")
 		// We never used any user-controlled page state, so there is nothing to revert.
 		req.cleanedUp = true
-		if data := telemetry.RequestEventDataFromContext(cleanupCtx); data != nil {
+		if data := telemetry.RequestAttributesFromContext(cleanupCtx); data != nil {
 			data.SetSessionID(w.id)
 			data.SetCleanup(0, true, true)
 		}
@@ -444,7 +444,7 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest, startedProcessi
 	}
 
 	cleanupAttempts := w.cleanupBrowserWithRetry(req)
-	if data := telemetry.RequestEventDataFromContext(cleanupCtx); data != nil {
+	if data := telemetry.RequestAttributesFromContext(cleanupCtx); data != nil {
 		data.SetSessionID(w.id)
 		data.SetCleanup(cleanupAttempts, req.cleanedUp, false)
 	}

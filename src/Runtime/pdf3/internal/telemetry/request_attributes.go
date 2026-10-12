@@ -12,39 +12,40 @@ import (
 	"altinn.studio/pdf3/internal/types"
 )
 
-type requestEventKey struct{}
+type requestAttributesKey struct{}
 
-type RequestEventData struct {
+// RequestAttributes collects attributes from wherever a request is handled, for its entry span.
+type RequestAttributes struct {
 	index map[attribute.Key]int
 	attrs []attribute.KeyValue
 	mu    sync.Mutex
 }
 
-func NewRequestEventData() *RequestEventData {
-	return &RequestEventData{
+func NewRequestAttributes() *RequestAttributes {
+	return &RequestAttributes{
 		attrs: make([]attribute.KeyValue, 0, 64),
 		index: make(map[attribute.Key]int, 64),
 	}
 }
 
-func WithRequestEventData(ctx context.Context, data *RequestEventData) context.Context {
+func WithRequestAttributes(ctx context.Context, data *RequestAttributes) context.Context {
 	if data == nil {
 		return ctx
 	}
-	return context.WithValue(ctx, requestEventKey{}, data)
+	return context.WithValue(ctx, requestAttributesKey{}, data)
 }
 
-func RequestEventDataFromContext(ctx context.Context) *RequestEventData {
+func RequestAttributesFromContext(ctx context.Context) *RequestAttributes {
 	if ctx == nil {
 		return nil
 	}
-	if data, ok := ctx.Value(requestEventKey{}).(*RequestEventData); ok {
+	if data, ok := ctx.Value(requestAttributesKey{}).(*RequestAttributes); ok {
 		return data
 	}
 	return nil
 }
 
-func (d *RequestEventData) SetPdfRequest(req types.PdfRequest) {
+func (d *RequestAttributes) SetPdfRequest(req types.PdfRequest) {
 	if d == nil {
 		return
 	}
@@ -97,7 +98,7 @@ func (d *RequestEventData) SetPdfRequest(req types.PdfRequest) {
 	}
 }
 
-func (d *RequestEventData) SetQueueStats(depth, capacity int) {
+func (d *RequestAttributes) SetQueueStats(depth, capacity int) {
 	if d == nil {
 		return
 	}
@@ -108,7 +109,7 @@ func (d *RequestEventData) SetQueueStats(depth, capacity int) {
 	d.setKVLocked(attribute.Int("pdf.process.queue_capacity", capacity))
 }
 
-func (d *RequestEventData) SetSessionID(id int) {
+func (d *RequestAttributes) SetSessionID(id int) {
 	if d == nil {
 		return
 	}
@@ -118,7 +119,7 @@ func (d *RequestEventData) SetSessionID(id int) {
 	d.setKVLocked(attribute.Int("pdf.session.id", id))
 }
 
-func (d *RequestEventData) SetConsoleErrors(count int) {
+func (d *RequestAttributes) SetConsoleErrors(count int) {
 	if d == nil {
 		return
 	}
@@ -128,7 +129,7 @@ func (d *RequestEventData) SetConsoleErrors(count int) {
 	d.setKVLocked(attribute.Int("pdf.process.console_errors", count))
 }
 
-func (d *RequestEventData) SetBrowserErrors(count int) {
+func (d *RequestAttributes) SetBrowserErrors(count int) {
 	if d == nil {
 		return
 	}
@@ -138,7 +139,7 @@ func (d *RequestEventData) SetBrowserErrors(count int) {
 	d.setKVLocked(attribute.Int("pdf.process.browser_errors", count))
 }
 
-func (d *RequestEventData) SetJSExceptions(count int) {
+func (d *RequestAttributes) SetJSExceptions(count int) {
 	if d == nil {
 		return
 	}
@@ -148,7 +149,7 @@ func (d *RequestEventData) SetJSExceptions(count int) {
 	d.setKVLocked(attribute.Int("pdf.process.js_exceptions", count))
 }
 
-func (d *RequestEventData) SetCDPEventsDropped(count int) {
+func (d *RequestAttributes) SetCDPEventsDropped(count int) {
 	if d == nil {
 		return
 	}
@@ -158,7 +159,7 @@ func (d *RequestEventData) SetCDPEventsDropped(count int) {
 	d.setKVLocked(attribute.Int("pdf.process.cdp_events_dropped", count))
 }
 
-func (d *RequestEventData) SetCleanup(attempts int, succeeded bool, skipped bool) {
+func (d *RequestAttributes) SetCleanup(attempts int, succeeded bool, skipped bool) {
 	if d == nil {
 		return
 	}
@@ -170,38 +171,7 @@ func (d *RequestEventData) SetCleanup(attempts int, succeeded bool, skipped bool
 	d.setKVLocked(attribute.Bool("pdf.process.cleanup_skipped", skipped))
 }
 
-func (d *RequestEventData) SetResponseStatus(code int) {
-	if d == nil {
-		return
-	}
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	d.setKVLocked(attribute.Int("pdf.response.status_code", code))
-}
-
-func (d *RequestEventData) SetResponseSize(size int) {
-	if d == nil {
-		return
-	}
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	d.setKVLocked(attribute.Int("pdf.response.size_bytes", size))
-}
-
-func (d *RequestEventData) SetPDFError(pdfErr *types.PDFError) {
-	if d == nil || pdfErr == nil {
-		return
-	}
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	d.setKVLocked(attribute.String("pdf.response.error_type", pdfErr.Type.Error()))
-	d.setKVIfAbsentLocked(attribute.String("pdf.response.error_message", pdfErr.Error()))
-}
-
-func (d *RequestEventData) SetRejection(reason string, _ error) {
+func (d *RequestAttributes) SetRejection(reason string) {
 	if d == nil || reason == "" {
 		return
 	}
@@ -211,30 +181,36 @@ func (d *RequestEventData) SetRejection(reason string, _ error) {
 	d.setKVIfAbsentLocked(attribute.String("pdf.response.rejection_reason", reason))
 }
 
-func (d *RequestEventData) SetErrorMessageIfEmpty(message string) {
-	if d == nil || message == "" {
+// SetPDFAConversion records whether and how the PDF was converted to PDF/A.
+func (d *RequestAttributes) SetPDFAConversion(enabled bool, status string, inputSize, outputSize int) {
+	if d == nil {
 		return
 	}
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	d.setKVIfAbsentLocked(attribute.String("pdf.response.error_message", message))
+	d.setKVLocked(attribute.Bool("pdf.convert_to_pdfa.enabled", enabled))
+	d.setKVLocked(attribute.Bool("pdf.convert_to_pdfa.applied", status == "success"))
+	d.setKVLocked(attribute.String("pdf.convert_to_pdfa.status", status))
+	d.setKVLocked(attribute.Int("pdf.convert_to_pdfa.input_size_bytes", inputSize))
+	if outputSize > 0 {
+		d.setKVLocked(attribute.Int("pdf.convert_to_pdfa.output_size_bytes", outputSize))
+	}
 }
 
-func EmitRequestSummary(span trace.Span, data *RequestEventData) {
+// SetOnSpan puts the request's attributes on span, the request's entry span: the one wide event
+// for the request.
+func SetOnSpan(span trace.Span, data *RequestAttributes) {
 	if data == nil || !span.IsRecording() {
 		return
 	}
 
 	data.mu.Lock()
-	attrs := make([]attribute.KeyValue, len(data.attrs))
-	copy(attrs, data.attrs)
-	data.mu.Unlock()
-
-	span.AddEvent("pdf.request.summary", trace.WithAttributes(attrs...))
+	defer data.mu.Unlock()
+	span.SetAttributes(data.attrs...)
 }
 
-func (d *RequestEventData) setKVLocked(kv attribute.KeyValue) {
+func (d *RequestAttributes) setKVLocked(kv attribute.KeyValue) {
 	if idx, ok := d.index[kv.Key]; ok {
 		d.attrs[idx] = kv
 		return
@@ -243,7 +219,7 @@ func (d *RequestEventData) setKVLocked(kv attribute.KeyValue) {
 	d.attrs = append(d.attrs, kv)
 }
 
-func (d *RequestEventData) setKVIfAbsentLocked(kv attribute.KeyValue) {
+func (d *RequestAttributes) setKVIfAbsentLocked(kv attribute.KeyValue) {
 	if _, ok := d.index[kv.Key]; ok {
 		return
 	}
@@ -251,7 +227,7 @@ func (d *RequestEventData) setKVIfAbsentLocked(kv attribute.KeyValue) {
 	d.attrs = append(d.attrs, kv)
 }
 
-func (d *RequestEventData) setURLLocked(raw string) {
+func (d *RequestAttributes) setURLLocked(raw string) {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
 		d.setKVLocked(attribute.Bool("pdf.request.url.invalid", true))
@@ -272,7 +248,7 @@ func (d *RequestEventData) setURLLocked(raw string) {
 	d.setKVLocked(attribute.String("pdf.request.url.path", path))
 }
 
-func (d *RequestEventData) setWaitForLocked(waitFor *types.WaitFor) {
+func (d *RequestAttributes) setWaitForLocked(waitFor *types.WaitFor) {
 	if waitFor == nil {
 		d.setKVLocked(attribute.String("pdf.request.wait_for.type", "load_event"))
 		return
