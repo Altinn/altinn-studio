@@ -1,8 +1,10 @@
 namespace Altinn.App.Core.Internal.Texts;
 
 /// <summary>
-/// A variable in the texts of a <see cref="BackendTextResource"/>. The texts refer to it by <see cref="Name"/>, like
-/// <c>{maxSize}</c>, and <see cref="Source"/> says where its value comes from.
+/// Makes it simple to define the variables of a <see cref="BackendTextResource"/>. It pairs the placeholder name the
+/// texts use, like <c>{maxSize}</c>, with a description for the generated docs and the <see cref="TextVariableSource"/>
+/// the value comes from. The static methods create one for each kind of source, so a definition reads like
+/// <c>CustomTextParameter("maxSize", "Largest allowed file size in MB.")</c>.
 /// </summary>
 /// <param name="Name">The placeholder name in the texts</param>
 /// <param name="Description">What the value is, for documentation</param>
