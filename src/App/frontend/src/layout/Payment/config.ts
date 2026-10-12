@@ -22,6 +22,7 @@ export const Config = new CG.component({
   directRendering: false,
 })
   .makeSummarizable()
+  .extendTextResources(CG.common('TRBSummarizable'))
   .addTextResource(
     new CG.trb({
       name: 'title',

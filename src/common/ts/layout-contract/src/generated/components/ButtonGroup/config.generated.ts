@@ -1,15 +1,15 @@
+import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBLabel,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
-import { CompCategory } from '@app/layout-contract';
 
-export interface CompButtonGroupExternal
-  extends ComponentBase, SummarizableComponentProps, LabeledComponentProps {
+export interface CompButtonGroupExternal extends ComponentBase, LabeledComponentProps {
   type: 'ButtonGroup';
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: TRBSummarizable & TRBLabel;
   children: string[];
   dataModelBindings?: undefined;
@@ -43,4 +43,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: aedeaf13f7fe35bf89b70e129484b2c04e9e9a48949231ea03ce0d900a1320a0
+// Source hash: 6c65fe80eaa409b337a0e4795e3c8f8bd387ec339b841beff5299bd9fba83f30

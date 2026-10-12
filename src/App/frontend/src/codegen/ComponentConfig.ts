@@ -64,11 +64,6 @@ export class ComponentConfig {
       this.inner.extends(CG.common('FormComponentProps'));
       this.extendTextResources(CG.common('TRBFormComp'));
     }
-    if (this.isFormLike()) {
-      this.inner.extends(CG.common('SummarizableComponentProps'));
-      this.extendTextResources(CG.common('TRBSummarizable'));
-      this.behaviors.isSummarizable = true;
-    }
   }
 
   public setType(type: string, symbol?: string): this {
@@ -210,12 +205,6 @@ export class ComponentConfig {
   }
 
   makeSummarizable(): this {
-    if (this.isFormLike()) {
-      throw new Error(`Component is a form or container component, it is always summarizable`);
-    }
-
-    this.extendTextResources(CG.common('TRBSummarizable'));
-    this.extends(CG.common('SummarizableComponentProps'));
     this.behaviors.isSummarizable = true;
     return this;
   }
@@ -317,6 +306,11 @@ export class ComponentConfig {
   }
 
   private beforeFinalizing(): void {
+    if (!this.type) {
+      throw new Error('Component type must be set before finalizing its config');
+    }
+    this.inner.validateComponentBehaviors(this.behaviors, this.type);
+
     // We have to add these to our typescript types in order for ITextResourceBindings<T>, and similar to work.
     // Components that doesn't have them, will always have the 'undefined' value.
     if (!this.inner.hasProperty('dataModelBindings')) {

@@ -2,11 +2,10 @@ import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contra
 import {
   ComponentBase,
   ISummaryOverridesCommon,
-  SummarizableComponentProps,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
-export interface CompPaymentExternal extends ComponentBase, SummarizableComponentProps {
+export interface CompPaymentExternal extends ComponentBase {
   type: 'Payment';
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
@@ -48,4 +47,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: PaymentSummaryOverridesWithRef;
 };
 
-// Source hash: a8c4bd63a8141e58c30747a1f42748c6eb999d20bde16e55cdb22d72bf22c234
+// Source hash: 89496cd202cbeec237d2f8183d40229f4ccd8d1cf78150fa760be6bf4fad41dd

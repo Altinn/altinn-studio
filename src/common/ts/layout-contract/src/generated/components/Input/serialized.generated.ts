@@ -5,7 +5,6 @@ import {
   IFormatting,
   LabeledComponentProps,
   SaveWhileTyping,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -20,6 +19,8 @@ export type CompInputSerialized = {
   } & TRBFormComp &
     TRBSummarizable &
     TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -84,7 +85,6 @@ export type CompInputSerialized = {
   maxLength?: number;
 } & ComponentBase &
   FormComponentProps &
-  SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: a90a0b8cf9894642031e8b49c535fd2386d149e77f0624fcda46a38e049ba679
+// Source hash: 05ff37783a02d9f812b923db11a8ed4e5e21a53adaa187b12d5a2c513ec1874c

@@ -22,6 +22,10 @@ export const Config = asAttachmentUploader(
     },
   }),
 )
+  .makeSummarizable()
+  .addProperty(CG.common('renderAsSummary'))
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
   .addProperty(CG.common('required'))
   .addProperty(CG.common('readOnly'))
   .extendTextResources(CG.common('TRBLabel'))

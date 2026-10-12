@@ -3,7 +3,6 @@ import {
   FormComponentProps,
   IDataModelReference,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -20,9 +19,11 @@ export interface Columns {
 }
 
 export interface CompSimpleTableExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, LabeledComponentProps {
   type: 'SimpleTable';
-  textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  textResourceBindings?: TRBFormComp & TRBLabel & TRBSummarizable;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   title: string;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForTable;
@@ -71,4 +72,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 4f84991e530f2dff734ff671f682d4709ae44178ec199fd83b97cd629d5cf946
+// Source hash: 110a60c74d66ca2d0bac08e90056c05e7c10989b34668e1aadc90211b529d2f4

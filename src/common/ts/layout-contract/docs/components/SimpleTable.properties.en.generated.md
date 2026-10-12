@@ -24,32 +24,6 @@ The component also supports the [common component properties](../common-properti
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">List of validation types to show</div></div>
 </details>
 
-<details class="card adocs-expand adocs-expand-small component-property" id="renderassummary">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="renderAsSummary">renderAsSummary</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Optional</span>
-      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolean value indicating if the component should be rendered as a summary. Defaults to false.</div></div>
-</details>
-
-<details class="card adocs-expand adocs-expand-small component-property" id="forceshowinsummary">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="forceShowInSummary">forceShowInSummary</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Optional</span>
-      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.</div></div>
-</details>
-
 <details class="card adocs-expand adocs-expand-small component-property" id="labelsettings">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
@@ -123,30 +97,6 @@ The component also supports the [common component properties](../common-properti
         <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Full validation message shown when the component is required and no value has been entered (overrides both the default and shortName)</div></div>
       </details>
 
-      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.summarytitle">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="textResourceBindings.summaryTitle">textResourceBindings.summaryTitle</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Title used in the summary view (overrides the default title)</div></div>
-      </details>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.summaryaccessibletitle">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="textResourceBindings.summaryAccessibleTitle">textResourceBindings.summaryAccessibleTitle</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Title used for aria-label on the edit button in the summary view (overrides the default and summary title)</div></div>
-      </details>
-
       <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.title">
         <summary class="component-property-summary">
           <span class="component-property-chevron" aria-hidden="true"></span>
@@ -182,9 +132,59 @@ The component also supports the [common component properties](../common-properti
         </summary>
         <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Help text shown in a tooltip when clicking the help button</div></div>
       </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.summarytitle">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.summaryTitle">textResourceBindings.summaryTitle</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Optional</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Title used in the summary view (overrides the default title)</div></div>
+      </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.summaryaccessibletitle">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.summaryAccessibleTitle">textResourceBindings.summaryAccessibleTitle</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Optional</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Title used for aria-label on the edit button in the summary view (overrides the default and summary title)</div></div>
+      </details>
     </div>
 
   </div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="renderassummary">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="renderAsSummary">renderAsSummary</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolean value indicating if the component should be rendered as a summary. Defaults to false.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="forceshowinsummary">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="forceShowInSummary">forceShowInSummary</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.</div></div>
 </details>
 
 <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="title">
