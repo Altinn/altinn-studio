@@ -2,6 +2,7 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import { SearchParams } from 'src/core/routing/types';
+import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 
 const appFrontend = new AppFrontend();
 
@@ -77,35 +78,98 @@ describe('Service task', () => {
     });
   });
 
-  it('successful service tasks produce all three PDFs on the receipt', { retries: 0 }, () => {
-    startAppAndFillForm({ shouldFail: false });
+  it('successful service tasks produce all PDFs on the receipt, one per subform', { retries: 0 }, () => {
+    startAppAndFillForm({
+      shouldFail: false,
+      subforms: ['Lykkeønsker fra et underskjema', 'Enda en hilsen fra et underskjema'],
+    });
 
     cy.findByText('Skjemaet er sendt inn').should('be.visible');
-    cy.findAllByRole('link', { name: /\.pdf$/ }).should('have.length', 3);
+    cy.findAllByRole('link', { name: /\.pdf$/ }).should('have.length', 4);
     cy.findByRole('link', { name: /Autogenerert PDF av Task_Utfylling1 og Task_Utfylling2\.pdf$/ }).should(
       'be.visible',
     );
     cy.findByRole('link', { name: /PDF basert på layout-set\.pdf$/ }).should('be.visible');
     cy.findByRole('link', { name: /Subform pdf Lykkeønsker fra et underskjema\.pdf$/ }).should('be.visible');
+    cy.findByRole('link', { name: /Subform pdf Enda en hilsen fra et underskjema\.pdf$/ }).should('be.visible');
+  });
+
+  it('previews a chosen subform PDF through developer tools', { retries: 0 }, () => {
+    startAppAndFillFirstTask(['Lykkeønsker fra det første underskjemaet']);
+    cy.get('#subform-Subform-z8we7d-add-button').click();
+    cy.get('#finishedLoading').should('exist');
+    cy.findByRole('textbox', { name: 'Test 1' }).type('Hilsen fra underskjemaet som skal forhåndsvises');
+    cy.waitUntilSaved();
+
+    cy.intercept('GET', '**/pdf/preview*').as('subformPdfPreview');
+    cy.get('body').trigger('keydown', { ctrlKey: true, shiftKey: true, key: 'k' });
+    cy.findByRole('radio', { name: 'SubformPdf' }).click();
+    cy.findByRole('radio', { name: /Underskjema 2 \(ID: .+\)/ })
+      .invoke('val')
+      .then((value) => String(value))
+      .as('selectedSubformId');
+    cy.findByRole('radio', { name: /Underskjema 2 \(ID: .+\)/ }).click();
+    cy.findByRole('button', { name: 'Generer PDF' }).click();
+
+    cy.get<string>('@selectedSubformId').then((selectedSubformId) =>
+      cy.wait('@subformPdfPreview', { responseTimeout: 120_000 }).then(({ request, response }) => {
+        const requestUrl = new URL(request.url);
+        expect(requestUrl.searchParams.get('taskId')).to.equal('SubformPdf');
+        expect(requestUrl.searchParams.get('dataElementId')).to.equal(selectedSubformId);
+        expect(response?.statusCode).to.equal(200);
+        expect(response?.headers['content-type']).to.include('application/pdf');
+      }),
+    );
+    cy.findByTitle('Preview').should('be.visible');
+  });
+
+  it('renders a PDF service task that is not the current task (preview)', { retries: 0 }, () => {
+    // Previewing a later PDF service task from an app developer's point of view: the URL task
+    // (Task_PDF_Auto) is not process.currentTask (still Task_Fail at this point in the flow). This
+    // is the shape of URL the backend's preview-any-task endpoint builds, and the frontend must
+    // render the PDF service task's snapshot instead of getting stuck behind the wrong-task guard
+    // or the default service-task waiting view.
+    interceptAltinnAppGlobalData((globalData) => {
+      delete globalData.ui.folders.Task_Fail;
+    });
+
+    startAppAndFillForm({ shouldFail: true });
+
+    cy.findByText(/En feil oppstod under automatisk behandling av skjemaet/).should('be.visible');
+
+    cy.testPdf({
+      snapshotName: 'service-task-preview-non-current-task',
+      enableResponseFuzzing: false,
+      buildUrl: (href) => {
+        const instanceId = getInstanceIdRegExp().exec(href)?.[1];
+        const before = href.split(getInstanceIdRegExp())[0];
+
+        const queryArgs = new URLSearchParams();
+        queryArgs.append(SearchParams.Pdf, '1');
+        for (const task of ['Task_Utfylling1', 'Task_Utfylling2']) {
+          queryArgs.append(SearchParams.PdfForTask, task);
+        }
+
+        return `${before}${instanceId}/Task_PDF_Auto?${queryArgs.toString()}`;
+      },
+      callback: () => {
+        cy.expectPageBreaks(2);
+        cy.findByText('En hilsen fra Task_Utfylling1').should('be.visible');
+        cy.findByText('Lykkeønsker fra et underskjema').should('be.visible');
+        cy.findByText('Himling med øyne og skuldertrekk fra Task_Utfylling2').should('be.visible');
+      },
+    });
   });
 });
 
-function startAppAndFillForm({ shouldFail }: { shouldFail: boolean }) {
-  cy.startAppInstance(appFrontend.apps.serviceTask, { cyUser: 'manager' });
-  cy.get('#finishedLoading').should('exist');
-  cy.findByRole('textbox', { name: 'En tekst i Task_Utfylling1' }).type('En hilsen fra Task_Utfylling1');
-  cy.waitUntilSaved();
-
-  cy.get('#subform-Subform-z8we7d-add-button').click();
-  cy.get('#finishedLoading').should('exist');
-  cy.findByRole('textbox', { name: 'Test 1' }).type('Lykkeønsker fra et underskjema');
-  cy.findByRole('button', { name: 'Ferdig' }).click();
-
-  cy.findByRole('textbox', { name: 'En tekst i Task_Utfylling1' }).should(
-    'have.value',
-    'En hilsen fra Task_Utfylling1',
-  );
-  cy.waitUntilSaved();
+function startAppAndFillForm({
+  shouldFail,
+  subforms = ['Lykkeønsker fra et underskjema'],
+}: {
+  shouldFail: boolean;
+  subforms?: string[];
+}) {
+  startAppAndFillFirstTask(subforms);
   cy.findByRole('button', { name: 'Neste' }).click();
 
   cy.findByRole('heading', { name: 'Task_Utfylling2' }).should('be.visible');
@@ -132,4 +196,24 @@ function startAppAndFillForm({ shouldFail }: { shouldFail: boolean }) {
       expect(response?.body.workflowFailure?.kind).to.equal('stepFailed');
     }
   });
+}
+
+function startAppAndFillFirstTask(subforms: string[]) {
+  cy.startAppInstance(appFrontend.apps.serviceTask, { cyUser: 'manager' });
+  cy.get('#finishedLoading').should('exist');
+  cy.findByRole('textbox', { name: 'En tekst i Task_Utfylling1' }).type('En hilsen fra Task_Utfylling1');
+  cy.waitUntilSaved();
+
+  for (const subform of subforms) {
+    cy.get('#subform-Subform-z8we7d-add-button').click();
+    cy.get('#finishedLoading').should('exist');
+    cy.findByRole('textbox', { name: 'Test 1' }).type(subform);
+    cy.findByRole('button', { name: 'Ferdig' }).click();
+
+    cy.findByRole('textbox', { name: 'En tekst i Task_Utfylling1' }).should(
+      'have.value',
+      'En hilsen fra Task_Utfylling1',
+    );
+  }
+  cy.waitUntilSaved();
 }

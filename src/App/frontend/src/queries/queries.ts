@@ -19,6 +19,7 @@ import {
   getFileUploadUrl,
   getFormBootstrapUrlForInstance,
   getFormBootstrapUrlForStateless,
+  getLayoutsUrl,
   getOrderDetailsUrl,
   getPaymentInformationForTaskUrl,
   getProcessNextUrl,
@@ -35,6 +36,7 @@ import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from '
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
 import type { BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
+import type { ILayoutCollection } from 'src/layout/layout';
 import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
 
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
@@ -175,6 +177,8 @@ export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTo
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promise<any> => httpGet(url, options);
+
+export const fetchLayouts = (uiFolder: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(uiFolder));
 
 export const fetchPaymentInformationForTask = (
   instanceId: string,

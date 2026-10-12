@@ -8,6 +8,7 @@ using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
 using Altinn.App.Api.Infrastructure.Middleware;
+using Altinn.App.Api.Infrastructure.RateLimiting;
 using Altinn.App.Api.Infrastructure.Telemetry;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
@@ -56,6 +57,9 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddScopeAuthorization();
+        services.AddRateLimiter(options =>
+            options.AddPolicy<string, PdfPreviewRateLimiterPolicy>(PdfPreviewRateLimiterPolicy.Name)
+        );
 
         mvcBuilder
             .AddApplicationPart(typeof(InstancesController).Assembly)

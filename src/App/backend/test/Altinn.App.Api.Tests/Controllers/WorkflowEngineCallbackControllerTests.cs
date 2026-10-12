@@ -420,7 +420,7 @@ public class WorkflowEngineCallbackControllerTests
                 )
             )
             .Callback<Uri, string?, StorageAuthenticationMethod?, CancellationToken>((uri, _, _, _) => pdfUri = uri)
-            .ReturnsAsync(() => new MemoryStream("%PDF"u8.ToArray()));
+            .ReturnsAsync(() => "%PDF"u8.ToArray());
         var processReader = new Mock<IProcessReader>();
         processReader
             .Setup(r => r.GetAltinnTaskExtension("PdfTask_1"))
@@ -470,6 +470,7 @@ public class WorkflowEngineCallbackControllerTests
                 Authenticated serviceOwner = TestAuthentication.GetServiceOwnerAuthentication();
                 services.Services.AddSingleton(Mock.Of<IAuthenticationContext>(a => a.Current == serviceOwner));
                 services.Services.AddSingleton<IPdfService, PdfService>();
+                services.Services.AddSingleton<IPdfFileNameResolver, PdfFileNameResolver>();
                 services.Services.AddSingleton<IServiceTask, PdfServiceTask>();
                 services.Services.AddSingleton(processEngine.Object);
                 services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
