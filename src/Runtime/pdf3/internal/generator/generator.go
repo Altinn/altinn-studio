@@ -343,7 +343,8 @@ func (r *workerRequest) tryRespondOk(data []byte) {
 			r.logger.Info("Responded successfully", "data_size", len(data))
 			break
 		default:
-			r.logger.WarnContext(r.ctx, "Client abandoned request (likely timed out), dropping response")
+			// INFO: the abandoned request already logs its own error.
+			r.logger.InfoContext(r.ctx, "Client abandoned request (likely timed out), dropping response")
 		}
 		r.responder = nil
 	}
@@ -360,7 +361,8 @@ func (r *workerRequest) tryRespondError(err *types.PDFError) {
 			r.logger.Info("Responded with error", "error", err)
 			break
 		default:
-			r.logger.WarnContext(r.ctx, "Client abandoned request (likely timed out), dropping response")
+			// INFO: the abandoned request already logs its own error.
+			r.logger.InfoContext(r.ctx, "Client abandoned request (likely timed out), dropping response")
 		}
 		r.responder = nil
 	}

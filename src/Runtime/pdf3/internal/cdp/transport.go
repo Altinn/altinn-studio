@@ -543,8 +543,9 @@ func (c *connection) handleMessages() {
 					// There are two potential reasons for this:
 					// - Client dropped the outer request, and removed the pending command in the SendCommand defer block after exiting
 					// - Chrome sent response after RequestTimeout
-					// we can't really differentiate between this atm, so let's just log it
-					c.logger.Warn(
+					// we can't really differentiate between this atm, so let's just log it.
+					// INFO: a dropped or timed-out request already logs its own error.
+					c.logger.Info(
 						"Received late response for command (likely timed out) - ignoring",
 						"command_id",
 						*msg.ID,
