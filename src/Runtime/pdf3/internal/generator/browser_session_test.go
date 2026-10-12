@@ -218,7 +218,7 @@ func TestPageErrors_LateErrorsDoNotRace(t *testing.T) {
 	}
 }
 
-func TestHandleWaitError_LogsNoPayload(t *testing.T) {
+func TestHandleWaitError_LogsDetailsAtInfoWithoutPayload(t *testing.T) {
 	tests := map[string]struct {
 		data any
 		want string
@@ -255,6 +255,9 @@ func TestHandleWaitError_LogsNoPayload(t *testing.T) {
 			got := logs.String()
 			if !strings.Contains(got, tt.want) {
 				t.Errorf("log = %q, want %q", got, tt.want)
+			}
+			if !strings.Contains(got, "level=INFO ") {
+				t.Errorf("log = %q, want the details at INFO: the request logs its one error", got)
 			}
 			if strings.Contains(got, "page data") {
 				t.Errorf("log contains the payload: %q", got)

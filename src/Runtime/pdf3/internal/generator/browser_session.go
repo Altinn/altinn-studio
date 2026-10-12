@@ -973,12 +973,13 @@ func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResp
 	return nil
 }
 
-// handleWaitError logs and responds with an error for wait failures.
+// handleWaitError logs and responds with an error for wait failures. The details are logged at
+// INFO: the failed request logs its one error with the error this answers it with.
 func (w *browserSession) handleWaitError(req *workerRequest, logMsg string, data any, errDetail string) error {
 	summary := waitErrorSummary(data)
 	args := make([]any, 0, 2+len(summary))
 	args = append(args, "waitFor", waitForToJson(req.request.WaitFor))
-	w.logger.ErrorContext(req.ctx, logMsg, append(args, summary...)...)
+	w.logger.InfoContext(req.ctx, logMsg, append(args, summary...)...)
 
 	err := fmt.Errorf("%w: %s", errWaitConditionError, errDetail)
 	req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
