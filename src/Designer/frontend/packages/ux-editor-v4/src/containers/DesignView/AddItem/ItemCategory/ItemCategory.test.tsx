@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { IToolbarElement } from '../../../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ItemCategory, type ItemCategoryProps } from './ItemCategory';
@@ -21,9 +21,6 @@ const MockInputIcon = () => <div data-testid='input-icon'>Input Icon</div>;
 const MockButtonIcon = () => <div data-testid='button-icon'>Button Icon</div>;
 
 describe('ItemCategory', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
   const mockSetAddedItem = vi.fn();
   const mockGenerateComponentId = vi.fn().mockReturnValue('generated-id');
   const mockItems: IToolbarElement[] = [

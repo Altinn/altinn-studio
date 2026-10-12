@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
@@ -38,8 +38,6 @@ const updatedComponent: FormComponent = {
 const defaultArgs: UpdateFormComponentMutationArgs = { id, updatedComponent };
 
 describe('useUpdateFormComponentMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Saves layout with updated component', async () => {
     renderAndWaitForData();
 

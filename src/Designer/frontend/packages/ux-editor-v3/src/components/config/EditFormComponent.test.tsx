@@ -72,7 +72,6 @@ const getDataModelMetadata = () =>
 describe('EditFormComponent', () => {
   beforeEach(() => {
     removeFeatureFlagFromLocalStorage(FeatureFlag.ComponentConfigBeta);
-    vi.clearAllMocks();
   });
 
   it('should return input specific content when type input', async () => {

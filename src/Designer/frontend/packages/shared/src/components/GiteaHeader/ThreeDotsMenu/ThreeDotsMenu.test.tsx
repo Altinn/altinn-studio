@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ThreeDotsMenuProps } from './ThreeDotsMenu';
@@ -11,8 +11,6 @@ const defaultProps: ThreeDotsMenuProps = {
 };
 
 describe('ThreeDotsMenu', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should show the menu items when open', async () => {
     const user = userEvent.setup();
     renderThreeDotsMenu({ isClonePossible: true });

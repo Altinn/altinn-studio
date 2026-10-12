@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { TextResourceMainConfig } from './TextResourceMainConfig';
 import { screen } from '@testing-library/react';
 import { component1Mock } from '../../../testing/layoutMock';
@@ -20,8 +20,6 @@ const textResources: ITextResource[] = [
 ];
 
 describe('TextBindingMainConfig', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('return null if the schema of component does not have a title prop', () => {
     renderTextMainConfig({});
     const wrapper = screen.getByTestId('component-wrapper');

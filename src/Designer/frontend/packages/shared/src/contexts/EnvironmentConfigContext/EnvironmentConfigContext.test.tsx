@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mocked } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -39,10 +39,6 @@ const renderWithProvider = () => {
 };
 
 describe('EnvironmentConfigContext', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should fetch and provide environment config successfully', async () => {
     const mockEnvironment: AltinnStudioEnvironment = {
       aiConnectionString: 'test-ai-connection-string',

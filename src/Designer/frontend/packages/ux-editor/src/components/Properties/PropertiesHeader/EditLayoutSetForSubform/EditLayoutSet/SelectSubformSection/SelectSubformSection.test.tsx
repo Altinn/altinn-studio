@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { SelectSubformSection } from './SelectSubformSection';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -10,8 +10,6 @@ const subformLayoutSetsIds = [subform1, subform2];
 const onComponentUpdate = vi.fn();
 
 describe('SelectLayoutSet', () => {
-  afterEach(vi.clearAllMocks);
-
   const selectSubform = async () => {
     const user = userEvent.setup();
     const subformSelector = screen.getByRole('combobox', {

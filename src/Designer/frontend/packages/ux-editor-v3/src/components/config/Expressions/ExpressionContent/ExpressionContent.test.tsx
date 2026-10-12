@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -30,9 +30,6 @@ const layouts: IFormLayouts = {
 };
 
 describe('ExpressionContent', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
   it('renders an expression in preview when defaultEditMode is false for an existing expression on hidden property', () => {
     render({});
 

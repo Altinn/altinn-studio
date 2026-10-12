@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { AppsTable, type AppsTableProps } from './AppsTable';
@@ -60,7 +60,6 @@ describe('AppsTable', () => {
       return [defaultValue, vi.fn()];
     });
   });
-  afterEach(vi.clearAllMocks);
 
   describe('Metrics', () => {
     it('should render loading state', () => {

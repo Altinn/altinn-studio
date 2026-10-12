@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import type { ByRoleOptions } from '@testing-library/react';
 import { screen } from '@testing-library/react';
 import { LocalChanges } from './LocalChanges';
@@ -13,8 +13,6 @@ import { app, org } from '@studio/testing/testids';
 import { renderWithProviders } from 'app-shared/components/GiteaHeader/mocks/renderWithProviders';
 
 describe('LocalChanges', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders the component with the href for downloading only files that the user has changed', () => {
     renderLocalChanges();
     const hrefToOnlyChangedFiles = repoDownloadPath(org, app);

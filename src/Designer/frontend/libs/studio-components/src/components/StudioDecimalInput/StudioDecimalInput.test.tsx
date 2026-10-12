@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ForwardedRef } from 'react';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 import { render, screen } from '@testing-library/react';
@@ -18,8 +18,6 @@ const defaultProps: StudioDecimalInputProps = {
 };
 
 describe('StudioDecimalInput', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render description and input field', () => {
     renderDecimalInput();
     expect(screen.getByText(description)).toBeInTheDocument();

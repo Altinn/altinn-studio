@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { userEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -22,10 +22,6 @@ const actionElementMock: Action = {
 };
 
 describe('PredefinedActions', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should be possible to choose predefined action', async () => {
     const user = userEvent.setup();
 

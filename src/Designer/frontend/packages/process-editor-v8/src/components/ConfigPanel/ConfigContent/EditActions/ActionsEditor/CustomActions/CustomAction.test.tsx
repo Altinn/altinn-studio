@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { userEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -21,10 +21,6 @@ const actionElementMock: Action = {
 };
 
 describe('CustomActions', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should be possible to add new custom action', async () => {
     const user = userEvent.setup();
 

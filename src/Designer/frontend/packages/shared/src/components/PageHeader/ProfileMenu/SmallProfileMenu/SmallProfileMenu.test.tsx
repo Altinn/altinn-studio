@@ -53,7 +53,6 @@ const menuItems: StudioProfileMenuGroup[] = [
 describe('SmallProfileMenu', () => {
   beforeEach(() => {
     mockUseUserQuery.mockReturnValue({ data: mockUser });
-    vi.clearAllMocks();
   });
 
   it('renders the hamburger menu trigger button', () => {

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useDeleteFormComponentMutation } from './useDeleteFormComponentMutation';
@@ -25,8 +25,6 @@ vi.mock('bpmn-moddle', () => ({
 }));
 
 describe('useDeleteFormComponentMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Should save layout without deleted component', async () => {
     const { result } = await renderDeleteFormComponentsMutation();
     await result.current.mutateAsync(component2IdMock);

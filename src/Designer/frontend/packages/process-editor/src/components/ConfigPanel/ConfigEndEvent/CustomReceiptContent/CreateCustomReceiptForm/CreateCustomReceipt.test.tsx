@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { CreateCustomReceipt } from './CreateCustomReceipt';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -28,8 +28,6 @@ const createButtonName = textMock(
 );
 
 describe('CreateCustomReceipt', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('hides the receipt name field', () => {
     renderCreateCustomReceipt();
     expect(screen.queryByLabelText(nameFieldLabel)).not.toBeInTheDocument();

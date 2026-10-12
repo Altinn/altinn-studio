@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { renderWithProviders } from '../../../testing/mocks';
 import { SettingsNavigation } from './SettingsNavigation';
@@ -22,8 +22,6 @@ const defaultData = [
 ];
 
 describe('SettingsNavigation', () => {
-  beforeEach(() => vi.clearAllMocks());
-
   it('should render spinner while loading', async () => {
     (useTaskNavigationGroupQuery as Mock).mockReturnValue({
       isPending: true,

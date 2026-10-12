@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import type { StudioTextResourceValueEditorProps } from './StudioTextResourceValueEditor';
 import { StudioTextResourceValueEditor } from './StudioTextResourceValueEditor';
@@ -19,10 +19,6 @@ const defaultProps: StudioTextResourceValueEditorProps = {
 };
 
 describe('StudioTextResourceValueEditor', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('Displays textbox with given value', () => {
     renderTextResourceValueEditor({ textResourceValue });
 

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import UpdateTaskIdCommandHandlerModule from './UpdateTaskIdCommandHandler';
 import type { UpdateTaskIdContext } from './UpdateTaskIdCommandHandler';
 import type { Element } from 'bpmn-js/lib/model/Types';
@@ -57,10 +57,6 @@ describe('UpdateTaskIdCommandHandler', () => {
     };
 
     handler = new UpdateTaskIdCommandHandler(mockModeling, mockElementRegistry, mockCommandStack);
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
   });
 
   describe('constructor', () => {

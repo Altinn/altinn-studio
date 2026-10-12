@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { formLayoutSettingsMock, renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
@@ -17,8 +17,6 @@ const selectedLayoutSet = layoutSet1NameMock;
 const args: UpdateLayoutNameMutationArgs = { newName, oldName };
 
 describe('useUpdateLayoutNameMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Updates layout name', async () => {
     await renderAndWaitForData();
 

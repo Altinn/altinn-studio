@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -20,7 +20,6 @@ const mockDialogTexts: AboutAssistantDialogTexts = {
 describe('AboutAssistantDialog', () => {
   afterEach(() => {
     window.localStorage.clear();
-    vi.clearAllMocks();
   });
 
   it('should render the trigger button', () => {

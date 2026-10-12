@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mocked } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { FeedbackForm } from './FeedbackForm';
@@ -21,9 +21,6 @@ vi.mock('axios');
 var mockedAxios = axios as Mocked<typeof axios>;
 
 describe('FeedbackForm', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
   it('should render FeedbackForm', () => {
     renderFeedbackForm({ questions: mockQuestions });
     expect(screen.getByRole('button', { name: buttonTexts.trigger })).toBeInTheDocument();

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { PreviewControlHeader, type PreviewControlHeaderProps } from './PreviewControlHeader';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -52,10 +52,6 @@ const defaultProps: PreviewControlHeaderProps = {
 };
 
 describe('PreviewControlHeader', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render the spinner initially loading the component', () => {
     renderPreviewControlHeader();
     expect(screen.getByText(textMock('preview.loading_preview_controller'))).toBeInTheDocument();

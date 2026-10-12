@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -82,8 +82,6 @@ const existingDataTypesProps = {
 };
 
 describe('SelectDataTypesToSign', () => {
-  afterEach(vi.clearAllMocks);
-
   it('saves the new selection', async () => {
     const user = userEvent.setup();
 

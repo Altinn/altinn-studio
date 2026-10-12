@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { formLayoutSettingsMock, renderWithMockStore } from '../../testing/mocks';
 import { DesignView } from './DesignView';
 import { screen } from '@testing-library/react';
@@ -38,10 +38,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('DesignView', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('displays the correct number of accordions', async () => {
     await render();
 

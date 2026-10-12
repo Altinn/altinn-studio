@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { PdfConfigCard, type PdfConfigCardProps } from './PdfConfigCard';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -17,8 +17,6 @@ const pdfLayoutNameMock: string = 'pdfLayoutNameMock';
 const mutateLayoutSettings = vi.fn();
 
 describe('PdfConfigCard', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('renders convertToPdf label when current page is not pdf', () => {
     renderPdfConfigCard();
     const convertFormLayoutToPdfSwitch = screen.getByLabelText(

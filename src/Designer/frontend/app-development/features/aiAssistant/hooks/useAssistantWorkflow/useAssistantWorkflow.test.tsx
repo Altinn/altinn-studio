@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { MockedFunction } from 'vitest';
 import { act } from '@testing-library/react';
 import { QueryClient, type UseQueryResult } from '@tanstack/react-query';
@@ -30,10 +30,6 @@ const mockUseCurrentBranchQuery = useCurrentBranchQuery as MockedFunction<
 >;
 
 describe('useAssistantWorkflow', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('skips workflow when message content is empty', async () => {
     const threads = createThreadState();
     const startWorkflow = vi.fn();

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -44,8 +44,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('ResourceAdmHeader', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should show org name and resource id in header', () => {
     renderResourceAdmHeader();
 

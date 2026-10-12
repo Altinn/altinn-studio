@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { componentMocks } from '../../../../../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -22,8 +22,6 @@ const textResources: ITextResources = {
 };
 
 describe('ManualOptionsPanel', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render the open Dialog button', () => {
     renderManualOptionsEditor();
     expect(getEditButton()).toBeInTheDocument();

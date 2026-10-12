@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import { ItemDataComponent } from './ItemDataComponent';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { SchemaModel } from '@altinn/schema-model';
@@ -41,8 +41,6 @@ const renderItemDataComponent = (
 };
 
 describe('ItemDataComponent', () => {
-  afterEach(vi.clearAllMocks);
-
   test('"Multiple answers" checkbox should appear if selected item is field', async () => {
     renderItemDataComponent(fieldNode1Mock);
     expect(await screen.findByLabelText(textMock('schema_editor.multiple_answers'))).toBeDefined();

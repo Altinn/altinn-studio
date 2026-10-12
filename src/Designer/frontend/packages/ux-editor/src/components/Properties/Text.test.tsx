@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Text } from './Text';
 import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -59,8 +59,6 @@ const textResourceBindingsPropertiesForComponentType = (componentType: string) =
   Object.keys(componentSchemaMocks[componentType].properties.textResourceBindings.properties);
 
 describe('TextTab', () => {
-  afterEach(vi.clearAllMocks);
-
   describe('when editing a container', () => {
     const props = {
       formItemId: container1IdMock,

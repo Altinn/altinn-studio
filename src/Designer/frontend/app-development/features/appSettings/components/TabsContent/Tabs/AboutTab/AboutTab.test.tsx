@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { MockedFunction } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AboutTab } from './AboutTab';
@@ -22,8 +22,6 @@ mockUpdateAppMetadataMutation.mockReturnValue({
 } as unknown as UseMutationResult<void, Error, ApplicationMetadata, unknown>);
 
 describe('AboutTab', () => {
-  afterEach(vi.clearAllMocks);
-
   it('initially displays the spinner when loading data', () => {
     renderAboutTab();
     expect(screen.getByText(textMock('app_settings.loading_content'))).toBeInTheDocument();

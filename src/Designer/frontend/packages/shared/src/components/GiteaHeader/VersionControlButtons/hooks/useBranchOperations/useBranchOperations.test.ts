@@ -53,7 +53,6 @@ describe('useBranchOperations', () => {
 
   afterEach(() => {
     window.location.reload = originalReload;
-    vi.clearAllMocks();
   });
 
   describe('checkoutExistingBranch', () => {

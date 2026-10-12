@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { UserInput } from './UserInput';
 import { render, screen } from '@testing-library/react';
 import type { UserInputProps } from './UserInput';
@@ -9,10 +9,6 @@ import userEvent from '@testing-library/user-event';
 const onSubmitMessage = vi.fn();
 
 describe('UserInput', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render textarea with placeholder', () => {
     renderUserInput();
     expect(getTextarea()).toBeInTheDocument();

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { ReferenceTab } from './ReferenceTab';
@@ -22,8 +22,6 @@ const org = 'org';
 const app = 'app';
 
 describe('ReferenceTab', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('should render a spinner', () => {
     renderReferenceTab();
     expect(screen.getByText(textMock('ux_editor.modal_properties_loading'))).toBeInTheDocument();

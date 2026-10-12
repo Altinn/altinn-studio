@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -8,8 +8,6 @@ import { createBpmnTestModeler } from '../../../../../test/createBpmnTestModeler
 const nameLabel = textMock('process_editor.configuration_panel_name_label');
 
 describe('EditTaskName', () => {
-  afterEach(vi.clearAllMocks);
-
   it('writes the new name to the BPMN element when the name is edited', async () => {
     const user = userEvent.setup();
     const newName = 'A better name';

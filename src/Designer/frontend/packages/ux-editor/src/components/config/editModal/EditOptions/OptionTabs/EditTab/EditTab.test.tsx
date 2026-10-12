@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { EditTabProps } from './EditTab';
 import { EditTab } from './EditTab';
 import type { ExtendedRenderOptions } from '../../../../../../testing/mocks';
@@ -29,8 +29,6 @@ const defaultAppRouteParams: AppRouteParams = { org: defaultOrg, app: defaultApp
 vi.mock('react-router-dom', async () => await vi.importActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 describe('EditTab', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('should render spinner', () => {
     renderEditTabWithoutData();
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();

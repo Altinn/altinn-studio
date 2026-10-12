@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import type { ForwardedRef, ReactNode } from 'react';
 import React from 'react';
 import { StudioInputTable } from './';
@@ -51,8 +51,6 @@ const onBlurAny = vi.fn();
 const defaultProps: StudioInputTableProps = { onChangeAny, onFocusAny, onBlurAny };
 
 describe('StudioInputTable', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders a table', () => {
     renderStudioInputTable();
     expect(getTable()).toBeInTheDocument();

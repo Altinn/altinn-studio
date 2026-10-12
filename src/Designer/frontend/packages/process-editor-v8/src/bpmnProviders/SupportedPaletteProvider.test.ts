@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import SupportedPaletteProviderModule from './SupportedPaletteProvider';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -55,10 +55,6 @@ describe('SupportedPaletteProvider', () => {
       mockModeling,
       mockAppVersion,
     );
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
   });
 
   describe('constructor', () => {

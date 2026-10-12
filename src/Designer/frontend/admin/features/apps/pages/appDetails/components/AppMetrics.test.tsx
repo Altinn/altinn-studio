@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { AppMetrics, type AppMetricsProps } from './AppMetrics';
@@ -50,8 +50,6 @@ const defaultProps: AppMetricsProps = {
 };
 
 describe('AppMetrics', () => {
-  afterEach(vi.clearAllMocks);
-
   describe('app health metrics', () => {
     it('should render loading state', () => {
       renderAppMetrics();

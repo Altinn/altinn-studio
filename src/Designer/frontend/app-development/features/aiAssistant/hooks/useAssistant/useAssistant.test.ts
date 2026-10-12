@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { MockedFunction } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import { useAssistant } from './useAssistant';
@@ -15,10 +15,6 @@ const mockUseAssistantWorkflow = useAssistantWorkflow as MockedFunction<
 >;
 
 describe('useAssistant', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('exposes thread data and delegates selectThread to the threads hook', () => {
     const threads = createThreadState();
 
