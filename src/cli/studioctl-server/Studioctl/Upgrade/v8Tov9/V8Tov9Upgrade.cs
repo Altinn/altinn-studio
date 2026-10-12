@@ -148,8 +148,7 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await EnableImplicitUsings(projectFile));
 
-        // First of the C# rewrites: it finds what to remove through the semantic models, which only bind
-        // reliably to the v8 source as it was.
+        // Runs before the other C# rewrites, while the code still matches the v8 compilation it relies on.
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await RemoveUnusedPdfFormatters(scanner));
 

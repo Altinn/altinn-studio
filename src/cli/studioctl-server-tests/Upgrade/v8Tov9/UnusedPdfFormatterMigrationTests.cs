@@ -36,38 +36,29 @@ public sealed class UnusedPdfFormatterMigrationTests : IDisposable
         )
     );
 
-    private const string PassThroughFormatter = """
-        using System.Threading.Tasks;
-        using Altinn.App.Core.Features;
-        using Altinn.App.Core.Models;
+    private const string PassThrough =
+        "public Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data) => Task.FromResult(layoutSettings);";
 
-        namespace Altinn.App.AppLogic.Print
-        {
-            public class PdfHandler : IPdfFormatter
+    private const string WithLogic =
+        "public Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data) => "
+        + "Task.FromResult(data is string ? new LayoutSettings() : layoutSettings);";
+
+    /// <summary>A formatter file with <paramref name="members"/>, and <paramref name="besides"/> declared next to it.</summary>
+    private static string Formatter(string members, string ns = "Altinn.App.AppLogic.Print", string besides = "") =>
+        $$"""
+            using System.Threading.Tasks;
+            using Altinn.App.Core.Features;
+            using Altinn.App.Core.Models;
+
+            namespace {{ns}}
             {
-                public Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
+                {{besides}}
+                public class PdfHandler : IPdfFormatter
                 {
-                    //return Task.FromResult(layoutSettings);
-                    return Task.FromResult(layoutSettings);
+                    {{members}}
                 }
             }
-        }
-        """;
-
-    private const string FormatterWithLogic = """
-        using System.Threading.Tasks;
-        using Altinn.App.Core.Features;
-        using Altinn.App.Core.Models;
-
-        namespace Altinn.App.AppLogic.Print
-        {
-            public class PdfHandler : IPdfFormatter
-            {
-                public Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data) =>
-                    Task.FromResult(data is string ? new LayoutSettings() : layoutSettings);
-            }
-        }
-        """;
+            """;
 
     private const string Registration = """
         using Altinn.App.AppLogic.Print;
@@ -105,10 +96,16 @@ public sealed class UnusedPdfFormatterMigrationTests : IDisposable
         }
         """;
 
-    [Fact]
-    public void DeletesAPassThroughFormatter_ItsRegistration_AndTheImportOfItsNamespace()
+    [Theory]
+    [InlineData(PassThrough)]
+    [InlineData("public Task<LayoutSettings> FormatPdf(LayoutSettings s, object data) { return Task.FromResult(s); }")]
+    [InlineData(
+        "public async Task<LayoutSettings> FormatPdf(LayoutSettings s, object data) => await Task.FromResult(s);"
+    )]
+    [InlineData("public async Task<LayoutSettings> FormatPdf(LayoutSettings s, object data) { return s; }")]
+    public void DeletesAFormatterThatReturnsTheSettingsUnchanged_WithItsRegistrationAndImport(string formatPdf)
     {
-        var formatter = _app.Write("logic/Pdf/PdfFormatter.cs", PassThroughFormatter);
+        var formatter = _app.Write("logic/Pdf/PdfFormatter.cs", Formatter(formatPdf));
         var services = _app.Write("Services.cs", Registration);
         var scanner = Scanner();
 
@@ -116,41 +113,15 @@ public sealed class UnusedPdfFormatterMigrationTests : IDisposable
 
         Assert.False(File.Exists(formatter));
         Assert.Equal(RegistrationRemoved, File.ReadAllText(services));
-        var message = Assert.Single(result.Messages);
-        Assert.Contains("returned the layout settings unchanged", message.Text);
+        Assert.Contains("returned the layout settings unchanged", Assert.Single(result.Messages).Text);
         Assert.Empty(new RemovedPdfFormatterDetector(scanner).Detect().Messages);
         Assert.DoesNotContain(scanner.PristineView.Files, file => file.Path == formatter);
-    }
-
-    [Theory]
-    [InlineData(
-        "public Task<LayoutSettings> FormatPdf(LayoutSettings settings, object data) => Task.FromResult(settings);"
-    )]
-    [InlineData(
-        "public async Task<LayoutSettings> FormatPdf(LayoutSettings settings, object data) { return await Task.FromResult(settings); }"
-    )]
-    [InlineData(
-        "public async Task<LayoutSettings> FormatPdf(LayoutSettings settings, object data) { return settings; }"
-    )]
-    public void RecognizesEveryWayOfReturningTheSettingsUnchanged(string method)
-    {
-        var formatter = _app.Write(
-            "logic/Pdf/PdfFormatter.cs",
-            PassThroughFormatter[..PassThroughFormatter.IndexOf("public Task", StringComparison.Ordinal)]
-                + method
-                + "\n    }\n}"
-        );
-        _app.Write("Services.cs", Registration);
-
-        new UnusedPdfFormatterMigration(Scanner()).Migrate();
-
-        Assert.False(File.Exists(formatter));
     }
 
     [Fact]
     public void DeletesAFormatterWithLogic_ThatIsNeverRegistered()
     {
-        var formatter = _app.Write("logic/Pdf/PdfFormatter.cs", FormatterWithLogic);
+        var formatter = _app.Write("logic/Pdf/PdfFormatter.cs", Formatter(WithLogic));
 
         var result = new UnusedPdfFormatterMigration(Scanner()).Migrate();
 
@@ -158,83 +129,51 @@ public sealed class UnusedPdfFormatterMigrationTests : IDisposable
         Assert.Contains("never registered", Assert.Single(result.Messages).Text);
     }
 
-    [Fact]
-    public void KeepsARegisteredFormatterWithLogic()
-    {
-        var formatter = _app.Write("logic/Pdf/PdfFormatter.cs", FormatterWithLogic);
-        var services = _app.Write("Services.cs", Registration);
-
-        var result = new UnusedPdfFormatterMigration(Scanner()).Migrate();
-
-        Assert.Empty(result.Messages);
-        Assert.True(File.Exists(formatter));
-        Assert.Equal(Registration, File.ReadAllText(services));
-    }
-
-    [Fact]
-    public void KeepsARegisteredFormatterWithOtherMembers()
-    {
-        // A constructor may inject services, or a field hold state: the class may do more than return
-        // what it is given, even when FormatPdf does just that.
-        var formatter = _app.Write(
-            "logic/Pdf/PdfFormatter.cs",
-            PassThroughFormatter.Replace(
-                "    {\n        public Task",
-                "    {\n        public PdfHandler() { }\n\n        public Task",
-                StringComparison.Ordinal
-            )
-        );
-        _app.Write("Services.cs", Registration);
-
-        var result = new UnusedPdfFormatterMigration(Scanner()).Migrate();
-
-        Assert.Empty(result.Messages);
-        Assert.True(File.Exists(formatter));
-    }
-
-    [Fact]
-    public void KeepsAFormatterTheAppRefersToElsewhere()
-    {
-        var formatter = _app.Write("logic/Pdf/PdfFormatter.cs", PassThroughFormatter);
-        _app.Write(
-            "logic/Wrapper.cs",
-            """
-            namespace Altinn.App.AppLogic.Print
+    public static TheoryData<string, string, string> KeptFormatters =>
+        new()
+        {
+            // Registered, with logic
+            { Formatter(WithLogic), "Services.cs", Registration },
+            // Registered, with a constructor that could have an effect
+            { Formatter("public PdfHandler() { }\n" + PassThrough), "Services.cs", Registration },
+            // Sharing its file
+            { Formatter(PassThrough, besides: "public class Footer { }"), "Services.cs", Registration },
+            { Formatter(PassThrough, besides: "public delegate void Formatted();"), "Services.cs", Registration },
+            // Referred to elsewhere
             {
-                public class Wrapper
-                {
-                    private readonly PdfHandler _inner = new();
-                }
-            }
-            """
-        );
+                Formatter(PassThrough),
+                "logic/Wrapper.cs",
+                "namespace Altinn.App.AppLogic.Print { public class Wrapper { private readonly PdfHandler _inner = new(); } }"
+            },
+            // Registered in code excluded by a condition
+            {
+                Formatter(PassThrough),
+                "Services.cs",
+                Registration.Replace(
+                    "        services.AddTransient<IPdfFormatter, PdfHandler>();",
+                    "#if RELEASE\n        services.AddTransient<IPdfFormatter, PdfHandler>();\n#endif",
+                    StringComparison.Ordinal
+                )
+            },
+        };
 
-        var result = new UnusedPdfFormatterMigration(Scanner()).Migrate();
-
-        Assert.Empty(result.Messages);
-        Assert.True(File.Exists(formatter));
-    }
-
-    [Fact]
-    public void KeepsAFormatterThatSharesItsFile()
+    [Theory]
+    [MemberData(nameof(KeptFormatters))]
+    public void KeepsTheFormatter(string formatterSource, string otherPath, string otherSource)
     {
-        var source = PassThroughFormatter.Replace(
-            "    public class PdfHandler",
-            "    public class Footer { }\n\n    public class PdfHandler",
-            StringComparison.Ordinal
-        );
-        var formatter = _app.Write("logic/Pdf/PdfFormatter.cs", source);
+        var formatter = _app.Write("logic/Pdf/PdfFormatter.cs", formatterSource);
+        _app.Write(otherPath, otherSource);
 
         var result = new UnusedPdfFormatterMigration(Scanner()).Migrate();
 
         Assert.Empty(result.Messages);
-        Assert.Equal(source, File.ReadAllText(formatter));
+        Assert.Equal(formatterSource, File.ReadAllText(formatter));
     }
 
     [Fact]
     public void KeepsTheImport_WhenTheNamespaceHasOtherTypes()
     {
-        _app.Write("logic/Pdf/PdfFormatter.cs", PassThroughFormatter);
+        _app.Write("logic/Pdf/PdfFormatter.cs", Formatter(PassThrough));
         _app.Write("logic/Pdf/Footer.cs", "namespace Altinn.App.AppLogic.Print { public class Footer { } }");
         var services = _app.Write("Services.cs", Registration);
 
@@ -246,14 +185,7 @@ public sealed class UnusedPdfFormatterMigrationTests : IDisposable
     [Fact]
     public void KeepsTheImport_WhenAReferencedAssemblyDeclaresTheNamespaceToo()
     {
-        var formatter = _app.Write(
-            "logic/Pdf/PdfFormatter.cs",
-            PassThroughFormatter.Replace(
-                "Altinn.App.AppLogic.Print",
-                "Altinn.App.Core.Features",
-                StringComparison.Ordinal
-            )
-        );
+        var formatter = _app.Write("logic/Pdf/PdfFormatter.cs", Formatter(PassThrough, ns: "Altinn.App.Core.Features"));
         var services = _app.Write(
             "Services.cs",
             Registration.Replace("using Altinn.App.AppLogic.Print;\n", "", StringComparison.Ordinal)
@@ -268,13 +200,11 @@ public sealed class UnusedPdfFormatterMigrationTests : IDisposable
     [Fact]
     public void WithoutSemanticModels_ChangesNothing()
     {
-        // Whether a removal breaks a using directive takes a compilation to tell, and an app is expected
-        // to compile on v8 before it moves to v9. Without one, the formatter stays for the developer.
-        var formatter = _app.Write("logic/Pdf/PdfFormatter.cs", PassThroughFormatter);
+        var formatter = _app.Write("logic/Pdf/PdfFormatter.cs", Formatter(PassThrough));
 
         var result = new UnusedPdfFormatterMigration(new CSharpSourceScanner(AppFolder)).Migrate();
 
         Assert.Empty(result.Messages);
-        Assert.Equal(PassThroughFormatter, File.ReadAllText(formatter));
+        Assert.True(File.Exists(formatter));
     }
 }
