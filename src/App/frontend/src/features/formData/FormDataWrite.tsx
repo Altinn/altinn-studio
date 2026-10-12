@@ -31,6 +31,7 @@ import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
+import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreApi, FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapQueryResponse } from 'src/features/formBootstrap/useFormBootstrapQuery';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
@@ -51,6 +52,7 @@ export interface FormDataSliceProps {
   changeInstance: ChangeInstanceData;
   selectFromInstance: InstanceDataSelector;
   getCachedInitialValidations: ReturnType<typeof useGetCachedInitialValidations>;
+  getCalculationDataSources: () => ExpressionDataSources;
 }
 
 const saveFormDataMutationKey = ['saveFormData'] as const;

@@ -4,6 +4,7 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { resolveExpressionValidationConfig } from 'src/features/customValidation/customValidationUtils';
 import { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
+import { resolveCalculationConfig } from 'src/features/formData/calculations';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
@@ -89,6 +90,7 @@ function processDataModels(
         dataType,
         {
           ...value,
+          calculationConfig: resolveCalculationConfig(value.calculationConfig),
           expressionValidationConfig: value.expressionValidationConfig
             ? resolveExpressionValidationConfig(value.expressionValidationConfig)
             : null,
