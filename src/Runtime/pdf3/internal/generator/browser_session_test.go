@@ -1,6 +1,11 @@
 package generator
 
-import "testing"
+import (
+	"bytes"
+	"log/slog"
+	"strings"
+	"testing"
+)
 
 func TestHtmlIDPattern(t *testing.T) {
 	//nolint:govet // Table readability matters more here than packing test-only struct fields.
@@ -54,5 +59,69 @@ func TestHtmlIDPattern(t *testing.T) {
 					tt.selector, got, tt.want, tt.reason)
 			}
 		})
+	}
+}
+
+func TestHandleEvent_LogsBrowserErrorsWithoutPayloads(t *testing.T) {
+	var logs bytes.Buffer
+	w := &browserSession{
+		ctx:    t.Context(),
+		logger: slog.New(slog.NewTextHandler(&logs, nil)),
+	}
+
+	w.handleEvent("Runtime.consoleAPICalled", map[string]any{
+		"type": "error",
+		"args": []any{
+			map[string]any{"type": "string", "value": "Failed to load"},
+			map[string]any{"type": "object", "description": "Object", "preview": map[string]any{"secret": "page data"}},
+		},
+	})
+	w.handleEvent("Log.entryAdded", map[string]any{"entry": map[string]any{
+		"level": "error",
+		"text":  "Failed to load resource: 401",
+		"url":   "https://app.local/ttd/app/api/data?token=secret",
+	}})
+	w.handleEvent("Runtime.exceptionThrown", map[string]any{"exceptionDetails": map[string]any{
+		"text":      "Uncaught",
+		"exception": map[string]any{"description": "TypeError: x is undefined\n    at main.js:1"},
+	}})
+
+	got := logs.String()
+	for _, want := range []string{
+		`level=WARN msg="Browser console error" cdp.method=Runtime.consoleAPICalled message="Failed to load Object"`,
+		`level=WARN msg="Browser log error" cdp.method=Log.entryAdded message="Failed to load resource: 401" ` +
+			`source=https://app.local/ttd/app/api/data`,
+		`level=WARN msg="Browser JavaScript exception" cdp.method=Runtime.exceptionThrown ` +
+			`message="TypeError: x is undefined\n    at main.js:1"`,
+	} {
+		if !strings.Contains(got, want) {
+			t.Errorf("logs missing %q:\n%s", want, got)
+		}
+	}
+	for _, leaked := range []string{"page data", "token=secret"} {
+		if strings.Contains(got, leaked) {
+			t.Errorf("logs contain %q:\n%s", leaked, got)
+		}
+	}
+}
+
+func TestLogBrowserError_CapsLogsPerRequest(t *testing.T) {
+	var logs bytes.Buffer
+	w := &browserSession{
+		ctx:    t.Context(),
+		logger: slog.New(slog.NewTextHandler(&logs, nil)),
+	}
+	for range maxBrowserLogsPerRequest + 3 {
+		w.logBrowserError("Browser console error", "Runtime.consoleAPICalled", strings.Repeat("x", 2000), "")
+	}
+
+	if got := strings.Count(logs.String(), "\n"); got != maxBrowserLogsPerRequest {
+		t.Errorf("logged %d browser errors, want %d", got, maxBrowserLogsPerRequest)
+	}
+	if got := w.browserLogsDropped.Load(); got != 3 {
+		t.Errorf("dropped = %d, want 3", got)
+	}
+	if strings.Contains(logs.String(), strings.Repeat("x", maxBrowserMessageLength+1)) {
+		t.Errorf("message not truncated to %d bytes", maxBrowserMessageLength)
 	}
 }

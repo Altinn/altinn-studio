@@ -11,8 +11,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/concurrent"
@@ -338,9 +336,6 @@ func (c *connection) SendCommand(ctx context.Context, method string, params any)
 	// Send command
 	err := c.wsConn.WriteJSON(cmd)
 	if err != nil {
-		addCDPCommandEvent(ctx, "cdp.command.send_failed",
-			attribute.String("cdp.method", method),
-		)
 		return nil, fmt.Errorf("%w %q: %w", errCDPCommandSend, method, err)
 	}
 
@@ -348,27 +343,14 @@ func (c *connection) SendCommand(ctx context.Context, method string, params any)
 	select {
 	case response := <-responseCh:
 		if response.Error != nil {
-			addCDPCommandEvent(ctx, "cdp.command.response_error",
-				attribute.String("cdp.method", method),
-			)
 			return nil, fmt.Errorf("%w %q: %v", errCDPCommandResponse, method, response.Error)
 		}
 		return &response, nil
 	case <-ctx.Done():
-		addCDPCommandEvent(ctx, "cdp.command.cancelled",
-			attribute.String("cdp.method", method),
-		)
 		return nil, fmt.Errorf("%w %q: %w", errCDPCommandCancelled, method, ctx.Err())
 	case <-c.ctx.Done():
-		addCDPCommandEvent(ctx, "cdp.command.connection_closed",
-			attribute.String("cdp.method", method),
-		)
 		return nil, errConnectionClosed
 	case <-time.After(types.RequestTimeout()):
-		addCDPCommandEvent(ctx, "cdp.command.timeout",
-			attribute.String("cdp.method", method),
-			attribute.Int64("cdp.timeout_ms", types.RequestTimeout().Milliseconds()),
-		)
 		c.assert(false, "browser failed to respond to request, something must be stuck")
 		return nil, fmt.Errorf("%w %q", errCDPCommandTimeout, method)
 	}
@@ -416,10 +398,6 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 	for i, cmd := range outbox {
 		err := c.wsConn.WriteJSON(cmd)
 		if err != nil {
-			addCDPCommandEvent(ctx, "cdp.batch.command.send_failed",
-				attribute.String("cdp.method", cmd.Method),
-				attribute.Int("cdp.batch.command_index", i),
-			)
 			state.responses[i] = &CommandResponse{
 				Resp: nil,
 				Err:  fmt.Errorf("failed to send command: %w", err),
@@ -439,9 +417,6 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 		c.assert(nonNilResponses == len(batch), "We should have a response for every cmd")
 		return state.responses
 	case <-ctx.Done():
-		addCDPCommandEvent(ctx, "cdp.batch.cancelled",
-			attribute.Int("cdp.batch_size", len(batch)),
-		)
 		for i, resp := range state.responses {
 			if resp == nil {
 				state.responses[i] = &CommandResponse{
@@ -454,9 +429,6 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 		}
 		return state.responses
 	case <-c.ctx.Done():
-		addCDPCommandEvent(ctx, "cdp.batch.connection_closed",
-			attribute.Int("cdp.batch_size", len(batch)),
-		)
 		for i, resp := range state.responses {
 			if resp == nil {
 				state.responses[i] = &CommandResponse{
@@ -469,10 +441,6 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 		}
 		return state.responses
 	case <-time.After(types.RequestTimeout()):
-		addCDPCommandEvent(ctx, "cdp.batch.timeout",
-			attribute.Int("cdp.batch_size", len(batch)),
-			attribute.Int64("cdp.timeout_ms", types.RequestTimeout().Milliseconds()),
-		)
 		c.assert(false, "browser failed to respond to request, something must be stuck")
 		for i, resp := range state.responses {
 			if resp == nil {
@@ -486,17 +454,6 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 		}
 		return state.responses
 	}
-}
-
-func addCDPCommandEvent(ctx context.Context, name string, attrs ...attribute.KeyValue) {
-	if ctx == nil {
-		return
-	}
-	span := trace.SpanFromContext(ctx)
-	if !span.IsRecording() {
-		return
-	}
-	span.AddEvent(name, trace.WithAttributes(attrs...))
 }
 
 // Close closes the connection and cleans up resources.

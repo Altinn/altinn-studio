@@ -44,15 +44,15 @@ type browserSession struct {
 	consoleErrors           atomic.Int32
 	browserErrors           atomic.Int32
 	jsExceptions            atomic.Int32
-	cdpEventsSent           atomic.Int32
-	cdpEventsDrop           atomic.Int32
+	browserLogsSent         atomic.Int32
+	browserLogsDropped      atomic.Int32
 	state                   atomic.Uint32
 }
 
 const (
-	maxCDPEventsPerRequest  = 24
-	maxCDPPayloadJSONLength = 4096
-	cleanupBlankURL         = "about:blank"
+	maxBrowserLogsPerRequest = 24
+	maxBrowserMessageLength  = 1024
+	cleanupBlankURL          = "about:blank"
 )
 
 type cleanupNavigationWaiter struct {
@@ -148,8 +148,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 		if p, ok := params.(map[string]any); ok {
 			if apiType, ok := p["type"].(string); ok && apiType == "error" {
 				w.consoleErrors.Add(1)
-				w.logger.Warn("Console error", "details", p)
-				w.emitCDPEvent("cdp.console.error", method, p)
+				w.logBrowserError("Browser console error", method, consoleMessage(p), "")
 			}
 		}
 	case "Log.entryAdded":
@@ -157,16 +156,19 @@ func (w *browserSession) handleEvent(method string, params any) {
 			if entry, ok := p["entry"].(map[string]any); ok {
 				if level, ok := entry["level"].(string); ok && level == "error" {
 					w.browserErrors.Add(1)
-					w.logger.Warn("Log error", "details", entry)
-					w.emitCDPEvent("cdp.log.error", method, entry)
+					w.logBrowserError(
+						"Browser log error",
+						method,
+						stringField(entry, "text"),
+						stringField(entry, "url"),
+					)
 				}
 			}
 		}
 	case "Runtime.exceptionThrown":
 		if p, ok := params.(map[string]any); ok {
 			w.jsExceptions.Add(1)
-			w.logger.Warn("Runtime exception observed")
-			w.emitCDPEvent("cdp.runtime.exception", method, p)
+			w.logBrowserError("Browser JavaScript exception", method, exceptionMessage(p), "")
 		}
 	case "Page.frameNavigated":
 		w.trySignalCleanupBlankCommitted(params)
@@ -242,8 +244,8 @@ func (w *browserSession) handleRequests() {
 			w.consoleErrors.Store(0)
 			w.browserErrors.Store(0)
 			w.jsExceptions.Store(0)
-			w.cdpEventsSent.Store(0)
-			w.cdpEventsDrop.Store(0)
+			w.browserLogsSent.Store(0)
+			w.browserLogsDropped.Store(0)
 			w.tryUpdateTestModeOutput(&req, "Before", false)
 
 			w.currentRequest.Store(&req)
@@ -312,7 +314,7 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 			data.SetConsoleErrors(int(w.consoleErrors.Load()))
 			data.SetBrowserErrors(int(w.browserErrors.Load()))
 			data.SetJSExceptions(int(w.jsExceptions.Load()))
-			data.SetCDPEventsDropped(int(w.cdpEventsDrop.Load()))
+			data.SetBrowserLogsDropped(int(w.browserLogsDropped.Load()))
 		}
 		duration := time.Since(start)
 		span.End()
@@ -337,34 +339,76 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 	}
 }
 
-func (w *browserSession) emitCDPEvent(name, method string, payload any) {
-	req := w.currentRequest.Load()
-	if req == nil || req.ctx == nil {
-		return
+// logBrowserError logs an error the page reported, as a warning correlated with the request it
+// happened in, at most maxBrowserLogsPerRequest times per request. It logs the message and the
+// URL of its source without query or fragment, not the event's payload, which can carry page
+// data.
+func (w *browserSession) logBrowserError(msg, method, message, source string) {
+	ctx := w.ctx
+	if req := w.currentRequest.Load(); req != nil && req.ctx != nil {
+		ctx = req.ctx
 	}
-	span := trace.SpanFromContext(req.ctx)
-	if !span.IsRecording() {
-		return
-	}
-	if w.cdpEventsSent.Add(1) > maxCDPEventsPerRequest {
-		w.cdpEventsDrop.Add(1)
+	if w.browserLogsSent.Add(1) > maxBrowserLogsPerRequest {
+		w.browserLogsDropped.Add(1)
 		return
 	}
 
-	var payloadJSON string
-	if payloadBytes, err := json.Marshal(payload); err == nil {
-		payloadJSON = string(payloadBytes)
-	} else {
-		payloadJSON = fmt.Sprintf(`{"marshal_error":%q}`, err.Error())
+	args := []any{"cdp.method", method, "message", truncate(message, maxBrowserMessageLength)}
+	if source = telemetry.RedactURL(source); source != "" {
+		args = append(args, "source", source)
 	}
-	if len(payloadJSON) > maxCDPPayloadJSONLength {
-		payloadJSON = payloadJSON[:maxCDPPayloadJSONLength] + "...(truncated)"
-	}
+	w.logger.WarnContext(ctx, msg, args...)
+}
 
-	span.AddEvent(name, trace.WithAttributes(
-		attribute.String("cdp.method", method),
-		attribute.String("cdp.payload_json", payloadJSON),
-	))
+// consoleMessage is the text of a Runtime.consoleAPICalled event's arguments.
+func consoleMessage(params map[string]any) string {
+	args, ok := params["args"].([]any)
+	if !ok {
+		return ""
+	}
+	parts := make([]string, 0, len(args))
+	for _, arg := range args {
+		remoteObject, ok := arg.(map[string]any)
+		if !ok {
+			continue
+		}
+		if value, ok := remoteObject["value"]; ok {
+			parts = append(parts, fmt.Sprint(value))
+		} else if description := stringField(remoteObject, "description"); description != "" {
+			parts = append(parts, description)
+		}
+	}
+	return strings.Join(parts, " ")
+}
+
+// exceptionMessage is the description, with the stack, of a Runtime.exceptionThrown event's
+// exception, or its text.
+func exceptionMessage(params map[string]any) string {
+	details, ok := params["exceptionDetails"].(map[string]any)
+	if !ok {
+		return ""
+	}
+	if exception, ok := details["exception"].(map[string]any); ok {
+		if description := stringField(exception, "description"); description != "" {
+			return description
+		}
+	}
+	return stringField(details, "text")
+}
+
+// stringField is object's string field key, or "".
+func stringField(object map[string]any, key string) string {
+	if value, ok := object[key].(string); ok {
+		return value
+	}
+	return ""
+}
+
+func truncate(text string, maxLength int) string {
+	if len(text) <= maxLength {
+		return text
+	}
+	return strings.ToValidUTF8(text[:maxLength], "") + "...(truncated)"
 }
 
 func (w *browserSession) generatePdf(req *workerRequest) error {

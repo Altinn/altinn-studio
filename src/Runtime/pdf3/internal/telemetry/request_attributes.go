@@ -149,14 +149,14 @@ func (d *RequestAttributes) SetJSExceptions(count int) {
 	d.setKVLocked(attribute.Int("pdf.process.js_exceptions", count))
 }
 
-func (d *RequestAttributes) SetCDPEventsDropped(count int) {
+func (d *RequestAttributes) SetBrowserLogsDropped(count int) {
 	if d == nil {
 		return
 	}
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	d.setKVLocked(attribute.Int("pdf.process.cdp_events_dropped", count))
+	d.setKVLocked(attribute.Int("pdf.process.browser_logs_dropped", count))
 }
 
 func (d *RequestAttributes) SetCleanup(attempts int, succeeded bool, skipped bool) {
