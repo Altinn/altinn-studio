@@ -85,3 +85,55 @@ func TestMapCustomError_ErrorType(t *testing.T) {
 		t.Errorf("error.type = %q, want unhandled_browser_error", got)
 	}
 }
+
+// evaluatingConnection answers Runtime.evaluate with result.
+type evaluatingConnection struct {
+	failingConnection
+
+	result any
+}
+
+func (c evaluatingConnection) SendCommand(context.Context, string, any) (*cdp.CDPResponse, error) {
+	return &cdp.CDPResponse{Result: c.result}, nil
+}
+
+// TestWaitForPageLoad_FailedWaitAnswersOnce checks that a page-load wait that fails answers the
+// request with element_not_ready, marks its span the same, and returns no error, so
+// pdf.session.process doesn't record it again as an unhandled browser error.
+func TestWaitForPageLoad_FailedWaitAnswersOnce(t *testing.T) {
+	tests := map[string]any{
+		"never loads": map[string]any{"result": map[string]any{"type": "boolean", "value": false}},
+		"exception": map[string]any{"exceptionDetails": map[string]any{
+			"text":      "Uncaught",
+			"exception": map[string]any{"description": "Error: boom"},
+		}},
+	}
+	for name, result := range tests {
+		t.Run(name, func(t *testing.T) {
+			spans := tracetest.NewSpanRecorder()
+			w := &browserSession{
+				conn:   evaluatingConnection{result: result},
+				tracer: sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(spans)).Tracer("test"),
+				logger: slog.New(slog.DiscardHandler),
+			}
+			responder := make(chan workerResponse, 1)
+			req := &workerRequest{ctx: t.Context(), responder: responder, logger: slog.New(slog.DiscardHandler)}
+
+			if err := w.waitForPageLoad(req, 100); err != nil {
+				t.Fatalf("waitForPageLoad() = %v, want nil once the request is answered", err)
+			}
+			if got := (<-responder).Error.ErrorType(); got != "element_not_ready" {
+				t.Errorf("response error.type = %q, want element_not_ready", got)
+			}
+			var got string
+			for _, kv := range spans.Ended()[0].Attributes() {
+				if kv.Key == semconv.ErrorTypeKey {
+					got = kv.Value.AsString()
+				}
+			}
+			if got != "element_not_ready" {
+				t.Errorf("pdf.session.wait error.type = %q, want element_not_ready", got)
+			}
+		})
+	}
+}

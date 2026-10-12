@@ -791,9 +791,11 @@ func (w *browserSession) waitForPageLoad(req *workerRequest, timeoutMs int32) er
 	}
 
 	if waitErr = w.processWaitResult(req, waitResp); waitErr != nil {
-		// processWaitResult has responded that the element is not ready.
+		// processWaitResult has answered that the element is not ready. Like runWait, return nil:
+		// the request has its answer, which pdf.session.process would otherwise record as an
+		// unhandled browser error.
 		telemetry.SetError(waitSpan, types.NewPDFError(types.ErrElementNotReady, "", nil).ErrorType(), waitErr)
-		return waitErr
+		return nil
 	}
 
 	w.logger.Info("Page load event completed")
