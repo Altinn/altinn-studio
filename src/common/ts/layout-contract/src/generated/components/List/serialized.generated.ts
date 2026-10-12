@@ -25,6 +25,7 @@ export interface IPagination {
 export type CompListSerialized = {
   type: 'List';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForList;
   deletionStrategy?: 'soft' | 'hard';
@@ -41,4 +42,4 @@ export type CompListSerialized = {
   SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 89d629404947b28df6ea0ba03b90c806b34396308b79a195220a2eb9bd358879
+// Source hash: 32bde15ff538efa40b17ccc5e6668498d9f088ec53060910b4eac5a35de2eaba

@@ -28,10 +28,11 @@ export type CompFileUploadSerialized = {
   hasCustomFileEndings?: boolean;
   validFileEndings?: string | string[];
   alertOnDelete?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
 } & ComponentBase &
   FormComponentProps &
   SummarizableComponentProps &
   LabeledComponentProps &
   ISelectionComponent;
 
-// Source hash: 20b864350d2580353d3fd6e403904811886fd28ded0d3ffc37aa23eea86e5778
+// Source hash: 01890963fe5e05c63574617c5e79b4af687dd6aae5572f58071c2c179a0d49fe

@@ -115,6 +115,7 @@ export function asUploaderComponent(config: ComponentConfig) {
           ),
       ),
     )
+    .addProperty(CG.common('readOnly'))
     .extends(CG.common('LabeledComponentProps'))
     .extendTextResources(CG.common('TRBLabel'));
 }

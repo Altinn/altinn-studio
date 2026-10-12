@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import { ScopeList } from './ScopeList';
 import type { ScopeListProps } from './ScopeList';
@@ -46,7 +47,7 @@ const selectedScopesMock: MaskinportenScope[] = [scopeMock3, scopeMock4];
 const selectedDefaultScopesMock: MaskinportenScope[] = [scopeMock5, scopeMock4, scopeMock2];
 
 describe('ScopeList', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render description and help text', async () => {
     renderScopeList();
@@ -561,7 +562,7 @@ describe('ScopeList', () => {
 
   it('should display an error toast when the update fails', async () => {
     const user = userEvent.setup();
-    const updateSelectedMaskinportenScopes = jest
+    const updateSelectedMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.reject({ response: {} }));
     renderScopeList({ queries: { updateSelectedMaskinportenScopes } });

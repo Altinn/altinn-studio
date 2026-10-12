@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -16,12 +18,12 @@ import { repository } from 'app-shared/mocks/mocks';
 import { useMediaQuery } from '@studio/hooks';
 import { renderWithProviders } from '../../../mocks/renderWithProviders';
 
-jest.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@studio/hooks/src/hooks/useMediaQuery');
 
-const mockGetRepoStatus = jest.fn();
+const mockGetRepoStatus = vi.fn();
 
 describe('shareChanges', () => {
-  beforeEach(jest.clearAllMocks);
+  beforeEach(vi.clearAllMocks);
 
   it('should call "getRepoStatus" when clicking the share changes button', async () => {
     const user = userEvent.setup();
@@ -185,7 +187,7 @@ describe('shareChanges', () => {
   });
 
   it('should not render the button text on a small screen', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    (useMediaQuery as Mock).mockReturnValue(true);
     renderShareChangesPopover();
 
     expect(screen.queryByText(textMock('sync_header.changes_to_share'))).not.toBeInTheDocument();

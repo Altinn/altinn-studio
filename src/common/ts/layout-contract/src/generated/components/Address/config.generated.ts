@@ -26,6 +26,8 @@ export interface CompAddressExternal
     houseNumberTitle?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForAddress;
   saveWhileTyping?: SaveWhileTyping;
@@ -68,4 +70,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: AddressSummaryOverridesWithRef;
 };
 
-// Source hash: 88a91c60edff72e95ec1ed5f09c23da51e3d2a97c7dc9dbcc700e873952a2745
+// Source hash: f55840357138ffb8129c996d1c85c9864628601e5006237e8b81d58a195df516

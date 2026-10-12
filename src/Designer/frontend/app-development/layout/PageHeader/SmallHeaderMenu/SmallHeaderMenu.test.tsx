@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { SmallHeaderMenu } from './SmallHeaderMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -10,7 +11,7 @@ import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
 
 describe('SmallHeaderMenu', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render the menu trigger button with the correct text', () => {

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -25,11 +26,11 @@ describe('Preview', () => {
   });
 
   it('should show an error message when layout metadata fails', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const errorMessage = 'Failed to load';
 
     renderPreview({
-      getLayoutSets: jest.fn().mockRejectedValue(new Error(errorMessage)),
+      getLayoutSets: vi.fn().mockRejectedValue(new Error(errorMessage)),
     });
 
     expect(await screen.findByText(errorMessage)).toBeInTheDocument();
@@ -40,9 +41,9 @@ describe('Preview', () => {
 
   it('should render an iframe when all data is available', async () => {
     renderPreview({
-      getLayoutSets: jest.fn().mockResolvedValue(defaultLayoutSets),
-      getFormLayoutSettings: jest.fn().mockResolvedValue(defaultLayoutSettings),
-      createPreviewInstance: jest.fn().mockResolvedValue({ id: instanceId }),
+      getLayoutSets: vi.fn().mockResolvedValue(defaultLayoutSets),
+      getFormLayoutSettings: vi.fn().mockResolvedValue(defaultLayoutSettings),
+      createPreviewInstance: vi.fn().mockResolvedValue({ id: instanceId }),
     });
 
     expect(await screen.findByTitle('App Preview')).toBeInTheDocument();
@@ -50,9 +51,9 @@ describe('Preview', () => {
 
   it('should include layout set and task in the preview URL', async () => {
     renderPreview({
-      getLayoutSets: jest.fn().mockResolvedValue(defaultLayoutSets),
-      getFormLayoutSettings: jest.fn().mockResolvedValue(defaultLayoutSettings),
-      createPreviewInstance: jest.fn().mockResolvedValue({ id: instanceId }),
+      getLayoutSets: vi.fn().mockResolvedValue(defaultLayoutSets),
+      getFormLayoutSettings: vi.fn().mockResolvedValue(defaultLayoutSettings),
+      createPreviewInstance: vi.fn().mockResolvedValue({ id: instanceId }),
     });
 
     const iframe = await screen.findByTitle('App Preview');

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   groupsPagesModelMock,
   layout1NameMock,
@@ -22,10 +23,10 @@ import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
 
-const mockSetSearchParams = jest.fn();
+const mockSetSearchParams = vi.fn();
 const mockSearchParams = { layout: mockPageName1 };
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     org,
     app,
@@ -41,7 +42,7 @@ const defaultProps: NavigationMenuProps = {
 };
 
 describe('NavigationMenu', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('when the pages are in page order configuration', () => {
     it('should toggle the page order using up and down buttons', async () => {
@@ -153,7 +154,7 @@ type renderParams = {
 
 const render = async ({ props = {}, pagesModel = pagesModelMock }: renderParams) => {
   const queryClient = createQueryClientMock();
-  queryClient.invalidateQueries = jest.fn();
+  queryClient.invalidateQueries = vi.fn();
   queryClient.setQueryData([QueryKey.Pages, org, app, mockSelectedLayoutSet], pagesModel);
   return renderWithProviders(<NavigationMenu {...defaultProps} {...props} />, {
     queryClient,

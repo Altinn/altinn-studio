@@ -15,6 +15,8 @@ export interface CompTimePickerExternal
   extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
   type: 'TimePicker';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   autocomplete?: 'time';
@@ -55,4 +57,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: TimePickerSummaryOverridesWithRef;
 };
 
-// Source hash: fd6ac34bde24c41261da7f180a373aad54af401ceaea05b304de66d6e7379d4c
+// Source hash: fd485e640d13b3fa5b065357d27665f874856a353c7d740c4c82d88ad6352850

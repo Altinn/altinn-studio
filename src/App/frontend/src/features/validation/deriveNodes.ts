@@ -1,5 +1,6 @@
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
+import { getDerivedNodeDescendantIds } from 'src/utils/layout/derivedNodeTraversal';
 import { deriveRuntimeNodeRefs, type RuntimeNodeRef } from 'src/utils/layout/deriveRuntimeNodeRefs';
 import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
 import { getCurrentDataModelPath } from 'src/utils/layout/rowContext';
@@ -37,6 +38,7 @@ export interface DeriveNodesInputs {
   pageOrder: string[];
   includedPageKeys?: Iterable<string>;
   includedNodeIds?: Iterable<string>;
+  descendantScope?: { nodeId: string; includeSelf: boolean; restriction?: number };
   pdfLayoutName: string | undefined;
   hiddenDataSources: ExpressionDataSources;
 }
@@ -78,30 +80,54 @@ export function deriveNodes(state: FormStoreState, inputs: DeriveNodesInputs): D
   }
 
   const pageOrderSet = new Set(inputs.pageOrder);
+  const hiddenResults = new Map<string, boolean>();
 
   function evaluateHidden(node: RuntimeNodeRef) {
-    const hiddenRuntime = withCurrentDataModelPath(inputs.hiddenDataSources, getCurrentDataModelPath(node.rowContexts));
+    const currentDataModelPath = getCurrentDataModelPath(node.rowContexts);
+    const hiddenRuntime = withCurrentDataModelPath(inputs.hiddenDataSources, currentDataModelPath);
     return evaluateHiddenSources({
       hiddenSources: getHiddenSources(node.baseId),
       pageOrder: inputs.pageOrder,
       pageOrderSet,
       pageKey: node.pageKey,
       respectPageOrder: true,
-      evalHiddenExpression: (expr, source) =>
-        evalExpr(expr, hiddenRuntime, {
+      evalHiddenExpression: (expr, source) => {
+        const cacheKey = JSON.stringify([
+          source.type,
+          source.id,
+          currentDataModelPath?.dataType,
+          currentDataModelPath?.field,
+        ]);
+        const cached = hiddenResults.get(cacheKey);
+        if (cached !== undefined) {
+          return cached;
+        }
+
+        const hidden = evalExpr(expr, hiddenRuntime, {
           returnType: ExprVal.Boolean,
           defaultValue: false,
           errorIntroText:
             source.type === 'hiddenPage'
               ? `Hidden expression for page ${source.id} failed`
               : `Expression in property ${source.type} for component ${source.id} failed`,
-        }),
+        });
+        hiddenResults.set(cacheKey, hidden);
+        return hidden;
+      },
     }).hidden;
   }
 
   const includedNodeIds = inputs.includedNodeIds ? new Set(inputs.includedNodeIds) : undefined;
-  const layoutNodes = getRuntimeNodes(state, inputs.includedPageKeys).filter(
-    (node) => !includedNodeIds || includedNodeIds.has(node.id),
+  const runtimeNodes = getRuntimeNodes(state, inputs.includedPageKeys);
+  const scope = inputs.descendantScope;
+  const descendantIds = scope
+    ? new Set([
+        ...(scope.includeSelf ? [scope.nodeId] : []),
+        ...getDerivedNodeDescendantIds(runtimeNodes, scope.nodeId, scope.restriction),
+      ])
+    : undefined;
+  const layoutNodes = runtimeNodes.filter(
+    (node) => (!includedNodeIds || includedNodeIds.has(node.id)) && (!descendantIds || descendantIds.has(node.id)),
   );
 
   return layoutNodes.map((node) => ({

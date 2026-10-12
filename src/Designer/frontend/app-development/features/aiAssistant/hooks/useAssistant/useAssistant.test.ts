@@ -1,22 +1,22 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { MockedFunction } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import { useAssistant } from './useAssistant';
 import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
 import { useAssistantThreads } from '../useAssistantThreads/useAssistantThreads';
 import { useAssistantWorkflow } from '../useAssistantWorkflow/useAssistantWorkflow';
 
-jest.mock('../useAssistantThreads/useAssistantThreads');
-jest.mock('../useAssistantWorkflow/useAssistantWorkflow');
+vi.mock('../useAssistantThreads/useAssistantThreads');
+vi.mock('../useAssistantWorkflow/useAssistantWorkflow');
 
-const mockUseAssistantThreads = useAssistantThreads as jest.MockedFunction<
-  typeof useAssistantThreads
->;
-const mockUseAssistantWorkflow = useAssistantWorkflow as jest.MockedFunction<
+const mockUseAssistantThreads = useAssistantThreads as MockedFunction<typeof useAssistantThreads>;
+const mockUseAssistantWorkflow = useAssistantWorkflow as MockedFunction<
   typeof useAssistantWorkflow
 >;
 
 describe('useAssistant', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('exposes thread data and delegates selectThread to the threads hook', () => {
@@ -26,11 +26,11 @@ describe('useAssistant', () => {
     mockUseAssistantWorkflow.mockReturnValue({
       connectionStatus: 'connected',
       workflowStatusByThread: {},
-      onSubmitMessage: jest.fn(),
-      cancelCurrentWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
+      onSubmitMessage: vi.fn(),
+      cancelCurrentWorkflow: vi.fn(),
+      respondToPermission: vi.fn(),
       cancelledMessageContent: null,
-      clearCancelledMessageContent: jest.fn(),
+      clearCancelledMessageContent: vi.fn(),
       messages: [],
     });
 
@@ -50,12 +50,12 @@ const createThreadState = (): AssistantThreadState => ({
   chatThreads: [],
   selectedThreadId: null,
   chatMessages: [],
-  selectThread: jest.fn(),
-  createThread: jest.fn().mockResolvedValue('new-thread-id'),
-  deleteThread: jest.fn(),
-  deleteMessage: jest.fn(),
-  createMessage: jest.fn(),
-  refreshMessages: jest.fn(),
+  selectThread: vi.fn(),
+  createThread: vi.fn().mockResolvedValue('new-thread-id'),
+  deleteThread: vi.fn(),
+  deleteMessage: vi.fn(),
+  createMessage: vi.fn(),
+  refreshMessages: vi.fn(),
 });
 
 const renderUseAssistant = () => renderHook(() => useAssistant());

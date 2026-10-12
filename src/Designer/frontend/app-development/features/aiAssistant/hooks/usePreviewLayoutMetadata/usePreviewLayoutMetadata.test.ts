@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -19,8 +20,8 @@ const layoutSettingsWithPages: ILayoutSettings = {
 describe('usePreviewLayoutMetadata', () => {
   it('should return metadata when layout sets and settings are available', async () => {
     const { result } = renderHook({
-      getLayoutSets: jest.fn().mockResolvedValue(layoutSetsWithEntry),
-      getFormLayoutSettings: jest.fn().mockResolvedValue(layoutSettingsWithPages),
+      getLayoutSets: vi.fn().mockResolvedValue(layoutSetsWithEntry),
+      getFormLayoutSettings: vi.fn().mockResolvedValue(layoutSettingsWithPages),
     });
 
     await waitFor(() => expect(result.current.isPending).toBe(false));
@@ -37,8 +38,8 @@ describe('usePreviewLayoutMetadata', () => {
     const layoutSetsWithoutTasks: LayoutSets = [{ id: layoutSetName }];
 
     const { result } = renderHook({
-      getLayoutSets: jest.fn().mockResolvedValue(layoutSetsWithoutTasks),
-      getFormLayoutSettings: jest.fn().mockResolvedValue(layoutSettingsWithPages),
+      getLayoutSets: vi.fn().mockResolvedValue(layoutSetsWithoutTasks),
+      getFormLayoutSettings: vi.fn().mockResolvedValue(layoutSettingsWithPages),
     });
 
     await waitFor(() => expect(result.current.isPending).toBe(false));
@@ -50,7 +51,7 @@ describe('usePreviewLayoutMetadata', () => {
     const emptyLayoutSets: LayoutSets = [];
 
     const { result } = renderHook({
-      getLayoutSets: jest.fn().mockResolvedValue(emptyLayoutSets),
+      getLayoutSets: vi.fn().mockResolvedValue(emptyLayoutSets),
     });
 
     await waitFor(() => expect(result.current.metadata).toEqual({}));
@@ -60,8 +61,8 @@ describe('usePreviewLayoutMetadata', () => {
     const emptyLayoutSettings: ILayoutSettings = {};
 
     const { result } = renderHook({
-      getLayoutSets: jest.fn().mockResolvedValue(layoutSetsWithEntry),
-      getFormLayoutSettings: jest.fn().mockResolvedValue(emptyLayoutSettings),
+      getLayoutSets: vi.fn().mockResolvedValue(layoutSetsWithEntry),
+      getFormLayoutSettings: vi.fn().mockResolvedValue(emptyLayoutSettings),
     });
 
     await waitFor(() => expect(result.current.isPending).toBe(false));
@@ -70,11 +71,11 @@ describe('usePreviewLayoutMetadata', () => {
   });
 
   it('should return error when getLayoutSets fails', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const errorMessage = 'Failed to fetch layout sets';
 
     const { result } = renderHook({
-      getLayoutSets: jest.fn().mockRejectedValue(new Error(errorMessage)),
+      getLayoutSets: vi.fn().mockRejectedValue(new Error(errorMessage)),
     });
 
     await waitFor(() => expect(result.current.error).toBeDefined());
@@ -85,12 +86,12 @@ describe('usePreviewLayoutMetadata', () => {
   });
 
   it('should return error when getFormLayoutSettings fails', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const errorMessage = 'Failed to fetch layout settings';
 
     const { result } = renderHook({
-      getLayoutSets: jest.fn().mockResolvedValue(layoutSetsWithEntry),
-      getFormLayoutSettings: jest.fn().mockRejectedValue(new Error(errorMessage)),
+      getLayoutSets: vi.fn().mockResolvedValue(layoutSetsWithEntry),
+      getFormLayoutSettings: vi.fn().mockRejectedValue(new Error(errorMessage)),
     });
 
     await waitFor(() => expect(result.current.error).toBeDefined());

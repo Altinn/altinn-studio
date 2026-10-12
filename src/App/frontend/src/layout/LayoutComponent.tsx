@@ -2,6 +2,8 @@ import React from 'react';
 import type { JSX } from 'react';
 
 import { CompCategory } from '@app/layout-contract';
+import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
+import type { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { ErrorObject } from 'ajv';
 
@@ -10,6 +12,7 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { validateEmptyFieldAllBindings } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { getComponentCapabilities } from 'src/layout/index';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { CompCapabilities } from 'src/codegen/Config';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
@@ -111,6 +114,18 @@ export abstract class AnyComponent<Type extends CompTypes> {
   ): ErrorObject[] | undefined {
     const schemaPointer = '#/definitions/AnyComponent';
     return validate(schemaPointer, component);
+  }
+
+  useIsRequired(
+    config: CompExternal<Type>,
+    requiredOverride?: ExprValToActualOrExpr<ExprVal.Boolean>,
+  ): boolean | undefined {
+    const supportsRequired = 'required' in Expressions[this.type];
+    const required = useEvalExpression(
+      supportsRequired ? (requiredOverride ?? ('required' in config ? config.required : undefined)) : undefined,
+      CommonExpressions.required,
+    );
+    return supportsRequired ? required : undefined;
   }
 
   getOptionsEffectValueType(): OptionsValueType | undefined {

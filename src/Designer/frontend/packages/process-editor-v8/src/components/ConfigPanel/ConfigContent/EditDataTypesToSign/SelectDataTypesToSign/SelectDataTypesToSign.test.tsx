@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -22,11 +23,11 @@ import {
   mockBpmnDetails,
 } from '../../../../../../test/mocks/bpmnDetailsMock';
 
-jest.useFakeTimers({ advanceTimers: true });
+vi.useFakeTimers({ shouldAdvanceTime: true });
 createMock.mockImplementation((_, data) => data.dataType);
 
 const defaultSelectDataTypeProps: SelectDataTypesToSignProps = {
-  onClose: jest.fn(),
+  onClose: vi.fn(),
 };
 
 const signingTasks = [
@@ -50,11 +51,11 @@ const signingTasks = [
   },
 ];
 
-jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
+vi.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(function () {
+    StudioModeler: vi.fn().mockImplementation(function () {
       return {
-        getAllTasksByType: jest.fn().mockReturnValue(signingTasks),
+        getAllTasksByType: vi.fn().mockReturnValue(signingTasks),
       };
     }),
   };
@@ -81,7 +82,7 @@ const existingDataTypesProps = {
 };
 
 describe('SelectDataTypesToSign', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('saves the new selection', async () => {
     const user = userEvent.setup();
@@ -93,7 +94,7 @@ describe('SelectDataTypesToSign', () => {
     });
     await user.click(suggestionInput);
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     await user.click(screen.getByRole('option', { name: availableDataTypeIds[2], hidden: true }));
 
     await waitFor(() => expect(createMock).toHaveBeenCalledTimes(1));

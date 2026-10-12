@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { MockedFunction } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { SetupTabInputFields } from './SetupTabInputFields';
@@ -12,9 +14,9 @@ import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
 import userEvent from '@testing-library/user-event';
 
-jest.mock('app-development/hooks/mutations/useAppMetadataMutation');
-const updateAppMetadataMutation = jest.fn();
-const mockUpdateAppMetadataMutation = useAppMetadataMutation as jest.MockedFunction<
+vi.mock('app-development/hooks/mutations/useAppMetadataMutation');
+const updateAppMetadataMutation = vi.fn();
+const mockUpdateAppMetadataMutation = useAppMetadataMutation as MockedFunction<
   typeof useAppMetadataMutation
 >;
 mockUpdateAppMetadataMutation.mockReturnValue({
@@ -22,7 +24,7 @@ mockUpdateAppMetadataMutation.mockReturnValue({
 } as unknown as UseMutationResult<void, Error, ApplicationMetadata, unknown>);
 
 describe('SetupTabInputFields', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('does not display an error message when validTo is a later date than validFrom', () => {
     renderSetupTabInputFields();

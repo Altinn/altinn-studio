@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { DeployResourcePageProps } from './DeployResourcePage';
 import { DeployResourcePage } from './DeployResourcePage';
@@ -42,11 +43,11 @@ const mockValidatePolicyData4: Validation = {
 const mockValidateResourceData2: Validation = { status: 400, errors: ['resource.title'] };
 
 const mockResourceVersionText: string = '2';
-const mockNavigateToPageWithError = jest.fn();
-const mockOnSaveVersion = jest.fn();
+const mockNavigateToPageWithError = vi.fn();
+const mockOnSaveVersion = vi.fn();
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     resourceId: mockResourceId,
     org: mockOrg,
@@ -62,7 +63,7 @@ const defaultProps: DeployResourcePageProps = {
 };
 
 describe('DeployResourcePage', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('initially displays the spinner when loading data', () => {
     renderDeployResourcePage();

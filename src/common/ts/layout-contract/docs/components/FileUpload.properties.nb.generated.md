@@ -25,19 +25,6 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.</div></div>
 </details>
 
-<details class="card adocs-expand adocs-expand-small component-property" id="required">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="required">required</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Valgfri</span>
-      <span class="component-property-default">Standardverdi: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.</div></div>
-</details>
-
 <details class="card adocs-expand adocs-expand-small component-property" id="showvalidations">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
@@ -122,7 +109,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler parametere i spørringsstrengen til verdier. Parameterne legges til URL-en når alternativer hentes.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler parametere i spørringsstrengen til verdier. Parameterne legges til URL-en når alternativer hentes. Andre egenskapsnavn er tillatt. Verditype: string | expression&lt;string&gt;.</div></div>
 </details>
 
 <details class="component-property-group" id="options">

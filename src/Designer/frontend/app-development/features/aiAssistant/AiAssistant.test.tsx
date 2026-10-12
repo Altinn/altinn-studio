@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import AiAssistant from './AiAssistant';
 import { renderWithProviders } from 'app-development/test/mocks';
@@ -6,7 +7,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FeatureName } from 'app-shared/enums/CanUseFeature';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
-jest.mock('./components/AssistantWorkspace', () => ({
+vi.mock('./components/AssistantWorkspace', () => ({
   AssistantWorkspace: () => <div>assistant workspace</div>,
 }));
 
@@ -14,17 +15,17 @@ const org = 'ttd';
 const app = 'test-app';
 
 describe('AiAssistant', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('renders a spinner when loading', () => {
-    jest.mocked(queriesMock.canUseFeature).mockResolvedValue({ canUseFeature: false });
+    vi.mocked(queriesMock.canUseFeature).mockResolvedValue({ canUseFeature: false });
     renderAiAssistant();
 
     expect(screen.getByLabelText(textMock('general.loading'))).toBeInTheDocument();
   });
 
   it('asks the backend whether the assistant is available for this repository', async () => {
-    jest.mocked(queriesMock.canUseFeature).mockResolvedValue({ canUseFeature: false });
+    vi.mocked(queriesMock.canUseFeature).mockResolvedValue({ canUseFeature: false });
     renderAiAssistant();
 
     await waitFor(() =>
@@ -33,21 +34,21 @@ describe('AiAssistant', () => {
   });
 
   it('renders the assistant when the developer has access', async () => {
-    jest.mocked(queriesMock.canUseFeature).mockResolvedValue({ canUseFeature: true });
+    vi.mocked(queriesMock.canUseFeature).mockResolvedValue({ canUseFeature: true });
     renderAiAssistant();
 
     expect(await screen.findByText('assistant workspace')).toBeInTheDocument();
   });
 
   it('renders the beta message when the developer has no access', async () => {
-    jest.mocked(queriesMock.canUseFeature).mockResolvedValue({ canUseFeature: false });
+    vi.mocked(queriesMock.canUseFeature).mockResolvedValue({ canUseFeature: false });
     renderAiAssistant();
 
     expect(await screen.findByText(textMock('ai_assistant.access_denied'))).toBeInTheDocument();
   });
 
   it('defaults to access denied during server error', async () => {
-    jest.mocked(queriesMock.canUseFeature).mockRejectedValue(createApiErrorMock(500));
+    vi.mocked(queriesMock.canUseFeature).mockRejectedValue(createApiErrorMock(500));
     renderAiAssistant();
 
     expect(await screen.findByText(textMock('ai_assistant.access_denied'))).toBeInTheDocument();

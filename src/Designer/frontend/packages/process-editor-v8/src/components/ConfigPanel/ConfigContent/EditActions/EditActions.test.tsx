@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -8,8 +10,8 @@ import { type Action, BpmnActionModeler } from '../../../../utils/bpmnModeler/Bp
 import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
 import { useUniqueKeys } from '@studio/hooks';
 
-jest.mock('../../../../utils/bpmnModeler/BpmnActionModeler');
-jest.mock('@studio/hooks/src/hooks/useUniqueKeys');
+vi.mock('../../../../utils/bpmnModeler/BpmnActionModeler');
+vi.mock('@studio/hooks/src/hooks/useUniqueKeys');
 
 const actionElementDefaultMock: Action = {
   $type: 'altinn:Action',
@@ -17,24 +19,24 @@ const actionElementDefaultMock: Action = {
 
 describe('EditActions', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should add new action if actions not already exists', async () => {
     const user = userEvent.setup();
 
-    const addNewActionToTaskMock = jest.fn();
-    const updateTypeForActionMock = jest.fn();
-    const updateActionNameOnActionElementMock = jest.fn();
+    const addNewActionToTaskMock = vi.fn();
+    const updateTypeForActionMock = vi.fn();
+    const updateActionNameOnActionElementMock = vi.fn();
     setupBpmnActionModelerMock({
       addNewActionToTaskMock,
       updateTypeForActionMock,
       updateActionNameOnActionElementMock,
     });
 
-    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
-      addUniqueKey: jest.fn(),
-      removeUniqueKey: jest.fn(),
+    (useUniqueKeys as Mock).mockImplementation(() => ({
+      addUniqueKey: vi.fn(),
+      removeUniqueKey: vi.fn(),
       getUniqueKey: () => [],
     }));
 
@@ -57,11 +59,11 @@ describe('EditActions', () => {
   it('should append new action if actions already exists', async () => {
     const user = userEvent.setup();
 
-    const addNewActionToTaskMock = jest.fn();
-    const updateTypeForActionMock = jest.fn();
-    const updateActionNameOnActionElementMock = jest.fn();
-    const createActionElementMock = jest.fn();
-    const getExtensionElementsMock = jest.fn();
+    const addNewActionToTaskMock = vi.fn();
+    const updateTypeForActionMock = vi.fn();
+    const updateActionNameOnActionElementMock = vi.fn();
+    const createActionElementMock = vi.fn();
+    const getExtensionElementsMock = vi.fn();
     setupBpmnActionModelerMock({
       addNewActionToTaskMock,
       updateTypeForActionMock,
@@ -71,9 +73,9 @@ describe('EditActions', () => {
       hasActionsAlready: true,
     });
 
-    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
-      addUniqueKey: jest.fn(),
-      removeUniqueKey: jest.fn(),
+    (useUniqueKeys as Mock).mockImplementation(() => ({
+      addUniqueKey: vi.fn(),
+      removeUniqueKey: vi.fn(),
       getUniqueKey: () => [],
     }));
 
@@ -89,9 +91,9 @@ describe('EditActions', () => {
 
   it('should list existing actions in view mode', () => {
     setupBpmnActionModelerMock({
-      addNewActionToTaskMock: jest.fn(),
-      updateTypeForActionMock: jest.fn(),
-      updateActionNameOnActionElementMock: jest.fn(),
+      addNewActionToTaskMock: vi.fn(),
+      updateTypeForActionMock: vi.fn(),
+      updateActionNameOnActionElementMock: vi.fn(),
       hasActionsAlready: true,
       actionElementMock: {
         ...actionElementDefaultMock,
@@ -99,9 +101,9 @@ describe('EditActions', () => {
       },
     });
 
-    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
-      addUniqueKey: jest.fn(),
-      removeUniqueKey: jest.fn(),
+    (useUniqueKeys as Mock).mockImplementation(() => ({
+      addUniqueKey: vi.fn(),
+      removeUniqueKey: vi.fn(),
       getUniqueKey: () => [],
     }));
 
@@ -117,16 +119,16 @@ describe('EditActions', () => {
 
   it('should display in edit mode when adding new action', async () => {
     const user = userEvent.setup();
-    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
-      addUniqueKey: jest.fn(),
-      removeUniqueKey: jest.fn(),
+    (useUniqueKeys as Mock).mockImplementation(() => ({
+      addUniqueKey: vi.fn(),
+      removeUniqueKey: vi.fn(),
       getUniqueKey: () => [],
     }));
     setupBpmnActionModelerMock({
-      addNewActionToTaskMock: jest.fn(),
-      createActionElementMock: jest.fn(),
-      getExtensionElementsMock: jest.fn(),
-      updateActionNameOnActionElementMock: jest.fn(),
+      addNewActionToTaskMock: vi.fn(),
+      createActionElementMock: vi.fn(),
+      getExtensionElementsMock: vi.fn(),
+      updateActionNameOnActionElementMock: vi.fn(),
       hasActionsAlready: true,
     });
     renderEditActions();
@@ -145,15 +147,15 @@ describe('EditActions', () => {
   it('should call addUniqueKey when new action item is added', async () => {
     const user = userEvent.setup();
     setupBpmnActionModelerMock({
-      addNewActionToTaskMock: jest.fn(),
-      updateTypeForActionMock: jest.fn(),
-      updateActionNameOnActionElementMock: jest.fn(),
+      addNewActionToTaskMock: vi.fn(),
+      updateTypeForActionMock: vi.fn(),
+      updateActionNameOnActionElementMock: vi.fn(),
     });
 
-    const addUniqueKeyMock = jest.fn();
-    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+    const addUniqueKeyMock = vi.fn();
+    (useUniqueKeys as Mock).mockImplementation(() => ({
       addUniqueKey: addUniqueKeyMock,
-      removeUniqueKey: jest.fn(),
+      removeUniqueKey: vi.fn(),
       getUniqueKey: () => [],
     }));
 
@@ -170,16 +172,16 @@ describe('EditActions', () => {
   it('should removeKey when a item is deleted', async () => {
     const user = userEvent.setup();
 
-    const removeKeyMock = jest.fn();
-    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
-      addUniqueKey: jest.fn(),
+    const removeKeyMock = vi.fn();
+    (useUniqueKeys as Mock).mockImplementation(() => ({
+      addUniqueKey: vi.fn(),
       removeUniqueKey: removeKeyMock,
       getUniqueKey: () => [],
     }));
     setupBpmnActionModelerMock({
-      addNewActionToTaskMock: jest.fn(),
-      updateTypeForActionMock: jest.fn(),
-      updateActionNameOnActionElementMock: jest.fn(),
+      addNewActionToTaskMock: vi.fn(),
+      updateTypeForActionMock: vi.fn(),
+      updateActionNameOnActionElementMock: vi.fn(),
       hasActionsAlready: true,
       actionElementMock: {
         ...actionElementDefaultMock,
@@ -219,12 +221,12 @@ const renderEditActions = () => {
 };
 
 type BpmnActionModelerMock = {
-  addNewActionToTaskMock: jest.Mock;
-  updateTypeForActionMock: jest.Mock;
-  updateActionNameOnActionElementMock: jest.Mock;
+  addNewActionToTaskMock: Mock;
+  updateTypeForActionMock: Mock;
+  updateActionNameOnActionElementMock: Mock;
   hasActionsAlready: boolean;
-  createActionElementMock: jest.Mock;
-  getExtensionElementsMock: jest.Mock;
+  createActionElementMock: Mock;
+  getExtensionElementsMock: Mock;
 };
 
 const setupBpmnActionModelerMock = ({
@@ -236,16 +238,16 @@ const setupBpmnActionModelerMock = ({
   getExtensionElementsMock,
   actionElementMock,
 }: Partial<BpmnActionModelerMock & { actionElementMock: Action }>) =>
-  (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+  (BpmnActionModeler as Mock).mockImplementation(function () {
     return {
       addNewActionToTask: addNewActionToTaskMock,
       updateTypeForAction: updateTypeForActionMock,
       updateActionNameOnActionElement: updateActionNameOnActionElementMock,
-      deleteActionFromTask: jest.fn(),
+      deleteActionFromTask: vi.fn(),
       createActionElement: createActionElementMock,
       getExtensionElements: getExtensionElementsMock,
       hasActionsAlready,
-      getTypeForAction: jest.fn().mockReturnValue('Process'),
+      getTypeForAction: vi.fn().mockReturnValue('Process'),
       actionElements: {
         action: [actionElementMock || actionElementDefaultMock],
       },

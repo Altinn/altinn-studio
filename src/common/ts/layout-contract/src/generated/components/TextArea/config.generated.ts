@@ -17,6 +17,8 @@ export interface CompTextAreaExternal
   extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
   type: 'TextArea';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   saveWhileTyping?: SaveWhileTyping;
@@ -56,4 +58,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: TextAreaSummaryOverridesWithRef;
 };
 
-// Source hash: bf5d361826c0b5c54c716dfda750a18346f6a067df6748ca2822ac1213d2b9be
+// Source hash: 892f05c773e1e2d158fa51b8b48dd9edb51920a90c072eee365e6e444efad85e

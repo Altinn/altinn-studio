@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -24,10 +25,10 @@ const subformComponents: SubformComponent[] = [
     subformDataTypeId: 'moped',
   },
 ];
-const saveSubformPdfComponent = jest.fn().mockResolvedValue(subformComponents);
+const saveSubformPdfComponent = vi.fn().mockResolvedValue(subformComponents);
 
 describe('useSaveSubformPdfComponentMutation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('sends the source component and target layout set', async () => {
     const { result } = renderHookWithProviders(() => useSaveSubformPdfComponentMutation(org, app), {
@@ -59,7 +60,7 @@ describe('useSaveSubformPdfComponentMutation', () => {
 
   it('refreshes layout sets and the modified task layouts after saving', async () => {
     const queryClient = createQueryClientMock();
-    const invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
     const { result } = renderHookWithProviders(() => useSaveSubformPdfComponentMutation(org, app), {
       queries: { saveSubformPdfComponent },
       queryClient,
@@ -75,7 +76,7 @@ describe('useSaveSubformPdfComponentMutation', () => {
 
   it('invalidates the subform components and the layout sets when the save fails', async () => {
     const queryClient = createQueryClientMock();
-    const invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
     const { result } = renderHookWithProviders(() => useSaveSubformPdfComponentMutation(org, app), {
       queries: { saveSubformPdfComponent },
       queryClient,

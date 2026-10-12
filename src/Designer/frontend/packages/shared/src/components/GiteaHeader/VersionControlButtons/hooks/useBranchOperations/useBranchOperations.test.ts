@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useBranchOperations } from './useBranchOperations';
 import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckoutBranchMutation';
@@ -8,20 +9,20 @@ import { uncommittedChangesErrorMock } from '../../test/mocks/branchingMocks';
 import { app, org } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-jest.mock('app-shared/hooks/mutations/useCheckoutBranchMutation');
-jest.mock('app-shared/hooks/mutations/useCreateBranchMutation');
-jest.mock('app-shared/hooks/mutations/useDiscardChangesMutation');
-jest.mock('app-shared/hooks/mutations/useDeleteBranchMutation');
+vi.mock('app-shared/hooks/mutations/useCheckoutBranchMutation');
+vi.mock('app-shared/hooks/mutations/useCreateBranchMutation');
+vi.mock('app-shared/hooks/mutations/useDiscardChangesMutation');
+vi.mock('app-shared/hooks/mutations/useDeleteBranchMutation');
 
-const mockUseCheckoutBranchMutation = jest.mocked(useCheckoutBranchMutation);
-const mockUseCreateBranchMutation = jest.mocked(useCreateBranchMutation);
-const mockUseDiscardChangesMutation = jest.mocked(useDiscardChangesMutation);
-const mockUseDeleteBranchMutation = jest.mocked(useDeleteBranchMutation);
+const mockUseCheckoutBranchMutation = vi.mocked(useCheckoutBranchMutation);
+const mockUseCreateBranchMutation = vi.mocked(useCreateBranchMutation);
+const mockUseDiscardChangesMutation = vi.mocked(useDiscardChangesMutation);
+const mockUseDeleteBranchMutation = vi.mocked(useDeleteBranchMutation);
 
-const checkoutBranchMutate = jest.fn();
-const createBranchMutate = jest.fn();
-const discardChangesMutate = jest.fn();
-const deleteBranchMutate = jest.fn();
+const checkoutBranchMutate = vi.fn();
+const createBranchMutate = vi.fn();
+const discardChangesMutate = vi.fn();
+const deleteBranchMutate = vi.fn();
 
 const { reload: originalReload } = window.location;
 
@@ -45,14 +46,14 @@ describe('useBranchOperations', () => {
     } as any);
 
     Object.defineProperty(window, 'location', {
-      value: { reload: jest.fn() },
+      value: { reload: vi.fn() },
       writable: true,
     });
   });
 
   afterEach(() => {
     window.location.reload = originalReload;
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('checkoutExistingBranch', () => {

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { useSchemaQuery } from './useSchemaQuery';
@@ -9,7 +10,7 @@ import { app, org } from '@studio/testing/testids';
 const jsonModelPathWithSlash = '/App/models/model.schema.json';
 
 describe('useSchemaQuery', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Calls getDataModel with correct arguments when Json Schema', async () => {
     const {

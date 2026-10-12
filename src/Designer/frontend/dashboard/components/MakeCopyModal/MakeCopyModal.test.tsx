@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MakeCopyModal, type MakeCopyModalProps } from './MakeCopyModal';
@@ -13,9 +15,9 @@ import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { app, org } from '@studio/testing/testids';
 import { useUserOrgPermissionsQuery } from 'app-shared/hooks/queries/useUserOrgPermissionsQuery';
 
-jest.mock('app-shared/hooks/queries/useUserOrgPermissionsQuery');
+vi.mock('app-shared/hooks/queries/useUserOrgPermissionsQuery');
 
-(useUserOrgPermissionsQuery as jest.Mock).mockReturnValue({
+(useUserOrgPermissionsQuery as Mock).mockReturnValue({
   data: { canCreateOrgRepo: true, isOrgOwner: true },
 });
 
@@ -37,18 +39,18 @@ const mockOrg: Organization = {
 };
 const mockOrganizations: Organization[] = [mockOrg];
 
-jest.mock('../../hooks/mutations', () => ({
-  useCopyAppMutation: jest.fn(),
+vi.mock('../../hooks/mutations', () => ({
+  useCopyAppMutation: vi.fn(),
 }));
-jest.mock('app-shared/navigation/PackagesRouter');
+vi.mock('app-shared/navigation/PackagesRouter');
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: jest.fn(),
-  useParams: jest.fn().mockReturnValue(''),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
+  useNavigate: vi.fn(),
+  useParams: vi.fn().mockReturnValue(''),
 }));
 
-const mockOnClose = jest.fn();
+const mockOnClose = vi.fn();
 
 const renderMakeCopyModal = (
   props?: Partial<MakeCopyModalProps>,
@@ -77,7 +79,7 @@ const renderMakeCopyModal = (
 
 describe('MakeCopyModal', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('successfully adds the values and submits the copy of a new application', async () => {
@@ -141,8 +143,8 @@ describe('MakeCopyModal', () => {
 
   it('navigates to the correct url when the app is copied', async () => {
     const user = userEvent.setup();
-    const mockNavigateToPackage = jest.fn();
-    (PackagesRouter as jest.Mock).mockImplementation(function () {
+    const mockNavigateToPackage = vi.fn();
+    (PackagesRouter as Mock).mockImplementation(function () {
       return {
         navigateToPackage: mockNavigateToPackage,
       };
@@ -161,7 +163,7 @@ describe('MakeCopyModal', () => {
 
   it('should show error message that app already exists when trying to copy an app with a name that already exists', async () => {
     const user = userEvent.setup();
-    const copyRepoMock = jest
+    const copyRepoMock = vi
       .fn()
       .mockImplementation(() => Promise.reject({ response: { status: 409 } }));
 

@@ -1,13 +1,15 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useTranslateKeyValue } from './useTranslateKeyValue';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useComponentPropertyEnumValue, useComponentPropertyLabel } from '../../../hooks';
 
-jest.mock('@altinn/ux-editor/hooks');
+vi.mock('@altinn/ux-editor/hooks');
 
 describe('useTranslateKeyValue', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return null when no values are provided', () => {
@@ -16,14 +18,14 @@ describe('useTranslateKeyValue', () => {
   });
 
   it('should translate and format the values in an array and object correctly', () => {
-    (useComponentPropertyEnumValue as jest.Mock).mockReturnValue(
+    (useComponentPropertyEnumValue as Mock).mockReturnValue(
       (value: string) =>
         ({
           value1: textMock('ux_editor.component_properties.enum_value1'),
           value2: textMock('ux_editor.component_properties.enum_value2'),
         })[value] || value,
     );
-    (useComponentPropertyLabel as jest.Mock).mockReturnValue((value: string) => value);
+    (useComponentPropertyLabel as Mock).mockReturnValue((value: string) => value);
 
     const arrayToBeDisplayed = ['value1', 'value2'];
     const { result } = renderHook(() => useTranslateKeyValue(arrayToBeDisplayed));

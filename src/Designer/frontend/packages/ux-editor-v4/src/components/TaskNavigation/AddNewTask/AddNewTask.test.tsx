@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AddNewTask } from './AddNewTask';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -5,16 +6,16 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 
-const mockNavigate = jest.fn();
+const mockNavigate = vi.fn();
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockNavigate,
 }));
 
 describe('AddNewTask', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   it('Should render the card with the correct title', () => {
     renderAddNewTask();

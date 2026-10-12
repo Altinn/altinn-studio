@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useRef } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -13,7 +14,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const mockButtonText: string = 'Mock Button';
-const closeModalMock = jest.fn();
+const closeModalMock = vi.fn();
 
 const defaultProps: NewAccessListModalProps = {
   org: 'orgname',
@@ -22,14 +23,14 @@ const defaultProps: NewAccessListModalProps = {
   onClose: closeModalMock,
 };
 
-const mockedNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+const mockedNavigate = vi.fn();
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockedNavigate,
 }));
 
 describe('NewAccessListModal', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should disable create button when name or id is empty', async () => {
     const user = userEvent.setup();
@@ -67,7 +68,7 @@ describe('NewAccessListModal', () => {
   it('should show error message when trying to create an access list with an existing identifier', async () => {
     const user = userEvent.setup();
     await renderAndOpenModal(user, {
-      createAccessList: jest
+      createAccessList: vi
         .fn()
         .mockImplementation(() => Promise.reject({ response: { status: ServerCodes.Conflict } })),
     });
@@ -86,7 +87,7 @@ describe('NewAccessListModal', () => {
   it('should show error message when access list request returns http status code 412', async () => {
     const user = userEvent.setup();
     await renderAndOpenModal(user, {
-      createAccessList: jest
+      createAccessList: vi
         .fn()
         .mockImplementation(() =>
           Promise.reject({ response: { status: ServerCodes.PreconditionFailed } }),

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { EditLayoutSetName } from './EditLayoutSetName';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -5,15 +6,15 @@ import { mockBpmnApiContextValue } from '../../../../../test/mocks/bpmnContextMo
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
 import userEvent from '@testing-library/user-event';
 
-const updateLayoutSetIdMock = jest.fn();
-jest.mock('../../../../hooks/useUpdateLayoutSetId', () => ({
+const updateLayoutSetIdMock = vi.fn();
+vi.mock('../../../../hooks/useUpdateLayoutSetId', () => ({
   useUpdateLayoutSetId: () => updateLayoutSetIdMock,
 }));
 
 const existingLayoutSetNameMock = 'existingLayoutSetName';
 
 describe('EditLayoutSetName', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render the layoutSetName button', () => {
     renderEditLayoutSetName();

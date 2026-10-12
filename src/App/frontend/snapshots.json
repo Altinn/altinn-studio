@@ -160,6 +160,10 @@
       "TestCustomButtonInput": null,
       "TestCustomButtonReadOnlyInput": null,
       "neverValidatedInput": null,
+      "CustomSimple": null,
+      "CustomNamed": null,
+      "CustomSecondary": null,
+      "CustomMode": null,
       "ChooseExtraPages": null,
       "Numeric": null,
       "MapData": {

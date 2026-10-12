@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { waitForElementToBeRemoved } from '@testing-library/react';
 import { componentMocks } from '../../../../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -26,13 +27,13 @@ import { FeatureFlag } from '@studio/feature-flags';
 import { screen } from '@studio/ui-test';
 
 // Mocks:
-jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
+vi.mock('react-router-dom', async () => await vi.importActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
 const optionListId = 'someId';
 const componentWithOptionsId = { ...mockComponent, options: undefined, optionsId: optionListId };
-const handleComponentChange = jest.fn();
+const handleComponentChange = vi.fn();
 const optionList: OptionList = [
   { value: 'value 1', label: 'label 1', description: 'description', helpText: 'help text' },
   { value: 'value 2', label: 'label 2', description: null, helpText: null },
@@ -44,14 +45,14 @@ const appRouteParams: AppRouteParams = { org, app };
 const textResources: ITextResources = {
   [DEFAULT_LANGUAGE]: textResourcesMock.resources,
 };
-const onEditInternalButtonClick = jest.fn();
+const onEditInternalButtonClick = vi.fn();
 const codeListIdContextData: CodeListIdContextData = {
   idsFromAppLibrary: [optionListId],
   orgName: org,
 };
 
 describe('OptionListEditor', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Calls onEditButtonClick when the options property is set and the user clicks the edit button', async () => {
     const user = userEvent.setup();
@@ -106,7 +107,7 @@ describe('OptionListEditor', () => {
   it('should render a spinner when there is no data', () => {
     renderOptionListEditor({
       queries: {
-        getOptionList: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
+        getOptionList: vi.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
       },
       props: { component: componentWithOptionsId },
     });
@@ -119,7 +120,7 @@ describe('OptionListEditor', () => {
   it('should render an error message when getOptionList throws an error', async () => {
     renderOptionListEditor({
       queries: {
-        getOptionList: jest.fn().mockImplementation(() => Promise.reject()),
+        getOptionList: vi.fn().mockImplementation(() => Promise.reject()),
       },
       props: { component: componentWithOptionsId },
     });
@@ -136,7 +137,7 @@ describe('OptionListEditor', () => {
     const user = userEvent.setup();
     renderOptionListEditorWithData({
       queries: {
-        getOptionList: jest.fn().mockImplementation(() => Promise.reject()),
+        getOptionList: vi.fn().mockImplementation(() => Promise.reject()),
       },
     });
     const expectedArgs = ObjectUtils.deepCopy(componentWithOptionsId);

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { PaymentPolicyBuilder } from './PaymentPolicyBuilder';
 import type { Policy } from '../../../utils/policy/types';
 

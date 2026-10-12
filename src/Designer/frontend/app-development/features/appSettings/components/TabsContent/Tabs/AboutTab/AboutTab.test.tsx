@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { MockedFunction } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AboutTab } from './AboutTab';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -10,9 +12,9 @@ import { useAppMetadataMutation } from 'app-development/hooks/mutations/useAppMe
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { UseMutationResult } from '@tanstack/react-query';
 
-jest.mock('app-development/hooks/mutations/useAppMetadataMutation');
-const updateAppMetadataMutation = jest.fn();
-const mockUpdateAppMetadataMutation = useAppMetadataMutation as jest.MockedFunction<
+vi.mock('app-development/hooks/mutations/useAppMetadataMutation');
+const updateAppMetadataMutation = vi.fn();
+const mockUpdateAppMetadataMutation = useAppMetadataMutation as MockedFunction<
   typeof useAppMetadataMutation
 >;
 mockUpdateAppMetadataMutation.mockReturnValue({
@@ -20,7 +22,7 @@ mockUpdateAppMetadataMutation.mockReturnValue({
 } as unknown as UseMutationResult<void, Error, ApplicationMetadata, unknown>);
 
 describe('AboutTab', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('initially displays the spinner when loading data', () => {
     renderAboutTab();
@@ -28,7 +30,7 @@ describe('AboutTab', () => {
   });
 
   it('fetches applicationMetadata on mount', () => {
-    const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
+    const getAppMetadata = vi.fn().mockImplementation(() => Promise.resolve({}));
     renderAboutTab({ getAppMetadata });
     expect(getAppMetadata).toHaveBeenCalledTimes(1);
   });
@@ -73,7 +75,7 @@ const renderAboutTab = (queries: Partial<ServicesContextProps> = {}) => {
 };
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
-  const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve(mockAppMetadata));
+  const getAppMetadata = vi.fn().mockImplementation(() => Promise.resolve(mockAppMetadata));
 
   renderAboutTab({
     getAppMetadata,

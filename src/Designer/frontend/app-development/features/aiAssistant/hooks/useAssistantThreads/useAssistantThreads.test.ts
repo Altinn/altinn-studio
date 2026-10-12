@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { MockedFunction } from 'vitest';
 import { createElement } from 'react';
 import { act, renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -12,33 +14,31 @@ import { useChatMessagesQuery } from 'app-shared/hooks/queries/useChatMessagesQu
 import { useCreateChatMessageMutation } from 'app-shared/hooks/mutations/useCreateChatMessageMutation';
 import { useDeleteChatMessageMutation } from 'app-shared/hooks/mutations/useDeleteChatMessageMutation';
 
-jest.mock('app-shared/hooks/useStudioEnvironmentParams');
-jest.mock('app-shared/hooks/queries/useChatThreadsQuery');
-jest.mock('app-shared/hooks/mutations/useCreateChatThreadMutation');
-jest.mock('app-shared/hooks/mutations/useDeleteChatThreadMutation');
-jest.mock('app-shared/hooks/queries/useChatMessagesQuery');
-jest.mock('app-shared/hooks/mutations/useCreateChatMessageMutation');
-jest.mock('app-shared/hooks/mutations/useDeleteChatMessageMutation');
+vi.mock('app-shared/hooks/useStudioEnvironmentParams');
+vi.mock('app-shared/hooks/queries/useChatThreadsQuery');
+vi.mock('app-shared/hooks/mutations/useCreateChatThreadMutation');
+vi.mock('app-shared/hooks/mutations/useDeleteChatThreadMutation');
+vi.mock('app-shared/hooks/queries/useChatMessagesQuery');
+vi.mock('app-shared/hooks/mutations/useCreateChatMessageMutation');
+vi.mock('app-shared/hooks/mutations/useDeleteChatMessageMutation');
 
-const mockUseStudioEnvironmentParams = useStudioEnvironmentParams as jest.MockedFunction<
+const mockUseStudioEnvironmentParams = useStudioEnvironmentParams as MockedFunction<
   typeof useStudioEnvironmentParams
 >;
-const mockUseChatThreadsQuery = useChatThreadsQuery as jest.MockedFunction<
-  typeof useChatThreadsQuery
->;
-const mockUseCreateChatThreadMutation = useCreateChatThreadMutation as jest.MockedFunction<
+const mockUseChatThreadsQuery = useChatThreadsQuery as MockedFunction<typeof useChatThreadsQuery>;
+const mockUseCreateChatThreadMutation = useCreateChatThreadMutation as MockedFunction<
   typeof useCreateChatThreadMutation
 >;
-const mockUseDeleteChatThreadMutation = useDeleteChatThreadMutation as jest.MockedFunction<
+const mockUseDeleteChatThreadMutation = useDeleteChatThreadMutation as MockedFunction<
   typeof useDeleteChatThreadMutation
 >;
-const mockUseChatMessagesQuery = useChatMessagesQuery as jest.MockedFunction<
+const mockUseChatMessagesQuery = useChatMessagesQuery as MockedFunction<
   typeof useChatMessagesQuery
 >;
-const mockUseCreateChatMessageMutation = useCreateChatMessageMutation as jest.MockedFunction<
+const mockUseCreateChatMessageMutation = useCreateChatMessageMutation as MockedFunction<
   typeof useCreateChatMessageMutation
 >;
-const mockUseDeleteChatMessageMutation = useDeleteChatMessageMutation as jest.MockedFunction<
+const mockUseDeleteChatMessageMutation = useDeleteChatMessageMutation as MockedFunction<
   typeof useDeleteChatMessageMutation
 >;
 
@@ -49,23 +49,23 @@ describe('useAssistantThreads', () => {
     mockUseStudioEnvironmentParams.mockReturnValue({ org: 'testOrg', app: 'testApp' });
     mockUseChatThreadsQuery.mockReturnValue({ data: [] } as any);
     mockUseCreateChatThreadMutation.mockReturnValue({
-      mutateAsync: jest.fn().mockResolvedValue({ id: 'new-thread-id' }),
+      mutateAsync: vi.fn().mockResolvedValue({ id: 'new-thread-id' }),
     } as any);
-    mockUseDeleteChatThreadMutation.mockReturnValue({ mutate: jest.fn() } as any);
+    mockUseDeleteChatThreadMutation.mockReturnValue({ mutate: vi.fn() } as any);
     mockUseChatMessagesQuery.mockReturnValue({ data: [], isLoading: false } as any);
     mockUseCreateChatMessageMutation.mockReturnValue({
-      mutateAsync: jest.fn().mockResolvedValue({ id: 'persisted-id' }),
+      mutateAsync: vi.fn().mockResolvedValue({ id: 'persisted-id' }),
     } as any);
-    mockUseDeleteChatMessageMutation.mockReturnValue({ mutateAsync: jest.fn() } as any);
+    mockUseDeleteChatMessageMutation.mockReturnValue({ mutateAsync: vi.fn() } as any);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('invalidates the thread messages query on refreshMessages', () => {
     const queryClient = new QueryClient();
-    const invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
     const { result } = renderUseAssistantThreads(queryClient);
 
     act(() => {
@@ -88,7 +88,7 @@ describe('useAssistantThreads', () => {
   });
 
   it('returns the new thread id from createThread', async () => {
-    const createMutateAsync = jest.fn().mockResolvedValue({ id: 'new-thread-id' });
+    const createMutateAsync = vi.fn().mockResolvedValue({ id: 'new-thread-id' });
     mockUseCreateChatThreadMutation.mockReturnValue({ mutateAsync: createMutateAsync } as any);
 
     const { result } = renderUseAssistantThreads();
@@ -103,7 +103,7 @@ describe('useAssistantThreads', () => {
   });
 
   it('forwards messageId to deleteMessage mutation', () => {
-    const deleteMessageMutate = jest.fn().mockResolvedValue(undefined);
+    const deleteMessageMutate = vi.fn().mockResolvedValue(undefined);
     mockUseDeleteChatMessageMutation.mockReturnValue({ mutateAsync: deleteMessageMutate } as any);
 
     const { result } = renderUseAssistantThreads();
@@ -116,7 +116,7 @@ describe('useAssistantThreads', () => {
   });
 
   it('createMessage forwards user fields and omits assistant fields', async () => {
-    const createMessageMutateAsync = jest.fn().mockResolvedValue({ id: 'persisted-id' });
+    const createMessageMutateAsync = vi.fn().mockResolvedValue({ id: 'persisted-id' });
     mockUseCreateChatMessageMutation.mockReturnValue({
       mutateAsync: createMessageMutateAsync,
     } as any);
@@ -149,7 +149,7 @@ describe('useAssistantThreads', () => {
   });
 
   it('createMessage forwards assistant fields and omits user fields', async () => {
-    const createMessageMutateAsync = jest.fn().mockResolvedValue({ id: 'persisted-id' });
+    const createMessageMutateAsync = vi.fn().mockResolvedValue({ id: 'persisted-id' });
     mockUseCreateChatMessageMutation.mockReturnValue({
       mutateAsync: createMessageMutateAsync,
     } as any);
@@ -182,9 +182,7 @@ describe('useAssistantThreads', () => {
   });
 
   it('clears current session when deleting active thread succeeds', () => {
-    const deleteThreadMutate = jest
-      .fn()
-      .mockImplementation((_id, options) => options?.onSuccess?.());
+    const deleteThreadMutate = vi.fn().mockImplementation((_id, options) => options?.onSuccess?.());
     mockUseDeleteChatThreadMutation.mockReturnValue({ mutate: deleteThreadMutate } as any);
 
     const { result } = renderUseAssistantThreads();

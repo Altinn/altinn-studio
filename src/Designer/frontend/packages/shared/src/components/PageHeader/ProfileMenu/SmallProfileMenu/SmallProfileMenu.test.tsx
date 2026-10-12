@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
@@ -14,14 +15,14 @@ const mockUser = {
   userType: 1,
 };
 
-const mockUseUserQuery = jest.fn();
+const mockUseUserQuery = vi.fn();
 
-jest.mock('app-shared/hooks/queries', () => ({
-  ...jest.requireActual('app-shared/hooks/queries'),
+vi.mock('app-shared/hooks/queries', async () => ({
+  ...(await vi.importActual('app-shared/hooks/queries')),
   useUserQuery: () => mockUseUserQuery(),
 }));
 
-const mockMenuAction = jest.fn();
+const mockMenuAction = vi.fn();
 
 const menuItems: StudioProfileMenuGroup[] = [
   {
@@ -52,7 +53,7 @@ const menuItems: StudioProfileMenuGroup[] = [
 describe('SmallProfileMenu', () => {
   beforeEach(() => {
     mockUseUserQuery.mockReturnValue({ data: mockUser });
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders the hamburger menu trigger button', () => {

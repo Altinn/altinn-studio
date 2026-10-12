@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { ImageMainConfig } from './ImageMainConfig';
@@ -18,7 +19,7 @@ const imageComponent: FormItem<ComponentType.Image> = {
 describe('ComponentMainConfig', () => {
   describe('Image', () => {
     beforeEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should render image config', async () => {
@@ -30,7 +31,7 @@ describe('ComponentMainConfig', () => {
 
     it('should call handleComponentChange when changing target', async () => {
       const user = userEvent.setup();
-      const handleComponentChange = jest.fn();
+      const handleComponentChange = vi.fn();
       render(imageComponent, handleComponentChange);
       await user.click(await uploadImageTab());
       await user.click(referenceUrlButton());
@@ -56,7 +57,7 @@ const referenceUrlInput = () =>
 
 const render = (
   component: FormItem<ComponentType.Image>,
-  handleComponentChange: (component: FormItem<ComponentType.Image>) => void = jest.fn(),
+  handleComponentChange: (component: FormItem<ComponentType.Image>) => void = vi.fn(),
 ) => {
   const queryClient = createQueryClientMock();
   // Mock image file names data for Image component (StudioDialog renders immediately now)

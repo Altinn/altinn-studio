@@ -2006,15 +2006,17 @@ The component also supports the [common component properties](../common-properti
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Array of component IDs that should be displayed as table headers. If not defined, all components referenced in the "children" property will be displayed as table headers</div></div>
 </details>
 
-<div class="card adocs-expand adocs-expand-small component-property component-property--static" id="tablecolumns">
-  <div class="component-property-summary">
+<details class="card adocs-expand adocs-expand-small component-property" id="tablecolumns">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
     <span class="component-property-name" title="tableColumns">tableColumns</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Optional</span>
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
-  </div>
-</div>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Additional property names are allowed. Value type: object.</div></div>
+</details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="hiddenrow">
   <summary class="component-property-summary">

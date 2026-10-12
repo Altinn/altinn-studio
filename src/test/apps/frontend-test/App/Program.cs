@@ -26,7 +26,6 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IInstantiationValidator, InstantiationValidator>();
     services.AddTransient<IFormDataValidator, ChangeNameValidator>();
     services.AddTransient<IFormDataValidator, GroupValidator>();
-    services.AddTransient<IPdfFormatter, PdfFormatter>();
     services.AddTransient<IDataListProvider, ListCases>();
     services.AddTransient<IServiceTask, PdfIfRequestedServiceTask>();
     services.AddTransient<IUserAction, FillAction>();

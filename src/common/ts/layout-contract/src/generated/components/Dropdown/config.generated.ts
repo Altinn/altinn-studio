@@ -21,6 +21,8 @@ export interface CompDropdownExternal
     LabeledComponentProps {
   type: 'Dropdown';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   alertOnChange?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsOptionsSimple;
@@ -58,4 +60,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: DropdownSummaryOverridesWithRef;
 };
 
-// Source hash: ebd254fba0dd72311209a2aae228069c59dedabf24dae38f994d8d1a2d6d1ce4
+// Source hash: ab7ce095c6bb96b0d2a6c0db0f92a67aa0ae8f48301ce3fc84adb882ade77cec

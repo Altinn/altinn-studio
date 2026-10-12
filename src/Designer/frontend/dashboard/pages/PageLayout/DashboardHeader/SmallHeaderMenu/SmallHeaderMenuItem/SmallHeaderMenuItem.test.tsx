@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, render } from '@testing-library/react';
 import { SmallHeaderMenuItem, type SmallHeaderMenuItemProps } from './SmallHeaderMenuItem';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -28,7 +29,7 @@ const defaultProps: SmallHeaderMenuItemProps = {
 };
 
 describe('SmallHeaderMenuItem', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should render a NavLink when the menuItem action type is "link"', async () => {
     await renderSmallHeaderMenuItem();
@@ -52,7 +53,7 @@ describe('SmallHeaderMenuItem', () => {
 
   it('should call the action and close the menu when the item is a button', async () => {
     const user = userEvent.setup();
-    const menuItemButtonOnClick = jest.fn();
+    const menuItemButtonOnClick = vi.fn();
     await renderSmallHeaderMenuItem({
       user,
       componentProps: {

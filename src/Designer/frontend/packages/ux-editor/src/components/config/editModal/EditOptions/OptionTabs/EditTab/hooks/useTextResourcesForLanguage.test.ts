@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useTextResourcesForLanguage } from './useTextResourcesForLanguage';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import type { TextResource } from '@studio/pure-functions';
@@ -7,7 +8,7 @@ import type { TextResources } from '@studio/content-library';
 const language = 'nb';
 
 describe('useTextResourcesForLanguage', () => {
-  beforeEach(jest.clearAllMocks);
+  beforeEach(vi.clearAllMocks);
 
   it('should return the text resources for the specified language', () => {
     const textResource: TextResource = { id: 'some-id', value: 'some-value' };

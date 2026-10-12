@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import {
   VersionControlButtonsContextProvider,
@@ -20,7 +21,7 @@ const repoStatusTestId: string = 'repoStatus';
 const commitAndPushButtonTestId: string = 'commitAndPushButton';
 
 describe('VersionControlButtonsContext', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render children', () => {
     const buttonText: string = 'My button';
@@ -133,7 +134,7 @@ describe('VersionControlButtonsContext', () => {
         children: <TestComponent />,
       },
       queries: {
-        getRepoPull: jest.fn().mockReturnValue({ repositoryStatus: 'Ok' }),
+        getRepoPull: vi.fn().mockReturnValue({ repositoryStatus: 'Ok' }),
       },
     });
 
@@ -148,7 +149,7 @@ describe('VersionControlButtonsContext', () => {
 
   it('should handle errors during commit and push', async () => {
     const user = userEvent.setup();
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const TestComponent = () => {
       const { commitAndPushChanges, isLoading, hasMergeConflict } =
@@ -173,11 +174,11 @@ describe('VersionControlButtonsContext', () => {
         children: <TestComponent />,
       },
       queries: {
-        getRepoPull: jest.fn().mockImplementation(() => ({
+        getRepoPull: vi.fn().mockImplementation(() => ({
           hasMergeConflict: true,
           repositoryStatus: 'CheckoutConflict',
         })),
-        commitAndPushChanges: jest.fn().mockRejectedValue(new Error('Test error')),
+        commitAndPushChanges: vi.fn().mockRejectedValue(new Error('Test error')),
       },
     });
 

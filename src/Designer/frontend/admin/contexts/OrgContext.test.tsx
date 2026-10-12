@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { OrgContext, useCurrentOrg } from './OrgContext';
@@ -15,7 +16,7 @@ describe('useCurrentOrg', () => {
   });
 
   it('throws when called outside of OrgContext', () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => renderHook(() => useCurrentOrg())).toThrow('Current org is not defined');
     consoleSpy.mockRestore();
   });

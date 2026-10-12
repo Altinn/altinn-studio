@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
@@ -7,8 +8,8 @@ import { NavigationModal } from './NavigationModal';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockButtonText: string = 'Mock Button';
-const mockOnClose = jest.fn();
-const mockOnNavigate = jest.fn();
+const mockOnClose = vi.fn();
+const mockOnNavigate = vi.fn();
 const defaultProps: NavigationModalProps = {
   onClose: mockOnClose,
   onNavigate: mockOnNavigate,
@@ -16,7 +17,7 @@ const defaultProps: NavigationModalProps = {
 };
 
 describe('NavigationModal', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('calls onClose function when close button is clicked', async () => {
     const user = userEvent.setup();

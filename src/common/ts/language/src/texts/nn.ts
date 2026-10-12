@@ -95,6 +95,7 @@ export function nn() {
     'form_filler.file_uploader_list_header_delete_sr': 'Slett',
     'form_filler.file_uploader_max_size_mb': 'Maks filstorleik {0} MB',
     'form_filler.file_uploader_upload': 'Last opp fil',
+    'form_filler.file_uploader_read_only': 'Vedlegga kan ikkje endrast.',
     'form_filler.file_uploader_number_of_files': 'Tal på filer {0}.',
     'form_filler.file_uploader_show_more_errors': 'Vis {0} fleire',
     'form_filler.file_uploader_show_fewer_errors': 'Vis færre',

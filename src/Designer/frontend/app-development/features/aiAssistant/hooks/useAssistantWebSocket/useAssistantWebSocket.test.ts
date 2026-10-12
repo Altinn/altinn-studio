@@ -1,17 +1,19 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { WorkflowEvent } from '@studio/assistant';
 import { useAssistantWebSocket } from './useAssistantWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 
-const mockInvoke = jest.fn();
+const mockInvoke = vi.fn();
 type MockConnection = {
-  on: jest.Mock;
-  off: jest.Mock;
-  invoke: jest.Mock;
+  on: Mock;
+  off: Mock;
+  invoke: Mock;
   state: string;
-  onreconnecting: jest.Mock;
-  onreconnected: jest.Mock;
-  onclose: jest.Mock;
+  onreconnecting: Mock;
+  onreconnected: Mock;
+  onclose: Mock;
 };
 // A fresh connection object per test: the hook registers its dispatcher once
 // per connection (WeakSet), so reusing one object across tests would leak
@@ -23,18 +25,18 @@ let mockConnections: Array<MockConnection>;
 let mockWhenStarted: () => Promise<void> = () => new Promise<void>(() => {});
 
 const createMockConnection = (state = 'Connected'): MockConnection => ({
-  on: jest.fn(),
-  off: jest.fn(),
+  on: vi.fn(),
+  off: vi.fn(),
   invoke: mockInvoke,
   state,
-  onreconnecting: jest.fn(),
-  onreconnected: jest.fn(),
-  onclose: jest.fn(),
+  onreconnecting: vi.fn(),
+  onreconnected: vi.fn(),
+  onclose: vi.fn(),
 });
 
-jest.mock('app-shared/websockets/WSConnector', () => ({
+vi.mock('app-shared/websockets/WSConnector', () => ({
   WSConnector: {
-    getInstance: jest.fn(() => ({
+    getInstance: vi.fn(() => ({
       get connections() {
         return mockConnections;
       },
@@ -43,7 +45,7 @@ jest.mock('app-shared/websockets/WSConnector', () => ({
   },
 }));
 
-const mockGetInstance = WSConnector.getInstance as jest.Mock;
+const mockGetInstance = WSConnector.getInstance as Mock;
 
 describe('useAssistantWebSocket', () => {
   beforeEach(() => {
@@ -53,7 +55,7 @@ describe('useAssistantWebSocket', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('acquires the shared hub connection and reports connected', () => {
@@ -155,7 +157,7 @@ describe('useAssistantWebSocket', () => {
   });
 
   it('keeps delivering to other subscribers when one of them throws', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const { result: first } = renderUseAssistantWebSocket();
     const { result: second } = renderUseAssistantWebSocket();
     first.current.onAgentMessage(() => {
@@ -209,7 +211,7 @@ describe('useAssistantWebSocket', () => {
 
     it('rethrows when the hub invocation fails', async () => {
       mockInvoke.mockRejectedValue(new Error('Hub disconnected'));
-      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
       const { result } = renderUseAssistantWebSocket();
 
       await expect(

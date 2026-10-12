@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { render, screen } from '@testing-library/react';
 import { MergeConflictWarning, type MergeConflictWarningProps } from './MergeConflictWarning';
@@ -15,11 +16,11 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const startUrl: string = `${APP_DEVELOPMENT_BASENAME}/test-org/test-app`;
 
-jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
+vi.mock('react-router-dom', async () => await vi.importActual('react-router-dom'));
 
 describe('MergeConflictWarning', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render merge conflict warning container', () => {

@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { MockedFunction } from 'vitest';
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { FormItemContext, FormItemContextProvider } from './FormItemContext';
@@ -14,11 +16,11 @@ import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
 import type { IAppState } from '../types/global';
 
-jest.useFakeTimers({ advanceTimers: true });
+vi.useFakeTimers({ shouldAdvanceTime: true });
 
-jest.mock('../hooks/mutations/useUpdateFormContainerMutation');
-const mockUpdateFormContainer = jest.fn();
-const mockUseUpdateFormContainerMutation = useUpdateFormContainerMutation as jest.MockedFunction<
+vi.mock('../hooks/mutations/useUpdateFormContainerMutation');
+const mockUpdateFormContainer = vi.fn();
+const mockUseUpdateFormContainerMutation = useUpdateFormContainerMutation as MockedFunction<
   typeof useUpdateFormContainerMutation
 >;
 mockUseUpdateFormContainerMutation.mockReturnValue({
@@ -30,9 +32,9 @@ mockUseUpdateFormContainerMutation.mockReturnValue({
   unknown
 >);
 
-jest.mock('../hooks/mutations/useUpdateFormComponentMutation');
-const mockUpdateFormComponent = jest.fn();
-const mockUseUpdateFormComponentMutation = useUpdateFormComponentMutation as jest.MockedFunction<
+vi.mock('../hooks/mutations/useUpdateFormComponentMutation');
+const mockUpdateFormComponent = vi.fn();
+const mockUseUpdateFormComponentMutation = useUpdateFormComponentMutation as MockedFunction<
   typeof useUpdateFormComponentMutation
 >;
 mockUseUpdateFormComponentMutation.mockReturnValue({
@@ -53,7 +55,7 @@ const render = (ChildComponent: React.ElementType) => {
 };
 
 describe('FormItemContext', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should update the form item when calling handleUpdate', async () => {
     const user = userEvent.setup();
@@ -253,7 +255,7 @@ describe('FormItemContext', () => {
     const button = screen.getByTestId('button');
     await user.click(button);
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
 
     expect(mockUpdateFormContainer).toHaveBeenCalledTimes(1);
   });
@@ -327,7 +329,7 @@ describe('FormItemContext', () => {
     const button = screen.getByTestId('button');
     await user.click(button);
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
 
     expect(mockUpdateFormComponent).toHaveBeenCalledTimes(1);
   });

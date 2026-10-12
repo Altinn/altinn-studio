@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useListenToMergeConflictInRepo } from './useListenToMergeConflictInRepo';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
@@ -6,21 +8,21 @@ import { app, org } from '@studio/testing/testids';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
-jest.mock('app-shared/hooks/queries', () => ({
-  useRepoStatusQuery: jest.fn(),
+vi.mock('app-shared/hooks/queries', () => ({
+  useRepoStatusQuery: vi.fn(),
 }));
 
 describe('useListenToMergeConflictInRepo', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should add and remove event listener on mount and unmount', () => {
-    const refetchMock = jest.fn();
-    (useRepoStatusQuery as jest.Mock).mockReturnValue({ refetch: refetchMock });
+    const refetchMock = vi.fn();
+    (useRepoStatusQuery as Mock).mockReturnValue({ refetch: refetchMock });
 
-    const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
-    const removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
+    const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
+    const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
 
     const { unmount } = renderHookRepoStatusEventListenerHook();
 
@@ -30,8 +32,8 @@ describe('useListenToMergeConflictInRepo', () => {
   });
 
   it('should call refetch when receiving the correct message', async () => {
-    const refetchMock = jest.fn();
-    (useRepoStatusQuery as jest.Mock).mockReturnValue({ refetch: refetchMock });
+    const refetchMock = vi.fn();
+    (useRepoStatusQuery as Mock).mockReturnValue({ refetch: refetchMock });
     renderHookRepoStatusEventListenerHook();
 
     const event = new MessageEvent('message', { data: postMessages.forceRepoStatusCheck });
@@ -41,8 +43,8 @@ describe('useListenToMergeConflictInRepo', () => {
   });
 
   it('should not call refetch when receiving an incorrect message', () => {
-    const refetchMock = jest.fn();
-    (useRepoStatusQuery as jest.Mock).mockReturnValue({ refetch: refetchMock });
+    const refetchMock = vi.fn();
+    (useRepoStatusQuery as Mock).mockReturnValue({ refetch: refetchMock });
     renderHookRepoStatusEventListenerHook();
 
     const event = new MessageEvent('message', { data: 'WRONG_MESSAGE' });

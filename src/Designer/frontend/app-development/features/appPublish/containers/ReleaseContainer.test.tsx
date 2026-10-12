@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ReleaseContainer } from './ReleaseContainer';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -32,7 +33,7 @@ const renderReleaseContainer = (queries?: Partial<ServicesContextProps>) => {
 };
 
 describe('ReleaseContainer', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
   it('renders the component with a spinner', () => {
     renderReleaseContainer();
     expect(screen.getByText(textMock('app_release.release_tab_versions'))).toBeInTheDocument();
@@ -46,8 +47,8 @@ describe('ReleaseContainer', () => {
 
   it('renders an option to build release if master branch commit differs from latest release commit', async () => {
     const user = userEvent.setup();
-    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
-    const mockGetBranchStatus = jest
+    const mockGetRepoStatus = vi.fn().mockImplementation(() => Promise.resolve(repoStatus));
+    const mockGetBranchStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ commit: { id: '123' } }));
     renderReleaseContainer({
@@ -70,10 +71,10 @@ describe('ReleaseContainer', () => {
   });
 
   it('calls getBranchRepoStatus again to refetch if clicking "latest commit fetched from master"', async () => {
-    jest.spyOn(window, 'open').mockImplementation(jest.fn());
+    vi.spyOn(window, 'open').mockImplementation(vi.fn());
     const user = userEvent.setup();
-    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
-    const mockGetBranchStatus = jest
+    const mockGetRepoStatus = vi.fn().mockImplementation(() => Promise.resolve(repoStatus));
+    const mockGetBranchStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ commit: { id: '123' } }));
     renderReleaseContainer({
@@ -97,15 +98,15 @@ describe('ReleaseContainer', () => {
     const user = userEvent.setup();
     const mockLatestCommit = '123';
     const mockTagName = 'v1';
-    const mockGetRepoStatus = jest
+    const mockGetRepoStatus = vi
       .fn()
       .mockImplementation(() =>
         Promise.resolve({ ...repoStatus, contentStatus: [{ filePath: '', fileStatus: '' }] }),
       );
-    const mockGetBranchStatus = jest
+    const mockGetBranchStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ commit: { id: mockLatestCommit } }));
-    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+    const mockGetAppReleases = vi.fn().mockImplementation(() =>
       Promise.resolve({
         results: [
           {
@@ -148,11 +149,11 @@ describe('ReleaseContainer', () => {
   it('renders an option to build release if Maskinporten scopes differ from latest release', async () => {
     const mockLatestCommit = '123';
     const mockTagName = 'v1';
-    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
-    const mockGetBranchStatus = jest
+    const mockGetRepoStatus = vi.fn().mockImplementation(() => Promise.resolve(repoStatus));
+    const mockGetBranchStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ commit: { id: mockLatestCommit } }));
-    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+    const mockGetAppReleases = vi.fn().mockImplementation(() =>
       Promise.resolve({
         results: [
           {
@@ -164,7 +165,7 @@ describe('ReleaseContainer', () => {
         ],
       }),
     );
-    const mockGetSelectedMaskinportenScopes = jest.fn().mockImplementation(() =>
+    const mockGetSelectedMaskinportenScopes = vi.fn().mockImplementation(() =>
       Promise.resolve({
         scopes: [
           {
@@ -183,7 +184,7 @@ describe('ReleaseContainer', () => {
       getRepoStatus: mockGetRepoStatus,
       getBranchStatus: mockGetBranchStatus,
       getAppReleases: mockGetAppReleases,
-      getOrgList: jest.fn().mockImplementation(() => Promise.resolve(orgListWithTestOrg)),
+      getOrgList: vi.fn().mockImplementation(() => Promise.resolve(orgListWithTestOrg)),
       getSelectedMaskinportenScopes: mockGetSelectedMaskinportenScopes,
     });
 
@@ -203,11 +204,11 @@ describe('ReleaseContainer', () => {
 
   it('renders an option to build release if latest release was built before Maskinporten scopes were stored', async () => {
     const mockLatestCommit = '123';
-    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
-    const mockGetBranchStatus = jest
+    const mockGetRepoStatus = vi.fn().mockImplementation(() => Promise.resolve(repoStatus));
+    const mockGetBranchStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ commit: { id: mockLatestCommit } }));
-    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+    const mockGetAppReleases = vi.fn().mockImplementation(() =>
       Promise.resolve({
         results: [
           {
@@ -218,7 +219,7 @@ describe('ReleaseContainer', () => {
         ],
       }),
     );
-    const mockGetSelectedMaskinportenScopes = jest.fn().mockImplementation(() =>
+    const mockGetSelectedMaskinportenScopes = vi.fn().mockImplementation(() =>
       Promise.resolve({
         scopes: [
           {
@@ -233,7 +234,7 @@ describe('ReleaseContainer', () => {
       getRepoStatus: mockGetRepoStatus,
       getBranchStatus: mockGetBranchStatus,
       getAppReleases: mockGetAppReleases,
-      getOrgList: jest.fn().mockImplementation(() => Promise.resolve(orgListWithTestOrg)),
+      getOrgList: vi.fn().mockImplementation(() => Promise.resolve(orgListWithTestOrg)),
       getSelectedMaskinportenScopes: mockGetSelectedMaskinportenScopes,
     });
 
@@ -250,11 +251,11 @@ describe('ReleaseContainer', () => {
   it('does not query Maskinporten scopes for apps outside service owner organizations', async () => {
     const mockLatestCommit = '123';
     const mockTagName = 'v1';
-    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
-    const mockGetBranchStatus = jest
+    const mockGetRepoStatus = vi.fn().mockImplementation(() => Promise.resolve(repoStatus));
+    const mockGetBranchStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ commit: { id: mockLatestCommit } }));
-    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+    const mockGetAppReleases = vi.fn().mockImplementation(() =>
       Promise.resolve({
         results: [
           {
@@ -265,13 +266,13 @@ describe('ReleaseContainer', () => {
         ],
       }),
     );
-    const mockGetSelectedMaskinportenScopes = jest.fn();
+    const mockGetSelectedMaskinportenScopes = vi.fn();
 
     renderReleaseContainer({
       getRepoStatus: mockGetRepoStatus,
       getBranchStatus: mockGetBranchStatus,
       getAppReleases: mockGetAppReleases,
-      getOrgList: jest.fn().mockImplementation(() => Promise.resolve({ orgs: {} })),
+      getOrgList: vi.fn().mockImplementation(() => Promise.resolve({ orgs: {} })),
       getSelectedMaskinportenScopes: mockGetSelectedMaskinportenScopes,
     });
 
@@ -290,15 +291,15 @@ describe('ReleaseContainer', () => {
 
   it('renders status that there local changes that will not be included in build if not pushed', async () => {
     const user = userEvent.setup();
-    const mockGetRepoStatus = jest
+    const mockGetRepoStatus = vi
       .fn()
       .mockImplementation(() =>
         Promise.resolve({ ...repoStatus, contentStatus: [{ filePath: '', fileStatus: '' }] }),
       );
-    const mockGetBranchStatus = jest
+    const mockGetBranchStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ commit: { id: '123' } }));
-    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+    const mockGetAppReleases = vi.fn().mockImplementation(() =>
       Promise.resolve({
         results: [
           {

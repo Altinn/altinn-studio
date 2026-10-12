@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { PreviewControlHeader, type PreviewControlHeaderProps } from './PreviewControlHeader';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -11,21 +12,21 @@ import { type QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 // Move
-jest.mock('app-shared/hooks/queries');
+vi.mock('app-shared/hooks/queries');
 
 // Move
 export const mockLayoutId: string = 'layout1';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     org,
     app,
   }),
 }));
 
-const mockSetViewSize = jest.fn();
-const mockHandleChangeLayoutSet = jest.fn();
+const mockSetViewSize = vi.fn();
+const mockHandleChangeLayoutSet = vi.fn();
 
 export const layoutSet1NameMock = 'test-layout-set';
 export const layoutSet2NameMock = 'test-layout-set-2';
@@ -52,7 +53,7 @@ const defaultProps: PreviewControlHeaderProps = {
 
 describe('PreviewControlHeader', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render the spinner initially loading the component', () => {

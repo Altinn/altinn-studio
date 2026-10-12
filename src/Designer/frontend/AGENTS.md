@@ -106,8 +106,9 @@ The unit tests are moving from Jest to Vitest, one directory at a time. The dire
 
 - In a Vitest directory, import the test API from `vitest` (`import { describe, expect, it, vi } from 'vitest'`)
   and use `vi` instead of `jest`. ESLint reports any use of `jest` there.
-- Shared test helpers outside those directories are used by both runners. They may call `jest.fn` and
-  `jest.spyOn`, which `testing/vitestJestShim.ts` maps to `vi` under Vitest, but must not call `jest.mock`.
+- Test helpers that tests in both runners import, such as those outside those directories and
+  `packages/shared/src/mocks/queriesMock.ts`, may call `jest.fn` and `jest.spyOn`, which
+  `testing/vitestJestShim.ts` maps to `vi` under Vitest, but must not call `jest.mock`.
 - Test setup is split into `testing/setupEnvironment.ts` (both runners), `testing/setupTests.ts` (Jest) and
   `testing/setupTests.vitest.ts` (Vitest). Change a global mock in both runner files.
 

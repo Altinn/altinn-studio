@@ -16,6 +16,7 @@ import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useResolvedPageBreak } from 'src/utils/layout/useResolvedPageBreak';
 import type { CompTypes } from 'src/layout/layout';
@@ -84,16 +85,12 @@ function useIsHiddenInSummary(baseComponentId: string) {
 function useIsHiddenBecauseEmpty<T extends CompTypes>(baseComponentId: string, type: T, content: SummaryContains) {
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
   const config = useComponentConfig(baseComponentId, type);
-  const required = useEvalExpression(
-    'required' in config ? config.required : undefined,
-    CommonExpressions.FormComponentProps.required,
-  );
   const forceShowInSummary = useEvalExpression(
     'forceShowInSummary' in config ? config.forceShowInSummary : undefined,
     CommonExpressions.SummarizableComponentProps.forceShowInSummary,
   );
 
-  const isRequired = 'required' in config ? required : undefined;
+  const isRequired = useComponentIsRequired(config);
 
   if (isRequired && content === SummaryContains.EmptyValueNotRequired) {
     window.logErrorOnce(`Node ${baseComponentId} marked as required, but summary indicates EmptyValueNotRequired`);

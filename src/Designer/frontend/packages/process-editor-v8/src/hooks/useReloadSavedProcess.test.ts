@@ -1,19 +1,21 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useReloadSavedProcess } from './useReloadSavedProcess';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
 
-jest.mock('../contexts/BpmnContext', () => ({ useBpmnContext: jest.fn() }));
-jest.mock('../contexts/BpmnApiContext', () => ({ useBpmnApiContext: jest.fn() }));
+vi.mock('../contexts/BpmnContext', () => ({ useBpmnContext: vi.fn() }));
+vi.mock('../contexts/BpmnApiContext', () => ({ useBpmnApiContext: vi.fn() }));
 
 const savedXml = '<saved></saved>';
 const taskId = 'Task_1';
 const taskElement = { id: taskId };
 
-const setBpmnDetails = jest.fn();
-const select = jest.fn();
-const importXML = jest.fn();
-const getSavedBpmn = jest.fn();
+const setBpmnDetails = vi.fn();
+const select = vi.fn();
+const importXML = vi.fn();
+const getSavedBpmn = vi.fn();
 const isReloadingRef = { current: false };
 const modeler = {
   importXML,
@@ -25,16 +27,16 @@ const modeler = {
 
 describe('useReloadSavedProcess', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     isReloadingRef.current = false;
     importXML.mockResolvedValue({ warnings: [] });
     getSavedBpmn.mockResolvedValue(savedXml);
-    (useBpmnContext as jest.Mock).mockReturnValue({
+    (useBpmnContext as Mock).mockReturnValue({
       modelerRef: { current: modeler },
       setBpmnDetails,
       isReloadingRef,
     });
-    (useBpmnApiContext as jest.Mock).mockReturnValue({ getSavedBpmn });
+    (useBpmnApiContext as Mock).mockReturnValue({ getSavedBpmn });
   });
 
   it('imports the saved process, clears the selection details and selects the given element', async () => {

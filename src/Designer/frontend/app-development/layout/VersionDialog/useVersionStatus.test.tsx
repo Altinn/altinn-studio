@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   MAXIMUM_SUPPORTED_BACKEND_VERSION,
   MAXIMUM_SUPPORTED_FRONTEND_VERSION,
@@ -6,15 +7,15 @@ import {
 import { useVersionStatus } from './useVersionStatus';
 import { type FeatureFlag } from '@studio/feature-flags';
 
-const mockUseFeatureFlag = jest.fn();
-jest.mock('@studio/feature-flags', () => ({
-  ...jest.requireActual('@studio/feature-flags'),
+const mockUseFeatureFlag = vi.fn();
+vi.mock('@studio/feature-flags', async () => ({
+  ...(await vi.importActual('@studio/feature-flags')),
   useFeatureFlag: (flag: FeatureFlag) => mockUseFeatureFlag(flag),
 }));
 
 describe('useVersionStatus', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('returns correct version status when NextV9 flag is disabled', () => {

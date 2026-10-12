@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { ImportImage } from './ImportImage';
@@ -11,10 +12,10 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { MAX_FILE_SIZE_MB } from '@altinn/ux-editor-v4/components/config/editModal/EditImage/constants';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const onImageChangeMock = jest.fn();
+const onImageChangeMock = vi.fn();
 
 describe('ImportImage', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should handle successful image upload', async () => {
     const user = userEvent.setup();
@@ -29,7 +30,7 @@ describe('ImportImage', () => {
   it('should show spinner when image is being uploaded', async () => {
     const user = userEvent.setup();
     const imageFileName = 'image.png';
-    const addImageMock = jest.fn(() => new Promise<FormData>(() => {}));
+    const addImageMock = vi.fn(() => new Promise<FormData>(() => {}));
     renderImportImage({ addImage: addImageMock });
     const fileInput = getFileInputElement();
     const file = new File(['test'], imageFileName, { type: 'image/png' });
@@ -58,7 +59,7 @@ describe('ImportImage', () => {
   });
 
   it('should show confirm dialog if trying to upload an image that exists', async () => {
-    window.confirm = jest.fn();
+    window.confirm = vi.fn();
     const user = userEvent.setup();
     const imageFileName = 'image.png';
     const queryClientMock = createQueryClientMock();
@@ -71,12 +72,12 @@ describe('ImportImage', () => {
   });
 
   it('should call addImage with overrideExisting when uploading an existing image and clicking override button in modal', async () => {
-    window.confirm = jest.fn(() => true);
+    window.confirm = vi.fn(() => true);
     const user = userEvent.setup();
     const imageFileName = 'image.png';
     const queryClientMock = createQueryClientMock();
     queryClientMock.setQueryData([QueryKey.ImageFileNames, org, app], [imageFileName]);
-    const addImageMock = jest.fn();
+    const addImageMock = vi.fn();
     renderImportImage({ addImage: addImageMock }, queryClientMock);
     const fileInput = getFileInputElement();
     const file = new File(['test'], imageFileName, { type: 'image/png' });

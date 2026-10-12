@@ -1,5 +1,7 @@
 The component also supports the [common component properties](../common-properties/).
 
+Additional property names are allowed. Value type: any JSON value, including strings, numbers, booleans, objects, arrays and null.
+
 <details class="card adocs-expand adocs-expand-small component-property" id="type">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
@@ -86,7 +88,7 @@ The component also supports the [common component properties](../common-properti
     </span>
   </summary>
   <div class="component-property-group-content">
-    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Connects component texts to text resources or expressions.</div></div>
+    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Connects component texts to text resources or expressions. Additional property names are allowed. Value type: string | expression&lt;string&gt;.</div></div>
     <div class="component-property-list">
       <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.tabletitle">
         <summary class="component-property-summary">
@@ -186,7 +188,7 @@ The component also supports the [common component properties](../common-properti
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Connects component values to fields in the data model.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Connects component values to fields in the data model. Additional property names are allowed. Value type: data model binding.</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="tagname">

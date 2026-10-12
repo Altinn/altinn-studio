@@ -23,11 +23,13 @@
 administratorbrukernavn
 administratorbrukernavnet
 administratorkontoer
+algetestdata
 appbiblioteket
 appens
 applikasjonsfeil
 applikasjonsmetrikker
 applikasjonsnavnet
+appstyrt
 appversjon
 arbeidslagsnavn
 arbeidstidsdata
@@ -36,6 +38,8 @@ autentiseringsapplikasjonen
 autentiseringstjeneren
 autorisasjonsforespørselen
 autorisasjonsnavn
+avgiver
+avgivere
 avmerkingsboks
 avmerkingsbokser
 avpubliser
@@ -47,12 +51,14 @@ avpublisert
 behandlingsreferanse
 bekreftelseskoden
 beskjæringsområde
+betalingsavtaler
 betalingsdetaljer
 betalingskvittering
 betalingsoppgave
 betalingssteg
 bildefil
 bildeopplaster
+borettslagsandel
 brukerdataene
 brukerkontoer
 brukerpålogging
@@ -64,6 +70,7 @@ datamodellfeltet
 datamodellknytning
 deaktiver
 delegerbar
+delegerbare
 delegeringstekst
 driftsmeldinger
 egenregistrering
@@ -74,6 +81,7 @@ endringstransaksjonen
 endringsvalg
 engangssamtykke
 enhetsregisterroller
+enkeltpersonforetaks
 filbane
 filbanen
 filendelse
@@ -96,6 +104,7 @@ gjenopprettingsprosessen
 handlingsknapp
 handlingstype
 headerne
+hjemmelserklæring
 infoside
 innboks
 innboksen
@@ -103,6 +112,7 @@ innholdstype
 innloggingsløsningen
 innloggingsmetode
 innloggingsmetoden
+innsendingsrett
 instansier
 instansiering
 instansieringer
@@ -114,11 +124,14 @@ kompleksitetskrav
 komponentid
 konfigurasjonsfeil
 kontogjenoppretting
+kvalifiseringsprogrammet
 kvitteringsside
 lagringsnavn
+lønnsrelaterte
 låsstatus
 medieposisjon
 medlemsprofil
+meldingsboks
 metadataene
 migreringsverktøyene
 minimumshøyde
@@ -130,6 +143,7 @@ navigasjonsmeny
 navigasjonsmenyen
 navigasjonsoppgaver
 navigeringsregler
+nedkvitteringer
 nedtrekksliste
 nedtrekkslisten
 nedtrekksmeny
@@ -156,6 +170,9 @@ organisasjonsprosjekt
 pagineringsvalg
 portnummer
 postdomenet
+primærnæringsprodukter
+prioritetsbestemmelser
+programmeringsgrensesnitt
 prosessteg
 publiseringsdato
 publiseringshistorikk
@@ -169,12 +186,16 @@ redigerbare
 redigeringsknapp
 redigeringsvalg
 redigeringsverktøy
+registreringsenhet
 registreringssidene
+regnskapsføreradresse
+regnskapsrelaterte
 reindekseringskøen
 reinitialiser
 reinstallere
 renderingsregel
 renderingsregler
+reseksjonering
 resynkroniser
 rotbane
 rutenettoppsett
@@ -186,6 +207,8 @@ seksjonstittel
 sidenavigasjonen
 signatarliste
 signeringsoppgave
+signeringsrett
+signeringsrettighet
 signeringsstatus
 signeringssteg
 sikkerhetsnøkkel
@@ -200,6 +223,7 @@ sorteringsproblemene
 sosialnettverkskontoer
 spørreparameter
 spørringsparameter
+statsforvalterens
 syntaksfeil
 tekstsøk
 temaets
@@ -219,9 +243,11 @@ tilgangstoken
 tillatelseslisten
 tilleggsadresse
 tilleggskontroller
+tilleggsstønad
 tittelraden
 tjenerdomene
 tjenerport
+transportløyvegarantister
 tredjepartsapplikasjon
 tredjepartsbiblioteker
 tvangsslett
@@ -238,6 +264,7 @@ underskjemaet
 underskjemakobling
 underuttrykk
 underuttrykket
+uskiftebo
 utformingsfanen
 utfyllingsoppgaver
 utfyllingssteget
@@ -252,6 +279,10 @@ valideringsregel
 valideringstyper
 vedleggstype
 vedlikeholderen
+velferdsstøtte
+vergehaver
+vergehaveren
+vergehaverens
 versjonsfeil
 vertsadresse
 vertsnavn

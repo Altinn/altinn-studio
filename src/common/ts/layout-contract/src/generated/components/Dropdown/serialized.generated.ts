@@ -14,6 +14,8 @@ import { IDataModelBindingsOptionsSimple } from '@app/layout-contract/generated/
 export type CompDropdownSerialized = {
   type: 'Dropdown';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   alertOnChange?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsOptionsSimple;
@@ -23,4 +25,4 @@ export type CompDropdownSerialized = {
   ISelectionComponentFull &
   LabeledComponentProps;
 
-// Source hash: a3f148f16d458a96ca02feff6d1d657c9061ca6efb251fd3d46847612b5ac8ac
+// Source hash: 9a450d3fa20cf4830d08f090ec788b39be0702e60e62f81d3b68c95bcf0610d0

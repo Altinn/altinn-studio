@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { mapSelectedTypeToConfig } from './utils';
 import {
   type Summary2OverrideConfig,

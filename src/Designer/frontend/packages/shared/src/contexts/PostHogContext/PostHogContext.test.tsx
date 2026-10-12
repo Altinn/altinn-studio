@@ -1,30 +1,32 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import posthog from 'posthog-js';
 import { PostHogContextProvider } from './PostHogContext';
 import * as EnvironmentConfigContext from '../EnvironmentConfigContext';
 
-jest.mock('posthog-js', () => ({
-  init: jest.fn(),
+vi.mock('posthog-js', () => ({
+  default: { init: vi.fn() },
 }));
 
-jest.mock('@posthog/react', () => ({
+vi.mock('@posthog/react', () => ({
   PostHogProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-jest.mock('../EnvironmentConfigContext', () => ({
-  useEnvironmentConfig: jest.fn(),
+vi.mock('../EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: vi.fn(),
 }));
 
 const TestChild = () => <div data-testid='child'>Child</div>;
 
 describe('PostHogContextProvider', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render children', () => {
-    (EnvironmentConfigContext.useEnvironmentConfig as jest.Mock).mockReturnValue({
+    (EnvironmentConfigContext.useEnvironmentConfig as Mock).mockReturnValue({
       environment: null,
     });
 
@@ -38,7 +40,7 @@ describe('PostHogContextProvider', () => {
   });
 
   it('should not initialize posthog when environment is null', () => {
-    (EnvironmentConfigContext.useEnvironmentConfig as jest.Mock).mockReturnValue({
+    (EnvironmentConfigContext.useEnvironmentConfig as Mock).mockReturnValue({
       environment: null,
     });
 
@@ -52,7 +54,7 @@ describe('PostHogContextProvider', () => {
   });
 
   it('should not initialize posthog when postHogApiKey is missing', () => {
-    (EnvironmentConfigContext.useEnvironmentConfig as jest.Mock).mockReturnValue({
+    (EnvironmentConfigContext.useEnvironmentConfig as Mock).mockReturnValue({
       environment: { aiConnectionString: 'test' },
     });
 
@@ -66,7 +68,7 @@ describe('PostHogContextProvider', () => {
   });
 
   it('should initialize posthog with correct config when postHogApiKey is present', () => {
-    (EnvironmentConfigContext.useEnvironmentConfig as jest.Mock).mockReturnValue({
+    (EnvironmentConfigContext.useEnvironmentConfig as Mock).mockReturnValue({
       environment: {
         postHogApiKey: 'test-api-key',
         postHogApiHost: 'https://posthog.example.com',
@@ -91,7 +93,7 @@ describe('PostHogContextProvider', () => {
   });
 
   it('should only initialize posthog once', () => {
-    (EnvironmentConfigContext.useEnvironmentConfig as jest.Mock).mockReturnValue({
+    (EnvironmentConfigContext.useEnvironmentConfig as Mock).mockReturnValue({
       environment: {
         postHogApiKey: 'test-api-key',
         postHogApiHost: 'https://posthog.example.com',
