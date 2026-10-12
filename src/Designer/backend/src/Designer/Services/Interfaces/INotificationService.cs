@@ -21,6 +21,13 @@ public interface INotificationService
         CancellationToken cancellationToken
     );
 
+    /// <summary>
+    /// Sends the report to every active contact point subscribed to the frequency. Unlike the other methods,
+    /// failures are not swallowed, because the report is the purpose of the call.
+    /// </summary>
+    /// <exception cref="Exceptions.Notifications.NotificationDeliveryException">
+    /// Thrown after every delivery has been attempted when at least one of them failed.
+    /// </exception>
     Task NotifyReportContactPointsAsync(
         string org,
         AltinnEnvironment environment,

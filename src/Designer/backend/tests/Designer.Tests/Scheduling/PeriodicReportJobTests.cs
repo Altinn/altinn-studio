@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Models.Reports;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Quartz;
 using Xunit;
@@ -17,6 +18,7 @@ public class PeriodicReportJobTests
 {
     private readonly Mock<IContactPointsRepository> _contactPointsRepository = new();
     private readonly Mock<IReportService> _reportService = new();
+    private readonly Mock<ILogger<PeriodicReportJob>> _logger = new();
 
     [Fact]
     public async Task Execute_SendsReportForEachTargetWithTheTriggerFrequency()
@@ -41,8 +43,9 @@ public class PeriodicReportJobTests
     }
 
     [Fact]
-    public async Task Execute_WhenOneReportFails_SendsTheRemainingReports()
+    public async Task Execute_WhenOneReportFails_LogsTheFailureAndSendsTheRemainingReports()
     {
+        var failure = new HttpRequestException("gateway unavailable");
         _contactPointsRepository
             .Setup(repository => repository.GetReportTargetsAsync(ReportFrequency.Daily, It.IsAny<CancellationToken>()))
             .ReturnsAsync([new ReportTarget("skd", "prod"), new ReportTarget("ttd", "tt02")]);
@@ -50,12 +53,23 @@ public class PeriodicReportJobTests
             .Setup(service =>
                 service.SendReportAsync("skd", "prod", ReportFrequency.Daily, It.IsAny<CancellationToken>())
             )
-            .ThrowsAsync(new HttpRequestException("gateway unavailable"));
+            .ThrowsAsync(failure);
 
         await CreateJob().Execute(CreateContext(ReportFrequency.Daily));
 
         _reportService.Verify(
             service => service.SendReportAsync("ttd", "tt02", ReportFrequency.Daily, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        _logger.Verify(
+            logger =>
+                logger.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((state, _) => state.ToString().Contains("skd in prod")),
+                    failure,
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()
+                ),
             Times.Once
         );
     }
@@ -85,7 +99,8 @@ public class PeriodicReportJobTests
         );
     }
 
-    private PeriodicReportJob CreateJob() => new(_contactPointsRepository.Object, _reportService.Object);
+    private PeriodicReportJob CreateJob() =>
+        new(_contactPointsRepository.Object, _reportService.Object, _logger.Object);
 
     private static IJobExecutionContext CreateContext(
         ReportFrequency frequency,

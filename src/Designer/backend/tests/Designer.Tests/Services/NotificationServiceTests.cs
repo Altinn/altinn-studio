@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Exceptions.Notifications;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Repository;
@@ -545,6 +546,90 @@ public class NotificationServiceTests
                 block.Text?.Text
                 == "*app-<one>*\n• Feilende process/next: `3`\n\n*app-two*\n• Versjon: `1.2.0`\n• Feilende process/next: `0`"
         );
+    }
+
+    [Fact]
+    public async Task NotifyReportContactPointsAsync_WhenADeliveryFails_ShouldSendTheOthersAndThrow()
+    {
+        SetupReportContactPoints(
+            "ttd",
+            "tt02",
+            [
+                BuildContactPoint(
+                    [
+                        new ContactMethodEntity { MethodType = ContactMethodType.Email, Value = "owner@example.com" },
+                        new ContactMethodEntity { MethodType = ContactMethodType.Sms, Value = "+4700000001" },
+                    ],
+                    ReportFrequency.Daily
+                ),
+            ]
+        );
+        _notificationClient
+            .Setup(c =>
+                c.SendEmailNotification(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<EmailContentType>(),
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new HttpRequestException("downstream error"));
+
+        var exception = await Assert.ThrowsAsync<NotificationDeliveryException>(() =>
+            CreateService()
+                .NotifyReportContactPointsAsync(
+                    "ttd",
+                    AltinnEnvironment.FromName("tt02"),
+                    ReportFrequency.Daily,
+                    BuildReportPayload(),
+                    CancellationToken.None
+                )
+        );
+
+        Assert.Equal(1, exception.FailedCount);
+        Assert.Equal(2, exception.DeliveryCount);
+        _notificationClient.Verify(
+            c =>
+                c.SendSmsNotification(
+                    It.IsAny<string>(),
+                    "+4700000001",
+                    It.IsAny<string>(),
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task NotifyReportContactPointsAsync_WhenRepositoryThrows_ShouldRethrow()
+    {
+        _contactPointsRepository
+            .Setup(r =>
+                r.GetActiveReportContactPointsAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new InvalidOperationException("DB unavailable"));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            CreateService()
+                .NotifyReportContactPointsAsync(
+                    "ttd",
+                    AltinnEnvironment.FromName("tt02"),
+                    ReportFrequency.Daily,
+                    BuildReportPayload(),
+                    CancellationToken.None
+                )
+        );
+
+        _notificationClient.VerifyNoOtherCalls();
+        _slackClient.VerifyNoOtherCalls();
     }
 
     private void SetupReportContactPoints(

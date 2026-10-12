@@ -5,6 +5,7 @@ using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
+using Microsoft.Extensions.Logging;
 using Quartz;
 
 namespace Altinn.Studio.Designer.Scheduling;
@@ -14,7 +15,11 @@ namespace Altinn.Studio.Designer.Scheduling;
 /// of the trigger that fired. Reports are sent one at a time, and a failing report does not stop the others.
 /// </summary>
 [DisallowConcurrentExecution]
-public class PeriodicReportJob(IContactPointsRepository contactPointsRepository, IReportService reportService) : IJob
+public class PeriodicReportJob(
+    IContactPointsRepository contactPointsRepository,
+    IReportService reportService,
+    ILogger<PeriodicReportJob> logger
+) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
     {
@@ -53,6 +58,13 @@ public class PeriodicReportJob(IContactPointsRepository contactPointsRepository,
                 failedCount++;
                 reportActivity?.SetStatus(ActivityStatusCode.Error);
                 reportActivity?.AddException(ex);
+                logger.LogError(
+                    ex,
+                    "Failed to send the {Frequency} report for {Org} in {Environment}",
+                    frequency,
+                    target.Org,
+                    target.Environment
+                );
             }
         }
 
@@ -61,5 +73,11 @@ public class PeriodicReportJob(IContactPointsRepository contactPointsRepository,
         {
             activity?.SetStatus(ActivityStatusCode.Error, $"{failedCount} of {targets.Count} reports failed.");
         }
+        logger.LogInformation(
+            "Sent {SentCount} of {ReportCount} {Frequency} reports",
+            targets.Count - failedCount,
+            targets.Count,
+            frequency
+        );
     }
 }

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Exceptions.Notifications;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Repository;
@@ -90,7 +91,7 @@ internal sealed class NotificationService(
             return;
         }
 
-        List<Task> notificationTasks = contactPoints
+        List<Task<bool>> notificationTasks = contactPoints
             .SelectMany(contactPoint =>
                 contactPoint.Methods.Select(method =>
                     SendContactMethodAsync(contactPoint, method, payload, cancellationToken)
@@ -117,35 +118,32 @@ internal sealed class NotificationService(
         activity?.SetTag("environment", environment.Name);
         activity?.SetTag("frequency", frequency.ToString());
 
-        IReadOnlyList<ContactPointEntity> contactPoints;
-        try
-        {
-            contactPoints = await contactPointsRepository.GetActiveReportContactPointsAsync(
-                org,
-                environment.Name,
-                cancellationToken
-            );
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            activity?.SetStatus(ActivityStatusCode.Error, "Failed to retrieve report contact points.");
-            activity?.AddException(ex);
-            return;
-        }
+        IReadOnlyList<ContactPointEntity> contactPoints =
+            await contactPointsRepository.GetActiveReportContactPointsAsync(org, environment.Name, cancellationToken);
 
-        List<Task> notificationTasks = contactPoints
-            .Where(cp => cp.ReportFrequency == frequency)
-            .SelectMany(contactPoint =>
-                contactPoint.Methods.Select(method =>
-                    SendContactMethodAsync(contactPoint, method, payload, cancellationToken)
+        bool[] deliveries = await Task.WhenAll(
+            contactPoints
+                .Where(cp => cp.ReportFrequency == frequency)
+                .SelectMany(contactPoint =>
+                    contactPoint.Methods.Select(method =>
+                        SendContactMethodAsync(contactPoint, method, payload, cancellationToken)
+                    )
                 )
-            )
-            .ToList();
+        );
 
-        await Task.WhenAll(notificationTasks);
+        int failedCount = deliveries.Count(delivered => !delivered);
+        activity?.SetTag("delivery.count", deliveries.Length);
+        activity?.SetTag("delivery.failed_count", failedCount);
+        if (failedCount > 0)
+        {
+            var exception = new NotificationDeliveryException(failedCount, deliveries.Length);
+            activity?.SetStatus(ActivityStatusCode.Error, exception.Message);
+            throw exception;
+        }
     }
 
-    private async Task SendContactMethodAsync(
+    /// <returns>Whether the notification was delivered.</returns>
+    private async Task<bool> SendContactMethodAsync(
         ContactPointEntity contactPoint,
         ContactMethodEntity method,
         NotificationPayload payload,
@@ -191,11 +189,13 @@ internal sealed class NotificationService(
                     );
                     break;
             }
+            return true;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             activity?.SetStatus(ActivityStatusCode.Error, "Failed to send notification.");
             activity?.AddException(ex);
+            return false;
         }
     }
 
