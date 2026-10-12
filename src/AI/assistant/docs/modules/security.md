@@ -6,15 +6,15 @@ The security model has three layers. Each layer covers a risk that the other lay
 
 **Intent gate.** This layer runs in workflow mode only. It examines the goal text for abuse before the graph starts. It sees the names of the attachments, but not their content. The reason: a large PDF is expensive to examine, and it gives little signal.
 
-**Structural containment.** This layer runs in all modes. It is the boundary that actually stops an attack:
+**Structural containment.** This layer runs in both modes. It is the boundary that actually stops an attack:
 
-- In read-only mode, the loop refuses the write tools until the user gives permission.
+- In chat mode, the loop refuses the write tools until the user gives permission.
 - The file tools stay in the app repository.
 - `web_fetch` can only get pages from an allowlist of Altinn hosts.
 - Each change goes to a session branch. A person examines the branch before the merge.
 - The prompts that Langfuse serves are published by CI after the merge to main, so each served prompt has a reviewed commit.
 
-**Spotlighting.** This layer runs in all modes. It covers the content of uploaded documents, which the intent gate does not see. Document content gets to the model two times: as the attachment that the spec extractor reads, and as the extracted `FormSpec` in the system prompt of the loop. The code puts the two in `<attachment_content>` and `<form_spec>` tags, with a notice that the content is data, not instructions. The code escapes a closing tag in the content, so a document cannot close its block too early.
+**Spotlighting.** This layer marks untrusted text, so that the model reads it as data and not as instructions. This layer runs in both modes. It covers the content of uploaded documents, which the intent gate does not see. Document content gets to the model two times: as the attachment that the spec extractor reads, and as the extracted `FormSpec` in the system prompt of the loop. The code puts the two in `<attachment_content>` and `<form_spec>` tags, with a notice that the content is data, not instructions. The code escapes a closing tag in the content, so a document cannot close its block too early.
 
 ```mermaid
 flowchart LR
