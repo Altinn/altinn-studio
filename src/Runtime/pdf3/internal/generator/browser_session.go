@@ -302,8 +302,9 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 		if r := recover(); r != nil {
 			err := fmt.Errorf("%w: %v", errRecoveredPanic, r)
 			w.logger.ErrorContext(ctx, "Recovered from panic", "error", err)
-			telemetry.SetError(span, "panic", err)
-			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
+			pdfErr := types.NewPDFError(types.ErrGenerationFail, "", err)
+			telemetry.SetError(span, pdfErr.ErrorType(), err)
+			req.tryRespondError(pdfErr)
 		}
 
 		duration := time.Since(start)
@@ -324,8 +325,9 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 
 	err := w.generatePdf(req)
 	if err != nil {
-		telemetry.SetError(span, "generate_failed", err)
-		req.tryRespondError(mapCustomError(err))
+		pdfErr := mapCustomError(err)
+		telemetry.SetError(span, pdfErr.ErrorType(), err)
+		req.tryRespondError(pdfErr)
 	}
 }
 
@@ -645,8 +647,9 @@ func (w *browserSession) setCookies(req *workerRequest) error {
 	if err == nil {
 		return nil
 	}
-	telemetry.SetError(cookiesSpan, "set_cookies_failed", err)
-	req.tryRespondError(contextErrorToPDFError(err, types.ErrSetCookieFail, ""))
+	pdfErr := contextErrorToPDFError(err, types.ErrSetCookieFail, "")
+	telemetry.SetError(cookiesSpan, pdfErr.ErrorType(), err)
+	req.tryRespondError(pdfErr)
 	return nil
 }
 
@@ -698,8 +701,9 @@ func (w *browserSession) navigateToPage(req *workerRequest) error {
 	if err == nil {
 		return nil
 	}
-	telemetry.SetError(navigateSpan, "navigate_failed", err)
-	req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, ""))
+	pdfErr := contextErrorToPDFError(err, types.ErrGenerationFail, "")
+	telemetry.SetError(navigateSpan, pdfErr.ErrorType(), err)
+	req.tryRespondError(pdfErr)
 	return nil
 }
 
@@ -742,7 +746,7 @@ func (w *browserSession) runWait(req *workerRequest, wait func() error) error {
 	if waitErr == nil {
 		return nil
 	}
-	telemetry.SetError(waitSpan, "wait_failed", waitErr)
+	telemetry.SetError(waitSpan, contextErrorToPDFError(waitErr, types.ErrElementNotReady, "").ErrorType(), waitErr)
 	return nil
 }
 
@@ -754,8 +758,9 @@ func (w *browserSession) waitForTimeout(req *workerRequest, timeout int32) error
 	case <-time.After(time.Duration(timeout) * time.Millisecond):
 		return nil
 	case <-req.ctx.Done():
-		telemetry.SetError(waitSpan, "client_dropped", req.ctx.Err())
-		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+		pdfErr := types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err())
+		telemetry.SetError(waitSpan, pdfErr.ErrorType(), req.ctx.Err())
+		req.tryRespondError(pdfErr)
 		return nil
 	}
 }
@@ -772,13 +777,15 @@ func (w *browserSession) waitForPageLoad(req *workerRequest, timeoutMs int32) er
 	})
 	if waitErr != nil {
 		w.logger.WarnContext(req.ctx, "Failed to wait for page load event", "error", waitErr)
-		telemetry.SetError(waitSpan, "wait_failed", waitErr)
-		req.tryRespondError(contextErrorToPDFError(waitErr, types.ErrGenerationFail, "page load"))
+		pdfErr := contextErrorToPDFError(waitErr, types.ErrGenerationFail, "page load")
+		telemetry.SetError(waitSpan, pdfErr.ErrorType(), waitErr)
+		req.tryRespondError(pdfErr)
 		return nil
 	}
 
 	if waitErr = w.processWaitResult(req, waitResp); waitErr != nil {
-		telemetry.SetError(waitSpan, "wait_failed", waitErr)
+		// processWaitResult has responded that the element is not ready.
+		telemetry.SetError(waitSpan, types.NewPDFError(types.ErrElementNotReady, "", nil).ErrorType(), waitErr)
 		return waitErr
 	}
 
@@ -792,15 +799,17 @@ func (w *browserSession) printPDF(req *workerRequest) error {
 
 	resp, err := w.conn.SendCommand(req.ctx, "Page.printToPDF", buildPrintToPDFParams(w.logger, req.request))
 	if err != nil {
-		telemetry.SetError(printSpan, "print_failed", err)
-		req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, ""))
+		pdfErr := contextErrorToPDFError(err, types.ErrGenerationFail, "")
+		telemetry.SetError(printSpan, pdfErr.ErrorType(), err)
+		req.tryRespondError(pdfErr)
 		return nil
 	}
 
 	pdfBytes, err := decodePDFData(resp)
 	if err != nil {
-		telemetry.SetError(printSpan, "print_failed", err)
-		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
+		pdfErr := types.NewPDFError(types.ErrGenerationFail, "", err)
+		telemetry.SetError(printSpan, pdfErr.ErrorType(), err)
+		req.tryRespondError(pdfErr)
 		return nil
 	}
 
