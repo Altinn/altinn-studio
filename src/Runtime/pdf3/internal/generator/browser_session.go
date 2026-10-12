@@ -367,15 +367,16 @@ func (w *browserSession) recordPageError(method, message, source string) {
 	if requestErrors.first == nil {
 		requestErrors.first = &pageError{
 			method:  method,
-			message: truncate(message, maxBrowserMessageLength),
+			message: truncate(telemetry.RedactURLsInText(message), maxBrowserMessageLength),
 			source:  telemetry.RedactURL(source),
 		}
 	}
 }
 
 // logPageErrors logs one warning for a request whose page reported errors, with the counts and
-// the first error: its message, truncated, and the URL of its source without query or
-// fragment, not the event's payload, which can carry page data.
+// the first error: its message, truncated, and the URL of its source, with every URL in them
+// without user information, query or fragment, not the event's payload, which can carry page
+// data.
 func (w *browserSession) logPageErrors(ctx context.Context, requestErrors *pageErrors) {
 	requestErrors.mu.Lock()
 	first := requestErrors.first
