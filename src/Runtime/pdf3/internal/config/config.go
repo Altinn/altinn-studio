@@ -126,24 +126,31 @@ func equalConfigValue(value string, candidate string) bool {
 	return strings.EqualFold(strings.TrimSpace(value), strings.TrimSpace(candidate))
 }
 
-// ShouldConfigureOTel reports whether PDF3 should initialize OpenTelemetry exporters.
-// In localtest, exporters are opt-in to avoid noisy connection errors in default setup.
-func ShouldConfigureOTel(environment string) bool {
-	if environment != EnvironmentLocaltest {
-		return true
-	}
+// OTelSignals are the telemetry signals pdf3 exports.
+type OTelSignals struct {
+	Traces  bool
+	Metrics bool
+	Logs    bool
+}
 
-	for _, key := range []string{
-		"OTEL_EXPORTER_OTLP_ENDPOINT",
-		"OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
-		"OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
-	} {
-		if val := os.Getenv(key); val != "" {
-			return true
-		}
-	}
+// Any reports whether pdf3 exports any signal.
+func (s OTelSignals) Any() bool {
+	return s.Traces || s.Metrics || s.Logs
+}
 
-	return false
+// ResolveOTelSignals returns the signals pdf3 exports. In a cluster it exports all of them. In
+// localtest, exporting is opt-in, to avoid noisy connection errors in the default setup:
+// OTEL_EXPORTER_OTLP_ENDPOINT turns on every signal, and a signal's own endpoint turns on that
+// signal, so no exporter falls back to a default endpoint that isn't there.
+func ResolveOTelSignals(environment string) OTelSignals {
+	if environment != EnvironmentLocaltest || os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT") != "" {
+		return OTelSignals{Traces: true, Metrics: true, Logs: true}
+	}
+	return OTelSignals{
+		Traces:  os.Getenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT") != "",
+		Metrics: os.Getenv("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT") != "",
+		Logs:    os.Getenv("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT") != "",
+	}
 }
 
 // HostParameters contains timeout values for runtime.NewHost.

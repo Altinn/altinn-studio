@@ -36,7 +36,11 @@ func main() {
 	logger.Info("Starting", "GOMAXPROCS", runtime.GOMAXPROCS(0), "NumCPU", runtime.NumCPU())
 
 	cfg := config.ReadConfig()
-	otelShutdown, err := telemetry.ConfigureOTel(context.Background(), cfg.Environment)
+	otelShutdown, err := telemetry.ConfigureOTel(
+		context.Background(),
+		cfg.Environment,
+		config.ResolveOTelSignals(cfg.Environment),
+	)
 	if err != nil {
 		logger.Error("Failed to initialize telemetry", "error", err)
 		os.Exit(1)

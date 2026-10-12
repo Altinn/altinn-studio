@@ -18,6 +18,8 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
+
+	"altinn.studio/pdf3/internal/config"
 )
 
 const scopeName = "pdf3"
@@ -36,9 +38,14 @@ func Meter() otelmetric.Meter {
 	return otel.Meter(scopeName)
 }
 
-// ConfigureOTel bootstraps the OpenTelemetry pipeline for the runtime environment pdf3 runs in.
+// ConfigureOTel bootstraps the OpenTelemetry pipeline for the runtime environment pdf3 runs in,
+// exporting the given signals. The others stay no-ops.
 // If it does not return an error, make sure to call shutdown for proper cleanup.
-func ConfigureOTel(ctx context.Context, environment string) (shutdown func(context.Context) error, err error) {
+func ConfigureOTel(
+	ctx context.Context,
+	environment string,
+	signals config.OTelSignals,
+) (shutdown func(context.Context) error, err error) {
 	var shutdownFuncs []func(context.Context) error
 
 	shutdown = func(ctx context.Context) error {
@@ -64,33 +71,39 @@ func ConfigureOTel(ctx context.Context, environment string) (shutdown func(conte
 		propagation.Baggage{},
 	))
 
-	tracerProvider, err := newTracerProvider(ctx, res)
-	if err != nil {
-		handleErr(err)
-		return shutdown, err
+	if signals.Traces {
+		tracerProvider, err := newTracerProvider(ctx, res)
+		if err != nil {
+			handleErr(err)
+			return shutdown, err
+		}
+		shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
+		otel.SetTracerProvider(tracerProvider)
 	}
-	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
-	otel.SetTracerProvider(tracerProvider)
 
-	meterProvider, err := newMeterProvider(ctx, res)
-	if err != nil {
-		handleErr(err)
-		return shutdown, err
+	if signals.Metrics {
+		meterProvider, err := newMeterProvider(ctx, res)
+		if err != nil {
+			handleErr(err)
+			return shutdown, err
+		}
+		shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
+		otel.SetMeterProvider(meterProvider)
+
+		if err := runtime.Start(runtime.WithMinimumReadMemStatsInterval(15 * time.Second)); err != nil {
+			handleErr(err)
+			return shutdown, fmt.Errorf("start runtime metrics instrumentation: %w", err)
+		}
 	}
-	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
-	otel.SetMeterProvider(meterProvider)
 
-	loggerProvider, err := newLoggerProvider(ctx, res)
-	if err != nil {
-		handleErr(err)
-		return shutdown, err
-	}
-	shutdownFuncs = append(shutdownFuncs, loggerProvider.Shutdown)
-	global.SetLoggerProvider(loggerProvider)
-
-	if err := runtime.Start(runtime.WithMinimumReadMemStatsInterval(15 * time.Second)); err != nil {
-		handleErr(err)
-		return shutdown, fmt.Errorf("start runtime metrics instrumentation: %w", err)
+	if signals.Logs {
+		loggerProvider, err := newLoggerProvider(ctx, res)
+		if err != nil {
+			handleErr(err)
+			return shutdown, err
+		}
+		shutdownFuncs = append(shutdownFuncs, loggerProvider.Shutdown)
+		global.SetLoggerProvider(loggerProvider)
 	}
 
 	return shutdown, nil

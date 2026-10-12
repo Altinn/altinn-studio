@@ -44,10 +44,11 @@ func main() {
 	baseLogger.Info("Starting", "GOMAXPROCS", runtime.GOMAXPROCS(0), "NumCPU", runtime.NumCPU())
 
 	cfg := config.ReadConfig()
-	telemetryEnabled := config.ShouldConfigureOTel(cfg.Environment)
+	otelSignals := config.ResolveOTelSignals(cfg.Environment)
+	telemetryEnabled := otelSignals.Any()
 	otelShutdown := func(context.Context) error { return nil }
 	if telemetryEnabled {
-		configuredShutdown, err := telemetry.ConfigureOTel(context.Background(), cfg.Environment)
+		configuredShutdown, err := telemetry.ConfigureOTel(context.Background(), cfg.Environment, otelSignals)
 		if err != nil {
 			baseLogger.Error("Failed to initialize telemetry", "error", err)
 			os.Exit(1)
@@ -57,7 +58,7 @@ func main() {
 		baseLogger.Info(
 			"Telemetry exporter disabled for localtest",
 			"environment", cfg.Environment,
-			"enable_with", "OTEL_EXPORTER_OTLP_ENDPOINT",
+			"enable_with", "OTEL_EXPORTER_OTLP_ENDPOINT or OTEL_EXPORTER_OTLP_{TRACES,METRICS,LOGS}_ENDPOINT",
 		)
 	}
 
