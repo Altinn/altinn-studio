@@ -528,7 +528,7 @@ func (w *browserSession) cleanupBrowserWithRetry(req *workerRequest) int {
 		return cleanupAttempts
 	}
 
-	w.logger.Warn("Failed to cleanup storage, retrying", "error", err)
+	w.logger.WarnContext(req.ctx, "Failed to cleanup storage, retrying", "error", err)
 	for range 3 {
 		err = w.cleanupBrowser(req)
 		cleanupAttempts++
@@ -692,7 +692,7 @@ func (w *browserSession) waitForPageLoad(req *workerRequest, timeoutMs int32) er
 		"returnByValue": true,
 	})
 	if waitErr != nil {
-		w.logger.Warn("Failed to wait for page load event", "error", waitErr)
+		w.logger.WarnContext(req.ctx, "Failed to wait for page load event", "error", waitErr)
 		telemetry.SetError(waitSpan, "wait_failed", waitErr)
 		req.tryRespondError(contextErrorToPDFError(waitErr, types.ErrGenerationFail, "page load"))
 		return nil
@@ -835,7 +835,7 @@ func (w *browserSession) waitForElement(
 		"returnByValue": true,
 	})
 	if err != nil {
-		w.logger.Warn("Failed to wait for element", "selector", selector, "error", err)
+		w.logger.WarnContext(req.ctx, "Failed to wait for element", "selector", selector, "error", err)
 		req.tryRespondError(contextErrorToPDFError(err, types.ErrElementNotReady, fmt.Sprintf("element %q", selector)))
 		return fmt.Errorf("evaluate wait expression: %w", err)
 	}
@@ -867,7 +867,7 @@ func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResp
 
 	if !value {
 		waitForData := waitForToJson(req.request.WaitFor)
-		w.logger.Warn("Wait condition not satisfied within timeout", "waitFor", waitForData)
+		w.logger.WarnContext(req.ctx, "Wait condition not satisfied within timeout", "waitFor", waitForData)
 		err := errWaitTimedOut
 		req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
 		return err
@@ -886,7 +886,7 @@ func (w *browserSession) handleWaitError(req *workerRequest, logMsg string, data
 		dataBytes = fmt.Appendf(nil, "(marshal error: %v)", err)
 	}
 
-	w.logger.Error(logMsg, "waitFor", waitForData, "data", string(dataBytes))
+	w.logger.ErrorContext(req.ctx, logMsg, "waitFor", waitForData, "data", string(dataBytes))
 
 	err = fmt.Errorf("%w: %s", errWaitConditionError, errDetail)
 	req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))

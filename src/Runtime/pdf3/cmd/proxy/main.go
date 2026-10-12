@@ -169,7 +169,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 		r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
 		defer func() {
 			if closeErr := r.Body.Close(); closeErr != nil {
-				logger.Warn("Failed to close request body", "error", closeErr)
+				logger.WarnContext(r.Context(), "Failed to close request body", "error", closeErr)
 			}
 		}()
 
@@ -303,7 +303,8 @@ func callWorker(
 		if attempt < maxRetries && ctx.Err() == nil {
 			// This is an error condition that may hit if the worker
 			// crashes or similar. Worthwhile to retry here
-			logger.Warn(
+			logger.WarnContext(
+				ctx,
 				"Worker request failed, will retry",
 				"elapsed", time.Since(start),
 				"error", err,
@@ -320,7 +321,8 @@ func callWorker(
 			Status: http.StatusInternalServerError,
 			Detail: fmt.Sprintf("Failed to communicate with PDF worker: %v", err),
 		})
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"Error calling PDF worker",
 			"elapsed", time.Since(start),
 			"error", err,
@@ -329,7 +331,7 @@ func callWorker(
 	}
 	defer func() {
 		if closeErr := resp.Body.Close(); closeErr != nil {
-			logger.Warn("Failed to close worker response body", "error", closeErr)
+			logger.WarnContext(ctx, "Failed to close worker response body", "error", closeErr)
 		}
 	}()
 
@@ -349,7 +351,7 @@ func callWorker(
 
 		w.WriteHeader(http.StatusOK)
 		if _, copyErr := io.Copy(w, resp.Body); copyErr != nil {
-			logger.Error("Failed to write PDF response data", "error", copyErr)
+			logger.ErrorContext(ctx, "Failed to write PDF response data", "error", copyErr)
 		}
 		logger.Info("Successfully generated PDF",
 			"elapsed", time.Since(start),
@@ -359,7 +361,8 @@ func callWorker(
 
 	// Check if this is a retryable error (429 - queue full)
 	if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
-		logger.Warn(
+		logger.InfoContext(
+			ctx,
 			"Worker queue full, retrying",
 			"elapsed", time.Since(start),
 		)
@@ -375,10 +378,10 @@ func callWorker(
 	errorDetailBytes, err := io.ReadAll(resp.Body)
 	errorDetail := ""
 	if err != nil {
-		logger.Error("Error reading PDF worker response body", "error", err)
+		logger.ErrorContext(ctx, "Error reading PDF worker response body", "error", err)
 	}
 	if !utf8.Valid(errorDetailBytes) {
-		logger.Warn("Worker didn't return valid response body")
+		logger.WarnContext(ctx, "Worker didn't return valid response body")
 	} else {
 		errorDetail = string(errorDetailBytes)
 	}
@@ -407,7 +410,8 @@ func callWorker(
 		Status: statusCode,
 		Detail: errorDetail,
 	})
-	logger.Error(
+	logger.ErrorContext(
+		ctx,
 		"Error during generation",
 		"elapsed", time.Since(start),
 		"status_code", statusCode,

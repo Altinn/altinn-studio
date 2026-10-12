@@ -225,7 +225,7 @@ func generateLocalPdfHandler(
 		r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
 		defer func() {
 			if closeErr := r.Body.Close(); closeErr != nil {
-				logger.Warn("Failed to close request body", "error", closeErr)
+				logger.WarnContext(r.Context(), "Failed to close request body", "error", closeErr)
 			}
 		}()
 
@@ -243,7 +243,8 @@ func generateLocalPdfHandler(
 
 		normalizedURL, rewriteReason, normalizeErr := normalizeLocaltestURL(req.URL, localtestPublicBaseURL)
 		if normalizeErr != nil {
-			logger.Warn(
+			logger.WarnContext(
+				r.Context(),
 				"Failed to normalize localtest request URL",
 				"error", normalizeErr,
 				"url", req.URL,
@@ -303,7 +304,7 @@ func generateLocalPdfHandler(
 
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write(result.Data); err != nil {
-			reqLogger.Error("Failed to write PDF response", "error", err)
+			reqLogger.ErrorContext(r.Context(), "Failed to write PDF response", "error", err)
 		}
 	}
 }
@@ -406,7 +407,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 
 		defer func() {
 			if closeErr := r.Body.Close(); closeErr != nil {
-				logger.Warn("Failed to close request body", "error", closeErr)
+				logger.WarnContext(r.Context(), "Failed to close request body", "error", closeErr)
 			}
 		}()
 
@@ -449,7 +450,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write(result.Data); err != nil {
-			reqLogger.Error("Failed to write PDF response", "error", err)
+			reqLogger.ErrorContext(r.Context(), "Failed to write PDF response", "error", err)
 		}
 	}
 }

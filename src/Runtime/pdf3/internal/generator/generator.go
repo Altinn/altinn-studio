@@ -162,8 +162,8 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 	}
 
 	if !session.tryEnqueue(req) {
-		// Queue-full 429s are expected; proxy retries handle them, so no span error.
-		g.logger.Warn("Request queue full, rejecting request", "url", request.URL)
+		// Queue-full 429s are expected; proxy retries handle them, so no span error or warning.
+		g.logger.InfoContext(ctx, "Request queue full, rejecting request", "url", request.URL)
 		return nil, types.NewPDFError(types.ErrQueueFull, "", nil)
 	}
 
@@ -209,7 +209,7 @@ func (g *Custom) prepareResponsePDF(ctx context.Context, requestURL string, data
 	converted, pdfErr := g.postProcessPDF(ctx, data)
 	if pdfErr != nil {
 		requestAttributes.SetPDFAConversion(g.convertToPDFA, "failed", len(data), 0)
-		g.logger.Warn("PDF/A conversion failed, returning original PDF", "url", requestURL, "error", pdfErr)
+		g.logger.WarnContext(ctx, "PDF/A conversion failed, returning original PDF", "url", requestURL, "error", pdfErr)
 		return data, nil
 	}
 
@@ -341,7 +341,7 @@ func (r *workerRequest) tryRespondOk(data []byte) {
 			r.logger.Info("Responded successfully", "data_size", len(data))
 			break
 		default:
-			r.logger.Warn("Client abandoned request (likely timed out), dropping response")
+			r.logger.WarnContext(r.ctx, "Client abandoned request (likely timed out), dropping response")
 		}
 		r.responder = nil
 	}
@@ -358,7 +358,7 @@ func (r *workerRequest) tryRespondError(err *types.PDFError) {
 			r.logger.Info("Responded with error", "error", err)
 			break
 		default:
-			r.logger.Warn("Client abandoned request (likely timed out), dropping response")
+			r.logger.WarnContext(r.ctx, "Client abandoned request (likely timed out), dropping response")
 		}
 		r.responder = nil
 	}
