@@ -13,10 +13,11 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.Process;
 
 /// <summary>
-/// Validates BPMN task types, the BPMN element each task uses, and task configuration at startup.
+/// Validates BPMN task types, the BPMN element each task uses, task configuration and exclusive gateway flows at
+/// startup.
 /// </summary>
 /// <remarks>
-/// Creates a dependency injection scope so task implementations can use scoped services.
+/// Creates a dependency injection scope so task and gateway implementations can use scoped services.
 /// Stops startup if configuration cannot be read.
 /// </remarks>
 internal sealed class ProcessTaskConfigurationValidationService(
@@ -30,19 +31,27 @@ internal sealed class ProcessTaskConfigurationValidationService(
         await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
         IServiceProvider services = scope.ServiceProvider;
 
+        IProcessReader processReader;
         List<ProcessTask> bpmnTasks;
         List<IProcessTask> processTasks;
         List<IPipelineServiceTask> serviceTasks;
+        HashSet<string> gatewaysWithCode;
         ApplicationMetadata appMetadata;
         HostingEnvironment environment;
         try
         {
-            bpmnTasks = services.GetRequiredService<IProcessReader>().GetProcessTasks();
+            processReader = services.GetRequiredService<IProcessReader>();
+            bpmnTasks = processReader.GetProcessTasks();
             appMetadata = services.GetRequiredService<IAppMetadata>().ApplicationMetadata;
             environment = AltinnEnvironments.GetHostingEnvironment(services.GetRequiredService<IHostEnvironment>());
             var factory = new AppImplementationFactory(services);
             serviceTasks = factory.GetServiceTasks().ToList();
             processTasks = factory.GetAll<IProcessTask>().ToList();
+            // Same lookup as ExclusiveGatewayFactory.
+            gatewaysWithCode = factory
+                .GetAll<IProcessExclusiveGateway>()
+                .Select(gateway => gateway.GatewayId)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
         }
         catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
@@ -122,6 +131,8 @@ internal sealed class ProcessTaskConfigurationValidationService(
             }
         }
 
+        findings.AddRange(ValidateExclusiveGateways(processReader, gatewaysWithCode));
+
         WarnAboutUnreferencedServiceTasks(bpmnTasks, serviceTasks);
 
         if (listRegisteredTypes)
@@ -142,7 +153,7 @@ internal sealed class ProcessTaskConfigurationValidationService(
         if (findings.Count > 0)
         {
             throw new ApplicationConfigException(
-                "Process task configuration is not valid:"
+                "Process configuration is not valid:"
                     + Environment.NewLine
                     + string.Join(Environment.NewLine, findings.Select(finding => "  - " + finding))
             );
@@ -150,6 +161,52 @@ internal sealed class ProcessTaskConfigurationValidationService(
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    /// <summary>
+    /// Reports outgoing flows of an exclusive gateway that have no condition and are not its default.
+    /// </summary>
+    /// <remarks>
+    /// The gateway takes its default only when no other flow is valid, and a flow without a condition is always valid.
+    /// Such a flow fails the gateway whenever another flow's condition holds, and keeps it from ever taking its default.
+    /// A gateway without conditions is left alone when it has no default, or when the app's own
+    /// <see cref="IProcessExclusiveGateway"/> chooses its flow.
+    /// </remarks>
+    private static IEnumerable<string> ValidateExclusiveGateways(
+        IProcessReader processReader,
+        HashSet<string> gatewaysWithCode
+    )
+    {
+        foreach (ExclusiveGateway gateway in processReader.GetExclusiveGateways())
+        {
+            List<SequenceFlow> outgoingFlows = processReader.GetOutgoingSequenceFlows(gateway);
+            if (
+                !outgoingFlows.Exists(flow => flow.ConditionExpression is not null)
+                && (gateway.Default is null || gatewaysWithCode.Contains(gateway.Id))
+            )
+            {
+                continue;
+            }
+
+            string[] unconditioned = outgoingFlows
+                .Where(flow => flow.Id != gateway.Default && flow.ConditionExpression is null)
+                .Select(flow => flow.Id)
+                .ToArray();
+            if (unconditioned.Length == 0)
+            {
+                continue;
+            }
+
+            yield return $"Exclusive gateway '{gateway.Id}' has outgoing sequence flows without a condition that are "
+                + $"not its default: {string.Join(", ", unconditioned.Select(id => $"'{id}'"))}. Only the default "
+                + "flow may leave out the condition, and the gateway takes it only when no other flow's condition "
+                + "holds. Give each of them a condition"
+                + (
+                    gateway.Default is null && unconditioned.Length == 1
+                        ? $", or make it the default with default=\"{unconditioned[0]}\" on the gateway."
+                        : "."
+                );
+        }
+    }
 
     /// <summary>
     /// Warns once per service task type that is registered on purpose but that no BPMN task declares.

@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process;
@@ -9,6 +10,7 @@ using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.Internal.Process.TestUtils;
+using Altinn.App.PlatformServices.Tests.Internal.Process.StubGatewayFilters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -82,6 +84,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     public async Task StartAsync_MissingOrBlankTaskType_FailsValidation(string? taskType)
     {
         var reader = new Mock<IProcessReader>();
+        reader.Setup(r => r.GetExclusiveGateways()).Returns([]);
         reader
             .Setup(r => r.GetProcessTasks())
             .Returns([
@@ -189,6 +192,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     [InlineData("bpmn")]
     [InlineData("metadata")]
     [InlineData("task")]
+    [InlineData("gateway")]
     public async Task StartAsync_WhenConfigurationOrTaskResolutionFails_Throws(string failingDependency)
     {
         var reader = new Mock<IProcessReader>();
@@ -209,6 +213,10 @@ public class ProcessTaskConfigurationValidationServiceTests
                 }
                 if (failingDependency == "task")
                     services.AddTransient<IProcessTask>(_ => throw new InvalidOperationException("unreadable task"));
+                if (failingDependency == "gateway")
+                    services.AddTransient<IProcessExclusiveGateway>(_ =>
+                        throw new InvalidOperationException("unreadable gateway")
+                    );
             },
             reader.Object
         );
@@ -517,6 +525,90 @@ public class ProcessTaskConfigurationValidationServiceTests
             record => record.Level == LogLevel.Warning
         );
         Assert.Contains($"({typeof(OtherSimpleTask).FullName})", warning.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task StartAsync_GatewayDefaultWithoutCondition_PassesValidation()
+    {
+        var exception = await Validate(_ => { }, ProcessTestUtils.SetupProcessReader("gateway-default-fallback.bpmn"));
+
+        Assert.Null(exception);
+    }
+
+    [Theory]
+    // Every flow has a condition.
+    [InlineData(null, true, true, false)]
+    // No conditions and no default: the app's own gateway code, or the only flow, decides.
+    [InlineData(null, false, false, false)]
+    // No conditions: the app's own gateway code decides, so the default is up to it.
+    [InlineData("Flow3", false, false, true)]
+    public async Task StartAsync_GatewayFlowsWithConditionsOrOwnCode_PassValidation(
+        string? defaultFlow,
+        bool flow3HasCondition,
+        bool flow4HasCondition,
+        bool gatewayCode
+    )
+    {
+        var exception = await Validate(
+            s =>
+            {
+                if (gatewayCode)
+                    s.AddSingleton<IProcessExclusiveGateway>(new DataValuesFilter("Gateway1", "choose"));
+            },
+            GatewayReader(defaultFlow, Flow("Flow3", flow3HasCondition), Flow("Flow4", flow4HasCondition))
+        );
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task StartAsync_FlowWithoutConditionBesideConditions_SuggestsMakingItTheDefault()
+    {
+        var exception = await Validate(_ => { }, GatewayReader(null, Flow("Flow3", false), Flow("Flow4", true)));
+
+        Assert.NotNull(exception);
+        Assert.Contains(
+            "Exclusive gateway 'Gateway1' has outgoing sequence flows without a condition that are not its default: "
+                + "'Flow3'.",
+            exception.Message,
+            StringComparison.Ordinal
+        );
+        Assert.Contains("default=\"Flow3\"", exception.Message, StringComparison.Ordinal);
+    }
+
+    // Without code for the gateway, Flow4 would always be taken and the default never.
+    [Fact]
+    public async Task StartAsync_FlowWithoutConditionBesideDefault_FailsValidation()
+    {
+        var exception = await Validate(_ => { }, GatewayReader("Flow3", Flow("Flow3", false), Flow("Flow4", false)));
+
+        Assert.NotNull(exception);
+        Assert.Contains("not its default: 'Flow4'. ", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("default=", exception.Message, StringComparison.Ordinal);
+    }
+
+    private static SequenceFlow Flow(string id, bool hasCondition) =>
+        new()
+        {
+            Id = id,
+            SourceRef = "Gateway1",
+            TargetRef = "EndEvent",
+            ConditionExpression = hasCondition ? """["equals", ["gatewayAction"], "reject"]""" : null,
+        };
+
+    private static IProcessReader GatewayReader(string? defaultFlow, params SequenceFlow[] flows)
+    {
+        var gateway = new ExclusiveGateway
+        {
+            Id = "Gateway1",
+            Default = defaultFlow,
+            Outgoing = flows.Select(flow => flow.Id).ToList(),
+        };
+        var reader = new Mock<IProcessReader>();
+        reader.Setup(r => r.GetProcessTasks()).Returns([]);
+        reader.Setup(r => r.GetExclusiveGateways()).Returns([gateway]);
+        reader.Setup(r => r.GetOutgoingSequenceFlows(gateway)).Returns(flows.ToList());
+        return reader.Object;
     }
 
     private sealed class OtherSimpleTask(string type) : IServiceTask
