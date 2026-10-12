@@ -24,3 +24,18 @@ func TestNewResource(t *testing.T) {
 		}
 	}
 }
+
+func TestDeploymentEnvironmentName(t *testing.T) {
+	for environment, want := range map[string]string{
+		"prod":      "production",
+		"tt02":      "tt02",
+		"at22":      "at22",
+		"yt01":      "yt01",
+		"local":     "local",
+		"localtest": "localtest",
+	} {
+		if got := deploymentEnvironmentName(environment); got != want {
+			t.Errorf("deploymentEnvironmentName(%q) = %q, want %q", environment, got, want)
+		}
+	}
+}

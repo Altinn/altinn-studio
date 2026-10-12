@@ -97,14 +97,14 @@ func ConfigureOTel(ctx context.Context, environment string) (shutdown func(conte
 }
 
 // newResource describes this build and the environment it runs in. The environment is the one
-// the runtime cluster's syncroot substitutes, the same value its telemetry router sets.
+// the runtime cluster's syncroot substitutes, named as deploymentEnvironmentName describes.
 // OTEL_SERVICE_NAME and OTEL_RESOURCE_ATTRIBUTES set the rest of the service identity, and take
 // precedence.
 func newResource(ctx context.Context, environment string) (*resource.Resource, error) {
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
 			semconv.ServiceVersion(serviceVersion),
-			semconv.DeploymentEnvironmentNameKey.String(environment),
+			semconv.DeploymentEnvironmentNameKey.String(deploymentEnvironmentName(environment)),
 		),
 		resource.WithFromEnv(),
 	)
@@ -112,6 +112,16 @@ func newResource(ctx context.Context, environment string) (*resource.Resource, e
 		return nil, fmt.Errorf("failed to create resource: %w", err)
 	}
 	return res, nil
+}
+
+// deploymentEnvironmentName is the deployment.environment.name for a runtime environment:
+// production, the semantic conventions' well-known value, for prod, and the environment's own
+// name, such as tt02 or at22, otherwise.
+func deploymentEnvironmentName(environment string) string {
+	if environment == "prod" {
+		return "production"
+	}
+	return environment
 }
 
 func newTracerProvider(ctx context.Context, res *resource.Resource) (*trace.TracerProvider, error) {
