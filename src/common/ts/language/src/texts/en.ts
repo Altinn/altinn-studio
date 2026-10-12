@@ -490,7 +490,7 @@ export function en() {
     'process_workflow.failure_kind.timeout': 'Processing took too long',
     'process_workflow.failure_kind.unknown': 'Unknown cause',
     'process_workflow.having_trouble':
-      'We’re having trouble processing your form right now, but we keep trying automatically. Your information has been saved. You can safely close the page and come back later. You can open forms you’ve already started from your inbox or from the Drafts folder.',
+      'We are having trouble processing your form right now, but we will keep trying automatically. Your information has been saved. You can safely close the page and come back later. You can open forms you have already started from your inbox or from the Drafts folder.',
     'process_workflow.still_working':
       'This is taking longer than usual. Your information has been saved, and the work continues automatically. You can safely close the page and come back later. You can open forms you’ve already started from your inbox or from the Drafts folder.',
     'pdfPreview.error': 'Could not show PDF preview',
