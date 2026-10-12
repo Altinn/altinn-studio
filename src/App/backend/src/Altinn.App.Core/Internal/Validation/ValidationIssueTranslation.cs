@@ -53,8 +53,8 @@ internal static class ValidationIssueTranslation
     {
         if (string.IsNullOrEmpty(issue.Description) && !string.IsNullOrEmpty(issue.CustomTextKey))
         {
-            // TODO: Translate with the context from issue.DataElementId and issue.Field, so the text can use data model
-            // variables from the right data element and repeating group row. Only the language is used for now.
+            // File validation runs before the data element exists, and during instantiation before the instance exists.
+            // There is no instance data, data element or field to translate with, so only the language is used.
             issue.Description =
                 await translationService.TranslateTextKey(issue.CustomTextKey, language, issue.CustomTextParameters)
                 ?? issue.Description;
