@@ -9,7 +9,7 @@ import pytest
 
 from benchmarks import manifest, registry
 
-AGENTS_ROOT = Path(__file__).resolve().parents[3]
+ASSISTANT_ROOT = Path(__file__).resolve().parents[3]
 
 
 def test_every_component_resolves_to_a_symbol_that_exists():
@@ -20,7 +20,7 @@ def test_every_component_resolves_to_a_symbol_that_exists():
     for component in manifest.COMPONENTS:
         path, _, symbol = component.where.partition("::")
         assert symbol, f"{component.id}: {component.where} names no symbol"
-        target = AGENTS_ROOT / path
+        target = ASSISTANT_ROOT / path
         assert target.exists(), f"{component.id}: {path} does not exist"
 
         tree = ast.parse(target.read_text(encoding="utf-8"))
@@ -83,7 +83,7 @@ def test_prose_fields_are_written_not_stubbed():
 
 
 def test_no_em_dashes_anywhere_in_the_manifest():
-    source = (AGENTS_ROOT / "benchmarks" / "manifest.py").read_text(encoding="utf-8")
+    source = (ASSISTANT_ROOT / "benchmarks" / "manifest.py").read_text(encoding="utf-8")
     assert "—" not in source
 
 
@@ -145,7 +145,7 @@ def test_declared_score_names_match_what_each_module_actually_emits():
     import re
 
     for module in ("gates", "planner", "generation", "evaluators"):
-        source = (AGENTS_ROOT / "benchmarks" / f"{module}.py").read_text(encoding="utf-8")
+        source = (ASSISTANT_ROOT / "benchmarks" / f"{module}.py").read_text(encoding="utf-8")
         found = set(re.findall(r'name="([a-z_]+)"', source))
         declared = set(__import__(f"benchmarks.{module}", fromlist=["SCORE_NAMES"]).SCORE_NAMES)
         assert declared == found, f"{module}: declared {declared ^ found} not emitted, or vice versa"
@@ -190,11 +190,11 @@ def test_every_rule_key_in_a_dataset_is_read_by_an_evaluator():
     import json
     import re
 
-    source = (AGENTS_ROOT / "benchmarks" / "generation.py").read_text(encoding="utf-8")
+    source = (ASSISTANT_ROOT / "benchmarks" / "generation.py").read_text(encoding="utf-8")
     read = set(re.findall(r'(?:rule|rule_of\([^)]*\))\.get\(\s*"([a-z_]+)"', source))
 
     declared: dict[str, set[str]] = {}
-    for path in sorted((AGENTS_ROOT / "benchmarks" / "datasets").glob("*.json*")):
+    for path in sorted((ASSISTANT_ROOT / "benchmarks" / "datasets").glob("*.json*")):
         text = path.read_text(encoding="utf-8")
         blobs = (
             [json.loads(text)]

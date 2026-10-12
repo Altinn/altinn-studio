@@ -9,7 +9,7 @@ import pytest
 
 from benchmarks import impact
 
-AGENTS_ROOT = Path(__file__).resolve().parents[3]
+ASSISTANT_ROOT = Path(__file__).resolve().parents[3]
 
 
 @pytest.fixture(autouse=True)
@@ -76,9 +76,9 @@ def test_a_test_change_needs_nothing():
     assert not found.needs_check
 
 
-def test_repo_relative_and_agents_relative_paths_both_work():
+def test_repo_relative_and_assistant_relative_paths_both_work():
     """`git diff --name-only` output is repo relative and is fed in as it comes."""
-    a = impact.analyze(["src/AI/agents/benchmarks/datasets/gates_scope.jsonl"])
+    a = impact.analyze(["src/AI/assistant/benchmarks/datasets/gates_scope.jsonl"])
     b = impact.analyze(["benchmarks/datasets/gates_scope.jsonl"])
     assert a.axes == b.axes == ("dataset",)
 
@@ -92,7 +92,7 @@ def test_both_kinds_are_reported_when_both_are_present():
 def test_the_gate_says_one_thing_about_the_baseline(capsys):
     """It asserted the baseline was stale and then that it travelled with the
     change, in the same output."""
-    impact.report(["src/AI/agents/benchmarks/gates.py", "src/AI/agents/benchmarks/BASELINE.json"], strict=True)
+    impact.report(["src/AI/assistant/benchmarks/gates.py", "src/AI/assistant/benchmarks/BASELINE.json"], strict=True)
     said = capsys.readouterr().out
 
     assert "was measured with this instrument" in said
@@ -100,7 +100,7 @@ def test_the_gate_says_one_thing_about_the_baseline(capsys):
 
 
 def test_without_a_new_baseline_it_still_says_stale(capsys):
-    code = impact.report(["src/AI/agents/benchmarks/gates.py"], strict=True)
+    code = impact.report(["src/AI/assistant/benchmarks/gates.py"], strict=True)
     said = capsys.readouterr().out
 
     assert code == 1
@@ -136,7 +136,7 @@ class TestTheDigestsDecideForThePromptAndTheTools:
         code, said = self._report(
             capsys,
             {**self.RECORDED, "tools": "cccccccccccc"},
-            ["src/AI/agents/agents/graph/nodes/agentic_loop_node.py"],
+            ["src/AI/assistant/agents/graph/nodes/agentic_loop_node.py"],
         )
         assert code == 1
         assert "tools  baseline bbbbbbbbbbbb, this checkout cccccccccccc" in said
@@ -159,7 +159,7 @@ class TestTheDigestsDecideForThePromptAndTheTools:
 
     def test_a_new_baseline_for_other_code_still_fails(self, capsys):
         code, said = self._report(
-            capsys, {**self.RECORDED, "tools": "cccccccccccc"}, ["src/AI/agents/benchmarks/BASELINE.json"]
+            capsys, {**self.RECORDED, "tools": "cccccccccccc"}, ["src/AI/assistant/benchmarks/BASELINE.json"]
         )
         assert code == 1
         assert "NOT FOR THIS CODE" in said
@@ -167,7 +167,7 @@ class TestTheDigestsDecideForThePromptAndTheTools:
 
     def test_a_new_baseline_for_this_code_passes(self, capsys):
         code, _said = self._report(
-            capsys, dict(self.RECORDED), ["src/AI/agents/benchmarks/BASELINE.json", "benchmarks/datasets/x.jsonl"]
+            capsys, dict(self.RECORDED), ["src/AI/assistant/benchmarks/BASELINE.json", "benchmarks/datasets/x.jsonl"]
         )
         assert code == 0
 
@@ -192,8 +192,8 @@ def test_every_declared_pattern_matches_something_that_exists():
     import fnmatch
 
     tracked = [
-        str(path.relative_to(AGENTS_ROOT))
-        for path in AGENTS_ROOT.rglob("*")
+        str(path.relative_to(ASSISTANT_ROOT))
+        for path in ASSISTANT_ROOT.rglob("*")
         if path.is_file() and "__pycache__" not in path.parts
     ]
     for pattern, _axis, _why in impact.YARDSTICK + impact.BEHAVIOR:
@@ -286,7 +286,7 @@ class TestTheGateEntryPoints:
 
     def test_the_runner_and_the_gate_share_one_report(self):
         """Two copies of this message would drift, and only one of them is tested."""
-        source = (AGENTS_ROOT / "benchmarks" / "runner.py").read_text()
+        source = (ASSISTANT_ROOT / "benchmarks" / "runner.py").read_text()
         assert "impact.report(" in source
         assert "INVALIDATES THE BASELINE" not in source
 
@@ -506,18 +506,18 @@ class TestTheOutputStaysReadable:
 def test_documentation_beside_a_prompt_is_not_a_prompt():
     """`agents/prompts/*` matched the README and the loader, so a docs-only change
     was told to re-baseline."""
-    for path in ("src/AI/agents/agents/prompts/README.md", "src/AI/agents/agents/prompts/loader.py"):
+    for path in ("src/AI/assistant/agents/prompts/README.md", "src/AI/assistant/agents/prompts/loader.py"):
         assert impact.analyze([path]).hits == ()
 
 
 def test_a_prompt_itself_still_moves_the_axis():
-    hits = impact.analyze(["src/AI/agents/agents/prompts/scope_check.md"]).hits
+    hits = impact.analyze(["src/AI/assistant/agents/prompts/scope_check.md"]).hits
 
     assert [h.axis for h in hits] == ["prompts"]
 
 
 def test_a_judge_prompt_in_a_subdirectory_still_moves_the_axis():
-    hits = impact.analyze(["src/AI/agents/agents/prompts/llm-as-a-judge/x.md"]).hits
+    hits = impact.analyze(["src/AI/assistant/agents/prompts/llm-as-a-judge/x.md"]).hits
 
     assert [h.axis for h in hits] == ["prompts"]
 
@@ -545,7 +545,7 @@ def test_the_file_list_can_arrive_on_stdin(monkeypatch, capsys):
 
     monkeypatch.setattr("sys.argv", ["impact", "--strict"])
     monkeypatch.setattr(impact, "git_reader", lambda _against: None)
-    monkeypatch.setattr("sys.stdin", io.StringIO("src/AI/agents/benchmarks/gates.py\n"))
+    monkeypatch.setattr("sys.stdin", io.StringIO("src/AI/assistant/benchmarks/gates.py\n"))
 
     assert impact._main() == 1
     assert "evaluators" in capsys.readouterr().out
@@ -558,7 +558,7 @@ def test_the_gate_reads_old_files_at_the_given_base_ref(monkeypatch):
     used = []
     monkeypatch.setattr("sys.argv", ["impact", "--strict", "--against", "feature-a"])
     monkeypatch.setattr(impact, "git_reader", lambda against: used.append(against))
-    monkeypatch.setattr("sys.stdin", io.StringIO("src/AI/agents/README.md\n"))
+    monkeypatch.setattr("sys.stdin", io.StringIO("src/AI/assistant/README.md\n"))
 
     impact._main()
 
@@ -571,7 +571,7 @@ def test_the_gate_reads_old_files_at_origin_main_by_default(monkeypatch):
     used = []
     monkeypatch.setattr("sys.argv", ["impact"])
     monkeypatch.setattr(impact, "git_reader", lambda against: used.append(against))
-    monkeypatch.setattr("sys.stdin", io.StringIO("src/AI/agents/README.md\n"))
+    monkeypatch.setattr("sys.stdin", io.StringIO("src/AI/assistant/README.md\n"))
 
     impact._main()
 

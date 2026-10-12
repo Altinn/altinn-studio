@@ -9,17 +9,17 @@ RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 RUN git config --system user.name "Altinity Agent" && \
     git config --system user.email "agent@altinn.studio"
 
-COPY src/AI/agents/requirements.txt ./
+COPY src/AI/assistant/requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN pip install --no-cache-dir "playwright>=1.49.0" && \
     playwright install --with-deps chromium
 
-COPY src/AI/agents/agents/ ./agents/
-COPY src/AI/agents/api/ ./api/
-COPY src/AI/agents/services/ ./services/
-COPY src/AI/agents/shared/ ./shared/
+COPY src/AI/assistant/agents/ ./agents/
+COPY src/AI/assistant/api/ ./api/
+COPY src/AI/assistant/services/ ./services/
+COPY src/AI/assistant/shared/ ./shared/
 # The v9 layout schemas, where BaseConfig.LAYOUT_SCHEMA_V9_DIR points from /app. The CDN
 # serves only the v8 contract.
 COPY src/common/ts/layout-contract/schemas/json/layout/ /common/ts/layout-contract/schemas/json/layout/

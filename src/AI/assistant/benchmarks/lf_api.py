@@ -15,7 +15,7 @@ class LangfuseApi:
         public_key: str | None = None,
         secret_key: str | None = None,
     ):
-        # The agents service names the host LANGFUSE_BASE_URL; accept both.
+        # The assistant service names the host LANGFUSE_BASE_URL; accept both.
         host = host or os.environ.get("LANGFUSE_HOST") or os.environ.get("LANGFUSE_BASE_URL")
         public_key = public_key or os.environ.get("LANGFUSE_PUBLIC_KEY")
         secret_key = secret_key or os.environ.get("LANGFUSE_SECRET_KEY")
