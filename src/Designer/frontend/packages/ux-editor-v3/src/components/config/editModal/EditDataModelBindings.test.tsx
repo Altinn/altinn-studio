@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, screen } from '@testing-library/react';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { appDataMock, textResourcesMock } from '../../../testing/stateMocks';
@@ -53,7 +54,7 @@ const getDataModelMetadata = () => Promise.resolve(dataModelMetadata);
 const getLayoutSets = () =>
   Promise.resolve([{ id: layoutSet1NameMock, dataType: defaultDataModel }]);
 
-const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
+const render = async ({ dataModelBindings = {}, handleComponentChange = vi.fn() } = {}) => {
   const appData: IAppDataState = {
     ...appDataMock,
     textResources: {
@@ -85,7 +86,7 @@ const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn(
 };
 
 describe('EditDataModelBindings', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should show select with no selected option by default', async () => {
     const user = userEvent.setup();
@@ -135,7 +136,7 @@ describe('EditDataModelBindings', () => {
 
   it('check that handleComponentChange is called', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     await render({ handleComponentChange });
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
     await user.click(linkIcon);
@@ -190,7 +191,7 @@ describe('EditDataModelBindings', () => {
 
   it('deletes existing data model link', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     const dataModelBindingKey = 'testModel.field1';
 
     await render({
@@ -250,7 +251,7 @@ describe('EditDataModelBindings', () => {
     expect(await screen.findByText('testModel.field1')).toBeInTheDocument();
     renderResult.rerender(
       <EditDataModelBindings
-        handleComponentChange={jest.fn()}
+        handleComponentChange={vi.fn()}
         component={{
           id: 'someComponentId',
           type: ComponentTypeV3.Input,

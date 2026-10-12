@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RefObject } from 'react';
 import { createRef } from 'react';
 import type { IAppDataState } from '../features/appData/appDataReducers';
@@ -26,7 +27,7 @@ const closeText = textMock('general.close');
 
 describe('TextResourceEdit', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     queryClientMock.clear();
   });
 
@@ -77,7 +78,7 @@ describe('TextResourceEdit', () => {
     const additionalValue = ' ipsum';
     const resources: ITextResources = { nb: [{ id, value }] };
     const previewIframeRefMock = createRef<HTMLIFrameElement>();
-    const reload = jest.fn();
+    const reload = vi.fn();
     const previewIframeRef: RefObject<HTMLIFrameElement> = {
       current: {
         ...previewIframeRefMock.current,
@@ -124,7 +125,7 @@ describe('TextResourceEdit', () => {
     const value = 'Lorem';
     const resources: ITextResources = { nb: [{ id, value }] };
     await render(resources, id);
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const textBox = screen.getByLabelText(nbText);
     fireEvent.click(textBox);
     fireEvent.click(document.body);
@@ -163,7 +164,7 @@ const render = async (
   const { result } = renderHookWithMockStore(
     { appData },
     {
-      getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
+      getTextLanguages: vi.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
       getTextResources: (_o, _a, lang) =>
         Promise.resolve<ITextResourcesWithLanguage>({
           language: lang,

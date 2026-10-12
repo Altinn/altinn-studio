@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PanelComponent } from './PanelComponent';
@@ -28,12 +29,12 @@ const component: FormComponent<ComponentTypeV3.Panel> = {
   showIcon: false,
 };
 
-const mockHandleComponentChange = jest.fn();
+const mockHandleComponentChange = vi.fn();
 
 const user = userEvent.setup();
 
 const waitForData = async () => {
-  const getFormLayoutSettings = jest
+  const getFormLayoutSettings = vi
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const formLayoutsResult = renderHookWithMockStore()(() =>
@@ -58,7 +59,7 @@ const render = async () => {
 };
 
 describe('PanelComponent', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should call handleComponentChange with showIcon property set to true when the showIcon checkbox is clicked', async () => {
     await render();

@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -27,24 +28,24 @@ const defaultMockTasks = [
   },
 ];
 
-jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
+vi.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(function () {
+    StudioModeler: vi.fn().mockImplementation(function () {
       return {
-        getAllTasksByType: jest.fn(() => mockTasks),
+        getAllTasksByType: vi.fn(() => mockTasks),
       };
     }),
   };
 });
 
-const mockUpdateTaskIds = jest.fn();
-jest.mock('../../../../../hooks/useUpdatePdfConfigTaskIds', () => ({
+const mockUpdateTaskIds = vi.fn();
+vi.mock('../../../../../hooks/useUpdatePdfConfigTaskIds', () => ({
   useUpdatePdfConfigTaskIds: () => mockUpdateTaskIds,
 }));
 
 describe('PdfAutomaticTaskSelection', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockTasks = [...defaultMockTasks];
   });
 

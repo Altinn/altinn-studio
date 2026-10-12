@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { SubformDataModel, type SubformDataModelProps } from './SubformDataModel';
 import userEvent from '@testing-library/user-event';
@@ -5,14 +7,14 @@ import { renderWithProviders } from 'dashboard/testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 
-jest.mock('app-shared/hooks/queries/useAppMetadataModelIdsQuery');
+vi.mock('app-shared/hooks/queries/useAppMetadataModelIdsQuery');
 
 const mockDataModelIds = ['dataModelId1', 'dataModelId2'];
 
-(useAppMetadataModelIdsQuery as jest.Mock).mockReturnValue({ data: mockDataModelIds });
+(useAppMetadataModelIdsQuery as Mock).mockReturnValue({ data: mockDataModelIds });
 
 describe('SubformDataModel', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('renders StudioNativeSelect with its label and options', () => {
     renderSubformDataModelSelect();
@@ -39,7 +41,7 @@ describe('SubformDataModel', () => {
 
   it('Calls setDataModel when selecting an option', async () => {
     const user = userEvent.setup();
-    const setSelectedDataModel = jest.fn();
+    const setSelectedDataModel = vi.fn();
     renderSubformDataModelSelect({ setSelectedDataModel });
 
     await user.selectOptions(
@@ -52,7 +54,7 @@ describe('SubformDataModel', () => {
 
   it('Should call setDisplayDataModelInput true when clicking create new data model button', async () => {
     const user = userEvent.setup();
-    const setDisplayDataModelInput = jest.fn();
+    const setDisplayDataModelInput = vi.fn();
     renderSubformDataModelSelect({ setDisplayDataModelInput });
     const displayDataModelInput = screen.getByRole('button', {
       name: textMock('ux_editor.component_properties.subform.create_new_data_model'),
@@ -73,16 +75,16 @@ describe('SubformDataModel', () => {
 });
 
 const defaultProps: SubformDataModelProps = {
-  setDisplayDataModelInput: jest.fn(),
+  setDisplayDataModelInput: vi.fn(),
   displayDataModelInput: false,
-  setSelectedDataModel: jest.fn(),
+  setSelectedDataModel: vi.fn(),
   dataModelIds: mockDataModelIds,
-  validateName: jest.fn(),
+  validateName: vi.fn(),
   dataModelNameError: '',
-  setIsTextfieldEmpty: jest.fn(),
+  setIsTextfieldEmpty: vi.fn(),
 };
 
 const renderSubformDataModelSelect = (props: Partial<SubformDataModelProps> = {}) => {
-  (useAppMetadataModelIdsQuery as jest.Mock).mockReturnValue({ data: mockDataModelIds });
+  (useAppMetadataModelIdsQuery as Mock).mockReturnValue({ data: mockDataModelIds });
   renderWithProviders(<SubformDataModel {...defaultProps} {...props} />);
 };

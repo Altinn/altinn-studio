@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import type { PageAccordionProps } from './PageAccordion';
@@ -19,10 +20,10 @@ const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
 const mockPageName2 = layout2NameMock;
 
-const mockSetSearchParams = jest.fn();
+const mockSetSearchParams = vi.fn();
 const mockSearchParams = { layout: mockPageName1 };
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     org,
     app,
@@ -32,9 +33,9 @@ jest.mock('react-router-dom', () => ({
   },
 }));
 
-const mockDeleteFormLayout = jest.fn();
-jest.mock('./useDeleteLayout', () => ({
-  useDeleteLayout: jest.fn(() => ({ mutate: mockDeleteFormLayout, isPending: false })),
+const mockDeleteFormLayout = vi.fn();
+vi.mock('./useDeleteLayout', () => ({
+  useDeleteLayout: vi.fn(() => ({ mutate: mockDeleteFormLayout, isPending: false })),
 }));
 
 const mockChildren: ReactNode = (
@@ -42,7 +43,7 @@ const mockChildren: ReactNode = (
     <button>Test</button>
   </div>
 );
-const mockOnClick = jest.fn();
+const mockOnClick = vi.fn();
 
 const defaultProps: PageAccordionProps = {
   pageName: mockPageName1,
@@ -52,7 +53,7 @@ const defaultProps: PageAccordionProps = {
 };
 
 describe('PageAccordion', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Calls "onClick" when the accordion is clicked', async () => {
     const user = userEvent.setup();
@@ -81,7 +82,7 @@ describe('PageAccordion', () => {
 
   it('Calls deleteLayout with pageName when delete button is clicked and deletion is confirmed, and updates the url correctly', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+    vi.spyOn(window, 'confirm').mockImplementation(vi.fn(() => true));
     await render();
 
     const deleteButton = screen.getByRole('button', {
@@ -96,15 +97,13 @@ describe('PageAccordion', () => {
 
   it('Disables delete button when isPending is true', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
-    jest
-      .spyOn(useDeleteLayoutModule, 'useDeleteLayout')
-      .mockImplementation(
-        () =>
-          ({ mutate: mockDeleteFormLayout, isPending: true }) as unknown as ReturnType<
-            typeof useDeleteLayoutModule.useDeleteLayout
-          >,
-      );
+    vi.spyOn(window, 'confirm').mockImplementation(vi.fn(() => true));
+    vi.spyOn(useDeleteLayoutModule, 'useDeleteLayout').mockImplementation(
+      () =>
+        ({ mutate: mockDeleteFormLayout, isPending: true }) as unknown as ReturnType<
+          typeof useDeleteLayoutModule.useDeleteLayout
+        >,
+    );
     await render();
     const deleteButton = screen.getByRole('button', {
       name: textMock('general.delete_item', { item: mockPageName1 }),
@@ -118,7 +117,7 @@ describe('PageAccordion', () => {
 
   it('Does not call deleteLayout when delete button is clicked, but deletion is not confirmed', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => false));
+    vi.spyOn(window, 'confirm').mockImplementation(vi.fn(() => false));
     await render();
 
     const deleteButton = screen.getByRole('button', {
@@ -130,7 +129,7 @@ describe('PageAccordion', () => {
 });
 
 const waitForData = async () => {
-  const getFormLayoutSettings = jest
+  const getFormLayoutSettings = vi
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const settingsResult = renderHookWithMockStore(

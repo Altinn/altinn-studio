@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { MockInstance } from 'vitest';
 import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import userEvent from '@testing-library/user-event';
 import { screen, waitFor } from '@testing-library/react';
@@ -8,16 +10,16 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const updateProcessDataTypesMutation = jest.fn().mockImplementation((params, options) => {
+const updateProcessDataTypesMutation = vi.fn().mockImplementation((params, options) => {
   options.onSettled();
 });
-const updateLayoutSetIdMutation = jest.fn().mockImplementation((params, options) => {
+const updateLayoutSetIdMutation = vi.fn().mockImplementation((params, options) => {
   options.onSettled();
 });
-jest.mock('app-development/hooks/mutations/useUpdateProcessDataTypesMutation', () => ({
+vi.mock('app-development/hooks/mutations/useUpdateProcessDataTypesMutation', () => ({
   useUpdateProcessDataTypesMutation: () => ({ mutate: updateProcessDataTypesMutation }),
 }));
-jest.mock('app-development/hooks/mutations/useUpdateLayoutSetIdMutation', () => ({
+vi.mock('app-development/hooks/mutations/useUpdateLayoutSetIdMutation', () => ({
   useUpdateLayoutSetIdMutation: () => ({ mutate: updateLayoutSetIdMutation }),
 }));
 
@@ -44,12 +46,12 @@ const customReceiptLayoutSet: UiFolderLayoutSetModel = {
 };
 
 describe('taskCard', () => {
-  let confirmSpy: jest.SpyInstance;
+  let confirmSpy: MockInstance;
 
   beforeEach(() => {
-    confirmSpy = jest.spyOn(window, 'confirm');
-    confirmSpy.mockImplementation(jest.fn(() => true));
-    jest.clearAllMocks();
+    confirmSpy = vi.spyOn(window, 'confirm');
+    confirmSpy.mockImplementation(vi.fn(() => true));
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -73,7 +75,7 @@ describe('taskCard', () => {
 
   it('should show alert when changing data model', async () => {
     const user = userEvent.setup();
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render({ onClose, layoutSetModel: customReceiptLayoutSet });
 
     await selectSuggestionOption({ user, optionLabel: datamodels[1] });
@@ -85,9 +87,9 @@ describe('taskCard', () => {
   });
 
   it('should cancel save if clicking cancel on datamodel alert', async () => {
-    confirmSpy.mockImplementation(jest.fn(() => false));
+    confirmSpy.mockImplementation(vi.fn(() => false));
     const user = userEvent.setup();
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render({ onClose, layoutSetModel: customReceiptLayoutSet });
 
     await selectSuggestionOption({ user, optionLabel: datamodels[1] });
@@ -102,7 +104,7 @@ describe('taskCard', () => {
 
   it('should not show alert when not changing data model', async () => {
     const user = userEvent.setup();
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render({ onClose, layoutSetModel: customReceiptLayoutSet });
 
     await user.type(layoutSetNameTextbox(), 'test');
@@ -111,7 +113,7 @@ describe('taskCard', () => {
 
   it('should call onClose when clicking close button', async () => {
     const user = userEvent.setup();
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render({ onClose });
 
     await user.click(screen.getByRole('button', { name: /general.cancel/ }));
@@ -121,7 +123,7 @@ describe('taskCard', () => {
 
   it('should call updateLayoutSetidMutation when layout set id is changed', async () => {
     const user = userEvent.setup();
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render({ onClose });
 
     await user.clear(layoutSetNameTextbox());
@@ -142,7 +144,7 @@ describe('taskCard', () => {
 
   it('should be able to update layoutSetId with enter-key', async () => {
     const user = userEvent.setup();
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render({ onClose });
 
     await user.clear(layoutSetNameTextbox());
@@ -163,7 +165,7 @@ describe('taskCard', () => {
 
   it('should call updateProcessDataTypesMutation when datamodel id is changed', async () => {
     const user = userEvent.setup();
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render({ onClose, layoutSetModel: customReceiptLayoutSet });
 
     await selectSuggestionOption({ user, optionLabel: datamodels[1] });
@@ -208,7 +210,7 @@ const render = (props?: Partial<TaskCardEditingProps>) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.AppMetadataModelIds, org, app, true], datamodels);
   renderWithProviders(
-    <TaskCardEditing layoutSetModel={dataTaskLayoutSet} onClose={jest.fn()} {...props} />,
+    <TaskCardEditing layoutSetModel={dataTaskLayoutSet} onClose={vi.fn()} {...props} />,
     { queryClient },
   );
 };

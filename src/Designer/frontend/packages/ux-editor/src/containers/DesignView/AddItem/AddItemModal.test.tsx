@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AddItemModal, type AddItemModalProps } from './AddItemModal';
@@ -33,10 +34,10 @@ describe('AddItemModal', () => {
 
 const renderAddItemModal = (props: Partial<AddItemModalProps>) => {
   const defaultProps: AddItemModalProps = {
-    onAddComponent: jest.fn(),
+    onAddComponent: vi.fn(),
     availableComponents: {},
-    isFavorite: jest.fn(),
-    toggleFavorite: jest.fn(),
+    isFavorite: vi.fn(),
+    toggleFavorite: vi.fn(),
   };
   return renderWithProviders(<AddItemModal {...defaultProps} {...props} />);
 };

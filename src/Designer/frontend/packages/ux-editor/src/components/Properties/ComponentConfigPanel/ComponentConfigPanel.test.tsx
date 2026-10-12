@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
@@ -28,11 +29,11 @@ const textTestId = 'text';
 const DataModelBindingsTestId = 'dataModelBindings';
 
 // Mocks:
-jest.mock('../../config/EditFormComponent', () => ({
+vi.mock('../../config/EditFormComponent', async () => ({
   __esModule: true,
-  ...jest.requireActual('../../config/EditFormComponent'),
+  ...(await vi.importActual('../../config/EditFormComponent')),
 }));
-jest.mock('../../config/Expressions', () => ({
+vi.mock('../../config/Expressions', () => ({
   Expressions: () => <div data-testid={expressionsTestId} />,
 }));
 
@@ -41,14 +42,14 @@ const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
 
-jest.mock('../Text', () => ({
+vi.mock('../Text', () => ({
   Text: () => <div data-testid={textTestId} />,
 }));
-jest.mock('../DataModelBindings', () => ({
+vi.mock('../DataModelBindings', () => ({
   DataModelBindings: () => <div data-testid={DataModelBindingsTestId} />,
 }));
 
-const editFormComponentSpy = jest.spyOn(editFormComponentModule, 'EditFormComponent');
+const editFormComponentSpy = vi.spyOn(editFormComponentModule, 'EditFormComponent');
 
 const expressionsTestId = 'expressions';
 
@@ -68,7 +69,7 @@ const expectToggleAccordion = async (name: string, user: UserEvent) => {
 
 describe('ComponentConfigPanel', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render an unknown component alert when the component is unknown', () => {
@@ -153,7 +154,7 @@ describe('ComponentConfigPanel', () => {
     });
 
     it('should call setSelectedItem(undefined) when formItem becomes undefined', () => {
-      const mockSetSelectedItem = jest.fn();
+      const mockSetSelectedItem = vi.fn();
       renderComponentConfig(
         {
           formItem: undefined,
@@ -165,7 +166,7 @@ describe('ComponentConfigPanel', () => {
     });
 
     it('should not call setSelectedItem when formItem changes but stays defined', () => {
-      const mockSetSelectedItem = jest.fn();
+      const mockSetSelectedItem = vi.fn();
       renderComponentConfig(
         {
           formItem: componentMocks[ComponentType.Input],

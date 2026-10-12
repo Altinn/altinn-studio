@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -11,9 +12,9 @@ import { renderWithProviders } from '../../../../../test/renderWithProviders';
 import { createBpmnTestModeler } from '../../../../../test/createBpmnTestModeler';
 import { ConfigSubformPdfServiceTask } from './ConfigSubformPdfServiceTask';
 
-const mockNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockNavigate,
 }));
 
@@ -27,7 +28,7 @@ const componentIdLabel = textMock(
 const requiredError = textMock('validation_errors.required');
 
 describe('ConfigSubformPdfServiceTask', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('the component picker', () => {
     it('lists each valid source component once', async () => {
@@ -389,7 +390,7 @@ const renderConfigSubformPdfServiceTask = ({
   layoutSets = [dataTaskPages, taskPages],
   pendingApiOperations = false,
 }: RenderProps = {}) => {
-  const saveBpmn = jest.fn().mockResolvedValue(undefined);
+  const saveBpmn = vi.fn().mockResolvedValue(undefined);
   const fixture = createBpmnTestModeler(
     'bpmn:ServiceTask',
     { id: taskId },
@@ -406,7 +407,7 @@ const renderConfigSubformPdfServiceTask = ({
   });
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.SubformComponents, org, app], subformComponents);
-  const saveSubformPdfComponent = jest.fn().mockResolvedValue(savedSubformComponents);
+  const saveSubformPdfComponent = vi.fn().mockResolvedValue(savedSubformComponents);
 
   const { unmount } = renderWithProviders(
     <Wrapper>

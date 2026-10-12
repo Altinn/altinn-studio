@@ -164,7 +164,10 @@ public class DataController : ControllerBase
             return dataTypeError;
         }
 
-        if (await dataTypeDefinition.CanWrite(_authorizationService, instance) is not true)
+        if (
+            await dataTypeDefinition.CanWrite(_authorizationService, instance, cancellationToken)
+            is not true
+        )
         {
             return Forbid();
         }
@@ -290,7 +293,10 @@ public class DataController : ControllerBase
             return dataTypeError;
         }
 
-        if (await dataTypeDefinition.CanRead(_authorizationService, instance) is not true)
+        if (
+            await dataTypeDefinition.CanRead(_authorizationService, instance, cancellationToken)
+            is not true
+        )
         {
             return Forbid();
         }
@@ -505,7 +511,10 @@ public class DataController : ControllerBase
             return dataTypeError;
         }
 
-        if (await dataTypeDefinition.CanWrite(_authorizationService, instance) is not true)
+        if (
+            await dataTypeDefinition.CanWrite(_authorizationService, instance, cancellationToken)
+            is not true
+        )
         {
             return Forbid();
         }
@@ -733,7 +742,10 @@ public class DataController : ControllerBase
             return dataTypeError;
         }
 
-        if (await dataTypeDefinition.CanWrite(_authorizationService, instance) is not true)
+        if (
+            await dataTypeDefinition.CanWrite(_authorizationService, instance, cancellationToken)
+            is not true
+        )
         {
             return Forbid();
         }
@@ -1020,7 +1032,10 @@ public class DataController : ControllerBase
             return dataTypeError;
         }
 
-        if (await dataTypeDefinition.CanWrite(_authorizationService, instance) is not true)
+        if (
+            await dataTypeDefinition.CanWrite(_authorizationService, instance, cancellationToken)
+            is not true
+        )
         {
             return Forbid();
         }

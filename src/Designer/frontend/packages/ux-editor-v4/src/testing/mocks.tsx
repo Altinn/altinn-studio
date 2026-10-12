@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import type { ReactElement, ReactNode } from 'react';
 import type { RenderOptions } from '@testing-library/react';
 import { render, renderHook } from '@testing-library/react';
@@ -48,13 +49,13 @@ const defaultUxEditorParams: UxEditorParams = {
 
 const defaultPreviewContextProps: PreviewContextProps = {
   shouldReloadPreview: false,
-  doReloadPreview: jest.fn(),
-  previewHasLoaded: jest.fn(),
+  doReloadPreview: vi.fn(),
+  previewHasLoaded: vi.fn(),
 };
 
 const defaultFeatureFlagMutations: FeatureFlagMutationContextValue = {
-  addFlag: jest.fn(),
-  removeFlag: jest.fn(),
+  addFlag: vi.fn(),
+  removeFlag: vi.fn(),
 };
 
 type WrapperArgs = {

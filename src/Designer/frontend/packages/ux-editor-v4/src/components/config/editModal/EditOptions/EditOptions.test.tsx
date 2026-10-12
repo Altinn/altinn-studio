@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { EditOptions } from './EditOptions';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -41,7 +42,7 @@ describe('EditOptions', () => {
   it('should show error message if getOptionListIds fails', async () => {
     renderEditOptions({
       queries: {
-        getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()),
+        getOptionListIds: vi.fn().mockImplementation(() => Promise.reject()),
       },
     });
 
@@ -50,13 +51,13 @@ describe('EditOptions', () => {
         textMock('ux_editor.modal_properties_fetch_option_list_ids_error_message'),
       ),
     ).toBeInTheDocument();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 });
 
 function renderEditOptions<T extends ComponentType.Checkboxes | ComponentType.RadioButtons>({
   componentProps,
-  handleComponentChange = jest.fn(),
+  handleComponentChange = vi.fn(),
   queries = {},
 }: {
   componentProps?: Partial<FormItem<T>>;

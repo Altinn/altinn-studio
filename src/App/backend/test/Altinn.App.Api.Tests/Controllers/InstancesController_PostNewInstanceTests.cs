@@ -1073,7 +1073,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var copyInstanceValidatorMock = new Mock<ICopyInstanceValidator>();
         var pdpMock = new Mock<IPDP>();
         pdpMock
-            .Setup(pdp => pdp.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup(pdp => pdp.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new XacmlJsonResponse { Response = [new XacmlJsonResult { Decision = "Permit" }] });
         copyInstanceValidatorMock
             .Setup(validator => validator.Validate(It.IsAny<IInstanceDataAccessor>()))

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -16,7 +17,7 @@ import { app, org } from '@studio/testing/testids';
 const user = userEvent.setup();
 
 // Test data:
-const handleIdChange = jest.fn();
+const handleIdChange = vi.fn();
 const defaultProps: TextResourceProps = { handleIdChange };
 
 const textResources: ITextResource[] = [
@@ -27,7 +28,7 @@ const textResources: ITextResource[] = [
 
 describe('TextResource', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     queryClientMock.clear();
     typedLocalStorage.removeItem('featureFlags');
   });
@@ -180,7 +181,7 @@ describe('TextResource', () => {
   });
 
   it('Renders confirm dialog when delete button is clicked', async () => {
-    await render({ textResourceId: 'test', handleRemoveTextResource: jest.fn() });
+    await render({ textResourceId: 'test', handleRemoveTextResource: vi.fn() });
     await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(
@@ -189,7 +190,7 @@ describe('TextResource', () => {
   });
 
   it('Calls handleRemoveTextResourceBinding is called when confirm delete button is clicked', async () => {
-    const handleRemoveTextResource = jest.fn();
+    const handleRemoveTextResource = vi.fn();
     await render({ handleRemoveTextResource, textResourceId: 'test' });
     await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     await user.click(
@@ -202,7 +203,7 @@ describe('TextResource', () => {
   });
 
   it('Does not call handleRemoveTextResourceBinding is called when cancel delete button is clicked', async () => {
-    const handleRemoveTextResource = jest.fn();
+    const handleRemoveTextResource = vi.fn();
     await render({ handleRemoveTextResource, textResourceId: 'test' });
     await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     await user.click(screen.getByRole('button', { name: textMock('general.cancel') }));
@@ -215,18 +216,18 @@ describe('TextResource', () => {
   });
 
   it('Renders delete button as disabled when handleRemoveTextResource is given, but no resource id is given', async () => {
-    await render({ handleRemoveTextResource: jest.fn() });
+    await render({ handleRemoveTextResource: vi.fn() });
     expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeDisabled();
   });
 
   it('Renders delete button as enabled when handleRemoveTextResource and resource id is given', async () => {
-    await render({ textResourceId: 'test', handleRemoveTextResource: jest.fn() });
+    await render({ textResourceId: 'test', handleRemoveTextResource: vi.fn() });
     expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeEnabled();
   });
 
   it('Renders delete button as enabled when handleRemoveTextResource is given and componentConfigBeta feature flag is enabled', async () => {
     addFeatureFlagToLocalStorage(FeatureFlag.ComponentConfigBeta);
-    await render({ textResourceId: 'test', handleRemoveTextResource: jest.fn() });
+    await render({ textResourceId: 'test', handleRemoveTextResource: vi.fn() });
     expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeEnabled();
   });
 });
@@ -240,13 +241,13 @@ const waitForData = async (resources: ITextResource[]) => {
   const { result } = renderHookWithMockStore(
     {},
     {
-      getTextResources: jest.fn().mockImplementation(() =>
+      getTextResources: vi.fn().mockImplementation(() =>
         Promise.resolve<ITextResourcesWithLanguage>({
           language: DEFAULT_LANGUAGE,
           resources,
         }),
       ),
-      getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
+      getTextLanguages: vi.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
     },
   )(() => useTextResourcesQuery(org, app)).renderHookResult;
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())

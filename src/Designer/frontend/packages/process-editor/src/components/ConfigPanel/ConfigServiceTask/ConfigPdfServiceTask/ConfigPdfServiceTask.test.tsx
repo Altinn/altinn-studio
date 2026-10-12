@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@studio/ui-test';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -5,31 +6,31 @@ import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
 import { createPdfBpmnDetails } from './testUtils';
 import { renderWithProviders } from '../../../../../test/renderWithProviders';
 
-jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
+vi.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(function () {
+    StudioModeler: vi.fn().mockImplementation(function () {
       return {
-        getElementsByType: jest.fn(() => []),
+        getElementsByType: vi.fn(() => []),
       };
     }),
   };
 });
 
-jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+vi.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: () => ({ org: 'test-org', app: 'test-app' }),
 }));
 
-jest.mock('app-shared/hooks/queries', () => ({
+vi.mock('app-shared/hooks/queries', () => ({
   useTextResourcesQuery: () => ({ data: { nb: [] } }),
 }));
 
-jest.mock('app-shared/hooks/mutations', () => ({
-  useUpsertTextResourceMutation: () => ({ mutate: jest.fn() }),
+vi.mock('app-shared/hooks/mutations', () => ({
+  useUpsertTextResourceMutation: () => ({ mutate: vi.fn() }),
 }));
 
 describe('ConfigPdfServiceTask', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('PDF mode radio group', () => {
@@ -88,8 +89,8 @@ describe('ConfigPdfServiceTask', () => {
   describe('mode switching with layout set deletion', () => {
     it('should call deleteLayoutSet when switching from layout-based to automatic mode and confirming', async () => {
       const user = userEvent.setup();
-      const deleteLayoutSetMock = jest.fn();
-      jest.spyOn(window, 'confirm').mockReturnValue(true);
+      const deleteLayoutSetMock = vi.fn();
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
 
       renderConfigPdfServiceTask({
         withLayoutSet: true,
@@ -113,8 +114,8 @@ describe('ConfigPdfServiceTask', () => {
 
     it('should not change mode when switching from layout-based to automatic mode and canceling', async () => {
       const user = userEvent.setup();
-      const deleteLayoutSetMock = jest.fn();
-      jest.spyOn(window, 'confirm').mockReturnValue(false);
+      const deleteLayoutSetMock = vi.fn();
+      vi.spyOn(window, 'confirm').mockReturnValue(false);
 
       renderConfigPdfServiceTask({
         withLayoutSet: true,
@@ -141,7 +142,7 @@ describe('ConfigPdfServiceTask', () => {
 
     it('should not show confirmation when switching to automatic mode without existing layout set', async () => {
       const user = userEvent.setup();
-      const confirmSpy = jest.spyOn(window, 'confirm');
+      const confirmSpy = vi.spyOn(window, 'confirm');
 
       renderConfigPdfServiceTask();
 

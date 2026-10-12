@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { EditTabProps } from './EditTab';
 import { EditTab } from './EditTab';
 import type { ExtendedRenderOptions } from '../../../../../../testing/mocks';
@@ -18,17 +19,17 @@ import type { FormItem } from '../../../../../../types/FormItem';
 const mockComponent = componentMocks[ComponentType.RadioButtons];
 const defaultProps: EditTabProps = {
   component: mockComponent,
-  handleComponentChange: jest.fn(),
+  handleComponentChange: vi.fn(),
 };
 const defaultOrg = 'org';
 const defaultApp = 'app';
 const defaultAppRouteParams: AppRouteParams = { org: defaultOrg, app: defaultApp };
 
 // Mocks:
-jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
+vi.mock('react-router-dom', async () => await vi.importActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 describe('EditTab', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should render spinner', () => {
     renderEditTabWithoutData();
@@ -42,7 +43,7 @@ describe('EditTab', () => {
 
   it('should render error message when a query fails', async () => {
     renderEditTabWithoutData({
-      queries: { getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()) },
+      queries: { getOptionListIds: vi.fn().mockImplementation(() => Promise.reject()) },
     });
 
     await waitForSpinnerToBeRemoved();
@@ -77,7 +78,7 @@ describe('EditTab', () => {
 
   it('should call handleComponentChange with empty options array when clicking create new options', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditTabWithData({
       props: {
         component: {

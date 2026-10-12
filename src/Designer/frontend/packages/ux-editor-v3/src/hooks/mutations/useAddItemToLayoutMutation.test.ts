@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
@@ -50,7 +51,7 @@ const applicationAttachmentMetadataMock: ApplicationAttachmentMetadata = {
 };
 
 describe('useAddItemToLayoutMutation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Returns ID of new item', async () => {
     const { result } = renderAddItemToLayoutMutation(selectedLayoutSet);
