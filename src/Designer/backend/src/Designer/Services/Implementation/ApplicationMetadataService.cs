@@ -223,8 +223,8 @@ public class ApplicationMetadataService : IApplicationMetadataService
         }
 
         applicationForm.Id = attachmentMetadata.GetValue("id")!.Value<string>();
-        applicationForm.MaxCount = attachmentMetadata.GetValue("maxCount")!.Value<int>();
-        applicationForm.MinCount = attachmentMetadata.GetValue("minCount")!.Value<int>();
+        applicationForm.MaxCount = attachmentMetadata.GetValue("maxCount")?.Value<int?>() ?? 0;
+        applicationForm.MinCount = attachmentMetadata.GetValue("minCount")?.Value<int?>() ?? 0;
         applicationForm.MaxSize = attachmentMetadata.GetValue("maxSize")?.Value<int?>();
 
         await DeleteMetadataForAttachment(org, app, attachmentId);
