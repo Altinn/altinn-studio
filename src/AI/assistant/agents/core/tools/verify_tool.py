@@ -63,7 +63,6 @@ class VerifyChangesTool(WriteToolMixin[VerifyChangesArgs]):
     )
     input_schema = VerifyChangesArgs
     is_concurrency_safe = True  # reads only
-    is_read_only = True
 
     async def run(self, args: VerifyChangesArgs, ctx: LoopContext) -> ToolResult:
         changed = sorted(ctx.extras.get("changed_files") or [])

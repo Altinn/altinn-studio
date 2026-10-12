@@ -112,7 +112,6 @@ class ReadFileTool(Tool[ReadFileArgs]):
     )
     input_schema = ReadFileArgs
     is_concurrency_safe = True
-    is_read_only = True
 
     async def run(self, args: ReadFileArgs, ctx: LoopContext) -> ToolResult:
         try:

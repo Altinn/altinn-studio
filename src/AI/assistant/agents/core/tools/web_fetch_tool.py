@@ -49,7 +49,6 @@ class WebFetchTool(Tool[WebFetchArgs]):
     )
     input_schema = WebFetchArgs
     is_concurrency_safe = True
-    is_read_only = True
 
     async def run(self, args: WebFetchArgs, ctx: LoopContext) -> ToolResult:
         parsed = urlparse(args.url)

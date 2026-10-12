@@ -43,7 +43,6 @@ class LayoutPropsTool(Tool[LayoutPropsArgs]):
     )
     input_schema = LayoutPropsArgs
     is_concurrency_safe = True
-    is_read_only = True
 
     async def run(self, args: LayoutPropsArgs, ctx: LoopContext) -> ToolResult:
         profile = ctx.app_version_profile
@@ -90,7 +89,6 @@ class DatamodelSyncTool(WriteToolMixin[DatamodelSyncArgs]):
     )
     input_schema = DatamodelSyncArgs
     is_concurrency_safe = False  # writes files
-    is_read_only = False
 
     async def run(self, args: DatamodelSyncArgs, ctx: LoopContext) -> ToolResult:
         try:
