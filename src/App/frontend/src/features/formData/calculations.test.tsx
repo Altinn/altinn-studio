@@ -178,12 +178,31 @@ describe('calculations in the form store', () => {
       store
         .getState()
         .data.removeIndexFromList({ reference: { dataType: defaultDataTypeMock, field: 'rows' }, index: 0 });
-      store.getState().data.debounce('forced');
     });
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toMatchObject({
       total: 20,
       rows: [{ children: [{ label: 'rows[0].children[0].label' }] }],
     });
+  });
+
+  it.each(['index', 'value'] as const)('recalculates immediately after removing a list item by %s', async (method) => {
+    const { store } = await renderCalculations(
+      { calculations: { total: { expression: ['sum', ['dataModel', 'numbers']] } } },
+      { numbers: [2, 3] },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ numbers: [2, 3], total: 5 });
+    const reference = { dataType: defaultDataTypeMock, field: 'numbers' };
+    act(() => {
+      const data = store.getState().data;
+      if (method === 'index') {
+        data.removeIndexFromList({ reference, index: 0 });
+      } else {
+        data.removeValueFromList({ reference, value: 2 });
+      }
+    });
+    const model = store.getState().data.models[defaultDataTypeMock];
+    expect(model.currentData).toEqual({ numbers: [3], total: 3 });
+    expect(model.debouncedCurrentData).toEqual({ numbers: [3], total: 3 });
   });
 
   it('clears a previous value when an expression returns null', async () => {
