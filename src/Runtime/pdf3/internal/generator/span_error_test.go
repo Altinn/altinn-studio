@@ -1,9 +1,11 @@
 package generator
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"log/slog"
+	"strings"
 	"testing"
 
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -133,6 +135,61 @@ func TestWaitForPageLoad_FailedWaitAnswersOnce(t *testing.T) {
 			}
 			if got != "element_not_ready" {
 				t.Errorf("pdf.session.wait error.type = %q, want element_not_ready", got)
+			}
+		})
+	}
+}
+
+// TestFailedWait_LogsDetailsAtInfo checks that a failed wait logs its details at INFO: the
+// failed request logs its one error with the error the wait answers it with.
+func TestFailedWait_LogsDetailsAtInfo(t *testing.T) {
+	notLoaded := evaluatingConnection{result: map[string]any{"result": map[string]any{"value": false}}}
+	tests := map[string]struct {
+		wait func(*browserSession, *workerRequest) error
+		conn cdp.Connection
+		msg  string
+	}{
+		"page load command fails": {
+			wait: func(w *browserSession, req *workerRequest) error { return w.waitForPageLoad(req, 100) },
+			conn: failingConnection{},
+			msg:  "Failed to wait for page load event",
+		},
+		"page never loads": {
+			wait: func(w *browserSession, req *workerRequest) error { return w.waitForPageLoad(req, 100) },
+			conn: notLoaded,
+			msg:  "Wait condition not satisfied within timeout",
+		},
+		"element command fails": {
+			wait: func(w *browserSession, req *workerRequest) error {
+				return w.waitForElement(req, "#ready", 100, false, false)
+			},
+			conn: failingConnection{},
+			msg:  "Failed to wait for element",
+		},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			var logs bytes.Buffer
+			w := &browserSession{
+				conn:   tt.conn,
+				tracer: sdktrace.NewTracerProvider().Tracer("test"),
+				logger: slog.New(slog.NewTextHandler(&logs, nil)),
+			}
+			req := &workerRequest{
+				ctx:       t.Context(),
+				responder: make(chan workerResponse, 1),
+				logger:    slog.New(slog.DiscardHandler),
+			}
+			if err := tt.wait(w, req); err != nil {
+				t.Logf("wait error = %v", err)
+			}
+
+			got := logs.String()
+			if !strings.Contains(got, `level=INFO msg="`+tt.msg+`"`) {
+				t.Errorf("logs = %q, want %q at INFO", got, tt.msg)
+			}
+			if strings.Contains(got, "level=WARN") || strings.Contains(got, "level=ERROR") {
+				t.Errorf("logs = %q, want nothing above INFO", got)
 			}
 		})
 	}

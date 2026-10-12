@@ -787,7 +787,8 @@ func (w *browserSession) waitForPageLoad(req *workerRequest, timeoutMs int32) er
 		"returnByValue": true,
 	})
 	if waitErr != nil {
-		w.logger.WarnContext(req.ctx, "Failed to wait for page load event", "error", waitErr)
+		// INFO: the failed request logs its one error with what this answers it with.
+		w.logger.InfoContext(req.ctx, "Failed to wait for page load event", "error", waitErr)
 		pdfErr := contextErrorToPDFError(waitErr, types.ErrGenerationFail, "page load")
 		telemetry.SetError(waitSpan, pdfErr.ErrorType(), waitErr)
 		req.tryRespondError(pdfErr)
@@ -936,7 +937,8 @@ func (w *browserSession) waitForElement(
 		"returnByValue": true,
 	})
 	if err != nil {
-		w.logger.WarnContext(req.ctx, "Failed to wait for element", "selector", selector, "error", err)
+		// INFO: the failed request logs its one error with what this answers it with.
+		w.logger.InfoContext(req.ctx, "Failed to wait for element", "selector", selector, "error", err)
 		req.tryRespondError(contextErrorToPDFError(err, types.ErrElementNotReady, fmt.Sprintf("element %q", selector)))
 		return fmt.Errorf("evaluate wait expression: %w", err)
 	}
@@ -968,7 +970,8 @@ func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResp
 
 	if !value {
 		waitForData := waitForToJson(req.request.WaitFor)
-		w.logger.WarnContext(req.ctx, "Wait condition not satisfied within timeout", "waitFor", waitForData)
+		// INFO: the failed request logs its one error with what this answers it with.
+		w.logger.InfoContext(req.ctx, "Wait condition not satisfied within timeout", "waitFor", waitForData)
 		err := errWaitTimedOut
 		req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
 		return err
