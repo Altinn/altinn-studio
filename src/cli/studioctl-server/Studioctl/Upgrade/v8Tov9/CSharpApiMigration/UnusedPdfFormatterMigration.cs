@@ -13,7 +13,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// <remarks>
 /// Only a class that is alone in its file and referred to nowhere else is deleted. Using directives of
 /// namespaces left empty are removed too. Finding those takes a compilation, so without one this does
-/// nothing: an app is expected to compile on v8 before it moves to v9.
+/// nothing: an app is expected to compile on v8 before it moves to v9. Nor does it for an app with code
+/// excluded by a preprocessor condition, which the compilation does not see.
 /// </remarks>
 internal sealed class UnusedPdfFormatterMigration
 {
@@ -28,6 +29,15 @@ internal sealed class UnusedPdfFormatterMigration
 
     public MigrationResult Migrate()
     {
+        if (
+            _scanner.Files.Any(static file =>
+                file.Root.DescendantTrivia().Any(static trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia))
+            )
+        )
+        {
+            return new MigrationResult();
+        }
+
         var removals = _scanner.Files.Select(FindRemoval).OfType<Removal>().ToList();
         if (removals.Count == 0)
         {
@@ -79,9 +89,6 @@ internal sealed class UnusedPdfFormatterMigration
                 is not [ClassDeclarationSyntax { BaseList.Types.Count: 1 } declaration]
             || model.GetDeclaredSymbol(declaration) is not { DeclaringSyntaxReferences.Length: 1 } type
             || !type.Interfaces.Any(IsPdfFormatter)
-            || file.Root.AttributeLists.Count > 0
-            || file.Root.Usings.Any(static directive => directive.GlobalKeyword.IsKind(SyntaxKind.GlobalKeyword))
-            || ExcludedCode(file).Any()
         )
         {
             return null;
@@ -90,11 +97,6 @@ internal sealed class UnusedPdfFormatterMigration
         var registrations = new List<Line>();
         foreach (var other in _scanner.Files.Where(other => other != file))
         {
-            if (ExcludedCode(other).Any(code => code.Contains(type.Name, StringComparison.Ordinal)))
-            {
-                return null;
-            }
-
             foreach (var name in other.Root.DescendantNodes().OfType<SimpleNameSyntax>())
             {
                 if (name.Identifier.Text != type.Name)
@@ -127,28 +129,18 @@ internal sealed class UnusedPdfFormatterMigration
     private static IEnumerable<MemberDeclarationSyntax> Declarations(SyntaxList<MemberDeclarationSyntax> members) =>
         members.SelectMany(member => member is BaseNamespaceDeclarationSyntax ns ? Declarations(ns.Members) : [member]);
 
-    /// <summary>Code excluded by a preprocessor condition, which the compilation does not see.</summary>
-    private static IEnumerable<string> ExcludedCode(ScannedCSharpFile file) =>
-        file
-            .Root.DescendantTrivia()
-            .Where(static trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia))
-            .Select(static trivia => trivia.ToString());
-
     /// <summary>
-    /// The statement <c>services.AddTransient&lt;IPdfFormatter, X&gt;();</c>, or one of its siblings, that
-    /// <paramref name="name"/> is the <c>X</c> of.
+    /// The statement <c>services.AddTransient&lt;IPdfFormatter, X&gt;();</c> that <paramref name="name"/> is
+    /// the <c>X</c> of.
     /// </summary>
     private static Line? RegistrationOf(SimpleNameSyntax name, ScannedCSharpFile file) =>
         name.Parent
-            is TypeArgumentListSyntax { Arguments: [var service, var implementation], Parent: GenericNameSyntax method }
+            is TypeArgumentListSyntax
+            {
+                Arguments: [var service, var implementation],
+                Parent: GenericNameSyntax { Identifier.Text: "AddTransient" } method,
+            }
         && implementation == name
-        && method.Identifier.Text
-            is "AddTransient"
-                or "AddScoped"
-                or "AddSingleton"
-                or "TryAddTransient"
-                or "TryAddScoped"
-                or "TryAddSingleton"
         && method.Parent is MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax invocation } access
         && access.Name == method
         && invocation
@@ -202,8 +194,7 @@ internal sealed class UnusedPdfFormatterMigration
         foreach (var directive in file.Root.DescendantNodes().OfType<UsingDirectiveSyntax>())
         {
             if (
-                directive is { Alias: null, Name: { } name }
-                && directive.StaticKeyword.IsKind(SyntaxKind.None)
+                directive.Name is { } name
                 && model.GetSymbolInfo(name).Symbol is INamespaceSymbol ns
                 && !HasAnythingLeft(ns, model.Compilation.Assembly, removedTypes)
             )

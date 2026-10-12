@@ -145,7 +145,7 @@ public sealed class UnusedPdfFormatterMigrationTests : IDisposable
                 "logic/Wrapper.cs",
                 "namespace Altinn.App.AppLogic.Print { public class Wrapper { private readonly PdfHandler _inner = new(); } }"
             },
-            // Registered in code excluded by a condition
+            // In an app with code excluded by a preprocessor condition
             {
                 Formatter(PassThrough),
                 "Services.cs",
