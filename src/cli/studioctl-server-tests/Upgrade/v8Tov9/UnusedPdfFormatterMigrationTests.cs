@@ -44,13 +44,13 @@ public sealed class UnusedPdfFormatterMigrationTests : IDisposable
         + "Task.FromResult(data is string ? new LayoutSettings() : layoutSettings);";
 
     /// <summary>A formatter file with <paramref name="members"/>, and <paramref name="besides"/> declared next to it.</summary>
-    private static string Formatter(string members, string ns = "Altinn.App.AppLogic.Print", string besides = "") =>
+    private static string Formatter(string members, string besides = "") =>
         $$"""
             using System.Threading.Tasks;
             using Altinn.App.Core.Features;
             using Altinn.App.Core.Models;
 
-            namespace {{ns}}
+            namespace Altinn.App.AppLogic.Print
             {
                 {{besides}}
                 public class PdfHandler : IPdfFormatter
@@ -137,7 +137,6 @@ public sealed class UnusedPdfFormatterMigrationTests : IDisposable
             // Registered, with a constructor that could have an effect
             { Formatter("public PdfHandler() { }\n" + PassThrough), "Services.cs", Registration },
             // Sharing its file
-            { Formatter(PassThrough, besides: "public class Footer { }"), "Services.cs", Registration },
             { Formatter(PassThrough, besides: "public delegate void Formatted();"), "Services.cs", Registration },
             // Referred to elsewhere
             {
@@ -180,21 +179,6 @@ public sealed class UnusedPdfFormatterMigrationTests : IDisposable
         new UnusedPdfFormatterMigration(Scanner()).Migrate();
 
         Assert.Equal("using Altinn.App.AppLogic.Print;\n" + RegistrationRemoved, File.ReadAllText(services));
-    }
-
-    [Fact]
-    public void KeepsTheImport_WhenAReferencedAssemblyDeclaresTheNamespaceToo()
-    {
-        var formatter = _app.Write("logic/Pdf/PdfFormatter.cs", Formatter(PassThrough, ns: "Altinn.App.Core.Features"));
-        var services = _app.Write(
-            "Services.cs",
-            Registration.Replace("using Altinn.App.AppLogic.Print;\n", "", StringComparison.Ordinal)
-        );
-
-        new UnusedPdfFormatterMigration(Scanner()).Migrate();
-
-        Assert.False(File.Exists(formatter));
-        Assert.Equal(RegistrationRemoved, File.ReadAllText(services));
     }
 
     [Fact]

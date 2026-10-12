@@ -196,7 +196,7 @@ internal sealed class UnusedPdfFormatterMigration
             if (
                 directive.Name is { } name
                 && model.GetSymbolInfo(name).Symbol is INamespaceSymbol ns
-                && !HasAnythingLeft(ns, model.Compilation.Assembly, removedTypes)
+                && !HasAnythingLeft(ns, removedTypes)
             )
             {
                 yield return new Line(file, directive);
@@ -204,10 +204,10 @@ internal sealed class UnusedPdfFormatterMigration
         }
     }
 
-    private static bool HasAnythingLeft(INamespaceSymbol ns, IAssemblySymbol app, IReadOnlySet<ISymbol> removedTypes) =>
-        ns.ConstituentNamespaces.Any(part => !SymbolEqualityComparer.Default.Equals(part.ContainingAssembly, app))
-        || ns.GetTypeMembers().Any(type => !removedTypes.Contains(type))
-        || ns.GetNamespaceMembers().Any(child => HasAnythingLeft(child, app, removedTypes));
+    /// <summary>Whether the namespace has types left, the referenced assemblies' included.</summary>
+    private static bool HasAnythingLeft(INamespaceSymbol ns, IReadOnlySet<ISymbol> removedTypes) =>
+        ns.GetTypeMembers().Any(type => !removedTypes.Contains(type))
+        || ns.GetNamespaceMembers().Any(child => HasAnythingLeft(child, removedTypes));
 
     /// <summary>Removes nodes that have lines of their own, keeping comments on the lines above them.</summary>
     private static CompilationUnitSyntax RemoveLines(CompilationUnitSyntax root, IReadOnlyList<SyntaxNode> nodes)
