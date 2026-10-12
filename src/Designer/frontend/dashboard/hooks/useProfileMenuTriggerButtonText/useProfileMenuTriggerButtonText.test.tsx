@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { useProfileMenuTriggerButtonText } from './useProfileMenuTriggerButtonText';
 import { HeaderContext, type HeaderContextProps } from '../../context/HeaderContext';
@@ -25,10 +25,6 @@ const renderUseProfileMenuTriggerButtonTextHook = (
 };
 
 describe('useProfileMenuTriggerButtonText', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should return the full name of the user when selected context is Self', () => {
     (useSelectedContext as Mock).mockReturnValue(SelectedContextType.Self);
 

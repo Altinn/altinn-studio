@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
@@ -46,8 +46,6 @@ vi.mock('react-router-dom', async () => ({
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
 describe('TextEditor', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders the component', async () => {
     renderTextEditor();
     await waitForElementToBeRemoved(() =>

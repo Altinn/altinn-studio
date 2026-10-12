@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { QueryClient } from '@tanstack/react-query';
@@ -41,8 +41,6 @@ vi.mock('bpmn-moddle', () => ({
 }));
 
 describe('DataModelMenu', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders nothing when no data model is selected', () => {
     renderDataModelMenu({ selectedOption: null });
     expect(screen.queryByRole('button', { name: menuText })).not.toBeInTheDocument();

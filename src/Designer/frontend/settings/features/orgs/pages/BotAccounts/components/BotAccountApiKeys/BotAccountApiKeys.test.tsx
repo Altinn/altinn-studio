@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -59,8 +59,6 @@ const renderBotAccountApiKeys = (
 const getAddButton = () => screen.getByRole('button', { name: textMock('settings.api_keys.add') });
 
 describe('BotAccountApiKeys', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('renders the loading spinner while data is pending', () => {
     renderBotAccountApiKeys();
     expect(screen.getByTestId('studio-spinner-test-id')).toBeInTheDocument();

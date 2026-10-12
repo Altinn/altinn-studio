@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { EditComponentIdRow, type EditComponentIdRowProps } from './EditComponentIdRow';
@@ -34,10 +34,6 @@ const studioRender = async (props: Partial<EditComponentIdRowProps> = {}) => {
 };
 
 describe('EditComponentIdRow', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render button ', async () => {
     await studioRender();
     const testIdButton = screen.getByRole('button', {

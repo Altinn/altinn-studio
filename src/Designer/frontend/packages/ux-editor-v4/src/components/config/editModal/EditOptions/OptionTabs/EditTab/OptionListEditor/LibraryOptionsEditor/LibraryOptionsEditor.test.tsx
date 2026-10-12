@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../../../../../../../testing/componentMocks';
@@ -36,8 +36,6 @@ const textResources: ITextResources = {
 };
 
 describe('LibraryOptionEditor', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render the open Dialog button', async () => {
     renderLibraryOptionsEditorWithData();
     expect(getEditButton()).toBeInTheDocument();

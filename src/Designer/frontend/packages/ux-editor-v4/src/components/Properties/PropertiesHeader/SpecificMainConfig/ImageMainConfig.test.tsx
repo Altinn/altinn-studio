@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { ImageMainConfig } from './ImageMainConfig';
@@ -18,10 +18,6 @@ const imageComponent: FormItem<ComponentType.Image> = {
 
 describe('ComponentMainConfig', () => {
   describe('Image', () => {
-    beforeEach(() => {
-      vi.clearAllMocks();
-    });
-
     it('should render image config', async () => {
       render(imageComponent);
       expect(

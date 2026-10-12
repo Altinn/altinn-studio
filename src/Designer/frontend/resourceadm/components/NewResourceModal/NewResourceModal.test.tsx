@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import { useRef } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -31,8 +31,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('NewResourceModal', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should be closed by default', () => {
     renderNewResourceModal();
     const closeButton = screen.queryByRole('button', { name: textMock('general.cancel') });

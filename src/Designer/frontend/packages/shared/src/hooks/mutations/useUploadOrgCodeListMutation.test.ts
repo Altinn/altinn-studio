@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { org } from '@studio/testing/testids';
 import { queriesMock } from '../../mocks/queriesMock';
@@ -30,8 +30,6 @@ const codeListResponse: CodeListsResponse = [
 ];
 
 describe('useUploadOrgCodeListMutation', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('Calls uploadOrgCodeList with correct parameters', async () => {
     const { result } = renderHookWithProviders(() => useUploadOrgCodeListMutation(org));
     await result.current.mutateAsync(file);

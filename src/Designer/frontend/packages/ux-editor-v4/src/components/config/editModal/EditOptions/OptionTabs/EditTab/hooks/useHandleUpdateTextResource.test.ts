@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { useHandleUpdateTextResource } from './useHandleUpdateTextResource';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import type { TextResource } from '@studio/pure-functions';
@@ -11,8 +11,6 @@ const textResource: TextResource = { id: 'some-id', value: 'some-value' };
 const doReloadPreview = vi.fn();
 
 describe('useHandleUpdateTextResource', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('should call updateTextResource after updating textResource', async () => {
     const { result } = renderHook(language);
     result.current(textResource);

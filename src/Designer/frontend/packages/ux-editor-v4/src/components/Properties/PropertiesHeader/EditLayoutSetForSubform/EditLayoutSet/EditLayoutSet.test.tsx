@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
 import { app, org } from '@studio/testing/testids';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -17,8 +17,6 @@ const subformLayoutSetId = 'subformLayoutSetId';
 const subformLayoutSet = [{ id: subformLayoutSetId, type: 'subform' }] as LayoutSets;
 
 describe('EditLayoutSet', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render the create subform card when no subforms are available', () => {
     renderEditLayoutSet();
     const header = screen.getByText(

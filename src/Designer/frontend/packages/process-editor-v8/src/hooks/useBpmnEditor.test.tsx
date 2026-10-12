@@ -144,7 +144,6 @@ const modelerEventNames: Array<keyof EventMap> = [
 
 describe('useBpmnEditor', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     eventListeners.clear();
   });
 

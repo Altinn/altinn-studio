@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AccessControlTab } from './AccessControlTab';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -10,8 +10,6 @@ import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 describe('AccessControlTab', () => {
-  afterEach(vi.clearAllMocks);
-
   it('initially displays the spinner when loading data', () => {
     renderAccessControlTab();
     expect(screen.getByText(textMock('app_settings.loading_content'))).toBeInTheDocument();

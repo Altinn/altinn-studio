@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { MockInstance } from 'vitest';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -31,10 +31,6 @@ const { field: addressDataField } = convertDataBindingToInternalFormat(
 );
 
 describe('EditColumnElementComponentSelect', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   let confirmSpy: MockInstance;
   beforeAll(() => {
     confirmSpy = vi.spyOn(window, 'confirm');

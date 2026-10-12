@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { HeadingBar } from './HeadingBar';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -10,10 +10,6 @@ import { ToolColumnMode } from '../../types/ToolColumnMode';
 const onModeChange = vi.fn();
 
 describe('HeadingBar', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render the heading', () => {
     renderHeadingBar();
     const heading = screen.getByRole('heading', { name: mockTexts.heading });

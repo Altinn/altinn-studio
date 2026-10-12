@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useLayoutSetsExtendedQuery } from './useLayoutSetsExtendedQuery';
@@ -14,8 +14,6 @@ const layoutSetsExtendedV4: LayoutSetModel[] = [
 const getLayoutSetsExtendedV4 = vi.fn(() => Promise.resolve(layoutSetsExtendedV4));
 
 describe('useLayoutSetsExtendedQuery', () => {
-  afterEach(vi.clearAllMocks);
-
   it('calls getLayoutSetsExtendedV4 and stores the result in the cache', async () => {
     const queryClient = createQueryClientMock();
     const { result } = renderHookWithProviders(() => useLayoutSetsExtendedQuery(org, app), {

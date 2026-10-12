@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { PageLayout } from './PageLayout';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
@@ -26,10 +26,6 @@ vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
 const APP_DOCUMENT_TITLE = 'my-app – Altinn Studio';
 
 describe('PageLayout', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('initially displays the spinner when loading data', () => {
     render();
 
@@ -130,10 +126,6 @@ describe('PageLayout', () => {
   });
 
   describe('UnsupportedVersion', () => {
-    afterEach(() => {
-      vi.clearAllMocks();
-    });
-
     it('renders dialog if frontend is unsupported', async () => {
       render({
         getAppVersion: () => Promise.resolve({ frontendVersion: '2', backendVersion: '8' }),

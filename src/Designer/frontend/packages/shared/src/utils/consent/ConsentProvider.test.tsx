@@ -113,7 +113,6 @@ describe('ConsentProvider', () => {
   };
 
   beforeEach(() => {
-    vi.clearAllMocks();
     mockNoStoredConsent();
   });
 

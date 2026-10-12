@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useTaskNavigationGroupQuery } from './useTaskNavigationGroupQuery';
@@ -15,8 +15,6 @@ const taskNavigationGroups: TaskNavigationGroup[] = [
 const getTaskNavigationGroup = vi.fn(() => Promise.resolve(taskNavigationGroups));
 
 describe('useTaskNavigationGroupQuery', () => {
-  afterEach(vi.clearAllMocks);
-
   it('calls getTaskNavigationGroup and stores the result in the cache', async () => {
     const queryClient = createQueryClientMock();
     const { result } = renderHookWithProviders(() => useTaskNavigationGroupQuery(org, app), {

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { formLayoutSettingsMock, renderWithProviders } from '../../../testing/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -23,10 +23,6 @@ const selectedLayout = layout2NameMock;
 const layoutSetName = layoutSet1NameMock;
 
 describe('EditPageId', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('renders given page ID', () => {
     renderEditPageId({});
     expect(pageIdButton()).toBeInTheDocument();

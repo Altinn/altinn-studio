@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourceDashboardPage } from './ResourceDashboardPage';
 import userEvent from '@testing-library/user-event';
@@ -68,9 +68,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('ResourceDashBoardPage', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
   it('fetches resource list on mount', () => {
     renderResourceDashboardPage();
     expect(queriesMock.getResourceList).toHaveBeenCalledTimes(1);

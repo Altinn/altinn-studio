@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   CreateCustomReceiptFormLegacy,
   type CreateCustomReceiptFormLegacyProps,
@@ -31,8 +31,6 @@ const defaultBpmnApiContextProps: BpmnApiContextProps = {
 };
 
 describe('CreateCustomReceiptFormLegacy', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('Submits the form with valid inputs and calls "addCustomReceipt" when submit button is clicked', async () => {
     const user = userEvent.setup();
     renderCreateCustomReceiptForm();

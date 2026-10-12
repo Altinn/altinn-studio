@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { DesignViewNavigation } from './DesignViewNavigation';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -12,10 +12,6 @@ import { layoutSet1NameMock } from '../../testing/layoutSetsMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 describe('DesignViewNavigation', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render DesignViewNavigation with correct text', async () => {
     renderDesignViewNavigation({});
     expect(await screen.findByText(textMock('ux_editor.page_layout_header'))).toBeInTheDocument();

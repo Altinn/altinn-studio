@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { ImportImage } from './ImportImage';
@@ -15,8 +15,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 const onImageChangeMock = vi.fn();
 
 describe('ImportImage', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should handle successful image upload', async () => {
     const user = userEvent.setup();
     const imageFileName = 'image.png';

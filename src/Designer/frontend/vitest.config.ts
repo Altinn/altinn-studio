@@ -8,6 +8,8 @@ export default mergeConfig(
       include: ['**/*.test.{ts,tsx}'],
       // React Testing Library only cleans up after each test when afterEach is global.
       globals: true,
+      // Clears the calls of every mock before each test. This is Vitest's default, set here for clarity.
+      clearMocks: true,
       // Tests assert on the plain class names of CSS modules.
       css: { modules: { classNameStrategy: 'non-scoped' } },
       environment: 'jsdom',

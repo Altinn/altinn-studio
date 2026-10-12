@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { PdfConfig } from './PdfConfig';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -16,8 +16,6 @@ import { layout1NameMock, layout2NameMock } from '@altinn/ux-editor-v4/testing/l
 const selectedLayoutSet = layoutSet1NameMock;
 
 describe('PdfConfig', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('calls save on FormLayoutSettings when convertToPdf switch is clicked', async () => {
     const user = userEvent.setup();
     const mutateLayoutSettings = vi.fn();

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../testing/mocks';
 import { useCreateSubform } from './useCreateSubform';
 
@@ -18,10 +18,6 @@ vi.mock('app-development/hooks/mutations/useAddLayoutSetMutation', () => ({
 }));
 
 describe('useCreateSubform', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should call addLayoutSet with correct parameters', () => {
     const { createSubform } = renderHookWithProviders(() => useCreateSubform()).result.current;
     const subformName = 'underskjema';

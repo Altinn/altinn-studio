@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { DataModeling } from './DataModeling';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -53,8 +53,6 @@ const render = (
 };
 
 describe('DataModeling', () => {
-  afterEach(vi.clearAllMocks);
-
   it('fetches models on mount', () => {
     render();
     expect(queriesMock.getDataModelsJson).toHaveBeenCalledTimes(1);

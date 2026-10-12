@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { useRuleConfigMutation } from './useRuleConfigMutation';
@@ -22,8 +22,6 @@ const newRuleConfig: RuleConfig = {
 };
 
 describe('useRuleConfigMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Calls saveRuleConfig with correct arguments and payload', async () => {
     const { result } = await render();
     await result.current.mutateAsync(newRuleConfig);

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -16,10 +16,6 @@ import type { QueryClient } from '@tanstack/react-query';
 import { GroupType } from 'app-shared/types/api/dto/PageModel';
 
 describe('GroupConfigPanel', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should call mutation when clicking markAsCompleted toggle', async () => {
     const user = userEvent.setup();
     const selectedItem: SelectedItem = { type: ItemType.Group, id: 0 };

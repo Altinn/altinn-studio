@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { SummaryMainConfig } from './SummaryMainConfig';
@@ -20,10 +20,6 @@ const summary2Component: FormItem = {
 
 describe('ComponentMainConfig', () => {
   describe('Summary2', () => {
-    beforeEach(() => {
-      vi.clearAllMocks();
-    });
-
     it('should render summary2 config', async () => {
       render(summary2Component);
       expect(

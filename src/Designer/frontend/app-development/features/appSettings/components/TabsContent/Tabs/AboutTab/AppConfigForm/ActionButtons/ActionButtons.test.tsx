@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { ActionButtons } from './ActionButtons';
@@ -7,8 +7,6 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('ActionButtons', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders both buttons with correct labels and icons', () => {
     renderActionButtons();
 

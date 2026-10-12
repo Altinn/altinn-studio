@@ -1,12 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { queriesMock } from '../../mocks/queriesMock';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { useUserOrgPermissionsQuery } from './useUserOrgPermissionsQuery';
 
 describe('useUserOrgPermissionsQuery', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('calls getUserOrgPermissions with the selected organization', async () => {
     const org = 'ttd';
     const { result } = renderHookWithProviders(() => useUserOrgPermissionsQuery(org));

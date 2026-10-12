@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ReleaseContainer } from './ReleaseContainer';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -33,7 +33,6 @@ const renderReleaseContainer = (queries?: Partial<ServicesContextProps>) => {
 };
 
 describe('ReleaseContainer', () => {
-  afterEach(() => vi.clearAllMocks());
   it('renders the component with a spinner', () => {
     renderReleaseContainer();
     expect(screen.getByText(textMock('app_release.release_tab_versions'))).toBeInTheDocument();

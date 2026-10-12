@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useDeleteFormContainerMutation } from './useDeleteFormContainerMutation';
@@ -36,8 +36,6 @@ vi.mock('bpmn-moddle', () => ({
 }));
 
 describe('useDeleteFormContainerMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Should save layout without deleted container and send componentIds that has been deleted for syncing', async () => {
     const { result } = await renderDeleteFormContainerMutation();
     await result.current.mutateAsync(id);

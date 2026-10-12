@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   groupsPagesModelMock,
   layout1NameMock,
@@ -42,8 +42,6 @@ const defaultProps: NavigationMenuProps = {
 };
 
 describe('NavigationMenu', () => {
-  afterEach(vi.clearAllMocks);
-
   describe('when the pages are in page order configuration', () => {
     it('should toggle the page order using up and down buttons', async () => {
       const user = userEvent.setup();

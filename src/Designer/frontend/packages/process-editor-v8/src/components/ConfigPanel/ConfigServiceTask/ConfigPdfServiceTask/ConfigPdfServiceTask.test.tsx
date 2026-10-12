@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@studio/ui-test';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -38,10 +38,6 @@ vi.mock('app-shared/hooks/useValidateLayoutSetName', () => ({
 }));
 
 describe('ConfigPdfServiceTask', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   describe('version warnings', () => {
     it('should show warning when backendVersion is below minimum required version', () => {
       renderConfigPdfServiceTask({

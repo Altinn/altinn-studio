@@ -36,7 +36,6 @@ describe('RecommendedActionChangeName', () => {
     (useValidateLayoutSetName as Mock).mockReturnValue({
       validateLayoutSetName: validateLayoutSetNameMock,
     });
-    vi.clearAllMocks();
   });
 
   it('calls validation on name input', async () => {

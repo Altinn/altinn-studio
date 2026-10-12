@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useOnDrop } from './useOnDrop';
 import type { ExistingDndItem, HandleAdd, HandleMove, ItemPosition, NewDndItem } from '../types';
@@ -10,8 +10,6 @@ const onMove: HandleMove = vi.fn();
 const position: ItemPosition = { parentId: 'parentId', index: 0 };
 
 describe('useOnDrop', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Returns a function that in turn calls the onAdd function with correct parameters when called with a new item', () => {
     const { result } = renderHook(() => useOnDrop<string>(), {
       wrapper: ({ children }) => (

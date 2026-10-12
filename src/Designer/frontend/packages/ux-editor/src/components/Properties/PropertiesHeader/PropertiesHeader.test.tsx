@@ -29,7 +29,6 @@ const defaultProps: PropertiesHeaderProps = {
 
 describe('PropertiesHeader', () => {
   afterEach(() => {
-    vi.clearAllMocks();
     queryClientMock.clear();
   });
 

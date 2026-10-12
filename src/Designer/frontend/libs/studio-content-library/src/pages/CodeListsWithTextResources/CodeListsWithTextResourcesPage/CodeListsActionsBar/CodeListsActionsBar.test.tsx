@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -13,8 +13,6 @@ const codeListName1 = 'codeListName1';
 const codeListName2 = 'codeListName2';
 
 describe('CodeListsActionsBar', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders the search field with label', () => {
     renderCodeListsActionsBar();
     const searchFieldLabelText = screen.getByRole('searchbox', {

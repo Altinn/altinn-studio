@@ -51,7 +51,6 @@ describe('taskCard', () => {
   beforeEach(() => {
     confirmSpy = vi.spyOn(window, 'confirm');
     confirmSpy.mockImplementation(vi.fn(() => true));
-    vi.clearAllMocks();
   });
 
   afterEach(() => {
