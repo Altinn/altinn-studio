@@ -46,7 +46,7 @@ func main() {
 	telemetryEnabled := config.ShouldConfigureOTel(cfg.Environment)
 	otelShutdown := func(context.Context) error { return nil }
 	if telemetryEnabled {
-		configuredShutdown, err := telemetry.ConfigureOTel(context.Background())
+		configuredShutdown, err := telemetry.ConfigureOTel(context.Background(), cfg.Environment)
 		if err != nil {
 			baseLogger.Error("Failed to initialize telemetry", "error", err)
 			os.Exit(1)

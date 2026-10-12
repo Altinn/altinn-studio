@@ -35,9 +35,9 @@ func Meter() otelmetric.Meter {
 	return otel.Meter(scopeName)
 }
 
-// ConfigureOTel bootstraps the OpenTelemetry pipeline.
+// ConfigureOTel bootstraps the OpenTelemetry pipeline for the runtime environment pdf3 runs in.
 // If it does not return an error, make sure to call shutdown for proper cleanup.
-func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, err error) {
+func ConfigureOTel(ctx context.Context, environment string) (shutdown func(context.Context) error, err error) {
 	var shutdownFuncs []func(context.Context) error
 
 	shutdown = func(ctx context.Context) error {
@@ -53,7 +53,7 @@ func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, e
 		err = errors.Join(inErr, shutdown(ctx))
 	}
 
-	res, err := newResource(ctx)
+	res, err := newResource(ctx, environment)
 	if err != nil {
 		return nil, err
 	}
@@ -87,11 +87,16 @@ func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, e
 	return shutdown, nil
 }
 
-// newResource describes this build. OTEL_SERVICE_NAME and OTEL_RESOURCE_ATTRIBUTES set the
-// rest of the service identity, and take precedence.
-func newResource(ctx context.Context) (*resource.Resource, error) {
+// newResource describes this build and the environment it runs in. The environment is the one
+// the runtime cluster's syncroot substitutes, the same value its telemetry router sets.
+// OTEL_SERVICE_NAME and OTEL_RESOURCE_ATTRIBUTES set the rest of the service identity, and take
+// precedence.
+func newResource(ctx context.Context, environment string) (*resource.Resource, error) {
 	res, err := resource.New(ctx,
-		resource.WithAttributes(semconv.ServiceVersion(serviceVersion)),
+		resource.WithAttributes(
+			semconv.ServiceVersion(serviceVersion),
+			semconv.DeploymentEnvironmentNameKey.String(environment),
+		),
 		resource.WithFromEnv(),
 	)
 	if err != nil {

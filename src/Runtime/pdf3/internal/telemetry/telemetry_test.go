@@ -3,17 +3,24 @@ package telemetry
 import (
 	"testing"
 
+	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 )
 
-func TestNewResource_ServiceVersion(t *testing.T) {
-	t.Setenv("OTEL_RESOURCE_ATTRIBUTES", "")
+func TestNewResource(t *testing.T) {
+	t.Setenv("OTEL_RESOURCE_ATTRIBUTES", "k8s.pod.uid=pod")
 
-	res, err := newResource(t.Context())
+	res, err := newResource(t.Context(), "tt02")
 	if err != nil {
 		t.Fatalf("newResource() error = %v", err)
 	}
-	if got, _ := res.Set().Value(semconv.ServiceVersionKey); got.AsString() != serviceVersion {
-		t.Errorf("service.version = %q, want %q", got.AsString(), serviceVersion)
+	for key, want := range map[attribute.Key]string{
+		semconv.ServiceVersionKey:            serviceVersion,
+		semconv.DeploymentEnvironmentNameKey: "tt02",
+		semconv.K8SPodUIDKey:                 "pod",
+	} {
+		if got, _ := res.Set().Value(key); got.AsString() != want {
+			t.Errorf("%s = %q, want %q", key, got.AsString(), want)
+		}
 	}
 }
