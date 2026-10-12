@@ -151,7 +151,6 @@ describe('CreateBranchDialog', () => {
 const defaultProps: CreateBranchDialogProps = {
   isOpen: true,
   onClose,
-  currentBranch: 'master',
   existingBranchNames: [],
   createError: '',
   isLoading: false,
