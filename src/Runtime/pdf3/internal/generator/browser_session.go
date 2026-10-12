@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"altinn.studio/pdf3/internal/assert"
@@ -302,15 +301,10 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 
 	defer func() {
 		if r := recover(); r != nil {
-			w.logger.Error("Recovered from panic", "error", r)
-			if span.IsRecording() {
-				err := fmt.Errorf("%w: %v", errRecoveredPanic, r)
-				span.RecordError(err)
-				span.SetStatus(codes.Error, "panic")
-			}
-			req.tryRespondError(
-				types.NewPDFError(types.ErrGenerationFail, req.request.URL, fmt.Errorf("%w: %v", errRecoveredPanic, r)),
-			)
+			err := fmt.Errorf("%w: %v", errRecoveredPanic, r)
+			w.logger.ErrorContext(ctx, "Recovered from panic", "error", err)
+			telemetry.SetError(span, "panic", err)
+			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, req.request.URL, err))
 		}
 
 		if data := telemetry.RequestEventDataFromContext(ctx); data != nil {
@@ -338,10 +332,7 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 
 	err := w.generatePdf(req)
 	if err != nil {
-		if span.IsRecording() {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "generate_failed")
-		}
+		telemetry.SetError(span, "generate_failed", err)
 		req.tryRespondError(mapCustomError(err))
 	}
 }
@@ -442,9 +433,8 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest, startedProcessi
 	}
 
 	err := w.navigateToBlankForCleanup()
-	if err != nil && cleanupSpan.IsRecording() {
-		cleanupSpan.RecordError(err)
-		cleanupSpan.SetStatus(codes.Error, "cleanup_navigate_failed")
+	if err != nil {
+		telemetry.SetError(cleanupSpan, "cleanup_navigate_failed", err)
 	}
 	w.assertA(err == nil, "failed to navigate back to about:blank during cleanup", "error", err)
 
@@ -459,7 +449,7 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest, startedProcessi
 		data.SetCleanup(cleanupAttempts, req.cleanedUp, false)
 	}
 	if !req.cleanedUp {
-		cleanupSpan.SetStatus(codes.Error, "cleanup_failed")
+		telemetry.SetError(cleanupSpan, "cleanup_failed", nil)
 	}
 
 	w.logger.Info("Cleanup completed", "duration", time.Since(cleanupStart))
@@ -576,10 +566,7 @@ func (w *browserSession) setCookies(req *workerRequest) error {
 	if err == nil {
 		return nil
 	}
-	if cookiesSpan.IsRecording() {
-		cookiesSpan.RecordError(err)
-		cookiesSpan.SetStatus(codes.Error, "set_cookies_failed")
-	}
+	telemetry.SetError(cookiesSpan, "set_cookies_failed", err)
 	req.tryRespondError(contextErrorToPDFError(err, types.ErrSetCookieFail, ""))
 	return nil
 }
@@ -632,10 +619,7 @@ func (w *browserSession) navigateToPage(req *workerRequest) error {
 	if err == nil {
 		return nil
 	}
-	if navigateSpan.IsRecording() {
-		navigateSpan.RecordError(err)
-		navigateSpan.SetStatus(codes.Error, "navigate_failed")
-	}
+	telemetry.SetError(navigateSpan, "navigate_failed", err)
 	req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, ""))
 	return nil
 }
@@ -679,10 +663,7 @@ func (w *browserSession) runWait(req *workerRequest, wait func() error) error {
 	if waitErr == nil {
 		return nil
 	}
-	if waitSpan.IsRecording() {
-		waitSpan.RecordError(waitErr)
-		waitSpan.SetStatus(codes.Error, "wait_failed")
-	}
+	telemetry.SetError(waitSpan, "wait_failed", waitErr)
 	return nil
 }
 
@@ -694,10 +675,7 @@ func (w *browserSession) waitForTimeout(req *workerRequest, timeout int32) error
 	case <-time.After(time.Duration(timeout) * time.Millisecond):
 		return nil
 	case <-req.ctx.Done():
-		if waitSpan.IsRecording() {
-			waitSpan.RecordError(req.ctx.Err())
-			waitSpan.SetStatus(codes.Error, "client_dropped")
-		}
+		telemetry.SetError(waitSpan, "client_dropped", req.ctx.Err())
 		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
 		return nil
 	}
@@ -715,19 +693,13 @@ func (w *browserSession) waitForPageLoad(req *workerRequest, timeoutMs int32) er
 	})
 	if waitErr != nil {
 		w.logger.Warn("Failed to wait for page load event", "error", waitErr)
-		if waitSpan.IsRecording() {
-			waitSpan.RecordError(waitErr)
-			waitSpan.SetStatus(codes.Error, "wait_failed")
-		}
+		telemetry.SetError(waitSpan, "wait_failed", waitErr)
 		req.tryRespondError(contextErrorToPDFError(waitErr, types.ErrGenerationFail, "page load"))
 		return nil
 	}
 
 	if waitErr = w.processWaitResult(req, waitResp); waitErr != nil {
-		if waitSpan.IsRecording() {
-			waitSpan.RecordError(waitErr)
-			waitSpan.SetStatus(codes.Error, "wait_failed")
-		}
+		telemetry.SetError(waitSpan, "wait_failed", waitErr)
 		return waitErr
 	}
 
@@ -741,20 +713,14 @@ func (w *browserSession) printPDF(req *workerRequest) error {
 
 	resp, err := w.conn.SendCommand(req.ctx, "Page.printToPDF", buildPrintToPDFParams(w.logger, req.request))
 	if err != nil {
-		if printSpan.IsRecording() {
-			printSpan.RecordError(err)
-			printSpan.SetStatus(codes.Error, "print_failed")
-		}
+		telemetry.SetError(printSpan, "print_failed", err)
 		req.tryRespondError(contextErrorToPDFError(err, types.ErrGenerationFail, ""))
 		return nil
 	}
 
 	pdfBytes, err := decodePDFData(resp)
 	if err != nil {
-		if printSpan.IsRecording() {
-			printSpan.RecordError(err)
-			printSpan.SetStatus(codes.Error, "print_failed")
-		}
+		telemetry.SetError(printSpan, "print_failed", err)
 		req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
 		return nil
 	}

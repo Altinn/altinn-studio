@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -11,8 +12,12 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 
 	"altinn.studio/pdf3/internal/types"
 )
@@ -59,10 +64,13 @@ func TestGeneratePdfHandler_ErrorType(t *testing.T) {
 			t.Parallel()
 
 			reader := sdkmetric.NewManualReader()
+			spans := tracetest.NewSpanRecorder()
+			var logs bytes.Buffer
 			handler := otelhttp.NewHandler(
-				generatePdfHandler(slog.New(slog.DiscardHandler), stubGenerator{err: tt.err}),
+				generatePdfHandler(slog.New(slog.NewTextHandler(&logs, nil)), stubGenerator{err: tt.err}),
 				"POST /generate",
 				otelhttp.WithMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))),
+				otelhttp.WithTracerProvider(sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(spans))),
 			)
 			body := `{}`
 			if tt.invalidJSON {
@@ -85,7 +93,45 @@ func TestGeneratePdfHandler_ErrorType(t *testing.T) {
 			if got := requestDurationOutcomes(t, reader); len(got) != 1 || got[want] != 1 {
 				t.Errorf("http.server.request.duration by status/error.type = %v, want {%s: 1}", got, want)
 			}
+			assertEntrySpanOutcome(t, spans, tt.wantErrorType)
+			failedLogged := strings.Contains(logs.String(), `level=ERROR msg="PDF generation failed"`) &&
+				strings.Contains(logs.String(), " error.type="+tt.wantErrorType+" ")
+			if failedLogged != (tt.wantErrorType != "") {
+				t.Errorf("failed generation logged = %v, want %v; logs: %s", failedLogged, !failedLogged, logs.String())
+			}
 		})
+	}
+}
+
+// assertEntrySpanOutcome checks that a failed generation marks the entry span with error.type
+// and an error status, and that other outcomes leave both unset.
+func assertEntrySpanOutcome(t *testing.T, spans *tracetest.SpanRecorder, wantErrorType string) {
+	t.Helper()
+	ended := spans.Ended()
+	if len(ended) != 1 {
+		t.Fatalf("ended spans = %d, want 1", len(ended))
+	}
+	span := ended[0]
+	var errorType string
+	for _, kv := range span.Attributes() {
+		if kv.Key == semconv.ErrorTypeKey {
+			errorType = kv.Value.AsString()
+		}
+	}
+	if errorType != wantErrorType {
+		t.Errorf("entry span error.type = %q, want %q", errorType, wantErrorType)
+	}
+	wantStatus := codes.Unset
+	if wantErrorType != "" {
+		wantStatus = codes.Error
+	}
+	if got := span.Status().Code; got != wantStatus {
+		t.Errorf("entry span status = %v, want %v", got, wantStatus)
+	}
+	for _, event := range span.Events() {
+		if event.Name == "exception" {
+			t.Errorf("entry span has an exception event: %v", event.Attributes)
+		}
 	}
 }
 

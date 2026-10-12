@@ -16,6 +16,7 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"altinn.studio/pdf3/internal/assert"
@@ -278,7 +279,7 @@ func generateLocalPdfHandler(
 		result, pdfErr := gen.Generate(requestContext, req)
 
 		if pdfErr != nil {
-			recordPDFError(r.Context(), span, pdfErr)
+			recordPDFError(r.Context(), reqLogger, span, pdfErr)
 			errStr := pdfErr.Error()
 			errorCode := http.StatusInternalServerError
 
@@ -298,11 +299,6 @@ func generateLocalPdfHandler(
 				Status: errorCode,
 				Detail: errStr,
 			})
-			reqLogger.Error(
-				"Error during generation",
-				"status_code", errorCode,
-				"detail", errStr,
-			)
 			return
 		}
 
@@ -449,7 +445,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 		result, pdfErr := gen.Generate(requestContext, req)
 
 		if pdfErr != nil {
-			recordPDFError(r.Context(), span, pdfErr)
+			recordPDFError(r.Context(), reqLogger, span, pdfErr)
 			errStr := pdfErr.Error()
 			errorCode := http.StatusInternalServerError
 
@@ -554,9 +550,10 @@ func setWorkerSpanAttrs(span trace.Span) {
 	)
 }
 
-// recordPDFError records a failed generation on the request's span and, as error.type, on its
-// HTTP server metrics, which otherwise only show a 500 whatever the reason.
-func recordPDFError(ctx context.Context, span trace.Span, pdfErr *types.PDFError) {
+// recordPDFError records a failed generation on the request's entry span and, as error.type, on
+// its HTTP server metrics, which otherwise only show a 500 whatever the reason. The error's
+// details go in an error log correlated with the trace.
+func recordPDFError(ctx context.Context, logger *slog.Logger, span trace.Span, pdfErr *types.PDFError) {
 	if pdfErr == nil {
 		return
 	}
@@ -569,30 +566,9 @@ func recordPDFError(ctx context.Context, span trace.Span, pdfErr *types.PDFError
 		}
 		return
 	}
+	errorType := pdfErr.ErrorType()
 	labeler, _ := otelhttp.LabelerFromContext(ctx)
-	labeler.Add(attribute.String("error.type", errorType(pdfErr)))
-	if span.IsRecording() {
-		span.RecordError(pdfErr)
-	}
-}
-
-// errorType is the error.type value for a failed generation: low-cardinality and stable,
-// unlike the error messages.
-func errorType(pdfErr *types.PDFError) string {
-	switch {
-	case pdfErr.Is(types.ErrTimeout):
-		return "timeout"
-	case pdfErr.Is(types.ErrClientDropped):
-		return "client_dropped"
-	case pdfErr.Is(types.ErrSetCookieFail):
-		return "set_cookie_failed"
-	case pdfErr.Is(types.ErrElementNotReady):
-		return "element_not_ready"
-	case pdfErr.Is(types.ErrGenerationFail):
-		return "generation_failed"
-	case pdfErr.Is(types.ErrUnhandledBrowserError):
-		return "unhandled_browser_error"
-	default:
-		return "_OTHER"
-	}
+	labeler.Add(semconv.ErrorTypeKey.String(errorType))
+	telemetry.SetError(span, errorType, pdfErr)
+	logger.ErrorContext(ctx, "PDF generation failed", string(semconv.ErrorTypeKey), errorType, "error", pdfErr)
 }

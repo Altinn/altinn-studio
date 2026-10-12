@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"altinn.studio/pdf3/internal/assert"
@@ -100,10 +99,7 @@ func New() (*Custom, error) {
 		// Get and set browser version
 		version, err := getBrowserVersion(logger)
 		if err != nil {
-			if span.IsRecording() {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, "get_browser_version_failed")
-			}
+			telemetry.SetError(span, "get_browser_version_failed", err)
 			assert.That(err == nil, "Failed to get browser version", "error", err)
 		}
 
@@ -242,10 +238,7 @@ func (g *Custom) postProcessPDF(ctx context.Context, data []byte) ([]byte, *type
 
 	converted, err := g.pdfaConverter.Convert(data)
 	if err != nil {
-		if span.IsRecording() {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "pdfa_conversion_failed")
-		}
+		telemetry.SetError(span, "pdfa_conversion_failed", err)
 		return nil, types.NewPDFError(types.ErrGenerationFail, "PDF/A conversion failed", err)
 	}
 	return converted, nil
@@ -322,10 +315,7 @@ func (g *Custom) periodicRestart() {
 		newSession, err := newBrowserSession(g.logger, nextID)
 		if err != nil {
 			g.logger.Error("Failed to create new browser session, keeping old session", "id", nextID, "error", err)
-			if restartSpan.IsRecording() {
-				restartSpan.RecordError(err)
-				restartSpan.SetStatus(codes.Error, "new_session_failed")
-			}
+			telemetry.SetError(restartSpan, "new_session_failed", err)
 			restartSpan.End()
 			// Wait a bit before retrying to avoid tight loop on persistent errors
 			time.Sleep(1 * time.Minute)
@@ -442,9 +432,8 @@ func mapCustomError(err error) *types.PDFError {
 }
 
 func recordPDFError(span trace.Span, pdfErr *types.PDFError) {
-	if pdfErr == nil || !span.IsRecording() {
+	if pdfErr == nil {
 		return
 	}
-	span.RecordError(pdfErr)
-	span.SetStatus(codes.Error, pdfErr.Type.Error())
+	telemetry.SetError(span, pdfErr.ErrorType(), pdfErr)
 }
