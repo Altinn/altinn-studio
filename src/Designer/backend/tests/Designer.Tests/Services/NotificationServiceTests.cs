@@ -466,7 +466,7 @@ public class NotificationServiceTests
     }
 
     [Fact]
-    public async Task NotifyReportContactPointsAsync_ShouldRenderTheTableForEveryContactMethod()
+    public async Task NotifyReportContactPointsAsync_ShouldRenderTheTableInEmailAndSlackButOnlyTheSummaryInSms()
     {
         string emailBody = null;
         string smsBody = null;
@@ -528,6 +528,7 @@ public class NotificationServiceTests
             CancellationToken.None
         );
 
+        Assert.Contains("Publiserte apper: 2", emailBody);
         Assert.Contains(">App</th>", emailBody);
         Assert.Contains(">Versjon</th>", emailBody);
         Assert.Contains(">app-&lt;one&gt;</td>", emailBody);
@@ -535,16 +536,63 @@ public class NotificationServiceTests
         Assert.Contains(">3</td>", emailBody);
         Assert.DoesNotContain("❌", emailBody);
 
-        Assert.EndsWith(
-            "app-<one>\nFeilende process/next: 3\n\napp-two\nVersjon: 1.2.0\nFeilende process/next: 0",
-            smsBody
-        );
+        Assert.Equal("Altinn Studio - daglig rapport\n\nOrganisasjon: ttd\n\nPubliserte apper: 2", smsBody);
 
+        Assert.Contains(slackMessage.Blocks, block => block.Text?.Text == "Publiserte apper: 2");
         Assert.Contains(
             slackMessage.Blocks,
             block =>
                 block.Text?.Text
                 == "*app-<one>*\n• Feilende process/next: `3`\n\n*app-two*\n• Versjon: `1.2.0`\n• Feilende process/next: `0`"
+        );
+    }
+
+    [Fact]
+    public async Task NotifyReportContactPointsAsync_ShouldReplaceCharactersOutsideTheGsmAlphabetInSms()
+    {
+        string smsBody = null;
+        _notificationClient
+            .Setup(c =>
+                c.SendSmsNotification(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<string, string, string, SendingTime, CancellationToken>((_, _, body, _, _) => smsBody = body);
+        SetupReportContactPoints(
+            "ttd",
+            "tt02",
+            [
+                BuildContactPoint(
+                    [new ContactMethodEntity { MethodType = ContactMethodType.Sms, Value = "+4700000001" }],
+                    ReportFrequency.Daily
+                ),
+            ]
+        );
+        var payload = new NotificationPayload(
+            "report-id",
+            "Altinn Studio - daglig rapport",
+            [("Miljø", "tt02"), ("Periode", "1.10.2026 – 2.10.2026")],
+            [],
+            Body: "Påbegynte instanser: 20\u00A0421\nFullførte instanser: 17\u202F304"
+        );
+
+        await CreateService()
+            .NotifyReportContactPointsAsync(
+                "ttd",
+                AltinnEnvironment.FromName("tt02"),
+                ReportFrequency.Daily,
+                payload,
+                CancellationToken.None
+            );
+
+        Assert.Equal(
+            "Altinn Studio - daglig rapport\n\nMiljø: tt02\nPeriode: 1.10.2026 - 2.10.2026\n\n"
+                + "Påbegynte instanser: 20 421\nFullførte instanser: 17 304",
+            smsBody
         );
     }
 
@@ -647,6 +695,7 @@ public class NotificationServiceTests
             "Altinn Studio - daglig rapport",
             [("Organisasjon", "ttd")],
             [],
+            Body: "Publiserte apper: 2",
             Table: new NotificationTable(
                 ["App", "Versjon", "Feilende process/next"],
                 [

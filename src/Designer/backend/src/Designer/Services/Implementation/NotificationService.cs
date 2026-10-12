@@ -32,6 +32,16 @@ internal sealed class NotificationService(
     private const string EmailTableHeaderStyle = "text-align: left; border-bottom: 2px solid #999";
     private const string EmailTableCellStyle = "border-bottom: 1px solid #ddd";
 
+    // A character outside the GSM 03.38 alphabet makes the whole SMS UCS-2 encoded, which fits 67 instead of 153
+    // characters in each billed segment. These are the ones our own formatting produces: the en dash in ranges and
+    // the no-break spaces that Norwegian number formatting uses as group separators.
+    private static readonly IReadOnlyDictionary<char, char> s_gsmReplacements = new Dictionary<char, char>
+    {
+        ['\u2013'] = '-',
+        ['\u00A0'] = ' ',
+        ['\u202F'] = ' ',
+    };
+
     public async Task NotifyInternalAsync(
         string org,
         AltinnEnvironment environment,
@@ -263,16 +273,17 @@ internal sealed class NotificationService(
             """;
     }
 
+    // SMS leaves out the table: one block per row makes a long message that is billed per segment, so a sender
+    // that attaches a table summarizes it in the body.
     private static string FormatSmsBody(NotificationPayload payload)
     {
         string fields = string.Join("\n", payload.Fields.Select(f => $"{f.Label}: {f.Value}"));
         string body = string.IsNullOrWhiteSpace(payload.Body) ? "" : $"\n\n{payload.Body}";
-        string table = string.Join(
-            "\n\n",
-            FormatTableRows(payload.Table, name => name, (header, value) => $"{header}: {value}")
-        );
-        return $"{payload.Title}\n\n{fields}{body}{(table.Length > 0 ? $"\n\n{table}" : "")}";
+        return ToGsmCharacters($"{payload.Title}\n\n{fields}{body}");
     }
+
+    private static string ToGsmCharacters(string text) =>
+        string.Concat(text.Select(character => s_gsmReplacements.GetValueOrDefault(character, character)));
 
     private static SlackMessage FormatSlackMessage(NotificationPayload payload)
     {
@@ -296,10 +307,7 @@ internal sealed class NotificationService(
             new() { Type = "context", Elements = infoElements },
         };
 
-        string table = string.Join(
-            "\n\n",
-            FormatTableRows(payload.Table, name => $"*{name}*", (header, value) => $"• {header}: `{value}`")
-        );
+        string table = string.Join("\n\n", FormatSlackTableRows(payload.Table));
         blocks.AddRange(
             SplitSlackSections(payload.Body)
                 .Concat(SplitSlackSections(table))
@@ -317,12 +325,8 @@ internal sealed class NotificationService(
         return new SlackMessage { Text = $"{titlePrefix}{fallbackValues} - *{payload.Title}*", Blocks = blocks };
     }
 
-    // Renders each table row as a block of text: the row name followed by one line per non-empty cell.
-    private static IEnumerable<string> FormatTableRows(
-        NotificationTable? table,
-        Func<string, string> formatName,
-        Func<string, string, string> formatCell
-    )
+    // Renders each table row as a block of text: the row name in bold followed by one line per non-empty cell.
+    private static IEnumerable<string> FormatSlackTableRows(NotificationTable? table)
     {
         if (table is null)
         {
@@ -335,8 +339,8 @@ internal sealed class NotificationService(
                 .Headers.Zip(row)
                 .Skip(1)
                 .Where(cell => !string.IsNullOrEmpty(cell.Second))
-                .Select(cell => formatCell(cell.First, cell.Second!));
-            yield return string.Join("\n", cells.Prepend(formatName(row.Count > 0 ? row[0] ?? "" : "")));
+                .Select(cell => $"• {cell.First}: `{cell.Second}`");
+            yield return string.Join("\n", cells.Prepend($"*{(row.Count > 0 ? row[0] : "")}*"));
         }
     }
 

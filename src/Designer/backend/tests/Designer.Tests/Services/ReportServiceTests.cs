@@ -85,7 +85,17 @@ public class ReportServiceTests
         Assert.NotNull(_sentPayload);
         Assert.Equal("Altinn Studio - daglig rapport", _sentPayload.Title);
         Assert.Contains(_sentPayload.Fields, field => field.Label == "Periode" && field.Value.Contains(" – "));
-        Assert.Equal("", _sentPayload.Body);
+        Assert.Equal(
+            $"""
+            Publiserte apper: 3
+            Apper med feil: 2
+            Feilende process/next: 3,5
+            Feilende instansieringer: 6,5
+            Påbegynte instanser: {NorwegianNumber(2555)}
+            Fullførte instanser: 11
+            """,
+            _sentPayload.Body
+        );
         Assert.NotNull(_sentPayload.Table);
         Assert.Equal(
             [

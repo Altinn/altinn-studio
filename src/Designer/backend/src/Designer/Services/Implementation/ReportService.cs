@@ -28,15 +28,22 @@ public class ReportService(
 
     private const string NoAppsText = "Ingen publiserte apper ble funnet i miljøet.";
 
+    private const string PublishedAppsLabel = "Publiserte apper";
+    private const string AppsWithFailuresLabel = "Apper med feil";
+    private const string FailedProcessNextLabel = "Feilende process/next";
+    private const string FailedInstanceCreationLabel = "Feilende instansieringer";
+    private const string ProcessesStartedLabel = "Påbegynte instanser";
+    private const string ProcessesEndedLabel = "Fullførte instanser";
+
     private static readonly IReadOnlyList<string> s_appTableHeaders =
     [
         "App",
         "Versjon",
         "App-bibliotek",
-        "Feilende process/next",
-        "Feilende instansieringer",
-        "Påbegynte instanser",
-        "Fullførte instanser",
+        FailedProcessNextLabel,
+        FailedInstanceCreationLabel,
+        ProcessesStartedLabel,
+        ProcessesEndedLabel,
     ];
 
     private static readonly CultureInfo s_norwegianCulture = CultureInfo.GetCultureInfo("nb-NO");
@@ -98,7 +105,7 @@ public class ReportService(
             $"Altinn Studio - {GetReportName(frequency)}",
             [("Organisasjon", org), ("Miljø", environment), ("Periode", FormatPeriod(from, to))],
             [],
-            Body: appSummaries.Count == 0 ? NoAppsText : "",
+            Body: appSummaries.Count == 0 ? NoAppsText : FormatSummary(appSummaries),
             Table: appSummaries.Count == 0
                 ? null
                 : new NotificationTable(s_appTableHeaders, [.. appSummaries.Select(app => app.ToRow())])
@@ -192,6 +199,18 @@ public class ReportService(
     private static double SumCounts(IEnumerable<AllAppsErrorMetric> metrics, string metricName) =>
         metrics.Where(metric => metric.Name == metricName).SelectMany(metric => metric.Counts).Sum();
 
+    // The totals across all apps. SMS sends only this, so it is the whole report for SMS recipients.
+    private static string FormatSummary(IReadOnlyCollection<AppSummary> apps) =>
+        string.Join(
+            "\n",
+            $"{PublishedAppsLabel}: {FormatCount(apps.Count)}",
+            $"{AppsWithFailuresLabel}: {FormatCount(apps.Count(app => app.HasFailures))}",
+            $"{FailedProcessNextLabel}: {FormatCount(apps.Sum(app => app.FailedProcessNextRequests))}",
+            $"{FailedInstanceCreationLabel}: {FormatCount(apps.Sum(app => app.FailedInstanceCreationRequests))}",
+            $"{ProcessesStartedLabel}: {FormatCount(apps.Sum(app => app.ProcessesStarted))}",
+            $"{ProcessesEndedLabel}: {FormatCount(apps.Sum(app => app.ProcessesEnded))}"
+        );
+
     private static string FormatCount(double count) => count.ToString("#,0.##", s_norwegianCulture);
 
     private sealed record AppSummary(
@@ -204,8 +223,9 @@ public class ReportService(
         double ProcessesEnded
     )
     {
-        public bool HasActivity =>
-            FailedProcessNextRequests + FailedInstanceCreationRequests + ProcessesStarted + ProcessesEnded > 0;
+        public bool HasFailures => FailedProcessNextRequests + FailedInstanceCreationRequests > 0;
+
+        public bool HasActivity => HasFailures || ProcessesStarted + ProcessesEnded > 0;
 
         public IReadOnlyList<string?> ToRow() =>
             [
