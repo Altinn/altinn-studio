@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.App;
@@ -18,7 +17,6 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.App.PlatformServices.Tests.Mocks;
-using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -45,8 +43,6 @@ public class PdfServiceTests
 
     private readonly IOptions<PlatformSettings> _platformSettingsOptions = Options.Create<PlatformSettings>(new() { });
 
-    private readonly Mock<IAuthenticationContext> _authenticationContext = new();
-
     public PdfServiceTests(ITestOutputHelper outputHelper)
     {
         _outputHelper = outputHelper;
@@ -60,8 +56,6 @@ public class PdfServiceTests
         _appResources
             .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(resource);
-
-        _authenticationContext.Setup(s => s.Current).Returns(TestAuthentication.GetUserAuthentication());
     }
 
     [Fact]
@@ -294,7 +288,7 @@ public class PdfServiceTests
         };
 
         // Act
-        await target.GeneratePdf(instance, "Task_1", cancellationToken: CancellationToken.None);
+        await target.GeneratePdf(instance, "Task_1", LanguageConst.Nb, cancellationToken: CancellationToken.None);
 
         // Asserts
         _pdfGeneratorClient.Verify(
@@ -316,17 +310,11 @@ public class PdfServiceTests
         await Verify(telemetrySink.GetSnapshot());
     }
 
-    [Theory]
-    [InlineData("en", null, "en")]
-    [InlineData(null, "nn", "nn")]
-    [InlineData(" ", "nn", "nn")]
-    public async Task GeneratePdf_RendersInTheGivenLanguage_ElseTheUsers(
-        string? language,
-        string? profileLanguage,
-        string expected
-    )
+    [Fact]
+    public async Task GeneratePdf_RendersInTheGivenLanguage()
     {
-        // A PDF service task passes its data mutator's language, the one the user chose for the transition
+        // The caller decides the language. A PDF service task passes its data mutator's language, the one the user
+        // chose for the transition.
         Uri? pdfUri = null;
         _pdfGeneratorClient
             .Setup(s =>
@@ -339,22 +327,12 @@ public class PdfServiceTests
             )
             .Callback<Uri, string?, StorageAuthenticationMethod?, CancellationToken>((uri, _, _, _) => pdfUri = uri)
             .ReturnsAsync(Array.Empty<byte>());
-        var authenticationContext = new Mock<IAuthenticationContext>();
-        authenticationContext
-            .Setup(s => s.Current)
-            .Returns(
-                TestAuthentication.GetUserAuthentication(
-                    profileSettingPreference: profileLanguage is null
-                        ? null
-                        : new ProfileSettingPreference { Language = profileLanguage }
-                )
-            );
-        var target = SetupPdfService(authenticationContext: authenticationContext);
+        var target = SetupPdfService();
 
-        await target.GeneratePdf(CreateTask1Instance(), "Task_1", language: language);
+        await target.GeneratePdf(CreateTask1Instance(), "Task_1", LanguageConst.En);
 
         Assert.NotNull(pdfUri);
-        Assert.Equal(expected, GetLangParameter(pdfUri));
+        Assert.Equal(LanguageConst.En, GetLangParameter(pdfUri));
     }
 
     private static Instance CreateTask1Instance() =>
@@ -404,6 +382,7 @@ public class PdfServiceTests
         await target.GeneratePdf(
             instance,
             "Task_PDF",
+            LanguageConst.Nb,
             autoGeneratePdfForTaskIds,
             cancellationToken: CancellationToken.None
         );
@@ -457,7 +436,8 @@ public class PdfServiceTests
         await target.GenerateSubformPdf(
             instance,
             "Task_1",
-            new SubformPdfContext("subform-component", "subform-data-element")
+            new SubformPdfContext("subform-component", "subform-data-element"),
+            LanguageConst.Nb
         );
 
         _pdfGeneratorClient.Verify(
@@ -560,7 +540,7 @@ public class PdfServiceTests
         };
 
         // Act
-        await target.GeneratePdf(instance, "Task_1", cancellationToken: CancellationToken.None);
+        await target.GeneratePdf(instance, "Task_1", LanguageConst.Nb, cancellationToken: CancellationToken.None);
 
         _pdfGeneratorClient.Verify(
             s =>
@@ -608,7 +588,7 @@ public class PdfServiceTests
         };
 
         // Act
-        await target.GeneratePdf(instance, "Task_1", cancellationToken: CancellationToken.None);
+        await target.GeneratePdf(instance, "Task_1", LanguageConst.Nb, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -657,7 +637,7 @@ public class PdfServiceTests
         };
 
         // Act
-        await target.GeneratePdf(instance, "Task_1", cancellationToken: CancellationToken.None);
+        await target.GeneratePdf(instance, "Task_1", LanguageConst.Nb, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -703,7 +683,7 @@ public class PdfServiceTests
         };
 
         // Act
-        await target.GeneratePdf(instance, "Task_1", cancellationToken: CancellationToken.None);
+        await target.GeneratePdf(instance, "Task_1", LanguageConst.Nb, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -750,7 +730,7 @@ public class PdfServiceTests
         };
 
         // Act
-        await target.GeneratePdf(instance, "Task_1", cancellationToken: CancellationToken.None);
+        await target.GeneratePdf(instance, "Task_1", LanguageConst.Nb, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -770,7 +750,6 @@ public class PdfServiceTests
         Mock<IPdfGeneratorClient>? pdfGeneratorClient = null,
         IOptions<PdfGeneratorSettings>? pdfGeneratorSettingsOptions = null,
         IOptions<GeneralSettings>? generalSettingsOptions = null,
-        Mock<IAuthenticationContext>? authenticationContext = null,
         TelemetrySink? telemetrySink = null
     )
     {
@@ -779,7 +758,6 @@ public class PdfServiceTests
             pdfGeneratorSettingsOptions ?? _pdfGeneratorSettingsOptions,
             generalSettingsOptions ?? _generalSettingsOptions,
             FakeLoggerXunit.Get<PdfService>(_outputHelper),
-            authenticationContext?.Object ?? _authenticationContext.Object,
             new TranslationService(
                 new AppIdentifier("digdir", "not-really-an-app"),
                 appResources?.Object ?? _appResources.Object,

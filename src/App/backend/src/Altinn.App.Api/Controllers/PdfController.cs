@@ -1,4 +1,5 @@
 using Altinn.App.Api.Infrastructure.RateLimiting;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
@@ -22,6 +23,7 @@ public class PdfController : ControllerBase
     private readonly IInstanceClient _instanceClient;
     private readonly IPdfService _pdfService;
     private readonly IProcessReader _processReader;
+    private readonly IAuthenticationContext _authenticationContext;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfController"/> class.
@@ -29,11 +31,18 @@ public class PdfController : ControllerBase
     /// <param name="instanceClient">The instance client</param>
     /// <param name="pdfService">The PDF service</param>
     /// <param name="processReader">The process reader</param>
-    public PdfController(IInstanceClient instanceClient, IPdfService pdfService, IProcessReader processReader)
+    /// <param name="authenticationContext">The authentication context, for the user's language</param>
+    public PdfController(
+        IInstanceClient instanceClient,
+        IPdfService pdfService,
+        IProcessReader processReader,
+        IAuthenticationContext authenticationContext
+    )
     {
         _instanceClient = instanceClient;
         _pdfService = pdfService;
         _processReader = processReader;
+        _authenticationContext = authenticationContext;
     }
 
     /// <summary>
@@ -79,12 +88,17 @@ public class PdfController : ControllerBase
             return NotFound("Did not find instance or task");
         }
 
+        // Without a language in the request, the preview is in the user's language
+        string pdfLanguage = string.IsNullOrWhiteSpace(language)
+            ? await _authenticationContext.Current.GetLanguage()
+            : language;
+
         if (taskId is null)
         {
             byte[] pdfContent = await _pdfService.GeneratePdf(
                 instance,
                 currentTaskId,
-                language: language,
+                pdfLanguage,
                 isPreview: true,
                 cancellationToken: cancellationToken
             );
@@ -103,8 +117,8 @@ public class PdfController : ControllerBase
             byte[] pdfPreview = await _pdfService.GeneratePdf(
                 instance,
                 taskId,
+                pdfLanguage,
                 taskExtension.PdfConfiguration?.AutoPdfTaskIds,
-                language,
                 isPreview: true,
                 cancellationToken: cancellationToken
             );
@@ -136,7 +150,7 @@ public class PdfController : ControllerBase
             instance,
             taskId,
             new SubformPdfContext(subformConfig.SubformComponentId, subform.Id),
-            language,
+            pdfLanguage,
             isPreview: true,
             cancellationToken: cancellationToken
         );

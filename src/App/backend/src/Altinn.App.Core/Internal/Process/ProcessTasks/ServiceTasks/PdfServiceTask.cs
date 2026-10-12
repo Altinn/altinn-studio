@@ -2,6 +2,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
@@ -61,12 +62,12 @@ internal sealed class PdfServiceTask : IPdfServiceTask
             return ServiceTaskResult.FailedPermanent(reason);
         }
 
-        // The actor's language, since a workflow callback is authenticated as the app, whose language is nb
+        // The actor's language, the one the user chose for the transition, or nb if it has none
         byte[] pdf = await _pdfService.GeneratePdf(
             dataMutator.Instance,
             taskId,
+            dataMutator.Language ?? LanguageConst.Nb,
             config.AutoPdfTaskIds,
-            dataMutator.Language,
             authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
             cancellationToken: context.CancellationToken
         );

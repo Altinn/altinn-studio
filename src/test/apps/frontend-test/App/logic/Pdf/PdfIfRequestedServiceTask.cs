@@ -53,8 +53,8 @@ namespace Altinn.App.logic.Pdf
                 var pdf = await _pdfService.GeneratePdf(
                     mutator.Instance,
                     taskId,
+                    mutator.Language ?? "nb",
                     pdfConfig?.AutoPdfTaskIds,
-                    mutator.Language,
                     authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
                     cancellationToken: context.CancellationToken
                 );

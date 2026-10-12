@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
@@ -24,7 +23,6 @@ internal sealed class PdfService : IPdfService
     private readonly IPdfGeneratorClient _pdfGeneratorClient;
     private readonly PdfGeneratorSettings _pdfGeneratorSettings;
     private readonly ILogger<PdfService> _logger;
-    private readonly IAuthenticationContext _authenticationContext;
     private readonly ITranslationService _translationService;
     private readonly GeneralSettings _generalSettings;
     private readonly IAppResources _resources;
@@ -41,7 +39,6 @@ internal sealed class PdfService : IPdfService
         IOptions<PdfGeneratorSettings> pdfGeneratorSettings,
         IOptions<GeneralSettings> generalSettings,
         ILogger<PdfService> logger,
-        IAuthenticationContext authenticationContext,
         ITranslationService translationService,
         IAppResources resources,
         InstanceDataUnitOfWorkInitializer instanceDataUnitOfWorkInitializer,
@@ -52,7 +49,6 @@ internal sealed class PdfService : IPdfService
         _pdfGeneratorSettings = pdfGeneratorSettings.Value;
         _generalSettings = generalSettings.Value;
         _logger = logger;
-        _authenticationContext = authenticationContext;
         _translationService = translationService;
         _resources = resources;
         _instanceDataUnitOfWorkInitializer = instanceDataUnitOfWorkInitializer;
@@ -63,8 +59,8 @@ internal sealed class PdfService : IPdfService
     public async Task<byte[]> GeneratePdf(
         Instance instance,
         string taskId,
+        string language,
         List<string>? autoGeneratePdfForTaskIds = null,
-        string? language = null,
         bool isPreview = false,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
@@ -87,7 +83,7 @@ internal sealed class PdfService : IPdfService
         Instance instance,
         string taskId,
         SubformPdfContext subformPdfContext,
-        string? language = null,
+        string language,
         bool isPreview = false,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
@@ -110,15 +106,13 @@ internal sealed class PdfService : IPdfService
         string taskId,
         List<string>? autoGeneratePdfForTaskIds,
         SubformPdfContext? subformPdfContext,
-        string? requestedLanguage,
+        string language,
         bool isPreview,
         StorageAuthenticationMethod? authenticationMethod,
         CancellationToken cancellationToken
     )
     {
         using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
-
-        string language = await _authenticationContext.Current.GetLanguage(requestedLanguage);
 
         return await GeneratePdfContent(
             instance,
@@ -130,8 +124,6 @@ internal sealed class PdfService : IPdfService
             subformPdfContext,
             autoGeneratePdfForTaskIds,
             authenticationMethod,
-            // The frontend renders the current task by default, so only another task goes in the URL
-            includeTaskIdInUrl: taskId != instance.Process?.CurrentTask?.ElementId,
             cancellationToken
         );
     }
@@ -144,7 +136,6 @@ internal sealed class PdfService : IPdfService
         SubformPdfContext? subformPdfContext,
         List<string>? autoGeneratePdfForTaskIds,
         StorageAuthenticationMethod? authenticationMethod,
-        bool includeTaskIdInUrl,
         CancellationToken cancellationToken
     )
     {
@@ -157,15 +148,7 @@ internal sealed class PdfService : IPdfService
             autoGeneratePdfForTaskIds
         );
 
-        Uri uri = BuildUri(
-            baseUrl,
-            pagePath,
-            taskId,
-            language,
-            subformPdfContext,
-            includeTaskIdInUrl,
-            autoPdfTaskIdsQueryParams
-        );
+        Uri uri = BuildUri(baseUrl, pagePath, taskId, language, subformPdfContext, autoPdfTaskIdsQueryParams);
 
         return await _pdfGeneratorClient.GeneratePdf(uri, footerContent, authenticationMethod, cancellationToken);
     }
@@ -176,7 +159,6 @@ internal sealed class PdfService : IPdfService
         string taskId,
         string language,
         SubformPdfContext? subformPdfContext,
-        bool includeTaskIdInUrl,
         List<KeyValuePair<string, string>>? additionalQueryParams = null
     )
     {
@@ -199,8 +181,9 @@ internal sealed class PdfService : IPdfService
                 url += $"/{taskId}/subform/{subformPdfContext.ComponentId}/{subformPdfContext.DataElementId}";
             }
         }
-        // Insert the task id in the url, so the frontend renders that task instead of the current one
-        else if (includeTaskIdInUrl)
+        // Insert the task id in the url, so the frontend renders that task, also if the process has moved on by the
+        // time it renders
+        else
         {
             int pdfIndex = url.IndexOf("?pdf=1", StringComparison.OrdinalIgnoreCase);
             url = pdfIndex > 0 ? $"{url[..pdfIndex]}/{taskId}{url[pdfIndex..]}" : $"{url}/{taskId}";

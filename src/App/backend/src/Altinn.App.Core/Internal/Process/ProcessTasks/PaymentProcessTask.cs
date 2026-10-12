@@ -8,6 +8,7 @@ using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
@@ -94,11 +95,11 @@ internal sealed class PaymentProcessTask : IProcessTask
         if (paymentStatus != PaymentStatus.Paid)
             throw new PaymentException("The payment is not completed.");
 
-        // The actor's language, since a workflow callback is authenticated as the app, whose language is nb
+        // The actor's language, the one the user chose for the transition, or nb if it has none
         byte[] pdf = await _pdfService.GeneratePdf(
             dataMutator.Instance,
             taskId,
-            language: dataMutator.Language,
+            language: dataMutator.Language ?? LanguageConst.Nb,
             cancellationToken: cancellationToken
         );
 

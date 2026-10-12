@@ -17,7 +17,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - Breaking: `IPdfService` only generates PDFs and returns their bytes, so the caller decides where a PDF goes. `GenerateAndStorePdf` is removed. To add a PDF as before, call `GeneratePdf` with the data mutator's language, name it with the new `IPdfFileNameResolver`, and add it with `IInstanceDataMutator.AddBinaryDataElement` as `ref-data-as-pdf` with `generatedFromTask`, so it is removed when the task starts again.
-- Breaking: `IPdfService.GeneratePdf` has one overload, with the optional parameters `autoGeneratePdfForTaskIds`, `language`, `isPreview` and `authenticationMethod`, so pass `isPreview` and the cancellation token by name. It takes the language from `language` instead of the request's `lang` query. It can render a task other than the current one. `GenerateSubformPdf` is new, and no method has a default implementation.
+- Breaking: `IPdfService.GeneratePdf` has one overload. It takes the language of the PDF from its caller instead of the request or the user, and the optional parameters `autoGeneratePdfForTaskIds`, `isPreview` and `authenticationMethod`, so pass `isPreview` and the cancellation token by name. It can render a task other than the current one. `GenerateSubformPdf` is new, and no method has a default implementation.
 - Breaking: `IPdfGeneratorClient.GeneratePdf` returns the PDF as `byte[]` instead of `Stream`, so there is nothing to dispose. Use the bytes directly, or wrap them in a `MemoryStream` where you need a stream.
 - Breaking: the `PdfService.GenerateAndStorePdf` trace span is removed. PDF service tasks are traced by the `PdfService.GeneratePdf` span instead. Update queries, dashboards and alerts that use the old name.
 

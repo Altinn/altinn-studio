@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
@@ -47,12 +48,12 @@ internal sealed class SubformPdfServiceTask(
             );
 
             var subformPdfContext = new SubformPdfContext(subformComponentId, dataElement.Id);
-            // The actor's language, since a workflow callback is authenticated as the app, whose language is nb
+            // The actor's language, the one the user chose for the transition, or nb if it has none
             byte[] pdf = await pdfService.GenerateSubformPdf(
                 instance,
                 taskId,
                 subformPdfContext,
-                dataMutator.Language,
+                dataMutator.Language ?? LanguageConst.Nb,
                 authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
                 cancellationToken: context.CancellationToken
             );

@@ -62,6 +62,28 @@ public class PdfFileNameResolverTests(ITestOutputHelper outputHelper)
         Assert.Equal("My Custom Receipt.pdf", fileName);
     }
 
+    [Fact]
+    public async Task GetFileName_WithCustomFileNameTextResourceKeyThatNoTextHas_ShouldUseDefaultFileName()
+    {
+        var appResources = CreateAppResources([new() { Id = "appName", Value = "Not Really An App" }]);
+        var target = CreateResolver(appResources);
+
+        string fileName = await target.GetFileName(CreateDataAccessorMock(appResources).Object, "missing.key");
+
+        Assert.Equal("Not Really An App.pdf", fileName);
+    }
+
+    [Fact]
+    public async Task GetFileName_Throws_When_Even_The_Default_File_Name_Is_Empty()
+    {
+        var appResources = CreateAppResources([]);
+        var target = new PdfFileNameResolver(Mock.Of<ITranslationService>());
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            target.GetFileName(CreateDataAccessorMock(appResources).Object)
+        );
+    }
+
     private static Mock<IAppResources> CreateAppResources(List<TextResourceElement> texts)
     {
         var appResources = new Mock<IAppResources>();

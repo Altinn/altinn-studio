@@ -102,7 +102,6 @@ public class PdfControllerTests
             _pdfGeneratorSettingsOptions,
             generalSettingsOptions,
             _logger.Object,
-            _authenticationContext.Object,
             _translationService.Object,
             _appResources.Object,
             new InstanceDataUnitOfWorkInitializer(
@@ -121,7 +120,12 @@ public class PdfControllerTests
 
     private PdfController NewPdfController(IPdfService pdfService)
     {
-        return new PdfController(_instanceClient.Object, pdfService, _processReader.Object);
+        return new PdfController(
+            _instanceClient.Object,
+            pdfService,
+            _processReader.Object,
+            _authenticationContext.Object
+        );
     }
 
     [Fact]
@@ -178,7 +182,7 @@ public class PdfControllerTests
         requestBody
             .Should()
             .Contain(
-                @"url"":""http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
+                @"url"":""http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80/Task_1?pdf=1"
             );
     }
 
@@ -236,7 +240,7 @@ public class PdfControllerTests
         requestBody
             .Should()
             .Contain(
-                @"url"":""http://org.apps.tt02.altinn.no/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
+                @"url"":""http://org.apps.tt02.altinn.no/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80/Task_1?pdf=1"
             );
     }
 

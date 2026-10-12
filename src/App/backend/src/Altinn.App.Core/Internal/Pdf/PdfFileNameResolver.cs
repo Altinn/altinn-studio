@@ -18,54 +18,38 @@ internal sealed class PdfFileNameResolver(ITranslationService translationService
         SubformPdfContext? subformPdfContext = null
     )
     {
-        string? fileName;
+        // A subform PDF fills in the variables of its file name from the subform's data
+        var componentContext = new ComponentContext(
+            dataAccessor,
+            component: null,
+            rowIndices: null,
+            dataElementIdentifier: subformPdfContext is null
+                ? (DataElementIdentifier?)null
+                : new DataElementIdentifier(subformPdfContext.DataElementId)
+        );
 
-        if (customFileNameTextResourceKey != null)
+        string? fileName = customFileNameTextResourceKey is null
+            ? null
+            : await translationService.TranslateTextKey(customFileNameTextResourceKey, dataAccessor, componentContext);
+
+        // A custom key that no text resource has gets the default file name too
+        if (string.IsNullOrEmpty(fileName))
         {
-            fileName = await GetVariableSubstitutedFileName(
-                dataAccessor,
-                customFileNameTextResourceKey,
-                subformPdfContext?.DataElementId
-            );
-        }
-        else
-        {
-            // Fall back to simple translation without variable substitution
             fileName = await translationService.TranslateTextKey(
                 "backend.pdf_default_file_name",
-                dataAccessor.Language
+                dataAccessor,
+                componentContext
             );
         }
 
         if (string.IsNullOrEmpty(fileName))
         {
-            // translation for backend.pdf_default_file_name should always be present (it has a fallback in the translation service),
-            // but just in case, we default to a hardcoded string.
-            fileName = "Altinn PDF.pdf";
+            throw new InvalidOperationException(
+                "The default PDF file name is empty, though the translation service has a fallback for it"
+            );
         }
 
         fileName = fileName.AsFileName(false);
         return fileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? fileName : $"{fileName}.pdf";
-    }
-
-    private async Task<string?> GetVariableSubstitutedFileName(
-        IInstanceDataAccessor dataAccessor,
-        string customFileNameTextResourceKey,
-        string? subformDataElementId
-    )
-    {
-        DataElementIdentifier? dataElementIdentifier =
-            subformDataElementId != null
-                ? new DataElementIdentifier(subformDataElementId)
-                : (DataElementIdentifier?)null;
-
-        var componentContext = new ComponentContext(
-            dataAccessor,
-            component: null,
-            rowIndices: null,
-            dataElementIdentifier: dataElementIdentifier
-        );
-
-        return await translationService.TranslateTextKey(customFileNameTextResourceKey, dataAccessor, componentContext);
     }
 }
