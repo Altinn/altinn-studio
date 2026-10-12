@@ -7,12 +7,12 @@ import FrontendFolgerAppen from './05-frontend-folger-appen';
 import InfraNyttIV9 from './07-infra-nytt-i-v9';
 import Prosessmotor from './08-prosessmotor';
 import ForUtviklere from './09-for-utviklere';
-import Dashbord from './10-dashbord';
-import EttKlikk from './11-ett-klikk';
-import ScenarioFeil from './12-scenario-feil';
-import ScenarioLukker from './13-scenario-lukker';
-import Oppgradering from './15-oppgradering';
-import BliMed from './16-bli-med';
+import Dashbord from './11-dashbord';
+import EttKlikk from './12-ett-klikk';
+import ScenarioFeil from './13-scenario-feil';
+import ScenarioLukker from './14-scenario-lukker';
+import Oppgradering from './16-oppgradering';
+import BliMed from './17-bli-med';
 import { SeksjonBakKulissene, SeksjonBrukerne, SeksjonKomIGang } from './seksjoner';
 import { SIM_STEPS } from '../sims';
 
