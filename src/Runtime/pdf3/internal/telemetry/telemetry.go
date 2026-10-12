@@ -15,10 +15,15 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
 const scopeName = "pdf3"
+
+// serviceVersion is the build's version, the commit the deployment workflow builds from:
+// go build -ldflags "-X altinn.studio/pdf3/internal/telemetry.serviceVersion=...".
+var serviceVersion = "dev"
 
 //nolint:ireturn // OpenTelemetry intentionally exposes interface-returning accessors.
 func Tracer() oteltrace.Tracer {
@@ -48,12 +53,9 @@ func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, e
 		err = errors.Join(inErr, shutdown(ctx))
 	}
 
-	// OTEL_SERVICE_NAME and OTEL_RESOURCE_ATTRIBUTES set the service identity
-	res, err := resource.New(ctx,
-		resource.WithFromEnv(),
-	)
+	res, err := newResource(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create resource: %w", err)
+		return nil, err
 	}
 
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
@@ -83,6 +85,19 @@ func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, e
 	}
 
 	return shutdown, nil
+}
+
+// newResource describes this build. OTEL_SERVICE_NAME and OTEL_RESOURCE_ATTRIBUTES set the
+// rest of the service identity, and take precedence.
+func newResource(ctx context.Context) (*resource.Resource, error) {
+	res, err := resource.New(ctx,
+		resource.WithAttributes(semconv.ServiceVersion(serviceVersion)),
+		resource.WithFromEnv(),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create resource: %w", err)
+	}
+	return res, nil
 }
 
 func newTracerProvider(ctx context.Context, res *resource.Resource) (*trace.TracerProvider, error) {
