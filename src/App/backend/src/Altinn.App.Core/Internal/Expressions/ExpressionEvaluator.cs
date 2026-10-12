@@ -1127,8 +1127,8 @@ public static partial class ExpressionEvaluator
 
         try
         {
-            var aDecimal = (decimal)aDouble;
-            var bDecimal = (decimal)bDouble;
+            var aDecimal = ToDecimal(aDouble);
+            var bDecimal = ToDecimal(bDouble);
             var result = operation(aDecimal, bDecimal);
             return (double)result;
         }
@@ -1149,7 +1149,7 @@ public static partial class ExpressionEvaluator
         double[] numbers = operands.Select(o => o ?? 0).ToArray();
         try
         {
-            decimal[] decimalNumbers = numbers.Select(n => (decimal)n).ToArray();
+            decimal[] decimalNumbers = numbers.Select(ToDecimal).ToArray();
             return decimalNumbers.Aggregate(operation);
         }
         catch (OverflowException)
@@ -1158,6 +1158,18 @@ public static partial class ExpressionEvaluator
                 $"Arithmetic overflow: One of the operands or the result of the operation exceeds the supported range"
             );
         }
+    }
+
+    private static decimal ToDecimal(double value)
+    {
+        if (!double.IsFinite(value))
+        {
+            throw new OverflowException($"{value} cannot be represented as a decimal");
+        }
+
+        Span<char> text = stackalloc char[32];
+        value.TryFormat(text, out int length, provider: CultureInfo.InvariantCulture);
+        return decimal.Parse(text[..length], NumberStyles.Float, CultureInfo.InvariantCulture);
     }
 
     [GeneratedRegex(@"^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$")]

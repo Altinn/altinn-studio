@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net11.0</TargetFramework>
     <OutputType>Library</OutputType>
+    <!-- .NET 11 RC2 generates duplicate browser hot-reload assets for Web SDK libraries and their host apps. -->
+    <EnableHotReloadInRuntimeConfigDevFile>false</EnableHotReloadInRuntimeConfigDevFile>
     <AppFrontendDistPath>../../../frontend/dist</AppFrontendDistPath>
     <PackageTags>Altinn;Studio;App;Api;Controllers</PackageTags>
     <Description>
