@@ -217,3 +217,48 @@ func TestPageErrors_LateErrorsDoNotRace(t *testing.T) {
 		t.Errorf("logged %d records for %d requests with errors, want at most one per request", got, records)
 	}
 }
+
+func TestHandleWaitError_LogsNoPayload(t *testing.T) {
+	tests := map[string]struct {
+		data any
+		want string
+	}{
+		"exception": {
+			data: map[string]any{
+				"text": "Uncaught",
+				"exception": map[string]any{
+					"description": "Error: boom",
+					"preview":     map[string]any{"secret": "page data"},
+				},
+			},
+			want: `exception="Error: boom"`,
+		},
+		"other result": {
+			data: map[string]any{"type": "object", "value": map[string]any{"secret": "page data"}},
+			want: "payload_bytes=",
+		},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			var logs bytes.Buffer
+			w := newTestSession(&logs)
+			req := &workerRequest{
+				ctx:       t.Context(),
+				responder: make(chan workerResponse, 1),
+				logger:    slog.New(slog.DiscardHandler),
+			}
+
+			if err := w.handleWaitError(req, "JavaScript exception during wait", tt.data, "exception"); err == nil {
+				t.Fatal("handleWaitError() = nil, want the wait's error")
+			}
+
+			got := logs.String()
+			if !strings.Contains(got, tt.want) {
+				t.Errorf("log = %q, want %q", got, tt.want)
+			}
+			if strings.Contains(got, "page data") {
+				t.Errorf("log contains the payload: %q", got)
+			}
+		})
+	}
+}

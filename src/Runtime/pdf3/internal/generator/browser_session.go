@@ -966,24 +966,29 @@ func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResp
 
 // handleWaitError logs and responds with an error for wait failures.
 func (w *browserSession) handleWaitError(req *workerRequest, logMsg string, data any, errDetail string) error {
-	waitForData := waitForToJson(req.request.WaitFor)
+	summary := waitErrorSummary(data)
+	args := make([]any, 0, 2+len(summary))
+	args = append(args, "waitFor", waitForToJson(req.request.WaitFor))
+	w.logger.ErrorContext(req.ctx, logMsg, append(args, summary...)...)
 
-	// Marshal the data for logging
-	dataBytes, err := json.Marshal(data)
-	if err != nil {
-		dataBytes = fmt.Appendf(nil, "(marshal error: %v)", err)
-	}
-
-	w.logger.ErrorContext(
-		req.ctx,
-		logMsg,
-		"waitFor", waitForData,
-		"data", truncate(string(dataBytes), maxBrowserMessageLength),
-	)
-
-	err = fmt.Errorf("%w: %s", errWaitConditionError, errDetail)
+	err := fmt.Errorf("%w: %s", errWaitConditionError, errDetail)
 	req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
 	return err
+}
+
+// waitErrorSummary describes what the wait expression's evaluation returned without logging the
+// CDP payload: an exception's description, truncated, or otherwise only the payload's size.
+func waitErrorSummary(data any) []any {
+	if details, ok := data.(map[string]any); ok {
+		if message := exceptionMessage(map[string]any{"exceptionDetails": details}); message != "" {
+			return []any{"exception", truncate(message, maxBrowserMessageLength)}
+		}
+	}
+	payload, err := json.Marshal(data)
+	if err != nil {
+		return nil
+	}
+	return []any{"payload_bytes", len(payload)}
 }
 
 func waitForToJson(waitFor *types.WaitFor) string {
