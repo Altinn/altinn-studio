@@ -1,3 +1,5 @@
+using Altinn.App.Core.Internal.Language;
+
 namespace Altinn.App.Core.Internal.Texts;
 
 /// <summary>
@@ -6,8 +8,10 @@ namespace Altinn.App.Core.Internal.Texts;
 /// </summary>
 internal sealed class BackendTextResource
 {
-    private IReadOnlyList<CustomTextParameter>? _customTextParameters;
-    private IReadOnlyList<BackendTextVariable>? _replacementVariables;
+    private IReadOnlyList<BackendTextVariable>? _customTextParameters;
+    private TextTemplate? _nb;
+    private TextTemplate? _nn;
+    private TextTemplate? _en;
 
     /// <summary>
     /// The text resource id.
@@ -17,30 +21,33 @@ internal sealed class BackendTextResource
     /// <summary>
     /// The default texts. Placeholders name a variable in <see cref="Variables"/>, like <c>{maxSize}</c>.
     /// </summary>
-    public required ILocalizedText Texts { get; init; }
+    public required LocalizedText Texts { get; init; }
 
     /// <summary>
-    /// The variables the default texts use, of any data source.
+    /// The variables the default texts use, of any source.
     /// </summary>
     public IReadOnlyList<BackendTextVariable> Variables { get; init; } = [];
 
     /// <summary>
     /// The variables the caller passes in customTextParameters, in the order they are passed.
     /// </summary>
-    public IReadOnlyList<CustomTextParameter> CustomTextParameters =>
-        _customTextParameters ??= [.. Variables.OfType<CustomTextParameter>()];
+    public IReadOnlyList<BackendTextVariable> CustomTextParameters =>
+        _customTextParameters ??= [
+            .. Variables.Where(variable => variable.Source is TextVariableSource.CustomTextParameter),
+        ];
 
     /// <summary>
-    /// The variable for each of the texts' <see cref="ILocalizedText.ReplacementKeys"/>, in the same order.
+    /// The template for nb, nn or en, built once, or null for any other language.
     /// </summary>
-    /// <exception cref="InvalidOperationException">A placeholder names no variable.</exception>
-    public IReadOnlyList<BackendTextVariable> ReplacementVariables =>
-        _replacementVariables ??= [
-            .. Texts.ReplacementKeys.Select(key =>
-                Variables.FirstOrDefault(variable => variable.Name == key)
-                ?? throw new InvalidOperationException($"Text resource '{Key}' uses {{{key}}}, which is no variable")
-            ),
-        ];
+    /// <exception cref="InvalidOperationException">The text uses a placeholder that names no variable.</exception>
+    public TextTemplate? ToTemplate(string language) =>
+        language switch
+        {
+            LanguageConst.Nb => _nb ??= Parse(Texts.Nb),
+            LanguageConst.Nn => _nn ??= Parse(Texts.Nn),
+            LanguageConst.En => _en ??= Parse(Texts.En),
+            _ => null,
+        };
 
     /// <summary>
     /// Pairs <paramref name="values"/> with <see cref="CustomTextParameters"/> by position.
@@ -70,4 +77,12 @@ internal sealed class BackendTextResource
         }
         return parameters;
     }
+
+    private TextTemplate Parse(string text) =>
+        TextTemplateParser.Parse(
+            text,
+            name =>
+                Variables.FirstOrDefault(variable => variable.Name == name)?.Source
+                ?? throw new InvalidOperationException($"Text resource '{Key}' uses {{{name}}}, which is no variable")
+        );
 }

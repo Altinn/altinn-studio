@@ -18,7 +18,7 @@ public class ValidationIssueDefinitionTests
             {
                 Key = "backend.test",
                 Texts = new LocalizedText(nb: "{name}", nn: "{name}", en: "{name}"),
-                Variables = [new CustomTextParameter("name", "A name")],
+                Variables = [BackendTextVariable.CustomTextParameter("name", "A name")],
             },
         };
 

@@ -1,80 +1,42 @@
 namespace Altinn.App.Core.Internal.Texts;
 
 /// <summary>
-/// A variable in the default text of a <see cref="BackendTextResource"/>. Default texts refer to it by
-/// <see cref="Name"/>, like <c>{maxSize}</c>, and it becomes a text resource variable with its own data source.
+/// A variable in the texts of a <see cref="BackendTextResource"/>. The texts refer to it by <see cref="Name"/>, like
+/// <c>{maxSize}</c>, and <see cref="Source"/> says where its value comes from.
 /// </summary>
-/// <param name="Name">The placeholder name in default texts</param>
+/// <param name="Name">The placeholder name in the texts</param>
 /// <param name="Description">What the value is, for documentation</param>
-internal abstract record BackendTextVariable(string Name, string Description)
+/// <param name="Source">Where the value comes from</param>
+internal sealed record BackendTextVariable(string Name, string Description, TextVariableSource Source)
 {
-    /// <summary>The data source of the text resource variable.</summary>
-    public abstract string DataSource { get; }
-
-    /// <summary>The key of the text resource variable within its data source.</summary>
-    public abstract string Key { get; }
-
-    /// <summary>The value to use when the data source has no value.</summary>
-    public virtual string? DefaultValue => null;
+    /// <summary>
+    /// A value the caller passes in customTextParameters, under <paramref name="name"/>. A missing value shows as
+    /// nothing rather than as its name.
+    /// </summary>
+    public static BackendTextVariable CustomTextParameter(string name, string description) =>
+        new(name, description, new TextVariableSource.CustomTextParameter(name) { DefaultValue = "" });
 
     /// <summary>
-    /// Whether the value can only be found with layout state, which a translation in only a language does not have.
+    /// The translation of the text <paramref name="textKey"/>, such as <c>appName</c>.
     /// </summary>
-    public virtual bool NeedsLayoutState => false;
-}
+    public static BackendTextVariable Text(string name, string textKey, string description, string? fallback = null) =>
+        new(name, description, new TextVariableSource.Text(textKey) { DefaultValue = fallback });
 
-/// <summary>
-/// A value the caller passes in customTextParameters, under <see cref="BackendTextVariable.Name"/>.
-/// </summary>
-internal sealed record CustomTextParameter(string Name, string Description) : BackendTextVariable(Name, Description)
-{
-    public override string DataSource => "customTextParameters";
-    public override string Key => Name;
+    /// <summary>
+    /// A field in the data model of <paramref name="dataType"/>, or of the layout set's data type when it is null.
+    /// </summary>
+    public static BackendTextVariable DataModel(string name, string? dataType, string field, string description) =>
+        new(name, description, new TextVariableSource.DataModel(dataType, field));
 
-    // A missing parameter shows as nothing rather than as its name.
-    public override string? DefaultValue => "";
-}
+    /// <summary>
+    /// A value about the instance.
+    /// </summary>
+    public static BackendTextVariable InstanceContext(string name, InstanceContextKey key, string description) =>
+        new(name, description, new TextVariableSource.InstanceContext(key));
 
-/// <summary>
-/// The translation of another text resource, such as <c>appName</c>.
-/// </summary>
-internal sealed record TextVariable(string Name, string TextKey, string Description, string? Fallback = null)
-    : BackendTextVariable(Name, Description)
-{
-    public override string DataSource => "text";
-    public override string Key => TextKey;
-    public override string? DefaultValue => Fallback;
-}
-
-/// <summary>
-/// A field in the data model of <c>DataType</c>, or of the layout set's data type for <c>default</c>.
-/// </summary>
-internal sealed record DataModelVariable(string Name, string DataType, string Path, string Description)
-    : BackendTextVariable(Name, Description)
-{
-    public override string DataSource => $"dataModel.{DataType}";
-    public override string Key => Path;
-    public override bool NeedsLayoutState => true;
-}
-
-/// <summary>
-/// A value about the instance, such as <c>instanceOwnerPartyId</c> or <c>appId</c>.
-/// </summary>
-internal sealed record InstanceContextVariable(string Name, string ContextKey, string Description)
-    : BackendTextVariable(Name, Description)
-{
-    public override string DataSource => "instanceContext";
-    public override string Key => ContextKey;
-    public override bool NeedsLayoutState => true;
-}
-
-/// <summary>
-/// A frontend setting from the app's application settings.
-/// </summary>
-internal sealed record ApplicationSettingVariable(string Name, string Setting, string Description)
-    : BackendTextVariable(Name, Description)
-{
-    public override string DataSource => "applicationSettings";
-    public override string Key => Setting;
-    public override bool NeedsLayoutState => true;
+    /// <summary>
+    /// A frontend setting from the app's application settings.
+    /// </summary>
+    public static BackendTextVariable ApplicationSetting(string name, string key, string description) =>
+        new(name, description, new TextVariableSource.ApplicationSetting(key));
 }

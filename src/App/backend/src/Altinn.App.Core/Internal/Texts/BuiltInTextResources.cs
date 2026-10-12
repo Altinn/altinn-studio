@@ -24,7 +24,12 @@ internal static class BuiltInTextResources
         Texts = LocalizedText.Invariant("{appName}.pdf"),
         Variables =
         [
-            new TextVariable("appName", "appName", "The app's name, from the appName text.", Fallback: "Altinn PDF"),
+            BackendTextVariable.Text(
+                "appName",
+                "appName",
+                "The app's name, from the appName text.",
+                fallback: "Altinn PDF"
+            ),
         ],
     };
 
@@ -45,4 +50,10 @@ internal static class BuiltInTextResources
     public static readonly FrozenDictionary<string, BackendTextResource> ByKey = All.ToFrozenDictionary(text =>
         text.Key
     );
+
+    /// <summary>
+    /// The template for the key in nb, nn or en. Null for an unknown key or any other language.
+    /// </summary>
+    public static TextTemplate? Find(string key, string language) =>
+        ByKey.TryGetValue(key, out var text) ? text.ToTemplate(language) : null;
 }

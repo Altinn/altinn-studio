@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.RegularExpressions;
 using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Texts;
@@ -8,7 +7,7 @@ namespace Altinn.App.Core.Tests.Internal.Texts;
 
 public class BuiltInTextResourcesTests
 {
-    private static readonly Regex _placeholderRegex = new(@"\{([^{}]*)\}");
+    private static readonly string[] _languages = [LanguageConst.Nb, LanguageConst.Nn, LanguageConst.En];
 
     [Fact]
     public void All_HasTheValidationIssueTextsAndTheOthers()
@@ -31,7 +30,7 @@ public class BuiltInTextResourcesTests
     }
 
     [Fact]
-    public void EveryPlaceholderIsADeclaredVariable()
+    public void VariableNamesAreUnique()
     {
         Assert.All(
             BuiltInTextResources.All,
@@ -39,23 +38,30 @@ public class BuiltInTextResourcesTests
             {
                 var names = text.Variables.Select(variable => variable.Name).ToList();
                 Assert.Equal(names.Count, names.Distinct().Count());
-                Assert.All(text.Texts.ReplacementKeys, key => Assert.Contains(key, names));
-                Assert.Equal(text.Texts.ReplacementKeys.Count, text.ReplacementVariables.Count);
             }
         );
     }
 
     [Fact]
-    public void EveryLanguageUsesTheSamePlaceholders()
+    public void EveryTextHasATemplateInNbNnAndEn()
+    {
+        // ToTemplate throws for a placeholder that is not a declared variable.
+        Assert.All(
+            BuiltInTextResources.All,
+            text => Assert.All(_languages, language => Assert.NotNull(BuiltInTextResources.Find(text.Key, language)))
+        );
+    }
+
+    [Fact]
+    public void EveryLanguageUsesTheSameVariables()
     {
         Assert.All(
             BuiltInTextResources.All,
             text =>
                 Assert.Single(
-                    text.Texts.RawTexts.Select(raw => raw.Text)
-                        .Select(value =>
-                            string.Join(",", _placeholderRegex.Matches(value).Select(m => m.Value).Order())
-                        )
+                    _languages
+                        .Select(language => text.ToTemplate(language)!.Variables.Select(v => v.ToString()).Order())
+                        .Select(variables => string.Join(",", variables))
                         .Distinct()
                 )
         );
@@ -68,7 +74,15 @@ public class BuiltInTextResourcesTests
         // application settings variables cannot be resolved.
         Assert.All(
             BuiltInTextResources.All,
-            text => Assert.DoesNotContain(text.Variables, variable => variable.NeedsLayoutState)
+            text =>
+                Assert.DoesNotContain(
+                    text.Variables,
+                    variable =>
+                        variable.Source
+                            is TextVariableSource.DataModel
+                                or TextVariableSource.InstanceContext
+                                or TextVariableSource.ApplicationSetting
+                )
         );
     }
 
@@ -110,11 +124,11 @@ public class BuiltInTextResourcesTests
     }
 
     private static string Source(BackendTextVariable variable) =>
-        variable switch
+        TextResourceJson.ToVariable(variable.Source) switch
         {
-            CustomTextParameter => "`customTextParameters`",
-            { DefaultValue: { Length: > 0 } fallback } =>
-                $"`{variable.DataSource}`: `{variable.Key}`, or \"{fallback}\" when it has no value",
-            _ => $"`{variable.DataSource}`: `{variable.Key}`",
+            { DataSource: "customTextParameters" } => "`customTextParameters`",
+            { DefaultValue: { Length: > 0 } fallback } json =>
+                $"`{json.DataSource}`: `{json.Key}`, or \"{fallback}\" when it has no value",
+            var json => $"`{json.DataSource}`: `{json.Key}`",
         };
 }

@@ -2,6 +2,7 @@ using System.Globalization;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models.Validation;
+using static Altinn.App.Core.Internal.Texts.BackendTextVariable;
 
 namespace Altinn.App.Core.Features.Validation.Default;
 
@@ -14,11 +15,11 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// </remarks>
 internal static class BuiltInValidationIssues
 {
-    private static readonly CustomTextParameter _filename = new(
+    private static readonly BackendTextVariable _filename = CustomTextParameter(
         "filename",
         "Name of the file. Empty if the name is unknown."
     );
-    private static readonly CustomTextParameter _dataType = new("dataType", "Id of the data type.");
+    private static readonly BackendTextVariable _dataType = CustomTextParameter("dataType", "Id of the data type.");
 
     // Data elements
 
@@ -60,8 +61,8 @@ internal static class BuiltInValidationIssues
             [
                 _filename,
                 _dataType,
-                new CustomTextParameter("contentType", "Content type of the file, without parameters like charset."),
-                new CustomTextParameter("allowedContentTypes", "The allowed content types, separated by commas."),
+                CustomTextParameter("contentType", "Content type of the file, without parameters like charset."),
+                CustomTextParameter("allowedContentTypes", "The allowed content types, separated by commas."),
             ],
         },
     };
@@ -92,7 +93,7 @@ internal static class BuiltInValidationIssues
                 nn: "Fila er for stor. Største tillatne filstorleik er {maxSize} MB.",
                 en: "The file is too large. The maximum file size is {maxSize} MB."
             ),
-            Variables = [_filename, _dataType, new CustomTextParameter("maxSize", "Largest allowed file size in MB.")],
+            Variables = [_filename, _dataType, CustomTextParameter("maxSize", "Largest allowed file size in MB.")],
         },
     };
 
@@ -159,7 +160,7 @@ internal static class BuiltInValidationIssues
                 nn: "Det er lagt til fleire enn {maxCount} element av typen {dataType}.",
                 en: "More than {maxCount} items of type {dataType} have been added."
             ),
-            Variables = [new CustomTextParameter("maxCount", "Largest allowed number of data elements."), _dataType],
+            Variables = [CustomTextParameter("maxCount", "Largest allowed number of data elements."), _dataType],
         },
     };
 
@@ -183,7 +184,7 @@ internal static class BuiltInValidationIssues
                 nn: "Det må leggjast til minst {minCount} element av typen {dataType}.",
                 en: "At least {minCount} items of type {dataType} must be added."
             ),
-            Variables = [new CustomTextParameter("minCount", "Smallest allowed number of data elements."), _dataType],
+            Variables = [CustomTextParameter("minCount", "Smallest allowed number of data elements."), _dataType],
         },
     };
 
@@ -209,10 +210,10 @@ internal static class BuiltInValidationIssues
             ),
             Variables =
             [
-                new CustomTextParameter("signedCount", "Number of signees who have signed."),
-                new CustomTextParameter("signeeCount", "Number of signees for the task."),
-                new CustomTextParameter("minCount", "Smallest number of signatures the signature data type requires."),
-                new CustomTextParameter("dataType", "Id of the signature data type."),
+                CustomTextParameter("signedCount", "Number of signees who have signed."),
+                CustomTextParameter("signeeCount", "Number of signees for the task."),
+                CustomTextParameter("minCount", "Smallest number of signatures the signature data type requires."),
+                CustomTextParameter("dataType", "Id of the signature data type."),
             ],
         },
     };
@@ -244,7 +245,7 @@ internal static class BuiltInValidationIssues
             ),
             Variables =
             [
-                new CustomTextParameter("dataElementId", "Id of the signed data element that has changed."),
+                CustomTextParameter("dataElementId", "Id of the signed data element that has changed."),
                 _filename,
                 _dataType,
             ],
@@ -271,13 +272,13 @@ internal static class BuiltInValidationIssues
             Texts = new LocalizedText(nb: "Feltet er påkrevd", nn: "Feltet er påkravd", en: "Field is required"),
             Variables =
             [
-                new CustomTextParameter("field", "Path of the field in the data model."),
-                new CustomTextParameter("layoutId", "Id of the layout set."),
-                new CustomTextParameter("pageId", "Id of the page."),
-                new CustomTextParameter("componentId", "Id of the component."),
-                new CustomTextParameter("bindingName", "Name of the data model binding, like simpleBinding."),
-                new CustomTextParameter("pageName", "The page id translated as a text resource."),
-                new CustomTextParameter(
+                CustomTextParameter("field", "Path of the field in the data model."),
+                CustomTextParameter("layoutId", "Id of the layout set."),
+                CustomTextParameter("pageId", "Id of the page."),
+                CustomTextParameter("componentId", "Id of the component."),
+                CustomTextParameter("bindingName", "Name of the data model binding, like simpleBinding."),
+                CustomTextParameter("pageName", "The page id translated as a text resource."),
+                CustomTextParameter(
                     "componentTitle",
                     "The component's title. Only set when the title is a text, not an expression."
                 ),
@@ -316,8 +317,8 @@ internal static class BuiltInValidationIssues
             ),
             Variables =
             [
-                new CustomTextParameter("schema", "Id of the data type whose schema was violated."),
-                new CustomTextParameter("message", "The message from the XML schema validation."),
+                CustomTextParameter("schema", "Id of the data type whose schema was violated."),
+                CustomTextParameter("message", "The message from the XML schema validation."),
             ],
         },
     };

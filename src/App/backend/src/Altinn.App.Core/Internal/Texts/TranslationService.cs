@@ -93,39 +93,40 @@ internal sealed class TranslationService : ITranslationService
     )
     {
         var resourceElement = await GetTextResourceElement(key, language);
-        if (resourceElement is null && BuiltInTextResources.ByKey.TryGetValue(key, out var builtInText))
+        if (resourceElement is null)
         {
-            return await ApplyBuiltInText(
-                builtInText,
-                language ?? LanguageConst.Nb,
-                state,
-                context,
-                customTextParameters
-            );
+            // Built-in texts have nb, nn and en. Any other language gets the en text, while its variables are
+            // still translated in the requested language.
+            language ??= LanguageConst.Nb;
+            var textLanguage = language is LanguageConst.Nb or LanguageConst.Nn ? language : LanguageConst.En;
+            if (BuiltInTextResources.Find(key, textLanguage) is { } template)
+            {
+                return await ApplyTemplate(key, template, language, state, context, customTextParameters);
+            }
         }
 
         return await ReplaceVariables(resourceElement, state, context, customTextParameters, language);
     }
 
     /// <summary>
-    /// Resolves the built-in text's variables in the order of its replacement keys, and fills them in.
+    /// Resolves the template's variables and fills them in.
     /// </summary>
-    private async Task<string> ApplyBuiltInText(
-        BackendTextResource textResource,
+    private async Task<string> ApplyTemplate(
+        string key,
+        TextTemplate template,
         string language,
         LayoutEvaluatorState? state,
         ComponentContext? context,
         Dictionary<string, string>? customTextParameters
     )
     {
-        var variables = textResource.ReplacementVariables;
-        var values = new string?[variables.Count];
-        for (var i = 0; i < variables.Count; i++)
+        var values = new string[template.Variables.Length];
+        for (var i = 0; i < values.Length; i++)
         {
-            var variable = variables[i];
+            var variable = TextResourceJson.ToVariable(template.Variables[i]);
             values[i] =
                 await EvaluateTextVariable(
-                    textResource.Key,
+                    key,
                     variable.DataSource,
                     variable.Key,
                     state,
@@ -137,7 +138,7 @@ internal sealed class TranslationService : ITranslationService
                 ?? variable.Key;
         }
 
-        return textResource.Texts.Apply(language, values);
+        return template.Apply(values);
     }
 
     private async Task<string?> ReplaceVariables(
