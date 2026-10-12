@@ -8,7 +8,6 @@ import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import vitestMigratedDirectories from './vitest.migrated.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -412,23 +411,6 @@ export default [
           message: 'Import from @altinn/schema-model instead of using relative path.',
         },
       ]),
-    },
-  },
-  {
-    // Tests in the directories listed in vitest.migrated.js run with Vitest, so they must not use Jest's API.
-    files: vitestMigratedDirectories.flatMap((directory) => [
-      `${directory}/**/*.test.ts`,
-      `${directory}/**/*.test.tsx`,
-    ]),
-    rules: {
-      'no-restricted-globals': [
-        'error',
-        {
-          name: 'jest',
-          message:
-            "This test runs with Vitest. Use vi from 'vitest' instead of jest. See the unit test section in src/Designer/frontend/AGENTS.md.",
-        },
-      ],
     },
   },
 ];
