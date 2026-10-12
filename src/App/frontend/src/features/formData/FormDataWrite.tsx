@@ -16,6 +16,7 @@ import { useIsMutating, useMutation, useQueryClient } from 'src/core/queries/rea
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { FormStore, getRootFormStore } from 'src/features/form/FormContext';
+import { createBatchedFormDataSetter } from 'src/features/formData/FormDataWriteBatch';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
@@ -33,6 +34,7 @@ import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
 import type { FormStoreApi, FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapQueryResponse } from 'src/features/formBootstrap/useFormBootstrapQuery';
+import type { FDBatchedValue } from 'src/features/formData/FormDataWriteBatch';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import type { FDActionResult, FDSaveFinished, UpdatedDataModel } from 'src/features/formData/FormDataWriteStateMachine';
 import type { DebounceReason, IPatchListItem } from 'src/features/formData/types';
@@ -54,6 +56,23 @@ export interface FormDataSliceProps {
 }
 
 const saveFormDataMutationKey = ['saveFormData'] as const;
+
+const batchedLeafSetters = new WeakMap<FormStoreApi, ReturnType<typeof createBatchedFormDataSetter>>();
+
+function useBatchedSetLeafValue() {
+  const store = FormStore.raw.useStore();
+  return useCallback(
+    (change: FDBatchedValue) => {
+      let setter = batchedLeafSetters.get(store);
+      if (!setter) {
+        setter = createBatchedFormDataSetter((changes) => store.getState().data.setMultiLeafValues({ changes }));
+        batchedLeafSetters.set(store, setter);
+      }
+      return setter(change);
+    },
+    [store],
+  );
+}
 
 function adjustNestedFormStatus(rootStore: FormStoreApi, unsavedDelta: number, unloadWarningDelta: number) {
   rootStore.setState((state) => ({
@@ -911,6 +930,13 @@ export const formDataHooks = {
    * @see useDataModelBindings
    */
   useSetMultiLeafValues: () => FormStore.raw.useStaticSelector((s) => s.data.setMultiLeafValues),
+
+  /**
+   * Collect writes from independent effects into one setMultiLeafValues call per form store in the next microtask.
+   * Return the setter's cleanup from the effect to discard its pending write when it changes or unmounts.
+   * Use useSetLeafValue for input handlers and callers that need the updated value synchronously.
+   */
+  useBatchedSetLeafValue,
 
   /**
    * The locking functionality allows you to prevent form data from saving, even if the user stops typing (or navigates
