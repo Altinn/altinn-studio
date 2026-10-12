@@ -247,7 +247,7 @@ func generateLocalPdfHandler(
 				r.Context(),
 				"Failed to normalize localtest request URL",
 				"error", normalizeErr,
-				"url", req.URL,
+				"url", telemetry.RedactURL(req.URL),
 				"env_var", config.LocaltestPublicBaseURLEnv,
 			)
 		} else if rewriteReason != "" {
@@ -260,7 +260,7 @@ func generateLocalPdfHandler(
 			req.URL = normalizedURL
 		}
 
-		reqLogger := logger.With("url", req.URL)
+		reqLogger := logger.With("url", telemetry.RedactURL(req.URL))
 		data.SetPdfRequest(req)
 
 		if err := req.Validate(); err != nil {
@@ -418,7 +418,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 			return
 		}
 
-		reqLogger := logger.With("url", req.URL)
+		reqLogger := logger.With("url", telemetry.RedactURL(req.URL))
 		data.SetPdfRequest(req)
 
 		requestContext := r.Context()

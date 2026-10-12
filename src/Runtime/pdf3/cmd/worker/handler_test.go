@@ -61,3 +61,23 @@ func TestGeneratePdfHandlerLogsOnlyCurrentRequestURL(t *testing.T) {
 		}
 	}
 }
+
+func TestGeneratePdfHandlerLogsURLWithoutQueryOrFragment(t *testing.T) {
+	var logs bytes.Buffer
+	handler := generatePdfHandler(slog.New(slog.NewTextHandler(&logs, nil)), stubGenerator{})
+
+	body := strings.NewReader(`{"url":"http://user:pass@example.com/ttd/app?token=secret#/instance/1"}`)
+	r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/generate", body)
+	r.Header.Set("Content-Type", "application/json")
+	handler(failingBodyWriter{httptest.NewRecorder()}, r)
+
+	line := logs.String()
+	if !strings.Contains(line, " url=http://example.com/ttd/app ") {
+		t.Errorf("expected the URL without user, query or fragment in %q", line)
+	}
+	for _, leaked := range []string{"pass", "secret", "instance"} {
+		if strings.Contains(line, leaked) {
+			t.Errorf("log contains %q: %q", leaked, line)
+		}
+	}
+}

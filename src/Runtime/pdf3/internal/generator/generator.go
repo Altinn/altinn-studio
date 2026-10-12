@@ -144,9 +144,11 @@ func (g *Custom) IsReady() bool {
 }
 
 func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types.PdfResult, *types.PDFError) {
+	// The URL as logs show it: without query or fragment.
+	requestURL := telemetry.RedactURL(request.URL)
 	session := g.activeSession.Load()
-	assert.That(session != nil, "The worker should not call the generator unless it is ready", "url", request.URL)
-	assert.That(request.Validate() == nil, "Invalid request passed through to worker", "url", request.URL)
+	assert.That(session != nil, "The worker should not call the generator unless it is ready", "url", requestURL)
+	assert.That(request.Validate() == nil, "Invalid request passed through to worker", "url", requestURL)
 
 	ctx, span := g.tracer.Start(ctx, "pdf.generate", trace.WithSpanKind(trace.SpanKindInternal))
 	defer span.End()
@@ -158,12 +160,12 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		ctx:        ctx,
 		enqueuedAt: time.Now(),
 		cleanedUp:  false,
-		logger:     g.logger.With("url", request.URL),
+		logger:     g.logger.With("url", requestURL),
 	}
 
 	if !session.tryEnqueue(req) {
 		// Queue-full 429s are expected; proxy retries handle them, so no span error or warning.
-		g.logger.InfoContext(ctx, "Request queue full, rejecting request", "url", request.URL)
+		g.logger.InfoContext(ctx, "Request queue full, rejecting request", "url", requestURL)
 		return nil, types.NewPDFError(types.ErrQueueFull, "", nil)
 	}
 
@@ -173,7 +175,7 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 			recordPDFError(span, response.Error)
 			return nil, response.Error
 		}
-		pdfData, pdfErr := g.prepareResponsePDF(ctx, request.URL, response.Data)
+		pdfData, pdfErr := g.prepareResponsePDF(ctx, requestURL, response.Data)
 		if pdfErr != nil {
 			recordPDFError(span, pdfErr)
 			return nil, pdfErr
@@ -187,7 +189,7 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		recordPDFError(span, pdfErr)
 		return nil, pdfErr
 	case <-time.After(types.RequestTimeout()):
-		assert.That(false, "generator failed to respond to request, something must be stuck", "url", request.URL)
+		assert.That(false, "generator failed to respond to request, something must be stuck", "url", requestURL)
 		pdfErr := types.NewPDFError(types.ErrGenerationFail, "internal request timeout", nil)
 		recordPDFError(span, pdfErr)
 		return nil, pdfErr

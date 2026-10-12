@@ -250,14 +250,14 @@ func (w *browserSession) handleRequests() {
 
 			w.currentRequest.Store(&req)
 			rootLogger := w.logger
-			w.logger = w.logger.With("url", req.request.URL)
+			w.logger = w.logger.With("url", telemetry.RedactURL(req.request.URL))
 			w.handleRequest(&req)
 			w.logger = rootLogger
 			w.currentRequest.Store(nil)
 
 			w.assertA(
 				req.hasResponded(),
-				"Did not respond to request", "url", req.request.URL,
+				"Did not respond to request", "url", telemetry.RedactURL(req.request.URL),
 			)
 
 			w.tryUpdateTestModeOutput(&req, "After", true)
@@ -306,7 +306,7 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 			err := fmt.Errorf("%w: %v", errRecoveredPanic, r)
 			w.logger.ErrorContext(ctx, "Recovered from panic", "error", err)
 			telemetry.SetError(span, "panic", err)
-			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, req.request.URL, err))
+			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
 		}
 
 		if data := telemetry.RequestAttributesFromContext(ctx); data != nil {
@@ -930,7 +930,12 @@ func (w *browserSession) handleWaitError(req *workerRequest, logMsg string, data
 		dataBytes = fmt.Appendf(nil, "(marshal error: %v)", err)
 	}
 
-	w.logger.ErrorContext(req.ctx, logMsg, "waitFor", waitForData, "data", string(dataBytes))
+	w.logger.ErrorContext(
+		req.ctx,
+		logMsg,
+		"waitFor", waitForData,
+		"data", truncate(string(dataBytes), maxBrowserMessageLength),
+	)
 
 	err = fmt.Errorf("%w: %s", errWaitConditionError, errDetail)
 	req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
@@ -1269,7 +1274,7 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) error {
 
 func (w *browserSession) assert(condition bool, message string) {
 	if req := w.currentRequest.Load(); req != nil {
-		assert.That(condition, message, "id", w.id, "url", req.request.URL)
+		assert.That(condition, message, "id", w.id, "url", telemetry.RedactURL(req.request.URL))
 	} else {
 		assert.That(condition, message, "id", w.id)
 	}
@@ -1279,7 +1284,7 @@ func (w *browserSession) assertA(condition bool, message string, userArgs ...any
 	if req := w.currentRequest.Load(); req != nil {
 		args := make([]any, 0, 2+2+len(userArgs))
 		args = append(args, "id", w.id)
-		args = append(args, "url", req.request.URL)
+		args = append(args, "url", telemetry.RedactURL(req.request.URL))
 		args = append(args, userArgs...)
 		assert.That(condition, message, args...)
 	} else {

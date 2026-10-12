@@ -531,7 +531,7 @@ func (c *connection) handleMessages() {
 			var msg CDPMessage
 			if err := json.Unmarshal(result.payload, &msg); err != nil {
 				// Chrome should never send invalid JSON - this indicates protocol corruption
-				c.assertA(false, "Chrome sent malformed JSON", "error", err, "payload", string(result.payload))
+				c.assertA(false, "Chrome sent malformed JSON", "error", err, "payload_bytes", len(result.payload))
 				continue
 			}
 

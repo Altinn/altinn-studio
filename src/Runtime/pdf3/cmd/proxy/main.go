@@ -202,7 +202,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 		//   means we might try to allocate a worker for 10 seconds before giving up.
 		//   If the cluster has available capacity a pod can boot in 2-10 seconds
 		const maxRetries = 40
-		reqLogger := logger.With("url", req.URL, "max_retries", maxRetries)
+		reqLogger := logger.With("url", telemetry.RedactURL(req.URL), "max_retries", maxRetries)
 		reqLogger.Info("Generating PDF", "attempt", 0, "elapsed", time.Since(start))
 
 		// Prepare request body
