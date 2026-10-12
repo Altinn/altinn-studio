@@ -1,6 +1,7 @@
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Cli.Upgrade.ProjectFile;
 
@@ -9,6 +10,34 @@ namespace Altinn.Studio.Cli.Upgrade.ProjectFile;
 /// </summary>
 internal sealed class ProjectFileRewriter
 {
+    private static readonly (string Package, string[] RelPath)[] _packagesInfo =
+    {
+        (
+            Package: "Altinn.App.Core",
+            RelPath: new[] { "src", "App", "backend", "src", "Altinn.App.Core", "Altinn.App.Core.csproj" }
+        ),
+        (
+            Package: "Altinn.App.Api",
+            RelPath: new[] { "src", "App", "backend", "src", "Altinn.App.Api", "Altinn.App.Api.csproj" }
+        ),
+        (
+            Package: "Altinn.Codelists",
+            RelPath: new[] { "src", "App", "codelists", "src", "Altinn.Codelists", "Altinn.Codelists.csproj" }
+        ),
+        (
+            Package: "Altinn.FileAnalyzers",
+            RelPath: new[]
+            {
+                "src",
+                "App",
+                "fileanalyzers",
+                "src",
+                "Altinn.FileAnalyzers",
+                "Altinn.FileAnalyzers.csproj",
+            }
+        ),
+    };
+
     private readonly XDocument _doc;
     private readonly XDocument _originalDoc;
     private readonly string _projectFilePath;
@@ -38,19 +67,28 @@ internal sealed class ProjectFileRewriter
     /// <summary>
     /// Upgrades and writes an upgraded version of the project file to disk
     /// </summary>
-    public async Task Upgrade()
+    public async Task Upgrade(bool preserveNewerPackageVersions = false, CancellationToken cancellationToken = default)
     {
-        var altinnAppCoreElements = GetAltinnAppCoreElement();
-        altinnAppCoreElements?.ForEach(c => c.Attribute("Version")?.SetValue(_targetVersion));
-
-        var altinnAppApiElements = GetAltinnAppApiElement();
-        altinnAppApiElements?.ForEach(a => a.Attribute("Version")?.SetValue(_targetVersion));
+        var target = NuGetVersion.Parse(_targetVersion);
+        var packages = (GetAltinnAppCoreElement() ?? []).Concat(GetAltinnAppApiElement() ?? []);
+        foreach (var package in packages)
+        {
+            var attribute = package.Attribute("Version");
+            if (
+                preserveNewerPackageVersions
+                && attribute is { Value: var value }
+                && PinnedPackageVersion.Parse(value) is { } version
+                && version >= target
+            )
+                continue;
+            attribute?.SetValue(_targetVersion);
+        }
 
         IgnoreWarnings("1591", "1998"); // Require xml doc and await in async methods
 
-        GetTargetFrameworkElement()?.ForEach(t => t.SetValue(_targetFramework));
+        RewriteTargetFramework();
 
-        await Save();
+        await Save(cancellationToken);
     }
 
     /// <summary>Removes every <c>PackageReference</c> to <paramref name="packageName"/>.</summary>
@@ -63,10 +101,16 @@ internal sealed class ProjectFileRewriter
         return packageElements is { Count: > 0 };
     }
 
-    public async Task SetTargetFramework()
+    public async Task SetTargetFramework(CancellationToken cancellationToken = default)
     {
-        GetTargetFrameworkElement()?.ForEach(t => t.SetValue(_targetFramework));
-        await Save();
+        RewriteTargetFramework();
+        await Save(cancellationToken);
+    }
+
+    private void RewriteTargetFramework()
+    {
+        foreach (var element in GetTargetFrameworkElement() ?? [])
+            element.SetValue(_targetFramework);
     }
 
     /// <summary>
@@ -171,55 +215,35 @@ internal sealed class ProjectFileRewriter
     }
 
     /// <summary>
-    /// Converts package references to project references for local development and updates target framework
+    /// Checks that every declared package being converted has a source project available.
     /// </summary>
-    public async Task ConvertToProjectReferences(string repoRoot)
+    private void ValidateProjectReferences(string repoRoot)
     {
+        foreach (var (packageName, relativePath) in _packagesInfo)
+        {
+            if (GetPackageReferenceElement(packageName) is not { Count: > 0 })
+                continue;
+            var project = Path.Combine(repoRoot, Path.Combine(relativePath));
+            if (!File.Exists(project))
+                throw new InvalidOperationException(
+                    $"Project file not found: {project}. Cannot convert {packageName} safely."
+                );
+        }
+    }
+
+    /// <summary>
+    /// Converts package references to project references for local development.
+    /// Updates the target framework in the same edit, after validating the source projects.
+    /// </summary>
+    public async Task ConvertToProjectReferences(string repoRoot, CancellationToken cancellationToken = default)
+    {
+        ValidateProjectReferences(repoRoot);
+
         var projectDir = Path.GetDirectoryName(_projectFilePath);
         if (projectDir == null)
         {
             throw new InvalidOperationException($"Could not determine directory for project file: {_projectFilePath}");
         }
-
-        if (!Directory.Exists(Path.Combine(repoRoot, "src", "App")))
-        {
-            throw new InvalidOperationException(
-                "Could not find repository root containing src/App. "
-                    + "Pass the altinn-studio repository root directory."
-            );
-        }
-
-        // Update target framework
-        GetTargetFrameworkElement()?.ForEach(t => t.SetValue(_targetFramework));
-
-        // Define the packages to convert and their relative project paths
-        var packagesInfo = new[]
-        {
-            (
-                Package: "Altinn.App.Core",
-                RelPath: new[] { "src", "App", "backend", "src", "Altinn.App.Core", "Altinn.App.Core.csproj" }
-            ),
-            (
-                Package: "Altinn.App.Api",
-                RelPath: new[] { "src", "App", "backend", "src", "Altinn.App.Api", "Altinn.App.Api.csproj" }
-            ),
-            (
-                Package: "Altinn.Codelists",
-                RelPath: new[] { "src", "App", "codelists", "src", "Altinn.Codelists", "Altinn.Codelists.csproj" }
-            ),
-            (
-                Package: "Altinn.FileAnalyzers",
-                RelPath: new[]
-                {
-                    "src",
-                    "App",
-                    "fileanalyzers",
-                    "src",
-                    "Altinn.FileAnalyzers",
-                    "Altinn.FileAnalyzers.csproj",
-                }
-            ),
-        };
 
         var itemGroup = _doc.Root?.Elements("ItemGroup").FirstOrDefault(ig => ig.Elements("PackageReference").Any());
 
@@ -233,7 +257,7 @@ internal sealed class ProjectFileRewriter
         }
 
         bool addedAnyProjectReferences = false;
-        foreach (var (packageName, relPath) in packagesInfo)
+        foreach (var (packageName, relPath) in _packagesInfo)
         {
             // Check if package reference exists
             var packageElements = GetPackageReferenceElement(packageName);
@@ -241,15 +265,6 @@ internal sealed class ProjectFileRewriter
             {
                 // Build the full project path
                 var projectPath = Path.Combine(repoRoot, Path.Combine(relPath));
-
-                // Check if the project file actually exists
-                if (!File.Exists(projectPath))
-                {
-                    UpgradeConsole.WriteLine(
-                        $"Warning: Project file not found: {projectPath}. Skipping {packageName}."
-                    );
-                    continue;
-                }
 
                 // Calculate relative path from the app project to the library project
                 var relativePath = Path.GetRelativePath(projectDir, projectPath);
@@ -261,8 +276,6 @@ internal sealed class ProjectFileRewriter
                 var projectReference = new XElement("ProjectReference", new XAttribute("Include", relativePath));
                 itemGroup.Add(projectReference);
                 addedAnyProjectReferences = true;
-
-                UpgradeConsole.WriteLine($"Converted {packageName} from package reference to project reference");
             }
         }
 
@@ -272,7 +285,8 @@ internal sealed class ProjectFileRewriter
             itemGroup.Remove();
         }
 
-        await Save();
+        RewriteTargetFramework();
+        await Save(cancellationToken);
     }
 
     private void IgnoreWarnings(params string[] warnings)
@@ -332,8 +346,9 @@ internal sealed class ProjectFileRewriter
             .ToList();
     }
 
-    private async Task Save()
+    private async Task Save(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         // Compare the current document with the original to detect actual changes
         // This comparison ignores formatting differences and only checks semantic changes
         if (XNode.DeepEquals(_doc, _originalDoc))
@@ -346,9 +361,19 @@ internal sealed class ProjectFileRewriter
         xws.OmitXmlDeclaration = true;
         xws.Indent = true;
         xws.Encoding = Encoding.UTF8;
-        await using XmlWriter xw = XmlWriter.Create(_projectFilePath, xws);
-        await _doc.WriteToAsync(xw, CancellationToken.None);
-        await xw.FlushAsync();
+        var originalBytes = await File.ReadAllBytesAsync(_projectFilePath, cancellationToken);
+        try
+        {
+            await using XmlWriter xw = XmlWriter.Create(_projectFilePath, xws);
+            await _doc.WriteToAsync(xw, cancellationToken);
+            await xw.FlushAsync();
+        }
+        catch
+        {
+            // A failed or canceled write must not leave a partially rewritten project file.
+            await File.WriteAllBytesAsync(_projectFilePath, originalBytes, CancellationToken.None);
+            throw;
+        }
     }
 }
 

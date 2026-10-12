@@ -19,6 +19,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- `studioctl app upgrade v9` moves apps and Docker images to .NET 11, including older v9 previews, and updates packages to `9.0.0-preview.8` or later while preserving newer versions. Automatic framework migration requires a single, explicit, unconditional `TargetFramework` in the app’s project file. Inherited and other unsupported framework configurations require manual changes.
 - `studioctl app upgrade v9` removes unsupported summary flags and summary title bindings from component layouts, while keeping supported settings such as Payment receipt rendering. ([#21141](https://github.com/Altinn/altinn-studio/pull/21141))
 - `studioctl app upgrade v9` removes unsupported `required` and `readOnly` properties from known components. It preserves `minNumberOfAttachments` and `minCount`; conflicts with `required` produce a TODO asking you to verify the minimum. ([#16618](https://github.com/Altinn/altinn-studio/issues/16618))
 - `studioctl env up --monitoring` now runs VictoriaMetrics, VictoriaTraces and VictoriaLogs, with Grafana 12.4: ([#20578](https://github.com/Altinn/altinn-studio/pull/20578))
