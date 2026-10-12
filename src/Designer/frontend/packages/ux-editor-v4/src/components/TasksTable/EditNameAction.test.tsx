@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../testing/mocks';
 import { EditNameAction, type EditNameActionProps } from './EditNameAction';
 import { screen } from '@testing-library/react';
@@ -30,7 +31,7 @@ const textResources: ITextResources = {
 };
 
 describe('EditNameAction', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render the task type in the text area if no name is set', async () => {
     const taskWithoutName: TaskNavigationGroup = {
@@ -84,7 +85,7 @@ describe('EditNameAction', () => {
 
   it('should use a new text resource id when the selected text resource is cleared', async () => {
     const user = userEvent.setup();
-    const handleUpdateTaskNavigationGroup = jest.fn();
+    const handleUpdateTaskNavigationGroup = vi.fn();
     renderEditNameAction({ task: { taskType: 'data' }, handleUpdateTaskNavigationGroup });
 
     await clickEditNameButton();
@@ -141,8 +142,8 @@ const renderEditNameAction = (props: Partial<EditNameActionProps> = {}) => {
     },
     tasks: [],
     index: 0,
-    handleUpdateTaskNavigationGroup: jest.fn(),
-    setPopoverOpen: jest.fn(),
+    handleUpdateTaskNavigationGroup: vi.fn(),
+    setPopoverOpen: vi.fn(),
   };
 
   const queryClient = createQueryClientMock();

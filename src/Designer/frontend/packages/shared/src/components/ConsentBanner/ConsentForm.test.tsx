@@ -1,16 +1,18 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConsentForm } from './ConsentForm';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import * as consentHooks from '../../utils/consent';
 
-jest.mock('../../utils/consent', () => ({
-  useConsent: jest.fn(),
-  useConsentMutation: jest.fn(),
+vi.mock('../../utils/consent', () => ({
+  useConsent: vi.fn(),
+  useConsentMutation: vi.fn(),
 }));
 
-const mockSetConsentPreferences = jest.fn();
-const mockDenyAllConsent = jest.fn();
+const mockSetConsentPreferences = vi.fn();
+const mockDenyAllConsent = vi.fn();
 
 const defaultConsentState = {
   hasAnalyticsConsent: false,
@@ -32,16 +34,16 @@ const getDeclineAllButton = () =>
 
 describe('ConsentForm', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    (consentHooks.useConsent as jest.Mock).mockReturnValue(defaultConsentState);
-    (consentHooks.useConsentMutation as jest.Mock).mockReturnValue({
+    vi.clearAllMocks();
+    (consentHooks.useConsent as Mock).mockReturnValue(defaultConsentState);
+    (consentHooks.useConsentMutation as Mock).mockReturnValue({
       setConsentPreferences: mockSetConsentPreferences,
       denyAllConsent: mockDenyAllConsent,
     });
   });
 
   it('reflects initial analytics consent in the analytics switch', () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasAnalyticsConsent: true,
       hasSessionRecordingConsent: false,
     });
@@ -50,7 +52,7 @@ describe('ConsentForm', () => {
   });
 
   it('reflects initial session recording consent in the session recording switch', () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasAnalyticsConsent: true,
       hasSessionRecordingConsent: true,
     });
@@ -71,7 +73,7 @@ describe('ConsentForm', () => {
   });
 
   it('unchecks session recording when analytics is turned off', async () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasAnalyticsConsent: true,
       hasSessionRecordingConsent: true,
     });
@@ -94,7 +96,7 @@ describe('ConsentForm', () => {
   });
 
   it('calls onSave callback after saving', async () => {
-    const mockOnSave = jest.fn();
+    const mockOnSave = vi.fn();
     const user = userEvent.setup();
     renderConsentForm({ onSave: mockOnSave });
     await user.click(getAnalyticsSwitch());
@@ -110,12 +112,12 @@ describe('ConsentForm', () => {
   });
 
   it('calls denyAllConsent and resets toggles when decline all is clicked', async () => {
-    (consentHooks.useConsent as jest.Mock).mockReturnValue({
+    (consentHooks.useConsent as Mock).mockReturnValue({
       hasAnalyticsConsent: true,
       hasSessionRecordingConsent: true,
     });
     const user = userEvent.setup();
-    renderConsentForm({ onDeclineAll: jest.fn() });
+    renderConsentForm({ onDeclineAll: vi.fn() });
     await user.click(getDeclineAllButton());
     expect(mockDenyAllConsent).toHaveBeenCalled();
     expect(getAnalyticsSwitch()).not.toBeChecked();
@@ -123,7 +125,7 @@ describe('ConsentForm', () => {
   });
 
   it('calls onDeclineAll callback after declining', async () => {
-    const mockOnDeclineAll = jest.fn();
+    const mockOnDeclineAll = vi.fn();
     const user = userEvent.setup();
     renderConsentForm({ onDeclineAll: mockOnDeclineAll });
     await user.click(getDeclineAllButton());

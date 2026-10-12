@@ -13,6 +13,8 @@ import { IDataModelBindingsSimple } from '@app/layout-contract/generated/seriali
 export type CompDatepickerSerialized = {
   type: 'Datepicker';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   autocomplete?: 'bday';
@@ -37,4 +39,4 @@ export type CompDatepickerSerialized = {
   SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 95d9689346f1f2ba17ed515de1db9184bd6ab1a81cbc46e350191a5327e5686f
+// Source hash: f1a902fc330aa4f29fe771dbd2c0f0d4cc96bec4f44b0cfcd0f0d607a4297eef

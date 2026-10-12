@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor-v8/types/OnProcessTask';
 import { OnProcessTaskRemoveHandler } from './OnProcessTaskRemoveHandler';
@@ -5,20 +6,23 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { BpmnTypeEnum } from '@altinn/process-editor-v8/enum/BpmnTypeEnum';
 import type { TaskEvent } from '@altinn/process-editor-v8/types/TaskEvent';
 import type { BpmnBusinessObjectEditor } from '@altinn/process-editor-v8/types/BpmnBusinessObjectEditor';
+import type * as StudioModelerModule from '@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler';
 import { app, org } from '@studio/testing/testids';
 import type { BpmnTaskType } from '@altinn/process-editor-v8/types/BpmnTaskType';
 import { getMockBpmnElementForTask } from '../../test/mocks/bpmnDetailsMock';
 import { StudioModeler } from '@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler';
 import type { Element } from 'bpmn-js/lib/model/Types';
 
-jest.mock('@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler', () => {
-  const actual = jest.requireActual('@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler');
+vi.mock('@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler', async () => {
+  const actual = await vi.importActual<typeof StudioModelerModule>(
+    '@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler',
+  );
   return {
     ...actual,
-    StudioModeler: jest.fn().mockImplementation(function (args) {
+    StudioModeler: vi.fn().mockImplementation(function (args) {
       const instance = new actual.StudioModeler(args);
-      instance.getElement = jest.fn().mockReturnValue(instance.element);
-      instance.getAllTasksByType = jest.fn().mockReturnValue(signingTasks);
+      instance.getElement = vi.fn().mockReturnValue(instance['element']);
+      instance.getAllTasksByType = vi.fn().mockReturnValue(signingTasks);
       return instance;
     }),
   };
@@ -31,9 +35,9 @@ const currentPolicyMock: Policy = {
 };
 const layoutSetsMock = [];
 
-const mutateApplicationPolicyMock = jest.fn();
-const deleteDataTypeFromAppMetadataMock = jest.fn();
-const deleteLayoutSetMock = jest.fn();
+const mutateApplicationPolicyMock = vi.fn();
+const deleteDataTypeFromAppMetadataMock = vi.fn();
+const deleteLayoutSetMock = vi.fn();
 
 const createTaskMetadataMock = (
   taskType: string,
@@ -91,7 +95,7 @@ const createOnRemoveProcessTaskHandler = ({ currentPolicy, layoutSets }: any) =>
 
 describe('OnProcessTaskRemoveHandler', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should remove layoutSet when data-task is deleted', () => {

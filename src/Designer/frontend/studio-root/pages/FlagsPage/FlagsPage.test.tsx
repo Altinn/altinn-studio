@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   FeatureFlag,
   FeatureFlagsContextProvider,
@@ -11,11 +12,11 @@ import { userEvent } from '@testing-library/user-event';
 const allFlags: FeatureFlag[] = Object.values(FeatureFlag);
 
 // Mocks:
-const addFlag = jest.fn();
-const removeFlag = jest.fn();
+const addFlag = vi.fn();
+const removeFlag = vi.fn();
 
 describe('FlagsPage', () => {
-  beforeEach(jest.clearAllMocks);
+  beforeEach(vi.clearAllMocks);
 
   it('Renders a switch for each flag', () => {
     renderFlagsPage();

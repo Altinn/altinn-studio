@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, test, vi } from 'vitest';
 import { useRef } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -14,15 +15,15 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 const mockButtonText: string = 'Mock Button';
 const org = 'skd';
 
-const mockOnClose = jest.fn();
+const mockOnClose = vi.fn();
 
 const defaultProps: NewResourceModalProps = {
   onClose: mockOnClose,
 };
 
-const mockedNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+const mockedNavigate = vi.fn();
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockedNavigate,
   useParams: () => {
     return { org: org };
@@ -30,7 +31,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('NewResourceModal', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should be closed by default', () => {
     renderNewResourceModal();
@@ -59,7 +60,7 @@ describe('NewResourceModal', () => {
 
   test('that create button should not create new resource when input fields are empty', async () => {
     const user = userEvent.setup();
-    const createResourceMock = jest.fn();
+    const createResourceMock = vi.fn();
     await renderAndOpenModal({ createResource: createResourceMock });
 
     const createButton = screen.getByRole('button', {
@@ -122,7 +123,7 @@ describe('NewResourceModal', () => {
   test('should show error message if resource id is already in use', async () => {
     const user = userEvent.setup();
     await renderAndOpenModal({
-      createResource: jest
+      createResource: vi
         .fn()
         .mockImplementation(() => Promise.reject({ response: { status: ServerCodes.Conflict } })),
     });

@@ -138,16 +138,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for Address, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Address, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Address, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -211,6 +201,16 @@ export const Expressions = {
           'Invalid expression for Address, property textResourceBindings.houseNumberTitle',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Address, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Address, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -235,16 +235,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for AddToList, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for AddToList, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for AddToList, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -506,16 +496,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for Checkboxes, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Checkboxes, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Checkboxes, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -599,6 +579,16 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for Checkboxes, property textResourceBindings.help',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Checkboxes, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Checkboxes, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -628,16 +618,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for Custom, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Custom, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Custom, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -683,6 +663,16 @@ export const Expressions = {
           'Invalid expression for Custom, property textResourceBindings.additionalProperties',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Custom, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Custom, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -796,16 +786,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for Datepicker, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Datepicker, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Datepicker, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -859,6 +839,16 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for Datepicker, property textResourceBindings.help',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Datepicker, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Datepicker, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -931,16 +921,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for Dropdown, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Dropdown, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Dropdown, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -1022,6 +1002,16 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for Dropdown, property textResourceBindings.help',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Dropdown, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Dropdown, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     alertOnChange: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -1051,16 +1041,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for FileUpload, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for FileUpload, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for FileUpload, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -1168,6 +1148,11 @@ export const Expressions = {
       returnType: ExprVal.Boolean,
       defaultValue: false,
       errorIntroText: 'Invalid expression for FileUpload, property alertOnDelete',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for FileUpload, property readOnly',
     } satisfies ExpressionDescriptor<ExprVal.Boolean>,
   },
   Grid: {
@@ -1433,16 +1418,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for ImageUpload, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for ImageUpload, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for ImageUpload, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -1496,6 +1471,16 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for ImageUpload, property textResourceBindings.help',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for ImageUpload, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for ImageUpload, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -1520,16 +1505,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for Input, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Input, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Input, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -1589,6 +1564,16 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for Input, property textResourceBindings.suffix',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Input, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Input, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -1755,16 +1740,6 @@ export const Expressions = {
       defaultValue: true,
       errorIntroText: 'Invalid expression for Likert, property optionFilter',
     } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Likert, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Likert, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     textResourceBindings: {
       summaryTitle: {
         returnType: ExprVal.String,
@@ -1816,6 +1791,16 @@ export const Expressions = {
           'Invalid expression for Likert, property textResourceBindings.questionHelpTexts',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Likert, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Likert, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -1840,16 +1825,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for LikertItem, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for LikertItem, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for LikertItem, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -1933,6 +1908,16 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for LikertItem, property textResourceBindings.help',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for LikertItem, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for LikertItem, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -1993,16 +1978,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for List, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for List, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for List, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -2052,6 +2027,11 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for List, property textResourceBindings.help',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for List, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -2084,16 +2064,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for Map, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Map, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Map, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -2143,6 +2113,16 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for Map, property textResourceBindings.help',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Map, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for Map, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -2206,16 +2186,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for MultipleSelect, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for MultipleSelect, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for MultipleSelect, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -2300,6 +2270,16 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for MultipleSelect, property textResourceBindings.help',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for MultipleSelect, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for MultipleSelect, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     alertOnChange: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -2562,16 +2542,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for OrganizationLookup, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for OrganizationLookup, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for OrganizationLookup, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -2627,6 +2597,16 @@ export const Expressions = {
           'Invalid expression for OrganizationLookup, property textResourceBindings.help',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for OrganizationLookup, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for OrganizationLookup, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -2856,16 +2836,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for PersonLookup, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for PersonLookup, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for PersonLookup, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -2919,6 +2889,16 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for PersonLookup, property textResourceBindings.help',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for PersonLookup, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for PersonLookup, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -2969,16 +2949,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for RadioButtons, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for RadioButtons, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for RadioButtons, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -3062,6 +3032,16 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for RadioButtons, property textResourceBindings.help',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for RadioButtons, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for RadioButtons, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -3576,16 +3556,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for SimpleTable, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for SimpleTable, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for SimpleTable, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -3663,16 +3633,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for Subform, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Subform, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for Subform, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -3910,16 +3870,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for TextArea, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for TextArea, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for TextArea, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -3971,6 +3921,16 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for TextArea, property textResourceBindings.help',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for TextArea, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for TextArea, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -3995,16 +3955,6 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for TimePicker, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for TimePicker, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for TimePicker, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     forceShowInSummary: {
       returnType: ExprVal.Boolean,
       defaultValue: false,
@@ -4058,6 +4008,16 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for TimePicker, property textResourceBindings.help',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for TimePicker, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for TimePicker, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     removeWhenHidden: {
       returnType: ExprVal.Boolean,
       defaultValue: true,
@@ -4120,18 +4080,6 @@ export const CommonExpressions = {
         errorIntroText: 'Invalid expression for ComponentBase, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-  },
-  FormComponentProps: {
-    readOnly: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for FormComponentProps, property readOnly',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
-    required: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for FormComponentProps, property required',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
   },
   GlobalPageSettingsFromSchema: {
     navigationTitle: {
@@ -4597,6 +4545,16 @@ export const CommonExpressions = {
       errorIntroText: 'Invalid expression for TRBSummarizable, property summaryAccessibleTitle',
     } satisfies ExpressionDescriptor<ExprVal.String>,
   },
+  readOnly: {
+    returnType: ExprVal.Boolean,
+    defaultValue: false,
+    errorIntroText: 'Invalid expression for readOnly',
+  } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+  required: {
+    returnType: ExprVal.Boolean,
+    defaultValue: false,
+    errorIntroText: 'Invalid expression for required',
+  } satisfies ExpressionDescriptor<ExprVal.Boolean>,
 } as const;
 
-// Source hash: 05dbf45a902ef133ea38443d7e5ead4de4e9bf0d8b1a45493dff6b235b57648f
+// Source hash: 959a8041204c0b133dd10cfbbf3fa3a2066ad04ce2e50007060d18fe6bc63ff6

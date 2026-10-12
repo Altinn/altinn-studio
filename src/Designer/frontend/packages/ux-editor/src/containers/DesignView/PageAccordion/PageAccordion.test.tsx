@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { screen } from '@testing-library/react';
 import type { PageAccordionProps } from './PageAccordion';
@@ -19,9 +20,9 @@ import * as useDeletePageMutationModule from '../../../hooks/mutations/useDelete
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
 
-jest.mock('../../../hooks/mutations/useDeletePageMutation', () => ({
+vi.mock('../../../hooks/mutations/useDeletePageMutation', async () => ({
   __esModule: true,
-  ...jest.requireActual('../../../hooks/mutations/useDeletePageMutation'),
+  ...(await vi.importActual('../../../hooks/mutations/useDeletePageMutation')),
 }));
 
 const mockChildren: ReactNode = (
@@ -29,7 +30,7 @@ const mockChildren: ReactNode = (
     <button>Test</button>
   </div>
 );
-const mockOnClick = jest.fn();
+const mockOnClick = vi.fn();
 
 const defaultProps: PageAccordionProps = {
   pageId: mockPageName1,
@@ -39,7 +40,7 @@ const defaultProps: PageAccordionProps = {
 };
 
 describe('PageAccordion', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Calls "onClick" when the accordion is clicked', async () => {
     const user = userEvent.setup();
@@ -53,7 +54,7 @@ describe('PageAccordion', () => {
 
   it('Calls deleteLayout with pageName when delete button is clicked and deletion is confirmed', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+    vi.spyOn(window, 'confirm').mockImplementation(vi.fn(() => true));
     await render();
 
     const deleteButton = screen.getByRole('button', {
@@ -93,9 +94,9 @@ describe('PageAccordion', () => {
 
   it('should set selectedItem to undefined when deleting the selected page', async () => {
     const user = userEvent.setup();
-    const setSelectedItem = jest.fn();
+    const setSelectedItem = vi.fn();
 
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+    vi.spyOn(window, 'confirm').mockImplementation(vi.fn(() => true));
 
     await render({
       appContextProps: {
@@ -113,10 +114,7 @@ describe('PageAccordion', () => {
 
   it('Disables delete button when isPending is true', async () => {
     const user = userEvent.setup();
-    const useDeletePageMutationSpy = jest.spyOn(
-      useDeletePageMutationModule,
-      'useDeletePageMutation',
-    );
+    const useDeletePageMutationSpy = vi.spyOn(useDeletePageMutationModule, 'useDeletePageMutation');
     useDeletePageMutationSpy.mockImplementation(
       () =>
         ({
@@ -125,7 +123,7 @@ describe('PageAccordion', () => {
         }) as unknown as ReturnType<typeof useDeletePageMutationModule.useDeletePageMutation>,
     );
 
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+    vi.spyOn(window, 'confirm').mockImplementation(vi.fn(() => true));
 
     await render();
     const deleteButton = screen.getByRole('button', {
@@ -139,7 +137,7 @@ describe('PageAccordion', () => {
 
   it('Does not call deleteLayout when delete button is clicked, but deletion is not confirmed', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => false));
+    vi.spyOn(window, 'confirm').mockImplementation(vi.fn(() => false));
     await render();
 
     const deleteButton = screen.getByRole('button', {
@@ -176,7 +174,7 @@ type renderParams = {
 
 const render = async (opts: renderParams = {}) => {
   const queryClient = createQueryClientMock();
-  queryClient.invalidateQueries = jest.fn();
+  queryClient.invalidateQueries = vi.fn();
   queryClient.setQueryData(
     [QueryKey.Pages, org, app, mockSelectedLayoutSet],
     opts.pagesModel ?? pagesModelMock,

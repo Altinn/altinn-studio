@@ -21,7 +21,7 @@ export function validateGroupIsEmpty<T extends Extract<CompTypes, 'Checkboxes' |
   };
   const required = evaluateDescriptor(
     component.required as ExprValToActualOrExpr<ExprVal.Boolean> | undefined,
-    CommonExpressions.FormComponentProps.required,
+    CommonExpressions.required,
     ctx.expressionDataSources,
   );
   const dataModelBindings = (ctx.component as { dataModelBindings?: IDataModelBindings<T> }).dataModelBindings;

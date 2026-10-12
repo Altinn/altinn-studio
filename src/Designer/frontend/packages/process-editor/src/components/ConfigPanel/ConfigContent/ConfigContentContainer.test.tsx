@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigContentContainer } from './ConfigContentContainer';
@@ -7,7 +8,7 @@ import { mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
 import type { BpmnTaskType } from '../../../types/BpmnTaskType';
 
 describe('ConfigContentContainer', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('shows the heading for a built-in task type', () => {
     renderConfigContentContainer('data');

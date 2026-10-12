@@ -24,6 +24,8 @@ export const Config = asOptionsComponent(
   }),
   { supportsPreselection: true },
 )
+  .addProperty(CG.common('required'))
+  .addProperty(CG.common('readOnly'))
   .addDataModelBinding(
     new CG.obj(
       new CG.prop(

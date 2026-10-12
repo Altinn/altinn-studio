@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { Summary2Override, type Summary2OverrideProps } from './Summary2Override';
@@ -39,7 +40,7 @@ const layoutMockWithMultipleSelect = {
 
 describe('Summary2Override', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be able to add new override', async () => {
@@ -400,7 +401,7 @@ const defaultProps: Summary2OverrideProps = {
     overrides: [],
     target: {},
   },
-  onChange: jest.fn(),
+  onChange: vi.fn(),
 };
 const render = (props?: Partial<Summary2OverrideProps>) => {
   const queryClient = createQueryClientMock();

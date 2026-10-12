@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { ActionButtons } from './ActionButtons';
@@ -6,7 +7,7 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('ActionButtons', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('renders both buttons with correct labels and icons', () => {
     renderActionButtons();
@@ -20,7 +21,7 @@ describe('ActionButtons', () => {
 
   it('calls onSave when save button is clicked', async () => {
     const user = userEvent.setup();
-    const onSave = jest.fn();
+    const onSave = vi.fn();
     renderActionButtons({ onSave });
 
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
@@ -31,7 +32,7 @@ describe('ActionButtons', () => {
 
   it('calls onReset when reset button is clicked', async () => {
     const user = userEvent.setup();
-    const onReset = jest.fn();
+    const onReset = vi.fn();
     renderActionButtons({ onReset });
 
     const resetButton = getButton(textMock('app_settings.about_tab_reset_button'));
@@ -64,8 +65,8 @@ describe('ActionButtons', () => {
 });
 
 const defaultProps: ActionButtonsProps = {
-  onSave: jest.fn(),
-  onReset: jest.fn(),
+  onSave: vi.fn(),
+  onReset: vi.fn(),
   areButtonsDisabled: false,
 };
 

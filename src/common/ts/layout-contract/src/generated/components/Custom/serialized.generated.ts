@@ -19,6 +19,8 @@ export type CompCustomSerialized = {
     [key: string]: ExprValToActualOrExpr<ExprVal.String> | undefined;
   } & TRBFormComp &
     TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForCustom;
   tagName: string;
@@ -27,4 +29,4 @@ export type CompCustomSerialized = {
   FormComponentProps &
   SummarizableComponentProps;
 
-// Source hash: b50f2f94c56b24e5ed8f470824c9202e7f62daaf7d644d563df06721242fa9f2
+// Source hash: 107b19df934f6e9c4238335039fc35d287b3b5a3b2c9b989d27a7f1436a71a14

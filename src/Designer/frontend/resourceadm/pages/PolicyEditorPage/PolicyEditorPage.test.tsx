@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { PolicyEditorPageProps } from './PolicyEditorPage';
 import { PolicyEditorPage } from './PolicyEditorPage';
@@ -69,13 +70,13 @@ const mockSubjects: PolicySubject[] = [
   },
 ];
 
-const getPolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getPolicyActions = jest.fn().mockImplementation(() => Promise.resolve([]));
-const getPolicySubjects = jest.fn().mockImplementation(() => Promise.resolve([]));
-const getResource = jest.fn().mockImplementation(() => Promise.resolve({}));
+const getPolicy = vi.fn().mockImplementation(() => Promise.resolve({}));
+const getPolicyActions = vi.fn().mockImplementation(() => Promise.resolve([]));
+const getPolicySubjects = vi.fn().mockImplementation(() => Promise.resolve([]));
+const getResource = vi.fn().mockImplementation(() => Promise.resolve({}));
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     resourceId: mockResourceId,
     org: mockOrg,
@@ -88,7 +89,7 @@ const defaultProps: PolicyEditorPageProps = {
 };
 
 describe('PolicyEditorPage', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('fetches policy on mount', () => {
     renderPolicyEditorPage();

@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -5,13 +6,13 @@ import { PdfLayoutBasedSection } from './PdfLayoutBasedSection';
 import { createPdfBpmnDetails } from '../testUtils';
 import { renderWithProviders } from '../../../../../../test/renderWithProviders';
 
-jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+vi.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: () => ({ org: 'test-org', app: 'test-app' }),
 }));
 
-const mockNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockNavigate,
 }));
 
@@ -25,7 +26,7 @@ const getCreateButton = (): HTMLElement =>
 
 describe('PdfLayoutBasedSection', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('when layout set exists', () => {
@@ -173,7 +174,7 @@ describe('PdfLayoutBasedSection', () => {
     it('creates the layout set with the task ID', async () => {
       const user = userEvent.setup();
       const pdfBpmnDetails = createPdfBpmnDetails({});
-      const addLayoutSetMock = jest.fn();
+      const addLayoutSetMock = vi.fn();
 
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
@@ -205,7 +206,7 @@ describe('PdfLayoutBasedSection', () => {
     it('does not call addLayoutSet when no data model is selected', async () => {
       const user = userEvent.setup();
       const pdfBpmnDetails = createPdfBpmnDetails({});
-      const addLayoutSetMock = jest.fn();
+      const addLayoutSetMock = vi.fn();
 
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },

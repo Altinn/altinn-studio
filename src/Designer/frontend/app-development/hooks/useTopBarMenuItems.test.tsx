@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { useTopBarMenuItems } from './useTopBarMenuItems';
 import { renderHookWithProviders } from 'app-development/test/mocks';
@@ -6,14 +7,14 @@ import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenu
 import { type CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import { FeatureFlag } from '@studio/feature-flags';
 
-const mockUseIsRepoOwnerOrg = jest.fn();
+const mockUseIsRepoOwnerOrg = vi.fn();
 
-jest.mock('app-development/hooks/useIsRepoOwnerOrg', () => ({
+vi.mock('app-development/hooks/useIsRepoOwnerOrg', () => ({
   useIsRepoOwnerOrg: () => mockUseIsRepoOwnerOrg(),
 }));
 
 describe('useTopBarMenuItems', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('includes the items every app repository has', () => {
     const { result } = renderUseTopBarMenuItems();
@@ -76,7 +77,7 @@ describe('useTopBarMenuItems', () => {
   });
 
   it('excludes Assistant while the backend answer is loading', () => {
-    const canUseFeature = jest.fn(() => new Promise<CanUseFeature>(() => {}));
+    const canUseFeature = vi.fn(() => new Promise<CanUseFeature>(() => {}));
     const { renderHookResult } = renderHookWithProviders({ canUseFeature }, undefined, [
       FeatureFlag.AiAssistant,
     ])(() => useTopBarMenuItems());
@@ -99,7 +100,7 @@ const renderUseTopBarMenuItems = ({
   path,
 }: RenderUseTopBarMenuItemsProps = {}) => {
   mockUseIsRepoOwnerOrg.mockReturnValue(isRepoOwnerOrg);
-  const canUseFeature = jest.fn().mockResolvedValue({ canUseFeature: canUseAiAssistant });
+  const canUseFeature = vi.fn().mockResolvedValue({ canUseFeature: canUseAiAssistant });
   const { renderHookResult } = renderHookWithProviders(
     { canUseFeature },
     undefined,

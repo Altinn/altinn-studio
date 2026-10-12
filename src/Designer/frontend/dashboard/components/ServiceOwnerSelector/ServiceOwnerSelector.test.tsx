@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import type { ServiceOwnerSelectorProps } from './ServiceOwnerSelector';
 import { ServiceOwnerSelector } from './ServiceOwnerSelector';
@@ -28,7 +29,7 @@ const renderServiceOwnerSelector = (props: Partial<ServiceOwnerSelectorProps> = 
 };
 
 describe('ServiceOwnerSelector', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('renders select with all options', async () => {
     const user = userEvent.setup();
@@ -81,7 +82,7 @@ describe('ServiceOwnerSelector', () => {
   it('should execute the onChange callback when service owner is changed', async () => {
     const user = userEvent.setup();
     const selectedOrgOrUser = 'all';
-    const onChangeMock = jest.fn();
+    const onChangeMock = vi.fn();
     renderServiceOwnerSelector({ selectedOrgOrUser, onChange: onChangeMock });
 
     const select = screen.getByLabelText(textMock('general.service_owner'));

@@ -1,7 +1,8 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { useOnUnmount } from './useOnUnmount';
 
-const unmountFunction = jest.fn();
+const unmountFunction = vi.fn();
 
 const TestComponent = () => {
   useOnUnmount(() => unmountFunction());
@@ -9,7 +10,7 @@ const TestComponent = () => {
 };
 
 describe('useOnUnmount', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Calls the function when the component unmounts', () => {
     const { unmount } = render(<TestComponent />);

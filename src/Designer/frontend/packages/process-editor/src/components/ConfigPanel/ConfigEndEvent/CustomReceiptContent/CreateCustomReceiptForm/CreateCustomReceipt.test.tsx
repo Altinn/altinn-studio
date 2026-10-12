@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CreateCustomReceipt } from './CreateCustomReceipt';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -12,8 +13,8 @@ import {
 import { queryOptionMock } from '../../../../../../test/mocks/queryOptionMock';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
-const mockAddLayoutSet = jest.fn().mockImplementation(queryOptionMock);
-const mockOnCloseForm = jest.fn();
+const mockAddLayoutSet = vi.fn().mockImplementation(queryOptionMock);
+const mockOnCloseForm = vi.fn();
 const mockAllDataModelIds: string[] = ['model1', 'model2'];
 
 const nameFieldLabel = textMock(
@@ -27,7 +28,7 @@ const createButtonName = textMock(
 );
 
 describe('CreateCustomReceipt', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('hides the receipt name field', () => {
     renderCreateCustomReceipt();

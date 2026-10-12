@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mapChatMessageToFrontend, useChatMessagesQuery } from './useChatMessagesQuery';
 import { MessageAuthor } from 'app-shared/types/api';
 import type { ChatMessage } from 'app-shared/types/api';
@@ -14,10 +15,10 @@ const baseMessage: ChatMessage = {
 };
 
 describe('useChatMessagesQuery', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('does not fetch messages when threadId is null', () => {
-    const getChatMessages = jest.fn();
+    const getChatMessages = vi.fn();
     renderHookWithProviders({ getChatMessages })(() => useChatMessagesQuery(null));
 
     expect(getChatMessages).not.toHaveBeenCalled();
@@ -25,7 +26,7 @@ describe('useChatMessagesQuery', () => {
 
   it('fetches messages and maps them to the frontend shape when threadId is set', async () => {
     const threadId = 'thread-1';
-    const getChatMessages = jest.fn().mockResolvedValue([baseMessage]);
+    const getChatMessages = vi.fn().mockResolvedValue([baseMessage]);
     const result = renderHookWithProviders({ getChatMessages })(() =>
       useChatMessagesQuery(threadId),
     ).renderHookResult.result;

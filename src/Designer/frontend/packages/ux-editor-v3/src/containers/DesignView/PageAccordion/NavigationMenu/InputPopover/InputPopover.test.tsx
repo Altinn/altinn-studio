@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { InputPopoverProps } from './InputPopover';
 import { InputPopover } from './InputPopover';
@@ -13,8 +14,8 @@ const mockLayoutName2: string = 'layout2';
 const mockLayoutName3: string = 'layout13';
 const mockLayoutOrder: string[] = [mockLayoutName1, mockLayoutName2, mockLayoutName3];
 
-const mockSaveNewName = jest.fn();
-const mockOnClose = jest.fn();
+const mockSaveNewName = vi.fn();
+const mockOnClose = vi.fn();
 
 const defaultProps: InputPopoverProps = {
   disabled: false,
@@ -25,7 +26,7 @@ const defaultProps: InputPopoverProps = {
 };
 
 describe('InputPopover', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('does hides dropdown menu item by default when not open', () => {
     render(<InputPopover {...defaultProps} />);

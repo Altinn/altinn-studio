@@ -1,3 +1,5 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConfigSequenceFlow } from './ConfigSequenceFlow';
@@ -9,10 +11,10 @@ import { mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
 import { BpmnExpressionModeler } from '../../../utils/bpmnModeler/BpmnExpressionModeler';
 import type { Element } from 'bpmn-js/lib/model/Types';
 
-jest.mock('../../../utils/bpmnModeler/BpmnExpressionModeler');
+vi.mock('../../../utils/bpmnModeler/BpmnExpressionModeler');
 
 describe('ConfigSequenceFlow', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render title for sequence flow configuration', () => {
     renderConfigSequenceFlow({
@@ -61,9 +63,9 @@ describe('ConfigSequenceFlow', () => {
   it('should save the default expression when add expression button is clicked', async () => {
     const user = userEvent.setup();
 
-    const createExpressionElementMock = jest.fn();
-    const addChildElementToParentMock = jest.fn();
-    (BpmnExpressionModeler as jest.Mock).mockImplementation(function () {
+    const createExpressionElementMock = vi.fn();
+    const addChildElementToParentMock = vi.fn();
+    (BpmnExpressionModeler as Mock).mockImplementation(function () {
       return {
         createExpressionElement: createExpressionElementMock,
         addChildElementToParent: addChildElementToParentMock,
@@ -111,14 +113,14 @@ describe('ConfigSequenceFlow', () => {
   });
 
   it('should delete the expression when the delete button is clicked', async () => {
-    window.confirm = jest.fn(() => true);
+    window.confirm = vi.fn(() => true);
 
-    const updateElementPropertiesMock = jest.fn();
-    (BpmnExpressionModeler as jest.Mock).mockImplementation(function () {
+    const updateElementPropertiesMock = vi.fn();
+    (BpmnExpressionModeler as Mock).mockImplementation(function () {
       return {
         updateElementProperties: updateElementPropertiesMock,
-        createExpressionElement: jest.fn(),
-        addChildElementToParent: jest.fn(),
+        createExpressionElement: vi.fn(),
+        addChildElementToParent: vi.fn(),
       };
     });
 

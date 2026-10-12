@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { useValidDataModels } from './useValidDataModels';
 import { waitFor } from '@testing-library/react';
 import { renderHookWithProviders } from '../testing/mocks';
@@ -7,10 +8,10 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 const defaultDataModel = 'defaultModel';
 const secondDataModel = 'secondModel';
 
-const getAppMetadataModelIdsMock = jest
+const getAppMetadataModelIdsMock = vi
   .fn()
   .mockImplementation(() => Promise.resolve([defaultDataModel, secondDataModel]));
-const getDataModelMetadataMock = jest
+const getDataModelMetadataMock = vi
   .fn()
   .mockImplementation(() => Promise.resolve(dataModelMetadataResponseMock));
 

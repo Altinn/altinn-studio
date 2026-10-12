@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { CreateNewSubformSection } from './CreateNewSubformSection';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -11,12 +12,12 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
-const setShowCreateSubformCardMock = jest.fn();
-const onComponentUpdate = jest.fn();
+const setShowCreateSubformCardMock = vi.fn();
+const onComponentUpdate = vi.fn();
 const dataModelIds = ['dataModel1', 'dataModel2'];
 
 describe('CreateNewSubformSection ', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('displays the card with label, input field and data model select', () => {
     renderCreateNewSubformLayoutSet({});
@@ -87,7 +88,7 @@ describe('CreateNewSubformSection ', () => {
 
   it('displays loading spinner when save button is clicked', async () => {
     const user = userEvent.setup();
-    const addLayoutSetMock = jest.fn(() => new Promise<void>(() => {}));
+    const addLayoutSetMock = vi.fn(() => new Promise<void>(() => {}));
     renderCreateNewSubformLayoutSet({
       queries: { addLayoutSet: addLayoutSetMock },
     });

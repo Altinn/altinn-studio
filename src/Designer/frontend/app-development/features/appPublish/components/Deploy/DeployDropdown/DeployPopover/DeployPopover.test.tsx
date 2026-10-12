@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { DEPLOY_EVENT_NAME, DeployPopover, type DeployPopoverProps } from './DeployPopover';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -31,8 +32,8 @@ const appReleases: AppRelease[] = [
   },
 ];
 
-const captureMock = jest.fn();
-jest.mock('@posthog/react', () => ({
+const captureMock = vi.fn();
+vi.mock('@posthog/react', () => ({
   usePostHog: () => ({ capture: captureMock }),
 }));
 
@@ -41,12 +42,12 @@ const defaultProps: DeployPopoverProps = {
   selectedImageTag: '1.1.0',
   disabled: false,
   isPending: false,
-  onConfirm: jest.fn(),
+  onConfirm: vi.fn(),
 };
 
 describe('DeployPopover', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render the deploy button with the correct text', () => {
@@ -107,7 +108,7 @@ describe('DeployPopover', () => {
 
   it('should call onConfirm and close the popover when "Yes" button is clicked', async () => {
     const user = userEvent.setup();
-    const onConfirmMock = jest.fn();
+    const onConfirmMock = vi.fn();
     renderDeployPopover({ componentProps: { onConfirm: onConfirmMock } });
 
     const button = screen.getByRole('button', {
@@ -156,7 +157,7 @@ const renderDeployPopover = (props: Partial<Props> = {}) => {
   const { componentProps, queries } = props;
 
   return renderWithProviders({
-    getAppReleases: jest.fn().mockImplementation(() =>
+    getAppReleases: vi.fn().mockImplementation(() =>
       Promise.resolve({
         results: appReleases,
       }),

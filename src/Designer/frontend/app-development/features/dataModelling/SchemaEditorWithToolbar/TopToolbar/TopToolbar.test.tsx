@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { TopToolbarProps } from './TopToolbar';
 import { TopToolbar } from './TopToolbar';
 import { screen } from '@testing-library/react';
@@ -26,9 +27,9 @@ const dataModelGenerationSuccessMessage = textMock(
 );
 const savingText = textMock('general.saving');
 
-const setIsCreateNewOpen = jest.fn();
-const setSelectedOption = jest.fn();
-const onSetSchemaGenerationErrorMessages = jest.fn();
+const setIsCreateNewOpen = vi.fn();
+const setSelectedOption = vi.fn();
+const onSetSchemaGenerationErrorMessages = vi.fn();
 const selectedOption: MetadataOption = convertMetadataToOption(jsonMetadata1Mock);
 const defaultProps: TopToolbarProps = {
   isCreateNewOpen: false,
@@ -58,7 +59,7 @@ const renderToolbar = (
 };
 
 describe('TopToolbar', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('renders the top toolbar', () => {
     renderToolbar();
@@ -85,7 +86,7 @@ describe('TopToolbar', () => {
     renderToolbar(
       {},
       {
-        generateModels: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
+        generateModels: vi.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
       },
     );
     await user.click(screen.getByRole('button', { name: generateText }));

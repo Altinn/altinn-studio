@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import type { DeploymentEnvironmentLogListProps } from './DeploymentEnvironmentLogList';
 import { DeploymentEnvironmentLogList } from './DeploymentEnvironmentLogList';
 import { screen } from '@testing-library/react';
@@ -17,12 +19,12 @@ import {
 import { deployEvent } from 'app-shared/mocks/mocks';
 import { app, org } from '@studio/testing/testids';
 
-jest.mock('app-shared/ext-urls', () => ({
-  grafanaPodLogsUrl: jest.fn(() => 'https://grafana.example/logs'),
+vi.mock('app-shared/ext-urls', () => ({
+  grafanaPodLogsUrl: vi.fn(() => 'https://grafana.example/logs'),
 }));
 
-jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
-  useStudioEnvironmentParams: jest.fn(),
+vi.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+  useStudioEnvironmentParams: vi.fn(),
 }));
 
 const pipelineDeployment: PipelineDeployment = {
@@ -59,15 +61,15 @@ const render = (
   );
 };
 describe('DeploymentEnvironmentLogList', () => {
-  const grafanaPodLogsUrlMock = grafanaPodLogsUrl as jest.Mock;
-  const useStudioEnvironmentParamsMock = useStudioEnvironmentParams as jest.Mock;
+  const grafanaPodLogsUrlMock = grafanaPodLogsUrl as Mock;
+  const useStudioEnvironmentParamsMock = useStudioEnvironmentParams as Mock;
 
   beforeEach(() => {
     useStudioEnvironmentParamsMock.mockReturnValue({ org, app });
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders with no history', () => {

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, test, vi } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MapComponent } from './MapComponent';
@@ -7,7 +8,7 @@ import type { IGenericEditComponent } from '../../componentConfig';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const handleComponentChangeMock = jest.fn();
+const handleComponentChangeMock = vi.fn();
 
 const waitForData = async () => {
   const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
@@ -26,7 +27,7 @@ const renderMapComponent = async ({
 };
 
 describe('MapComponent', () => {
-  afterEach(() => jest.resetAllMocks());
+  afterEach(() => vi.resetAllMocks());
 
   it('should render /Legg til kartlag/ button', async () => {
     await renderMapComponent({});
@@ -40,7 +41,7 @@ describe('AddMapLayer', () => {
   let componentMock;
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     componentMock = {
       layers: [
         {

@@ -19,6 +19,8 @@ export const Config = new CG.component({
     renderInTabs: true,
   },
 })
+  .addProperty(CG.common('required'))
+  .addProperty(CG.common('readOnly'))
   .addSummaryOverrides()
   .addTextResource(
     new CG.trb({

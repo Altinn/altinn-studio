@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
@@ -21,7 +22,7 @@ const language1 = 'nb';
 const language2 = 'en';
 const languages = [language1, language2];
 
-const getTextResources = jest.fn().mockImplementation(() =>
+const getTextResources = vi.fn().mockImplementation(() =>
   Promise.resolve({
     resources: [
       {
@@ -31,21 +32,21 @@ const getTextResources = jest.fn().mockImplementation(() =>
     ],
   }),
 );
-const getTextLanguages = jest.fn().mockImplementation(() => Promise.resolve(languages));
+const getTextLanguages = vi.fn().mockImplementation(() => Promise.resolve(languages));
 
-const mockSetSearchParams = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+const mockSetSearchParams = vi.fn();
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useSearchParams: () => {
     return [new URLSearchParams({}), mockSetSearchParams];
   },
 }));
 
 // Need to mock the scrollIntoView function
-window.HTMLElement.prototype.scrollIntoView = jest.fn();
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
 describe('TextEditor', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('renders the component', async () => {
     renderTextEditor();

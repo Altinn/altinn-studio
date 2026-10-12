@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -9,11 +10,11 @@ import {
 } from '../../../../../../test/mocks/bpmnModelerMock';
 import type { StudioTextResourceActionProps } from '@studio/components';
 
-jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+vi.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: () => ({ org: 'test-org', app: 'test-app' }),
 }));
 
-jest.mock('app-shared/hooks/queries', () => ({
+vi.mock('app-shared/hooks/queries', () => ({
   useTextResourcesQuery: () => ({
     data: {
       nb: [
@@ -24,15 +25,15 @@ jest.mock('app-shared/hooks/queries', () => ({
   }),
 }));
 
-const mockUpsertTextResource = jest.fn();
-jest.mock('app-shared/hooks/mutations', () => ({
+const mockUpsertTextResource = vi.fn();
+vi.mock('app-shared/hooks/mutations', () => ({
   useUpsertTextResourceMutation: () => ({ mutate: mockUpsertTextResource }),
 }));
 
 let capturedProps: StudioTextResourceActionProps | null = null;
 
-jest.mock('@studio/components', () => {
-  const actual = jest.requireActual('@studio/components');
+vi.mock('@studio/components', async () => {
+  const actual = await vi.importActual('@studio/components');
   return {
     ...actual,
     StudioTextResourceAction: (props: StudioTextResourceActionProps) => {
@@ -44,7 +45,7 @@ jest.mock('@studio/components', () => {
 
 describe('PdfFilenameTextResource', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     capturedProps = null;
   });
 

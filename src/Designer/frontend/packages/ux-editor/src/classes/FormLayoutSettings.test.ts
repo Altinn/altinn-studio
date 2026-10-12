@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { FormLayoutSettings } from '@altinn/ux-editor/classes/FormLayoutSettings';
 import { formLayoutSettingsMock } from '@altinn/ux-editor/testing/mocks';
 import type { ILayoutSettings } from 'app-shared/types/global';

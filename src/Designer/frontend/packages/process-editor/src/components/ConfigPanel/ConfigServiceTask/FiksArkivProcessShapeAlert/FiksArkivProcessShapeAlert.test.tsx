@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import type { Element } from 'bpmn-js/lib/model/Types';
@@ -10,7 +11,7 @@ import { modelerOnMock } from '../../../../../test/mocks/bpmnModelerMock';
 import { renderWithProviders } from '../../../../../test/renderWithProviders';
 
 describe('FiksArkivProcessShapeAlert', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('warns when no gateway follows the task', () => {
     renderFiksArkivProcessShapeAlert(createTask([]));

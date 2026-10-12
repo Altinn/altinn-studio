@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { SetupTab } from './SetupTab';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -8,7 +9,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
 
 describe('SetupTab', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('initially displays the spinner when loading data', () => {
     renderSetupTab();
@@ -16,14 +17,14 @@ describe('SetupTab', () => {
   });
 
   it('fetches appMetadata on mount', async () => {
-    const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
+    const getAppMetadata = vi.fn().mockImplementation(() => Promise.resolve({}));
     renderSetupTab({ getAppMetadata });
     expect(getAppMetadata).toHaveBeenCalledTimes(1);
   });
 
   it('shows an error message if an error occurred on the "getAppMetadata" query', async () => {
     const errorMessage = 'error-message-test';
-    const getAppMetadata = jest
+    const getAppMetadata = vi
       .fn()
       .mockImplementation(() => Promise.reject({ message: errorMessage }));
 
@@ -36,7 +37,7 @@ describe('SetupTab', () => {
   });
 
   it('displays the child component when there are no errors', async () => {
-    const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve(mockAppMetadata));
+    const getAppMetadata = vi.fn().mockImplementation(() => Promise.resolve(mockAppMetadata));
     renderSetupTab({ getAppMetadata });
     await waitForSpinnerToBeRemoved();
 

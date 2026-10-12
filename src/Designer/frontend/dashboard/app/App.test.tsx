@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { App } from './App';
@@ -13,14 +14,14 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithProviders } from '../testing/mocks';
 import type { ProviderData } from '../testing/mocks';
 
-jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
 }));
 
-jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
+vi.mock('react-router-dom', async () => await vi.importActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
-jest.mock('app-shared/utils/featureToggleUtils', () => ({
-  ...jest.requireActual('app-shared/utils/featureToggleUtils'),
+vi.mock('app-shared/utils/featureToggleUtils', async () => ({
+  ...(await vi.importActual('app-shared/utils/featureToggleUtils')),
 }));
 
 // Test data:
@@ -30,13 +31,13 @@ const org: Organization = {
   username: 'some-org',
 };
 
-const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(repoStatus));
+const mockGetRepoStatus = vi.fn().mockImplementation(() => Promise.resolve(repoStatus));
 const queries: Partial<ServicesContextProps> = {
   getRepoStatus: mockGetRepoStatus,
 };
 
 describe('App', () => {
-  beforeEach(jest.clearAllMocks);
+  beforeEach(vi.clearAllMocks);
 
   it('should display spinner while loading', () => {
     renderApp();

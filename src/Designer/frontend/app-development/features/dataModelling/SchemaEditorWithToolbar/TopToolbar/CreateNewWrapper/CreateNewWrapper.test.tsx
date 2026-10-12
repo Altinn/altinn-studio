@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { CreateNewWrapperProps } from './CreateNewWrapper';
@@ -9,8 +10,8 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 // Test data:
-const mockCreateDataModel = jest.fn();
-const mockSetIsCreateNewOpen = jest.fn();
+const mockCreateDataModel = vi.fn();
+const mockSetIsCreateNewOpen = vi.fn();
 const defaultProps: CreateNewWrapperProps = {
   isCreateNewOpen: false,
   disabled: false,
@@ -19,7 +20,7 @@ const defaultProps: CreateNewWrapperProps = {
 };
 
 describe('CreateNewWrapper', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should open the popup when clicking "new" button', async () => {
     const user = userEvent.setup();

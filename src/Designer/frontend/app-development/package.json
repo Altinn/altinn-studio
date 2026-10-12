@@ -29,7 +29,6 @@
   "devDependencies": {
     "@studio/ui-test": "workspace:^",
     "@typescript/native": "npm:typescript@7.0.2",
-    "jest": "29.7.0",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.2.2"
   },
@@ -39,7 +38,7 @@
     "build": "vite build",
     "start": "vite serve --host 0.0.0.0",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "jest --maxWorkers=50%",
+    "test": "yarn workspace studio-designer-frontend vitest run app-development/",
     "typecheck": "npx tsc --noEmit",
     "typecheck:watch": "tsc --noEmit -w"
   }

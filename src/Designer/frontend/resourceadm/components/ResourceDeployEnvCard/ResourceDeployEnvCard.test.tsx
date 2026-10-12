@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { ResourceDeployEnvCardProps } from './ResourceDeployEnvCard';
 import { ResourceDeployEnvCard } from './ResourceDeployEnvCard';
@@ -26,7 +27,7 @@ const defaultProps: ResourceDeployEnvCardProps = {
 };
 
 describe('ResourceDeployEnvCard', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('displays a toast when deploy is successful', async () => {
     const user = userEvent.setup();
@@ -97,7 +98,7 @@ describe('ResourceDeployEnvCard', () => {
     renderResourceDeployEnvCard(
       {},
       {
-        publishResource: jest
+        publishResource: vi
           .fn()
           .mockImplementation(() => Promise.reject({ response: { status: 403 } })),
       },

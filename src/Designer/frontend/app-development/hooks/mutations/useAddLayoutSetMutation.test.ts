@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../test/mocks';
 import { waitFor } from '@testing-library/react';
@@ -15,7 +16,7 @@ const layoutSetConfig: LayoutSetConfig = {
 };
 
 describe('useAddLayoutSetMutation', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Calls useAddLayoutSetMutation with correct arguments and payload', async () => {
     const addLayoutSetResult = renderHookWithProviders()(() => useAddLayoutSetMutation(org, app))
@@ -54,7 +55,7 @@ describe('useAddLayoutSetMutation', () => {
 
   it('Invalidates LayoutSetsExtended, LayoutSets, and AppValidation caches on success', async () => {
     const queryClientMock = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(queryClientMock, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClientMock, 'invalidateQueries');
     const addLayoutSetResult = renderHookWithProviders(
       {},
       queryClientMock,

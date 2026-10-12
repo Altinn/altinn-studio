@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { FilePathProps } from './FilePath';
@@ -17,10 +18,10 @@ index 0909a03..527e226 100644
 - old line
 + new line
 \ No newline at end of file`;
-const mockGetRepoDiff = jest.fn();
+const mockGetRepoDiff = vi.fn();
 
 describe('FilePath', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should render the file path and name correctly', async () => {
     renderFilePath();

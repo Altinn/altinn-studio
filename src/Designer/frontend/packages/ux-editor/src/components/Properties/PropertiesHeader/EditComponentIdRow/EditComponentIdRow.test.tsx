@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { EditComponentIdRow, type EditComponentIdRowProps } from './EditComponentIdRow';
@@ -25,7 +26,7 @@ const studioRender = async (props: Partial<EditComponentIdRowProps> = {}) => {
         type: ComponentType.Input,
         ...props.component,
       }}
-      handleComponentUpdate={jest.fn()}
+      handleComponentUpdate={vi.fn()}
       helpText={'test'}
       {...props}
     />,
@@ -34,7 +35,7 @@ const studioRender = async (props: Partial<EditComponentIdRowProps> = {}) => {
 
 describe('EditComponentIdRow', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render button ', async () => {
@@ -81,7 +82,7 @@ describe('EditComponentIdRow', () => {
 
   it('should call onChange when user change the input in text filed.', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdate = jest.fn();
+    const handleComponentUpdate = vi.fn();
     await studioRender({ handleComponentUpdate });
     const testIdButton = screen.getByRole('button', {
       name: textMock('ux_editor.modal_properties_component_change_id'),

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -21,14 +22,14 @@ const defaultLayouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
 
-jest.mock('@studio/hooks/src/hooks/useDebounce.ts', () => ({
-  useDebounce: jest.fn().mockReturnValue({
-    debounce: jest.fn((fn) => fn()),
+vi.mock('@studio/hooks/src/hooks/useDebounce.ts', () => ({
+  useDebounce: vi.fn().mockReturnValue({
+    debounce: vi.fn((fn) => fn()),
   }),
 }));
 
 describe('HiddenExpressionOnLayout', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
   it('renders expression builder when layout has no expression set on hidden prop', () => {
     renderHiddenExpressionOnLayout();
     screen.getByRole('group', { name: textMock('right_menu.expressions_property_preview_hidden') });
@@ -94,7 +95,7 @@ describe('HiddenExpressionOnLayout', () => {
   });
 
   it('calls saveLayout when expression is deleted', async () => {
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     const user = userEvent.setup();
     const expression: BooleanExpression = [GeneralRelationOperator.Equals, 1, 1];
     renderHiddenExpressionOnLayout({

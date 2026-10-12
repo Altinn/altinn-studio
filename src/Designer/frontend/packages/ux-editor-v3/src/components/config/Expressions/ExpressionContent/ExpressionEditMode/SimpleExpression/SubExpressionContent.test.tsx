@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SubExpressionContentProps } from './SubExpressionContent';
@@ -28,7 +29,7 @@ const layouts: IFormLayouts = {
 
 describe('SubExpressionContent', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   it('renders function select when subExpression does not have function set', () => {
     render({
@@ -63,7 +64,7 @@ describe('SubExpressionContent', () => {
     expect(comparableDataSourceSelectElement).toHaveValue('default');
   });
   it('calls onUpdateSubExpression when subExpression had existing value and dataSource is changed to DataSource.DataModel', async () => {
-    const onUpdateSubExpression = jest.fn();
+    const onUpdateSubExpression = vi.fn();
     render({
       props: {
         onUpdateSubExpression: onUpdateSubExpression,
@@ -97,7 +98,7 @@ describe('SubExpressionContent', () => {
     });
   });
   it('calls onUpdateSubExpression when subExpression had existing value and dataSourceValue is changed to a new string', async () => {
-    const onUpdateSubExpression = jest.fn();
+    const onUpdateSubExpression = vi.fn();
     render({
       props: {
         onUpdateSubExpression: onUpdateSubExpression,
@@ -147,7 +148,7 @@ describe('SubExpressionContent', () => {
     expect(selectComparableValueComponent).toHaveValue(subExpression0.comparableValue as string);
   });
   it('removes subExpression from expression object and renders nothing when remove-sub-expression is clicked', async () => {
-    const onRemoveSubExpression = jest.fn();
+    const onRemoveSubExpression = vi.fn();
     render({
       props: {
         onRemoveSubExpression: onRemoveSubExpression,
@@ -170,8 +171,8 @@ const render = ({
 }) => {
   const defaultProps: SubExpressionContentProps = {
     subExpression: subExpression0,
-    onUpdateSubExpression: jest.fn(),
-    onRemoveSubExpression: jest.fn(),
+    onUpdateSubExpression: vi.fn(),
+    onRemoveSubExpression: vi.fn(),
   };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);

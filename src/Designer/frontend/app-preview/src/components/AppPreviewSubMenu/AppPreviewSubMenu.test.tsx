@@ -1,16 +1,18 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import { AppPreviewSubMenu } from './AppPreviewSubMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useMediaQuery } from '@studio/hooks/src/hooks/useMediaQuery';
 import { renderWithProviders } from '../../../test/mocks';
 
-jest.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@studio/hooks/src/hooks/useMediaQuery');
 
 describe('AppPreviewSubMenu', () => {
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should render the back-to-editing link with text on large screens', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(false);
+    (useMediaQuery as Mock).mockReturnValue(false);
 
     renderAppPreviewSubMenu();
 
@@ -18,7 +20,7 @@ describe('AppPreviewSubMenu', () => {
   });
 
   it('should render the back-to-editing link without text on small screens', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    (useMediaQuery as Mock).mockReturnValue(true);
 
     renderAppPreviewSubMenu();
 
@@ -28,7 +30,7 @@ describe('AppPreviewSubMenu', () => {
   });
 
   it('should have the correct aria-label set on the link', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    (useMediaQuery as Mock).mockReturnValue(true);
 
     renderAppPreviewSubMenu();
 

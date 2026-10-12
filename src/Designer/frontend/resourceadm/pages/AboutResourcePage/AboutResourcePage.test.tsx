@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { AboutResourcePageProps } from './AboutResourcePage';
 import { AboutResourcePage } from './AboutResourcePage';
@@ -78,20 +80,20 @@ const mockNewRightDescriptionInput: string = 'mock';
 const mockNewConsentTextInput: string = ' og andre';
 const mockId: string = 'page-content-deploy';
 
-jest.mock('../../hooks/useUrlParams', () => ({
-  useUrlParams: jest.fn(),
+vi.mock('../../hooks/useUrlParams', () => ({
+  useUrlParams: vi.fn(),
 }));
 
 describe('AboutResourcePage', () => {
   beforeEach(() => {
-    (useUrlParams as jest.Mock).mockReturnValue({
+    (useUrlParams as Mock).mockReturnValue({
       resourceId: mockResource1.identifier,
       org: 'ttd',
     });
   });
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
-  const mockOnSaveResource = jest.fn();
+  const mockOnSaveResource = vi.fn();
 
   const defaultProps: AboutResourcePageProps = {
     validationErrors: [],
@@ -130,7 +132,7 @@ describe('AboutResourcePage', () => {
   });
 
   it('should show resource type Systemresource for org digdir', async () => {
-    (useUrlParams as jest.Mock).mockReturnValue({
+    (useUrlParams as Mock).mockReturnValue({
       resourceId: mockResource1.identifier,
       org: 'digdir',
     });

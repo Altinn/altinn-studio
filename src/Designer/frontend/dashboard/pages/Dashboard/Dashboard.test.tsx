@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved, within } from '@testing-library/react';
 import { Dashboard } from './Dashboard';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -34,8 +35,8 @@ const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
   });
 };
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     selectedContext: SelectedContextType.Self,
   }),
@@ -43,12 +44,12 @@ jest.mock('react-router-dom', () => ({
 
 describe('Dashboard', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should display favorite list with one item', async () => {
     renderWithMockServices({
-      getStarredRepos: jest.fn().mockResolvedValue([{ ...repository, hasStarred: true }]),
+      getStarredRepos: vi.fn().mockResolvedValue([{ ...repository, hasStarred: true }]),
     });
 
     await waitForElementToBeRemoved(() => screen.queryAllByLabelText(textMock('general.loading')));
@@ -67,7 +68,7 @@ describe('Dashboard', () => {
 
   it('should display application list with one item', async () => {
     renderWithMockServices({
-      searchRepos: jest.fn().mockResolvedValue({
+      searchRepos: vi.fn().mockResolvedValue({
         ...searchRepositoryResponse,
         data: [repository],
       }),
@@ -94,7 +95,7 @@ describe('Dashboard', () => {
     };
 
     renderWithMockServices({
-      searchRepos: jest.fn().mockResolvedValue({
+      searchRepos: vi.fn().mockResolvedValue({
         ...searchRepositoryResponse,
         data: [dataModelsRepository],
       }),

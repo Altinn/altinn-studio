@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from 'app-development/test/mocks';
 import { app, org } from '@studio/testing/testids';
 import { useChatThreadsQuery } from './useChatThreadsQuery';
@@ -24,10 +25,10 @@ const chatThreads: ChatThread[] = [
 ];
 
 describe('useChatThreadsQuery', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Calls getChatThreads with the current org and app', async () => {
-    const getChatThreads = jest.fn().mockResolvedValue(chatThreads);
+    const getChatThreads = vi.fn().mockResolvedValue(chatThreads);
     const result = renderHookWithProviders({ getChatThreads })(() => useChatThreadsQuery())
       .renderHookResult.result;
 

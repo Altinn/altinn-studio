@@ -11,7 +11,7 @@ from agents.services.llm.llm_client import build_intent_parse_message
 from agents.services.llm.scope_checker import build_scope_check_message
 from benchmarks.dataset_sync import load_datasets, missing_assets, render_input, validate
 
-AGENTS_ROOT = Path(__file__).resolve().parents[3]
+ASSISTANT_ROOT = Path(__file__).resolve().parents[3]
 
 # Gate prompt datasets only; a generation dataset is covered in test_generation.
 DATASETS = [d for d in load_datasets() if d.name.startswith("Gates/")]
@@ -42,7 +42,7 @@ class TestValidationHoldsFromAClone:
     def test_validation_does_not_require_a_gitignored_file(self):
         """benchmarks/assets is gitignored, so requiring the PDFs in validate()
         passed only on a machine that already had them and failed every clone."""
-        assets = (AGENTS_ROOT / ".gitignore").read_text()
+        assets = (ASSISTANT_ROOT / ".gitignore").read_text()
         assert "benchmarks/assets/" in assets
 
         problems = [p for d in ALL_DATASETS for p in validate(d)]
