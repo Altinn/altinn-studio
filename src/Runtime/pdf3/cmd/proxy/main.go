@@ -302,8 +302,9 @@ func callWorker(
 	if err != nil {
 		if attempt < maxRetries && ctx.Err() == nil {
 			// This is an error condition that may hit if the worker
-			// crashes or similar. Worthwhile to retry here
-			logger.WarnContext(
+			// crashes or similar. Worthwhile to retry here. Retries are logged at INFO, so they
+			// are not exported; running out of them is logged as an error below.
+			logger.InfoContext(
 				ctx,
 				"Worker request failed, will retry",
 				"elapsed", time.Since(start),
