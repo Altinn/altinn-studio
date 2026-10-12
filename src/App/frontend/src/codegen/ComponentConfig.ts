@@ -424,6 +424,24 @@ export class ComponentConfig {
 
     const additionalMethods: string[] = [];
 
+    if (this.behaviors.isSummarizable) {
+      const JSX = new CG.import({ import: 'JSX', from: 'react' });
+      const SummaryRendererProps = new CG.import({
+        import: 'SummaryRendererProps',
+        from: 'src/layout/LayoutComponent',
+      });
+      const Summary2Props = new CG.import({
+        import: 'Summary2Props',
+        from: 'src/layout/Summary2/SummaryComponent2/types',
+      });
+      additionalMethods.push(
+        `abstract renderSummary(props: ${SummaryRendererProps}): ${JSX}.Element | null;`,
+        `abstract renderSummary2(props: ${Summary2Props}): ${JSX}.Element | null;`,
+      );
+    } else {
+      additionalMethods.push('declare renderSummary?: never;', 'declare renderSummary2?: never;');
+    }
+
     if (this.hasDataModelBindings()) {
       additionalMethods.push(
         `// You must implement this because the component has data model bindings defined
