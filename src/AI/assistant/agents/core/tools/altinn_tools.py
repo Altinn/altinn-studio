@@ -19,7 +19,7 @@ from agents.altinn.layout.properties import layout_properties_tool
 from agents.core.tool import LoopContext, Tool, ToolResult
 
 from ._write_base import WriteToolMixin
-from .file_tool import PathError, _resolve_repo_path
+from .file_tool import PathError, resolve_repo_path
 
 
 class LayoutPropsArgs(BaseModel):
@@ -92,7 +92,7 @@ class DatamodelSyncTool(WriteToolMixin[DatamodelSyncArgs]):
 
     async def run(self, args: DatamodelSyncArgs, ctx: LoopContext) -> ToolResult:
         try:
-            schema_file = _resolve_repo_path(ctx.repo_path, args.schema_path)
+            schema_file = resolve_repo_path(ctx.repo_path, args.schema_path)
         except PathError as exc:
             return ToolResult(content=str(exc), is_error=True)
         if not schema_file.is_file():
@@ -121,7 +121,7 @@ class DatamodelSyncTool(WriteToolMixin[DatamodelSyncArgs]):
         for entry in result.get("generated") or []:
             rel = str(schema_dir / entry["path"])
             try:
-                out_path = _resolve_repo_path(ctx.repo_path, rel)
+                out_path = resolve_repo_path(ctx.repo_path, rel)
                 out_path.write_text(entry["content"], encoding="utf-8")
             except (PathError, OSError) as exc:
                 return ToolResult(content=f"Could not write {rel}: {exc}", is_error=True)
