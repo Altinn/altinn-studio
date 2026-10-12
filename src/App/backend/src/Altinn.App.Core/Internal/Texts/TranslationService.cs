@@ -123,23 +123,83 @@ internal sealed class TranslationService : ITranslationService
         var values = new string[template.Variables.Length];
         for (var i = 0; i < values.Length; i++)
         {
-            var variable = TextResourceJson.ToVariable(template.Variables[i]);
+            var source = template.Variables[i];
             values[i] =
-                await EvaluateTextVariable(
-                    key,
-                    variable.DataSource,
-                    variable.Key,
-                    state,
-                    language,
-                    context,
-                    customTextParameters
-                )
-                ?? variable.DefaultValue
-                ?? variable.Key;
+                await EvaluateSource(key, source, state, language, context, customTextParameters)
+                ?? source.DefaultValue
+                ?? KeyAsWritten(source);
         }
 
         return template.Apply(values);
     }
+
+    private async Task<string?> EvaluateSource(
+        string textResourceId,
+        TextVariableSource source,
+        LayoutEvaluatorState? state,
+        string language,
+        ComponentContext? context,
+        Dictionary<string, string>? customTextParameters
+    ) =>
+        source switch
+        {
+            TextVariableSource.CustomTextParameter parameter => customTextParameters?.GetValueOrDefault(parameter.Name),
+            TextVariableSource.Text text => await EvaluateText(
+                textResourceId,
+                text.TextKey,
+                state,
+                language,
+                context,
+                customTextParameters
+            ),
+            TextVariableSource.DataModel dataModel => await EvaluateDataModel(
+                textResourceId,
+                dataModel.DataType ?? "default",
+                dataModel.Field,
+                state,
+                context
+            ),
+            TextVariableSource.InstanceContext instanceContext => EvaluateInstanceContext(
+                textResourceId,
+                InstanceContextKeyName(instanceContext.Key),
+                state
+            ),
+            TextVariableSource.ApplicationSetting setting => EvaluateApplicationSetting(
+                textResourceId,
+                setting.Key,
+                state
+            ),
+            TextVariableSource.Unsupported unsupported => LogUnsupportedDataSource(
+                textResourceId,
+                unsupported.DataSource
+            ),
+            _ => throw new ArgumentOutOfRangeException(nameof(source), source, "Unknown text variable source"),
+        };
+
+    /// <summary>
+    /// The variable's key as it would be written in a text resource, shown when it has no value and no default value.
+    /// </summary>
+    private static string KeyAsWritten(TextVariableSource source) =>
+        source switch
+        {
+            TextVariableSource.CustomTextParameter parameter => parameter.Name,
+            TextVariableSource.Text text => text.TextKey,
+            TextVariableSource.DataModel dataModel => dataModel.Field,
+            TextVariableSource.InstanceContext instanceContext => InstanceContextKeyName(instanceContext.Key),
+            TextVariableSource.ApplicationSetting setting => setting.Key,
+            TextVariableSource.Unsupported unsupported => unsupported.Key,
+            _ => throw new ArgumentOutOfRangeException(nameof(source), source, "Unknown text variable source"),
+        };
+
+    private static string InstanceContextKeyName(InstanceContextKey key) =>
+        key switch
+        {
+            InstanceContextKey.InstanceOwnerPartyId => "instanceOwnerPartyId",
+            InstanceContextKey.AppId => "appId",
+            InstanceContextKey.InstanceId => "instanceId",
+            InstanceContextKey.InstanceOwnerPartyType => "instanceOwnerPartyType",
+            _ => throw new ArgumentOutOfRangeException(nameof(key), key, "Unknown instance context key"),
+        };
 
     private async Task<string?> ReplaceVariables(
         TextResourceElement? resourceElement,
@@ -183,118 +243,127 @@ internal sealed class TranslationService : ITranslationService
         Dictionary<string, string>? customTextParameters
     )
     {
-        // Do replacements for
         if (dataSource.StartsWith("dataModel.", StringComparison.Ordinal))
         {
-            if (state == null)
-            {
-                _logger.LogWarning(
-                    "Text resource variable with dataSource '{DataSource}' is not supported in this context. In text resource with id = {TextResourceId}",
-                    dataSource,
-                    textResourceId
-                );
-                return null;
-            }
-
-            var dataModelName = dataSource.Substring("dataModel.".Length);
-
-            // For compatibility with docs, we allow {[0]} indexes in the path, even though we don't need them
-            // when we know what part of the path is a list.
-            var cleanPath = _cleanPathRegex.Replace(variableKey, "");
-
-            // Resolve "default" to the actual data type from the layout-set.
-            // If there's no layout-set (e.g., some service tasks), GetDefaultDataType() returns null.
-            string? resolvedDataType = dataModelName == "default" ? state.GetDefaultDataType()?.Id : dataModelName;
-
-            if (resolvedDataType is null)
-            {
-                throw new InvalidOperationException(
-                    $"Text resource '{textResourceId}' uses 'dataModel.default' but no layout-set is available to determine the default data type. "
-                        + "Use an explicit data type name instead (e.g., 'dataModel.MyDataType')."
-                );
-            }
-
-            var binding = new ModelBinding() { DataType = resolvedDataType, Field = cleanPath };
-
-            try
-            {
-                var fieldValue = ExpressionValue.FromObject(
-                    await state.GetModelData(binding, context?.DataElementIdentifier, context?.RowIndices)
-                );
-
-                return fieldValue.ToStringForText();
-            }
-            catch (Exception e)
-            {
-                // Errors getting data from the data model should not break text resource rendering
-                _logger.LogError(
-                    e,
-                    "Error getting value for text resource variable with dataSource '{DataSource}' and key '{Key}'. In text resource with id = {TextResourceId}",
-                    dataSource,
-                    variableKey,
-                    textResourceId
-                );
-                return null;
-            }
+            return await EvaluateDataModel(
+                textResourceId,
+                dataSource.Substring("dataModel.".Length),
+                variableKey,
+                state,
+                context
+            );
         }
 
-        if (dataSource == "instanceContext")
+        return dataSource switch
         {
-            if (state == null)
-            {
-                _logger.LogWarning(
-                    "Text resource variable with dataSource '{DataSource}' is not supported in this context. In text resource with id = {TextResourceId}",
-                    dataSource,
-                    textResourceId
-                );
-                return null;
-            }
+            "instanceContext" => EvaluateInstanceContext(textResourceId, variableKey, state),
+            "applicationSettings" => EvaluateApplicationSetting(textResourceId, variableKey, state),
+            "customTextParameters" => customTextParameters?.GetValueOrDefault(variableKey),
+            "text" => await EvaluateText(textResourceId, variableKey, state, language, context, customTextParameters),
+            _ => LogUnsupportedDataSource(textResourceId, dataSource),
+        };
+    }
 
-            return state.GetInstanceContext(variableKey);
-        }
-
-        if (dataSource == "applicationSettings")
+    private async Task<string?> EvaluateDataModel(
+        string textResourceId,
+        string dataModelName,
+        string path,
+        LayoutEvaluatorState? state,
+        ComponentContext? context
+    )
+    {
+        var dataSource = $"dataModel.{dataModelName}";
+        if (state == null)
         {
-            if (state == null)
-            {
-                _logger.LogWarning(
-                    "Text resource variable with dataSource '{DataSource}' is not supported in this context. In text resource with id = {TextResourceId}",
-                    dataSource,
-                    textResourceId
-                );
-                return null;
-            }
-
-            return state.GetFrontendSetting(variableKey);
+            return LogNotSupportedInContext(textResourceId, dataSource);
         }
 
-        if (dataSource == "customTextParameters")
+        // For compatibility with docs, we allow {[0]} indexes in the path, even though we don't need them
+        // when we know what part of the path is a list.
+        var cleanPath = _cleanPathRegex.Replace(path, "");
+
+        // Resolve "default" to the actual data type from the layout-set.
+        // If there's no layout-set (e.g., some service tasks), GetDefaultDataType() returns null.
+        string? resolvedDataType = dataModelName == "default" ? state.GetDefaultDataType()?.Id : dataModelName;
+
+        if (resolvedDataType is null)
         {
-            return customTextParameters?.GetValueOrDefault(variableKey);
+            throw new InvalidOperationException(
+                $"Text resource '{textResourceId}' uses 'dataModel.default' but no layout-set is available to determine the default data type. "
+                    + "Use an explicit data type name instead (e.g., 'dataModel.MyDataType')."
+            );
         }
 
-        if (dataSource == "text")
+        var binding = new ModelBinding() { DataType = resolvedDataType, Field = cleanPath };
+
+        try
         {
-            if (variableKey == textResourceId)
-            {
-                // TODO: Detect bigger cycles?
-                _logger.LogWarning(
-                    "Text resource variable with dataSource 'text' cannot reference itself. In text resource with id = {TextResourceId}",
-                    textResourceId
-                );
-                return null;
-            }
-            return state == null
-                ? await TranslateTextKey(variableKey, language, customTextParameters)
-                : await TranslateTextKey(variableKey, state, context, customTextParameters);
-        }
+            var fieldValue = ExpressionValue.FromObject(
+                await state.GetModelData(binding, context?.DataElementIdentifier, context?.RowIndices)
+            );
 
+            return fieldValue.ToStringForText();
+        }
+        catch (Exception e)
+        {
+            // Errors getting data from the data model should not break text resource rendering
+            _logger.LogError(
+                e,
+                "Error getting value for text resource variable with dataSource '{DataSource}' and key '{Key}'. In text resource with id = {TextResourceId}",
+                dataSource,
+                path,
+                textResourceId
+            );
+            return null;
+        }
+    }
+
+    private string? EvaluateInstanceContext(string textResourceId, string key, LayoutEvaluatorState? state) =>
+        state == null ? LogNotSupportedInContext(textResourceId, "instanceContext") : state.GetInstanceContext(key);
+
+    private string? EvaluateApplicationSetting(string textResourceId, string key, LayoutEvaluatorState? state) =>
+        state == null ? LogNotSupportedInContext(textResourceId, "applicationSettings") : state.GetFrontendSetting(key);
+
+    private async Task<string?> EvaluateText(
+        string textResourceId,
+        string textKey,
+        LayoutEvaluatorState? state,
+        string? language,
+        ComponentContext? context,
+        Dictionary<string, string>? customTextParameters
+    )
+    {
+        if (textKey == textResourceId)
+        {
+            // TODO: Detect bigger cycles?
+            _logger.LogWarning(
+                "Text resource variable with dataSource 'text' cannot reference itself. In text resource with id = {TextResourceId}",
+                textResourceId
+            );
+            return null;
+        }
+        return state == null
+            ? await TranslateTextKey(textKey, language, customTextParameters)
+            : await TranslateTextKey(textKey, state, context, customTextParameters);
+    }
+
+    private string? LogNotSupportedInContext(string textResourceId, string dataSource)
+    {
+        _logger.LogWarning(
+            "Text resource variable with dataSource '{DataSource}' is not supported in this context. In text resource with id = {TextResourceId}",
+            dataSource,
+            textResourceId
+        );
+        return null;
+    }
+
+    private string? LogUnsupportedDataSource(string textResourceId, string dataSource)
+    {
         _logger.LogWarning(
             "Text resource variable with dataSource '{DataSource}' is not supported. Only 'dataModel.*', instanceContext, applicationSettings, text and customTextParameters is supported. In text resource with id = {TextResourceId}",
             dataSource,
             textResourceId
         );
-
         return null;
     }
 

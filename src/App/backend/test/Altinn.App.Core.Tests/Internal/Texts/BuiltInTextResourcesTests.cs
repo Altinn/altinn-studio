@@ -123,12 +123,24 @@ public class BuiltInTextResourcesTests
         return Verify(markdown.ToString(), extension: "md");
     }
 
-    private static string Source(BackendTextVariable variable) =>
-        TextResourceJson.ToVariable(variable.Source) switch
+    private static string Source(BackendTextVariable variable)
+    {
+        var (dataSource, key) = variable.Source switch
         {
-            { DataSource: "customTextParameters" } => "`customTextParameters`",
-            { DefaultValue: { Length: > 0 } fallback } json =>
-                $"`{json.DataSource}`: `{json.Key}`, or \"{fallback}\" when it has no value",
-            var json => $"`{json.DataSource}`: `{json.Key}`",
+            TextVariableSource.CustomTextParameter => ("customTextParameters", null),
+            TextVariableSource.Text text => ("text", text.TextKey),
+            TextVariableSource.DataModel dataModel => ($"dataModel.{dataModel.DataType ?? "default"}", dataModel.Field),
+            TextVariableSource.InstanceContext instanceContext => ("instanceContext", instanceContext.Key.ToString()),
+            TextVariableSource.ApplicationSetting setting => ("applicationSettings", setting.Key),
+            TextVariableSource.Unsupported unsupported => (unsupported.DataSource, unsupported.Key),
+            _ => throw new ArgumentOutOfRangeException(nameof(variable), variable, "Unknown text variable source"),
         };
+
+        return (key, variable.Source.DefaultValue) switch
+        {
+            (null, _) => $"`{dataSource}`",
+            (_, { Length: > 0 } fallback) => $"`{dataSource}`: `{key}`, or \"{fallback}\" when it has no value",
+            _ => $"`{dataSource}`: `{key}`",
+        };
+    }
 }
