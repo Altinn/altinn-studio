@@ -666,7 +666,7 @@ public class InstancesController : ControllerBase
             VisibleAfter = instansiationInstance.VisibleAfter,
             DueBefore = instansiationInstance.DueBefore ?? GetDueBeforeFromSource(application, source),
             Org = application.Org,
-            DataValues = SelectIncludedValues(application.CopyInstanceSettings?.IncludedDataValues, source?.DataValues),
+            DataValues = source is null ? null : SelectCopiedDataValues(application, source),
             PresentationTexts = SelectIncludedValues(
                 application.CopyInstanceSettings?.IncludedPresentationTexts,
                 source?.PresentationTexts
@@ -875,10 +875,7 @@ public class InstancesController : ControllerBase
             InstanceOwner = sourceInstance.InstanceOwner,
             VisibleAfter = sourceInstance.VisibleAfter,
             DueBefore = GetDueBeforeFromSource(application, sourceInstance),
-            DataValues = SelectIncludedValues(
-                application.CopyInstanceSettings?.IncludedDataValues,
-                sourceInstance.DataValues
-            ),
+            DataValues = SelectCopiedDataValues(application, sourceInstance),
             PresentationTexts = SelectIncludedValues(
                 application.CopyInstanceSettings?.IncludedPresentationTexts,
                 sourceInstance.PresentationTexts
@@ -1360,6 +1357,28 @@ public class InstancesController : ControllerBase
         }
 
         return sourceInstance.DueBefore;
+    }
+
+    /// <summary>
+    /// Selects the data values to copy from <paramref name="sourceInstance"/> and adds
+    /// <see cref="DataValueKeys.CopySourceInstanceId"/>. If that key is included and set on the source, the copied
+    /// value is kept so that a copy of a copy references the first instance in the chain.
+    /// </summary>
+    private static Dictionary<string, string> SelectCopiedDataValues(
+        ApplicationMetadata application,
+        Instance sourceInstance
+    )
+    {
+        Dictionary<string, string> dataValues =
+            SelectIncludedValues(application.CopyInstanceSettings?.IncludedDataValues, sourceInstance.DataValues)
+            ?? new Dictionary<string, string>(1);
+
+        // Order matters: the included values are selected first, and TryAdd only sets the key when they do not
+        // already contain it. If the app lists the key in IncludedDataValues and the source already has it, the
+        // source is itself a copy, and the value copied from it points to the first instance in the chain. Setting
+        // the id of the source here would make the value point one step back in the chain instead.
+        dataValues.TryAdd(DataValueKeys.CopySourceInstanceId, sourceInstance.Id);
+        return dataValues;
     }
 
     /// <summary>

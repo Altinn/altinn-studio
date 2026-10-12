@@ -1,4 +1,5 @@
 using Altinn.App.Api.Controllers;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -1704,7 +1705,12 @@ public class InstancesController_CopyInstanceTests
         Assert.NotNull(instanceTemplate);
         Assert.Equal(dueBefore, instanceTemplate.DueBefore);
         Assert.Equal(
-            new Dictionary<string, string> { ["appVersion"] = "1.2.3", ["customerId"] = "42" },
+            new Dictionary<string, string>
+            {
+                ["appVersion"] = "1.2.3",
+                ["customerId"] = "42",
+                [DataValueKeys.CopySourceInstanceId] = instance.Id,
+            },
             instanceTemplate.DataValues
         );
         Assert.Equal(new Dictionary<string, string> { ["name"] = "Ola Olsen" }, instanceTemplate.PresentationTexts);
@@ -1712,7 +1718,7 @@ public class InstancesController_CopyInstanceTests
     }
 
     [Fact]
-    public async Task CopyInstance_IncludedValuesNotConfigured_DoesNotCopyDueBeforeDataValuesOrPresentationTexts()
+    public async Task CopyInstance_IncludedValuesNotConfigured_OnlySetsSourceInstanceIdDataValue()
     {
         // Arrange
         const int instanceOwnerPartyId = 343234;
@@ -1741,9 +1747,93 @@ public class InstancesController_CopyInstanceTests
         Instance? instanceTemplate = getInstanceTemplate();
         Assert.NotNull(instanceTemplate);
         Assert.Null(instanceTemplate.DueBefore);
-        Assert.Null(instanceTemplate.DataValues);
+        Assert.Equal(
+            new Dictionary<string, string> { [DataValueKeys.CopySourceInstanceId] = instance.Id },
+            instanceTemplate.DataValues
+        );
         Assert.Null(instanceTemplate.PresentationTexts);
         VerifyNoSeparateDataValuesOrPresentationTextsUpdate(fixture);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CopyInstance_SourceIsCopy_SourceInstanceIdFollowsIncludedDataValues(bool includeSourceInstanceId)
+    {
+        // Arrange
+        const int instanceOwnerPartyId = 343234;
+        string originalInstanceId = $"{instanceOwnerPartyId}/{Guid.NewGuid()}";
+        Instance instance = CreateArchivedInstance(instanceOwnerPartyId);
+        instance.DataValues = new Dictionary<string, string>
+        {
+            [DataValueKeys.CopySourceInstanceId] = originalInstanceId,
+        };
+
+        ApplicationMetadata application = CreateApplicationMetadata("ttd", "copy-instance", true);
+        if (includeSourceInstanceId)
+        {
+            application.CopyInstanceSettings!.IncludedDataValues = [DataValueKeys.CopySourceInstanceId];
+        }
+
+        var auth = TestAuthentication.GetUserAuthentication(userPartyId: instanceOwnerPartyId);
+        using var fixture = InstancesControllerFixture.Create(auth);
+        Func<Instance?> getInstanceTemplate = SetupSuccessfulCopy(fixture, instance, application);
+
+        // Act
+        var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
+        ActionResult actual = await controller.CopyInstance(
+            "ttd",
+            "copy-instance",
+            instanceOwnerPartyId,
+            Guid.Parse(instance.Id.Split("/")[1])
+        );
+
+        // Assert
+        Assert.IsType<RedirectResult>(actual);
+        Instance? instanceTemplate = getInstanceTemplate();
+        Assert.NotNull(instanceTemplate);
+        // When included, the value copied from the source must win over the id of the source itself,
+        // so that a copy of a copy references the first instance in the chain
+        Assert.Equal(
+            new Dictionary<string, string>
+            {
+                [DataValueKeys.CopySourceInstanceId] = includeSourceInstanceId ? originalInstanceId : instance.Id,
+            },
+            instanceTemplate.DataValues
+        );
+    }
+
+    [Fact]
+    public async Task CopyInstance_SourceInstanceIdIncludedButMissingOnSource_SetsSourceInstanceId()
+    {
+        // Arrange
+        const int instanceOwnerPartyId = 343234;
+        Instance instance = CreateArchivedInstance(instanceOwnerPartyId);
+
+        ApplicationMetadata application = CreateApplicationMetadata("ttd", "copy-instance", true);
+        application.CopyInstanceSettings!.IncludedDataValues = [DataValueKeys.CopySourceInstanceId];
+
+        var auth = TestAuthentication.GetUserAuthentication(userPartyId: instanceOwnerPartyId);
+        using var fixture = InstancesControllerFixture.Create(auth);
+        Func<Instance?> getInstanceTemplate = SetupSuccessfulCopy(fixture, instance, application);
+
+        // Act
+        var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
+        ActionResult actual = await controller.CopyInstance(
+            "ttd",
+            "copy-instance",
+            instanceOwnerPartyId,
+            Guid.Parse(instance.Id.Split("/")[1])
+        );
+
+        // Assert
+        Assert.IsType<RedirectResult>(actual);
+        Instance? instanceTemplate = getInstanceTemplate();
+        Assert.NotNull(instanceTemplate);
+        Assert.Equal(
+            new Dictionary<string, string> { [DataValueKeys.CopySourceInstanceId] = instance.Id },
+            instanceTemplate.DataValues
+        );
     }
 
     private static void VerifyNoSeparateDataValuesOrPresentationTextsUpdate(InstancesControllerFixture fixture)

@@ -109,6 +109,10 @@ namespace Altinn.App.Core.Constants
         public const string POLICY_INSTANCE_READ = "InstanceRead";
         public const string POLICY_INSTANCE_WRITE = "InstanceWrite";
     }
+    public static class DataValueKeys
+    {
+        public const string CopySourceInstanceId = "copy.sourceInstanceId";
+    }
     public static class General
     {
         public const string AppTokenName = "AltinnToken";
