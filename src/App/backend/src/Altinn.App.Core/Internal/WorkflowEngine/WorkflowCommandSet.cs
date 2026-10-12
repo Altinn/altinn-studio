@@ -124,14 +124,10 @@ internal sealed class WorkflowCommandSet
     /// </summary>
     public static WorkflowCommandSet GetProcessEndSteps(ProcessEndContext context)
     {
-        var group = new WorkflowCommandSet().AddCommand(OnProcessEndingHook.Key);
-
-        if (context.HasProcessEndedHandler)
-        {
-            group
-                .AddCriticalPostCommitCommand(OnProcessEndedHook.Key)
-                .AddCriticalPostCommitCommand(ReleaseEndedInstance.Key);
-        }
+        var group = new WorkflowCommandSet()
+            .AddCommand(OnProcessEndingHook.Key)
+            .AddCriticalPostCommitCommand(OnProcessEndedHook.Key)
+            .AddCriticalPostCommitCommand(ReleaseEndedInstance.Key);
 
         if (context.RegisterEvents)
         {

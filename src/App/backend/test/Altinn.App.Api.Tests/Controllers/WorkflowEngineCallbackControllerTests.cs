@@ -25,6 +25,7 @@ using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -1005,7 +1006,7 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_ProcessEnd_CommitsLockedCleanupClearAndHardDeleteAtomically()
+    public async Task ExecuteCommand_ReleaseEndedInstance_CommitsLockedCleanupClearAndHardDeleteAtomically()
     {
         Guid lockedDataElementId = Guid.NewGuid();
         var ended = new DateTime(2026, 7, 24, 8, 30, 0, DateTimeKind.Utc);
@@ -1015,13 +1016,18 @@ public class WorkflowEngineCallbackControllerTests
                 services.AppMetadata.AutoDeleteOnProcessEnd = true;
                 DataType dataType = services.AppMetadata.DataTypes.Single(dataType => dataType.Id == DataTypeId);
                 dataType.AppLogic = new ApplicationLogic { AutoDeleteOnProcessEnd = true };
-                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new CommitProcessState(
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ReleaseEndedInstance(
                     serviceProvider.GetRequiredService<IAppMetadata>()
                 ));
             },
             (services, instance) =>
             {
-                instance.Process!.Status = ProcessStatus.Processing;
+                instance.Process = new ProcessState
+                {
+                    Status = ProcessStatus.Processing,
+                    Ended = ended,
+                    EndEvent = "EndEvent_1",
+                };
                 instance.Data.Add(
                     new DataElement
                     {
@@ -1041,28 +1047,9 @@ public class WorkflowEngineCallbackControllerTests
                 );
             }
         );
-        string commandPayload = CommandPayloadSerializer.Serialize(
-            new ProcessStateChangePayload(
-                new ProcessStateChange
-                {
-                    OldProcessState = new ProcessState
-                    {
-                        Status = ProcessStatus.Processing,
-                        CurrentTask = new ProcessElementInfo { ElementId = "Task_1" },
-                    },
-                    NewProcessState = new ProcessState
-                    {
-                        Ended = ended,
-                        EndEvent = "EndEvent_1",
-                        CurrentTask = null,
-                    },
-                    Events = [new InstanceEvent { EventType = "process_EndEvent" }],
-                }
-            )
-        )!;
         Guid stepId = Guid.NewGuid();
 
-        IActionResult result = await setup.Execute(CommitProcessState.Key, stepId, commandPayload);
+        IActionResult result = await setup.Execute(ReleaseEndedInstance.Key, stepId);
 
         var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
         WorkflowCallbackState callbackState = setup.DeserializeState(response.State!);
@@ -1075,7 +1062,7 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(ended, mutation.ProcessState?.State?.Ended);
         Assert.Equal("EndEvent_1", mutation.ProcessState?.State?.EndEvent);
         Assert.Null(mutation.ProcessState?.State?.CurrentTask);
-        Assert.Equal("process_EndEvent", Assert.Single(mutation.ProcessState!.Events!).EventType);
+        Assert.Empty(mutation.ProcessState!.Events!);
         var delete = Assert.Single(mutation.DeleteDataElements);
         Assert.Equal(lockedDataElementId, delete.DataElementId);
         Assert.True(delete.IgnoreLock);

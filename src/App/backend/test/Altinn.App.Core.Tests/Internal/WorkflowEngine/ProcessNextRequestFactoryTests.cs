@@ -821,6 +821,8 @@ public class ProcessNextRequestFactoryTests
             // A process end has no current task, so the end event is the element these steps run for.
             (OnProcessEndingHook.Key, "EndEvent_1"),
             (CommitProcessState.Key, null),
+            (OnProcessEndedHook.Key, null),
+            (ReleaseEndedInstance.Key, null),
             (EnqueueSideEffectsWorkflow.Key, null),
         ];
         Assert.Equal(expected, ExtractCommandElements(bundle.Request.Workflows[0]));
@@ -1002,12 +1004,16 @@ public class ProcessNextRequestFactoryTests
             MutateProcessState.Key,
             // Process end commands (pre-commit)
             OnProcessEndingHook.Key,
-            // CommitProcessState
+            // CommitProcessState saves the ended state and keeps processing
             CommitProcessState.Key,
-            // Enqueues the side-effects workflow at the commit boundary
+            // Process end commands (post-commit); the release is the workflow's last save
+            OnProcessEndedHook.Key,
+            ReleaseEndedInstance.Key,
+            // Enqueues the side-effects workflow once the end is released
             EnqueueSideEffectsWorkflow.Key,
         };
         Assert.Equal(expected, keys);
+        Assert.True(ExtractCommitProcessStatePayload(bundle).StepsFollowCommit);
 
         // The non-critical CompletedAltinnEvent runs in the separate side-effects workflow.
         Assert.Single(bundle.Request.Workflows);
@@ -1884,9 +1890,11 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain(CompletedAltinnEvent.Key, keys);
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
-        // The end hook must see the ended process and pre-cleanup data before the terminal commit.
-        Assert.Equal(OnProcessEndingHook.Key, keys[^2]);
-        Assert.Equal(CommitProcessState.Key, keys[^1]);
+        // The release is the last step: nothing is enqueued after it without side effects.
+        Assert.Equal(
+            [OnProcessEndingHook.Key, CommitProcessState.Key, OnProcessEndedHook.Key, ReleaseEndedInstance.Key],
+            keys[^4..]
+        );
     }
 
     [Fact]
@@ -1933,59 +1941,6 @@ public class ProcessNextRequestFactoryTests
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
         Assert.DoesNotContain(InstanceCreatedAltinnEvent.Key, keys);
         Assert.Contains(NotifyInstanceOwnerOnInstantiation.Key, keys);
-    }
-
-    [Fact]
-    public async Task Create_TaskToEndTransition_WithProcessEndedHandler_ReleasesAfterTheHookAndThenAnnouncesTheEnd()
-    {
-        var factory = CreateFactory(configureServices: services =>
-            services.AddSingleton(Mock.Of<IOnProcessEndedHandler>())
-        );
-        var stateChange = CreateTaskToEndTransition();
-
-        var bundle = await factory.CreateDependent(
-            TestInstance,
-            stateChange,
-            SignedTestState,
-            new Actor { UserId = 42 },
-            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
-        );
-
-        List<(string CommandKey, string? Element)> expected =
-        [
-            (EndTask.Key, "Task_1"),
-            (CommonTaskFinalization.Key, "Task_1"),
-            (OnTaskEndingHook.Key, "Task_1"),
-            (LockTaskData.Key, "Task_1"),
-            (MutateProcessState.Key, null),
-            (OnProcessEndingHook.Key, "EndEvent_1"),
-            (CommitProcessState.Key, null),
-            (OnProcessEndedHook.Key, null),
-            (ReleaseEndedInstance.Key, null),
-            (EnqueueSideEffectsWorkflow.Key, null),
-        ];
-        Assert.Equal(expected, ExtractCommandElements(bundle.Request.Workflows[0]));
-        Assert.True(ExtractCommitProcessStatePayload(bundle).StepsFollowCommit);
-    }
-
-    [Fact]
-    public async Task Create_TaskToEndTransition_WithoutProcessEndedHandler_ReleasesInTheCommit()
-    {
-        var factory = CreateFactory();
-        var stateChange = CreateTaskToEndTransition();
-
-        var bundle = await factory.CreateChainInitiating(
-            TestInstance,
-            stateChange,
-            "test-process-next-idempotency-key",
-            SignedTestState
-        );
-
-        var keys = ExtractAllCommandKeys(bundle);
-        Assert.DoesNotContain(OnProcessEndedHook.Key, keys);
-        Assert.DoesNotContain(ReleaseEndedInstance.Key, keys);
-        Assert.False(ExtractCommitProcessStatePayload(bundle).StepsFollowCommit);
     }
 
     [Fact]

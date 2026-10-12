@@ -539,11 +539,7 @@ internal sealed class ProcessNextRequestFactory
                 return WorkflowCommandSet.GetTaskAbandonSteps();
             case InstanceEventType.process_EndEvent:
                 return WorkflowCommandSet.GetProcessEndSteps(
-                    new ProcessEndContext
-                    {
-                        RegisterEvents = _appSettings.RegisterEventsWithEventsComponent,
-                        HasProcessEndedHandler = _appImplementationFactory.GetAll<IOnProcessEndedHandler>().Any(),
-                    }
+                    new ProcessEndContext { RegisterEvents = _appSettings.RegisterEventsWithEventsComponent }
                 );
             default:
                 return null;
