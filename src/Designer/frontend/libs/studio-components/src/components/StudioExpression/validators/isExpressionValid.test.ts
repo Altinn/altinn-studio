@@ -42,10 +42,15 @@ describe('isExpressionValid', () => {
   it('Returns false when expression is invalid', () => {
     const invalidFunction = ['invalidFunction', 'test'];
     const validFunction: DataLookupFunc = [DataLookupFuncName.DataModel, 'test'];
+    const tooFewArguments = [DataLookupFuncName.DataModel];
     const invalidExpressions: unknown[] = [
       invalidFunction,
       [GeneralRelationOperator.Equals, invalidFunction],
       [LogicalTupleOperator.And, [validFunction, invalidFunction]],
+      tooFewArguments,
+      [GeneralRelationOperator.Equals, validFunction],
+      [LogicalTupleOperator.And, true, [GeneralRelationOperator.Equals, validFunction]],
+      ['jmespath', validFunction],
     ];
     invalidExpressions.forEach((invalidExpression) => {
       expect(isExpressionValid(invalidExpression)).toBe(false);

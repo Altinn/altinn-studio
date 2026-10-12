@@ -26,9 +26,8 @@ describe('expression schema tests', () => {
     expect(expressionSchema.definitions[`func-${name}`].type).toBe('array');
     expect(expressionSchema.definitions[`func-${name}`].items[0]).toEqual({ const: name });
 
-    // It might be tempting to add these into the definitions to make the schema stricter and properly validate
-    // min/max arguments, but this would make the schema less useful for the user, as they would not get
-    // autocompletion in vscode until they had the minimum number of arguments.
+    // Adding minItems here would make editors stop offering completions for the function until it has the
+    // minimum number of items. The minimum is enforced by the function-arity rules instead, see below.
     expect(expressionSchema.definitions[`func-${name}`].minItems).toBe(undefined);
     expect(expressionSchema.definitions[`func-${name}`].maxItems).toBe(undefined);
 
@@ -107,15 +106,14 @@ describe('expression schema tests', () => {
     expect(valid).toBe(true);
 
     // With too few arguments
-    const funcCallMinArguments = [name];
-    const validMinArguments = validate(funcCallMinArguments);
-
-    // This always validates, because the schema allows for less than the minimum number of arguments. If it didn't,
-    // you wouldn't get autocomplete for functions until you had the minimum number of arguments, which makes for
-    // a bad developer experience. We test this explicitly below, even though is does not seem to be the desired
-    // behavior.
-    expect(validate.errors).toEqual(null);
-    expect(validMinArguments).toBe(true);
+    const minArguments = args.filter((arg) => arg.variant === 'required').length;
+    for (let count = 0; count < minArguments; count++) {
+      const funcCallTooFew = funcCall.slice(0, count + 1);
+      expect(validate(funcCallTooFew)).toBe(false);
+      expect(validate.errors?.map((error) => error.message)).toContain(
+        `must NOT have fewer than ${minArguments + 1} items`,
+      );
+    }
 
     // With too many arguments
     const funcCallExtra = [name, ...args.map((arg) => exprValToString(arg.type)), 'extra'];
@@ -127,6 +125,25 @@ describe('expression schema tests', () => {
     } else {
       expect(validExtra).toBe(false);
     }
+  });
+
+  it.each(functions)('$name should have a function-arity rule matching its required arguments', ({ name, args }) => {
+    const minArguments = args.filter((arg) => arg.variant === 'required').length;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rules = (expressionSchema.definitions['function-arity'].allOf as any[]).filter(
+      (rule) => rule.if.items?.[0]?.const === name,
+    );
+
+    if (minArguments === 0) {
+      // Covered by the generic rule requiring the function name
+      expect(rules).toEqual([]);
+      return;
+    }
+
+    expect(rules).toHaveLength(1);
+    // Functions with an optional keyword (if/else, compare/not) nest the minimum for the plain form in else
+    const minItems = rules[0].then.minItems ?? rules[0].then.else.minItems;
+    expect(minItems).toBe(minArguments + 1);
   });
 
   it('invalid functions should not validate', () => {

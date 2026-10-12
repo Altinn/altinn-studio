@@ -30,6 +30,7 @@
   "definitions": {
     "any": {
       "title": "Any expression",
+      "allOf": [{ "$ref": "#/definitions/function-arity" }],
       "anyOf": [
         {
           "type": "null",
@@ -51,6 +52,7 @@
     },
     "string": {
       "title": "Any expression returning string",
+      "allOf": [{ "$ref": "#/definitions/function-arity" }],
       "anyOf": [
         {
           "type": "null",
@@ -113,6 +115,7 @@
     },
     "boolean": {
       "title": "Any expression returning boolean",
+      "allOf": [{ "$ref": "#/definitions/function-arity" }],
       "anyOf": [
         {
           "type": "null",
@@ -190,6 +193,7 @@
     },
     "number": {
       "title": "Any expression returning a number",
+      "allOf": [{ "$ref": "#/definitions/function-arity" }],
       "anyOf": [
         {
           "type": "null",
@@ -681,6 +685,117 @@
         }
       ],
       "additionalItems": false
+    },
+    "function-arity": {
+      "title": "Minimum number of items in a function call",
+      "description": "The function definitions deliberately leave out minItems, because editors stop offering completions for a function until it has the minimum number of items. These rules reject function calls with too few arguments instead. Keep them in sync with the function definitions.",
+      "allOf": [
+        { "if": { "type": "array" }, "then": { "minItems": 1 } },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "if" }] },
+          "then": {
+            "if": { "type": "array", "minItems": 4, "items": [{}, {}, {}, { "const": "else" }] },
+            "then": { "minItems": 5 },
+            "else": { "minItems": 3 }
+          }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "component" }] },
+          "then": { "minItems": 2 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "dataModel" }] },
+          "then": { "minItems": 2 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "instanceContext" }] },
+          "then": { "minItems": 2 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "authContext" }] },
+          "then": { "minItems": 2 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "frontendSettings" }] },
+          "then": { "minItems": 2 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "equals" }] },
+          "then": { "minItems": 3 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "notEquals" }] },
+          "then": { "minItems": 3 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "not" }] },
+          "then": { "minItems": 2 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "greaterThan" }] },
+          "then": { "minItems": 3 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "greaterThanEq" }] },
+          "then": { "minItems": 3 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "lessThan" }] },
+          "then": { "minItems": 3 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "lessThanEq" }] },
+          "then": { "minItems": 3 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "and" }] },
+          "then": { "minItems": 2 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "or" }] },
+          "then": { "minItems": 2 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "round" }] },
+          "then": { "minItems": 2 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "text" }] },
+          "then": { "minItems": 2 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "contains" }] },
+          "then": { "minItems": 3 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "notContains" }] },
+          "then": { "minItems": 3 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "startsWith" }] },
+          "then": { "minItems": 3 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "endsWith" }] },
+          "then": { "minItems": 3 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "stringLength" }] },
+          "then": { "minItems": 2 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "commaContains" }] },
+          "then": { "minItems": 3 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "lowerCase" }] },
+          "then": { "minItems": 2 }
+        },
+        {
+          "if": { "type": "array", "minItems": 1, "items": [{ "const": "upperCase" }] },
+          "then": { "minItems": 2 }
+        }
+      ]
     },
     "func-upperCase": {
       "title": "Upper case function",
