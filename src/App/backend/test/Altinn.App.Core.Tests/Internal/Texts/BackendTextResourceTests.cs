@@ -98,6 +98,54 @@ public class BackendTextResourceTests
     }
 
     [Fact]
+    public void ToTemplate_SplitsTheTextAtEachPlaceholder()
+    {
+        var template = _textResource.ToTemplate("en");
+
+        Assert.NotNull(template);
+        Assert.Equal(["", " of ", " in English"], template.Segments.ToArray());
+    }
+
+    [Fact]
+    public void ToTemplate_RepeatsTheVariableOfARepeatedPlaceholder()
+    {
+        var textResource = new BackendTextResource
+        {
+            Key = "backend.test",
+            Texts = LocalizedText.Invariant("{a}, {b}, {a}"),
+            Variables =
+            [
+                BackendTextVariable.CustomTextParameter("a", "A"),
+                BackendTextVariable.CustomTextParameter("b", "B"),
+            ],
+        };
+
+        var template = textResource.ToTemplate("nb");
+
+        Assert.NotNull(template);
+        Assert.Equal(
+            [textResource.Variables[0].Source, textResource.Variables[1].Source, textResource.Variables[0].Source],
+            template.Variables.ToArray()
+        );
+        Assert.Equal("1, 2, 1", template.Apply(["1", "2", "1"]));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("No placeholders here")]
+    [InlineData("Empty braces {} stay")]
+    public void ToTemplate_GivesOneSegmentForTextWithoutPlaceholders(string text)
+    {
+        var textResource = new BackendTextResource { Key = "backend.test", Texts = LocalizedText.Invariant(text) };
+
+        var template = textResource.ToTemplate("nn");
+
+        Assert.NotNull(template);
+        Assert.Equal([text], template.Segments.ToArray());
+        Assert.Empty(template.Variables);
+    }
+
+    [Fact]
     public void ToTemplate_ThrowsForAPlaceholderWithoutAVariable()
     {
         var textResource = new BackendTextResource

@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 using Altinn.App.Core.Internal.Language;
 
 namespace Altinn.App.Core.Internal.Texts;
@@ -6,7 +8,7 @@ namespace Altinn.App.Core.Internal.Texts;
 /// A text that the backend provides a default for. An app overrides it by adding a text resource with the same
 /// <see cref="Key"/>.
 /// </summary>
-internal sealed class BackendTextResource
+internal sealed partial class BackendTextResource
 {
     private IReadOnlyList<BackendTextVariable>? _customTextParameters;
     private TextTemplate? _nb;
@@ -78,11 +80,30 @@ internal sealed class BackendTextResource
         return parameters;
     }
 
-    private TextTemplate Parse(string text) =>
-        TextTemplateParser.Parse(
-            text,
-            name =>
-                Variables.FirstOrDefault(variable => variable.Name == name)?.Source
-                ?? throw new InvalidOperationException($"Text resource '{Key}' uses {{{name}}}, which is no variable")
-        );
+    /// <summary>
+    /// Splits <paramref name="text"/> at each <c>{name}</c> placeholder, with the source of the named variable.
+    /// </summary>
+    private TextTemplate Parse(string text)
+    {
+        var segments = ImmutableArray.CreateBuilder<string>();
+        var variables = ImmutableArray.CreateBuilder<TextVariableSource>();
+        var segmentStart = 0;
+        foreach (Match match in PlaceholderRegex().Matches(text))
+        {
+            var name = match.Groups[1].Value;
+            var variable =
+                Variables.FirstOrDefault(candidate => candidate.Name == name)
+                ?? throw new InvalidOperationException($"Text resource '{Key}' uses {{{name}}}, which is no variable");
+
+            segments.Add(text[segmentStart..match.Index]);
+            variables.Add(variable.Source);
+            segmentStart = match.Index + match.Length;
+        }
+        segments.Add(text[segmentStart..]);
+
+        return new TextTemplate(segments.ToImmutable(), variables.ToImmutable());
+    }
+
+    [GeneratedRegex(@"\{([^{}]+)\}")]
+    private static partial Regex PlaceholderRegex();
 }
