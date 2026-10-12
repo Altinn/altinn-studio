@@ -56,7 +56,7 @@ describe('PolicyEditor', () => {
     ).toBeInTheDocument();
   });
 
-  it('changes the auth level when the user selects a different auth level', async () => {
+  it('saves the policy with the new auth level when the user selects a different auth level', async () => {
     const user = userEvent.setup();
     renderPolicyEditor();
 
@@ -65,15 +65,16 @@ describe('PolicyEditor', () => {
     );
     expect(selectElement).toHaveValue(mockRequiredAuthLevel);
 
+    const newAuthLevelOption = authlevelOptions[2];
     await user.selectOptions(
       selectElement,
-      screen.getByRole('option', { name: textMock(authlevelOptions[3].label) }),
+      screen.getByRole('option', { name: textMock(newAuthLevelOption.label) }),
     );
 
-    expect(
-      screen.getByRole<HTMLOptionElement>('option', { name: textMock(authlevelOptions[3].label) })
-        .selected,
-    ).toBe(true);
+    expect(mockOnSave).toHaveBeenCalledWith({
+      ...mockPolicy,
+      requiredAuthenticationLevelEndUser: newAuthLevelOption.value,
+    });
   });
 
   it('calls "onSave" when the auth level changes', async () => {
