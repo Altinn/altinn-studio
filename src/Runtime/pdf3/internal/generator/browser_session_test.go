@@ -5,6 +5,12 @@ import (
 	"log/slog"
 	"strings"
 	"testing"
+
+	"go.opentelemetry.io/otel/attribute"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+
+	"altinn.studio/pdf3/internal/telemetry"
 )
 
 func TestHtmlIDPattern(t *testing.T) {
@@ -68,6 +74,8 @@ func TestHandleEvent_LogsBrowserErrorsWithoutPayloads(t *testing.T) {
 		ctx:    t.Context(),
 		logger: slog.New(slog.NewTextHandler(&logs, nil)),
 	}
+	requestAttributes := telemetry.NewRequestAttributes()
+	w.currentRequest.Store(&workerRequest{ctx: telemetry.WithRequestAttributes(t.Context(), requestAttributes)})
 
 	w.handleEvent("Runtime.consoleAPICalled", map[string]any{
 		"type": "error",
@@ -101,6 +109,25 @@ func TestHandleEvent_LogsBrowserErrorsWithoutPayloads(t *testing.T) {
 	for _, leaked := range []string{"page data", "token=secret"} {
 		if strings.Contains(got, leaked) {
 			t.Errorf("logs contain %q:\n%s", leaked, got)
+		}
+	}
+	// The counts are on the request's attributes as soon as the errors arrive, before the
+	// response ends the entry span.
+	spans := tracetest.NewSpanRecorder()
+	_, span := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(spans)).Tracer("test").Start(t.Context(), "entry")
+	telemetry.SetOnSpan(span, requestAttributes)
+	span.End()
+	counts := map[attribute.Key]int64{}
+	for _, kv := range spans.Ended()[0].Attributes() {
+		counts[kv.Key] = kv.Value.AsInt64()
+	}
+	for _, key := range []attribute.Key{
+		"pdf.process.console_errors",
+		"pdf.process.browser_errors",
+		"pdf.process.js_exceptions",
+	} {
+		if counts[key] != 1 {
+			t.Errorf("%s = %d, want 1", key, counts[key])
 		}
 	}
 }

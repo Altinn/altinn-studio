@@ -159,18 +159,6 @@ func (d *RequestAttributes) SetBrowserLogsDropped(count int) {
 	d.setKVLocked(attribute.Int("pdf.process.browser_logs_dropped", count))
 }
 
-func (d *RequestAttributes) SetCleanup(attempts int, succeeded bool, skipped bool) {
-	if d == nil {
-		return
-	}
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	d.setKVLocked(attribute.Int("pdf.process.cleanup_attempts", attempts))
-	d.setKVLocked(attribute.Bool("pdf.process.cleanup_succeeded", succeeded))
-	d.setKVLocked(attribute.Bool("pdf.process.cleanup_skipped", skipped))
-}
-
 func (d *RequestAttributes) SetRejection(reason string) {
 	if d == nil || reason == "" {
 		return

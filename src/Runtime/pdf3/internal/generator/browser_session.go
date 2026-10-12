@@ -148,6 +148,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 		if p, ok := params.(map[string]any); ok {
 			if apiType, ok := p["type"].(string); ok && apiType == "error" {
 				w.consoleErrors.Add(1)
+				w.recordBrowserErrorCounts()
 				w.logBrowserError("Browser console error", method, consoleMessage(p), "")
 			}
 		}
@@ -156,6 +157,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 			if entry, ok := p["entry"].(map[string]any); ok {
 				if level, ok := entry["level"].(string); ok && level == "error" {
 					w.browserErrors.Add(1)
+					w.recordBrowserErrorCounts()
 					w.logBrowserError(
 						"Browser log error",
 						method,
@@ -168,6 +170,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 	case "Runtime.exceptionThrown":
 		if p, ok := params.(map[string]any); ok {
 			w.jsExceptions.Add(1)
+			w.recordBrowserErrorCounts()
 			w.logBrowserError("Browser JavaScript exception", method, exceptionMessage(p), "")
 		}
 	case "Page.frameNavigated":
@@ -309,13 +312,6 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
 		}
 
-		if data := telemetry.RequestAttributesFromContext(ctx); data != nil {
-			data.SetSessionID(w.id)
-			data.SetConsoleErrors(int(w.consoleErrors.Load()))
-			data.SetBrowserErrors(int(w.browserErrors.Load()))
-			data.SetJSExceptions(int(w.jsExceptions.Load()))
-			data.SetBrowserLogsDropped(int(w.browserLogsDropped.Load()))
-		}
 		duration := time.Since(start)
 		span.End()
 		w.logger.Info("Completed PDF request", "duration", duration)
@@ -350,6 +346,7 @@ func (w *browserSession) logBrowserError(msg, method, message, source string) {
 	}
 	if w.browserLogsSent.Add(1) > maxBrowserLogsPerRequest {
 		w.browserLogsDropped.Add(1)
+		w.recordBrowserErrorCounts()
 		return
 	}
 
@@ -358,6 +355,20 @@ func (w *browserSession) logBrowserError(msg, method, message, source string) {
 		args = append(args, "source", source)
 	}
 	w.logger.WarnContext(ctx, msg, args...)
+}
+
+// recordBrowserErrorCounts puts the current request's browser error counts on its attributes as
+// the errors arrive: the entry span ends with the response, before the request's cleanup.
+func (w *browserSession) recordBrowserErrorCounts() {
+	req := w.currentRequest.Load()
+	if req == nil {
+		return
+	}
+	data := telemetry.RequestAttributesFromContext(req.ctx)
+	data.SetConsoleErrors(int(w.consoleErrors.Load()))
+	data.SetBrowserErrors(int(w.browserErrors.Load()))
+	data.SetJSExceptions(int(w.jsExceptions.Load()))
+	data.SetBrowserLogsDropped(int(w.browserLogsDropped.Load()))
 }
 
 // consoleMessage is the text of a Runtime.consoleAPICalled event's arguments.
@@ -469,10 +480,7 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest, startedProcessi
 		w.logger.Info("Never started processing, skipping cleanup")
 		// We never used any user-controlled page state, so there is nothing to revert.
 		req.cleanedUp = true
-		if data := telemetry.RequestAttributesFromContext(cleanupCtx); data != nil {
-			data.SetSessionID(w.id)
-			data.SetCleanup(0, true, true)
-		}
+		setCleanupAttributes(cleanupSpan, 0, true, true)
 		return
 	}
 
@@ -488,15 +496,22 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest, startedProcessi
 	}
 
 	cleanupAttempts := w.cleanupBrowserWithRetry(req)
-	if data := telemetry.RequestAttributesFromContext(cleanupCtx); data != nil {
-		data.SetSessionID(w.id)
-		data.SetCleanup(cleanupAttempts, req.cleanedUp, false)
-	}
+	setCleanupAttributes(cleanupSpan, cleanupAttempts, req.cleanedUp, false)
 	if !req.cleanedUp {
 		telemetry.SetError(cleanupSpan, "cleanup_failed", nil)
 	}
 
 	w.logger.Info("Cleanup completed", "duration", time.Since(cleanupStart))
+}
+
+// setCleanupAttributes records the cleanup's outcome on its span. Cleanup runs after the
+// response, when the request's entry span has ended.
+func setCleanupAttributes(span trace.Span, attempts int, succeeded, skipped bool) {
+	span.SetAttributes(
+		attribute.Int("pdf.process.cleanup_attempts", attempts),
+		attribute.Bool("pdf.process.cleanup_succeeded", succeeded),
+		attribute.Bool("pdf.process.cleanup_skipped", skipped),
+	)
 }
 
 func (w *browserSession) navigateToBlankForCleanup() error {
