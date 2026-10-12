@@ -64,13 +64,13 @@ func main() {
 
 	// Setup HTTP server
 	http.HandleFunc("/health/startup", func(w http.ResponseWriter, r *http.Request) {
-		ihttp.WriteProbe(logger, w, !host.IsShuttingDown())
+		ihttp.WriteProbe(r.Context(), logger, w, !host.IsShuttingDown())
 	})
 	http.HandleFunc("/health/ready", func(w http.ResponseWriter, r *http.Request) {
-		ihttp.WriteProbe(logger, w, !host.IsShuttingDown())
+		ihttp.WriteProbe(r.Context(), logger, w, !host.IsShuttingDown())
 	})
 	http.HandleFunc("/health/live", func(w http.ResponseWriter, r *http.Request) {
-		ihttp.WriteText(logger, w, http.StatusOK, "OK")
+		ihttp.WriteText(r.Context(), logger, w, http.StatusOK, "OK")
 	})
 
 	http.Handle("/pdf", telemetry.WrapHandler("POST /pdf", generatePdf(logger, httpClient, workerHTTPAddr)))
@@ -443,7 +443,7 @@ func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(htt
 		//nolint:gosec // targetWorkerIP is validated as an IP address and only used for internal test routing.
 		httpReq, err := http.NewRequestWithContext(r.Context(), r.Method, workerEndpoint, nil)
 		if err != nil {
-			ihttp.WriteText(logger, w, http.StatusInternalServerError, "Failed to create worker request")
+			ihttp.WriteText(r.Context(), logger, w, http.StatusInternalServerError, "Failed to create worker request")
 			return
 		}
 
@@ -451,6 +451,7 @@ func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(htt
 		resp, err := client.Do(httpReq)
 		if err != nil {
 			ihttp.WriteText(
+				r.Context(),
 				logger,
 				w,
 				http.StatusInternalServerError,

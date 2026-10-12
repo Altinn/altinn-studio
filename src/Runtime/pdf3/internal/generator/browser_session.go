@@ -506,7 +506,7 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest, startedProcessi
 		return
 	}
 
-	err := w.navigateToBlankForCleanup()
+	err := w.navigateToBlankForCleanup(cleanupCtx)
 	if err != nil {
 		telemetry.SetError(cleanupSpan, "cleanup_navigate_failed", err)
 	}
@@ -536,7 +536,9 @@ func setCleanupAttributes(span trace.Span, attempts int, succeeded, skipped bool
 	)
 }
 
-func (w *browserSession) navigateToBlankForCleanup() error {
+// navigateToBlankForCleanup resets the page after a request. requestCtx is the request's
+// context, for logging only: the navigation itself must not depend on the client.
+func (w *browserSession) navigateToBlankForCleanup(requestCtx context.Context) error {
 	var err error
 	for range 3 {
 		waiter := &cleanupNavigationWaiter{loaded: make(chan struct{}, 1)}
@@ -570,7 +572,7 @@ func (w *browserSession) navigateToBlankForCleanup() error {
 		if err == nil {
 			return nil
 		}
-		w.logger.Warn("Failed to navigate back to about:blank, retrying", "error", err)
+		w.logger.WarnContext(requestCtx, "Failed to navigate back to about:blank, retrying", "error", err)
 	}
 	return fmt.Errorf("navigate to about:blank: %w", err)
 }
@@ -636,7 +638,7 @@ func (w *browserSession) setCookies(req *workerRequest) error {
 
 	cookies := make([]map[string]any, 0, len(req.request.Cookies))
 	for _, cookie := range req.request.Cookies {
-		cookieData, ok := w.buildCookieData(cookie)
+		cookieData, ok := w.buildCookieData(req.ctx, cookie)
 		if !ok {
 			continue
 		}
@@ -653,7 +655,7 @@ func (w *browserSession) setCookies(req *workerRequest) error {
 	return nil
 }
 
-func (w *browserSession) buildCookieData(cookie types.Cookie) (map[string]any, bool) {
+func (w *browserSession) buildCookieData(ctx context.Context, cookie types.Cookie) (map[string]any, bool) {
 	sameSite := "Lax"
 	switch cookie.SameSite {
 	case "Strict":
@@ -666,7 +668,12 @@ func (w *browserSession) buildCookieData(cookie types.Cookie) (map[string]any, b
 		// W3C tracestate values can legitimately contain semicolons, but Chrome rejects
 		// them as cookie values. Keep this compatibility shim until all callers encode
 		// those values before they reach pdf3.
-		w.logger.Warn("Cookie value looks like a tracestate and has semicolons skipping", "name", cookie.Name)
+		w.logger.WarnContext(
+			ctx,
+			"Cookie value looks like a tracestate and has semicolons skipping",
+			"name",
+			cookie.Name,
+		)
 		return nil, false
 	}
 
@@ -797,7 +804,7 @@ func (w *browserSession) printPDF(req *workerRequest) error {
 	_, printSpan := w.tracer.Start(req.ctx, "pdf.session.print_to_pdf", trace.WithSpanKind(trace.SpanKindInternal))
 	defer printSpan.End()
 
-	resp, err := w.conn.SendCommand(req.ctx, "Page.printToPDF", buildPrintToPDFParams(w.logger, req.request))
+	resp, err := w.conn.SendCommand(req.ctx, "Page.printToPDF", buildPrintToPDFParams(req.ctx, w.logger, req.request))
 	if err != nil {
 		pdfErr := contextErrorToPDFError(err, types.ErrGenerationFail, "")
 		telemetry.SetError(printSpan, pdfErr.ErrorType(), err)
@@ -817,7 +824,7 @@ func (w *browserSession) printPDF(req *workerRequest) error {
 	return nil
 }
 
-func buildPrintToPDFParams(logger *slog.Logger, request types.PdfRequest) map[string]any {
+func buildPrintToPDFParams(ctx context.Context, logger *slog.Logger, request types.PdfRequest) map[string]any {
 	pdfParams := map[string]any{
 		"scale":                   1.0,
 		"displayHeaderFooter":     false,
@@ -840,7 +847,7 @@ func buildPrintToPDFParams(logger *slog.Logger, request types.PdfRequest) map[st
 			pdfParams["paperWidth"] = dimensions.width
 			pdfParams["paperHeight"] = dimensions.height
 		} else {
-			logger.Warn("Unknown paper format, using default", "format", request.Options.Format)
+			logger.WarnContext(ctx, "Unknown paper format, using default", "format", request.Options.Format)
 		}
 	}
 

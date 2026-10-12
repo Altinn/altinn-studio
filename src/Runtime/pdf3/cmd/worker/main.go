@@ -104,13 +104,13 @@ func main() {
 
 	// Start HTTP server for both PDF generation and probes
 	http.HandleFunc("/health/startup", func(w http.ResponseWriter, r *http.Request) {
-		ihttp.WriteProbe(logger, w, !host.IsShuttingDown() && gen.IsReady())
+		ihttp.WriteProbe(r.Context(), logger, w, !host.IsShuttingDown() && gen.IsReady())
 	})
 	http.HandleFunc("/health/ready", func(w http.ResponseWriter, r *http.Request) {
-		ihttp.WriteProbe(logger, w, !host.IsShuttingDown() && gen.IsReady())
+		ihttp.WriteProbe(r.Context(), logger, w, !host.IsShuttingDown() && gen.IsReady())
 	})
 	http.HandleFunc("/health/live", func(w http.ResponseWriter, r *http.Request) {
-		ihttp.WriteText(logger, w, http.StatusOK, "OK")
+		ihttp.WriteText(r.Context(), logger, w, http.StatusOK, "OK")
 	})
 
 	// The localtest harness will run on all dev machines
@@ -389,19 +389,25 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 
 		if r.Method != http.MethodPost {
 			data.SetRejection("method_not_allowed")
-			ihttp.WriteText(logger, w, http.StatusMethodNotAllowed, "Only POST method is allowed")
+			ihttp.WriteText(r.Context(), logger, w, http.StatusMethodNotAllowed, "Only POST method is allowed")
 			return
 		}
 
 		ct := strings.ToLower(r.Header.Get("Content-Type"))
 		if !strings.HasPrefix(ct, "application/json") {
 			data.SetRejection("unsupported_media_type")
-			ihttp.WriteText(logger, w, http.StatusUnsupportedMediaType, "Content-Type must be application/json")
+			ihttp.WriteText(
+				r.Context(),
+				logger,
+				w,
+				http.StatusUnsupportedMediaType,
+				"Content-Type must be application/json",
+			)
 			return
 		}
 		if !iruntime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
 			data.SetRejection("illegal_test_header")
-			ihttp.WriteText(logger, w, http.StatusBadRequest, "Illegal internals test mode header")
+			ihttp.WriteText(r.Context(), logger, w, http.StatusBadRequest, "Illegal internals test mode header")
 			return
 		}
 
@@ -414,7 +420,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			data.SetRejection("invalid_json")
-			ihttp.WriteText(logger, w, http.StatusBadRequest, fmt.Sprintf("Invalid JSON payload: %v", err))
+			ihttp.WriteText(r.Context(), logger, w, http.StatusBadRequest, fmt.Sprintf("Invalid JSON payload: %v", err))
 			return
 		}
 
@@ -441,7 +447,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 				errorCode = http.StatusTooManyRequests
 			}
 
-			ihttp.WriteText(reqLogger, w, errorCode, errStr)
+			ihttp.WriteText(r.Context(), reqLogger, w, errorCode, errStr)
 			return
 		}
 
@@ -482,27 +488,33 @@ func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {
 		)
 
 		if r.Method != http.MethodGet {
-			ihttp.WriteText(logger, w, http.StatusMethodNotAllowed, "Only GET method is allowed")
+			ihttp.WriteText(r.Context(), logger, w, http.StatusMethodNotAllowed, "Only GET method is allowed")
 			return
 		}
 
 		// Extract ID from URL path: /testoutput/{id}
 		path := strings.TrimPrefix(r.URL.Path, "/testoutput/")
 		if path == "" || path == r.URL.Path {
-			ihttp.WriteText(logger, w, http.StatusBadRequest, "Missing test output ID")
+			ihttp.WriteText(r.Context(), logger, w, http.StatusBadRequest, "Missing test output ID")
 			return
 		}
 
 		// Get test output from store
 		output, found := testing.GetTestOutput(path)
 		if !found {
-			ihttp.WriteText(logger, w, http.StatusNotFound, "Test output not found")
+			ihttp.WriteText(r.Context(), logger, w, http.StatusNotFound, "Test output not found")
 			return
 		}
 
 		// Wait for all snapshots to be collected
 		if !output.WaitForComplete(30 * time.Second) {
-			ihttp.WriteText(logger, w, http.StatusRequestTimeout, "Timeout waiting for test output to complete")
+			ihttp.WriteText(
+				r.Context(),
+				logger,
+				w,
+				http.StatusRequestTimeout,
+				"Timeout waiting for test output to complete",
+			)
 			return
 		}
 
@@ -513,7 +525,7 @@ func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {
 		jsonData, err := json.Marshal(output)
 		if err != nil {
 			logger.Error("Failed to marshal test output", "error", err)
-			ihttp.WriteText(logger, w, http.StatusInternalServerError, "Failed to serialize test output")
+			ihttp.WriteText(r.Context(), logger, w, http.StatusInternalServerError, "Failed to serialize test output")
 			return
 		}
 
