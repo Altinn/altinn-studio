@@ -49,10 +49,11 @@ const CLOSED: Screen = { title: 'Siden er lukket', tone: 'idle' };
  *
  *  - v8 saves the process state only after every hook has run, so the user
  *    never moves: they stay on the same page with the toast. Nothing retries by
- *    itself: the form is only sent because Kari tries again, and a retry runs
- *    every hook of the transition from the start. The comparison ends on who
- *    did the retrying, not on duplicates — v9 is at-least-once, so a duplicate
- *    is not a contrast the deck can draw.
+ *    itself: the form is only sent because Kari tries again, and every retry runs
+ *    all of the transition from the start («alle ti», after the slide before).
+ *    The contrast is everything-again-every-time against only-what-failed, not
+ *    duplicates as such: v9 is at-least-once, so it can repeat a step too, but
+ *    only after a crash at the wrong moment.
  *  - v9 retries the step automatically, and a completed step is not run again.
  */
 export const FEIL: Scenario = {
@@ -67,7 +68,7 @@ export const FEIL: Scenario = {
       { id: 'fail', text: 'En tjeneste er nede', status: 'fail' },
       { id: 'seen', text: 'Kari får en teknisk feilmelding', status: 'fail', screen: V8_SERVICE_DOWN },
       { id: 'retry', text: 'Hun må prøve på nytt selv', status: 'wait' },
-      { id: 'again', text: 'Alt kjøres på nytt fra start', status: 'fail' },
+      { id: 'again', text: 'Alle ti kjøres på nytt', status: 'fail' },
       {
         id: 'retried',
         text: 'Sendt, fordi Kari prøvde igjen',
@@ -84,13 +85,13 @@ export const FEIL: Scenario = {
       { id: 'fail', text: 'En tjeneste er nede', status: 'fail' },
       { id: 'seen', text: 'Kari får vite at vi prøver igjen', status: 'running', screen: V9_TROUBLE },
       { id: 'retry', text: 'Plattformen prøver igjen selv', status: 'running' },
-      { id: 'only', text: 'Bare det som feilet, kjøres igjen', status: 'ok' },
+      { id: 'only', text: 'Bare den som feilet, kjøres igjen', status: 'ok' },
       { id: 'end', text: 'Kvitteringen er klar', status: 'ok', screen: RECEIPT },
     ],
     outcome: 'Kari trengte ikke å gjøre noe.',
   },
   takeaway:
-    'I v8 er det brukeren som prøver igjen. I v9 gjør plattformen det, og det som er fullført, kjøres ikke på nytt.',
+    'I v8 prøver brukeren igjen, og alt gjøres på nytt. I v9 prøver plattformen igjen, bare med det som feilet.',
 };
 
 /**

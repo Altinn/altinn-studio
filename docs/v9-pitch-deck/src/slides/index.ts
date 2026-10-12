@@ -105,7 +105,7 @@ export const slides: SlideDef[] = [
     component: ScenarioFeil,
     steps: SIM_STEPS.feil,
     notes:
-      'Her forlot vi Kari: teknisk feilmelding, og hun må prøve igjen selv. Nå v9, linje for linje: Kari får beskjed om at vi prøver igjen, plattformen gjør det selv, og bare steget som feilet kjøres på nytt. De to siste linjene kommer på begge sider: i v8 kjøres alt fra start, og skjemaet blir bare sendt fordi Kari prøver igjen. Gir hun opp, blir det aldri sendt. I v9 er kvitteringen klar uten at hun gjør noe. Til slutt: de to utfallene side om side.',
+      'Her forlot vi Kari: teknisk feilmelding, og hun må prøve igjen selv. Nå v9, linje for linje: Kari får beskjed om at vi prøver igjen, plattformen gjør det selv, og bare steget som feilet kjøres på nytt. De to siste linjene kommer på begge sider: i v8 kjøres alle ti på nytt. Hver gang Kari prøver igjen, gjøres alt en gang til: PDF-en lages på nytt, og appens egen kode kjører igjen, også kode som sender noe. Og skjemaet blir bare sendt fordi Kari prøver igjen. Gir hun opp, blir det aldri sendt. I v9 kjøres bare den som feilet, og kvitteringen er klar uten at hun gjør noe. Til slutt: de to utfallene side om side.',
   },
   {
     id: 'scenario-lukker',
