@@ -1,7 +1,8 @@
-"""Tests for the surviving write tools: verify_changes, commit_session_branch.
+"""Tests for the write tools: the read-only refusal of every tool that
+needs write mode, and the behavior of verify_changes and
+commit_session_branch.
 
-(The `propose_patch` and `rollback` tools have been removed in favor of
-the CC-style file surface — see `test_file_tools.py`.)
+The behavior of the file tools is tested in `test_file_tools.py`.
 
 External services (git_ops, repo_manager, the layout-schema CDN fetch)
 are monkeypatched or stubbed — nothing in here touches the network.  The
