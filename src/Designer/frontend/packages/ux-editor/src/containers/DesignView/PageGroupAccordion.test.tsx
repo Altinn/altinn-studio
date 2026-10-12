@@ -29,6 +29,8 @@ const pagesMock: PagesModel = {
   ],
 };
 
+const groupDisplayNames = ['Group 1', 'Side 3'];
+
 const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
@@ -140,7 +142,9 @@ describe('PageGroupAccordion', () => {
 const groupAccordionHeader = (nth: number) => screen.getByTestId(pageGroupAccordionHeader(nth));
 const openGroupMenu = async (user: UserEvent, nth: number): Promise<void> =>
   user.click(
-    within(groupAccordionHeader(nth)).getByRole('button', { name: textMock('general.options') }),
+    within(groupAccordionHeader(nth)).getByRole('button', {
+      name: textMock('general.options_for_item', { item: groupDisplayNames[nth] }),
+    }),
   );
 const moveGroupUpButton = (nth: number) =>
   within(groupAccordionHeader(nth)).getByRole('button', {

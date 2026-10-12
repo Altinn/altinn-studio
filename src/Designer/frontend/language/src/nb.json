@@ -778,6 +778,7 @@
   "general.option": "Alternativ",
   "general.optional": "Valgfritt",
   "general.options": "Alternativer",
+  "general.options_for_item": "Alternativer for {{item}}",
   "general.page": "Side",
   "general.page_error_message": "Vi vet ikke helt hva, men <a>ta kontakt med oss</a>, så graver vi i det sammen.",
   "general.page_error_title": "Noe gikk galt",

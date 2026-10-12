@@ -37,8 +37,11 @@ vi.mock('react-router-dom', async () => ({
   },
 }));
 
+const menuTitle = 'Alternativer for Side 1';
+
 const defaultProps: NavigationMenuProps = {
   pageName: mockPageName1,
+  title: menuTitle,
 };
 
 describe('NavigationMenu', () => {
@@ -129,8 +132,7 @@ describe('NavigationMenu', () => {
   });
 });
 
-const contextMenuTriggerButton = () =>
-  screen.getByRole('button', { name: textMock('general.options') });
+const contextMenuTriggerButton = () => screen.getByRole('button', { name: menuTitle });
 const movePageDownButton = () =>
   screen.getByRole('button', { name: textMock('ux_editor.page_menu_down') });
 const movePageUpButton = () =>

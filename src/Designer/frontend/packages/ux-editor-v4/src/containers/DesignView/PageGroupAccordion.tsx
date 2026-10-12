@@ -126,7 +126,7 @@ export const PageGroupAccordion = ({
               <StudioPopover.Trigger
                 variant='tertiary'
                 className={classes.ellipsisIcon}
-                title={t('general.options')}
+                title={t('general.options_for_item', { item: groupDisplayName })}
               >
                 <MenuElipsisVerticalIcon />
               </StudioPopover.Trigger>
