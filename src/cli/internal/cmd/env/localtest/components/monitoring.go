@@ -122,8 +122,9 @@ func monitoringGrafanaContainer(ctx *Options) *ContainerSpec {
 		nil,
 		map[string]string{
 			"GF_AUTH_ANONYMOUS_ENABLED": "true",
-			"GF_INSTALL_PLUGINS":        "victoriametrics-logs-datasource " + grafanaLogsPluginVersion,
-			// Keep the datasources bundled with the pinned image instead of fetching newer ones from grafana.com.
+			// Install the pinned VictoriaLogs plugin before Grafana starts, so provisioning finds it.
+			"GF_PLUGINS_PREINSTALL_SYNC": "victoriametrics-logs-datasource@" + grafanaLogsPluginVersion,
+			// Keep unpinned preinstalled plugins at their installed versions instead of updating them from grafana.com.
 			"GF_PLUGINS_PREINSTALL_AUTO_UPDATE": "false",
 			"GF_AUTH_ANONYMOUS_ORG_ROLE":        "Admin",
 			"GF_AUTH_DISABLE_LOGIN_FORM":        "true",
