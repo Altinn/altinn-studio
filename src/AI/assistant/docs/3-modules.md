@@ -2,22 +2,22 @@
 
 _What main modules does the service have, and how do they operate together?_
 
-The service is one Python process. It uses `asyncio`, so many runs can share the process. A small LangGraph graph sets the order of the steps. The agentic loop itself is plain Python code in `agents/core/loop.py`.
+The service is one Python process. It uses `asyncio`, so many runs can share the process. A small LangGraph graph sets the order of the steps. The agentic loop itself is plain Python code in `src/AI/assistant/agents/core/loop.py`.
 
-| Folder               | Job                                                                                                                                             |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `api/`               | FastAPI app. HTTP routes, the `/ws` WebSocket, rate limits.                                                                                     |
-| `agents/graph/`      | Runs the gates, then the graph: intake → spec → agentic loop. Holds `AgentState`.                                                               |
-| `agents/core/`       | The loop engine: loop, tool interface, tool registry, model adapters, history compaction, system prompt, skills.                                |
-| `agents/core/tools/` | The tools that the model can call.                                                                                                              |
-| `agents/services/`   | Event bus, permission broker, git, LLM gates and client, repo scan, preview render check.                                                       |
-| `agents/workflows/`  | The intake and spec pipelines. Each is one model call.                                                                                          |
-| `agents/altinn/`     | Altinn domain library: app version profiles, layout schema validation, text resource validation, data model conversion.                         |
-| `agents/skills/`     | Markdown skills with Altinn knowledge. The model loads them when it needs them.                                                                 |
-| `agents/prompts/`    | Prompts for the gates, intake and spec. Langfuse can override them.                                                                             |
-| `services/`          | Token usage per service owner, and deletion of old traces. Both read Langfuse.                                                                  |
-| `shared/`            | Configuration, attachment models, Langfuse helpers, spotlight delimiters.                                                                       |
-| `benchmarks/`        | The benchmark workbench: evals, an end to end benchmark, run history and the report page. A developer runs it locally. Not in the runtime path. |
+| Folder                                | Job                                                                                                                                             |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/AI/assistant/api/`               | FastAPI app. HTTP routes, the `/ws` WebSocket, rate limits.                                                                                     |
+| `src/AI/assistant/agents/graph/`      | Runs the gates, then the graph: intake → spec → agentic loop. Holds `AgentState`.                                                               |
+| `src/AI/assistant/agents/core/`       | The loop engine: loop, tool interface, tool registry, model adapters, history compaction, system prompt, skills.                                |
+| `src/AI/assistant/agents/core/tools/` | The tools that the model can call.                                                                                                              |
+| `src/AI/assistant/agents/services/`   | Event bus, permission broker, git, LLM gates and client, repo scan, preview render check.                                                       |
+| `src/AI/assistant/agents/workflows/`  | The intake and spec pipelines. Each is one model call.                                                                                          |
+| `src/AI/assistant/agents/altinn/`     | Altinn domain library: app version profiles, layout schema validation, text resource validation, data model conversion.                         |
+| `src/AI/assistant/agents/skills/`     | Markdown skills with Altinn knowledge. The model loads them when it needs them.                                                                 |
+| `src/AI/assistant/agents/prompts/`    | Prompts for the gates, intake and spec. Langfuse can override them.                                                                             |
+| `src/AI/assistant/services/`          | Token usage per service owner, and deletion of old traces. Both read Langfuse.                                                                  |
+| `src/AI/assistant/shared/`            | Configuration, attachment models, Langfuse helpers, spotlight delimiters.                                                                       |
+| `src/AI/assistant/benchmarks/`        | The benchmark workbench: evals, an end to end benchmark, run history and the report page. A developer runs it locally. Not in the runtime path. |
 
 ## The request path
 
@@ -108,20 +108,20 @@ The conversation history for follow-up questions is also lost. Designer keeps th
 
 ## Limits and numbers
 
-| Limit                                | Value                     | Where                               |
-| ------------------------------------ | ------------------------- | ----------------------------------- |
-| Turns for each loop run              | 40                        | `AGENTIC_LOOP_MAX_TURNS`            |
-| Wrap-up notice to the model          | 4 turns left              | `core/loop.py`                      |
-| Stop as "stuck"                      | 3 × same call in 5 turns  | `core/loop.py`                      |
-| Parallel tool calls                  | 10                        | `ALTINITY_MAX_TOOL_USE_CONCURRENCY` |
-| Size of one tool result              | 24 000 chars              | `core/compaction.py`                |
-| History compaction starts at         | 480 000 chars             | `core/compaction.py`                |
-| Earlier turns replayed into the loop | 12 messages × 6 000 chars | `agentic_loop_node.py`              |
-| Claude output tokens for each turn   | 64 000                    | `ANTHROPIC_MAX_TOKENS`              |
-| Permission prompt timeout            | 300 s                     | `services/events/permissions.py`    |
-| Starts for each developer            | 5 / min                   | `api/routes/agent.py`               |
-| Starts for all developers            | 30 / min                  | `api/routes/agent.py`               |
-| Minimum intent confidence            | 0.30                      | `services/llm/intent_parser.py`     |
-| Render repair rounds                 | 1                         | `agentic_loop_node.py`              |
-| Langfuse trace retention             | 90 days                   | `LANGFUSE_TRACE_RETENTION_DAYS`     |
-| Pod resources                        | 100m CPU, 250Mi–1Gi       | `infra/kustomize/deployment.yaml`   |
+| Limit                                | Value                     | Where                                                      |
+| ------------------------------------ | ------------------------- | ---------------------------------------------------------- |
+| Turns for each loop run              | 40                        | `AGENTIC_LOOP_MAX_TURNS`                                   |
+| Wrap-up notice to the model          | 4 turns left              | `src/AI/assistant/agents/core/loop.py`                     |
+| Stop as "stuck"                      | 3 × same call in 5 turns  | `src/AI/assistant/agents/core/loop.py`                     |
+| Parallel tool calls                  | 10                        | `ALTINITY_MAX_TOOL_USE_CONCURRENCY`                        |
+| Size of one tool result              | 24 000 chars              | `src/AI/assistant/agents/core/compaction.py`               |
+| History compaction starts at         | 480 000 chars             | `src/AI/assistant/agents/core/compaction.py`               |
+| Earlier turns replayed into the loop | 12 messages × 6 000 chars | `src/AI/assistant/agents/graph/nodes/agentic_loop_node.py` |
+| Claude output tokens for each turn   | 64 000                    | `ANTHROPIC_MAX_TOKENS`                                     |
+| Permission prompt timeout            | 300 s                     | `src/AI/assistant/agents/services/events/permissions.py`   |
+| Starts for each developer            | 5 / min                   | `src/AI/assistant/api/routes/agent.py`                     |
+| Starts for all developers            | 30 / min                  | `src/AI/assistant/api/routes/agent.py`                     |
+| Minimum intent confidence            | 0.30                      | `src/AI/assistant/agents/services/llm/intent_parser.py`    |
+| Render repair rounds                 | 1                         | `src/AI/assistant/agents/graph/nodes/agentic_loop_node.py` |
+| Langfuse trace retention             | 90 days                   | `LANGFUSE_TRACE_RETENTION_DAYS`                            |
+| Pod resources                        | 100m CPU, 250Mi–1Gi       | `src/AI/assistant/infra/kustomize/deployment.yaml`         |

@@ -1,6 +1,6 @@
 # Core loop and model adapters
 
-Code: `agents/core/loop.py`, `agents/core/compaction.py`, `agents/core/messages.py`, `agents/core/llm_adapter.py`, `agents/services/llm/llm_client.py`, `shared/config/base_config.py`
+Code: `src/AI/assistant/agents/core/loop.py`, `src/AI/assistant/agents/core/compaction.py`, `src/AI/assistant/agents/core/messages.py`, `src/AI/assistant/agents/core/llm_adapter.py`, `src/AI/assistant/agents/services/llm/llm_client.py`, `src/AI/assistant/shared/config/base_config.py`
 
 ## The loop
 
@@ -74,4 +74,4 @@ flowchart LR
 
 _Provider selection. The loop uses `build_adapter`. The other steps use `LLMClient`._
 
-The default model of each role is in `shared/config/base_config.py`. Environment variables can change each one. `GET /health` shows the model of each role. The messages inside the loop use the Anthropic shape (text, tool_use and tool_result blocks). The OpenAI adapter translates them. Only the Anthropic adapter streams. With a Claude actor, the user sees text and tool placeholders before the turn ends. The OpenAI adapter does not stream, so the text of each turn comes when the turn ends.
+The default model of each role is in `src/AI/assistant/shared/config/base_config.py`. Environment variables can change each one. `GET /health` shows the model of each role. The messages inside the loop use the Anthropic shape (text, tool_use and tool_result blocks). The OpenAI adapter translates them. Only the Anthropic adapter streams. With a Claude actor, the user sees text and tool placeholders before the turn ends. The OpenAI adapter does not stream, so the text of each turn comes when the turn ends.
