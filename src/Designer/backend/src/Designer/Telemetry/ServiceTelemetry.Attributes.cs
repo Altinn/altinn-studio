@@ -9,6 +9,7 @@ internal static partial class ServiceTelemetry
     /// </summary>
     public static class Attributes
     {
+        public const string ServiceVersion = "service.version";
         public const string UrlFull = "url.full";
 
         /// <summary>

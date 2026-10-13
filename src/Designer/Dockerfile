@@ -98,8 +98,10 @@ RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-tem
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:27b6b84beeede74fd16886177d360799c8e4299ceadfbd64eef57bafead7878a AS final
 EXPOSE 80
 WORKDIR /app
+ARG DESIGNER_VERSION=''
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
-  DOTNET_RUNNING_IN_CONTAINER=true
+  DOTNET_RUNNING_IN_CONTAINER=true \
+  DESIGNER_VERSION=${DESIGNER_VERSION}
 RUN apk add --no-cache icu-libs krb5-libs libgcc libintl openssl libstdc++ zlib curl tzdata
 
 COPY --from=generate-studio-backend /app_output .
