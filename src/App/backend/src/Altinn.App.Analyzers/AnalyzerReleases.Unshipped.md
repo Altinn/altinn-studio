@@ -39,3 +39,6 @@ ALTINNAPP1016 | Process | Warning | Data type must be app-owned
 ALTINNAPP1017 | Process | Warning | Data type belongs to a task that does not exist
 ALTINNAPP1018 | Process | Warning | Process references a data type that the app skips
 ALTINNAPP1019 | Process | Warning | Exclusive gateway references an unknown data type
+ALTINNAPP1020 | Process | Error | Task configuration is missing a required setting or has an invalid value
+ALTINNAPP1021 | Process | Warning | Task configuration contains an element the app ignores
+ALTINNAPP1022 | Process | Warning | Task configuration has an env attribute the app cannot use
