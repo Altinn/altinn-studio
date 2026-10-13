@@ -179,6 +179,21 @@ public class OpenTelemetryTests
         Assert.Equal("my-app", rootSpan.GetTagItem(ServiceTelemetry.Attributes.App));
     }
 
+    [Fact]
+    public async Task RequestSpansAndMetrics_UseRouteWithoutConstraints()
+    {
+        await StartAsync();
+
+        using HttpResponseMessage response = await HttpClient.GetAsync("/designer/api/ttd/my-app/validation");
+        Services.GetRequiredService<MeterProvider>().ForceFlush();
+
+        const string Route = "/designer/api/{org}/{app}/validation";
+        Activity rootSpan = RootSpan("/designer/api/ttd/my-app/validation");
+        Assert.Equal($"GET {Route}", rootSpan.DisplayName);
+        Assert.Equal(Route, rootSpan.GetTagItem("http.route"));
+        Assert.Contains(MetricPoints("http.server.request.duration"), point => Tag(point, "http.route") == Route);
+    }
+
     private const string EnvironmentsPath = "/designer/api/environments";
 
     private Activity RootSpan(string path) =>

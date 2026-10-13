@@ -311,7 +311,7 @@ void Configure(IConfiguration configuration)
     app.UseResponseCompression();
     app.UseRequestLocalization();
 
-    app.MapControllers();
+    app.MapControllers().WithTelemetryRoute();
 
     app.MapHealthChecks("/health").DisableHttpMetrics();
     app.MapHubs();
