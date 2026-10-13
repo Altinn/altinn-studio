@@ -1,0 +1,56 @@
+# The runner runs app code, so the namespace denies all traffic, except:
+#
+# - Ingress from the assistant pods in the default namespace. The runner has no
+#   token, so this rule is the only check of the caller.
+# - Egress to cluster DNS, and to the internet on port 443 for NuGet. The ipBlock
+#   leaves out the private ranges, so a job cannot reach other pods or Services
+#   (Designer, Gitea), the Azure instance metadata service or the Azure host.
+#
+# Kubelet probes need no rule: Azure Network Policy Manager filters only
+# forwarded traffic, and the kubelet connects from the node itself.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: altinn-assistant-runner
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              app: altinn-altinity-agents
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 100.64.0.0/10
+              - 169.254.0.0/16
+              - 168.63.129.16/32
+      ports:
+        - protocol: TCP
+          port: 443
