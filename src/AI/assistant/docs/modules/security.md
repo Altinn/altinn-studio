@@ -2,7 +2,9 @@
 
 Code: `src/AI/assistant/agents/prompts/intent_security.md`, `src/AI/assistant/agents/core/tools/`, `src/AI/assistant/shared/utils/spotlight.py`, `src/AI/assistant/agents/services/llm/llm_client.py`, `src/AI/assistant/agents/core/context.py`, `src/AI/assistant/infra/kustomize/networkpolicy.yaml`
 
-The security model has three layers. Each layer covers a risk that the other layers do not cover.
+The security model has four layers. Each layer covers a risk that the other layers do not cover.
+
+**Network access.** A NetworkPolicy blocks connections from pods other than the Designer pods.
 
 **Intent gate.** This layer runs in workflow mode only. It examines the goal text for abuse before the graph starts. It sees the names of the attachments, but not their content. The reason: a large PDF is expensive to examine, and it gives little signal.
 
@@ -27,7 +29,3 @@ flowchart LR
 _The path of a document. The model reports an injection attempt on one line. The code removes the line and sends only a flag._
 
 `src/AI/assistant/shared/utils/spotlight.py` makes the tags. `llm_client.py` applies them to the attachment, and `src/AI/assistant/agents/core/context.py` applies them to the form spec. The control is in code, not in a prompt file. The reason: Langfuse serves the prompts, so a control that is only in a prompt file can disappear after an edit in Langfuse.
-
-## Inbound access
-
-The service has no authentication, so a NetworkPolicy lets only the Designer pods connect to it.
