@@ -9,8 +9,8 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Platform.Storage.Authorization;
 
 /// <summary>
-/// Authorizer for process operations. The service owner is always allowed: it commits process
-/// transitions and their data on behalf of a user the app has already authorized.
+/// Authorizer for process operations. The app that owns the instance is always allowed: it commits
+/// process transitions and their data on behalf of a user it has already authorized.
 /// </summary>
 public class ProcessAuthorizer : IProcessAuthorizer
 {
@@ -102,7 +102,7 @@ public class ProcessAuthorizer : IProcessAuthorizer
 
     private async Task<bool> Authorize(Instance instance, CancellationToken cancellationToken)
     {
-        if (IsServiceOwner(instance))
+        if (IsCalledByApp(instance))
         {
             return true;
         }
@@ -141,7 +141,7 @@ public class ProcessAuthorizer : IProcessAuthorizer
         CancellationToken cancellationToken
     )
     {
-        if (IsServiceOwner(instance))
+        if (IsCalledByApp(instance))
         {
             return true;
         }
@@ -193,6 +193,10 @@ public class ProcessAuthorizer : IProcessAuthorizer
         return false;
     }
 
-    private bool IsServiceOwner(Instance instance) =>
+    /// <summary>
+    /// Whether the caller is the app that owns the instance. Storage cannot yet tell an app token
+    /// from other service owner tokens, so any token for the org that owns the app qualifies.
+    /// </summary>
+    private bool IsCalledByApp(Instance instance) =>
         _claimsPrincipalProvider.GetUser().GetOrg() is { } org && org == instance.Org;
 }
