@@ -16,6 +16,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"altinn.studio/pdf3/internal/appurl"
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/config"
 	ihttp "altinn.studio/pdf3/internal/http"
@@ -25,8 +26,11 @@ import (
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
 )
 
 //nolint:funlen // The proxy entrypoint still intentionally owns startup, probes, and shutdown wiring.
@@ -77,7 +81,10 @@ func main() {
 		ihttp.WriteText(r.Context(), logger, w, http.StatusOK, "OK")
 	})
 
-	http.Handle("/pdf", telemetry.WrapHandler("POST /pdf", generatePdf(logger, httpClient, workerHTTPAddr)))
+	http.Handle(
+		"/pdf",
+		telemetry.WrapHandler("POST /pdf", generatePdf(logger, httpClient, workerHTTPAddr, cfg.AppHostname)),
+	)
 
 	// Only register test output endpoint in test internals mode
 	if iruntime.IsTestInternalsMode {
@@ -128,7 +135,12 @@ func main() {
 }
 
 //nolint:funlen,gocognit // This request path keeps validation, retry policy, and response mapping in one handler.
-func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) func(http.ResponseWriter, *http.Request) {
+func generatePdf(
+	logger *slog.Logger,
+	client *http.Client,
+	workerAddr string,
+	appHostname string,
+) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		if r.Method != http.MethodPost {
@@ -187,6 +199,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 			})
 			return
 		}
+		recordURLKind(r.Context(), appHostname, req.URL)
 
 		// Validate request
 		if err := req.Validate(); err != nil {
@@ -423,6 +436,33 @@ func callWorker(
 		"detail", errorDetail,
 	)
 	return true
+}
+
+const (
+	// urlKindKey is what the request's URL renders, see appurl.Kind. It is on the request's
+	// HTTP server span and metrics.
+	urlKindKey = attribute.Key("altinn.pdf.url_kind")
+	// urlRejectionKey is why the URL is not an app URL, on the span only.
+	urlRejectionKey = attribute.Key("altinn.pdf.url_rejection")
+)
+
+// recordURLKind records what rawURL renders on the request's HTTP server span and metrics. It
+// records nothing where the environment's app hostname is not known, as in localtest. The
+// request is served the same either way.
+func recordURLKind(ctx context.Context, appHostname string, rawURL string) {
+	if appHostname == "" {
+		return
+	}
+	kind, reason := appurl.Classify(rawURL, appHostname)
+	kindAttr := urlKindKey.String(string(kind))
+	labeler, _ := otelhttp.LabelerFromContext(ctx)
+	labeler.Add(kindAttr)
+
+	span := trace.SpanFromContext(ctx)
+	span.SetAttributes(kindAttr)
+	if reason != "" {
+		span.SetAttributes(urlRejectionKey.String(reason))
+	}
 }
 
 func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(http.ResponseWriter, *http.Request) {

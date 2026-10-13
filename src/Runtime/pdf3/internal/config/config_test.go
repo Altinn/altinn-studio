@@ -225,3 +225,25 @@ func TestReadConfigIncludesPDFAConfig(t *testing.T) {
 		}
 	})
 }
+
+func TestReadConfigAppHostname(t *testing.T) {
+	tests := map[string]string{
+		"at22":      "at22.altinn.cloud",
+		"at23":      "at23.altinn.cloud",
+		"at24":      "at24.altinn.cloud",
+		"yt01":      "yt01.altinn.cloud",
+		"tt02":      "tt02.altinn.no",
+		"prod":      "altinn.no",
+		"local":     "",
+		"localtest": "",
+		"unknown":   "",
+	}
+	for environment, want := range tests {
+		t.Run(environment, func(t *testing.T) {
+			t.Setenv("PDF3_ENVIRONMENT", environment)
+			if got := ReadConfig().AppHostname; got != want {
+				t.Fatalf("AppHostname = %q, want %q", got, want)
+			}
+		})
+	}
+}

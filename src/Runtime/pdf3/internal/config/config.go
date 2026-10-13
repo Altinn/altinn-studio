@@ -21,6 +21,17 @@ const (
 	ServiceOwnerEnv = "PDF3_SERVICEOWNER"
 )
 
+// appHostnames maps environments to the hostname in app URLs, https://{org}.apps.{hostname}/{org}/{app}/,
+// as GeneralSettings__HostName in infra/runtime/apps-config sets it for apps.
+var appHostnames = map[string]string{
+	"at22": "at22.altinn.cloud",
+	"at23": "at23.altinn.cloud",
+	"at24": "at24.altinn.cloud",
+	"yt01": "yt01.altinn.cloud",
+	"tt02": "tt02.altinn.no",
+	"prod": "altinn.no",
+}
+
 var defaultPDFAConversionConfig = PDFAConversionConfig{
 	Targets: []PDFATarget{
 		{Environment: "tt02", ServiceOwner: "ikta"},
@@ -38,7 +49,10 @@ type PDFAConversionConfig struct {
 }
 
 type Config struct {
-	Environment            string
+	Environment string
+	// AppHostname is the hostname in this environment's app URLs, e.g. "tt02.altinn.no", or empty
+	// where it is not known, as in localtest.
+	AppHostname            string
 	LocaltestPublicBaseURL string
 	ServiceOwner           string
 	PDFA                   PDFAConversionConfig
@@ -85,6 +99,7 @@ func ReadConfig() *Config {
 
 	return &Config{
 		Environment:            environment,
+		AppHostname:            appHostnames[environment],
 		QueueSize:              queueSize,
 		BrowserRestartInterval: browserRestartInterval,
 		LocaltestPublicBaseURL: os.Getenv(LocaltestPublicBaseURLEnv),
