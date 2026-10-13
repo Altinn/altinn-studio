@@ -8,14 +8,11 @@ import (
 	"strings"
 	"testing"
 
-	"go.opentelemetry.io/otel/attribute"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 
 	"altinn.studio/pdf3/internal/cdp"
-	"altinn.studio/pdf3/internal/telemetry"
-	"altinn.studio/pdf3/internal/telemetry/attr"
 	"altinn.studio/pdf3/internal/types"
 )
 
@@ -195,66 +192,5 @@ func TestFailedWait_LogsDetailsAtInfo(t *testing.T) {
 				t.Errorf("logs = %q, want nothing above INFO", got)
 			}
 		})
-	}
-}
-
-// TestFailedWait_ReportsFirstPageError checks that a wait that times out after the page reported
-// an error answers with that error, and records it on the request's entry span: a page whose
-// data failed to load never shows the element the request waits for.
-func TestFailedWait_ReportsFirstPageError(t *testing.T) {
-	w := &browserSession{
-		conn:   evaluatingConnection{result: map[string]any{"result": map[string]any{"value": false}}},
-		tracer: sdktrace.NewTracerProvider().Tracer("test"),
-		logger: slog.New(slog.DiscardHandler),
-	}
-	requestAttributes := telemetry.NewRequestAttributes()
-	requestErrors := &pageErrors{attributes: requestAttributes}
-	w.currentPageErrors.Store(requestErrors)
-	responder := make(chan workerResponse, 1)
-	req := &workerRequest{
-		ctx:        t.Context(),
-		responder:  responder,
-		logger:     slog.New(slog.DiscardHandler),
-		pageErrors: requestErrors,
-	}
-
-	w.handleEvent("Log.entryAdded", map[string]any{"entry": map[string]any{
-		"level": "error",
-		"text":  "Failed to load resource: the server responded with a status of 500 ()",
-		"url":   "https://ttd.apps.tt02.altinn.no/ttd/app/instances/1/2/process?token=secret",
-	}})
-	w.handleEvent("Runtime.exceptionThrown", map[string]any{"exceptionDetails": map[string]any{"text": "later"}})
-	if err := w.waitForElement(req, "#readyForPrint", 100, false, false); err == nil {
-		t.Fatal("waitForElement() = nil, want the timeout")
-	}
-
-	response := <-responder
-	if !response.Error.Is(types.ErrElementNotReady) {
-		t.Errorf("response error = %v, want %v", response.Error, types.ErrElementNotReady)
-	}
-	want := "the page reported: Failed to load resource: the server responded with a status of 500 () " +
-		"(https://ttd.apps.tt02.altinn.no/ttd/app/instances/1/2/process)"
-	if got := response.Error.Error(); !strings.HasSuffix(got, want) {
-		t.Errorf("response error = %q, want it to end with %q", got, want)
-	}
-
-	spans := tracetest.NewSpanRecorder()
-	_, span := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(spans)).Tracer("test").Start(t.Context(), "entry")
-	telemetry.SetOnSpan(span, requestAttributes)
-	span.End()
-	got := map[attribute.Key]string{}
-	for _, kv := range spans.Ended()[0].Attributes() {
-		got[kv.Key] = kv.Value.String()
-	}
-	for key, value := range map[attribute.Key]string{
-		attr.PageErrorCDPMethod: "Log.entryAdded",
-		attr.PageErrorMessage:   "Failed to load resource: the server responded with a status of 500 ()",
-		attr.PageErrorSource:    "https://ttd.apps.tt02.altinn.no/ttd/app/instances/1/2/process",
-		attr.PageBrowserErrors:  "1",
-		attr.PageJSExceptions:   "1",
-	} {
-		if got[key] != value {
-			t.Errorf("entry span %s = %q, want %q", key, got[key], value)
-		}
 	}
 }

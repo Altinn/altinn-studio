@@ -164,19 +164,9 @@ type PDFError struct {
 	Type error
 	Err  error
 	Msg  string
-	// PageError is the first error the page reported before the failure, if any. It often
-	// explains it: a page whose data failed to load never shows the element a request waits for.
-	PageError string
 }
 
 func (e *PDFError) Error() string {
-	if e.PageError == "" {
-		return e.cause()
-	}
-	return fmt.Sprintf("%s; the page reported: %s", e.cause(), e.PageError)
-}
-
-func (e *PDFError) cause() string {
 	if e.Err != nil {
 		if e.Msg == "" {
 			return fmt.Sprintf("%s: %v", e.Type, e.Err)

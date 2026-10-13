@@ -150,22 +150,6 @@ func (d *RequestAttributes) SetJSExceptions(count int) {
 	d.setKVLocked(attribute.Int(attr.PageJSExceptions, count))
 }
 
-// SetPageError records the first error the page reported: the CDP event it came in, its message
-// and the URL of its source, if it has one.
-func (d *RequestAttributes) SetPageError(method, message, source string) {
-	if d == nil {
-		return
-	}
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	d.setKVLocked(attribute.String(attr.PageErrorCDPMethod, method))
-	d.setKVLocked(attribute.String(attr.PageErrorMessage, message))
-	if source != "" {
-		d.setKVLocked(attribute.String(attr.PageErrorSource, source))
-	}
-}
-
 func (d *RequestAttributes) SetRejection(reason string) {
 	if d == nil || reason == "" {
 		return

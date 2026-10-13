@@ -128,16 +128,20 @@ const (
 	RestartRecheckInMs    = prefix + "restart.recheck_in_ms"
 )
 
-// What the page reported as errors while it served a request: the counts, and the first error.
-// The message is truncated and its URLs, like the source's, are without user information, query
-// or fragment.
+// What the page reported as errors while it served a request: the counts, on its entry span, and
+// each error, in a log record of its own. An error's message is truncated, and its URLs, like the
+// URL it came from, are without user information, query or fragment.
 const (
-	PageConsoleErrors  = prefix + "page.console_errors"
-	PageBrowserErrors  = prefix + "page.browser_errors"
-	PageJSExceptions   = prefix + "page.js_exceptions"
-	PageErrorCDPMethod = prefix + "page.error.cdp_method"
-	PageErrorMessage   = prefix + "page.error.message"
-	PageErrorSource    = prefix + "page.error.source"
+	PageConsoleErrors   = prefix + "page.console_errors"
+	PageBrowserErrors   = prefix + "page.browser_errors"
+	PageJSExceptions    = prefix + "page.js_exceptions"
+	PageErrorsNotLogged = prefix + "page.errors_not_logged"
+	PageErrorMessage    = prefix + "page.error.message"
+	PageErrorURL        = prefix + "page.error.url"
+
+	// PageErrorLogSource is the part of the browser an error it reported came from, such as network
+	// for a resource that failed to load.
+	PageErrorLogSource = prefix + "page.error.log_source"
 )
 
 // WaitException is the exception the expression that waits for the request's waitFor threw,

@@ -12,7 +12,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -55,7 +54,10 @@ type browserSession struct {
 
 const (
 	maxBrowserMessageLength = 1024
-	cleanupBlankURL         = "about:blank"
+	// maxLoggedPageErrors is how many warnings one request's page errors log. A broken page can
+	// report hundreds of errors.
+	maxLoggedPageErrors = 24
+	cleanupBlankURL     = "about:blank"
 )
 
 type cleanupNavigationWaiter struct {
@@ -152,7 +154,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 		if p, ok := params.(map[string]any); ok {
 			if apiType, ok := p["type"].(string); ok && apiType == "error" {
 				w.consoleErrors.Add(1)
-				w.recordPageError(method, consoleMessage(p), "")
+				w.recordPageError("Page logged a console error", consoleMessage(p), "")
 			}
 		}
 	case "Log.entryAdded":
@@ -160,14 +162,19 @@ func (w *browserSession) handleEvent(method string, params any) {
 			if entry, ok := p["entry"].(map[string]any); ok {
 				if level, ok := entry["level"].(string); ok && level == "error" {
 					w.browserErrors.Add(1)
-					w.recordPageError(method, stringField(entry, "text"), stringField(entry, "url"))
+					w.recordPageError(
+						"Browser reported a page error",
+						stringField(entry, "text"),
+						stringField(entry, "url"),
+						attr.PageErrorLogSource, stringField(entry, "source"),
+					)
 				}
 			}
 		}
 	case "Runtime.exceptionThrown":
 		if p, ok := params.(map[string]any); ok {
 			w.jsExceptions.Add(1)
-			w.recordPageError(method, exceptionMessage(p), "")
+			w.recordPageError("Page threw an uncaught exception", exceptionMessage(p), "")
 		}
 	case "Page.frameNavigated":
 		w.trySignalCleanupBlankCommitted(params)
@@ -245,17 +252,20 @@ func (w *browserSession) handleRequests() {
 			w.jsExceptions.Store(0)
 			w.tryUpdateTestModeOutput(&req, "Before", false)
 
-			requestPageErrors := &pageErrors{attributes: telemetry.RequestAttributesFromContext(req.ctx)}
-			req.pageErrors = requestPageErrors
-			w.currentPageErrors.Store(requestPageErrors)
 			w.currentRequest.Store(&req)
 			rootLogger := w.logger
 			w.logger = w.logger.With(attr.RequestURL, telemetry.RedactURL(req.request.URL))
+			requestPageErrors := &pageErrors{
+				ctx:        req.ctx,
+				logger:     w.logger,
+				attributes: telemetry.RequestAttributesFromContext(req.ctx),
+			}
+			w.currentPageErrors.Store(requestPageErrors)
 			w.handleRequest(&req)
 			w.currentRequest.Store(nil)
 			// Errors the page reports from here on are not this request's.
 			w.currentPageErrors.Store(nil)
-			w.logPageErrors(req.ctx, requestPageErrors)
+			requestPageErrors.logNotLogged()
 			w.logger = rootLogger
 
 			w.assertA(
@@ -337,25 +347,28 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 	}
 }
 
-// pageErrors is what a request's page reported as errors: the first error, for its one log
-// record and its error response, and the request's attributes, for the counts and the first
-// error. Set before the request starts, so the CDP event goroutine never reads the request itself.
+// pageErrors is where the errors a request's page reports go: a warning each, with the request's
+// context, so it links to the request's trace, and the counts on the request's attributes. Set
+// before the request starts, so the CDP event goroutine never reads the request, or the session's
+// logger, which handleRequests swaps per request.
+//
+//nolint:containedctx // The request's context is what links each warning to the request's trace.
 type pageErrors struct {
+	ctx        context.Context
+	logger     *slog.Logger
 	attributes *telemetry.RequestAttributes
-	first      *pageError
-	mu         sync.Mutex
+	reported   atomic.Int32
 }
 
-type pageError struct {
-	method  string
-	message string
-	source  string
-}
-
-// recordPageError records an error the page reported, from the CDP event goroutine. The counts
-// and the first error go on the request's attributes as the errors arrive, while its entry span
-// is still open: the entry span ends with the response, before the request's cleanup.
-func (w *browserSession) recordPageError(method, message, source string) {
+// recordPageError logs an error the page reported, from the CDP event goroutine, as a warning:
+// whether it stopped the page from rendering can't be told. The record has the error's message,
+// truncated, and the URL it came from, with every URL in them without user information, query or
+// fragment, not the event's payload, which can carry page data. After maxLoggedPageErrors, the
+// request's errors are only counted.
+//
+// The counts go on the request's attributes as the errors arrive, while its entry span is still
+// open: the entry span ends with the response, before the request's cleanup.
+func (w *browserSession) recordPageError(logMessage, message, url string, args ...any) {
 	requestErrors := w.currentPageErrors.Load()
 	if requestErrors == nil {
 		return
@@ -364,59 +377,21 @@ func (w *browserSession) recordPageError(method, message, source string) {
 	requestErrors.attributes.SetBrowserErrors(int(w.browserErrors.Load()))
 	requestErrors.attributes.SetJSExceptions(int(w.jsExceptions.Load()))
 
-	requestErrors.mu.Lock()
-	defer requestErrors.mu.Unlock()
-	if requestErrors.first == nil {
-		first := &pageError{
-			method:  method,
-			message: truncate(telemetry.RedactURLsInText(message), maxBrowserMessageLength),
-			source:  telemetry.RedactURL(source),
-		}
-		requestErrors.first = first
-		requestErrors.attributes.SetPageError(first.method, first.message, first.source)
-	}
-}
-
-// firstDescription is the first error the page reported, for an error message: its message and
-// the URL of its source, or "" if the page reported none.
-func (e *pageErrors) firstDescription() string {
-	if e == nil {
-		return ""
-	}
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	if e.first == nil {
-		return ""
-	}
-	if e.first.source == "" {
-		return e.first.message
-	}
-	return fmt.Sprintf("%s (%s)", e.first.message, e.first.source)
-}
-
-// logPageErrors logs one warning for a request whose page reported errors, with the counts and
-// the first error: its message, truncated, and the URL of its source, with every URL in them
-// without user information, query or fragment, not the event's payload, which can carry page
-// data.
-func (w *browserSession) logPageErrors(ctx context.Context, requestErrors *pageErrors) {
-	requestErrors.mu.Lock()
-	first := requestErrors.first
-	requestErrors.mu.Unlock()
-	if first == nil {
+	if requestErrors.reported.Add(1) > maxLoggedPageErrors {
 		return
 	}
+	args = append(args, attr.PageErrorMessage, truncate(telemetry.RedactURLsInText(message), maxBrowserMessageLength))
+	if redactedURL := telemetry.RedactURL(url); redactedURL != "" {
+		args = append(args, attr.PageErrorURL, redactedURL)
+	}
+	requestErrors.logger.WarnContext(requestErrors.ctx, logMessage, args...)
+}
 
-	args := []any{
-		attr.PageConsoleErrors, w.consoleErrors.Load(),
-		attr.PageBrowserErrors, w.browserErrors.Load(),
-		attr.PageJSExceptions, w.jsExceptions.Load(),
-		attr.PageErrorCDPMethod, first.method,
-		attr.PageErrorMessage, first.message,
+// logNotLogged logs how many of the request's page errors were only counted, if any were.
+func (e *pageErrors) logNotLogged() {
+	if notLogged := e.reported.Load() - maxLoggedPageErrors; notLogged > 0 {
+		e.logger.WarnContext(e.ctx, "Page reported more errors than were logged", attr.PageErrorsNotLogged, notLogged)
 	}
-	if first.source != "" {
-		args = append(args, attr.PageErrorSource, first.source)
-	}
-	w.logger.WarnContext(ctx, "Page reported errors", args...)
 }
 
 // consoleMessage is the text of a Runtime.consoleAPICalled event's arguments.
