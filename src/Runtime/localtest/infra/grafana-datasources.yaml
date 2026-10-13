@@ -49,8 +49,11 @@ datasources:
           - name: Request duration p95
             query: 'histogram_quantile(0.95, sum by (le, "http.route") (rate({"http.server.request.duration_bucket", $$__tags}[$$__rate_interval])))'
 
-  # VictoriaTraces' LogsQL API over the same spans as Traces, one row of fields per span:
+  # VictoriaTraces' LogsQL API over the same spans as Traces, a row of fields per span:
   # name, duration, kind, trace_id, resource_attr:service.name, span_attr:http.route and so on.
+  # Beside them are trace index rows (the trace_id_idx_stream stream, whose duration is the whole
+  # trace's), so filter on a span field, such as name:* or a {resource_attr:service.name="..."}
+  # stream filter, before stats like count() or quantile(0.95, duration).
   # For span tables with any attributes as columns, and stats by any attribute, which TraceQL
   # does not give. The shared Grafana reaches it through the proxy's traces-logsql prefix.
   - name: Traces LogsQL

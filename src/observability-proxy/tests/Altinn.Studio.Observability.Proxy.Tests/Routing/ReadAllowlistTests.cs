@@ -33,6 +33,8 @@ public sealed class ReadAllowlistTests
             { "POST", "/logs/select/logsql/field_names", "/select/logsql/field_names" },
             { "GET", "/logs/select/logsql/hits", "/select/logsql/hits" },
             { "POST", "/logs/select/tenant_ids", "/select/tenant_ids" },
+            // Live tailing stays open and re-runs its query until the client leaves; allowed on purpose.
+            { "GET", "/logs/select/logsql/tail?query=*", "/select/logsql/tail?query=*" },
             // Grafana's Tempo datasource, below the Tempo API path the route puts in front.
             { "GET", "/traces/api/echo", "/select/tempo/api/echo" },
             { "GET", "/traces/api/search?q=%7B%7D", "/select/tempo/api/search?q=%7B%7D" },
@@ -63,6 +65,7 @@ public sealed class ReadAllowlistTests
             { "POST", "/traces-logsql/select/logsql/stream_field_names", "/select/logsql/stream_field_names" },
             { "GET", "/traces-logsql/select/logsql/hits", "/select/logsql/hits" },
             { "POST", "/traces-logsql/select/tenant_ids", "/select/tenant_ids" },
+            { "GET", "/traces-logsql/select/logsql/tail?query=*", "/select/logsql/tail?query=*" },
         };
 
     /// <summary>Everything a query token must not reach, whatever the method.</summary>

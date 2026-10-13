@@ -18,13 +18,13 @@ internal sealed record ObservabilitySignal(
     /// <summary>
     /// The LogsQL query API and the tenant list, which is what the VictoriaLogs Grafana datasource
     /// calls. It sends both with its configured HTTP method, GET or POST. Everything VictoriaLogs and
-    /// VictoriaTraces serve below <c>/select/logsql</c> is a query.
+    /// VictoriaTraces serve below <c>/select/logsql</c> is a read. That includes live tailing at
+    /// <c>/select/logsql/tail</c>: one long-lived request, which the backend re-runs every
+    /// <c>refresh_interval</c> (1s by default) with no timeout or concurrency limit, and which the
+    /// rate limiter counts once.
     /// </summary>
-    private static readonly IReadOnlyList<ReadEndpoint> LogsqlEndpoints =
-    [
-        new("/select/logsql/*", allowsPost: true),
-        new("/select/tenant_ids", allowsPost: true),
-    ];
+    private static IReadOnlyList<ReadEndpoint> LogsqlEndpoints =>
+        [new("/select/logsql/*", allowsPost: true), new("/select/tenant_ids", allowsPost: true)];
 
     private static readonly IReadOnlyDictionary<string, string> NoHeaders = new Dictionary<string, string>();
 
@@ -42,14 +42,14 @@ internal sealed record ObservabilitySignal(
     /// TraceQL metrics. Everything under <c>/select/tempo</c> is read-only already; the list keeps the
     /// query token to those calls.
     ///
-    /// <c>traces-logsql</c> is the LogsQL API over the same spans, one row of fields per span, for the
-    /// VictoriaLogs datasource. It answers what TraceQL cannot, such as a table of spans with any
-    /// attributes as columns, or <c>stats by</c> a high-cardinality attribute. VictoriaTraces serves
-    /// it at its root, beside ingestion and its internal endpoints, so the list is the same as for
-    /// logs.
+    /// <c>traces-logsql</c> is the LogsQL API over the same spans, for the VictoriaLogs datasource:
+    /// a row of fields per span, beside index rows that map each trace ID to the trace's time range.
+    /// It answers what TraceQL cannot, such as a table of spans with any attributes as columns, or
+    /// <c>stats by</c> a high-cardinality attribute. VictoriaTraces serves it at its root, beside
+    /// ingestion and its internal endpoints, so the list is the same as for logs.
     /// </summary>
     public static readonly ObservabilitySignal Traces = new(
-        "traces",
+        ObservabilityPaths.TracesRouteGroup,
         "/v1/traces",
         "/insert/opentelemetry/v1/traces",
         [
@@ -80,7 +80,7 @@ internal sealed record ObservabilitySignal(
     /// datasource's HTTP method is POST, which is its default.
     /// </summary>
     public static readonly ObservabilitySignal Metrics = new(
-        "metrics",
+        ObservabilityPaths.MetricsRouteGroup,
         "/v1/metrics",
         "/opentelemetry/v1/metrics",
         [
@@ -113,7 +113,7 @@ internal sealed record ObservabilitySignal(
     /// identify the instance that wrote the log, plus ones that stay constant for its lifetime.
     /// </summary>
     public static readonly ObservabilitySignal Logs = new(
-        "logs",
+        ObservabilityPaths.LogsRouteGroup,
         "/v1/logs",
         "/insert/opentelemetry/v1/logs",
         [new(ObservabilityPaths.LogsRouteGroup, "", LogsqlEndpoints)]

@@ -17,6 +17,13 @@ public sealed class ReverseProxyConfigTests
         );
     }
 
+    [Fact]
+    public void ReadRouteGroups_AreUniqueAndApartFromTheWriteRouteGroup()
+    {
+        Assert.Equal(ObservabilitySignal.ReadRouteGroups.Distinct(), ObservabilitySignal.ReadRouteGroups);
+        Assert.DoesNotContain(ObservabilityPaths.OtlpRouteGroup, ObservabilitySignal.ReadRouteGroups);
+    }
+
     [Theory]
     [InlineData("otlp-traces", "/internal/observability/otlp/v1/traces", "/insert/opentelemetry/v1/traces")]
     [InlineData("otlp-metrics", "/internal/observability/otlp/v1/metrics", "/opentelemetry/v1/metrics")]
