@@ -56,12 +56,16 @@ public class OpenTelemetryTests
             services.ConfigureOpenTelemetryMeterProvider(metrics => metrics.AddInMemoryExporter(_metrics));
             services.ConfigureOpenTelemetryLoggerProvider(logging => logging.AddInMemoryExporter(_logs));
             services.AddSingleton<IStartupFilter>(new ServicesCapture(services => _services = services));
-            if (_environmentsException is not null)
+            var environmentsService = new Mock<IEnvironmentsService>();
+            if (_environmentsException is null)
             {
-                var environmentsService = new Mock<IEnvironmentsService>();
-                environmentsService.Setup(service => service.GetEnvironments()).ThrowsAsync(_environmentsException);
-                services.AddSingleton(environmentsService.Object);
+                environmentsService.Setup(service => service.GetEnvironments()).ReturnsAsync([]);
             }
+            else
+            {
+                environmentsService.Setup(service => service.GetEnvironments()).ThrowsAsync(_environmentsException);
+            }
+            services.AddSingleton(environmentsService.Object);
             if (_releasesException is not null)
             {
                 var releaseService = new Mock<IReleaseService>();
@@ -197,16 +201,33 @@ public class OpenTelemetryTests
         Assert.Contains(MetricPoints("http.server.request.duration"), point => Tag(point, "http.route") == Route);
     }
 
-    [Theory]
-    [InlineData(EnvironmentsPath, "/designer/api/environments")]
-    [InlineData("/designer/api/ttd/my-app/validation", "/designer/api/{org}/{app}/validation")]
-    public async Task RouteHeader_IsRouteWithoutConstraints(string path, string route)
+    [Fact]
+    public async Task RouteHeader_IsRoute()
+    {
+        using HttpResponseMessage response = await HttpClient.GetAsync(EnvironmentsPath);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(EnvironmentsPath, RouteHeader(response));
+    }
+
+    [Fact]
+    public async Task RouteHeader_IsRouteWithoutConstraints()
+    {
+        using HttpResponseMessage response = await HttpClient.GetAsync("/designer/api/ttd/hvem-er-hvem/validation");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("/designer/api/{org}/{app}/validation", RouteHeader(response));
+    }
+
+    [Fact]
+    public async Task RouteHeader_IsKeptOnExceptionHandledByFilter()
     {
         _environmentsException = new FileNotFoundException("missing.json");
 
-        using HttpResponseMessage response = await HttpClient.GetAsync(path);
+        using HttpResponseMessage response = await HttpClient.GetAsync(EnvironmentsPath);
 
-        Assert.Equal(route, RouteHeader(response));
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(EnvironmentsPath, RouteHeader(response));
     }
 
     [Fact]
@@ -228,11 +249,6 @@ public class OpenTelemetryTests
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.False(response.Headers.Contains(TelemetryRoute.ResponseHeader));
     }
-
-    private static string? RouteHeader(HttpResponseMessage response) =>
-        response.Headers.TryGetValues(TelemetryRoute.ResponseHeader, out IEnumerable<string>? values)
-            ? Assert.Single(values)
-            : null;
 
     [Fact]
     public async Task HubConnections_AreLeftOutOfTracesAndRequestMetrics()
@@ -305,6 +321,11 @@ public class OpenTelemetryTests
     {
         using HttpResponseMessage _ = await HttpClient.GetAsync("/designer/api/start");
     }
+
+    private static string? RouteHeader(HttpResponseMessage response) =>
+        response.Headers.TryGetValues(TelemetryRoute.ResponseHeader, out IEnumerable<string>? values)
+            ? Assert.Single(values)
+            : null;
 
     private List<MetricPoint> MetricPoints(string name)
     {

@@ -56,16 +56,17 @@ http {
   }
 
   # Gitea has no tracing, so spans for /repos/ are named after the shape of the URL. The names
-  # are a fixed set: never put owner or repository names in them.
+  # are a fixed set: never put owner or repository names in them. Regular expressions are checked
+  # in order, so the fixed prefixes come before the owner and repository patterns they also match.
   map $uri $lb_repos_route {
-    ~^/repos/[^/]+/[^/]+/info/refs$          "/repos/{owner}/{repo}/info/refs";
-    ~^/repos/[^/]+/[^/]+/git-upload-pack$    "/repos/{owner}/{repo}/git-upload-pack";
-    ~^/repos/[^/]+/[^/]+/git-receive-pack$   "/repos/{owner}/{repo}/git-receive-pack";
-    ~^/repos/[^/]+/[^/]+/info/lfs/           "/repos/{owner}/{repo}/info/lfs/*";
     ~^/repos/api/v1/                         "/repos/api/v1/*";
     ~^/repos/assets/                         "/repos/assets/*";
     ~^/repos/avatars/                        "/repos/avatars/*";
     ~^/repos/repo-avatars/                   "/repos/repo-avatars/*";
+    ~^/repos/[^/]+/[^/]+/info/refs$          "/repos/{owner}/{repo}/info/refs";
+    ~^/repos/[^/]+/[^/]+/git-upload-pack$    "/repos/{owner}/{repo}/git-upload-pack";
+    ~^/repos/[^/]+/[^/]+/git-receive-pack$   "/repos/{owner}/{repo}/git-receive-pack";
+    ~^/repos/[^/]+/[^/]+/info/lfs/           "/repos/{owner}/{repo}/info/lfs/*";
     default                                  "/repos/*";
   }
 
