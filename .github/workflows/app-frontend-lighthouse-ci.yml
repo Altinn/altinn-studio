@@ -35,6 +35,12 @@ on:
       - 'src/Runtime/localtest/**'
       - 'src/test/apps/component-library/**'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md'
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   workflow_dispatch:
 
 concurrency:

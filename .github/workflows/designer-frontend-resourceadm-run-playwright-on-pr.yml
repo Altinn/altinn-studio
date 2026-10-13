@@ -8,6 +8,12 @@ on:
       - 'src/Designer/frontend/packages/policy-editor/**'
       - '.github/workflows/designer-frontend-resourceadm-run-playwright-on-pr.yml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md'
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   workflow_dispatch:
 
 concurrency:

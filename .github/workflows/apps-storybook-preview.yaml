@@ -7,6 +7,12 @@ on:
       - 'src/common/ts/form-component/**'
       - '.github/workflows/apps-storybook-preview.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md'
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}

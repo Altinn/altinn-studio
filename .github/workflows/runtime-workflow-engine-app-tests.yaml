@@ -15,6 +15,12 @@ on:
       - 'src/Runtime/workflow-engine-app/Directory.Packages.props'
       - '.github/workflows/runtime-workflow-engine-app-tests.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md'
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   workflow_dispatch:
 
 concurrency:

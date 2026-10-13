@@ -11,6 +11,14 @@ on:
       - 'src/Runtime/workflow-engine/Directory.Packages.props'
       - '.github/workflows/runtime-workflow-engine-tests.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md'
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
+      # OpenApiDocTests validates API links against the guide headings.
+      - 'src/Runtime/workflow-engine/docs/technical-guide.md'
   workflow_dispatch:
 
 concurrency:

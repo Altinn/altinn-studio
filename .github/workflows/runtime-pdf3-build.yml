@@ -8,6 +8,12 @@ on:
       - 'src/Runtime/devenv/**'
       - '.github/workflows/runtime-pdf3-build.yml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md'
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   workflow_dispatch:
 
 concurrency:

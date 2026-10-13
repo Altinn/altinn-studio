@@ -7,6 +7,14 @@ on:
       - 'src/App/backend/**'
       - '.github/workflows/app-backend-formatting.yml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md'
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
+      # Package readmes are inputs to the NuGet packages.
+      - 'src/App/backend/README.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}

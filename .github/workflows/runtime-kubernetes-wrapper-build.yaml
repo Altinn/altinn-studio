@@ -6,8 +6,14 @@ on:
     paths:
       - 'src/common/dotnet/**'
       - 'src/Runtime/kubernetes-wrapper/**'
-      - '.github/workflows/runtime-kubernetes-wrapper-integrationtests-kind.yaml'
+      - '.github/workflows/runtime-kubernetes-wrapper-build.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md'
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   workflow_dispatch:
 
 concurrency:

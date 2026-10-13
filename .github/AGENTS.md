@@ -50,7 +50,18 @@ when they do both.
 ## Path filters
 
 Scope `paths` to what the workflow tests, always including its own file, and
-exclude `'!**/AGENTS.md'`.
+exclude `'!**/AGENTS.md'`. Build, test, and analysis workflows also exclude
+`README.md`, `readme.md`, `_readme.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, and
+`docs/` directories. Keep spelling, documentation, changelog validation, and
+release workflows scoped to the documents they check or publish.
+
+Do not exclude all Markdown: prompts, skills, analyzer release manifests,
+and other Markdown files can be product or test inputs. Add positive patterns
+**after** the exclusions for documentation that the workflow consumes, such as
+NuGet package readmes, embedded repository fixtures, generated layout-contract
+documentation, and the workflow engine's technical guide. Changes to those
+inputs must still trigger their checks. CLI resources also include shipped
+Markdown skills and must trigger the CLI build.
 
 ## Runners
 

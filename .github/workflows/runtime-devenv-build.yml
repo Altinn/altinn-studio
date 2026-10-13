@@ -16,6 +16,12 @@ on:
       - 'infra/studio/syncroot/base/victoriametrics-operator.yaml'
       - '.github/workflows/runtime-devenv-build.yml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md'
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   workflow_dispatch:
 
 concurrency:

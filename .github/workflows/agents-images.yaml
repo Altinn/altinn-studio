@@ -6,12 +6,26 @@ on:
     paths:
       - agents/**
       - .github/workflows/agents-images.yaml
+      - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md'
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   push:
     branches:
       - main
     paths:
       - agents/**
       - .github/workflows/agents-images.yaml
+      - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md'
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
 
 permissions:
   contents: read
