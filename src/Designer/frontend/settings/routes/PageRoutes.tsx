@@ -16,7 +16,7 @@ import { Privacy } from '../features/user/pages/Privacy/Privacy';
 import { StudioctlAuth } from '../features/user/pages/StudioctlAuth/StudioctlAuth';
 import { BotAccounts } from '../features/orgs/pages/BotAccounts/BotAccounts';
 import { ContactPoints } from '../features/orgs/pages/ContactPoints/ContactPoints';
-import { InactivityUndeploy } from '../features/orgs/pages/InactivityUndeploy/InactivityUndeploy';
+import { Run } from '../features/orgs/pages/Run/Run';
 import { NotFound } from '../components/NotFound/NotFound';
 import { PageLayout } from '../layouts/PageLayout/PageLayout';
 import { UserPageLayout } from '../layouts/UserPageLayout/UserPageLayout';
@@ -62,8 +62,8 @@ const router = createBrowserRouter(
             errorElement={<RouteErrorBoundary />}
           />
           <Route
-            path={OrgsRoutePaths.InactivityUndeploy}
-            element={<InactivityUndeploy />}
+            path={OrgsRoutePaths.Run}
+            element={<Run />}
             errorElement={<RouteErrorBoundary />}
           />
         </Route>

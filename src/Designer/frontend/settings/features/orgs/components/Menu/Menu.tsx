@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { StudioContentMenu } from '@studio/components';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { RobotSmileIcon, BellIcon, HourglassIcon } from '@studio/icons';
+import { RobotSmileIcon, BellIcon, PlayFillIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { RoutePaths } from '../../routes/RoutePaths';
 
@@ -22,9 +22,9 @@ export function Menu(): ReactElement {
       icon: <BellIcon />,
     },
     {
-      tabId: RoutePaths.InactivityUndeploy,
-      tabName: t('settings.orgs.inactivity_undeploy.menu.inactivity_undeploy'),
-      icon: <HourglassIcon />,
+      tabId: RoutePaths.Run,
+      tabName: t('settings.orgs.run.menu.run'),
+      icon: <PlayFillIcon />,
     },
   ];
   return (

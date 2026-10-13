@@ -22,36 +22,26 @@ import {
 import { useRequiredRoutePathsParams } from 'settings/hooks/useRequiredRoutePathsParams';
 import { useGetInactivityUndeploySettingsQuery } from './hooks/useGetInactivityUndeploySettingsQuery';
 import { useUpdateInactivityUndeploySettingsMutation } from './hooks/useUpdateInactivityUndeploySettingsMutation';
-import classes from './InactivityUndeploy.module.css';
+import classes from './Run.module.css';
 
-export const InactivityUndeploy = (): ReactElement => {
+export const Run = (): ReactElement => {
   const { t } = useTranslation();
   const { owner: org } = useRequiredRoutePathsParams(['owner']);
   const { data: settings, isPending, isError } = useGetInactivityUndeploySettingsQuery(org);
 
   if (isPending) {
-    return (
-      <StudioSpinner aria-hidden spinnerTitle={t('settings.orgs.inactivity_undeploy.loading')} />
-    );
+    return <StudioSpinner aria-hidden spinnerTitle={t('settings.orgs.run.loading')} />;
   }
 
   if (isError) {
-    return <StudioError>{t('settings.orgs.inactivity_undeploy.error')}</StudioError>;
+    return <StudioError>{t('settings.orgs.run.error')}</StudioError>;
   }
 
   return (
     <div className={classes.container}>
-      <div className={classes.heading}>
-        <StudioHeading level={2} data-size='md'>
-          {t('settings.orgs.inactivity_undeploy.page_heading')}
-        </StudioHeading>
-        <StudioParagraph data-size='md'>
-          {t('settings.orgs.inactivity_undeploy.page_description')}
-        </StudioParagraph>
-        <StudioParagraph data-size='md'>
-          {t('settings.orgs.inactivity_undeploy.app_override')}
-        </StudioParagraph>
-      </div>
+      <StudioHeading level={2} data-size='md'>
+        {t('settings.orgs.run.page_heading')}
+      </StudioHeading>
       <InactivityUndeployForm org={org} settings={settings} />
     </div>
   );
@@ -98,8 +88,15 @@ function InactivityUndeployForm({ org, settings }: InactivityUndeployFormProps):
 
   return (
     <StudioCard className={classes.card}>
+      <div className={classes.sectionHeading}>
+        <StudioHeading level={3} data-size='xs'>
+          {t('settings.orgs.run.inactivity_undeploy_heading')}
+        </StudioHeading>
+        <StudioParagraph>{t('settings.orgs.run.inactivity_undeploy_description')}</StudioParagraph>
+        <StudioParagraph>{t('settings.orgs.run.inactivity_undeploy_app_override')}</StudioParagraph>
+      </div>
       <StudioSwitch
-        label={t('settings.orgs.inactivity_undeploy.switch_label')}
+        label={t('settings.orgs.run.inactivity_undeploy_switch_label')}
         checked={draft.undeployOnInactivity}
         onChange={(event) => setDraft({ ...draft, undeployOnInactivity: event.target.checked })}
         position='end'
@@ -107,15 +104,17 @@ function InactivityUndeployForm({ org, settings }: InactivityUndeployFormProps):
       />
       <StudioTextfield
         className={classes.daysField}
-        label={t('settings.orgs.inactivity_undeploy.days_label')}
-        description={t('settings.orgs.inactivity_undeploy.days_description', periodLimits)}
+        label={t('settings.orgs.run.inactivity_undeploy_days_label')}
+        description={t('settings.orgs.run.inactivity_undeploy_days_description', periodLimits)}
         type='number'
         inputMode='numeric'
         min={MIN_INACTIVITY_PERIOD_DAYS}
         max={MAX_INACTIVITY_PERIOD_DAYS}
         value={draft.inactivityPeriodDays}
         onChange={(event) => setDraft({ ...draft, inactivityPeriodDays: event.target.value })}
-        error={isPeriodInvalid && t('settings.orgs.inactivity_undeploy.days_error', periodLimits)}
+        error={
+          isPeriodInvalid && t('settings.orgs.run.inactivity_undeploy_days_error', periodLimits)
+        }
       />
       <StudioFormActions
         primary={{
@@ -129,14 +128,16 @@ function InactivityUndeployForm({ org, settings }: InactivityUndeployFormProps):
       <StudioAlert data-color='info'>
         <StudioList.Unordered>
           <StudioList.Item>
-            {t('settings.orgs.inactivity_undeploy.info_test_environments')}
-          </StudioList.Item>
-          <StudioList.Item>{t('settings.orgs.inactivity_undeploy.info_activity')}</StudioList.Item>
-          <StudioList.Item>
-            {t('settings.orgs.inactivity_undeploy.info_background_work')}
+            {t('settings.orgs.run.inactivity_undeploy_info_test_environments')}
           </StudioList.Item>
           <StudioList.Item>
-            {t('settings.orgs.inactivity_undeploy.info_publish_again')}
+            {t('settings.orgs.run.inactivity_undeploy_info_activity')}
+          </StudioList.Item>
+          <StudioList.Item>
+            {t('settings.orgs.run.inactivity_undeploy_info_background_work')}
+          </StudioList.Item>
+          <StudioList.Item>
+            {t('settings.orgs.run.inactivity_undeploy_info_publish_again')}
           </StudioList.Item>
         </StudioList.Unordered>
       </StudioAlert>

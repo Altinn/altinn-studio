@@ -1,21 +1,21 @@
 .container,
-.heading,
-.card {
+.card,
+.sectionHeading {
   display: flex;
   flex-direction: column;
 }
 
 .container {
-  gap: var(--ds-size-10);
+  gap: var(--ds-size-6);
   max-width: 800px;
-}
-
-.heading {
-  gap: var(--ds-size-4);
 }
 
 .card {
   gap: var(--ds-size-6);
+}
+
+.sectionHeading {
+  gap: var(--ds-size-2);
 }
 
 .daysField {
