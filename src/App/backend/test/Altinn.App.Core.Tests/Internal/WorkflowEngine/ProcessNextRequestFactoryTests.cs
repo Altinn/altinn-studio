@@ -6,6 +6,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -2436,5 +2437,55 @@ public class ProcessNextRequestFactoryTests
         // Assert
         var step = GetStep(bundle, OnTaskStartingHook.Key);
         Assert.Equal(TimeSpan.FromMinutes(3), step.Command.MaxExecutionTime);
+    }
+
+    private sealed class StagedStartTask : IProcessTask
+    {
+        public string Type => "staged";
+
+        public ProcessTaskPipeline DefineStart(ProcessTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage(_ => Task.CompletedTask)
+                .Stage(
+                    _ => Task.CompletedTask,
+                    new ProcessStepOptions
+                    {
+                        MaxExecutionTime = TimeSpan.FromMinutes(5),
+                        RetryStrategy = ProcessStepRetryStrategy.Exponential(TimeSpan.FromSeconds(2), maxRetries: 7),
+                    }
+                )
+                .Build();
+    }
+
+    [Fact]
+    public async Task Create_TaskWithStagedStartPipeline_PlansOneStepPerStageWithItsOptions()
+    {
+        var factory = CreateFactory(configureServices: s => s.AddSingleton<IProcessTask>(new StagedStartTask()));
+        var stateChange = CreateTaskToTaskTransition(toAltinnTaskType: "staged");
+
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
+
+        List<StepRequest> startSteps = bundle
+            .Request.Workflows[0]
+            .Steps.Where(step => step.OperationId.StartsWith(StartTask.Key, StringComparison.Ordinal))
+            .ToList();
+        Assert.Equal(["StartTask: 0", "StartTask: 1"], startSteps.Select(step => step.OperationId));
+        Assert.Null(startSteps[0].Command.MaxExecutionTime);
+        Assert.Null(startSteps[0].RetryStrategy);
+        Assert.Equal(TimeSpan.FromMinutes(5), startSteps[1].Command.MaxExecutionTime);
+        Assert.Equal(7, startSteps[1].RetryStrategy?.MaxRetries);
+        Assert.All(
+            startSteps,
+            step => Assert.Equal("Task_2", step.Labels?[ProcessNextRequestFactory.ProcessNextElementLabel])
+        );
+
+        // The task being left composes nothing of its own, so it keeps the single payload-less step.
+        StepRequest endStep = GetStep(bundle, EndTask.Key);
+        Assert.Equal(EndTask.Key, endStep.OperationId);
     }
 }

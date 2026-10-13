@@ -73,7 +73,7 @@ internal sealed class WorkflowCommandSet
             .AddCommand(CleanupGeneratedFromTask.Key)
             .AddCommand(OnTaskStartingHook.Key)
             .AddCommand(CommonTaskInitialization.Key, new CommonTaskInitializationPayload(context.Prefill))
-            .AddCommand(StartTask.Key);
+            .AddProcessTaskStages(StartTask.Key, context.StartPipeline);
 
         if (context.RegisterEvents)
         {
@@ -110,10 +110,10 @@ internal sealed class WorkflowCommandSet
     /// <summary>
     /// Creates command group for task end events.
     /// </summary>
-    public static WorkflowCommandSet GetTaskEndSteps(string taskId)
+    public static WorkflowCommandSet GetTaskEndSteps(string taskId, ProcessTaskPipeline endPipeline)
     {
         return new WorkflowCommandSet()
-            .AddCommand(EndTask.Key)
+            .AddProcessTaskStages(EndTask.Key, endPipeline)
             .AddCommand(CommonTaskFinalization.Key)
             .AddCommand(OnTaskEndingHook.Key)
             .AddCommand(LockTaskData.Key, new TaskDataLockPayload(taskId));
@@ -122,9 +122,11 @@ internal sealed class WorkflowCommandSet
     /// <summary>
     /// Creates command group for task abandon events.
     /// </summary>
-    public static WorkflowCommandSet GetTaskAbandonSteps()
+    public static WorkflowCommandSet GetTaskAbandonSteps(ProcessTaskPipeline abandonPipeline)
     {
-        return new WorkflowCommandSet().AddCommand(AbandonTask.Key).AddCommand(OnTaskAbandonHook.Key);
+        return new WorkflowCommandSet()
+            .AddProcessTaskStages(AbandonTask.Key, abandonPipeline)
+            .AddCommand(OnTaskAbandonHook.Key);
     }
 
     /// <summary>
@@ -150,6 +152,35 @@ internal sealed class WorkflowCommandSet
     private WorkflowCommandSet AddCommand(string commandKey, CommandRequestPayload? payload = null)
     {
         _commands.Add(CreateCommand(commandKey, payload));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds the steps for a process task's lifecycle pipeline. A single stage keeps the plain, payload-less step
+    /// every transition had before tasks could compose stages, which runs the whole pipeline. Several stages get
+    /// one step each, dispatched by position like service task items, so each saves on its own and a retry
+    /// starts at the stage that failed.
+    /// </summary>
+    private WorkflowCommandSet AddProcessTaskStages(string commandKey, ProcessTaskPipeline pipeline)
+    {
+        IReadOnlyList<ProcessTaskStage> stages = pipeline.Stages;
+        if (stages.Count == 1)
+        {
+            _commands.Add(CreateCommand(commandKey, stageOptions: stages[0].StepOptions));
+            return this;
+        }
+
+        for (int index = 0; index < stages.Count; index++)
+        {
+            _commands.Add(
+                CreateCommand(
+                    commandKey,
+                    new ProcessTaskStagePayload(index),
+                    operationId: $"{commandKey}: {index.ToString(CultureInfo.InvariantCulture)}",
+                    stageOptions: stages[index].StepOptions
+                )
+            );
+        }
         return this;
     }
 
@@ -291,7 +322,8 @@ internal sealed class WorkflowCommandSet
         string commandKey,
         CommandRequestPayload? payload = null,
         string? operationId = null,
-        int? serviceTaskItemIndex = null
+        int? serviceTaskItemIndex = null,
+        ProcessStepOptions? stageOptions = null
     )
     {
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
@@ -304,6 +336,7 @@ internal sealed class WorkflowCommandSet
             ),
             CommandKey = commandKey,
             ServiceTaskItemIndex = serviceTaskItemIndex,
+            StageOptions = stageOptions,
         };
     }
 }

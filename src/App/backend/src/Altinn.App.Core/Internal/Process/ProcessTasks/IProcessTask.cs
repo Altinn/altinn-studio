@@ -55,6 +55,33 @@ public interface IProcessTask
     {
         return Task.CompletedTask;
     }
+
+    /// <summary>
+    /// Composes what runs when a task of this type is entered. The default runs <see cref="Start"/> as one stage.
+    /// </summary>
+    /// <remarks>
+    /// Override to split the work into stages that are saved and retried one at a time, the way
+    /// <see cref="IPipelineServiceTask.Define"/> does for service tasks. An override replaces <see cref="Start"/>
+    /// unless it stages it. Called when a transition is enqueued and again when each stage runs, so the
+    /// definition must be cheap, free of side effects, and the same for every task of this type.
+    /// </remarks>
+    /// <param name="pipeline">The builder to compose the stages with.</param>
+    ProcessTaskPipeline DefineStart(ProcessTaskPipelineBuilder pipeline) => pipeline.Stage(Start).Build();
+
+    /// <summary>
+    /// Composes what runs when a task of this type is ended. The default runs <see cref="End"/> as one stage.
+    /// </summary>
+    /// <remarks>The same rules apply as for <see cref="DefineStart"/>.</remarks>
+    /// <param name="pipeline">The builder to compose the stages with.</param>
+    ProcessTaskPipeline DefineEnd(ProcessTaskPipelineBuilder pipeline) => pipeline.Stage(End).Build();
+
+    /// <summary>
+    /// Composes what runs when a task of this type is abandoned. The default runs <see cref="Abandon"/> as one
+    /// stage.
+    /// </summary>
+    /// <remarks>The same rules apply as for <see cref="DefineStart"/>.</remarks>
+    /// <param name="pipeline">The builder to compose the stages with.</param>
+    ProcessTaskPipeline DefineAbandon(ProcessTaskPipelineBuilder pipeline) => pipeline.Stage(Abandon).Build();
 }
 
 /// <summary>
@@ -71,4 +98,15 @@ public sealed class ProcessTaskContext
     /// Cancellation token for the task lifecycle operation.
     /// </summary>
     public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
+
+    /// <summary>
+    /// The workflow engine workflow running this lifecycle operation. Stable across retries of the workflow.
+    /// </summary>
+    public Guid WorkflowId { get; init; }
+
+    /// <summary>
+    /// The workflow engine step running this lifecycle operation. Stable across retries of the step, and unique
+    /// per stage, so it can seed idempotency keys for calls a stage makes to other services.
+    /// </summary>
+    public Guid StepId { get; init; }
 }

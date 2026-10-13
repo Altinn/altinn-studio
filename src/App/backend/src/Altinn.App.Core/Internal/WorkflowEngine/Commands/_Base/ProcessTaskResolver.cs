@@ -26,15 +26,21 @@ internal sealed class ProcessTaskResolver
     /// <param name="altinnTaskType">The Altinn task type identifier.</param>
     /// <returns>The resolved process task instance.</returns>
     /// <exception cref="ProcessException">Thrown when no process task instance is found for the given task type.</exception>
-    public IProcessTask GetProcessTaskInstance(string? altinnTaskType)
+    public IProcessTask GetProcessTaskInstance(string? altinnTaskType) =>
+        FindProcessTaskInstance(altinnTaskType)
+        ?? throw new ProcessException(
+            $"No process task instance found for altinnTaskType {NormalizeTaskType(altinnTaskType)}"
+        );
+
+    /// <summary>
+    /// Finds the process task instance for the given Altinn task type, or null when none is registered.
+    /// </summary>
+    public IProcessTask? FindProcessTaskInstance(string? altinnTaskType)
     {
-        if (string.IsNullOrEmpty(altinnTaskType))
-        {
-            altinnTaskType = "NullType";
-        }
+        string taskType = NormalizeTaskType(altinnTaskType);
 
         IEnumerable<IPipelineServiceTask> serviceTasks = _appImplementationFactory.GetServiceTasks();
-        IPipelineServiceTask? serviceTask = serviceTasks.ResolveByTaskType(altinnTaskType);
+        IPipelineServiceTask? serviceTask = serviceTasks.ResolveByTaskType(taskType);
 
         if (serviceTask is not null)
         {
@@ -42,13 +48,9 @@ internal sealed class ProcessTaskResolver
         }
 
         IEnumerable<IProcessTask> tasks = _appImplementationFactory.GetAll<IProcessTask>();
-        IProcessTask? processTask = tasks.ResolveByTaskType(altinnTaskType);
-
-        if (processTask == null)
-        {
-            throw new ProcessException($"No process task instance found for altinnTaskType {altinnTaskType}");
-        }
-
-        return processTask;
+        return tasks.ResolveByTaskType(taskType);
     }
+
+    private static string NormalizeTaskType(string? altinnTaskType) =>
+        string.IsNullOrEmpty(altinnTaskType) ? "NullType" : altinnTaskType;
 }
