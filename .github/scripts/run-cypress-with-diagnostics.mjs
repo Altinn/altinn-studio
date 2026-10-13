@@ -2,6 +2,7 @@
 import { execFile, spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { mkdirSync, renameSync, writeFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
@@ -110,6 +111,128 @@ await new Promise((resolve, reject) => {
   server.listen(0, '127.0.0.1', resolve);
 });
 
+async function nativeBrowserStacks(processes) {
+  const rows = processes
+    .split('\n')
+    .slice(1)
+    .map((line) => {
+      const fields = line.trim().split(/\s+/);
+      return {
+        pid: Number(fields[0]),
+        parent: Number(fields[1]),
+        age: Number(fields[7]),
+        name: fields.at(-1),
+      };
+    });
+  const descendants = (roots) => {
+    const found = new Set(roots);
+    let previousSize;
+    do {
+      previousSize = found.size;
+      for (const row of rows) if (found.has(row.parent)) found.add(row.pid);
+    } while (found.size !== previousSize);
+    return found;
+  };
+  const testProcesses = descendants([child?.pid]);
+  const cypress = rows.filter((row) => testProcesses.has(row.pid) && row.name === 'Cypress');
+  // Percy has its own Chrome. Limit capture to descendants of Cypress itself.
+  const browserProcesses = descendants(cypress.map((row) => row.pid));
+  const targets = [];
+  const discoveryErrors = [];
+  for (const row of rows) {
+    if (!browserProcesses.has(row.pid) || !/^(Cypress|chrome|chromium)$/.test(row.name)) continue;
+    try {
+      // Inspect only the process type; never retain command arguments or tokens.
+      let commandLine;
+      try {
+        commandLine = await readFile(`/proc/${row.pid}/cmdline`, 'utf8');
+      } catch (error) {
+        if (!['EACCES', 'EPERM'].includes(error.code)) throw error;
+        ({ stdout: commandLine } = await execFileAsync(
+          'sudo',
+          ['-n', 'cat', `/proc/${row.pid}/cmdline`],
+          { timeout: 2000, maxBuffer: 32768 },
+        ));
+      }
+      const argv = commandLine.split('\0');
+      const type = argv.find((arg) => arg.startsWith('--type='))?.split('=')[1];
+      const role =
+        row.name === 'Cypress'
+          ? !type && 'cypress'
+          : type === 'renderer'
+            ? 'renderer'
+            : !type && 'browser';
+      if (role) targets.push({ pid: row.pid, age: row.age, role });
+    } catch (error) {
+      discoveryErrors.push({ pid: row.pid, code: error.code });
+    }
+  }
+  const selected = [
+    ...targets
+      .filter((target) => target.role === 'renderer')
+      .sort((a, b) => a.age - b.age || b.pid - a.pid)
+      .slice(0, 2),
+    ...targets.filter((target) => target.role === 'browser').slice(0, 1),
+    ...targets.filter((target) => target.role === 'cypress').slice(0, 1),
+  ];
+  const stacks = [];
+  for (const target of selected) {
+    const filename = `native-${target.role}-${target.pid}.log`;
+    let result;
+    let failure;
+    try {
+      // Root can attach to Chrome's non-dumpable sandbox processes. GNU timeout
+      // bounds the privileged debugger itself, including symbol loading.
+      result = await execFileAsync(
+        'sudo',
+        [
+          '-n',
+          'timeout',
+          '--kill-after=2s',
+          '15s',
+          'gdb',
+          '--batch',
+          '--nx',
+          '--nh',
+          '-iex',
+          'set auto-load off',
+          '-iex',
+          'set debuginfod enabled off',
+          '-iex',
+          'set print frame-arguments none',
+          '-p',
+          String(target.pid),
+          '-ex',
+          `python assert gdb.selected_inferior().pid == ${target.pid}`,
+          '-ex',
+          'info proc mappings',
+          '-ex',
+          'thread apply all bt 30',
+          '-ex',
+          'detach',
+        ],
+        { timeout: 20000, killSignal: 'SIGKILL', maxBuffer: 2 * 1024 * 1024 },
+      );
+    } catch (error) {
+      result = error;
+      failure = { code: error.code, signal: error.signal };
+    }
+    writeFileSync(path.join(outputDir, filename), `${result.stdout || ''}\n${result.stderr || ''}`);
+    stacks.push({
+      ...target,
+      filename,
+      captured: /\n#0\s+/.test(result.stdout || ''),
+      ...(failure && { failure }),
+    });
+  }
+  return {
+    stacks,
+    discoveryErrors,
+    browser: state.browserLaunch,
+    ...(selected.length === 0 && { error: 'No Cypress browser processes found' }),
+  };
+}
+
 async function capture(reason) {
   // Serialize snapshots so shutdown waits for any bounded capture already running.
   if (captureInProgress) await captureInProgress;
@@ -151,6 +274,12 @@ async function capture(reason) {
     } catch (error) {
       snapshot.captureError = error.message;
     }
+    if (reason === 'before-stop') {
+      // Save passive evidence first, even if a native debugger cannot attach.
+      writeFileSync(path.join(outputDir, 'before-stop.json'), JSON.stringify(snapshot, null, 2));
+      if (state.stopReason === 'no Cypress command or spec progress')
+        snapshot.nativeBrowserStacks = await nativeBrowserStacks(snapshot.processes || '');
+    }
     // Retain the last hour at the default interval, plus the shutdown snapshot.
     const filename =
       reason === 'periodic' ? `sample-${snapshotNumber++ % 120}.json` : `${reason}.json`;
@@ -191,7 +320,12 @@ function stop(reason, exitCode = 124) {
     `Cypress diagnostics: ${reason}. Saving evidence before stopping the test processes.`,
   );
   stopping = (async () => {
-    await capture('before-stop');
+    try {
+      await capture('before-stop');
+    } catch (error) {
+      state.captureError = error.code || error.name;
+      saveState();
+    }
     signalGroup('SIGTERM');
     // Always escalate, even if Percy exits before a stuck descendant does.
     await new Promise((resolve) => setTimeout(resolve, graceMs));
