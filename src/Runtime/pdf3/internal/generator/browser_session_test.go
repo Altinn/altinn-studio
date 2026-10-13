@@ -73,27 +73,58 @@ func TestHtmlIDPattern(t *testing.T) {
 // sendPageErrors sends the page's three kinds of error event, with payloads that must not be
 // logged.
 func sendPageErrors(w *browserSession) {
-	w.handleEvent("Runtime.consoleAPICalled", map[string]any{
+	w.handleEvent(testPageSessionID, "Runtime.consoleAPICalled", map[string]any{
 		"type": "error",
 		"args": []any{
 			map[string]any{"type": "string", "value": "Failed to load"},
 			map[string]any{"type": "object", "description": "Object", "preview": map[string]any{"secret": "page data"}},
 		},
 	})
-	w.handleEvent("Log.entryAdded", map[string]any{"entry": map[string]any{
+	w.handleEvent(testPageSessionID, "Log.entryAdded", map[string]any{"entry": map[string]any{
 		"level":  "error",
 		"source": "network",
 		"text":   "Failed to load resource: the server responded with a status of 500 ()",
 		"url":    "https://app.local/ttd/app/instances/1/2/process?token=secret",
 	}})
-	w.handleEvent("Runtime.exceptionThrown", map[string]any{"exceptionDetails": map[string]any{
+	w.handleEvent(testPageSessionID, "Runtime.exceptionThrown", map[string]any{"exceptionDetails": map[string]any{
 		"text":      "Uncaught",
 		"exception": map[string]any{"description": strings.Repeat("TypeError: x is undefined ", 100)},
 	}})
 }
 
+// testPageSessionID is the CDP session of the page newTestSession has open.
+const testPageSessionID = "page-session"
+
 func newTestSession(logs io.Writer) *browserSession {
-	return &browserSession{logger: slog.New(slog.NewTextHandler(logs, nil))}
+	w := &browserSession{logger: slog.New(slog.NewTextHandler(logs, nil))}
+	pageSessionID := testPageSessionID
+	w.pageSessionID.Store(&pageSessionID)
+	return w
+}
+
+func TestPageErrors_IgnoresOtherSessions(t *testing.T) {
+	var logs bytes.Buffer
+	w := newTestSession(&logs)
+	requestErrors := startRequestPageErrors(t, w)
+
+	// A popup or an earlier request's page has its own session, and the browser target none.
+	for _, sessionID := range []string{"other-session", ""} {
+		w.handleEvent(sessionID, "Runtime.exceptionThrown", map[string]any{
+			"exceptionDetails": map[string]any{"text": "Uncaught"},
+		})
+	}
+	w.pageSessionID.Store(nil)
+	w.handleEvent(testPageSessionID, "Runtime.exceptionThrown", map[string]any{
+		"exceptionDetails": map[string]any{"text": "Uncaught"},
+	})
+	requestErrors.logNotLogged()
+
+	if got := w.jsExceptions.Load(); got != 0 {
+		t.Fatalf("jsExceptions = %d, want 0", got)
+	}
+	if logs.Len() != 0 {
+		t.Fatalf("logged errors from other sessions:\n%s", logs.String())
+	}
 }
 
 // startRequestPageErrors makes w record page errors for a request, as handleRequests does.
@@ -168,7 +199,7 @@ func TestPageErrors_TruncatedAndRedacted(t *testing.T) {
 	w := newTestSession(&logs)
 	startRequestPageErrors(t, w)
 
-	w.handleEvent("Log.entryAdded", map[string]any{"entry": map[string]any{
+	w.handleEvent(testPageSessionID, "Log.entryAdded", map[string]any{"entry": map[string]any{
 		"level": "error",
 		"text":  "see https://user:pass@app.local/ttd/app/a?token=secret " + strings.Repeat("x", 2000),
 		"url":   "https://user:pass@app.local/ttd/app/api/data?token=secret#frag",
@@ -316,7 +347,7 @@ func TestPageErrors_FirstMessageHasURLsRedacted(t *testing.T) {
 			var logs bytes.Buffer
 			w := newTestSession(&logs)
 			startRequestPageErrors(t, w)
-			w.handleEvent(tt.method, tt.event)
+			w.handleEvent(testPageSessionID, tt.method, tt.event)
 
 			got := logs.String()
 			if !strings.Contains(got, tt.want) {
@@ -338,7 +369,7 @@ func TestPageErrors_RedactsBeforeTruncating(t *testing.T) {
 
 	// The URL's query straddles the truncation point: redacting first leaves none of it.
 	prefix := strings.Repeat("x", maxBrowserMessageLength-30)
-	w.handleEvent("Log.entryAdded", map[string]any{"entry": map[string]any{
+	w.handleEvent(testPageSessionID, "Log.entryAdded", map[string]any{"entry": map[string]any{
 		"level": "error",
 		"text":  prefix + " https://app.local/a?token=secret-value-that-is-long " + strings.Repeat("y", 100),
 	}})

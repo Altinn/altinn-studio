@@ -59,8 +59,7 @@ func Start(id int) (*Process, error) {
 	}
 	assert.That(dataDir != "", "Should always initialize dataDir", attr.SessionID, id)
 
-	// Add about:blank argument to create default page target
-	args = append(args, "about:blank")
+	// No start URL: every request opens its own page in its own browser context
 
 	// Only log args for the init worker (id == -1)
 	if id == -1 {
@@ -214,6 +213,11 @@ func createBrowserArgs() []string {
 		"--no-first-run",
 		"--no-sandbox",
 		"--password-store=basic",
+		// Past this many renderer processes, Chrome reuses existing ones (within the same browser
+		// context) instead of starting more. A render needs one or two. Without a limit, a page that
+		// opens a few hundred popups exhausts the pod's process limit, and the next request's new
+		// context can't get a renderer at all.
+		"--renderer-process-limit=8",
 		"--remote-debugging-port=0",
 		"--safebrowsing-disable-auto-update",
 		"--use-mock-keychain",

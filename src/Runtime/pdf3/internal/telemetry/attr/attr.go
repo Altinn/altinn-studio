@@ -161,10 +161,8 @@ const WaitException = prefix + "wait.exception"
 // returned, when it isn't the boolean it should be.
 const WaitResultBytes = prefix + "wait.result_bytes"
 
-// The reset of the browser session after a request.
+// The cleanup after a request, which disposes of its browser context.
 const (
-	CleanupAttempts     = prefix + "cleanup.attempts"
-	CleanupSucceeded    = prefix + "cleanup.succeeded"
 	CleanupSkipped      = prefix + "cleanup.skipped"
 	CleanupDelaySeconds = prefix + "cleanup.delay_seconds"
 )
@@ -200,11 +198,9 @@ const (
 	CDPPayloadBytes    = prefix + "cdp.payload_bytes"
 	CDPCloseCode       = prefix + "cdp.close.code"
 	CDPCloseText       = prefix + "cdp.close.text"
-	CDPTargetCount     = prefix + "cdp.target_count"
-	CDPTargetIndex     = prefix + "cdp.target.index"
-	CDPTargetType      = prefix + "cdp.target.type"
-	CDPTargetID        = prefix + "cdp.target.id"
-	CDPTargetURL       = prefix + "cdp.target.url"
+
+	// CDPResultField is the field of a command's result the record is about.
+	CDPResultField = prefix + "cdp.result_field"
 )
 
 // AssertMessage is a failed assertion's message.
