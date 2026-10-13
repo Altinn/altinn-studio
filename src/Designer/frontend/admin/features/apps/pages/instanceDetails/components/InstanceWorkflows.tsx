@@ -125,11 +125,8 @@ const InstanceWorkflowsContent = ({
   const { t } = useTranslation();
   const { isFetchingMoreResults, doFetchMoreResults } = useFetchMoreResults(fetchMoreResults);
   // The row an operator should be looking at opens on its own when it first appears — so a
-  // failure comes up with its message and verbs in view — and stays theirs to close after that.
-  const now = useNow((workflows ?? []).some(isActiveWorkflow));
-  const attentionWorkflowId = workflows
-    ? attentionWorkflowOf(workflows, now)?.databaseId
-    : undefined;
+  // failure comes up with its message and actions in view — and stays theirs to close after that.
+  const attentionWorkflowId = workflows ? attentionWorkflowOf(workflows)?.databaseId : undefined;
 
   if (context.collectionKey === undefined) {
     return <StudioAlert data-color='info'>{t('admin.workflows.no_results')}</StudioAlert>;

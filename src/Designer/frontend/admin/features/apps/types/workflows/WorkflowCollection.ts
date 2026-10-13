@@ -19,6 +19,13 @@ export type CollectionWorkflowCounts = {
   failedVisible: number;
   /** Failed workflows enqueued with `isHead = false`: side effects lost, process unaffected. */
   failedInvisible: number;
+  /**
+   * The visible ones among `active` in Requeued, Waiting and Held. Absent from an engine that
+   * predates them.
+   */
+  requeuedVisible?: number;
+  waitingVisible?: number;
+  heldVisible?: number;
   /** Every workflow in the collection, regardless of status or visibility. */
   total: number;
 };

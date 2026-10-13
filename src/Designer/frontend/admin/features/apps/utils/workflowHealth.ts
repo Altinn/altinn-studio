@@ -15,13 +15,16 @@ export enum WorkflowHealth {
   /** A failure visible to the head frontier: the process is stuck and the user is blocked. */
   Failed = 'failed',
   /**
-   * A visible workflow that keeps failing and retrying. The engine has not given up, but the user
-   * is blocked all the same, and it is unlikely to resolve without a fix in the app. Only derivable
-   * from the workflows themselves (see `deriveInstanceHealth`), never from the collection rollup.
+   * A visible workflow failed an attempt and waits to try again. The engine has not given up, but
+   * the user is blocked meanwhile, and a failure that repeats needs a fix in the app.
    */
   Retrying = 'retrying',
   /** A failure hidden from the head frontier: side effects were lost, ops must intervene. */
   SideEffectsFailed = 'sideEffectsFailed',
+  /** A visible workflow waits for an outcome that is not ready yet, such as a signature. */
+  Waiting = 'waiting',
+  /** A visible workflow waits for a message from outside, or for its deadline to pass. */
+  Held = 'held',
   /** Work still in flight. Expected to resolve itself. */
   Active = 'active',
   /**
@@ -60,10 +63,11 @@ export const ENGINE_UNAVAILABLE_PROBLEM_TYPES: readonly string[] = [
 const ENGINE_UNAVAILABLE_STATUS_CODES: readonly number[] = [502, 503, 504];
 
 /**
- * Derives the traffic light from the engine's per-collection rollup.
- *
- * Precedence is red > orange > active > green: a blocked process outranks lost side effects, which
- * outrank work still running. Absent counts mean no data — never green.
+ * Derives the traffic light from the engine's per-collection rollup, with the same precedence as
+ * the instance page (see `deriveInstanceHealth`): a blocked process, then a visible workflow
+ * retrying, then lost side effects, then a visible workflow waiting on an outcome or a message,
+ * then any work in flight. Absent counts mean no data — never green. An engine from before the
+ * parked counts leaves them out, and its parked workflows read as in flight.
  */
 export function deriveWorkflowHealth(
   counts: CollectionWorkflowCounts | undefined | null,
@@ -74,8 +78,17 @@ export function deriveWorkflowHealth(
   if (counts.failedVisible > 0) {
     return WorkflowHealth.Failed;
   }
+  if ((counts.requeuedVisible ?? 0) > 0) {
+    return WorkflowHealth.Retrying;
+  }
   if (counts.failedInvisible > 0) {
     return WorkflowHealth.SideEffectsFailed;
+  }
+  if ((counts.waitingVisible ?? 0) > 0) {
+    return WorkflowHealth.Waiting;
+  }
+  if ((counts.heldVisible ?? 0) > 0) {
+    return WorkflowHealth.Held;
   }
   if (counts.active > 0) {
     return WorkflowHealth.Active;

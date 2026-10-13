@@ -7,17 +7,6 @@ import { FAILED_WORKFLOW_STATUSES } from 'admin/features/apps/types/workflows/Wo
 import { WorkflowHealth } from './workflowHealth';
 import { ACTIVE_WORKFLOW_STATUSES } from './workflowRefetch';
 
-/**
- * Consecutive failed attempts on one step from which a requeued workflow reads as stuck rather than
- * as work in flight. The engine's default backoff starts at a second and doubles, so three attempts
- * is a step that has failed for a few seconds running — past a single blip, before the operator
- * would otherwise have to wait for the retry budget (a day) to run out.
- */
-export const RETRYING_ATTEMPT_THRESHOLD = 3;
-
-/** A backoff this far ahead means the engine has already backed off many times. */
-export const RETRYING_BACKOFF_THRESHOLD_MS = 5 * 60_000;
-
 /** The verdicts that mean an operator may have to act. */
 export const ATTENTION_HEALTHS: ReadonlySet<WorkflowHealth> = new Set([
   WorkflowHealth.Failed,
@@ -123,37 +112,28 @@ export function failedAttemptCount(workflow: WorkflowStatus): number {
   return (workflow.steps ?? []).reduce((sum, step) => sum + (step.errorHistory?.length ?? 0), 0);
 }
 
-/** The most attempts any one step of the workflow has made after its first. */
-export function maxRetryCount(workflow: WorkflowStatus): number {
-  return workflow.steps.reduce((max, step) => Math.max(max, step.retryCount ?? 0), 0);
-}
+/**
+ * Waiting to try again after a failed attempt. `Waiting` is not retrying: a deferral is a
+ * successful attempt whose outcome is not ready yet.
+ */
+export const isWorkflowRetrying = (workflow: WorkflowStatus): boolean =>
+  workflow.overallStatus === 'Requeued';
+
+/** Parked by a deferral until the outcome it waits for is ready. */
+export const isWorkflowWaiting = (workflow: WorkflowStatus): boolean =>
+  workflow.overallStatus === 'Waiting';
+
+/** Parked on a mailbox until its message arrives or the mailbox closes. */
+export const isWorkflowHeld = (workflow: WorkflowStatus): boolean =>
+  workflow.overallStatus === 'Held';
 
 /**
- * A requeued workflow that has failed enough times, or is backed off far enough, to read as stuck.
- * `Waiting` is not retrying: a deferral is a successful attempt whose outcome is not ready yet.
+ * The traffic light for an instance, from the workflows the engine holds for it, with the same
+ * precedence as the collection rollup (see `deriveWorkflowHealth`): a blocked process, then a
+ * visible workflow retrying, then lost side effects, then a visible workflow waiting on an outcome
+ * or a message, then any work in flight.
  */
-export function isWorkflowRetrying(workflow: WorkflowStatus, now: number = Date.now()): boolean {
-  if (workflow.overallStatus !== 'Requeued') {
-    return false;
-  }
-  if (maxRetryCount(workflow) >= RETRYING_ATTEMPT_THRESHOLD) {
-    return true;
-  }
-  const due = toTime(workflow.backoffUntil);
-  return due !== undefined && due - now > RETRYING_BACKOFF_THRESHOLD_MS;
-}
-
-/**
- * The traffic light for an instance, from the workflows the engine holds for it.
- *
- * The same precedence as the collection rollup — a blocked process outranks lost side effects,
- * which outrank work in flight — with one state the rollup cannot express: a visible workflow that
- * keeps failing and retrying is stuck for the user even though the engine has not given up.
- */
-export function deriveInstanceHealth(
-  workflows: WorkflowStatus[],
-  now: number = Date.now(),
-): WorkflowHealth {
+export function deriveInstanceHealth(workflows: WorkflowStatus[]): WorkflowHealth {
   if (!workflows.length) {
     return WorkflowHealth.NoData;
   }
@@ -161,11 +141,17 @@ export function deriveInstanceHealth(
   if (visible.some(isFailedWorkflow)) {
     return WorkflowHealth.Failed;
   }
-  if (visible.some((workflow) => isWorkflowRetrying(workflow, now))) {
+  if (visible.some(isWorkflowRetrying)) {
     return WorkflowHealth.Retrying;
   }
   if (workflows.some((workflow) => !isVisibleWorkflow(workflow) && isFailedWorkflow(workflow))) {
     return WorkflowHealth.SideEffectsFailed;
+  }
+  if (visible.some(isWorkflowWaiting)) {
+    return WorkflowHealth.Waiting;
+  }
+  if (visible.some(isWorkflowHeld)) {
+    return WorkflowHealth.Held;
   }
   if (workflows.some(isActiveWorkflow)) {
     return WorkflowHealth.Active;
@@ -180,7 +166,6 @@ export function deriveInstanceHealth(
 export function pickFocusWorkflow(
   workflows: WorkflowStatus[],
   health: WorkflowHealth,
-  now: number = Date.now(),
 ): WorkflowStatus | undefined {
   const newestFirst = workflows.toSorted(
     (first, second) => (toTime(second.createdAt) ?? 0) - (toTime(first.createdAt) ?? 0),
@@ -190,11 +175,15 @@ export function pickFocusWorkflow(
     case WorkflowHealth.Failed:
       return visible.find(isFailedWorkflow);
     case WorkflowHealth.Retrying:
-      return visible.find((workflow) => isWorkflowRetrying(workflow, now));
+      return visible.find(isWorkflowRetrying);
     case WorkflowHealth.SideEffectsFailed:
       return newestFirst.find(
         (workflow) => !isVisibleWorkflow(workflow) && isFailedWorkflow(workflow),
       );
+    case WorkflowHealth.Waiting:
+      return visible.find(isWorkflowWaiting);
+    case WorkflowHealth.Held:
+      return visible.find(isWorkflowHeld);
     case WorkflowHealth.Active:
       return visible.find(isActiveWorkflow) ?? newestFirst.find(isActiveWorkflow);
     default:
@@ -206,12 +195,9 @@ export function pickFocusWorkflow(
  * The workflow an operator should be looking at, if any: the one the verdict rests on, when the
  * verdict needs attention.
  */
-export function attentionWorkflowOf(
-  workflows: WorkflowStatus[],
-  now: number = Date.now(),
-): WorkflowStatus | undefined {
-  const health = deriveInstanceHealth(workflows, now);
-  return ATTENTION_HEALTHS.has(health) ? pickFocusWorkflow(workflows, health, now) : undefined;
+export function attentionWorkflowOf(workflows: WorkflowStatus[]): WorkflowStatus | undefined {
+  const health = deriveInstanceHealth(workflows);
+  return ATTENTION_HEALTHS.has(health) ? pickFocusWorkflow(workflows, health) : undefined;
 }
 
 export function orderedSteps(workflow: WorkflowStatus): WorkflowStepStatus[] {

@@ -39,9 +39,8 @@ import {
 import { LabelValue } from 'admin/features/apps/components/LabelValue/LabelValue';
 import { useInstanceDeletionMutation } from 'admin/features/apps/hooks/mutations/useInstanceDeletionMutation';
 import { useInstanceWorkflowsQuery } from 'admin/features/apps/hooks/queries/useInstanceWorkflowsQuery';
-import { useNow } from 'admin/features/apps/hooks/useNow';
 import { WorkflowHealthCell } from 'admin/features/apps/pages/instances/components/WorkflowHealthColumn';
-import { deriveInstanceHealth, isActiveWorkflow } from 'admin/features/apps/utils/workflowTriage';
+import { deriveInstanceHealth } from 'admin/features/apps/utils/workflowTriage';
 import { extractInstanceGuid } from 'admin/features/apps/utils/workflowHealth';
 
 /**
@@ -237,8 +236,7 @@ const InstanceWorkflowHealth = ({
     app,
     extractInstanceGuid(instanceId),
   );
-  const now = useNow((workflows ?? []).some(isActiveWorkflow));
-  const health = workflows ? deriveInstanceHealth(workflows, now) : undefined;
+  const health = workflows ? deriveInstanceHealth(workflows) : undefined;
 
   return <WorkflowHealthCell health={health} isPending={isPending} />;
 };

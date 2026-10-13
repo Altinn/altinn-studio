@@ -30,6 +30,16 @@ export const WORKFLOW_HEALTH_PRESENTATION: Record<WorkflowHealth, HealthPresenta
     labelKey: 'admin.workflows.health.side_effects_failed',
     descriptionKey: 'admin.workflows.health.side_effects_failed_description',
   },
+  [WorkflowHealth.Waiting]: {
+    color: 'info',
+    labelKey: 'admin.workflows.health.waiting',
+    descriptionKey: 'admin.workflows.health.waiting_description',
+  },
+  [WorkflowHealth.Held]: {
+    color: 'info',
+    labelKey: 'admin.workflows.health.held',
+    descriptionKey: 'admin.workflows.health.held_description',
+  },
   [WorkflowHealth.Active]: {
     color: 'info',
     labelKey: 'admin.workflows.health.active',

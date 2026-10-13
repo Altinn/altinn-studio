@@ -62,6 +62,32 @@ describe('deriveWorkflowHealth', () => {
       WorkflowHealth.SideEffectsFailed,
     );
   });
+
+  it('names a visible workflow retrying, between a blocked process and lost side effects', () => {
+    expect(deriveWorkflowHealth(counts({ active: 1, requeuedVisible: 1 }))).toBe(
+      WorkflowHealth.Retrying,
+    );
+    expect(
+      deriveWorkflowHealth(counts({ active: 1, requeuedVisible: 1, failedInvisible: 1 })),
+    ).toBe(WorkflowHealth.Retrying);
+    expect(deriveWorkflowHealth(counts({ active: 1, requeuedVisible: 1, failedVisible: 1 }))).toBe(
+      WorkflowHealth.Failed,
+    );
+  });
+
+  it('names what a visible workflow waits for, below lost side effects', () => {
+    expect(deriveWorkflowHealth(counts({ active: 2, waitingVisible: 1, heldVisible: 1 }))).toBe(
+      WorkflowHealth.Waiting,
+    );
+    expect(deriveWorkflowHealth(counts({ active: 1, heldVisible: 1 }))).toBe(WorkflowHealth.Held);
+    expect(deriveWorkflowHealth(counts({ active: 1, waitingVisible: 1, failedInvisible: 1 }))).toBe(
+      WorkflowHealth.SideEffectsFailed,
+    );
+  });
+
+  it('reads parked work as in flight from an engine that does not count it yet', () => {
+    expect(deriveWorkflowHealth(counts({ active: 3 }))).toBe(WorkflowHealth.Active);
+  });
 });
 
 describe('extractInstanceGuid', () => {

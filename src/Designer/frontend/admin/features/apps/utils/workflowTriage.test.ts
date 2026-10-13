@@ -6,7 +6,6 @@ import type {
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { WorkflowHealth } from './workflowHealth';
 import {
-  RETRYING_ATTEMPT_THRESHOLD,
   deriveInstanceHealth,
   failedAttemptCount,
   focusStepOf,
@@ -17,9 +16,6 @@ import {
   newestFirst,
   pickFocusWorkflow,
 } from './workflowTriage';
-
-const now = new Date('2026-08-02T10:00:00Z').getTime();
-const minutesAhead = (minutes: number) => new Date(now + minutes * 60_000).toISOString();
 
 const step = (
   processingOrder: number,
@@ -70,34 +66,14 @@ describe('failedAttemptCount', () => {
 });
 
 describe('isWorkflowRetrying', () => {
-  it('reads a requeued workflow as retrying once a step has failed enough times', () => {
-    const steps = [step(0, 'Requeued', { retryCount: RETRYING_ATTEMPT_THRESHOLD })];
-    expect(isWorkflowRetrying(workflow('Requeued', { steps }), now)).toBe(true);
-    expect(
-      isWorkflowRetrying(
-        workflow('Requeued', {
-          steps: [step(0, 'Requeued', { retryCount: RETRYING_ATTEMPT_THRESHOLD - 1 })],
-        }),
-        now,
-      ),
-    ).toBe(false);
-  });
-
-  it('reads a long backoff as retrying even after few attempts', () => {
+  it('reads every requeued workflow as retrying, from its first failed attempt', () => {
     const steps = [step(0, 'Requeued', { retryCount: 1 })];
-    expect(
-      isWorkflowRetrying(workflow('Requeued', { steps, backoffUntil: minutesAhead(10) }), now),
-    ).toBe(true);
-    expect(
-      isWorkflowRetrying(workflow('Requeued', { steps, backoffUntil: minutesAhead(1) }), now),
-    ).toBe(false);
+    expect(isWorkflowRetrying(workflow('Requeued', { steps }))).toBe(true);
   });
 
   it('never reads a waiting workflow as retrying: a deferral is a successful attempt', () => {
     const steps = [step(0, 'Waiting', { retryCount: 9 })];
-    expect(
-      isWorkflowRetrying(workflow('Waiting', { steps, backoffUntil: minutesAhead(30) }), now),
-    ).toBe(false);
+    expect(isWorkflowRetrying(workflow('Waiting', { steps }))).toBe(false);
   });
 });
 
@@ -171,21 +147,21 @@ describe('groupSideChains', () => {
 });
 
 describe('deriveInstanceHealth', () => {
-  const retrying = workflow('Requeued', { steps: [step(0, 'Requeued', { retryCount: 5 })] });
+  const retrying = workflow('Requeued', { steps: [step(0, 'Requeued', { retryCount: 1 })] });
   const sideChainFailed = workflow('Failed', { isHead: false });
 
   it('reads no workflows as no data, never as healthy', () => {
-    expect(deriveInstanceHealth([], now)).toBe(WorkflowHealth.NoData);
+    expect(deriveInstanceHealth([])).toBe(WorkflowHealth.NoData);
   });
 
   it('ranks a blocked process above everything else', () => {
-    expect(deriveInstanceHealth([sideChainFailed, retrying, workflow('Failed')], now)).toBe(
+    expect(deriveInstanceHealth([sideChainFailed, retrying, workflow('Failed')])).toBe(
       WorkflowHealth.Failed,
     );
   });
 
-  it('ranks a visible workflow that keeps retrying above lost side effects', () => {
-    expect(deriveInstanceHealth([sideChainFailed, retrying], now)).toBe(WorkflowHealth.Retrying);
+  it('ranks a visible workflow retrying above lost side effects', () => {
+    expect(deriveInstanceHealth([sideChainFailed, retrying])).toBe(WorkflowHealth.Retrying);
   });
 
   it('reads a retrying side chain as work in flight, not as a stuck process', () => {
@@ -193,17 +169,35 @@ describe('deriveInstanceHealth', () => {
       isHead: false,
       steps: [step(0, 'Requeued', { retryCount: 5 })],
     });
-    expect(deriveInstanceHealth([retryingSideChain], now)).toBe(WorkflowHealth.Active);
+    expect(deriveInstanceHealth([retryingSideChain])).toBe(WorkflowHealth.Active);
+  });
+
+  it('ranks lost side effects above a workflow waiting on an outcome or a message', () => {
+    expect(deriveInstanceHealth([workflow('Waiting'), sideChainFailed])).toBe(
+      WorkflowHealth.SideEffectsFailed,
+    );
+  });
+
+  it('names what a visible workflow waits for, an outcome before a message', () => {
+    expect(deriveInstanceHealth([workflow('Held'), workflow('Waiting')])).toBe(
+      WorkflowHealth.Waiting,
+    );
+    expect(deriveInstanceHealth([workflow('Processing'), workflow('Held')])).toBe(
+      WorkflowHealth.Held,
+    );
+    expect(deriveInstanceHealth([workflow('Waiting', { isHead: false })])).toBe(
+      WorkflowHealth.Active,
+    );
   });
 
   it('ranks lost side effects above work in flight, and that above settled work', () => {
-    expect(deriveInstanceHealth([workflow('Processing'), sideChainFailed], now)).toBe(
+    expect(deriveInstanceHealth([workflow('Processing'), sideChainFailed])).toBe(
       WorkflowHealth.SideEffectsFailed,
     );
-    expect(deriveInstanceHealth([workflow('Completed'), workflow('Processing')], now)).toBe(
+    expect(deriveInstanceHealth([workflow('Completed'), workflow('Processing')])).toBe(
       WorkflowHealth.Active,
     );
-    expect(deriveInstanceHealth([workflow('Completed'), workflow('Abandoned')], now)).toBe(
+    expect(deriveInstanceHealth([workflow('Completed'), workflow('Abandoned')])).toBe(
       WorkflowHealth.Healthy,
     );
   });
@@ -222,8 +216,8 @@ describe('pickFocusWorkflow', () => {
     const sideChainFailed = workflow('Failed', { isHead: false });
     const workflows = [olderFailed, sideChainFailed, newerFailed];
 
-    expect(pickFocusWorkflow(workflows, WorkflowHealth.Failed, now)).toBe(newerFailed);
-    expect(pickFocusWorkflow([sideChainFailed], WorkflowHealth.SideEffectsFailed, now)).toBe(
+    expect(pickFocusWorkflow(workflows, WorkflowHealth.Failed)).toBe(newerFailed);
+    expect(pickFocusWorkflow([sideChainFailed], WorkflowHealth.SideEffectsFailed)).toBe(
       sideChainFailed,
     );
   });
@@ -231,7 +225,7 @@ describe('pickFocusWorkflow', () => {
   it('prefers a visible workflow over a side chain when both are in flight', () => {
     const sideChain = workflow('Processing', { isHead: false });
     const head = workflow('Enqueued');
-    expect(pickFocusWorkflow([sideChain, head], WorkflowHealth.Active, now)).toBe(head);
+    expect(pickFocusWorkflow([sideChain, head], WorkflowHealth.Active)).toBe(head);
   });
 
   it('falls back to the latest visible workflow for a settled instance', () => {
@@ -244,9 +238,7 @@ describe('pickFocusWorkflow', () => {
       databaseId: 'latest',
       createdAt: '2026-08-02T09:30:00Z',
     });
-    expect(pickFocusWorkflow([earlier, latest, sideChain], WorkflowHealth.Healthy, now)).toBe(
-      latest,
-    );
+    expect(pickFocusWorkflow([earlier, latest, sideChain], WorkflowHealth.Healthy)).toBe(latest);
   });
 });
 
