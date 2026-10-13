@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Filters.IO;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -15,6 +16,7 @@ using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Rest.TransientFaultHandling;
@@ -193,6 +195,61 @@ public class OpenTelemetryTests
         Assert.Equal(Route, rootSpan.GetTagItem("http.route"));
         Assert.Contains(MetricPoints("http.server.request.duration"), point => Tag(point, "http.route") == Route);
     }
+
+    [Fact]
+    public async Task HubConnections_AreLeftOutOfTracesAndRequestMetrics()
+    {
+        await StartAsync();
+        using HttpResponseMessage failedAttempt = await HttpClient.GetAsync("/hubs/preview?id=unknown");
+
+        // The SignalR client disposes the test server's handler when it stops, so this comes last.
+        await using HubConnection connection = new HubConnectionBuilder()
+            .WithUrl("ws://localhost/hubs/preview", options => options.HttpMessageHandlerFactory = _ => Handler())
+            .Build();
+        await connection.StartAsync();
+        string? connectionId = connection.ConnectionId;
+        await connection.InvokeAsync("SendMessage", "reload-layouts");
+        await connection.StopAsync();
+        Services.GetRequiredService<MeterProvider>().ForceFlush();
+
+        foreach (string method in new[] { "OnConnectedAsync", "SendMessage", "OnDisconnectedAsync" })
+        {
+            Activity span = await SingleSpanAsync($"Altinn.Studio.Designer.Hubs.Preview.PreviewHub/{method}");
+            Assert.Equal(default, span.ParentSpanId);
+            Assert.Equal("testUser", span.GetTagItem(ServiceTelemetry.Attributes.EndUserId));
+            Assert.Equal(connectionId, span.GetTagItem(ServiceTelemetry.Attributes.SignalR.ConnectionId));
+        }
+        Assert.Contains(_spans, span => span.GetTagItem("url.path") as string == "/hubs/preview/negotiate");
+        Assert.DoesNotContain(_spans, span => span.GetTagItem("url.path") as string == "/hubs/preview");
+
+        List<MetricPoint> requestPoints = MetricPoints("http.server.request.duration");
+        Assert.Contains(requestPoints, point => Tag(point, "http.route") == "/hubs/preview/negotiate");
+        Assert.DoesNotContain(
+            requestPoints,
+            point => Tag(point, "http.route") == "/hubs/preview" && Tag(point, "http.response.status_code") != "404"
+        );
+        Assert.Contains(
+            requestPoints,
+            point => Tag(point, "http.route") == "/hubs/preview" && Tag(point, "http.response.status_code") == "404"
+        );
+    }
+
+    // A span is exported when it ends, which can be just after the hub call's response.
+    private async Task<Activity> SingleSpanAsync(string displayName)
+    {
+        for (int attempt = 0; attempt < 50 && !_spans.Exists(span => span.DisplayName == displayName); attempt++)
+        {
+            await Task.Delay(100);
+        }
+        return Assert.Single(_spans, span => span.DisplayName == displayName);
+    }
+
+    // The test server's handler, which the SignalR client needs to reach the in-memory server.
+    private HttpMessageHandler Handler() =>
+        (HttpMessageHandler)
+            typeof(HttpMessageInvoker)
+                .GetField("_handler", BindingFlags.NonPublic | BindingFlags.Instance)!
+                .GetValue(HttpClient)!;
 
     private const string EnvironmentsPath = "/designer/api/environments";
 

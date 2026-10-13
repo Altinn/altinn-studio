@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Altinn.Studio.Designer.Hubs;
 using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,7 +40,9 @@ internal static class TelemetryExtensions
                     .AddAspNetCoreInstrumentation(options =>
                     {
                         options.RecordException = true;
-                        options.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health");
+                        options.Filter = static ctx =>
+                            !ctx.Request.Path.StartsWithSegments("/health")
+                            && !HubsEndpointExtensions.IsHubConnection(ctx.Request);
                         options.EnrichWithHttpResponse = RootSpan.Enrich;
                     })
                     .AddHttpClientInstrumentation(ConfigureHttpClientTracing)

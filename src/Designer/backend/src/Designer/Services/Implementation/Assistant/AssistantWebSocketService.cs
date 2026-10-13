@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.WebSockets;
 using System.Text;
@@ -16,6 +17,7 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Assistant;
+using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -101,7 +103,13 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
             var connection = new DeveloperConnection(developer, webSocket);
             _connections[developer] = connection;
 
-            _ = Task.Run(() => ListenForMessagesAsync(developer, connection));
+            // The listener runs for as long as the agent's WebSocket is open, so it starts without the caller's
+            // trace. Each message it forwards is a root span of its own.
+            _ = Task.Run(() =>
+            {
+                Activity.Current = null;
+                return ListenForMessagesAsync(developer, connection);
+            });
         }
         finally
         {
@@ -201,6 +209,11 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                     json.Length
                 );
 
+                using Activity? span = ServiceTelemetry.Source.StartActivity(
+                    $"{nameof(AssistantWebSocketService)}.ForwardMessage",
+                    ActivityKind.Consumer
+                );
+                span.SetEndUser(developer);
                 try
                 {
                     JsonNode? messageNode = JsonNode.Parse(json);
@@ -216,6 +229,8 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                 }
                 catch (Exception ex)
                 {
+                    span?.SetTag(ServiceTelemetry.Attributes.ErrorType, ex.GetType().FullName);
+                    span?.SetStatus(ActivityStatusCode.Error);
                     _logger.LogError(
                         ex,
                         "Failed to forward agents message of {MessageLength} characters to group {Developer}",
