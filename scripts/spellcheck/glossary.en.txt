@@ -15,3 +15,46 @@
 # is correct English used deliberately. An entry that no longer rescues any
 # flagged word, or that duplicates glossary.shared.txt, is reported by the
 # check itself.
+
+# Product and domain vocabulary in UI text
+dropdown
+refetch
+repos       # Gitea's own word, in the en-US locale overrides
+signee      # a person asked to sign, in the app signing flow
+signees
+undeploy    # Designer's automatic undeploy of inactive test apps
+undeployed
+
+# Abbreviations
+pers        # "pers. number", beside "org. number"
+
+# Language names, from the ISO 639 language picker in Designer (language.*
+# keys) and the app language selector: the English exonyms the dictionary
+# lacks. A name the Norwegian checks need too lives in glossary.shared.txt.
+abkhazian
+akan
+avaric
+bambara
+bokmål
+chuvash
+divehi
+ganda
+inuktitut
+inupiaq
+kalaallisut
+kashmiri
+komi
+kongo
+kuanyama
+limburgan
+luba        # Luba-Katanga
+marshallese
+nynorsk
+oromo
+panjabi
+pushto
+rundi
+tajik
+tsonga
+uighur
+venda

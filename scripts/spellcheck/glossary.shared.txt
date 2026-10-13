@@ -114,6 +114,7 @@ applicationmetadata
 componentref
 deletionstrategy
 disallowusercreate
+fileupload  # the FileUpload component type
 folderid
 funksjonforsubuttrykk
 inntektsaar
@@ -125,6 +126,7 @@ oid         # the "oid" claim named in the OIDC admin help text
 pagebreak
 pageref
 showaddbutton
+taxform     # "taxform-2019", an example app name
 
 # JSON Schema combination keywords (allOf/anyOf/oneOf) quoted in the
 # schema-editor UI text
