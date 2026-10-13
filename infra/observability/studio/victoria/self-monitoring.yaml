@@ -64,14 +64,15 @@ data:
           # pipeline being down from the targets being down.
           - targets: [localhost:8429]
             labels: { component: vmagent-self }
-        # flag is one series per command-line flag and go_* is the Go runtime:
-        # on kind about 4,000 of the 10,500 series scraped, and of no use to the
-        # alert rules. Everything else is kept: process_* for restarts and memory,
-        # and the components' own vm_*, vl_*, vt_* and *agent_* series, including
+        # flag is one series per command-line flag, config_parameter the
+        # operator's equivalent, and go_* is the Go runtime: on kind about 4,300
+        # of the 10,500 series scraped, and of no use to the alert rules.
+        # Everything else is kept: process_* for restarts and memory, and the
+        # components' own vm_*, vl_*, vt_* and *agent_* series, including
         # vm_persistentqueue_* for the agents' disk queues.
         metric_relabel_configs:
           - source_labels: [__name__]
-            regex: flag|go_.*
+            regex: flag|config_parameter|go_.*
             action: drop
 ---
 # Ingest-only mode is what keeps this pod away from the Kubernetes API, even
@@ -97,6 +98,11 @@ spec:
   # automounting; see the VMAgent in metrics.yaml.
   serviceAccountName: vmagent-self-no-api-access
   replicaCount: 1
+  # A rolling update would run the old and the new pod side by side, both
+  # writing the same series with no label to tell them apart, which garbles the
+  # scraper's own counters that the heartbeat and restart rules read. Missing a
+  # scrape or two while the pod is replaced costs nothing.
+  updateStrategy: Recreate
   image:
     repository: victoriametrics/vmagent
     tag: v1.153.0
