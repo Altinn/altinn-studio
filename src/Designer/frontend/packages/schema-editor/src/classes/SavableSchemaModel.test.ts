@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { SavableSchemaModel } from './SavableSchemaModel';
 import type { NodePosition } from '@altinn/schema-model';
 import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
@@ -16,8 +16,6 @@ describe('SavableSchemaModel', () => {
     const schemaClone = schemaModel.deepClone();
     return new SavableSchemaModel(schemaClone, save);
   };
-
-  afterEach(vi.clearAllMocks);
 
   describe('addFieldAndSave', () => {
     it('Adds a field, saves the model once and returns the new node', () => {

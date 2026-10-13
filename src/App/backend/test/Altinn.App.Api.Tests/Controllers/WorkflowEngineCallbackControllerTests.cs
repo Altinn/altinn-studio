@@ -1006,17 +1006,89 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_ReleaseEndedInstance_CommitsLockedCleanupClearAndHardDeleteAtomically()
+    public async Task ExecuteCommand_ReleaseProcessingStatus_OnEndedProcess_CommitsReleaseAndHardDeleteAtomically()
+    {
+        var ended = new DateTime(2026, 7, 24, 8, 30, 0, DateTimeKind.Utc);
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                services.AppMetadata.AutoDeleteOnProcessEnd = true;
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ReleaseProcessingStatus(
+                    serviceProvider.GetRequiredService<IAppMetadata>()
+                ));
+            },
+            (services, instance) =>
+            {
+                instance.Process = new ProcessState
+                {
+                    Status = ProcessStatus.Processing,
+                    Ended = ended,
+                    EndEvent = "EndEvent_1",
+                };
+            }
+        );
+        Guid stepId = Guid.NewGuid();
+
+        IActionResult result = await setup.Execute(ReleaseProcessingStatus.Key, stepId);
+
+        var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
+        WorkflowCallbackState callbackState = setup.DeserializeState(response.State!);
+        StorageClientInterceptor.RequestResponse request = Assert.Single(GetMutationRequests(setup.Services));
+        StorageInstanceMutationRequest mutation = NewtonsoftJson.DeserializeObject<StorageInstanceMutationRequest>(
+            request.RequestBody!
+        )!;
+        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+        Assert.Equal(ProcessStatus.Idle, mutation.ProcessState?.State?.Status);
+        Assert.Equal(ended, mutation.ProcessState?.State?.Ended);
+        Assert.Equal("EndEvent_1", mutation.ProcessState?.State?.EndEvent);
+        Assert.Null(mutation.ProcessState?.State?.CurrentTask);
+        Assert.Empty(mutation.ProcessState!.Events!);
+        Assert.Empty(mutation.DeleteDataElements);
+        Assert.True(mutation.DeleteInstance?.Hard);
+        Assert.Empty(mutation.CreateDataElements);
+        Assert.Empty(mutation.UpdateDataElements);
+        Assert.Empty(mutation.DataValues);
+        Assert.Empty(mutation.PresentationTexts);
+        Assert.Equal(
+            stepId.ToString(),
+            request.RequestHeaders.GetValues(StoragePreconditionHeaders.IdempotencyKeyHeaderName).Single()
+        );
+        Assert.Equal(
+            "1",
+            request.RequestHeaders.GetValues(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName).Single()
+        );
+        Assert.Equal(
+            "1",
+            request.RequestHeaders.GetValues(StoragePreconditionHeaders.IfProcessStateVersionMatchHeaderName).Single()
+        );
+
+        Assert.Equal(ProcessStatus.Idle, callbackState.Instance.Process?.Status);
+        Assert.Equal(ended, callbackState.Instance.Process?.Ended);
+        Assert.True(callbackState.Instance.Status.IsHardDeleted);
+        Assert.Equal(2, callbackState.InstanceVersion);
+        Assert.Equal(2, callbackState.ProcessStateVersion);
+        var (storedInstance, storedData) = setup.Services.Storage.GetInstanceAndData(
+            InstanceOwnerPartyId,
+            setup.InstanceGuid
+        );
+        Assert.Equal(ProcessStatus.Idle, storedInstance.Process?.Status);
+        Assert.Equal(ended, storedInstance.Process?.Ended);
+        Assert.True(storedInstance.Status.IsHardDeleted);
+        Assert.Empty(storedInstance.Data);
+        Assert.Empty(storedData);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_DeleteDataOnProcessEnd_DeletesLockedDataAndKeepsProcessing()
     {
         Guid lockedDataElementId = Guid.NewGuid();
         var ended = new DateTime(2026, 7, 24, 8, 30, 0, DateTimeKind.Utc);
         await using ControllerSetup setup = CreateSetup(
             services =>
             {
-                services.AppMetadata.AutoDeleteOnProcessEnd = true;
                 DataType dataType = services.AppMetadata.DataTypes.Single(dataType => dataType.Id == DataTypeId);
                 dataType.AppLogic = new ApplicationLogic { AutoDeleteOnProcessEnd = true };
-                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ReleaseEndedInstance(
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new DeleteDataOnProcessEnd(
                     serviceProvider.GetRequiredService<IAppMetadata>()
                 ));
             },
@@ -1049,7 +1121,7 @@ public class WorkflowEngineCallbackControllerTests
         );
         Guid stepId = Guid.NewGuid();
 
-        IActionResult result = await setup.Execute(ReleaseEndedInstance.Key, stepId);
+        IActionResult result = await setup.Execute(DeleteDataOnProcessEnd.Key, stepId);
 
         var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
         WorkflowCallbackState callbackState = setup.DeserializeState(response.State!);
@@ -1058,15 +1130,11 @@ public class WorkflowEngineCallbackControllerTests
             request.RequestBody!
         )!;
         Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
-        Assert.Equal(ProcessStatus.Idle, mutation.ProcessState?.State?.Status);
-        Assert.Equal(ended, mutation.ProcessState?.State?.Ended);
-        Assert.Equal("EndEvent_1", mutation.ProcessState?.State?.EndEvent);
-        Assert.Null(mutation.ProcessState?.State?.CurrentTask);
-        Assert.Empty(mutation.ProcessState!.Events!);
+        Assert.Null(mutation.ProcessState);
         var delete = Assert.Single(mutation.DeleteDataElements);
         Assert.Equal(lockedDataElementId, delete.DataElementId);
         Assert.True(delete.IgnoreLock);
-        Assert.True(mutation.DeleteInstance?.Hard);
+        Assert.Null(mutation.DeleteInstance);
         Assert.Empty(mutation.CreateDataElements);
         Assert.Empty(mutation.UpdateDataElements);
         Assert.Empty(mutation.DataValues);
@@ -1084,19 +1152,18 @@ public class WorkflowEngineCallbackControllerTests
             request.RequestHeaders.GetValues(StoragePreconditionHeaders.IfProcessStateVersionMatchHeaderName).Single()
         );
 
-        Assert.Equal(ProcessStatus.Idle, callbackState.Instance.Process?.Status);
-        Assert.Equal(ended, callbackState.Instance.Process?.Ended);
-        Assert.True(callbackState.Instance.Status.IsHardDeleted);
+        Assert.Equal(ProcessStatus.Processing, callbackState.Instance.Process?.Status);
+        Assert.False(callbackState.Instance.Status?.IsHardDeleted == true);
         Assert.Empty(callbackState.Instance.Data);
         Assert.Equal(2, callbackState.InstanceVersion);
-        Assert.Equal(2, callbackState.ProcessStateVersion);
+        // A save without process state leaves the process state version alone.
+        Assert.Equal(1, callbackState.ProcessStateVersion);
         var (storedInstance, storedData) = setup.Services.Storage.GetInstanceAndData(
             InstanceOwnerPartyId,
             setup.InstanceGuid
         );
-        Assert.Equal(ProcessStatus.Idle, storedInstance.Process?.Status);
-        Assert.Equal(ended, storedInstance.Process?.Ended);
-        Assert.True(storedInstance.Status.IsHardDeleted);
+        Assert.Equal(ProcessStatus.Processing, storedInstance.Process?.Status);
+        Assert.False(storedInstance.Status?.IsHardDeleted == true);
         Assert.Empty(storedInstance.Data);
         Assert.Empty(storedData);
     }

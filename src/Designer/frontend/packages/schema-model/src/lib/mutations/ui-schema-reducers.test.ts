@@ -60,7 +60,6 @@ describe('ui-schema-reducers', () => {
 
   afterEach(() => {
     validateTestUiSchema(result.asArray());
-    vi.clearAllMocks();
   });
 
   describe('deleteNode', () => {

@@ -1,21 +1,19 @@
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 using Altinn.App.Core.Models.Process;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
 /// Request payload for CommitProcessState command.
-/// Contains the complete process state change with old and new states, and whether the workflow runs
-/// further steps after the commit, which then own the release of the instance. A process end always has them.
+/// Contains the complete process state change with old and new states.
 /// </summary>
-internal sealed record ProcessStateChangePayload(ProcessStateChange ProcessStateChange, bool StepsFollowCommit = false)
-    : CommandRequestPayload;
+internal sealed record ProcessStateChangePayload(ProcessStateChange ProcessStateChange) : CommandRequestPayload;
 
 /// <summary>
 /// Command that stages the process state transition for the callback controller's workflow-owned Storage save.
+/// The instance stays <c>processing</c>; <see cref="ReleaseProcessingStatus"/> or the continuation of a service task
+/// releases it.
 /// </summary>
 internal sealed class CommitProcessState : WorkflowEngineCommandBase<ProcessStateChangePayload>
 {
@@ -48,37 +46,18 @@ internal sealed class CommitProcessState : WorkflowEngineCommandBase<ProcessStat
             }
 
             ProcessState newProcessState = processStateChange.NewProcessState;
-            if (newProcessState.Ended is null && newProcessState.CurrentTask is null)
+            bool isActive = newProcessState is { Ended: null, CurrentTask: not null };
+            bool isEnded =
+                newProcessState is { Ended: not null, CurrentTask: null }
+                && !string.IsNullOrWhiteSpace(newProcessState.EndEvent);
+            if (!isActive && !isEnded)
             {
                 return Task.FromResult<ProcessEngineCommandResult>(
                     FailedProcessEngineCommandResult.Permanent(
-                        "A non-ended process state requires a current task.",
+                        "A process state must be active, with a current task, or ended, with no current task and a nonblank end event.",
                         nameof(InvalidOperationException)
                     )
                 );
-            }
-
-            if (newProcessState.Ended is not null)
-            {
-                if (newProcessState.CurrentTask is not null || string.IsNullOrWhiteSpace(newProcessState.EndEvent))
-                {
-                    return Task.FromResult<ProcessEngineCommandResult>(
-                        FailedProcessEngineCommandResult.Permanent(
-                            "An ended process state requires no current task and a nonblank end event.",
-                            nameof(InvalidOperationException)
-                        )
-                    );
-                }
-
-                if (!toStoragePayload.StepsFollowCommit)
-                {
-                    return Task.FromResult<ProcessEngineCommandResult>(
-                        FailedProcessEngineCommandResult.Permanent(
-                            $"An ended process state is released by {nameof(ReleaseEndedInstance)}, which must follow the commit.",
-                            nameof(InvalidOperationException)
-                        )
-                    );
-                }
             }
 
             if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
@@ -95,12 +74,6 @@ internal sealed class CommitProcessState : WorkflowEngineCommandBase<ProcessStat
             newProcessState.Status = instance.Process?.Status;
             instance.Process = newProcessState;
             unitOfWork.UpdateProcessState(processStateChange);
-
-            if (!toStoragePayload.StepsFollowCommit)
-            {
-                unitOfWork.TransitionProcessStatus(ProcessStatus.Processing, ProcessStatus.Idle);
-                instance.Process.Status = ProcessStatus.Idle;
-            }
 
             return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
         }

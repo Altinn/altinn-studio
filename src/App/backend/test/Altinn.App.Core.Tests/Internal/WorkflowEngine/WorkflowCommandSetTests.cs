@@ -76,12 +76,12 @@ public class WorkflowCommandSetTests
     }
 
     [Fact]
-    public void GetProcessEndSteps_RunsTheEndedHookAndTheReleaseAfterTheCommit()
+    public void GetProcessEndSteps_RunsTheEndedHookAndTheDataCleanupAfterTheCommit()
     {
         var commandSet = WorkflowCommandSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true });
 
         Assert.Empty(commandSet.Commands);
-        Assert.Equal([OnProcessEndedHook.Key, ReleaseEndedInstance.Key], Keys(commandSet.CriticalPostCommitCommands));
+        Assert.Equal([OnProcessEndedHook.Key, DeleteDataOnProcessEnd.Key], Keys(commandSet.CriticalPostCommitCommands));
         Assert.Equal([CompletedAltinnEvent.Key], Keys(commandSet.SideEffectCommands));
     }
 

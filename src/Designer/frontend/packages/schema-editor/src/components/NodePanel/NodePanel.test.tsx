@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import type { SchemaEditorAppContextProps } from '../../contexts/SchemaEditorAppContext';
 import { NodePanel } from './';
@@ -48,8 +48,6 @@ const defaultDragAndDropTreeProviderProps: Omit<
 };
 
 describe('NodePanel', () => {
-  afterEach(vi.clearAllMocks);
-
   describe('When the root node is selected', () => {
     it('Renders the name as the heading', () => {
       renderNodePanelWithRootNode();

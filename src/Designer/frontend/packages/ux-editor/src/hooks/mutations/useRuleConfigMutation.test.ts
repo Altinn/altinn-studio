@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useRuleConfigMutation } from './useRuleConfigMutation';
@@ -21,8 +22,6 @@ const newRuleConfig: RuleConfig = {
 };
 
 describe('useRuleConfigMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Calls saveRuleConfig with correct arguments and payload', async () => {
     const { result } = await render();
     await result.current.mutateAsync(newRuleConfig);

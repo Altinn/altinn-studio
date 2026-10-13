@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -16,8 +16,6 @@ const renderUseRevokeBotAccountApiKeyMutation = (queryClient = createQueryClient
   });
 
 describe('useRevokeBotAccountApiKeyMutation', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('calls revokeBotAccountApiKey with the correct arguments', async () => {
     const { result } = renderUseRevokeBotAccountApiKeyMutation();
     await result.current.mutateAsync(testKeyId);

@@ -14,7 +14,9 @@ import (
 	"strings"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"altinn.studio/pdf3/internal/assert"
@@ -42,10 +44,11 @@ func main() {
 	baseLogger.Info("Starting", "GOMAXPROCS", runtime.GOMAXPROCS(0), "NumCPU", runtime.NumCPU())
 
 	cfg := config.ReadConfig()
-	telemetryEnabled := config.ShouldConfigureOTel(cfg.Environment)
+	otelSignals := config.ResolveOTelSignals(cfg.Environment)
+	telemetryEnabled := otelSignals.Any()
 	otelShutdown := func(context.Context) error { return nil }
 	if telemetryEnabled {
-		configuredShutdown, err := telemetry.ConfigureOTel(context.Background())
+		configuredShutdown, err := telemetry.ConfigureOTel(context.Background(), cfg.Environment, otelSignals)
 		if err != nil {
 			baseLogger.Error("Failed to initialize telemetry", "error", err)
 			os.Exit(1)
@@ -55,7 +58,7 @@ func main() {
 		baseLogger.Info(
 			"Telemetry exporter disabled for localtest",
 			"environment", cfg.Environment,
-			"enable_with", "OTEL_EXPORTER_OTLP_ENDPOINT",
+			"enable_with", "OTEL_EXPORTER_OTLP_ENDPOINT or OTEL_EXPORTER_OTLP_{TRACES,METRICS,LOGS}_ENDPOINT",
 		)
 	}
 
@@ -102,13 +105,13 @@ func main() {
 
 	// Start HTTP server for both PDF generation and probes
 	http.HandleFunc("/health/startup", func(w http.ResponseWriter, r *http.Request) {
-		ihttp.WriteProbe(logger, w, !host.IsShuttingDown() && gen.IsReady())
+		ihttp.WriteProbe(r.Context(), logger, w, !host.IsShuttingDown() && gen.IsReady())
 	})
 	http.HandleFunc("/health/ready", func(w http.ResponseWriter, r *http.Request) {
-		ihttp.WriteProbe(logger, w, !host.IsShuttingDown() && gen.IsReady())
+		ihttp.WriteProbe(r.Context(), logger, w, !host.IsShuttingDown() && gen.IsReady())
 	})
 	http.HandleFunc("/health/live", func(w http.ResponseWriter, r *http.Request) {
-		ihttp.WriteText(logger, w, http.StatusOK, "OK")
+		ihttp.WriteText(r.Context(), logger, w, http.StatusOK, "OK")
 	})
 
 	// The localtest harness will run on all dev machines
@@ -180,11 +183,11 @@ func generateLocalPdfHandler(
 	assert.That(!iruntime.IsTestInternalsMode, "Localtest env should not run internals test mode")
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := telemetry.NewRequestEventData()
-		r = r.WithContext(telemetry.WithRequestEventData(r.Context(), data))
+		data := telemetry.NewRequestAttributes()
+		r = r.WithContext(telemetry.WithRequestAttributes(r.Context(), data))
 		span := trace.SpanFromContext(r.Context())
 		setWorkerSpanAttrs(span)
-		defer telemetry.EmitRequestSummary(span, data)
+		defer telemetry.SetOnSpan(span, data)
 
 		if r.Method != http.MethodPost {
 			ihttp.WriteProblemDetails(logger, w, r, http.StatusMethodNotAllowed, ihttp.ProblemDetails{
@@ -223,7 +226,7 @@ func generateLocalPdfHandler(
 		r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
 		defer func() {
 			if closeErr := r.Body.Close(); closeErr != nil {
-				logger.Warn("Failed to close request body", "error", closeErr)
+				logger.WarnContext(r.Context(), "Failed to close request body", "error", closeErr)
 			}
 		}()
 
@@ -235,17 +238,17 @@ func generateLocalPdfHandler(
 				Status:               http.StatusBadRequest,
 				Detail:               fmt.Sprintf("Invalid JSON payload: %v", err),
 				TraceRejectionReason: "invalid_json",
-				TraceRejectionError:  err,
 			})
 			return
 		}
 
 		normalizedURL, rewriteReason, normalizeErr := normalizeLocaltestURL(req.URL, localtestPublicBaseURL)
 		if normalizeErr != nil {
-			logger.Warn(
+			logger.WarnContext(
+				r.Context(),
 				"Failed to normalize localtest request URL",
 				"error", normalizeErr,
-				"url", req.URL,
+				"url", telemetry.RedactURL(req.URL),
 				"env_var", config.LocaltestPublicBaseURLEnv,
 			)
 		} else if rewriteReason != "" {
@@ -258,7 +261,7 @@ func generateLocalPdfHandler(
 			req.URL = normalizedURL
 		}
 
-		reqLogger := logger.With("url", req.URL)
+		reqLogger := logger.With("url", telemetry.RedactURL(req.URL))
 		data.SetPdfRequest(req)
 
 		if err := req.Validate(); err != nil {
@@ -268,7 +271,6 @@ func generateLocalPdfHandler(
 				Status:               http.StatusBadRequest,
 				Detail:               fmt.Sprintf("Validation error: %v", err),
 				TraceRejectionReason: "validation_error",
-				TraceRejectionError:  err,
 			})
 			return
 		}
@@ -277,7 +279,7 @@ func generateLocalPdfHandler(
 		result, pdfErr := gen.Generate(requestContext, req)
 
 		if pdfErr != nil {
-			recordPDFError(span, pdfErr)
+			recordPDFError(r.Context(), reqLogger, span, pdfErr)
 			errStr := pdfErr.Error()
 			errorCode := http.StatusInternalServerError
 
@@ -289,30 +291,21 @@ func generateLocalPdfHandler(
 				errorCode = http.StatusTooManyRequests
 			}
 
-			data.SetPDFError(pdfErr)
-			data.SetResponseStatus(errorCode)
 			ihttp.WriteProblemDetails(reqLogger, w, r, errorCode, ihttp.ProblemDetails{
 				Type:   problemType,
 				Title:  problemTitle,
 				Status: errorCode,
 				Detail: errStr,
 			})
-			reqLogger.Error(
-				"Error during generation",
-				"status_code", errorCode,
-				"detail", errStr,
-			)
 			return
 		}
 
 		// Success - return PDF bytes
-		data.SetResponseStatus(http.StatusOK)
-		data.SetResponseSize(len(result.Data))
 		w.Header().Set("Content-Type", "application/pdf")
 
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write(result.Data); err != nil {
-			reqLogger.Error("Failed to write PDF response", "error", err)
+			reqLogger.ErrorContext(r.Context(), "Failed to write PDF response", "error", err)
 		}
 	}
 }
@@ -383,58 +376,56 @@ func parseCanonicalLocaltestBaseURL(localtestBaseURL string) (*url.URL, error) {
 
 var errInvalidLocaltestPublicBaseURL = errors.New("invalid localtest public base URL")
 
-//nolint:funlen,gocognit // This handler keeps telemetry bookkeeping and response mapping in one flow.
+//nolint:gocognit // This handler keeps telemetry bookkeeping and response mapping in one flow.
 func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Worker-Id", workerId)
 		w.Header().Set("X-Worker-Ip", workerIP)
 
-		data := telemetry.NewRequestEventData()
-		r = r.WithContext(telemetry.WithRequestEventData(r.Context(), data))
+		data := telemetry.NewRequestAttributes()
+		r = r.WithContext(telemetry.WithRequestAttributes(r.Context(), data))
 		span := trace.SpanFromContext(r.Context())
 		setWorkerSpanAttrs(span)
-		defer telemetry.EmitRequestSummary(span, data)
+		defer telemetry.SetOnSpan(span, data)
 
 		if r.Method != http.MethodPost {
-			data.SetRejection("method_not_allowed", nil)
-			data.SetErrorMessageIfEmpty("Only POST method is allowed")
-			data.SetResponseStatus(http.StatusMethodNotAllowed)
-			ihttp.WriteText(logger, w, http.StatusMethodNotAllowed, "Only POST method is allowed")
+			data.SetRejection("method_not_allowed")
+			ihttp.WriteText(r.Context(), logger, w, http.StatusMethodNotAllowed, "Only POST method is allowed")
 			return
 		}
 
 		ct := strings.ToLower(r.Header.Get("Content-Type"))
 		if !strings.HasPrefix(ct, "application/json") {
-			data.SetRejection("unsupported_media_type", nil)
-			data.SetErrorMessageIfEmpty("Content-Type must be application/json")
-			data.SetResponseStatus(http.StatusUnsupportedMediaType)
-			ihttp.WriteText(logger, w, http.StatusUnsupportedMediaType, "Content-Type must be application/json")
+			data.SetRejection("unsupported_media_type")
+			ihttp.WriteText(
+				r.Context(),
+				logger,
+				w,
+				http.StatusUnsupportedMediaType,
+				"Content-Type must be application/json",
+			)
 			return
 		}
 		if !iruntime.IsTestInternalsMode && r.Header.Get(testing.TestInputHeaderName) != "" {
-			data.SetRejection("illegal_test_header", nil)
-			data.SetErrorMessageIfEmpty("Illegal internals test mode header")
-			data.SetResponseStatus(http.StatusBadRequest)
-			ihttp.WriteText(logger, w, http.StatusBadRequest, "Illegal internals test mode header")
+			data.SetRejection("illegal_test_header")
+			ihttp.WriteText(r.Context(), logger, w, http.StatusBadRequest, "Illegal internals test mode header")
 			return
 		}
 
 		defer func() {
 			if closeErr := r.Body.Close(); closeErr != nil {
-				logger.Warn("Failed to close request body", "error", closeErr)
+				logger.WarnContext(r.Context(), "Failed to close request body", "error", closeErr)
 			}
 		}()
 
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			data.SetRejection("invalid_json", err)
-			data.SetErrorMessageIfEmpty(fmt.Sprintf("Invalid JSON payload: %v", err))
-			data.SetResponseStatus(http.StatusBadRequest)
-			ihttp.WriteText(logger, w, http.StatusBadRequest, fmt.Sprintf("Invalid JSON payload: %v", err))
+			data.SetRejection("invalid_json")
+			ihttp.WriteText(r.Context(), logger, w, http.StatusBadRequest, fmt.Sprintf("Invalid JSON payload: %v", err))
 			return
 		}
 
-		reqLogger := logger.With("url", req.URL)
+		reqLogger := logger.With("url", telemetry.RedactURL(req.URL))
 		data.SetPdfRequest(req)
 
 		requestContext := r.Context()
@@ -448,7 +439,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 		result, pdfErr := gen.Generate(requestContext, req)
 
 		if pdfErr != nil {
-			recordPDFError(span, pdfErr)
+			recordPDFError(r.Context(), reqLogger, span, pdfErr)
 			errStr := pdfErr.Error()
 			errorCode := http.StatusInternalServerError
 
@@ -457,20 +448,16 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 				errorCode = http.StatusTooManyRequests
 			}
 
-			data.SetPDFError(pdfErr)
-			data.SetResponseStatus(errorCode)
-			ihttp.WriteText(reqLogger, w, errorCode, errStr)
+			ihttp.WriteText(r.Context(), reqLogger, w, errorCode, errStr)
 			return
 		}
 
 		// Success - return PDF bytes
-		data.SetResponseStatus(http.StatusOK)
-		data.SetResponseSize(len(result.Data))
 		w.Header().Set("Content-Type", "application/pdf")
 
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write(result.Data); err != nil {
-			reqLogger.Error("Failed to write PDF response", "error", err)
+			reqLogger.ErrorContext(r.Context(), "Failed to write PDF response", "error", err)
 		}
 	}
 }
@@ -502,27 +489,33 @@ func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {
 		)
 
 		if r.Method != http.MethodGet {
-			ihttp.WriteText(logger, w, http.StatusMethodNotAllowed, "Only GET method is allowed")
+			ihttp.WriteText(r.Context(), logger, w, http.StatusMethodNotAllowed, "Only GET method is allowed")
 			return
 		}
 
 		// Extract ID from URL path: /testoutput/{id}
 		path := strings.TrimPrefix(r.URL.Path, "/testoutput/")
 		if path == "" || path == r.URL.Path {
-			ihttp.WriteText(logger, w, http.StatusBadRequest, "Missing test output ID")
+			ihttp.WriteText(r.Context(), logger, w, http.StatusBadRequest, "Missing test output ID")
 			return
 		}
 
 		// Get test output from store
 		output, found := testing.GetTestOutput(path)
 		if !found {
-			ihttp.WriteText(logger, w, http.StatusNotFound, "Test output not found")
+			ihttp.WriteText(r.Context(), logger, w, http.StatusNotFound, "Test output not found")
 			return
 		}
 
 		// Wait for all snapshots to be collected
 		if !output.WaitForComplete(30 * time.Second) {
-			ihttp.WriteText(logger, w, http.StatusRequestTimeout, "Timeout waiting for test output to complete")
+			ihttp.WriteText(
+				r.Context(),
+				logger,
+				w,
+				http.StatusRequestTimeout,
+				"Timeout waiting for test output to complete",
+			)
 			return
 		}
 
@@ -533,7 +526,7 @@ func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {
 		jsonData, err := json.Marshal(output)
 		if err != nil {
 			logger.Error("Failed to marshal test output", "error", err)
-			ihttp.WriteText(logger, w, http.StatusInternalServerError, "Failed to serialize test output")
+			ihttp.WriteText(r.Context(), logger, w, http.StatusInternalServerError, "Failed to serialize test output")
 			return
 		}
 
@@ -553,15 +546,21 @@ func setWorkerSpanAttrs(span trace.Span) {
 	)
 }
 
-func recordPDFError(span trace.Span, pdfErr *types.PDFError) {
-	if pdfErr == nil || !span.IsRecording() {
+// recordPDFError records a failed generation on the request's entry span and, as error.type, on
+// its HTTP server metrics, which otherwise only show a 500 whatever the reason. The error's
+// details go in an error log correlated with the trace.
+func recordPDFError(ctx context.Context, logger *slog.Logger, span trace.Span, pdfErr *types.PDFError) {
+	if pdfErr == nil {
 		return
 	}
-	// Queue-full 429s are expected; proxy retries handle them.
-	// Record as an event, not an error, to avoid false error noise.
+	// Queue-full 429s are expected; proxy retries handle them. Like other 4xx they are not
+	// server errors, so they get no error.type; the status code tells them apart.
 	if pdfErr.Is(types.ErrQueueFull) {
-		span.AddEvent("pdf.queue.full")
 		return
 	}
-	span.RecordError(pdfErr)
+	errorType := pdfErr.ErrorType()
+	labeler, _ := otelhttp.LabelerFromContext(ctx)
+	labeler.Add(semconv.ErrorTypeKey.String(errorType))
+	telemetry.SetError(span, errorType, pdfErr)
+	logger.ErrorContext(ctx, "PDF generation failed", string(semconv.ErrorTypeKey), errorType, "error", pdfErr)
 }

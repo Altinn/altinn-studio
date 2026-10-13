@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { getDisplayValues } from './TextComponentUtils';
 import type { StringExpression } from '@studio/components';
 import { DataLookupFuncName } from '@studio/components';

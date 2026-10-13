@@ -55,6 +55,12 @@ internal sealed class WorkflowCommandSet
     public IReadOnlyList<StepRequest> SideEffectCommands => _sideEffectCommands;
 
     /// <summary>
+    /// Whether this command set schedules a service-task command after CommitProcessState. The service task's
+    /// continuation then owns the release, so the factory adds no <see cref="ReleaseProcessingStatus"/>.
+    /// </summary>
+    public bool ServiceTaskFollowsCommit { get; private set; }
+
+    /// <summary>
     /// Creates command group for task start events.
     /// </summary>
     public static WorkflowCommandSet GetTaskStartSteps(TaskStartContext context)
@@ -76,6 +82,8 @@ internal sealed class WorkflowCommandSet
 
         if (context.ServiceTask is { } serviceTask)
         {
+            group.ServiceTaskFollowsCommit = true;
+
             // Segment 0 always has at least one step (a handler can only answer an already-composed stage, so
             // item 0 is never one), and Main therefore always ends on a step of its own: the stage whose
             // completion starts the rest of the pipeline, or the pipeline's conclusion.
@@ -126,7 +134,7 @@ internal sealed class WorkflowCommandSet
     {
         var group = new WorkflowCommandSet()
             .AddCriticalPostCommitCommand(OnProcessEndedHook.Key)
-            .AddCriticalPostCommitCommand(ReleaseEndedInstance.Key);
+            .AddCriticalPostCommitCommand(DeleteDataOnProcessEnd.Key);
 
         if (context.RegisterEvents)
         {

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { CreateCustomReceipt } from './CreateCustomReceipt';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -13,8 +14,8 @@ import { queryOptionMock } from '../../../../../../test/mocks/queryOptionMock';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 
-const mockAddLayoutSet = jest.fn().mockImplementation(queryOptionMock);
-const mockOnCloseForm = jest.fn();
+const mockAddLayoutSet = vi.fn().mockImplementation(queryOptionMock);
+const mockOnCloseForm = vi.fn();
 const mockAllDataModelIds: string[] = ['model1', 'model2'];
 
 const nameFieldLabel = textMock(
@@ -31,8 +32,6 @@ const legacyVersion: AppVersion = { backendVersion: '8.9.0', frontendVersion: '4
 const v9Version: AppVersion = { backendVersion: '9.0.0', frontendVersion: '4.25.2' };
 
 describe('CreateCustomReceipt', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('renders the editable name field for apps older than v9', () => {
     renderCreateCustomReceipt({ appVersion: legacyVersion });
     expect(screen.getByLabelText(nameFieldLabel)).toBeInTheDocument();

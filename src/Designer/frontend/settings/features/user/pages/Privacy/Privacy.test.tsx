@@ -34,7 +34,6 @@ const getSaveButton = () => screen.getByRole('button', { name: textMock('consent
 
 describe('Privacy', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     (consentHooks.useConsent as Mock).mockReturnValue(defaultConsentState);
     (consentHooks.useConsentMutation as Mock).mockReturnValue({
       setConsentPreferences: vi.fn(),

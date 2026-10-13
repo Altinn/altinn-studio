@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ScopeListContainer } from './ScopeListContainer';
 import type { MaskinportenScope, MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
@@ -23,18 +24,16 @@ const scopeMock2: MaskinportenScope = {
 const maskinportenScopes: MaskinportenScopes = { scopes: [scopeMock1, scopeMock2] };
 
 describe('ScopeListContainer', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should display a spinner while loading', () => {
     renderScopeListContainer();
     expect(getText(textMock('general.loading'))).toBeInTheDocument();
   });
 
   it('should display add button and empty selected scopes message if only available scopes exist', async () => {
-    const getMaskinportenScopes = jest
+    const getMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve(maskinportenScopes));
-    const getSelectedMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
+    const getSelectedMaskinportenScopes = vi.fn().mockImplementation(() => Promise.resolve([]));
 
     renderScopeListContainer({
       getMaskinportenScopes,
@@ -48,8 +47,8 @@ describe('ScopeListContainer', () => {
   });
 
   it('should display selected scopes if selected maskinporten scopes are available', async () => {
-    const getMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
-    const getSelectedMaskinportenScopes = jest
+    const getMaskinportenScopes = vi.fn().mockImplementation(() => Promise.resolve([]));
+    const getSelectedMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve(maskinportenScopes));
 
@@ -68,12 +67,12 @@ describe('ScopeListContainer', () => {
 
   it('should display only selected scopes if both selected scopes and available scopes are available', async () => {
     const availableScopes: MaskinportenScopes = { scopes: [scopeMock1] };
-    const getMaskinportenScopes = jest
+    const getMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve(availableScopes));
 
     const selectedScopes: MaskinportenScopes = { scopes: [scopeMock2] };
-    const getSelectedMaskinportenScopes = jest
+    const getSelectedMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve(selectedScopes));
 
@@ -91,10 +90,8 @@ describe('ScopeListContainer', () => {
   });
 
   it('should display an alert if no scopes are available', async () => {
-    const getMaskinportenScopes = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve({ scopes: [] }));
-    const getSelectedMaskinportenScopes = jest
+    const getMaskinportenScopes = vi.fn().mockImplementation(() => Promise.resolve({ scopes: [] }));
+    const getSelectedMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ scopes: [] }));
 
@@ -110,10 +107,10 @@ describe('ScopeListContainer', () => {
   });
 
   it('should display an alert if user does not have access on behalf of the organization', async () => {
-    const getMaskinportenScopes = jest
+    const getMaskinportenScopes = vi
       .fn()
       .mockRejectedValue(createAxiosError(ServerCodes.Forbidden));
-    const getSelectedMaskinportenScopes = jest
+    const getSelectedMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ scopes: [] }));
 
@@ -132,10 +129,10 @@ describe('ScopeListContainer', () => {
   });
 
   it('should display selected scopes without management controls if user does not have access on behalf of the organization', async () => {
-    const getMaskinportenScopes = jest
+    const getMaskinportenScopes = vi
       .fn()
       .mockRejectedValue(createAxiosError(ServerCodes.Forbidden));
-    const getSelectedMaskinportenScopes = jest
+    const getSelectedMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve(maskinportenScopes));
 
@@ -167,10 +164,10 @@ describe('ScopeListContainer', () => {
   });
 
   it('should display a membership alert without management controls if the selected scopes are forbidden', async () => {
-    const getMaskinportenScopes = jest
+    const getMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve(maskinportenScopes));
-    const getSelectedMaskinportenScopes = jest
+    const getSelectedMaskinportenScopes = vi
       .fn()
       .mockRejectedValue(createAxiosError(ServerCodes.Forbidden));
 
@@ -187,10 +184,10 @@ describe('ScopeListContainer', () => {
   });
 
   it('should not display management controls if the selected scopes cannot be loaded', async () => {
-    const getMaskinportenScopes = jest
+    const getMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve(maskinportenScopes));
-    const getSelectedMaskinportenScopes = jest
+    const getSelectedMaskinportenScopes = vi
       .fn()
       .mockRejectedValue(createAxiosError(ServerCodes.InternalServerError));
 
@@ -207,13 +204,11 @@ describe('ScopeListContainer', () => {
   });
 
   it('should display add default scopes notice for v8.3 apps when no scopes are available', async () => {
-    const getMaskinportenScopes = jest
+    const getMaskinportenScopes = vi.fn().mockImplementation(() => Promise.resolve({ scopes: [] }));
+    const getSelectedMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ scopes: [] }));
-    const getSelectedMaskinportenScopes = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve({ scopes: [] }));
-    const getAppVersion = jest
+    const getAppVersion = vi
       .fn()
       .mockImplementation(() =>
         Promise.resolve({ frontendVersion: '4.0.0', backendVersion: '8.3.0' }),

@@ -376,7 +376,7 @@ describe('Live workflow status (real engine)', () => {
 
     // The second failed attempt escalates the loader's notice to a warning before the step gives up.
     workflowLoader().should('be.visible');
-    cy.contains('Vi får ikke behandlet skjemaet ditt', { timeout: 15000 }).should('be.visible');
+    cy.contains('Vi kan ikke behandle skjemaet ditt', { timeout: 15000 }).should('be.visible');
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
 
     // process/resume holds its request until the workflow settles; the loader takes over from the
@@ -389,8 +389,8 @@ describe('Live workflow status (real engine)', () => {
     waitForPageToSeeFailedAttempts(1);
     // Checked once: retrying would wait out the processing and pass on the failed view that follows.
     cy.contains('Dette tar uvanlig lang tid', { timeout: 0 }).should('not.exist');
-    cy.contains('Vi får ikke behandlet skjemaet ditt', { timeout: 0 }).should('not.exist');
-    cy.contains('Vi får ikke behandlet skjemaet ditt', { timeout: 15000 }).should('be.visible');
+    cy.contains('Vi kan ikke behandle skjemaet ditt', { timeout: 0 }).should('not.exist');
+    cy.contains('Vi kan ikke behandle skjemaet ditt', { timeout: 15000 }).should('be.visible');
 
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
     cy.findByRole('button', { name: 'Prøv igjen' }).should('be.visible');

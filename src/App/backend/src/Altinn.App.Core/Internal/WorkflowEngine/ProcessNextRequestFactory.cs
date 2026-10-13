@@ -411,6 +411,7 @@ internal sealed class ProcessNextRequestFactory
         var criticalPostCommitSteps = new List<StepRequest>();
         var sideEffectSteps = new List<StepRequest>();
         bool endsProcess = false;
+        bool serviceTaskFollowsCommit = false;
 
         bool isInitialTaskStart = processStateChange.OldProcessState?.CurrentTask is null;
 
@@ -438,6 +439,11 @@ internal sealed class ProcessNextRequestFactory
             );
             if (workflowCommands != null)
             {
+                if (workflowCommands.ServiceTaskFollowsCommit)
+                {
+                    serviceTaskFollowsCommit = true;
+                }
+
                 // The task this event's commands run against (start hooks/service task read the entering
                 // task; end/abandon hooks read the leaving task). This is the same id each hook feeds into
                 // ShouldRunForTask at execute time, so resolving the handler here yields the same match.
@@ -497,9 +503,14 @@ internal sealed class ProcessNextRequestFactory
             commands.Add(CreateMutateProcessStateCommand(processStateChange));
         }
         commands.AddRange(taskStartSteps);
-        commands.Add(
-            CreateCommitProcessStateCommand(processStateChange, stepsFollowCommit: criticalPostCommitSteps.Count > 0)
-        );
+        commands.Add(CreateCommitProcessStateCommand(processStateChange));
+
+        // The last step releases the instance, unless a service task follows: its continuation workflow
+        // carries on the transition and releases when it finishes.
+        if (!serviceTaskFollowsCommit)
+        {
+            criticalPostCommitSteps.Add(CreateCommand(ReleaseProcessingStatus.Key));
+        }
 
         return new AssembledCommands(commands, criticalPostCommitSteps, sideEffectSteps, endsProcess);
     }
@@ -632,9 +643,9 @@ internal sealed class ProcessNextRequestFactory
         return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
     }
 
-    private StepRequest CreateCommitProcessStateCommand(ProcessStateChange processStateChange, bool stepsFollowCommit)
+    private StepRequest CreateCommitProcessStateCommand(ProcessStateChange processStateChange)
     {
-        var payload = new ProcessStateChangePayload(processStateChange, stepsFollowCommit);
+        var payload = new ProcessStateChangePayload(processStateChange);
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
         var step = new StepRequest
         {
