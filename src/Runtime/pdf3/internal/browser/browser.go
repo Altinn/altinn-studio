@@ -1,6 +1,7 @@
 package browser
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -15,6 +16,7 @@ import (
 
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/log"
+	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/telemetry/attr"
 )
 
@@ -92,13 +94,52 @@ func closePipe(pipe io.Closer, logger *slog.Logger) {
 	}
 }
 
+// maxLoggedLine is how much of each line of browser output we log. Chrome echoes console messages
+// to stderr, so a page logging a huge string would otherwise produce a huge log line.
+const maxLoggedLine = 4096
+
+// cmdToLogger logs the browser's output one line at a time, each cut off at maxLoggedLine. The
+// browser's stdout and stderr share it, which os/exec copies from a single goroutine.
 type cmdToLogger struct {
-	logger *slog.Logger
+	logger  *slog.Logger
+	line    []byte
+	dropped int
 }
 
 func (l *cmdToLogger) Write(p []byte) (int, error) {
-	l.logger.Info("Browser process stdout/stderr", attr.BrowserOutput, string(p))
-	return len(p), nil
+	written := len(p)
+	for len(p) > 0 {
+		end := bytes.IndexByte(p, '\n')
+		part := p
+		if end >= 0 {
+			part = p[:end]
+		}
+		take := min(len(part), maxLoggedLine-len(l.line))
+		l.line = append(l.line, part[:take]...)
+		l.dropped += len(part) - take
+		if end < 0 {
+			break
+		}
+		l.flush()
+		p = p[end+1:]
+	}
+	return written, nil
+}
+
+func (l *cmdToLogger) flush() {
+	// Like page errors, without the query and fragment of any URL the browser logs
+	message := telemetry.RedactURLsInText(string(l.line))
+	if l.dropped > 0 {
+		l.logger.Info(
+			"Browser process stdout/stderr",
+			attr.BrowserOutput, message,
+			attr.BrowserOutputTruncatedBytes, l.dropped,
+		)
+	} else {
+		l.logger.Info("Browser process stdout/stderr", attr.BrowserOutput, message)
+	}
+	l.line = l.line[:0]
+	l.dropped = 0
 }
 
 // Close terminates the browser process and removes its data directory.

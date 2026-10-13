@@ -145,6 +145,14 @@ const (
 	PageErrorLogSource = prefix + "page.error.log_source"
 )
 
+// The JavaScript dialogs (alert, confirm, prompt) the page opened while it served a request, which
+// pdf3 dismisses: how many, the limit after which the render ends, and the first one's type.
+const (
+	PageDialogs      = prefix + "page.dialogs"
+	PageDialogsLimit = prefix + "page.dialogs_limit"
+	PageDialogType   = prefix + "page.dialog.type"
+)
+
 // WaitException is the exception the expression that waits for the request's waitFor threw,
 // truncated.
 const WaitException = prefix + "wait.exception"
@@ -179,6 +187,9 @@ const (
 	BrowserPGID            = prefix + "browser.pgid"
 	BrowserArgs            = prefix + "browser.args"
 	BrowserOutput          = prefix + "browser.output"
+
+	// BrowserOutputTruncatedBytes is how much of a line of the browser's output was cut off.
+	BrowserOutputTruncatedBytes = prefix + "browser.output_truncated_bytes"
 )
 
 // The Chrome DevTools Protocol connection to the browser.

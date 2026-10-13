@@ -85,10 +85,10 @@ func (t *pipeTransport) WriteJSON(ctx context.Context, value any) error {
 	case t.writeToken <- struct{}{}:
 		defer func() { <-t.writeToken }()
 	case <-ctx.Done():
-		return fmt.Errorf("wait for CDP writer: %w", ctx.Err())
+		return fmt.Errorf("wait for CDP writer: %w", context.Cause(ctx))
 	}
 	if ctx.Err() != nil {
-		return fmt.Errorf("wait for CDP writer: %w", ctx.Err())
+		return fmt.Errorf("wait for CDP writer: %w", context.Cause(ctx))
 	}
 
 	stuck := time.AfterFunc(t.writeTimeout, func() {

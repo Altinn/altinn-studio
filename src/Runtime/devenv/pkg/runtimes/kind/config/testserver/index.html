@@ -140,6 +140,19 @@
                 }
             }
 
+            // A dialog blocks the page until the worker accepts it
+            if (urlParams.has('alert')) {
+                alert('PDF test dialog');
+            }
+            // A page stuck opening dialogs: the worker must end the render
+            if (urlParams.has('alertloop')) {
+                for (;;) alert('PDF test dialog loop');
+            }
+            // A page that never finishes: the worker must end the render at its deadline
+            if (urlParams.has('busyloop')) {
+                setTimeout(() => { for (;;) {} });
+            }
+
             if (storageMode === 'write') {
                 await writeStorage();
             } else if (storageMode === 'spy') {
