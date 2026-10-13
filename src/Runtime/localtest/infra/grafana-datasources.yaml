@@ -1,67 +1,64 @@
 apiVersion: 1
 
+prune: true
+
+# The uids and settings are those of the Altinn Studio datasources in the shared Grafana,
+# grafana.dis.altinn.cloud, so a dashboard built here works there unchanged. Only the url,
+# the names (Metrics, Traces and Logs, as the monitoring guide calls them) and the default differ.
+# Grafana expands environment variables in provisioning files, so every Grafana variable is written with $$.
 datasources:
   - name: Metrics
     type: prometheus
-    uid: mimir
+    uid: altinn-studio-metrics
     access: proxy
-    orgId: 1
-    url: http://monitoring_mimir:9009/prometheus
-    basicAuth: false
-    isDefault: false
-    version: 1
-    editable: true
-    jsonData:
-      httpMethod: GET
-      prometheusType: Mimir
-      prometheusVersion: 2.9.1
-      timeInterval: "10s"
-
-  - name: Logs
-    type: loki
-    uid: loki
-    access: proxy
-    orgId: 1
-    url: http://monitoring_loki:3100
-    basicAuth: false
+    url: http://localtest-victoria-metrics:8428
     isDefault: true
-    version: 1
-    editable: true
     jsonData:
-      derivedFields:
-        - datasourceUid: tempo
-          matcherRegex: trace_id
-          matcherType: label
-          name: 'Trace ID'
-          url: '$${__value.raw}'
-          urlDisplayLabel: 'View Trace'
+      timeInterval: 15s
 
+  # VictoriaTraces implements the Tempo HTTP API, so the Tempo datasource gives
+  # TraceQL and Traces Drilldown. /select/jaeger is also served, if ever needed.
   - name: Traces
     type: tempo
-    uid: tempo
+    uid: altinn-studio-traces
     access: proxy
-    orgId: 1
-    url: http://monitoring_tempo:3200
-    basicAuth: false
+    url: http://localtest-victoria-traces:10428/select/tempo
     isDefault: false
-    version: 1
-    editable: true
-    apiVersion: 1
     jsonData:
-      lokiSearch:
-        datasourceUid: loki
-      nodeGraph:
-        enabled: true
-      serviceMap:
-        datasourceUid: mimir
+      # All logs in the span's trace, by trace ID. A custom query avoids Grafana's default
+      # tag filter, which maps service.name to service_name and matches nothing in VictoriaLogs.
       tracesToLogsV2:
-        datasourceUid: loki
-        filterBySpanID: false
-        filterByTraceID: false
-        spanStartTimeShift: -10m
-        spanEndTimeShift: 10m
-        tags: [{ key: 'service.name', value: 'service_name' }] 
+        datasourceUid: altinn-studio-logs
         customQuery: true
-        query: '{$${__tags}} | trace_id="$${__span.traceId}" | span_id="$${__span.spanId}"'
+        query: 'trace_id:="$${__span.traceId}"'
+        spanStartTimeShift: -5m
+        spanEndTimeShift: 5m
+      # The span's service in the HTTP server metrics. Without queries, Grafana falls back to
+      # span metrics, which nothing produces. Dotted label names must be quoted in the selector.
       tracesToMetrics:
-        datasourceUid: mimir
+        datasourceUid: altinn-studio-metrics
+        spanStartTimeShift: -15m
+        spanEndTimeShift: 15m
+        tags:
+          - key: service.name
+            value: '"service.name"'
+        queries:
+          - name: Request rate
+            query: 'sum by ("http.route", "http.response.status_code") (rate({"http.server.request.duration_count", $$__tags}[$$__rate_interval]))'
+          - name: Request duration p95
+            query: 'histogram_quantile(0.95, sum by (le, "http.route") (rate({"http.server.request.duration_bucket", $$__tags}[$$__rate_interval])))'
+
+  - name: Logs
+    type: victoriametrics-logs-datasource
+    uid: altinn-studio-logs
+    access: proxy
+    url: http://localtest-victoria-logs:9428
+    isDefault: false
+    jsonData:
+      derivedFields:
+        - name: trace_id
+          matcherType: label
+          matcherRegex: trace_id
+          datasourceUid: altinn-studio-traces
+          url: "$${__value.raw}"
+          urlDisplayLabel: View trace

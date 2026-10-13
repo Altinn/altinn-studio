@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { AgentResponse, AssistantMessageData, Message } from '@studio/assistant';
 import { MessageAuthor } from '@studio/assistant';
 import {

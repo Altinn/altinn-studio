@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { JsonSchema } from '../../types/JSONSchema';
 
 import {
@@ -45,8 +45,6 @@ const defaultProps: StudioToggleableTextfieldSchemaProps = {
 };
 
 describe('StudioToggleableTextfieldSchema', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('should toggle to edit mode when clicking edit', async () => {
     const user = userEvent.setup();
     renderStudioToggleableTextfieldSchema();

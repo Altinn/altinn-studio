@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"altinn.studio/pdf3/internal/assert"
@@ -100,10 +99,7 @@ func New() (*Custom, error) {
 		// Get and set browser version
 		version, err := getBrowserVersion(logger)
 		if err != nil {
-			if span.IsRecording() {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, "get_browser_version_failed")
-			}
+			telemetry.SetError(span, "get_browser_version_failed", err)
 			assert.That(err == nil, "Failed to get browser version", "error", err)
 		}
 
@@ -148,11 +144,12 @@ func (g *Custom) IsReady() bool {
 }
 
 func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types.PdfResult, *types.PDFError) {
+	// The URL as logs show it: without query or fragment.
+	requestURL := telemetry.RedactURL(request.URL)
 	session := g.activeSession.Load()
-	assert.That(session != nil, "The worker should not call the generator unless it is ready", "url", request.URL)
-	assert.That(request.Validate() == nil, "Invalid request passed through to worker", "url", request.URL)
+	assert.That(session != nil, "The worker should not call the generator unless it is ready", "url", requestURL)
+	assert.That(request.Validate() == nil, "Invalid request passed through to worker", "url", requestURL)
 
-	requestSpan := trace.SpanFromContext(ctx)
 	ctx, span := g.tracer.Start(ctx, "pdf.generate", trace.WithSpanKind(trace.SpanKindInternal))
 	defer span.End()
 
@@ -163,20 +160,13 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		ctx:        ctx,
 		enqueuedAt: time.Now(),
 		cleanedUp:  false,
-		logger:     g.logger.With("url", request.URL),
+		logger:     g.logger.With("url", requestURL),
 	}
 
-	if session.tryEnqueue(req) {
-		// Successfully enqueued
-	} else {
-		g.logger.Warn("Request queue full, rejecting request", "url", request.URL)
-		pdfErr := types.NewPDFError(types.ErrQueueFull, "", nil)
-		// Queue-full 429s are expected; proxy retries handle them.
-		// Mark as an event, not a span error, to avoid false error noise.
-		if span.IsRecording() {
-			span.AddEvent("pdf.queue.full")
-		}
-		return nil, pdfErr
+	if !session.tryEnqueue(req) {
+		// Queue-full 429s are expected; proxy retries handle them, so no span error or warning.
+		g.logger.InfoContext(ctx, "Request queue full, rejecting request", "url", requestURL)
+		return nil, types.NewPDFError(types.ErrQueueFull, "", nil)
 	}
 
 	select {
@@ -185,7 +175,7 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 			recordPDFError(span, response.Error)
 			return nil, response.Error
 		}
-		pdfData, pdfErr := g.prepareResponsePDF(ctx, requestSpan, span, request.URL, response.Data)
+		pdfData, pdfErr := g.prepareResponsePDF(ctx, requestURL, response.Data)
 		if pdfErr != nil {
 			recordPDFError(span, pdfErr)
 			return nil, pdfErr
@@ -199,38 +189,33 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		recordPDFError(span, pdfErr)
 		return nil, pdfErr
 	case <-time.After(types.RequestTimeout()):
-		assert.That(false, "generator failed to respond to request, something must be stuck", "url", request.URL)
+		assert.That(false, "generator failed to respond to request, something must be stuck", "url", requestURL)
 		pdfErr := types.NewPDFError(types.ErrGenerationFail, "internal request timeout", nil)
 		recordPDFError(span, pdfErr)
 		return nil, pdfErr
 	}
 }
 
-func (g *Custom) prepareResponsePDF(
-	ctx context.Context,
-	requestSpan trace.Span,
-	generateSpan trace.Span,
-	requestURL string,
-	data []byte,
-) ([]byte, *types.PDFError) {
+func (g *Custom) prepareResponsePDF(ctx context.Context, requestURL string, data []byte) ([]byte, *types.PDFError) {
+	requestAttributes := telemetry.RequestAttributesFromContext(ctx)
 	if !g.convertToPDFA {
-		g.addPDFAEvent(requestSpan, generateSpan, "skipped", false, len(data), 0)
+		requestAttributes.SetPDFAConversion(g.convertToPDFA, "skipped", len(data), 0)
 		return data, nil
 	}
 
 	if ctx.Err() != nil {
-		g.addPDFAEvent(requestSpan, generateSpan, "canceled", false, len(data), 0)
+		requestAttributes.SetPDFAConversion(g.convertToPDFA, "canceled", len(data), 0)
 		return nil, types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
 	}
 
 	converted, pdfErr := g.postProcessPDF(ctx, data)
 	if pdfErr != nil {
-		g.addPDFAEvent(requestSpan, generateSpan, "failed", false, len(data), 0)
-		g.logger.Warn("PDF/A conversion failed, returning original PDF", "url", requestURL, "error", pdfErr)
+		requestAttributes.SetPDFAConversion(g.convertToPDFA, "failed", len(data), 0)
+		g.logger.WarnContext(ctx, "PDF/A conversion failed, returning original PDF", "url", requestURL, "error", pdfErr)
 		return data, nil
 	}
 
-	g.addPDFAEvent(requestSpan, generateSpan, "success", true, len(data), len(converted))
+	requestAttributes.SetPDFAConversion(g.convertToPDFA, "success", len(data), len(converted))
 	return converted, nil
 }
 
@@ -242,42 +227,10 @@ func (g *Custom) postProcessPDF(ctx context.Context, data []byte) ([]byte, *type
 
 	converted, err := g.pdfaConverter.Convert(data)
 	if err != nil {
-		if span.IsRecording() {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "pdfa_conversion_failed")
-		}
+		telemetry.SetError(span, "pdfa_conversion_failed", err)
 		return nil, types.NewPDFError(types.ErrGenerationFail, "PDF/A conversion failed", err)
 	}
 	return converted, nil
-}
-
-func (g *Custom) addPDFAEvent(
-	requestSpan trace.Span,
-	fallbackSpan trace.Span,
-	status string,
-	applied bool,
-	inputSize int,
-	outputSize int,
-) {
-	targetSpan := requestSpan
-	if !targetSpan.IsRecording() {
-		targetSpan = fallbackSpan
-	}
-	if !targetSpan.IsRecording() {
-		return
-	}
-
-	attrs := []attribute.KeyValue{
-		attribute.Bool("pdf.convert_to_pdfa.enabled", g.convertToPDFA),
-		attribute.Bool("pdf.convert_to_pdfa.applied", applied),
-		attribute.String("pdf.convert_to_pdfa.status", status),
-		attribute.Int("pdf.convert_to_pdfa.input_size_bytes", inputSize),
-	}
-	if outputSize > 0 {
-		attrs = append(attrs, attribute.Int("pdf.convert_to_pdfa.output_size_bytes", outputSize))
-	}
-
-	targetSpan.AddEvent("pdf.convert_to_pdfa", trace.WithAttributes(attrs...))
 }
 
 func (g *Custom) Close() error {
@@ -322,10 +275,7 @@ func (g *Custom) periodicRestart() {
 		newSession, err := newBrowserSession(g.logger, nextID)
 		if err != nil {
 			g.logger.Error("Failed to create new browser session, keeping old session", "id", nextID, "error", err)
-			if restartSpan.IsRecording() {
-				restartSpan.RecordError(err)
-				restartSpan.SetStatus(codes.Error, "new_session_failed")
-			}
+			telemetry.SetError(restartSpan, "new_session_failed", err)
 			restartSpan.End()
 			// Wait a bit before retrying to avoid tight loop on persistent errors
 			time.Sleep(1 * time.Minute)
@@ -393,7 +343,8 @@ func (r *workerRequest) tryRespondOk(data []byte) {
 			r.logger.Info("Responded successfully", "data_size", len(data))
 			break
 		default:
-			r.logger.Warn("Client abandoned request (likely timed out), dropping response")
+			// INFO: the abandoned request already logs its own error.
+			r.logger.InfoContext(r.ctx, "Client abandoned request (likely timed out), dropping response")
 		}
 		r.responder = nil
 	}
@@ -410,7 +361,8 @@ func (r *workerRequest) tryRespondError(err *types.PDFError) {
 			r.logger.Info("Responded with error", "error", err)
 			break
 		default:
-			r.logger.Warn("Client abandoned request (likely timed out), dropping response")
+			// INFO: the abandoned request already logs its own error.
+			r.logger.InfoContext(r.ctx, "Client abandoned request (likely timed out), dropping response")
 		}
 		r.responder = nil
 	}
@@ -442,9 +394,8 @@ func mapCustomError(err error) *types.PDFError {
 }
 
 func recordPDFError(span trace.Span, pdfErr *types.PDFError) {
-	if pdfErr == nil || !span.IsRecording() {
+	if pdfErr == nil {
 		return
 	}
-	span.RecordError(pdfErr)
-	span.SetStatus(codes.Error, pdfErr.Type.Error())
+	telemetry.SetError(span, pdfErr.ErrorType(), pdfErr)
 }

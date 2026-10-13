@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen, within } from '@testing-library/react';
 import type { Expression, LogicalTupleFunc } from './types/Expression';
@@ -20,8 +20,6 @@ import { LogicalTupleOperator } from './enums/LogicalTupleOperator';
 const onChange = vi.fn();
 
 describe('StudioExpression', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders with the simpified tab open when the expression is simplifiable', () => {
     renderExpression(logicalExpression);
     expect(screen.getByRole('tab', { name: texts.simplified })).toHaveAttribute(

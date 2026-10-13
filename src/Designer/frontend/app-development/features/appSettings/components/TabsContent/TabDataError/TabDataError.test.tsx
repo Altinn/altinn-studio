@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { TabDataErrorProps } from './TabDataError';
@@ -12,8 +13,6 @@ const defaultProps: TabDataErrorProps = {
 };
 
 describe('LoadingTabData', () => {
-  afterEach(jest.clearAllMocks);
-
   it('displays the 2 default error messages, and the message from children', () => {
     render(<TabDataError {...defaultProps} />);
 

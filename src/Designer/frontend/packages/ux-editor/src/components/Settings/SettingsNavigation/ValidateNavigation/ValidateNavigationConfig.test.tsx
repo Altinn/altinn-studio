@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Scope } from './utils/ValidateNavigationUtils';
 import {
@@ -70,8 +71,8 @@ const openCard = async (user: UserEvent, label?: string) => {
 const renderValidateNavigationConfig = (props: Partial<ValidateNavigationConfigProps> = {}) => {
   const defaultProps: ValidateNavigationConfigProps = {
     scope: Scope.AllTasks,
-    onSave: jest.fn(),
-    onDelete: jest.fn(),
+    onSave: vi.fn(),
+    onDelete: vi.fn(),
     config: undefined,
   };
   return render(<ValidateNavigationConfig {...defaultProps} {...props} />);

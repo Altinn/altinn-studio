@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StudioBlobDownloader } from './StudioBlobDownloader';
@@ -22,10 +22,6 @@ describe('StudioBlobDownloader', () => {
     vi.spyOn(BlobDownloader.prototype, 'handleDownloadClick').mockImplementation(
       handleDownloadClickMock,
     );
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
   });
 
   afterAll(() => {

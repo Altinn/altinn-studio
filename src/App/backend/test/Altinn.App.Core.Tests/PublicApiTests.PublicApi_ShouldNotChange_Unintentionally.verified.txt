@@ -765,6 +765,9 @@ namespace Altinn.App.Core.Features.Bootstrap.Models
     {
         public DataModelInfo() { }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("calculationConfig")]
+        public object? CalculationConfig { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("dataElementId")]
         public string? DataElementId { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
@@ -1425,7 +1428,6 @@ namespace Altinn.App.Core.Features
     public static class FeatureFlags
     {
         public const string AddInstanceIdentifierToLayoutRequests = "addInstanceIdentifierToLayoutRequests";
-        public const string BetaPDFenabled = "BetaPDFenabled";
         public const string JsonObjectInDataResponse = "JsonObjectInDataResponse";
         public const string SimpleTableEnabled = "SimpleTableEnabled";
     }

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useDomSelectors } from './useDomSelectors';
 import { StudioDragAndDropRootContext } from '../StudioDragAndDropProvider';
@@ -9,8 +9,6 @@ const id = 'id';
 const uniqueDomId = 'baseId';
 
 describe('useDomSelectors', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Returns the base id and selector attributes for list and item components with the given id', () => {
     const { result } = renderHook(() => useDomSelectors(id), {
       wrapper: ({ children }) => (

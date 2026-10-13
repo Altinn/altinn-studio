@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { usePublishCodeListMutation } from '../../hooks/mutations/usePublishCodeListMutation';
 import type { PublishCodeListPayload } from '../../types/api/PublishCodeListPayload';
@@ -20,7 +21,7 @@ const payload: PublishCodeListPayload = {
 
 describe('usePublishCodeListMutation', () => {
   it('Calls publishCodeList with correct arguments and payload', async () => {
-    const publishCodeList = jest.fn();
+    const publishCodeList = vi.fn();
     const { result } = renderHookWithProviders(() => usePublishCodeListMutation(org), {
       queries: { publishCodeList },
     });
@@ -32,8 +33,8 @@ describe('usePublishCodeListMutation', () => {
   });
 
   it('Calls the onStart callback with the code list name when mutation starts', async () => {
-    const publishCodeList = jest.fn();
-    const onStart = jest.fn();
+    const publishCodeList = vi.fn();
+    const onStart = vi.fn();
     const { result } = renderHookWithProviders(() => usePublishCodeListMutation(org, { onStart }), {
       queries: { publishCodeList },
     });
@@ -47,10 +48,10 @@ describe('usePublishCodeListMutation', () => {
   });
 
   it('Calls the onFinish callback with the code list name when data has refetched', async () => {
-    const publishCodeList = jest.fn();
-    const onFinish = jest.fn();
+    const publishCodeList = vi.fn();
+    const onFinish = vi.fn();
     const queryClient = createQueryClientMock();
-    const refetchSpy = jest.spyOn(queryClient, 'refetchQueries');
+    const refetchSpy = vi.spyOn(queryClient, 'refetchQueries');
     const { result } = renderHookWithProviders(
       () => usePublishCodeListMutation(org, { onFinish }),
       { queries: { publishCodeList }, queryClient },
