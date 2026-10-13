@@ -133,14 +133,15 @@ spec:
   # a volume of that name is given here. The queue only has to bridge a storage
   # restart or a node upgrade, and is lost with the pod anyway, so it stays on
   # the node's disk, bounded per URL, with the volume's limit, which evicts the
-  # pod, well above both. Measured on kind, each URL is sent about 4 KB/s, so
-  # 256MiB holds most of a day.
+  # pod, above both queues together. vmagent rounds anything up to 512MiB to a
+  # minimum just above it, so the bound is set past that. Measured on kind, each
+  # URL is sent about 4 KB/s, so 1GiB holds about three days.
   remoteWriteSettings:
-    maxDiskUsagePerURL: 256MiB
+    maxDiskUsagePerURL: 1GiB
   volumes:
     - name: persistent-queue-data
       emptyDir:
-        sizeLimit: 1Gi
+        sizeLimit: 3Gi
   # Measured on kind with every target up: about 75MiB resident and 5m of CPU.
   resources:
     requests:
