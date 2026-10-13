@@ -82,8 +82,8 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 ### Key Internal Packages
 
 - **internal/generator** - Core PDF generation using CDP
-  - Manages 1 browser session, 30-second timeout
-  - States: Ready → Generating → CleaningUp → Ready
+  - Runs one browser for the worker's lifetime, with a fresh browser context per request
+  - 30-second timeout
   - Returns 429 (ErrQueueFull) when at capacity
 
 - **internal/browser** - Chrome process management

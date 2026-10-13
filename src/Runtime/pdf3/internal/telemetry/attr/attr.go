@@ -121,16 +121,8 @@ const (
 	QueueCapacity = prefix + "queue.capacity"
 )
 
-// The browser session a request ran in, and the restarts that replace it.
-const (
-	SessionID             = prefix + "session.id"
-	SessionOldID          = prefix + "session.old_id"
-	SessionNewID          = prefix + "session.new_id"
-	SessionDrained        = prefix + "session.drained"
-	SessionDrainTimeoutMs = prefix + "session.drain_timeout_ms"
-	RestartIntervalMs     = prefix + "restart.interval_ms"
-	RestartRecheckInMs    = prefix + "restart.recheck_in_ms"
-)
+// SessionID is the browser session a request ran in.
+const SessionID = prefix + "session.id"
 
 // What the page reported as errors while it served a request: the counts, on its entry span, and
 // each error, in a log record of its own. An error's message is truncated, and its URLs, like the
