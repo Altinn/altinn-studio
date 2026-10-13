@@ -44,6 +44,31 @@ http {
   }
   otel_span_name $span_method;
 
+  # Designer names its responses' routes in X-Altinn-Route, the route template of the endpoint
+  # that handled the request, such as /designer/api/{org}/{app}/validation. Spans for locations
+  # proxied to Designer are named after it, as Designer's own span is. Where it's missing, such
+  # as when Designer is down or no route matched, a location's fallback name, set in
+  # $lb_designer_fallback_route, is used instead. The header comes from Designer only, never
+  # from the client, and its values are a fixed set of route templates.
+  map $upstream_http_x_altinn_route $lb_designer_route {
+    ""      $lb_designer_fallback_route;
+    default $upstream_http_x_altinn_route;
+  }
+
+  # Gitea has no tracing, so spans for /repos/ are named after the shape of the URL. The names
+  # are a fixed set: never put owner or repository names in them.
+  map $uri $lb_repos_route {
+    ~^/repos/[^/]+/[^/]+/info/refs$          "/repos/{owner}/{repo}/info/refs";
+    ~^/repos/[^/]+/[^/]+/git-upload-pack$    "/repos/{owner}/{repo}/git-upload-pack";
+    ~^/repos/[^/]+/[^/]+/git-receive-pack$   "/repos/{owner}/{repo}/git-receive-pack";
+    ~^/repos/[^/]+/[^/]+/info/lfs/           "/repos/{owner}/{repo}/info/lfs/*";
+    ~^/repos/api/v1/                         "/repos/api/v1/*";
+    ~^/repos/assets/                         "/repos/assets/*";
+    ~^/repos/avatars/                        "/repos/avatars/*";
+    ~^/repos/repo-avatars/                   "/repos/repo-avatars/*";
+    default                                  "/repos/*";
+  }
+
   upstream designer {
     server ${DESIGNER_HOST};
   }
@@ -122,16 +147,21 @@ http {
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
+    # Like proxy_set_header, proxy_hide_header is only inherited by a location that declares
+    # none of its own, so a location that declares one must restate this.
+    proxy_hide_header X-Altinn-Route;
 
     include /etc/nginx/error-pages/*.conf;
 
     location = / {
-      otel_span_name "$span_method /";
+      set $lb_designer_fallback_route "/";
+      otel_span_name "$span_method $lb_designer_route";
       proxy_pass http://designer/;
     }
 
     location ~ ^/(?<lb_route_prefix>designer|designerapi|login|logout|Home|ansattporten-signin-oidc|signin-oidc)/ {
-      otel_span_name "$span_method /$lb_route_prefix/*";
+      set $lb_designer_fallback_route "/$lb_route_prefix/*";
+      otel_span_name "$span_method $lb_designer_route";
       proxy_pass http://designer;
     }
 
@@ -148,7 +178,7 @@ http {
     }
 
     location /repos/ {
-      otel_span_name "$span_method /repos/*";
+      otel_span_name "$span_method $lb_repos_route";
       proxy_pass http://repositories/;
       include /etc/nginx/error-pages/repos-error*.inc;
     }
@@ -172,7 +202,8 @@ http {
     include /etc/nginx/extra-locations/*.conf;
 
     location / {
-      otel_span_name "$span_method /*";
+      set $lb_designer_fallback_route "/*";
+      otel_span_name "$span_method $lb_designer_route";
       proxy_pass http://designer;
     }
   }

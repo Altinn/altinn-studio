@@ -275,6 +275,7 @@ void Configure(IConfiguration configuration)
 {
     logger.LogInformation("// Program.cs // Configure // Attempting to configure env");
     app.ExcludeHubConnectionsFromRequestMetrics();
+    app.UseTelemetryRouteHeader();
     // Exceptions that become an expected (4xx) response aren't logged as errors. GlobalExceptionHandler records them
     // on the request's span instead.
     app.UseExceptionHandler(
