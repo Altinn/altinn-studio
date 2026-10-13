@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/log/global"
 
 	"altinn.studio/pdf3/internal/log"
 )
@@ -57,6 +58,13 @@ func flushOTel() {
 	}); ok {
 		if err := mp.ForceFlush(ctx); err != nil {
 			logger.Warn("Failed to flush meter provider", "error", err)
+		}
+	}
+	if lp, ok := global.GetLoggerProvider().(interface {
+		ForceFlush(flushCtx context.Context) error
+	}); ok {
+		if err := lp.ForceFlush(ctx); err != nil {
+			logger.Warn("Failed to flush logger provider", "error", err)
 		}
 	}
 }

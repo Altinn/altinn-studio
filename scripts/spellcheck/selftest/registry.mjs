@@ -15,6 +15,46 @@
 
 const LANG = 'scripts/spellcheck/selftest/fixtures/lang';
 
+// Each selected field contains a defect. Contract fields must not be checked
+// as prose, and the second record exercises Norwegian without Nordic letters.
+export const RECORD_FIXTURE = [
+  {
+    id: 'zzcontractidbad',
+    code: 'zzcontractcodebad',
+    urn: 'urn:altinn:external-role:ccr:zzcontracturnbad',
+    name: 'Deltaker delt ansvar zzrecordnamebad',
+    description: 'Har som mor i konsern zzrecorddescriptionbad',
+    provider: { name: 'Altinn zzrecordproviderbad', code: 'zzprovidercontractbad' },
+  },
+  {
+    id: 'zzcontractsecondidbad',
+    code: 'zzcontractcodebad',
+    name: 'Deltaker delt ansvar',
+    description: 'Har som mor i konsern',
+    provider: { name: 'Altinn' },
+  },
+];
+
+const recordGroup = {
+  name: 'record field fixtures',
+  format: 'esm-records',
+  files: { nb: 'scripts/spellcheck/selftest/registry.mjs' },
+  exportName: 'RECORD_FIXTURE',
+  keyField: 'id',
+  fields: ['name', 'description', 'provider.name'],
+  parity: 'none',
+  english: null,
+  checkKeys: false,
+};
+
+export const RECORD_READER_FAILURES = [
+  [{ ...recordGroup, exportName: 'DRIFT_REGISTRY' }, 'expected exported array'],
+  [{ ...recordGroup, fields: [] }, 'record fields and keyField are required'],
+  [{ ...recordGroup, fields: ['missing'] }, 'expected a string'],
+  [{ ...recordGroup, keyField: 'missing' }, 'expected a nonempty string'],
+  [{ ...recordGroup, keyField: 'code' }, 'duplicate record key'],
+];
+
 export const GROUPS = [
   {
     name: 'self-test fixtures',
@@ -27,6 +67,7 @@ export const GROUPS = [
     parity: 'equal',
     english: 'en-gb',
   },
+  recordGroup,
 ];
 
 export const OUT_OF_SCOPE = [
@@ -36,7 +77,7 @@ export const OUT_OF_SCOPE = [
   },
 ];
 
-export const SCAN_PATTERNS = [`${LANG}/*.json`];
+export const SCAN_PATTERNS = [`${LANG}/*.json`, recordGroup.files.nb];
 
 /**
  * A second registry for the coverage arms the standard fixtures cannot
@@ -74,6 +115,7 @@ export const DRIFT_REGISTRY = {
       parity: 'none',
       english: null,
     },
+    recordGroup,
   ],
   OUT_OF_SCOPE: [{ glob: `${LANG}/never-matches-*.json`, reason: 'stale plant' }],
   SCAN_PATTERNS: [`${LANG}/*.json`],
@@ -273,5 +315,11 @@ export const EXPECTED = {
   // planted.nynorsk_ok re-routes its nb value to the nn pipeline via
   // fixtures/keys.txt — 'eg'/'ikkje' appearing under nb here would mean the
   // re-route silently stopped working.
-  no: ["nb: 'Gateadrese'", "nn: 'Gateadrese'"],
+  no: [
+    "nb: 'Gateadrese'",
+    "nn: 'Gateadrese'",
+    "nb: 'zzrecordnamebad'",
+    "nb: 'zzrecorddescriptionbad'",
+    "nb: 'zzrecordproviderbad'",
+  ],
 };

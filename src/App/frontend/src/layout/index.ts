@@ -28,7 +28,7 @@ export type CompClassMapCategories = {
 export type CompDef<T extends CompTypes = CompTypes> = ComponentConfigs[T]['def'];
 
 export interface IComponentProps {
-  containerDivRef: RefObject<HTMLDivElement | null>;
+  containerDivRef?: RefObject<HTMLDivElement | null>;
 }
 
 export interface PropsFromGenericComponent<T extends CompTypes = CompTypes> extends IComponentProps {

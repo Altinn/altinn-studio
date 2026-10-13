@@ -10,6 +10,7 @@ interface Props {
   schema: JSONSchema7;
   targetPointer: string;
   rootElementPath?: string;
+  preserveNullable?: boolean;
 }
 
 /**
@@ -28,9 +29,9 @@ class SimpleSchemaTraversal {
     this.current = rootElementPath ? this.lookupRef(rootElementPath) : fullSchema;
   }
 
-  public get(item = this.current): JSONSchema7 {
+  public get(item = this.current, preserveNullable = false): JSONSchema7 {
     const resolved = this.resolveRef(item);
-    if (resolved && Array.isArray(resolved.type)) {
+    if (!preserveNullable && resolved && Array.isArray(resolved.type)) {
       const nonNullables = resolved.type.filter((type) => type !== 'null');
       if (nonNullables.length === 1) {
         return {
@@ -39,7 +40,7 @@ class SimpleSchemaTraversal {
         };
       }
     }
-    if (resolved && resolved.oneOf) {
+    if (!preserveNullable && resolved && resolved.oneOf) {
       const nonNullables = resolved.oneOf.filter((type) => type && this.resolveRef(type).type !== 'null');
       if (nonNullables.length === 1) {
         return this.resolveRef(nonNullables[0]);
@@ -56,8 +57,8 @@ class SimpleSchemaTraversal {
     return resolved;
   }
 
-  public getAsResolved(item = this.current): JSONSchema7 {
-    const resolved = structuredClone(this.get(item));
+  public getAsResolved(item = this.current, preserveNullable = false): JSONSchema7 {
+    const resolved = structuredClone(this.get(item, preserveNullable));
 
     const recursiveResolve = (obj: JSONSchema7 | JSONSchema7Definition) => {
       if (typeof obj === 'object' && !Array.isArray(obj)) {
@@ -276,7 +277,7 @@ export function lookupBindingInSchema(props: Props): SchemaLookupResult {
         traverser.gotoProperty(part);
       }
     }
-    return [traverser.getAsResolved(), undefined];
+    return [traverser.getAsResolved(undefined, props.preserveNullable), undefined];
   } catch (error) {
     if (isSchemaLookupError(error)) {
       return [undefined, error];

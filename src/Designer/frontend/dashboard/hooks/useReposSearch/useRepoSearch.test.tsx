@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { Direction, useReposSearch } from './useRepoSearch';
 import { waitFor } from '@testing-library/react';
 import { renderHookWithProviders } from '../../testing/mocks';

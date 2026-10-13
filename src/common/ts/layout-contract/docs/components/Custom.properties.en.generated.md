@@ -1,5 +1,7 @@
 The component also supports the [common component properties](../common-properties/).
 
+Additional property names are allowed. Value type: any JSON value, including strings, numbers, booleans, objects, arrays and null.
+
 <details class="card adocs-expand adocs-expand-small component-property" id="type">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
@@ -50,32 +52,6 @@ The component also supports the [common component properties](../common-properti
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">List of validation types to show</div></div>
 </details>
 
-<details class="card adocs-expand adocs-expand-small component-property" id="renderassummary">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="renderAsSummary">renderAsSummary</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Optional</span>
-      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolean value indicating if the component should be rendered as a summary. Defaults to false.</div></div>
-</details>
-
-<details class="card adocs-expand adocs-expand-small component-property" id="forceshowinsummary">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="forceShowInSummary">forceShowInSummary</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Optional</span>
-      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.</div></div>
-</details>
-
 <details class="component-property-group" id="textresourcebindings">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
@@ -86,7 +62,7 @@ The component also supports the [common component properties](../common-properti
     </span>
   </summary>
   <div class="component-property-group-content">
-    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Connects component texts to text resources or expressions.</div></div>
+    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Connects component texts to text resources or expressions. Additional property names are allowed. Value type: string | expression&lt;string&gt;.</div></div>
     <div class="component-property-list">
       <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.tabletitle">
         <summary class="component-property-summary">
@@ -164,6 +140,32 @@ The component also supports the [common component properties](../common-properti
   </div>
 </details>
 
+<details class="card adocs-expand adocs-expand-small component-property" id="renderassummary">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="renderAsSummary">renderAsSummary</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolean value indicating if the component should be rendered as a summary. Defaults to false.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="forceshowinsummary">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="forceShowInSummary">forceShowInSummary</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.</div></div>
+</details>
+
 <details class="card adocs-expand adocs-expand-small component-property" id="removewhenhidden">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
@@ -186,7 +188,7 @@ The component also supports the [common component properties](../common-properti
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Connects component values to fields in the data model.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Connects component values to fields in the data model. Additional property names are allowed. Value type: data model binding.</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="tagname">

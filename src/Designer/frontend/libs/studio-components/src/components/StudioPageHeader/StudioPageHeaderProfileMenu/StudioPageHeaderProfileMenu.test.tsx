@@ -66,7 +66,6 @@ describe('StudioProfileMenu', () => {
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
     consoleSpy.mockRestore();
   });
 

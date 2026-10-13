@@ -153,7 +153,8 @@ public class StatelessDataController : ControllerBase
             org,
             app,
             Convert.ToInt32(owner.PartyId, CultureInfo.InvariantCulture),
-            "read"
+            "read",
+            cancellationToken
         );
 
         if (!enforcementResult.Authorized)
@@ -282,7 +283,8 @@ public class StatelessDataController : ControllerBase
             org,
             app,
             Convert.ToInt32(owner.PartyId, CultureInfo.InvariantCulture),
-            "read"
+            "read",
+            cancellationToken
         );
 
         if (!enforcementResult.Authorized)
@@ -418,7 +420,13 @@ public class StatelessDataController : ControllerBase
         }
     }
 
-    private async Task<EnforcementResult> AuthorizeAction(string org, string app, int partyId, string action)
+    private async Task<EnforcementResult> AuthorizeAction(
+        string org,
+        string app,
+        int partyId,
+        string action,
+        CancellationToken cancellationToken
+    )
     {
         EnforcementResult enforcementResult = new EnforcementResult();
         XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(
@@ -429,7 +437,7 @@ public class StatelessDataController : ControllerBase
             partyId,
             null
         );
-        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request, cancellationToken);
 
         if (response?.Response == null)
         {

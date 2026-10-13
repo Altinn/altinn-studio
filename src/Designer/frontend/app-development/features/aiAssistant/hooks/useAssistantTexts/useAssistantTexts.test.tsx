@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useAssistantTexts } from './useAssistantTexts';
 import { textMock } from '@studio/testing/mocks/i18nMock';

@@ -1,3 +1,4 @@
+import { describe, expect, it, test, vi } from 'vitest';
 import type { PublishedOptionListSelectorProps } from './PublishedOptionListSelector';
 import {
   createPublishedCodeListReferenceString,
@@ -32,7 +33,7 @@ const component: FormItem<SelectionComponentType> = {
 const openFormButtonText = 'Open';
 const defaultProps: PublishedOptionListSelectorProps = {
   component,
-  handleComponentChange: jest.fn(),
+  handleComponentChange: vi.fn(),
   orgName,
   triggerProps: { children: openFormButtonText },
 };
@@ -126,7 +127,7 @@ describe('PublishedOptionListSelector', () => {
 
   it('Calls handleComponentChange with the updated component when the user fills out the fields with the latest version and saves the form', async () => {
     const user = setupUser();
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderPublishedOptionListSelectorWithData({ handleComponentChange });
 
     await user.openForm();
@@ -149,7 +150,7 @@ describe('PublishedOptionListSelector', () => {
   it('Calls handleComponentChange with the updated component when the user fills out the fields with a fixed version and saves the form', async () => {
     const user = setupUser();
     const version = '2';
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderPublishedOptionListSelectorWithData({ handleComponentChange });
 
     await user.openForm();
@@ -215,7 +216,7 @@ describe('PublishedOptionListSelector', () => {
   describe('When the user tries to save invalid data …', () => {
     test('… and no name is chosen, the name input field is invalidated and the change callback is not fired', async () => {
       const user = setupUser();
-      const handleComponentChange = jest.fn();
+      const handleComponentChange = vi.fn();
       renderPublishedOptionListSelectorWithData({ handleComponentChange });
 
       await user.openForm();
@@ -229,7 +230,7 @@ describe('PublishedOptionListSelector', () => {
 
     test('… and fixed version is chosen without a number, the version number field is invalidated and the change callback is not fired', async () => {
       const user = setupUser();
-      const handleComponentChange = jest.fn();
+      const handleComponentChange = vi.fn();
       renderPublishedOptionListSelectorWithData({ handleComponentChange });
 
       await user.openForm();
@@ -244,7 +245,7 @@ describe('PublishedOptionListSelector', () => {
 
     test('… and fixed version is chosen with an inexistent version number, the version number field is invalidated and the change callback is not fired', async () => {
       const user = setupUser();
-      const handleComponentChange = jest.fn();
+      const handleComponentChange = vi.fn();
       renderPublishedOptionListSelectorWithData({ handleComponentChange });
 
       await user.openForm();
@@ -260,7 +261,7 @@ describe('PublishedOptionListSelector', () => {
 
   it('Displays an error message instead of a form when the query for published code lists fails', async () => {
     const user = setupUser();
-    const getPublishedResources = jest.fn().mockRejectedValue(new Error());
+    const getPublishedResources = vi.fn().mockRejectedValue(new Error());
     renderPublishedOptionListSelectorWithFeatureFlag({}, { queries: { getPublishedResources } });
 
     await user.openForm();

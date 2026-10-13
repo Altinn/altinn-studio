@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 
 import { CustomWebComponent } from 'src/layout/Custom/CustomWebComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -41,13 +41,42 @@ describe('CustomWebComponent', () => {
     expect(element.getAttribute('text')).toEqual('Title');
   });
 
+  it('keeps live bindings when configuration contains React-reserved properties', async () => {
+    const { formDataMethods } = await render({
+      component: {
+        tagName: 'test-component',
+        ref: 'widget',
+        key: 'widget-key',
+        children: 'widget-children',
+        dangerouslySetInnerHTML: { __html: '<span>widget-html</span>' },
+        suppressHydrationWarning: true,
+        suppressContentEditableWarning: true,
+        widgetOption: 'forwarded',
+      },
+    });
+    const element = screen.getByTestId('test-component');
+    expect(element).toHaveAttribute('widgetOption', 'forwarded');
+    expect(element).toBeEmptyDOMElement();
+    expect(Reflect.get(element, 'dataModelBindings')).toHaveProperty('simpleBinding');
+    expect(Reflect.get(element, 'formData')).toHaveProperty('simpleBinding');
+
+    fireEvent(element, new CustomEvent('dataChanged', { detail: { value: 'Updated by widget' } }));
+
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith(
+      expect.objectContaining({ newValue: 'Updated by widget' }),
+    );
+    await waitFor(() => {
+      expect(Reflect.get(element, 'formData')).toEqual({ simpleBinding: 'Updated by widget' });
+    });
+  });
+
   it('should render nothing if the tag name is missing', async () => {
     await render({ component: { tagName: undefined } });
     const element = screen.queryByTestId('test-component');
     expect(element).not.toBeInTheDocument();
   });
 
-  const render = async ({ component }: Partial<RenderGenericComponentTestProps<'Custom'>> = {}) => {
+  const render = async ({ component }: Partial<RenderGenericComponentTestProps<'Custom'>> = {}) =>
     await renderGenericComponentTest({
       type: 'Custom',
       renderer: (props) => <CustomWebComponent {...props} />,
@@ -69,5 +98,4 @@ describe('CustomWebComponent', () => {
         ...({ 'data-CustomAttributeWithReact': <span>Hello world</span> } as any),
       },
     });
-  };
 });

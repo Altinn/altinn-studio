@@ -5,6 +5,15 @@ resources:
 - bases/resources.altinn.studio_maskinportenclients.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
+# Flux must never delete a CRD. Deleting a CRD deletes every custom resource of
+# that kind in the cluster, and for MaskinportenClient the operator's finalizer
+# then deletes each app's client in Maskinporten. With pruning disabled, a CRD
+# that drops out of the applied manifests stays in the cluster until it is
+# deleted by hand. The annotation is set here rather than in bases/ because
+# controller-gen regenerates those files.
+commonAnnotations:
+  kustomize.toolkit.fluxcd.io/prune: disabled
+
 patches: []
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix.
 # patches here are for enabling the conversion webhook for each CRD

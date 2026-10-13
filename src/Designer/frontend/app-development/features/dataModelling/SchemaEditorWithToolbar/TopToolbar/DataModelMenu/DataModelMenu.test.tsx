@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { QueryClient } from '@tanstack/react-query';
@@ -28,18 +29,18 @@ const deleteConfirmText = textMock('schema_editor.delete_model_confirm', {
   schemaName: selectedOption.label,
 });
 
-jest.mock('bpmn-moddle', () =>
-  jest.fn(() => ({
-    fromXML: jest.fn().mockResolvedValue({
-      rootElement: getDataTypesToSignMock(['dataModel1', 'dataModel2', 'dataModel3']),
-    }),
-    toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
-  })),
-);
+vi.mock('bpmn-moddle', () => ({
+  default: vi.fn(function () {
+    return {
+      fromXML: vi.fn().mockResolvedValue({
+        rootElement: getDataTypesToSignMock(['dataModel1', 'dataModel2', 'dataModel3']),
+      }),
+      toXML: vi.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
+    };
+  }),
+}));
 
 describe('DataModelMenu', () => {
-  afterEach(jest.clearAllMocks);
-
   it('renders nothing when no data model is selected', () => {
     renderDataModelMenu({ selectedOption: null });
     expect(screen.queryByRole('button', { name: menuText })).not.toBeInTheDocument();
@@ -65,7 +66,7 @@ describe('DataModelMenu', () => {
     renderDataModelMenu(
       {},
       {
-        replaceDataModelXsd: jest
+        replaceDataModelXsd: vi
           .fn()
           .mockImplementation(() => Promise.reject(createApiErrorMock(400))),
       },
@@ -80,7 +81,7 @@ describe('DataModelMenu', () => {
   });
 
   it('asks the user to confirm before deleting the data model', async () => {
-    window.confirm = jest.fn();
+    window.confirm = vi.fn();
     renderDataModelMenu();
     await openMenu();
     await user.click(getDeleteButton());
@@ -89,7 +90,7 @@ describe('DataModelMenu', () => {
   });
 
   it('does not delete the data model when the user cancels the confirmation', async () => {
-    window.confirm = jest.fn().mockReturnValue(false);
+    window.confirm = vi.fn().mockReturnValue(false);
     renderDataModelMenu();
     await openMenu();
     await user.click(getDeleteButton());
@@ -98,7 +99,7 @@ describe('DataModelMenu', () => {
   });
 
   it('deletes the data model and removes its data type from signing tasks when confirmed', async () => {
-    window.confirm = jest.fn().mockReturnValue(true);
+    window.confirm = vi.fn().mockReturnValue(true);
     renderDataModelMenu();
     await openMenu();
     await user.click(getDeleteButton());

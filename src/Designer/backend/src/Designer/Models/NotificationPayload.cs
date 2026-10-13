@@ -6,5 +6,8 @@ public sealed record NotificationPayload(
     string Id,
     string Title,
     IReadOnlyList<(string Label, string Value)> Fields,
-    IReadOnlyList<(string Url, string Label)> Links
+    IReadOnlyList<(string Url, string Label)> Links,
+    string Body = "",
+    string Emoji = "",
+    NotificationTable? Table = null
 );

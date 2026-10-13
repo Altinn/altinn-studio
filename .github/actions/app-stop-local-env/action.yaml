@@ -44,7 +44,7 @@ runs:
 
           if [[ -f "$frontend_pid_file" ]]; then
             frontend_pid="$(<"$frontend_pid_file")"
-            run_diagnostic ps -o pid,ppid,nlwp,rss,stat,lstart,cmd -p "$frontend_pid"
+            run_diagnostic ps -o pid,ppid,nlwp,rss,stat,lstart,comm -p "$frontend_pid"
             run_diagnostic ls -l "/proc/${frontend_pid}/fd"
             run_diagnostic cat "/proc/${frontend_pid}/limits"
           else
@@ -60,8 +60,9 @@ runs:
           run_diagnostic docker stats --no-stream
           run_diagnostic df -h
           run_diagnostic free -h
-          run_diagnostic ps -eLf
-          run_diagnostic sh -c 'printf "Runner thread count: "; ps -eLf --no-headers | wc -l'
+          run_diagnostic ps -eo pid,ppid,nlwp,pcpu,pmem,rss,stat,etimes,comm --sort=-pcpu
+          run_diagnostic ps -eLo pid,ppid,lwp,psr,pcpu,stat,time,comm --sort=-pcpu
+          run_diagnostic sh -c 'printf "Runner thread count: "; ps -eLo lwp= | wc -l'
           run_diagnostic sh -c 'printf "Open system file handles: "; cat /proc/sys/fs/file-nr'
           run_diagnostic sh -c 'printf "PID limit: "; cat /proc/sys/kernel/pid_max'
 

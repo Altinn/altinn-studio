@@ -60,7 +60,12 @@ public sealed class InstancesControllerPostTests
             .ReturnsAsync((new Application { Id = "ttd/presentation-texts", Org = "ttd" }, null!));
         var authorization = new Mock<IAuthorization>();
         authorization
-            .Setup(service => service.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup(service =>
+                service.GetDecisionForRequest(
+                    It.IsAny<XacmlJsonRequestRoot>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(
                 new XacmlJsonResponse { Response = [new XacmlJsonResult { Decision = "Permit" }] }
             );

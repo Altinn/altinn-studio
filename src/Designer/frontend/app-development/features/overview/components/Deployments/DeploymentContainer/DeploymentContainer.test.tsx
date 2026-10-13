@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { DeploymentContainer } from './DeploymentContainer';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
@@ -23,7 +24,7 @@ describe('DeploymentContainer', () => {
 
   it('shows an error message if an error occurs while loading data', async () => {
     render({
-      getOrgList: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
+      getOrgList: vi.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
     });
     await waitForElementToBeRemoved(() =>
       screen.queryByText(textMock('overview.deployments_loading')),
@@ -35,7 +36,7 @@ describe('DeploymentContainer', () => {
   it('renders page', async () => {
     const envName = 'tt02';
     render({
-      getEnvironments: jest.fn().mockImplementation(() =>
+      getEnvironments: vi.fn().mockImplementation(() =>
         Promise.resolve([
           {
             ...environment,
@@ -43,7 +44,7 @@ describe('DeploymentContainer', () => {
           },
         ]),
       ),
-      getOrgList: jest.fn().mockImplementation(() =>
+      getOrgList: vi.fn().mockImplementation(() =>
         Promise.resolve({
           orgs: {
             [org]: {
@@ -52,7 +53,7 @@ describe('DeploymentContainer', () => {
           },
         }),
       ),
-      getRepoMetadata: jest.fn().mockImplementation(() =>
+      getRepoMetadata: vi.fn().mockImplementation(() =>
         Promise.resolve({
           ...repository,
           owner: {

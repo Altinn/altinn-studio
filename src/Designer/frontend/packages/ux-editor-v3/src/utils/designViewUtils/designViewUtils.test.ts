@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { getPageNameErrorKey, pageNameExists } from './designViewUtils';
 
 const mockNewNameCandidateCorrect: string = 'newPage';

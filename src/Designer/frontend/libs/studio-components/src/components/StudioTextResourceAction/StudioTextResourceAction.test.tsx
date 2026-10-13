@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { StudioTextResourceActionProps } from './StudioTextResourceAction';
@@ -15,8 +15,6 @@ describe('StudioTextResourceAction', () => {
     screen.getByRole('combobox', { name: RegExp('^' + texts.pickerLabel) });
   const getOption = (name: string | RegExp): HTMLElement =>
     screen.getByRole('option', { name, hidden: true });
-
-  afterEach(() => vi.clearAllMocks());
 
   it('uses selected text resource id', async () => {
     const user = userEvent.setup();

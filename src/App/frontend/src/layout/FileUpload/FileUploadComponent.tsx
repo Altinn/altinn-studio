@@ -11,6 +11,7 @@ import {
   useIsMobileOrTablet,
 } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { CloudUpIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
@@ -78,9 +79,10 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
   const isSimpleModeWithNoAttachments = config.displayMode === 'simple' && attachments.length === 0;
 
   const shouldShowFileUpload =
-    canUploadMoreAttachments && (isComplexMode || isSimpleModeWithNoAttachments || showFileUpload);
+    !readOnly && canUploadMoreAttachments && (isComplexMode || isSimpleModeWithNoAttachments || showFileUpload);
 
   const shouldShowAddButton =
+    !readOnly &&
     config.displayMode === 'simple' &&
     !showFileUpload &&
     attachments.length < maxNumberOfAttachments &&
@@ -92,6 +94,10 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
   const ariaDescribedBy = [descriptionId, dragLabelId, formatLabelId].filter(Boolean).join(' ');
 
   const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+    if (readOnly) {
+      return;
+    }
+
     const totalAttachments = acceptedFiles.length + rejectedFiles.length + attachments.length;
 
     if (totalAttachments > maxNumberOfAttachments) {
@@ -139,6 +145,11 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
           baseComponentId={baseComponentId}
           renderLabelAs='plainLabel'
         />
+        {readOnly && (
+          <Paragraph data-size='sm'>
+            <Lang id='form_filler.file_uploader_read_only' />
+          </Paragraph>
+        )}
         {shouldShowFileUpload && (
           <>
             <Dropzone
@@ -187,7 +198,7 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
 
             <AttachmentsCounter
               numAttachments={attachments.length}
-              maxNumAttachments={maxNumberOfAttachments}
+              maxNumAttachments={readOnly ? undefined : maxNumberOfAttachments}
             />
             <ComponentValidations
               validations={validations}
@@ -209,7 +220,7 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
           <>
             <AttachmentsCounter
               numAttachments={attachments.length}
-              maxNumAttachments={maxNumberOfAttachments}
+              maxNumAttachments={readOnly ? undefined : maxNumberOfAttachments}
             />
             <ComponentValidations
               validations={validations}
@@ -237,7 +248,7 @@ function AttachmentsCounter({
   maxNumAttachments,
 }: {
   numAttachments: number;
-  maxNumAttachments: number;
+  maxNumAttachments?: number;
 }) {
   return (
     <small style={{ fontWeight: 'normal' }}>

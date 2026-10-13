@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { StudioTreeViewItemProps } from './StudioTreeViewItem';
 import type { ByRoleOptions } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
@@ -38,8 +38,6 @@ const renderItem = (
   );
 
 describe('StudioTreeViewItem', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders a treeitem component with the given label', () => {
     renderItem({ label });
     expect(getTreeItem({ name: label })).toBeInTheDocument();

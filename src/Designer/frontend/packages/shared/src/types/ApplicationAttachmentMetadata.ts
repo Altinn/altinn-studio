@@ -5,4 +5,5 @@ export interface ApplicationAttachmentMetadata {
   minCount: number;
   maxSize: number;
   fileType?: string;
+  enableFileScan?: boolean;
 }

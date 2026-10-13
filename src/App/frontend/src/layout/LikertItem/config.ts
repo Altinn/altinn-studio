@@ -25,6 +25,13 @@ export const Config = asOptionsComponent(
   }),
   { supportsPreselection: true },
 )
+  .makeSummarizable()
+  .addSummaryOverrides()
+  .addProperty(CG.common('renderAsSummary'))
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
+  .addProperty(CG.common('required'))
+  .addProperty(CG.common('readOnly'))
   .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple'))
   .addTextResource(
     new CG.trb({

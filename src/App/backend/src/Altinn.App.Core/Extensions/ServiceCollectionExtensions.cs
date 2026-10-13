@@ -20,7 +20,6 @@ using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Payment.Processors.FakePaymentProcessor;
 using Altinn.App.Core.Features.Payment.Processors.Nets;
 using Altinn.App.Core.Features.Payment.Services;
-using Altinn.App.Core.Features.Pdf;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Redirect;
 using Altinn.App.Core.Features.Signing.Services;
@@ -287,9 +286,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddHttpClient<IPdfGeneratorClient, PdfGeneratorClient>();
         services.TryAddTransient<IPdfService, PdfService>();
-#pragma warning disable CS0618 // Type or member is obsolete
-        services.TryAddTransient<IPdfFormatter, NullPdfFormatter>();
-#pragma warning restore CS0618 // Type or member is obsolete
     }
 
     private static void AddPaymentServices(

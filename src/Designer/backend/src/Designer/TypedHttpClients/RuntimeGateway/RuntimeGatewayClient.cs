@@ -96,6 +96,22 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     }
 
     /// <inheritdoc />
+    public async Task<ReportMetrics> GetReportMetricsAsync(
+        string org,
+        AltinnEnvironment environment,
+        int range,
+        CancellationToken cancellationToken
+    )
+    {
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        string requestUrl =
+            $"{baseUrl}/runtime/gateway/api/v1/metrics/report?range={range}&originEnvironment={Uri.EscapeDataString(_generalSettings.OriginEnvironment)}";
+
+        return await client.GetFromJsonAsync<ReportMetrics>(requestUrl, cancellationToken) ?? new ReportMetrics();
+    }
+
+    /// <inheritdoc />
     public async Task<IEnumerable<ErrorMetric>> GetErrorMetricsAsync(
         string org,
         AltinnEnvironment environment,

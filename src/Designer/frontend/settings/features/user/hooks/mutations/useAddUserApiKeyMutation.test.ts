@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -15,8 +15,6 @@ const renderUseAddUserApiKeyMutation = (queryClient = createQueryClientMock()) =
   renderHookWithProviders(() => useAddUserApiKeyMutation(), { queryClient });
 
 describe('useAddUserApiKeyMutation', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('calls addUserApiKey with the correct payload', async () => {
     const { result } = renderUseAddUserApiKeyMutation();
     await result.current.mutateAsync(payload);

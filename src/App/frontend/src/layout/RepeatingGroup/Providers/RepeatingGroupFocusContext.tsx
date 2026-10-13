@@ -8,7 +8,6 @@ import { useFocusComponentRequest } from 'src/layout/focusComponent';
 import {
   RepGroupContext,
   useRepeatingGroupComponentId,
-  useRepeatingGroupRowState,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { getBaseComponentId, splitDashedKey } from 'src/utils/splitDashedKey';
@@ -175,10 +174,11 @@ export function getRowToFocusAfterDeletion(visibleRows: BaseRow[], deletedUuid: 
 export function useDeleteRowAndFocus() {
   const deleteRow = RepGroupContext.useDeleteRow();
   const { triggerFocus, focusAddButton } = useRepeatingGroupsFocusContext();
-  const { visibleRows } = useRepeatingGroupRowState();
+  const getVisibleRows = RepGroupContext.useGetVisibleRows();
 
   return async (row: BaseRow): Promise<boolean> => {
-    const focusTarget = getRowToFocusAfterDeletion(visibleRows, row.uuid);
+    // Read once when deleting. Each row's button otherwise filters the whole group on mount.
+    const focusTarget = getRowToFocusAfterDeletion(getVisibleRows(), row.uuid);
     const successful = await deleteRow(row);
     if (successful) {
       // Wait for the row to be removed and the remaining rows to re-render before moving focus
