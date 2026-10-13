@@ -42,8 +42,8 @@ internal static class WorkflowsEndpoints
             .WithSummary("List workflows for an app.")
             .WithDescription(
                 "Cursor-paginated workflow list. Optional filters: collectionKey, status (repeatable), "
-                    + "label (repeatable, key:value), isHead; includeState=false leaves the app's state payload off. "
-                    + "Engine response is passed through unmodified."
+                    + "label (repeatable, key:value), isHead. Never includes the app's state: includeState=false "
+                    + "is accepted, includeState=true is rejected. Engine response is passed through unmodified."
             );
 
         workflowsApi
@@ -51,8 +51,8 @@ internal static class WorkflowsEndpoints
             .WithName("GetWorkflow")
             .WithSummary("Get a workflow by id.")
             .WithDescription(
-                "Single workflow with all steps; includeState=false leaves the app's state payload off. "
-                    + "Engine response is passed through unmodified."
+                "Single workflow with all steps. Never includes the app's state: includeState=false is "
+                    + "accepted, includeState=true is rejected. Engine response is passed through unmodified."
             );
 
         workflowsApi

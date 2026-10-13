@@ -149,34 +149,57 @@ public sealed class WorkflowPassthroughTests
         );
     }
 
-    [Fact]
-    public async Task GetWorkflow_ForwardsById()
+    [Theory]
+    // The engine includes the app's state unless told not to, so a read must ask for it to be left
+    // off whether or not the caller said so.
+    [InlineData("")]
+    [InlineData("?includeState=false")]
+    public async Task GetWorkflow_ForwardsById_AlwaysWithoutState(string query)
     {
         var ct = TestContext.Current.CancellationToken;
         using var client = CreateAuthorizedClient();
         var workflowId = Guid.NewGuid();
 
-        var response = await client.GetAsync(new Uri($"{GatewayPrefix}/workflows/{workflowId}", UriKind.Relative), ct);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var upstream = Assert.Single(_factory.EngineHandler.Requests);
-        Assert.Equal($"{UpstreamPrefix}/workflows/{workflowId}", upstream.Uri.AbsoluteUri);
-    }
-
-    [Fact]
-    public async Task GetWorkflow_ForwardsIncludeState()
-    {
-        var ct = TestContext.Current.CancellationToken;
-        using var client = CreateAuthorizedClient();
-        var workflowId = Guid.NewGuid();
-
-        await client.GetAsync(
-            new Uri($"{GatewayPrefix}/workflows/{workflowId}?includeState=false", UriKind.Relative),
+        var response = await client.GetAsync(
+            new Uri($"{GatewayPrefix}/workflows/{workflowId}{query}", UriKind.Relative),
             ct
         );
 
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var upstream = Assert.Single(_factory.EngineHandler.Requests);
         Assert.Equal($"{UpstreamPrefix}/workflows/{workflowId}?includeState=false", upstream.Uri.AbsoluteUri);
+    }
+
+    [Fact]
+    public async Task ListWorkflows_AlwaysAsksForNoState()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var client = CreateAuthorizedClient();
+
+        await client.GetAsync(new Uri($"{GatewayPrefix}/workflows?isHead=true", UriKind.Relative), ct);
+
+        var upstream = Assert.Single(_factory.EngineHandler.Requests);
+        Assert.Equal($"{UpstreamPrefix}/workflows?isHead=true&includeState=false", upstream.Uri.AbsoluteUri);
+    }
+
+    [Theory]
+    [InlineData("/workflows?includeState=true")]
+    [InlineData("/workflows?includeState=True")]
+    [InlineData("/workflows/00000000-0000-0000-0000-000000000001?includeState=true")]
+    public async Task WorkflowReads_RejectIncludeStateTrue_WithoutContactingEngine(string pathAndQuery)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var client = CreateAuthorizedClient();
+
+        var response = await client.GetAsync(new Uri(GatewayPrefix + pathAndQuery, UriKind.Relative), ct);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains(
+            $"\"type\":\"{GatewayProblem.IncludeStateNotAllowedType}\"",
+            await response.Content.ReadAsStringAsync(ct),
+            StringComparison.Ordinal
+        );
+        Assert.Empty(_factory.EngineHandler.Requests);
     }
 
     [Fact]
