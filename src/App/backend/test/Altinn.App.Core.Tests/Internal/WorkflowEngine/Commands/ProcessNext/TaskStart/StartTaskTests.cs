@@ -122,6 +122,12 @@ public class StartTaskTests
     {
         public string Type => "data";
 
+        public Task Start(ProcessTaskContext context)
+        {
+            ran.Add($"unstaged:{context.StepId}");
+            return Task.CompletedTask;
+        }
+
         public ProcessTaskPipeline DefineStart(ProcessTaskPipelineBuilder pipeline) =>
             pipeline
                 .Stage(context =>
@@ -151,8 +157,10 @@ public class StartTaskTests
     }
 
     [Fact]
-    public async Task Execute_WithoutStageIndex_RunsEveryStageInOrder()
+    public async Task Execute_WithoutStageIndexOnAStagedPipeline_RunsStartAsTheVersionThatEnqueuedItDid()
     {
+        // Only a version from before the task composed stages plans a step without a stage index for this
+        // pipeline. Its stages cannot run in one step, since none of them could see what the one before staged.
         var ran = new List<string>();
         var command = CreateCommand(new StagedTask(ran));
         var context = CreateContext(CreateInstance());
@@ -160,7 +168,7 @@ public class StartTaskTests
         var result = await command.Execute(context);
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.Equal([$"first:{context.Payload.StepId}", $"second:{context.Payload.StepId}"], ran);
+        Assert.Equal([$"unstaged:{context.Payload.StepId}"], ran);
     }
 
     [Fact]

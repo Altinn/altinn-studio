@@ -61,9 +61,11 @@ public interface IProcessTask
     /// </summary>
     /// <remarks>
     /// Override to split the work into stages that are saved and retried one at a time, the way
-    /// <see cref="IPipelineServiceTask.Define"/> does for service tasks. An override replaces <see cref="Start"/>
-    /// unless it stages it. Called when a transition is enqueued and again when each stage runs, so the
-    /// definition must be cheap, free of side effects, and the same for every task of this type.
+    /// <see cref="IPipelineServiceTask.Define"/> does for service tasks. Called when a transition is enqueued and
+    /// again when each stage runs, so the definition must be cheap, free of side effects, and the same for every
+    /// task of this type. An override with several stages replaces <see cref="Start"/>, except for a transition
+    /// enqueued before the override existed: that one still runs <see cref="Start"/>, so keep it working until no
+    /// such transition can be in flight.
     /// </remarks>
     /// <param name="pipeline">The builder to compose the stages with.</param>
     ProcessTaskPipeline DefineStart(ProcessTaskPipelineBuilder pipeline) => pipeline.Stage(Start).Build();

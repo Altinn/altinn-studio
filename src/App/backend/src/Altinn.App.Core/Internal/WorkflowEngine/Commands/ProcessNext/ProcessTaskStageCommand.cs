@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Features;
@@ -33,9 +34,10 @@ internal static class ProcessTaskPipelineExtensions
 
 /// <summary>
 /// Runs a process task's lifecycle pipeline for one phase against the instance's current task. A step with a
-/// <see cref="ProcessTaskStagePayload"/> runs the one stage it names; a step without one runs every stage in
-/// order. The factory plans a payload-less step for a single-stage pipeline, and a workflow enqueued before
-/// stages had steps of their own carries one too.
+/// <see cref="ProcessTaskStagePayload"/> runs the one stage it names. A step without one runs the pipeline's only
+/// stage, or, for a pipeline with several, the task's <c>Start</c>, <c>End</c> or <c>Abandon</c>: such a step was
+/// enqueued by a version that called those directly, and its stages could not see each other's unsaved data if
+/// they ran in one step.
 /// </summary>
 internal abstract class ProcessTaskStageCommand : IWorkflowEngineCommand
 {
@@ -82,10 +84,9 @@ internal abstract class ProcessTaskStageCommand : IWorkflowEngineCommand
 
             if (payload is null)
             {
-                foreach (ProcessTaskStage stage in stages)
-                {
-                    await stage.Work(taskContext);
-                }
+                // The factory plans a payload-less step only for a single-stage pipeline. One for a pipeline with
+                // several stages was planned before the task composed stages, so it runs what that version ran.
+                await (stages.Count == 1 ? stages[0].Work(taskContext) : RunUnstaged(processTask, taskContext));
                 return new SuccessfulProcessEngineCommandResult();
             }
 
@@ -110,6 +111,15 @@ internal abstract class ProcessTaskStageCommand : IWorkflowEngineCommand
             return FailedProcessEngineCommandResult.Retryable(ex);
         }
     }
+
+    private Task RunUnstaged(IProcessTask processTask, ProcessTaskContext context) =>
+        Phase switch
+        {
+            ProcessTaskPhase.Start => processTask.Start(context),
+            ProcessTaskPhase.End => processTask.End(context),
+            ProcessTaskPhase.Abandon => processTask.Abandon(context),
+            _ => throw new UnreachableException($"Unknown process task phase {Phase}"),
+        };
 
     private static ProcessTaskStagePayload? ReadPayload(string? json) =>
         CommandPayloadSerializer.Deserialize<CommandRequestPayload>(json) switch
