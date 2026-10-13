@@ -13,6 +13,13 @@ import (
 // datasource settings in grafana-datasources.yaml were verified with.
 const grafanaLogsPluginVersion = "0.32.0"
 
+// The collector receives OTLP over gRPC and HTTP on the standard ports, as the router does in
+// Altinn's environments. The topology's otel URL is the gRPC one.
+const (
+	otelCollectorGRPCPort = "4317"
+	otelCollectorHTTPPort = "4318"
+)
+
 func registerMonitoringComponents(manifest *Manifest, opts *Options) {
 	enabled := opts.IncludeMonitoring
 	manifest.addContainer(
@@ -102,7 +109,10 @@ func monitoringOTelCollectorContainer(ctx *Options) *ContainerSpec {
 	otel := ctx.Topology.MustComponent(envtopology.ComponentOTel)
 	spec := newContainerSpec(
 		ContainerOtelCollector,
-		[]types.PortMapping{newPort("4317", "4317")},
+		[]types.PortMapping{
+			newPort(otelCollectorGRPCPort, otelCollectorGRPCPort),
+			newPort(otelCollectorHTTPPort, otelCollectorHTTPPort),
+		},
 		nil,
 		[]types.VolumeMount{
 			newVolume(filepath.Join(ctx.Paths.InfraDir, "otel-collector.yaml"), "/etc/otel-collector.yaml"),

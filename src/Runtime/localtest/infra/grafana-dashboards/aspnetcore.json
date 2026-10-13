@@ -818,7 +818,7 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
+        "w": 12,
         "x": 12,
         "y": 13
       },
@@ -852,73 +852,6 @@
         }
       ],
       "title": "Requests Secured",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "altinn-studio-metrics"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "purple",
-            "mode": "fixed"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 18,
-        "y": 13
-      },
-      "id": 42,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "max"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name"
-      },
-      "pluginVersion": "",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "altinn-studio-metrics"
-          },
-          "editorMode": "code",
-          "expr": "sum by (method_route) (\r\n    label_replace(max_over_time({\"http.server.request.duration_count\", \"service.name\"=\"$service\", \"service.instance.id\"=\"$instance\"}[$__rate_interval]), \"method_route\", \"http/$1\", \"network.protocol.version\", \"(.*)\")\r\n  )",
-          "legendFormat": "{{protocol}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Requests HTTP Protocol",
       "type": "stat"
     },
     {
