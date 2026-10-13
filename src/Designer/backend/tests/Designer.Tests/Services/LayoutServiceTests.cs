@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -131,6 +132,39 @@ public class LayoutServiceTests
                 i.Method.Name == nameof(IPublisher.Publish) && i.Arguments[0] is LayoutPageDeletedEvent
             )
         );
+    }
+
+    [Fact]
+    public async Task DeletingPageGroup_WhenAPageHasNoLayoutFile_PublishesDeletedEventForEveryPage()
+    {
+        const string Repo = "app-with-groups-and-task-navigation";
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, Mock<IPublisher> mediatr) =
+            await PrepareTestForRepo(Repo);
+        PagesDto pagesDto = PagesDto.From(await layoutService.GetLayoutSettings(editingContext, "form"));
+        List<string> deletedPageIds = [.. pagesDto.Groups[0].Pages.Select(page => page.Id)];
+        File.Delete(
+            Path.Combine(
+                TestDataHelper.GetTestDataRepositoryDirectory(
+                    editingContext.Org,
+                    editingContext.Repo,
+                    editingContext.Developer
+                ),
+                $"App/ui/form/layouts/{deletedPageIds[^1]}.json"
+            )
+        );
+        pagesDto.Groups.RemoveAt(0);
+
+        await layoutService.UpdatePageGroups(editingContext, "form", (PagesWithGroups)pagesDto.ToBusiness());
+
+        List<string> publishedPageIds =
+        [
+            .. mediatr
+                .Invocations.Where(i => i.Method.Name == nameof(IPublisher.Publish))
+                .Select(i => i.Arguments[0])
+                .OfType<LayoutPageDeletedEvent>()
+                .Select(deletedEvent => deletedEvent.LayoutName),
+        ];
+        Assert.Equal(deletedPageIds, publishedPageIds);
     }
 
     [Fact]
