@@ -28,6 +28,7 @@ helfo
 luftfartstilsynet
 maskinporten
 minid
+servicedesk # "Altinn servicedesk", the official name of Altinn's support desk
 studioctl
 svarut
 
