@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Breaking: an exclusive gateway in `process.bpmn` takes its `default` flow only when no other flow's condition holds. The app does not start if a flow other than the default has no condition; add one, or make that flow the default. ([#21105](https://github.com/Altinn/altinn-studio/pull/21105))
+
 ### Fixed
 
 - A service task that gives up when `Wait.IsFinalCheck` is `true` can no longer fail with the generic error for an exhausted wait budget instead of its own. In unit tests, set `IsFinalCheck` directly: a past `Deadline` no longer implies it.

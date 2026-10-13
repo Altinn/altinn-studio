@@ -88,19 +88,28 @@ internal sealed class ProcessNavigator : IProcessNavigator
 
             var gateway = (ExclusiveGateway)directFlowTarget;
             List<SequenceFlow> outgoingFlows = _processReader.GetOutgoingSequenceFlows(directFlowTarget);
+            // As in BPMN, the default flow is a fallback: the gateway takes it only when no other flow is valid.
+            SequenceFlow? defaultFlow = outgoingFlows.Find(flow => flow.Id == gateway.Default);
+            List<SequenceFlow> otherFlows = outgoingFlows.FindAll(flow => flow != defaultFlow);
             IProcessExclusiveGateway? gatewayFilter;
+            List<SequenceFlow> flowsToFilter;
             if (outgoingFlows.Any(a => a.ConditionExpression != null))
             {
                 gatewayFilter = _gatewayFactory.GetProcessExclusiveGateway("AltinnExpressionsExclusiveGateway");
+                // The default's own condition is never evaluated.
+                flowsToFilter = otherFlows;
             }
             else
             {
                 gatewayFilter = _gatewayFactory.GetProcessExclusiveGateway(directFlowTarget.Id);
+                // An app's own gateway code gets every flow, as IProcessExclusiveGateway documents.
+                flowsToFilter = outgoingFlows;
             }
-            List<SequenceFlow> filteredList;
+            List<SequenceFlow> validFlows;
             if (gatewayFilter == null)
             {
-                filteredList = outgoingFlows;
+                // A flow without a condition is always valid.
+                validFlows = otherFlows;
             }
             else
             {
@@ -110,33 +119,31 @@ internal sealed class ProcessNavigator : IProcessNavigator
                     DataTypeId = gateway.ExtensionElements?.GatewayExtension?.ConnectedDataTypeId,
                 };
 
-                filteredList = await gatewayFilter.FilterAsync(
-                    outgoingFlows,
+                validFlows = await gatewayFilter.FilterAsync(
+                    flowsToFilter,
                     dataAccessor.Instance,
                     dataAccessor,
                     gatewayInformation
                 );
 
-                if (filteredList.Count != 1)
+                if (validFlows.Count > 1)
                 {
                     throw new ProcessException(
-                        $"Exclusive gateway {gatewayFilter.GatewayId} returned {filteredList.Count} flows. Expected 1"
+                        $"Exclusive gateway {gateway.Id} has {validFlows.Count} valid outgoing flows "
+                            + $"({string.Join(", ", validFlows.Select(flow => flow.Id))}). Expected 1"
+                    );
+                }
+                if (validFlows.Count == 0 && defaultFlow is null)
+                {
+                    throw new ProcessException(
+                        $"Exclusive gateway {gateway.Id} has no valid outgoing flow and no default flow"
                     );
                 }
             }
-            var defaultSequenceFlow = filteredList.Find(s => s.Id == gateway.Default);
-            if (defaultSequenceFlow != null)
-            {
-                var defaultTarget = _processReader.GetFlowElement(defaultSequenceFlow.TargetRef);
-                filteredNext.AddRange(
-                    await NextFollowAndFilterGateways(dataAccessor, new List<ProcessElement?> { defaultTarget }, action)
-                );
-            }
-            else
-            {
-                var filteredTargets = filteredList.Select(e => _processReader.GetFlowElement(e.TargetRef)).ToList();
-                filteredNext.AddRange(await NextFollowAndFilterGateways(dataAccessor, filteredTargets, action));
-            }
+            List<SequenceFlow> takenFlows =
+                validFlows.Count == 0 && defaultFlow is not null ? [defaultFlow] : validFlows;
+            var takenTargets = takenFlows.Select(e => _processReader.GetFlowElement(e.TargetRef)).ToList();
+            filteredNext.AddRange(await NextFollowAndFilterGateways(dataAccessor, takenTargets, action));
         }
         _logger.LogDebug(
             "Filtered next elements: {FilteredNextElements}",
