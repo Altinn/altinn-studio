@@ -110,16 +110,23 @@ public class DeploymentService : IDeploymentService
         deploymentEntity.PopulateBaseProperties(authenticatedContext.Org, authenticatedContext.Repo, _httpContext);
         deploymentEntity.TagName = deployment.TagName;
         deploymentEntity.EnvName = deployment.EnvName;
-        AppStatus appStatus =
-            deployment.AppStatus
-            ?? await GetDefaultAppStatusAsync(authenticatedContext.Org, authenticatedContext.Repo, deployment.EnvName);
-        deploymentEntity.AppStatus = appStatus;
 
         ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(
             authenticatedContext.Org,
             authenticatedContext.Repo,
             deploymentEntity.TagName
         );
+
+        // The status is committed to applicationmetadata.json when the release is built, so the app image has it.
+        // Releases built before that have no status, and fall back to a default.
+        AppStatus appStatus =
+            await _applicationInformationService.GetAppStatusAsync(
+                authenticatedContext.Org,
+                authenticatedContext.Repo,
+                release.TargetCommitish
+            )
+            ?? await GetDefaultAppStatusAsync(authenticatedContext.Org, authenticatedContext.Repo, deployment.EnvName);
+        deploymentEntity.AppStatus = appStatus;
 
         await _applicationInformationService.UpdateApplicationMetadataAndPoliciesAsync(
             authenticatedContext.Org,
