@@ -76,12 +76,10 @@ documentation, and the workflow engine's technical guide. Changes to those
 inputs must still trigger their checks. CLI resources also include shipped
 Markdown skills and must trigger the CLI build.
 
-Formatting checks can also consume Markdown. The Designer frontend's code-style
-check and the Assistant's Ruff formatter include documentation. Their Markdown
-remains covered by
-[`designer-frontend-docs-format.yml`](workflows/designer-frontend-docs-format.yml)
-and [`assistant-docs-format.yml`](workflows/assistant-docs-format.yml) without
-running builds or unit tests. Audit new build or test inputs under
+Markdown formatting is optional. The Designer frontend's Prettier check and the
+Assistant's Ruff formatter exclude `.md` files so documentation changes cannot
+cause formatting failures in later code checks. Compiled Storybook `.mdx` files
+remain covered by code formatting and CI. Audit new build or test inputs under
 `docs/` directories and add exceptions for them before relying on the exclusions.
 
 ## Runners

@@ -51,6 +51,7 @@ python -m pytest      # unit tests
 ```
 
 CI runs `.github/workflows/altinity-build-test.yaml` on each pull request. This workflow runs `ruff check`, `ruff format --check`, `pyright` and `pytest`. Then it starts the server and examines `/health`.
+Ruff formatting applies to Python source. Markdown formatting is optional.
 
 ## API
 
