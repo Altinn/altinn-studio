@@ -9,7 +9,7 @@ import {
   type NodeVisibility,
   ValidationMask,
 } from 'src/features/validation/index';
-import { selectValidations, validationsOfSeverity } from 'src/features/validation/utils';
+import { isValidationVisible, selectValidations, validationsOfSeverity } from 'src/features/validation/utils';
 import { useAllValidations } from 'src/features/validation/validationHooks';
 import type { FieldValidation } from 'src/features/validation';
 
@@ -70,9 +70,9 @@ export function useTaskErrors(): {
     }
 
     // Errors linked to components that are not visible in the form
-    for (const validation of selectValidations(componentValidations, backendMask, 'error')) {
-      if (!boundErrorIds.has(validation.backendValidationId)) {
-        allBackendErrors.push(validation as BaseValidation<'error'>);
+    for (const validation of validationsOfSeverity(componentValidations, 'error')) {
+      if (isValidationVisible(validation, backendMask) && !boundErrorIds.has(validation.backendValidationId)) {
+        allBackendErrors.push(validation);
       }
     }
 

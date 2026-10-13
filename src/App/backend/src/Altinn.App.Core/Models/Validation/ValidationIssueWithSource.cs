@@ -61,14 +61,17 @@ public class ValidationIssueWithSource
     public string? Field { get; set; }
 
     /// <summary>
-    /// The id of the component the issue should be displayed beside, without row indexes.
+    /// The id of the component the issue should be displayed beside in the frontend, without row indexes.
     /// </summary>
+    /// <remarks>
+    /// When it is not set, the frontend shows the issue on the components bound to <see cref="Field"/>.
+    /// </remarks>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("componentId")]
     public string? ComponentId { get; set; }
 
     /// <summary>
-    /// The repeating group row indexes of the component in <see cref="ComponentId"/>.
+    /// The repeating group row indexes of the component in <see cref="ComponentId"/>, outermost group first.
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("rowIndexes")]

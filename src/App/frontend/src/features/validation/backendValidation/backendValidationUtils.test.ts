@@ -79,6 +79,24 @@ describe('mapping backend issues', () => {
 });
 
 describe('updateIncrementalValidations', () => {
+  it('keeps the component link of field validations from validators that did not run on save', () => {
+    const update = vi.fn();
+    updateIncrementalValidations(
+      { Patched: [issue({ source: 'Patched', field: 'other', customTextKey: 'patched' })] },
+      [issue({ source: 'Kept', field: 'group[1].name', componentId: 'name', rowIndexes: [1], customTextKey: 'kept' })],
+      update,
+    );
+
+    expect(update).toHaveBeenCalledTimes(1);
+    const backendValidations = update.mock.calls[0][0];
+    expect(backendValidations['data-element']['group[1].name']).toEqual([
+      expect.objectContaining({ componentId: 'name-1', message: { key: 'kept', customTextParameters: undefined } }),
+    ]);
+    expect(backendValidations['data-element'].other).toEqual([
+      expect.not.objectContaining({ componentId: expect.anything() }),
+    ]);
+  });
+
   it('replaces component validations from validators that ran on save, and keeps the others', () => {
     const update = vi.fn();
     updateIncrementalValidations(

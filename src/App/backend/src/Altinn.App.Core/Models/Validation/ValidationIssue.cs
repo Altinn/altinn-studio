@@ -43,6 +43,8 @@ public class ValidationIssue
     /// </summary>
     /// <remarks>
     /// When it is not set, the frontend shows the issue on the components bound to <see cref="Field"/>.
+    /// Also set <see cref="DataElementId"/>, since component ids are only unique within one layout set,
+    /// and a subform may use the same id as a component in the main form.
     /// </remarks>
     [JsonProperty(PropertyName = "componentId", NullValueHandling = NullValueHandling.Ignore)]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

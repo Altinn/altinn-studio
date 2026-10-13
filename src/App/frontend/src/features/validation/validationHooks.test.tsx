@@ -334,8 +334,15 @@ describe('backend validations linked to components', () => {
             obj.dataModels[defaultDataTypeMock].initialData = {
               TextField: 'value',
               MyGroup: [
-                { [ALTINN_ROW_ID]: 'row-0', Name: 'first' },
-                { [ALTINN_ROW_ID]: 'row-1', Name: 'second' },
+                { [ALTINN_ROW_ID]: 'row-0', Name: 'first', Inner: [{ [ALTINN_ROW_ID]: 'row-0-0', Value: 'a' }] },
+                {
+                  [ALTINN_ROW_ID]: 'row-1',
+                  Name: 'second',
+                  Inner: [
+                    { [ALTINN_ROW_ID]: 'row-1-0', Value: 'b' },
+                    { [ALTINN_ROW_ID]: 'row-1-1', Value: 'c' },
+                  ],
+                },
               ],
             };
             obj.dataModels[defaultDataTypeMock].initialValidationIssues = issues.map((issue) => ({
@@ -368,13 +375,28 @@ describe('backend validations linked to components', () => {
                       dataModelBindings: {
                         group: { dataType: defaultDataTypeMock, field: 'MyGroup' },
                       },
-                      children: ['name'],
+                      children: ['name', 'innerGroup'],
                     },
                     {
                       id: 'name',
                       type: 'Input',
                       dataModelBindings: {
                         simpleBinding: { dataType: defaultDataTypeMock, field: 'MyGroup.Name' },
+                      },
+                    },
+                    {
+                      id: 'innerGroup',
+                      type: 'RepeatingGroup',
+                      dataModelBindings: {
+                        group: { dataType: defaultDataTypeMock, field: 'MyGroup.Inner' },
+                      },
+                      children: ['value'],
+                    },
+                    {
+                      id: 'value',
+                      type: 'Input',
+                      dataModelBindings: {
+                        simpleBinding: { dataType: defaultDataTypeMock, field: 'MyGroup.Inner.Value' },
                       },
                     },
                   ],
@@ -404,6 +426,14 @@ describe('backend validations linked to components', () => {
       { componentId: 'name', rowIndexes: [1], customTextKey: 'without-field' },
     ]);
     expect(validations).toEqual(['name-0:with-field:simpleBinding', 'name-1:without-field:-']);
+  });
+
+  it('shows validations on the linked row of a component in a nested repeating group, outermost row first', async () => {
+    const validations = await render([
+      { field: 'MyGroup[1].Inner[0].Value', componentId: 'value', rowIndexes: [1, 0], customTextKey: 'with-field' },
+      { componentId: 'value', rowIndexes: [1, 1], customTextKey: 'without-field' },
+    ]);
+    expect(validations).toEqual(['value-1-0:with-field:simpleBinding', 'value-1-1:without-field:-']);
   });
 
   it('shows a validation linked to a component on that component even when it does not bind the field', async () => {
