@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -80,8 +80,6 @@ const renderBotAccounts = (botAccounts?: BotAccount[], initialEntries = ['/ttd/s
 };
 
 describe('BotAccounts', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('renders the loading spinner while data is pending', () => {
     renderBotAccounts();
     expect(screen.getByTestId('studio-spinner-test-id')).toBeInTheDocument();

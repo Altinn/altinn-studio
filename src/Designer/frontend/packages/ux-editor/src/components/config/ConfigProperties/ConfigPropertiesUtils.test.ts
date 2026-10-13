@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { componentComparison, propHasValues } from './ConfigPropertiesUtils';
 

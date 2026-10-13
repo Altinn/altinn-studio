@@ -13,7 +13,7 @@ Studio Designer's frontend relies on the following tools:
 - React
 - React Router
 - Tanstack Query
-- Vitest and Jest with React Testing Library for unit tests (migrating from Jest to Vitest, see Unit tests)
+- Vitest with React Testing Library for unit tests
 - Playwright for E2E tests
 - React components and CSS tokens from Designsystemet
 
@@ -58,8 +58,7 @@ The frontend consists of several React packages in the following directories:
 
 ### Test
 
-- `yarn test` - Run all unit tests, first with Jest, then with Vitest
-- `yarn test:jest` and `yarn test:vitest` - Run the tests of one runner. To filter which tests to run, use: `yarn test:jest partlyMatchingPathOrFilename`
+- `yarn test` - Run all unit tests with Vitest. To filter which tests to run, use: `yarn test partlyMatchingPathOrFilename`
 
 ### Development servers
 
@@ -101,22 +100,24 @@ Components MUST use custom hooks, never call `useQuery`/`useMutation` directly.
 
 ## Unit tests
 
-The unit tests are moving from Jest to Vitest, one directory at a time. The directories listed in
-`vitest.migrated.js` run with Vitest; all others still run with Jest.
+The unit tests run with Vitest.
 
-- In a Vitest directory, import the test API from `vitest` (`import { describe, expect, it, vi } from 'vitest'`)
-  and use `vi` instead of `jest`. ESLint reports any use of `jest` there.
-- Shared test helpers outside those directories are used by both runners. They may call `jest.fn` and
-  `jest.spyOn`, which `testing/vitestJestShim.ts` maps to `vi` under Vitest, but must not call `jest.mock`.
-- Test setup is split into `testing/setupEnvironment.ts` (both runners), `testing/setupTests.ts` (Jest) and
-  `testing/setupTests.vitest.ts` (Vitest). Change a global mock in both runner files.
-
+- Import the test API from `vitest` (`import { describe, expect, it, vi } from 'vitest'`).
+- Global mocks and the browser APIs that jsdom lacks are set up in `testing/setupTests.ts`.
 - Unit tests should be placed in the same folder as the component it is testing.
 - Tanstack Query tests: Prefer `queryClient.setQueryData` to seed data for hooks/components.
 - The `render` function from `@testing-library/react` should not be used directly in test cases. Instead, create a helper function `render{componentName}`, which takes `props` as an argument, at the bottom of the test file.
 - For components with required props, create a `defaultProps` object with minimal valid values.
 - Create helper functions like `getFirstEditButton` to make test cases easy to read.
 - Prefer semantic role queries like `screen.getByRole('button', { name: text })` over `screen.getByText(text)` or `screen.getByTitle(text)`.
+
+## Process editor
+
+Importing XML into the live bpmn-js modeler clears and redraws the canvas, which fires the shape
+add and remove handlers and with them the task add/remove side effects (UI folder, policy and
+metadata mutations). Re-import only through `useReloadSavedProcess`, which suppresses them with
+`isReloadingRef`. Unit tests with a mocked modeler cannot catch this; check in a browser that a
+re-import sends no mutation.
 
 ## Imports
 

@@ -139,6 +139,14 @@ Layout components use a standardized structure:
 - Most tests require form layout context to be provided
 - Use `renderWithProviders` from `src/test/renderWithProviders.tsx`
 - Mock external dependencies in `src/__mocks__/`
+- Test a flow that spans providers, polling and mutations (process transitions, for example) in
+  Cypress against a real app, such as `test/e2e/integration/process-transition-test/`, rather than
+  in a unit test with a hand-built provider tree: those tests follow the wiring, miss real
+  regressions and get in the way of refactoring. Keep unit tests for self-contained rules.
+- `defaultCommandTimeout` is 20 s, so `should('not.exist')` retries until the page moves on and
+  passes vacuously. To assert that something is not showing at a given moment, first wait for a
+  state the server reports, then check with `{ timeout: 0 }`.
+- `yarn serve` without `-c-1` lets the browser cache the old bundle for an hour after a rebuild.
 
 ### Common Patterns
 

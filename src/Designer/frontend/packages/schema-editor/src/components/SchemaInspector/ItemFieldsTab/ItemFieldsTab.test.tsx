@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
+import { beforeAll, describe, expect, test, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { ItemFieldsTabProps } from './ItemFieldsTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
@@ -67,7 +67,6 @@ const renderItemFieldsTab = (
 
 describe('ItemFieldsTab', () => {
   beforeAll(() => validateTestUiSchema(uiSchema));
-  afterEach(vi.clearAllMocks);
 
   test('Header texts appear', () => {
     renderItemFieldsTab();

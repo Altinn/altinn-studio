@@ -15,178 +15,59 @@ using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
 using Moq;
+using NewtonsoftJson = Newtonsoft.Json.JsonConvert;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 public class CommitProcessStateTests
 {
     [Fact]
-    public async Task Execute_StagesProcessStateChangeWithoutCallingStorage()
+    public async Task Execute_StagesProcessStateChangeAndKeepsProcessing()
     {
         CommandSetup setup = CreateCommandSetup(CreateInstance("Task_1"));
-        var payload = CreateProcessStateChangePayload(setup.UnitOfWork.Instance, "Task_2");
-        CommitProcessState command = CreateCommand();
-        StorageInstanceMutationRequest? capturedMutation = null;
-        setup
-            .MutationClient.Setup(x =>
-                x.CommitInstanceMutationWithStorageMetadata(
-                    1337,
-                    It.IsAny<Guid>(),
-                    It.IsAny<StorageInstanceMutationRequest>(),
-                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<StorageWritePreconditions?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                (
-                    int _,
-                    Guid _,
-                    StorageInstanceMutationRequest mutation,
-                    IReadOnlyDictionary<string, StorageInstanceMutationContent> _,
-                    StorageAuthenticationMethod? _,
-                    StorageWritePreconditions? _,
-                    CancellationToken _
-                ) =>
-                {
-                    capturedMutation = mutation;
-                    return new InstanceMutationWithStorageMetadata(
-                        new Instance
-                        {
-                            Id = setup.UnitOfWork.Instance.Id,
-                            AppId = setup.UnitOfWork.Instance.AppId,
-                            Org = setup.UnitOfWork.Instance.Org,
-                            InstanceOwner = setup.UnitOfWork.Instance.InstanceOwner,
-                            Process = new ProcessState
-                            {
-                                CurrentTask = mutation.ProcessState?.State?.CurrentTask,
-                                Status = mutation.ProcessState?.State?.Status,
-                            },
-                            Data = [],
-                        },
-                        new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 9)
-                    );
-                }
-            );
-        ProcessEngineCommandResult result = await ((IWorkflowEngineCommand)command).Execute(
-            CreateContext(setup.UnitOfWork, payload)
+        List<StorageInstanceMutationRequest> mutations = CaptureMutations(setup);
+
+        ProcessEngineCommandResult result = await ((IWorkflowEngineCommand)CreateCommand()).Execute(
+            CreateContext(setup.UnitOfWork, CreateProcessStateChangePayload(setup.UnitOfWork.Instance, "Task_2"))
         );
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         setup.MutationClient.VerifyNoOtherCalls();
-
-        WorkflowAggregateSaveOutcome outcome = await setup.UnitOfWork.SaveWorkflowOwnedAggregate(
-            setup.UnitOfWork.GetDataElementChanges(false),
-            "commit-process-state-step-id",
-            CancellationToken.None
-        );
-
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, await Save(setup));
+        StorageInstanceMutationRequest mutation = Assert.Single(mutations);
+        Assert.Equal("Task_2", mutation.ProcessState?.State?.CurrentTask?.ElementId);
+        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+        Assert.Equal(ProcessStatus.Processing, mutation.ProcessState?.State?.Status);
+        Assert.Equal("process_StartTask", Assert.Single(mutation.ProcessState!.Events!).EventType);
         Assert.Equal("Task_2", setup.UnitOfWork.Instance.Process?.CurrentTask?.ElementId);
-        Assert.Equal(ProcessStatus.Idle, setup.UnitOfWork.Instance.Process?.Status);
-        Assert.Equal("Task_2", capturedMutation?.ProcessState?.State?.CurrentTask?.ElementId);
-        Assert.Equal(ProcessStatus.Processing, capturedMutation?.ExpectedProcessStatus);
-        Assert.Equal(ProcessStatus.Idle, capturedMutation?.ProcessState?.State?.Status);
-        Assert.Equal("process_StartTask", Assert.Single(capturedMutation!.ProcessState!.Events!).EventType);
+        Assert.Equal(ProcessStatus.Processing, setup.UnitOfWork.Instance.Process?.Status);
     }
 
     [Fact]
-    public async Task Execute_WhenServiceTaskFollows_DurablyCommitsTargetAndKeepsProcessingBeforeServiceRuns()
+    public async Task Execute_ThenReleaseProcessingStatus_ReleasesTheCommittedTaskInItsOwnSave()
     {
         CommandSetup setup = CreateCommandSetup(CreateInstance("Task_1"));
-        var payload = CreateProcessStateChangePayload(
-            setup.UnitOfWork.Instance,
-            "ServiceTask_1",
-            stepsFollowCommit: true
+        List<StorageInstanceMutationRequest> mutations = CaptureMutations(setup);
+
+        await ExecuteAndSave(
+            setup,
+            CreateCommand(),
+            CreateContext(setup.UnitOfWork, CreateProcessStateChangePayload(setup.UnitOfWork.Instance, "Task_2"))
         );
-        var capturedMutations = new List<StorageInstanceMutationRequest>();
-        setup
-            .MutationClient.Setup(x =>
-                x.CommitInstanceMutationWithStorageMetadata(
-                    1337,
-                    It.IsAny<Guid>(),
-                    It.IsAny<StorageInstanceMutationRequest>(),
-                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<StorageWritePreconditions?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                (
-                    int _,
-                    Guid _,
-                    StorageInstanceMutationRequest mutation,
-                    IReadOnlyDictionary<string, StorageInstanceMutationContent> _,
-                    StorageAuthenticationMethod? _,
-                    StorageWritePreconditions? _,
-                    CancellationToken _
-                ) =>
-                {
-                    capturedMutations.Add(mutation);
-                    return new InstanceMutationWithStorageMetadata(
-                        new Instance
-                        {
-                            Id = setup.UnitOfWork.Instance.Id,
-                            AppId = setup.UnitOfWork.Instance.AppId,
-                            Org = setup.UnitOfWork.Instance.Org,
-                            InstanceOwner = setup.UnitOfWork.Instance.InstanceOwner,
-                            Process = new ProcessState
-                            {
-                                CurrentTask = mutation.ProcessState?.State?.CurrentTask,
-                                Status = mutation.ProcessState?.State?.Status,
-                            },
-                            Data = [],
-                        },
-                        new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 9)
-                    );
-                }
-            );
+        await ExecuteAndSave(setup, CreateRelease(), CreateContext(setup.UnitOfWork, serializedPayload: null));
 
-        ProcessEngineCommandResult result = await ((IWorkflowEngineCommand)CreateCommand()).Execute(
-            CreateContext(setup.UnitOfWork, payload)
-        );
-
-        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.Null(success.ProcessNextContinuation);
-        Assert.Equal(ProcessStatus.Processing, setup.UnitOfWork.Instance.Process?.Status);
-
-        await setup.UnitOfWork.SaveWorkflowOwnedAggregate(
-            setup.UnitOfWork.GetDataElementChanges(false),
-            Guid.NewGuid().ToString(),
-            CancellationToken.None
-        );
-
-        StorageInstanceMutationRequest firstMutation = Assert.Single(capturedMutations);
-        Assert.Equal(ProcessStatus.Processing, firstMutation.ExpectedProcessStatus);
-        Assert.Equal(ProcessStatus.Processing, firstMutation.ProcessState?.State?.Status);
-        Assert.Equal("ServiceTask_1", firstMutation.ProcessState?.State?.CurrentTask?.ElementId);
-        Assert.Equal("ServiceTask_1", setup.UnitOfWork.Instance.Process?.CurrentTask?.ElementId);
-        Assert.Equal(ProcessStatus.Processing, setup.UnitOfWork.Instance.Process?.Status);
-
-        ProcessEngineCommandResult dependentResult = await ((IWorkflowEngineCommand)CreateCommand()).Execute(
-            CreateContext(
-                setup.UnitOfWork,
-                CreateProcessStateChangePayload(setup.UnitOfWork.Instance, "InteractiveTask_1")
-            )
-        );
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(dependentResult);
-        await setup.UnitOfWork.SaveWorkflowOwnedAggregate(
-            setup.UnitOfWork.GetDataElementChanges(false),
-            Guid.NewGuid().ToString(),
-            CancellationToken.None
-        );
-
-        Assert.Equal(2, capturedMutations.Count);
-        StorageInstanceMutationRequest dependentMutation = capturedMutations[1];
-        Assert.Equal(ProcessStatus.Processing, dependentMutation.ExpectedProcessStatus);
-        Assert.Equal(ProcessStatus.Idle, dependentMutation.ProcessState?.State?.Status);
+        Assert.Equal(2, mutations.Count);
+        StorageInstanceMutationRequest release = mutations[1];
+        Assert.Equal(ProcessStatus.Processing, release.ExpectedProcessStatus);
+        Assert.Equal(ProcessStatus.Idle, release.ProcessState?.State?.Status);
+        Assert.Equal("Task_2", release.ProcessState?.State?.CurrentTask?.ElementId);
+        Assert.Empty(release.ProcessState!.Events!);
+        Assert.Null(release.DeleteInstance);
         Assert.Equal(ProcessStatus.Idle, setup.UnitOfWork.Instance.Process?.Status);
     }
 
     [Fact]
-    public async Task Execute_ProcessEnd_StagesLockedCleanupStatusClearAndHardDeleteInSingleAggregate()
+    public async Task Execute_ProcessEnd_CommitsEndedStateThenDeletesDataThenReleasesWithTheHardDelete()
     {
         const string autoDeleteDataType = "auto-delete";
         var applicationMetadata = new ApplicationMetadata("ttd/test-app")
@@ -211,262 +92,82 @@ public class CommitProcessStateTests
         };
         instance.Data = [lockedDataElement];
         CommandSetup setup = CreateCommandSetup(instance, applicationMetadata);
+        List<StorageInstanceMutationRequest> mutations = CaptureMutations(setup);
         var ended = DateTime.UtcNow;
-        var processEvent = new InstanceEvent { EventType = InstanceEventType.process_EndEvent.ToString() };
-        var payload = new ProcessStateChangePayload(
-            new ProcessStateChange
-            {
-                OldProcessState = instance.Process,
-                NewProcessState = new ProcessState
-                {
-                    Ended = ended,
-                    EndEvent = "EndEvent_1",
-                    CurrentTask = null,
-                },
-                Events = [processEvent],
-            }
+
+        await ExecuteAndSave(
+            setup,
+            CreateCommand(),
+            CreateContext(setup.UnitOfWork, CreateProcessEndPayload(instance, ended))
         );
-        StorageInstanceMutationRequest? capturedMutation = null;
-        setup
-            .MutationClient.Setup(x =>
-                x.CommitInstanceMutationWithStorageMetadata(
-                    1337,
-                    It.IsAny<Guid>(),
-                    It.IsAny<StorageInstanceMutationRequest>(),
-                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<StorageWritePreconditions?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                (
-                    int _,
-                    Guid _,
-                    StorageInstanceMutationRequest mutation,
-                    IReadOnlyDictionary<string, StorageInstanceMutationContent> _,
-                    StorageAuthenticationMethod? _,
-                    StorageWritePreconditions? _,
-                    CancellationToken _
-                ) =>
-                {
-                    capturedMutation = mutation;
-                    return new InstanceMutationWithStorageMetadata(
-                        new Instance
-                        {
-                            Id = instance.Id,
-                            AppId = instance.AppId,
-                            Org = instance.Org,
-                            InstanceOwner = instance.InstanceOwner,
-                            Process = new ProcessState
-                            {
-                                Ended = ended,
-                                EndEvent = "EndEvent_1",
-                                Status = ProcessStatus.Idle,
-                            },
-                            Status = new InstanceStatus
-                            {
-                                IsHardDeleted = true,
-                                IsSoftDeleted = true,
-                                HardDeleted = DateTime.UtcNow,
-                                SoftDeleted = DateTime.UtcNow,
-                            },
-                            Data = [],
-                        },
-                        new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 9)
-                    );
-                }
-            );
-
-        ProcessEngineCommandResult commandResult = await (
-            (IWorkflowEngineCommand)CreateCommand(applicationMetadata)
-        ).Execute(CreateContext(setup.UnitOfWork, payload));
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(commandResult);
-        setup.MutationClient.VerifyNoOtherCalls();
-
-        WorkflowAggregateSaveOutcome outcome = await setup.UnitOfWork.SaveWorkflowOwnedAggregate(
-            setup.UnitOfWork.GetDataElementChanges(false),
-            Guid.NewGuid().ToString(),
-            CancellationToken.None
+        await ExecuteAndSave(
+            setup,
+            CreateDeleteData(applicationMetadata),
+            CreateContext(setup.UnitOfWork, serializedPayload: null)
+        );
+        await ExecuteAndSave(
+            setup,
+            CreateRelease(applicationMetadata),
+            CreateContext(setup.UnitOfWork, serializedPayload: null)
         );
 
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
-        Assert.NotNull(capturedMutation);
-        Assert.Equal(ProcessStatus.Processing, capturedMutation.ExpectedProcessStatus);
-        Assert.Equal(ProcessStatus.Idle, capturedMutation.ProcessState?.State?.Status);
-        Assert.Equal("EndEvent_1", capturedMutation.ProcessState?.State?.EndEvent);
-        Assert.Equal(ended, capturedMutation.ProcessState?.State?.Ended);
-        Assert.Equal(processEvent.EventType, Assert.Single(capturedMutation.ProcessState!.Events!).EventType);
-        var delete = Assert.Single(capturedMutation.DeleteDataElements);
-        Assert.Equal(Guid.Parse(lockedDataElement.Id), delete.DataElementId);
-        Assert.True(delete.IgnoreLock);
-        Assert.True(capturedMutation.DeleteInstance?.Hard);
-        Assert.Equal(ProcessStatus.Idle, setup.UnitOfWork.Instance.Process?.Status);
-        Assert.True(setup.UnitOfWork.Instance.Status.IsHardDeleted);
-        Assert.Empty(setup.UnitOfWork.Instance.Data);
-        setup.MutationClient.Verify(
-            x =>
-                x.CommitInstanceMutationWithStorageMetadata(
-                    1337,
-                    It.IsAny<Guid>(),
-                    It.IsAny<StorageInstanceMutationRequest>(),
-                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<StorageWritePreconditions?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
-    }
-
-    [Fact]
-    public async Task Execute_ProcessEnd_WhenStepsFollow_CommitsEndedStateAndLeavesReleaseToReleaseEndedInstance()
-    {
-        const string autoDeleteDataType = "auto-delete";
-        var applicationMetadata = new ApplicationMetadata("ttd/test-app")
-        {
-            AutoDeleteOnProcessEnd = true,
-            DataTypes =
-            [
-                new DataType
-                {
-                    Id = autoDeleteDataType,
-                    AppLogic = new ApplicationLogic { AutoDeleteOnProcessEnd = true },
-                },
-            ],
-        };
-        Instance instance = CreateInstance("Task_1");
-        var lockedDataElement = new DataElement
-        {
-            Id = Guid.NewGuid().ToString(),
-            InstanceGuid = new InstanceIdentifier(instance).InstanceGuid.ToString(),
-            DataType = autoDeleteDataType,
-            Locked = true,
-        };
-        instance.Data = [lockedDataElement];
-        CommandSetup setup = CreateCommandSetup(instance, applicationMetadata);
-        var ended = DateTime.UtcNow;
-        var payload = new ProcessStateChangePayload(
-            new ProcessStateChange
-            {
-                OldProcessState = instance.Process,
-                NewProcessState = new ProcessState { Ended = ended, EndEvent = "EndEvent_1" },
-                Events = [new InstanceEvent { EventType = InstanceEventType.process_EndEvent.ToString() }],
-            },
-            StepsFollowCommit: true
-        );
-        var capturedMutations = new List<StorageInstanceMutationRequest>();
-        setup
-            .MutationClient.Setup(x =>
-                x.CommitInstanceMutationWithStorageMetadata(
-                    1337,
-                    It.IsAny<Guid>(),
-                    It.IsAny<StorageInstanceMutationRequest>(),
-                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<StorageWritePreconditions?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                (
-                    int _,
-                    Guid _,
-                    StorageInstanceMutationRequest mutation,
-                    IReadOnlyDictionary<string, StorageInstanceMutationContent> _,
-                    StorageAuthenticationMethod? _,
-                    StorageWritePreconditions? _,
-                    CancellationToken _
-                ) =>
-                {
-                    capturedMutations.Add(mutation);
-                    return new InstanceMutationWithStorageMetadata(
-                        new Instance
-                        {
-                            Id = instance.Id,
-                            AppId = instance.AppId,
-                            Org = instance.Org,
-                            InstanceOwner = instance.InstanceOwner,
-                            Process = mutation.ProcessState?.State,
-                            Status = new InstanceStatus { IsHardDeleted = mutation.DeleteInstance?.Hard == true },
-                            Data = mutation.DeleteDataElements.Count > 0 ? [] : [lockedDataElement],
-                        },
-                        new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 9)
-                    );
-                }
-            );
-
-        ProcessEngineCommandResult commitResult = await (
-            (IWorkflowEngineCommand)CreateCommand(applicationMetadata)
-        ).Execute(CreateContext(setup.UnitOfWork, payload));
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(commitResult);
-        await setup.UnitOfWork.SaveWorkflowOwnedAggregate(
-            setup.UnitOfWork.GetDataElementChanges(false),
-            Guid.NewGuid().ToString(),
-            CancellationToken.None
-        );
-
-        StorageInstanceMutationRequest endMutation = Assert.Single(capturedMutations);
-        Assert.Equal(ProcessStatus.Processing, endMutation.ExpectedProcessStatus);
+        Assert.Equal(3, mutations.Count);
+        StorageInstanceMutationRequest endMutation = mutations[0];
         Assert.Equal(ProcessStatus.Processing, endMutation.ProcessState?.State?.Status);
         Assert.Equal(ended, endMutation.ProcessState?.State?.Ended);
         Assert.Null(endMutation.ProcessState?.State?.CurrentTask);
         Assert.Empty(endMutation.DeleteDataElements);
         Assert.Null(endMutation.DeleteInstance);
 
-        var appMetadataMock = new Mock<IAppMetadata>();
-        appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
-        ProcessEngineCommandResult releaseResult = await new ReleaseEndedInstance(appMetadataMock.Object).Execute(
-            CreateContext(setup.UnitOfWork, serializedPayload: null)
-        );
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(releaseResult);
-        await setup.UnitOfWork.SaveWorkflowOwnedAggregate(
-            setup.UnitOfWork.GetDataElementChanges(false),
-            Guid.NewGuid().ToString(),
-            CancellationToken.None
-        );
+        StorageInstanceMutationRequest dataMutation = mutations[1];
+        Assert.Equal(ProcessStatus.Processing, dataMutation.ExpectedProcessStatus);
+        Assert.Null(dataMutation.ProcessState);
+        var delete = Assert.Single(dataMutation.DeleteDataElements);
+        Assert.Equal(Guid.Parse(lockedDataElement.Id), delete.DataElementId);
+        Assert.True(delete.IgnoreLock);
+        Assert.Null(dataMutation.DeleteInstance);
 
-        Assert.Equal(2, capturedMutations.Count);
-        StorageInstanceMutationRequest releaseMutation = capturedMutations[1];
+        StorageInstanceMutationRequest releaseMutation = mutations[2];
         Assert.Equal(ProcessStatus.Processing, releaseMutation.ExpectedProcessStatus);
         Assert.Equal(ProcessStatus.Idle, releaseMutation.ProcessState?.State?.Status);
         Assert.Equal(ended, releaseMutation.ProcessState?.State?.Ended);
         Assert.Equal("EndEvent_1", releaseMutation.ProcessState?.State?.EndEvent);
-        Assert.Null(releaseMutation.ProcessState?.State?.CurrentTask);
-        Assert.Empty(releaseMutation.ProcessState!.Events!);
-        var delete = Assert.Single(releaseMutation.DeleteDataElements);
-        Assert.Equal(Guid.Parse(lockedDataElement.Id), delete.DataElementId);
-        Assert.True(delete.IgnoreLock);
+        Assert.Empty(releaseMutation.DeleteDataElements);
         Assert.True(releaseMutation.DeleteInstance?.Hard);
     }
 
     [Fact]
-    public async Task ReleaseEndedInstance_WhenProcessHasNotEnded_ReturnsPermanentFailureWithoutStaging()
+    public async Task DeleteDataOnProcessEnd_WhenProcessHasNotEnded_ReturnsPermanentFailureWithoutStaging()
     {
         CommandSetup setup = CreateCommandSetup(CreateInstance("Task_1"));
 
-        ProcessEngineCommandResult result = await new ReleaseEndedInstance(Mock.Of<IAppMetadata>()).Execute(
-            CreateContext(setup.UnitOfWork, serializedPayload: null)
-        );
+        ProcessEngineCommandResult result = await CreateDeleteData()
+            .Execute(CreateContext(setup.UnitOfWork, serializedPayload: null));
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal(ProcessStatus.Processing, setup.UnitOfWork.Instance.Process?.Status);
-        Assert.Equal(
-            WorkflowAggregateSaveOutcome.NothingToSave,
-            await setup.UnitOfWork.SaveWorkflowOwnedAggregate(
-                setup.UnitOfWork.GetDataElementChanges(false),
-                Guid.NewGuid().ToString(),
-                CancellationToken.None
-            )
-        );
+        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, await Save(setup));
+    }
+
+    [Fact]
+    public async Task ReleaseProcessingStatus_DoesNotHardDeleteAnActiveProcess()
+    {
+        var metadata = new ApplicationMetadata("ttd/test-app") { AutoDeleteOnProcessEnd = true, DataTypes = [] };
+        CommandSetup setup = CreateCommandSetup(CreateInstance("Task_1"), metadata);
+        List<StorageInstanceMutationRequest> mutations = CaptureMutations(setup);
+
+        await ExecuteAndSave(setup, CreateRelease(metadata), CreateContext(setup.UnitOfWork, serializedPayload: null));
+
+        StorageInstanceMutationRequest release = Assert.Single(mutations);
+        Assert.Equal(ProcessStatus.Idle, release.ProcessState?.State?.Status);
+        Assert.Null(release.DeleteInstance);
     }
 
     [Theory]
     [InlineData(false, true, 1, false)]
     [InlineData(true, false, 0, true)]
     [InlineData(false, false, 0, false)]
-    public async Task Execute_ProcessEnd_PreservesEachCleanupConfiguration(
+    public async Task ProcessEnd_PreservesEachCleanupConfiguration(
         bool deleteInstance,
         bool deleteDataType,
         int expectedElementDeletes,
@@ -498,79 +199,31 @@ public class CommitProcessStateTests
             },
         ];
         CommandSetup setup = CreateCommandSetup(instance, metadata);
-        StorageInstanceMutationRequest? capturedMutation = null;
-        setup
-            .MutationClient.Setup(x =>
-                x.CommitInstanceMutationWithStorageMetadata(
-                    1337,
-                    It.IsAny<Guid>(),
-                    It.IsAny<StorageInstanceMutationRequest>(),
-                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<StorageWritePreconditions?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                (
-                    int _,
-                    Guid _,
-                    StorageInstanceMutationRequest mutation,
-                    IReadOnlyDictionary<string, StorageInstanceMutationContent> _,
-                    StorageAuthenticationMethod? _,
-                    StorageWritePreconditions? _,
-                    CancellationToken _
-                ) =>
-                {
-                    capturedMutation = mutation;
-                    return new InstanceMutationWithStorageMetadata(
-                        new Instance
-                        {
-                            Id = instance.Id,
-                            AppId = instance.AppId,
-                            Org = instance.Org,
-                            InstanceOwner = instance.InstanceOwner,
-                            Process = new ProcessState
-                            {
-                                Ended = mutation.ProcessState?.State?.Ended,
-                                EndEvent = mutation.ProcessState?.State?.EndEvent,
-                                Status = ProcessStatus.Idle,
-                            },
-                            Status = new InstanceStatus { IsHardDeleted = expectedInstanceDelete },
-                            Data = expectedElementDeletes == 0 ? instance.Data : [],
-                        },
-                        new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 9)
-                    );
-                }
-            );
-        var endedState = new ProcessState { Ended = DateTime.UtcNow, EndEvent = "EndEvent_1" };
+        List<StorageInstanceMutationRequest> mutations = CaptureMutations(setup);
 
-        ProcessEngineCommandResult result = await ((IWorkflowEngineCommand)CreateCommand(metadata)).Execute(
-            CreateContext(
-                setup.UnitOfWork,
-                new ProcessStateChangePayload(
-                    new ProcessStateChange
-                    {
-                        OldProcessState = instance.Process,
-                        NewProcessState = endedState,
-                        Events = [new InstanceEvent { EventType = "process_EndEvent" }],
-                    }
-                )
-            )
+        await ExecuteAndSave(
+            setup,
+            CreateCommand(),
+            CreateContext(setup.UnitOfWork, CreateProcessEndPayload(instance, DateTime.UtcNow))
         );
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        await setup.UnitOfWork.SaveWorkflowOwnedAggregate(
-            setup.UnitOfWork.GetDataElementChanges(false),
-            Guid.NewGuid().ToString(),
-            CancellationToken.None
+        await ExecuteAndSave(
+            setup,
+            CreateDeleteData(metadata),
+            CreateContext(setup.UnitOfWork, serializedPayload: null)
         );
+        await ExecuteAndSave(setup, CreateRelease(metadata), CreateContext(setup.UnitOfWork, serializedPayload: null));
 
-        Assert.NotNull(capturedMutation);
-        Assert.Equal(expectedElementDeletes, capturedMutation.DeleteDataElements.Count);
-        Assert.All(capturedMutation.DeleteDataElements, delete => Assert.True(delete.IgnoreLock));
-        Assert.Equal(expectedInstanceDelete, capturedMutation.DeleteInstance?.Hard == true);
-        Assert.Equal(ProcessStatus.Processing, capturedMutation.ExpectedProcessStatus);
-        Assert.Equal(ProcessStatus.Idle, capturedMutation.ProcessState?.State?.Status);
+        // A cleanup step with nothing to delete stages nothing, so it makes no save.
+        Assert.Equal(expectedElementDeletes > 0 ? 3 : 2, mutations.Count);
+        Assert.Equal(expectedElementDeletes, mutations.Sum(mutation => mutation.DeleteDataElements.Count));
+        Assert.All(
+            mutations.SelectMany(mutation => mutation.DeleteDataElements),
+            delete => Assert.True(delete.IgnoreLock)
+        );
+        StorageInstanceMutationRequest release = mutations[^1];
+        Assert.Equal(expectedInstanceDelete, release.DeleteInstance?.Hard == true);
+        Assert.Equal(ProcessStatus.Processing, release.ExpectedProcessStatus);
+        Assert.Equal(ProcessStatus.Idle, release.ProcessState?.State?.Status);
     }
 
     [Theory]
@@ -609,8 +262,7 @@ public class CommitProcessStateTests
         instance.Data = [dataElement];
         ProcessState originalProcess = instance.Process;
         CommandSetup setup = CreateCommandSetup(instance, metadata);
-        var appMetadata = new Mock<IAppMetadata>(MockBehavior.Strict);
-        var command = new CommitProcessState(appMetadata.Object);
+        var command = new CommitProcessState();
         var payload = new ProcessStateChangePayload(
             new ProcessStateChange
             {
@@ -645,7 +297,6 @@ public class CommitProcessStateTests
             )
         );
         setup.MutationClient.VerifyNoOtherCalls();
-        appMetadata.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -747,28 +398,118 @@ public class CommitProcessStateTests
             },
         };
 
-    private static ProcessStateChangePayload CreateProcessStateChangePayload(
-        Instance instance,
-        string taskId,
-        bool stepsFollowCommit = false
-    ) =>
+    private static ProcessStateChangePayload CreateProcessStateChangePayload(Instance instance, string taskId) =>
         new(
             new ProcessStateChange
             {
                 OldProcessState = instance.Process,
                 NewProcessState = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
                 Events = [new InstanceEvent { EventType = "process_StartTask" }],
-            },
-            stepsFollowCommit
+            }
         );
 
-    private static CommitProcessState CreateCommand(ApplicationMetadata? applicationMetadata = null)
+    private static ProcessStateChangePayload CreateProcessEndPayload(Instance instance, DateTime ended) =>
+        new(
+            new ProcessStateChange
+            {
+                OldProcessState = instance.Process,
+                NewProcessState = new ProcessState { Ended = ended, EndEvent = "EndEvent_1" },
+                Events = [new InstanceEvent { EventType = InstanceEventType.process_EndEvent.ToString() }],
+            }
+        );
+
+    private static CommitProcessState CreateCommand() => new();
+
+    private static ReleaseProcessingStatus CreateRelease(ApplicationMetadata? applicationMetadata = null) =>
+        new(CreateAppMetadata(applicationMetadata));
+
+    private static DeleteDataOnProcessEnd CreateDeleteData(ApplicationMetadata? applicationMetadata = null) =>
+        new(CreateAppMetadata(applicationMetadata));
+
+    private static IAppMetadata CreateAppMetadata(ApplicationMetadata? applicationMetadata)
     {
         var appMetadataMock = new Mock<IAppMetadata>();
         appMetadataMock
             .Setup(x => x.ApplicationMetadata)
             .Returns(applicationMetadata ?? new ApplicationMetadata("ttd/test-app") { DataTypes = [] });
-        return new CommitProcessState(appMetadataMock.Object);
+        return appMetadataMock.Object;
+    }
+
+    /// <summary>
+    /// Runs one workflow step and the save that follows it, as the callback controller does.
+    /// </summary>
+    private static async Task ExecuteAndSave(
+        CommandSetup setup,
+        IWorkflowEngineCommand command,
+        ProcessEngineCommandContext context
+    )
+    {
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(await command.Execute(context));
+        await Save(setup);
+    }
+
+    private static Task<WorkflowAggregateSaveOutcome> Save(CommandSetup setup) =>
+        setup.UnitOfWork.SaveWorkflowOwnedAggregate(
+            setup.UnitOfWork.GetDataElementChanges(false),
+            Guid.NewGuid().ToString(),
+            CancellationToken.None
+        );
+
+    /// <summary>
+    /// Records every Storage mutation and answers with the instance it describes.
+    /// </summary>
+    private static List<StorageInstanceMutationRequest> CaptureMutations(CommandSetup setup)
+    {
+        var mutations = new List<StorageInstanceMutationRequest>();
+        Instance instance = setup.UnitOfWork.Instance;
+        setup
+            .MutationClient.Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    1337,
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                (
+                    int _,
+                    Guid _,
+                    StorageInstanceMutationRequest mutation,
+                    IReadOnlyDictionary<string, StorageInstanceMutationContent> _,
+                    StorageAuthenticationMethod? _,
+                    StorageWritePreconditions? _,
+                    CancellationToken _
+                ) =>
+                {
+                    // Snapshot the request as Storage would receive it: later steps change the same objects.
+                    mutations.Add(
+                        NewtonsoftJson.DeserializeObject<StorageInstanceMutationRequest>(
+                            NewtonsoftJson.SerializeObject(mutation)
+                        )!
+                    );
+                    HashSet<Guid> deleted = mutation.DeleteDataElements.Select(d => d.DataElementId).ToHashSet();
+                    return new InstanceMutationWithStorageMetadata(
+                        new Instance
+                        {
+                            Id = instance.Id,
+                            AppId = instance.AppId,
+                            Org = instance.Org,
+                            InstanceOwner = instance.InstanceOwner,
+                            Process = mutation.ProcessState?.State ?? setup.UnitOfWork.Instance.Process,
+                            Status = new InstanceStatus { IsHardDeleted = mutation.DeleteInstance?.Hard == true },
+                            Data = setup
+                                .UnitOfWork.Instance.Data.Where(element => !deleted.Contains(Guid.Parse(element.Id)))
+                                .ToList(),
+                        },
+                        new StorageVersionMetadata(InstanceVersion: 13 + mutations.Count, ProcessStateVersion: 9)
+                    );
+                }
+            );
+        return mutations;
     }
 
     private static CommandSetup CreateCommandSetup(Instance instance, ApplicationMetadata? applicationMetadata = null)

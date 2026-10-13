@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { EditCodeList } from './EditCodeList';
 import { screen, waitFor } from '@testing-library/react';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
@@ -13,7 +14,7 @@ describe('EditCodeList', () => {
   it('should render the component', async () => {
     await render({
       queries: {
-        getOptionListIds: jest
+        getOptionListIds: vi
           .fn()
           .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
       },
@@ -24,7 +25,7 @@ describe('EditCodeList', () => {
   it('should render the component when optionListIds is undefined', async () => {
     await render({
       queries: {
-        getOptionListIds: jest
+        getOptionListIds: vi
           .fn()
           .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
       },
@@ -34,7 +35,7 @@ describe('EditCodeList', () => {
   });
 
   it('should call onChange when option list changes', async () => {
-    const handleComponentChangeMock = jest.fn();
+    const handleComponentChangeMock = vi.fn();
     const user = userEvent.setup();
     await render({ handleComponentChange: handleComponentChangeMock });
 
@@ -62,7 +63,7 @@ const waitForData = async () => {
 };
 
 const render = async ({
-  handleComponentChange = jest.fn(),
+  handleComponentChange = vi.fn(),
   queries = {},
   componentProps = {},
 } = {}) => {

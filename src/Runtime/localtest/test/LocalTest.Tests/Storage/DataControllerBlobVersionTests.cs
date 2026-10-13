@@ -339,7 +339,8 @@ public sealed class DataControllerBlobVersionTests
                 authorization.AuthorizeInstanceAction(
                     It.IsAny<Instance>(),
                     "read",
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Once
         );
@@ -519,7 +520,8 @@ public sealed class DataControllerBlobVersionTests
                     service.AuthorizeInstanceAction(
                         It.IsAny<Instance>(),
                         It.IsAny<string>(),
-                        It.IsAny<string>()
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
                     )
                 )
                 .ReturnsAsync(authorizeRead);

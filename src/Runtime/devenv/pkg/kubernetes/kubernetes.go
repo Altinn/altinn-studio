@@ -284,7 +284,8 @@ func (c *KubernetesClient) CRDExists(crdName string) (bool, error) {
 }
 
 // RolloutStatus waits for a deployment rollout to complete using a watch and ctx.
-// Returns an error if the rollout fails or times out.
+// A deployment that does not exist yet, such as one an operator creates from a custom
+// resource, is waited for as well. Returns an error if the rollout fails or times out.
 func (c *KubernetesClient) RolloutStatus(
 	ctx context.Context,
 	deployment,
@@ -297,18 +298,23 @@ func (c *KubernetesClient) RolloutStatus(
 		defer cancel()
 	}
 
+	// Without a resource version, the watch starts with the deployment's current state if it
+	// exists, so one created after the Get below is not missed.
+	resourceVersion := ""
 	dep, err := c.clientset.AppsV1().Deployments(namespace).Get(ctx, deployment, metav1.GetOptions{})
-	if err != nil {
+	switch {
+	case apierrors.IsNotFound(err):
+	case err != nil:
 		return fmt.Errorf("failed to get deployment %s: %w", deployment, err)
-	}
-
-	if isRolloutComplete(dep) {
+	case isRolloutComplete(dep):
 		return nil
+	default:
+		resourceVersion = dep.ResourceVersion
 	}
 
 	watcher, err := c.clientset.AppsV1().Deployments(namespace).Watch(ctx, metav1.ListOptions{
 		FieldSelector:   "metadata.name=" + deployment,
-		ResourceVersion: dep.ResourceVersion,
+		ResourceVersion: resourceVersion,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to watch deployment %s: %w", deployment, err)

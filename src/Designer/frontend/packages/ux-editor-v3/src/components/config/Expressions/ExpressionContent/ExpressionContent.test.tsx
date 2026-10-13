@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -29,9 +30,6 @@ const layouts: IFormLayouts = {
 };
 
 describe('ExpressionContent', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   it('renders an expression in preview when defaultEditMode is false for an existing expression on hidden property', () => {
     render({});
 
@@ -94,7 +92,7 @@ describe('ExpressionContent', () => {
 
   it('renders calls onDeleteExpression when expression is deleted from preview mode', async () => {
     const user = userEvent.setup();
-    const mockOnDeleteExpression = jest.fn();
+    const mockOnDeleteExpression = vi.fn();
     render({
       props: {
         onDeleteExpression: mockOnDeleteExpression,
@@ -111,7 +109,7 @@ describe('ExpressionContent', () => {
 
   it('renders calls onDeleteExpression when expression is deleted from edit mode', async () => {
     const user = userEvent.setup();
-    const mockOnDeleteExpression = jest.fn();
+    const mockOnDeleteExpression = vi.fn();
     render({
       props: {
         defaultEditMode: true,
@@ -179,7 +177,7 @@ const render = ({
   const defaultProps: ExpressionContentProps = {
     property: ExpressionPropertyBase.Hidden,
     defaultEditMode: false,
-    onDeleteExpression: jest.fn(),
+    onDeleteExpression: vi.fn(),
   };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);

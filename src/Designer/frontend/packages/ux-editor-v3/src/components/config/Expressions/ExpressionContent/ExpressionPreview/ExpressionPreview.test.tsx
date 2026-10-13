@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -24,9 +25,6 @@ const layouts: IFormLayouts = {
 };
 
 describe('ExpressionPreview', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   it('does not show save button when expression is in previewMode', () => {
     render({});
 
@@ -49,7 +47,7 @@ describe('ExpressionPreview', () => {
   });
   it('calls onDeleteExpression when deleteExpression button is clicked', async () => {
     const user = userEvent.setup();
-    const mockOnDeleteExpression = jest.fn();
+    const mockOnDeleteExpression = vi.fn();
     render({
       props: {
         onDeleteExpression: mockOnDeleteExpression,
@@ -74,8 +72,8 @@ const render = ({
   const defaultProps: ExpressionPreviewProps = {
     expression: simpleInternalExpression,
     componentName: componentId,
-    onSetEditMode: jest.fn(),
-    onDeleteExpression: jest.fn(),
+    onSetEditMode: vi.fn(),
+    onDeleteExpression: vi.fn(),
   };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);

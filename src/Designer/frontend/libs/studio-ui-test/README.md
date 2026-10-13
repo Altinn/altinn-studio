@@ -7,7 +7,7 @@ Here are some of the exported modules:
 
 ## `studioTest`
 
-`studioTest` is a facade of the `jest` module, for test files that still run with Jest.
+`studioTest` is a facade of Vitest's `vi` object, with helpers for fake timers, confirm dialogs and animation frames.
 
 ## `renderAndRunTimers`
 
