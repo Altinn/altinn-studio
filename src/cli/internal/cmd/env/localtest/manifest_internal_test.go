@@ -256,6 +256,19 @@ func TestMonitoringContainers_OtelUsesLocalDomainAlias(t *testing.T) {
 	}
 }
 
+func TestMonitoringContainers_OtelPublishesOTLPGRPCAndHTTP(t *testing.T) {
+	resources := localtestResources(t, t.TempDir(), true)
+	container := mustContainerSpec(t, resources, components.ContainerOtelCollector)
+
+	want := []containertypes.PortMapping{
+		{HostIP: "127.0.0.1", HostPort: "4317", ContainerPort: "4317", Protocol: ""},
+		{HostIP: "127.0.0.1", HostPort: "4318", ContainerPort: "4318", Protocol: ""},
+	}
+	if got := container.Ports; !slices.Equal(got, want) {
+		t.Fatalf("otel.Ports = %v, want %v", got, want)
+	}
+}
+
 func TestMonitoringContainers_UseVictoriaStack(t *testing.T) {
 	resources := localtestResources(t, t.TempDir(), true)
 
