@@ -33,6 +33,7 @@ reconciles the overlays in this directory, as it does the real ones in a cluster
   instead of `https://altinn.studio/internal/observability/otlp`.
 - **One copy, no agents.** One storage instance per signal, written to by the proxy directly,
   with 1Gi volumes and three days of retention.
+- **No self-monitoring.** The scraper of the stack's own metrics, `vmagent-self`, is left out.
 - **Fixed tokens.** The collectors ingest with `local-runtime-ingest-token-not-a-secret` and
   queries use `local-grafana-query-token-not-a-secret`.
 
