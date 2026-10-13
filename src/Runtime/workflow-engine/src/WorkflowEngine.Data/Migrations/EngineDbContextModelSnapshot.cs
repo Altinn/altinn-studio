@@ -391,8 +391,8 @@ namespace WorkflowEngine.Data.Migrations
                     b.HasKey("Key", "Namespace")
                         .HasName("pk_workflow_collections");
 
-                    b.HasIndex("Namespace")
-                        .HasDatabaseName("ix_workflow_collections_namespace");
+                    b.HasIndex("Namespace", "Key")
+                        .HasDatabaseName("ix_workflow_collections_namespace_key");
 
                     b.ToTable("workflow_collections", "engine");
                 });
@@ -506,9 +506,6 @@ namespace WorkflowEngine.Data.Migrations
                     b.HasKey("Id")
                         .HasName("pk_workflows");
 
-                    b.HasIndex("CollectionKey")
-                        .HasDatabaseName("ix_workflows_collection_key");
-
                     b.HasIndex("CreatedAt")
                         .HasDatabaseName("ix_workflows_created_at");
 
@@ -535,8 +532,19 @@ namespace WorkflowEngine.Data.Migrations
                     NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("BackoffUntil", "CreatedAt"), new[] { "ThrottledUntil" });
                     NpgsqlIndexBuilderExtensions.HasNullSortOrder(b.HasIndex("BackoffUntil", "CreatedAt"), new[] { NullSortOrder.NullsFirst, NullSortOrder.NullsLast });
 
+                    b.HasIndex("CollectionKey", "Namespace")
+                        .HasDatabaseName("ix_workflows_collection_key_namespace");
+
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("CollectionKey", "Namespace"), new[] { "Status", "IsHead" });
+
                     b.HasIndex("Namespace", "Status")
                         .HasDatabaseName("ix_workflows_namespace_status");
+
+                    b.HasIndex(new[] { "Namespace", "CollectionKey" }, "ix_workflows_namespace_collection_key_failed")
+                        .HasDatabaseName("ix_workflows_namespace_collection_key_failed")
+                        .HasFilter("status IN (4, 5, 6)");
+
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex(new[] { "Namespace", "CollectionKey" }, "ix_workflows_namespace_collection_key_failed"), new[] { "IsHead" });
 
                     b.HasIndex(new[] { "Namespace", "Id" }, "ix_workflows_namespace_id_requeued")
                         .HasDatabaseName("ix_workflows_namespace_id_requeued")

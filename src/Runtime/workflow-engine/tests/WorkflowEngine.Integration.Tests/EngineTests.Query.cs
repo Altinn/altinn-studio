@@ -30,10 +30,61 @@ public partial class EngineTests
         Assert.Contains(body.Data, w => w.DatabaseId == workflowId);
     }
 
-    [Fact]
-    public async Task ListWorkflows_UnknownStatus_ReturnsBadRequest()
+    [Theory]
+    [InlineData("bogus")]
+    // The numeric forms are the interesting cases: they parse to real enum members, so a
+    // name-only parser is the only thing standing between "?status=4" and a silent filter
+    // to Failed. The sibling failures filter on ListCollections is pinned the same way.
+    [InlineData("0")]
+    [InlineData("4")]
+    [InlineData("-1")]
+    public async Task ListWorkflows_UnknownStatus_ReturnsBadRequest(string status)
     {
-        using var response = await _client.ListWorkflowsRaw("?status=bogus");
+        using var response = await _client.ListWorkflowsRaw($"?status={status}");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ListWorkflows_IsHeadFilter_UsesVisibilitySemantics()
+    {
+        // Arrange — one workflow per isHead directive value: unset (the ordinary default),
+        // explicit true, and explicit false (invisible).
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("wf-null", [_testHelpers.CreateWebhookStep("/hook")]),
+            _testHelpers.CreateWorkflow("wf-true", [_testHelpers.CreateWebhookStep("/hook")], isHead: true),
+            _testHelpers.CreateWorkflow("wf-false", [_testHelpers.CreateWebhookStep("/hook")], isHead: false),
+        ]);
+        var response = await _client.Enqueue(request);
+        var byRef = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+        await _client.WaitForWorkflowStatus(byRef.Values, PersistentItemStatus.Completed);
+
+        // Act
+        var visible = await _client.ListWorkflowsPaginated(isHead: true);
+        var invisible = await _client.ListWorkflowsPaginated(isHead: false);
+        var unfiltered = await _client.ListWorkflowsPaginated();
+
+        // Assert — isHead=true is visibility, not directive equality: it must include the
+        // null-directive workflow (the default for nearly every ordinary workflow), while
+        // isHead=false matches exactly the invisible one.
+        Assert.Equal(2, visible.TotalCount);
+        Assert.Contains(visible.Data, w => w.DatabaseId == byRef["wf-null"]);
+        Assert.Contains(visible.Data, w => w.DatabaseId == byRef["wf-true"]);
+
+        var invisibleWorkflow = Assert.Single(invisible.Data);
+        Assert.Equal(byRef["wf-false"], invisibleWorkflow.DatabaseId);
+
+        Assert.Equal(3, unfiltered.TotalCount);
+
+        // The response field stays the raw directive: a visible row can still read isHead = null.
+        Assert.Null(visible.Data.Single(w => w.DatabaseId == byRef["wf-null"]).IsHead);
+        Assert.Equal(true, visible.Data.Single(w => w.DatabaseId == byRef["wf-true"]).IsHead);
+    }
+
+    [Fact]
+    public async Task ListWorkflows_InvalidIsHeadValue_ReturnsBadRequest()
+    {
+        using var response = await _client.ListWorkflowsRaw("?isHead=bogus");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -60,6 +111,48 @@ public partial class EngineTests
         Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
         Assert.NotNull(workflow.UpdatedAt);
         Assert.Single(workflow.Steps);
+    }
+
+    [Fact]
+    public async Task StatusReads_WithIncludeStateFalse_LeaveTheStatePayloadOff()
+    {
+        // Arrange — a workflow enqueued with a state payload: the app's own data, which a status
+        // reader such as Studio's admin panel must be able to leave off.
+        const string statePayload = "{\"personNumber\":\"01017512345\"}";
+        var template = _testHelpers.CreateWorkflow("wf-state", [_testHelpers.CreateWebhookStep("/hook")]);
+        var request = _testHelpers.CreateEnqueueRequest(
+            new WorkflowRequest
+            {
+                Ref = template.Ref,
+                OperationId = template.OperationId,
+                Steps = template.Steps,
+                State = statePayload,
+            }
+        );
+        var enqueued = await _client.Enqueue(request);
+        var workflowId = enqueued.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+
+        using var client = fixture.CreateEngineClient();
+        var ns = EngineApiClient.DefaultNamespace;
+        var ct = TestContext.Current.CancellationToken;
+
+        // Act
+        var withState = await client.GetStringAsync($"/api/v1/{ns}/workflows/{workflowId}", ct);
+        var withoutState = await client.GetStringAsync($"/api/v1/{ns}/workflows/{workflowId}?includeState=false", ct);
+        var listWithoutState = await client.GetStringAsync(
+            $"/api/v1/{ns}/workflows?status=Completed&includeState=false",
+            ct
+        );
+
+        // Assert — the default keeps the payload; leaving it off drops the field itself, on both reads.
+        Assert.Contains("01017512345", withState, StringComparison.Ordinal);
+        Assert.DoesNotContain("01017512345", withoutState, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"initialState\"", withoutState, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"stateOut\"", withoutState, StringComparison.Ordinal);
+        Assert.Contains(workflowId.ToString(), listWithoutState, StringComparison.Ordinal);
+        Assert.DoesNotContain("01017512345", listWithoutState, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"initialState\"", listWithoutState, StringComparison.Ordinal);
     }
 
     [Fact]
