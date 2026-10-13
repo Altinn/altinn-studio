@@ -25,8 +25,10 @@ jobs:
 Guard every job that does work, rather than filtering at `on:`. Listing
 `ready_for_review` _without_ the guard is the one combination that is strictly
 wrong: the workflow then runs on every draft push and again on ready. Teardown
-work goes in a separate job keyed on `github.event.action == 'closed'` — see
-[`apps-storybook-preview.yaml`](workflows/apps-storybook-preview.yaml).
+work goes in a workflow triggered by `closed` without path filters — see
+[`apps-storybook-preview-cleanup.yaml`](workflows/apps-storybook-preview-cleanup.yaml).
+Share its concurrency group with the build workflow so cleanup cancels builds
+that could otherwise deploy after the PR closes.
 
 A few workflows run on drafts deliberately, for example
 [`pr-labeler.yml`](workflows/pr-labeler.yml) and
