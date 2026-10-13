@@ -30,10 +30,10 @@ public class PeriodicReportJob(
 
         var activity = RootSpan.OfJob();
         activity?.SetAlwaysSample();
-        activity?.SetTag("frequency", frequency.ToString());
+        activity?.SetTag(ServiceTelemetry.Attributes.PeriodicReport.Frequency, frequency.ToString());
 
         var targets = await contactPointsRepository.GetReportTargetsAsync(frequency, cancellationToken);
-        activity?.SetTag("report.count", targets.Count);
+        activity?.SetTag(ServiceTelemetry.Attributes.PeriodicReport.TargetCount, targets.Count);
 
         int failedCount = 0;
         foreach (var target in targets)
@@ -43,8 +43,8 @@ public class PeriodicReportJob(
                 $"{nameof(PeriodicReportJob)}.SendReport",
                 ActivityKind.Internal
             );
-            reportActivity?.SetTag("org", target.Org);
-            reportActivity?.SetTag("environment", target.Environment);
+            reportActivity.SetServiceOwner(target.Org);
+            reportActivity.SetTargetEnvironment(target.Environment);
 
             try
             {
@@ -65,7 +65,7 @@ public class PeriodicReportJob(
             }
         }
 
-        activity?.SetTag("report.failed_count", failedCount);
+        activity?.SetTag(ServiceTelemetry.Attributes.PeriodicReport.FailedCount, failedCount);
         if (failedCount > 0)
         {
             activity?.SetStatus(ActivityStatusCode.Error, $"{failedCount} of {targets.Count} reports failed.");
