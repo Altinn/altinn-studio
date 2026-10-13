@@ -70,13 +70,18 @@ data:
             labels: { job: vmagent-self }
         # flag is one series per command-line flag, config_parameter the
         # operator's equivalent, and go_* is the Go runtime: on kind about 4,300
-        # of the 10,500 series scraped, and of no use to the alert rules.
-        # Everything else is kept: process_* for restarts and memory, and the
-        # components' own vm_*, vl_*, vt_* and *agent_* series, including
-        # vm_persistentqueue_* for the agents' disk queues.
+        # of the 10,500 series scraped, and of no use to the alert rules. Only
+        # the flags that are set are kept, about 100 series, which is what the
+        # dashboards' Non-default flags panel shows. Everything else is kept:
+        # process_* for restarts and memory, and the components' own vm_*, vl_*,
+        # vt_* and *agent_* series, including vm_persistentqueue_* for the
+        # agents' disk queues.
         metric_relabel_configs:
+          - source_labels: [__name__, is_set]
+            regex: flag;false
+            action: drop
           - source_labels: [__name__]
-            regex: flag|config_parameter|go_.*
+            regex: config_parameter|go_.*
             action: drop
 ---
 # Ingest-only mode is what keeps this pod away from the Kubernetes API, even
