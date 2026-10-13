@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { LoggerContextProvider, type LoggerContextProviderProps } from './LoggerContext';
 import { render, waitFor } from '@testing-library/react';
@@ -29,10 +29,6 @@ function mockEnvironmentConfig(environment: { aiConnectionString?: string } | nu
 }
 
 describe('LoggerContextProvider', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   test('does not initialize ApplicationInsights without connectionString', () => {
     mockEnvironmentConfig(null);
 

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -51,8 +51,6 @@ const wrapper = ({
 };
 
 describe('useSelectedFormLayoutName', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should return undefined when the select layout is invalid', async () => {
     const { result } = renderHook(() => useSelectedFormLayoutName(selectedLayoutSet), { wrapper });
     expect(result.current.selectedFormLayoutName).toEqual(undefined);

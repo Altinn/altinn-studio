@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import type { Ref } from 'react';
 import type { StudioButtonProps } from './StudioButton';
 import { StudioButton } from './StudioButton';
@@ -13,8 +13,6 @@ const iconPlacementCases: IconPlacement[] = ['left', 'right'];
 const iconTestId: string = 'icon';
 
 describe('StudioButton', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('Renders a button with the given content', () => {
     const children = 'Button content';
     renderButton({ children });

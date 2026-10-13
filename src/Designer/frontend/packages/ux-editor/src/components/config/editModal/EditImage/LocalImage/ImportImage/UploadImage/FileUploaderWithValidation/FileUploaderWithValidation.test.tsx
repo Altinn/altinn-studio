@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import type { FileValidation, FileUploaderWithValidationProps } from './FileUploaderWithValidation';
@@ -14,8 +14,6 @@ const defaultProps: FileUploaderWithValidationProps = {
 };
 
 describe('FileUploaderWithValidation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render only studioButton by default ', () => {
     renderFileUploader({ uploaderButtonText: undefined });
     const uploadButton = screen.getByRole('button', { name: '' });

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { CreateNewSubformSection } from './CreateNewSubformSection';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -17,8 +17,6 @@ const onComponentUpdate = vi.fn();
 const dataModelIds = ['dataModel1', 'dataModel2'];
 
 describe('CreateNewSubformSection ', () => {
-  afterEach(vi.clearAllMocks);
-
   it('displays the card with label, input field and data model select', () => {
     renderCreateNewSubformLayoutSet({});
     const subformNameInput = screen.getByRole('textbox');

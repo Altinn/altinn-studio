@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useBranchData } from './useBranchData';
 import { useBranchesQuery } from 'app-shared/hooks/queries/useBranchesQuery';
@@ -13,8 +13,6 @@ const mockUseBranchesQuery = vi.mocked(useBranchesQuery);
 const mockUseCurrentBranchQuery = vi.mocked(useCurrentBranchQuery);
 
 describe('useBranchData', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Should return current branch name and branch list when data is loaded', () => {
     mockUseCurrentBranchQuery.mockReturnValue({
       data: currentBranchInfoMock,

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { CreateCustomReceipt } from './CreateCustomReceipt';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -32,8 +32,6 @@ const legacyVersion: AppVersion = { backendVersion: '8.9.0', frontendVersion: '4
 const v9Version: AppVersion = { backendVersion: '9.0.0', frontendVersion: '4.25.2' };
 
 describe('CreateCustomReceipt', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('renders the editable name field for apps older than v9', () => {
     renderCreateCustomReceipt({ appVersion: legacyVersion });
     expect(screen.getByLabelText(nameFieldLabel)).toBeInTheDocument();

@@ -101,9 +101,11 @@ stack (see `README.md`).
   exception messages, docs, and translation _keys_ (a key is a code contract). Text a user reads in
   the product is **British English** for the English values and checked **Norwegian** (bokmål and
   nynorsk, via hunspell + Norsk Ordbank) for the `nb`/`nn` values. Run `yarn spell:quick` for fast
-  feedback on your changed files, `yarn spell:check` for everything, and `yarn spell:fix` to apply
-  unambiguous corrections — note that the fix mode also edits misspelled _identifiers_, which is a
-  semantic change, so always review the diff. CI runs the same checks in
+  feedback on everything your branch changed, `yarn spell:check` for everything, and `yarn spell:fix`
+  to apply unambiguous corrections — note that the fix mode also edits misspelled _identifiers_, which
+  is a semantic change, so always review the diff. It cannot tell prose from a wire literal (a route,
+  JSON key, enum value or migration constant), a CSS module class name used from TSX, or a Norwegian
+  word in a comment, and those are what a sweep has broken before. CI runs the same checks in
   `.github/workflows/spellcheck.yaml`; the pre-commit hook runs `spell:quick` on staged files. The
   check is deliberately **not** wired into `dotnet build`/`tsc` — a spelling finding should never
   slow or break a compile, and CI is the gate.
@@ -162,5 +164,20 @@ stack (see `README.md`).
   Framework versions differ per project and are documented at the leaf, not here — check the project's
   own `AGENTS.md`, `global.json`, `go.mod`, or `pyproject.toml` before assuming a version.
 - **Formatting/linting is enforced at build time** in most projects (CSharpier for .NET, ESLint/Prettier
-  for TS, golangci-lint for Go). Follow the commands in the project's `AGENTS.md`/`Makefile`.
+  for TS, golangci-lint for Go). Follow the commands in the project's `AGENTS.md`/`Makefile`. Prettier
+  takes its indentation from `.editorconfig`, so check a file in place: a copy outside the tree is
+  formatted against different rules.
+- **.NET warnings are errors only in CI.** Most areas' `Directory.Build.props` set
+  `TreatWarningsAsErrors` only when `CI=true`, and an incremental build does not repeat the warnings of
+  a project it skips. Reproduce CI with `CI=true dotnet build <solution> --no-incremental`. A bare
+  `-warnaserror` is not the same: it also fails on the NuGet audit advisories (`NU1901`–`NU1904`) that
+  CI exempts.
+- **Stacked pull requests** use GitHub's native stacks through the `gh stack` extension
+  (`gh extension install github/gh-stack`; `gh stack --help`). `gh stack sync` fetches, rebases each
+  branch onto its updated parent and pushes the stack. If a squash-merged parent's commits still
+  replay into a child, `git rebase --onto origin/main <parent's last pre-merge commit>` (from
+  `gh pr view <parent> --json commits`) drops them. A stacked PR's
+  mergeability is computed against `main`, not its base branch, so a child can show conflicts that
+  only `git merge-tree --write-tree origin/main <head>` reproduces. A PR's base cannot be edited while
+  it is in a stack (`gh stack unstack` first).
 - **Prefer the guidance closest to the code.** More-specific `AGENTS.md` files override this one.

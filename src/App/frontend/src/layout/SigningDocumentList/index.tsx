@@ -2,6 +2,7 @@ import React, { forwardRef, type JSX } from 'react';
 
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
+import { GenericComponent } from 'src/layout/GenericComponent';
 import { ValidateSigningTaskType } from 'src/layout/SigningActions/ValidateSigningTaskType';
 import { SigningDocumentListDef } from 'src/layout/SigningDocumentList/config.def.generated';
 import { SigningDocumentListComponent } from 'src/layout/SigningDocumentList/SigningDocumentListComponent';
@@ -10,6 +11,7 @@ import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalExpressionMap, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ComponentLayoutValidationProps } from 'src/layout/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class SigningDocumentList extends SigningDocumentListDef {
@@ -31,6 +33,10 @@ export class SigningDocumentList extends SigningDocumentListDef {
 
   renderLayoutValidators(props: ComponentLayoutValidationProps<'SigningDocumentList'>): JSX.Element | null {
     return <ValidateSigningTaskType {...props} />;
+  }
+
+  renderSummary({ targetBaseComponentId }: SummaryRendererProps): JSX.Element | null {
+    return <GenericComponent baseComponentId={targetBaseComponentId} />;
   }
 
   renderSummary2({ targetBaseComponentId }: Summary2Props): JSX.Element | null {

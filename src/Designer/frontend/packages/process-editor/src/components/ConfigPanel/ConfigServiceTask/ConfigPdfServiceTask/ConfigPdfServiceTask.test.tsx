@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@studio/ui-test';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -29,10 +29,6 @@ vi.mock('app-shared/hooks/mutations', () => ({
 }));
 
 describe('ConfigPdfServiceTask', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   describe('PDF mode radio group', () => {
     it('should render PDF mode radio group with automatic and layout-based options', () => {
       renderConfigPdfServiceTask();

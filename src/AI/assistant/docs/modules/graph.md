@@ -1,10 +1,10 @@
 # Graph: gates, intake, spec and the loop node
 
-Code: `agents/graph/`, `agents/workflows/`, `agents/services/llm/scope_checker.py`, `agents/services/llm/intent_parser.py`
+Code: `src/AI/assistant/agents/graph/`, `src/AI/assistant/agents/workflows/`, `src/AI/assistant/agents/services/llm/scope_checker.py`, `src/AI/assistant/agents/services/llm/intent_parser.py`
 
 ## Runner and gates
 
-`run_once` in `agents/graph/runner.py` opens one Langfuse root span for the run. Then it runs two gates before the graph. The scope check runs for all requests. The intent check runs only in workflow mode. The scope check fails open: if the model call fails, the request continues. The intent check fails closed: if it cannot run, a write request stops.
+`run_once` in `src/AI/assistant/agents/graph/runner.py` opens one Langfuse root span for the run. Then it runs two gates before the graph. The scope check runs for all requests. The intent check runs only in workflow mode. The scope check fails open: if the model call fails, the request continues. The intent check fails closed: if it cannot run, a write request stops.
 
 ```mermaid
 flowchart TD
@@ -74,11 +74,11 @@ classDiagram
   }
 ```
 
-_The shape of a `FormSpec`, in `agents/graph/state.py`._
+_The shape of a `FormSpec`, in `src/AI/assistant/agents/graph/state.py`._
 
 ## Agentic loop node
 
-Code: `agents/graph/nodes/agentic_loop_node.py`
+Code: `src/AI/assistant/agents/graph/nodes/agentic_loop_node.py`
 
 This node prepares the loop and handles the result. It finds the app version (v8 or v9), builds the system prompt and registers the tools. In chat mode it connects the permission broker, so a write tool can ask the user.
 

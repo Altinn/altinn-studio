@@ -102,39 +102,6 @@ namespace Altinn.App.logic.DataProcessing
                     model.PrefillValuesShadow = model.PrefillValues;
                 }
 
-                // Calculating the sum of all changes, and selected changes (above hideRowValue)
-                decimal newSumAll = 0;
-                decimal newSumAboveLimit = 0;
-                int newNumAboveLimit = 0;
-                if (model.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788 != null)
-                    foreach (var row in model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788)
-                    {
-                        var from = row?.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131?.value ?? 0;
-                        var to = row?.SkattemeldingEndringEtterFristNyttBelopdatadef37132?.value ?? 0;
-                        var change = to - from;
-                        newSumAll += change;
-                        if (from >= model.hideRowValue)
-                        {
-                            newSumAboveLimit += change;
-                            newNumAboveLimit++;
-                        }
-                    }
-
-                if (newNumAboveLimit > 0)
-                {
-                    // We _only_ want to update these numbers if there are rows above the limit. This is because
-                    // we have multiple bugs in app-frontend that causes weird things to happen if the server sends
-                    // back new data while we're editing in the group. For now, we simply avoid setting these values
-                    // unless the page with these numbers displayed is visible. In the future, tests should pass even
-                    // if we remove the if above here.
-                    if (newSumAll != model.sumAll || newSumAboveLimit != model.sumAboveLimit || newNumAboveLimit != model.numAboveLimit)
-                    {
-                        model.sumAll = newSumAll;
-                        model.sumAboveLimit = newSumAboveLimit;
-                        model.numAboveLimit = newNumAboveLimit;
-                    }
-                }
-
                 // Look at Group2, and increment the counter when encountering a new row without a row number
                 if (model.Endringsmeldinggrp9786 != null && model.Endringsmeldinggrp9786.Gruppe2 != null)
                 {

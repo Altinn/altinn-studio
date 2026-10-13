@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
@@ -9,8 +9,6 @@ import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 
 describe('InputfieldsWithTranslation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders NB field with correct label and description', () => {
     renderInputfieldsWithTranslation();
 

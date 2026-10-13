@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { AppConfigForm } from './AppConfigForm';
 import type { AppConfigFormProps } from './AppConfigForm';
@@ -14,8 +14,6 @@ vi.mock('../hooks/useScrollIntoView', () => ({
 }));
 
 describe('AppConfigForm', () => {
-  afterEach(vi.clearAllMocks);
-
   it('does not render error summary when the save button is pressed and there are no errors', async () => {
     const user = userEvent.setup();
     renderAppConfigForm({ appConfig: mockAppConfigComplete });

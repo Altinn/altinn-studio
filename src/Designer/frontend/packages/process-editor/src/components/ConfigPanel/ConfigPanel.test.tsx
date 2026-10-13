@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ConfigPanel } from './ConfigPanel';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -16,9 +16,6 @@ vi.mock('./ConfigSequenceFlow', () => ({
 }));
 
 describe('ConfigPanel', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
   it('should render no selected task message', () => {
     renderConfigPanel({ bpmnDetails: null });
     const title = screen.getByRole('heading', {

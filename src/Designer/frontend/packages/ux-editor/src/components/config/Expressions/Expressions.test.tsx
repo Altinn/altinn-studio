@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -49,8 +49,6 @@ const defaultFormItemContext: FormItemContext = {
 };
 
 describe('Expressions', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('renders add new expression button when there are no existing expressions on component', async () => {
     renderExpressions({ formItem: componentWithoutExpression });
     screen.getByRole('button', { name: textMock('right_menu.expressions_add') });

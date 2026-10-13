@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
@@ -48,10 +48,6 @@ function renderAppValidationDialog(validationData: {
 }
 
 describe('AppValidationDialog', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('renders dialog with heading and updated-at paragraph', () => {
     renderAppValidationDialog({});
     expect(screen.getByText(/app_validation\.heading/)).toBeInTheDocument();

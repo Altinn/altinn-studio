@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import { SmallHeaderMenu } from './SmallHeaderMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -10,10 +10,6 @@ import { type PageHeaderContextProps } from 'app-development/contexts/PageHeader
 import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
 
 describe('SmallHeaderMenu', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render the menu trigger button with the correct text', () => {
     renderSmallHeaderMenu();
 

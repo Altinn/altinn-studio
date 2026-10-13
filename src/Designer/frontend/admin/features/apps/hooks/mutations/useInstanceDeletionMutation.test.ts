@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import axios from 'axios';
 import type { AxiosStatic } from 'axios';
@@ -20,8 +20,6 @@ const app = 'test-app';
 const instanceId = '51e58b12-6de1-4d0f-9052-ec2ee9d43adf';
 
 describe('useInstanceDeletionMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('deletes the instance and invalidates instance queries on success', async () => {
     (axios.delete as Mock).mockResolvedValue({});
     const queryClient = createQueryClientMock();

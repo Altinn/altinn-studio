@@ -45,7 +45,6 @@ vi.mock('../../../../../hooks/useUpdatePdfConfigTaskIds', () => ({
 
 describe('PdfAutomaticTaskSelection', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     mockTasks = [...defaultMockTasks];
   });
 

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigServiceTask } from './ConfigServiceTask';
@@ -94,8 +94,6 @@ vi.mock('../../../hooks/useUpdatePdfConfigTaskIds', () => ({
 }));
 
 describe('ConfigServiceTask', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('should render EditTaskId component', () => {
     renderConfigServiceTask();
 

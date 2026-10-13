@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import type { QueryClient } from '@tanstack/react-query';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -19,8 +19,6 @@ const defaultProps: GenerateModelsButtonProps = {
 };
 
 describe('GenerateModelsButton', () => {
-  afterEach(vi.clearAllMocks);
-
   it('asks the backend whether the model files are out of date', async () => {
     renderGenerateModelsButton();
 

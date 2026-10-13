@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import { BranchDropdown } from './BranchDropdown';
@@ -55,8 +55,6 @@ describe('BranchDropdown', () => {
     mockBranchData();
     mockBranchOperations();
   });
-
-  afterEach(vi.clearAllMocks);
 
   it('Should show loading spinner when loading branch data', () => {
     mockBranchData({ isLoading: true });

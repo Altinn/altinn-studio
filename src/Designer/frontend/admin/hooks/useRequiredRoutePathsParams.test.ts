@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useRequiredRoutePathsParams } from './useRequiredRoutePathsParams';
@@ -9,10 +9,6 @@ vi.mock('app-shared/hooks/useRequiredParams', () => ({
 }));
 
 describe('useRequiredRoutePathsParams', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('forwards required params and returns shared hook result', () => {
     const sharedResult = { owner: 'ttd', app: 'my-app' };
     (useRequiredParams as Mock).mockReturnValue(sharedResult);

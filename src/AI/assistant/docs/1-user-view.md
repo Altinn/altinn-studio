@@ -62,7 +62,7 @@ Some requests do not give changes:
 
 ## A second user: the assistant developer
 
-The developers of the assistant use a different interface: the benchmark workbench in a terminal. They run it after they change a prompt, a tool, a model or the loop code. One command runs the evals, compares the result with the accepted baseline and writes a report page, `benchmarks/reports/workbench.html`.
+The developers of the assistant use a different interface: the benchmark workbench in a terminal. They run it after they change a prompt, a tool, a model or the loop code. One command runs the evals, compares the result with the accepted baseline and writes a report page, `src/AI/assistant/benchmarks/reports/workbench.html`.
 
 The command `python -m benchmarks.runner` without arguments shows a menu of all commands. The usual command is `python -m benchmarks.runner check --label "what changed"`. The slow end to end builds run only with `--include-e2e`.
 

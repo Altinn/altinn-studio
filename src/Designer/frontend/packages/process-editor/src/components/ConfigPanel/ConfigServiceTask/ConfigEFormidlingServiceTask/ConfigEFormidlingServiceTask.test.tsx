@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
@@ -28,8 +28,6 @@ const fieldLabel = (property: string): string =>
   textMock(`process_editor.configuration_panel.eformidling.${property}_label`);
 
 describe('ConfigEFormidlingServiceTask', () => {
-  afterEach(vi.clearAllMocks);
-
   it.each([
     ['process', 'process', 'urn:no:difi:profile:arkivmelding:ver1.0'],
     ['standard', 'standard', 'urn:no:difi:arkivmelding:xsd::arkivmelding'],

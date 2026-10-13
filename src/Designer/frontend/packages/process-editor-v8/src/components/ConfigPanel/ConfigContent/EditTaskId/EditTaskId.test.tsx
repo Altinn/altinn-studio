@@ -48,7 +48,6 @@ vi.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
 
 describe('EditTaskId', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     mockBackendVersion = '8.9.0';
     mockLayoutSets = [];
   });

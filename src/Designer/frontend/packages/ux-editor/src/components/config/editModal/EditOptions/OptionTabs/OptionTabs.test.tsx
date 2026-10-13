@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -18,8 +18,6 @@ const queryClient = createQueryClientMock();
 queryClient.setQueryData([QueryKey.TextResources, org, app], { nb: [], nn: [], en: [] });
 
 describe('OptionTabs', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render component', () => {
     renderOptionTabs();
     expect(screen.getByText(textMock('ux_editor.options.tab_code_list'))).toBeInTheDocument();

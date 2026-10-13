@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { formLayoutSettingsMock, renderHookWithProviders } from '../../testing/mocks';
 import { useDeleteLayoutMutation } from './useDeleteLayoutMutation';
@@ -21,8 +21,6 @@ const selectedLayoutSet = layoutSet1NameMock;
 const layoutName = layout2NameMock;
 
 describe('useDeleteLayoutMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Calls deleteFormLayout with the name of the layout to delete', async () => {
     const { result } = renderDeleteLayoutMutation();
     await result.current.mutateAsync(layoutName);

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { org } from '@studio/testing/testids';
 import { queriesMock } from '../../mocks/queriesMock';
@@ -30,8 +30,6 @@ const otherCodeList: CodeListDataWithTextResources = {
 };
 
 describe('useDeleteOrgCodeListMutation', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('Calls deleteOrgCodeList with correct parameters', async () => {
     const { result } = renderHookWithProviders(() => useDeleteOrgCodeListMutation(org));
     await result.current.mutateAsync(title);

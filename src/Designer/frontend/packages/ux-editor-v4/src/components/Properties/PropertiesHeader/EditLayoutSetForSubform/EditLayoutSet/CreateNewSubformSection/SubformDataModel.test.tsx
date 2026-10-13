@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { SubformDataModel, type SubformDataModelProps } from './SubformDataModel';
@@ -14,8 +14,6 @@ const mockDataModelIds = ['dataModelId1', 'dataModelId2'];
 (useAppMetadataModelIdsQuery as Mock).mockReturnValue({ data: mockDataModelIds });
 
 describe('SubformDataModel', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders StudioNativeSelect with its label and options', () => {
     renderSubformDataModelSelect();
 

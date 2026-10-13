@@ -765,6 +765,9 @@ namespace Altinn.App.Core.Features.Bootstrap.Models
     {
         public DataModelInfo() { }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("calculationConfig")]
+        public object? CalculationConfig { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("dataElementId")]
         public string? DataElementId { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]

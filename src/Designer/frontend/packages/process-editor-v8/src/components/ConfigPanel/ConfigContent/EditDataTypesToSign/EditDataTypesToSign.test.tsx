@@ -42,7 +42,6 @@ describe('EditDataTypesToSign', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    vi.clearAllMocks();
   });
 
   it('should display a suggestion input with an error message when task has no data type', () => {

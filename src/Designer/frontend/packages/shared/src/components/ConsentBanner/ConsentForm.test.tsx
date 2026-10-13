@@ -34,7 +34,6 @@ const getDeclineAllButton = () =>
 
 describe('ConsentForm', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     (consentHooks.useConsent as Mock).mockReturnValue(defaultConsentState);
     (consentHooks.useConsentMutation as Mock).mockReturnValue({
       setConsentPreferences: mockSetConsentPreferences,

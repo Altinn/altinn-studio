@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render } from '@testing-library/react';
 import type { CodeListsWithTextResourcesProps } from './CodeListsWithTextResources';
@@ -47,8 +47,6 @@ const codeListMultipleUsagesMock: CodeListReference[] = [
 ];
 
 describe('CodeListsWithTextResources', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders the code list details closed by default', () => {
     renderCodeLists();
     const details = screen.getDetailsBySummary(codeListName);

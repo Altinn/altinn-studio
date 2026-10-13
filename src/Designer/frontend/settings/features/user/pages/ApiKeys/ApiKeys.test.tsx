@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiKeys } from './ApiKeys';
@@ -81,8 +81,6 @@ const getDeleteButton = (name: string) =>
   screen.getByRole('button', { name: textMock('settings.api_keys.delete', { name }) });
 
 describe('ApiKeys', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('renders the open dialog button', () => {
     renderApiKeys();
     expect(getOpenDialogButton()).toBeInTheDocument();

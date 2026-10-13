@@ -43,7 +43,7 @@ class PathError(Exception):
     """Raised when a repo-relative path is unsafe or invalid."""
 
 
-def _resolve_repo_path(repo_path: str, rel_path: str) -> Path:
+def resolve_repo_path(repo_path: str, rel_path: str) -> Path:
     """Resolve `rel_path` under `repo_path`, refusing escapes.
 
     The model only ever names repo-relative paths.  We reject absolute
@@ -112,11 +112,10 @@ class ReadFileTool(Tool[ReadFileArgs]):
     )
     input_schema = ReadFileArgs
     is_concurrency_safe = True
-    is_read_only = True
 
     async def run(self, args: ReadFileArgs, ctx: LoopContext) -> ToolResult:
         try:
-            full = _resolve_repo_path(ctx.repo_path, args.path)
+            full = resolve_repo_path(ctx.repo_path, args.path)
         except PathError as exc:
             return ToolResult(content=str(exc), is_error=True)
         if not full.exists():
@@ -212,7 +211,7 @@ class EditFileTool(WriteToolMixin[EditFileArgs]):
                 is_error=True,
             )
         try:
-            full = _resolve_repo_path(ctx.repo_path, args.path)
+            full = resolve_repo_path(ctx.repo_path, args.path)
         except PathError as exc:
             return ToolResult(content=str(exc), is_error=True)
         if not full.exists() or not full.is_file():
@@ -396,7 +395,7 @@ class WriteFileTool(WriteToolMixin[WriteFileArgs]):
 
     async def run(self, args: WriteFileArgs, ctx: LoopContext) -> ToolResult:
         try:
-            full = _resolve_repo_path(ctx.repo_path, args.path)
+            full = resolve_repo_path(ctx.repo_path, args.path)
         except PathError as exc:
             return ToolResult(content=str(exc), is_error=True)
         existing = full.exists()
@@ -454,7 +453,7 @@ class DiscardFileChangesTool(WriteToolMixin[DiscardFileChangesArgs]):
 
     async def run(self, args: DiscardFileChangesArgs, ctx: LoopContext) -> ToolResult:
         try:
-            _resolve_repo_path(ctx.repo_path, args.path)
+            resolve_repo_path(ctx.repo_path, args.path)
         except PathError as exc:
             return ToolResult(content=str(exc), is_error=True)
         try:

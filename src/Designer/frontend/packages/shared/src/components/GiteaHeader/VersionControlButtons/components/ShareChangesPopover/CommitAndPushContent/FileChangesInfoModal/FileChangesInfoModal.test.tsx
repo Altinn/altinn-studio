@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -13,8 +13,6 @@ const defaultProps: FileChangesInfoModalProps = {
 };
 
 describe('FileChangesInfoModal', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render a trigger button and keep the modal closed initially', () => {
     renderFileChangesInfoModal();
     expect(getReviewChangesButton()).toBeInTheDocument();

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
 import type { AddLayoutMutationArgs } from './useAddLayoutMutation';
@@ -19,8 +19,6 @@ const selectedLayoutSet = layoutSet1NameMock;
 const defaultArgs: AddLayoutMutationArgs = { layoutName };
 
 describe('useAddLayoutMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Calls saveFormLayoutV3 with new layout', async () => {
     await renderAndWaitForData();
 

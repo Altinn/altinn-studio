@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { ColumnElement, type ColumnElementProps } from './ColumnElement';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -40,10 +40,6 @@ const defaultProps: ColumnElementProps = {
 };
 
 describe('ColumnElement', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should call onChange with component values when selecting component', async () => {
     const onChangeMock = vi.fn();
 

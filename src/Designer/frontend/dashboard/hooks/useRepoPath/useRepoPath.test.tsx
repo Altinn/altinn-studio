@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { useRepoPath } from './useRepoPath';
 import { HeaderContext, type HeaderContextProps } from '../../context/HeaderContext';
@@ -28,10 +28,6 @@ const renderUseRepoPathHook = (props: Partial<Props> = {}) => {
 };
 
 describe('useRepoPath', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should return the repository owner path when an organization is selected', () => {
     (useSelectedContext as Mock).mockReturnValue(mockOrg1.username);
 

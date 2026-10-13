@@ -1,7 +1,8 @@
-"""Tests for the surviving write tools: verify_changes, commit_session_branch.
+"""Tests for the write tools: the read-only refusal of every tool that
+needs write mode, and the behavior of verify_changes and
+commit_session_branch.
 
-(The `propose_patch` and `rollback` tools have been removed in favor of
-the CC-style file surface — see `test_file_tools.py`.)
+The behavior of the file tools is tested in `test_file_tools.py`.
 
 External services (git_ops, repo_manager, the layout-schema CDN fetch)
 are monkeypatched or stubbed — nothing in here touches the network.  The
@@ -21,8 +22,13 @@ import pytest
 from agents.altinn.app_version import V8_PROFILE, V9_PROFILE
 from agents.core import (
     CommitSessionBranchTool,
+    DatamodelSyncTool,
+    DiscardFileChangesTool,
+    EditFileTool,
     LoopContext,
+    PreviewRenderCheckTool,
     VerifyChangesTool,
+    WriteFileTool,
 )
 
 from .git_repo import create_committed_repo, write_files
@@ -59,7 +65,7 @@ def permissive_schema(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# Permission gating (the surviving write tools should still respect the flag)
+# Permission gating (every tool that needs write mode must respect the flag)
 # ---------------------------------------------------------------------------
 
 
@@ -67,8 +73,13 @@ class TestPermission:
     @pytest.mark.parametrize(
         "tool_factory,args",
         [
+            (EditFileTool, {"path": "f.txt", "old_string": "a", "new_string": "b"}),
+            (WriteFileTool, {"path": "f.txt", "content": "a"}),
+            (DiscardFileChangesTool, {"path": "f.txt"}),
             (VerifyChangesTool, {}),
             (CommitSessionBranchTool, {"message": "msg"}),
+            (PreviewRenderCheckTool, {}),
+            (DatamodelSyncTool, {"schema_path": "App/models/model.schema.json"}),
         ],
     )
     async def test_denied_in_read_only_mode(self, tool_factory, args):

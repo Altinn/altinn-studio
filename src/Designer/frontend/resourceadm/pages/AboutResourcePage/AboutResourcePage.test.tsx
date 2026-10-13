@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { AboutResourcePageProps } from './AboutResourcePage';
@@ -91,7 +91,6 @@ describe('AboutResourcePage', () => {
       org: 'ttd',
     });
   });
-  afterEach(vi.clearAllMocks);
 
   const mockOnSaveResource = vi.fn();
 

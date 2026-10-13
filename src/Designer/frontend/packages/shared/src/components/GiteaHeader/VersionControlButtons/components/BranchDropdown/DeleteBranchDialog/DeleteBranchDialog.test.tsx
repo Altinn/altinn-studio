@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -14,8 +14,6 @@ const defaultProps: DeleteBranchDialogProps = {
 };
 
 describe('DeleteBranchDialog', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should disable confirm button when input does not match branch name', async () => {
     const user = userEvent.setup();
     renderDeleteBranchDialog();

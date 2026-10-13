@@ -18,6 +18,9 @@ from agents.altinn.layout import get_layout_schema
 from agents.altinn.layout.properties import layout_properties_tool
 from agents.core.tool import LoopContext, Tool, ToolResult
 
+from ._write_base import WriteToolMixin
+from .file_tool import PathError, resolve_repo_path
+
 
 class LayoutPropsArgs(BaseModel):
     component_type: str = Field(
@@ -40,7 +43,6 @@ class LayoutPropsTool(Tool[LayoutPropsArgs]):
     )
     input_schema = LayoutPropsArgs
     is_concurrency_safe = True
-    is_read_only = True
 
     async def run(self, args: LayoutPropsArgs, ctx: LoopContext) -> ToolResult:
         profile = ctx.app_version_profile
@@ -74,7 +76,7 @@ class DatamodelSyncArgs(BaseModel):
     )
 
 
-class DatamodelSyncTool(Tool[DatamodelSyncArgs]):
+class DatamodelSyncTool(WriteToolMixin[DatamodelSyncArgs]):
     """Generate XSD + C# from a JSON Schema model (Altinn Studio parity)."""
 
     name = "altinn_datamodel_sync"
@@ -87,10 +89,12 @@ class DatamodelSyncTool(Tool[DatamodelSyncArgs]):
     )
     input_schema = DatamodelSyncArgs
     is_concurrency_safe = False  # writes files
-    is_read_only = False
 
     async def run(self, args: DatamodelSyncArgs, ctx: LoopContext) -> ToolResult:
-        schema_file = Path(ctx.repo_path) / args.schema_path
+        try:
+            schema_file = resolve_repo_path(ctx.repo_path, args.schema_path)
+        except PathError as exc:
+            return ToolResult(content=str(exc), is_error=True)
         if not schema_file.is_file():
             return ToolResult(content=f"Schema file not found: {args.schema_path}", is_error=True)
         try:
@@ -110,16 +114,17 @@ class DatamodelSyncTool(Tool[DatamodelSyncArgs]):
                 is_error=True,
             )
 
+        schema_dir = Path(args.schema_path).parent
         written: list[str] = []
         changed: set[str] = ctx.extras.setdefault("changed_files", set())
         verified: set[str] = ctx.extras.setdefault("verified_files", set())
         for entry in result.get("generated") or []:
-            out_path = schema_file.parent / entry["path"]
+            rel = str(schema_dir / entry["path"])
             try:
+                out_path = resolve_repo_path(ctx.repo_path, rel)
                 out_path.write_text(entry["content"], encoding="utf-8")
-            except OSError as exc:
-                return ToolResult(content=f"Could not write {entry['path']}: {exc}", is_error=True)
-            rel = str(out_path.relative_to(ctx.repo_path))
+            except (PathError, OSError) as exc:
+                return ToolResult(content=f"Could not write {rel}: {exc}", is_error=True)
             written.append(rel)
             changed.add(rel)
             # Generated files must be re-verified before commit like any

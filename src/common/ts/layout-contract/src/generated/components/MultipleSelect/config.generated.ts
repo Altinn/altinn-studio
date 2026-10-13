@@ -6,7 +6,6 @@ import {
   ISelectionComponentFull,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -14,14 +13,11 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CompMultipleSelectExternal
-  extends
-    ComponentBase,
-    FormComponentProps,
-    SummarizableComponentProps,
-    ISelectionComponentFull,
-    LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, ISelectionComponentFull, LabeledComponentProps {
   type: 'MultipleSelect';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   alertOnChange?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -71,4 +67,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: MultipleSelectSummaryOverridesWithRef;
 };
 
-// Source hash: c371177062f2db0e0b49d25637584dafd2cb92571604cab22e5a43872f86c931
+// Source hash: a3edb66a98042f64682ec1131f16ddaf8950725ef01f01444cebd66909c98a83

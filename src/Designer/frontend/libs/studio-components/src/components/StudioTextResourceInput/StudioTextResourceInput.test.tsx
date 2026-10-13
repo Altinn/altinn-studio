@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ForwardedRef } from 'react';
 import type { StudioTextResourceInputProps } from './StudioTextResourceInput';
 import { StudioTextResourceInput } from './StudioTextResourceInput';
@@ -43,8 +43,6 @@ const defaultProps: StudioTextResourceInputProps = {
 const currentTextResource = TextResourceUtils.fromArray(textResources).get(currentId);
 
 describe('StudioTextResourceInput', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders the "edit value" input field by default', () => {
     renderTextResourceInput();
     expect(getValueField()).toBeInTheDocument();

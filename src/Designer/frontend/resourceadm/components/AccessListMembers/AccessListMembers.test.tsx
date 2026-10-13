@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -44,8 +44,6 @@ const defaultProps: AccessListMembersProps = {
 };
 
 describe('AccessListMembers', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should show special party name if name is not found', async () => {
     await renderAndWaitForData();
     expect(screen.getByText(textMock('resourceadm.listadmin_empty_name'))).toBeInTheDocument();

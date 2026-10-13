@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import { ProcessEditor } from './ProcessEditor';
@@ -52,10 +52,6 @@ vi.mock('react-toastify', async () => ({
 }));
 
 describe('ProcessEditor', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('shows a spinner while loading application metadata', () => {
     renderProcessEditor({ queryClient: createQueryClientMock() });
 

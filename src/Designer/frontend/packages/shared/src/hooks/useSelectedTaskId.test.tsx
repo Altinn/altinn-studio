@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -52,8 +52,6 @@ const wrapper = ({
 };
 
 describe('useSelectedTaskId', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should return the default task id when it does not exist', async () => {
     const { result } = renderHook(() => useSelectedTaskId(layoutSet1NameMock), { wrapper });
     expect(result.current).toEqual(TASKID_FOR_STATELESS_APPS);

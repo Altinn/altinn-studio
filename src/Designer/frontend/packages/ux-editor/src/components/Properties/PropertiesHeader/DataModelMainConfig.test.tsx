@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { screen } from '@testing-library/react';
@@ -19,8 +19,6 @@ const simpleBindingRequired = ['simpleBinding'];
 const multipleBindingsRequired = ['binding1', 'binding2', 'binding3'];
 
 describe('DataModelMainConfig', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('return null if there is no data model bindings required', () => {
     renderDataModelMainConfig({
       component: component1Mock,

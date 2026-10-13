@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-development/test/mocks';
 import { app, org } from '@studio/testing/testids';
@@ -11,8 +11,6 @@ const threadId = 'thread-1';
 const messageId = 'message-1';
 
 describe('useDeleteChatMessageMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Calls deleteChatMessage with correct arguments', async () => {
     const result = renderHookWithProviders()(() => useDeleteChatMessageMutation()).renderHookResult
       .result;

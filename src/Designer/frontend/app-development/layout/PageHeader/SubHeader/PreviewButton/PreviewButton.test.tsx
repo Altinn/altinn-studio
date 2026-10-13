@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import { PreviewButton } from './PreviewButton';
@@ -39,8 +39,6 @@ const mockGetPackageNavigationUrl = vi.fn().mockImplementation(() => urlMock);
 });
 
 describe('PreviewButton', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('should render the button with text on a large screen', () => {
     renderPreviewButton();
 

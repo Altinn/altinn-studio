@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
@@ -32,10 +32,6 @@ const defaultProps: EditSubformTableColumnsProps = {
 };
 
 describe('EditSubformTableColumns', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should call handleComponentChange when a new column is added when tableColumns initially are empty ', async () => {
     const handleComponentChangeMock = vi.fn();
     const user = userEvent.setup();

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { FormTree } from './FormTree';
 import { StudioDragAndDropTree } from '@studio/components';
@@ -95,8 +95,6 @@ const formItemContext: FormItemContext = {
 };
 
 describe('FormTree', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders top level items only by default', () => {
     render();
     expect(screen.getByRole('treeitem', { name: rootComponentName })).toBeInTheDocument();

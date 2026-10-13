@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DataModelBindings } from './DataModelBindings';
@@ -45,8 +45,6 @@ const dataModelMetadata: DataModelMetadataResponse = {
 const getDataModelMetadata = () => Promise.resolve(dataModelMetadata);
 
 describe('DataModelBindings', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders EditDataModelBindings component when schema is present', () => {
     render();
 

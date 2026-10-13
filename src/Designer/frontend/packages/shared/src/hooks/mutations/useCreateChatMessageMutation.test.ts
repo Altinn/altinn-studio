@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-development/test/mocks';
 import { app, org } from '@studio/testing/testids';
@@ -17,8 +17,6 @@ const payload: CreateChatMessagePayload = {
 };
 
 describe('useCreateChatMessageMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Calls createChatMessage with correct arguments and payload', async () => {
     const result = renderHookWithProviders()(() => useCreateChatMessageMutation()).renderHookResult
       .result;
