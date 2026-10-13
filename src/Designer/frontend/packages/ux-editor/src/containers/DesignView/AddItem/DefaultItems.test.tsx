@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { DefaultItems, type DefaultItemsProps } from './DefaultItems';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -45,7 +46,7 @@ describe('DefaultItems', () => {
 const renderDefaultItems = (props: Partial<DefaultItemsProps>) => {
   const defaultProps: DefaultItemsProps = {
     availableComponents,
-    onAddItem: jest.fn(),
+    onAddItem: vi.fn(),
     showAllButton: <StudioButton>Show all</StudioButton>,
   };
   return renderWithProviders(<DefaultItems {...defaultProps} />);

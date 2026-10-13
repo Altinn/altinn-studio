@@ -15,6 +15,7 @@ import (
 
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/log"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 )
 
 const browserPath string = "/headless-shell/headless-shell"
@@ -30,7 +31,7 @@ type Process struct {
 // Start creates and starts a new Chrome/Chromium headless browser process
 // id: identifier for this browser instance (-1 for temporary/init processes)
 func Start(id int) (*Process, error) {
-	logger := log.NewComponent("browser").With("id", id)
+	logger := log.NewComponent("browser").With(attr.SessionID, id)
 	args := createBrowserArgs()
 
 	// Override user data directory for this worker and set specific port
@@ -39,7 +40,7 @@ func Start(id int) (*Process, error) {
 		debugPort = 5049 // Special case for init worker
 	}
 
-	logger.Info("Starting browser", "path", browserPath, "port", debugPort)
+	logger.Info("Starting browser", attr.BrowserPath, browserPath, attr.BrowserDebugPort, debugPort)
 
 	var dataDir string
 	for i, arg := range args {
@@ -56,7 +57,7 @@ func Start(id int) (*Process, error) {
 			args[i] = fmt.Sprintf("--remote-debugging-port=%d", debugPort)
 		}
 	}
-	assert.That(dataDir != "", "Should always initialize dataDir", "id", id)
+	assert.That(dataDir != "", "Should always initialize dataDir", attr.SessionID, id)
 
 	// Add about:blank argument to create default page target
 	args = append(args, "about:blank")
@@ -93,7 +94,7 @@ type cmdToLogger struct {
 }
 
 func (l *cmdToLogger) Write(p []byte) (int, error) {
-	l.logger.Info("Browser process stdout/stderr", "message", string(p))
+	l.logger.Info("Browser process stdout/stderr", attr.BrowserOutput, string(p))
 	return len(p), nil
 }
 
@@ -101,25 +102,25 @@ func (l *cmdToLogger) Write(p []byte) (int, error) {
 //
 //nolint:gocognit,nestif // Process shutdown needs to keep the signal and wait flow together.
 func (p *Process) Close() error {
-	logger := log.NewComponent("browser").With("dataDir", p.DataDir)
+	logger := log.NewComponent("browser").With(attr.BrowserDataDir, p.DataDir)
 	logger.Info("Closing browser process")
 
 	if p.Cmd != nil && p.Cmd.Process != nil {
 		pgid, err := syscall.Getpgid(p.Cmd.Process.Pid)
 		if err != nil {
-			logger.Info("Failed to get process group ID", "error", err)
+			logger.Info("Failed to get process group ID", attr.Error, err)
 			pgid = 0
 		} else {
-			logger.Info("Got process group ID", "pgid", pgid)
+			logger.Info("Got process group ID", attr.BrowserPGID, pgid)
 		}
 
 		if pgid > 0 {
 			if killErr := syscall.Kill(-pgid, syscall.SIGTERM); killErr != nil {
-				logger.Info("Failed to send SIGTERM to browser process group", "error", killErr)
+				logger.Info("Failed to send SIGTERM to browser process group", attr.Error, killErr)
 			}
 		} else {
 			if signalErr := p.Cmd.Process.Signal(syscall.SIGTERM); signalErr != nil {
-				logger.Info("Failed to send SIGTERM to browser process", "error", signalErr)
+				logger.Info("Failed to send SIGTERM to browser process", attr.Error, signalErr)
 			}
 		}
 
@@ -127,7 +128,7 @@ func (p *Process) Close() error {
 		go func() {
 			err := p.Cmd.Wait()
 			done <- err
-			logger.Info("Browser exited", "error", err)
+			logger.Info("Browser exited", attr.Error, err)
 		}()
 
 		select {
@@ -137,11 +138,11 @@ func (p *Process) Close() error {
 			logger.Info("Browser did not exit after SIGTERM, sending SIGKILL")
 			if pgid > 0 {
 				if killErr := syscall.Kill(-pgid, syscall.SIGKILL); killErr != nil {
-					logger.Info("Failed to send SIGKILL to browser process group", "error", killErr)
+					logger.Info("Failed to send SIGKILL to browser process group", attr.Error, killErr)
 				}
 			} else {
 				if killErr := p.Cmd.Process.Kill(); killErr != nil {
-					logger.Info("Failed to SIGKILL browser process", "error", killErr)
+					logger.Info("Failed to SIGKILL browser process", attr.Error, killErr)
 				}
 			}
 			select {
@@ -154,7 +155,7 @@ func (p *Process) Close() error {
 	}
 
 	err := removeDataDirWithRetry(p.DataDir, logger)
-	assert.That(err == nil, "couldn't remove dataDir", "dataDir", p.DataDir, "error", err)
+	assert.That(err == nil, "couldn't remove dataDir", attr.BrowserDataDir, p.DataDir, attr.Error, err)
 	return nil
 }
 
@@ -171,7 +172,7 @@ func removeDataDirWithRetry(dataDir string, logger *slog.Logger) error {
 			return nil
 		}
 		if i < maxRetries-1 {
-			logger.Info("Failed to remove dataDir, retrying", "attempt", i+1, "error", lastErr)
+			logger.Info("Failed to remove dataDir, retrying", attr.Attempt, i+1, attr.Error, lastErr)
 		}
 		time.Sleep(retryDelay)
 	}
@@ -226,6 +227,6 @@ func logArgs(logger *slog.Logger, id int, args []string) {
 	copy(sortedArgs, args)
 	sort.Strings(sortedArgs)
 	argsAsJson, err := json.MarshalIndent(sortedArgs, "", "  ")
-	assert.That(err == nil, "Failed to marshal browser args to JSON", "id", id, "error", err)
-	logger.Info("Browser args", "args", string(argsAsJson))
+	assert.That(err == nil, "Failed to marshal browser args to JSON", attr.SessionID, id, attr.Error, err)
+	logger.Info("Browser args", attr.BrowserArgs, string(argsAsJson))
 }

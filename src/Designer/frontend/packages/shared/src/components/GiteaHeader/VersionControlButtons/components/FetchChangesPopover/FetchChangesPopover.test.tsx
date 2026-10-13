@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { FetchChangesPopover } from './FetchChangesPopover';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -13,16 +15,14 @@ import { renderWithProviders } from '../../../mocks/renderWithProviders';
 import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
-jest.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@studio/hooks/src/hooks/useMediaQuery');
 
-const mockGetRepoPull = jest.fn();
+const mockGetRepoPull = vi.fn();
 
 describe('fetchChanges', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should call invalidateQueries with correct predicate when fetching changes successfully', async () => {
     const user = userEvent.setup();
-    const mockInvalidateQueries = jest.fn();
+    const mockInvalidateQueries = vi.fn();
     mockGetRepoPull.mockImplementation(() =>
       Promise.resolve({ repositoryStatus: 'Ok', hasMergeConflict: false }),
     );
@@ -100,7 +100,7 @@ describe('fetchChanges', () => {
 
   it('should call onPullSuccess when fetching changes', async () => {
     const user = userEvent.setup();
-    const mockInvalidateQueries = jest.fn();
+    const mockInvalidateQueries = vi.fn();
     const getRepoPull = mockGetRepoPull.mockImplementation(() =>
       Promise.resolve({ repositoryStatus: 'Ok' }),
     );
@@ -148,7 +148,7 @@ describe('fetchChanges', () => {
   });
 
   it('should not render the button text on a small screen', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    (useMediaQuery as Mock).mockReturnValue(true);
     renderFetchChangesPopover();
 
     expect(screen.queryByText(textMock('sync_header.fetch_changes'))).not.toBeInTheDocument();
@@ -161,7 +161,7 @@ describe('fetchChanges', () => {
 type Props = {
   queries?: Partial<ServicesContextProps>;
   versionControlButtonsContextProps?: Partial<VersionControlButtonsContextProps>;
-  invalidateQueries?: jest.Mock;
+  invalidateQueries?: Mock;
 };
 
 const renderFetchChangesPopover = (props: Partial<Props> = {}) => {

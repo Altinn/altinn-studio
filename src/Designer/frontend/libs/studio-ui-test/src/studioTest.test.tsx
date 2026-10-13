@@ -55,8 +55,6 @@ describe('studioTest', () => {
   });
 
   describe('areTimersFake', () => {
-    // If these tests fail when updating Jest, check https://github.com/jestjs/jest/issues/10555 for updates
-
     it('Returns true when timers are mocked', () => {
       studioTest.useFakeTimers();
       const result = studioTest.areTimersFake();

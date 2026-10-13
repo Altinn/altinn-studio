@@ -15,6 +15,12 @@ namespace Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 
 public class RuntimeGatewayClient : IRuntimeGatewayClient
 {
+    // Activity signals query up to 29 days of Log Analytics data. They get a single long attempt
+    // instead of the shared resilience handler, whose short timeouts and retries would fail slow
+    // queries and multiply their load.
+    internal const string ActivitySignalsHttpClientName = "runtime-gateway-activity-signals";
+    internal static readonly TimeSpan ActivitySignalsTimeout = TimeSpan.FromMinutes(2);
+
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly GeneralSettings _generalSettings;
     private readonly IEnvironmentsService _environmentsService;
@@ -93,6 +99,22 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/alerts";
 
         return await client.GetFromJsonAsync<IEnumerable<AlertRule>>(requestUrl, cancellationToken) ?? [];
+    }
+
+    /// <inheritdoc />
+    public async Task<ReportMetrics> GetReportMetricsAsync(
+        string org,
+        AltinnEnvironment environment,
+        int range,
+        CancellationToken cancellationToken
+    )
+    {
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        string requestUrl =
+            $"{baseUrl}/runtime/gateway/api/v1/metrics/report?range={range}&originEnvironment={Uri.EscapeDataString(_generalSettings.OriginEnvironment)}";
+
+        return await client.GetFromJsonAsync<ReportMetrics>(requestUrl, cancellationToken) ?? new ReportMetrics();
     }
 
     /// <inheritdoc />
@@ -176,6 +198,26 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         return response
             ?? throw new InvalidOperationException(
                 "Received empty or null response body when deserializing AppActivityMetricsResponse."
+            );
+    }
+
+    public async Task<AppActivitySignalsResponse> GetAppActivitySignalsAsync(
+        string org,
+        AltinnEnvironment environment,
+        int windowDays,
+        CancellationToken cancellationToken
+    )
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowDays);
+
+        using var client = _httpClientFactory.CreateClient(ActivitySignalsHttpClientName);
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/activity/signals?windowDays={windowDays}";
+
+        var response = await client.GetFromJsonAsync<AppActivitySignalsResponse>(requestUrl, cancellationToken);
+        return response
+            ?? throw new InvalidOperationException(
+                "Received empty or null response body when deserializing AppActivitySignalsResponse."
             );
     }
 

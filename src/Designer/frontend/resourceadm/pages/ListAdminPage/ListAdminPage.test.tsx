@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { MemoryRouter, useParams } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -27,18 +29,16 @@ const accessListResultsPage2 = {
   nextPage: '',
 };
 
-const mockedNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+const mockedNavigate = vi.fn();
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockedNavigate,
-  useParams: jest.fn(),
+  useParams: vi.fn(),
 }));
 
 describe('ListAdminPage', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should navigate to first available enviromnent if no environment is selected', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       org: 'ttd',
     });
     renderListAdminPage();
@@ -49,7 +49,7 @@ describe('ListAdminPage', () => {
   });
 
   it('should show lists after environment is selected', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       org: 'ttd',
       env: 'tt02',
     });
@@ -59,7 +59,7 @@ describe('ListAdminPage', () => {
   });
 
   it('should change environment on toggle button click', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       org: 'ttd',
       env: 'tt02',
     });
@@ -75,7 +75,7 @@ describe('ListAdminPage', () => {
   });
 
   it('should show create dialog when create new button is clicked', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       org: 'ttd',
       env: 'tt02',
     });
@@ -95,7 +95,7 @@ describe('ListAdminPage', () => {
   });
 
   it('should load more lists when load more button is clicked', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       org: 'ttd',
       env: 'tt02',
     });
@@ -121,7 +121,7 @@ describe('ListAdminPage', () => {
   });
 
   it('should show error when user does not have permission to edit access lists', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       org: 'ttd',
       env: 'tt02',
     });
@@ -138,7 +138,7 @@ describe('ListAdminPage', () => {
   });
 
   it('should navigate back on back button click', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       org: 'ttd',
     });
 
@@ -156,8 +156,8 @@ const renderListAdminPage = (isError?: boolean) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     getAccessLists: isError
-      ? jest.fn().mockImplementationOnce(() => Promise.reject({ response: { status: 403 } }))
-      : jest
+      ? vi.fn().mockImplementationOnce(() => Promise.reject({ response: { status: 403 } }))
+      : vi
           .fn()
           .mockImplementationOnce(() => Promise.resolve(accessListResults))
           .mockImplementationOnce(() => Promise.resolve(accessListResultsPage2)),

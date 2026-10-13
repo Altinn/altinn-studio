@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
 import { EditName, type EditNameProps } from './EditName';
@@ -22,7 +23,7 @@ describe('EditName', () => {
 
   it('should call onChange when saving the name', async () => {
     const user = userEvent.setup();
-    const onChangeMock = jest.fn();
+    const onChangeMock = vi.fn();
     renderEditName({ onChange: onChangeMock });
 
     await user.click(readModeButton());
@@ -36,7 +37,7 @@ describe('EditName', () => {
 
   it('should call onChange when clicking enter in the text field', async () => {
     const user = userEvent.setup();
-    const onChangeMock = jest.fn();
+    const onChangeMock = vi.fn();
     renderEditName({ onChange: onChangeMock });
 
     await user.click(readModeButton());
@@ -49,7 +50,7 @@ describe('EditName', () => {
 
   it('should cancel editing when clicking escape in the text field', async () => {
     const user = userEvent.setup();
-    const onChangeMock = jest.fn();
+    const onChangeMock = vi.fn();
     renderEditName({ onChange: onChangeMock });
 
     await user.click(readModeButton());
@@ -62,7 +63,7 @@ describe('EditName', () => {
 
   it('should cancel editing and revert to original name', async () => {
     const user = userEvent.setup();
-    const onChangeMock = jest.fn();
+    const onChangeMock = vi.fn();
     const originalNameValue = 'testName123';
     renderEditName({ name: originalNameValue, onChange: onChangeMock });
 
@@ -90,7 +91,7 @@ const renderEditName = (componentProps: Partial<EditNameProps>) => {
     <EditName
       name='nameMock'
       label={textMock('ux_editor.page_group.name')}
-      onChange={jest.fn()}
+      onChange={vi.fn()}
       {...componentProps}
     />,
   );

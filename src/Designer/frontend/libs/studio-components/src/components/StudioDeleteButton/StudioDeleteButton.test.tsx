@@ -9,7 +9,6 @@ import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 describe('StudioDeleteButton', () => {
   afterEach(() => {
-    vi.clearAllMocks();
     vi.restoreAllMocks();
   });
 

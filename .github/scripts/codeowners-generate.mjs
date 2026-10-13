@@ -63,7 +63,7 @@ const GROUPS = [
   {
     title: 'AI',
     owner: '@ErlingHauan',
-    roots: ['src/AI/agents', 'src/AI/augmenter-agent'],
+    roots: ['src/AI/assistant', 'src/AI/augmenter-agent'],
   },
   {
     title: 'Squad Kjøring',
@@ -117,6 +117,7 @@ const GROUPS = [
       '.github/workflows/deployer-check.yaml',
       '.github/workflows/gitea-check-texts-file.yml',
       '.github/workflows/gitea-runner-test.yml',
+      '.github/workflows/github-runner-image-build.yaml',
       '.github/workflows/observability-proxy-build-test.yaml',
       '.github/workflows/release-studioctl.yaml',
       '.github/workflows/releaser-build-test.yml',

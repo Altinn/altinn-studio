@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { OptionList } from 'app-shared/types/OptionList';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../../../../types/FormItem';
@@ -85,7 +86,7 @@ describe('optionsUtils', () => {
 
   describe('handleOptionsChange', () => {
     it('should call handleComponentChange with the updated component', () => {
-      const handleComponentChange = jest.fn();
+      const handleComponentChange = vi.fn();
       handleOptionsChange({ ...mockedComponent }, handleComponentChange);
       expect(handleComponentChange).toHaveBeenCalledTimes(1);
       expect(handleComponentChange).toHaveBeenCalledWith(mockedComponent);

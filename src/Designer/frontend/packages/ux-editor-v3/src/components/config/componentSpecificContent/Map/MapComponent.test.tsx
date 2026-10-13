@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, test, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MapComponent } from './MapComponent';
@@ -7,7 +8,7 @@ import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQ
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { IGenericEditComponent } from '../../componentConfig';
 
-const handleComponentChangeMock = jest.fn();
+const handleComponentChangeMock = vi.fn();
 
 const waitForData = async () => {
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
@@ -27,7 +28,7 @@ const renderMapComponent = async ({
 };
 
 describe('MapComponent', () => {
-  afterEach(() => jest.resetAllMocks());
+  afterEach(() => vi.resetAllMocks());
 
   test('should render titles', async () => {
     await renderMapComponent({});

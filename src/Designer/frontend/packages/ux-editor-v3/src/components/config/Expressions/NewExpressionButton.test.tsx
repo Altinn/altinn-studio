@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { NewExpressionButtonProps } from './NewExpressionButton';
 import { NewExpressionButton } from './NewExpressionButton';
@@ -10,8 +11,6 @@ import { ExpressionPropertyBase } from '../../../types/Expressions';
 const user = userEvent.setup();
 
 describe('NewExpressionButton', () => {
-  afterEach(jest.clearAllMocks);
-
   it('renders add expression button by default', () => {
     render({});
 
@@ -28,7 +27,7 @@ describe('NewExpressionButton', () => {
   });
 
   it('calls onAddExpression when an option is selected', async () => {
-    const onAddExpressionMock = jest.fn();
+    const onAddExpressionMock = vi.fn();
     render({
       props: {
         onAddExpression: onAddExpressionMock,
@@ -58,7 +57,7 @@ const render = ({
 }) => {
   const defaultProps: NewExpressionButtonProps = {
     options: optionsMock,
-    onAddExpression: jest.fn(),
+    onAddExpression: vi.fn(),
   };
   return renderWithMockStore({}, queries)(<NewExpressionButton {...defaultProps} {...props} />);
 };

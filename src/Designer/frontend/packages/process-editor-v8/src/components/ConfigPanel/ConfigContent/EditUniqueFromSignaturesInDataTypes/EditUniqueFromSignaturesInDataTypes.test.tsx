@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -65,19 +66,17 @@ const signingTasks = [
   },
 ];
 
-jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
+vi.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(function () {
+    StudioModeler: vi.fn().mockImplementation(function () {
       return {
-        getAllTasksByType: jest.fn().mockReturnValue(signingTasks),
+        getAllTasksByType: vi.fn().mockReturnValue(signingTasks),
       };
     }),
   };
 });
 
 describe('EditUniqueFromSignaturesInDataTypes', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should display a button to add unique signature when task has no data types', async () => {
     const user = userEvent.setup();
 

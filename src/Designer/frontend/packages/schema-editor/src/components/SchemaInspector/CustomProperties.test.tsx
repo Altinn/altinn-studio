@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import { FieldType, ROOT_POINTER, SchemaModel, validateTestUiSchema } from '@altinn/schema-model';
@@ -46,7 +46,6 @@ const saveDataModel = vi.fn();
 
 describe('CustomProperties', () => {
   beforeAll(() => validateTestUiSchema(uiSchema));
-  afterEach(vi.clearAllMocks);
 
   it('Renders a list of all custom properties', () => {
     render();

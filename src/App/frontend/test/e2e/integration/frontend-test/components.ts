@@ -309,39 +309,70 @@ describe('UI Components', () => {
   });
 
   it('should be possible to set all elements as readonly and snapshot', () => {
-    cy.interceptLayout('Task_2', (component) => {
-      const formTypes: CompExternal['type'][] = [
-        'Address',
-        'Checkboxes',
-        'Datepicker',
-        'Dropdown',
-        'FileUpload',
-        'Input',
-        'RadioButtons',
-        'TextArea',
-        'MultipleSelect',
-      ];
-      if (component.id === 'confirmChangeName' && component.type === 'Checkboxes') {
-        component.readOnly = [
-          'or',
-          ['equals', ['component', 'newMiddleName'], 'checkbox_readOnly'],
-          ['equals', ['component', 'newMiddleName'], 'all_readOnly'],
+    const uploaders = ['fileUpload-changename', 'fileUploadWithTags-changename'];
+    const summaries = uploaders.map((id) => `[data-componentid="readonly-summary-${id}"]`);
+    cy.interceptLayout(
+      'Task_2',
+      (component) => {
+        const formTypes: CompExternal['type'][] = [
+          'Address',
+          'Checkboxes',
+          'Datepicker',
+          'Dropdown',
+          'FileUpload',
+          'Input',
+          'RadioButtons',
+          'TextArea',
+          'MultipleSelect',
         ];
-      } else if (component.id === 'reason' && component.type === 'RadioButtons') {
-        component.readOnly = [
-          'or',
-          ['equals', ['component', 'newMiddleName'], 'radio_readOnly'],
-          ['equals', ['component', 'newMiddleName'], 'all_readOnly'],
-        ];
-      } else if (formTypes.includes(component.type)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (component as any).readOnly = ['equals', ['component', 'newMiddleName'], 'all_readOnly'];
-      }
-    });
+        if (component.type === 'FileUpload') {
+          component.displayMode = component.id === uploaders[0] ? 'simple' : 'list';
+        }
+        if (component.id === 'confirmChangeName' && component.type === 'Checkboxes') {
+          component.readOnly = [
+            'or',
+            ['equals', ['component', 'newMiddleName'], 'checkbox_readOnly'],
+            ['equals', ['component', 'newMiddleName'], 'all_readOnly'],
+          ];
+        } else if (component.id === 'reason' && component.type === 'RadioButtons') {
+          component.readOnly = [
+            'or',
+            ['equals', ['component', 'newMiddleName'], 'radio_readOnly'],
+            ['equals', ['component', 'newMiddleName'], 'all_readOnly'],
+          ];
+        } else if (formTypes.includes(component.type)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (component as any).readOnly = ['equals', ['component', 'newMiddleName'], 'all_readOnly'];
+        }
+      },
+      (layouts) => {
+        layouts.form.data.layout.push(
+          ...uploaders.map((id) => ({
+            id: `readonly-summary-${id}`,
+            type: 'Summary2' as const,
+            target: { type: 'component' as const, id },
+          })),
+        );
+      },
+    );
     cy.goto('changename');
 
     cy.findByRole('textbox', { name: newFirstNameNb }).type('Per');
     cy.findByRole('checkbox', { name: confirmChangeOfName }).check();
+
+    cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
+    cy.get('[data-componentid="fileUpload-changename"]')
+      .findByRole('button', { name: 'Slett vedlegg' })
+      .should('be.visible');
+    cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', { force: true });
+    cy.dsSelect(appFrontend.changeOfName.uploadWithTag.tagsDropDown, 'Adresse');
+    cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
+    cy.get('[data-componentid="fileUploadWithTags-changename"]').findByRole('button', { name: 'Rediger' }).click();
+    cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('be.visible');
+    cy.waitUntilSaved();
+    for (const summary of summaries) {
+      cy.get(summary).findByRole('button', { name: 'Endre' }).should('be.visible');
+    }
 
     // Make all components on the page readOnly, and snapshot the effect
     cy.findByRole('textbox', { name: newMiddleNameNb }).clear();
@@ -350,6 +381,28 @@ describe('UI Components', () => {
       name: /ja, jeg bekrefter at navnet er riktig og slik jeg ønsker det/i,
     }).should('have.attr', 'readonly');
     cy.get(appFrontend.changeOfName.reasons).find('input').should('have.attr', 'readonly');
+    for (const id of uploaders) {
+      cy.get(`[data-componentid="${id}"]`).within(() => {
+        cy.contains('Vedleggene kan ikke endres.').should('be.visible');
+        cy.get('input[type="file"]').should('not.exist');
+        cy.findByRole('button', { name: 'Legg til flere vedlegg' }).should('not.exist');
+        cy.findAllByRole('button', { name: /Slett vedlegg|Rediger/ }).should('not.exist');
+        cy.findByRole('combobox').should('not.exist');
+        cy.get('button[id^="attachment-save-tag-button"]').should('not.exist');
+        cy.findByRole('columnheader', { name: /Slett|Rediger/ }).should('not.exist');
+        cy.findByRole('link', { name: /test/ })
+          .should('be.visible')
+          .invoke('attr', 'href')
+          .then((href) => {
+            cy.request({ url: href!, encoding: 'binary' }).its('body').should('have.length', 299);
+          });
+      });
+    }
+    cy.get('[data-componentid="fileUploadWithTags-changename"]').should('contain.text', 'Adresse');
+    for (const summary of summaries) {
+      cy.get(summary).should('contain.text', 'test');
+      cy.get(summary).findByRole('button', { name: 'Endre' }).should('not.exist');
+    }
     cy.visualTesting('components:read-only');
   });
 

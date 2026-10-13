@@ -8,6 +8,7 @@ import (
 
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/log"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 )
 
 var logger = log.NewComponent("config")
@@ -20,6 +21,17 @@ const (
 	// ServiceOwnerEnv provides the service owner for the current runtime cluster.
 	ServiceOwnerEnv = "PDF3_SERVICEOWNER"
 )
+
+// appHostnames maps environments to the hostname in app URLs, https://{org}.apps.{hostname}/{org}/{app}/,
+// as GeneralSettings__HostName in infra/runtime/apps-config sets it for apps.
+var appHostnames = map[string]string{
+	"at22": "at22.altinn.cloud",
+	"at23": "at23.altinn.cloud",
+	"at24": "at24.altinn.cloud",
+	"yt01": "yt01.altinn.cloud",
+	"tt02": "tt02.altinn.no",
+	"prod": "altinn.no",
+}
 
 var defaultPDFAConversionConfig = PDFAConversionConfig{
 	Targets: []PDFATarget{
@@ -38,7 +50,10 @@ type PDFAConversionConfig struct {
 }
 
 type Config struct {
-	Environment            string
+	Environment string
+	// AppHostname is the hostname in this environment's app URLs, e.g. "tt02.altinn.no", or empty
+	// where it is not known, as in localtest.
+	AppHostname            string
 	LocaltestPublicBaseURL string
 	ServiceOwner           string
 	PDFA                   PDFAConversionConfig
@@ -61,9 +76,9 @@ func ReadConfig() *Config {
 		} else {
 			logger.Warn(
 				"Failed to parse PDF3_QUEUE_SIZE, using default",
-				"value", queueSizeStr,
-				"default", queueSize,
-				"error", err,
+				attr.ConfigValue, queueSizeStr,
+				attr.ConfigDefault, queueSize,
+				attr.Error, err,
 			)
 		}
 	}
@@ -76,15 +91,16 @@ func ReadConfig() *Config {
 		} else {
 			logger.Warn(
 				"Failed to parse PDF3_BROWSER_RESTART_INTERVAL, using default",
-				"value", browserRestartIntervalStr,
-				"default", browserRestartInterval,
-				"error", err,
+				attr.ConfigValue, browserRestartIntervalStr,
+				attr.ConfigDefault, browserRestartInterval,
+				attr.Error, err,
 			)
 		}
 	}
 
 	return &Config{
 		Environment:            environment,
+		AppHostname:            appHostnames[environment],
 		QueueSize:              queueSize,
 		BrowserRestartInterval: browserRestartInterval,
 		LocaltestPublicBaseURL: os.Getenv(LocaltestPublicBaseURLEnv),
@@ -126,24 +142,31 @@ func equalConfigValue(value string, candidate string) bool {
 	return strings.EqualFold(strings.TrimSpace(value), strings.TrimSpace(candidate))
 }
 
-// ShouldConfigureOTel reports whether PDF3 should initialize OpenTelemetry exporters.
-// In localtest, exporters are opt-in to avoid noisy connection errors in default setup.
-func ShouldConfigureOTel(environment string) bool {
-	if environment != EnvironmentLocaltest {
-		return true
-	}
+// OTelSignals are the telemetry signals pdf3 exports.
+type OTelSignals struct {
+	Traces  bool
+	Metrics bool
+	Logs    bool
+}
 
-	for _, key := range []string{
-		"OTEL_EXPORTER_OTLP_ENDPOINT",
-		"OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
-		"OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
-	} {
-		if val := os.Getenv(key); val != "" {
-			return true
-		}
-	}
+// Any reports whether pdf3 exports any signal.
+func (s OTelSignals) Any() bool {
+	return s.Traces || s.Metrics || s.Logs
+}
 
-	return false
+// ResolveOTelSignals returns the signals pdf3 exports. In a cluster it exports all of them. In
+// localtest, exporting is opt-in, to avoid noisy connection errors in the default setup:
+// OTEL_EXPORTER_OTLP_ENDPOINT turns on every signal, and a signal's own endpoint turns on that
+// signal, so no exporter falls back to a default endpoint that isn't there.
+func ResolveOTelSignals(environment string) OTelSignals {
+	if environment != EnvironmentLocaltest || os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT") != "" {
+		return OTelSignals{Traces: true, Metrics: true, Logs: true}
+	}
+	return OTelSignals{
+		Traces:  os.Getenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT") != "",
+		Metrics: os.Getenv("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT") != "",
+		Logs:    os.Getenv("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT") != "",
+	}
 }
 
 // HostParameters contains timeout values for runtime.NewHost.

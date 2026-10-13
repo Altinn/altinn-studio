@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { renderHookWithProviders } from '../testing/mocks';
 import { useConfigurationMode } from './useConfigurationMode';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

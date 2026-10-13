@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, render as rtlRender } from '@testing-library/react';
 import { RightMenu } from './RightMenu';
 import userEvent from '@testing-library/user-event';
@@ -17,10 +17,6 @@ describe('RightMenu', () => {
     selectedLanguages: ['en'],
     setSelectedLanguages: vi.fn(),
   };
-
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
 
   afterAll(() => {
     vi.restoreAllMocks();

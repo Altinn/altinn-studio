@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { CodeListDataWithTextResources } from '@studio/content-library';
 import { mapToCodeListDataList } from './mapToCodeListDataList';
 import type { OptionListData } from 'app-shared/types/OptionList';

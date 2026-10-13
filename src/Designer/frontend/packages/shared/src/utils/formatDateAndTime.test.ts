@@ -1,8 +1,10 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { formatDateAndTime } from './formatDateAndTime';
 import { DateUtils } from '@studio/pure-functions';
 
 describe('formatDateAndTime', () => {
-  let toLocaleTimeStringSpy: jest.SpyInstance;
+  let toLocaleTimeStringSpy: MockInstance;
   afterEach(() => {
     toLocaleTimeStringSpy?.mockRestore();
   });
@@ -12,7 +14,7 @@ describe('formatDateAndTime', () => {
     const isoString = new Date(timestamp).toISOString();
     const expectedDatePart = DateUtils.formatDateDDMMYYYY(isoString);
 
-    toLocaleTimeStringSpy = jest
+    toLocaleTimeStringSpy = vi
       .spyOn(Date.prototype, 'toLocaleTimeString')
       .mockReturnValue('16:27:15');
 

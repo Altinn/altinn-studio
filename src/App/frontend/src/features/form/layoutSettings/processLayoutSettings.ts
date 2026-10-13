@@ -16,6 +16,7 @@ export function processLayoutSettings(settings: ILayoutSettings | null | undefin
       groups: undefined,
       pageSettings: getGlobalUiSettings(),
       pdfLayoutName: undefined,
+      pdfExclusions: { pages: emptyArray, components: emptyArray },
     };
   }
 
@@ -56,6 +57,10 @@ export function processLayoutSettings(settings: ILayoutSettings | null | undefin
       ...omitUndefined(localPageSettings),
     },
     pdfLayoutName: settings.pages.pdfLayoutName,
+    pdfExclusions: {
+      pages: settings.pages.excludeFromPdf ?? emptyArray,
+      components: settings.components?.excludeFromPdf ?? emptyArray,
+    },
   };
 }
 
@@ -73,6 +78,12 @@ interface ProcessedLayoutSettings {
   groups?: NavigationPageGroup[];
   pageSettings: GlobalPageSettings;
   pdfLayoutName?: string;
+  pdfExclusions: PdfExclusions;
+}
+
+export interface PdfExclusions {
+  pages: string[];
+  components: string[];
 }
 
 const useProcessedLayoutSettings = (): ProcessedLayoutSettings => {
@@ -87,5 +98,6 @@ const useProcessedLayoutSettings = (): ProcessedLayoutSettings => {
 export const useRawPageOrder = (): string[] => useProcessedLayoutSettings().order;
 
 export const usePdfLayoutName = () => useProcessedLayoutSettings().pdfLayoutName;
+export const usePdfExclusions = (): PdfExclusions => useProcessedLayoutSettings().pdfExclusions;
 export const usePageGroups = () => useProcessedLayoutSettings().groups;
 export const usePageSettings = (): GlobalPageSettings => useProcessedLayoutSettings().pageSettings;

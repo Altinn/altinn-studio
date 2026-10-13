@@ -148,6 +148,10 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await EnableImplicitUsings(projectFile));
 
+        // Runs before the other C# rewrites, while the code still matches the v8 compilation it relies on.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveUnusedPdfFormatters(scanner));
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(scanner));
 
@@ -906,6 +910,28 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Removes the IPdfFormatter implementations that cannot change the PDF, with their registrations, so
+    /// the removed-API check reports only the ones with logic to port.
+    /// </summary>
+    static async Task<int> RemoveUnusedPdfFormatters(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("Unused IPdfFormatter");
+        try
+        {
+            var result = new UnusedPdfFormatterMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IPdfFormatter implementations that can be removed safely",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing unused IPdfFormatter implementations", ex);
+        }
+    }
+
+    /// <summary>
     /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgment:
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
     /// code, removed internal engine handler types, the deprecated Correspondence surfaces, and the
@@ -952,6 +978,7 @@ internal static class V8Tov9Upgrade
 
             var result = WarnOnlyDetector.Combine(
                 new RemovedTaskEventInterfaceDetector(scanner).Detect(),
+                new RemovedPdfFormatterDetector(scanner).Detect(),
                 new RemovedEventsReceiveStackDetector(scanner).Detect(),
                 new ServiceTaskResultApiDetector(pristineView).Detect(),
                 new LegacyEFormidlingCodeDetector(pristineView).Detect(),
@@ -1267,6 +1294,7 @@ internal static class V8Tov9Upgrade
             DatepickerTimeStampMigrator.Apply(workspace);
             HeadingLayoutMigration.Apply(workspace);
             FileUploadWithTagLayoutMigration.Apply(workspace);
+            var formPropertiesResult = ComponentFormPropertiesMigration.Apply(workspace);
             DatepickerFormatMigration.Apply(workspace);
             GridXlMigration.Apply(workspace);
             var saveWhileTypingWarning = SaveWhileTypingMigration.Apply(workspace);
@@ -1274,6 +1302,7 @@ internal static class V8Tov9Upgrade
             InvalidValidationMaskMigration.Apply(workspace);
 
             var messages = new List<UpgradeMessage>();
+            messages.AddRange(formPropertiesResult.Messages.Messages);
             if (saveWhileTypingWarning is not null)
                 messages.Warn(saveWhileTypingWarning);
             foreach (var issue in workspace.Conflicts)

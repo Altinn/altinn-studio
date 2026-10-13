@@ -109,6 +109,10 @@ internal sealed class FormBootstrapService
         var layoutsJson = _appResources.GetLayoutsInFolder(uiFolder);
         var layouts = DeserializeJson(layoutsJson);
         var referencedDataTypes = LayoutAnalysisService.GetReferencedDataTypes(layoutsJson, defaultDataType);
+        if (!isPdf)
+        {
+            referencedDataTypes = IncludeCalculationDependencies(referencedDataTypes);
+        }
         var staticOptionsReferences = LayoutAnalysisService.GetStaticOptionsReferences(layoutsJson);
 
         var optionsTask = LoadStaticOptions(
@@ -178,7 +182,7 @@ internal sealed class FormBootstrapService
         var staticOptionsReferences = LayoutAnalysisService.GetStaticOptionsReferences(layoutsJson);
 
         var dataModelsTask = LoadStatelessDataModels(
-            referencedDataTypes,
+            IncludeCalculationDependencies(referencedDataTypes),
             defaultDataType,
             language,
             prefillFromQueryParams,
@@ -282,6 +286,7 @@ internal sealed class FormBootstrapService
                         InitialData = formData,
                         DataElementId = dataElement.Id,
                         ExpressionValidationConfig = validationConfig,
+                        CalculationConfig = isPdf || dataElement.Locked ? null : GetCalculationConfig(dataType),
                     }
             );
         });
@@ -349,6 +354,7 @@ internal sealed class FormBootstrapService
                     InitialData = defaultData,
                     DataElementId = null,
                     ExpressionValidationConfig = validationConfig,
+                    CalculationConfig = GetCalculationConfig(dataType),
                 };
             }
             catch (Exception ex)
@@ -640,6 +646,36 @@ internal sealed class FormBootstrapService
     private object GetDefaultFormData(string classRef)
     {
         return _appModel.Create(classRef);
+    }
+
+    private object? GetCalculationConfig(string dataType)
+    {
+        var configJson = _appResources.GetCalculationConfiguration(dataType);
+        return string.IsNullOrEmpty(configJson)
+            ? null
+            : JsonSerializer.Deserialize<JsonElement>(configJson, _jsonSerializerOptions);
+    }
+
+    private HashSet<string> IncludeCalculationDependencies(HashSet<string> dataTypes)
+    {
+        var result = new HashSet<string>(dataTypes);
+        var pending = new Queue<string>(dataTypes);
+        while (pending.TryDequeue(out var dataType))
+        {
+            var config = GetCalculationConfig(dataType);
+            if (config is null)
+            {
+                continue;
+            }
+            foreach (var referenced in LayoutAnalysisService.GetReferencedDataTypes(config, dataType))
+            {
+                if (result.Add(referenced))
+                {
+                    pending.Enqueue(referenced);
+                }
+            }
+        }
+        return result;
     }
 
     private object? GetValidationConfig(string dataType)

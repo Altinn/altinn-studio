@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
@@ -7,8 +7,6 @@ import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 
 describe('StudioDropdown', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('Displays a dropdown menu when the button is clicked', async () => {
     const user = userEvent.setup();
     renderStudioDropdown();

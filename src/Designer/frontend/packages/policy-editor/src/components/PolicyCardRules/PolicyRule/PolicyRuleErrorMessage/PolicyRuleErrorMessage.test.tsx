@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { PolicyRuleErrorMessage } from './PolicyRuleErrorMessage';
 import { PolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
@@ -31,8 +31,6 @@ const errorText3 = textMock('policy_editor.policy_rule_missing_3', {
 });
 
 describe('PolicyRuleErrorMessage', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders error message when only one error exists', () => {
     renderPolicyRuleErrorMessage({
       policyError: { ...policyError, resourceError: true },
