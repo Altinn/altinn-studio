@@ -69,6 +69,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - A service task that gives up when `Wait.IsFinalCheck` is `true` can no longer fail with the generic error for an exhausted wait budget instead of its own. In unit tests, set `IsFinalCheck` directly: a past `Deadline` no longer implies it. ([#20999](https://github.com/Altinn/altinn-studio/pull/20999))
 - Pages and components listed in `excludeFromPdf` in a task's `Settings.json` are now left out of the PDF that a PDF service task creates for that task through `autoPdfTaskIds`. ([#21107](https://github.com/Altinn/altinn-studio/issues/21107))
+- A gateway after a PDF service task that routes on `gatewayAction`, such as after the PDF tasks `studioctl app upgrade v9` inserts, now gets the action the user took on the task before, instead of matching no flow. On `reject`, the PDF task creates no PDF. ([#20968](https://github.com/Altinn/altinn-studio/issues/20968))
 
 ### Removed
 
