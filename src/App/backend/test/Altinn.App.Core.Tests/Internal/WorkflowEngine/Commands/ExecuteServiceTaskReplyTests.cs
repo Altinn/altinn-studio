@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features;
@@ -588,6 +589,53 @@ public class ExecuteServiceTaskReplyTests
         Assert.Equal(_mailboxId, awaiting.MailboxId);
         Assert.Equal("archiving", awaiting.ServiceTaskType);
         Assert.Equal(ArchivingReplyIndex, awaiting.HandlerItemIndex);
+    }
+
+    /// <summary>The action each <c>ExecuteServiceTask</c> step of the hand-over carries.</summary>
+    private static List<string?> HandoverActions(MailboxHandover handover) =>
+        handover
+            .Plan.Steps.Where(step => step.CommandKey == ExecuteServiceTask.Key)
+            .Select(step =>
+            {
+                AppCommandData appData =
+                    step.Command.Data?.Deserialize<AppCommandData>()
+                    ?? throw new InvalidOperationException("A service task step carries no command data.");
+                ExecuteServiceTaskPayload payload =
+                    CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)
+                    ?? throw new InvalidOperationException("A service task step carries no payload.");
+                return payload.Action;
+            })
+            .ToList();
+
+    /// <summary>
+    /// A reply handler hands the action its own step carried on, both to a successor receiver of its exchange
+    /// and to the segment it starts by concluding the exchange mid-pipeline.
+    /// </summary>
+    [Fact]
+    public async Task ReplyHandler_HandsItsActionToWhatItEnqueues()
+    {
+        var awaiting = new ArchivingTask { MessageVerdict = ServiceTaskExchangeResult.AwaitNextReply() };
+        SuccessfulProcessEngineCommandResult awaited = Assert.IsType<SuccessfulProcessEngineCommandResult>(
+            await CreateCommand(awaiting)
+                .Execute(CreateContext(Delivered(seq: 1)), ReceiveStep() with { Action = "reject" })
+        );
+        Assert.Equal("reject", Assert.IsType<MailboxContinuation.AwaitNextMessage>(awaited.MailboxContinuation).Action);
+
+        SuccessfulProcessEngineCommandResult continued = Assert.IsType<SuccessfulProcessEngineCommandResult>(
+            await CreateCommand(new ContinuingTask())
+                .Execute(
+                    CreateContext(Delivered(seq: 4)),
+                    ReceiveStep(ContinuingSegmentIndex) with
+                    {
+                        Action = "reject",
+                    }
+                )
+        );
+        MailboxContinuation.ConcludeAndContinue continuing = Assert.IsType<MailboxContinuation.ConcludeAndContinue>(
+            continued.MailboxContinuation
+        );
+        Assert.All(HandoverActions(continuing.Handover), action => Assert.Equal("reject", action));
+        Assert.NotEmpty(HandoverActions(continuing.Handover));
     }
 
     [Fact]
