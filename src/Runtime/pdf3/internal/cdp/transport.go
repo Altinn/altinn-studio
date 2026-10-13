@@ -15,6 +15,7 @@ import (
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/concurrent"
 	"altinn.studio/pdf3/internal/log"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 	"altinn.studio/pdf3/internal/types"
 )
 
@@ -62,7 +63,7 @@ var (
 // Connect establishes a connection to a Chrome DevTools Protocol endpoint.
 // Returns: Connection, targetID, error.
 func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler EventHandler) (Connection, string, error) {
-	logger := log.NewComponent("cdp").With("id", id)
+	logger := log.NewComponent("cdp").With(attr.SessionID, id)
 	target, err := discoverPageTarget(ctx, logger, id, debugBaseURL)
 	if err != nil {
 		return nil, "", err
@@ -75,10 +76,10 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 		return nil, "", errMissingWebSocketDebuggerURL
 	}
 	// Chrome page targets must have a WebSocket URL - this is a protocol invariant
-	assert.That(wsURL != "", "Page target missing WebSocketDebuggerURL - protocol violation", "id", id)
+	assert.That(wsURL != "", "Page target missing WebSocketDebuggerURL - protocol violation", attr.SessionID, id)
 
 	// Add debugging to understand what URL we're trying to connect to
-	logger.Info("Attempting to connect to WebSocket", "url", wsURL)
+	logger.Info("Attempting to connect to WebSocket", attr.CDPURL, wsURL)
 
 	wsConn, err := dialTargetWebSocket(ctx, logger, id, wsURL)
 	connCtx, cancel := context.WithCancel(ctx)
@@ -87,7 +88,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 		return nil, "", fmt.Errorf("failed to dial WebSocket: %w", err)
 	}
 	// Successful dial must return a valid connection
-	assert.That(wsConn != nil, "WebSocket dial succeeded but returned nil connection", "id", id)
+	assert.That(wsConn != nil, "WebSocket dial succeeded but returned nil connection", attr.SessionID, id)
 
 	// Create connection wrapper
 	conn := &connection{
@@ -120,11 +121,21 @@ func discoverPageTarget(ctx context.Context, logger *slog.Logger, id int, debugB
 	}
 
 	// Chrome should always return at least one target (the page we created)
-	assert.That(len(targets) > 0, "Chrome returned zero targets - browser in invalid state", "id", id)
+	assert.That(len(targets) > 0, "Chrome returned zero targets - browser in invalid state", attr.SessionID, id)
 
-	logger.Debug("Found targets", "count", len(targets))
+	logger.Debug("Found targets", attr.CDPTargetCount, len(targets))
 	for i, target := range targets {
-		logger.Debug("Target info", "index", i, "target_type", target.Type, "target_id", target.ID, "url", target.URL)
+		logger.Debug(
+			"Target info",
+			attr.CDPTargetIndex,
+			i,
+			attr.CDPTargetType,
+			target.Type,
+			attr.CDPTargetID,
+			target.ID,
+			attr.CDPTargetURL,
+			target.URL,
+		)
 	}
 
 	for i, target := range targets {
@@ -133,7 +144,7 @@ func discoverPageTarget(ctx context.Context, logger *slog.Logger, id int, debugB
 		}
 	}
 
-	assert.That(false, "no page target found", "id", id)
+	assert.That(false, "no page target found", attr.SessionID, id)
 	return nil, errNoPageTarget
 }
 
@@ -159,7 +170,7 @@ func fetchTargets(ctx context.Context, logger *slog.Logger, debugBaseURL string)
 			// Failed discovery attempts still open a response body; close it before retrying
 			// or we slowly leak the node's HTTP connection pool.
 			if closeErr := resp.Body.Close(); closeErr != nil {
-				logger.Warn("Failed to close target discovery response body", "error", closeErr)
+				logger.Warn("Failed to close target discovery response body", attr.Error, closeErr)
 			}
 		}
 		select {
@@ -175,7 +186,7 @@ func fetchTargets(ctx context.Context, logger *slog.Logger, debugBaseURL string)
 	defer func() {
 		// Successful discovery still holds the body open until decoding finishes.
 		if closeErr := resp.Body.Close(); closeErr != nil {
-			logger.Warn("Failed to close HTTP response body", "error", closeErr)
+			logger.Warn("Failed to close HTTP response body", attr.Error, closeErr)
 		}
 	}()
 
@@ -198,7 +209,7 @@ func dialTargetWebSocket(ctx context.Context, logger *slog.Logger, id int, wsURL
 		wsConn, wsResp, err := dialer.DialContext(ctx, wsURL, nil)
 		if wsResp != nil && wsResp.Body != nil {
 			if closeErr := wsResp.Body.Close(); closeErr != nil {
-				logger.Warn("Failed to close WebSocket upgrade response body", "error", closeErr)
+				logger.Warn("Failed to close WebSocket upgrade response body", attr.Error, closeErr)
 			}
 		}
 		if err == nil {
@@ -208,7 +219,7 @@ func dialTargetWebSocket(ctx context.Context, logger *slog.Logger, id int, wsURL
 					// during shutdown, but a protocol violation while the host is still live.
 					ctx.Err() != nil,
 					"Websocket connection closed while process is running",
-					"id", id, "code", code, "text", text,
+					attr.SessionID, id, attr.CDPCloseCode, code, attr.CDPCloseText, text,
 				)
 				return nil
 			})
@@ -227,12 +238,12 @@ func dialTargetWebSocket(ctx context.Context, logger *slog.Logger, id int, wsURL
 }
 
 func (c *connection) assert(condition bool, message string) {
-	assert.That(condition, message, "id", c.id)
+	assert.That(condition, message, attr.SessionID, c.id)
 }
 
 func (c *connection) assertA(condition bool, message string, userArgs ...any) {
 	args := make([]any, 0, 2+len(userArgs))
-	args = append(args, "id", c.id)
+	args = append(args, attr.SessionID, c.id)
 	args = append(args, userArgs...)
 	assert.That(condition, message, args...)
 }
@@ -466,7 +477,7 @@ func (c *connection) Close() error {
 	// If there are pending commands, it means we're closing while requests are in-flight,
 	// which indicates a bug in graceful shutdown coordination.
 	pendingCount := c.pendingCmds.Len()
-	c.assertA(pendingCount == 0, "Connection closed with pending commands", "pendingCommands", pendingCount)
+	c.assertA(pendingCount == 0, "Connection closed with pending commands", attr.CDPPendingCommands, pendingCount)
 
 	c.cancel()
 
@@ -522,7 +533,7 @@ func (c *connection) handleMessages() {
 			return
 		case result := <-readCh:
 			if result.err != nil {
-				c.logger.Error("WebSocket read error", "error", result.err)
+				c.logger.Error("WebSocket read error", attr.Error, result.err)
 				return
 			}
 
@@ -531,7 +542,14 @@ func (c *connection) handleMessages() {
 			var msg CDPMessage
 			if err := json.Unmarshal(result.payload, &msg); err != nil {
 				// Chrome should never send invalid JSON - this indicates protocol corruption
-				c.assertA(false, "Chrome sent malformed JSON", "error", err, "payload_bytes", len(result.payload))
+				c.assertA(
+					false,
+					"Chrome sent malformed JSON",
+					attr.Error,
+					err,
+					attr.CDPPayloadBytes,
+					len(result.payload),
+				)
 				continue
 			}
 
@@ -547,7 +565,7 @@ func (c *connection) handleMessages() {
 					// INFO: a dropped or timed-out request already logs its own error.
 					c.logger.Info(
 						"Received late response for command (likely timed out) - ignoring",
-						"command_id",
+						attr.CDPCommandID,
 						*msg.ID,
 					)
 					continue
@@ -557,12 +575,12 @@ func (c *connection) handleMessages() {
 				c.assertA(
 					batchOK != cmdOK,
 					"Command exists in both batch and single command state",
-					"command_id",
+					attr.CDPCommandID,
 					*msg.ID,
 				)
 
 				if cmdOK {
-					c.assertA(responseCh != nil, "Response channel for command is nil", "command_id", *msg.ID)
+					c.assertA(responseCh != nil, "Response channel for command is nil", attr.CDPCommandID, *msg.ID)
 					responseCh <- CDPResponse{
 						ID:     msg.ID,
 						Result: msg.Result,
@@ -570,7 +588,7 @@ func (c *connection) handleMessages() {
 					}
 				} else if batchOK {
 					state, ok := c.pendingBatches.Get(batchID)
-					c.assertA(ok, "Should always be able to get batch", "command_id", *msg.ID)
+					c.assertA(ok, "Should always be able to get batch", attr.CDPCommandID, *msg.ID)
 					index := -1
 					for i, potentialCmdID := range state.cmdIds {
 						if potentialCmdID == *msg.ID {
@@ -578,7 +596,12 @@ func (c *connection) handleMessages() {
 							break
 						}
 					}
-					c.assertA(index != -1, "Should always be able to find cmd in batch state", "command_id", *msg.ID)
+					c.assertA(
+						index != -1,
+						"Should always be able to find cmd in batch state",
+						attr.CDPCommandID,
+						*msg.ID,
+					)
 					state.responses[index] = &CommandResponse{
 						Resp: &CDPResponse{
 							ID:     msg.ID,

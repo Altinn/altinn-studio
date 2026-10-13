@@ -12,7 +12,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -25,6 +24,7 @@ import (
 	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/telemetry"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
@@ -54,7 +54,10 @@ type browserSession struct {
 
 const (
 	maxBrowserMessageLength = 1024
-	cleanupBlankURL         = "about:blank"
+	// maxLoggedPageErrors is how many warnings one request's page errors log. A broken page can
+	// report hundreds of errors.
+	maxLoggedPageErrors = 10
+	cleanupBlankURL     = "about:blank"
 )
 
 type cleanupNavigationWaiter struct {
@@ -76,9 +79,9 @@ var (
 
 func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 	ctx, cancel := context.WithCancel(context.Background())
-	sessionLogger := logger.With("id", id)
+	sessionLogger := logger.With(attr.SessionID, id)
 	cfg := config.ReadConfig()
-	sessionLogger.Info("Starting browser session", "queueSize", cfg.QueueSize)
+	sessionLogger.Info("Starting browser session", attr.QueueCapacity, cfg.QueueSize)
 	var queue chan workerRequest
 	if cfg.QueueSize > 0 {
 		queue = make(chan workerRequest, cfg.QueueSize)
@@ -107,7 +110,7 @@ func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 	w.conn, w.targetID, err = cdp.Connect(ctx, id, w.browser.DebugBaseURL, w.handleEvent)
 	if err != nil {
 		if closeErr := w.browser.Close(); closeErr != nil {
-			w.logger.Error("Failed to connect AND failed to close browser", "error", closeErr)
+			w.logger.Error("Failed to connect AND failed to close browser", attr.Error, closeErr)
 		}
 		return nil, fmt.Errorf("failed to connect to browser: %w", err)
 	}
@@ -151,7 +154,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 		if p, ok := params.(map[string]any); ok {
 			if apiType, ok := p["type"].(string); ok && apiType == "error" {
 				w.consoleErrors.Add(1)
-				w.recordPageError(method, consoleMessage(p), "")
+				w.recordPageError(pageErrorKindConsole, "Page logged a console error", consoleMessage(p), "")
 			}
 		}
 	case "Log.entryAdded":
@@ -159,14 +162,20 @@ func (w *browserSession) handleEvent(method string, params any) {
 			if entry, ok := p["entry"].(map[string]any); ok {
 				if level, ok := entry["level"].(string); ok && level == "error" {
 					w.browserErrors.Add(1)
-					w.recordPageError(method, stringField(entry, "text"), stringField(entry, "url"))
+					w.recordPageError(
+						pageErrorKindBrowser,
+						"Browser reported a page error",
+						stringField(entry, "text"),
+						stringField(entry, "url"),
+						attr.PageErrorLogSource, stringField(entry, "source"),
+					)
 				}
 			}
 		}
 	case "Runtime.exceptionThrown":
 		if p, ok := params.(map[string]any); ok {
 			w.jsExceptions.Add(1)
-			w.recordPageError(method, exceptionMessage(p), "")
+			w.recordPageError(pageErrorKindException, "Page threw an uncaught exception", exceptionMessage(p), "")
 		}
 	case "Page.frameNavigated":
 		w.trySignalCleanupBlankCommitted(params)
@@ -244,21 +253,26 @@ func (w *browserSession) handleRequests() {
 			w.jsExceptions.Store(0)
 			w.tryUpdateTestModeOutput(&req, "Before", false)
 
-			requestPageErrors := &pageErrors{attributes: telemetry.RequestAttributesFromContext(req.ctx)}
-			w.currentPageErrors.Store(requestPageErrors)
 			w.currentRequest.Store(&req)
 			rootLogger := w.logger
-			w.logger = w.logger.With("url", telemetry.RedactURL(req.request.URL))
+			w.logger = w.logger.With(attr.RequestURL, telemetry.RedactURL(req.request.URL))
+			requestPageErrors := &pageErrors{
+				ctx:        req.ctx,
+				logger:     w.logger,
+				attributes: telemetry.RequestAttributesFromContext(req.ctx),
+			}
+			w.currentPageErrors.Store(requestPageErrors)
 			w.handleRequest(&req)
 			w.currentRequest.Store(nil)
-			// Errors the page reports from here on are not this request's.
+			// Cleanup has already stopped recording the page's errors, unless the request never
+			// got that far.
 			w.currentPageErrors.Store(nil)
-			w.logPageErrors(req.ctx, requestPageErrors)
+			requestPageErrors.logNotLogged()
 			w.logger = rootLogger
 
 			w.assertA(
 				req.hasResponded(),
-				"Did not respond to request", "url", telemetry.RedactURL(req.request.URL),
+				"Did not respond to request", attr.RequestURL, telemetry.RedactURL(req.request.URL),
 			)
 
 			w.tryUpdateTestModeOutput(&req, "After", true)
@@ -296,7 +310,7 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 	req.ctx = ctx
 
 	if span.IsRecording() {
-		span.SetAttributes(attribute.Int("pdf.session.id", w.id))
+		span.SetAttributes(attribute.Int(attr.SessionID, w.id))
 	}
 
 	w.logger.Info("Processing PDF request")
@@ -305,7 +319,7 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 	defer func() {
 		if r := recover(); r != nil {
 			err := fmt.Errorf("%w: %v", errRecoveredPanic, r)
-			w.logger.ErrorContext(ctx, "Recovered from panic", "error", err)
+			w.logger.ErrorContext(ctx, "Recovered from panic", attr.Error, err)
 			pdfErr := types.NewPDFError(types.ErrGenerationFail, "", err)
 			telemetry.SetError(span, pdfErr.ErrorType(), err)
 			req.tryRespondError(pdfErr)
@@ -313,7 +327,7 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 
 		duration := time.Since(start)
 		span.End()
-		w.logger.Info("Completed PDF request", "duration", duration)
+		w.logger.Info("Completed PDF request", attr.DurationMs, duration.Milliseconds())
 	}()
 
 	if req.ctx.Err() != nil {
@@ -335,25 +349,35 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 	}
 }
 
-// pageErrors is what a request's page reported as errors: the first error, for its one log
-// record, and the request's attributes, for the counts. Set before the request starts, so the
-// CDP event goroutine never reads the request itself.
+// The kinds of error a page reports, as altinn.pdf.page.error.kind.
+const (
+	pageErrorKindConsole   = "console"
+	pageErrorKindBrowser   = "browser"
+	pageErrorKindException = "exception"
+)
+
+// pageErrors is where the errors a request's page reports go: a warning each, with the request's
+// context, so it links to the request's trace, and the counts on the request's attributes. Set
+// before the request starts, so the CDP event goroutine never reads the request, or the session's
+// logger, which handleRequests swaps per request.
+//
+//nolint:containedctx // The request's context is what links each warning to the request's trace.
 type pageErrors struct {
+	ctx        context.Context
+	logger     *slog.Logger
 	attributes *telemetry.RequestAttributes
-	first      *pageError
-	mu         sync.Mutex
+	reported   atomic.Int32
 }
 
-type pageError struct {
-	method  string
-	message string
-	source  string
-}
-
-// recordPageError records an error the page reported, from the CDP event goroutine. The counts
-// go on the request's attributes as the errors arrive, while its entry span is still open: the
-// entry span ends with the response, before the request's cleanup.
-func (w *browserSession) recordPageError(method, message, source string) {
+// recordPageError logs an error the page reported, from the CDP event goroutine, as a warning:
+// whether it stopped the page from rendering can't be told. The record has the error's message,
+// truncated, and the URL it came from, with every URL in them without user information, query or
+// fragment, not the event's payload, which can carry page data. After maxLoggedPageErrors, the
+// request's errors are only counted.
+//
+// The counts go on the request's attributes as the errors arrive, while its entry span is still
+// open: the entry span ends with the response, before the request's cleanup.
+func (w *browserSession) recordPageError(kind, logMessage, message, url string, args ...any) {
 	requestErrors := w.currentPageErrors.Load()
 	if requestErrors == nil {
 		return
@@ -362,40 +386,27 @@ func (w *browserSession) recordPageError(method, message, source string) {
 	requestErrors.attributes.SetBrowserErrors(int(w.browserErrors.Load()))
 	requestErrors.attributes.SetJSExceptions(int(w.jsExceptions.Load()))
 
-	requestErrors.mu.Lock()
-	defer requestErrors.mu.Unlock()
-	if requestErrors.first == nil {
-		requestErrors.first = &pageError{
-			method:  method,
-			message: truncate(telemetry.RedactURLsInText(message), maxBrowserMessageLength),
-			source:  telemetry.RedactURL(source),
-		}
-	}
-}
-
-// logPageErrors logs one warning for a request whose page reported errors, with the counts and
-// the first error: its message, truncated, and the URL of its source, with every URL in them
-// without user information, query or fragment, not the event's payload, which can carry page
-// data.
-func (w *browserSession) logPageErrors(ctx context.Context, requestErrors *pageErrors) {
-	requestErrors.mu.Lock()
-	first := requestErrors.first
-	requestErrors.mu.Unlock()
-	if first == nil {
+	if requestErrors.reported.Add(1) > maxLoggedPageErrors {
 		return
 	}
+	args = append(
+		args,
+		attr.PageErrorKind,
+		kind,
+		attr.PageErrorMessage,
+		truncate(telemetry.RedactURLsInText(message), maxBrowserMessageLength),
+	)
+	if redactedURL := telemetry.RedactURL(url); redactedURL != "" {
+		args = append(args, attr.PageErrorURL, redactedURL)
+	}
+	requestErrors.logger.WarnContext(requestErrors.ctx, logMessage, args...)
+}
 
-	args := []any{
-		"console_errors", w.consoleErrors.Load(),
-		"browser_errors", w.browserErrors.Load(),
-		"js_exceptions", w.jsExceptions.Load(),
-		"cdp.method", first.method,
-		"message", first.message,
+// logNotLogged logs how many of the request's page errors were only counted, if any were.
+func (e *pageErrors) logNotLogged() {
+	if notLogged := e.reported.Load() - maxLoggedPageErrors; notLogged > 0 {
+		e.logger.WarnContext(e.ctx, "Page reported more errors than were logged", attr.PageErrorsNotLogged, notLogged)
 	}
-	if first.source != "" {
-		args = append(args, "source", first.source)
-	}
-	w.logger.WarnContext(ctx, "Page reported errors", args...)
 }
 
 // consoleMessage is the text of a Runtime.consoleAPICalled event's arguments.
@@ -499,6 +510,10 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest, startedProcessi
 	cleanupStart := time.Now()
 	defer cleanupSpan.End()
 
+	// Errors the page reports from here on, as cleanup navigates away from it, are not the page's
+	// own.
+	w.currentPageErrors.Store(nil)
+
 	// The queue slot is already free by the time cleanup runs, so this path must stay
 	// fast enough that we do not accumulate dirty browser state under load.
 	w.tryUpdateTestModeOutput(req, "BeforeCleanup", false)
@@ -515,10 +530,10 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest, startedProcessi
 	if err != nil {
 		telemetry.SetError(cleanupSpan, "cleanup_navigate_failed", err)
 	}
-	w.assertA(err == nil, "failed to navigate back to about:blank during cleanup", "error", err)
+	w.assertA(err == nil, "failed to navigate back to about:blank during cleanup", attr.Error, err)
 
 	if testInput := req.tryGetTestModeInput(); testInput != nil && testInput.CleanupDelaySeconds > 0 {
-		w.logger.Info("Waiting for cleanup delay", "seconds", testInput.CleanupDelaySeconds)
+		w.logger.Info("Waiting for cleanup delay", attr.CleanupDelaySeconds, testInput.CleanupDelaySeconds)
 		time.Sleep(time.Duration(testInput.CleanupDelaySeconds) * time.Second)
 	}
 
@@ -528,16 +543,16 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest, startedProcessi
 		telemetry.SetError(cleanupSpan, "cleanup_failed", nil)
 	}
 
-	w.logger.Info("Cleanup completed", "duration", time.Since(cleanupStart))
+	w.logger.Info("Cleanup completed", attr.DurationMs, time.Since(cleanupStart).Milliseconds())
 }
 
 // setCleanupAttributes records the cleanup's outcome on its span. Cleanup runs after the
 // response, when the request's entry span has ended.
 func setCleanupAttributes(span trace.Span, attempts int, succeeded, skipped bool) {
 	span.SetAttributes(
-		attribute.Int("pdf.process.cleanup_attempts", attempts),
-		attribute.Bool("pdf.process.cleanup_succeeded", succeeded),
-		attribute.Bool("pdf.process.cleanup_skipped", skipped),
+		attribute.Int(attr.CleanupAttempts, attempts),
+		attribute.Bool(attr.CleanupSucceeded, succeeded),
+		attribute.Bool(attr.CleanupSkipped, skipped),
 	)
 }
 
@@ -577,7 +592,7 @@ func (w *browserSession) navigateToBlankForCleanup(requestCtx context.Context) e
 		if err == nil {
 			return nil
 		}
-		w.logger.WarnContext(requestCtx, "Failed to navigate back to about:blank, retrying", "error", err)
+		w.logger.WarnContext(requestCtx, "Failed to navigate back to about:blank, retrying", attr.Error, err)
 	}
 	return fmt.Errorf("navigate to about:blank: %w", err)
 }
@@ -612,11 +627,11 @@ func (w *browserSession) cleanupBrowserWithRetry(req *workerRequest) int {
 	err = w.cleanupBrowser(req)
 	cleanupAttempts++
 	if req.cleanedUp {
-		w.assertA(err == nil, "Got error but reports successful cleanup", "error", err)
+		w.assertA(err == nil, "Got error but reports successful cleanup", attr.Error, err)
 		return cleanupAttempts
 	}
 
-	w.logger.WarnContext(req.ctx, "Failed to cleanup storage, retrying", "error", err)
+	w.logger.WarnContext(req.ctx, "Failed to cleanup storage, retrying", attr.Error, err)
 	for range 3 {
 		err = w.cleanupBrowser(req)
 		cleanupAttempts++
@@ -625,7 +640,7 @@ func (w *browserSession) cleanupBrowserWithRetry(req *workerRequest) int {
 		}
 	}
 
-	w.assertA(req.cleanedUp, "Failed to cleanup storage, we're in an unsafe state and can't proceed", "error", err)
+	w.assertA(req.cleanedUp, "Failed to cleanup storage, we're in an unsafe state and can't proceed", attr.Error, err)
 	return cleanupAttempts
 }
 
@@ -676,7 +691,7 @@ func (w *browserSession) buildCookieData(ctx context.Context, cookie types.Cooki
 		w.logger.WarnContext(
 			ctx,
 			"Cookie value looks like a tracestate and has semicolons skipping",
-			"name",
+			attr.RequestCookieName,
 			cookie.Name,
 		)
 		return nil, false
@@ -789,7 +804,7 @@ func (w *browserSession) waitForPageLoad(req *workerRequest, timeoutMs int32) er
 	})
 	if waitErr != nil {
 		// INFO: the failed request logs its one error with what this answers it with.
-		w.logger.InfoContext(req.ctx, "Failed to wait for page load event", "error", waitErr)
+		w.logger.InfoContext(req.ctx, "Failed to wait for page load event", attr.Error, waitErr)
 		pdfErr := contextErrorToPDFError(waitErr, types.ErrGenerationFail, "page load")
 		telemetry.SetError(waitSpan, pdfErr.ErrorType(), waitErr)
 		req.tryRespondError(pdfErr)
@@ -855,7 +870,12 @@ func buildPrintToPDFParams(ctx context.Context, logger *slog.Logger, request typ
 			pdfParams["paperWidth"] = dimensions.width
 			pdfParams["paperHeight"] = dimensions.height
 		} else {
-			logger.WarnContext(ctx, "Unknown paper format, using default", "format", request.Options.Format)
+			logger.WarnContext(
+				ctx,
+				"Unknown paper format, using default",
+				attr.RequestOptionsFormat,
+				request.Options.Format,
+			)
 		}
 	}
 
@@ -939,7 +959,14 @@ func (w *browserSession) waitForElement(
 	})
 	if err != nil {
 		// INFO: the failed request logs its one error with what this answers it with.
-		w.logger.InfoContext(req.ctx, "Failed to wait for element", "selector", selector, "error", err)
+		w.logger.InfoContext(
+			req.ctx,
+			"Failed to wait for element",
+			attr.RequestWaitForSelector,
+			selector,
+			attr.Error,
+			err,
+		)
 		req.tryRespondError(contextErrorToPDFError(err, types.ErrElementNotReady, fmt.Sprintf("element %q", selector)))
 		return fmt.Errorf("evaluate wait expression: %w", err)
 	}
@@ -972,7 +999,12 @@ func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResp
 	if !value {
 		waitForData := waitForToJson(req.request.WaitFor)
 		// INFO: the failed request logs its one error with what this answers it with.
-		w.logger.InfoContext(req.ctx, "Wait condition not satisfied within timeout", "waitFor", waitForData)
+		w.logger.InfoContext(
+			req.ctx,
+			"Wait condition not satisfied within timeout",
+			attr.RequestWaitForJSON,
+			waitForData,
+		)
 		err := errWaitTimedOut
 		req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
 		return err
@@ -986,7 +1018,7 @@ func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResp
 func (w *browserSession) handleWaitError(req *workerRequest, logMsg string, data any, errDetail string) error {
 	summary := waitErrorSummary(data)
 	args := make([]any, 0, 2+len(summary))
-	args = append(args, "waitFor", waitForToJson(req.request.WaitFor))
+	args = append(args, attr.RequestWaitForJSON, waitForToJson(req.request.WaitFor))
 	w.logger.InfoContext(req.ctx, logMsg, append(args, summary...)...)
 
 	err := fmt.Errorf("%w: %s", errWaitConditionError, errDetail)
@@ -999,14 +1031,14 @@ func (w *browserSession) handleWaitError(req *workerRequest, logMsg string, data
 func waitErrorSummary(data any) []any {
 	if details, ok := data.(map[string]any); ok {
 		if message := exceptionMessage(map[string]any{"exceptionDetails": details}); message != "" {
-			return []any{"exception", truncate(message, maxBrowserMessageLength)}
+			return []any{attr.WaitException, truncate(message, maxBrowserMessageLength)}
 		}
 	}
 	payload, err := json.Marshal(data)
 	if err != nil {
 		return nil
 	}
-	return []any{"payload_bytes", len(payload)}
+	return []any{attr.WaitResultBytes, len(payload)}
 }
 
 func waitForToJson(waitFor *types.WaitFor) string {
@@ -1308,7 +1340,7 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) error {
 		{Method: "Page.resetNavigationHistory", Params: nil},
 	}
 	responses := w.conn.SendCommandBatch(w.ctx, commands)
-	w.logger.Info("Cleanup batch command completed", "duration", time.Since(now))
+	w.logger.Info("Cleanup batch command completed", attr.DurationMs, time.Since(now).Milliseconds())
 
 	var cleanupErrors strings.Builder
 	for i, response := range responses {
@@ -1341,22 +1373,22 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) error {
 
 func (w *browserSession) assert(condition bool, message string) {
 	if req := w.currentRequest.Load(); req != nil {
-		assert.That(condition, message, "id", w.id, "url", telemetry.RedactURL(req.request.URL))
+		assert.That(condition, message, attr.SessionID, w.id, attr.RequestURL, telemetry.RedactURL(req.request.URL))
 	} else {
-		assert.That(condition, message, "id", w.id)
+		assert.That(condition, message, attr.SessionID, w.id)
 	}
 }
 
 func (w *browserSession) assertA(condition bool, message string, userArgs ...any) {
 	if req := w.currentRequest.Load(); req != nil {
 		args := make([]any, 0, 2+2+len(userArgs))
-		args = append(args, "id", w.id)
-		args = append(args, "url", telemetry.RedactURL(req.request.URL))
+		args = append(args, attr.SessionID, w.id)
+		args = append(args, attr.RequestURL, telemetry.RedactURL(req.request.URL))
 		args = append(args, userArgs...)
 		assert.That(condition, message, args...)
 	} else {
 		args := make([]any, 0, 2+len(userArgs))
-		args = append(args, "id", w.id)
+		args = append(args, attr.SessionID, w.id)
 		args = append(args, userArgs...)
 		assert.That(condition, message, args...)
 	}
@@ -1374,13 +1406,13 @@ func (w *browserSession) close() {
 
 	if w.conn != nil {
 		if err := w.conn.Close(); err != nil {
-			w.sessionLogger.Error("Failed to close connection", "error", err)
+			w.sessionLogger.Error("Failed to close connection", attr.Error, err)
 		}
 	}
 
 	if w.browser != nil {
 		if err := w.browser.Close(); err != nil {
-			w.sessionLogger.Error("Failed to close browser", "error", err)
+			w.sessionLogger.Error("Failed to close browser", attr.Error, err)
 		}
 	}
 
@@ -1407,7 +1439,7 @@ func (w *browserSession) waitForDrain(timeout time.Duration) bool {
 		time.Sleep(100 * time.Millisecond)
 	}
 	// Timeout - log warning but don't crash
-	w.sessionLogger.Warn("Session drain timeout, forcing close", "timeout", timeout)
+	w.sessionLogger.Warn("Session drain timeout, forcing close", attr.SessionDrainTimeoutMs, timeout.Milliseconds())
 	return false
 }
 

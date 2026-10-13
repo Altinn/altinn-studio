@@ -2,6 +2,7 @@ package generator
 
 import (
 	"bytes"
+	"io"
 	"log/slog"
 	"strings"
 	"testing"
@@ -11,6 +12,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
 	"altinn.studio/pdf3/internal/telemetry"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 )
 
 func TestHtmlIDPattern(t *testing.T) {
@@ -79,9 +81,10 @@ func sendPageErrors(w *browserSession) {
 		},
 	})
 	w.handleEvent("Log.entryAdded", map[string]any{"entry": map[string]any{
-		"level": "error",
-		"text":  "Failed to load resource: 401",
-		"url":   "https://app.local/ttd/app/api/data?token=secret",
+		"level":  "error",
+		"source": "network",
+		"text":   "Failed to load resource: the server responded with a status of 500 ()",
+		"url":    "https://app.local/ttd/app/instances/1/2/process?token=secret",
 	}})
 	w.handleEvent("Runtime.exceptionThrown", map[string]any{"exceptionDetails": map[string]any{
 		"text":      "Uncaught",
@@ -89,37 +92,53 @@ func sendPageErrors(w *browserSession) {
 	}})
 }
 
-func newTestSession(logs *bytes.Buffer) *browserSession {
+func newTestSession(logs io.Writer) *browserSession {
 	return &browserSession{logger: slog.New(slog.NewTextHandler(logs, nil))}
 }
 
-func TestPageErrors_OneWarningPerRequest(t *testing.T) {
+// startRequestPageErrors makes w record page errors for a request, as handleRequests does.
+func startRequestPageErrors(t *testing.T, w *browserSession) *pageErrors {
+	t.Helper()
+	requestErrors := &pageErrors{
+		ctx:        t.Context(),
+		logger:     w.logger,
+		attributes: telemetry.NewRequestAttributes(),
+	}
+	w.currentPageErrors.Store(requestErrors)
+	return requestErrors
+}
+
+func TestPageErrors_OneWarningPerError(t *testing.T) {
 	var logs bytes.Buffer
 	w := newTestSession(&logs)
-	requestAttributes := telemetry.NewRequestAttributes()
-	requestErrors := &pageErrors{attributes: requestAttributes}
-	w.currentPageErrors.Store(requestErrors)
+	requestErrors := startRequestPageErrors(t, w)
 
 	sendPageErrors(w)
-	sendPageErrors(w)
-	if logs.Len() != 0 {
-		t.Fatalf("logged while the request ran, want one record at its end:\n%s", logs.String())
-	}
 	w.currentPageErrors.Store(nil)
-	w.logPageErrors(t.Context(), requestErrors)
+	requestErrors.logNotLogged()
 
-	got := logs.String()
-	if n := strings.Count(got, "\n"); n != 1 {
-		t.Fatalf("logged %d records, want 1:\n%s", n, got)
+	got := strings.Split(strings.TrimSpace(logs.String()), "\n")
+	if len(got) != 3 {
+		t.Fatalf("logged %d records, want one per error:\n%s", len(got), logs.String())
 	}
-	want := `level=WARN msg="Page reported errors" console_errors=2 browser_errors=2 js_exceptions=2 ` +
-		`cdp.method=Runtime.consoleAPICalled message="Failed to load Object"`
-	if !strings.Contains(got, want) {
-		t.Errorf("log = %q, want %q", got, want)
+	want := []string{
+		`level=WARN msg="Page logged a console error" ` + attr.PageErrorKind + `=console ` +
+			attr.PageErrorMessage + `="Failed to load Object"`,
+		`level=WARN msg="Browser reported a page error" ` + attr.PageErrorLogSource + `=network ` +
+			attr.PageErrorKind + `=browser ` +
+			attr.PageErrorMessage + `="Failed to load resource: the server responded with a status of 500 ()" ` +
+			attr.PageErrorURL + `=https://app.local/ttd/app/instances/1/2/process`,
+		`level=WARN msg="Page threw an uncaught exception" ` + attr.PageErrorKind + `=exception ` +
+			attr.PageErrorMessage + `="TypeError: x is undefined`,
+	}
+	for i, record := range got {
+		if !strings.Contains(record, want[i]) {
+			t.Errorf("record %d = %q, want %q", i, record, want[i])
+		}
 	}
 	for _, leaked := range []string{"page data", "token=secret"} {
-		if strings.Contains(got, leaked) {
-			t.Errorf("log contains %q:\n%s", leaked, got)
+		if strings.Contains(logs.String(), leaked) {
+			t.Errorf("log contains %q:\n%s", leaked, logs.String())
 		}
 	}
 
@@ -127,41 +146,42 @@ func TestPageErrors_OneWarningPerRequest(t *testing.T) {
 	// response ends the entry span.
 	spans := tracetest.NewSpanRecorder()
 	_, span := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(spans)).Tracer("test").Start(t.Context(), "entry")
-	telemetry.SetOnSpan(span, requestAttributes)
+	telemetry.SetOnSpan(span, requestErrors.attributes)
 	span.End()
 	counts := map[attribute.Key]int64{}
 	for _, kv := range spans.Ended()[0].Attributes() {
 		counts[kv.Key] = kv.Value.AsInt64()
 	}
 	for _, key := range []attribute.Key{
-		"pdf.process.console_errors",
-		"pdf.process.browser_errors",
-		"pdf.process.js_exceptions",
+		attr.PageConsoleErrors,
+		attr.PageBrowserErrors,
+		attr.PageJSExceptions,
 	} {
-		if counts[key] != 2 {
-			t.Errorf("%s = %d, want 2", key, counts[key])
+		if counts[key] != 1 {
+			t.Errorf("%s = %d, want 1", key, counts[key])
 		}
 	}
 }
 
-func TestPageErrors_FirstErrorIsTruncatedAndRedacted(t *testing.T) {
+func TestPageErrors_TruncatedAndRedacted(t *testing.T) {
 	var logs bytes.Buffer
 	w := newTestSession(&logs)
-	requestErrors := &pageErrors{attributes: telemetry.NewRequestAttributes()}
-	w.currentPageErrors.Store(requestErrors)
+	startRequestPageErrors(t, w)
 
 	w.handleEvent("Log.entryAdded", map[string]any{"entry": map[string]any{
 		"level": "error",
-		"text":  strings.Repeat("x", 2000),
+		"text":  "see https://user:pass@app.local/ttd/app/a?token=secret " + strings.Repeat("x", 2000),
 		"url":   "https://user:pass@app.local/ttd/app/api/data?token=secret#frag",
 	}})
-	w.logPageErrors(t.Context(), requestErrors)
 
 	got := logs.String()
-	if !strings.Contains(got, " source=https://app.local/ttd/app/api/data") {
-		t.Errorf("log = %q, want the source without user, query or fragment", got)
+	if !strings.Contains(got, " "+attr.PageErrorURL+"=https://app.local/ttd/app/api/data") {
+		t.Errorf("log = %q, want the URL without user, query or fragment", got)
 	}
-	if strings.Contains(got, strings.Repeat("x", maxBrowserMessageLength+1)) {
+	if !strings.Contains(got, "see https://app.local/ttd/app/a ") {
+		t.Errorf("log = %q, want the URL in the message without user, query or fragment", got)
+	}
+	if strings.Contains(got, strings.Repeat("x", maxBrowserMessageLength)) {
 		t.Errorf("message not truncated to %d bytes", maxBrowserMessageLength)
 	}
 	for _, leaked := range []string{"pass", "secret", "frag"} {
@@ -171,50 +191,41 @@ func TestPageErrors_FirstErrorIsTruncatedAndRedacted(t *testing.T) {
 	}
 }
 
-func TestPageErrors_NoneOrLateLogNothing(t *testing.T) {
+func TestPageErrors_LoggedUpToTheLimit(t *testing.T) {
 	var logs bytes.Buffer
 	w := newTestSession(&logs)
-	requestErrors := &pageErrors{attributes: telemetry.NewRequestAttributes()}
+	requestErrors := startRequestPageErrors(t, w)
 
-	// No errors while the request ran.
-	w.currentPageErrors.Store(requestErrors)
+	for range 10 {
+		sendPageErrors(w)
+	}
 	w.currentPageErrors.Store(nil)
-	// An error that arrives after the request finished belongs to no request.
-	sendPageErrors(w)
-	w.logPageErrors(t.Context(), requestErrors)
+	requestErrors.logNotLogged()
 
-	if logs.Len() != 0 {
-		t.Errorf("logged %q, want nothing", logs.String())
+	got := logs.String()
+	if n := strings.Count(got, "level=WARN msg=\"Page logged") + strings.Count(got, "level=WARN msg=\"Browser") +
+		strings.Count(got, "level=WARN msg=\"Page threw"); n != maxLoggedPageErrors {
+		t.Errorf("logged %d page errors, want %d", n, maxLoggedPageErrors)
+	}
+	want := `level=WARN msg="Page reported more errors than were logged" ` + attr.PageErrorsNotLogged + `=20`
+	if !strings.HasSuffix(strings.TrimSpace(got), want) {
+		t.Errorf("last record = %q, want %q", got[strings.LastIndex(strings.TrimSpace(got), "\n")+1:], want)
 	}
 }
 
-// TestPageErrors_LateErrorsDoNotRace sends page errors from another goroutine, as the CDP reader
-// does, while requests start and finish. Run with -race.
-func TestPageErrors_LateErrorsDoNotRace(t *testing.T) {
+func TestPageErrors_NoneOrLateLogNothing(t *testing.T) {
 	var logs bytes.Buffer
 	w := newTestSession(&logs)
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		for range 200 {
-			sendPageErrors(w)
-		}
-	}()
 
-	records := 0
-	for range 50 {
-		requestErrors := &pageErrors{attributes: telemetry.NewRequestAttributes()}
-		w.currentPageErrors.Store(requestErrors)
-		w.currentPageErrors.Store(nil)
-		before := logs.Len()
-		w.logPageErrors(t.Context(), requestErrors)
-		if logs.Len() != before {
-			records++
-		}
-	}
-	<-done
-	if got := strings.Count(logs.String(), "\n"); got != records || records > 50 {
-		t.Errorf("logged %d records for %d requests with errors, want at most one per request", got, records)
+	// No errors while the request ran.
+	requestErrors := startRequestPageErrors(t, w)
+	w.currentPageErrors.Store(nil)
+	// An error that arrives after the request finished belongs to no request.
+	sendPageErrors(w)
+	requestErrors.logNotLogged()
+
+	if logs.Len() != 0 {
+		t.Errorf("logged %q, want nothing", logs.String())
 	}
 }
 
@@ -231,11 +242,11 @@ func TestHandleWaitError_LogsDetailsAtInfoWithoutPayload(t *testing.T) {
 					"preview":     map[string]any{"secret": "page data"},
 				},
 			},
-			want: `exception="Error: boom"`,
+			want: attr.WaitException + `="Error: boom"`,
 		},
 		"other result": {
 			data: map[string]any{"type": "object", "value": map[string]any{"secret": "page data"}},
-			want: "payload_bytes=",
+			want: attr.WaitResultBytes + "=",
 		},
 	}
 	for name, tt := range tests {
@@ -304,10 +315,8 @@ func TestPageErrors_FirstMessageHasURLsRedacted(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			var logs bytes.Buffer
 			w := newTestSession(&logs)
-			requestErrors := &pageErrors{attributes: telemetry.NewRequestAttributes()}
-			w.currentPageErrors.Store(requestErrors)
+			startRequestPageErrors(t, w)
 			w.handleEvent(tt.method, tt.event)
-			w.logPageErrors(t.Context(), requestErrors)
 
 			got := logs.String()
 			if !strings.Contains(got, tt.want) {
@@ -325,8 +334,7 @@ func TestPageErrors_FirstMessageHasURLsRedacted(t *testing.T) {
 func TestPageErrors_RedactsBeforeTruncating(t *testing.T) {
 	var logs bytes.Buffer
 	w := newTestSession(&logs)
-	requestErrors := &pageErrors{attributes: telemetry.NewRequestAttributes()}
-	w.currentPageErrors.Store(requestErrors)
+	startRequestPageErrors(t, w)
 
 	// The URL's query straddles the truncation point: redacting first leaves none of it.
 	prefix := strings.Repeat("x", maxBrowserMessageLength-30)
@@ -334,7 +342,6 @@ func TestPageErrors_RedactsBeforeTruncating(t *testing.T) {
 		"level": "error",
 		"text":  prefix + " https://app.local/a?token=secret-value-that-is-long " + strings.Repeat("y", 100),
 	}})
-	w.logPageErrors(t.Context(), requestErrors)
 
 	got := logs.String()
 	if strings.Contains(got, "token") || strings.Contains(got, "secret") {
