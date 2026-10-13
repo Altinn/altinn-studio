@@ -19,6 +19,9 @@ internal sealed class AzureMonitorClient(
 ) : IMetricsClient
 {
     private const int MaxRange = 10080;
+
+    // Periodic reports cover up to 30 days, the monthly report window.
+    internal const int MaxReportRange = 30 * 24 * 60;
     private const int MaxActivityWindowDays = 30;
 
     private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
@@ -41,7 +44,14 @@ internal sealed class AzureMonitorClient(
         },
     };
 
+    private static readonly IReadOnlyDictionary<string, string> _operationNameReverseMap = _operationNames
+        .SelectMany(kvp => kvp.Value.Select(v => (Key: kvp.Key, Value: v)))
+        .ToDictionary(t => t.Value, t => t.Key);
+
     internal static IReadOnlyCollection<string> OperationNameKeys { get; } = _operationNames.Keys.ToArray();
+
+    internal static IReadOnlyCollection<string> MetricNames { get; } =
+    ["altinn_app_lib_processes_started", "altinn_app_lib_processes_ended"];
 
     internal static int GetBucketSize(int range)
     {
@@ -225,9 +235,7 @@ internal sealed class AzureMonitorClient(
         );
 
         var metrics = response
-            .Value.Table.Rows.GroupBy(row =>
-                _operationNames.First(n => n.Value.Contains(row.GetString("OperationName"))).Key
-            )
+            .Value.Table.Rows.GroupBy(row => _operationNameReverseMap[row.GetString("OperationName")])
             .Select(group => new AppFailedRequest
             {
                 Name = group.Key,
@@ -248,12 +256,97 @@ internal sealed class AzureMonitorClient(
         );
     }
 
+    public async Task<IEnumerable<Metric>> GetMetrics(int range, CancellationToken cancellationToken)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxReportRange);
+
+        var names = MetricNames;
+
+        var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
+
+        var interval = GetInterval(range);
+
+        var query =
+            $@"
+                AppMetrics
+                | where Name in ('{string.Join("','", names)}')
+                | summarize Count = sum(Sum) by Name, AppRoleName, DateTimeOffset = bin(TimeGenerated, {interval})
+                | order by DateTimeOffset desc";
+
+        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+            logAnalyticsWorkspaceId,
+            query,
+            new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
+            cancellationToken: cancellationToken
+        );
+
+        return response
+            .Value.Table.Rows.GroupBy(row => (AppName: row.GetString("AppRoleName"), Name: row.GetString("Name")))
+            .Select(group => new Metric
+            {
+                AppName = group.Key.AppName,
+                Name = group.Key.Name,
+                Timestamps = group.Select(row =>
+                    row.GetDateTimeOffset("DateTimeOffset")?.ToUnixTimeMilliseconds() ?? 0
+                ),
+                Counts = group.Select(row => row.GetDouble("Count") ?? 0),
+            });
+    }
+
+    public async Task<IEnumerable<AllAppsFailedRequest>> GetAllAppsFailedRequests(
+        int range,
+        CancellationToken cancellationToken
+    )
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxReportRange);
+
+        var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
+
+        var interval = GetInterval(range);
+
+        var query =
+            $@"
+                AppRequests
+                | where Success == false
+                | where ClientType != 'Browser'
+                | where toint(ResultCode) >= 500
+                | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
+                | summarize Count = count() by AppRoleName, OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
+                | order by DateTimeOffset desc";
+
+        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+            logAnalyticsWorkspaceId,
+            query,
+            new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
+            cancellationToken: cancellationToken
+        );
+
+        return response
+            .Value.Table.Rows.GroupBy(row =>
+                (
+                    AppName: row.GetString("AppRoleName"),
+                    OpName: _operationNameReverseMap[row.GetString("OperationName")]
+                )
+            )
+            .Select(group => new AllAppsFailedRequest
+            {
+                AppName = group.Key.AppName,
+                Name = group.Key.OpName,
+                Timestamps = group.Select(row =>
+                    row.GetDateTimeOffset("DateTimeOffset")?.ToUnixTimeMilliseconds() ?? 0
+                ),
+                Counts = group.Select(row => row.GetDouble("Count") ?? 0),
+            });
+    }
+
     public async Task<IEnumerable<AppMetric>> GetAppMetrics(string app, int range, CancellationToken cancellationToken)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
-        List<string> names = ["altinn_app_lib_processes_started", "altinn_app_lib_processes_ended"];
+        var names = MetricNames;
 
         var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
 
