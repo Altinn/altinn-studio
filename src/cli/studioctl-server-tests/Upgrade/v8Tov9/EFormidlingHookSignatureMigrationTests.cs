@@ -157,6 +157,20 @@ public sealed class EFormidlingHookSignatureMigrationTests : IDisposable
         }
         """;
 
+    /// <summary>
+    /// A v8 receivers implementation that overrides the two-parameter overload too and delegates it to the other.
+    /// </summary>
+    private const string V8BothReceiversOverloads = """
+        public class EFormidlingReceivers : IEFormidlingReceivers
+        {
+            public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance) =>
+                Task.FromResult(new List<Receiver> { new() });
+
+            public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance, string? receiverFromConfig) =>
+                GetEFormidlingReceivers(instance);
+        }
+        """;
+
     private const string AccessorType = "global::Altinn.App.Core.Features.IInstanceDataAccessor";
 
     private CSharpSourceScanner Scanner(bool semantic) =>
@@ -230,21 +244,7 @@ public sealed class EFormidlingHookSignatureMigrationTests : IDisposable
     [InlineData(false)]
     public async Task BothReceiversOverloads_MigrateTheTwoParameterOne_AndKeepTheOther(bool semantic)
     {
-        var path = Write(
-            "logic/EFormidlingReceivers.cs",
-            ModelUsings
-                + "\n\n"
-                + """
-                public class EFormidlingReceivers : IEFormidlingReceivers
-                {
-                    public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance) =>
-                        Task.FromResult(new List<Receiver> { new() });
-
-                    public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance, string? receiverFromConfig) =>
-                        GetEFormidlingReceivers(instance);
-                }
-                """
-        );
+        var path = Write("logic/EFormidlingReceivers.cs", ModelUsings + "\n\n" + V8BothReceiversOverloads);
 
         var result = Migrate(semantic);
 
@@ -275,6 +275,27 @@ public sealed class EFormidlingHookSignatureMigrationTests : IDisposable
             """.ReplaceLineEndings("\n"),
             migrated
         );
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task BothReceiversOverloads_ARerunLeavesTheMigratedOverloadAlone(bool semantic)
+    {
+        var path = Write("logic/EFormidlingReceivers.cs", ModelUsings + "\n\n" + V8BothReceiversOverloads);
+        Migrate(semantic);
+        var afterFirstRun = await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken);
+
+        // A resumed upgrade of an app that already targets v9 has no compilation, so the syntax fallback runs.
+        var rerun = Migrate(semantic: false);
+
+        Assert.Empty(rerun.Todos);
+        Assert.Contains(
+            rerun.Warnings,
+            static w => w.Contains("EFormidlingReceivers.cs:11:") && w.Contains("no longer called")
+        );
+        Assert.Equal(afterFirstRun, await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken));
+        AssertCompilesAgainstV9();
     }
 
     [Theory]

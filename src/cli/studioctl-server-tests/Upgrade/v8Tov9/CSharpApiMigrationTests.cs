@@ -422,6 +422,39 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void EFormidlingCodeDetector_FlagsTheTwoParameterInstanceOverload_NotTheV9Method()
+    {
+        _app.Write(
+            "logic/V8Sender.cs",
+            """
+            public class V8Sender : IEFormidlingService
+            {
+                public Task SendEFormidlingShipment(Instance instance, ValidAltinnEFormidlingConfiguration configuration) =>
+                    Task.CompletedTask;
+            }
+            """
+        );
+        _app.Write(
+            "logic/V9Sender.cs",
+            """
+            public class V9Sender : IEFormidlingService
+            {
+                public Task SendEFormidlingShipment(
+                    IInstanceDataAccessor dataAccessor,
+                    ValidAltinnEFormidlingConfiguration configuration,
+                    CancellationToken cancellationToken = default
+                ) => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
+
+        Assert.Contains(Locations(result), static w => w.Contains("V8Sender.cs:3: SendEFormidlingShipment(2 param)"));
+        Assert.DoesNotContain(Locations(result), static w => w.Contains("V9Sender.cs"));
+    }
+
+    [Fact]
     public void EFormidlingCodeDetector_FlagsLegacySingleArgInvocation()
     {
         _app.Write(

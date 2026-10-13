@@ -415,9 +415,13 @@ internal sealed class EFormidlingHookSignatureMigration
                     && HasV8Parameters(method)
                 )
                 .ToList();
-            var hasTwoParameterReceivers = candidates.Any(static method =>
-                method.Identifier.ValueText == ReceiversMethodName && method.ParameterList.Parameters.Count == 2
-            );
+            // Whatever its first parameter: on a rerun the two-parameter overload has already been migrated, and the
+            // leftover single-parameter one must not become a second copy of it.
+            var hasTwoParameterReceivers = type
+                .Members.OfType<MethodDeclarationSyntax>()
+                .Any(static method =>
+                    method.Identifier.ValueText == ReceiversMethodName && method.ParameterList.Parameters.Count == 2
+                );
 
             foreach (var method in candidates)
             {
