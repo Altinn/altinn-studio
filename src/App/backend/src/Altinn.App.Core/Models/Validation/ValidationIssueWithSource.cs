@@ -72,7 +72,7 @@ public class ValidationIssueWithSource
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("rowIndexes")]
-    public int[]? RowIndexes { get; set; }
+    public IReadOnlyList<int>? RowIndexes { get; set; }
 
     /// <summary>
     /// A system readable identification of the type of issue.

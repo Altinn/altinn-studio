@@ -5412,7 +5412,7 @@ namespace Altinn.App.Core.Models.Validation
         [Newtonsoft.Json.JsonProperty(NullValueHandling=Newtonsoft.Json.NullValueHandling.Ignore, PropertyName="rowIndexes")]
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("rowIndexes")]
-        public int[]? RowIndexes { get; set; }
+        public System.Collections.Generic.IReadOnlyList<int>? RowIndexes { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="severity")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonNumberEnumConverter<Altinn.App.Core.Models.Validation.ValidationIssueSeverity>?))]
         [System.Text.Json.Serialization.JsonPropertyName("severity")]
@@ -5493,7 +5493,7 @@ namespace Altinn.App.Core.Models.Validation
         public bool NoIncrementalUpdates { get; set; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("rowIndexes")]
-        public int[]? RowIndexes { get; set; }
+        public System.Collections.Generic.IReadOnlyList<int>? RowIndexes { get; set; }
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonNumberEnumConverter<Altinn.App.Core.Models.Validation.ValidationIssueSeverity>?))]
         [System.Text.Json.Serialization.JsonPropertyName("severity")]
         public required Altinn.App.Core.Models.Validation.ValidationIssueSeverity Severity { get; set; }
