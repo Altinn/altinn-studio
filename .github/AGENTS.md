@@ -100,7 +100,7 @@ Three mechanisms, by content type:
 3. **The runner image**
    ([`src/ci/github-runner`](../src/ci/github-runner/Dockerfile)): anything
    identical on every run (Go/Node/Rust/.NET toolchains, Chrome, Cypress,
-   cargo-machete) is baked in, not downloaded or cached per job.
+   cargo-machete, shellcheck) is baked in, not downloaded or cached per job.
 
 Couplings to keep in sync:
 

@@ -29,6 +29,7 @@ rustc --version
 cargo clippy --version
 rustfmt --version
 cargo machete --version
+shellcheck --version | sed -n 2p
 google-chrome --version
 kubectl version --client
 docker --version

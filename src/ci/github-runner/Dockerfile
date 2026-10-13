@@ -70,6 +70,7 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
       lsb-release \
       make \
       pkg-config \
+      shellcheck \
       tar \
       unzip \
       util-linux \
