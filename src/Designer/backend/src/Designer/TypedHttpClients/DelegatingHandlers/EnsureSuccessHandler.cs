@@ -1,4 +1,5 @@
 #nullable disable
+using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,14 +40,14 @@ public class EnsureSuccessHandler : DelegatingHandler
 
         if (!response.IsSuccessStatusCode)
         {
-            string errorMessage = await response.Content.ReadAsStringAsync();
-            string requestContent = await response.Content.ReadAsStringAsync();
             _logger.LogError(
-                "// EnsureSuccessHandler // SendAsync // Request to {RequestUri} failed with status code {StatusCode} and message {ResponseMessage}.\r\n Content: {RequestContent}",
-                request.RequestUri,
-                response.StatusCode,
-                errorMessage,
-                requestContent
+                "// EnsureSuccessHandler // SendAsync // {Method} request to {RequestUrl} failed with status code {StatusCode}.",
+                request.Method,
+                request.RequestUri?.GetComponents(
+                    UriComponents.SchemeAndServer | UriComponents.Path,
+                    UriFormat.UriEscaped
+                ),
+                response.StatusCode
             );
 
             throw new HttpRequestWithStatusException(response.ReasonPhrase) { StatusCode = response.StatusCode };

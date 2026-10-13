@@ -218,9 +218,9 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                 {
                     _logger.LogError(
                         ex,
-                        "Failed to forward agents message to group {Developer}: {Preview}",
-                        developer,
-                        json.Length > 200 ? json[..200] + "..." : json
+                        "Failed to forward agents message of {MessageLength} characters to group {Developer}",
+                        json.Length,
+                        developer
                     );
                 }
             }
