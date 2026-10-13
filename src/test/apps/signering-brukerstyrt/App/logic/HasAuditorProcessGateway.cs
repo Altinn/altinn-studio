@@ -19,6 +19,7 @@ public class HasAuditorProcessGateway : IProcessExclusiveGateway
     public async Task<List<SequenceFlow>> Filter(
         List<SequenceFlow> outgoingFlows,
         Instance instance,
+        IInstanceDataAccessor dataAccessor,
         ProcessGatewayInformation processGatewayInformation
     )
     {

@@ -191,6 +191,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigratePlatformHttpExceptionApis(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, MigrateExclusiveGatewaySignature(scanner, options.CancellationToken));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateAsyncSuffixApis(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -790,6 +793,34 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating PlatformHttpException APIs", ex);
+        }
+    }
+
+    /// <summary>
+    /// Moves app implementations of <c>IProcessExclusiveGateway</c> off the three-parameter <c>FilterAsync</c> that v9
+    /// removed: adds the <c>IInstanceDataAccessor</c> parameter where it was the app's only implementation, and deletes
+    /// it where the app already implements the four-parameter one. Runs before <see cref="MigrateAsyncSuffixApis"/>,
+    /// which then renames the method.
+    /// </summary>
+    static int MigrateExclusiveGatewaySignature(CSharpSourceScanner scanner, CancellationToken cancellationToken)
+    {
+        UpgradeConsole.BeginStep("IProcessExclusiveGateway signature");
+        try
+        {
+            var result = new ExclusiveGatewaySignatureMigration(scanner).Migrate(cancellationToken);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IProcessExclusiveGateway implementations to update",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating the IProcessExclusiveGateway signature", ex);
         }
     }
 
