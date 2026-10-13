@@ -30,7 +30,7 @@ public sealed class AuthTokenFileTests : IDisposable
         Assert.Equal(["otlp"], ingest.AllowedRouteGroups);
 
         var query = Assert.Single(tokens, token => token.SourceIdentity == "grafana");
-        Assert.Equal(["traces", "metrics", "logs"], query.AllowedRouteGroups);
+        Assert.Equal(["traces", "traces-logsql", "metrics", "logs"], query.AllowedRouteGroups);
     }
 
     [Fact]

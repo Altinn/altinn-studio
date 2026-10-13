@@ -46,10 +46,11 @@ A Grafana 12.4.8, the version of the shared Grafana at grafana.dis.altinn.cloud,
 `grafana` namespace with Studio's datasources, folder and dashboards from
 [`Altinn/altinn-dashboards-grafana`](https://github.com/Altinn/altinn-dashboards-grafana)
 (`products/studio`). The datasources keep their names and uids (`altinn-studio-metrics`,
-`altinn-studio-traces`, `altinn-studio-logs`) and query this proxy, so a dashboard built here works
-there unchanged. A datasource that does not query the proxy is left out with a warning. Without a
-checkout, devenv clones the repository into the fixture's cache, updates it on every start, and uses
-the cached copy when it cannot. To work on dashboards in your own checkout, point devenv at it:
+`altinn-studio-traces`, `altinn-studio-logs`, and `altinn-studio-traces-logsql` once that repository
+has it) and query this proxy, so a dashboard built here works there unchanged. A datasource that
+does not query the proxy is left out with a warning. Without a checkout, devenv clones the
+repository into the fixture's cache, updates it on every start, and uses the cached copy when it
+cannot. To work on dashboards in your own checkout, point devenv at it:
 
 ```bash
 export DEVENV_DASHBOARDS_REPOSITORY=~/code/altinn-dashboards-grafana
@@ -82,4 +83,11 @@ P=http://127.0.0.1:18080/internal/observability
 curl -H "$T" "$P/metrics/api/v1/label/service.name/values"
 curl -H "$T" -G "$P/traces/api/search" --data-urlencode 'q={resource.service.name="operator"}'
 curl -H "$T" "$P/logs/select/logsql/query" --data-urlencode 'query=service.name:pdf3-worker'
+curl -H "$T" "$P/traces-logsql/select/logsql/query" \
+  --data-urlencode 'query="resource_attr:service.name":operator | stats by (name) count(), quantile(0.95, duration)'
 ```
+
+Besides a row per span, VictoriaTraces' LogsQL API holds trace index rows (the
+`trace_id_idx_stream` stream), whose `duration` is the whole trace's. Filter on a span field, such
+as `name:*` or a `{resource_attr:service.name="operator"}` stream filter, before `stats count()`
+or `quantile(0.95, duration)`, or the index rows are counted too.
