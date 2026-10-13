@@ -21,3 +21,7 @@ make run / make stop # start/stop the standard runtime-fixture container
 
 - Other services and tests depend on this for a consistent environment — a change here can alter how
   `pdf3`, `operator`, etc. behave under test. Keep it faithful to the real runtime.
+- `IncludeMonitoring` deploys the platform observability stack from the production manifests in
+  `infra/observability`, through the local overlays in `infra/observability/local`. Change those
+  overlays rather than the fixture when production's manifests change; `TestMonitoringOverlaysRender`
+  renders them.

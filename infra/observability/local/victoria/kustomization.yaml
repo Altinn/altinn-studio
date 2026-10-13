@@ -1,0 +1,39 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# The Victoria backend on the devenv kind fixture (src/Runtime/devenv, run with
+# monitoring): one storage instance per signal and no agents, since a laptop needs
+# neither the copy in a second zone nor the fan-out to it. The observability-proxy
+# writes to the -a instances directly (see ../studio). Storage is sized for a
+# few days of one developer's telemetry, on the cluster's default storage class.
+resources:
+  - ../../studio/victoria
+  - backend-auth-key.yaml
+
+patches:
+  - patch: '{"$patch": "delete", "apiVersion": "operator.victoriametrics.com/v1beta1", "kind": "VMSingle", "metadata": {"name": "metrics-b"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "operator.victoriametrics.com/v1", "kind": "VTSingle", "metadata": {"name": "traces-b"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "operator.victoriametrics.com/v1", "kind": "VLSingle", "metadata": {"name": "logs-b"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "operator.victoriametrics.com/v1beta1", "kind": "VMAgent", "metadata": {"name": "metrics"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "operator.victoriametrics.com/v1", "kind": "VTAgent", "metadata": {"name": "traces"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "operator.victoriametrics.com/v1", "kind": "VLAgent", "metadata": {"name": "logs"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "v1", "kind": "ServiceAccount", "metadata": {"name": "vmagent-metrics-no-api-access"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy", "metadata": {"name": "vmagent-metrics"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy", "metadata": {"name": "vtagent-traces"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy", "metadata": {"name": "vlagent-logs"}}'
+  - path: storage.yaml
+    target:
+      group: operator.victoriametrics.com
+      kind: VMSingle|VTSingle|VLSingle
+  - patch: |-
+      - op: replace
+        path: /spec/extraArgs/storage.minFreeDiskSpaceBytes
+        value: 512MiB
+    target:
+      kind: VMSingle
+  # The volume is a directory on the developer's disk, so a share of that disk
+  # says nothing about this backend; the retention period bounds it instead.
+  - patch: |-
+      - op: remove
+        path: /spec/extraArgs/retention.maxDiskUsagePercent
+    target:
+      kind: VTSingle|VLSingle

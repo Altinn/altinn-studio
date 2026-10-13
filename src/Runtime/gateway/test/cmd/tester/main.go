@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -61,6 +62,7 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "Start arguments:")
 	fmt.Fprintln(os.Stderr, "  standard         Use standard variant (more nodes)")
 	fmt.Fprintln(os.Stderr, "  minimal          Use minimal variant (fewer resources)")
+	fmt.Fprintln(os.Stderr, "  --monitoring     Include the platform observability stack")
 	fmt.Fprintln(os.Stderr, "")
 }
 
@@ -78,7 +80,14 @@ func runStart(args []string) (exitCode int) {
 		return 1
 	}
 
-	runtime, err := setupRuntime(variant)
+	startFlags := flag.NewFlagSet("start", flag.ExitOnError)
+	includeMonitoring := startFlags.Bool("monitoring", false, "Include the platform observability stack")
+	if parseErr := startFlags.Parse(args[startCommandArgCount:]); parseErr != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing flags: %v\n", parseErr)
+		return 1
+	}
+
+	runtime, err := setupRuntime(variant, *includeMonitoring)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start runtime: %v\n", err)
 		return 1
@@ -143,7 +152,7 @@ func runTest() (exitCode int) {
 	if isCI {
 		runtime, err = kind.LoadCurrent(filepath.Join(root, cachePath))
 	} else {
-		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal)
+		runtime, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal, false)
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
@@ -190,13 +199,16 @@ func runTest() (exitCode int) {
 	return 0
 }
 
-func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainerRuntime, error) {
+func setupRuntime(
+	variant kind.KindContainerRuntimeVariant,
+	includeMonitoring bool,
+) (*kind.KindContainerRuntime, error) {
 	root, err := projectroot.Find(projectroot.Marker)
 	if err != nil {
 		return nil, fmt.Errorf("find project root: %w", err)
 	}
 
-	runtime, err := kind.New(variant, filepath.Join(root, cachePath), gatewayClusterOptions())
+	runtime, err := kind.New(variant, filepath.Join(root, cachePath), gatewayClusterOptions(includeMonitoring))
 	if err != nil {
 		return nil, fmt.Errorf("create kind runtime: %w", err)
 	}
@@ -215,9 +227,9 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainer
 	return runtime, nil
 }
 
-func gatewayClusterOptions() kind.KindContainerRuntimeOptions {
+func gatewayClusterOptions(includeMonitoring bool) kind.KindContainerRuntimeOptions {
 	return kind.KindContainerRuntimeOptions{
-		IncludeMonitoring:                 false,
+		IncludeMonitoring:                 includeMonitoring,
 		IncludeTestserver:                 false,
 		IncludeLinkerd:                    false,
 		IncludeFluxNotificationController: true,
