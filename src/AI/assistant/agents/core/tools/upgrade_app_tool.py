@@ -156,35 +156,34 @@ async def _upgrade_copy_of_repo(repo_path: str, report_status: Callable[[str], N
 
 
 async def _post_to_runner(runner_url: str, archive: bytes, report_status: Callable[[str], None]) -> httpx.Response:
-    """Try again while the runner is busy.  Each try opens a new connection, because the Service
-    sends a new connection to a random runner pod, and a kept connection goes to the same busy pod."""
+    """Try again while the runner is busy."""
     deadline = time.monotonic() + _RUNNER_QUEUE_TIMEOUT_MINUTES * 60
-    is_queued = False
-    while True:
-        try:
-            async with _create_runner_client(runner_url) as client:
-                response = await client.post(
-                    _RUNNER_UPGRADE_PATH, content=archive, headers={"Content-Type": _ARCHIVE_CONTENT_TYPE}
-                )
-        except httpx.ReadTimeout as error:
-            raise TimeoutError from error
-        except httpx.HTTPError as error:
-            raise _RunnerUnavailable(
-                f"the assistant runner did not answer ({type(error).__name__}: {error})"
-            ) from error
-
-        if response.status_code != _RUNNER_BUSY_STATUS:
-            break
+    response = await _post_once_to_runner(runner_url, archive)
+    if response.status_code == _RUNNER_BUSY_STATUS:
+        report_status(_RUNNER_QUEUE_STATUS)
+    while response.status_code == _RUNNER_BUSY_STATUS:
         if time.monotonic() > deadline:
             raise _RunnerUnavailable(f"the assistant runner was busy for {_RUNNER_QUEUE_TIMEOUT_MINUTES} minutes")
-        if not is_queued:
-            report_status(_RUNNER_QUEUE_STATUS)
-            is_queued = True
         await asyncio.sleep(_RUNNER_RETRY_DELAY_SECONDS)
+        response = await _post_once_to_runner(runner_url, archive)
 
     if response.status_code != httpx.codes.OK:
         raise _RunnerUnavailable(f"the assistant runner answered {response.status_code}: {response.text}")
     return response
+
+
+async def _post_once_to_runner(runner_url: str, archive: bytes) -> httpx.Response:
+    """Each try opens a new connection, because the Service sends a new connection to a random
+    runner pod, and a kept connection goes to the same busy pod."""
+    try:
+        async with _create_runner_client(runner_url) as client:
+            return await client.post(
+                _RUNNER_UPGRADE_PATH, content=archive, headers={"Content-Type": _ARCHIVE_CONTENT_TYPE}
+            )
+    except httpx.ReadTimeout as error:
+        raise TimeoutError from error
+    except httpx.HTTPError as error:
+        raise _RunnerUnavailable(f"the assistant runner did not answer ({type(error).__name__}: {error})") from error
 
 
 def _archive_head(repo_path: str) -> bytes:
