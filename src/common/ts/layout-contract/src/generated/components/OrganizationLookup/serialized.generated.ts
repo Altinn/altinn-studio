@@ -16,7 +16,6 @@ export type CompOrganizationLookupSerialized = {
     help?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
-  renderAsSummary?: boolean;
   forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -26,4 +25,4 @@ export type CompOrganizationLookupSerialized = {
   FormComponentProps &
   LabeledComponentProps;
 
-// Source hash: 1c0ef49e5683328e32a237b5b1539b46fe5f7a4a92849917088f9706c5cae581
+// Source hash: be2f529f0602f82a3d6165a272044d33f0b040f4f2bae044dce5b61885f75e11

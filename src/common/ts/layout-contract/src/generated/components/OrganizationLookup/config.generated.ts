@@ -18,7 +18,6 @@ export interface CompOrganizationLookupExternal
     help?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
-  renderAsSummary?: boolean;
   forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -58,4 +57,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: OrganizationLookupSummaryOverridesWithRef;
 };
 
-// Source hash: 06dc1dff0b8890ffecc990f6d313f8999a8b9e8f10158d08c8c350cd00649365
+// Source hash: 255523dfd25b2a710e0645b6f66b8553ff4c1b1f4d354eb77ec7ddcf6a6e8708

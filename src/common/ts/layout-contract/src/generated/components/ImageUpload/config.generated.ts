@@ -14,7 +14,6 @@ export interface CompImageUploadExternal
   extends ComponentBase, FormComponentProps, LabeledComponentProps {
   type: 'ImageUpload';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
-  renderAsSummary?: boolean;
   forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -68,4 +67,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: ImageUploadSummaryOverridesWithRef;
 };
 
-// Source hash: fc2e602fb8a18b8ced8a06057ab36a7c90cfa5781c715f81d3a044108d592f06
+// Source hash: d4adbcf0a6c24a304ab6c6e701c900d219ad9fa82edd27d8e0a89926817a5f92

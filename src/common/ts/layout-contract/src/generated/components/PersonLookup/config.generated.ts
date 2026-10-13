@@ -18,7 +18,6 @@ export interface CompPersonLookupExternal
     help?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
-  renderAsSummary?: boolean;
   forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -66,4 +65,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: PersonLookupSummaryOverridesWithRef;
 };
 
-// Source hash: 381c311b3f18a71a8e63c369cb8c176e4d27b54ea7ffad68a4a927e0eb9c2fc3
+// Source hash: 8b56bf444a677dab90cc85e80d07e4f61ecff77defc45be28d8af94442ad9622

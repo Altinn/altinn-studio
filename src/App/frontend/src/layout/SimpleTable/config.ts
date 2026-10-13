@@ -23,7 +23,6 @@ export const Config = new CG.component({
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'))
   .makeSummarizable()
-  .addProperty(CG.common('renderAsSummary'))
   .addProperty(CG.common('forceShowInSummary'))
   .extendTextResources(CG.common('TRBSummarizable'))
   .addProperty(new CG.prop('title', new CG.str()))

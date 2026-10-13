@@ -22,7 +22,6 @@ export interface CompSimpleTableExternal
   extends ComponentBase, FormComponentProps, LabeledComponentProps {
   type: 'SimpleTable';
   textResourceBindings?: TRBFormComp & TRBLabel & TRBSummarizable;
-  renderAsSummary?: boolean;
   forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   title: string;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -72,4 +71,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 110a60c74d66ca2d0bac08e90056c05e7c10989b34668e1aadc90211b529d2f4
+// Source hash: 24c93294d9c2db491b1fd1a4e423289eadd04fca129ae5cdfc5a5e74f82e9d39

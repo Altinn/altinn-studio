@@ -25,7 +25,6 @@ export interface CropConfigRect {
 export type CompImageUploadSerialized = {
   type: 'ImageUpload';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
-  renderAsSummary?: boolean;
   forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -36,4 +35,4 @@ export type CompImageUploadSerialized = {
   FormComponentProps &
   LabeledComponentProps;
 
-// Source hash: 0652b1792a6cfc8d906f68d0d5db2d97828ce1a02d35aae84631f46be7620521
+// Source hash: 65b54a944fb3f7999913bc1a221daf81c965943e78a270687047f3042930d9d8

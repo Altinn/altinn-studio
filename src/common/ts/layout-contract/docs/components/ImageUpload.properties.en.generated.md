@@ -187,19 +187,6 @@ The component also supports the [common component properties](../common-properti
   </div>
 </details>
 
-<details class="card adocs-expand adocs-expand-small component-property" id="renderassummary">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="renderAsSummary">renderAsSummary</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Optional</span>
-      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolean value indicating if the component should be rendered as a summary. Defaults to false.</div></div>
-</details>
-
 <details class="card adocs-expand adocs-expand-small component-property" id="forceshowinsummary">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>

@@ -4131,12 +4131,6 @@
                 }
               ]
             },
-            "renderAsSummary": {
-              "title": "Render as summary",
-              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
-              "default": false,
-              "type": "boolean"
-            },
             "forceShowInSummary": {
               "title": "Force show in summary",
               "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
@@ -4185,7 +4179,6 @@
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
-            "renderAsSummary": true,
             "forceShowInSummary": true,
             "required": true,
             "readOnly": true,
@@ -5650,12 +5643,6 @@
                 }
               ]
             },
-            "renderAsSummary": {
-              "title": "Render as summary",
-              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
-              "default": false,
-              "type": "boolean"
-            },
             "forceShowInSummary": {
               "title": "Force show in summary",
               "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
@@ -5714,7 +5701,6 @@
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
-            "renderAsSummary": true,
             "forceShowInSummary": true,
             "required": true,
             "readOnly": true,
@@ -6122,12 +6108,6 @@
                 }
               ]
             },
-            "renderAsSummary": {
-              "title": "Render as summary",
-              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
-              "default": false,
-              "type": "boolean"
-            },
             "forceShowInSummary": {
               "title": "Force show in summary",
               "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
@@ -6172,7 +6152,6 @@
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
-            "renderAsSummary": true,
             "forceShowInSummary": true,
             "required": true,
             "readOnly": true,
@@ -6992,12 +6971,6 @@
                 }
               ]
             },
-            "renderAsSummary": {
-              "title": "Render as summary",
-              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
-              "default": false,
-              "type": "boolean"
-            },
             "forceShowInSummary": {
               "title": "Force show in summary",
               "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
@@ -7067,7 +7040,6 @@
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
-            "renderAsSummary": true,
             "forceShowInSummary": true,
             "title": true,
             "removeWhenHidden": true,
