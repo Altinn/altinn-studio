@@ -22,6 +22,27 @@ http {
   otel_service_name ${OTEL_SERVICE_NAME};
   otel_trace ${OTEL_TRACE};
   otel_trace_context propagate;
+  # Span names default to the matched location, which for regex locations is the regex itself.
+  # Name spans after the route instead, and keep them low cardinality: only the method, literal
+  # prefixes and captures from fixed alternations, never the URI. Locations below set their own
+  # name; anything else, including the extra servers, falls back to the method alone.
+  # The name is evaluated when the span ends, after a rewrite may have replaced positional
+  # captures such as $1, so locations use named captures.
+  # nginx passes on any method a client sends, so methods outside the standard set are named
+  # HTTP, as the OpenTelemetry semantic conventions do.
+  map $request_method $span_method {
+    GET     GET;
+    HEAD    HEAD;
+    POST    POST;
+    PUT     PUT;
+    DELETE  DELETE;
+    PATCH   PATCH;
+    OPTIONS OPTIONS;
+    CONNECT CONNECT;
+    TRACE   TRACE;
+    default HTTP;
+  }
+  otel_span_name $span_method;
 
   upstream designer {
     server ${DESIGNER_HOST};
@@ -105,14 +126,17 @@ http {
     include /etc/nginx/error-pages/*.conf;
 
     location = / {
+      otel_span_name "$span_method /";
       proxy_pass http://designer/;
     }
 
-    location ~ ^/(designer|designerapi|login|logout|Home|ansattporten-signin-oidc|signin-oidc)/ {
+    location ~ ^/(?<lb_route_prefix>designer|designerapi|login|logout|Home|ansattporten-signin-oidc|signin-oidc)/ {
+      otel_span_name "$span_method /$lb_route_prefix/*";
       proxy_pass http://designer;
     }
 
     location ^~ /hubs/ {
+      otel_span_name "$span_method /hubs/*";
       proxy_http_version 1.1;
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection "Upgrade";
@@ -120,15 +144,18 @@ http {
     }
 
     location /repos/ {
+      otel_span_name "$span_method /repos/*";
       proxy_pass http://repositories/;
       include /etc/nginx/error-pages/repos-error*.inc;
     }
 
-    location ~ ^/(dashboard|editor|preview|admin|resourceadm|info|settings)/assets(/.*)?$ {
+    location ~ ^/(?<lb_spa_app>dashboard|editor|preview|admin|resourceadm|info|settings)/assets(/.*)?$ {
+      otel_span_name "$span_method /$lb_spa_app/assets/*";
       proxy_pass http://$spa_upstream;
     }
 
-    location ~ ^/(dashboard|editor|preview|admin|resourceadm|info|settings)(/.*)?$ {
+    location ~ ^/(?<lb_spa_app>dashboard|editor|preview|admin|resourceadm|info|settings)(/.*)?$ {
+      otel_span_name "$span_method /$lb_spa_app/*";
       if ($spa_rewrite) {
         rewrite ^/[^/]+(/.*)?$ /$spa_path/index.html break;
       }
@@ -141,6 +168,7 @@ http {
     include /etc/nginx/extra-locations/*.conf;
 
     location / {
+      otel_span_name "$span_method /*";
       proxy_pass http://designer;
     }
   }
