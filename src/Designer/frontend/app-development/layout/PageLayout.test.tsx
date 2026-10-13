@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { PageLayout } from './PageLayout';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
@@ -14,21 +15,17 @@ import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
-jest.mock('app-shared/hooks/useWebSocket', () => ({
-  useWebSocket: jest.fn(),
+vi.mock('app-shared/hooks/useWebSocket', () => ({
+  useWebSocket: vi.fn(),
 }));
 
-jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
 }));
 
 const APP_DOCUMENT_TITLE = 'my-app – Altinn Studio';
 
 describe('PageLayout', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('initially displays the spinner when loading data', () => {
     render();
 
@@ -129,10 +126,6 @@ describe('PageLayout', () => {
   });
 
   describe('UnsupportedVersion', () => {
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
     it('renders dialog if frontend is unsupported', async () => {
       render({
         getAppVersion: () => Promise.resolve({ frontendVersion: '2', backendVersion: '8' }),

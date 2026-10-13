@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -64,8 +64,6 @@ const getWebhookUrlInput = () =>
   });
 
 describe('SlackChannelDialog', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('renders the add title when not editing', () => {
     renderSlackChannelDialog();
     expect(

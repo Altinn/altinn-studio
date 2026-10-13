@@ -1,3 +1,4 @@
+import { describe, expect, test, vi } from 'vitest';
 import { app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
@@ -64,7 +65,7 @@ describe('useUpdateOptionListIdMutation', () => {
 
   test('Invalidates the optionListIds query cache', async () => {
     const queryClient = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     const oldData: OptionListsResponse = [
       { title: 'firstOptionList', data: optionListMock },
       { title: 'optionListId', data: optionListMock },
@@ -84,7 +85,7 @@ describe('useUpdateOptionListIdMutation', () => {
 
   test('Removes the option list query cache for the old Id', async () => {
     const queryClient = createQueryClientMock();
-    const removeQueriesSpy = jest.spyOn(queryClient, 'removeQueries');
+    const removeQueriesSpy = vi.spyOn(queryClient, 'removeQueries');
     queryClient.setQueryData([QueryKey.OptionLists, org, app], []);
     const renderUpdateOptionListMutationResult = renderHookWithProviders(
       () => useUpdateOptionListIdMutation(org, app),

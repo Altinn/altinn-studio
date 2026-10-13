@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { expect, vi } from 'vitest';
 import type { ForwardedRef, RefObject } from 'react';
 import { createRef } from 'react';
 import type { RenderResult } from '@testing-library/react';

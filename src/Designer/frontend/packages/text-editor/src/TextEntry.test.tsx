@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, render } from '@testing-library/react';
 import type { TextEntryProps } from './TextEntry';
 import { TextEntry } from './TextEntry';
@@ -11,8 +11,6 @@ const APP_NAME = 'appName';
 const textId = APP_NAME;
 
 describe('TextEntry', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render the TextEntry component', () => {
     renderTextEntry();
     expect(screen.getByText('Hello')).toBeInTheDocument();

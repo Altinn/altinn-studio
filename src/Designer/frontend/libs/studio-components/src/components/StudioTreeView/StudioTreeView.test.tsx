@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import type { StudioTreeViewRootProps } from './';
 import { StudioTreeView } from './';
@@ -89,8 +89,6 @@ const createRenderFunction =
   };
 
 describe('StudioTreeView', () => {
-  afterEach(vi.clearAllMocks);
-
   describe.each(['simple', 'complex'])('%s composition', (simpleOrComplex: SimpleOrComplex) => {
     const renderTreeView = createRenderFunction(simpleOrComplex);
 

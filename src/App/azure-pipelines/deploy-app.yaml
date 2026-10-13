@@ -5,6 +5,7 @@ variables:
   RELEASE_NAME: ''
   RG_NAME: ''
   AI_INSTR_KEY: ''
+  AI_CONNECTION_STRING: ''
   SUBSCRIPTION_KEY: ''
 
   # Variables that should be set as secret variables in the pipeline
@@ -363,17 +364,23 @@ steps:
 
         Write-Host "Using resource group for Application Insights: $resourceGroupName"
 
-        # Get the Application Insights Instrumentation Key
-        $ai_instr_key = (Get-AzApplicationInsights -ResourceGroupName $resourceGroupName -Name $aiName).InstrumentationKey
+        # Use the resource's connection string so exporters send directly to its regional endpoint.
+        $appInsights = Get-AzApplicationInsights -ResourceGroupName $resourceGroupName -Name $aiName -ErrorAction Stop
+        $ai_instr_key = $appInsights.InstrumentationKey
+        $ai_connection_string = $appInsights.ConnectionString
+        if ([string]::IsNullOrWhiteSpace($ai_connection_string)) {
+            throw "Application Insights '$aiName' in resource group '$resourceGroupName' has no connection string."
+        }
 
-        # export it as a pipeline variable
+        # Keep the instrumentation key for apps using older telemetry configuration.
         Write-Host "##vso[task.setvariable variable=AI_INSTR_KEY;]$ai_instr_key"
+        Write-Host "##vso[task.setvariable variable=AI_CONNECTION_STRING;]$ai_connection_string"
         EOF
 
         echo "PowerShell script generated successfully"
 
   - task: AzurePowerShell@4
-    displayName: Get application Insights instrumentation key (Production)
+    displayName: Get Application Insights configuration (Production)
     condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'production'))
     inputs:
       ConnectedServiceNameARM: $(AI_SERVICE_CONNECTION_ID_PROD)
@@ -384,7 +391,7 @@ steps:
       TargetAzurePs: LatestVersion
 
   - task: AzurePowerShell@4
-    displayName: Get application Insights instrumentation key (Non-Production)
+    displayName: Get Application Insights configuration (Non-Production)
     condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_ENVIRONMENT'], 'production'))
     inputs:
       ConnectedServiceNameARM: $(AI_SERVICE_CONNECTION_ID_TEST)
@@ -654,6 +661,8 @@ steps:
               value: ${APP_REPO}
             - name: ApplicationInsights__InstrumentationKey
               value: ${AI_INSTR_KEY}
+            - name: ApplicationInsights__ConnectionString
+              value: "${AI_CONNECTION_STRING}"
             - name: AppSettings__AppVersion
               value: "${TAGNAME}"
         podAnnotations:

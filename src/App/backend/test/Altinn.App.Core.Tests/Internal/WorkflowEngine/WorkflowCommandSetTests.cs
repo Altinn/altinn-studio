@@ -76,28 +76,12 @@ public class WorkflowCommandSetTests
     }
 
     [Fact]
-    public void GetProcessEndSteps_AllFeaturesEnabled_RoutesCommandsToTheCorrectBuckets()
+    public void GetProcessEndSteps_RunsTheEndedHookAndTheDataCleanupAfterTheCommit()
     {
         var commandSet = WorkflowCommandSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true });
 
-        // Nothing runs before the commit; the configured cleanup/hard delete is staged by
-        // CommitProcessState into the commit save itself.
         Assert.Empty(commandSet.Commands);
-
-        Assert.Empty(commandSet.CriticalPostCommitCommands);
-
-        Assert.Equal([CompletedAltinnEvent.Key], Keys(commandSet.SideEffectCommands));
-    }
-
-    [Fact]
-    public void GetProcessEndSteps_WithProcessEndedHandler_RunsTheHookAndTheReleaseAfterTheCommit()
-    {
-        var commandSet = WorkflowCommandSet.GetProcessEndSteps(
-            new ProcessEndContext { RegisterEvents = true, HasProcessEndedHandler = true }
-        );
-
-        Assert.Empty(commandSet.Commands);
-        Assert.Equal([OnProcessEndedHook.Key, ReleaseEndedInstance.Key], Keys(commandSet.CriticalPostCommitCommands));
+        Assert.Equal([OnProcessEndedHook.Key, DeleteDataOnProcessEnd.Key], Keys(commandSet.CriticalPostCommitCommands));
         Assert.Equal([CompletedAltinnEvent.Key], Keys(commandSet.SideEffectCommands));
     }
 

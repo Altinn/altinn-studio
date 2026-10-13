@@ -40,6 +40,7 @@ public class ProcessTaskConfigurationValidationServiceTests
         );
         var service = new ProcessTaskConfigurationValidationService(
             provider.GetRequiredService<IServiceScopeFactory>(),
+            services,
             NullLogger<ProcessTaskConfigurationValidationService>.Instance
         );
 
@@ -624,11 +625,135 @@ public class ProcessTaskConfigurationValidationServiceTests
             record => record.Level == LogLevel.Warning
         );
         Assert.StartsWith(
-            $"Could not create the {nameof(IOnTaskEndingHandler)} implementations at startup",
+            $"Could not create a factory registration of {nameof(IOnTaskEndingHandler)} at startup",
             warning.Message,
             StringComparison.Ordinal
         );
     }
+
+    [Theory]
+    [MemberData(nameof(TaskHookTypes))]
+    public async Task StartAsync_HookThatCannotBeCreated_DoesNotHideTwoOthersForTheSameTask(Type hookType)
+    {
+        var logger = new FakeLogger<ProcessTaskConfigurationValidationService>();
+
+        var exception = await Validate(
+            s =>
+            {
+                s.AddTransient(hookType, typeof(Task1Hook));
+                s.AddTransient(hookType, _ => throw new InvalidOperationException("needs request state"));
+                s.AddScoped(hookType, typeof(OtherTask1Hook));
+            },
+            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn"),
+            logger
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains(
+            $"  - Task 'Task1' has 2 {hookType.Name} implementations that run for it "
+                + $"({typeof(Task1Hook).FullName}, {typeof(OtherTask1Hook).FullName}).",
+            exception.Message,
+            StringComparison.Ordinal
+        );
+        Assert.Single(logger.Collector.GetSnapshot(), record => record.Level == LogLevel.Warning);
+    }
+
+    [Fact]
+    public async Task StartAsync_TwoProcessEndedHooks_FailsValidationEvenIfOneCannotBeCreated()
+    {
+        var exception = await Validate(
+            s =>
+            {
+                s.AddSingleton<IOnProcessEndedHandler>(new Hook(_ => true));
+                s.AddTransient<IOnProcessEndedHandler>(_ => throw new InvalidOperationException("needs request state"));
+            },
+            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn")
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains(
+            $"  - 2 {nameof(IOnProcessEndedHandler)} implementations are registered "
+                + $"({typeof(Hook).FullName}, a factory registration of {nameof(IOnProcessEndedHandler)}). "
+                + "Register only one.",
+            exception.Message,
+            StringComparison.Ordinal
+        );
+    }
+
+    public static TheoryData<Type> AllHookTypes =>
+        [
+            typeof(IOnTaskStartingHandler),
+            typeof(IOnTaskEndingHandler),
+            typeof(IOnTaskAbandonHandler),
+            typeof(IOnProcessEndedHandler),
+        ];
+
+    [Theory]
+    [MemberData(nameof(AllHookTypes))]
+    public async Task StartAsync_KeyedHook_IsNotChecked(Type hookType)
+    {
+        var logger = new FakeLogger<ProcessTaskConfigurationValidationService>();
+
+        var exception = await Validate(
+            s =>
+            {
+                s.AddKeyedSingleton(hookType, "other", new Hook(_ => true));
+                s.AddSingleton(hookType, new Hook(_ => true));
+            },
+            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn"),
+            logger
+        );
+
+        Assert.Null(exception);
+        Assert.Empty(logger.Collector.GetSnapshot());
+    }
+
+    [Fact]
+    public async Task StartAsync_DisposesHooksCreatedFromTheirTypeButNotFactoryResults()
+    {
+        var disposals = new DisposalLog();
+        var factoryHook = new DisposableHook(disposals);
+
+        var exception = await Validate(
+            s =>
+            {
+                s.AddSingleton(disposals);
+                s.AddTransient<IOnTaskEndingHandler, DisposableHook>();
+                // A factory may return an instance the service provider owns.
+                s.AddTransient<IOnTaskStartingHandler>(_ => factoryHook);
+            },
+            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn")
+        );
+
+        Assert.Null(exception);
+        DisposableHook disposed = Assert.Single(disposals.Hooks);
+        Assert.NotSame(factoryHook, disposed);
+    }
+
+    private sealed class DisposalLog
+    {
+        public List<DisposableHook> Hooks { get; } = [];
+    }
+
+    private sealed class DisposableHook(DisposalLog disposals)
+        : IOnTaskStartingHandler,
+            IOnTaskEndingHandler,
+            IDisposable
+    {
+        public bool ShouldRunForTask(string taskId) => true;
+
+        public Task<HookResult> Execute(OnTaskStartingContext context) =>
+            throw new InvalidOperationException("Validation must not execute the hook.");
+
+        public Task<HookResult> Execute(OnTaskEndingContext context) =>
+            throw new InvalidOperationException("Validation must not execute the hook.");
+
+        public void Dispose() => disposals.Hooks.Add(this);
+    }
+
+    private sealed class Task1Hook() : Hook(taskId => taskId == "Task1");
+
+    private sealed class OtherTask1Hook() : Hook(taskId => taskId == "Task1");
 
     private class Hook(Func<string, bool> runsForTask)
         : IOnTaskStartingHandler,
@@ -683,6 +808,7 @@ public class ProcessTaskConfigurationValidationServiceTests
         );
         var service = new ProcessTaskConfigurationValidationService(
             provider.GetRequiredService<IServiceScopeFactory>(),
+            services,
             logger ?? NullLogger<ProcessTaskConfigurationValidationService>.Instance
         );
         return (ApplicationConfigException?)

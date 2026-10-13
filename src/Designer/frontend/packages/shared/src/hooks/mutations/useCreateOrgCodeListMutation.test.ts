@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { org } from '@studio/testing/testids';
 import { queriesMock } from '../../mocks/queriesMock';
@@ -27,8 +28,6 @@ const existingCodeList: CodeListDataWithTextResources = {
 };
 
 describe('useCreateOrgCodeListMutation', () => {
-  beforeEach(jest.clearAllMocks);
-
   it('Calls createOrgCodeList with correct parameters', async () => {
     const { result } = renderHookWithProviders(() => useCreateOrgCodeListMutation(org));
 
@@ -45,7 +44,7 @@ describe('useCreateOrgCodeListMutation', () => {
   it('Replaces cache with api response', async () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.OrgCodeLists, org], [existingCodeList]);
-    const createOrgCodeList = jest.fn(() => Promise.resolve([existingCodeList, newCodeList]));
+    const createOrgCodeList = vi.fn(() => Promise.resolve([existingCodeList, newCodeList]));
     const { result } = renderHookWithProviders(() => useCreateOrgCodeListMutation(org), {
       queryClient,
       queries: { createOrgCodeList },

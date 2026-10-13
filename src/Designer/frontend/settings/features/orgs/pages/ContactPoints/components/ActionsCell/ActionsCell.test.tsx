@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../testing/mocks';
@@ -30,8 +30,6 @@ const getDeleteButton = () =>
   });
 
 describe('ActionsCell', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('calls onEdit when edit button is clicked', async () => {
     const user = userEvent.setup();
     const onEdit = vi.fn();

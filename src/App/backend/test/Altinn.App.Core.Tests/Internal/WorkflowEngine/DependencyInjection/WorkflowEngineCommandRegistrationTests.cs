@@ -103,9 +103,7 @@ public class WorkflowEngineCommandRegistrationTests
         CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps("Task_1"), keys);
         CollectCommandKeys(WorkflowCommandSet.GetTaskAbandonSteps(), keys);
         CollectCommandKeys(
-            WorkflowCommandSet.GetProcessEndSteps(
-                new ProcessEndContext { RegisterEvents = true, HasProcessEndedHandler = true }
-            ),
+            WorkflowCommandSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true }),
             keys
         );
 
@@ -113,6 +111,7 @@ public class WorkflowEngineCommandRegistrationTests
         keys.Add(AcquireProcessingStatus.Key);
         keys.Add(MutateProcessState.Key);
         keys.Add(CommitProcessState.Key);
+        keys.Add(ReleaseProcessingStatus.Key);
         keys.Add(EnqueueSideEffectsWorkflow.Key);
 
         return keys;

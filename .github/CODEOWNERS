@@ -27,12 +27,12 @@ src/Designer/frontend/**/package.json                                     @altin
 src/Designer/frontend/resourceadm/**/package.json                         @altinn/team-access-info
 
 # AI
-src/AI/agents/**/docker-compose.yaml                                      @ErlingHauan
-src/AI/agents/**/dockerfile*                                              @ErlingHauan
-src/AI/agents/**/pyproject.toml                                           @ErlingHauan
-src/AI/agents/**/requirements-dev.txt                                     @ErlingHauan
-src/AI/agents/**/requirements.txt                                         @ErlingHauan
-src/AI/agents/**/uv.lock                                                  @ErlingHauan
+src/AI/assistant/**/docker-compose.yaml                                   @ErlingHauan
+src/AI/assistant/**/dockerfile*                                           @ErlingHauan
+src/AI/assistant/**/pyproject.toml                                        @ErlingHauan
+src/AI/assistant/**/requirements-dev.txt                                  @ErlingHauan
+src/AI/assistant/**/requirements.txt                                      @ErlingHauan
+src/AI/assistant/**/uv.lock                                               @ErlingHauan
 src/AI/augmenter-agent/**/*.csproj                                        @ErlingHauan
 src/AI/augmenter-agent/**/docker-compose.yaml                             @ErlingHauan
 src/AI/augmenter-agent/**/dockerfile*                                     @ErlingHauan

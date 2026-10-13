@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ContactPointDialog, type ContactPointDialogProps } from './ContactPointDialog';
@@ -44,8 +45,8 @@ describe('ContactPointDialog', () => {
 
   it('calls onFieldChange for each field when the user types', async () => {
     const user = userEvent.setup();
-    const changeHandler = jest.fn();
-    const onFieldChange = jest.fn().mockReturnValue(changeHandler);
+    const changeHandler = vi.fn();
+    const onFieldChange = vi.fn().mockReturnValue(changeHandler);
     renderContactPointDialog({ onFieldChange });
     for (const { field, labelKey } of contactPointFieldTestConfig) {
       changeHandler.mockReset();
@@ -66,7 +67,7 @@ describe('ContactPointDialog', () => {
 
   it('calls onSave when Save is clicked and at least one field has value', async () => {
     const user = userEvent.setup();
-    const onSave = jest.fn();
+    const onSave = vi.fn();
     renderContactPointDialog({
       draftContactPoint: { email: 'a', telephone: '', contactPage: '', category: '' },
       onSave,
@@ -77,7 +78,7 @@ describe('ContactPointDialog', () => {
 
   it('calls onClose when Cancel is clicked', async () => {
     const user = userEvent.setup();
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     renderContactPointDialog({ onClose });
     await user.click(
       screen.getByRole('button', { name: textMock('general.cancel'), hidden: true }),
@@ -94,9 +95,9 @@ const defaultProps: ContactPointDialogProps = {
     contactPage: '',
     category: '',
   },
-  onFieldChange: jest.fn(),
-  onSave: jest.fn(),
-  onClose: jest.fn(),
+  onFieldChange: vi.fn(),
+  onSave: vi.fn(),
+  onClose: vi.fn(),
 };
 
 const renderContactPointDialog = (props: Partial<ContactPointDialogProps> = {}) => {
