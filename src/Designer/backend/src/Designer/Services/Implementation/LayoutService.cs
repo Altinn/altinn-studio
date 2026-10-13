@@ -254,6 +254,12 @@ public class LayoutService(
         bool includeShowBackButton = !appVersionService.IsV9App(editingContext);
         foreach (string pageId in createdPages)
         {
+            // A layout file can already exist for a page Settings.json does not list, for instance one whose
+            // name in Settings.json differs only in case. Adding the page keeps the content of that file.
+            if (appRepository.LayoutFileExistsByExactName(layoutSetId, pageId))
+            {
+                continue;
+            }
             AltinnPageLayout altinnPageLayout = new(appRepository.LayoutSchemaUrl);
             if (originalOrder.Any())
             {

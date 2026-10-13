@@ -207,6 +207,36 @@ public class PageNameValidationTests(WebApplicationFactory<Program> factory)
     }
 
     [Fact]
+    public async Task UpdatePageGroups_WhenPageIsRenamedToTheNameOfItsLayoutFile_KeepsTheLayoutContent()
+    {
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, AppWithPageGroups, Developer, targetRepository);
+        JsonObject pages = await GetPageGroups(targetRepository);
+        string pageIdInSettings = (string)pages["groups"].AsArray()[0]["order"].AsArray()[0]["id"];
+        string pageIdOfLayoutFile = pageIdInSettings.ToUpperInvariant();
+        string layoutsPath = Path.Combine(LayoutSetDirectory(targetRepository, LayoutSetWithPageGroups), "layouts");
+        File.Move(
+            Path.Combine(layoutsPath, $"{pageIdInSettings}.json"),
+            Path.Combine(layoutsPath, $"{pageIdOfLayoutFile}.json")
+        );
+        string layoutBefore = GetFile(targetRepository, LayoutPath(LayoutSetWithPageGroups, pageIdOfLayoutFile));
+        pages = await RenamePageInGroups(targetRepository, pageIdInSettings, pageIdOfLayoutFile);
+
+        // Act
+        using HttpResponseMessage response = await UpdatePageGroups(targetRepository, pages);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(layoutBefore, GetFile(targetRepository, LayoutPath(LayoutSetWithPageGroups, pageIdOfLayoutFile)));
+        Assert.Contains(
+            $"\"{pageIdOfLayoutFile}\"",
+            GetFile(targetRepository, SettingsPath(LayoutSetWithPageGroups)),
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
     public async Task CreatePage_WhenNameDiffersOnlyInCaseFromAnExistingPage_LeavesTheLayoutSetUnchanged()
     {
         // Arrange
