@@ -58,10 +58,8 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
             Guard.AssertValidEnvironmentName(options.Environment);
         }
 
-        activity?.SetTag("org", options.Org);
-        activity?.SetTag("app", options.App);
-        activity?.SetTag("environment.filter", options.Environment);
-        activity?.SetTag("window.days", options.WindowDays);
+        activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.EnvironmentFilter, options.Environment);
+        activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.WindowDays, options.WindowDays);
         var recentDeploymentCutoffUtc = DateTimeOffset.UtcNow.AddDays(-options.WindowDays);
 
         var settings = await _appSettingsService.GetAllAsync(cancellationToken);
@@ -69,13 +67,13 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
 
         if (enabledApps.Count == 0)
         {
-            activity?.SetTag("candidate.count", 0);
+            activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.CandidateCount, 0);
             return [];
         }
 
         if (!string.IsNullOrWhiteSpace(options.App) && !enabledApps.Contains(options.App))
         {
-            activity?.SetTag("candidate.count", 0);
+            activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.CandidateCount, 0);
             return [];
         }
 
@@ -88,7 +86,7 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
             using var environmentActivity = ServiceTelemetry.Source.StartActivity(
                 $"{nameof(AppInactivityUndeployService)}.EvaluateEnvironment"
             );
-            environmentActivity?.SetTag("environment", environmentName);
+            environmentActivity.SetTargetEnvironment(environmentName);
 
             var environment = AltinnEnvironment.FromName(environmentName);
 
@@ -107,9 +105,7 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
             {
                 environmentActivity?.SetStatus(ActivityStatusCode.Error, "Failed to fetch deployments.");
                 environmentActivity?.AddException(ex);
-                environmentActivity?.AddEvent(
-                    CreateSkippedEvaluationEvent(options.Org, environmentName, "deployments_fetch_failed")
-                );
+                SetEvaluationSkipped(environmentActivity, "deployments_fetch_failed");
                 continue;
             }
 
@@ -132,21 +128,13 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
             {
                 environmentActivity?.SetStatus(ActivityStatusCode.Error, "Failed to fetch activity metrics.");
                 environmentActivity?.AddException(ex);
-                environmentActivity?.AddEvent(
-                    CreateSkippedEvaluationEvent(options.Org, environmentName, "activity_metrics_fetch_failed")
-                );
+                SetEvaluationSkipped(environmentActivity, "activity_metrics_fetch_failed");
                 continue;
             }
 
             if (!string.Equals(activityMetrics.Status, MetricsStatusOk, StringComparison.OrdinalIgnoreCase))
             {
-                environmentActivity?.AddEvent(
-                    CreateSkippedEvaluationEvent(
-                        options.Org,
-                        environmentName,
-                        $"metrics_status_{activityMetrics.Status}"
-                    )
-                );
+                SetEvaluationSkipped(environmentActivity, $"metrics_status_{activityMetrics.Status}");
                 continue;
             }
 
@@ -175,9 +163,7 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
             {
                 environmentActivity?.SetStatus(ActivityStatusCode.Error, "Failed to fetch recent deployments.");
                 environmentActivity?.AddException(ex);
-                environmentActivity?.AddEvent(
-                    CreateSkippedEvaluationEvent(options.Org, environmentName, "recent_deployments_fetch_failed")
-                );
+                SetEvaluationSkipped(environmentActivity, "recent_deployments_fetch_failed");
                 continue;
             }
 
@@ -203,22 +189,12 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
             }
         }
 
-        activity?.SetTag("candidate.count", candidates.Count);
+        activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.CandidateCount, candidates.Count);
         return candidates;
     }
 
-    private static ActivityEvent CreateSkippedEvaluationEvent(string org, string environment, string reason)
-    {
-        return new ActivityEvent(
-            "inactivity_evaluation_skipped",
-            tags: new ActivityTagsCollection
-            {
-                { "org", org },
-                { "environment", environment },
-                { "reason", reason },
-            }
-        );
-    }
+    private static void SetEvaluationSkipped(Activity? environmentActivity, string reason) =>
+        environmentActivity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.EvaluationSkipReason, reason);
 
     private static HashSet<string> BuildEnabledSettingsLookup(IReadOnlyList<AppSettingsEntity> settings, string org)
     {

@@ -127,6 +127,8 @@ public class DeploymentPipelinePollingJob : IJob
         }
     }
 
+    // TODO: start each poll in its own trace, linked to the deploy request, instead of as a child of the request's
+    // trace for as long as the pipeline runs (https://github.com/Altinn/altinn-studio/issues/21073).
     private Activity TryStartTraceActivity(IJobExecutionContext context)
     {
         var jobDataMap = context.JobDetail.JobDataMap;

@@ -9,6 +9,7 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -59,6 +60,7 @@ public class DeploymentWebhooksController : ControllerBase
         CancellationToken cancellationToken
     )
     {
+        HttpContext.SetTargetEnvironment(request.Environment);
         if (!TryParseEventType(request.EventType, out var eventType))
         {
             return BadRequest($"Invalid event type: {request.EventType}");

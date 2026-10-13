@@ -42,7 +42,7 @@ public class ChatInactivityCleanupJobTests
         await job.Execute(jobExecutionContextMock.Object);
 
         Assert.Equal("always", jobSpan.GetTagItem(ServiceTelemetry.Attributes.Sampling));
-        Assert.Equal(3, jobSpan.GetTagItem("threads.deleted"));
+        Assert.Equal(3, jobSpan.GetTagItem("altinn.designer.chat_cleanup.threads_deleted"));
     }
 
     [Fact]

@@ -200,7 +200,7 @@ public class ReleaseService : IReleaseService
         var context = AltinnRepoContext.FromOrgRepo(release.Org, release.App);
         var appScopes = await _appScopesService.GetAppScopesAsync(context, cancellationToken);
         bool hasDefaultScopes = DefaultMaskinportenScopes.ContainsAll(appScopes?.Scopes);
-        activity?.SetTag("maskinporten.default_scopes_present", hasDefaultScopes);
+        activity?.SetTag(ServiceTelemetry.Attributes.Release.MaskinportenDefaultScopesPresent, hasDefaultScopes);
 
         if (!hasDefaultScopes && await ShouldAddDefaultMaskinportenScopes(release, cancellationToken))
         {
@@ -208,11 +208,11 @@ public class ReleaseService : IReleaseService
                 AltinnRepoEditingContext.FromOrgRepoDeveloper(release.Org, release.App, developer),
                 cancellationToken
             );
-            activity?.SetTag("maskinporten.default_scopes_added", true);
+            activity?.SetTag(ServiceTelemetry.Attributes.Release.MaskinportenDefaultScopesAdded, true);
         }
         else
         {
-            activity?.SetTag("maskinporten.default_scopes_added", false);
+            activity?.SetTag(ServiceTelemetry.Attributes.Release.MaskinportenDefaultScopesAdded, false);
         }
 
         return appScopes;
@@ -248,7 +248,7 @@ public class ReleaseService : IReleaseService
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            Activity.Current?.SetTag("maskinporten.default_scopes_app_csproj_fetch_failed", true);
+            Activity.Current?.SetTag(ServiceTelemetry.Attributes.Release.MaskinportenAppCsprojFetchFailed, true);
             _logger.LogWarning(
                 ex,
                 "Could not fetch App.csproj while checking default Maskinporten scopes for {Org}/{App} at {TargetCommitish}.",
@@ -278,7 +278,7 @@ public class ReleaseService : IReleaseService
         }
         catch (FormatException ex)
         {
-            Activity.Current?.SetTag("maskinporten.default_scopes_app_csproj_decode_failed", true);
+            Activity.Current?.SetTag(ServiceTelemetry.Attributes.Release.MaskinportenAppCsprojDecodeFailed, true);
             _logger.LogWarning(ex, "Could not decode App.csproj content while checking default Maskinporten scopes.");
             return false;
         }
@@ -292,9 +292,7 @@ public class ReleaseService : IReleaseService
     private static Activity StartActivity(string methodName, ReleaseEntity release)
     {
         var activity = ServiceTelemetry.Source.StartActivity($"{nameof(ReleaseService)}.{methodName}");
-        activity?.SetTag("org", release.Org);
-        activity?.SetTag("repository", release.App);
-        activity?.SetTag("target_commitish", release.TargetCommitish);
+        activity?.SetTag(ServiceTelemetry.Attributes.Release.TargetCommitish, release.TargetCommitish);
         return activity;
     }
 }

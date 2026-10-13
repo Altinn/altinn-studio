@@ -35,6 +35,15 @@ internal static partial class ServiceTelemetry
         }
     }
 
+    /// <summary>
+    /// Sets an app, for a child span whose service owner is already on the root span.
+    /// </summary>
+    public static void SetApp(this Activity? activity, string app)
+    {
+        activity?.SetTag(Attributes.RepoType, AppRepoType);
+        activity?.SetTag(Attributes.App, app.ToLowerInvariant());
+    }
+
     public static void SetTargetEnvironment(this Activity? activity, string environment) =>
         activity?.SetTag(Attributes.Environment, RuntimeEnvironmentName(environment));
 

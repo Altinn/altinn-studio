@@ -40,7 +40,7 @@ public class AppInactivityUndeployAppJob : IJob
         );
         timeoutCancellationTokenSource.CancelAfter(timeout);
         var cancellationToken = timeoutCancellationTokenSource.Token;
-        activity?.SetTag("timeout.seconds", timeout.TotalSeconds);
+        activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.TimeoutSeconds, timeout.TotalSeconds);
 
         string? org = null;
         string? app = null;
@@ -60,9 +60,8 @@ public class AppInactivityUndeployAppJob : IJob
                 );
             }
 
-            activity?.SetTag("org", org);
-            activity?.SetTag("app", app);
-            activity?.SetTag("environment", environment);
+            activity.SetRepository(org, app);
+            activity.SetTargetEnvironment(environment);
 
             var orgContext = AltinnOrgContext.FromOrg(org);
             await using var _ = await _synchronizationLockService.AcquireOrgWideLockAsync(
@@ -87,18 +86,7 @@ public class AppInactivityUndeployAppJob : IJob
         {
             activity?.SetStatus(ActivityStatusCode.Error, "Job timed out.");
             activity?.AddException(ex);
-            activity?.AddEvent(
-                new ActivityEvent(
-                    "job_timeout",
-                    tags: new ActivityTagsCollection
-                    {
-                        ["org"] = org,
-                        ["app"] = app,
-                        ["environment"] = environment,
-                        ["timeout.seconds"] = timeout.TotalSeconds,
-                    }
-                )
-            );
+            activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.TimedOut, true);
             throw new TimeoutException($"{nameof(AppInactivityUndeployAppJob)} timed out after {timeout}.", ex);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

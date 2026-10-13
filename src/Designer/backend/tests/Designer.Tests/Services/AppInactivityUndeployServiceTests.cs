@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
@@ -8,6 +9,7 @@ using Altinn.Studio.Designer.Repository.Models.AppSettings;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
 using Moq;
@@ -255,6 +257,71 @@ public class AppInactivityUndeployServiceTests
 
         Assert.Single(result);
         _environmentsService.Verify(e => e.GetOrganizationEnvironments("ttd", cts.Token), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAppsForDecommissioningAsync_WhenStatusIsUnavailable_RecordsSkipReasonOnEnvironmentSpan()
+    {
+        var service = CreateService();
+        _appSettingsService
+            .Setup(s => s.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync([
+                new AppSettingsEntity
+                {
+                    Org = "ttd",
+                    App = "app1",
+                    UndeployOnInactivity = true,
+                },
+            ]);
+        _runtimeGatewayClient
+            .Setup(c => c.GetAppDeployments("ttd", It.IsAny<AltinnEnvironment>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new AppDeployment("ttd", "at23", "app1", "dev", "1", "v1")]);
+        _runtimeGatewayClient
+            .Setup(c =>
+                c.GetAppActivityMetricsAsync("ttd", It.IsAny<AltinnEnvironment>(), 7, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                new AppActivityMetricsResponse(
+                    "unavailable",
+                    new Dictionary<string, double>(),
+                    7,
+                    DateTimeOffset.UtcNow
+                )
+            );
+        var spans = new List<Activity>();
+        using var root = new Activity("test-root").SetIdFormat(ActivityIdFormat.W3C).Start();
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == ServiceTelemetry.Source.Name,
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = activity =>
+            {
+                if (activity.TraceId == root.TraceId)
+                {
+                    lock (spans)
+                    {
+                        spans.Add(activity);
+                    }
+                }
+            },
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        await service.GetAppsForDecommissioningAsync(
+            new InactivityUndeployEvaluationOptions { Org = "ttd", Environment = "at23" }
+        );
+
+        Activity environmentSpan = Assert.Single(
+            spans,
+            span => span.DisplayName == "AppInactivityUndeployService.EvaluateEnvironment"
+        );
+        Assert.Null(environmentSpan.GetTagItem("altinn.service_owner"));
+        Assert.Equal("at23", environmentSpan.GetTagItem("altinn.environment"));
+        Assert.Equal(
+            "metrics_status_unavailable",
+            environmentSpan.GetTagItem("altinn.designer.inactivity_undeploy.evaluation_skip_reason")
+        );
+        Assert.Empty(environmentSpan.Events);
     }
 
     private AppInactivityUndeployService CreateService()
