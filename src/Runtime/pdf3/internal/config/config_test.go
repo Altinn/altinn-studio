@@ -2,54 +2,59 @@ package config
 
 import "testing"
 
-func TestShouldConfigureOTel(t *testing.T) {
+func TestResolveOTelSignals(t *testing.T) {
+	all := OTelSignals{Traces: true, Metrics: true, Logs: true}
 	tests := []struct {
+		env         map[string]string
 		name        string
 		environment string
-		endpoint    string
-		traces      string
-		metrics     string
-		want        bool
+		want        OTelSignals
 	}{
+		{name: "cluster exports everything", environment: "prod", want: all},
+		{name: "localtest exports nothing by default", environment: EnvironmentLocaltest},
 		{
-			name:        "non localtest always enabled",
-			environment: "production",
-			want:        true,
+			name:        "localtest generic endpoint exports everything",
+			environment: EnvironmentLocaltest,
+			env:         map[string]string{"OTEL_EXPORTER_OTLP_ENDPOINT": "http://collector:4317"},
+			want:        all,
 		},
 		{
-			name:        "localtest disabled by default",
+			name:        "localtest traces endpoint exports only traces",
 			environment: EnvironmentLocaltest,
-			want:        false,
+			env:         map[string]string{"OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "http://traces:4317"},
+			want:        OTelSignals{Traces: true},
 		},
 		{
-			name:        "localtest enabled when generic endpoint is set",
+			name:        "localtest metrics endpoint exports only metrics",
 			environment: EnvironmentLocaltest,
-			endpoint:    "http://collector:4317",
-			want:        true,
+			env:         map[string]string{"OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://metrics:4317"},
+			want:        OTelSignals{Metrics: true},
 		},
 		{
-			name:        "localtest enabled when traces endpoint is set",
+			name:        "localtest logs endpoint exports only logs",
 			environment: EnvironmentLocaltest,
-			traces:      "http://collector-traces:4317",
-			want:        true,
-		},
-		{
-			name:        "localtest enabled when metrics endpoint is set",
-			environment: EnvironmentLocaltest,
-			metrics:     "http://collector-metrics:4317",
-			want:        true,
+			env:         map[string]string{"OTEL_EXPORTER_OTLP_LOGS_ENDPOINT": "http://logs:4317"},
+			want:        OTelSignals{Logs: true},
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Setenv("OTEL_EXPORTER_OTLP_ENDPOINT", tc.endpoint)
-			t.Setenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", tc.traces)
-			t.Setenv("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", tc.metrics)
+			for _, key := range []string{
+				"OTEL_EXPORTER_OTLP_ENDPOINT",
+				"OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+				"OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
+				"OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
+			} {
+				t.Setenv(key, tc.env[key])
+			}
 
-			got := ShouldConfigureOTel(tc.environment)
+			got := ResolveOTelSignals(tc.environment)
 			if got != tc.want {
-				t.Fatalf("ShouldConfigureOTel() = %v, want %v", got, tc.want)
+				t.Fatalf("ResolveOTelSignals() = %+v, want %+v", got, tc.want)
+			}
+			if got.Any() != (tc.want != OTelSignals{}) {
+				t.Errorf("Any() = %v for %+v", got.Any(), got)
 			}
 		})
 	}
