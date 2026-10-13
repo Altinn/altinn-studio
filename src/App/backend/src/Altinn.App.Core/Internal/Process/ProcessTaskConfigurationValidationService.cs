@@ -18,11 +18,14 @@ namespace Altinn.App.Core.Internal.Process;
 /// </summary>
 /// <remarks>
 /// Creates a dependency injection scope so task implementations can use scoped services.
-/// Stops startup if configuration cannot be read. A hook that cannot be created at startup is skipped with a
-/// warning, and the hook step checks for duplicates when it runs.
+/// Stops startup if configuration cannot be read. Each task hook registration is created on its own: one that
+/// cannot be created at startup, for example because it needs request state, is skipped with a warning while the
+/// others are still checked, and the hook step checks for duplicates when it runs. Process-ended hooks are counted
+/// by registration, without creating them.
 /// </remarks>
 internal sealed class ProcessTaskConfigurationValidationService(
     IServiceScopeFactory scopeFactory,
+    IServiceCollection registrations,
     ILogger<ProcessTaskConfigurationValidationService> logger
 ) : IHostedService
 {
@@ -124,23 +127,31 @@ internal sealed class ProcessTaskConfigurationValidationService(
             }
         }
 
-        List<IOnTaskStartingHandler> taskStartingHooks = ResolveHooks<IOnTaskStartingHandler>(factory);
-        List<IOnTaskEndingHandler> taskEndingHooks = ResolveHooks<IOnTaskEndingHandler>(factory);
-        List<IOnTaskAbandonHandler> taskAbandonHooks = ResolveHooks<IOnTaskAbandonHandler>(factory);
-        List<IOnProcessEndedHandler> processEndedHooks = ResolveHooks<IOnProcessEndedHandler>(factory);
+        await AddMultipleTaskHooksFindings<IOnTaskStartingHandler>(
+            services,
+            bpmnTasks,
+            findings,
+            (hook, taskId) => hook.ShouldRunForTask(taskId)
+        );
+        await AddMultipleTaskHooksFindings<IOnTaskEndingHandler>(
+            services,
+            bpmnTasks,
+            findings,
+            (hook, taskId) => hook.ShouldRunForTask(taskId)
+        );
+        await AddMultipleTaskHooksFindings<IOnTaskAbandonHandler>(
+            services,
+            bpmnTasks,
+            findings,
+            (hook, taskId) => hook.ShouldRunForTask(taskId)
+        );
 
-        foreach (ProcessTask bpmnTask in bpmnTasks)
-        {
-            AddMultipleTaskHooksFinding(findings, bpmnTask.Id, taskStartingHooks, h => h.ShouldRunForTask(bpmnTask.Id));
-            AddMultipleTaskHooksFinding(findings, bpmnTask.Id, taskEndingHooks, h => h.ShouldRunForTask(bpmnTask.Id));
-            AddMultipleTaskHooksFinding(findings, bpmnTask.Id, taskAbandonHooks, h => h.ShouldRunForTask(bpmnTask.Id));
-        }
-
+        List<ServiceDescriptor> processEndedHooks = HookRegistrations<IOnProcessEndedHandler>();
         if (processEndedHooks.Count > 1)
         {
             findings.Add(
                 $"{processEndedHooks.Count} {nameof(IOnProcessEndedHandler)} implementations are registered "
-                    + $"({ImplementationNames(processEndedHooks)}). Register only one."
+                    + $"({string.Join(", ", processEndedHooks.Select(RegistrationName))}). Register only one."
             );
         }
 
@@ -174,44 +185,111 @@ internal sealed class ProcessTaskConfigurationValidationService(
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
     /// <summary>
-    /// Returns the registered <typeparamref name="THook"/> implementations, or none if they cannot be created at
-    /// startup, for example because one needs request state.
+    /// Returns the registrations the service provider returns for <typeparamref name="THook"/>, in registration
+    /// order.
     /// </summary>
-    private List<THook> ResolveHooks<THook>(AppImplementationFactory factory)
+    private List<ServiceDescriptor> HookRegistrations<THook>()
+        where THook : class =>
+        registrations
+            .Where(registration => registration.ServiceType == typeof(THook) && !registration.IsKeyedService)
+            .ToList();
+
+    /// <summary>
+    /// Creates each registered <typeparamref name="THook"/> on its own, so one that cannot be created at startup, for
+    /// example because it needs request state, is skipped with a warning without hiding the others.
+    /// </summary>
+    /// <remarks>
+    /// Hooks created from an implementation type are added to <paramref name="createdHooks"/> for the caller to
+    /// dispose. A factory may return an instance the service provider owns, so its result is never disposed here.
+    /// </remarks>
+    private List<THook> CreateHooks<THook>(IServiceProvider services, List<object> createdHooks)
         where THook : class
     {
-        try
+        var hooks = new List<THook>();
+        foreach (ServiceDescriptor registration in HookRegistrations<THook>())
         {
-            return factory.GetAll<THook>().ToList();
+            try
+            {
+                switch (registration)
+                {
+                    case { ImplementationInstance: THook instance }:
+                        hooks.Add(instance);
+                        break;
+                    case { ImplementationFactory: { } createHook }:
+                        hooks.Add(
+                            (THook)(
+                                createHook(services)
+                                ?? throw new InvalidOperationException("The factory returned null.")
+                            )
+                        );
+                        break;
+                    case { ImplementationType: { } type }:
+                        var hook = (THook)ActivatorUtilities.CreateInstance(services, type);
+                        createdHooks.Add(hook);
+                        hooks.Add(hook);
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(
+                    e,
+                    "Could not create {HookImplementation} at startup to check that at most one {HookType} runs for "
+                        + "each task. The hook step checks this when it runs.",
+                    RegistrationName(registration),
+                    typeof(THook).Name
+                );
+            }
         }
-        catch (Exception e)
+        return hooks;
+    }
+
+    private static string RegistrationName(ServiceDescriptor registration) =>
+        (registration.ImplementationType ?? registration.ImplementationInstance?.GetType())?.FullName
+        ?? $"a factory registration of {registration.ServiceType.Name}";
+
+    private static async Task DisposeAll(List<object> createdHooks)
+    {
+        foreach (object hook in createdHooks)
         {
-            logger.LogWarning(
-                e,
-                "Could not create the {HookType} implementations at startup to check that at most one runs for each "
-                    + "task. The hook step checks this when it runs.",
-                typeof(THook).Name
-            );
-            return [];
+            if (hook is IAsyncDisposable asyncDisposable)
+                await asyncDisposable.DisposeAsync();
+            else if (hook is IDisposable disposable)
+                disposable.Dispose();
         }
     }
 
-    private static void AddMultipleTaskHooksFinding<THook>(
+    /// <summary>
+    /// Reports each task that more than one <typeparamref name="THook"/> runs for.
+    /// </summary>
+    private async Task AddMultipleTaskHooksFindings<THook>(
+        IServiceProvider services,
+        List<ProcessTask> bpmnTasks,
         List<string> findings,
-        string taskId,
-        List<THook> hooks,
-        Func<THook, bool> runsForTask
+        Func<THook, string, bool> runsForTask
     )
         where THook : class
     {
-        List<THook> running = hooks.Where(runsForTask).ToList();
-        if (running.Count > 1)
+        var createdHooks = new List<object>();
+        try
         {
-            findings.Add(
-                $"Task '{taskId}' has {running.Count} {typeof(THook).Name} implementations that run for it "
-                    + $"({ImplementationNames(running)}). Only one may run for a task: combine them, or change "
-                    + "ShouldRunForTask so that only one returns true."
-            );
+            List<THook> hooks = CreateHooks<THook>(services, createdHooks);
+            foreach (ProcessTask bpmnTask in bpmnTasks)
+            {
+                List<THook> running = hooks.Where(hook => runsForTask(hook, bpmnTask.Id)).ToList();
+                if (running.Count > 1)
+                {
+                    findings.Add(
+                        $"Task '{bpmnTask.Id}' has {running.Count} {typeof(THook).Name} implementations that run for "
+                            + $"it ({ImplementationNames(running)}). Only one may run for a task: combine them, or "
+                            + "change ShouldRunForTask so that only one returns true."
+                    );
+                }
+            }
+        }
+        finally
+        {
+            await DisposeAll(createdHooks);
         }
     }
 
