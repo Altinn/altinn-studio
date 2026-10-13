@@ -90,8 +90,8 @@ make check                # Complete CI check (tidy, fmt, lint, test)
   - Starts/stops headless Chrome at `/headless-shell/headless-shell`
 
 - **internal/cdp** - Chrome DevTools Protocol client
-  - WebSocket connection to browser debug port
-  - CDP command/response handling
+  - Pipe connection to the browser (`--remote-debugging-pipe`), no debugging port is opened
+  - CDP command/response handling, safe for concurrent use
 
 - **internal/types** - Shared types
   - `PdfRequest`, `PdfResult`, `PDFError`
