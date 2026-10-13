@@ -11,6 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- The OpenTelemetry collector in `studioctl env up --monitoring` also accepts OTLP over HTTP, on port 4318. ([#21114](https://github.com/Altinn/altinn-studio/pull/21114))
 - `studioctl app upgrade v9` points out `IPdfFormatter` implementations and their registrations, which no longer compile in v9, and suggests `excludeFromPdf` or, for conditional logic, a PDF service task with a custom layout instead. ([#19785](https://github.com/Altinn/altinn-studio/issues/19785))
 
 ### Changed
@@ -19,7 +20,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl env up --monitoring` now runs VictoriaMetrics, VictoriaTraces and VictoriaLogs, with Grafana 12.4: ([#20578](https://github.com/Altinn/altinn-studio/pull/20578))
   - metrics keep their OpenTelemetry names, such as `http.server.request.duration`
   - `STUDIOCTL_IMAGE_VICTORIA_METRICS`, `_TRACES` and `_LOGS` replace the Tempo, Mimir and Loki variables
-  - dashboards built locally also work in the shared Altinn Studio Grafana
+  - dashboards built locally work in the shared Altinn Studio Grafana, with `deployment.environment.name` set to `local` ([#21114](https://github.com/Altinn/altinn-studio/pull/21114))
   - traces link to their logs and to request metrics
   - starting needs network access
 
