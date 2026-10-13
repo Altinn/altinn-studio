@@ -9,7 +9,7 @@ Designer code:
 - `src/Designer/frontend/app-development/features/aiAssistant/`
 - `src/Designer/frontend/libs/studio-assistant/`
 
-The browser never calls the assistant service. The Designer backend is between them. The browser talks to Designer through SignalR (`AssistantProxyHub`). Designer talks to the assistant service through HTTP for commands and through one WebSocket for events. In Kubernetes, the assistant service is the internal service `altinn-altinity-agents`. It listens on port 80 and sends traffic to the container on port 8071. A NetworkPolicy lets only the Designer pods connect to it. The service does not identify the caller, so this rule is the boundary. Refer to [Inbound access](modules/security.md#inbound-access).
+The browser never calls the assistant service. The Designer backend is between them. The browser talks to Designer through SignalR (`AssistantProxyHub`). Designer talks to the assistant service through HTTP for commands and through one WebSocket for events. In Kubernetes, the assistant service is the internal service `altinn-altinity-agents`. It listens on port 80 and sends traffic to the container on port 8071. A NetworkPolicy lets only the Designer pods connect to it.
 
 ```mermaid
 flowchart LR
@@ -112,7 +112,7 @@ sequenceDiagram
   A-->>B: error event with status=cancelled
 ```
 
-_Two user actions during a run. The assistant service compares the `X-Developer` header with the owner of the session. Designer sets the header from the signed-in user._
+_Two user actions during a run. The assistant service checks that the caller owns the session._
 
 ## Deploy
 
