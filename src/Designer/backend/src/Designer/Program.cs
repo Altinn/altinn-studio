@@ -273,7 +273,15 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 void Configure(IConfiguration configuration)
 {
     logger.LogInformation("// Program.cs // Configure // Attempting to configure env");
-    app.UseExceptionHandler(new ExceptionHandlerOptions { SuppressDiagnosticsCallback = _ => false });
+    // Exceptions that become an expected (4xx) response aren't logged as errors. GlobalExceptionHandler records them
+    // on the request's span instead.
+    app.UseExceptionHandler(
+        new ExceptionHandlerOptions
+        {
+            SuppressDiagnosticsCallback = context =>
+                context.HttpContext.Response.StatusCode < StatusCodes.Status500InternalServerError,
+        }
+    );
 
     app.UseDefaultFiles();
     app.UseStaticFiles(

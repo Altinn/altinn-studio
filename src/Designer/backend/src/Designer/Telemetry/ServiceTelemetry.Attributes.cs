@@ -36,6 +36,17 @@ internal static partial class ServiceTelemetry
             public const string ThreadsDeleted = Prefix + "threads_deleted";
         }
 
+        /// <summary>
+        /// An exception that Designer turned into an expected response, such as a 4xx, rather than a server error.
+        /// </summary>
+        public static class Error
+        {
+            private const string Prefix = "altinn.designer.error.";
+
+            public const string Code = Prefix + "code";
+            public const string ExceptionType = Prefix + "exception_type";
+        }
+
         public static class Git
         {
             private const string Prefix = "altinn.designer.git.";
