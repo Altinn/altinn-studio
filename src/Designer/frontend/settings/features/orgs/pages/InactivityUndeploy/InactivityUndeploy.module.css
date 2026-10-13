@@ -1,0 +1,23 @@
+.container,
+.heading,
+.card {
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  gap: var(--ds-size-10);
+  max-width: 800px;
+}
+
+.heading {
+  gap: var(--ds-size-4);
+}
+
+.card {
+  gap: var(--ds-size-6);
+}
+
+.daysField {
+  max-width: 20rem;
+}
