@@ -10,6 +10,7 @@ The security model has three layers. Each layer covers a risk that the other lay
 
 - In chat mode, the loop refuses the write tools until the user gives permission.
 - The file tools stay in the app repository.
+- App code does not run in the assistant pod. The v9 upgrade runs MSBuild, which runs code from the app, so the assistant runner (`src/AI/assistant-runner`) runs it in a Kata VM without secrets.
 - `web_fetch` can only get pages from an allowlist of Altinn hosts.
 - Each change goes to a session branch. A person examines the branch before the merge.
 - The prompts that Langfuse serves are published by CI after the merge to main, so each served prompt has a reviewed commit.

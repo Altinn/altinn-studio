@@ -55,6 +55,9 @@ class BaseConfig:
     LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-5.6-sol")
     LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "gpt-5.6-sol")
 
+    # Runs app code for the assistant, in a sandbox: src/AI/assistant-runner.  Empty means no runner.
+    ASSISTANT_RUNNER_URL = os.getenv("ASSISTANT_RUNNER_URL", "")
+
     PREVIEW_CHECK_ENABLED = os.getenv("PREVIEW_CHECK_ENABLED", "false").lower() == "true"
     PREVIEW_STUDIO_BASE_URL = os.getenv("PREVIEW_STUDIO_BASE_URL", "http://studio.localhost")
     PREVIEW_STUDIO_USER = os.getenv("PREVIEW_STUDIO_USER", "localgiteaadmin")

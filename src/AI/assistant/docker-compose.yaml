@@ -14,9 +14,32 @@ services:
     environment:
       # Chromium pins *.localhost to 127.0.0.1, so map it past that.
       - PREVIEW_HOST_RESOLVER_RULES=MAP studio.localhost studio-loadbalancer, MAP localhost fake-ansattporten
+      - ASSISTANT_RUNNER_URL=http://assistant-runner:8080
     networks:
       - default
       - designer
+
+  # Runs the v9 upgrade, with the restrictions of the runner pod. See src/AI/assistant-runner.
+  assistant-runner:
+    build:
+      context: ../assistant-runner
+      dockerfile: Dockerfile
+    image: assistant-runner
+    container_name: assistant-runner
+    read_only: true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /work:exec
+      - /tmp
+    networks:
+      - default
 
 # Joins Designer's network so this container can reach gitea-proxy by DNS on :80,
 # the X-Api-Key entry. The host-exposed :81 is X-WEBAUTH-USER and rejects api keys.
