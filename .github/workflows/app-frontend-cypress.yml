@@ -122,9 +122,10 @@ jobs:
 
       - name: Build app process outputs
         if: ${{ steps.cache-app-process-outputs.outputs.cache-hit != 'true' }}
+        working-directory: src/test/apps
         shell: bash
         run: |
-          mapfile -t app_projects < <(find src/test/apps -path '*/App/*.csproj' -type f | sort)
+          mapfile -t app_projects < <(find . -path '*/App/*.csproj' -type f | sort)
           if [ "${#app_projects[@]}" -eq 0 ]; then
             echo "No app projects were found."
             exit 1
