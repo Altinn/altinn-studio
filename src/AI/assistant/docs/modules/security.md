@@ -30,4 +30,4 @@ _The path of a document. The model reports an injection attempt on one line. The
 
 ## Inbound access
 
-The service does not identify the caller, so a NetworkPolicy lets only the Designer pods connect to it.
+The service has no authentication, so a NetworkPolicy lets only the Designer pods connect to it.
