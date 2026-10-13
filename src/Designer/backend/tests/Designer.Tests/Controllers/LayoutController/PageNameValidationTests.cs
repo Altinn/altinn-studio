@@ -177,6 +177,36 @@ public class PageNameValidationTests(WebApplicationFactory<Program> factory)
     }
 
     [Fact]
+    public async Task UpdatePageGroups_WhenRemovedPageHasNoLayoutFile_RemovesItAndThePagesBeforeIt()
+    {
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, AppWithPageGroups, Developer, targetRepository);
+        JsonObject pages = await GetPageGroups(targetRepository);
+        JsonArray firstGroupOrder = pages["groups"].AsArray()[0]["order"].AsArray();
+        string removedPageWithLayoutFile = (string)firstGroupOrder[0]["id"];
+        string removedPageWithoutLayoutFile = (string)firstGroupOrder[1]["id"];
+        pages["groups"].AsArray().RemoveAt(0);
+        File.Delete(
+            Path.Combine(
+                LayoutSetDirectory(targetRepository, LayoutSetWithPageGroups),
+                "layouts",
+                $"{removedPageWithoutLayoutFile}.json"
+            )
+        );
+
+        // Act
+        using HttpResponseMessage response = await UpdatePageGroups(targetRepository, pages);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.False(LayoutFileExists(targetRepository, LayoutSetWithPageGroups, removedPageWithLayoutFile));
+        string settingsAfter = GetFile(targetRepository, SettingsPath(LayoutSetWithPageGroups));
+        Assert.DoesNotContain($"\"{removedPageWithLayoutFile}\"", settingsAfter, StringComparison.Ordinal);
+        Assert.DoesNotContain($"\"{removedPageWithoutLayoutFile}\"", settingsAfter, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task CreatePage_WhenNameDiffersOnlyInCaseFromAnExistingPage_LeavesTheLayoutSetUnchanged()
     {
         // Arrange
