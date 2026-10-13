@@ -170,7 +170,7 @@
   "admin.workflows.step.earlier_errors": "{{count}} tidligere feil",
   "admin.workflows.step.last_waiting_reason": "Ventet sist på",
   "admin.workflows.step.name.mint_mailbox": "Oppretter postkasse for {{name}}",
-  "admin.workflows.step.name.replies": "Behandler svar på {{name}}",
+  "admin.workflows.step.name.reply_to": "Behandler svar på {{name}}",
   "admin.workflows.step.position.mint_mailbox": "Oppretter postkasse for steg {{number}}",
   "admin.workflows.step.position.replies": "Behandler svar, steg {{number}}",
   "admin.workflows.step.position.stage": "Steg {{number}}",

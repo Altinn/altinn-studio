@@ -8,8 +8,9 @@ import type {
 export const STEP_NAME_LABEL = 'serviceTaskStepName';
 
 /**
- * What kind of service task step it is, sent with the name: `stage`, `mintMailbox` (opening the
- * mailbox a stage replies to), `replies` (answering the messages that come back) or `conclusion`.
+ * What kind of service task step it is, sent with the name: `stage`, `conclusion`, `replies`
+ * (answering messages, named by the handler itself), `replyTo` (answering messages, named by the
+ * stage that sent) or `mintMailbox` (opening the mailbox, named by the stage that sends).
  */
 export const STEP_KIND_LABEL = 'serviceTaskStepKind';
 
@@ -35,8 +36,8 @@ export function stepDisplayName(
     switch (step.labels?.[STEP_KIND_LABEL]) {
       case 'mintMailbox':
         return t('admin.workflows.step.name.mint_mailbox', { name });
-      case 'replies':
-        return t('admin.workflows.step.name.replies', { name });
+      case 'replyTo':
+        return t('admin.workflows.step.name.reply_to', { name });
       default:
         return name;
     }

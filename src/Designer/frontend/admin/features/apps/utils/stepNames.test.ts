@@ -45,16 +45,24 @@ describe('stepDisplayName', () => {
       [STEP_NAME_LABEL]: 'Send til arkiv',
       [STEP_KIND_LABEL]: 'mintMailbox',
     });
-    const replies = stepOf('ExecuteServiceTask: 1', {
+    const replyTo = stepOf('ExecuteServiceTask: 1', {
       [STEP_NAME_LABEL]: 'Send til arkiv',
-      [STEP_KIND_LABEL]: 'replies',
+      [STEP_KIND_LABEL]: 'replyTo',
     });
     expect(stepDisplayName(mint, transition, textMock)).toBe(
       textMock('admin.workflows.step.name.mint_mailbox', { name: 'Send til arkiv' }),
     );
-    expect(stepDisplayName(replies, receiver, textMock)).toBe(
-      textMock('admin.workflows.step.name.replies', { name: 'Send til arkiv' }),
+    expect(stepDisplayName(replyTo, receiver, textMock)).toBe(
+      textMock('admin.workflows.step.name.reply_to', { name: 'Send til arkiv' }),
     );
+  });
+
+  it('names a reply handler with a name of its own by that name', () => {
+    const replies = stepOf('ExecuteServiceTask: 1', {
+      [STEP_NAME_LABEL]: 'Behandle svar',
+      [STEP_KIND_LABEL]: 'replies',
+    });
+    expect(stepDisplayName(replies, receiver, textMock)).toBe('Behandle svar');
   });
 
   it('names an unnamed step by its position in the task, counted from one', () => {
