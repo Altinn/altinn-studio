@@ -34,4 +34,10 @@ public record GatewayProblem(string Type, string Title, int Status, string Detai
     /// so the engine's own validation problem never has to be told apart from a gateway one.
     /// </summary>
     public const string InvalidFailReasonType = "urn:altinn:studio:gateway:invalid-fail-reason";
+
+    /// <summary>
+    /// Problem type reported when a workflow read asks for <c>includeState=true</c>. The gateway
+    /// never serves the app's state: it is the instance's data, personal data included.
+    /// </summary>
+    public const string IncludeStateNotAllowedType = "urn:altinn:studio:gateway:include-state-not-allowed";
 }

@@ -31,6 +31,9 @@ internal static class HandleWorkflows
     // Per-route query whitelists. Unrecognized parameters are rejected (400) rather than
     // silently dropped: Designer is deployed centrally while gateways roll out per cluster,
     // so version skew must fail loudly instead of returning 200 with unfiltered data.
+    // includeState is accepted because Designer sends includeState=false, but the engine always
+    // gets false (see RejectIncludeState): the state is the app's instance data, personal data
+    // included, and the engine includes it unless told not to.
     private static readonly string[] _collectionListQueryKeys = ["key", "failures", "cursor", "pageSize"];
     private static readonly string[] _workflowListQueryKeys =
     [
@@ -121,6 +124,9 @@ internal static class HandleWorkflows
         CancellationToken cancellationToken
     )
     {
+        if (RejectIncludeState(includeState) is { } rejected)
+            return Task.FromResult(rejected);
+
         var query = new QueryBuilder();
         AddIfPresent(query, "collectionKey", collectionKey);
         AddAll(query, "status", statuses);
@@ -128,7 +134,7 @@ internal static class HandleWorkflows
         AddIfPresent(query, "isHead", isHead);
         AddIfPresent(query, "cursor", cursor);
         AddIfPresent(query, "pageSize", pageSize);
-        AddIfPresent(query, "includeState", includeState);
+        query.Add("includeState", "false");
 
         return ForwardToEngine(
             HttpMethod.Get,
@@ -156,8 +162,10 @@ internal static class HandleWorkflows
         CancellationToken cancellationToken
     )
     {
-        var query = new QueryBuilder();
-        AddIfPresent(query, "includeState", includeState);
+        if (RejectIncludeState(includeState) is { } rejected)
+            return Task.FromResult(rejected);
+
+        var query = new QueryBuilder { { "includeState", "false" } };
 
         return ForwardToEngine(
             HttpMethod.Get,
@@ -173,6 +181,16 @@ internal static class HandleWorkflows
             cancellationToken
         );
     }
+
+    private static IResult? RejectIncludeState(bool? includeState) =>
+        includeState is true
+            ? Problem(
+                GatewayProblem.IncludeStateNotAllowedType,
+                "State is not served on this route",
+                StatusCodes.Status400BadRequest,
+                "Workflow status reads never include the app's state."
+            )
+            : null;
 
     internal static Task<IResult> ResumeWorkflow(
         string app,
