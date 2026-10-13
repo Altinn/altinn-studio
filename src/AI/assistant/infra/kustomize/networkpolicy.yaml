@@ -1,0 +1,24 @@
+# Only the Designer pods can connect to the assistant service. The service does
+# not identify the caller. It uses the developer name that the caller sends in
+# the X-Developer header and in the /ws registration message.
+#
+# Kubelet probes need no rule. Traffic from a node to its own pods is always
+# allowed, and Azure Network Policy Manager filters only forwarded traffic.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: altinn-altinity-agents-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: altinn-altinity-agents
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              run: altinn-designer
+      ports:
+        - protocol: TCP
+          port: 8071

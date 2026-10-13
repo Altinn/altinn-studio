@@ -1,8 +1,8 @@
 # Security controls
 
-Code: `src/AI/assistant/agents/prompts/intent_security.md`, `src/AI/assistant/agents/core/tools/`, `src/AI/assistant/shared/utils/spotlight.py`, `src/AI/assistant/agents/services/llm/llm_client.py`, `src/AI/assistant/agents/core/context.py`
+Code: `src/AI/assistant/agents/prompts/intent_security.md`, `src/AI/assistant/agents/core/tools/`, `src/AI/assistant/shared/utils/spotlight.py`, `src/AI/assistant/agents/services/llm/llm_client.py`, `src/AI/assistant/agents/core/context.py`, `src/AI/assistant/infra/kustomize/networkpolicy.yaml`
 
-The security model has three layers. Each layer covers a risk that the other layers do not cover.
+The security model has three layers against misuse of the model. Each layer covers a risk that the other layers do not cover. A network rule controls which callers can connect to the service. Refer to [Inbound access](#inbound-access).
 
 **Intent gate.** This layer runs in workflow mode only. It examines the goal text for abuse before the graph starts. It sees the names of the attachments, but not their content. The reason: a large PDF is expensive to examine, and it gives little signal.
 
@@ -27,3 +27,9 @@ flowchart LR
 _The path of a document. The model reports an injection attempt on one line. The code removes the line and sends only a flag._
 
 `src/AI/assistant/shared/utils/spotlight.py` makes the tags. `llm_client.py` applies them to the attachment, and `src/AI/assistant/agents/core/context.py` applies them to the form spec. The control is in code, not in a prompt file. The reason: Langfuse serves the prompts, so a control that is only in a prompt file can disappear after an edit in Langfuse.
+
+## Inbound access
+
+The service does not identify the caller. It uses the developer name that the caller sends. The `/ws` route gets the name in the registration message. The start, permission, cancel and feedback routes get it in the `X-Developer` header. The other routes do not check the caller.
+
+Thus the network is the boundary. The NetworkPolicy in `src/AI/assistant/infra/kustomize/networkpolicy.yaml` lets only the Designer pods (`run: altinn-designer`) connect to the service. Designer identifies the user, and then it sends the name of that user.
