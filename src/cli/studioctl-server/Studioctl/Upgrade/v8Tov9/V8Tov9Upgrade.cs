@@ -282,6 +282,10 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateAllowedContributors(projectFolder));
 
+        // After the PDF service task migration, so the PDF service tasks it adds are included.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateGeneratedFileContentTypes(projectFolder));
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateSchemaRefs(projectFolder, appPackageVersion));
 
@@ -1755,6 +1759,29 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error renaming allowedContributers", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 14: let the data types the v9 app stores generated files in (a payment receipt, a signing PDF, signee
+    /// states, ref-data-as-pdf) accept the content types of those files. v9 refuses a file whose content type a
+    /// data type's allowedContentTypes leaves out; v8 did not check.
+    /// </summary>
+    static async Task<int> MigrateGeneratedFileContentTypes(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Content types for generated files");
+        try
+        {
+            var result = await GeneratedFileContentTypesMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "The data types for generated files accept their content types",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error adding content types for generated files", ex);
         }
     }
 
