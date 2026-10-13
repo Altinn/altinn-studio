@@ -387,7 +387,8 @@ public class WorkflowEngineServiceTests
                 collectionKey,
                 "state",
                 new Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.Actor(),
-                idempotencyKey: key
+                idempotencyKey: key,
+                action: null
             );
         if (scenario == "matching")
             Assert.Equal(accepted.DatabaseId, await Enqueue());

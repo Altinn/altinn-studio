@@ -296,7 +296,11 @@ public class MailboxRelayFrontierTests
     /// pass an item the plan after which is an ordinary continuation, so no target rides along.
     /// </summary>
     private static MailboxHandover Handover(ServiceTaskPipeline pipeline, int afterItemIndex) =>
-        new(afterItemIndex, WorkflowCommandSet.PlanSegment(ServiceTaskType, pipeline, afterItemIndex), target: null);
+        new(
+            afterItemIndex,
+            WorkflowCommandSet.PlanSegment(ServiceTaskType, pipeline, action: null, afterItemIndex),
+            target: null
+        );
 
     private static Instance CreateInstance() =>
         new()
@@ -431,7 +435,13 @@ public class MailboxRelayFrontierTests
             // The relay's enqueue happens inside the callback — the receiver is still unsettled.
             int headsBefore = collection.EnqueuedByTheRelay.Count;
             await relay.Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStageIndex, hop),
+                new MailboxContinuation.AwaitNextMessage(
+                    _mailboxId,
+                    ServiceTaskType,
+                    OpeningStageIndex,
+                    hop,
+                    action: null
+                ),
                 CreateRequest(receiver, Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -474,7 +484,7 @@ public class MailboxRelayFrontierTests
         Guid receiver = collection.Seed("Mailbox receive: Task_1 -> Task_2", PersistentItemStatus.Processing);
 
         await relay.Continue(
-            new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStageIndex, 0),
+            new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStageIndex, 0, action: null),
             CreateRequest(receiver, Guid.NewGuid()),
             CancellationToken.None
         );

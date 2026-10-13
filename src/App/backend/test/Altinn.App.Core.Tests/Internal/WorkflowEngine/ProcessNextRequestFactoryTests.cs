@@ -463,7 +463,8 @@ public class ProcessNextRequestFactoryTests
             "saved-state",
             new Actor { SystemUserId = Guid.NewGuid(), Language = "nb" },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "dependent-key"
+            "dependent-key",
+            action: null
         );
 
         AssertTokenBindsItsRequest(acquire);
@@ -540,7 +541,8 @@ public class ProcessNextRequestFactoryTests
             "saved-state",
             context.Actor,
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "dependent-key"
+            "dependent-key",
+            action: null
         );
         Assert.Equal("Task_1:0", acquire.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
         Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetIdLabel));
@@ -655,7 +657,8 @@ public class ProcessNextRequestFactoryTests
             "saved-state",
             GetActor(acquire),
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "dependent-key"
+            "dependent-key",
+            action: null
         );
 
         Assert.Equal("en", GetActor(dependent).Language);
@@ -716,7 +719,8 @@ public class ProcessNextRequestFactoryTests
             SignedTestState,
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert
@@ -762,7 +766,8 @@ public class ProcessNextRequestFactoryTests
             SignedTestState,
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert
@@ -807,7 +812,8 @@ public class ProcessNextRequestFactoryTests
             SignedTestState,
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert
@@ -841,7 +847,8 @@ public class ProcessNextRequestFactoryTests
             SignedTestState,
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert: ExecuteServiceTask runs for the entering task but stays unlabeled, because it sits
@@ -940,7 +947,8 @@ public class ProcessNextRequestFactoryTests
             "{}",
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert
@@ -987,7 +995,8 @@ public class ProcessNextRequestFactoryTests
             SignedTestState,
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert
@@ -1094,7 +1103,8 @@ public class ProcessNextRequestFactoryTests
             SignedTestState,
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert
@@ -1138,7 +1148,8 @@ public class ProcessNextRequestFactoryTests
             SignedTestState,
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert - ExecuteServiceTask is critical: it stays in Main, after the commit boundary.
@@ -1976,7 +1987,8 @@ public class ProcessNextRequestFactoryTests
             "signed-state",
             new Actor { UserId = 1337 },
             [dependency],
-            "dependent-idempotency-key"
+            "dependent-idempotency-key",
+            action: null
         );
 
         var keys = ExtractCommandKeys(bundle);
@@ -2001,7 +2013,8 @@ public class ProcessNextRequestFactoryTests
                 "signed-state",
                 new Actor { UserId = 1337 },
                 [Guid.NewGuid()],
-                "dependent-key"
+                "dependent-key",
+                action: null
             ),
         ];
 

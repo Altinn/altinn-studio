@@ -2900,7 +2900,8 @@ public sealed class ProcessEngineTest
             parentWorkflowId,
             _collectionKey,
             "state",
-            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero)
+            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
+            action: null
         );
 
         // Assert
@@ -2953,11 +2954,12 @@ public sealed class ProcessEngineTest
                     It.IsAny<string>(),
                     It.IsAny<Actor>(),
                     It.IsAny<string?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, ProcessStateChange, Guid, string, string, Actor, string?, CancellationToken>(
-                (_, processStateChange, _, _, _, _, _, _) => capturedStateChange = processStateChange
+            .Callback<Instance, ProcessStateChange, Guid, string, string, Actor, string?, string?, CancellationToken>(
+                (_, processStateChange, _, _, _, _, _, _, _) => capturedStateChange = processStateChange
             )
             .ReturnsAsync(Guid.NewGuid());
 
@@ -2976,7 +2978,8 @@ public sealed class ProcessEngineTest
             Guid.NewGuid(),
             _collectionKey,
             "state",
-            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero)
+            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
+            action: null
         );
 
         // Assert
@@ -3008,11 +3011,12 @@ public sealed class ProcessEngineTest
                     It.IsAny<string>(),
                     It.IsAny<Actor>(),
                     It.IsAny<string?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, ProcessStateChange, Guid, string, string, Actor, string?, CancellationToken>(
-                (_, processStateChange, _, _, _, _, _, _) => capturedStateChange = processStateChange
+            .Callback<Instance, ProcessStateChange, Guid, string, string, Actor, string?, string?, CancellationToken>(
+                (_, processStateChange, _, _, _, _, _, _, _) => capturedStateChange = processStateChange
             )
             .ReturnsAsync(Guid.NewGuid());
 
@@ -3036,7 +3040,8 @@ public sealed class ProcessEngineTest
             Guid.NewGuid(),
             _collectionKey,
             "state",
-            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero)
+            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
+            action: null
         );
 
         // Assert
@@ -3178,7 +3183,8 @@ public sealed class ProcessEngineTest
             Guid.NewGuid(),
             _collectionKey,
             "state",
-            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero)
+            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
+            action: null
         );
         var command = dependent!.Workflows[0].Steps.Single(s => s.OperationId == CommitProcessState.Key);
         var data = System.Text.Json.JsonSerializer.Deserialize<AppCommandData>(command.Command.Data!.Value)!;
