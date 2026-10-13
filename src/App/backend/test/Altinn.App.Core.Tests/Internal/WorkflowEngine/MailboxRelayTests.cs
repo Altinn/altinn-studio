@@ -517,6 +517,33 @@ public class MailboxRelayTests
         Assert.Empty(recorder.AfterWorkflows);
     }
 
+    [Fact]
+    public async Task AwaitingTheNextMessage_NamesTheNextReceiverLikeTheHandlersStep()
+    {
+        var recorder = new RelayRecorder();
+        var labels = new Dictionary<string, string>
+        {
+            [WorkflowCommandSet.StepNameLabel] = "Send til arkiv",
+            [WorkflowCommandSet.StepKindLabel] = WorkflowCommandSet.ReplyToStepKind,
+        };
+
+        await CreateRelay(recorder)
+            .Continue(
+                new MailboxContinuation.AwaitNextMessage(
+                    _mailboxId,
+                    ServiceTaskType,
+                    ArchivingReplyIndex,
+                    position: 0,
+                    labels
+                ),
+                CreateRequest(Guid.NewGuid()),
+                CancellationToken.None
+            );
+
+        StepRequest step = Assert.Single(Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows).Steps);
+        Assert.Equal(labels, step.Labels);
+    }
+
     // ---------------------------------------------------------------------------------------------
     // Saga invariant 3 — every mid-callback call keys off the executing step.
     // ---------------------------------------------------------------------------------------------
@@ -931,6 +958,31 @@ public class MailboxRelayTests
         Assert.Equal(ArchivingReplyIndex, awaiting.HandlerItemIndex);
         Assert.Equal(4, awaiting.Position);
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
+    }
+
+    [Fact]
+    public void AwaitNextReply_CarriesTheHandlersStepLabelsToTheNextReceiver()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
+        var labels = new Dictionary<string, string> { [WorkflowCommandSet.StepNameLabel] = "Les kvittering" };
+
+        ProcessEngineCommandResult result = MailboxRelay.Decide(
+            ServiceTaskExchangeResult.AwaitNextReply(),
+            ServiceTaskType,
+            _stepId,
+            Delivered(seq: 4),
+            carry,
+            ArchivingReplyIndex,
+            OpeningStageIndex,
+            labels
+        );
+
+        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        MailboxContinuation.AwaitNextMessage awaiting = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
+            success.MailboxContinuation
+        );
+        Assert.Same(labels, awaiting.HandlerStepLabels);
     }
 
     [Fact]

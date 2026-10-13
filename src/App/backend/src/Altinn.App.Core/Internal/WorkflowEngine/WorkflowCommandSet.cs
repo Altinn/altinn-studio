@@ -223,11 +223,11 @@ internal sealed class WorkflowCommandSet
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case IReplyHandlerItem handler:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(CreateItemStep(serviceTaskType, index, ItemStepLabels(pipeline, index)));
                     return new ServiceTaskSegmentPlan(steps, handler.OpeningIndex);
 
                 case PipelineConclusion.FinalStep:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(CreateItemStep(serviceTaskType, index, ItemStepLabels(pipeline, index)));
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case ServiceTaskStage.MailboxOpening:
@@ -238,15 +238,16 @@ internal sealed class WorkflowCommandSet
                         CreateCommand(
                             MintMailbox.Key,
                             new MintMailboxPayload(serviceTaskType, index),
-                            operationId: $"{MintMailbox.Key}: {index.ToString(CultureInfo.InvariantCulture)}"
+                            operationId: $"{MintMailbox.Key}: {index.ToString(CultureInfo.InvariantCulture)}",
+                            labels: StepNameLabels(pipeline.Items[index].DisplayName, MintMailboxStepKind)
                         )
                     );
 
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(CreateItemStep(serviceTaskType, index, ItemStepLabels(pipeline, index)));
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case ServiceTaskStage:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(CreateItemStep(serviceTaskType, index, ItemStepLabels(pipeline, index)));
                     break;
 
                 default:
@@ -279,19 +280,79 @@ internal sealed class WorkflowCommandSet
     /// it), and in the OperationId (the engine's own record, distinct per item for its dashboards). Nothing
     /// about what follows the item rides here — a step's payload says what it runs, never what runs after it.
     /// </summary>
-    internal static StepRequest CreateItemStep(string serviceTaskType, int itemIndex) =>
+    internal static StepRequest CreateItemStep(
+        string serviceTaskType,
+        int itemIndex,
+        IReadOnlyDictionary<string, string>? labels = null
+    ) =>
         CreateCommand(
             ExecuteServiceTask.Key,
             new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: itemIndex),
             operationId: $"{ExecuteServiceTask.Key}: {itemIndex.ToString(CultureInfo.InvariantCulture)}",
-            serviceTaskItemIndex: itemIndex
+            serviceTaskItemIndex: itemIndex,
+            labels: labels
         );
+
+    /// <summary>
+    /// The step label naming a pipeline step for the people following the task's progress, such as Studio's
+    /// admin panel. Display only: the step's identity stays its index, in the payload and the OperationId.
+    /// </summary>
+    internal const string StepNameLabel = "serviceTaskStepName";
+
+    /// <summary>
+    /// The step label saying what the named step does, so a reader can phrase it in its own language:
+    /// <see cref="StageStepKind"/>, <see cref="ConclusionStepKind"/>, <see cref="RepliesStepKind"/>,
+    /// <see cref="ReplyToStepKind"/> or <see cref="MintMailboxStepKind"/>.
+    /// </summary>
+    internal const string StepKindLabel = "serviceTaskStepKind";
+
+    /// <summary>A stage, named by its own name.</summary>
+    internal const string StageStepKind = "stage";
+
+    /// <summary>A pipeline's concluding step, named by its own name.</summary>
+    internal const string ConclusionStepKind = "conclusion";
+
+    /// <summary>A reply handler's step, named by the handler's own name.</summary>
+    internal const string RepliesStepKind = "replies";
+
+    /// <summary>A reply handler's step with no name of its own, named by the stage whose mailbox it answers.</summary>
+    internal const string ReplyToStepKind = "replyTo";
+
+    /// <summary>The step opening a mailbox, named by the stage that sends from it.</summary>
+    internal const string MintMailboxStepKind = "mintMailbox";
+
+    /// <summary>
+    /// The name labels for the step that runs the pipeline's item at <paramref name="itemIndex"/>, or null when
+    /// the item has no name to give — the same answer wherever the step is planned, the receivers enqueued for
+    /// later messages of an exchange included.
+    /// </summary>
+    internal static IReadOnlyDictionary<string, string>? ItemStepLabels(ServiceTaskPipeline pipeline, int itemIndex)
+    {
+        PipelineItem? item = pipeline.Items.ElementAtOrDefault(itemIndex);
+        return item switch
+        {
+            null => null,
+            IReplyHandlerItem handler when item.DisplayName is null => StepNameLabels(
+                pipeline.Items.ElementAtOrDefault(handler.OpeningIndex)?.DisplayName,
+                ReplyToStepKind
+            ),
+            IReplyHandlerItem => StepNameLabels(item.DisplayName, RepliesStepKind),
+            PipelineConclusion => StepNameLabels(item.DisplayName, ConclusionStepKind),
+            _ => StepNameLabels(item.DisplayName, StageStepKind),
+        };
+    }
+
+    private static Dictionary<string, string>? StepNameLabels(string? name, string kind) =>
+        name is null
+            ? null
+            : new Dictionary<string, string>(StringComparer.Ordinal) { [StepNameLabel] = name, [StepKindLabel] = kind };
 
     private static StepRequest CreateCommand(
         string commandKey,
         CommandRequestPayload? payload = null,
         string? operationId = null,
-        int? serviceTaskItemIndex = null
+        int? serviceTaskItemIndex = null,
+        IReadOnlyDictionary<string, string>? labels = null
     )
     {
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
@@ -304,6 +365,7 @@ internal sealed class WorkflowCommandSet
             ),
             CommandKey = commandKey,
             ServiceTaskItemIndex = serviceTaskItemIndex,
+            Labels = labels is null ? null : new Dictionary<string, string>(labels, StringComparer.Ordinal),
         };
     }
 }

@@ -37,6 +37,13 @@ internal abstract class PipelineItem
     /// task's own.
     /// </summary>
     internal ProcessStepOptions? StepOptions { get; }
+
+    /// <summary>
+    /// What the item is called where people follow the task's progress, such as Studio's admin panel: the
+    /// name the app gave it, or else the name of the method it runs. Display only — an item's identity is its
+    /// index, and naming it changes nothing about how it runs. Null when neither is available.
+    /// </summary>
+    internal string? DisplayName { get; init; }
 }
 
 /// <summary>

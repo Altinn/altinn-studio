@@ -463,6 +463,80 @@ public class WorkflowCommandSetTests
         Assert.Null(plan.ReceiveOpeningIndex);
     }
 
+    // ---------------------------------------------------------------------------------------------
+    // Step names: display labels for the people following the task, never part of a step's identity.
+    // ---------------------------------------------------------------------------------------------
+
+    private static (string? Name, string? Kind) NameLabels(StepRequest step) =>
+        (
+            step.Labels?.GetValueOrDefault(WorkflowCommandSet.StepNameLabel),
+            step.Labels?.GetValueOrDefault(WorkflowCommandSet.StepKindLabel)
+        );
+
+    [Fact]
+    public void PlanSegment_NamedItems_LabelEveryStepWithTheNameAndWhatTheStepDoes()
+    {
+        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+            .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()), name: "Hent data")
+            .Stage(SendStage, _threeDays, out MailboxHandle archive, name: "Send til arkiv")
+            .ConcludeOnReplies(
+                archive,
+                (_, _) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success()),
+                (_, _) => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())
+            );
+
+        ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment("archiving", pipeline);
+        Assert.Equal(
+            [
+                ("Hent data", WorkflowCommandSet.StageStepKind),
+                ("Send til arkiv", WorkflowCommandSet.MintMailboxStepKind),
+                ("Send til arkiv", WorkflowCommandSet.StageStepKind),
+            ],
+            plan.Steps.Select(NameLabels)
+        );
+        // The step's identity is untouched: the index, in the OperationId and the payload.
+        Assert.Equal(
+            [$"{ExecuteServiceTask.Key}: 0", $"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"],
+            OperationIds(plan)
+        );
+
+        // A handler with no name of its own is named after the stage whose mailbox it answers.
+        ServiceTaskSegmentPlan receive = WorkflowCommandSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
+        Assert.Equal(("Send til arkiv", WorkflowCommandSet.ReplyToStepKind), NameLabels(Assert.Single(receive.Steps)));
+    }
+
+    [Fact]
+    public void PlanSegment_ItemsComposedFromNamedMethods_GoByTheMethodNames()
+    {
+        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+            .Stage(SendStage, _threeDays, out MailboxHandle archive)
+            .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed, name: "Les kvittering")
+            .Finally(FinalWork);
+
+        Assert.Equal(
+            [("Send stage", WorkflowCommandSet.MintMailboxStepKind), ("Send stage", WorkflowCommandSet.StageStepKind)],
+            WorkflowCommandSet.PlanSegment("archiving", pipeline).Steps.Select(NameLabels)
+        );
+        Assert.Equal(
+            ("Les kvittering", WorkflowCommandSet.RepliesStepKind),
+            NameLabels(Assert.Single(WorkflowCommandSet.PlanSegment("archiving", pipeline, afterItemIndex: 0).Steps))
+        );
+        Assert.Equal(
+            ("Final work", WorkflowCommandSet.ConclusionStepKind),
+            NameLabels(Assert.Single(WorkflowCommandSet.PlanSegment("archiving", pipeline, afterItemIndex: 1).Steps))
+        );
+    }
+
+    [Fact]
+    public void PlanSegment_UnnamedLambdas_CarryNoLabels()
+    {
+        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+            .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
+            .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+
+        Assert.All(WorkflowCommandSet.PlanSegment("signing", pipeline).Steps, step => Assert.Null(step.Labels));
+    }
+
     private static ServiceTaskPipeline ArchiveThenJournalPipeline() =>
         new ServiceTaskPipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
