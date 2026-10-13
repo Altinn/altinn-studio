@@ -288,11 +288,11 @@ func TestHandleWaitError_LogsDetailsAtInfoWithoutPayload(t *testing.T) {
 					"preview":     map[string]any{"secret": "page data"},
 				},
 			},
-			want: `exception="Error: boom"`,
+			want: attr.WaitException + `="Error: boom"`,
 		},
 		"other result": {
 			data: map[string]any{"type": "object", "value": map[string]any{"secret": "page data"}},
-			want: "payload_bytes=",
+			want: attr.WaitResultBytes + "=",
 		},
 	}
 	for name, tt := range tests {

@@ -92,7 +92,7 @@ func New() (*Custom, error) {
 		defer span.End()
 		defer func() {
 			r := recover()
-			assert.That(r == nil, "Generator initialization panicked", attr.Error, r)
+			assert.That(r == nil, "Generator initialization panicked", attr.Panic, r)
 		}()
 
 		logger.Info("Initializing Custom CDP")

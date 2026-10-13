@@ -325,7 +325,7 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 
 		duration := time.Since(start)
 		span.End()
-		w.logger.Info("Completed PDF request", attr.Duration, duration)
+		w.logger.Info("Completed PDF request", attr.DurationMs, duration.Milliseconds())
 	}()
 
 	if req.ctx.Err() != nil {
@@ -524,7 +524,7 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest, startedProcessi
 		telemetry.SetError(cleanupSpan, "cleanup_failed", nil)
 	}
 
-	w.logger.Info("Cleanup completed", attr.Duration, time.Since(cleanupStart))
+	w.logger.Info("Cleanup completed", attr.DurationMs, time.Since(cleanupStart).Milliseconds())
 }
 
 // setCleanupAttributes records the cleanup's outcome on its span. Cleanup runs after the
@@ -980,7 +980,12 @@ func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResp
 	if !value {
 		waitForData := waitForToJson(req.request.WaitFor)
 		// INFO: the failed request logs its one error with what this answers it with.
-		w.logger.InfoContext(req.ctx, "Wait condition not satisfied within timeout", attr.RequestWaitFor, waitForData)
+		w.logger.InfoContext(
+			req.ctx,
+			"Wait condition not satisfied within timeout",
+			attr.RequestWaitForJSON,
+			waitForData,
+		)
 		err := errWaitTimedOut
 		req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
 		return err
@@ -994,7 +999,7 @@ func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResp
 func (w *browserSession) handleWaitError(req *workerRequest, logMsg string, data any, errDetail string) error {
 	summary := waitErrorSummary(data)
 	args := make([]any, 0, 2+len(summary))
-	args = append(args, attr.RequestWaitFor, waitForToJson(req.request.WaitFor))
+	args = append(args, attr.RequestWaitForJSON, waitForToJson(req.request.WaitFor))
 	w.logger.InfoContext(req.ctx, logMsg, append(args, summary...)...)
 
 	err := fmt.Errorf("%w: %s", errWaitConditionError, errDetail)
@@ -1014,7 +1019,7 @@ func waitErrorSummary(data any) []any {
 	if err != nil {
 		return nil
 	}
-	return []any{attr.CDPPayloadBytes, len(payload)}
+	return []any{attr.WaitResultBytes, len(payload)}
 }
 
 func waitForToJson(waitFor *types.WaitFor) string {
@@ -1316,7 +1321,7 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) error {
 		{Method: "Page.resetNavigationHistory", Params: nil},
 	}
 	responses := w.conn.SendCommandBatch(w.ctx, commands)
-	w.logger.Info("Cleanup batch command completed", attr.Duration, time.Since(now))
+	w.logger.Info("Cleanup batch command completed", attr.DurationMs, time.Since(now).Milliseconds())
 
 	var cleanupErrors strings.Builder
 	for i, response := range responses {

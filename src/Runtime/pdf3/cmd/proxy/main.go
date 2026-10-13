@@ -221,7 +221,7 @@ func generatePdf(
 		//   If the cluster has available capacity a pod can boot in 2-10 seconds
 		const maxRetries = 40
 		reqLogger := logger.With(attr.RequestURL, telemetry.RedactURL(req.URL), attr.MaxRetries, maxRetries)
-		reqLogger.Info("Generating PDF", attr.Attempt, 0, attr.Elapsed, time.Since(start))
+		reqLogger.Info("Generating PDF")
 
 		// Prepare request body
 		reqBody, err := json.Marshal(req)
@@ -325,7 +325,7 @@ func callWorker(
 			logger.InfoContext(
 				ctx,
 				"Worker request failed, will retry",
-				attr.Elapsed, time.Since(start),
+				attr.ElapsedMs, time.Since(start).Milliseconds(),
 				attr.Error, err,
 			)
 			select {
@@ -343,7 +343,7 @@ func callWorker(
 		logger.ErrorContext(
 			ctx,
 			"Error calling PDF worker",
-			attr.Elapsed, time.Since(start),
+			attr.ElapsedMs, time.Since(start).Milliseconds(),
 			attr.Error, err,
 		)
 		return true
@@ -373,7 +373,7 @@ func callWorker(
 			logger.ErrorContext(ctx, "Failed to write PDF response data", attr.Error, copyErr)
 		}
 		logger.Info("Successfully generated PDF",
-			attr.Elapsed, time.Since(start),
+			attr.ElapsedMs, time.Since(start).Milliseconds(),
 		)
 		return true
 	}
@@ -383,7 +383,7 @@ func callWorker(
 		logger.InfoContext(
 			ctx,
 			"Worker queue full, retrying",
-			attr.Elapsed, time.Since(start),
+			attr.ElapsedMs, time.Since(start).Milliseconds(),
 		)
 		select {
 		case <-time.After(250 * time.Millisecond):
@@ -432,7 +432,7 @@ func callWorker(
 	logger.ErrorContext(
 		ctx,
 		"Error during generation",
-		attr.Elapsed, time.Since(start),
+		attr.ElapsedMs, time.Since(start).Milliseconds(),
 		attr.HTTPResponseStatusCode, statusCode,
 		attr.ErrorDetail, errorDetail,
 	)

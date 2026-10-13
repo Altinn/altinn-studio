@@ -92,7 +92,7 @@ func NewHost(
 func (h *Host) run() {
 	defer func() {
 		r := recover()
-		assert.That(r == nil, "Runtime host shutdown coordinator panicked", attr.Error, r)
+		assert.That(r == nil, "Runtime host shutdown coordinator panicked", attr.Panic, r)
 	}()
 
 	// We received SIGINT/SIGTERM

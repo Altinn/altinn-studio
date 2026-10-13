@@ -77,13 +77,13 @@ func (d *RequestAttributes) SetPdfRequest(req types.PdfRequest) {
 		d.setKVLocked(attribute.Bool(attr.RequestOptionsPrintBackground, true))
 	}
 	if req.Options.DisplayHeaderFooter {
-		d.setKVLocked(attribute.Bool(attr.RequestOptionsDisplayHeader, true))
+		d.setKVLocked(attribute.Bool(attr.RequestOptionsDisplayHeaderFooter, true))
 	}
 	if req.Options.HeaderTemplate != "" {
-		d.setKVLocked(attribute.Int(attr.RequestOptionsHeaderLength, len(req.Options.HeaderTemplate)))
+		d.setKVLocked(attribute.Int(attr.RequestOptionsHeaderTemplateLen, len(req.Options.HeaderTemplate)))
 	}
 	if req.Options.FooterTemplate != "" {
-		d.setKVLocked(attribute.Int(attr.RequestOptionsFooterLength, len(req.Options.FooterTemplate)))
+		d.setKVLocked(attribute.Int(attr.RequestOptionsFooterTemplateLen, len(req.Options.FooterTemplate)))
 	}
 	if req.Options.Margin.Top != "" {
 		d.setKVLocked(attribute.String(attr.RequestOptionsMarginTop, req.Options.Margin.Top))

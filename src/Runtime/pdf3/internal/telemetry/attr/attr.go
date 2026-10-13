@@ -14,8 +14,9 @@ const (
 	HTTPResponseStatusCode    = "http.response.status_code"
 )
 
-// Error is the key for an error value on a log record. The OpenTelemetry log bridge moves it to
-// the record's exception.message and exception.type, so it is never exported under this key.
+// Error is the key for an error value on a log record. The OpenTelemetry log bridge moves an
+// error to the record's exception.message and exception.type, so it is never exported under this
+// key. A value that isn't an error would be: log a recovered panic's value under Panic.
 const Error = "error"
 
 // The shared Altinn vocabulary.
@@ -33,14 +34,17 @@ const (
 	ListenAddress = prefix + "listen_address"
 	TestID        = prefix + "test.id"
 
-	// Duration is how long the operation the record reports took. Elapsed is the time since the
-	// request started, for a record in the middle of it.
-	Duration = prefix + "duration"
-	Elapsed  = prefix + "elapsed"
+	// DurationMs is how long the operation the record reports took. ElapsedMs is the time since
+	// the request started, for a record in the middle of it.
+	DurationMs = prefix + "duration_ms"
+	ElapsedMs  = prefix + "elapsed_ms"
 
-	// Attempt is the attempt the record is about, starting at 0 for the first try.
+	// Attempt is the attempt the record is about, starting at 1 for the first try.
 	Attempt    = prefix + "attempt"
 	MaxRetries = prefix + "max_retries"
+
+	// Panic is a recovered panic's value.
+	Panic = prefix + "panic"
 )
 
 // Configuration read from the environment.
@@ -54,28 +58,28 @@ const (
 // The PDF request: the page to print and how. The URL is the page's, not the HTTP request's,
 // which url.* describes.
 const (
-	RequestURL                    = prefix + "request.url"
-	RequestURLScheme              = prefix + "request.url.scheme"
-	RequestURLHost                = prefix + "request.url.host"
-	RequestURLPath                = prefix + "request.url.path"
-	RequestURLInvalid             = prefix + "request.url.invalid"
-	RequestCookiesCount           = prefix + "request.cookies.count"
-	RequestCookiesNames           = prefix + "request.cookies.names"
-	RequestCookiesValueLengths    = prefix + "request.cookies.value_lengths"
-	RequestCookieName             = prefix + "request.cookie.name"
-	RequestSetJavaScriptEnabled   = prefix + "request.set_javascript_enabled"
-	RequestOptionsFormat          = prefix + "request.options.format"
-	RequestOptionsPrintBackground = prefix + "request.options.print_background"
-	RequestOptionsDisplayHeader   = prefix + "request.options.display_header_footer"
-	RequestOptionsHeaderLength    = prefix + "request.options.header_template_len"
-	RequestOptionsFooterLength    = prefix + "request.options.footer_template_len"
-	RequestOptionsMarginTop       = prefix + "request.options.margin_top"
-	RequestOptionsMarginRight     = prefix + "request.options.margin_right"
-	RequestOptionsMarginBottom    = prefix + "request.options.margin_bottom"
-	RequestOptionsMarginLeft      = prefix + "request.options.margin_left"
+	RequestURL                        = prefix + "request.url.full"
+	RequestURLScheme                  = prefix + "request.url.scheme"
+	RequestURLHost                    = prefix + "request.url.host"
+	RequestURLPath                    = prefix + "request.url.path"
+	RequestURLInvalid                 = prefix + "request.url.invalid"
+	RequestCookiesCount               = prefix + "request.cookies.count"
+	RequestCookiesNames               = prefix + "request.cookies.names"
+	RequestCookiesValueLengths        = prefix + "request.cookies.value_lengths"
+	RequestCookieName                 = prefix + "request.cookie.name"
+	RequestSetJavaScriptEnabled       = prefix + "request.set_javascript_enabled"
+	RequestOptionsFormat              = prefix + "request.options.format"
+	RequestOptionsPrintBackground     = prefix + "request.options.print_background"
+	RequestOptionsDisplayHeaderFooter = prefix + "request.options.display_header_footer"
+	RequestOptionsHeaderTemplateLen   = prefix + "request.options.header_template_len"
+	RequestOptionsFooterTemplateLen   = prefix + "request.options.footer_template_len"
+	RequestOptionsMarginTop           = prefix + "request.options.margin_top"
+	RequestOptionsMarginRight         = prefix + "request.options.margin_right"
+	RequestOptionsMarginBottom        = prefix + "request.options.margin_bottom"
+	RequestOptionsMarginLeft          = prefix + "request.options.margin_left"
 
-	// RequestWaitFor is the request's waitFor as JSON, for a log record about a wait that failed.
-	RequestWaitFor                = prefix + "request.wait_for"
+	// RequestWaitForJSON is the request's waitFor as JSON, for a log record about a wait that failed.
+	RequestWaitForJSON            = prefix + "request.wait_for.json"
 	RequestWaitForType            = prefix + "request.wait_for.type"
 	RequestWaitForSelector        = prefix + "request.wait_for.selector"
 	RequestWaitForSelectorPresent = prefix + "request.wait_for.selector_present"
@@ -147,6 +151,10 @@ const (
 // WaitException is the exception the expression that waits for the request's waitFor threw,
 // truncated.
 const WaitException = prefix + "wait.exception"
+
+// WaitResultBytes is the size of what the expression that waits for the request's waitFor
+// returned, when it isn't the boolean it should be.
+const WaitResultBytes = prefix + "wait.result_bytes"
 
 // The reset of the browser session after a request.
 const (
