@@ -56,7 +56,10 @@ exclude `'!**/AGENTS.md'`.
 
 `ubuntu-latest` for short checks; `self-hosted-ubuntu` (the image in
 [`src/ci/github-runner`](../src/ci/github-runner/Dockerfile)) when the baked-in
-toolchains or the local cache help. Jobs serving fork PRs pick per event:
+toolchains or the local cache help. Fork PRs run on `self-hosted-ubuntu` like
+any other PR. Pick the runner by origin only when forks take a separate path
+because the trusted jobs need secrets, which fork PRs do not receive, as in
+[`app-frontend-cypress.yml`](workflows/app-frontend-cypress.yml):
 
 ```yaml
 runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-ubuntu' }}
