@@ -98,18 +98,13 @@ describe('WorkflowActions', () => {
     },
   );
 
-  it('runs a parked workflow now only once confirmed', async () => {
+  it('runs a parked workflow now at once, without asking first', async () => {
     const user = userEvent.setup();
     const { rerenderWith } = renderWorkflowActions(workflow('Requeued'));
 
     await user.click(nudgeButton());
-    expect(
-      screen.getByText(textMock('admin.workflows.actions.nudge.description')),
-    ).toBeInTheDocument();
-    expect(axios.post).not.toHaveBeenCalled();
 
-    await user.click(confirmButton('admin.workflows.actions.nudge.confirm'));
-
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
     expect(jest.mocked(axios.post).mock.calls[0][0]).toBe(
       `/designer/api/v1/admin/workflows/${org}/${env}/${app}/workflows/${workflowId}/nudge`,
@@ -126,7 +121,6 @@ describe('WorkflowActions', () => {
     renderWorkflowActions(workflow('Requeued'));
 
     await user.click(nudgeButton());
-    await user.click(confirmButton('admin.workflows.actions.nudge.confirm'));
 
     // The running verb shows its spinner; the other one cannot be started meanwhile.
     expect(
@@ -159,7 +153,6 @@ describe('WorkflowActions', () => {
     const { rerenderWith } = renderWorkflowActions(workflow('Requeued'));
 
     await user.click(nudgeButton());
-    await user.click(confirmButton('admin.workflows.actions.nudge.confirm'));
     rerenderWith(workflow('Processing'));
     expect(
       await screen.findByText(textMock('admin.workflows.actions.nudge.success')),

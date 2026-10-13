@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { ReactElement } from 'react';
-import { StudioAlert } from '@studio/components';
+import { StudioAlert, StudioButton, StudioSpinner } from '@studio/components';
 import { CheckmarkCircleFillIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { ConfirmActionDialog } from 'admin/features/apps/components/ConfirmActionDialog/ConfirmActionDialog';
@@ -34,7 +34,8 @@ export type WorkflowActionsProps = {
  * On a failure: retry it. Retry is offered for an already written-off workflow too — the engine
  * allows resuming an `Abandoned` workflow. Writing a failure off is deliberately not offered here
  * for now. On a workflow parked on a timer: run it now instead of waiting the backoff out, or give
- * up on it instead of waiting the retries out.
+ * up on it instead of waiting the retries out. Running it now asks no confirmation: it only brings
+ * the next attempt forward. Retrying and giving up ask first.
  *
  * A verb that succeeded takes the buttons with it and leaves a one-line confirmation in their
  * place for a few seconds: the row's own status shows the result within the next read, so the
@@ -122,15 +123,16 @@ export const WorkflowActions = ({
       {(canRetry || isParked) && !succeeded && (
         <div className={classes.buttons}>
           {isParked && (
-            <ConfirmActionDialog
-              triggerLabel={t('admin.workflows.actions.nudge')}
-              heading={t('admin.workflows.actions.nudge.heading')}
-              description={t('admin.workflows.actions.nudge.description')}
-              confirmLabel={t('admin.workflows.actions.nudge.confirm')}
-              isPending={nudge.isPending}
+            <StudioButton
+              data-size='sm'
+              data-color='accent'
+              variant='secondary'
               disabled={isBusy}
-              onConfirm={() => run(nudge)}
-            />
+              onClick={() => run(nudge)}
+            >
+              {nudge.isPending && <StudioSpinner aria-label={t('general.loading')} />}
+              {t('admin.workflows.actions.nudge')}
+            </StudioButton>
           )}
           {isParked && (
             <ConfirmActionDialog
