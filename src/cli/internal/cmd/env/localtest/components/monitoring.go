@@ -9,35 +9,39 @@ import (
 	"altinn.studio/studioctl/internal/envtopology"
 )
 
+// grafanaLogsPluginVersion pins the VictoriaLogs datasource plugin to the version the shared Altinn Studio
+// datasource settings in grafana-datasources.yaml were verified with.
+const grafanaLogsPluginVersion = "0.32.0"
+
 func registerMonitoringComponents(manifest *Manifest, opts *Options) {
 	enabled := opts.IncludeMonitoring
 	manifest.addContainer(
 		opts,
-		monitoringImage(opts, ContainerMonitoringTempo, opts.Images.Monitoring.Tempo),
-		monitoringTempoContainer(opts),
+		monitoringImage(opts, ContainerVictoriaMetrics, opts.Images.Monitoring.VictoriaMetrics),
+		monitoringVictoriaMetricsContainer(),
 		enabled,
 	)
 	manifest.addContainer(
 		opts,
-		monitoringImage(opts, ContainerMonitoringMimir, opts.Images.Monitoring.Mimir),
-		monitoringMimirContainer(opts),
+		monitoringImage(opts, ContainerVictoriaTraces, opts.Images.Monitoring.VictoriaTraces),
+		monitoringVictoriaTracesContainer(),
 		enabled,
 	)
 	manifest.addContainer(
 		opts,
-		monitoringImage(opts, ContainerMonitoringLoki, opts.Images.Monitoring.Loki),
-		monitoringLokiContainer(opts),
+		monitoringImage(opts, ContainerVictoriaLogs, opts.Images.Monitoring.VictoriaLogs),
+		monitoringVictoriaLogsContainer(),
 		enabled,
 	)
 	manifest.addContainer(
 		opts,
-		monitoringImage(opts, ContainerMonitoringOtelCollector, opts.Images.Monitoring.OtelCollector),
+		monitoringImage(opts, ContainerOtelCollector, opts.Images.Monitoring.OtelCollector),
 		monitoringOTelCollectorContainer(opts),
 		enabled,
 	)
 	manifest.addContainer(
 		opts,
-		monitoringImage(opts, ContainerMonitoringGrafana, opts.Images.Monitoring.Grafana),
+		monitoringImage(opts, ContainerGrafana, opts.Images.Monitoring.Grafana),
 		monitoringGrafanaContainer(opts),
 		enabled,
 	)
@@ -52,49 +56,43 @@ func monitoringImage(ctx *Options, name string, spec config.ImageSpec) resource.
 	}
 }
 
-func monitoringTempoContainer(ctx *Options) *ContainerSpec {
+func monitoringVictoriaMetricsContainer() *ContainerSpec {
 	spec := newContainerSpec(
-		ContainerMonitoringTempo,
+		ContainerVictoriaMetrics,
 		nil,
 		nil,
-		[]types.VolumeMount{
-			newVolume(filepath.Join(ctx.Paths.InfraDir, "tempo.yaml"), "/etc/tempo.yaml"),
-		},
 		nil,
 		nil,
-		[]string{"-config.file=/etc/tempo.yaml", "-log.level=error"},
+		nil,
+		[]string{"-storageDataPath=/tmp/victoria-metrics-data", "-retentionPeriod=1d"},
 	)
 	spec.UseDefaultUser = true
 	return spec
 }
 
-func monitoringMimirContainer(ctx *Options) *ContainerSpec {
+func monitoringVictoriaTracesContainer() *ContainerSpec {
 	spec := newContainerSpec(
-		ContainerMonitoringMimir,
+		ContainerVictoriaTraces,
 		nil,
 		nil,
-		[]types.VolumeMount{
-			newVolume(filepath.Join(ctx.Paths.InfraDir, "mimir.yaml"), "/etc/mimir.yaml"),
-		},
 		nil,
 		nil,
-		[]string{"-config.file=/etc/mimir.yaml", "-target=all", "-log.level=error"},
+		nil,
+		[]string{"-storageDataPath=/tmp/victoria-traces-data", "-retentionPeriod=1d"},
 	)
 	spec.UseDefaultUser = true
 	return spec
 }
 
-func monitoringLokiContainer(ctx *Options) *ContainerSpec {
+func monitoringVictoriaLogsContainer() *ContainerSpec {
 	spec := newContainerSpec(
-		ContainerMonitoringLoki,
+		ContainerVictoriaLogs,
 		nil,
 		nil,
-		[]types.VolumeMount{
-			newVolume(filepath.Join(ctx.Paths.InfraDir, "loki.yaml"), "/etc/loki.yaml"),
-		},
 		nil,
 		nil,
-		[]string{"-config.file=/etc/loki.yaml", "-target=all", "-log.level=error"},
+		nil,
+		[]string{"-storageDataPath=/tmp/victoria-logs-data", "-retentionPeriod=1d"},
 	)
 	spec.UseDefaultUser = true
 	return spec
@@ -103,14 +101,14 @@ func monitoringLokiContainer(ctx *Options) *ContainerSpec {
 func monitoringOTelCollectorContainer(ctx *Options) *ContainerSpec {
 	otel := ctx.Topology.MustComponent(envtopology.ComponentOTel)
 	spec := newContainerSpec(
-		ContainerMonitoringOtelCollector,
+		ContainerOtelCollector,
 		[]types.PortMapping{newPort("4317", "4317")},
 		nil,
 		[]types.VolumeMount{
 			newVolume(filepath.Join(ctx.Paths.InfraDir, "otel-collector.yaml"), "/etc/otel-collector.yaml"),
 		},
 		[]string{otel.Host()},
-		[]string{ContainerMonitoringMimir, ContainerMonitoringTempo, ContainerMonitoringLoki},
+		[]string{ContainerVictoriaMetrics, ContainerVictoriaTraces, ContainerVictoriaLogs},
 		[]string{"--config=/etc/otel-collector.yaml"},
 	)
 	spec.UseDefaultUser = true
@@ -120,16 +118,20 @@ func monitoringOTelCollectorContainer(ctx *Options) *ContainerSpec {
 func monitoringGrafanaContainer(ctx *Options) *ContainerSpec {
 	app := ctx.Topology.MustComponent(envtopology.ComponentApp)
 	spec := newContainerSpec(
-		ContainerMonitoringGrafana,
+		ContainerGrafana,
 		nil,
 		map[string]string{
-			"GF_AUTH_ANONYMOUS_ENABLED":     "true",
-			"GF_AUTH_ANONYMOUS_ORG_ROLE":    "Admin",
-			"GF_AUTH_DISABLE_LOGIN_FORM":    "true",
-			"GF_LOG_LEVEL":                  "error",
-			"GF_SERVER_DOMAIN":              app.Host(), // TODO: should be localtest/proxy, not app.
-			"GF_SERVER_SERVE_FROM_SUB_PATH": "true",
-			"GF_SERVER_ROOT_URL":            "%(protocol)s://%(domain)s:%(http_port)s/grafana/", // TODO: mirror real envs, /monitor.
+			"GF_AUTH_ANONYMOUS_ENABLED": "true",
+			// Install the pinned VictoriaLogs plugin before Grafana starts, so provisioning finds it.
+			"GF_PLUGINS_PREINSTALL_SYNC": "victoriametrics-logs-datasource@" + grafanaLogsPluginVersion,
+			// Keep unpinned preinstalled plugins at their installed versions instead of updating them from grafana.com.
+			"GF_PLUGINS_PREINSTALL_AUTO_UPDATE": "false",
+			"GF_AUTH_ANONYMOUS_ORG_ROLE":        "Admin",
+			"GF_AUTH_DISABLE_LOGIN_FORM":        "true",
+			"GF_LOG_LEVEL":                      "error",
+			"GF_SERVER_DOMAIN":                  app.Host(), // TODO: should be localtest/proxy, not app.
+			"GF_SERVER_SERVE_FROM_SUB_PATH":     "true",
+			"GF_SERVER_ROOT_URL":                "%(protocol)s://%(domain)s:%(http_port)s/grafana/", // TODO: mirror real envs, /monitor.
 		},
 		[]types.VolumeMount{
 			newVolume(
@@ -144,10 +146,10 @@ func monitoringGrafanaContainer(ctx *Options) *ContainerSpec {
 		},
 		nil,
 		[]string{
-			ContainerMonitoringOtelCollector,
-			ContainerMonitoringMimir,
-			ContainerMonitoringTempo,
-			ContainerMonitoringLoki,
+			ContainerOtelCollector,
+			ContainerVictoriaMetrics,
+			ContainerVictoriaTraces,
+			ContainerVictoriaLogs,
 		},
 		nil,
 	)

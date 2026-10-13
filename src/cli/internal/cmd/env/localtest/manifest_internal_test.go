@@ -248,11 +248,81 @@ func TestResourceBuilder_LocaltestAliasesDoNotChangeWithPgAdmin(t *testing.T) {
 
 func TestMonitoringContainers_OtelUsesLocalDomainAlias(t *testing.T) {
 	resources := localtestResources(t, t.TempDir(), true)
-	container := mustContainerSpec(t, resources, components.ContainerMonitoringOtelCollector)
+	container := mustContainerSpec(t, resources, components.ContainerOtelCollector)
 
 	want := []string{testTopology().OTelHost()}
 	if got := container.NetworkAliases; !slices.Equal(got, want) {
 		t.Fatalf("otel.NetworkAliases = %v, want %v", got, want)
+	}
+}
+
+func TestMonitoringContainers_UseVictoriaStack(t *testing.T) {
+	resources := localtestResources(t, t.TempDir(), true)
+
+	victoriaMetrics := mustContainerSpec(t, resources, components.ContainerVictoriaMetrics)
+	if want := []string{
+		"-storageDataPath=/tmp/victoria-metrics-data",
+		"-retentionPeriod=1d",
+	}; !slices.Equal(
+		victoriaMetrics.Command,
+		want,
+	) {
+		t.Fatalf("victoriaMetrics.Command = %v, want %v", victoriaMetrics.Command, want)
+	}
+
+	victoriaTraces := mustContainerSpec(t, resources, components.ContainerVictoriaTraces)
+	if want := []string{
+		"-storageDataPath=/tmp/victoria-traces-data",
+		"-retentionPeriod=1d",
+	}; !slices.Equal(
+		victoriaTraces.Command,
+		want,
+	) {
+		t.Fatalf("victoriaTraces.Command = %v, want %v", victoriaTraces.Command, want)
+	}
+
+	victoriaLogs := mustContainerSpec(t, resources, components.ContainerVictoriaLogs)
+	if want := []string{
+		"-storageDataPath=/tmp/victoria-logs-data",
+		"-retentionPeriod=1d",
+	}; !slices.Equal(
+		victoriaLogs.Command,
+		want,
+	) {
+		t.Fatalf("victoriaLogs.Command = %v, want %v", victoriaLogs.Command, want)
+	}
+
+	otel := mustContainerSpec(t, resources, components.ContainerOtelCollector)
+	wantOtelDeps := []string{
+		components.ContainerVictoriaMetrics,
+		components.ContainerVictoriaTraces,
+		components.ContainerVictoriaLogs,
+	}
+	if !slices.Equal(otel.Dependencies, wantOtelDeps) {
+		t.Fatalf("otel.Dependencies = %v, want %v", otel.Dependencies, wantOtelDeps)
+	}
+
+	grafana := mustContainerSpec(t, resources, components.ContainerGrafana)
+	wantGrafanaDeps := []string{
+		components.ContainerOtelCollector,
+		components.ContainerVictoriaMetrics,
+		components.ContainerVictoriaTraces,
+		components.ContainerVictoriaLogs,
+	}
+	if !slices.Equal(grafana.Dependencies, wantGrafanaDeps) {
+		t.Fatalf("grafana.Dependencies = %v, want %v", grafana.Dependencies, wantGrafanaDeps)
+	}
+
+	for _, name := range []string{
+		"monitoring_tempo",
+		"monitoring_mimir",
+		"monitoring_loki",
+		"monitoring_otel_collector",
+		"monitoring_grafana",
+	} {
+		if findResource(resources, resource.ContainerID(name)) != nil {
+			t.Fatalf("manifest unexpectedly contains retired monitoring container %q", name)
+		}
 	}
 }
 
