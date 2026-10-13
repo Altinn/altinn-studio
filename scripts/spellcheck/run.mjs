@@ -681,11 +681,14 @@ async function checkNorwegian({
  */
 async function checkQuick(ctx, fileArgs) {
   const root = ctx.root;
-  const files = (fileArgs.length > 0 ? fileArgs : gitChangedFiles(root))
+  const changed = fileArgs.length > 0 ? null : gitChangedFiles(root);
+  // Name the comparison base, so a run that fell back to uncommitted changes says so.
+  const scope = changed ? ` since ${changed.base}` : '';
+  const files = (changed ? changed.files : fileArgs)
     .map((f) => f.replace(/^\.\//, ''))
     .filter((f) => existsSync(join(root, f)));
   if (files.length === 0) {
-    return { findings: [], counts: 'no changed files to check' };
+    return { findings: [], counts: `no changed files to check${scope}` };
   }
 
   // The code pass, scoped. --force-exclude keeps typos.toml's excludes
@@ -747,7 +750,7 @@ async function checkQuick(ctx, fileArgs) {
   return {
     findings,
     counts:
-      `${files.length} file(s), ${norwegian + data + pattern} classified, ${suppressedCount} suppressed` +
+      `${files.length} file(s)${scope}, ${norwegian + data + pattern} classified, ${suppressedCount} suppressed` +
       (affected.length > 0 ? `, ${affected.length} language group(s)` : ''),
   };
 }
@@ -768,7 +771,7 @@ function gitChangedFiles(root) {
     if (res.status !== 0) throw new HarnessError(`git ${args[0]} failed: ${res.stderr}`);
     for (const f of res.stdout.split('\n').filter(Boolean)) out.add(f);
   }
-  return [...out];
+  return { files: [...out], base: base === 'HEAD' ? 'HEAD (uncommitted only)' : base.slice(0, 10) };
 }
 
 // -------------------------------------------------------------- self-test ---
