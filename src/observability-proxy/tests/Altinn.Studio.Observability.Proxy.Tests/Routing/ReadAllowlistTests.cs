@@ -5,7 +5,8 @@ namespace Altinn.Studio.Observability.Proxy.Tests.Routing;
 
 /// <summary>
 /// The query token reaches the read APIs the Grafana datasources call and nothing else, although
-/// VictoriaMetrics and VictoriaLogs serve writes, deletion and admin endpoints at the same root.
+/// VictoriaMetrics, VictoriaLogs and VictoriaTraces serve writes, deletion and admin endpoints at
+/// the same root.
 /// </summary>
 public sealed class ReadAllowlistTests
 {
@@ -52,6 +53,16 @@ public sealed class ReadAllowlistTests
                 "/select/tempo/api/v2/search/tag/resource.service.name/values"
             },
             { "GET", "/traces/api/metrics/query_range", "/select/tempo/api/metrics/query_range" },
+            // The VictoriaLogs datasource on VictoriaTraces' LogsQL API, at the backend's root.
+            { "GET", "/traces-logsql/select/logsql/query?query=*", "/select/logsql/query?query=*" },
+            { "POST", "/traces-logsql/select/logsql/query", "/select/logsql/query" },
+            { "POST", "/traces-logsql/select/logsql/stats_query", "/select/logsql/stats_query" },
+            { "POST", "/traces-logsql/select/logsql/stats_query_range", "/select/logsql/stats_query_range" },
+            { "POST", "/traces-logsql/select/logsql/field_names", "/select/logsql/field_names" },
+            { "POST", "/traces-logsql/select/logsql/field_values", "/select/logsql/field_values" },
+            { "POST", "/traces-logsql/select/logsql/stream_field_names", "/select/logsql/stream_field_names" },
+            { "GET", "/traces-logsql/select/logsql/hits", "/select/logsql/hits" },
+            { "POST", "/traces-logsql/select/tenant_ids", "/select/tenant_ids" },
         };
 
     /// <summary>Everything a query token must not reach, whatever the method.</summary>
@@ -96,11 +107,24 @@ public sealed class ReadAllowlistTests
             { "GET", "/traces/api/status/buildinfo" },
             { "POST", "/traces/api/search" },
             { "GET", "/traces/api/traces" },
+            // VictoriaTraces' root, below the LogsQL prefix: ingestion, internal endpoints and the
+            // other query APIs, which have their own prefix or none.
+            { "POST", "/traces-logsql/insert/opentelemetry/v1/traces" },
+            { "GET", "/traces-logsql/internal/force_merge" },
+            { "GET", "/traces-logsql/internal/force_flush" },
+            { "GET", "/traces-logsql/debug/pprof/" },
+            { "GET", "/traces-logsql/metrics" },
+            { "GET", "/traces-logsql/select/vmui/" },
+            { "GET", "/traces-logsql/select/tempo/api/search" },
+            { "GET", "/traces-logsql/select/jaeger/api/services" },
+            { "GET", "/traces-logsql/api/search" },
+            { "DELETE", "/traces-logsql/select/logsql/query" },
             // The bare prefixes.
             { "GET", "/metrics" },
             { "GET", "/metrics/" },
             { "GET", "/logs/" },
             { "GET", "/traces/" },
+            { "GET", "/traces-logsql/" },
         };
 
     [Theory]

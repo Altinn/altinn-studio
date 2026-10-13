@@ -7,12 +7,12 @@ namespace Altinn.Studio.Observability.Proxy.Tests.Routing;
 public sealed class ReverseProxyConfigTests
 {
     [Fact]
-    public void CreateRoutes_GivesEachSignalItsOwnWriteAndReadRoute()
+    public void CreateRoutes_GivesEachSignalAWriteRouteAndEachReadApiARoute()
     {
         var routes = ObservabilityReverseProxyConfig.CreateRoutes(new ObservabilityProxyOptions());
 
         Assert.Equal(
-            ["logs", "metrics", "otlp-logs", "otlp-metrics", "otlp-traces", "traces"],
+            ["logs", "metrics", "otlp-logs", "otlp-metrics", "otlp-traces", "traces", "traces-logsql"],
             routes.Select(route => route.RouteId).Order()
         );
     }
@@ -47,15 +47,20 @@ public sealed class ReverseProxyConfigTests
     }
 
     [Theory]
-    [InlineData("metrics")]
-    [InlineData("logs")]
-    public void OtherReadRoutes_OnlyStripThePublicPrefix(string routeId)
+    [InlineData("metrics", "metrics")]
+    [InlineData("logs", "logs")]
+    [InlineData("traces-logsql", "traces")]
+    public void OtherReadRoutes_OnlyStripThePublicPrefix(string routeId, string clusterId)
     {
         var routes = ObservabilityReverseProxyConfig.CreateRoutes(new ObservabilityProxyOptions());
 
         var route = Assert.Single(routes, candidate => candidate.RouteId == routeId);
+        Assert.Equal($"/internal/observability/{routeId}/{{**readPath}}", route.Match.Path);
+        Assert.Equal(clusterId, route.ClusterId);
         Assert.NotNull(route.Transforms);
         Assert.Equal($"/internal/observability/{routeId}", Assert.Single(route.Transforms)["PathRemovePrefix"]);
+        Assert.NotNull(route.Metadata);
+        Assert.Equal(routeId, route.Metadata["ObservabilityRouteGroup"]);
     }
 
     [Fact]

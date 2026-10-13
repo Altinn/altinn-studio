@@ -44,12 +44,12 @@ internal sealed class AgentDownstreamOptions
     {
         ArgumentNullException.ThrowIfNull(signal);
 
-        return signal.RouteGroup switch
+        if (signal == ObservabilitySignal.Traces)
         {
-            ObservabilityPaths.TracesRouteGroup => Traces,
-            ObservabilityPaths.MetricsRouteGroup => Metrics,
-            _ => Logs,
-        };
+            return Traces;
+        }
+
+        return signal == ObservabilitySignal.Metrics ? Metrics : Logs;
     }
 }
 
@@ -68,12 +68,12 @@ internal sealed class StorageDownstreamOptions
     {
         ArgumentNullException.ThrowIfNull(signal);
 
-        return signal.RouteGroup switch
+        if (signal == ObservabilitySignal.Traces)
         {
-            ObservabilityPaths.TracesRouteGroup => Traces,
-            ObservabilityPaths.MetricsRouteGroup => Metrics,
-            _ => Logs,
-        };
+            return Traces;
+        }
+
+        return signal == ObservabilitySignal.Metrics ? Metrics : Logs;
     }
 }
 

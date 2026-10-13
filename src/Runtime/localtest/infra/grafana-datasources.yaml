@@ -4,7 +4,8 @@ prune: true
 
 # The uids and settings are those of the Altinn Studio datasources in the shared Grafana,
 # grafana.dis.altinn.cloud, so a dashboard built here works there unchanged. Only the url,
-# the names (Metrics, Traces and Logs, as the monitoring guide calls them) and the default differ.
+# the names (Metrics, Traces and Logs, as the monitoring guide calls them, and Traces LogsQL)
+# and the default differ.
 # Grafana expands environment variables in provisioning files, so every Grafana variable is written with $$.
 datasources:
   - name: Metrics
@@ -47,6 +48,25 @@ datasources:
             query: 'sum by ("http.route", "http.response.status_code") (rate({"http.server.request.duration_count", $$__tags}[$$__rate_interval]))'
           - name: Request duration p95
             query: 'histogram_quantile(0.95, sum by (le, "http.route") (rate({"http.server.request.duration_bucket", $$__tags}[$$__rate_interval])))'
+
+  # VictoriaTraces' LogsQL API over the same spans as Traces, one row of fields per span:
+  # name, duration, kind, trace_id, resource_attr:service.name, span_attr:http.route and so on.
+  # For span tables with any attributes as columns, and stats by any attribute, which TraceQL
+  # does not give. The shared Grafana reaches it through the proxy's traces-logsql prefix.
+  - name: Traces LogsQL
+    type: victoriametrics-logs-datasource
+    uid: altinn-studio-traces-logsql
+    access: proxy
+    url: http://localtest-victoria-traces:10428
+    isDefault: false
+    jsonData:
+      derivedFields:
+        - name: trace_id
+          matcherType: label
+          matcherRegex: trace_id
+          datasourceUid: altinn-studio-traces
+          url: "$${__value.raw}"
+          urlDisplayLabel: View trace
 
   - name: Logs
     type: victoriametrics-logs-datasource

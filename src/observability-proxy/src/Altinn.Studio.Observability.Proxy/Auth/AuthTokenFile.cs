@@ -266,7 +266,7 @@ internal sealed class AuthTokenFile
         }
 
         return string.Equals(accessGroup, QueryGroup, StringComparison.OrdinalIgnoreCase)
-            ? ObservabilityPaths.ReadRouteGroups
+            ? ObservabilitySignal.ReadRouteGroups
             : [];
     }
 }
