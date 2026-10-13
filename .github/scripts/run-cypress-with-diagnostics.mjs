@@ -2,12 +2,10 @@
 import { execFile, spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { mkdirSync, renameSync, writeFileSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import { Worker } from 'node:worker_threads';
 
 const execFileAsync = promisify(execFile);
 const [command, ...args] = process.argv.slice(2);
@@ -112,138 +110,6 @@ await new Promise((resolve, reject) => {
   server.listen(0, '127.0.0.1', resolve);
 });
 
-async function browserPageDiagnostics(webSocketDebuggerUrl, screenshotName) {
-  return new Promise((resolve) => {
-    // Terminating the worker also closes its sockets. A frozen browser cannot
-    // strand the collector in an unfinished WebSocket close handshake.
-    const worker = new Worker(new URL('./probe-cypress-browser.mjs', import.meta.url), {
-      workerData: webSocketDebuggerUrl,
-    });
-    let finished = false;
-    let evidence = {};
-    let screenshot;
-    let screenshotSaveError;
-    const finish = (result) => {
-      if (finished) return;
-      finished = true;
-      clearTimeout(timer);
-      void worker.terminate().then(() => resolve({ ...result, screenshot, screenshotSaveError }));
-    };
-    const timer = setTimeout(() => finish({ ...evidence, captureTimedOut: true }), 8000);
-    worker.on('message', (message) => {
-      if (message.kind === 'screenshot') {
-        try {
-          writeFileSync(path.join(outputDir, screenshotName), Buffer.from(message.data, 'base64'));
-          screenshot = screenshotName;
-        } catch {
-          screenshotSaveError = 'Could not save screenshot';
-        }
-      } else {
-        evidence = message.diagnostics;
-        if (message.kind === 'finished') finish(evidence);
-      }
-    });
-    worker.on('error', () => finish({ ...evidence, workerError: 'CDP worker failed' }));
-    worker.on('exit', () => finish({ ...evidence, workerExited: true }));
-  });
-}
-
-async function browserDiagnostics(processes) {
-  const ports = new Set();
-  // Keep Cypress's launch port even after later spec events replace state.node.
-  // /proc discovery alone can miss the browser on a runner.
-  const launchPort = Number(state.browserLaunch?.debuggerPort);
-  if (launchPort > 0 && launchPort <= 65535) ports.add(launchPort);
-  const discoveryErrors = [];
-  const groups = new Set(state.processGroups || [child?.pid]);
-  for (const line of processes.split('\n')) {
-    const fields = line.trim().split(/\s+/);
-    if (!groups.has(Number(fields[2]))) continue;
-    if (!/chrome|chromium|Cypress/.test(fields.at(-1))) continue;
-    try {
-      // Read only the debugger port. Never retain command arguments or tokens.
-      const argv = (await readFile(`/proc/${fields[0]}/cmdline`, 'utf8')).split('\0');
-      const port = Number(
-        argv.find((arg) => arg.startsWith('--remote-debugging-port='))?.split('=')[1],
-      );
-      if (port > 0 && port <= 65535) ports.add(port);
-    } catch (error) {
-      discoveryErrors.push({ pid: Number(fields[0]), code: error.code });
-    }
-  }
-  const browsers = await Promise.all(
-    [...ports].slice(0, 2).map(async (port) => {
-      try {
-        const response = await fetch(`http://127.0.0.1:${port}/json/list`, {
-          signal: AbortSignal.timeout(2000),
-        });
-        const targets = await response.json();
-        const targetsToProbe = targets
-          .filter((target) => ['page', 'iframe'].includes(target.type))
-          .slice(0, 4);
-        const pages = [];
-        // Limit worker count on runners that are already short of threads.
-        for (let offset = 0; offset < targetsToProbe.length; offset += 2) {
-          pages.push(
-            ...(await Promise.all(
-              targetsToProbe.slice(offset, offset + 2).map(async (target, index) => {
-                let url = '';
-                try {
-                  const parsed = new URL(target.url || 'about:blank');
-                  // Drop query strings and fragments, which can contain credentials.
-                  url = /^https?:$/.test(parsed.protocol)
-                    ? `${parsed.origin}${parsed.pathname}`
-                    : parsed.protocol;
-                } catch {
-                  /* An invalid target URL must not suppress its other evidence. */
-                }
-                try {
-                  return {
-                    url,
-                    ...(await browserPageDiagnostics(
-                      target.webSocketDebuggerUrl,
-                      `browser-${port}-${offset + index}.png`,
-                    )),
-                  };
-                } catch {
-                  return { url, probeError: 'Could not start browser probe' };
-                }
-              }),
-            )),
-          );
-        }
-        return { port, debuggerResponsive: true, pages };
-      } catch {
-        return { port, debuggerResponsive: false };
-      }
-    }),
-  );
-  return { browsers, discoveryErrors, launchPort: launchPort || null };
-}
-
-async function serviceHealth() {
-  const urls = ['http://127.0.0.1:8080/', 'http://local.altinn.cloud:8000/'];
-  const spec = state.atStop?.browser?.spec || state.atStop?.node?.spec;
-  const app = spec && path.basename(path.dirname(spec));
-  if (app && /^[a-z0-9-]+$/.test(app))
-    urls.push(`http://local.altinn.cloud:8000/ttd/${app}/api/v1/applicationmetadata`);
-  return Promise.all(
-    urls.map(async (url) => {
-      const started = Date.now();
-      try {
-        const response = await fetch(url, {
-          redirect: 'manual',
-          signal: AbortSignal.timeout(2000),
-        });
-        void response.body?.cancel().catch(() => {});
-        return { url, status: response.status, firstByteMs: Date.now() - started };
-      } catch (error) {
-        return { url, firstByteMs: Date.now() - started, error: error.name };
-      }
-    }),
-  );
-}
-
 async function capture(reason) {
   // Serialize snapshots so shutdown waits for any bounded capture already running.
   if (captureInProgress) await captureInProgress;
@@ -252,8 +118,6 @@ async function capture(reason) {
     const snapshot = {
       capturedAt: Date.now(),
       reason,
-      freeMemory: os.freemem(),
-      loadAverage: os.loadavg(),
       cypress: structuredClone({
         node: state.node,
         browser: state.browser,
@@ -284,69 +148,8 @@ async function capture(reason) {
       state.processGroups = [
         ...new Set(rows.filter(([pid]) => descendants.has(pid)).map(([, , group]) => group)),
       ];
-      const { stdout: threads } = await execFileAsync(
-        'ps',
-        ['-eLo', 'pid,ppid,lwp,psr,pcpu,stat,time,comm', '--sort=-pcpu'],
-        { timeout: 5000, maxBuffer: 2 * 1024 * 1024 },
-      );
-      snapshot.threads = threads;
     } catch (error) {
       snapshot.captureError = error.message;
-    }
-    snapshot.cgroup = {};
-    snapshot.cgroupErrors = {};
-    for (const name of [
-      'cpu.max',
-      'cpu.stat',
-      'memory.current',
-      'memory.max',
-      'memory.events',
-      'pids.current',
-      'pids.max',
-      'pids.events',
-    ]) {
-      try {
-        snapshot.cgroup[name] = await readFile(`/sys/fs/cgroup/${name}`, 'utf8');
-      } catch (error) {
-        snapshot.cgroupErrors[name] = error.code;
-      }
-    }
-    if (reason === 'before-stop') {
-      // Probe services before any debugger pause can affect the browser.
-      snapshot.services = await serviceHealth();
-      try {
-        const { stdout } = await execFileAsync(
-          'ps',
-          ['-eLo', 'pid,ppid,lwp,psr,pcpu,stat,time,wchan:32,comm', '--sort=-pcpu'],
-          { timeout: 5000, maxBuffer: 2 * 1024 * 1024 },
-        );
-        snapshot.threadWaits = stdout;
-      } catch (error) {
-        snapshot.waitCaptureError = error.code || error.message;
-      }
-      for (const [key, filename] of [
-        ['processLimits', '/proc/self/limits'],
-        ['cgroupMembership', '/proc/self/cgroup'],
-      ]) {
-        try {
-          snapshot[key] = await readFile(filename, 'utf8');
-        } catch (error) {
-          snapshot[`${key}Error`] = error.code;
-        }
-      }
-      try {
-        const { stdout } = await execFileAsync('ss', ['-antp'], {
-          timeout: 2000,
-          maxBuffer: 2 * 1024 * 1024,
-        });
-        snapshot.sockets = stdout;
-      } catch (error) {
-        snapshot.socketCaptureError = error.code || error.message;
-      }
-      // A failed ps must not prevent the independent launch-port probe.
-      // Browser probes run only after deciding to stop, and preserve partial
-      // evidence when one of the bounded requests cannot complete.
-      snapshot.browserDiagnostics = await browserDiagnostics(snapshot.processes || '');
     }
     // Retain the last hour at the default interval, plus the shutdown snapshot.
     const filename =
