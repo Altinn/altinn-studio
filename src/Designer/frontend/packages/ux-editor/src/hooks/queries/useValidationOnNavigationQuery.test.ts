@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import { ValidationOnNavigationLevel } from 'app-shared/types/global';

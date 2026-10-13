@@ -1,17 +1,17 @@
+import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
   GridRows,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBLabel,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
-import { CompCategory } from '@app/layout-contract';
 
-export interface CompGridExternal
-  extends ComponentBase, SummarizableComponentProps, LabeledComponentProps {
+export interface CompGridExternal extends ComponentBase, LabeledComponentProps {
   type: 'Grid';
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: TRBSummarizable & TRBLabel;
   rows: GridRows;
   dataModelBindings?: undefined;
@@ -53,4 +53,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: GridSummaryOverridesWithRef;
 };
 
-// Source hash: aa2d60adde181860c1fccb50f1061ceaa3933cbc37552c3d48a2422d58852de2
+// Source hash: 75ce2e7bc8d0773c8d6a54f7d90097bda82a3a7aa4f8bf4728d949350f3eaa7f

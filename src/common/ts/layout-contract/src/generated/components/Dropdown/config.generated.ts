@@ -5,7 +5,6 @@ import {
   ISelectionComponentFull,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -13,14 +12,13 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CompDropdownExternal
-  extends
-    ComponentBase,
-    FormComponentProps,
-    SummarizableComponentProps,
-    ISelectionComponentFull,
-    LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, ISelectionComponentFull, LabeledComponentProps {
   type: 'Dropdown';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   alertOnChange?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsOptionsSimple;
@@ -58,4 +56,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: DropdownSummaryOverridesWithRef;
 };
 
-// Source hash: ebd254fba0dd72311209a2aae228069c59dedabf24dae38f994d8d1a2d6d1ce4
+// Source hash: 88861f552711a425b00b52cf3fb2f390b17a5a0b379b85e3ab1935a00eaba7ee

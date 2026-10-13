@@ -1,14 +1,9 @@
-import {
-  ComponentBase,
-  SummarizableComponentProps,
-  TRBSummarizable,
-} from '@app/layout-contract/generated/common.generated';
+import { ComponentBase } from '@app/layout-contract/generated/common.generated';
 
 export type CompDividerSerialized = {
   type: 'Divider';
-  textResourceBindings?: TRBSummarizable;
   dataModelBindings?: undefined;
-} & ComponentBase &
-  SummarizableComponentProps;
+  textResourceBindings?: undefined;
+} & ComponentBase;
 
-// Source hash: a09a9ac4bf40639fdc78f695eb8bd2da201d0bb5b3bf0feea111ab1f6a446788
+// Source hash: e59722ff7cb113316895eabd9f7055aa68d1fb39168cefbd7e7ec2a59469cfd0

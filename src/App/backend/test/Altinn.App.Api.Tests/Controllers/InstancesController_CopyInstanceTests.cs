@@ -112,7 +112,9 @@ public class InstancesController_CopyInstanceTests
             .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
-            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup<Task<XacmlJsonResponse>>(p =>
+                p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(CreateXacmlResponse("Deny"));
 
         // Act
@@ -155,7 +157,9 @@ public class InstancesController_CopyInstanceTests
             .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
-            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup<Task<XacmlJsonResponse>>(p =>
+                p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(CreateXacmlResponse("Permit"));
         fixture
             .Mock<IInstanceClientWithStorageMetadata>()
@@ -212,7 +216,9 @@ public class InstancesController_CopyInstanceTests
             .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
-            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup<Task<XacmlJsonResponse>>(p =>
+                p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(CreateXacmlResponse("Permit"));
         fixture
             .Mock<IInstanceClientWithStorageMetadata>()
@@ -269,7 +275,9 @@ public class InstancesController_CopyInstanceTests
             .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
-            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup<Task<XacmlJsonResponse>>(p =>
+                p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(CreateXacmlResponse("Permit"));
         fixture
             .Mock<IInstanceClientWithStorageMetadata>()
@@ -325,7 +333,9 @@ public class InstancesController_CopyInstanceTests
             .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
-            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup<Task<XacmlJsonResponse>>(p =>
+                p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(CreateXacmlResponse("Permit"));
         fixture
             .Mock<IInstanceClientWithStorageMetadata>()
@@ -390,7 +400,9 @@ public class InstancesController_CopyInstanceTests
             .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
-            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup<Task<XacmlJsonResponse>>(p =>
+                p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(CreateXacmlResponse("Permit"));
         fixture
             .Mock<IInstanceClientWithStorageMetadata>()
@@ -487,7 +499,9 @@ public class InstancesController_CopyInstanceTests
             .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
-            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup<Task<XacmlJsonResponse>>(p =>
+                p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(CreateXacmlResponse("Permit"));
         fixture
             .Mock<IInstanceClientWithStorageMetadata>()
@@ -674,7 +688,9 @@ public class InstancesController_CopyInstanceTests
         fixture.Mock<IAppMetadata>().Setup(a => a.ApplicationMetadata).Returns(appMetadata);
         fixture
             .Mock<IPDP>()
-            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup<Task<XacmlJsonResponse>>(p =>
+                p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(CreateXacmlResponse("Permit"));
         fixture
             .Mock<IInstanceClientWithStorageMetadata>()
@@ -894,7 +910,9 @@ public class InstancesController_CopyInstanceTests
         fixture.Mock<IAppMetadata>().Setup(a => a.ApplicationMetadata).Returns(appMetadata);
         fixture
             .Mock<IPDP>()
-            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup<Task<XacmlJsonResponse>>(p =>
+                p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(CreateXacmlResponse("Permit"));
         fixture
             .Mock<IInstanceClientWithStorageMetadata>()
@@ -1113,7 +1131,9 @@ public class InstancesController_CopyInstanceTests
         fixture.Mock<IAppMetadata>().Setup(a => a.ApplicationMetadata).Returns(appMetadata);
         fixture
             .Mock<IPDP>()
-            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup<Task<XacmlJsonResponse>>(p =>
+                p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(CreateXacmlResponse("Permit"));
         fixture
             .Mock<IInstanceClientWithStorageMetadata>()
@@ -1339,7 +1359,9 @@ public class InstancesController_CopyInstanceTests
             .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
-            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup<Task<XacmlJsonResponse>>(p =>
+                p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(CreateXacmlResponse("Permit"));
         fixture
             .Mock<IInstanceClientWithStorageMetadata>()

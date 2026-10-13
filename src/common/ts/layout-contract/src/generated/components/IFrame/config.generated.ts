@@ -1,5 +1,8 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
-import { ComponentBase } from '@app/layout-contract/generated/common.generated';
+import {
+  ComponentBase,
+  ISummaryOverridesCommon,
+} from '@app/layout-contract/generated/common.generated';
 
 export interface CompIFrameExternal extends ComponentBase {
   type: 'IFrame';
@@ -7,6 +10,10 @@ export interface CompIFrameExternal extends ComponentBase {
   sandbox?: ISandboxProperties;
   dataModelBindings?: undefined;
 }
+
+export type IFrameSummaryOverridesWithRef =
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'IFrame' } & ISummaryOverridesCommon);
 
 export interface ISandboxProperties {
   allowPopups?: boolean;
@@ -26,7 +33,7 @@ export const componentConfig = {
     renderInTabs: true,
   },
   behaviors: {
-    isSummarizable: false,
+    isSummarizable: true,
     canHaveLabel: false,
     canHaveOptions: false,
     canHaveAttachments: false,
@@ -37,8 +44,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompIFrameExternal;
-  summaryOverrides: undefined;
-  summaryOverridesWithRef: undefined;
+  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverridesWithRef: IFrameSummaryOverridesWithRef;
 };
 
-// Source hash: 29322177d4284c3ff82a9f3f61e194c224e550b702fa4f3a96bfc79cbbfb2136
+// Source hash: f1b624d84645693cb2bbae5117e4d8b0594b3d2d166724eae6252b0b5adfb0d7

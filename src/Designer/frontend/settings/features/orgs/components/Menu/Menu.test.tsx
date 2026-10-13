@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Menu } from './Menu';
@@ -26,8 +26,6 @@ const getBotAccountsTab = () =>
   });
 
 describe('Menu', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('renders the bot accounts tab', () => {
     renderMenu();
     expect(getBotAccountsTab()).toBeInTheDocument();

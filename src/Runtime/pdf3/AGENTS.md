@@ -106,6 +106,10 @@ make check                # Complete CI check (tidy, fmt, lint, test)
   - Headers: `X-Internals-Test-Input`, `X-Internals-Test-Output`
   - Tracks browser errors and console logs
 
+- **internal/appurl** - Parses and classifies a request's URL as an app URL
+  (`https://{org}.apps.{hostname}/{org}/{app}/...`). The proxy records the classification as
+  `altinn.pdf.url_kind`; it never changes how a request is served
+
 - **internal/assert** - Runtime assertions for invariant checking. Asserts should be used to catch programmer errors (e.g. invalid/unchecked assumptions about program state)
 - **internal/concurrent** - Thread-safe data structures (e.g., `Map`)
 - **internal/log** - Logging configuration

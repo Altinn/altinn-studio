@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
 import { OwnerIndexRedirect } from './OwnerIndexRedirect';
@@ -31,8 +31,6 @@ describe('OwnerIndexRedirect', () => {
   beforeEach(() => {
     mockUseUserQuery.mockReturnValue({ isPending: false, isError: false, data: userWithLogin });
   });
-
-  afterEach(() => vi.clearAllMocks());
 
   it('redirects to the api-keys page when owner matches the logged-in user', () => {
     renderOwnerIndexRedirect('/testuser');

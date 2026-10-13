@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { RequiredSwitchProps } from './RequiredSwitch';
 import { RequiredSwitch } from './RequiredSwitch';
@@ -16,8 +16,6 @@ const defaultProps: RequiredSwitchProps = {
 const saveDataModel = vi.fn();
 
 describe('RequiredSwitch', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Saves the model when the required checkbox is checked', async () => {
     renderRequiredSwitch();
     await user.click(screen.getByRole('switch'));

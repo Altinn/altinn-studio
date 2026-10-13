@@ -1,10 +1,18 @@
+import type { JSX } from 'react';
+
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class CheckboxesDef extends FormComponent<'Checkboxes'> implements DisplayData {
   protected readonly type = 'Checkboxes';
+
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
+
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -17,4 +25,4 @@ export abstract class CheckboxesDef extends FormComponent<'Checkboxes'> implemen
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: d6ba868fc7a2a312aca055add8df630e9db23374f6f3ec492e77027863a74a32
+// Source hash: 3f749ac7dfec9a08a6ca236b0e48b72bec534fe6b2642639587d8d0d19fc56b3

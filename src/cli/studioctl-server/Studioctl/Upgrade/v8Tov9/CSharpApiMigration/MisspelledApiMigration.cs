@@ -99,8 +99,12 @@ internal sealed class MisspelledApiMigration
         var changes = new List<string>();
         var unverified = new List<string>();
 
-        // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
-        foreach (var file in _scanner.Files.ToArray())
+        // Every file is rewritten against the same compilation before any is written back: an Update
+        // re-roots the compilation, after which a reference in a later file to an app member this step
+        // has already renamed (a call to the app's own Analyse) would no longer bind, and would be left
+        // behind without a word.
+        var rewrites = new List<(ScannedCSharpFile File, CompilationUnitSyntax Root)>();
+        foreach (var file in _scanner.Files)
         {
             var rewriter = new Rewriter(file);
             var updated = rewriter.Visit(file.Root);
@@ -110,8 +114,13 @@ internal sealed class MisspelledApiMigration
                 continue;
             }
 
-            _scanner.Update(file, (CompilationUnitSyntax)updated);
+            rewrites.Add((file, (CompilationUnitSyntax)updated));
             changes.AddRange(rewriter.Changes);
+        }
+
+        foreach (var (file, root) in rewrites)
+        {
+            _scanner.Update(file, root);
         }
 
         var messages = new List<UpgradeMessage>();

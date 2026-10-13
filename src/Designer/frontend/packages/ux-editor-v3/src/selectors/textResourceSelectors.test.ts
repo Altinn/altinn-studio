@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { ITextResources } from 'app-shared/types/global';
 import { allTextResourceIdsWithTextSelector, getAllLanguages } from './textResourceSelectors';
 

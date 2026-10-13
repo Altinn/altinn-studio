@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { FormComponentConfigProps } from './FormComponentConfig';
 import { FormComponentConfig } from './FormComponentConfig';
 import { renderWithProviders } from '../../testing/mocks';
@@ -169,7 +170,7 @@ describe('FormComponentConfig', () => {
 
   it('should call updateComponent with false value when checking a default true property switch', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
+    const handleComponentUpdateMock = vi.fn();
     renderFormComponentConfig({
       schema: DatepickerSchema,
       handleComponentUpdate: handleComponentUpdateMock,
@@ -207,7 +208,7 @@ describe('FormComponentConfig', () => {
       schema: InputSchema,
       editFormId: '',
       component: inputComponent,
-      handleComponentUpdate: jest.fn(),
+      handleComponentUpdate: vi.fn(),
     };
     return renderWithProviders(<FormComponentConfig {...defaultProps} {...props} />);
   };

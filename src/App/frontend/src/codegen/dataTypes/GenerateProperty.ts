@@ -60,6 +60,14 @@ export class GenerateProperty<Val extends CodeGenerator<any>> extends CodeGenera
     return this;
   }
 
+  protected getChildren(): readonly CodeGenerator<unknown>[] {
+    return [this.type];
+  }
+
+  protected getBehaviorRequirementDescription(): string {
+    return `property '${this.name}'`;
+  }
+
   omitInSchema(): this {
     this._inSchema = false;
     return this;

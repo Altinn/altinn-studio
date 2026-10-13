@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -15,7 +16,7 @@ const mockReferenceList: ResourceReference[] = [mockReference1];
 const mockReferenceInput = 'hei';
 
 describe('ResourceReferenceFields', () => {
-  const mockOnResourceReferenceFieldChanged = jest.fn();
+  const mockOnResourceReferenceFieldChanged = vi.fn();
 
   const defaultProps: ResourceReferenceFieldsProps = {
     resourceReferenceList: mockReferenceList,

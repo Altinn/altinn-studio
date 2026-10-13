@@ -18,6 +18,8 @@ const propertyGroupMinimumRows = 3;
 
 const labels = {
   en: {
+    additionalProperties: 'Additional property names are allowed. Value type',
+    anyJsonValue: 'any JSON value, including strings, numbers, booleans, objects, arrays and null',
     common: 'The component also supports the [common component properties](../common-properties/).',
     type: 'Type',
     required: 'Required',
@@ -29,6 +31,8 @@ const labels = {
     dataModelBindingLinkText: 'How to use data model bindings.',
   },
   nb: {
+    additionalProperties: 'Andre egenskapsnavn er tillatt. Verditype',
+    anyJsonValue: 'alle JSON-verdier, inkludert tekst, tall, boolske verdier, objekter, lister og null',
     common: 'Komponenten støtter også de [felles komponentegenskapene](../common-properties/).',
     type: 'Type',
     required: 'Påkrevd',
@@ -65,7 +69,8 @@ function renderComponent(
   const properties = Object.fromEntries(
     Object.entries(component.properties).filter(([name]) => !commonPropertyNames.has(name)),
   );
-  const renderedProperties = renderProperties(properties, locale);
+  const additionalProperties = formatAdditionalProperties(component.additionalProperties, locale);
+  const renderedProperties = [additionalProperties, renderProperties(properties, locale)].filter(Boolean).join('\n\n');
   return commonPropertyNames.size ? `${labels[locale].common}\n\n${renderedProperties}` : renderedProperties;
 }
 
@@ -288,6 +293,9 @@ function formatAllowedValues(values: readonly (string | number)[]): string {
 
 function formatDescription(definition: PropertyDefinition, locale: DocumentationLocale): string | undefined {
   const details = [getLocalizedText(definition.description, locale)];
+  if (definition.type === 'object') {
+    details.push(formatAdditionalProperties(definition.additionalProperties, locale));
+  }
   if ('allowedValues' in definition && definition.allowedValues) {
     details.push(
       `${labels[locale].allowedValues}: ${definition.allowedValues.map((value) => JSON.stringify(value)).join(', ')}.`,
@@ -297,6 +305,17 @@ function formatDescription(definition: PropertyDefinition, locale: Documentation
     details.push(`<a href="${labels[locale].dataModelBindingHref}">${labels[locale].dataModelBindingLinkText}</a>`);
   }
   return details.filter(Boolean).join(' ') || undefined;
+}
+
+function formatAdditionalProperties(
+  definition: false | PropertyValueDefinition | undefined,
+  locale: DocumentationLocale,
+): string | undefined {
+  if (!definition) {
+    return undefined;
+  }
+  const type = definition.type === 'any' ? labels[locale].anyJsonValue : formatType(definition, locale);
+  return `${labels[locale].additionalProperties}: ${escapeHtml(type)}.`;
 }
 
 function hasMeaningfulDefault(definition: PropertyDefinition): boolean {

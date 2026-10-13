@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { EnumListProps } from './EnumList';
 import { EnumList } from './EnumList';
@@ -17,8 +17,6 @@ const defaultProps: EnumListProps = {
 const mockSaveDataModel = vi.fn();
 
 describe('EnumList', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('renders the description about enum being empty when there is no enums on the field node', () => {
     renderEnumList();
 
