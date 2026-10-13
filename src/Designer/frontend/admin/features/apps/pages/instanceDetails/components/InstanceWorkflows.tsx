@@ -40,20 +40,21 @@ import {
 } from 'admin/features/apps/utils/formatTimestamp';
 import { formatDuration, formatElapsed } from 'admin/features/apps/utils/formatDuration';
 import { extractInstanceGuid } from 'admin/features/apps/utils/workflowHealth';
+import type { WorkflowGroup } from 'admin/features/apps/utils/workflowTriage';
 import {
   attentionWorkflowOf,
-  elapsedOf,
   focusStepOf,
+  groupElapsed,
+  groupFocusWorkflow,
+  groupTransitions,
   isActiveWorkflow,
   isFailedWorkflow,
   failedAttemptCount,
-  groupSideChains,
   sideChainName,
   newestFirst,
-  orderedSteps,
   toTime,
 } from 'admin/features/apps/utils/workflowTriage';
-import { groupStepsByElement, parseTransition } from 'admin/features/apps/utils/workflowPhases';
+import { groupStepsOfWorkflows } from 'admin/features/apps/utils/workflowPhases';
 import { WorkflowActions } from './WorkflowActions';
 import { WorkflowStepStrip } from './WorkflowStepStrip';
 
@@ -162,18 +163,18 @@ const InstanceWorkflowsContent = ({
         </StudioButton>
       )}
       <div className={classes.rows}>
-        {groupSideChains(workflows).map(({ workflow, sideChains }, index, groups) => {
-          const day = formatDay(workflow.createdAt);
-          const isNewDay = index === 0 || day !== formatDay(groups[index - 1].workflow.createdAt);
+        {groupTransitions(workflows).map((group, index, groups) => {
+          const day = formatDay(group.members[0].createdAt);
+          const isNewDay = index === 0 || day !== formatDay(groups[index - 1].members[0].createdAt);
           return (
-            <Fragment key={workflow.databaseId}>
+            <Fragment key={group.members[0].databaseId}>
               {isNewDay && <div className={classes.dayHeading}>{day}</div>}
               <WorkflowItem
                 context={context}
-                workflow={workflow}
-                sideChains={sideChains}
+                group={group}
                 defaultOpen={
-                  workflow.databaseId === attentionWorkflowId || sideChains.some(isFailedWorkflow)
+                  group.members.some((member) => member.databaseId === attentionWorkflowId) ||
+                  group.sideChains.some(isFailedWorkflow)
                 }
               />
             </Fragment>
@@ -186,26 +187,25 @@ const InstanceWorkflowsContent = ({
 
 type WorkflowItemProps = {
   context: WorkflowOpsContext;
-  workflow: WorkflowStatus;
-  /** The side chains this workflow spawned, shown behind its row with its steps. */
-  sideChains: WorkflowStatus[];
+  /** The workflows of one transition, shown as one row, with the side chains it spawned. */
+  group: WorkflowGroup;
   /** Open when the row first appears. The operator owns the state from then on. */
   defaultOpen: boolean;
 };
 
 /**
- * One workflow as a row, and behind it everything it has to say: the steps with their errors —
- * and, on the step the workflow stopped at, the verbs that apply — then the side chains it
- * spawned. A side chain is rarely what anyone came to look at, so the row only counts them; one
- * that failed says so on the row and opens it.
+ * One transition as a row, and behind it everything it has to say: the steps of all its workflows
+ * with their errors — and, on the step a workflow stopped at, the actions that apply — then the
+ * side chains it spawned. A side chain is rarely what anyone came to look at, so the row only
+ * counts them; one that failed says so on the row and opens it.
  */
-const WorkflowItem = ({ context, workflow, sideChains, defaultOpen }: WorkflowItemProps) => (
+const WorkflowItem = ({ context, group, defaultOpen }: WorkflowItemProps) => (
   <StudioDetails defaultOpen={defaultOpen} data-testid='workflow-row'>
     <StudioDetails.Summary className={classes.summaryBar}>
-      <WorkflowSummary workflow={workflow} sideChains={sideChains} />
+      <WorkflowSummary group={group} />
     </StudioDetails.Summary>
     <StudioDetails.Content className={classes.details}>
-      <WorkflowSteps context={context} workflow={workflow} sideChains={sideChains} />
+      <WorkflowSteps context={context} group={group} />
     </StudioDetails.Content>
   </StudioDetails>
 );
@@ -286,28 +286,27 @@ const OperationName = ({ operationId }: { operationId: string }) => {
   );
 };
 
-type WorkflowSummaryProps = {
-  workflow: WorkflowStatus;
-  /** The side chains behind this row, counted in place of the step it is at once it is done. */
-  sideChains?: WorkflowStatus[];
-};
-
 /**
- * A workflow as a row of plain columns: its status as an icon, its name, the steps as dots, where
+ * A transition as a row of plain columns: its status as an icon, its name, the steps as dots, where
  * it is and what the engine is doing with it, the failed attempts, how long it took, and the time
- * it was created.
+ * it started. The workflows the transition ran as read as one: the status and the step are those
+ * of the workflow it stopped at, the dots, attempts and duration cover them all.
  *
  * Built to be scanned down a long list: the icons down the left edge say at a glance which rows
  * did not go fine, and only those rows spell their status out, as a tag beside the step it
  * concerns. The numbers keep to the right edge, where they line up from row to row.
  */
-const WorkflowSummary = ({ workflow, sideChains = [] }: WorkflowSummaryProps) => {
+const WorkflowSummary = ({ group }: { group: WorkflowGroup }) => {
   const { t } = useTranslation();
-  const now = useNow(isActiveWorkflow(workflow));
-  const attempts = failedAttemptCount(workflow);
-  const liveNote = liveNoteOf(workflow, now, t);
+  const { workflow, members, sideChains } = group;
+  const focus = groupFocusWorkflow(group);
+  const status = focus.overallStatus;
+  const isActive = members.some(isActiveWorkflow);
+  const now = useNow(isActive);
+  const attempts = members.reduce((sum, member) => sum + failedAttemptCount(member), 0);
+  const liveNote = liveNoteOf(focus, now, t);
   // How long it took, once it is done; while it runs, the live note speaks for it.
-  const elapsed = isActiveWorkflow(workflow) ? undefined : elapsedOf(workflow);
+  const elapsed = isActive ? undefined : groupElapsed(group);
   const elapsedText = elapsed === undefined ? undefined : formatElapsed(elapsed, t);
   // Where the step's name would be once the chain is done: how many side chains it spawned, and
   // whether any of them failed — the one thing about them worth a word before anyone opens the row.
@@ -320,20 +319,20 @@ const WorkflowSummary = ({ workflow, sideChains = [] }: WorkflowSummaryProps) =>
         : t('admin.workflows.row.side_chains', { count: sideChains.length });
 
   // Named while the chain is unfinished; a finished one needs no word beside its dots.
-  const currentStep = focusStepOf(workflow);
+  const currentStep = focusStepOf(focus);
   const currentStepName =
     currentStep && currentStep.status !== 'Completed' ? currentStep.operationId : undefined;
 
-  // A row blinks once when the workflow lands in a settled status. Not on every read that touches
-  // it: a retrying workflow changes every attempt, and a blink per attempt is noise. The change is
-  // caught by comparing with the previous render's status (the React pattern for remembering the
-  // last props), and the summary span is keyed by the count so the blink replays each time — the
+  // A row blinks once when it lands in a settled status. Not on every read that touches it: a
+  // retrying workflow changes every attempt, and a blink per attempt is noise. The change is caught
+  // by comparing with the previous render's status (the React pattern for remembering the last
+  // props), and the summary span is keyed by the count so the blink replays each time — the
   // disclosure around it stays put.
-  const [previousStatus, setPreviousStatus] = useState(workflow.overallStatus);
+  const [previousStatus, setPreviousStatus] = useState(status);
   const [changeCount, setChangeCount] = useState(0);
-  if (workflow.overallStatus !== previousStatus) {
-    setPreviousStatus(workflow.overallStatus);
-    if (!isActiveWorkflow(workflow)) {
+  if (status !== previousStatus) {
+    setPreviousStatus(status);
+    if (!isActiveWorkflow(focus)) {
       setChangeCount((count) => count + 1);
     }
   }
@@ -345,7 +344,7 @@ const WorkflowSummary = ({ workflow, sideChains = [] }: WorkflowSummaryProps) =>
   return (
     <span key={changeCount} className={summaryClasses}>
       <span className={classes.summaryStatus}>
-        <WorkflowStatusIcon status={workflow.overallStatus} />
+        <WorkflowStatusIcon status={status} />
       </span>
       <span className={classes.summaryName}>
         <OperationName operationId={workflow.operationId} />
@@ -357,12 +356,12 @@ const WorkflowSummary = ({ workflow, sideChains = [] }: WorkflowSummaryProps) =>
       </span>
       <span className={classes.summaryProgress}>
         <span className={classes.summaryDots}>
-          <WorkflowStepStrip workflow={workflow} />
+          <WorkflowStepStrip workflows={members} />
         </span>
         <span className={classes.summaryStep}>
-          {workflow.overallStatus !== 'Completed' && (
+          {status !== 'Completed' && (
             <span className={classes.stepStatus}>
-              <WorkflowStatusTag status={workflow.overallStatus} />
+              <WorkflowStatusTag status={status} />
             </span>
           )}
           {currentStepName}
@@ -397,8 +396,8 @@ const WorkflowSummary = ({ workflow, sideChains = [] }: WorkflowSummaryProps) =>
           )}
         </span>
       </span>
-      <span className={classes.summaryTime} title={formatTimestamp(workflow.createdAt)}>
-        {formatTimeOfDay(workflow.createdAt)}
+      <span className={classes.summaryTime} title={formatTimestamp(members[0].createdAt)}>
+        {formatTimeOfDay(members[0].createdAt)}
       </span>
     </span>
   );
@@ -437,27 +436,24 @@ function liveNoteOf(
 }
 
 /**
- * The steps, with the ops verbs on the one the workflow stopped at. The verbs act on the workflow
- * — a resume picks up from that step, a write-off covers the whole workflow — but that step is
- * where an operator is looking, and where the work continues from.
+ * The steps of all the transition's workflows in the order they ran, with the actions on the step
+ * a workflow stopped at. The actions act on that workflow — a resume picks up from that step — but
+ * that step is where an operator is looking, and where the work continues from.
  */
 const WorkflowSteps = ({
   context,
-  workflow,
-  sideChains,
+  group,
 }: {
   context: WorkflowOpsContext;
-  workflow: WorkflowStatus;
-  /** The side chains this workflow spawned, listed after its steps in the same columns. */
-  sideChains: WorkflowStatus[];
+  group: WorkflowGroup;
 }) => {
   const { t } = useTranslation();
-  const steps = orderedSteps(workflow);
-  const focusStep = focusStepOf(workflow);
-  const transition = parseTransition(workflow);
+  const { members, sideChains } = group;
+  const stepGroups = groupStepsOfWorkflows(members);
+  const focusSteps = new Set(members.map(focusStepOf));
 
-  if (!steps.length && sideChains.length === 0) {
-    return <WorkflowActions context={context} workflow={workflow} />;
+  if (!stepGroups.length && sideChains.length === 0) {
+    return <WorkflowActions context={context} workflow={groupFocusWorkflow(group)} />;
   }
 
   return (
@@ -472,17 +468,17 @@ const WorkflowSteps = ({
           </StudioTable.Row>
         </StudioTable.Head>
         <StudioTable.Body>
-          {groupStepsByElement(steps, transition).map((group) => {
+          {stepGroups.map((stepGroup) => {
             // The steps of one task's lifecycle — ending one task, starting the next — are headed
             // by that task, with the steps set in under it. Steps of no element, and a run whose
             // element is not known, keep to the left edge.
-            const heading = group.elementId;
+            const heading = stepGroup.elementId;
             const indent = heading ? classes.groupedCell : undefined;
             return (
-              <Fragment key={group.steps[0].databaseId}>
+              <Fragment key={stepGroup.steps[0].step.databaseId}>
                 {heading && <GroupHeading>{heading}</GroupHeading>}
-                {group.steps.map((step) => {
-                  const hasVerbs = step === focusStep && hasWorkflowVerbs(workflow);
+                {stepGroup.steps.map(({ step, workflow }) => {
+                  const hasVerbs = focusSteps.has(step) && hasWorkflowVerbs(workflow);
                   const hasDetails = hasStepDetails(step) || hasVerbs;
                   const failures = step.errorHistory?.length ?? 0;
                   return (

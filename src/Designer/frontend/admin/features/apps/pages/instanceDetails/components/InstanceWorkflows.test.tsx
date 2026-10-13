@@ -118,6 +118,73 @@ describe('InstanceWorkflows', () => {
     expect(requestedUrl).toContain(`collectionKey=${instanceId}`);
   });
 
+  it('shows the workflows of one transition as one row, speaking for the one it stopped at', async () => {
+    const stepOf = (operationId: string, processingOrder: number, status = 'Completed') => ({
+      databaseId: `step-${operationId}`,
+      operationId,
+      processingOrder,
+      status,
+      command: { type: 'AppCommand' },
+      retryCount: 0,
+    });
+    const workflowOf = (
+      databaseId: string,
+      operationId: string,
+      labels: Record<string, string>,
+      steps: ReturnType<typeof stepOf>[],
+      overallStatus = 'Completed',
+    ) => ({
+      databaseId,
+      collectionKey: instanceId,
+      operationId,
+      idempotencyKey: databaseId,
+      namespace: `${org}/${app}`,
+      createdAt: '2026-08-02T10:00:00Z',
+      overallStatus,
+      labels,
+      steps,
+    });
+    jest.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: {
+        ...workflowsResponse,
+        data: [
+          workflowOf(
+            'wf-acquire',
+            'Process next: Mark instance as processing',
+            { processNextSourceId: 'Form:2' },
+            [stepOf('AcquireProcessingStatus', 0)],
+          ),
+          workflowOf(
+            'wf-transition',
+            'Process next: Form -> Approval',
+            { processNextSourceId: 'Form:2', processNextTargetId: 'Approval:4' },
+            [stepOf('EndTask', 0), stepOf('StartTask', 1), stepOf('ExecuteServiceTask: 0', 2)],
+          ),
+          workflowOf(
+            'wf-receive',
+            'Mailbox receive: Approval · 0',
+            { processNextTargetId: 'Approval:4' },
+            [stepOf('ExecuteServiceTask: 1', 0, 'Held')],
+            'Held',
+          ),
+        ],
+      },
+    } as AxiosResponse);
+    renderInstanceWorkflows();
+
+    const rows = await screen.findAllByTestId('workflow-row');
+    expect(rows).toHaveLength(1);
+    const [row] = rows;
+    expect(within(row).getByTitle('Process next: Form -> Approval')).toBeInTheDocument();
+    expect(
+      within(row).getAllByText(textMock('admin.workflows.status.held')).length,
+    ).toBeGreaterThan(0);
+    expect(within(row).getByText('AcquireProcessingStatus')).toBeInTheDocument();
+    expect(within(row).getByText('ExecuteServiceTask: 0')).toBeInTheDocument();
+    expect(within(row).getAllByText('ExecuteServiceTask: 1').length).toBeGreaterThan(0);
+  });
+
   it("opens the transition that spawned a failed side chain, with the side chain's error and retry in view", async () => {
     const transition = {
       ...failedHeadWorkflow,

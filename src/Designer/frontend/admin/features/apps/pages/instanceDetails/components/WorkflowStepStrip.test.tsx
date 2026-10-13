@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type {
   WorkflowStatus,
   WorkflowStepStatus,
@@ -51,7 +52,27 @@ describe('WorkflowStepStrip', () => {
 
     expect(screen.getByTitle('EndTask · Completed')).toBeInTheDocument();
   });
+
+  it('shows the steps of every workflow of the row, in the order they ran', () => {
+    renderWorkflowStepStrip(
+      workflowOf('Process next: Mark instance as processing', [
+        stepOf('AcquireProcessingStatus', 0),
+      ]),
+      workflowOf('Process next: Form -> Approval', [
+        stepOf('StartTask', 0, 'Approval'),
+        stepOf('ExecuteServiceTask: 0', 1),
+      ]),
+      workflowOf('Mailbox receive: Approval · 0', [stepOf('ExecuteServiceTask: 1', 0)]),
+    );
+
+    expect(
+      screen.getByRole('img', {
+        name: textMock('admin.workflows.row.steps', { completed: 4, total: 4 }),
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByTitle('ExecuteServiceTask: 1 · Completed')).toBeInTheDocument();
+  });
 });
 
-const renderWorkflowStepStrip = (workflow: WorkflowStatus) =>
-  render(<WorkflowStepStrip workflow={workflow} />);
+const renderWorkflowStepStrip = (...workflows: WorkflowStatus[]) =>
+  render(<WorkflowStepStrip workflows={workflows} />);

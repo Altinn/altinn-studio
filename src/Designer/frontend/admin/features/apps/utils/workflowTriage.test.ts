@@ -9,7 +9,9 @@ import {
   deriveInstanceHealth,
   failedAttemptCount,
   focusStepOf,
-  groupSideChains,
+  groupElapsed,
+  groupFocusWorkflow,
+  groupTransitions,
   sideChainName,
   isWorkflowRetrying,
   latestErrorOf,
@@ -92,57 +94,130 @@ describe('sideChainName', () => {
   });
 });
 
-describe('groupSideChains', () => {
-  const transition = (id: string, target: string, extra: Partial<WorkflowStatus> = {}) =>
+describe('groupTransitions', () => {
+  const labelsOf = (source?: string, target?: string) => ({
+    ...(source ? { processNextSourceId: source } : {}),
+    ...(target ? { processNextTargetId: target } : {}),
+  });
+  const transition = (
+    id: string,
+    source: string | undefined,
+    target: string | undefined,
+    extra: Partial<WorkflowStatus> = {},
+  ) =>
     workflow('Completed', {
       databaseId: id,
-      operationId: `Process next: ${target}`,
-      labels: { processNextTargetId: target },
+      operationId: `Process next: ${source ?? 'start'} -> ${target ?? 'end'}`,
+      labels: labelsOf(source, target),
+      steps: [step(0, 'Completed', { operationId: 'EndTask' }), step(1, 'Completed')],
       ...extra,
     });
-  const sideChain = (id: string, target: string, extra: Partial<WorkflowStatus> = {}) =>
+  const acquire = (id: string, source: string) =>
     workflow('Completed', {
       databaseId: id,
-      operationId: `Process next side-effects: ${target}`,
-      labels: { processNextTargetId: target },
+      operationId: 'Process next: Mark instance as processing',
+      labels: labelsOf(source),
+      steps: [step(0, 'Completed', { operationId: 'AcquireProcessingStatus' })],
+    });
+  const receiver = (id: string, target: string, extra: Partial<WorkflowStatus> = {}) =>
+    workflow('Completed', {
+      databaseId: id,
+      operationId: `Mailbox receive: ${target} · 0`,
+      labels: labelsOf(undefined, target),
+      steps: [step(0, 'Completed', { operationId: 'ExecuteServiceTask: 1' })],
+      ...extra,
+    });
+  const sideChain = (id: string, source?: string, target?: string) =>
+    workflow('Completed', {
+      databaseId: id,
+      operationId: 'Process next side-effects: · MovedToAltinnEvent',
+      labels: labelsOf(source, target),
       isHead: false,
-      ...extra,
     });
+  const ids = (workflows: WorkflowStatus[]) => workflows.map((item) => item.databaseId);
 
-  it('files a side chain under the transition it belongs to, wherever it came in the list', () => {
-    const groups = groupSideChains([
-      transition('t1', 'Form:2'),
-      transition('t2', 'Verify:3'),
-      sideChain('s1', 'Form:2'),
-      sideChain('s2', 'Verify:3'),
+  it('shows the workflow that takes the instance and the transition it was for as one row', () => {
+    const groups = groupTransitions([
+      acquire('a1', 'Form:2'),
+      transition('t1', 'Form:2', 'Verify:3'),
     ]);
-    expect(groups.map((group) => group.workflow.databaseId)).toEqual(['t1', 't2']);
-    expect(groups[0].sideChains.map((chain) => chain.databaseId)).toEqual(['s1']);
-    expect(groups[1].sideChains.map((chain) => chain.databaseId)).toEqual(['s2']);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].workflow.databaseId).toBe('t1');
+    expect(ids(groups[0].members)).toEqual(['a1', 't1']);
   });
 
-  it('files under the transition itself, not under a later head with the same label', () => {
-    const receiver = transition('r1', 'Approval:4', {
-      operationId: 'Mailbox receive: Approval · 0',
-    });
-    const groups = groupSideChains([
-      transition('t1', 'Approval:4'),
-      receiver,
-      sideChain('s1', 'Approval:4'),
+  it('adds the stages of the task a transition entered that ran as workflows of their own', () => {
+    const groups = groupTransitions([
+      transition('t1', 'Verify:3', 'Approval:4'),
+      receiver('r1', 'Approval:4'),
+      sideChain('s1', 'Verify:3', 'Approval:4'),
     ]);
-    expect(groups.map((group) => group.workflow.databaseId)).toEqual(['t1', 'r1']);
-    expect(groups[0].sideChains.map((chain) => chain.databaseId)).toEqual(['s1']);
-    expect(groups[1].sideChains).toEqual([]);
+    expect(groups).toHaveLength(1);
+    expect(ids(groups[0].members)).toEqual(['t1', 'r1']);
+    expect(ids(groups[0].sideChains)).toEqual(['s1']);
+  });
+
+  it('keeps the transitions the process makes on its own as rows of their own', () => {
+    const groups = groupTransitions([
+      acquire('a1', 'Form:2'),
+      transition('t1', 'Form:2', 'Verify:3'),
+      transition('t2', 'Verify:3', 'Approval:4'),
+      transition('t3', 'Approval:4', 'Pdf:5'),
+    ]);
+    expect(groups.map((group) => ids(group.members))).toEqual([['a1', 't1'], ['t2'], ['t3']]);
+  });
+
+  it('files the side chains of ending the process by the task the transition left', () => {
+    const groups = groupTransitions([
+      acquire('a1', 'Sign:6'),
+      transition('t1', 'Sign:6', undefined),
+      sideChain('s1', 'Sign:6'),
+    ]);
+    expect(groups).toHaveLength(1);
+    expect(ids(groups[0].members)).toEqual(['a1', 't1']);
+    expect(ids(groups[0].sideChains)).toEqual(['s1']);
+  });
+
+  it('starts a row with the transition that starts the process, which has no source', () => {
+    const groups = groupTransitions([
+      transition('t0', undefined, 'Form:2'),
+      sideChain('s0', undefined, 'Form:2'),
+    ]);
+    expect(groups.map((group) => ids(group.members))).toEqual([['t0']]);
+    expect(ids(groups[0].sideChains)).toEqual(['s0']);
+  });
+
+  it('keeps a workflow that takes the instance as a row of its own until its transition comes', () => {
+    const groups = groupTransitions([acquire('a1', 'Form:2')]);
+    expect(groups.map((group) => ids(group.members))).toEqual([['a1']]);
+    expect(groups[0].workflow.databaseId).toBe('a1');
   });
 
   it('keeps a side chain in place when its transition is not in the list or it has no label', () => {
-    const groups = groupSideChains([
-      sideChain('s0', 'Form:2'),
-      transition('t1', 'Verify:3'),
-      sideChain('s1', 'Verify:3', { labels: undefined }),
+    const groups = groupTransitions([
+      sideChain('s0', 'Form:2', 'Verify:3'),
+      transition('t1', 'Verify:3', 'Approval:4'),
+      sideChain('s1'),
     ]);
-    expect(groups.map((group) => group.workflow.databaseId)).toEqual(['s0', 't1', 's1']);
+    expect(ids(groups.map((group) => group.workflow))).toEqual(['s0', 't1', 's1']);
     expect(groups.every((group) => group.sideChains.length === 0)).toBe(true);
+  });
+
+  it('speaks for the workflow the row stopped at, and covers them all in its duration', () => {
+    const [group] = groupTransitions([
+      { ...acquire('a1', 'Form:2'), updatedAt: '2026-08-02T09:00:01Z' },
+      { ...transition('t1', 'Form:2', 'Approval:4'), updatedAt: '2026-08-02T09:00:02Z' },
+      receiver('r1', 'Approval:4', { overallStatus: 'Held' }),
+    ]);
+    expect(groupFocusWorkflow(group).databaseId).toBe('r1');
+    expect(groupElapsed(group)).toBeUndefined();
+
+    const [settled] = groupTransitions([
+      { ...acquire('a1', 'Form:2'), updatedAt: '2026-08-02T09:00:01Z' },
+      { ...transition('t1', 'Form:2', 'Verify:3'), updatedAt: '2026-08-02T09:00:03Z' },
+    ]);
+    expect(groupFocusWorkflow(settled).databaseId).toBe('t1');
+    expect(groupElapsed(settled)).toBe(3_000);
   });
 });
 

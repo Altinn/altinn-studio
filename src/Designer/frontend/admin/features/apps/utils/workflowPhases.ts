@@ -2,6 +2,7 @@ import type {
   WorkflowStatus,
   WorkflowStepStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
+import { orderedSteps } from './workflowTriage';
 
 /**
  * The part of a process transition a step belongs to: ending the task the process leaves, starting
@@ -98,6 +99,32 @@ export function groupStepsByElement(
       current.steps.push(step);
     } else {
       groups.push({ ...group, steps: [step] });
+    }
+  }
+  return groups;
+}
+
+/** A step with the workflow it belongs to, for a row that shows several workflows as one. */
+export type OwnedStep = { step: WorkflowStepStatus; workflow: WorkflowStatus };
+
+export type OwnedStepGroup = Omit<StepGroup, 'steps'> & { steps: OwnedStep[] };
+
+/**
+ * The steps of workflows that ran one after another, cut into runs of the same element as
+ * `groupStepsByElement` cuts one workflow's. A run that carries on into the next workflow stays one
+ * run: a service task's stages belong to no element, wherever they ran.
+ */
+export function groupStepsOfWorkflows(workflows: WorkflowStatus[]): OwnedStepGroup[] {
+  const groups: OwnedStepGroup[] = [];
+  for (const workflow of workflows) {
+    for (const group of groupStepsByElement(orderedSteps(workflow), parseTransition(workflow))) {
+      const steps = group.steps.map((step) => ({ step, workflow }));
+      const current = groups.at(-1);
+      if (current && current.key === group.key) {
+        current.steps.push(...steps);
+      } else {
+        groups.push({ key: group.key, elementId: group.elementId, steps });
+      }
     }
   }
   return groups;

@@ -5,8 +5,7 @@ import type {
   WorkflowStatus,
   WorkflowStepStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
-import { orderedSteps } from 'admin/features/apps/utils/workflowTriage';
-import { groupStepsByElement, parseTransition } from 'admin/features/apps/utils/workflowPhases';
+import { groupStepsOfWorkflows } from 'admin/features/apps/utils/workflowPhases';
 
 import classes from './WorkflowStepStrip.module.css';
 
@@ -36,18 +35,20 @@ const recoveredFromErrors = (step: WorkflowStepStatus): boolean =>
   step.status === 'Completed' && (step.errorHistory?.length ?? 0) > 0;
 
 export type WorkflowStepStripProps = {
-  workflow: WorkflowStatus;
+  /** The workflows one row shows, in the order they ran. */
+  workflows: WorkflowStatus[];
 };
 
 /**
- * A workflow's steps as one row of dots, in processing order, in runs by the task they belong to:
- * the task the transition ends, then the one it starts. The runs are spaced apart, so which
- * side of a transition a workflow stopped on shows without opening it. The dots are for a sighted
- * reader scanning the list; the strip as a whole reads as one sentence to assistive technology.
+ * A row's steps as one row of dots, in the order they ran, in runs by the task they belong to: the
+ * task the transition ends, then the one it starts. The runs are spaced apart, so which side of a
+ * transition a row stopped on shows without opening it. The dots are for a sighted reader scanning
+ * the list; the strip as a whole reads as one sentence to assistive technology.
  */
-export const WorkflowStepStrip = ({ workflow }: WorkflowStepStripProps): ReactElement | null => {
+export const WorkflowStepStrip = ({ workflows }: WorkflowStepStripProps): ReactElement | null => {
   const { t } = useTranslation();
-  const steps = orderedSteps(workflow);
+  const groups = groupStepsOfWorkflows(workflows);
+  const steps = groups.flatMap((group) => group.steps.map(({ step }) => step));
 
   if (!steps.length) {
     return null;
@@ -60,15 +61,13 @@ export const WorkflowStepStrip = ({ workflow }: WorkflowStepStripProps): ReactEl
     ? t('admin.workflows.row.steps_with_errors', { completed, total: steps.length, withErrors })
     : t('admin.workflows.row.steps', { completed, total: steps.length });
 
-  const transition = parseTransition(workflow);
-
   return (
     <span className={classes.dots} role='img' aria-label={label}>
-      {groupStepsByElement(steps, transition).map((group) => {
+      {groups.map((group) => {
         const groupLabel = group.elementId;
         return (
-          <span key={group.steps[0].databaseId} className={classes.group}>
-            {group.steps.map((step) => (
+          <span key={group.steps[0].step.databaseId} className={classes.group}>
+            {group.steps.map(({ step }) => (
               <span
                 key={step.databaseId}
                 className={classes.dot}
