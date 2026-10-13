@@ -163,6 +163,7 @@ internal sealed class ProcessingStatusAcquirer
                     ?? throw new InvalidOperationException("A process-next continuation requires a collection key."),
                 acquiredState,
                 payload.Actor,
+                acquirePayload?.Action,
                 cancellationToken: cancellationToken
             );
         }

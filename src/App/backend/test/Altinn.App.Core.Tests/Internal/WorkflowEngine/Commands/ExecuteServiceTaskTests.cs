@@ -293,6 +293,25 @@ public class ExecuteServiceTaskTests
         Assert.Equal("delivery not confirmed", deferred.Reason);
     }
 
+    [Theory]
+    [InlineData("confirm")]
+    [InlineData(null)]
+    public async Task Execute_ForwardsTheStepsActionToServiceTaskContext(string? action)
+    {
+        // Arrange — the action of the transition that entered the task rides on the step's payload, so a task
+        // can hand it on to a gateway after it.
+        var serviceTask = Succeeding();
+        var command = CreateCommand(serviceTask);
+        var context = CreateContext(CreateInstance(), "myServiceTask");
+
+        // Act
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask", ItemIndex: 0, Action: action));
+
+        // Assert
+        Assert.NotNull(serviceTask.Observed);
+        Assert.Equal(action, serviceTask.Observed.Action);
+    }
+
     [Fact]
     public async Task Execute_ForwardsRetryCountAndExecutionDeadlineToServiceTaskContext()
     {

@@ -21,12 +21,19 @@ internal abstract record MailboxContinuation
     /// <summary>Enqueue the receiver for the next message; nothing is closed or started.</summary>
     internal sealed record AwaitNextMessage : MailboxContinuation
     {
-        public AwaitNextMessage(Guid mailboxId, string serviceTaskType, int handlerItemIndex, long position)
+        public AwaitNextMessage(
+            Guid mailboxId,
+            string serviceTaskType,
+            int handlerItemIndex,
+            long position,
+            string? action
+        )
         {
             MailboxId = mailboxId;
             ServiceTaskType = serviceTaskType;
             HandlerItemIndex = handlerItemIndex;
             Position = position;
+            Action = action;
         }
 
         /// <summary>The mailbox the exchange runs on, read from the rendezvous.</summary>
@@ -44,6 +51,12 @@ internal abstract record MailboxContinuation
 
         /// <summary>The position the handler just answered — names the successor for operators.</summary>
         public long Position { get; }
+
+        /// <summary>
+        /// The action of the transition that entered the task, from the executing step's own payload — what the
+        /// successor's step carries.
+        /// </summary>
+        public string? Action { get; }
     }
 
     /// <summary>

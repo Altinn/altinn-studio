@@ -27,9 +27,10 @@ internal abstract record CommandRequestPayload;
 internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayload;
 
 /// <summary>
-/// Process/next's prepared transition; instantiation carries no payload.
+/// Process/next's prepared transition and the action that decided it; instantiation carries no payload.
 /// </summary>
-internal sealed record AcquireProcessingStatusPayload(ProcessStateChange ProcessStateChange) : CommandRequestPayload;
+internal sealed record AcquireProcessingStatusPayload(ProcessStateChange ProcessStateChange, string? Action)
+    : CommandRequestPayload;
 
 /// <summary>
 /// Source-generated JSON serialization context for command payloads.

@@ -1441,6 +1441,122 @@ public class MailboxRelayTests
         return CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
     }
 
+    private static List<string?> HandoverActions(MailboxHandover handover) =>
+        handover
+            .Plan.Steps.Where(step => step.CommandKey == ExecuteServiceTask.Key)
+            .Select(step => StepPayload(step).Action)
+            .ToList();
+
+    /// <summary>
+    /// Every workflow of one service task hands its steps the action of the transition that entered the task,
+    /// so a later segment is planned with the action the completing step itself carried — whether that
+    /// segment is a receive workflow or an ordinary continuation.
+    /// </summary>
+    [Fact]
+    public void StageEnd_CopiesTheStepsActionOntoTheSegmentItHandsOverTo()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
+
+        MailboxHandover Handover(ServiceTaskPipeline pipeline) =>
+            Assert
+                .IsType<MailboxContinuation.ContinueAfterStage>(
+                    Assert
+                        .IsType<SuccessfulProcessEngineCommandResult>(
+                            MailboxRelay.DecideStageEnd(
+                                ServiceTaskType,
+                                _stepId,
+                                carry,
+                                OpeningStageIndex,
+                                pipeline,
+                                "confirm"
+                            )
+                        )
+                        .MailboxContinuation
+                )
+                .Handover;
+
+        Assert.Equal(["confirm"], HandoverActions(Handover(_archivingPipeline)));
+        Assert.Equal(["confirm"], HandoverActions(Handover(_upFrontSendsPipeline)));
+    }
+
+    [Fact]
+    public void SegmentCompleted_CopiesTheStepsActionOntoThePipelinesNextSegment()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
+
+        ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
+            ServiceTaskStageResult.Completed(),
+            ServiceTaskType,
+            _stepId,
+            Delivered(),
+            carry,
+            SegmentHandlerIndex,
+            OpeningStageIndex,
+            _archiveThenJournalPipeline,
+            "reject"
+        );
+
+        MailboxContinuation.ConcludeAndContinue continuing = Assert.IsType<MailboxContinuation.ConcludeAndContinue>(
+            Assert.IsType<SuccessfulProcessEngineCommandResult>(result).MailboxContinuation
+        );
+        Assert.Equal(["reject", "reject"], HandoverActions(continuing.Handover));
+    }
+
+    /// <summary>
+    /// A successor receiver of the same exchange runs the same handler again, so it carries the same action:
+    /// both verdict vocabularies put it on the continuation, and the enqueued step carries it on.
+    /// </summary>
+    [Fact]
+    public async Task AwaitNextReply_CopiesTheStepsActionOntoTheSuccessorReceiver()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
+
+        MailboxContinuation.AwaitNextMessage terminal = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
+            Assert
+                .IsType<SuccessfulProcessEngineCommandResult>(
+                    MailboxRelay.Decide(
+                        ServiceTaskExchangeResult.AwaitNextReply(),
+                        ServiceTaskType,
+                        _stepId,
+                        Delivered(seq: 4),
+                        carry,
+                        ArchivingReplyIndex,
+                        OpeningStageIndex,
+                        "confirm"
+                    )
+                )
+                .MailboxContinuation
+        );
+        MailboxContinuation.AwaitNextMessage segment = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
+            Assert
+                .IsType<SuccessfulProcessEngineCommandResult>(
+                    MailboxRelay.DecideSegment(
+                        ServiceTaskStageExchangeResult.AwaitNextReply(),
+                        ServiceTaskType,
+                        _stepId,
+                        Delivered(seq: 4),
+                        carry,
+                        SegmentHandlerIndex,
+                        OpeningStageIndex,
+                        _archiveThenJournalPipeline,
+                        "confirm"
+                    )
+                )
+                .MailboxContinuation
+        );
+        Assert.Equal("confirm", terminal.Action);
+        Assert.Equal("confirm", segment.Action);
+
+        var recorder = new RelayRecorder();
+        await CreateRelay(recorder).Continue(terminal, CreateRequest(Guid.NewGuid()), CancellationToken.None);
+
+        StepRequest step = Assert.Single(Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows).Steps);
+        Assert.Equal("confirm", StepPayload(step).Action);
+    }
+
     [Fact]
     public async Task ConcludeAndContinue_ClosesTheMailboxBeforeEnqueueingTheContinuation()
     {

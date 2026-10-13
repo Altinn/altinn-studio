@@ -522,7 +522,7 @@ public class ProcessNextRequestFactoryTests
             transition,
             SignedTestState,
             "acquire-key",
-            action: null,
+            action: "confirm",
             language: null
         );
         var workflow = Assert.Single(acquire.Request.Workflows);
@@ -534,6 +534,8 @@ public class ProcessNextRequestFactoryTests
             CommandPayloadSerializer.Deserialize<CommandRequestPayload>(command.Payload)
         );
         Assert.Equal(JsonSerializer.Serialize(transition), JsonSerializer.Serialize(payload.ProcessStateChange));
+        // The dependent transition hands the action to a service task it enters.
+        Assert.Equal("confirm", payload.Action);
         Assert.Equal(SignedTestState, workflow.State);
         Assert.Null(workflow.IsHead);
         Assert.Null(workflow.DependsOn);
@@ -1179,6 +1181,37 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal([MovedToAltinnEvent.Key], ExtractSideEffectsCommandKeys(bundle));
     }
 
+    /// <summary>
+    /// The transition's action reaches the service task it enters: a dependent workflow carries the action it
+    /// was computed for, and instantiation, which has none, carries null.
+    /// </summary>
+    [Fact]
+    public async Task Create_ServiceTask_CarriesTheTransitionsActionOnTheServiceTaskStep()
+    {
+        var factory = CreateFactory(serviceTasks: new FakeServiceTask("pdf"));
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "pdf");
+
+        var dependent = await factory.CreateDependent(
+            TestInstance,
+            stateChange,
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key",
+            "confirm"
+        );
+        var initiating = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "initiating-key",
+            SignedTestState,
+            isInstantiation: true
+        );
+
+        Assert.Equal("confirm", Assert.Single(ExtractExecuteServiceTaskPayloads(dependent)).Action);
+        Assert.Null(Assert.Single(ExtractExecuteServiceTaskPayloads(initiating)).Action);
+    }
+
     [Fact]
     public async Task Create_ServiceTask_AddsExecuteServiceTaskAfterCommitAndLeavesTheReleaseToItsContinuation()
     {
@@ -1551,8 +1584,8 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// The assembled send stage's whole serialized payload, pinned exactly: the service task and the item it
-    /// runs, and nothing else. What follows the send — this pipeline's terminal, its exchange's only receiver
+    /// The assembled send stage's whole serialized payload, pinned exactly: the service task, the item it
+    /// runs and the action that entered the task (none at instantiation), and nothing else. What follows the send — this pipeline's terminal, its exchange's only receiver
     /// — is worked out by that step when it runs, from the pipeline it resolves then. Pinned on the whole
     /// string so that a field added to the payload fails here too, not only a field removed.
     /// </summary>
@@ -1572,7 +1605,7 @@ public class ProcessNextRequestFactoryTests
         var sendStep = Assert.Single(ExtractServiceTaskSteps(bundle));
         string payloadJson = JsonSerializer.Deserialize<AppCommandData>(sendStep.Step.Command.Data!.Value)!.Payload!;
         Assert.Equal(
-            "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":0}",
+            "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":0,\"action\":null}",
             payloadJson
         );
     }

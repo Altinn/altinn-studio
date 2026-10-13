@@ -213,6 +213,42 @@ public class PdfServiceTaskTests
         );
     }
 
+    [Theory]
+    [InlineData("confirm")]
+    [InlineData(null)]
+    public async Task Execute_Renders_And_Forwards_The_Action_That_Entered_The_Task(string? action)
+    {
+        SetupAutoPdfTaskIds("pdfTask", ["Task_1"]);
+
+        var result = await _serviceTask.Execute(CreateContext("pdfTask", action));
+
+        ServiceTaskSuccessResult success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.Equal(action, success.Action);
+        _pdfServiceMock.Verify(
+            x =>
+                x.GenerateAndStorePdf(
+                    It.IsAny<IInstanceDataMutator>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<List<string>?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task Execute_Skips_Rendering_And_Forwards_Reject()
+    {
+        SetupAutoPdfTaskIds("pdfTask", ["Task_1"]);
+
+        var result = await _serviceTask.Execute(CreateContext("pdfTask", "reject"));
+
+        ServiceTaskSuccessResult success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.Equal("reject", success.Action);
+        _pdfServiceMock.VerifyNoOtherCalls();
+    }
+
     private void SetupAutoPdfTaskIds(string pdfTaskId, List<string> autoPdfTaskIds) =>
         _processReaderMock
             .Setup(x => x.GetAltinnTaskExtension(pdfTaskId))
@@ -224,7 +260,7 @@ public class PdfServiceTaskTests
                 }
             );
 
-    private static ServiceTaskContext CreateContext(string currentTaskId)
+    private static ServiceTaskContext CreateContext(string currentTaskId, string? action = null)
     {
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock
@@ -241,6 +277,7 @@ public class PdfServiceTaskTests
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
+            Action = action,
         };
     }
 }
