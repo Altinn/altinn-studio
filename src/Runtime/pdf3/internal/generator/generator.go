@@ -341,8 +341,10 @@ type workerRequest struct {
 	ctx       context.Context
 	responder chan workerResponse
 	logger    *slog.Logger
-	request   types.PdfRequest
-	cleanedUp bool
+	// pageErrors is what the page reported as errors while it served the request.
+	pageErrors *pageErrors
+	request    types.PdfRequest
+	cleanedUp  bool
 }
 
 func (r *workerRequest) tryGetTestModeInput() *testing.PdfInternalsTestInput {
@@ -378,8 +380,13 @@ func (r *workerRequest) tryRespondOk(data []byte) {
 	}
 }
 
+// tryRespondError answers the request with err, and with the first error the page reported, which
+// often explains it.
 func (r *workerRequest) tryRespondError(err *types.PDFError) {
 	if r.responder != nil {
+		if pageError := r.pageErrors.firstDescription(); pageError != "" && err.PageError == "" {
+			err.PageError = pageError
+		}
 		response := workerResponse{
 			Data:  nil,
 			Error: err,

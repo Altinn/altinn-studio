@@ -246,6 +246,7 @@ func (w *browserSession) handleRequests() {
 			w.tryUpdateTestModeOutput(&req, "Before", false)
 
 			requestPageErrors := &pageErrors{attributes: telemetry.RequestAttributesFromContext(req.ctx)}
+			req.pageErrors = requestPageErrors
 			w.currentPageErrors.Store(requestPageErrors)
 			w.currentRequest.Store(&req)
 			rootLogger := w.logger
@@ -337,8 +338,8 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 }
 
 // pageErrors is what a request's page reported as errors: the first error, for its one log
-// record, and the request's attributes, for the counts. Set before the request starts, so the
-// CDP event goroutine never reads the request itself.
+// record and its error response, and the request's attributes, for the counts and the first
+// error. Set before the request starts, so the CDP event goroutine never reads the request itself.
 type pageErrors struct {
 	attributes *telemetry.RequestAttributes
 	first      *pageError
@@ -352,8 +353,8 @@ type pageError struct {
 }
 
 // recordPageError records an error the page reported, from the CDP event goroutine. The counts
-// go on the request's attributes as the errors arrive, while its entry span is still open: the
-// entry span ends with the response, before the request's cleanup.
+// and the first error go on the request's attributes as the errors arrive, while its entry span
+// is still open: the entry span ends with the response, before the request's cleanup.
 func (w *browserSession) recordPageError(method, message, source string) {
 	requestErrors := w.currentPageErrors.Load()
 	if requestErrors == nil {
@@ -366,12 +367,31 @@ func (w *browserSession) recordPageError(method, message, source string) {
 	requestErrors.mu.Lock()
 	defer requestErrors.mu.Unlock()
 	if requestErrors.first == nil {
-		requestErrors.first = &pageError{
+		first := &pageError{
 			method:  method,
 			message: truncate(telemetry.RedactURLsInText(message), maxBrowserMessageLength),
 			source:  telemetry.RedactURL(source),
 		}
+		requestErrors.first = first
+		requestErrors.attributes.SetPageError(first.method, first.message, first.source)
 	}
+}
+
+// firstDescription is the first error the page reported, for an error message: its message and
+// the URL of its source, or "" if the page reported none.
+func (e *pageErrors) firstDescription() string {
+	if e == nil {
+		return ""
+	}
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.first == nil {
+		return ""
+	}
+	if e.first.source == "" {
+		return e.first.message
+	}
+	return fmt.Sprintf("%s (%s)", e.first.message, e.first.source)
 }
 
 // logPageErrors logs one warning for a request whose page reported errors, with the counts and

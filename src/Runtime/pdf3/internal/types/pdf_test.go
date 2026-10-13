@@ -272,6 +272,10 @@ func TestPDFError_Error(t *testing.T) {
 		"with message":      {NewPDFError(ErrTimeout, "page load", nil), ErrTimeout.Error() + ": page load"},
 		"with cause":        {NewPDFError(ErrTimeout, "", cause), ErrTimeout.Error() + ": cause"},
 		"message and cause": {NewPDFError(ErrTimeout, "page load", cause), ErrTimeout.Error() + ": page load: cause"},
+		"page error": {
+			&PDFError{Type: ErrTimeout, Err: cause, PageError: "Failed to load resource"},
+			ErrTimeout.Error() + ": cause; the page reported: Failed to load resource",
+		},
 	}
 	for name, tt := range tests {
 		if got := tt.err.Error(); got != tt.want {
