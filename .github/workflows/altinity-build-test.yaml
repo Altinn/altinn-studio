@@ -10,10 +10,12 @@ on:
       - '!**/AGENTS.md'
       - '!**/README.md'
       - '!**/readme.md'
-      - '!**/_readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
       - '!**/CONTRIBUTING.md'
       - '!**/CHANGELOG.md'
       - '!**/docs/**'
+      # Workbench usage guide; eval behavior is defined in code and datasets.
+      # Python examples are checked by assistant-docs-format.yml.
       - '!src/AI/assistant/benchmarks/EVALS.md'
 
 concurrency:

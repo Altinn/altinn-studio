@@ -11,7 +11,7 @@ on:
       - "!**/AGENTS.md"
       - "!**/README.md"
       - "!**/readme.md"
-      - "!**/_readme.md"
+      - "!**/_readme.md" # C# layout model documentation in Altinn.App.Core.
       - "!**/CONTRIBUTING.md"
       - "!**/CHANGELOG.md"
       - "!**/docs/**"

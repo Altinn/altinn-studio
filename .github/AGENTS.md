@@ -18,7 +18,7 @@ on:
       - '!**/AGENTS.md'
       - '!**/README.md'
       - '!**/readme.md'
-      - '!**/_readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
       - '!**/CONTRIBUTING.md'
       - '!**/CHANGELOG.md'
       - '!**/docs/**'
@@ -65,6 +65,8 @@ exclude `'!**/AGENTS.md'`. Build, test, and analysis workflows also exclude
 release workflows scoped to the documents they check or publish.
 Apply the documentation policy to both `pull_request` and `push` filters in CI
 workflows so documentation-only merges also skip builds, tests, and analysis.
+Comment unusual documentation filenames and positive exceptions beside their
+patterns, explaining the document's purpose or the build/test consumer.
 
 Do not exclude all Markdown: prompts, skills, analyzer release manifests,
 and other Markdown files can be product or test inputs. Add positive patterns
