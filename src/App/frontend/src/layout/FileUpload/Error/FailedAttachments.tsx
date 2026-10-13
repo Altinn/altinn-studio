@@ -4,7 +4,6 @@ import { Alert, Button } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { isAxiosError } from 'axios';
 
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { type IFailedAttachment } from 'src/features/attachments';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { AttachmentUpload } from 'src/features/attachments/hooks/attachmentUpload';
@@ -74,16 +73,11 @@ function FileUploadError({ attachment, handleClose }: { attachment: IFailedAttac
 }
 
 function ErrorDetails({ attachment: { data, error } }: { attachment: IFailedAttachment }) {
-  const backendFeatures = getApplicationMetadata().features ?? {};
   const [showingMore, setShowingMore] = useState(false);
 
   if (isAxiosError(error)) {
     const reply = error.response?.data;
-    const issues = isDataPostError(reply)
-      ? reply.uploadValidationIssues
-      : backendFeatures.jsonObjectInDataResponse && Array.isArray(reply) // This is the old API response
-        ? reply
-        : null;
+    const issues = isDataPostError(reply) ? reply.uploadValidationIssues : null;
 
     if (issues && issues.length === 1) {
       const { key, customTextParameters } = getValidationIssueMessage(issues[0]);

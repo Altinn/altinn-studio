@@ -9,8 +9,15 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Breaking: the data API returns its errors as JSON, and the `JsonObjectInDataResponse` feature flag is removed. `studioctl app upgrade v9` removes the flag from the app.
+  - the obsolete `POST .../data?dataType=` returns a list of validation issues
+  - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
+
 ### Fixed
 
+- The OpenAPI description of the data API lists its error responses, and shows that creating data returns 200, not 201.
 - A service task that gives up when `Wait.IsFinalCheck` is `true` can no longer fail with the generic error for an exhausted wait budget instead of its own. In unit tests, set `IsFinalCheck` directly: a past `Deadline` no longer implies it.
 - Pages and components listed in `excludeFromPdf` in a task's `Settings.json` are now left out of the PDF that a PDF service task creates for that task through `autoPdfTaskIds`. ([#21107](https://github.com/Altinn/altinn-studio/issues/21107))
 

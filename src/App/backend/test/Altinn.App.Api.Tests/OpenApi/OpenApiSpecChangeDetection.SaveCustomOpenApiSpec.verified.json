@@ -1095,10 +1095,10 @@
           "required": true
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Data created",
             "content": {
-              "text/json": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
                 }
@@ -1114,6 +1114,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1123,9 +1135,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         },
         {
           "$ref": "#/components/parameters/language"
@@ -1188,8 +1197,37 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Attachment created"
+          "200": {
+            "description": "Attachment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to add data element",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1199,9 +1237,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         }
       ]
     },
@@ -1261,8 +1296,37 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Attachment created"
+          "200": {
+            "description": "Attachment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to add data element",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1272,9 +1336,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         }
       ]
     },
@@ -1336,8 +1397,37 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Attachment created"
+          "200": {
+            "description": "Attachment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to add data element",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1347,9 +1437,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         }
       ]
     },
@@ -1486,10 +1573,10 @@
           "required": true
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Data created",
             "content": {
-              "text/json": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
                 }
@@ -1505,6 +1592,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1514,9 +1613,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         },
         {
           "$ref": "#/components/parameters/language"
@@ -1656,10 +1752,10 @@
           "required": true
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Data created",
             "content": {
-              "text/json": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
                 }
@@ -1675,6 +1771,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1684,9 +1792,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         },
         {
           "$ref": "#/components/parameters/language"
@@ -1826,10 +1931,10 @@
           "required": true
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Data created",
             "content": {
-              "text/json": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
                 }
@@ -1845,6 +1950,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1854,9 +1971,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         },
         {
           "$ref": "#/components/parameters/language"
@@ -1996,10 +2110,10 @@
           "required": true
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Data created",
             "content": {
-              "text/json": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
                 }
@@ -2015,6 +2129,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -2024,9 +2150,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         },
         {
           "$ref": "#/components/parameters/language"
@@ -2166,10 +2289,10 @@
           "required": true
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Data created",
             "content": {
-              "text/json": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
                 }
@@ -2185,6 +2308,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -2194,9 +2329,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         },
         {
           "$ref": "#/components/parameters/language"
@@ -2259,8 +2391,37 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Attachment created"
+          "200": {
+            "description": "Attachment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to add data element",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -2270,9 +2431,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         }
       ]
     }
