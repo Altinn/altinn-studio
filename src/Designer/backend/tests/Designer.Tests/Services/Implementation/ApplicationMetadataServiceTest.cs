@@ -86,6 +86,143 @@ public class ApplicationMetadataServiceTest
         Assert.Equal(nameof(AppStatus.UnderDevelopment), capturedJson?[statusKey]?.GetValue<string>());
     }
 
+    private const string BaseCommitId = "eec136ac2d31cf984d2053df79f181b99c3b4db5";
+    private const string StatusCommitId = "5b0e8d6f1c2a3b4c5d6e7f8091a2b3c4d5e6f708";
+    private const string FileSha = "3f1c2a";
+    private const string AppMetadataFilePath = "App/config/applicationmetadata.json";
+
+    [Fact]
+    public async Task CommitAppStatusAsync_CommitsStatusOnTopOfLatestCommit_AndKeepsTheRestOfTheFile()
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        const string AppMetadataJson = """
+            {
+              "id": "ttd/app",
+              "title": {
+                "nb": "Søknad"
+              }
+            }
+
+            """;
+        string? committedJson = null;
+        SetupAppMetadataFile(fixture, AppMetadataJson);
+        SetupLatestCommit(fixture, BaseCommitId);
+        fixture
+            .MockGiteaClient.Setup(x =>
+                x.UpdateFileAsync(
+                    "ttd",
+                    "app",
+                    AppMetadataFilePath,
+                    It.IsAny<string>(),
+                    FileSha,
+                    "master",
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(
+                (string _, string _, string _, string content, string _, string _, string _, CancellationToken _) =>
+                    committedJson = content
+            )
+            .ReturnsAsync(StatusCommitId);
+
+        // Act
+        string commitId = await fixture.Service.CommitAppStatusAsync("ttd", "app", BaseCommitId, AppStatus.Completed);
+
+        // Assert
+        Assert.Equal(StatusCommitId, commitId);
+        string expectedJson = """
+            {
+              "id": "ttd/app",
+              "title": {
+                "nb": "Søknad"
+              },
+              "status": "Completed"
+            }
+
+            """;
+        Assert.Equal(expectedJson.ReplaceLineEndings("\n"), committedJson?.ReplaceLineEndings("\n"));
+    }
+
+    [Fact]
+    public async Task CommitAppStatusAsync_WhenStatusIsAlreadyCommitted_ReturnsBaseCommitWithoutCommitting()
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        SetupAppMetadataFile(fixture, """{ "id": "ttd/app", "status": "Completed" }""");
+
+        // Act
+        string commitId = await fixture.Service.CommitAppStatusAsync("ttd", "app", BaseCommitId, AppStatus.Completed);
+
+        // Assert
+        Assert.Equal(BaseCommitId, commitId);
+        VerifyNoFileUpdate(fixture);
+    }
+
+    [Fact]
+    public async Task CommitAppStatusAsync_WhenBaseCommitIsNotLatest_ThrowsConflictWithoutCommitting()
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        SetupAppMetadataFile(fixture, """{ "id": "ttd/app", "status": "UnderDevelopment" }""");
+        SetupLatestCommit(fixture, "0000000000000000000000000000000000000000");
+
+        // Act
+        var exception = await Assert.ThrowsAsync<Microsoft.Rest.TransientFaultHandling.HttpRequestWithStatusException>(
+            () =>
+                fixture.Service.CommitAppStatusAsync("ttd", "app", BaseCommitId, AppStatus.Completed)
+        );
+
+        // Assert
+        Assert.Equal(System.Net.HttpStatusCode.Conflict, exception.StatusCode);
+        VerifyNoFileUpdate(fixture);
+    }
+
+    private static void SetupAppMetadataFile(Fixture fixture, string appMetadataJson)
+    {
+        fixture
+            .MockGiteaClient.Setup(x =>
+                x.GetFileAsync("ttd", "app", AppMetadataFilePath, BaseCommitId, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(
+                new FileSystemObject
+                {
+                    Content = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(appMetadataJson)),
+                    Encoding = "base64",
+                    Type = "file",
+                    Sha = FileSha,
+                }
+            );
+    }
+
+    private static void SetupLatestCommit(Fixture fixture, string commitId)
+    {
+        fixture
+            .MockGiteaClient.Setup(x =>
+                x.GetLatestCommitOnBranch("ttd", "app", "master", It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(commitId);
+    }
+
+    private static void VerifyNoFileUpdate(Fixture fixture)
+    {
+        fixture.MockGiteaClient.Verify(
+            x =>
+                x.UpdateFileAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
     private sealed record Fixture(
         ApplicationMetadataService ApplicationMetadataService,
         Mock<IAltinnStorageAppMetadataClient> MockStorageAppMetadataClient,

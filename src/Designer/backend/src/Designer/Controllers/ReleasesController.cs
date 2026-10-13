@@ -86,6 +86,6 @@ public class ReleasesController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        return Created(string.Empty, await _releaseService.CreateAsync(release));
+        return Created(string.Empty, await _releaseService.CreateAsync(release, createRelease.AppStatus));
     }
 }

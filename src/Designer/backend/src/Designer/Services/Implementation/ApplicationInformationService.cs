@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.ResourceRegistry.Core.Models;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Implementation.Validation;
@@ -165,6 +166,17 @@ public class ApplicationInformationService : IApplicationInformationService
             activity?.AddException(ex);
             return new ResourceRegistryPublishResult(false, ex.Message);
         }
+    }
+
+    /// <inheritdoc />
+    public async Task<AppStatus?> GetAppStatusAsync(string org, string app, string commitId)
+    {
+        string appMetadataJson = await _applicationMetadataService.GetApplicationMetadataJsonFromSpecificReference(
+            org,
+            app,
+            commitId
+        );
+        return ApplicationMetadataJsonHelper.GetStatus(appMetadataJson);
     }
 
     /// <inheritdoc />

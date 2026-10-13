@@ -64,6 +64,12 @@
     "copyInstanceSettings": {
       "$ref": "#/definitions/copyInstanceSettings"
     },
+    "status": {
+      "type": "string",
+      "title": "App status",
+      "description": "The lifecycle status of the app. Altinn Studio sets it when the app is built, and registers it in Storage and Resource Registry when the app is deployed.",
+      "enum": ["UnderDevelopment", "Completed", "Deprecated"]
+    },
     "disallowUserInstantiation": {
       "type": "boolean",
       "title": "Disallow user instantiation",
