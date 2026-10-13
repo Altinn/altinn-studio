@@ -22,10 +22,7 @@ public class ChatInactivityCleanupJob : IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
-        using var activity = ServiceTelemetry.Source.StartActivity(
-            $"{nameof(ChatInactivityCleanupJob)}.{nameof(Execute)}",
-            ActivityKind.Internal
-        );
+        var activity = RootSpan.OfJob();
         activity?.SetAlwaysSample();
         activity?.SetTag("retention.days", _schedulingSettings.ChatInactivityCleanup.RetentionDays);
 

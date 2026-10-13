@@ -11,6 +11,17 @@ internal static partial class ServiceTelemetry
     {
         public const string ServiceVersion = "service.version";
         public const string UrlFull = "url.full";
+        public const string EndUserId = "enduser.id";
+
+        public const string ServiceOwner = "altinn.service_owner";
+        public const string App = "altinn.app";
+        public const string RepoType = "altinn.repo_type";
+
+        /// <summary>
+        /// The runtime environment an operation targets, such as tt02 for a deploy. Never a Studio environment:
+        /// where Designer itself runs is the resource's deployment.environment.name.
+        /// </summary>
+        public const string Environment = "altinn.environment";
 
         /// <summary>
         /// Marks a span whose trace the collectors' tail sampling always keeps.

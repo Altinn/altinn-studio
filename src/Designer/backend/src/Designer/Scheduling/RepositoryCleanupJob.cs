@@ -27,10 +27,7 @@ public class RepositoryCleanupJob : IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
-        using var activity = ServiceTelemetry.Source.StartActivity(
-            $"{nameof(RepositoryCleanupJob)}.{nameof(Execute)}",
-            ActivityKind.Internal
-        );
+        var activity = RootSpan.OfJob();
         activity?.SetAlwaysSample();
 
         RepositoryCleanupSettings settings = _schedulingSettings.RepositoryCleanup;

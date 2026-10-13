@@ -31,10 +31,7 @@ public class AppInactivityUndeployAppJob : IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
-        using var activity = ServiceTelemetry.Source.StartActivity(
-            $"{nameof(AppInactivityUndeployAppJob)}.{nameof(Execute)}",
-            ActivityKind.Internal
-        );
+        var activity = RootSpan.OfJob();
         activity?.SetAlwaysSample();
 
         var timeout = _schedulingSettings.InactivityUndeployJobTimeouts.PerAppJobTimeout;

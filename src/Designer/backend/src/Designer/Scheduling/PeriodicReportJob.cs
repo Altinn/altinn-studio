@@ -28,10 +28,7 @@ public class PeriodicReportJob(
         );
         var cancellationToken = context.CancellationToken;
 
-        using var activity = ServiceTelemetry.Source.StartActivity(
-            $"{nameof(PeriodicReportJob)}.{nameof(Execute)}",
-            ActivityKind.Internal
-        );
+        var activity = RootSpan.OfJob();
         activity?.SetAlwaysSample();
         activity?.SetTag("frequency", frequency.ToString());
 
