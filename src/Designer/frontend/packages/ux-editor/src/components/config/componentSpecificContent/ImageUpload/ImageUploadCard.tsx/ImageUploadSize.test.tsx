@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { ShapeOptions } from '../ImageUploadUtils';
 import { ImageUploadSize, type ImageUploadSizeProps } from './ImageUploadSize';
@@ -34,7 +35,7 @@ describe('ImageUploadSize', () => {
 
   it('should call handleNewCrop when width is changed', async () => {
     const user = userEvent.setup();
-    const handleNewCropMock = jest.fn();
+    const handleNewCropMock = vi.fn();
     renderImageUploadSize({
       internalCrop: { shape: ShapeOptions.Rectangle, width: 200, height: 150 },
       handleNewCrop: handleNewCropMock,
@@ -65,7 +66,7 @@ const renderImageUploadSize = (props: Partial<ImageUploadSizeProps> = {}) => {
   const defaultProps: ImageUploadSizeProps = {
     internalCrop: { shape: ShapeOptions.Circle, diameter: 100 },
     errors: {},
-    handleNewCrop: jest.fn(),
+    handleNewCrop: vi.fn(),
   };
 
   const combinedProps = { ...defaultProps, ...props };

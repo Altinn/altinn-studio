@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { StudioPageSpinner } from './StudioPageSpinner';
 
@@ -11,8 +11,6 @@ vi.mock('react', async () => ({
 }));
 
 describe('StudioPageSpinner', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render default loading message as accessibility title when spinnerText is not provided', () => {
     render(<StudioPageSpinner spinnerTitle={mockSpinnerText} />);
 

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourceDashboardPage } from './ResourceDashboardPage';
 import userEvent from '@testing-library/user-event';
@@ -57,9 +58,9 @@ const mockResourceList: ResourceListItem[] = [
   mockResourceListItem5,
 ];
 
-const mockedNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+const mockedNavigate = vi.fn();
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockedNavigate,
   useParams: () => ({
     org: 'ttd',
@@ -67,16 +68,13 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('ResourceDashBoardPage', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
   it('fetches resource list on mount', () => {
     renderResourceDashboardPage();
     expect(queriesMock.getResourceList).toHaveBeenCalledTimes(1);
   });
 
   it('shows correct organization header', async () => {
-    const getOrganizations = jest.fn().mockImplementation(() =>
+    const getOrganizations = vi.fn().mockImplementation(() =>
       Promise.resolve<Organization[]>([
         {
           ...organization,
@@ -109,7 +107,7 @@ describe('ResourceDashBoardPage', () => {
   });
 
   it('does not show the spinner when the resource list is present', async () => {
-    const getResourceList = jest
+    const getResourceList = vi
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
     renderResourceDashboardPage({ getResourceList });
@@ -130,7 +128,7 @@ describe('ResourceDashBoardPage', () => {
 
   it('opens the create new resource modal on click', async () => {
     const user = userEvent.setup();
-    const getResourceList = jest
+    const getResourceList = vi
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
     renderResourceDashboardPage({ getResourceList });
@@ -159,7 +157,7 @@ describe('ResourceDashBoardPage', () => {
 
   it('filters the resource list when the search value changes', async () => {
     const user = userEvent.setup();
-    const getResourceList = jest
+    const getResourceList = vi
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
     renderResourceDashboardPage({ getResourceList });
@@ -178,7 +176,7 @@ describe('ResourceDashBoardPage', () => {
   });
 
   it('does not display the error message when the list is not empty', async () => {
-    const getResourceList = jest
+    const getResourceList = vi
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
     renderResourceDashboardPage({ getResourceList });
@@ -193,7 +191,7 @@ describe('ResourceDashBoardPage', () => {
 
   it('displays empty list message when the list is empty', async () => {
     const user = userEvent.setup();
-    const getResourceList = jest
+    const getResourceList = vi
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
     renderResourceDashboardPage({ getResourceList });
@@ -221,7 +219,7 @@ describe('ResourceDashBoardPage', () => {
       ...mockResourceListItem5,
       environments: ['at22', 'tt02'],
     };
-    const getResourceList = jest
+    const getResourceList = vi
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>([listItem]));
     renderResourceDashboardPage({ getResourceList });
@@ -253,7 +251,7 @@ describe('ResourceDashBoardPage', () => {
       ...mockResourceListItem5,
       environments: ['at22', 'tt02'],
     };
-    const getResourceList = jest
+    const getResourceList = vi
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>([listItem]));
     renderResourceDashboardPage({ getResourceList });
@@ -282,7 +280,7 @@ describe('ResourceDashBoardPage', () => {
 
   it('should navigate to imported resource from only available test environment', async () => {
     const user = userEvent.setup();
-    const getResourceList = jest
+    const getResourceList = vi
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
     renderResourceDashboardPage({ getResourceList });
@@ -303,7 +301,7 @@ describe('ResourceDashBoardPage', () => {
 
   it('should navigate to access list page', async () => {
     const user = userEvent.setup();
-    const getResourceList = jest
+    const getResourceList = vi
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
     renderResourceDashboardPage({ getResourceList });

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { GiteaFetchCompleted, type GiteaFetchCompletedProps } from './GiteaFetchCompleted';
 
@@ -8,8 +9,6 @@ const defaultProps: GiteaFetchCompletedProps = {
 };
 
 describe('GiteaFetchCompleted', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should render the heading text passed as prop', () => {
     render(<GiteaFetchCompleted {...defaultProps} />);
 

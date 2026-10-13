@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -39,17 +40,15 @@ const componentWithoutExpression: FormComponent<ComponentType.Input> = {
 
 const defaultFormItemContext: FormItemContext = {
   formItem: componentWithExpression,
-  handleSave: jest.fn(),
-  handleUpdate: jest.fn(),
+  handleSave: vi.fn(),
+  handleUpdate: vi.fn(),
   formItemId: 'mockId',
-  handleDiscard: jest.fn(),
-  handleEdit: jest.fn(),
-  debounceSave: jest.fn(),
+  handleDiscard: vi.fn(),
+  handleEdit: vi.fn(),
+  debounceSave: vi.fn(),
 };
 
 describe('Expressions', () => {
-  beforeEach(jest.clearAllMocks);
-
   it('renders add new expression button when there are no existing expressions on component', async () => {
     renderExpressions({ formItem: componentWithoutExpression });
     screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
@@ -105,7 +104,7 @@ describe('Expressions', () => {
 
   it('Calls the handleUpdate function with the updated component when the user adds a new expression using the dropdown menu', async () => {
     const user = userEvent.setup();
-    const handleUpdate = jest.fn();
+    const handleUpdate = vi.fn();
     renderExpressions({ handleUpdate });
     const addButton = screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
     await user.click(addButton);
@@ -121,8 +120,8 @@ describe('Expressions', () => {
 
   it('Calls the handleUpdate function with the updated component when the user deletes an expression and confirms', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
-    const handleUpdate = jest.fn();
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
+    const handleUpdate = vi.fn();
     renderExpressions({ handleUpdate });
     const expressionName = textMock('right_menu.expressions_property_preview_hidden');
     const expression = screen.getByRole('group', { name: expressionName });
@@ -137,7 +136,7 @@ describe('Expressions', () => {
 
   it('Calls the handleUpdate function with the updated component when the user edits an expression', async () => {
     const user = userEvent.setup();
-    const handleUpdate = jest.fn();
+    const handleUpdate = vi.fn();
     renderExpressions({ handleUpdate });
     const expressionName = textMock('right_menu.expressions_property_preview_hidden');
     const expression = screen.getByRole('group', { name: expressionName });

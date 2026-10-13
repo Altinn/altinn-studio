@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
@@ -14,8 +14,6 @@ const codeListName1 = 'codeListName1';
 const codeListName2 = 'codeListName2';
 
 describe('AddCodeListDropdown', () => {
-  afterEach(vi.clearAllMocks);
-
   it('opens the create new code list modal when clicking on the add new code list button', async () => {
     const user = userEvent.setup();
     renderAddCodeListDropdown();

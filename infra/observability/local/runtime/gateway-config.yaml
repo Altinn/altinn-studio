@@ -1,0 +1,38 @@
+# Victoria is the only destination. Without the Application Insights pipelines
+# there is nothing to route, so the routing connectors and their per-plane
+# pipelines go too, and metrics get a single pipeline of their own.
+- op: remove
+  path: /spec/env
+- op: remove
+  path: /spec/config/connectors
+- op: remove
+  path: /spec/config/exporters/azure_monitor~1control_plane
+- op: remove
+  path: /spec/config/exporters/azure_monitor~1data_plane
+- op: replace
+  path: /spec/config/exporters/otlp_http~1victoria/endpoint
+  value: http://observability-proxy.observability.svc.cluster.local/internal/observability/otlp
+- op: remove
+  path: /spec/config/service/pipelines/traces~1in
+- op: remove
+  path: /spec/config/service/pipelines/traces~1control_plane
+- op: remove
+  path: /spec/config/service/pipelines/traces~1data_plane
+- op: remove
+  path: /spec/config/service/pipelines/metrics~1in
+- op: remove
+  path: /spec/config/service/pipelines/metrics~1control_plane
+- op: remove
+  path: /spec/config/service/pipelines/metrics~1data_plane
+- op: add
+  path: /spec/config/service/pipelines/metrics~1victoria
+  value:
+    receivers: [otlp]
+    processors: [filter/metrics_allowlist, batch]
+    exporters: [otlp_http/victoria]
+- op: remove
+  path: /spec/config/service/pipelines/logs~1in
+- op: remove
+  path: /spec/config/service/pipelines/logs~1control_plane
+- op: remove
+  path: /spec/config/service/pipelines/logs~1data_plane

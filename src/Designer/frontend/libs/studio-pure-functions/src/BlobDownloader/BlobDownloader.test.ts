@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BlobDownloader } from './BlobDownloader';
 
 describe('BlobDownloader', () => {
@@ -7,10 +7,6 @@ describe('BlobDownloader', () => {
   beforeEach(() => {
     global.URL.createObjectURL = vi.fn();
     global.URL.revokeObjectURL = vi.fn();
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
   });
 
   it('should generate a download url', () => {

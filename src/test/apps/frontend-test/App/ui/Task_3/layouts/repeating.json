@@ -49,6 +49,7 @@
         "children": [
           "0:currentValue",
           "0:newValue",
+          "0:calculatedChange",
           "1:cards",
           "1:mainUploaderSingle",
           "1:mainUploaderMulti",
@@ -225,6 +226,13 @@
           "align": "right"
         },
         "showValidations": ["AllExceptRequired"]
+      },
+      {
+        "id": "calculatedChange",
+        "type": "Number",
+        "textResourceBindings": { "title": "Calculated change" },
+        "value": ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.CalculatedChange"],
+        "formatting": { "number": { "prefix": "NOK ", "thousandSeparator": " " } }
       },
       {
         "id": "mainUploaderSingle",
@@ -695,6 +703,13 @@
         },
         "readOnly": false,
         "hidden": ["equals", ["dataModel", "useBothRepGroups"], true]
+      },
+      {
+        "id": "calculatedTotal",
+        "type": "Number",
+        "textResourceBindings": { "title": "Total change" },
+        "value": ["dataModel", "sumAll"],
+        "formatting": { "number": { "prefix": "NOK ", "thousandSeparator": " " } }
       },
       {
         "id": "nav-page-repeating",

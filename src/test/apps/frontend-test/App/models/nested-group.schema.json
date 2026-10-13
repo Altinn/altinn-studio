@@ -383,6 +383,9 @@
     },
     "OversiktOverEndringene-grp-9788": {
       "properties": {
+        "CalculatedChange": {
+          "type": "number"
+        },
         "gruppeid": {
           "const": "9788",
           "type": "integer",

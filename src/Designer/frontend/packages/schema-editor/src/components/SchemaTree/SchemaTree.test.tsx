@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
 import {
   childOfDefinitionNodeMock,
@@ -15,8 +15,6 @@ const onMove = vi.fn();
 const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
 
 describe('SchemaTree', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders the top level nodes by default', () => {
     render();
     const topLevelNodes = schemaModel.getRootProperties();

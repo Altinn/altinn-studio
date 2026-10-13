@@ -1,11 +1,10 @@
+import { describe, expect, it } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useHasMergeConflict } from './useHasMergeConflict';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { mockRepoStatus } from '../../test/mocks/versionControlContextMock';
 
 describe('useHasMergeConflict', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should set hasMergeConflict to true when repoStatus.hasMergeConflict is true', () => {
     const { result } = renderHook(() =>
       useHasMergeConflict({ ...mockRepoStatus, hasMergeConflict: true }),

@@ -15,12 +15,11 @@
     "@types/bpmn-moddle": "9.0.1",
     "@types/react": "19.2.18",
     "@typescript/native": "npm:typescript@7.0.2",
-    "jest": "29.7.0",
     "typescript": "npm:@typescript/typescript6@6.0.2"
   },
   "license": "MIT",
   "private": true,
   "scripts": {
-    "test": "jest --maxWorkers=50%"
+    "test": "yarn workspace studio-designer-frontend vitest run packages/shared/"
   }
 }
