@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Telemetry;
 using Quartz;
+using Quartz.Impl.Matchers;
 
 namespace Altinn.Studio.Designer.Scheduling;
 
@@ -158,6 +159,17 @@ public class AppInactivityUndeployJobQueue : IAppInactivityUndeployJobQueue
             activity?.SetTag(ServiceTelemetry.Attributes.InactivityUndeploy.QueueReason, "trigger_already_exists");
             return false;
         }
+    }
+
+    public async Task<int> CountPendingPerAppUndeployJobsAsync(CancellationToken cancellationToken = default)
+    {
+        var scheduler = await _schedulerFactory.GetScheduler(cancellationToken);
+        // A per-app trigger fires once and is removed when its job finishes.
+        var triggerKeys = await scheduler.GetTriggerKeys(
+            GroupMatcher<TriggerKey>.GroupEquals(AppInactivityUndeployJobConstants.PerAppTriggerGroup),
+            cancellationToken
+        );
+        return triggerKeys.Count;
     }
 
     private static async Task EnsureDurableJobExistsAsync<TJob>(

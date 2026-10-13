@@ -105,6 +105,12 @@ environmentVariables:
       value: "120"
     - name: SchedulingSettings__RepositoryCleanup__CronExpression
       value: "0 0 0 * * ?"
+    - name: SchedulingSettings__InactivityUndeploy__Mode
+      value: "DryRun"
+    - name: SchedulingSettings__InactivityUndeploy__EnforcedOrgs__0
+      value: "ttd"
+    - name: SchedulingSettings__InactivityUndeploy__MaxUndeploysPerDay
+      value: "50"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
@@ -201,6 +207,12 @@ environmentVariables:
       value: "120"
     - name: SchedulingSettings__RepositoryCleanup__CronExpression
       value: "0 0 0 * * ?"
+    - name: SchedulingSettings__InactivityUndeploy__Mode
+      value: "DryRun"
+    - name: SchedulingSettings__InactivityUndeploy__EnforcedOrgs__0
+      value: "ttd"
+    - name: SchedulingSettings__InactivityUndeploy__MaxUndeploysPerDay
+      value: "50"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING
@@ -295,6 +307,12 @@ environmentVariables:
       value: "120"
     - name: SchedulingSettings__RepositoryCleanup__CronExpression
       value: "0 0 0 * * ?"
+    - name: SchedulingSettings__InactivityUndeploy__Mode
+      value: "DryRun"
+    - name: SchedulingSettings__InactivityUndeploy__EnforcedOrgs__0
+      value: "ttd"
+    - name: SchedulingSettings__InactivityUndeploy__MaxUndeploysPerDay
+      value: "50"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
     - name: AI_CONNECTION_STRING

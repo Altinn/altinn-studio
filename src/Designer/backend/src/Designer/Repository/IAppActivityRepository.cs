@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models.AppActivity;
@@ -14,6 +15,12 @@ public interface IAppActivityRepository
     );
 
     Task<bool> HasDeployedAppsAsync(string org, string environment, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<AppActivityRecord>> GetForEnvironmentAsync(
+        string org,
+        string environment,
+        CancellationToken cancellationToken = default
+    );
 
     Task UpsertBatchAsync(AppActivityCollectionBatch batch, CancellationToken cancellationToken = default);
 }

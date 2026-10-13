@@ -38,10 +38,16 @@ public class AppSettingsRepository : IAppSettingsRepository
         return dbModel is null ? null : AppSettingsMapper.MapToModel(dbModel);
     }
 
-    public async Task<IReadOnlyList<AppSettingsEntity>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<AppSettingsEntity>> GetAllForOrgAsync(
+        string org,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var dbModels = await _dbContext.AppSettings.AsNoTracking().ToListAsync(cancellationToken);
+        var dbModels = await _dbContext
+            .AppSettings.AsNoTracking()
+            .Where(a => a.Org == org)
+            .ToListAsync(cancellationToken);
         return dbModels.Select(AppSettingsMapper.MapToModel).ToList();
     }
 
@@ -66,6 +72,7 @@ public class AppSettingsRepository : IAppSettingsRepository
         }
 
         existing.UndeployOnInactivity = entity.UndeployOnInactivity;
+        existing.InactivityPeriodDays = entity.InactivityPeriodDays;
         existing.LastModifiedBy = entity.LastModifiedBy;
         await _dbContext.SaveChangesAsync(cancellationToken);
         return AppSettingsMapper.MapToModel(existing);

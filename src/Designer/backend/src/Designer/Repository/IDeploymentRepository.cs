@@ -1,6 +1,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -45,9 +46,23 @@ public interface IDeploymentRepository
     );
 
     /// <summary>
-    /// Gets app names with a recent deploy in the given environment.
+    /// Gets the time of the latest deploy of each app deployed in the given environment since the given time.
     /// </summary>
-    Task<IReadOnlyList<string>> GetAppsWithRecentDeployments(string org, string environment, DateTimeOffset sinceUtc);
+    Task<IReadOnlyDictionary<string, DateTimeOffset>> GetLatestDeployTimes(
+        string org,
+        string environment,
+        DateTimeOffset sinceUtc,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Counts the decommissions, across all orgs, that the given developer created since the given time.
+    /// </summary>
+    Task<int> CountDecommissionsCreatedBySince(
+        string createdBy,
+        DateTimeOffset sinceUtc,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Calls a function to update deployment entity
