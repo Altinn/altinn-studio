@@ -74,6 +74,101 @@ public class UpdateMetadataForAttachmentTests
         }
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task UpdateMetadataForAttachment_ShouldKeepExistingEnableFileScan(bool existingEnableFileScan)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", "hvem-er-hvem", "testUser", targetRepository);
+        string url = $"{VersionPrefix("ttd", targetRepository)}/attachment-component";
+
+        string addPayload = JsonSerializer.Serialize(
+            new
+            {
+                id = "testId",
+                maxCount = 1,
+                minCount = 1,
+                maxSize = 25,
+                enableFileScan = existingEnableFileScan,
+            }
+        );
+        using var addPayloadContent = new StringContent(addPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
+        using var addResponse = await HttpClient.PostAsync(url, addPayloadContent);
+        Assert.Equal(HttpStatusCode.OK, addResponse.StatusCode);
+
+        string updatePayload = @"{ ""id"": ""testId"", ""maxCount"": 2, ""minCount"": 0, ""maxSize"": 10 }";
+        using var updatePayloadContent = new StringContent(
+            updatePayload,
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
+        using var updateResponse = await HttpClient.PutAsync(url, updatePayloadContent);
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+
+        string applicationMetadataFile = await File.ReadAllTextAsync(
+            Path.Combine(TestRepoPath, "App", "config", "applicationmetadata.json")
+        );
+        var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
+            applicationMetadataFile,
+            _jsonSerializerOptions
+        );
+
+        var attachmentDataType = applicationMetadata.DataTypes.Single(x => x.Id == "testId");
+        Assert.Equal(existingEnableFileScan, attachmentDataType.EnableFileScan);
+        Assert.Equal(2, attachmentDataType.MaxCount);
+    }
+
+    [Fact]
+    public async Task UpdateMetadataForAttachment_WithDecimalNumbers_ShouldRoundToNearestInteger()
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", "hvem-er-hvem", "testUser", targetRepository);
+        string url = $"{VersionPrefix("ttd", targetRepository)}/attachment-component";
+
+        string updatePayload = @"{ ""id"": ""testId"", ""maxCount"": 2.6, ""minCount"": 0.4, ""maxSize"": 9.6 }";
+        using var updatePayloadContent = new StringContent(
+            updatePayload,
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
+        using var updateResponse = await HttpClient.PutAsync(url, updatePayloadContent);
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+
+        string applicationMetadataFile = await File.ReadAllTextAsync(
+            Path.Combine(TestRepoPath, "App", "config", "applicationmetadata.json")
+        );
+        var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
+            applicationMetadataFile,
+            _jsonSerializerOptions
+        );
+
+        var attachmentDataType = applicationMetadata.DataTypes.Single(x => x.Id == "testId");
+        Assert.Equal(3, attachmentDataType.MaxCount);
+        Assert.Equal(0, attachmentDataType.MinCount);
+        Assert.Equal(10, attachmentDataType.MaxSize);
+    }
+
+    [Theory]
+    [InlineData(@"{ ""maxCount"": 1, ""minCount"": 0, ""maxSize"": 10 }")]
+    [InlineData(@"{ ""id"": null, ""maxCount"": 1, ""minCount"": 0, ""maxSize"": 10 }")]
+    [InlineData(@"{ ""id"": """", ""maxCount"": 1, ""minCount"": 0, ""maxSize"": 10 }")]
+    public async Task UpdateMetadataForAttachment_WithoutId_ShouldFailAndNotChangeMetadata(string payload)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", "hvem-er-hvem", "testUser", targetRepository);
+        string url = $"{VersionPrefix("ttd", targetRepository)}/attachment-component";
+        string applicationMetadataPath = Path.Combine(TestRepoPath, "App", "config", "applicationmetadata.json");
+        string applicationMetadataBefore = await File.ReadAllTextAsync(applicationMetadataPath);
+
+        using var payloadContent = new StringContent(payload, Encoding.UTF8, MediaTypeNames.Application.Json);
+        using var response = await HttpClient.PutAsync(url, payloadContent);
+
+        Assert.False(response.IsSuccessStatusCode);
+        string applicationMetadataAfter = await File.ReadAllTextAsync(applicationMetadataPath);
+        Assert.Equal(applicationMetadataBefore, applicationMetadataAfter);
+    }
+
     // Payload should have strong type instead in controller.
     public static IEnumerable<object[]> TestData =>
         new List<object[]>
