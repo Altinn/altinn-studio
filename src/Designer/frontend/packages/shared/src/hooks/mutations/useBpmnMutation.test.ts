@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { useBpmnMutation } from './useBpmnMutation';
 import { createQueryClientMock } from '../../mocks/queryClientMock';
@@ -6,7 +7,7 @@ import { app, org } from '@studio/testing/testids';
 
 describe('useBpmnMutation', () => {
   it('Calls updateBpmnXml with correct arguments and payload', async () => {
-    const updateBpmnXml = jest.fn();
+    const updateBpmnXml = vi.fn();
     const { result } = renderHookWithProviders(() => useBpmnMutation(org, app), {
       queries: { updateBpmnXml },
     });
@@ -20,7 +21,7 @@ describe('useBpmnMutation', () => {
 
   it('Invalidates the layout sets, since a task id change renames its layout set in v9', async () => {
     const queryClient = createQueryClientMock();
-    const invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
     const { result } = renderHookWithProviders(() => useBpmnMutation(org, app), { queryClient });
 
     await result.current.mutateAsync({ form: new FormData() });
@@ -35,10 +36,10 @@ describe('useBpmnMutation', () => {
     'refreshes subform copy state after saving, including failure: %s',
     async (fails) => {
       const queryClient = createQueryClientMock();
-      const invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries');
+      const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
       const updateBpmnXml = fails
-        ? jest.fn().mockRejectedValue(new Error('Copy save failed'))
-        : jest.fn().mockResolvedValue(undefined);
+        ? vi.fn().mockRejectedValue(new Error('Copy save failed'))
+        : vi.fn().mockResolvedValue(undefined);
       const { result } = renderHookWithProviders(() => useBpmnMutation(org, app), {
         queryClient,
         queries: { updateBpmnXml },

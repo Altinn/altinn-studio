@@ -7,19 +7,19 @@ import {
   ISelectionComponent,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
 export interface CompLikertExternal
   extends
     ComponentBase,
-    SummarizableComponentProps,
     ISelectionComponent,
     FormComponentProps,
     LabeledComponentProps,
     ILikertColumnProperties {
   type: 'Likert';
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
@@ -29,6 +29,8 @@ export interface CompLikertExternal
     questionDescriptions?: ExprValToActualOrExpr<ExprVal.String>;
     questionHelpTexts?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsLikert;
   filter?: ILikertFilter;
@@ -68,4 +70,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: LikertSummaryOverridesWithRef;
 };
 
-// Source hash: 668578f964b13d41565f2d14c88597527531375c74c01291295ac62cb32fb40d
+// Source hash: b6a9af4ddec8143c69ca4387ab35d715ba4159464eec98d2da86e3353f2550c9

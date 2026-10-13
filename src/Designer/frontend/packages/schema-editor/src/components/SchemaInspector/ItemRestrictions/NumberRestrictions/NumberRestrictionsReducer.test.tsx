@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { NumberRestrictionsError } from '@altinn/schema-editor/types';
 import {
   validateMinMax,
@@ -44,7 +44,6 @@ const dispatchAction = (
 };
 
 describe('NumberRestrictionsReducer', () => {
-  afterEach(() => vi.clearAllMocks());
   describe('setRestriction', () => {
     it('Updates state correctly', () => {
       const value = 2;

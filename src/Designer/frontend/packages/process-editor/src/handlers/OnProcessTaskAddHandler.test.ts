@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import { OnProcessTaskAddHandler, AllowedContributor } from './OnProcessTaskAddHandler';
@@ -18,9 +19,9 @@ const currentPolicyMock: Policy = {
   requiredAuthenticationLevelEndUser: '3',
   rules: [],
 };
-const addLayoutSetMock = jest.fn();
-const mutateApplicationPolicyMock = jest.fn();
-const addDataTypeToAppMetadataMock = jest.fn();
+const addLayoutSetMock = vi.fn();
+const mutateApplicationPolicyMock = vi.fn();
+const addDataTypeToAppMetadataMock = vi.fn();
 
 const createOnProcessTaskHandler = () =>
   new OnProcessTaskAddHandler(
@@ -49,10 +50,6 @@ const createTaskEvent = (businessObject?: BpmnBusinessObjectEditor): TaskEvent =
   }) as TaskEvent;
 
 describe('OnProcessTaskAddHandler', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should add layoutSet when data-task is added', () => {
     const onProcessTaskAddHandler = createOnProcessTaskHandler();
 

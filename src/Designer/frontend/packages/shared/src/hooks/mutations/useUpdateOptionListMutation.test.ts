@@ -1,3 +1,4 @@
+import { describe, expect, test, vi } from 'vitest';
 import { app, org } from '@studio/testing/testids';
 import { queriesMock } from '../../mocks/queriesMock';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
@@ -15,7 +16,7 @@ const option1: Option = { value: 'test', label: 'test' };
 const optionList: Option[] = [option1];
 const updatedOptionsList: Option[] = [{ ...option1, description: 'description' }];
 const args: UpdateOptionListMutationArgs = { optionListId, optionList };
-const updateOptionList = jest.fn().mockImplementation(() => Promise.resolve(updatedOptionsList));
+const updateOptionList = vi.fn().mockImplementation(() => Promise.resolve(updatedOptionsList));
 
 describe('useUpdateOptionListMutation', () => {
   test('Calls useUpdateOptionList with correct parameters', async () => {

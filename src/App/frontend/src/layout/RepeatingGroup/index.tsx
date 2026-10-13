@@ -25,7 +25,7 @@ import { appendRowContext, getIndexedDataModelReference } from 'src/utils/layout
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
-import type { IDataModelBindings } from 'src/layout/layout';
+import type { CompExternal, IDataModelBindings } from 'src/layout/layout';
 import type { ChildClaimerProps, RuntimeChildrenProps, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -58,6 +58,10 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
 
   renderSummaryBoilerplate(): boolean {
     return false;
+  }
+
+  useIsRequired(config: CompExternal<'RepeatingGroup'>): boolean {
+    return config.minCount !== undefined && config.minCount > 0;
   }
 
   validateComponent(ctx: ComponentValidationContext<'RepeatingGroup'>): ComponentValidation[] {

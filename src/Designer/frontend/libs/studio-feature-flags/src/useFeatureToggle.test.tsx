@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderHookResult } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
 import type { FeatureToggle } from './useFeatureToggle';
@@ -15,8 +15,6 @@ const addFlag = vi.fn();
 const removeFlag = vi.fn();
 
 describe('useFeatureToggle', () => {
-  beforeEach(vi.clearAllMocks);
-
   describe('isEnabled', () => {
     it('Returns true when the given feature is enabled', () => {
       const { result } = renderUseFeatureToggle(enabledFlag);

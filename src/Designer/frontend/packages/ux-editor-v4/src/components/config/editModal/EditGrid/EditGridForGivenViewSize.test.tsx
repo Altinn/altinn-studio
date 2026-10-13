@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { renderWithProviders, renderHookWithProviders } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
@@ -20,7 +21,7 @@ type RenderProps = {
 const render = async ({
   gridValues = { xs: 3, md: 10 },
   viewSize = ViewSize.Md,
-  handleUpdateGrid = jest.fn(),
+  handleUpdateGrid = vi.fn(),
 }: RenderProps = {}) => {
   await waitForData();
 
@@ -71,7 +72,7 @@ describe('EditGridForGivenViewSize', () => {
   });
 
   it('should call handleUpdateGrid with updated value for laptop viewSize when slider is clicked', async () => {
-    const handleUpdateGridMock = jest.fn();
+    const handleUpdateGridMock = vi.fn();
     await render({ handleUpdateGrid: handleUpdateGridMock });
 
     const sliderMobile = screen.getByRole('slider');

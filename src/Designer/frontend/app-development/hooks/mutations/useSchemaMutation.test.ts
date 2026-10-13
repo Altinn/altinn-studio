@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../test/mocks';
 import { useSchemaMutation } from './useSchemaMutation';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -13,7 +14,7 @@ const modelPath = 'modelPath';
 
 describe('useSchemaMutation', () => {
   it('Returns correct state and calls saveDataModel with the correct parameters', async () => {
-    const saveDataModel = jest.fn();
+    const saveDataModel = vi.fn();
     const {
       renderHookResult: { result },
     } = render({ saveDataModel });
@@ -24,7 +25,7 @@ describe('useSchemaMutation', () => {
   });
 
   it('Leaves combinations without subschemas out of the saved model but keeps them in the cache', async () => {
-    const saveDataModel = jest.fn();
+    const saveDataModel = vi.fn();
     const queryClient = createQueryClientMock();
     const text = { type: 'string' };
     const model = { type: 'object', properties: { text, combination: { anyOf: [] } } };
@@ -42,7 +43,7 @@ describe('useSchemaMutation', () => {
 
   it('Rechecks whether the model files are out of date', async () => {
     const queryClient = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     const {
       renderHookResult: { result },
     } = render({}, queryClient);

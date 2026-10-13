@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { CustomReceiptLegacy } from './CustomReceiptLegacy';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -48,8 +49,6 @@ const defaultBpmnApiContextProps: BpmnApiContextProps = {
 };
 
 describe('CustomReceiptLegacy', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('calls "mutateLayoutSetId" when the layoutSet id is changed', async () => {
     const user = userEvent.setup();
     renderCustomReceiptLegacy();

@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { userEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -11,8 +13,8 @@ import {
 } from '../../../../../../utils/bpmnModeler/BpmnActionModeler';
 import { BpmnConfigPanelFormContextProvider } from '../../../../../../contexts/BpmnConfigPanelContext';
 
-jest.mock('../hooks/useOnActionChange');
-jest.mock('../../../../../../utils/bpmnModeler/BpmnActionModeler');
+vi.mock('../hooks/useOnActionChange');
+vi.mock('../../../../../../utils/bpmnModeler/BpmnActionModeler');
 
 const actionElementMock: Action = {
   $type: 'altinn:Action',
@@ -20,15 +22,11 @@ const actionElementMock: Action = {
 };
 
 describe('PredefinedActions', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should be possible to choose predefined action', async () => {
     const user = userEvent.setup();
 
-    const handeOnActionChangeMock = jest.fn();
-    (useActionHandler as jest.Mock).mockImplementation(() => ({
+    const handeOnActionChangeMock = vi.fn();
+    (useActionHandler as Mock).mockImplementation(() => ({
       handleOnActionChange: handeOnActionChangeMock,
     }));
 
@@ -53,12 +51,12 @@ describe('PredefinedActions', () => {
   it('should disable actions that are not available', async () => {
     const user = userEvent.setup();
 
-    const handeOnActionChangeMock = jest.fn();
-    (useActionHandler as jest.Mock).mockImplementation(() => ({
+    const handeOnActionChangeMock = vi.fn();
+    (useActionHandler as Mock).mockImplementation(() => ({
       handleOnActionChange: handeOnActionChangeMock,
     }));
 
-    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+    (BpmnActionModeler as Mock).mockImplementation(function () {
       return {
         actionElements: {
           action: [{ action: 'reject' }],
@@ -78,8 +76,8 @@ describe('PredefinedActions', () => {
   });
 
   it('should have blank value if action is not a predefined action', async () => {
-    const handeOnActionChangeMock = jest.fn();
-    (useActionHandler as jest.Mock).mockImplementation(() => ({
+    const handeOnActionChangeMock = vi.fn();
+    (useActionHandler as Mock).mockImplementation(() => ({
       handleOnActionChange: handeOnActionChangeMock,
     }));
 

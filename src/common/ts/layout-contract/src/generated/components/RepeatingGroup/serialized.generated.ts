@@ -7,7 +7,6 @@ import {
   ILabelSettings,
   IRawDataModelBinding,
   ITableColumnProperties,
-  SummarizableComponentProps,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
@@ -37,6 +36,8 @@ export interface IGroupEditProperties {
 
 export type CompRepeatingGroupSerialized = {
   type: 'RepeatingGroup';
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
@@ -69,7 +70,6 @@ export type CompRepeatingGroupSerialized = {
   labelSettings?: ILabelSettings;
   addButton?: IButtonProps;
   children: string[];
-} & ComponentBase &
-  SummarizableComponentProps;
+} & ComponentBase;
 
-// Source hash: 6c4fc9be8161c33f3e4dc194219b2ddec75607652dc4a1607b62ab0f00179169
+// Source hash: eb9cb89e34b4ba8484e00c69bb006ad218669d576b642db5e8ca12eb10b77cad

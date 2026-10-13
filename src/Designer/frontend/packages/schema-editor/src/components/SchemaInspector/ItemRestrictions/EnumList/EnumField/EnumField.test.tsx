@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { EnumFieldProps } from './EnumField';
@@ -23,8 +23,6 @@ const defaultProps: EnumFieldProps = {
 };
 
 describe('EnumField', () => {
-  afterEach(vi.clearAllMocks);
-
   it('calls onChange when input value changes', async () => {
     const user = userEvent.setup();
     render(<EnumField {...defaultProps} />);

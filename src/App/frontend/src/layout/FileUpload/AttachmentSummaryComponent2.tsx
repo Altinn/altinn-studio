@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useIsMobileOrTablet } from '@app/form-component';
-import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import { Paragraph } from '@digdir/designsystemet-react';
 
 import { Label } from 'src/components/label/Label';
@@ -15,7 +15,8 @@ import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
+import { useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2Props) {
@@ -24,10 +25,6 @@ export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2P
   const summaryTitle = useEvalOptionalTrb(config, 'summaryTitle', CommonExpressions.TRBSummarizable);
   const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
 
-  const minNumberOfAttachments = useEvalExpression(
-    config.minNumberOfAttachments,
-    Expressions.FileUpload.minNumberOfAttachments,
-  );
   const hasTag = fileUploadHasTag(config);
   const { options, isFetching } = useOptionsFor(targetBaseComponentId, 'single');
   const mobileView = useIsMobileOrTablet();
@@ -42,7 +39,7 @@ export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2P
     return attachment.data.tags && attachment.data.tags?.length > 0;
   });
   const isEmpty = filteredAttachments.length === 0;
-  const required = minNumberOfAttachments > 0;
+  const required = useComponentIsRequired(config);
 
   return (
     <SummaryFlex

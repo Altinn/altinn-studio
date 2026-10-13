@@ -46,9 +46,9 @@ import utilClasses from 'src/styles/utils.module.css';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { getRequired } from 'src/utils/layout/getRequired';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import type { CompTypes } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -277,14 +277,7 @@ function SummaryCell(props: CellProps) {
 function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
   const { langAsString, langAsNonProcessedString } = useLanguage();
   const config = useComponentConfig(props.labelFrom);
-  const evaluatedRequired = useEvalExpression(
-    'required' in config ? config.required : undefined,
-    CommonExpressions.FormComponentProps.required,
-  );
-  const readOnly = useEvalExpression(
-    'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.FormComponentProps.readOnly,
-  );
+  const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
   const title = useEvalExpression(
     config.textResourceBindings && 'title' in config.textResourceBindings
       ? config.textResourceBindings.title
@@ -292,8 +285,9 @@ function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
     CommonExpressions.TRBLabel.title,
   );
 
-  const required = getRequired(config.type, evaluatedRequired);
-  const showOptionalMarking = !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
+  const required = useComponentIsRequired(config);
+  const showOptionalMarking =
+    config.type === 'Custom' || !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
 
   // The mobile pseudo-header is plain text (rendered through a data attribute), so the indicator tag is
   // reduced to its text here.
@@ -430,13 +424,9 @@ function SummaryCellWithComponent({
   const isHidden = useIsHidden(baseComponentId);
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const config = useComponentConfig(baseComponentId);
-  const required2 = useEvalExpression(
-    'required' in config ? config.required : undefined,
-    CommonExpressions.FormComponentProps.required,
-  );
 
   const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
-  const required = 'required' in config ? required2 : false;
+  const required = useComponentIsRequired(config);
   const indexedId = useIndexedId(baseComponentId);
   const content = getComponentCellData(baseComponentId, config.type, displayData, title);
 
@@ -527,16 +517,9 @@ function SummaryCellWithLabel({
       : undefined,
     CommonExpressions.TRBLabel.title,
   );
-  const evaluatedRequired = useEvalExpression(
-    'required' in config ? config.required : undefined,
-    CommonExpressions.FormComponentProps.required,
-  );
-  const readOnly = useEvalExpression(
-    'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.FormComponentProps.readOnly,
-  );
-  const required = getRequired(config.type, evaluatedRequired);
-  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
+  const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
+  const required = useComponentIsRequired(config);
+  const labelSettings = config.type !== 'Custom' && 'labelSettings' in config ? config.labelSettings : undefined;
 
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
 

@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -62,10 +62,6 @@ const renderApiKeysList = ({
   );
 
 describe('ApiKeysList', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   afterAll(() => {
     vi.restoreAllMocks();
   });

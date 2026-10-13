@@ -1,10 +1,18 @@
+import type { JSX } from 'react';
+
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class AddressDef extends FormComponent<'Address'> implements DisplayData {
   protected readonly type = 'Address';
+
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
+
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -17,4 +25,4 @@ export abstract class AddressDef extends FormComponent<'Address'> implements Dis
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 2823615a59584bf9dc7ff57117c6f1dd2927bdccafd33ef0896ee140692d627b
+// Source hash: 3759623ecec2ac42fcbdc7061ff81adc9f3b96eaaeef3030d5d3864bdf599952

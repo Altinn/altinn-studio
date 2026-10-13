@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"bytes"
 	"context"
 	"log/slog"
 	"os"
@@ -120,4 +121,26 @@ func newTestGenerator(convertToPDFA bool, responseData []byte) *Custom {
 	}()
 
 	return g
+}
+
+func TestWorkerRequest_AbandonedResponseLogsAtInfo(t *testing.T) {
+	for name, respond := range map[string]func(*workerRequest){
+		"ok":    func(r *workerRequest) { r.tryRespondOk([]byte("%PDF-")) },
+		"error": func(r *workerRequest) { r.tryRespondError(types.NewPDFError(types.ErrTimeout, "", nil)) },
+	} {
+		t.Run(name, func(t *testing.T) {
+			var logs bytes.Buffer
+			// Nobody receives from the responder: the client has given up.
+			req := &workerRequest{
+				ctx:       t.Context(),
+				responder: make(chan workerResponse),
+				logger:    slog.New(slog.NewTextHandler(&logs, nil)),
+			}
+			respond(req)
+
+			if got := logs.String(); !strings.Contains(got, `level=INFO msg="Client abandoned request`) {
+				t.Errorf("log = %q, want the abandoned response at INFO", got)
+			}
+		})
+	}
 }
