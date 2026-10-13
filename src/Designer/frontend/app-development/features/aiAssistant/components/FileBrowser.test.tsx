@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -6,24 +7,22 @@ import { renderWithProviders } from '../../../test/mocks';
 import { FileBrowser } from './FileBrowser';
 import type { FileSystemObject } from './FileBrowser';
 
-jest.mock('app-shared/utils/networking', () => ({ get: jest.fn() }));
+vi.mock('app-shared/utils/networking', () => ({ get: vi.fn() }));
 
 // Like the real react-i18next, t stays the same between renders, so FileBrowser does not load the root folder again.
-jest.mock('react-i18next', () => {
-  const { textMock: translate } = jest.requireActual('@studio/testing/mocks/i18nMock');
+vi.mock('react-i18next', async () => {
+  const { textMock: translate } = await import('@studio/testing/mocks/i18nMock');
   const t = (key: string): string => translate(key);
   return { useTranslation: () => ({ t }) };
 });
 
-const mockedGet = get as jest.MockedFunction<typeof get>;
+const mockedGet = vi.mocked(get);
 
 const firstFile: FileSystemObject = { name: 'first.txt', path: 'first.txt', type: 'file' };
 const secondFile: FileSystemObject = { name: 'second.txt', path: 'second.txt', type: 'file' };
 const folder: FileSystemObject = { name: 'folder', path: 'folder', type: 'dir' };
 
 describe('FileBrowser', () => {
-  afterEach(jest.clearAllMocks);
-
   it('shows the last opened file when an earlier file request completes later', async () => {
     const user = userEvent.setup();
     const firstFileResponse = createDelayedResponse();
