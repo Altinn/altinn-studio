@@ -22,6 +22,8 @@ export interface CompInputExternal
   } & TRBFormComp &
     TRBSummarizable &
     TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   saveWhileTyping?: SaveWhileTyping;
@@ -116,4 +118,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: InputSummaryOverridesWithRef;
 };
 
-// Source hash: b65f91d2fdbfc3543399f64e3dfb60aa625a99f0b6831fd96bd2cfe1e3eccb0b
+// Source hash: 6c4267b03a72d1bfc6e7826a030f0105143110f78b4be45a3abd6c9243fa860d

@@ -5,26 +5,10 @@ import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { type ComponentValidation, FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
+import { evalRequiredValidationTextResourceBindings } from 'src/features/validation/nodeValidation/requiredValidationTextResourceBindings';
 import { getFieldNameKey } from 'src/utils/formComponentUtils';
 import type { ComponentValidationContext } from 'src/layout';
 import type { CompTypes } from 'src/layout/layout';
-
-function evalTextResourceBindings<T extends CompTypes>(ctx: ComponentValidationContext<T>) {
-  const trb = ctx.component.textResourceBindings;
-  if (!trb) {
-    return undefined;
-  }
-
-  return Object.fromEntries(
-    Object.entries(trb).map(([key, value]) => [
-      key,
-      evalExpr(value, ctx.expressionDataSources, {
-        returnType: ExprVal.String,
-        defaultValue: '',
-      }) as string,
-    ]),
-  );
-}
 
 export function validateEmptyFieldAllBindings<T extends CompTypes>(
   ctx: ComponentValidationContext<T>,
@@ -39,7 +23,6 @@ export function validateEmptyFieldAllBindings<T extends CompTypes>(
         })
       : false;
   const dataModelBindings = ctx.component.dataModelBindings;
-  const trb = evalTextResourceBindings(ctx) as Record<string, string | undefined> | undefined;
   if (!required || !dataModelBindings) {
     return [];
   }
@@ -51,6 +34,7 @@ export function validateEmptyFieldAllBindings<T extends CompTypes>(
       typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean' ? String(data) : '';
 
     if (asString.length === 0) {
+      const trb = evalRequiredValidationTextResourceBindings(ctx, bindingKey);
       const key = trb && 'requiredValidation' in trb && trb.requiredValidation ? trb.requiredValidation : defaultText;
       const fieldReference = { key: getFieldNameKey(trb, bindingKey), makeLowerCase: true };
 
@@ -81,12 +65,11 @@ export function validateEmptyFieldOnlyOneBinding<T extends CompTypes, Binding ex
         })
       : false;
   const reference = ctx.component.dataModelBindings?.[binding as string] as IDataModelReference | undefined;
-  const trb = evalTextResourceBindings(ctx) as Record<string, string | undefined> | undefined;
-  const data = readDataFromState(ctx.formState, reference);
   if (!required || !reference) {
     return [];
   }
 
+  const data = readDataFromState(ctx.formState, reference);
   const asString =
     typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean' ? String(data) : '';
 
@@ -94,6 +77,7 @@ export function validateEmptyFieldOnlyOneBinding<T extends CompTypes, Binding ex
     return [];
   }
 
+  const trb = evalRequiredValidationTextResourceBindings(ctx, binding);
   const key = trb && 'requiredValidation' in trb && trb.requiredValidation ? trb.requiredValidation : defaultText;
   const fieldReference = { key: getFieldNameKey(trb, binding), makeLowerCase: true };
 

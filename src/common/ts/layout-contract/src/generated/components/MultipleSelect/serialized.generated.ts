@@ -20,6 +20,8 @@ export interface IDataModelBindingsForGroupMultiselect extends IDataModelBinding
 export type CompMultipleSelectSerialized = {
   type: 'MultipleSelect';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   alertOnChange?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForGroupMultiselect;
@@ -30,4 +32,4 @@ export type CompMultipleSelectSerialized = {
   ISelectionComponentFull &
   LabeledComponentProps;
 
-// Source hash: 7913dfae5b0f12d8aefde001fbac62fbec5ff66081d4f27488df57ba3a07dbca
+// Source hash: 4ddc375f859b7ef7084877f1294c17e28f0f19a6bac674227a7baa29588df379

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -17,8 +17,6 @@ const renderUseCreateBotAccountMutation = (queryClient = createQueryClientMock()
   renderHookWithProviders(() => useCreateBotAccountMutation(testOrg), { queryClient });
 
 describe('useCreateBotAccountMutation', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('calls createBotAccount with the correct arguments', async () => {
     const { result } = renderUseCreateBotAccountMutation();
     await result.current.mutateAsync(payload);

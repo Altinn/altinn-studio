@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { useHandleUpdateTextResource } from './useHandleUpdateTextResource';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import type { TextResource } from '@studio/pure-functions';
@@ -7,11 +8,9 @@ import { waitFor } from '@testing-library/react';
 // Test data:
 const language = 'nb';
 const textResource: TextResource = { id: 'some-id', value: 'some-value' };
-const doReloadPreview = jest.fn();
+const doReloadPreview = vi.fn();
 
 describe('useHandleUpdateTextResource', () => {
-  beforeEach(jest.clearAllMocks);
-
   it('should call updateTextResource after updating textResource', async () => {
     const { result } = renderHook(language);
     result.current(textResource);

@@ -84,8 +84,6 @@ export interface ComponentBase {
 }
 
 export interface FormComponentProps {
-  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
-  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   showValidations?: AllowedValidationMasks;
 }
 
@@ -643,4 +641,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 4aec611f1e51c53bdb6ad5ac33e3fb4f944419ac2552ed336ee10a10e04296ac
+// Source hash: a99cd3b5424b7e5487c39e6b273cd4658f9b2efb0d86696f6dd4048c1519d210

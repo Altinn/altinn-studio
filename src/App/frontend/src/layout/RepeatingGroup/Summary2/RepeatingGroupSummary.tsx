@@ -26,6 +26,7 @@ import {
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { BaseRow } from 'src/utils/layout/types';
@@ -55,7 +56,7 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
   const hiddenColumns = useHiddenColumns(config.tableColumns);
   const visibleChildIds = childIds.filter((id) => !hiddenColumns.includes(id));
-  const required = config.minCount !== undefined && config.minCount > 0;
+  const required = useComponentIsRequired(config);
   const { className } = useSummarySoftHidden(hideEmptyFields && rows.length === 0 && !required);
   if (rows.length === 0) {
     return (

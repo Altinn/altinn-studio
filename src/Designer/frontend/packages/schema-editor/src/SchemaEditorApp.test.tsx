@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { SchemaEditorApp } from './SchemaEditorApp';
 import { jsonMetadataMock } from 'app-shared/mocks/dataModelMetadataMocks';
@@ -42,8 +42,6 @@ export const render = (services?: Partial<ServicesContextProps>) => {
 };
 
 describe('SchemaEditorApp', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders a tree view of the schema model', () => {
     render();
     expect(screen.getByRole('tree')).toBeInTheDocument();

@@ -9,12 +9,12 @@ import {
 } from '@studio/components';
 import classes from './CreateBranchDialog.module.css';
 import { BranchNameValidator } from 'app-shared/utils/BranchNameValidator';
+import { DEFAULT_APP_BRANCH } from 'app-shared/constants';
 
 export interface CreateBranchDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateBranch: (name: string) => void;
-  currentBranch: string;
   existingBranchNames: string[];
   createError: string;
   isLoading: boolean;
@@ -24,7 +24,6 @@ export const CreateBranchDialog = ({
   isOpen,
   onClose,
   onCreateBranch,
-  currentBranch,
   existingBranchNames,
   createError,
   isLoading,
@@ -60,7 +59,7 @@ export const CreateBranchDialog = ({
         <StudioParagraph>
           <Trans
             i18nKey='branching.new_branch_dialog.description'
-            values={{ currentBranch }}
+            values={{ defaultBranch: DEFAULT_APP_BRANCH }}
             components={{ strong: <strong /> }}
             shouldUnescape
           />

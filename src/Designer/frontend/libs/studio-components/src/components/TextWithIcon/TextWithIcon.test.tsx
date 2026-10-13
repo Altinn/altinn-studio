@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { TextWithIcon } from './TextWithIcon';
@@ -7,8 +7,6 @@ import type { TextWithIconProps } from './TextWithIcon';
 const mockChildren: string = 'Test Text';
 
 describe('TextWithIcon', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('renders children correctly', () => {
     renderTextWithIcon();
     expect(screen.getByText(mockChildren)).toBeInTheDocument();

@@ -28,6 +28,8 @@ export type CompAddressSerialized = {
     houseNumberTitle?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForAddress;
   saveWhileTyping?: SaveWhileTyping;
@@ -37,4 +39,4 @@ export type CompAddressSerialized = {
   SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: e06c20ff0957bf435abd9c5385a1cb01116983dcda83ff9aacaf6e08955a9130
+// Source hash: 1970cc480bc73637f922aefe168f8463e6e942429fe48bab7f14767d5d8317d8

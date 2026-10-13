@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SchemaEditor } from './SchemaEditor';
@@ -89,8 +89,6 @@ const jsonSchemaTypePanel: JsonSchema = {
 };
 
 describe('SchemaEditor', () => {
-  afterEach(vi.clearAllMocks);
-
   test('should show context menu and trigger correct dispatch when adding a field on root', async () => {
     const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
     renderEditor({ appContextProps: { schemaModel } });

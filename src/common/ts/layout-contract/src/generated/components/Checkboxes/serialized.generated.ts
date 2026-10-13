@@ -21,6 +21,8 @@ export interface IDataModelBindingsForGroupCheckbox extends IDataModelBindingsOp
 export type CompCheckboxesSerialized = {
   type: 'Checkboxes';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForGroupCheckbox;
   deletionStrategy?: 'soft' | 'hard';
@@ -33,4 +35,4 @@ export type CompCheckboxesSerialized = {
   ISelectionComponentFull &
   LabeledComponentProps;
 
-// Source hash: 761f9cd0eb0d246db4acf624e40d945c4a5640460e07f45b71696428a6f9e359
+// Source hash: d8db532d7b39820a50987aca66cea52bcca4ef731467856853fe4251c9053fd1

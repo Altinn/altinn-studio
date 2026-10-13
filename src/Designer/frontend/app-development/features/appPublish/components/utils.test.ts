@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import { versionNameValid } from './utils';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';

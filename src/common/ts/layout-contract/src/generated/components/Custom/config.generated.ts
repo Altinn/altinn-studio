@@ -16,6 +16,8 @@ export interface CompCustomExternal
     [key: string]: ExprValToActualOrExpr<ExprVal.String> | undefined;
   } & TRBFormComp &
     TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForCustom;
   tagName: string;
@@ -54,4 +56,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 23542e3573aa925340446ee0dca7e033252110b6118bac8487239b307e48ea7a
+// Source hash: 332e268a6902f197bb2f781883bb0d6d8194c86dd702fe751154b9166b25f3ba

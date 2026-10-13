@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { EnvironmentEntry } from '../../EnvironmentConfig';
 import type { RequiredEFormidlingEntries } from './eFormidlingCoverage';
 import { getEFormidlingCoverageGaps, getUniversalCoverageGap } from './eFormidlingCoverage';

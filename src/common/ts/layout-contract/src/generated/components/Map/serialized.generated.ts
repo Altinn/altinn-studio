@@ -63,6 +63,8 @@ export interface Toolbar {
 export type CompMapSerialized = {
   type: 'Map';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForMap;
   layers?: MapLayer[];
@@ -75,4 +77,4 @@ export type CompMapSerialized = {
   SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: d8df2bb2a0ae9c3ff809ddf846ba76cbbb0bac1d95b2aa4ee8af055470acbb7e
+// Source hash: d84990394fd6a072d15086ea04100fe41869a8187256b6ea4eb2c9afd939183d

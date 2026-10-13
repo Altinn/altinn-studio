@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { StringRestrictions } from './StringRestrictions';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
@@ -24,8 +24,6 @@ const renderStringRestrictions = (props?: Partial<RestrictionItemProps>) =>
   render(<StringRestrictions {...defaultProps} {...props} />);
 
 describe('StringRestrictions', () => {
-  afterEach(vi.clearAllMocks);
-
   test.each([
     [StrRestrictionKey.format, 'combobox'],
     [StrRestrictionKey.minLength, 'spinbutton'],

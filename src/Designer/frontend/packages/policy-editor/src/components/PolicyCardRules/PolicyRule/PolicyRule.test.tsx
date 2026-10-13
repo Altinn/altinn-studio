@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PolicyRule, type PolicyRuleProps } from './PolicyRule';
@@ -17,8 +17,6 @@ const defaultProps: PolicyRuleProps = {
 };
 
 describe('PolicyRule', () => {
-  afterEach(vi.clearAllMocks);
-
   it('calls "setPolicyRules" and "savePolicy" when the clone button is clicked', async () => {
     const user = userEvent.setup();
     renderPolicyRule();
