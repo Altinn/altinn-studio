@@ -25,7 +25,7 @@ jobs:
   build:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build and test
-    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-ubuntu' }}
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 45
     defaults:
       run:
