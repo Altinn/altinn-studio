@@ -19,7 +19,7 @@ func TestGraph_IncludeMonitoring(t *testing.T) {
 	runtime, err := New(
 		KindContainerRuntimeVariantMinimal,
 		filepath.Join(t.TempDir(), ".cache"),
-		KindContainerRuntimeOptions{IncludeMonitoring: true},
+		KindContainerRuntimeOptions{IncludeMonitoring: true, DashboardsRepository: testDashboardsRepository},
 	)
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
@@ -34,6 +34,8 @@ func TestGraph_IncludeMonitoring(t *testing.T) {
 
 	operators := mustObjectSet(t, graph, monitoringOperatorsName)
 	stack := mustObjectSet(t, graph, monitoringStackName)
+	grafana := mustObjectSet(t, graph, monitoringGrafana)
+	assertDependsOn(t, grafana, resource.KubernetesObjectSetID(monitoringStackName))
 	for _, set := range []*resource.KubernetesObjectSet{operators, stack} {
 		if _, err := os.Stat(filepath.Join(set.Path, "kustomization.yaml")); err != nil {
 			t.Errorf("%s: kustomization not found at %s: %v", set.Name, set.Path, err)
@@ -53,7 +55,7 @@ func TestGraph_WithoutMonitoring(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Graph() error = %v", err)
 	}
-	for _, name := range []string{monitoringOperatorsName, monitoringStackName} {
+	for _, name := range []string{monitoringOperatorsName, monitoringStackName, monitoringGrafana} {
 		if graph.Get(resource.KubernetesObjectSetID(name)) != nil {
 			t.Errorf("graph contains %s without IncludeMonitoring", name)
 		}
