@@ -1899,12 +1899,7 @@ public class ProcessNextRequestFactoryTests
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
         // The release is the last step: nothing is enqueued after it without side effects.
         Assert.Equal(
-            [
-                CommitProcessState.Key,
-                OnProcessEndedHook.Key,
-                DeleteDataOnProcessEnd.Key,
-                ReleaseProcessingStatus.Key,
-            ],
+            [CommitProcessState.Key, OnProcessEndedHook.Key, DeleteDataOnProcessEnd.Key, ReleaseProcessingStatus.Key],
             keys[^4..]
         );
     }
