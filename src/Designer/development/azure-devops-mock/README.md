@@ -56,7 +56,8 @@ With that flag the apps the local environment holds are also listed under every 
 the admin app, next to whatever was deployed through local Studio, so an app you run through
 `studioctl` can be opened right away. Their application metadata comes from the running app too,
 so the admin app shows the workflow engine's views for an app on v9 of the app libraries and the
-views from before the engine for an older one, as it does in a real environment. Set `LOCALTEST_URL` if the studioctl ingress is not on
+views from before the engine for an older one, as it does in a real environment. So does the
+process definition, so the admin app names the app's own tasks. Set `LOCALTEST_URL` if the studioctl ingress is not on
 port 8000.
 
 The admin views read the engine's collections health view, which a released engine image does

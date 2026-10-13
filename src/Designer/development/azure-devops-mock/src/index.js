@@ -23,6 +23,7 @@ import { accessibleForAllScopesRoute, accessScopesRoute } from './routes/maskinp
 import {
   instancesFromLocaltest,
   localtestAppMetadataRoute,
+  localtestAppProcessRoute,
   localtestInstanceDeleteRoute,
   localtestInstanceDetailsRoute,
   localtestInstancesRoute,
@@ -55,7 +56,6 @@ app.get(
   '/apps/:org/:env/runtime/gateway/api/v1/deploy/apps/:app/:origin',
   runtimeGatewayDeploymentDetailsRoute,
 );
-app.get('/apps/:org/:env/:org/:app/api/v1/meta/process', appProcessRoute);
 app.get('/storage/api/v1/applications/:org/:app', storageApplicationMetadataRoute);
 app.get('/storage/api/v1/applications/:org/:app/texts/:lang', storageTextsRoute);
 // The admin app's app and instance views: canned and random data by default, or what the studioctl
@@ -65,6 +65,10 @@ const useLocaltest = instancesFromLocaltest();
 app.get(
   '/apps/:org/:env/:org/:app/api/v1/applicationmetadata',
   useLocaltest ? localtestAppMetadataRoute(appMetadataRoute) : appMetadataRoute,
+);
+app.get(
+  '/apps/:org/:env/:org/:app/api/v1/meta/process',
+  useLocaltest ? localtestAppProcessRoute(appProcessRoute) : appProcessRoute,
 );
 app.get(
   '/storage/api/v1/studio/instances/:org/:app',

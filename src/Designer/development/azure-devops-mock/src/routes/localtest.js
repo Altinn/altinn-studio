@@ -128,6 +128,30 @@ export const localtestAppMetadataRoute = (fallback) => async (req, res) => {
   await fallback(req, res);
 };
 
+/**
+ * The process definition the app itself serves, through the localtest ingress, so the admin app
+ * names the app's own tasks. An app the environment does not run gets `fallback`, the mock's canned
+ * process.
+ */
+export const localtestAppProcessRoute = (fallback) => async (req, res) => {
+  const { org, app } = req.params;
+  const url = `${localtestUrl()}/${encodeURIComponent(org)}/${encodeURIComponent(app)}/api/v1/meta/process`;
+  try {
+    const response = await axios.get(url, {
+      ...passThrough,
+      headers: { Host: platformHost(), Accept: 'text/xml' },
+      responseType: 'text',
+    });
+    if (response.status === 200) {
+      res.type('text/xml').send(response.data);
+      return;
+    }
+  } catch (error) {
+    console.warn(`app unreachable at ${url}: ${error.message}`);
+  }
+  await fallback(req, res);
+};
+
 // ---- Storage instances, from localtest -----------------------------------------------------------
 
 const orgTokens = new Map();
