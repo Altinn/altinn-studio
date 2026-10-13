@@ -45,6 +45,15 @@ public interface IApplicationInformationService
     );
 
     /// <summary>
+    /// Gets the app status committed to applicationmetadata.json at the given commit
+    /// </summary>
+    /// <param name="org">Organization</param>
+    /// <param name="app">Application</param>
+    /// <param name="commitId">Commit Id</param>
+    /// <returns>The app status, or null when the commit has no valid status</returns>
+    Task<AppStatus?> GetAppStatusAsync(string org, string app, string commitId);
+
+    /// <summary>
     /// Sets the status of the app's existing service resource in Resource Registry
     /// </summary>
     /// <param name="org">Organization</param>
