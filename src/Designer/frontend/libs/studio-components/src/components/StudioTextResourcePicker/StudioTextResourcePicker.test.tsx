@@ -29,7 +29,6 @@ const textMissingValueId = 'missing-value-id';
 describe('StudioTextResourcePicker', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    vi.clearAllMocks();
   });
 
   afterEach(() => {

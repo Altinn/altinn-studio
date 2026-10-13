@@ -152,6 +152,15 @@ func observeLocalFile(file *resource.LocalFile) (executor.ObservedResource, erro
 	return observed, nil
 }
 
+// EnsureGitCheckout clones a checkout, or resets an existing one to its remote ref, as
+// applying the resource does. For callers that need the files before a graph is built.
+func EnsureGitCheckout(checkout *resource.GitCheckout) error {
+	if err := checkout.Validate(); err != nil {
+		return fmt.Errorf("validate Git checkout %s: %w", checkout.Name, err)
+	}
+	return applyGitCheckout(checkout)
+}
+
 func applyGitCheckout(checkout *resource.GitCheckout) error {
 	refName := plumbing.NewBranchReferenceName(checkout.Ref)
 	repo, err := git.PlainOpen(checkout.Path)

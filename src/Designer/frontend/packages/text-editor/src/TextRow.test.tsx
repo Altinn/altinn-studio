@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import type { TextRowProps } from './TextRow';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
@@ -147,8 +147,6 @@ describe('TextRow', () => {
   });
 
   describe('Delete confirmation dialog', () => {
-    afterEach(vi.clearAllMocks);
-
     it('should open the confirmation dialog when clicking the delete button', async () => {
       const user = userEvent.setup();
       renderTextRow();

@@ -89,6 +89,14 @@ folder. `make dev` / `make run` / `make stop` / `make reset` wrap the compose in
 CSharpier formatting enforced at build time. See [`docs/format.md`](docs/format.md) for details and
 commands.
 
+Configuration is read once at startup (`IOptions<T>`, never `IOptionsMonitor`) on purpose: the
+settings worth tuning (semaphore sizes, pool sizes, buffer capacities, telemetry) cannot change while
+the process runs. Tune a deployment through environment variables in its overlay
+(`EngineSettings__Concurrency__MaxWorkers`) and restart it.
+
+Response models use `init` setters. System.Text.Json skips an `internal set`, so a client that
+deserializes the model silently reads `null`.
+
 Use docstrings to document all public types and members. Extend this to private members where necessary to explain complex logic or add clarity.
 
 Be extremely sparse with inline comments. If a pattern is not self-describing, it likely needs refactoring. The exception is complex order-dependent logic in the various hot processing loops.

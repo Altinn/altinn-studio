@@ -1,10 +1,11 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { QueryClient } from '@tanstack/react-query';
 import { SyncSuccessQueriesInvalidator } from './SyncSuccessQueriesInvalidator';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { waitFor } from '@testing-library/react';
 import { org, app, selectedLayoutSet } from '@studio/testing/testids';
 
-jest.mock('@tanstack/react-query');
+vi.mock('@tanstack/react-query');
 
 describe('SyncSuccessQueriesInvalidator', () => {
   let queryClientMock: QueryClient;
@@ -12,11 +13,7 @@ describe('SyncSuccessQueriesInvalidator', () => {
   beforeEach(async () => {
     SyncSuccessQueriesInvalidator.resetInstance();
     queryClientMock = new QueryClient();
-    queryClientMock.invalidateQueries = jest.fn();
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
+    queryClientMock.invalidateQueries = vi.fn();
   });
 
   it('should invalidate query cache only once when invalidateQueriesByFileLocation is called', async () => {

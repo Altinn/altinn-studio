@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import React, { useEffect, useRef } from 'react';
 import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
@@ -15,8 +15,6 @@ const newCodeListTitleMock = 'newCodeListTitleMock';
 const existingCodeListTitle = 'existingCodeListTitle';
 
 describe('CreateNewCodeListDialog', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders an empty textfield for inputting code list name', async () => {
     renderCreateNewCodeListDialog();
     const codeListNameInput = screen.getByRole('textbox', {

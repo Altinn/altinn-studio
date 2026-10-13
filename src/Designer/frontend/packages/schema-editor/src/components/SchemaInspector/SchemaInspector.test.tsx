@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../../mockData';
 import { screen, waitFor, within } from '@testing-library/react';
@@ -48,8 +48,6 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
 };
 
 describe('SchemaInspector', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders the no item selected message when the selected item no longer exists in the model', () => {
     const removedItem = {
       ...nodeMockBase,

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { FormItem } from '@altinn/ux-editor-v4/types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { screen } from '@testing-library/react';
@@ -20,8 +21,6 @@ const mainConfigComponentMock = (type: ComponentType) =>
   }) as FormItem;
 
 describe('ComponentMainConfig', () => {
-  afterEach(() => jest.clearAllMocks);
-
   it('should render summary2 config when the component type matches', () => {
     renderComponentMainConfig(mainConfigComponentMock(ComponentType.Summary2));
     const targetHeader = screen.getByText(textMock('ux_editor.component_properties.target'));
@@ -129,7 +128,7 @@ describe('ComponentMainConfig', () => {
 });
 
 const renderComponentMainConfig = (component: FormItem, setSchemaData: boolean = false) => {
-  const handleComponentChange = jest.fn();
+  const handleComponentChange = vi.fn();
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
   queryClient.setQueryData([QueryKey.ImageFileNames, org, app], []);

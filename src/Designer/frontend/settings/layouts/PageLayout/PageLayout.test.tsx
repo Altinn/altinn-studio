@@ -77,7 +77,6 @@ describe('PageLayout', () => {
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
     vi.restoreAllMocks();
   });
 

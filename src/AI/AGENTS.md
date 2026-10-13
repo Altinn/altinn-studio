@@ -4,12 +4,12 @@
 
 The `/AI` folder contains two projects:
 
-| Project         | Description                                                            | Path                |
-| --------------- | ---------------------------------------------------------------------- | ------------------- |
-| Altinity agents | Agent service that enables users to develop apps with natural language | `./agents`          |
-| Augmenter agent | Augments caseworker workflow with LLM support                          | `./augmenter-agent` |
+| Project          | Description                                                            | Path                |
+| ---------------- | ---------------------------------------------------------------------- | ------------------- |
+| Studio Assistant | Agent service that enables users to develop apps with natural language | `./assistant`       |
+| Augmenter agent  | Augments caseworker workflow with LLM support                          | `./augmenter-agent` |
 
-`./agents` has an architecture guide in [agents/docs](agents/docs/README.md). Before you open a PR with changes in `./agents`, check if the docs need an update too.
+`./assistant` has an architecture guide in [assistant/docs](assistant/docs/README.md). Before you open a PR with changes in `./assistant`, check if the docs need an update too.
 
 See each project's README for setup and architecture details.
 
@@ -44,7 +44,7 @@ function processOrder(order: Order) {
 
 ### Python lint and format
 
-In `./agents`, Python code must pass `ruff check .`, `ruff format --check .` and `pyright`. The Ruff and Pyright configuration is in `pyproject.toml`. Do not add `# noqa`, `# pyright: ignore` or ignored rules without a reason in a comment.
+In `./assistant`, Python code must pass `ruff check .`, `ruff format --check .` and `pyright`. The Ruff and Pyright configuration is in `pyproject.toml`. Do not add `# noqa`, `# pyright: ignore` or ignored rules without a reason in a comment.
 
 ### Naming
 

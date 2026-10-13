@@ -16,6 +16,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"altinn.studio/pdf3/internal/appurl"
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/config"
 	ihttp "altinn.studio/pdf3/internal/http"
@@ -25,8 +26,11 @@ import (
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
 )
 
 //nolint:funlen // The proxy entrypoint still intentionally owns startup, probes, and shutdown wiring.
@@ -35,13 +39,17 @@ func main() {
 
 	logger.Info("Starting", "GOMAXPROCS", runtime.GOMAXPROCS(0), "NumCPU", runtime.NumCPU())
 
-	otelShutdown, err := telemetry.ConfigureOTel(context.Background())
+	cfg := config.ReadConfig()
+	otelShutdown, err := telemetry.ConfigureOTel(
+		context.Background(),
+		cfg.Environment,
+		config.ResolveOTelSignals(cfg.Environment),
+	)
 	if err != nil {
 		logger.Error("Failed to initialize telemetry", "error", err)
 		os.Exit(1)
 	}
 
-	cfg := config.ReadConfig()
 	hostParams := config.ResolveHostParametersForEnvironment(cfg.Environment)
 
 	host := iruntime.NewHost(
@@ -64,16 +72,19 @@ func main() {
 
 	// Setup HTTP server
 	http.HandleFunc("/health/startup", func(w http.ResponseWriter, r *http.Request) {
-		ihttp.WriteProbe(logger, w, !host.IsShuttingDown())
+		ihttp.WriteProbe(r.Context(), logger, w, !host.IsShuttingDown())
 	})
 	http.HandleFunc("/health/ready", func(w http.ResponseWriter, r *http.Request) {
-		ihttp.WriteProbe(logger, w, !host.IsShuttingDown())
+		ihttp.WriteProbe(r.Context(), logger, w, !host.IsShuttingDown())
 	})
 	http.HandleFunc("/health/live", func(w http.ResponseWriter, r *http.Request) {
-		ihttp.WriteText(logger, w, http.StatusOK, "OK")
+		ihttp.WriteText(r.Context(), logger, w, http.StatusOK, "OK")
 	})
 
-	http.Handle("/pdf", telemetry.WrapHandler("POST /pdf", generatePdf(logger, httpClient, workerHTTPAddr)))
+	http.Handle(
+		"/pdf",
+		telemetry.WrapHandler("POST /pdf", generatePdf(logger, httpClient, workerHTTPAddr, cfg.AppHostname)),
+	)
 
 	// Only register test output endpoint in test internals mode
 	if iruntime.IsTestInternalsMode {
@@ -124,7 +135,12 @@ func main() {
 }
 
 //nolint:funlen,gocognit // This request path keeps validation, retry policy, and response mapping in one handler.
-func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) func(http.ResponseWriter, *http.Request) {
+func generatePdf(
+	logger *slog.Logger,
+	client *http.Client,
+	workerAddr string,
+	appHostname string,
+) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		if r.Method != http.MethodPost {
@@ -169,7 +185,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 		r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
 		defer func() {
 			if closeErr := r.Body.Close(); closeErr != nil {
-				logger.Warn("Failed to close request body", "error", closeErr)
+				logger.WarnContext(r.Context(), "Failed to close request body", "error", closeErr)
 			}
 		}()
 
@@ -183,6 +199,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 			})
 			return
 		}
+		recordURLKind(r.Context(), appHostname, req.URL)
 
 		// Validate request
 		if err := req.Validate(); err != nil {
@@ -202,7 +219,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 		//   means we might try to allocate a worker for 10 seconds before giving up.
 		//   If the cluster has available capacity a pod can boot in 2-10 seconds
 		const maxRetries = 40
-		reqLogger := logger.With("url", req.URL, "max_retries", maxRetries)
+		reqLogger := logger.With("url", telemetry.RedactURL(req.URL), "max_retries", maxRetries)
 		reqLogger.Info("Generating PDF", "attempt", 0, "elapsed", time.Since(start))
 
 		// Prepare request body
@@ -302,8 +319,10 @@ func callWorker(
 	if err != nil {
 		if attempt < maxRetries && ctx.Err() == nil {
 			// This is an error condition that may hit if the worker
-			// crashes or similar. Worthwhile to retry here
-			logger.Warn(
+			// crashes or similar. Worthwhile to retry here. Retries are logged at INFO, so they
+			// are not exported; running out of them is logged as an error below.
+			logger.InfoContext(
+				ctx,
 				"Worker request failed, will retry",
 				"elapsed", time.Since(start),
 				"error", err,
@@ -320,7 +339,8 @@ func callWorker(
 			Status: http.StatusInternalServerError,
 			Detail: fmt.Sprintf("Failed to communicate with PDF worker: %v", err),
 		})
-		logger.Error(
+		logger.ErrorContext(
+			ctx,
 			"Error calling PDF worker",
 			"elapsed", time.Since(start),
 			"error", err,
@@ -329,7 +349,7 @@ func callWorker(
 	}
 	defer func() {
 		if closeErr := resp.Body.Close(); closeErr != nil {
-			logger.Warn("Failed to close worker response body", "error", closeErr)
+			logger.WarnContext(ctx, "Failed to close worker response body", "error", closeErr)
 		}
 	}()
 
@@ -349,7 +369,7 @@ func callWorker(
 
 		w.WriteHeader(http.StatusOK)
 		if _, copyErr := io.Copy(w, resp.Body); copyErr != nil {
-			logger.Error("Failed to write PDF response data", "error", copyErr)
+			logger.ErrorContext(ctx, "Failed to write PDF response data", "error", copyErr)
 		}
 		logger.Info("Successfully generated PDF",
 			"elapsed", time.Since(start),
@@ -359,7 +379,8 @@ func callWorker(
 
 	// Check if this is a retryable error (429 - queue full)
 	if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
-		logger.Warn(
+		logger.InfoContext(
+			ctx,
 			"Worker queue full, retrying",
 			"elapsed", time.Since(start),
 		)
@@ -375,10 +396,10 @@ func callWorker(
 	errorDetailBytes, err := io.ReadAll(resp.Body)
 	errorDetail := ""
 	if err != nil {
-		logger.Error("Error reading PDF worker response body", "error", err)
+		logger.ErrorContext(ctx, "Error reading PDF worker response body", "error", err)
 	}
 	if !utf8.Valid(errorDetailBytes) {
-		logger.Warn("Worker didn't return valid response body")
+		logger.WarnContext(ctx, "Worker didn't return valid response body")
 	} else {
 		errorDetail = string(errorDetailBytes)
 	}
@@ -407,13 +428,41 @@ func callWorker(
 		Status: statusCode,
 		Detail: errorDetail,
 	})
-	logger.Error(
+	logger.ErrorContext(
+		ctx,
 		"Error during generation",
 		"elapsed", time.Since(start),
 		"status_code", statusCode,
 		"detail", errorDetail,
 	)
 	return true
+}
+
+const (
+	// urlKindKey is what the request's URL renders, see appurl.Kind. It is on the request's
+	// HTTP server span and metrics.
+	urlKindKey = attribute.Key("altinn.pdf.url_kind")
+	// urlRejectionKey is why the URL is not an app URL, on the span only.
+	urlRejectionKey = attribute.Key("altinn.pdf.url_rejection")
+)
+
+// recordURLKind records what rawURL renders on the request's HTTP server span and metrics. It
+// records nothing where the environment's app hostname is not known, as in localtest. The
+// request is served the same either way.
+func recordURLKind(ctx context.Context, appHostname string, rawURL string) {
+	if appHostname == "" {
+		return
+	}
+	kind, reason := appurl.Classify(rawURL, appHostname)
+	kindAttr := urlKindKey.String(string(kind))
+	labeler, _ := otelhttp.LabelerFromContext(ctx)
+	labeler.Add(kindAttr)
+
+	span := trace.SpanFromContext(ctx)
+	span.SetAttributes(kindAttr)
+	if reason != "" {
+		span.SetAttributes(urlRejectionKey.String(reason))
+	}
 }
 
 func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(http.ResponseWriter, *http.Request) {
@@ -438,7 +487,7 @@ func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(htt
 		//nolint:gosec // targetWorkerIP is validated as an IP address and only used for internal test routing.
 		httpReq, err := http.NewRequestWithContext(r.Context(), r.Method, workerEndpoint, nil)
 		if err != nil {
-			ihttp.WriteText(logger, w, http.StatusInternalServerError, "Failed to create worker request")
+			ihttp.WriteText(r.Context(), logger, w, http.StatusInternalServerError, "Failed to create worker request")
 			return
 		}
 
@@ -446,6 +495,7 @@ func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(htt
 		resp, err := client.Do(httpReq)
 		if err != nil {
 			ihttp.WriteText(
+				r.Context(),
 				logger,
 				w,
 				http.StatusInternalServerError,

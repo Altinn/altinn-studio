@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -58,8 +58,6 @@ const getPhoneInput = () =>
   screen.getByRole('textbox', { name: textMock('settings.orgs.contact_points.field_phone') });
 
 describe('PersonDialog', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('renders the add title when not editing', () => {
     renderPersonDialog();
     expect(

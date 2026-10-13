@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it } from 'vitest';
 import { VersionDialog } from './VersionDialog';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../test/testUtils';
@@ -15,7 +16,6 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 
 describe('VersionDialog', () => {
   afterEach(() => {
-    jest.clearAllMocks();
     window.localStorage.clear();
   });
 

@@ -30,7 +30,6 @@ import type { ExprResolved } from 'src/features/expressions/types';
  * summaries. This way we only fetch the settings in the SummaryComponent render cycle, and then pass the config
  * down to the internal summary components, so that all underlying code can work the same regardless if there is an
  * actual Summary component in the layout or not. Cases when there's not a real Summary component include:
- * - Automatic PDF layout
  * - Using the `renderAsSummary` prop on a component
  */
 export interface LegacySummaryOverrides {

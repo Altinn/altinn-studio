@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import type {
   UpdateOrgTextResourcesMutationArgs,
@@ -34,7 +35,7 @@ const updatedData: ITextResourcesWithLanguage = {
 };
 type Request = ServicesContextProps['updateOrgTextResources'];
 const mockRequest: Request = () => Promise.resolve(updatedData);
-const updateOrgTextResources = jest.fn().mockImplementation(mockRequest);
+const updateOrgTextResources = vi.fn().mockImplementation(mockRequest);
 
 describe('useUpdateOrgTextResourcesMutation', () => {
   beforeEach(updateOrgTextResources.mockClear);
@@ -66,7 +67,7 @@ describe('useUpdateOrgTextResourcesMutation', () => {
 
   it('Invalidates the data on error', async () => {
     const client = createQueryClientWithData();
-    const invalidateSpy = jest.spyOn(client, 'invalidateQueries');
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
     const { result } = render(client);
     updateOrgTextResources.mockRejectedValueOnce(new Error('Error'));
     result.current.mutate(args);

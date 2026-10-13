@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { useState } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -7,9 +8,6 @@ import {
 } from './BpmnConfigPanelContext';
 
 describe('BpmnConfigPanelContext', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   it('should render children', () => {
     render(
       <BpmnConfigPanelFormContextProvider>

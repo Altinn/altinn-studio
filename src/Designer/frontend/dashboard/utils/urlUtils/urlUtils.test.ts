@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { getAppDevelopmentRootRoute, getRepoEditUrl } from './';
 

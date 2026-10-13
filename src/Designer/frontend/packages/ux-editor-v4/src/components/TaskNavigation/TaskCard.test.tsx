@@ -1,3 +1,5 @@
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { TaskCard } from './TaskCard';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import userEvent from '@testing-library/user-event';
@@ -8,11 +10,11 @@ import { renderWithProviders, type ExtendedRenderOptions } from '../../testing/m
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('taskCard', () => {
-  let confirmSpy: jest.SpyInstance;
+  let confirmSpy: MockInstance;
 
   beforeAll(() => {
-    confirmSpy = jest.spyOn(window, 'confirm');
-    confirmSpy.mockImplementation(jest.fn(() => true));
+    confirmSpy = vi.spyOn(window, 'confirm');
+    confirmSpy.mockImplementation(vi.fn(() => true));
   });
 
   afterAll(() => {
