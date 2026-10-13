@@ -305,7 +305,7 @@ void Configure(IConfiguration configuration)
 
     app.MapControllers();
 
-    app.MapHealthChecks("/health");
+    app.MapHealthChecks("/health").DisableHttpMetrics();
     app.MapHubs();
 
     app.UseMiddleware<RequestSynchronizationMiddleware>();

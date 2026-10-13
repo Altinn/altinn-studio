@@ -1,22 +1,40 @@
+using System.Collections.Generic;
 using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry.Instrumentation.Http;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace Altinn.Studio.Designer.Hosting;
 
 internal static class TelemetryExtensions
 {
+    // The image's build, the commit the deploy workflow builds from. Local builds have none.
+    private const string ServiceVersionSetting = "DESIGNER_VERSION";
+    private const string LocalServiceVersion = "dev";
+
     public static WebApplicationBuilder AddOpenTelemetry(this WebApplicationBuilder builder)
     {
+        string serviceVersion = builder.Configuration[ServiceVersionSetting] is { Length: > 0 } version
+            ? version
+            : LocalServiceVersion;
+
         builder
             .Services.AddOpenTelemetry()
+            .ConfigureResource(resource =>
+                resource.AddAttributes([
+                    new KeyValuePair<string, object>(ServiceTelemetry.Attributes.ServiceVersion, serviceVersion),
+                ])
+            )
             .WithTracing(tracing =>
             {
+                // TODO: record failures as error.type on the span and an ERROR log instead of exception
+                // span events, and turn off RecordException (https://github.com/Altinn/altinn-studio/issues/21073).
                 tracing
                     .AddSource(ServiceTelemetry.Source.Name)
                     .AddAspNetCoreInstrumentation(options =>
@@ -47,7 +65,6 @@ internal static class TelemetryExtensions
                     .AddHttpClientInstrumentation(ConfigureHttpClientTracing)
                     .AddEntityFrameworkCoreInstrumentation()
                     .AddQuartzInstrumentation(options => options.RecordException = true)
-                    .AddRedisInstrumentation()
                     .AddOtlpExporter();
             })
             .WithMetrics(metrics =>
@@ -66,6 +83,9 @@ internal static class TelemetryExtensions
                     options.IncludeScopes = true;
                 }
             );
+
+        // The pipeline drops log records below WARN, so they aren't exported. The console still gets them.
+        builder.Logging.AddFilter<OpenTelemetryLoggerProvider>(category: null, LogLevel.Warning);
 
         return builder;
     }
