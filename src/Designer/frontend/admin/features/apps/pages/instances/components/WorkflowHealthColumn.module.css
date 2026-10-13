@@ -1,0 +1,31 @@
+.header {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-1);
+  white-space: nowrap;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  margin: var(--ds-size-2) 0 0;
+  max-width: 22rem;
+}
+
+.legendRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ds-size-2);
+}
+
+.legendDescription {
+  margin: 0;
+  font-size: var(--ds-font-size-1);
+}
+
+.skeleton {
+  display: inline-block;
+  width: 4rem;
+  height: 1.5rem;
+}
