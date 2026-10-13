@@ -755,7 +755,26 @@ describe('InstanceWorkflows', () => {
     renderInstanceWorkflows(createQueryClientMock(), 'not-a-guid');
 
     expect(await screen.findByText(textMock('admin.workflows.no_results'))).toBeInTheDocument();
-    expect(axios.get).not.toHaveBeenCalled();
+    const requestedUrls = jest.mocked(axios.get).mock.calls.map(([url]) => url as string);
+    expect(requestedUrls.filter((url) => url.includes('/workflows/'))).toEqual([]);
+  });
+
+  it("names a transition's tasks by their names in the app's process", async () => {
+    jest.mocked(axios.get).mockImplementation(
+      async (url: string) =>
+        ({
+          status: 200,
+          data: url.endsWith('/process-metadata')
+            ? [
+                { id: 'Pdf', name: 'PDF-generering', dataTypeTags: [] },
+                { id: 'Sign', name: 'Signering', dataTypeTags: [] },
+              ]
+            : workflowsResponse,
+        }) as AxiosResponse,
+    );
+    renderInstanceWorkflows();
+
+    expect(await screen.findByText('PDF-generering → Signering')).toBeInTheDocument();
   });
 });
 

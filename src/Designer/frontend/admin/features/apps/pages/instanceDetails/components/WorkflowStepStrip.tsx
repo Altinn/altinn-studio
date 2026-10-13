@@ -7,6 +7,7 @@ import type {
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { groupStepsOfWorkflows } from 'admin/features/apps/utils/workflowPhases';
 import { stepDisplayName } from 'admin/features/apps/utils/stepNames';
+import { useTaskNameOf } from 'admin/features/apps/hooks/useTaskNames';
 
 import classes from './WorkflowStepStrip.module.css';
 
@@ -47,6 +48,7 @@ export type WorkflowStepStripProps = {
  */
 export const WorkflowStepStrip = ({ workflows }: WorkflowStepStripProps): ReactElement | null => {
   const { t } = useTranslation();
+  const taskNameOf = useTaskNameOf();
   const dots = groupStepsOfWorkflows(workflows).flatMap((group) =>
     group.steps.map(({ step, workflow }) => ({ step, workflow, element: group.elementId })),
   );
@@ -72,10 +74,10 @@ export const WorkflowStepStrip = ({ workflows }: WorkflowStepStripProps): ReactE
           data-tone={recoveredFromErrors(step) ? 'warning' : (DOT_TONE[step.status] ?? 'neutral')}
           data-live={step.status === 'Processing' || undefined}
           title={[
-            stepDisplayName(step, workflow, t),
+            stepDisplayName(step, workflow, t, taskNameOf),
             step.status,
             recoveredFromErrors(step) && hadErrorsText,
-            element,
+            element && taskNameOf(element),
           ]
             .filter(Boolean)
             .join(' · ')}

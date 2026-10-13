@@ -56,6 +56,11 @@ import {
 } from 'admin/features/apps/utils/workflowTriage';
 import { groupStepsOfWorkflows } from 'admin/features/apps/utils/workflowPhases';
 import { stepDisplayName } from 'admin/features/apps/utils/stepNames';
+import {
+  TaskNamesContext,
+  useTaskNameOf,
+  useTaskNames,
+} from 'admin/features/apps/hooks/useTaskNames';
 import { WorkflowActions } from './WorkflowActions';
 import { WorkflowStepStrip } from './WorkflowStepStrip';
 
@@ -82,6 +87,7 @@ export const InstanceWorkflows = ({
   const collectionKey = extractInstanceGuid(instanceId);
   const { data, status, error, fetchNextPage, hasNextPage, isFetchNextPageError } =
     useInstanceWorkflowsQuery(org, environment, app, collectionKey);
+  const taskNameOf = useTaskNames(org, environment, app);
 
   return (
     <StudioCard>
@@ -89,16 +95,18 @@ export const InstanceWorkflows = ({
       <StudioParagraph data-size='sm' className={classes.description}>
         {t('admin.workflows.description')}
       </StudioParagraph>
-      <InstanceWorkflowsContent
-        context={{ org, env: environment, app, collectionKey }}
-        environment={environment}
-        status={status}
-        error={error}
-        workflows={data}
-        hasMoreResults={hasNextPage}
-        fetchMoreResults={fetchNextPage}
-        isFetchMoreError={isFetchNextPageError}
-      />
+      <TaskNamesContext.Provider value={taskNameOf}>
+        <InstanceWorkflowsContent
+          context={{ org, env: environment, app, collectionKey }}
+          environment={environment}
+          status={status}
+          error={error}
+          workflows={data}
+          hasMoreResults={hasNextPage}
+          fetchMoreResults={fetchNextPage}
+          isFetchMoreError={isFetchNextPageError}
+        />
+      </TaskNamesContext.Provider>
     </StudioCard>
   );
 };
@@ -269,16 +277,21 @@ const SideChainRow = ({ context, workflow }: SideChainItemProps) => {
  * A workflow's operation id, all of it, in two weights: what sets this workflow apart — the part
  * after the colon, a transition's arrow drawn as an arrow — first and in full, and the kind of
  * workflow the rows share — `Process next`, `Mailbox receive` — after it, quiet. Down a list the
- * eye then reads the transitions, not the same two words on every row. The id as it came is in the
- * tooltip.
+ * eye then reads the transitions, not the same two words on every row. A transition's tasks go by
+ * their names in the app's process. The id as it came is in the tooltip.
  */
 const OperationName = ({ operationId }: { operationId: string }) => {
+  const taskNameOf = useTaskNameOf();
   const colon = operationId.indexOf(': ');
   if (colon === -1) {
     return <span className={classes.summaryOperation}>{operationId}</span>;
   }
   const kind = operationId.slice(0, colon);
-  const subject = operationId.slice(colon + 2).replace(' -> ', ' → ');
+  const subject = operationId
+    .slice(colon + 2)
+    .split(' -> ')
+    .map(taskNameOf)
+    .join(' → ');
   return (
     <span className={classes.summaryOperation} title={operationId}>
       <span className={classes.operationSubject}>{subject}</span>{' '}
@@ -299,6 +312,7 @@ const OperationName = ({ operationId }: { operationId: string }) => {
  */
 const WorkflowSummary = ({ group }: { group: WorkflowGroup }) => {
   const { t } = useTranslation();
+  const taskNameOf = useTaskNameOf();
   const { workflow, members, sideChains } = group;
   const focus = groupFocusWorkflow(group);
   const status = focus.overallStatus;
@@ -323,7 +337,7 @@ const WorkflowSummary = ({ group }: { group: WorkflowGroup }) => {
   const currentStep = focusStepOf(focus);
   const currentStepName =
     currentStep && currentStep.status !== 'Completed'
-      ? stepDisplayName(currentStep, focus, t)
+      ? stepDisplayName(currentStep, focus, t, taskNameOf)
       : undefined;
 
   // A row blinks once when it lands in a settled status. Not on every read that touches it: a
@@ -451,6 +465,7 @@ const WorkflowSteps = ({
   group: WorkflowGroup;
 }) => {
   const { t } = useTranslation();
+  const taskNameOf = useTaskNameOf();
   const { members, sideChains } = group;
   const stepGroups = groupStepsOfWorkflows(members);
   const focusSteps = new Set(members.map(focusStepOf));
@@ -479,7 +494,7 @@ const WorkflowSteps = ({
             const indent = heading ? classes.groupedCell : undefined;
             return (
               <Fragment key={stepGroup.steps[0].step.databaseId}>
-                {heading && <GroupHeading>{heading}</GroupHeading>}
+                {heading && <GroupHeading>{taskNameOf(heading)}</GroupHeading>}
                 {stepGroup.steps.map(({ step, workflow }) => {
                   const hasVerbs = focusSteps.has(step) && hasWorkflowVerbs(workflow);
                   const hasDetails = hasStepDetails(step) || hasVerbs;
@@ -490,7 +505,7 @@ const WorkflowSteps = ({
                         className={hasDetails ? classes.stepRowWithDetails : undefined}
                       >
                         <StudioTable.Cell className={indent} title={step.operationId}>
-                          {stepDisplayName(step, workflow, t)}
+                          {stepDisplayName(step, workflow, t, taskNameOf)}
                         </StudioTable.Cell>
                         <StudioTable.Cell>
                           <WorkflowStatusMark status={step.status} />

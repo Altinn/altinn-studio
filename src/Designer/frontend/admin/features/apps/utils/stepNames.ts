@@ -28,6 +28,7 @@ export function stepDisplayName(
   step: WorkflowStepStatus,
   workflow: WorkflowStatus,
   t: TFunction,
+  taskNameOf: (elementId: string) => string = (elementId) => elementId,
 ): string {
   const name = step.labels?.[STEP_NAME_LABEL];
   if (name) {
@@ -56,7 +57,7 @@ export function stepDisplayName(
   }
   const task = workflow.labels?.[TARGET_TASK_LABEL];
   return task
-    ? t('admin.workflows.step.position.stage_in_task', { number, task })
+    ? t('admin.workflows.step.position.stage_in_task', { number, task: taskNameOf(task) })
     : t('admin.workflows.step.position.stage', { number });
 }
 
