@@ -181,8 +181,14 @@ describe('InstanceWorkflows', () => {
       within(row).getAllByText(textMock('admin.workflows.status.held')).length,
     ).toBeGreaterThan(0);
     expect(within(row).getByText('AcquireProcessingStatus')).toBeInTheDocument();
-    expect(within(row).getByText('ExecuteServiceTask: 0')).toBeInTheDocument();
-    expect(within(row).getAllByText('ExecuteServiceTask: 1').length).toBeGreaterThan(0);
+    // A service task's steps are named by their position, the one in its own workflow as answering.
+    expect(
+      within(row).getByText(textMock('admin.workflows.step.position.stage', { number: 1 })),
+    ).toBeInTheDocument();
+    expect(
+      within(row).getAllByText(textMock('admin.workflows.step.position.replies', { number: 2 }))
+        .length,
+    ).toBeGreaterThan(0);
   });
 
   it("opens the transition that spawned a failed side chain, with the side chain's error and retry in view", async () => {

@@ -55,6 +55,7 @@ import {
   toTime,
 } from 'admin/features/apps/utils/workflowTriage';
 import { groupStepsOfWorkflows } from 'admin/features/apps/utils/workflowPhases';
+import { stepDisplayName } from 'admin/features/apps/utils/stepNames';
 import { WorkflowActions } from './WorkflowActions';
 import { WorkflowStepStrip } from './WorkflowStepStrip';
 
@@ -321,7 +322,9 @@ const WorkflowSummary = ({ group }: { group: WorkflowGroup }) => {
   // Named while the chain is unfinished; a finished one needs no word beside its dots.
   const currentStep = focusStepOf(focus);
   const currentStepName =
-    currentStep && currentStep.status !== 'Completed' ? currentStep.operationId : undefined;
+    currentStep && currentStep.status !== 'Completed'
+      ? stepDisplayName(currentStep, focus, t)
+      : undefined;
 
   // A row blinks once when it lands in a settled status. Not on every read that touches it: a
   // retrying workflow changes every attempt, and a blink per attempt is noise. The change is caught
@@ -486,7 +489,9 @@ const WorkflowSteps = ({
                       <StudioTable.Row
                         className={hasDetails ? classes.stepRowWithDetails : undefined}
                       >
-                        <StudioTable.Cell className={indent}>{step.operationId}</StudioTable.Cell>
+                        <StudioTable.Cell className={indent} title={step.operationId}>
+                          {stepDisplayName(step, workflow, t)}
+                        </StudioTable.Cell>
                         <StudioTable.Cell>
                           <WorkflowStatusMark status={step.status} />
                         </StudioTable.Cell>

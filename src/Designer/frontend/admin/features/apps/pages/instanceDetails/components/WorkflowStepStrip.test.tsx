@@ -70,7 +70,11 @@ describe('WorkflowStepStrip', () => {
         name: textMock('admin.workflows.row.steps', { completed: 4, total: 4 }),
       }),
     ).toBeInTheDocument();
-    expect(screen.getByTitle('ExecuteServiceTask: 1 · Completed')).toBeInTheDocument();
+    expect(
+      screen.getByTitle(
+        `${textMock('admin.workflows.step.position.replies', { number: 2 })} · Completed`,
+      ),
+    ).toBeInTheDocument();
   });
 });
 

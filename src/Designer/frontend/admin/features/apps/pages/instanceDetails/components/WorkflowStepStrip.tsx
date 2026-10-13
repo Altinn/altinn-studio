@@ -6,6 +6,7 @@ import type {
   WorkflowStepStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { groupStepsOfWorkflows } from 'admin/features/apps/utils/workflowPhases';
+import { stepDisplayName } from 'admin/features/apps/utils/stepNames';
 
 import classes from './WorkflowStepStrip.module.css';
 
@@ -40,15 +41,16 @@ export type WorkflowStepStripProps = {
 };
 
 /**
- * A row's steps as one row of dots, in the order they ran, in runs by the task they belong to: the
- * task the transition ends, then the one it starts. The runs are spaced apart, so which side of a
- * transition a row stopped on shows without opening it. The dots are for a sighted reader scanning
- * the list; the strip as a whole reads as one sentence to assistive technology.
+ * A row's steps as one even row of dots, in the order they ran. Each dot's tooltip names the step
+ * and the task it belongs to. The dots are for a sighted reader scanning the list; the strip as a
+ * whole reads as one sentence to assistive technology.
  */
 export const WorkflowStepStrip = ({ workflows }: WorkflowStepStripProps): ReactElement | null => {
   const { t } = useTranslation();
-  const groups = groupStepsOfWorkflows(workflows);
-  const steps = groups.flatMap((group) => group.steps.map(({ step }) => step));
+  const dots = groupStepsOfWorkflows(workflows).flatMap((group) =>
+    group.steps.map(({ step, workflow }) => ({ step, workflow, element: group.elementId })),
+  );
+  const steps = dots.map(({ step }) => step);
 
   if (!steps.length) {
     return null;
@@ -63,31 +65,22 @@ export const WorkflowStepStrip = ({ workflows }: WorkflowStepStripProps): ReactE
 
   return (
     <span className={classes.dots} role='img' aria-label={label}>
-      {groups.map((group) => {
-        const groupLabel = group.elementId;
-        return (
-          <span key={group.steps[0].step.databaseId} className={classes.group}>
-            {group.steps.map(({ step }) => (
-              <span
-                key={step.databaseId}
-                className={classes.dot}
-                data-tone={
-                  recoveredFromErrors(step) ? 'warning' : (DOT_TONE[step.status] ?? 'neutral')
-                }
-                data-live={step.status === 'Processing' || undefined}
-                title={[
-                  step.operationId,
-                  step.status,
-                  recoveredFromErrors(step) && hadErrorsText,
-                  groupLabel,
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
-              />
-            ))}
-          </span>
-        );
-      })}
+      {dots.map(({ step, workflow, element }) => (
+        <span
+          key={step.databaseId}
+          className={classes.dot}
+          data-tone={recoveredFromErrors(step) ? 'warning' : (DOT_TONE[step.status] ?? 'neutral')}
+          data-live={step.status === 'Processing' || undefined}
+          title={[
+            stepDisplayName(step, workflow, t),
+            step.status,
+            recoveredFromErrors(step) && hadErrorsText,
+            element,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
+        />
+      ))}
     </span>
   );
 };
