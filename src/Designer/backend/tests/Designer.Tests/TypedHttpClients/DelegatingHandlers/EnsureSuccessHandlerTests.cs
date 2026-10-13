@@ -15,12 +15,12 @@ namespace Designer.Tests.TypedHttpClients.DelegatingHandlers;
 public class EnsureSuccessHandlerTests
 {
     [Fact]
-    public async Task SendAsync_FailedResponse_LogsUrlWithoutQueryOrBody()
+    public async Task SendAsync_ServerError_LogsUrlWithoutQueryOrBody()
     {
         var logger = new CapturingLogger();
         using var handler = new EnsureSuccessHandler(logger)
         {
-            InnerHandler = new StubHandler(HttpStatusCode.BadRequest, "response-body-secret"),
+            InnerHandler = new StubHandler(HttpStatusCode.InternalServerError, "response-body-secret"),
         };
         using var client = new HttpClient(handler);
 
@@ -30,9 +30,27 @@ public class EnsureSuccessHandlerTests
 
         string message = Assert.Single(logger.Messages);
         Assert.Contains("GET request to https://platform.example/storage/api/v1/items failed", message);
-        Assert.Contains("BadRequest", message);
+        Assert.Contains("InternalServerError", message);
         Assert.DoesNotContain("query-secret", message);
         Assert.DoesNotContain("response-body-secret", message);
+    }
+
+    [Fact]
+    public async Task SendAsync_ClientError_ThrowsWithoutLogging()
+    {
+        var logger = new CapturingLogger();
+        using var handler = new EnsureSuccessHandler(logger)
+        {
+            InnerHandler = new StubHandler(HttpStatusCode.NotFound, string.Empty),
+        };
+        using var client = new HttpClient(handler);
+
+        var exception = await Assert.ThrowsAsync<HttpRequestWithStatusException>(() =>
+            client.GetAsync("https://platform.example/storage/api/v1/items/1")
+        );
+
+        Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        Assert.Empty(logger.Messages);
     }
 
     private sealed class StubHandler(HttpStatusCode statusCode, string body) : HttpMessageHandler

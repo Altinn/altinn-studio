@@ -1,5 +1,6 @@
 #nullable disable
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,19 +41,24 @@ public class EnsureSuccessHandler : DelegatingHandler
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError(
-                "// EnsureSuccessHandler // SendAsync // {Method} request to {RequestUrl} failed with status code {StatusCode}.",
-                request.Method,
-                request.RequestUri?.GetComponents(
-                    UriComponents.SchemeAndServer | UriComponents.Path,
-                    UriFormat.UriEscaped
-                ),
-                response.StatusCode
-            );
+            // A 4xx is often expected, such as a 404 the caller handles. The exception is recorded on the request's
+            // root span if nothing handles it.
+            if (response.StatusCode >= HttpStatusCode.InternalServerError)
+            {
+                LogFailure(request, response);
+            }
 
             throw new HttpRequestWithStatusException(response.ReasonPhrase) { StatusCode = response.StatusCode };
         }
 
         return response;
     }
+
+    private void LogFailure(HttpRequestMessage request, HttpResponseMessage response) =>
+        _logger.LogError(
+            "// EnsureSuccessHandler // SendAsync // {Method} request to {RequestUrl} failed with status code {StatusCode}.",
+            request.Method,
+            request.RequestUri?.GetComponents(UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.UriEscaped),
+            response.StatusCode
+        );
 }

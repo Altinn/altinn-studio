@@ -2,15 +2,23 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Filters.IO;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
+using Altinn.Studio.Designer.ViewModels.Request;
 using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Rest.TransientFaultHandling;
+using Moq;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -30,6 +38,8 @@ public class OpenTelemetryTests
     private readonly List<Metric> _metrics = [];
     private readonly List<LogRecord> _logs = [];
     private IServiceProvider? _services;
+    private Exception? _environmentsException;
+    private Exception? _releasesException;
 
     protected override bool EnableOpenTelemetry => true;
 
@@ -43,6 +53,22 @@ public class OpenTelemetryTests
             services.ConfigureOpenTelemetryMeterProvider(metrics => metrics.AddInMemoryExporter(_metrics));
             services.ConfigureOpenTelemetryLoggerProvider(logging => logging.AddInMemoryExporter(_logs));
             services.AddSingleton<IStartupFilter>(new ServicesCapture(services => _services = services));
+            if (_environmentsException is not null)
+            {
+                var environmentsService = new Mock<IEnvironmentsService>();
+                environmentsService.Setup(service => service.GetEnvironments()).ThrowsAsync(_environmentsException);
+                services.AddSingleton(environmentsService.Object);
+            }
+            if (_releasesException is not null)
+            {
+                var releaseService = new Mock<IReleaseService>();
+                releaseService
+                    .Setup(service =>
+                        service.GetAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DocumentQueryModel>())
+                    )
+                    .ThrowsAsync(_releasesException);
+                services.AddSingleton(releaseService.Object);
+            }
         };
     }
 
@@ -89,6 +115,77 @@ public class OpenTelemetryTests
         Assert.DoesNotContain(requestPoints, point => Tag(point, "http.route") == "/health");
         Assert.DoesNotContain(_spans, span => span.GetTagItem("url.path") as string == "/health");
     }
+
+    [Fact]
+    public async Task ExceptionHandledByFilter_IsRecordedOnRootSpanWithoutErrorLog()
+    {
+        _environmentsException = new FileNotFoundException("missing.json");
+
+        using HttpResponseMessage response = await HttpClient.GetAsync(EnvironmentsPath);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Activity rootSpan = RootSpan(EnvironmentsPath);
+        Assert.Equal(
+            typeof(FileNotFoundException).FullName,
+            rootSpan.GetTagItem(ServiceTelemetry.Attributes.Error.ExceptionType)
+        );
+        Assert.Equal(IoErrorCodes.ResourceNotFound, rootSpan.GetTagItem(ServiceTelemetry.Attributes.Error.Code));
+        Assert.DoesNotContain(_logs, record => record.LogLevel >= LogLevel.Error);
+    }
+
+    [Fact]
+    public async Task ExceptionHandledAsClientError_IsRecordedOnRootSpanWithoutErrorLog()
+    {
+        _environmentsException = new HttpRequestWithStatusException("Not Found")
+        {
+            StatusCode = HttpStatusCode.NotFound,
+        };
+
+        using HttpResponseMessage response = await HttpClient.GetAsync(EnvironmentsPath);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Activity rootSpan = RootSpan(EnvironmentsPath);
+        Assert.Equal(
+            typeof(HttpRequestWithStatusException).FullName,
+            rootSpan.GetTagItem(ServiceTelemetry.Attributes.Error.ExceptionType)
+        );
+        Assert.DoesNotContain(_logs, record => record.LogLevel >= LogLevel.Error);
+    }
+
+    [Fact]
+    public async Task UnhandledException_IsLoggedAsError()
+    {
+        _environmentsException = new InvalidOperationException("Unexpected failure");
+
+        using HttpResponseMessage response = await HttpClient.GetAsync(EnvironmentsPath);
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        LogRecord record = Assert.Single(_logs, record => record.LogLevel == LogLevel.Error);
+        Assert.IsType<InvalidOperationException>(record.Exception);
+        Assert.Null(RootSpan(EnvironmentsPath).GetTagItem(ServiceTelemetry.Attributes.Error.ExceptionType));
+    }
+
+    [Fact]
+    public async Task UnhandledException_KeepsDomainAttributesOnRootSpan()
+    {
+        _releasesException = new InvalidOperationException("Unexpected failure");
+        const string ReleasesPath = "/designer/api/ttd/my-app/releases";
+
+        using HttpResponseMessage response = await HttpClient.GetAsync(ReleasesPath);
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Activity rootSpan = RootSpan(ReleasesPath);
+        Assert.Equal("ttd", rootSpan.GetTagItem(ServiceTelemetry.Attributes.ServiceOwner));
+        Assert.Equal("my-app", rootSpan.GetTagItem(ServiceTelemetry.Attributes.App));
+    }
+
+    private const string EnvironmentsPath = "/designer/api/environments";
+
+    private Activity RootSpan(string path) =>
+        Assert.Single(
+            _spans,
+            span => span.Kind == ActivityKind.Server && span.GetTagItem("url.path") as string == path
+        );
 
     private IServiceProvider Services =>
         _services ?? throw new InvalidOperationException("The test server has not started.");
