@@ -130,7 +130,9 @@ runner image, not in a workflow step.
   with `gh run view <id> --json conclusion`.
 - **A matrix shows one cause as several failures.** Fail-fast cancels the sibling legs ("The
   operation was canceled"); find the job that failed on its own with `gh run view <id> --json jobs`.
-- **Re-running a cancelled App Frontend Cypress shard** fails at once with "The focused App Frontend
-  dependency cache was not populated by the prerequisite job", because `--failed` does not re-run
-  the job that seeded the cache. Re-run the whole workflow instead. A failure screenshot showing a
-  502 page means the app never started, not that the change broke it.
+- **App Frontend Cypress shards** that stop making progress are ended by a watchdog
+  (`run-cypress-with-diagnostics.mjs`), which uploads diagnostics for the blocked spec. Re-running
+  only the failed shard can fail at once with "The focused App Frontend dependency cache was not
+  populated by the prerequisite job", because `--failed` does not re-run the job that seeded the
+  cache; re-run the whole workflow then. A failure screenshot showing a 502 page means the app
+  never started, not that the change broke it.
