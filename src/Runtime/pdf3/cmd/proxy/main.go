@@ -23,6 +23,7 @@ import (
 	"altinn.studio/pdf3/internal/log"
 	iruntime "altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/telemetry"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 
@@ -37,7 +38,7 @@ import (
 func main() {
 	logger := log.NewComponent("proxy")
 
-	logger.Info("Starting", "GOMAXPROCS", runtime.GOMAXPROCS(0), "NumCPU", runtime.NumCPU())
+	logger.Info("Starting", attr.GoMaxProcs, runtime.GOMAXPROCS(0), attr.NumCPU, runtime.NumCPU())
 
 	cfg := config.ReadConfig()
 	otelShutdown, err := telemetry.ConfigureOTel(
@@ -46,7 +47,7 @@ func main() {
 		config.ResolveOTelSignals(cfg.Environment),
 	)
 	if err != nil {
-		logger.Error("Failed to initialize telemetry", "error", err)
+		logger.Error("Failed to initialize telemetry", attr.Error, err)
 		os.Exit(1)
 	}
 
@@ -100,9 +101,9 @@ func main() {
 	}
 
 	go func() {
-		logger.Info("Starting proxy HTTP server", "addr", server.Addr, "worker_addr", workerHTTPAddr)
+		logger.Info("Starting proxy HTTP server", attr.ListenAddress, server.Addr, attr.WorkerAddress, workerHTTPAddr)
 		if listenErr := server.ListenAndServe(); listenErr != nil && !errors.Is(listenErr, http.ErrServerClosed) {
-			logger.Error("HTTP server crashed", "error", listenErr)
+			logger.Error("HTTP server crashed", attr.Error, listenErr)
 			os.Exit(1)
 		}
 	}()
@@ -122,12 +123,12 @@ func main() {
 	logger.Info("Shutting down telemetry")
 	telemetryShutdownTimeout := config.ResolveTelemetryShutdownTimeoutForEnvironment(cfg.Environment)
 	if telemetryShutdownTimeout == 0 {
-		logger.Info("Skipping graceful telemetry flush", "environment", cfg.Environment)
+		logger.Info("Skipping graceful telemetry flush", attr.DeploymentEnvironmentName, cfg.Environment)
 	} else {
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), telemetryShutdownTimeout)
 		defer cancel()
 		if err := otelShutdown(shutdownCtx); err != nil {
-			logger.Warn("Failed to gracefully shut down telemetry", "error", err)
+			logger.Warn("Failed to gracefully shut down telemetry", attr.Error, err)
 		}
 	}
 
@@ -185,7 +186,7 @@ func generatePdf(
 		r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
 		defer func() {
 			if closeErr := r.Body.Close(); closeErr != nil {
-				logger.WarnContext(r.Context(), "Failed to close request body", "error", closeErr)
+				logger.WarnContext(r.Context(), "Failed to close request body", attr.Error, closeErr)
 			}
 		}()
 
@@ -219,8 +220,8 @@ func generatePdf(
 		//   means we might try to allocate a worker for 10 seconds before giving up.
 		//   If the cluster has available capacity a pod can boot in 2-10 seconds
 		const maxRetries = 40
-		reqLogger := logger.With("url", telemetry.RedactURL(req.URL), "max_retries", maxRetries)
-		reqLogger.Info("Generating PDF", "attempt", 0, "elapsed", time.Since(start))
+		reqLogger := logger.With(attr.RequestURL, telemetry.RedactURL(req.URL), attr.MaxRetries, maxRetries)
+		reqLogger.Info("Generating PDF", attr.Attempt, 0, attr.Elapsed, time.Since(start))
 
 		// Prepare request body
 		reqBody, err := json.Marshal(req)
@@ -308,12 +309,12 @@ func callWorker(
 		workerId = resp.Header.Get("X-Worker-Id")
 		workerIP = resp.Header.Get("X-Worker-Ip")
 		logger = logger.With(
-			"worker_id", workerId,
-			"attempt", attempt,
+			attr.WorkerID, workerId,
+			attr.Attempt, attempt,
 		)
 	} else {
 		logger = logger.With(
-			"attempt", attempt,
+			attr.Attempt, attempt,
 		)
 	}
 	if err != nil {
@@ -324,8 +325,8 @@ func callWorker(
 			logger.InfoContext(
 				ctx,
 				"Worker request failed, will retry",
-				"elapsed", time.Since(start),
-				"error", err,
+				attr.Elapsed, time.Since(start),
+				attr.Error, err,
 			)
 			select {
 			case <-time.After(250 * time.Millisecond):
@@ -342,14 +343,14 @@ func callWorker(
 		logger.ErrorContext(
 			ctx,
 			"Error calling PDF worker",
-			"elapsed", time.Since(start),
-			"error", err,
+			attr.Elapsed, time.Since(start),
+			attr.Error, err,
 		)
 		return true
 	}
 	defer func() {
 		if closeErr := resp.Body.Close(); closeErr != nil {
-			logger.WarnContext(ctx, "Failed to close worker response body", "error", closeErr)
+			logger.WarnContext(ctx, "Failed to close worker response body", attr.Error, closeErr)
 		}
 	}()
 
@@ -361,7 +362,7 @@ func callWorker(
 			assert.That(workerIP != "", "Worker IP should always be set in test internals mode")
 			w.Header().Set("X-Worker-Ip", workerIP)
 			w.Header().Set("X-Worker-Id", workerId)
-			logger.Debug("Returning worker info", "worker_ip", workerIP)
+			logger.Debug("Returning worker info", attr.WorkerIP, workerIP)
 		}
 
 		// Success - return PDF data
@@ -369,10 +370,10 @@ func callWorker(
 
 		w.WriteHeader(http.StatusOK)
 		if _, copyErr := io.Copy(w, resp.Body); copyErr != nil {
-			logger.ErrorContext(ctx, "Failed to write PDF response data", "error", copyErr)
+			logger.ErrorContext(ctx, "Failed to write PDF response data", attr.Error, copyErr)
 		}
 		logger.Info("Successfully generated PDF",
-			"elapsed", time.Since(start),
+			attr.Elapsed, time.Since(start),
 		)
 		return true
 	}
@@ -382,7 +383,7 @@ func callWorker(
 		logger.InfoContext(
 			ctx,
 			"Worker queue full, retrying",
-			"elapsed", time.Since(start),
+			attr.Elapsed, time.Since(start),
 		)
 		select {
 		case <-time.After(250 * time.Millisecond):
@@ -396,7 +397,7 @@ func callWorker(
 	errorDetailBytes, err := io.ReadAll(resp.Body)
 	errorDetail := ""
 	if err != nil {
-		logger.ErrorContext(ctx, "Error reading PDF worker response body", "error", err)
+		logger.ErrorContext(ctx, "Error reading PDF worker response body", attr.Error, err)
 	}
 	if !utf8.Valid(errorDetailBytes) {
 		logger.WarnContext(ctx, "Worker didn't return valid response body")
@@ -431,9 +432,9 @@ func callWorker(
 	logger.ErrorContext(
 		ctx,
 		"Error during generation",
-		"elapsed", time.Since(start),
-		"status_code", statusCode,
-		"detail", errorDetail,
+		attr.Elapsed, time.Since(start),
+		attr.HTTPResponseStatusCode, statusCode,
+		attr.ErrorDetail, errorDetail,
 	)
 	return true
 }
@@ -441,9 +442,9 @@ func callWorker(
 const (
 	// urlKindKey is what the request's URL renders, see appurl.Kind. It is on the request's
 	// HTTP server span and metrics.
-	urlKindKey = attribute.Key("altinn.pdf.url_kind")
+	urlKindKey = attribute.Key(attr.URLKind)
 	// urlRejectionKey is why the URL is not an app URL, on the span only.
-	urlRejectionKey = attribute.Key("altinn.pdf.url_rejection")
+	urlRejectionKey = attribute.Key(attr.URLRejection)
 )
 
 // recordURLKind records what rawURL renders on the request's HTTP server span and metrics. It
@@ -482,7 +483,7 @@ func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(htt
 
 		// Route directly to the specified worker pod IP
 		workerEndpoint := "http://" + net.JoinHostPort(targetWorkerIP, "5031") + r.URL.Path
-		logger.Debug("Routing test output request", "test_id", testID, "worker_ip", targetWorkerIP)
+		logger.Debug("Routing test output request", attr.TestID, testID, attr.WorkerIP, targetWorkerIP)
 
 		//nolint:gosec // targetWorkerIP is validated as an IP address and only used for internal test routing.
 		httpReq, err := http.NewRequestWithContext(r.Context(), r.Method, workerEndpoint, nil)
@@ -505,7 +506,7 @@ func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(htt
 		}
 		defer func() {
 			if closeErr := resp.Body.Close(); closeErr != nil {
-				logger.Warn("Failed to close forwarded response body", "error", closeErr)
+				logger.Warn("Failed to close forwarded response body", attr.Error, closeErr)
 			}
 		}()
 
@@ -519,7 +520,7 @@ func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(htt
 
 		// Copy response body
 		if _, err := io.Copy(w, resp.Body); err != nil {
-			logger.Error("Failed to write test output response", "error", err)
+			logger.Error("Failed to write test output response", attr.Error, err)
 		}
 	}
 }

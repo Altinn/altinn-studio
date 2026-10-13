@@ -8,6 +8,7 @@ import (
 
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/log"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 )
 
 var logger = log.NewComponent("config")
@@ -75,9 +76,9 @@ func ReadConfig() *Config {
 		} else {
 			logger.Warn(
 				"Failed to parse PDF3_QUEUE_SIZE, using default",
-				"value", queueSizeStr,
-				"default", queueSize,
-				"error", err,
+				attr.ConfigValue, queueSizeStr,
+				attr.ConfigDefault, queueSize,
+				attr.Error, err,
 			)
 		}
 	}
@@ -90,9 +91,9 @@ func ReadConfig() *Config {
 		} else {
 			logger.Warn(
 				"Failed to parse PDF3_BROWSER_RESTART_INTERVAL, using default",
-				"value", browserRestartIntervalStr,
-				"default", browserRestartInterval,
-				"error", err,
+				attr.ConfigValue, browserRestartIntervalStr,
+				attr.ConfigDefault, browserRestartInterval,
+				attr.Error, err,
 			)
 		}
 	}

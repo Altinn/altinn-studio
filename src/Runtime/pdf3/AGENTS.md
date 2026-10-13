@@ -110,6 +110,14 @@ make check                # Complete CI check (tidy, fmt, lint, test)
   (`https://{org}.apps.{hostname}/{org}/{app}/...`). The proxy records the classification as
   `altinn.pdf.url_kind`; it never changes how a request is served
 
+- **internal/telemetry** - OpenTelemetry setup, the attributes of a request's entry span, and URL
+  redaction
+  - **internal/telemetry/attr** - The name of every attribute pdf3 puts on a span or log record.
+    Use its constants for span attributes and log keys alike, never a string literal, so a concept
+    has one name on every signal. pdf3's own names are under `altinn.pdf.`, shared concepts use
+    the Altinn vocabulary (`altinn.service_owner`, …) and standard ones the semantic conventions
+    ([#21073](https://github.com/Altinn/altinn-studio/issues/21073))
+
 - **internal/assert** - Runtime assertions for invariant checking. Asserts should be used to catch programmer errors (e.g. invalid/unchecked assumptions about program state)
 - **internal/concurrent** - Thread-safe data structures (e.g., `Map`)
 - **internal/log** - Logging configuration

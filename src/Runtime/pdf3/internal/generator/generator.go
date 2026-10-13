@@ -19,6 +19,7 @@ import (
 	"altinn.studio/pdf3/internal/pdfa"
 	"altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/telemetry"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
@@ -42,7 +43,7 @@ func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 	}
 	defer func() {
 		if closeErr := browserProc.Close(); closeErr != nil {
-			logger.Error("Failed to close temporary browser", "error", closeErr)
+			logger.Error("Failed to close temporary browser", attr.Error, closeErr)
 		}
 	}()
 
@@ -54,7 +55,7 @@ func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 	defer func() {
 		// Closing connection during init - will be recreated anyway
 		if closeErr := conn.Close(); closeErr != nil {
-			logger.Error("Failed to close temporary browser connection", "error", closeErr)
+			logger.Error("Failed to close temporary browser connection", attr.Error, closeErr)
 		}
 	}()
 
@@ -81,8 +82,8 @@ func New() (*Custom, error) {
 		generator.pdfaConverter = pdfa.NewConverter()
 		logger.Info(
 			"PDF/A conversion enabled",
-			"environment", cfg.Environment,
-			"service_owner", cfg.ServiceOwner,
+			attr.DeploymentEnvironmentName, cfg.Environment,
+			attr.ServiceOwner, cfg.ServiceOwner,
 		)
 	}
 
@@ -91,7 +92,7 @@ func New() (*Custom, error) {
 		defer span.End()
 		defer func() {
 			r := recover()
-			assert.That(r == nil, "Generator initialization panicked", "error", r)
+			assert.That(r == nil, "Generator initialization panicked", attr.Error, r)
 		}()
 
 		logger.Info("Initializing Custom CDP")
@@ -100,28 +101,28 @@ func New() (*Custom, error) {
 		version, err := getBrowserVersion(logger)
 		if err != nil {
 			telemetry.SetError(span, "get_browser_version_failed", err)
-			assert.That(err == nil, "Failed to get browser version", "error", err)
+			assert.That(err == nil, "Failed to get browser version", attr.Error, err)
 		}
 
 		generator.browserVersion = version
 		if span.IsRecording() {
 			span.SetAttributes(
-				attribute.String("browser.version.product", version.Product),
-				attribute.String("browser.version.revision", version.Revision),
-				attribute.String("browser.version.protocol", version.ProtocolVersion),
+				attribute.String(attr.BrowserVersionProduct, version.Product),
+				attribute.String(attr.BrowserVersionRevision, version.Revision),
+				attribute.String(attr.BrowserVersionProtocol, version.ProtocolVersion),
 			)
 		}
 		logger.Info("Chrome version",
-			"product", version.Product,
-			"revision", version.Revision,
-			"protocol", version.ProtocolVersion,
+			attr.BrowserVersionProduct, version.Product,
+			attr.BrowserVersionRevision, version.Revision,
+			attr.BrowserVersionProtocol, version.ProtocolVersion,
 		)
 
 		init := func(id int) *browserSession {
-			logger.Info("Starting browser worker", "id", id)
+			logger.Info("Starting browser worker", attr.SessionID, id)
 
 			session, err := newBrowserSession(logger, id)
-			assert.That(err == nil, "Failed to create worker", "id", id, "error", err)
+			assert.That(err == nil, "Failed to create worker", attr.SessionID, id, attr.Error, err)
 
 			return session
 		}
@@ -130,7 +131,7 @@ func New() (*Custom, error) {
 		firstSession := init(1)
 		generator.activeSession.Store(firstSession)
 		if span.IsRecording() {
-			span.SetAttributes(attribute.Int("pdf.session.id", firstSession.id))
+			span.SetAttributes(attribute.Int(attr.SessionID, firstSession.id))
 		}
 
 		go generator.periodicRestart()
@@ -147,8 +148,13 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 	// The URL as logs show it: without query or fragment.
 	requestURL := telemetry.RedactURL(request.URL)
 	session := g.activeSession.Load()
-	assert.That(session != nil, "The worker should not call the generator unless it is ready", "url", requestURL)
-	assert.That(request.Validate() == nil, "Invalid request passed through to worker", "url", requestURL)
+	assert.That(
+		session != nil,
+		"The worker should not call the generator unless it is ready",
+		attr.RequestURL,
+		requestURL,
+	)
+	assert.That(request.Validate() == nil, "Invalid request passed through to worker", attr.RequestURL, requestURL)
 
 	ctx, span := g.tracer.Start(ctx, "pdf.generate", trace.WithSpanKind(trace.SpanKindInternal))
 	defer span.End()
@@ -160,12 +166,12 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		ctx:        ctx,
 		enqueuedAt: time.Now(),
 		cleanedUp:  false,
-		logger:     g.logger.With("url", requestURL),
+		logger:     g.logger.With(attr.RequestURL, requestURL),
 	}
 
 	if !session.tryEnqueue(req) {
 		// Queue-full 429s are expected; proxy retries handle them, so no span error or warning.
-		g.logger.InfoContext(ctx, "Request queue full, rejecting request", "url", requestURL)
+		g.logger.InfoContext(ctx, "Request queue full, rejecting request", attr.RequestURL, requestURL)
 		return nil, types.NewPDFError(types.ErrQueueFull, "", nil)
 	}
 
@@ -189,7 +195,12 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		recordPDFError(span, pdfErr)
 		return nil, pdfErr
 	case <-time.After(types.RequestTimeout()):
-		assert.That(false, "generator failed to respond to request, something must be stuck", "url", requestURL)
+		assert.That(
+			false,
+			"generator failed to respond to request, something must be stuck",
+			attr.RequestURL,
+			requestURL,
+		)
 		pdfErr := types.NewPDFError(types.ErrGenerationFail, "internal request timeout", nil)
 		recordPDFError(span, pdfErr)
 		return nil, pdfErr
@@ -211,7 +222,14 @@ func (g *Custom) prepareResponsePDF(ctx context.Context, requestURL string, data
 	converted, pdfErr := g.postProcessPDF(ctx, data)
 	if pdfErr != nil {
 		requestAttributes.SetPDFAConversion(g.convertToPDFA, "failed", len(data), 0)
-		g.logger.WarnContext(ctx, "PDF/A conversion failed, returning original PDF", "url", requestURL, "error", pdfErr)
+		g.logger.WarnContext(
+			ctx,
+			"PDF/A conversion failed, returning original PDF",
+			attr.RequestURL,
+			requestURL,
+			attr.Error,
+			pdfErr,
+		)
 		return data, nil
 	}
 
@@ -250,12 +268,16 @@ func (g *Custom) periodicRestart() {
 
 		// If interval is 0 or negative, periodic restart is disabled
 		if interval <= 0 {
-			g.logger.Info("Periodic browser restart is disabled, will recheck", "recheck_in", recheckInterval)
+			g.logger.Info(
+				"Periodic browser restart is disabled, will recheck",
+				attr.RestartRecheckInMs,
+				recheckInterval.Milliseconds(),
+			)
 			time.Sleep(recheckInterval)
 			continue
 		}
 
-		g.logger.Info("Periodic browser restart enabled", "interval", interval)
+		g.logger.Info("Periodic browser restart enabled", attr.RestartIntervalMs, interval.Milliseconds())
 		ticker := time.NewTicker(interval)
 
 		// Wait for first tick
@@ -266,15 +288,21 @@ func (g *Custom) periodicRestart() {
 		g.logger.Info("Starting periodic browser restart")
 		_, restartSpan := g.tracer.Start(context.Background(), "pdf.generator.restart")
 		if restartSpan.IsRecording() {
-			restartSpan.SetAttributes(attribute.Int64("pdf.restart.interval_ms", interval.Milliseconds()))
+			restartSpan.SetAttributes(attribute.Int64(attr.RestartIntervalMs, interval.Milliseconds()))
 		}
 
 		nextID := int(g.sessionIDCounter.Add(1))
 
-		g.logger.Info("Creating new browser session for restart", "id", nextID)
+		g.logger.Info("Creating new browser session for restart", attr.SessionID, nextID)
 		newSession, err := newBrowserSession(g.logger, nextID)
 		if err != nil {
-			g.logger.Error("Failed to create new browser session, keeping old session", "id", nextID, "error", err)
+			g.logger.Error(
+				"Failed to create new browser session, keeping old session",
+				attr.SessionID,
+				nextID,
+				attr.Error,
+				err,
+			)
 			telemetry.SetError(restartSpan, "new_session_failed", err)
 			restartSpan.End()
 			// Wait a bit before retrying to avoid tight loop on persistent errors
@@ -283,24 +311,24 @@ func (g *Custom) periodicRestart() {
 		}
 
 		oldSession := g.activeSession.Swap(newSession)
-		g.logger.Info("Swapped to new browser session", "old_id", oldSession.id, "new_id", nextID)
+		g.logger.Info("Swapped to new browser session", attr.SessionOldID, oldSession.id, attr.SessionNewID, nextID)
 		if restartSpan.IsRecording() {
 			restartSpan.SetAttributes(
-				attribute.Int("pdf.session.old_id", oldSession.id),
-				attribute.Int("pdf.session.new_id", nextID),
+				attribute.Int(attr.SessionOldID, oldSession.id),
+				attribute.Int(attr.SessionNewID, nextID),
 			)
 		}
 
 		drained := oldSession.waitForDrain(types.SessionDrainTimeout)
 		if restartSpan.IsRecording() {
 			restartSpan.SetAttributes(
-				attribute.Bool("pdf.session.drained", drained),
-				attribute.Int64("pdf.session.drain_timeout_ms", types.SessionDrainTimeout.Milliseconds()),
+				attribute.Bool(attr.SessionDrained, drained),
+				attribute.Int64(attr.SessionDrainTimeoutMs, types.SessionDrainTimeout.Milliseconds()),
 			)
 		}
 
 		oldSession.close()
-		g.logger.Info("Browser restart complete", "old_id", oldSession.id, "new_id", nextID)
+		g.logger.Info("Browser restart complete", attr.SessionOldID, oldSession.id, attr.SessionNewID, nextID)
 		restartSpan.End()
 
 		// Loop back to recheck interval (allows dynamic config changes)
@@ -340,7 +368,7 @@ func (r *workerRequest) tryRespondOk(data []byte) {
 		}
 		select {
 		case r.responder <- response:
-			r.logger.Info("Responded successfully", "data_size", len(data))
+			r.logger.Info("Responded successfully", attr.ResponseSizeBytes, len(data))
 			break
 		default:
 			// INFO: the abandoned request already logs its own error.
@@ -358,7 +386,7 @@ func (r *workerRequest) tryRespondError(err *types.PDFError) {
 		}
 		select {
 		case r.responder <- response:
-			r.logger.Info("Responded with error", "error", err)
+			r.logger.Info("Responded with error", attr.Error, err)
 			break
 		default:
 			// INFO: the abandoned request already logs its own error.

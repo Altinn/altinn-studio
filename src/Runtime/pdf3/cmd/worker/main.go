@@ -26,6 +26,7 @@ import (
 	"altinn.studio/pdf3/internal/log"
 	iruntime "altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/telemetry"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 )
@@ -41,7 +42,7 @@ var errNoNonLoopbackIPv4 = errors.New("no non-loopback IPv4 address found")
 func main() {
 	baseLogger := log.NewComponent("worker")
 
-	baseLogger.Info("Starting", "GOMAXPROCS", runtime.GOMAXPROCS(0), "NumCPU", runtime.NumCPU())
+	baseLogger.Info("Starting", attr.GoMaxProcs, runtime.GOMAXPROCS(0), attr.NumCPU, runtime.NumCPU())
 
 	cfg := config.ReadConfig()
 	otelSignals := config.ResolveOTelSignals(cfg.Environment)
@@ -50,15 +51,15 @@ func main() {
 	if telemetryEnabled {
 		configuredShutdown, err := telemetry.ConfigureOTel(context.Background(), cfg.Environment, otelSignals)
 		if err != nil {
-			baseLogger.Error("Failed to initialize telemetry", "error", err)
+			baseLogger.Error("Failed to initialize telemetry", attr.Error, err)
 			os.Exit(1)
 		}
 		otelShutdown = configuredShutdown
 	} else {
 		baseLogger.Info(
 			"Telemetry exporter disabled for localtest",
-			"environment", cfg.Environment,
-			"enable_with", "OTEL_EXPORTER_OTLP_ENDPOINT or OTEL_EXPORTER_OTLP_{TRACES,METRICS,LOGS}_ENDPOINT",
+			attr.DeploymentEnvironmentName, cfg.Environment,
+			attr.ConfigEnableWith, "OTEL_EXPORTER_OTLP_ENDPOINT or OTEL_EXPORTER_OTLP_{TRACES,METRICS,LOGS}_ENDPOINT",
 		)
 	}
 
@@ -66,9 +67,9 @@ func main() {
 		if _, err := parseCanonicalLocaltestBaseURL(cfg.LocaltestPublicBaseURL); err != nil {
 			baseLogger.Error(
 				"Invalid localtest public base URL",
-				"error", err,
-				"env_var", config.LocaltestPublicBaseURLEnv,
-				"value", cfg.LocaltestPublicBaseURL,
+				attr.Error, err,
+				attr.ConfigEnvVar, config.LocaltestPublicBaseURLEnv,
+				attr.ConfigValue, cfg.LocaltestPublicBaseURL,
 			)
 			os.Exit(1)
 		}
@@ -83,23 +84,23 @@ func main() {
 	defer host.Stop()
 
 	hostname, err := os.Hostname()
-	assert.That(err == nil, "Could not read hostname", "error", err)
+	assert.That(err == nil, "Could not read hostname", attr.Error, err)
 
 	workerId = hostname
 
 	workerIP, err = discoverLocalIP()
-	assert.That(err == nil, "Failed to discover local IP", "error", err)
-	assert.That(workerIP != "", "Worker IP should be available", "worker_id", workerId)
+	assert.That(err == nil, "Failed to discover local IP", attr.Error, err)
+	assert.That(workerIP != "", "Worker IP should be available", attr.WorkerID, workerId)
 
 	// Create logger with worker context
-	logger := baseLogger.With("worker_id", workerId, "worker_ip", workerIP)
+	logger := baseLogger.With(attr.WorkerID, workerId, attr.WorkerIP, workerIP)
 
 	gen, err := generator.New()
-	assert.That(err == nil, "Failed to create PDF generator", "error", err)
+	assert.That(err == nil, "Failed to create PDF generator", attr.Error, err)
 	defer func() {
 		// Closing PDF generator during shutdown
 		if closeErr := gen.Close(); closeErr != nil {
-			logger.Error("Failed to close PDF generator", "error", closeErr)
+			logger.Error("Failed to close PDF generator", attr.Error, closeErr)
 		}
 	}()
 
@@ -138,9 +139,9 @@ func main() {
 	}
 
 	go func() {
-		logger.Info("Starting worker HTTP server", "addr", httpServer.Addr)
+		logger.Info("Starting worker HTTP server", attr.ListenAddress, httpServer.Addr)
 		if listenErr := httpServer.ListenAndServe(); listenErr != nil && !errors.Is(listenErr, http.ErrServerClosed) {
-			logger.Error("HTTP server crashed", "error", listenErr)
+			logger.Error("HTTP server crashed", attr.Error, listenErr)
 			os.Exit(1)
 		}
 	}()
@@ -161,12 +162,12 @@ func main() {
 		logger.Info("Shutting down telemetry")
 		telemetryShutdownTimeout := config.ResolveTelemetryShutdownTimeoutForEnvironment(cfg.Environment)
 		if telemetryShutdownTimeout == 0 {
-			logger.Info("Skipping graceful telemetry flush", "environment", cfg.Environment)
+			logger.Info("Skipping graceful telemetry flush", attr.DeploymentEnvironmentName, cfg.Environment)
 		} else {
 			shutdownCtx, cancel := context.WithTimeout(context.Background(), telemetryShutdownTimeout)
 			defer cancel()
 			if err := otelShutdown(shutdownCtx); err != nil {
-				logger.Warn("Failed to gracefully shut down telemetry", "error", err)
+				logger.Warn("Failed to gracefully shut down telemetry", attr.Error, err)
 			}
 		}
 	}
@@ -226,7 +227,7 @@ func generateLocalPdfHandler(
 		r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
 		defer func() {
 			if closeErr := r.Body.Close(); closeErr != nil {
-				logger.WarnContext(r.Context(), "Failed to close request body", "error", closeErr)
+				logger.WarnContext(r.Context(), "Failed to close request body", attr.Error, closeErr)
 			}
 		}()
 
@@ -247,21 +248,21 @@ func generateLocalPdfHandler(
 			logger.WarnContext(
 				r.Context(),
 				"Failed to normalize localtest request URL",
-				"error", normalizeErr,
-				"url", telemetry.RedactURL(req.URL),
-				"env_var", config.LocaltestPublicBaseURLEnv,
+				attr.Error, normalizeErr,
+				attr.RequestURL, telemetry.RedactURL(req.URL),
+				attr.ConfigEnvVar, config.LocaltestPublicBaseURLEnv,
 			)
 		} else if rewriteReason != "" {
 			logger.Info(
 				"Rewrote localtest request URL",
-				"reason", rewriteReason,
-				"from", req.URL,
-				"to", normalizedURL,
+				attr.LocaltestURLRewriteReason, rewriteReason,
+				attr.LocaltestURLRewriteFrom, req.URL,
+				attr.LocaltestURLRewriteTo, normalizedURL,
 			)
 			req.URL = normalizedURL
 		}
 
-		reqLogger := logger.With("url", telemetry.RedactURL(req.URL))
+		reqLogger := logger.With(attr.RequestURL, telemetry.RedactURL(req.URL))
 		data.SetPdfRequest(req)
 
 		if err := req.Validate(); err != nil {
@@ -305,7 +306,7 @@ func generateLocalPdfHandler(
 
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write(result.Data); err != nil {
-			reqLogger.ErrorContext(r.Context(), "Failed to write PDF response", "error", err)
+			reqLogger.ErrorContext(r.Context(), "Failed to write PDF response", attr.Error, err)
 		}
 	}
 }
@@ -414,7 +415,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 
 		defer func() {
 			if closeErr := r.Body.Close(); closeErr != nil {
-				logger.WarnContext(r.Context(), "Failed to close request body", "error", closeErr)
+				logger.WarnContext(r.Context(), "Failed to close request body", attr.Error, closeErr)
 			}
 		}()
 
@@ -425,7 +426,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 			return
 		}
 
-		reqLogger := logger.With("url", telemetry.RedactURL(req.URL))
+		reqLogger := logger.With(attr.RequestURL, telemetry.RedactURL(req.URL))
 		data.SetPdfRequest(req)
 
 		requestContext := r.Context()
@@ -457,7 +458,7 @@ func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.Handle
 
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write(result.Data); err != nil {
-			reqLogger.ErrorContext(r.Context(), "Failed to write PDF response", "error", err)
+			reqLogger.ErrorContext(r.Context(), "Failed to write PDF response", attr.Error, err)
 		}
 	}
 }
@@ -525,13 +526,13 @@ func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {
 
 		jsonData, err := json.Marshal(output)
 		if err != nil {
-			logger.Error("Failed to marshal test output", "error", err)
+			logger.Error("Failed to marshal test output", attr.Error, err)
 			ihttp.WriteText(r.Context(), logger, w, http.StatusInternalServerError, "Failed to serialize test output")
 			return
 		}
 
 		if _, err := w.Write(jsonData); err != nil {
-			logger.Error("Failed to write test output response", "error", err)
+			logger.Error("Failed to write test output response", attr.Error, err)
 		}
 	}
 }
@@ -541,8 +542,8 @@ func setWorkerSpanAttrs(span trace.Span) {
 		return
 	}
 	span.SetAttributes(
-		attribute.String("worker.id", workerId),
-		attribute.String("worker.ip", workerIP),
+		attribute.String(attr.WorkerID, workerId),
+		attribute.String(attr.WorkerIP, workerIP),
 	)
 }
 
@@ -562,5 +563,5 @@ func recordPDFError(ctx context.Context, logger *slog.Logger, span trace.Span, p
 	labeler, _ := otelhttp.LabelerFromContext(ctx)
 	labeler.Add(semconv.ErrorTypeKey.String(errorType))
 	telemetry.SetError(span, errorType, pdfErr)
-	logger.ErrorContext(ctx, "PDF generation failed", string(semconv.ErrorTypeKey), errorType, "error", pdfErr)
+	logger.ErrorContext(ctx, "PDF generation failed", attr.ErrorType, errorType, attr.Error, pdfErr)
 }

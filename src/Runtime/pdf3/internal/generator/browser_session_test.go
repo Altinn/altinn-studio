@@ -11,6 +11,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
 	"altinn.studio/pdf3/internal/telemetry"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 )
 
 func TestHtmlIDPattern(t *testing.T) {
@@ -112,8 +113,9 @@ func TestPageErrors_OneWarningPerRequest(t *testing.T) {
 	if n := strings.Count(got, "\n"); n != 1 {
 		t.Fatalf("logged %d records, want 1:\n%s", n, got)
 	}
-	want := `level=WARN msg="Page reported errors" console_errors=2 browser_errors=2 js_exceptions=2 ` +
-		`cdp.method=Runtime.consoleAPICalled message="Failed to load Object"`
+	want := `level=WARN msg="Page reported errors" ` +
+		attr.PageConsoleErrors + `=2 ` + attr.PageBrowserErrors + `=2 ` + attr.PageJSExceptions + `=2 ` +
+		attr.PageErrorCDPMethod + `=Runtime.consoleAPICalled ` + attr.PageErrorMessage + `="Failed to load Object"`
 	if !strings.Contains(got, want) {
 		t.Errorf("log = %q, want %q", got, want)
 	}
@@ -134,9 +136,9 @@ func TestPageErrors_OneWarningPerRequest(t *testing.T) {
 		counts[kv.Key] = kv.Value.AsInt64()
 	}
 	for _, key := range []attribute.Key{
-		"pdf.process.console_errors",
-		"pdf.process.browser_errors",
-		"pdf.process.js_exceptions",
+		attr.PageConsoleErrors,
+		attr.PageBrowserErrors,
+		attr.PageJSExceptions,
 	} {
 		if counts[key] != 2 {
 			t.Errorf("%s = %d, want 2", key, counts[key])
@@ -158,7 +160,7 @@ func TestPageErrors_FirstErrorIsTruncatedAndRedacted(t *testing.T) {
 	w.logPageErrors(t.Context(), requestErrors)
 
 	got := logs.String()
-	if !strings.Contains(got, " source=https://app.local/ttd/app/api/data") {
+	if !strings.Contains(got, " "+attr.PageErrorSource+"=https://app.local/ttd/app/api/data") {
 		t.Errorf("log = %q, want the source without user, query or fragment", got)
 	}
 	if strings.Contains(got, strings.Repeat("x", maxBrowserMessageLength+1)) {
