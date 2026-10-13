@@ -7,6 +7,7 @@ import {
 
 export interface CompPaymentExternal extends ComponentBase {
   type: 'Payment';
+  renderAsSummary?: boolean;
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
@@ -47,4 +48,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: PaymentSummaryOverridesWithRef;
 };
 
-// Source hash: 89496cd202cbeec237d2f8183d40229f4ccd8d1cf78150fa760be6bf4fad41dd
+// Source hash: 68c677aa8c196235dba2081f7b1b931d4819a31651acfc147f757d6456c6b834

@@ -3,6 +3,7 @@ import { ComponentBase, TRBSummarizable } from '@app/layout-contract/generated/c
 
 export type CompPaymentSerialized = {
   type: 'Payment';
+  renderAsSummary?: boolean;
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
@@ -11,4 +12,4 @@ export type CompPaymentSerialized = {
   dataModelBindings?: undefined;
 } & ComponentBase;
 
-// Source hash: 92396a0c18ab7c5dd545a88c3563022b5e15a66583e634d28bea802cd5a95a07
+// Source hash: f1a010215b9e6eba19f752b39e5ccbac9ed24dd830b3739110426b9715ebfd3f

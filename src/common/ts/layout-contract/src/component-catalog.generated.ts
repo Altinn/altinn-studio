@@ -9464,6 +9464,16 @@ const generatedContract = {
           },
           required: true,
         },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
         textResourceBindings: {
           type: 'object',
           properties: {

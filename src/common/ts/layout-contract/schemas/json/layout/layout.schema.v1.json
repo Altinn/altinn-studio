@@ -5930,6 +5930,12 @@
               "description": "Identifies which component type this configuration represents.",
               "const": "Payment"
             },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
             "textResourceBindings": {
               "allOf": [
                 {
@@ -5983,6 +5989,7 @@
             "grid": true,
             "pageBreak": true,
             "type": true,
+            "renderAsSummary": true,
             "textResourceBindings": true
           },
           "required": [
