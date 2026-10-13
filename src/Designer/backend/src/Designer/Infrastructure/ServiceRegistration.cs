@@ -97,6 +97,7 @@ public static class ServiceRegistration
         services.AddScoped<IDeployEventRepository, DeployEventRepository>();
         services.AddScoped<IAppScopesRepository, AppScopesRepository>();
         services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
+        services.AddScoped<IAppActivityRepository, AppActivityRepository>();
         services.AddScoped<IChatRepository, ChatRepository>();
         services.AddScoped<IResourceRegistryRepository, ResourceRegistryRepository>();
         services.AddScoped<IApiKeyRepository, ApiKeyRepository>();

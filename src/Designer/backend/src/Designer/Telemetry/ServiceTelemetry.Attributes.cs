@@ -29,6 +29,26 @@ internal static partial class ServiceTelemetry
         /// </summary>
         public const string Sampling = "altinn.studio.sampling";
 
+        public static class AppActivity
+        {
+            private const string Prefix = "altinn.designer.app_activity.";
+
+            public const string CollectionSkipReason = Prefix + "collection_skip_reason";
+            public const string DeployedAppCount = Prefix + "deployed_app_count";
+            public const string DeployedAppWithReadCount = Prefix + "deployed_app_with_read_count";
+            public const string DeployedAppWithWriteCount = Prefix + "deployed_app_with_write_count";
+            public const string DeployedAppWithoutSignalCount = Prefix + "deployed_app_without_signal_count";
+            public const string EnvironmentCollectedCount = Prefix + "environment_collected_count";
+            public const string EnvironmentFailedCount = Prefix + "environment_failed_count";
+            public const string EnvironmentSkippedCount = Prefix + "environment_skipped_count";
+            public const string ServiceOwnerCount = Prefix + "service_owner_count";
+            public const string ServiceOwnerFailedCount = Prefix + "service_owner_failed_count";
+            public const string TimedOut = Prefix + "timed_out";
+            public const string TimeoutSeconds = Prefix + "timeout_seconds";
+            public const string UndeployedAppWithSignalCount = Prefix + "undeployed_app_with_signal_count";
+            public const string WindowDays = Prefix + "window_days";
+        }
+
         public static class ChatCleanup
         {
             private const string Prefix = "altinn.designer.chat_cleanup.";

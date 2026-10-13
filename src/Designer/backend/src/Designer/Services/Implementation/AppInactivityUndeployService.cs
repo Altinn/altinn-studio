@@ -8,7 +8,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.AppSettings;
-using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.Telemetry;
@@ -78,7 +77,11 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
         }
 
         var candidates = new List<InactivityUndeployCandidate>();
-        var environments = await GetTargetEnvironmentsForOrg(options.Org, options.Environment, cancellationToken);
+        var environments = await _environmentsService.GetInactivityTargetEnvironmentsForOrg(
+            options.Org,
+            options.Environment,
+            cancellationToken
+        );
 
         foreach (var environmentName in environments)
         {
@@ -204,20 +207,5 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
             .Where(s => string.IsNullOrWhiteSpace(s.Environment))
             .Select(s => s.App)
             .ToHashSet(StringComparer.Ordinal);
-    }
-
-    private async Task<IReadOnlyList<string>> GetTargetEnvironmentsForOrg(
-        string org,
-        string? envFilter,
-        CancellationToken cancellationToken
-    )
-    {
-        if (!string.IsNullOrWhiteSpace(envFilter))
-        {
-            return AppInactivityUndeployJobConstants.IsTargetEnvironment(envFilter) ? [envFilter] : [];
-        }
-
-        var environments = await _environmentsService.GetOrganizationEnvironments(org, cancellationToken);
-        return environments.Select(e => e.Name).Where(AppInactivityUndeployJobConstants.IsTargetEnvironment).ToArray();
     }
 }
