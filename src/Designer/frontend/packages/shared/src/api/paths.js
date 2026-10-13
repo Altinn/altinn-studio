@@ -263,6 +263,9 @@ export const contactPointsPath = (org) => `${apiBasePath}/v1/orgs/${org}/contact
 export const contactPointPath = (org, id) => `${apiBasePath}/v1/orgs/${org}/contact-points/${id}`; // Put, Delete
 export const contactPointActivePath = (org, id) => `${apiBasePath}/v1/orgs/${org}/contact-points/${id}/active`; // Patch
 
+// Org settings - Inactivity undeploy
+export const orgInactivityUndeploySettingsPath = (org) => `${apiBasePathV1}/orgs/${org}/inactivity-undeploy-settings`; // Get, Put
+
 // Org settings - Bot accounts
 export const botAccountsPath = (org) => `${apiBasePathV1}/orgs/${org}/bot-accounts`; // Get, Post
 export const botAccountPath = (org, id) => `${apiBasePathV1}/orgs/${org}/bot-accounts/${id}`; // Get, Put

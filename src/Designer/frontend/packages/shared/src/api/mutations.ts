@@ -76,6 +76,7 @@ import {
   contactPointsPath,
   contactPointPath,
   contactPointActivePath,
+  orgInactivityUndeploySettingsPath,
   validateNavigationPageSettingsPath,
   botAccountsPath,
   botAccountPath,
@@ -134,7 +135,8 @@ import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigatio
 import type { ImportCodeListResponse } from 'app-shared/types/api/ImportCodeListResponse';
 import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
-import type { AppSettings } from 'app-shared/types/AppSettings';
+import type { AppSettingsPayload } from 'app-shared/types/AppSettings';
+import type { OrgInactivityUndeploySettings } from 'app-shared/types/OrgInactivityUndeploySettings';
 import type { AddUserApiKeyRequest } from 'app-shared/types/api/AddUserApiKeyRequest';
 import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
 import type { StudioctlAuthCallback } from 'app-shared/types/api/StudioctlAuth';
@@ -252,7 +254,7 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 
 // Maskinporten
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
-export const updateAppSettings = (org: string, app: string, payload: AppSettings) => put(appSettingsPath(org, app), payload);
+export const updateAppSettings = (org: string, app: string, payload: AppSettingsPayload) => put(appSettingsPath(org, app), payload);
 
 // Organization library
 export const updateSharedResources = async (org: string, payload: UpdateSharedResourcesRequest): Promise<void> => put(orgLibraryUpdatePath(org), payload);
@@ -285,6 +287,9 @@ export const addContactPoint = async (org: string, payload: ContactPointPayload)
 export const updateContactPoint = async (org: string, id: string, payload: ContactPointPayload): Promise<ContactPoint> => put(contactPointPath(org, id), payload);
 export const toggleContactPointActive = async (org: string, id: string, isActive: boolean): Promise<void> => patch(contactPointActivePath(org, id), { isActive });
 export const deleteContactPoint = async (org: string, id: string): Promise<void> => del(contactPointPath(org, id));
+
+// Org settings - Inactivity undeploy
+export const updateOrgInactivityUndeploySettings = (org: string, payload: OrgInactivityUndeploySettings): Promise<void> => put(orgInactivityUndeploySettingsPath(org), payload);
 
 // Org settings - Bot accounts
 export const createBotAccount = (org: string, payload: CreateBotAccountRequest): Promise<CreateBotAccountResponse> => post(botAccountsPath(org), payload);

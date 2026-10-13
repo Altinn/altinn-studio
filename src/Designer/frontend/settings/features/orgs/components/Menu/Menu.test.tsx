@@ -25,6 +25,11 @@ const getBotAccountsTab = () =>
     name: textMock('settings.orgs.bot_accounts.menu.bot_accounts'),
   });
 
+const getInactivityUndeployTab = () =>
+  screen.getByRole('tab', {
+    name: textMock('settings.orgs.inactivity_undeploy.menu.inactivity_undeploy'),
+  });
+
 describe('Menu', () => {
   it('renders the bot accounts tab', () => {
     renderMenu();
@@ -34,6 +39,11 @@ describe('Menu', () => {
   it('renders the contact points tab', () => {
     renderMenu();
     expect(getContactPointsTab()).toBeInTheDocument();
+  });
+
+  it('renders the inactivity undeploy tab', () => {
+    renderMenu();
+    expect(getInactivityUndeployTab()).toBeInTheDocument();
   });
 
   it('navigates when a tab is clicked', async () => {
