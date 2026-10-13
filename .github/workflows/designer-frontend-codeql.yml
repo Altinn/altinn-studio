@@ -12,6 +12,13 @@ on:
       - '.github/workflows/designer-frontend-codeql.yml'
       - 'package.json'
       - 'yarn.lock'
+      - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md'
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
