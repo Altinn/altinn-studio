@@ -19,10 +19,6 @@ export const Config = new CG.component({
     renderInTabs: true,
   },
 })
-  .makeSummarizable()
-  .addProperty(CG.common('renderAsSummary'))
-  .addProperty(CG.common('forceShowInSummary'))
-  .extendTextResources(CG.common('TRBSummarizable'))
   .addProperty(
     new CG.prop(
       'children',

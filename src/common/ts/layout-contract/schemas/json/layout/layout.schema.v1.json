@@ -2508,39 +2508,6 @@
               "description": "Identifies which component type this configuration represents.",
               "const": "ButtonGroup"
             },
-            "renderAsSummary": {
-              "title": "Render as summary",
-              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
-              "default": false,
-              "type": "boolean"
-            },
-            "forceShowInSummary": {
-              "title": "Force show in summary",
-              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
-              "default": false,
-              "$ref": "expression.schema.v1.json#/definitions/boolean"
-            },
-            "textResourceBindings": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/TRBSummarizable"
-                },
-                {
-                  "$ref": "#/definitions/TRBLabel"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "summaryTitle": true,
-                    "summaryAccessibleTitle": true,
-                    "title": true,
-                    "description": true,
-                    "help": true
-                  },
-                  "additionalProperties": false
-                }
-              ]
-            },
             "children": {
               "title": "Children",
               "description": "Child component IDs of button-like components to be rendered in this group",
@@ -2548,6 +2515,9 @@
               "items": {
                 "type": "string"
               }
+            },
+            "textResourceBindings": {
+              "$ref": "#/definitions/TRBLabel"
             }
           },
           "required": [
@@ -2564,10 +2534,8 @@
             "pageBreak": true,
             "labelSettings": true,
             "type": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
-            "textResourceBindings": true,
-            "children": true
+            "children": true,
+            "textResourceBindings": true
           },
           "required": [
             "id",

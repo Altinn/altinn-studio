@@ -19,14 +19,6 @@ export class ButtonGroup extends ButtonGroupDef {
     return false;
   }
 
-  renderSummary(): JSX.Element | null {
-    return null;
-  }
-
-  renderSummary2(): JSX.Element | null {
-    return null;
-  }
-
   claimChildren(props: ChildClaimerProps<'ButtonGroup'>): void {
     claimNonRepeatingChildren(props, props.item.children, {
       onlyWithCapability: 'renderInButtonGroup',

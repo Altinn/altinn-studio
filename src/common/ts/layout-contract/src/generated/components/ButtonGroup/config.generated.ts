@@ -1,17 +1,14 @@
-import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
   LabeledComponentProps,
   TRBLabel,
-  TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
+import { CompCategory } from '@app/layout-contract';
 
 export interface CompButtonGroupExternal extends ComponentBase, LabeledComponentProps {
   type: 'ButtonGroup';
-  renderAsSummary?: boolean;
-  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
-  textResourceBindings?: TRBSummarizable & TRBLabel;
   children: string[];
+  textResourceBindings?: TRBLabel;
   dataModelBindings?: undefined;
 }
 
@@ -28,7 +25,7 @@ export const componentConfig = {
     renderInTabs: true,
   },
   behaviors: {
-    isSummarizable: true,
+    isSummarizable: false,
     canHaveLabel: false,
     canHaveOptions: false,
     canHaveAttachments: false,
@@ -43,4 +40,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 6c65fe80eaa409b337a0e4795e3c8f8bd387ec339b841beff5299bd9fba83f30
+// Source hash: cb1c28f608966f0d78330a505bb8f80705b39a8a228987375643351a68d5bea3

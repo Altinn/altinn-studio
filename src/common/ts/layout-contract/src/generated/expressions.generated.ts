@@ -388,24 +388,7 @@ export const Expressions = {
         errorIntroText: 'Invalid expression for ButtonGroup, property pageBreak.breakAfter',
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
-    forceShowInSummary: {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      errorIntroText: 'Invalid expression for ButtonGroup, property forceShowInSummary',
-    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     textResourceBindings: {
-      summaryTitle: {
-        returnType: ExprVal.String,
-        defaultValue: undefined,
-        errorIntroText:
-          'Invalid expression for ButtonGroup, property textResourceBindings.summaryTitle',
-      } satisfies ExpressionDescriptor<ExprVal.String>,
-      summaryAccessibleTitle: {
-        returnType: ExprVal.String,
-        defaultValue: undefined,
-        errorIntroText:
-          'Invalid expression for ButtonGroup, property textResourceBindings.summaryAccessibleTitle',
-      } satisfies ExpressionDescriptor<ExprVal.String>,
       title: {
         returnType: ExprVal.String,
         defaultValue: undefined,
@@ -4479,4 +4462,4 @@ export const CommonExpressions = {
   } satisfies ExpressionDescriptor<ExprVal.Boolean>,
 } as const;
 
-// Source hash: a9840f39f265735e4ac39c1e575b20f2e4ea16addcb837e159d7866f759b3ae1
+// Source hash: d47050cd3671c35684839f45842341f629c7731f30ec2f8ad2793ee1773b4397

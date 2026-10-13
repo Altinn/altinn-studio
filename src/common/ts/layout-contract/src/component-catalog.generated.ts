@@ -5720,7 +5720,7 @@ const generatedContract = {
         renderInTabs: true,
       },
       behaviors: {
-        isSummarizable: true,
+        isSummarizable: false,
         canHaveLabel: false,
         canHaveOptions: false,
         canHaveAttachments: false,
@@ -5745,44 +5745,6 @@ const generatedContract = {
           },
           required: true,
         },
-        renderAsSummary: {
-          type: 'boolean',
-          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
-          description: {
-            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
-            nb: 'Angir om komponenten skal vises som en oppsummering.',
-          },
-          default: false,
-          required: false,
-        },
-        forceShowInSummary: {
-          type: 'boolean',
-          expression: true,
-          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
-          description: {
-            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
-            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
-          },
-          default: false,
-          required: false,
-        },
-        textResourceBindings: {
-          type: 'object',
-          properties: {
-            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
-            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
-            title: TRBLabel['properties']['title'],
-            description: TRBLabel['properties']['description'],
-            help: TRBLabel['properties']['help'],
-          },
-          additionalProperties: false,
-          title: { en: 'Text resources', nb: 'Tekstressurser' },
-          description: {
-            en: 'Connects component texts to text resources or expressions.',
-            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
-          },
-          required: false,
-        },
         children: {
           type: 'array',
           items: { type: 'string' },
@@ -5794,6 +5756,21 @@ const generatedContract = {
             nb: 'ID-ene til knappekomponentene som skal vises i gruppen.',
           },
           required: true,
+        },
+        textResourceBindings: {
+          type: 'object',
+          properties: {
+            title: TRBLabel['properties']['title'],
+            description: TRBLabel['properties']['description'],
+            help: TRBLabel['properties']['help'],
+          },
+          additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
+          required: false,
         },
       },
     },
