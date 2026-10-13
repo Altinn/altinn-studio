@@ -21,7 +21,7 @@ var errCommandFailed = errors.New("command failed")
 // failingConnection fails every CDP command.
 type failingConnection struct{}
 
-func (failingConnection) SendCommand(context.Context, string, any) (*cdp.CDPResponse, error) {
+func (failingConnection) SendCommand(context.Context, string, any) (*cdp.CDPMessage, error) {
 	return nil, errCommandFailed
 }
 
@@ -31,6 +31,8 @@ func (failingConnection) SendCommandBatch(context.Context, []cdp.Command) []*cdp
 
 //nolint:ireturn // Implements cdp.Connection.
 func (c failingConnection) Session(string) cdp.Commander { return c }
+
+func (failingConnection) Done() <-chan struct{} { return nil }
 
 func (failingConnection) Close() error { return nil }
 
@@ -102,8 +104,8 @@ type evaluatingConnection struct {
 	result any
 }
 
-func (c evaluatingConnection) SendCommand(context.Context, string, any) (*cdp.CDPResponse, error) {
-	return &cdp.CDPResponse{Result: c.result}, nil
+func (c evaluatingConnection) SendCommand(context.Context, string, any) (*cdp.CDPMessage, error) {
+	return &cdp.CDPMessage{Result: c.result}, nil
 }
 
 // TestWaitForPageLoad_FailedWaitAnswersOnce checks that a page-load wait that fails answers the

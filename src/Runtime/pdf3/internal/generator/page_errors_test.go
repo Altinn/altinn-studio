@@ -56,28 +56,28 @@ func logEntry(entry map[string]any) cdp.CDPMessage {
 	return cdp.CDPMessage{Method: "Log.entryAdded", Params: map[string]any{"entry": entry}}
 }
 
-func (c *pageConnection) SendCommand(_ context.Context, method string, _ any) (*cdp.CDPResponse, error) {
+func (c *pageConnection) SendCommand(_ context.Context, method string, _ any) (*cdp.CDPMessage, error) {
 	switch method {
 	case "Target.createBrowserContext":
-		return &cdp.CDPResponse{Result: map[string]any{"browserContextId": "context"}}, nil
+		return &cdp.CDPMessage{Result: map[string]any{"browserContextId": "context"}}, nil
 	case "Target.createTarget":
-		return &cdp.CDPResponse{Result: map[string]any{"targetId": "target"}}, nil
+		return &cdp.CDPMessage{Result: map[string]any{"targetId": "target"}}, nil
 	case "Target.attachToTarget":
 		sessionID := fmt.Sprintf("page-%d", c.pages.Add(1))
 		c.pageSessionID.Store(&sessionID)
-		return &cdp.CDPResponse{Result: map[string]any{"sessionId": sessionID}}, nil
+		return &cdp.CDPMessage{Result: map[string]any{"sessionId": sessionID}}, nil
 	case "Target.disposeBrowserContext":
 		if sessionID := c.pageSessionID.Swap(nil); sessionID != nil {
 			c.events(*sessionID, logEntry(map[string]any{"level": "error", "source": "network", "text": cleanupError}))
 		}
 	}
-	return &cdp.CDPResponse{Result: map[string]any{}}, nil
+	return &cdp.CDPMessage{Result: map[string]any{}}, nil
 }
 
 func (c *pageConnection) SendCommandBatch(_ context.Context, batch []cdp.Command) []*cdp.CommandResponse {
 	responses := make([]*cdp.CommandResponse, len(batch))
 	for i := range batch {
-		responses[i] = &cdp.CommandResponse{Resp: &cdp.CDPResponse{Result: map[string]any{}}}
+		responses[i] = &cdp.CommandResponse{Resp: &cdp.CDPMessage{Result: map[string]any{}}}
 	}
 	return responses
 }
@@ -87,6 +87,8 @@ func (c *pageConnection) Session(sessionID string) cdp.Commander {
 	return &fakePage{conn: c, sessionID: sessionID}
 }
 
+func (c *pageConnection) Done() <-chan struct{} { return nil }
+
 func (c *pageConnection) Close() error { return nil }
 
 // fakePage is the page of a pageConnection.
@@ -95,7 +97,7 @@ type fakePage struct {
 	sessionID string
 }
 
-func (p *fakePage) SendCommand(_ context.Context, method string, params any) (*cdp.CDPResponse, error) {
+func (p *fakePage) SendCommand(_ context.Context, method string, params any) (*cdp.CDPMessage, error) {
 	switch method {
 	case "Page.navigate":
 		navigateParams, ok := params.(map[string]any)
@@ -107,11 +109,15 @@ func (p *fakePage) SendCommand(_ context.Context, method string, params any) (*c
 			"url": stringField(navigateParams, "url") + "api/process",
 		}))
 	case "Runtime.evaluate":
-		return &cdp.CDPResponse{Result: map[string]any{"result": map[string]any{"type": "boolean", "value": true}}}, nil
+		return &cdp.CDPMessage{Result: map[string]any{"result": map[string]any{"type": "boolean", "value": true}}}, nil
 	case "Page.printToPDF":
-		return &cdp.CDPResponse{Result: map[string]any{"data": base64.StdEncoding.EncodeToString([]byte("%PDF"))}}, nil
+		return &cdp.CDPMessage{Result: map[string]any{"stream": "pdf"}}, nil
+	case "IO.read":
+		return &cdp.CDPMessage{Result: map[string]any{
+			"base64Encoded": true, "data": base64.StdEncoding.EncodeToString([]byte("%PDF")), "eof": true,
+		}}, nil
 	}
-	return &cdp.CDPResponse{Result: map[string]any{}}, nil
+	return &cdp.CDPMessage{Result: map[string]any{}}, nil
 }
 
 func (p *fakePage) SendCommandBatch(ctx context.Context, batch []cdp.Command) []*cdp.CommandResponse {

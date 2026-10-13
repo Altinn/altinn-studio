@@ -183,7 +183,6 @@ const (
 	BrowserVersionRevision = prefix + "browser.version.revision"
 	BrowserVersionProtocol = prefix + "browser.version.protocol"
 	BrowserPath            = prefix + "browser.path"
-	BrowserDebugPort       = prefix + "browser.debug_port"
 	BrowserDataDir         = prefix + "browser.data_dir"
 	BrowserPGID            = prefix + "browser.pgid"
 	BrowserArgs            = prefix + "browser.args"
@@ -192,12 +191,7 @@ const (
 
 // The Chrome DevTools Protocol connection to the browser.
 const (
-	CDPURL             = prefix + "cdp.url"
-	CDPCommandID       = prefix + "cdp.command_id"
-	CDPPendingCommands = prefix + "cdp.pending_commands"
-	CDPPayloadBytes    = prefix + "cdp.payload_bytes"
-	CDPCloseCode       = prefix + "cdp.close.code"
-	CDPCloseText       = prefix + "cdp.close.text"
+	CDPCommandID = prefix + "cdp.command_id"
 
 	// CDPResultField is the field of a command's result the record is about.
 	CDPResultField = prefix + "cdp.result_field"

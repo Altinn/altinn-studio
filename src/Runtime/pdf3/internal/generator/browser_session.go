@@ -95,22 +95,32 @@ func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 	var err error
 	w.browser, err = browser.Start(id)
 	if err != nil {
+		cancel()
 		return nil, fmt.Errorf("start browser: %w", err)
 	}
 
 	// Connect to the browser with event handler
-	w.conn, err = cdp.Connect(ctx, id, w.browser.DebugBaseURL, w.handleEvent)
+	w.conn, err = cdp.ConnectPipe(ctx, id, w.browser.Reader, w.browser.Writer, w.handleEvent)
 	if err != nil {
+		cancel()
 		if closeErr := w.browser.Close(); closeErr != nil {
 			w.logger.Error("Failed to connect AND failed to close browser", attr.Error, closeErr)
 		}
 		return nil, fmt.Errorf("failed to connect to browser: %w", err)
 	}
 
+	go w.watchConnection()
 	go w.handleRequests()
 
 	w.logger.Info("Browser worker initialized successfully")
 	return w, nil
+}
+
+// watchConnection crashes the worker if the browser exits or the connection to it breaks while
+// the session is running, so that the pod restarts instead of failing every request.
+func (w *browserSession) watchConnection() {
+	<-w.conn.Done()
+	w.assert(w.ctx.Err() != nil, "Browser connection closed while the session is running")
 }
 
 // tryEnqueue attempts to enqueue a request if the session is ready
@@ -506,7 +516,7 @@ func (w *browserSession) openPage(req *workerRequest) (cdp.Commander, bool) {
 }
 
 // resultString returns a string field of a successful Target domain response.
-func (w *browserSession) resultString(resp *cdp.CDPResponse, key string) string {
+func (w *browserSession) resultString(resp *cdp.CDPMessage, key string) string {
 	result, ok := resp.Result.(map[string]any)
 	w.assert(ok, "Target domain response has no result object")
 	value, ok := result[key].(string)
@@ -599,7 +609,7 @@ func setCleanupSkipped(span trace.Span, skipped bool) {
 	span.SetAttributes(attribute.Bool(attr.CleanupSkipped, skipped))
 }
 
-func parseEvaluateBooleanResult(resp *cdp.CDPResponse) (bool, any, error) {
+func parseEvaluateBooleanResult(resp *cdp.CDPMessage) (bool, any, error) {
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
 		return false, resp.Result, errInvalidEvaluateResult
@@ -816,9 +826,9 @@ func (w *browserSession) printPDF(req *workerRequest, page cdp.Commander) error 
 		return nil
 	}
 
-	pdfBytes, err := decodePDFData(resp)
+	pdfBytes, err := readPDFStream(req.ctx, page, resp, maxPDFSize)
 	if err != nil {
-		pdfErr := types.NewPDFError(types.ErrGenerationFail, "", err)
+		pdfErr := contextErrorToPDFError(err, types.ErrGenerationFail, "")
 		telemetry.SetError(printSpan, pdfErr.ErrorType(), err)
 		req.tryRespondError(pdfErr)
 		return nil
@@ -843,6 +853,8 @@ func buildPrintToPDFParams(ctx context.Context, logger *slog.Logger, request typ
 		"generateDocumentOutline": false,
 		"paperWidth":              8.5,
 		"paperHeight":             11.0,
+		// See readPDFStream
+		"transferMode": "ReturnAsStream",
 	}
 
 	if request.Options.Format != "" {
@@ -886,22 +898,78 @@ func buildPrintToPDFParams(ctx context.Context, logger *slog.Logger, request typ
 	return pdfParams
 }
 
-func decodePDFData(resp *cdp.CDPResponse) ([]byte, error) {
+// decodeStreamChunk returns the data of an IO.read response and whether the stream ended.
+func decodeStreamChunk(resp *cdp.CDPMessage) ([]byte, bool, error) {
+	chunk, ok := resp.Result.(map[string]any)
+	if !ok {
+		return nil, false, errInvalidPDFResponseFormat
+	}
+	data, ok := chunk["data"].(string)
+	if !ok {
+		return nil, false, errInvalidPDFResponseFormat
+	}
+	eof, ok := chunk["eof"].(bool)
+	eof = ok && eof
+	if base64Encoded, ok := chunk["base64Encoded"].(bool); !ok || !base64Encoded {
+		return []byte(data), eof, nil
+	}
+	decoded, err := base64.StdEncoding.DecodeString(data)
+	if err != nil {
+		return nil, false, fmt.Errorf("decode pdf data: %w", err)
+	}
+	return decoded, eof, nil
+}
+
+// pdfStreamChunkSize is how much of the PDF each IO.read returns, about 11 MB once base64 encoded.
+const pdfStreamChunkSize = 8 * 1024 * 1024
+
+// maxPDFSize is the largest PDF we return. App PDFs are kilobytes to a few megabytes, so this only
+// stops a runaway page from holding hundreds of megabytes in the worker.
+const maxPDFSize = 100 * 1024 * 1024
+
+// readPDFStream reads the PDF that Page.printToPDF returned as a stream, up to maxSize bytes.
+// Reading it in chunks keeps every CDP message small, however large the PDF. The stream belongs to
+// the page's session, so disposing the browser context right after the response releases it. It
+// isn't closed here, which would delay the response by another command.
+func readPDFStream(
+	ctx context.Context,
+	page cdp.Commander,
+	resp *cdp.CDPMessage,
+	maxSize int,
+) ([]byte, error) {
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
 		return nil, errInvalidPDFResponseFormat
 	}
-
-	dataStr, ok := result["data"].(string)
-	if !ok {
-		return nil, errMissingPDFData
+	handle, ok := result["stream"].(string)
+	if !ok || handle == "" {
+		return nil, errMissingPDFStream
 	}
 
-	pdfBytes, err := base64.StdEncoding.DecodeString(dataStr)
-	if err != nil {
-		return nil, fmt.Errorf("decode pdf data: %w", err)
+	var pdf []byte
+	for {
+		chunkResp, err := page.SendCommand(ctx, "IO.read", map[string]any{"handle": handle, "size": pdfStreamChunkSize})
+		if err != nil {
+			return nil, fmt.Errorf("read pdf stream: %w", err)
+		}
+		chunk, eof, err := decodeStreamChunk(chunkResp)
+		if err != nil {
+			return nil, err
+		}
+		if len(chunk) == 0 && !eof {
+			// A stream that stops advancing would otherwise be read until the client gives up
+			return nil, errStalledPDFStream
+		}
+		if len(pdf)+len(chunk) > maxSize {
+			return nil, fmt.Errorf("%w: more than %d bytes", errPDFTooLarge, maxSize)
+		}
+		pdf = append(pdf, chunk...)
+		if eof {
+			break
+		}
 	}
-	return pdfBytes, nil
+
+	return pdf, nil
 }
 
 // waitForElement waits for an element to match the given criteria using MutationObserver.
@@ -961,7 +1029,7 @@ func (w *browserSession) waitForElement(
 	return nil
 }
 
-func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResponse) error {
+func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPMessage) error {
 	value, errorData, err := parseEvaluateBooleanResult(resp)
 	if err != nil {
 		switch {
@@ -1477,7 +1545,9 @@ var htmlIDSelectorPattern = regexp.MustCompile(`^#[^\s.:\[\]>+~,()]+$`)
 
 var (
 	errInvalidPDFResponseFormat    = errors.New("invalid PDF response format")
-	errMissingPDFData              = errors.New("no PDF data in response")
+	errMissingPDFStream            = errors.New("no PDF stream in response")
+	errStalledPDFStream            = errors.New("PDF stream returned no data before its end")
+	errPDFTooLarge                 = errors.New("PDF is too large")
 	errInvalidCookieResponseFormat = errors.New("invalid cookie response format")
 )
 
