@@ -69,19 +69,21 @@ internal static class UpgradeTestHelpers
         Assert.Equal(HttpStatusCode.OK, response.Response.StatusCode);
     }
 
+    /// <summary>
+    /// Moves the instance on and asserts where it ends up. With <paramref name="answerTimeout"/>, a call that does
+    /// not answer in time fails the test instead of waiting for the client timeout: v9 waits for the workflow before
+    /// it answers, and a step the engine keeps retrying holds the call open.
+    /// </summary>
     public static async Task AssertProcessNext(
         AppFixture fixture,
         string token,
         AppFixture.ReadApiResponse<Instance> instance,
         string? action,
-        string? expectedTask
+        string? expectedTask,
+        TimeSpan? answerTimeout = null
     )
     {
-        using var response = await fixture.Instances.ProcessNext(
-            token,
-            instance,
-            action is null ? null : new ProcessNext { Action = action }
-        );
+        using var response = await SendProcessNext(fixture, token, instance, action, answerTimeout);
         using var processState = await response.Read<AppProcessState>();
         Assert.True(
             processState.Response.StatusCode == HttpStatusCode.OK,
@@ -90,6 +92,31 @@ internal static class UpgradeTestHelpers
         Assert.Equal(expectedTask, processState.Data.Model?.CurrentTask?.ElementId);
         if (expectedTask is null)
             Assert.NotNull(processState.Data.Model?.Ended);
+    }
+
+    private static async Task<AppFixture.ApiResponse> SendProcessNext(
+        AppFixture fixture,
+        string token,
+        AppFixture.ReadApiResponse<Instance> instance,
+        string? action,
+        TimeSpan? answerTimeout
+    )
+    {
+        using var timeout = new CancellationTokenSource(answerTimeout ?? Timeout.InfiniteTimeSpan);
+        try
+        {
+            return await fixture.Instances.ProcessNext(
+                token,
+                instance,
+                action is null ? null : new ProcessNext { Action = action },
+                cancellationToken: timeout.Token
+            );
+        }
+        catch (OperationCanceledException) when (timeout.IsCancellationRequested)
+        {
+            Assert.Fail($"process/next ({action ?? "no action"}) did not answer within {answerTimeout}");
+            throw;
+        }
     }
 
     public static async Task AssertAction(

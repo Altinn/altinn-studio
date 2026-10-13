@@ -242,6 +242,13 @@ To regenerate `upgrade-v9` after changing `upgrade-v8` or the upgrade tool:
 2. Build studioctl from this commit (`make dev-install` in `src/cli`) and run `studioctl app upgrade v9 -p <app folder> --json` with `STUDIOCTL_HOME` set to `src/cli/build/dev-home`. On macOS, pass `--socket-dir` with a short path if the server fails to start: Unix socket paths are limited to 104 characters. Afterwards, stop the server it started with `studioctl server down` (same `STUDIOCTL_HOME` and `--socket-dir`). While it runs, it competes with your regular studioctl for localtest's host bridge, and requests to apps fail at random with 502.
 3. Replace `_testapps/upgrade-v9` with the result, and redo the changes listed above.
 
+`upgrade-v8` and `upgrade-v9` share scenarios of the same name, so `fixture.UpgradeTo(...)` keeps a test's scenario across the upgrade:
+
+- `failed-service-task`: the PDF task fails on v8 (`UnavailablePdfServiceTask`), which leaves an instance in it.
+- `gateway-after-pdf-task`: `Task_1` has the actions `confirm` and `reject` and is followed by a gateway that routes on `gatewayAction`, the shape of #20968 risk 6.
+
+A v9 scenario's config is the upgrade tool's output for `upgrade-v8` with the v8 scenario's config applied, generated as above, with the follow-ups the tool reported. For `gateway-after-pdf-task`, that is `reject` granted to the app owner in `policy.xml`.
+
 `service-task-*` and `signering-brukerstyrt-*` are real apps: copies of the `ttd/service-task` (commit `18d14c3`) and `ttd/signering-brukerstyrt` (commit `8c6a71c`) repositories on altinn.studio. The v8 copies differ from the repositories in these ways:
 
 - Harness: the libraries are pinned to 8.12.11 from nuget.org and the target framework is `net10.0`. `App.csproj` compiles `_shared` and `_shared-v8` the way `upgrade-v8` does. The app id in `applicationmetadata.json` is the folder name. `Program.cs` calls the harness with full type names, since `service-task` has its own `EFormidlingMetadata`.

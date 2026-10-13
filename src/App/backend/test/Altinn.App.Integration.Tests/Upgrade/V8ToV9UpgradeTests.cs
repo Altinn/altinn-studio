@@ -86,6 +86,38 @@ public class V8ToV9UpgradeTests(ITestOutputHelper output)
     }
 
     [Fact(
+        Skip = "Known gap (#20968 risk 6): the PDF service task the upgrade inserts continues the process without the "
+            + "user's action, so the gateway after it matches no flow ('returned 0 flows'). The engine keeps retrying "
+            + "and process/next does not answer, for instances left on v8 and instances started on v9 alike."
+    )]
+    public async Task GatewayAfterTheNewPdfTask_StillRoutesOnTheUsersAction()
+    {
+        // #20968 risk 6: Task_1 has a PDF-enabled data type and is followed by a gateway that routes on the user's
+        // action, so the upgrade puts PdfTask_Task_1 between the two (see the scenario's process.bpmn)
+        await using var fixture = await AppFixture.Create(output, TestApps.UpgradeV8, "gateway-after-pdf-task");
+        string token = await fixture.Auth.GetUserToken(userId: 1337);
+        var answerTimeout = TimeSpan.FromSeconds(60);
+
+        // v8 hands the action straight to the gateway
+        using var confirmedOnV8 = await Instantiate(fixture, token, PartyId);
+        await SetFormValue(fixture, token, confirmedOnV8, "model", "property1", "confirmed on v8");
+        await AssertProcessNext(fixture, token, confirmedOnV8, action: "confirm", expectedTask: "Task_2");
+
+        // In Task_1 when the app is upgraded
+        using var inFlight = await Instantiate(fixture, token, PartyId);
+        await SetFormValue(fixture, token, inFlight, "model", "property1", "filled on v8");
+
+        await fixture.UpgradeTo(TestApps.UpgradeV9);
+        await AssertLibraryMajorVersion(fixture, 9);
+
+        // The user's confirm has to survive the PDF task, for the instance v8 left and for one started on v9
+        await AssertProcessNext(fixture, token, inFlight, "confirm", "Task_2", answerTimeout);
+        using var startedOnV9 = await Instantiate(fixture, token, PartyId);
+        await SetFormValue(fixture, token, startedOnV9, "model", "property1", "filled on v9");
+        await AssertProcessNext(fixture, token, startedOnV9, "confirm", "Task_2", answerTimeout);
+    }
+
+    [Fact(
         Skip = "Known gap: v9 finds no workflow for a service task v8 left, so process/next moves on without running "
             + "it (no PDF here) and process/resume answers 409. Enable when v9 runs such a task."
     )]
