@@ -2,6 +2,7 @@ using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Instrumentation.Http;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -43,7 +44,7 @@ internal static class TelemetryExtensions
                             }
                         };
                     })
-                    .AddHttpClientInstrumentation(options => options.RecordException = true)
+                    .AddHttpClientInstrumentation(ConfigureHttpClientTracing)
                     .AddEntityFrameworkCoreInstrumentation()
                     .AddQuartzInstrumentation(options => options.RecordException = true)
                     .AddRedisInstrumentation()
@@ -67,6 +68,12 @@ internal static class TelemetryExtensions
             );
 
         return builder;
+    }
+
+    internal static void ConfigureHttpClientTracing(HttpClientTraceInstrumentationOptions options)
+    {
+        options.RecordException = true;
+        options.EnrichWithHttpRequestMessage = SecretUrlPath.Redact;
     }
 
     private static bool TryResolveRouteValue(RouteValueDictionary routeValues, string key, out string value)
