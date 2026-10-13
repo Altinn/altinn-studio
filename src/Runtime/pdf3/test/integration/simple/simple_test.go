@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -387,6 +388,94 @@ func Test_StorageIsolation(t *testing.T) {
 			}
 			break
 		}
+	}
+}
+
+// Test_JavaScriptDialog renders a page that shows an alert() before it is ready. The worker must
+// dismiss the dialog so that the page can finish.
+func Test_JavaScriptDialog(t *testing.T) {
+	req := harness.GetDefaultPdfRequest(t)
+	req.URL = harness.TestServerURL + "/app/?render=light&alert"
+
+	resp, err := harness.RequestNewPDF(t, req)
+	if err != nil {
+		t.Fatalf("Failed to generate PDF for a page with a dialog: %v", err)
+	}
+	if !harness.IsPDF(resp.Data) {
+		t.Error("Response is not a valid PDF")
+	}
+}
+
+// Test_DialogLoop renders a page that opens dialogs in a loop. The worker dismisses each, so the
+// page never blocks, and must end the render after a bounded number of them instead of running
+// until the deadline.
+func Test_DialogLoop(t *testing.T) {
+	req := harness.GetDefaultPdfRequest(t)
+	req.URL = harness.TestServerURL + "/app/?render=light&alertloop"
+
+	resp, err := harness.RequestNewPDF(t, req)
+	if err == nil {
+		t.Fatal("Expected a page that opens dialogs in a loop to fail")
+	}
+	if !strings.Contains(err.Error(), "dialogs") {
+		t.Fatalf("Request failed, but not because of the dialogs: %v", err)
+	}
+	if resp == nil || resp.WorkerIP == "" {
+		t.Fatalf("Failed request did not report its worker: %v", err)
+	}
+	if _, err := resp.LoadOutput(t); err != nil {
+		t.Fatalf("Worker lost the failed request's output, so it probably crashed: %v", err)
+	}
+}
+
+// Test_NeverFinishingPage renders a page stuck in an infinite loop. The worker must end the render
+// with a timeout at its own deadline, instead of crashing on its safety timers, which the test
+// checks by loading the request's output, held in the worker's memory, from the same worker.
+func Test_NeverFinishingPage(t *testing.T) {
+	req := harness.GetDefaultPdfRequest(t)
+	req.URL = harness.TestServerURL + "/app/?render=light&busyloop"
+
+	resp, err := harness.RequestNewPDF(t, req)
+	if err == nil {
+		t.Fatal("Expected a page that never finishes to fail")
+	}
+	if resp == nil || resp.WorkerIP == "" {
+		t.Fatalf("Failed request did not report its worker: %v", err)
+	}
+	if !strings.Contains(err.Error(), "timed out") {
+		t.Fatalf("Request failed, but not with a timeout: %v", err)
+	}
+	if _, err := resp.LoadOutput(t); err != nil {
+		t.Fatalf("Worker lost the failed request's output, so it probably crashed: %v", err)
+	}
+}
+
+// Test_CrashedPage crashes the page's renderer after navigation. The request must fail as a crashed
+// page, the worker must keep running, and the next request must render.
+func Test_CrashedPage(t *testing.T) {
+	req := harness.GetDefaultPdfRequest(t)
+	req.URL = harness.TestServerURL + "/app/?render=light"
+	input := ptesting.NewDefaultTestInput()
+	input.CrashPage = true
+
+	resp, err := harness.RequestNewPDFWithTestInput(t, req, input)
+	if err == nil {
+		t.Fatal("Expected the request to fail when its page crashes")
+	}
+	if !strings.Contains(err.Error(), "page crashed") {
+		t.Fatalf("Request failed, but not as a crashed page: %v", err)
+	}
+	if resp == nil || resp.WorkerIP == "" {
+		t.Fatalf("Failed request did not report its worker: %v", err)
+	}
+	if _, err := resp.LoadOutput(t); err != nil {
+		t.Fatalf("Worker lost the failed request's output, so it probably crashed: %v", err)
+	}
+
+	next := harness.GetDefaultPdfRequest(t)
+	next.URL = harness.TestServerURL + "/app/?render=light"
+	if _, err := harness.RequestNewPDF(t, next); err != nil {
+		t.Fatalf("Request after a crashed page failed: %v", err)
 	}
 }
 

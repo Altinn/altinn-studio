@@ -37,6 +37,8 @@ type browserSession struct {
 	currentPageErrors atomic.Pointer[pageErrors]
 	// pageSessionID is the CDP session of the current request's page, events from other sessions are ignored
 	pageSessionID atomic.Pointer[string]
+	// stopPage ends the current request's render, set while its page is open
+	stopPage atomic.Pointer[context.CancelCauseFunc]
 	// logger carries the current request's attributes and is only used from the request goroutine.
 	logger *slog.Logger
 	// sessionLogger is logger without a request's attributes. It never changes, so other
@@ -49,6 +51,8 @@ type browserSession struct {
 	consoleErrors atomic.Int32
 	browserErrors atomic.Int32
 	jsExceptions  atomic.Int32
+	// dialogs counts the JavaScript dialogs the current request's page opened
+	dialogs atomic.Int32
 }
 
 const (
@@ -140,13 +144,36 @@ func (w *browserSession) isPageEvent(sessionID string) bool {
 	return pageSessionID != nil && sessionID == *pageSessionID
 }
 
-// handleEvent runs on the CDP reader goroutine.
+// logPageEvent logs, from the CDP reader goroutine, at INFO, what the current request's page did,
+// with the request's logger and in its trace, like its page errors. logger is swapped per request
+// by handleRequests, so the reader can't use it. Once cleanup has started, the record has no
+// request.
+func (w *browserSession) logPageEvent(message string, args ...any) {
+	if requestErrors := w.currentPageErrors.Load(); requestErrors != nil {
+		requestErrors.logger.InfoContext(requestErrors.ctx, message, args...)
+		return
+	}
+	w.sessionLogger.Info(message, args...)
+}
+
+// handleEvent runs on the CDP reader goroutine, which also delivers command replies, in the order
+// the browser sent them. So an event from a request's page is always handled before the reply to
+// the dispose of its context, after which the next request can start: an event can't be counted
+// against, or logged with, the wrong request.
 func (w *browserSession) handleEvent(sessionID, method string, params any) {
 	if !w.isPageEvent(sessionID) {
 		return
 	}
 
 	switch method {
+	case "Inspector.targetCrashed":
+		// The crashed page will never reply, so end the render now instead of at its deadline.
+		// Sending it more commands can take down the whole browser.
+		// INFO: the failed request logs its one error with what this answers it with.
+		w.logPageEvent("Page crashed")
+		w.abortRender(errPageCrashed)
+	case "Page.javascriptDialogOpening":
+		w.dismissDialog(sessionID, params)
 	case "Runtime.consoleAPICalled":
 		if p, ok := params.(map[string]any); ok {
 			if apiType, ok := p["type"].(string); ok && apiType == "error" {
@@ -206,6 +233,7 @@ func (w *browserSession) handleRequests() {
 
 			// The request logger already has the URL, add the session so every log line of the request has both
 			req.logger = req.logger.With(attr.SessionID, w.id)
+			stopRender := w.startRender(&req)
 			w.currentRequest.Store(&req)
 			w.logger = req.logger
 			requestPageErrors := &pageErrors{
@@ -215,6 +243,7 @@ func (w *browserSession) handleRequests() {
 			}
 			w.currentPageErrors.Store(requestPageErrors)
 			w.handleRequest(&req)
+			stopRender()
 			w.currentRequest.Store(nil)
 			// Cleanup has already stopped recording the page's errors, unless the request never
 			// got that far.
@@ -282,8 +311,7 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 		w.logger.Info("Completed PDF request", attr.DurationMs, duration.Milliseconds())
 	}()
 
-	if req.ctx.Err() != nil {
-		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+	if respondIfStopped(req) {
 		// When we return here, we never get to the cleanup state in the defer block of `generatePdf` below.
 		// Since we haven't actually used any of the user data the cleanup phase is completely safe to ignore.
 		// So let's manually swap into it cleanup state so that outer loop can swap out of this
@@ -415,12 +443,15 @@ func truncate(text string, maxLength int) string {
 func (w *browserSession) generatePdf(req *workerRequest) error {
 	defer w.cleanupAfterRequest(req)
 
-	if req.ctx.Err() != nil {
-		return types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err())
+	if respondIfStopped(req) {
+		return nil
 	}
 
 	page, ok := w.openPage(req)
-	if !ok || respondIfClientDropped(req) {
+	if !ok {
+		return nil
+	}
+	if respondIfStopped(req) {
 		return nil
 	}
 
@@ -430,7 +461,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		}
 	}
 
-	if req.hasResponded() || respondIfClientDropped(req) {
+	if req.hasResponded() || respondIfStopped(req) {
 		return nil
 	}
 
@@ -438,7 +469,11 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return err
 	}
 
-	if req.hasResponded() || respondIfClientDropped(req) {
+	if testInput := req.tryGetTestModeInput(); testInput != nil && testInput.CrashPage {
+		w.crashPageForTest(page)
+	}
+
+	if req.hasResponded() || respondIfStopped(req) {
 		return nil
 	}
 
@@ -446,7 +481,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 		return err
 	}
 
-	if req.hasResponded() || respondIfClientDropped(req) {
+	if req.hasResponded() || respondIfStopped(req) {
 		return nil
 	}
 
@@ -498,7 +533,11 @@ func (w *browserSession) openPage(req *workerRequest) (cdp.Commander, bool) {
 		w.pageSessionID.Store(&sessionID)
 		page = w.conn.Session(sessionID)
 
-		commands := []cdp.Command{{Method: "Page.enable"}, {Method: "Runtime.enable"}, {Method: "Log.enable"}}
+		commands := []cdp.Command{
+			{Method: "Page.enable"}, {Method: "Runtime.enable"}, {Method: "Log.enable"},
+			// Reports Inspector.targetCrashed when the page's renderer crashes
+			{Method: "Inspector.enable"},
+		}
 		if err := commandBatchError(commands, page.SendCommandBatch(ctx, commands)); err != nil {
 			return fmt.Errorf("enable page domains: %w", err)
 		}
@@ -632,12 +671,111 @@ func parseEvaluateBooleanResult(resp *cdp.CDPMessage) (bool, any, error) {
 	return value, nil, nil
 }
 
-func respondIfClientDropped(req *workerRequest) bool {
+// respondIfStopped responds with why the request's context ended, if it has: the client left, the
+// render deadline passed, or the page crashed.
+func respondIfStopped(req *workerRequest) bool {
 	if req.ctx.Err() == nil {
 		return false
 	}
-	req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+	req.tryRespondError(stoppedError(req))
 	return true
+}
+
+// stoppedError is the error for a request whose context has ended.
+func stoppedError(req *workerRequest) *types.PDFError {
+	return contextErrorToPDFError(context.Cause(req.ctx), types.ErrClientDropped, "")
+}
+
+// renderTimeoutMargin is how long before types.RequestTimeout a render ends.
+const renderTimeoutMargin = 2 * time.Second
+
+var errPageCrashed = errors.New("page crashed")
+
+// startRender gives the request its render context and returns the function that ends it. A render
+// that never finishes (an infinite loop, say) ends at the deadline, counted from when the request
+// arrived, so that it ends before the generator's and the proxy's timers at types.RequestTimeout,
+// which would crash the worker or retry the request elsewhere. A crashed page, or one stuck opening
+// dialogs, ends it at once. It is set up before the request becomes current, so the CDP reader
+// never sees the request's context change.
+func (w *browserSession) startRender(req *workerRequest) func() {
+	parent := req.ctx
+	if parent == nil {
+		parent = context.Background()
+	}
+	arrived := req.enqueuedAt
+	if arrived.IsZero() {
+		arrived = time.Now()
+	}
+	//nolint:gosec // The returned function calls cancelDeadline.
+	ctx, cancelDeadline := context.WithDeadline(parent, arrived.Add(types.RequestTimeout()-renderTimeoutMargin))
+	ctx, stop := context.WithCancelCause(ctx)
+	req.ctx = ctx
+	w.dialogs.Store(0)
+	w.stopPage.Store(&stop)
+	return func() {
+		w.stopPage.Store(nil)
+		stop(nil)
+		cancelDeadline()
+		if dialogs := w.dialogs.Load(); dialogs > 1 {
+			w.logger.Info("Dismissed JavaScript dialogs", attr.PageDialogs, dialogs)
+		}
+	}
+}
+
+// abortRender ends the current request's render with cause, if one is running.
+func (w *browserSession) abortRender(cause error) {
+	if stop := w.stopPage.Load(); stop != nil {
+		(*stop)(cause)
+	}
+}
+
+// maxDialogs is how many JavaScript dialogs a render may open. A page that opens more is stuck in a
+// loop, which would otherwise run until the deadline.
+const maxDialogs = 100
+
+var errTooManyDialogs = fmt.Errorf("page opened more than %d dialogs", maxDialogs)
+
+// dismissDialog dismisses a JavaScript dialog (alert, confirm, prompt), which would otherwise block
+// the page until the render times out. Dismissing rather than accepting makes confirm() return false:
+// the render runs with the end user's login and must not confirm anything on their behalf. The
+// answer is sent from its own goroutine, because the CDP reader that delivered the event also has
+// to deliver the reply. Only the first dialog of a render is logged.
+func (w *browserSession) dismissDialog(sessionID string, params any) {
+	count := w.dialogs.Add(1)
+	if count > maxDialogs {
+		if count == maxDialogs+1 {
+			// INFO: the failed request logs its one error with what this answers it with.
+			w.logPageEvent("Page opened too many dialogs, ending the render", attr.PageDialogsLimit, maxDialogs)
+			w.abortRender(errTooManyDialogs)
+		}
+		return
+	}
+	if count == 1 {
+		dialogType := ""
+		if p, ok := params.(map[string]any); ok {
+			dialogType, _ = p["type"].(string) //nolint:errcheck // A missing type only affects the log.
+		}
+		w.logPageEvent("Dismissing JavaScript dialog", attr.PageDialogType, dialogType)
+	}
+	page := w.conn.Session(sessionID)
+	go func() {
+		ctx, cancel := context.WithTimeout(w.ctx, 5*time.Second)
+		defer cancel()
+		if _, err := page.SendCommand(ctx, "Page.handleJavaScriptDialog", map[string]any{"accept": false}); err != nil {
+			w.sessionLogger.Debug("Failed to dismiss JavaScript dialog", attr.Error, err)
+		}
+	}()
+}
+
+// crashPageForTest crashes the request's page, so that tests can check how a crashed page is
+// handled. Page.crash never replies, so it is sent from its own goroutine with a short timeout.
+func (w *browserSession) crashPageForTest(page cdp.Commander) {
+	w.assert(runtime.IsTestInternalsMode, "Should only run as part of testing")
+	go func() {
+		ctx, cancel := context.WithTimeout(w.ctx, 2*time.Second)
+		defer cancel()
+		_, _ = page.SendCommand(ctx, "Page.crash", nil) //nolint:errcheck // It never replies.
+	}()
 }
 
 func (w *browserSession) setCookies(req *workerRequest) error {
@@ -776,8 +914,8 @@ func (w *browserSession) waitForTimeout(req *workerRequest, timeout int32) error
 	case <-time.After(time.Duration(timeout) * time.Millisecond):
 		return nil
 	case <-req.ctx.Done():
-		pdfErr := types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err())
-		telemetry.SetError(waitSpan, pdfErr.ErrorType(), req.ctx.Err())
+		pdfErr := stoppedError(req)
+		telemetry.SetError(waitSpan, pdfErr.ErrorType(), context.Cause(req.ctx))
 		req.tryRespondError(pdfErr)
 		return nil
 	}
@@ -1536,6 +1674,9 @@ func contextErrorToPDFError(err error, fallbackType error, detail string) *types
 		return nil
 	}
 
+	if errors.Is(err, errPageCrashed) || errors.Is(err, errTooManyDialogs) {
+		return types.NewPDFError(types.ErrGenerationFail, "page failed", err)
+	}
 	// Check if the error is context-related
 	if errors.Is(err, context.Canceled) {
 		return types.NewPDFError(types.ErrClientDropped, detail, err)

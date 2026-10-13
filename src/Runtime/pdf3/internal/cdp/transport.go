@@ -231,7 +231,7 @@ func (c *connection) startCommand(
 ) (int64, chan CDPMessage, error) {
 	cmdID := c.nextCommandID.Add(1)
 	if ctx.Err() != nil {
-		return cmdID, nil, fmt.Errorf("%w %q: %w", errCDPCommandCancelled, method, ctx.Err())
+		return cmdID, nil, fmt.Errorf("%w %q: %w", errCDPCommandCancelled, method, context.Cause(ctx))
 	}
 	if c.ctx.Err() != nil {
 		return cmdID, nil, errConnectionClosed
@@ -258,7 +258,7 @@ func (c *connection) awaitResponse(
 		}
 		return &resp, nil
 	case <-ctx.Done():
-		return nil, fmt.Errorf("%w %q: %w", errCDPCommandCancelled, method, ctx.Err())
+		return nil, fmt.Errorf("%w %q: %w", errCDPCommandCancelled, method, context.Cause(ctx))
 	case <-c.ctx.Done():
 		return nil, errConnectionClosed
 	case <-time.After(types.RequestTimeout()):
