@@ -1,9 +1,11 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
 using Moq;
 using Quartz;
 using Xunit;
@@ -25,6 +27,22 @@ public class ChatInactivityCleanupJobTests
         await job.Execute(jobExecutionContextMock.Object);
 
         chatServiceMock.Verify(s => s.DeleteInactiveThreadsAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Execute_RecordsOnJobRunRootSpan()
+    {
+        var chatServiceMock = new Mock<IChatService>();
+        chatServiceMock.Setup(s => s.DeleteInactiveThreadsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(3);
+        var job = new ChatInactivityCleanupJob(chatServiceMock.Object, new SchedulingSettings());
+        var jobExecutionContextMock = new Mock<IJobExecutionContext>();
+        jobExecutionContextMock.SetupGet(c => c.CancellationToken).Returns(CancellationToken.None);
+        using Activity jobSpan = new Activity("Quartz.Job.Execute").Start();
+
+        await job.Execute(jobExecutionContextMock.Object);
+
+        Assert.Equal("always", jobSpan.GetTagItem(ServiceTelemetry.Attributes.Sampling));
+        Assert.Equal(3, jobSpan.GetTagItem("threads.deleted"));
     }
 
     [Fact]

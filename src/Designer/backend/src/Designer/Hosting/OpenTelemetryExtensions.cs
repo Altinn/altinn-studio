@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Instrumentation.Http;
@@ -41,30 +40,15 @@ internal static class TelemetryExtensions
                     {
                         options.RecordException = true;
                         options.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health");
-                        options.EnrichWithHttpResponse = static (activity, response) =>
-                        {
-                            var routeValues = response.HttpContext.Request.RouteValues;
-                            if (
-                                TryResolveRouteValue(routeValues, "org", out var org)
-                                || TryResolveRouteValue(routeValues, "orgName", out org)
-                            )
-                            {
-                                activity.SetTag("org", org);
-                            }
-
-                            if (
-                                TryResolveRouteValue(routeValues, "app", out var app)
-                                || TryResolveRouteValue(routeValues, "repo", out app)
-                                || TryResolveRouteValue(routeValues, "repository", out app)
-                            )
-                            {
-                                activity.SetTag("app", app);
-                            }
-                        };
+                        options.EnrichWithHttpResponse = RootSpan.Enrich;
                     })
                     .AddHttpClientInstrumentation(ConfigureHttpClientTracing)
                     .AddEntityFrameworkCoreInstrumentation()
-                    .AddQuartzInstrumentation(options => options.RecordException = true)
+                    .AddQuartzInstrumentation(options =>
+                    {
+                        options.RecordException = true;
+                        options.Enrich = RootSpan.EnrichJobRun;
+                    })
                     .AddOtlpExporter();
             })
             .WithMetrics(metrics =>
@@ -94,13 +78,5 @@ internal static class TelemetryExtensions
     {
         options.RecordException = true;
         options.EnrichWithHttpRequestMessage = SecretUrlPath.Redact;
-    }
-
-    private static bool TryResolveRouteValue(RouteValueDictionary routeValues, string key, out string value)
-    {
-        value = string.Empty;
-        return routeValues.TryGetValue(key, out var rawValue)
-            && rawValue?.ToString() is { Length: > 0 } parsedValue
-            && (value = parsedValue) != null;
     }
 }

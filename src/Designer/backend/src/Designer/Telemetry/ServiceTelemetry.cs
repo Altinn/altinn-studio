@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 
 namespace Altinn.Studio.Designer.Telemetry;
@@ -5,10 +6,64 @@ namespace Altinn.Studio.Designer.Telemetry;
 internal static partial class ServiceTelemetry
 {
     private const string AlwaysSample = "always";
+    private const string AppRepoType = "app";
+    private const string ProductionEnvironment = "production";
+    private const string RuntimeProductionEnvironment = "prod";
+
+    private static readonly string[] s_sharedRepoTypes = ["datamodels", "content", "resources"];
 
     public static readonly ActivitySource Source = new("studio-designer");
 
     // Tail sampling is configured per collector pipeline, not globally.
     // We explicitly mark spans that must be retained.
     public static void SetAlwaysSample(this Activity? activity) => activity?.SetTag(Attributes.Sampling, AlwaysSample);
+
+    public static void SetServiceOwner(this Activity? activity, string serviceOwner) =>
+        activity?.SetTag(Attributes.ServiceOwner, serviceOwner.ToLowerInvariant());
+
+    /// <summary>
+    /// Sets the repository's service owner and type, and the app where the repository is one.
+    /// </summary>
+    public static void SetRepository(this Activity? activity, string serviceOwner, string repository)
+    {
+        activity.SetServiceOwner(serviceOwner);
+        string repoType = RepoTypeOf(serviceOwner, repository);
+        activity?.SetTag(Attributes.RepoType, repoType);
+        if (repoType == AppRepoType)
+        {
+            activity?.SetTag(Attributes.App, repository.ToLowerInvariant());
+        }
+    }
+
+    public static void SetTargetEnvironment(this Activity? activity, string environment) =>
+        activity?.SetTag(Attributes.Environment, RuntimeEnvironmentName(environment));
+
+    public static void SetEndUser(this Activity? activity, string userName) =>
+        activity?.SetTag(Attributes.EndUserId, userName);
+
+    /// <summary>
+    /// The type of a Studio repository. Each service owner's shared repositories are {org}-datamodels, {org}-content
+    /// and {org}-resources, and every other repository is an app. An app's name may end in the same suffixes, so only
+    /// the full name decides.
+    /// </summary>
+    private static string RepoTypeOf(string serviceOwner, string repository)
+    {
+        foreach (string repoType in s_sharedRepoTypes)
+        {
+            if (repository.Equals($"{serviceOwner}-{repoType}", StringComparison.OrdinalIgnoreCase))
+            {
+                return repoType;
+            }
+        }
+        return AppRepoType;
+    }
+
+    /// <summary>
+    /// The runtime's name for an environment: Designer calls the production environment production, and the
+    /// runtime calls it prod.
+    /// </summary>
+    private static string RuntimeEnvironmentName(string environment) =>
+        environment.Equals(ProductionEnvironment, StringComparison.OrdinalIgnoreCase)
+            ? RuntimeProductionEnvironment
+            : environment.ToLowerInvariant();
 }
