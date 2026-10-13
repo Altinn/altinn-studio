@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
+using Altinn.Studio.Designer.Models;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.ViewModels.Request;
@@ -39,6 +40,13 @@ public class CreateReleaseRequestViewModel : IValidatableObject
     public string TargetCommitish { get; set; }
 
     /// <summary>
+    /// App status to commit to applicationmetadata.json before building. The release is then built from that commit.
+    /// When omitted, the status already in the repository is kept.
+    /// </summary>
+    [JsonProperty("appStatus")]
+    public AppStatus? AppStatus { get; set; }
+
+    /// <summary>
     /// Determines if this instance of the model is valid.
     /// </summary>
     /// <param name="validationContext">The current context of the validation check</param>
@@ -46,6 +54,16 @@ public class CreateReleaseRequestViewModel : IValidatableObject
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         List<ValidationResult> issues = new List<ValidationResult>();
+
+        if (AppStatus is not (null or Models.AppStatus.UnderDevelopment or Models.AppStatus.Completed))
+        {
+            issues.Add(
+                new ValidationResult(
+                    $"App status must be {Models.AppStatus.UnderDevelopment} or {Models.AppStatus.Completed}.",
+                    new[] { nameof(AppStatus) }
+                )
+            );
+        }
 
         if (string.IsNullOrEmpty(TagName))
         {

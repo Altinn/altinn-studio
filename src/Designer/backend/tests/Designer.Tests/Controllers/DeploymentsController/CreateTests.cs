@@ -397,13 +397,12 @@ public class CreateTests
     }
 
     [Theory]
-    [InlineData("ttd", "deploy-test-at22", "at22", null, "5.0.0", "50001", AppStatus.UnderDevelopment)]
-    [InlineData("ttd", "deploy-test-tt02", "tt02", "Completed", "5.0.1", "50002", AppStatus.Completed)]
-    public async Task Create_SetsAppStatus_InDeploymentAndStorage(
+    [InlineData("ttd", "deploy-test-at22", "at22", "5.0.0", "50001", AppStatus.UnderDevelopment)]
+    [InlineData("ttd", "deploy-test-status", "at22", "5.0.1", "50002", AppStatus.Completed)]
+    public async Task Create_SetsAppStatusFromRelease_InDeploymentAndStorage(
         string org,
         string app,
         string envName,
-        string appStatus,
         string tagName,
         string buildId,
         AppStatus expectedAppStatus
@@ -416,14 +415,7 @@ public class CreateTests
         string uri = VersionPrefix(org, app);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri)
         {
-            Content = JsonContent.Create(
-                new
-                {
-                    envName,
-                    tagName,
-                    appStatus,
-                }
-            ),
+            Content = JsonContent.Create(new { envName, tagName }),
         };
 
         // Act
@@ -453,7 +445,7 @@ public class CreateTests
 
     [Theory]
     [InlineData("ttd", "queue-build-test", "tt02", "6.0.0", "60001")]
-    public async Task Create_WithoutAppStatus_UsesAppStatusFromPreviousDeploy(
+    public async Task Create_WhenReleaseHasNoAppStatus_UsesAppStatusFromPreviousDeploy(
         string org,
         string app,
         string envName,
@@ -488,37 +480,6 @@ public class CreateTests
             .DbContext.Deployments.AsNoTracking()
             .SingleAsync(d => d.Org == org && d.App == app && d.Buildid == buildId);
         Assert.Equal(nameof(AppStatus.Completed), deployment.AppStatus);
-    }
-
-    [Theory]
-    [InlineData("ttd", "app-status-deprecated", "at22", "Deprecated")]
-    [InlineData("ttd", "app-status-withdrawn", "at22", "Withdrawn")]
-    public async Task Create_Returns_400BadRequest_When_AppStatus_Is_Not_Allowed(
-        string org,
-        string app,
-        string envName,
-        string appStatus
-    )
-    {
-        // Arrange
-        string uri = VersionPrefix(org, app);
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri)
-        {
-            Content = JsonContent.Create(
-                new
-                {
-                    envName,
-                    tagName = "1.0.0",
-                    appStatus,
-                }
-            ),
-        };
-
-        // Act
-        using var response = await HttpClient.SendAsync(httpRequestMessage);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     private async Task PrepareReleaseInDb(string org, string app, string tagName)

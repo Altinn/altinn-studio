@@ -47,10 +47,5 @@ public static class RequestExtensionMethods
     /// <param name="viewmodel">CreateDeploymentRequestViewModel</param>
     /// <returns></returns>
     public static DeploymentModel ToDomainModel(this CreateDeploymentRequestViewModel viewmodel) =>
-        new DeploymentModel
-        {
-            TagName = viewmodel.TagName,
-            EnvName = viewmodel.EnvName,
-            AppStatus = viewmodel.AppStatus,
-        };
+        new DeploymentModel { TagName = viewmodel.TagName, EnvName = viewmodel.EnvName };
 }

@@ -1041,7 +1041,7 @@ public class DeploymentServiceTest
     public static TheoryData<string, bool, AppStatus?, AppStatus?, AppStatus> AppStatusCases =>
         new()
         {
-            // env, has previous deploy, previous deploy status, requested status, expected status
+            // env, has previous deploy, previous deploy status, status committed in the release, expected status
             { "at23", false, null, null, AppStatus.UnderDevelopment },
             { "tt02", false, null, null, AppStatus.UnderDevelopment },
             { "production", false, null, null, AppStatus.Completed },
@@ -1057,27 +1057,26 @@ public class DeploymentServiceTest
 
     [Theory]
     [MemberData(nameof(AppStatusCases))]
-    public async Task CreateAsync_SetsAppStatusInStorageResourceRegistryAndDeployment(
+    public async Task CreateAsync_SetsCommittedOrDefaultAppStatusInStorageResourceRegistryAndDeployment(
         string env,
         bool hasPreviousDeploy,
         AppStatus? previousAppStatus,
-        AppStatus? requestedAppStatus,
+        AppStatus? committedAppStatus,
         AppStatus expectedAppStatus
     )
     {
         // Arrange
         const string org = "ttd";
         const string app = "apps-test-tba";
-        DeploymentModel deploymentModel = new()
-        {
-            TagName = "1",
-            EnvName = env,
-            AppStatus = requestedAppStatus,
-        };
+        DeploymentModel deploymentModel = new() { TagName = "1", EnvName = env };
 
+        ReleaseEntity release = GetReleases("updatedRelease.json").First();
         _releaseRepository
             .Setup(r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(GetReleases("updatedRelease.json").First());
+            .ReturnsAsync(release);
+        _applicationInformationService
+            .Setup(ais => ais.GetAppStatusAsync(org, app, release.TargetCommitish))
+            .ReturnsAsync(committedAppStatus);
         _applicationInformationService
             .Setup(ais =>
                 ais.PublishToResourceRegistryAsync(

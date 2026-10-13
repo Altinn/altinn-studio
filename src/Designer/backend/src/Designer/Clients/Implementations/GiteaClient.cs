@@ -600,6 +600,66 @@ public class GiteaClient(
         return null;
     }
 
+    /// <inheritdoc />
+    public async Task<string> UpdateFileAsync(
+        string org,
+        string app,
+        string filePath,
+        string content,
+        string sha,
+        string branch,
+        string message,
+        CancellationToken cancellationToken = default
+    )
+    {
+        UpdateFileRequest body = new(Convert.ToBase64String(Encoding.UTF8.GetBytes(content)), sha, branch, message);
+        using HttpResponseMessage response = await httpClient.PutAsJsonAsync(
+            $"repos/{org}/{app}/contents/{filePath}",
+            body,
+            s_jsonOptions,
+            cancellationToken
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            UpdateFileResponse fileResponse = await response.Content.ReadFromJsonAsync<UpdateFileResponse>(
+                s_jsonOptions,
+                cancellationToken
+            );
+            return fileResponse?.Commit?.Sha
+                ?? throw new GiteaClientException($"Gitea did not return a commit when updating {filePath}.");
+        }
+
+        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+        logger.LogError(
+            "User {Developer}, method {MethodName} failed with statuscode {StatusCode} for {FilePath} on branch {BranchName} in repo {Org}/{Repo}",
+            developer,
+            nameof(UpdateFileAsync),
+            response.StatusCode,
+            filePath,
+            branch,
+            org,
+            app
+        );
+
+        // Gitea answers 409 or 422 when the file or branch has changed since the given sha was read
+        if (response.StatusCode is HttpStatusCode.Conflict or HttpStatusCode.UnprocessableEntity)
+        {
+            throw new Microsoft.Rest.TransientFaultHandling.HttpRequestWithStatusException(
+                $"{filePath} was changed on {branch} while it was being updated."
+            )
+            {
+                StatusCode = HttpStatusCode.Conflict,
+            };
+        }
+
+        throw new GiteaClientException($"Failed to update {filePath} in Gitea: {response.StatusCode}.");
+    }
+
+    private sealed record UpdateFileRequest(string Content, string Sha, string Branch, string Message);
+
+    private sealed record UpdateFileResponse(GiteaCommit Commit);
+
     /// <inheritdoc/>
     public async Task<List<FileSystemObject>> GetDirectoryAsync(
         string org,

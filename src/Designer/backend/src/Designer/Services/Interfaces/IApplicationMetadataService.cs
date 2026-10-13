@@ -55,6 +55,23 @@ public interface IApplicationMetadataService
     public Task<string> GetApplicationMetadataJsonFromSpecificReference(string org, string app, string referenceId);
 
     /// <summary>
+    /// Commits the app status to applicationmetadata.json on the default branch, on top of the given commit.
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="app">Application</param>
+    /// <param name="baseCommitId">The commit to set the status on. It must be the latest commit on the default branch.</param>
+    /// <param name="appStatus">The app status to commit</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The id of the commit that has the status, which is the base commit when it already had it.</returns>
+    public Task<string> CommitAppStatusAsync(
+        string org,
+        string app,
+        string baseCommitId,
+        AppStatus appStatus,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Updates app title in application metadata
     /// </summary>
     /// <param name="org">Unique identifier of the organization responsible for the app.</param>

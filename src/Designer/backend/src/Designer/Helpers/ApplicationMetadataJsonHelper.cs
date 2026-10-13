@@ -62,6 +62,20 @@ public static class ApplicationMetadataJsonHelper
         return jsonObj.ToJsonString(serializationOptions);
     }
 
+    public static AppStatus? GetStatus(string json)
+    {
+        var jsonObj = ParseAndEnsureJsonObject(json);
+        string key = UsesPascalCaseProps(jsonObj) ? "Status" : "status";
+
+        return
+            jsonObj[key] is JsonValue value
+            && value.TryGetValue(out string? status)
+            && Enum.TryParse(status, ignoreCase: false, out AppStatus appStatus)
+            && Enum.IsDefined(appStatus)
+            ? appStatus
+            : null;
+    }
+
     private static JsonObject ParseAndEnsureJsonObject(string json)
     {
         JsonNode? rootNode = JsonNode.Parse(json);
