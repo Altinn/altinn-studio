@@ -1,0 +1,182 @@
+# The stack's own metrics, scraped into the stack itself. Alert rules on them are
+# Grafana-managed and evaluated outside the cluster through the
+# altinn-studio-metrics datasource, so a stack too broken to store or serve these
+# series still alerts: those rules fire on a query error or on no data.
+#
+# The scraper runs on the general node pool, like the operator: it carries no
+# observability toleration or node selector, so losing the observability nodes
+# does not take down what notices it.
+#
+# Labels. Every target carries component, the binary it runs: vmsingle, vlsingle,
+# vtsingle, vmagent, vlagent, vtagent, operator, or vmagent-self for this scraper.
+# The storage and agent targets add signal (metrics, logs or traces) and role
+# (storage or agent), and the storage targets add copy (a or b), so a rule can
+# count the healthy copies of a pair or the healthy replicas of an agent with one
+# aggregation. instance is the scraped address; job is victoria for every target.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vmagent-self-scrape
+data:
+  scrape.yaml: |
+    global:
+      scrape_interval: 30s
+    scrape_configs:
+      - job_name: victoria
+        # Static targets, so the scraper needs no service discovery and hence no
+        # Kubernetes API access. Short names resolve through the pod's namespace
+        # search domain. Each agent replica is scraped on its own, since its queue
+        # and its throughput are per replica; a scrape through a cluster IP would
+        # land on one of them at random. The vlagent and vtagent replicas have DNS
+        # names under their StatefulSet's headless Service; the vmagent replicas
+        # have none (see the Services below), and get a Service each. The lists
+        # follow each agent's replicaCount.
+        static_configs:
+          - targets: [vmsingle-metrics-a:8428]
+            labels: { component: vmsingle, signal: metrics, role: storage, copy: a }
+          - targets: [vmsingle-metrics-b:8428]
+            labels: { component: vmsingle, signal: metrics, role: storage, copy: b }
+          - targets: [vlsingle-logs-a:9428]
+            labels: { component: vlsingle, signal: logs, role: storage, copy: a }
+          - targets: [vlsingle-logs-b:9428]
+            labels: { component: vlsingle, signal: logs, role: storage, copy: b }
+          - targets: [vtsingle-traces-a:10428]
+            labels: { component: vtsingle, signal: traces, role: storage, copy: a }
+          - targets: [vtsingle-traces-b:10428]
+            labels: { component: vtsingle, signal: traces, role: storage, copy: b }
+          - targets:
+              - vmagent-metrics-0:8429
+              - vmagent-metrics-1:8429
+            labels: { component: vmagent, signal: metrics, role: agent }
+          - targets:
+              - vlagent-logs-0.vlagent-logs:9429
+              - vlagent-logs-1.vlagent-logs:9429
+            labels: { component: vlagent, signal: logs, role: agent }
+          - targets:
+              - vtagent-traces-0.vtagent-traces:10429
+              - vtagent-traces-1.vtagent-traces:10429
+            labels: { component: vtagent, signal: traces, role: agent }
+          # The operator serves controller-runtime metrics over plain HTTP on 8080,
+          # with no authentication; the chart's Service exposes that port as http.
+          - targets: [victoriametrics-operator:8080]
+            labels: { component: operator }
+          # The scraper itself, over loopback, so a heartbeat rule can tell this
+          # pipeline being down from the targets being down.
+          - targets: [localhost:8429]
+            labels: { component: vmagent-self }
+        # flag is one series per command-line flag and go_* is the Go runtime:
+        # on kind about 4,000 of the 10,500 series scraped, and of no use to the
+        # alert rules. Everything else is kept: process_* for restarts and memory,
+        # and the components' own vm_*, vl_*, vt_* and *agent_* series, including
+        # vm_persistentqueue_* for the agents' disk queues.
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            regex: flag|go_.*
+            action: drop
+---
+# Ingest-only mode is what keeps this pod away from the Kubernetes API, even
+# though it scrapes. In the operator's scrape mode, the scrape configuration it
+# generates is delivered in a Secret that the config-reloader sidecar, and an
+# init container, read through the API with the pod's token, and when the
+# operator creates the service account it also grants it list and watch on pods,
+# services, endpoints, endpoint slices and ingresses for service discovery. In
+# ingest-only mode the operator generates no configuration, runs no
+# config-reloader and creates no Role, and vmagent reads the static scrape
+# configuration above from the mounted ConfigMap, re-reading the file every
+# minute, so a change to it applies without a restart. The VMServiceScrape
+# objects the operator creates for each component it manages go unused for the
+# same reason: they select endpoints, which only the API can list.
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAgent
+metadata:
+  name: self
+spec:
+  useStrictSecurity: true
+  ingestOnlyMode: true
+  # The token is kept out of the pod by a service account that opts out of
+  # automounting; see the VMAgent in metrics.yaml.
+  serviceAccountName: vmagent-self-no-api-access
+  replicaCount: 1
+  image:
+    repository: victoriametrics/vmagent
+    tag: v1.153.0
+  configMaps:
+    - vmagent-self-scrape
+  extraArgs:
+    # Mounted at /etc/vm/configs/<ConfigMap name>/.
+    promscrape.config: /etc/vm/configs/vmagent-self-scrape/scrape.yaml
+    promscrape.configCheckInterval: 1m
+  # Straight to both metrics storage instances rather than through the ingest
+  # VMAgent, so the stack's metrics still arrive when that agent is down, which
+  # is one of the things they are there to show.
+  remoteWrite:
+    - url: http://vmsingle-metrics-a.observability.svc.cluster.local:8428/api/v1/write
+    - url: http://vmsingle-metrics-b.observability.svc.cluster.local:8428/api/v1/write
+  # The root filesystem is read-only, so the queue for a storage instance that
+  # is unreachable lives on a volume. Outside stateful mode the operator mounts
+  # one under this name at the queue path, an emptyDir with no size limit unless
+  # a volume of that name is given here. The queue only has to bridge a storage
+  # restart or a node upgrade, and is lost with the pod anyway, so it stays on
+  # the node's disk, bounded per URL, with the volume's limit, which evicts the
+  # pod, well above both. Measured on kind, each URL is sent about 4 KB/s, so
+  # 256MiB holds most of a day.
+  remoteWriteSettings:
+    maxDiskUsagePerURL: 256MiB
+  volumes:
+    - name: persistent-queue-data
+      emptyDir:
+        sizeLimit: 1Gi
+  # Measured on kind with every target up: about 75MiB resident and 5m of CPU.
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vmagent-self-no-api-access
+automountServiceAccountToken: false
+---
+# One DNS name per vmagent-metrics replica. The operator gives an unsharded
+# VMAgent's StatefulSet a governing Service only when the additional Service is
+# headless, and that one has a cluster IP (see metrics.yaml), so the replicas
+# have no DNS names of their own. Each of these is headless and selects one pod
+# by the label the StatefulSet controller puts on it, so its name resolves to
+# that pod's address while it is ready, and fails to resolve, which fails the
+# scrape, while it is not, as the vlagent and vtagent names do.
+apiVersion: v1
+kind: Service
+metadata:
+  name: vmagent-metrics-0
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: vmagent
+    app.kubernetes.io/instance: metrics
+    statefulset.kubernetes.io/pod-name: vmagent-metrics-0
+  ports:
+    - name: http
+      port: 8429
+      targetPort: 8429
+      protocol: TCP
+      appProtocol: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vmagent-metrics-1
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: vmagent
+    app.kubernetes.io/instance: metrics
+    statefulset.kubernetes.io/pod-name: vmagent-metrics-1
+  ports:
+    - name: http
+      port: 8429
+      targetPort: 8429
+      protocol: TCP
+      appProtocol: http

@@ -229,9 +229,14 @@ spec:
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
+        # The instance as well: vmagent-self (self-monitoring.yaml) carries the
+        # same name label, and a required anti-affinity term is also honored the
+        # other way round, so without it the two would keep each other out of a
+        # zone.
         - labelSelector:
             matchLabels:
               app.kubernetes.io/name: vmagent
+              app.kubernetes.io/instance: metrics
           topologyKey: topology.kubernetes.io/zone
 ---
 apiVersion: v1
