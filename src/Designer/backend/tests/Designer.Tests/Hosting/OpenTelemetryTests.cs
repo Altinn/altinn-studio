@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Filters.IO;
+using Altinn.Studio.Designer.Hosting;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -195,6 +196,43 @@ public class OpenTelemetryTests
         Assert.Equal(Route, rootSpan.GetTagItem("http.route"));
         Assert.Contains(MetricPoints("http.server.request.duration"), point => Tag(point, "http.route") == Route);
     }
+
+    [Theory]
+    [InlineData(EnvironmentsPath, "/designer/api/environments")]
+    [InlineData("/designer/api/ttd/my-app/validation", "/designer/api/{org}/{app}/validation")]
+    public async Task RouteHeader_IsRouteWithoutConstraints(string path, string route)
+    {
+        _environmentsException = new FileNotFoundException("missing.json");
+
+        using HttpResponseMessage response = await HttpClient.GetAsync(path);
+
+        Assert.Equal(route, RouteHeader(response));
+    }
+
+    [Fact]
+    public async Task RouteHeader_IsKeptOnUnhandledException()
+    {
+        _releasesException = new InvalidOperationException("Unexpected failure");
+
+        using HttpResponseMessage response = await HttpClient.GetAsync("/designer/api/ttd/my-app/releases");
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal("/designer/api/{org}/{app}/releases", RouteHeader(response));
+    }
+
+    [Fact]
+    public async Task RouteHeader_IsLeftOutWithoutRoute()
+    {
+        using HttpResponseMessage response = await HttpClient.GetAsync("/designer/api/does-not-exist");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.False(response.Headers.Contains(TelemetryRoute.ResponseHeader));
+    }
+
+    private static string? RouteHeader(HttpResponseMessage response) =>
+        response.Headers.TryGetValues(TelemetryRoute.ResponseHeader, out IEnumerable<string>? values)
+            ? Assert.Single(values)
+            : null;
 
     [Fact]
     public async Task HubConnections_AreLeftOutOfTracesAndRequestMetrics()
