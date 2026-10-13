@@ -412,11 +412,22 @@ public class ProcessingStatusAcquirerTests
                         It.IsAny<string>(),
                         It.IsAny<Actor>(),
                         null,
+                        null,
                         It.IsAny<CancellationToken>()
                     )
                 )
-                .Callback<Instance, ProcessStateChange, Guid, string, string, Actor, string?, CancellationToken>(
-                    (instance, transition, dependency, collectionKey, state, actor, _, cancellationToken) =>
+                .Callback<
+                    Instance,
+                    ProcessStateChange,
+                    Guid,
+                    string,
+                    string,
+                    Actor,
+                    string?,
+                    string?,
+                    CancellationToken
+                >(
+                    (instance, transition, dependency, collectionKey, state, actor, _, _, cancellationToken) =>
                     {
                         Assert.Equal(ProcessStatus.Processing, instance.Process?.Status);
                         Assert.Equal(WorkflowId, dependency);
@@ -539,7 +550,7 @@ public class ProcessingStatusAcquirerTests
                 NewProcessState = destination,
                 Events = events,
             };
-            return CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(transition))
+            return CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(transition, Action: null))
                 ?? throw new InvalidOperationException("Prepared payload was not serialized.");
         }
 

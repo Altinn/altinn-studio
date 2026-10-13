@@ -234,6 +234,7 @@ public sealed partial class ProcessEngineTest
                     "collection",
                     "state",
                     actor,
+                    null,
                     "continuation-key",
                     It.IsAny<CancellationToken>()
                 )
@@ -247,6 +248,7 @@ public sealed partial class ProcessEngineTest
             "collection",
             "state",
             _executionTime,
+            action: null,
             idempotencyKey: "continuation-key"
         );
 

@@ -1183,6 +1183,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     It.IsAny<string>(),
                     It.IsAny<ProcessStateChange>(),
                     It.IsAny<string?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -1192,6 +1193,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     StorageVersionMetadata versions,
                     string _,
                     ProcessStateChange _,
+                    string? _,
                     string? _,
                     CancellationToken _
                 ) =>
@@ -1240,6 +1242,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     It.IsAny<string>(),
                     It.IsAny<ProcessStateChange>(),
                     It.IsAny<string?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -1249,6 +1252,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     StorageVersionMetadata versions,
                     string _,
                     ProcessStateChange _,
+                    string? _,
                     string? _,
                     CancellationToken _
                 ) =>

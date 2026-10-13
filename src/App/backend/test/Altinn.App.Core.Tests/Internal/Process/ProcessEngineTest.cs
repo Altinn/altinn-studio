@@ -357,11 +357,20 @@ public sealed partial class ProcessEngineTest
                     It.IsAny<string>(),
                     It.IsAny<ProcessStateChange>(),
                     It.IsAny<string?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, StorageVersionMetadata, string, ProcessStateChange, string?, CancellationToken>(
-                (_, versions, state, _, _, _) =>
+            .Callback<
+                Instance,
+                StorageVersionMetadata,
+                string,
+                ProcessStateChange,
+                string?,
+                string?,
+                CancellationToken
+            >(
+                (_, versions, state, _, _, _, _) =>
                 {
                     capturedVersions = versions;
                     capturedState = state;
@@ -520,11 +529,20 @@ public sealed partial class ProcessEngineTest
                     It.IsAny<string>(),
                     It.IsAny<ProcessStateChange>(),
                     It.IsAny<string?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, StorageVersionMetadata, string, ProcessStateChange, string?, CancellationToken>(
-                (instance, versions, state, _, _, _) =>
+            .Callback<
+                Instance,
+                StorageVersionMetadata,
+                string,
+                ProcessStateChange,
+                string?,
+                string?,
+                CancellationToken
+            >(
+                (instance, versions, state, _, _, _, _) =>
                 {
                     enqueuedInstance = instance;
                     enqueuedVersions = versions;
@@ -795,6 +813,7 @@ public sealed partial class ProcessEngineTest
                         It.IsAny<string>(),
                         It.IsAny<ProcessStateChange>(),
                         It.IsAny<string?>(),
+                        It.IsAny<string?>(),
                         It.IsAny<CancellationToken>()
                     ),
                 Times.Once
@@ -844,12 +863,19 @@ public sealed partial class ProcessEngineTest
                     It.IsAny<string>(),
                     It.IsAny<ProcessStateChange>(),
                     null,
+                    null,
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, StorageVersionMetadata, string, ProcessStateChange, string?, CancellationToken>(
-                (_, _, state, _, _, _) => capturedState = state
-            )
+            .Callback<
+                Instance,
+                StorageVersionMetadata,
+                string,
+                ProcessStateChange,
+                string?,
+                string?,
+                CancellationToken
+            >((_, _, state, _, _, _, _) => capturedState = state)
             .ReturnsAsync(new ProcessNextWorkflowResult(CreateTask2Instance(), _storageVersions, null, true));
 
         ProcessChangeResult result = await fixture.ProcessEngine.Next(
@@ -1138,6 +1164,7 @@ public sealed partial class ProcessEngineTest
                         It.IsAny<string>(),
                         It.IsAny<ProcessStateChange>(),
                         It.IsAny<string?>(),
+                        It.IsAny<string?>(),
                         It.IsAny<CancellationToken>()
                     ),
                 Times.Never
@@ -1323,6 +1350,7 @@ public sealed partial class ProcessEngineTest
                         It.IsAny<string>(),
                         It.IsAny<ProcessStateChange>(),
                         It.IsAny<string?>(),
+                        It.IsAny<string?>(),
                         It.IsAny<CancellationToken>()
                     ),
                 Times.Once
@@ -1397,7 +1425,7 @@ public sealed partial class ProcessEngineTest
             fixture.Mock<IWorkflowEngineService>().Invocations,
             invocation => invocation.Method.Name == nameof(IWorkflowEngineService.EnqueueAndWaitForProcessNext)
         );
-        Assert.Equal(language, enqueue.Arguments[4]);
+        Assert.Equal(language, enqueue.Arguments[5]);
         IInvocation navigation = Assert.Single(
             fixture.Mock<IProcessNavigator>().Invocations,
             invocation => invocation.Method.Name == nameof(IProcessNavigator.GetNextTask)
@@ -1456,6 +1484,7 @@ public sealed partial class ProcessEngineTest
                     It.IsAny<string>(),
                     It.IsAny<ProcessStateChange>(),
                     It.IsAny<string?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -1478,11 +1507,20 @@ public sealed partial class ProcessEngineTest
                     It.IsAny<string>(),
                     It.IsAny<ProcessStateChange>(),
                     It.IsAny<string?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, StorageVersionMetadata, string, ProcessStateChange, string?, CancellationToken>(
-                (_, _, _, transition, _, _) =>
+            .Callback<
+                Instance,
+                StorageVersionMetadata,
+                string,
+                ProcessStateChange,
+                string?,
+                string?,
+                CancellationToken
+            >(
+                (_, _, _, transition, _, _, _) =>
                 {
                     Assert.Same(process, instance.Process);
                     Assert.Equal("Task_1", instance.Process!.CurrentTask.ElementId);
@@ -1564,6 +1602,7 @@ public sealed partial class ProcessEngineTest
                     It.IsAny<StorageVersionMetadata>(),
                     It.IsAny<string>(),
                     It.IsAny<ProcessStateChange>(),
+                    It.IsAny<string?>(),
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -1857,6 +1896,7 @@ public sealed partial class ProcessEngineTest
                         It.IsAny<string>(),
                         It.IsAny<ProcessStateChange>(),
                         It.IsAny<string?>(),
+                        It.IsAny<string?>(),
                         It.IsAny<CancellationToken>()
                     )
                 )
@@ -1866,6 +1906,7 @@ public sealed partial class ProcessEngineTest
                         StorageVersionMetadata versions,
                         string _,
                         ProcessStateChange _,
+                        string? _,
                         string? _,
                         CancellationToken _
                     ) => new ProcessNextWorkflowResult(instance, versions, null, false)

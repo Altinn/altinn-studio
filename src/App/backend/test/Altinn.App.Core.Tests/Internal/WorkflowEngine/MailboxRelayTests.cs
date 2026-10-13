@@ -504,7 +504,13 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 0),
+                new MailboxContinuation.AwaitNextMessage(
+                    _mailboxId,
+                    ServiceTaskType,
+                    ArchivingReplyIndex,
+                    position: 0,
+                    action: null
+                ),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -526,7 +532,13 @@ public class MailboxRelayTests
         var awaiting = new RelayRecorder();
         await CreateRelay(awaiting)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 1),
+                new MailboxContinuation.AwaitNextMessage(
+                    _mailboxId,
+                    ServiceTaskType,
+                    ArchivingReplyIndex,
+                    position: 1,
+                    action: null
+                ),
                 CreateRequest(stepId),
                 CancellationToken.None
             );
@@ -541,7 +553,13 @@ public class MailboxRelayTests
         var otherStep = new RelayRecorder();
         await CreateRelay(otherStep)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 1),
+                new MailboxContinuation.AwaitNextMessage(
+                    _mailboxId,
+                    ServiceTaskType,
+                    ArchivingReplyIndex,
+                    position: 1,
+                    action: null
+                ),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -562,7 +580,8 @@ public class MailboxRelayTests
             _mailboxId,
             ServiceTaskType,
             ArchivingReplyIndex,
-            position: 0
+            position: 0,
+            action: null
         );
         await relay.Continue(continuation, CreateRequest(stepId), CancellationToken.None);
         await relay.Continue(continuation, CreateRequest(stepId), CancellationToken.None);
@@ -588,7 +607,8 @@ public class MailboxRelayTests
             Delivered(),
             carry,
             ArchivingReplyIndex,
-            OpeningStageIndex
+            OpeningStageIndex,
+            action: null
         );
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
@@ -610,7 +630,8 @@ public class MailboxRelayTests
                 Closed(),
                 new WorkflowCallbackStateCarry(),
                 ArchivingReplyIndex,
-                OpeningStageIndex
+                OpeningStageIndex,
+                action: null
             )
         );
         Assert.IsType<MailboxContinuation.Conclude>(permanent.MailboxContinuation);
@@ -623,7 +644,8 @@ public class MailboxRelayTests
                 Delivered(),
                 new WorkflowCallbackStateCarry(),
                 ArchivingReplyIndex,
-                OpeningStageIndex
+                OpeningStageIndex,
+                action: null
             )
         );
         Assert.False(retryable.NonRetryable);
@@ -636,7 +658,8 @@ public class MailboxRelayTests
                 Delivered(),
                 new WorkflowCallbackStateCarry(),
                 ArchivingReplyIndex,
-                OpeningStageIndex
+                OpeningStageIndex,
+                action: null
             )
         );
     }
@@ -648,7 +671,13 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 2),
+                new MailboxContinuation.AwaitNextMessage(
+                    _mailboxId,
+                    ServiceTaskType,
+                    ArchivingReplyIndex,
+                    position: 2,
+                    action: null
+                ),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -685,7 +714,13 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 4),
+                new MailboxContinuation.AwaitNextMessage(
+                    _mailboxId,
+                    ServiceTaskType,
+                    ArchivingReplyIndex,
+                    position: 4,
+                    action: null
+                ),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -707,7 +742,13 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 0),
+                new MailboxContinuation.AwaitNextMessage(
+                    _mailboxId,
+                    ServiceTaskType,
+                    ArchivingReplyIndex,
+                    position: 0,
+                    action: null
+                ),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -735,7 +776,12 @@ public class MailboxRelayTests
             ServiceTaskType,
             new MailboxHandover(
                 openingStageIndex,
-                WorkflowCommandSet.PlanSegment(ServiceTaskType, pipeline ?? _archivingPipeline, openingStageIndex),
+                WorkflowCommandSet.PlanSegment(
+                    ServiceTaskType,
+                    pipeline ?? _archivingPipeline,
+                    action: null,
+                    openingStageIndex
+                ),
                 new MailboxTarget(_mailboxId, openingStageIndex)
             )
         );
@@ -868,7 +914,8 @@ public class MailboxRelayTests
             Delivered(),
             carry,
             ArchivingReplyIndex,
-            OpeningStageIndex
+            OpeningStageIndex,
+            action: null
         );
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
@@ -891,7 +938,8 @@ public class MailboxRelayTests
             Delivered(),
             carry,
             ArchivingReplyIndex,
-            OpeningStageIndex
+            OpeningStageIndex,
+            action: null
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
@@ -914,7 +962,8 @@ public class MailboxRelayTests
             Delivered(seq: 4),
             carry,
             ArchivingReplyIndex,
-            OpeningStageIndex
+            OpeningStageIndex,
+            action: null
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
@@ -942,7 +991,8 @@ public class MailboxRelayTests
             Closed(MailboxDisposedReason.Deadline),
             carry,
             ArchivingReplyIndex,
-            OpeningStageIndex
+            OpeningStageIndex,
+            action: null
         );
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
@@ -965,7 +1015,8 @@ public class MailboxRelayTests
             Delivered(),
             carry,
             ArchivingReplyIndex,
-            OpeningStageIndex
+            OpeningStageIndex,
+            action: null
         );
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
@@ -987,7 +1038,8 @@ public class MailboxRelayTests
             Delivered(),
             carry,
             ArchivingReplyIndex,
-            OpeningStageIndex
+            OpeningStageIndex,
+            action: null
         );
 
         DeferredProcessEngineCommandResult deferred = Assert.IsType<DeferredProcessEngineCommandResult>(result);
@@ -1029,7 +1081,8 @@ public class MailboxRelayTests
             carry,
             SegmentHandlerIndex,
             OpeningStageIndex,
-            _archiveThenJournalPipeline
+            _archiveThenJournalPipeline,
+            action: null
         );
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
@@ -1054,7 +1107,8 @@ public class MailboxRelayTests
             carry,
             SegmentHandlerIndex,
             OpeningStageIndex,
-            _archiveThenJournalPipeline
+            _archiveThenJournalPipeline,
+            action: null
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
@@ -1096,7 +1150,8 @@ public class MailboxRelayTests
             carry,
             SegmentHandlerIndex,
             OpeningStageIndex,
-            _archiveThenJournalPipeline
+            _archiveThenJournalPipeline,
+            action: null
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
@@ -1129,7 +1184,8 @@ public class MailboxRelayTests
             carry,
             SegmentHandlerIndex,
             OpeningStageIndex,
-            _archiveThenJournalPipeline
+            _archiveThenJournalPipeline,
+            action: null
         );
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
@@ -1154,7 +1210,8 @@ public class MailboxRelayTests
             carry,
             SegmentHandlerIndex,
             OpeningStageIndex,
-            _archiveThenJournalPipeline
+            _archiveThenJournalPipeline,
+            action: null
         );
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
@@ -1177,7 +1234,8 @@ public class MailboxRelayTests
             carry,
             SegmentHandlerIndex,
             OpeningStageIndex,
-            _archiveThenJournalPipeline
+            _archiveThenJournalPipeline,
+            action: null
         );
 
         DeferredProcessEngineCommandResult deferred = Assert.IsType<DeferredProcessEngineCommandResult>(result);
@@ -1204,7 +1262,8 @@ public class MailboxRelayTests
             carry,
             SegmentHandlerIndex,
             OpeningStageIndex,
-            _archiveThenJournalPipeline
+            _archiveThenJournalPipeline,
+            action: null
         );
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
@@ -1227,7 +1286,8 @@ public class MailboxRelayTests
                 new WorkflowCallbackStateCarry(),
                 SegmentHandlerIndex,
                 OpeningStageIndex,
-                _archiveThenJournalPipeline
+                _archiveThenJournalPipeline,
+                action: null
             )
         );
         Assert.IsType<MailboxContinuation.Conclude>(permanent.MailboxContinuation);
@@ -1241,7 +1301,8 @@ public class MailboxRelayTests
                 new WorkflowCallbackStateCarry(),
                 SegmentHandlerIndex,
                 OpeningStageIndex,
-                _archiveThenJournalPipeline
+                _archiveThenJournalPipeline,
+                action: null
             )
         );
     }
@@ -1267,7 +1328,8 @@ public class MailboxRelayTests
                 WorkflowCommandSet.PlanSegment(
                     ServiceTaskType,
                     pipeline ?? _archiveThenJournalPipeline,
-                    afterItemIndex: handlerItemIndex
+                    afterItemIndex: handlerItemIndex,
+                    action: null
                 ),
                 target: null
             )
@@ -1288,7 +1350,7 @@ public class MailboxRelayTests
             new MailboxHandover(
                 handlerItemIndex - 1,
                 new ServiceTaskSegmentPlan(
-                    [WorkflowCommandSet.CreateItemStep(ServiceTaskType, handlerItemIndex)],
+                    [WorkflowCommandSet.CreateItemStep(ServiceTaskType, handlerItemIndex, action: null)],
                     ReceiveOpeningIndex: openingStageIndex
                 ),
                 new MailboxTarget(mailboxId, openingStageIndex)
@@ -1304,7 +1366,12 @@ public class MailboxRelayTests
             ServiceTaskType,
             new MailboxHandover(
                 openingStageIndex,
-                WorkflowCommandSet.PlanSegment(ServiceTaskType, pipeline, afterItemIndex: openingStageIndex),
+                WorkflowCommandSet.PlanSegment(
+                    ServiceTaskType,
+                    pipeline,
+                    afterItemIndex: openingStageIndex,
+                    action: null
+                ),
                 target: null
             )
         );
@@ -1332,7 +1399,7 @@ public class MailboxRelayTests
     public void MailboxHandover_WhosePlanAndTargetDisagree_IsRefusedAtConstruction(bool planReceives)
     {
         var plan = new ServiceTaskSegmentPlan(
-            [WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex)],
+            [WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex, action: null)],
             planReceives ? OpeningStageIndex : null
         );
         MailboxTarget? target = planReceives ? null : new MailboxTarget(_mailboxId, OpeningStageIndex);
@@ -1347,8 +1414,8 @@ public class MailboxRelayTests
     {
         var plan = new ServiceTaskSegmentPlan(
             [
-                WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex),
-                WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex + 1),
+                WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex, action: null),
+                WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex + 1, action: null),
             ],
             OpeningStageIndex
         );
@@ -1565,7 +1632,8 @@ public class MailboxRelayTests
             carry,
             handlerItemIndex: 2,
             OpeningStageIndex,
-            _upFrontSendsPipeline
+            _upFrontSendsPipeline,
+            action: null
         );
 
         MailboxContinuation.ConcludeAndContinue continuing = Assert.IsType<MailboxContinuation.ConcludeAndContinue>(
@@ -1599,7 +1667,8 @@ public class MailboxRelayTests
             carry,
             handlerItemIndex: 2,
             OpeningStageIndex,
-            _upFrontSendsPipeline
+            _upFrontSendsPipeline,
+            action: null
         );
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
@@ -1725,7 +1794,8 @@ public class MailboxRelayTests
             _stepId,
             carry,
             OpeningStageIndex,
-            _archivingPipeline
+            _archivingPipeline,
+            action: null
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
@@ -1763,7 +1833,8 @@ public class MailboxRelayTests
             _stepId,
             carry,
             stageIndex: 1,
-            _upFrontSendsPipeline
+            _upFrontSendsPipeline,
+            action: null
         );
 
         var continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
@@ -1799,7 +1870,8 @@ public class MailboxRelayTests
             _stepId,
             carry,
             OpeningStageIndex,
-            _archivingPipeline
+            _archivingPipeline,
+            action: null
         );
 
         var continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
@@ -1821,7 +1893,8 @@ public class MailboxRelayTests
             _stepId,
             new WorkflowCallbackStateCarry(),
             JournalIndex,
-            _archiveThenJournalPipeline
+            _archiveThenJournalPipeline,
+            action: null
         );
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
@@ -1842,7 +1915,8 @@ public class MailboxRelayTests
             Guid.Empty,
             carry,
             OpeningStageIndex,
-            _archivingPipeline
+            _archivingPipeline,
+            action: null
         );
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
@@ -1867,7 +1941,8 @@ public class MailboxRelayTests
             _stepId,
             carry,
             OpeningStageIndex,
-            _upFrontSendsPipeline
+            _upFrontSendsPipeline,
+            action: null
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
@@ -1902,7 +1977,8 @@ public class MailboxRelayTests
             _stepId,
             carry,
             lastIndex,
-            _archivingPipeline
+            _archivingPipeline,
+            action: null
         );
 
         FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);

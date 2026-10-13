@@ -539,7 +539,7 @@ public class ProcessStepOptionsResolverTests
         ProcessStepOptionsResolver resolver = CreateResolverWithTwoExchanges();
 
         StepRequest resolved = WorkflowCommandSet
-            .CreateItemStep("exchanges", itemIndex: 1)
+            .CreateItemStep("exchanges", itemIndex: 1, action: null)
             .ApplyStepOptions(resolver, taskId: null, serviceTaskType: "exchanges");
 
         Assert.Equal(TimeSpan.FromHours(2), resolved.Command.MaxExecutionTime);
