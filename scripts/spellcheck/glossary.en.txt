@@ -1,0 +1,17 @@
+# English glossary: English words the dictionary pass over English UI text
+# accepts although the pinned hunspell dictionary (en_GB, or en_US for
+# groups following an en-US upstream) rejects them. Language-neutral tokens
+# (names, identifiers, formats) live in glossary.shared.txt instead, which
+# the English pass also accepts. One word per line; '#' starts a comment;
+# matching is case-insensitive.
+#
+# Matching is per word form, so an accepted term's other forms need their
+# own lines — add them as the check reports them.
+# Keep entries alphabetized within each section.
+#
+# Glossary or fix? A misspelling "fixed" by a glossary entry stays wrong in
+# the product, so prefer fixing the text: a run-together compound
+# ("Buildlog") is a misspelling, not a term. Every line here claims the word
+# is correct English used deliberately. An entry that no longer rescues any
+# flagged word, or that duplicates glossary.shared.txt, is reported by the
+# check itself.
