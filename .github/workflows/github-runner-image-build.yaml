@@ -36,15 +36,6 @@ jobs:
         with:
           persist-credentials: false
 
-      # The runner image bakes shellcheck in; only install it on a runner
-      # still running an image built before it was added.
-      - name: Install shellcheck
-        run: |
-          if ! command -v shellcheck >/dev/null; then
-            sudo apt-get update
-            sudo apt-get install --yes --no-install-recommends shellcheck
-          fi
-
       - name: Check shell scripts
         run: shellcheck run.sh smoke.sh
 
