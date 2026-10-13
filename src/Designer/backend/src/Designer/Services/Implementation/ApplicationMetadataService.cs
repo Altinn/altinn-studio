@@ -205,7 +205,12 @@ public class ApplicationMetadataService : IApplicationMetadataService
     public async Task UpdateMetadataForAttachment(string org, string app, string applicationMetadata)
     {
         JObject attachmentMetadata = JObject.Parse(applicationMetadata);
-        string attachmentId = attachmentMetadata.GetValue("id")!.Value<string>();
+        string attachmentId = attachmentMetadata.GetValue("id")?.Value<string>();
+        if (string.IsNullOrEmpty(attachmentId))
+        {
+            throw new ArgumentException("Attachment metadata must contain an id.");
+        }
+
         ApplicationMetadata existingApplicationMetadata = await GetApplicationMetadataFromRepository(org, app);
         DataType applicationForm =
             existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId) ?? new DataType();
@@ -222,7 +227,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
             }
         }
 
-        applicationForm.Id = attachmentMetadata.GetValue("id")!.Value<string>();
+        applicationForm.Id = attachmentId;
         applicationForm.MaxCount = attachmentMetadata.GetValue("maxCount")?.Value<int?>() ?? 0;
         applicationForm.MinCount = attachmentMetadata.GetValue("minCount")?.Value<int?>() ?? 0;
         applicationForm.MaxSize = attachmentMetadata.GetValue("maxSize")?.Value<int?>();

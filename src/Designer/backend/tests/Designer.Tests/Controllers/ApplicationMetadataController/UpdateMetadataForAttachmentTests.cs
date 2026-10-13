@@ -149,6 +149,26 @@ public class UpdateMetadataForAttachmentTests
         Assert.Equal(10, attachmentDataType.MaxSize);
     }
 
+    [Theory]
+    [InlineData(@"{ ""maxCount"": 1, ""minCount"": 0, ""maxSize"": 10 }")]
+    [InlineData(@"{ ""id"": null, ""maxCount"": 1, ""minCount"": 0, ""maxSize"": 10 }")]
+    [InlineData(@"{ ""id"": """", ""maxCount"": 1, ""minCount"": 0, ""maxSize"": 10 }")]
+    public async Task UpdateMetadataForAttachment_WithoutId_ShouldFailAndNotChangeMetadata(string payload)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", "hvem-er-hvem", "testUser", targetRepository);
+        string url = $"{VersionPrefix("ttd", targetRepository)}/attachment-component";
+        string applicationMetadataPath = Path.Combine(TestRepoPath, "App", "config", "applicationmetadata.json");
+        string applicationMetadataBefore = await File.ReadAllTextAsync(applicationMetadataPath);
+
+        using var payloadContent = new StringContent(payload, Encoding.UTF8, MediaTypeNames.Application.Json);
+        using var response = await HttpClient.PutAsync(url, payloadContent);
+
+        Assert.False(response.IsSuccessStatusCode);
+        string applicationMetadataAfter = await File.ReadAllTextAsync(applicationMetadataPath);
+        Assert.Equal(applicationMetadataBefore, applicationMetadataAfter);
+    }
+
     // Payload should have strong type instead in controller.
     public static IEnumerable<object[]> TestData =>
         new List<object[]>
