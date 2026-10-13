@@ -87,7 +87,7 @@ internal sealed class WorkflowCommandSet
             // Segment 0 always has at least one step (a handler can only answer an already-composed stage, so
             // item 0 is never one), and Main therefore always ends on a step of its own: the stage whose
             // completion starts the rest of the pipeline, or the pipeline's conclusion.
-            ServiceTaskSegmentPlan segment = PlanSegment(serviceTask.Type, serviceTask.Pipeline);
+            ServiceTaskSegmentPlan segment = PlanSegment(serviceTask.Type, serviceTask.Pipeline, context.Action);
             group.AddCriticalPostCommitSteps(segment.Steps);
         }
 
@@ -190,7 +190,8 @@ internal sealed class WorkflowCommandSet
     /// therefore the items split at each reply handler and at each opening stage: segment 0 rides Main, and
     /// every later segment rides the workflow its predecessor's last step enqueues — which that step derives
     /// from the pipeline when it runs, since nothing planned here is carried in a payload. Options are left
-    /// unresolved.
+    /// unresolved. Every step carries <paramref name="action"/>, the action of the transition that entered the
+    /// task, so each workflow of the task hands its service task the same one.
     /// </summary>
     /// <returns>
     /// The plan, with no steps only when <paramref name="afterItemIndex"/> is the pipeline's last item: every
@@ -200,6 +201,7 @@ internal sealed class WorkflowCommandSet
     internal static ServiceTaskSegmentPlan PlanSegment(
         string serviceTaskType,
         ServiceTaskPipeline pipeline,
+        string? action,
         int? afterItemIndex = null
     )
     {
@@ -221,11 +223,11 @@ internal sealed class WorkflowCommandSet
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case IReplyHandlerItem handler:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(CreateItemStep(serviceTaskType, index, action));
                     return new ServiceTaskSegmentPlan(steps, handler.OpeningIndex);
 
                 case PipelineConclusion.FinalStep:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(CreateItemStep(serviceTaskType, index, action));
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case ServiceTaskStage.MailboxOpening:
@@ -240,11 +242,11 @@ internal sealed class WorkflowCommandSet
                         )
                     );
 
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(CreateItemStep(serviceTaskType, index, action));
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case ServiceTaskStage:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(CreateItemStep(serviceTaskType, index, action));
                     break;
 
                 default:
@@ -276,11 +278,12 @@ internal sealed class WorkflowCommandSet
     /// reads it), in <see cref="StepRequest.ServiceTaskItemIndex"/> (the enqueueing hop resolves options by
     /// it), and in the OperationId (the engine's own record, distinct per item for its dashboards). Nothing
     /// about what follows the item rides here — a step's payload says what it runs, never what runs after it.
+    /// The payload also carries <paramref name="action"/>, the action of the transition that entered the task.
     /// </summary>
-    internal static StepRequest CreateItemStep(string serviceTaskType, int itemIndex) =>
+    internal static StepRequest CreateItemStep(string serviceTaskType, int itemIndex, string? action) =>
         CreateCommand(
             ExecuteServiceTask.Key,
-            new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: itemIndex),
+            new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: itemIndex, Action: action),
             operationId: $"{ExecuteServiceTask.Key}: {itemIndex.ToString(CultureInfo.InvariantCulture)}",
             serviceTaskItemIndex: itemIndex
         );

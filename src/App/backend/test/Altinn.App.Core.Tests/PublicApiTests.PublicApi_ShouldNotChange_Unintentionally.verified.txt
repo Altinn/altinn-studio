@@ -2261,6 +2261,7 @@ namespace Altinn.App.Core.Features.Process
     public sealed class ServiceTaskContext : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskContext>
     {
         public ServiceTaskContext() { }
+        public string? Action { get; }
         public Altinn.App.Core.Features.Process.ServiceTaskAttempt Attempt { get; init; }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public System.DateTimeOffset ExecutionReferenceTime { get; }

@@ -45,6 +45,17 @@ internal sealed class PdfServiceTask : IPdfServiceTask
     {
         string taskId = context.InstanceDataMutator.Instance.Process.CurrentTask.ElementId;
 
+        // The task before this one was rejected, so there is nothing to document. Forwarding the action ends
+        // this task as abandoned too and lets a gateway after it route on the user's choice.
+        if (context.Action == "reject")
+        {
+            _logger.LogDebug(
+                "Skipping PDF Service Task {TaskId}, which was entered by a reject.",
+                LogSanitizer.Sanitize(taskId)
+            );
+            return ServiceTaskResult.Success(action: context.Action);
+        }
+
         _logger.LogDebug("Calling PdfService for PDF Service Task {TaskId}.", LogSanitizer.Sanitize(taskId));
 
         ValidAltinnPdfConfiguration config = GetValidAltinnPdfConfiguration(taskId);
@@ -70,7 +81,8 @@ internal sealed class PdfServiceTask : IPdfServiceTask
             LogSanitizer.Sanitize(taskId)
         );
 
-        return ServiceTaskResult.Success();
+        // Forwarded so a gateway after this task routes on the action the user took on the task before it.
+        return ServiceTaskResult.Success(action: context.Action);
     }
 
     private ValidAltinnPdfConfiguration GetValidAltinnPdfConfiguration(string taskId)

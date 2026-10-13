@@ -473,7 +473,8 @@ public class WorkflowCommandSetTests
 
     /// <summary>
     /// The whole serialized payload of every step the planner emits, pinned exactly: an
-    /// <c>ExecuteServiceTask</c> payload is the service task and the one item the step runs, and nothing else.
+    /// <c>ExecuteServiceTask</c> payload is the service task, the one item the step runs and the action of the
+    /// transition that entered the task, and nothing else.
     /// Pinned on the serialized shape rather than on a property being null, because the shape is what a
     /// workflow enqueued by this version replays from — and because a pin on the whole string fails for a
     /// field <em>added</em> too, which is the direction that would put a hand-over back in a payload.
@@ -487,13 +488,13 @@ public class WorkflowCommandSetTests
             "archiving",
             pipeline,
             afterItemIndex: 1,
-            action: null
+            action: "confirm"
         );
 
         Assert.Equal(
             [
-                "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":2}",
-                "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":3}",
+                "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":2,\"action\":\"confirm\"}",
+                "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":3,\"action\":\"confirm\"}",
             ],
             StageStepPayloadJson(plan)
         );
@@ -539,6 +540,62 @@ public class WorkflowCommandSetTests
 
         Assert.Empty(plan.Steps);
         Assert.Null(plan.ReceiveOpeningIndex);
+    }
+
+    /// <summary>
+    /// The action of the transition that enters a service task reaches every step of the run Main carries,
+    /// so each stage and the conclusion see the same <see cref="ServiceTaskContext.Action"/>.
+    /// </summary>
+    [Fact]
+    public void GetTaskStartSteps_ServiceTask_CopiesTheActionOntoEveryStepOfTheFirstSegment()
+    {
+        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+            .Stage(PlainStage)
+            .Stage(PlainStage)
+            .Finally(FinalWork);
+
+        var commandSet = WorkflowCommandSet.GetTaskStartSteps(
+            new TaskStartContext
+            {
+                TaskId = "Task_2",
+                ServiceTask = new ResolvedServiceTask("pdf", pipeline),
+                Action = "confirm",
+                IsInitialTaskStart = false,
+            }
+        );
+
+        List<ExecuteServiceTaskPayload> payloads = StageStepPayloads(
+            new ServiceTaskSegmentPlan(commandSet.CriticalPostCommitCommands, ReceiveOpeningIndex: null)
+        );
+        Assert.Equal([0, 1, 2], payloads.Select(payload => payload.ItemIndex));
+        Assert.All(payloads, payload => Assert.Equal("confirm", payload.Action));
+    }
+
+    /// <summary>
+    /// A later segment, planned at the hop that starts it, carries the action it is handed — including a
+    /// receive workflow's single handler step.
+    /// </summary>
+    [Fact]
+    public void PlanSegment_LaterSegments_CarryTheAction()
+    {
+        ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
+
+        ServiceTaskSegmentPlan receive = WorkflowCommandSet.PlanSegment(
+            "archiving",
+            pipeline,
+            "reject",
+            afterItemIndex: 0
+        );
+        ServiceTaskSegmentPlan continuation = WorkflowCommandSet.PlanSegment(
+            "archiving",
+            pipeline,
+            "reject",
+            afterItemIndex: 1
+        );
+
+        Assert.Equal("reject", Assert.Single(StageStepPayloads(receive)).Action);
+        Assert.Equal(2, StageStepPayloads(continuation).Count);
+        Assert.All(StageStepPayloads(continuation), payload => Assert.Equal("reject", payload.Action));
     }
 
     private static ServiceTaskPipeline ArchiveThenJournalPipeline() =>

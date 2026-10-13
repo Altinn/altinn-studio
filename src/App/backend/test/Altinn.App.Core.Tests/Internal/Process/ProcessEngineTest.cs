@@ -2939,6 +2939,52 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
+    public async Task EnqueueProcessNext_HandsTheActionToTheDependentWorkflow()
+    {
+        // Arrange — the action decides the transition, and is also what a service task the transition enters
+        // reads, so it must reach the request that builds the task's steps.
+        var workflowEngineServiceMock = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        string? capturedAction = null;
+        workflowEngineServiceMock
+            .Setup(x =>
+                x.EnqueueDependentProcessNext(
+                    It.IsAny<Instance>(),
+                    It.IsAny<ProcessStateChange>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Actor>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Instance, ProcessStateChange, Guid, string, string, Actor, string?, string?, CancellationToken>(
+                (_, _, _, _, _, _, action, _, _) => capturedAction = action
+            )
+            .ReturnsAsync(Guid.NewGuid());
+
+        var services = new ServiceCollection();
+        services.AddSingleton(workflowEngineServiceMock.Object);
+
+        await using var fixture = Fixture.Create(services);
+
+        // Act
+        await fixture.ProcessEngine.EnqueueProcessNext(
+            await fixture.Accessor(CreateTask1Instance()),
+            new Actor { UserId = 1337, AuthenticationLevel = 2 },
+            Guid.NewGuid(),
+            _collectionKey,
+            "state",
+            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
+            "confirm"
+        );
+
+        // Assert
+        Assert.Equal("confirm", capturedAction);
+    }
+
+    [Fact]
     public async Task EnqueueProcessNext_ServiceOwnerActor_PreservesPlatformUser()
     {
         // Arrange
