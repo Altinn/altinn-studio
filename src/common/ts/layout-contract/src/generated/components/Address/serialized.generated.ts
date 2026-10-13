@@ -5,7 +5,6 @@ import {
   IRawDataModelBinding,
   LabeledComponentProps,
   SaveWhileTyping,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
@@ -28,6 +27,8 @@ export type CompAddressSerialized = {
     houseNumberTitle?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -36,7 +37,6 @@ export type CompAddressSerialized = {
   simplified?: boolean;
 } & ComponentBase &
   FormComponentProps &
-  SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 1970cc480bc73637f922aefe168f8463e6e942429fe48bab7f14767d5d8317d8
+// Source hash: 2c32a4c0fd28ec191ddd5ff65b2943c82440ba6937c32b66fcef8a495ee511e9
