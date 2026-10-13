@@ -9,6 +9,7 @@ import { hasPendingAttachments, waitForAttachments } from 'src/features/attachme
 import { FormStore } from 'src/features/form/FormContext';
 import { useInstanceDataQuery, useSelectFromInstanceData } from 'src/features/instance/InstanceContext';
 import {
+  type BackendComponentValidation,
   type BackendValidationIssue,
   type BaseValidation,
   type FieldValidations,
@@ -17,6 +18,7 @@ import {
 } from 'src/features/validation';
 import { BackendValidation } from 'src/features/validation/backendValidation/BackendValidation';
 import {
+  mapBackendIssuesToComponentValidations,
   mapBackendIssuesToTaskValidations,
   mapBackendValidationsToValidatorGroups,
   mapValidatorGroupsToDataModelValidations,
@@ -43,6 +45,7 @@ export interface ValidationInternals {
     backendValidations: { [dataElementId: string]: FieldValidations } | undefined,
     processedLast?: Partial<ValidationsProcessedLast>,
     taskValidations?: BaseValidation[],
+    componentValidations?: BackendComponentValidation[],
   ) => void;
   setOtherDataElementBackendValidations: (dataElementId: string, validationIssues: BackendValidationIssue[]) => void;
 }
@@ -56,6 +59,7 @@ export function createValidationSlice(
     // Publicly exposed state
     state: {
       task: mapBackendIssuesToTaskValidations(bootstrap.validationIssues ?? []),
+      component: mapBackendIssuesToComponentValidations(bootstrap.allInitialValidations),
     },
     otherDataElementBackendValidations: {},
     formMask: 0,
@@ -100,9 +104,9 @@ export function createValidationSlice(
           dataModel.validations[key] = validations;
         }
       }),
-    updateBackendValidations: (backendValidations, processedLast, taskValidations) =>
+    updateBackendValidations: (backendValidations, processedLast, taskValidations, componentValidations) =>
       set((state) => {
-        updateBackendValidations(state)(backendValidations, processedLast, taskValidations);
+        updateBackendValidations(state)(backendValidations, processedLast, taskValidations, componentValidations);
       }),
     setOtherDataElementBackendValidations: (dataElementId, validationIssues) =>
       set((state) => {
@@ -124,7 +128,7 @@ export function createValidationSlice(
 export function updateBackendValidations(
   state: Draft<FormStoreState>,
 ): ValidationInternals['updateBackendValidations'] {
-  return (backendValidations, processedLast, taskValidations) => {
+  return (backendValidations, processedLast, taskValidations, componentValidations) => {
     if (
       processedLast?.incremental &&
       !deepEqual(state.validation.processedLast.incremental, processedLast.incremental)
@@ -136,6 +140,9 @@ export function updateBackendValidations(
     }
     if (taskValidations) {
       state.validation.state.task = taskValidations;
+    }
+    if (componentValidations) {
+      state.validation.state.component = componentValidations;
     }
     if (backendValidations) {
       for (const [dataType, model] of Object.entries(state.data.models)) {
@@ -248,11 +255,14 @@ function ManageShowAllErrors() {
 }
 
 function UpdateShowAllErrors() {
-  const [taskValidations, dataModels, setShowAllErrors] = FormStore.raw.useShallowSelector((state) => [
-    state.validation.state.task,
-    state.data.models,
-    state.validation.setShowAllUnboundValidations,
-  ]);
+  const [taskValidations, componentValidations, dataModels, setShowAllErrors] = FormStore.raw.useShallowSelector(
+    (state) => [
+      state.validation.state.task,
+      state.validation.state.component,
+      state.data.models,
+      state.validation.setShowAllUnboundValidations,
+    ],
+  );
 
   const isFirstRender = useRef(true);
 
@@ -293,10 +303,11 @@ function UpdateShowAllErrors() {
         .flatMap((validations) => Object.values(validations))
         .flatMap((field) => selectValidations(field, backendMask, 'error')).length > 0;
 
-    if (!hasFieldErrors && !hasValidationErrors(taskValidations)) {
+    const hasComponentErrors = selectValidations(componentValidations, backendMask, 'error').length > 0;
+    if (!hasFieldErrors && !hasComponentErrors && !hasValidationErrors(taskValidations)) {
       setShowAllErrors(false);
     }
-  }, [dataModels, setShowAllErrors, taskValidations]);
+  }, [componentValidations, dataModels, setShowAllErrors, taskValidations]);
 
   return null;
 }

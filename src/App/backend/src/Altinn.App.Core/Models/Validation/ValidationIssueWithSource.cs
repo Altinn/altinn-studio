@@ -19,6 +19,8 @@ public class ValidationIssueWithSource
             Severity = issue.Severity,
             DataElementId = issue.DataElementId,
             Field = issue.Field,
+            ComponentId = issue.ComponentId,
+            RowIndexes = issue.RowIndexes,
             Code = issue.Code,
             Description = issue.Description,
             Source = source,
@@ -57,6 +59,20 @@ public class ValidationIssueWithSource
     /// </summary>
     [JsonPropertyName("field")]
     public string? Field { get; set; }
+
+    /// <summary>
+    /// The id of the component the issue should be displayed beside, without row indexes.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("componentId")]
+    public string? ComponentId { get; set; }
+
+    /// <summary>
+    /// The repeating group row indexes of the component in <see cref="ComponentId"/>.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("rowIndexes")]
+    public int[]? RowIndexes { get; set; }
 
     /// <summary>
     /// A system readable identification of the type of issue.

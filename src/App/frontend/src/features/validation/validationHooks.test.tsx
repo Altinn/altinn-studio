@@ -11,7 +11,8 @@ import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
 import { FormStore } from 'src/features/form/FormContext';
-import { useGetNodesWithErrors } from 'src/features/validation/validationHooks';
+import { ALTINN_ROW_ID } from 'src/features/formData/types';
+import { useAllValidations, useGetNodesWithErrors } from 'src/features/validation/validationHooks';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 function FormDataValue() {
@@ -301,5 +302,112 @@ describe('derived validation state', () => {
 
       expect(screen.getByRole('button')).toHaveTextContent('1');
     });
+  });
+});
+
+describe('backend validations linked to components', () => {
+  function ValidationsProbe() {
+    const validations = useAllValidations('showAll', 'error');
+    const summary = validations
+      .map((validation) => {
+        const bindingKey = 'bindingKey' in validation ? validation.bindingKey : undefined;
+        return `${validation.nodeId}:${validation.message.key}:${bindingKey ?? '-'}`;
+      })
+      .sort();
+    return <div data-testid='validations'>{JSON.stringify(summary)}</div>;
+  }
+
+  async function render(issues: Omit<BackendValidationIssue, 'dataElementId' | 'severity' | 'source'>[]) {
+    window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+      ui.folders.Task_1 = {
+        defaultDataType: defaultDataTypeMock,
+        pages: { order: ['Form'] },
+      };
+    });
+
+    await renderWithInstanceAndLayout({
+      renderer: () => <ValidationsProbe />,
+      initialPage: 'Form',
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = {
+              TextField: 'value',
+              MyGroup: [
+                { [ALTINN_ROW_ID]: 'row-0', Name: 'first' },
+                { [ALTINN_ROW_ID]: 'row-1', Name: 'second' },
+              ],
+            };
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues = issues.map((issue) => ({
+              dataElementId: defaultMockDataElementId,
+              severity: BackendValidationSeverity.Error,
+              source: 'Custom',
+              ...issue,
+            }));
+            obj.layouts = {
+              Form: {
+                data: {
+                  layout: [
+                    {
+                      id: 'first',
+                      type: 'Input',
+                      dataModelBindings: {
+                        simpleBinding: { dataType: defaultDataTypeMock, field: 'TextField' },
+                      },
+                    },
+                    {
+                      id: 'second',
+                      type: 'Input',
+                      dataModelBindings: {
+                        simpleBinding: { dataType: defaultDataTypeMock, field: 'TextField' },
+                      },
+                    },
+                    {
+                      id: 'myGroup',
+                      type: 'RepeatingGroup',
+                      dataModelBindings: {
+                        group: { dataType: defaultDataTypeMock, field: 'MyGroup' },
+                      },
+                      children: ['name'],
+                    },
+                    {
+                      id: 'name',
+                      type: 'Input',
+                      dataModelBindings: {
+                        simpleBinding: { dataType: defaultDataTypeMock, field: 'MyGroup.Name' },
+                      },
+                    },
+                  ],
+                },
+              },
+            };
+          }),
+      },
+    });
+
+    return JSON.parse(screen.getByTestId('validations').textContent!) as string[];
+  }
+
+  it('shows a field validation on every component bound to the field when no component is given', async () => {
+    const validations = await render([{ field: 'TextField', customTextKey: 'unlinked' }]);
+    expect(validations).toEqual(['first:unlinked:simpleBinding', 'second:unlinked:simpleBinding']);
+  });
+
+  it('shows a field validation only on the component it is linked to', async () => {
+    const validations = await render([{ field: 'TextField', componentId: 'second', customTextKey: 'linked' }]);
+    expect(validations).toEqual(['second:linked:simpleBinding']);
+  });
+
+  it('shows validations on the linked row of a component in a repeating group', async () => {
+    const validations = await render([
+      { field: 'MyGroup[0].Name', componentId: 'name', rowIndexes: [0], customTextKey: 'with-field' },
+      { componentId: 'name', rowIndexes: [1], customTextKey: 'without-field' },
+    ]);
+    expect(validations).toEqual(['name-0:with-field:simpleBinding', 'name-1:without-field:-']);
+  });
+
+  it('shows a validation linked to a component on that component even when it does not bind the field', async () => {
+    const validations = await render([{ field: 'SomeOtherField', componentId: 'first', customTextKey: 'other' }]);
+    expect(validations).toEqual(['first:other:-']);
   });
 });

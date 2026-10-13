@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Validators can set `ComponentId` and `RowIndexes` on a `ValidationIssue` to show it beside one component in a specific repeating group row, even when the issue has no `Field`. Required-field issues now use it, so they no longer appear on every component bound to the same field.
+
 ### Fixed
 
 - A service task that gives up when `Wait.IsFinalCheck` is `true` can no longer fail with the generic error for an exhausted wait budget instead of its own. In unit tests, set `IsFinalCheck` directly: a past `Deadline` no longer implies it.

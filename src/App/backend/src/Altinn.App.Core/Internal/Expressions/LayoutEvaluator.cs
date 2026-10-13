@@ -198,6 +198,8 @@ public static class LayoutEvaluator
                                 Severity = ValidationIssueSeverity.Error,
                                 DataElementId = field.DataElementIdentifier.ToString(),
                                 Field = field.Field,
+                                ComponentId = context.Component.Id,
+                                RowIndexes = context.RowIndices,
                                 Code = "required",
                                 CustomTextKey = "backend.validation_errors.required",
                                 CustomTextParameters = customTextParameters,

@@ -552,6 +552,8 @@ internal sealed class FormBootstrapService
             Severity = issue.Severity,
             DataElementId = dataElementId,
             Field = issue.Field,
+            ComponentId = issue.ComponentId,
+            RowIndexes = issue.RowIndexes,
             Code = issue.Code,
             Description = issue.Description,
             Source = issue.Source,
