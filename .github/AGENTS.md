@@ -16,6 +16,13 @@ on:
       - 'src/<area>/**'
       - '.github/workflows/<this-workflow>.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md'
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
+      # Add positive patterns for any excluded documentation consumed by this workflow.
 
 jobs:
   build:
@@ -64,6 +71,12 @@ NuGet package readmes, embedded repository fixtures, generated layout-contract
 documentation, and the workflow engine's technical guide. Changes to those
 inputs must still trigger their checks. CLI resources also include shipped
 Markdown skills and must trigger the CLI build.
+
+Formatting checks can also consume Markdown. The Designer frontend's full
+code-style check includes documentation, so its Markdown remains covered by
+[`designer-frontend-docs-format.yml`](workflows/designer-frontend-docs-format.yml)
+without running builds or unit tests. Audit new build or test inputs under
+`docs/` directories and add exceptions for them before relying on the exclusions.
 
 ## Runners
 
