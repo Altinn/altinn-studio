@@ -46,27 +46,18 @@ internal sealed class CommitProcessState : WorkflowEngineCommandBase<ProcessStat
             }
 
             ProcessState newProcessState = processStateChange.NewProcessState;
-            if (newProcessState.Ended is null && newProcessState.CurrentTask is null)
+            bool isActive = newProcessState is { Ended: null, CurrentTask: not null };
+            bool isEnded =
+                newProcessState is { Ended: not null, CurrentTask: null }
+                && !string.IsNullOrWhiteSpace(newProcessState.EndEvent);
+            if (!isActive && !isEnded)
             {
                 return Task.FromResult<ProcessEngineCommandResult>(
                     FailedProcessEngineCommandResult.Permanent(
-                        "A non-ended process state requires a current task.",
+                        "A process state must be active, with a current task, or ended, with no current task and a nonblank end event.",
                         nameof(InvalidOperationException)
                     )
                 );
-            }
-
-            if (newProcessState.Ended is not null)
-            {
-                if (newProcessState.CurrentTask is not null || string.IsNullOrWhiteSpace(newProcessState.EndEvent))
-                {
-                    return Task.FromResult<ProcessEngineCommandResult>(
-                        FailedProcessEngineCommandResult.Permanent(
-                            "An ended process state requires no current task and a nonblank end event.",
-                            nameof(InvalidOperationException)
-                        )
-                    );
-                }
             }
 
             if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
