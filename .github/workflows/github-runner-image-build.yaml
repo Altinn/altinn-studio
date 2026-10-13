@@ -25,7 +25,7 @@ jobs:
   build:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build and test
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-ubuntu
     timeout-minutes: 45
     defaults:
       run:
@@ -35,6 +35,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      - name: Install shellcheck
+        run: |
+          if ! command -v shellcheck >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install --yes --no-install-recommends shellcheck
+          fi
 
       - name: Check shell scripts
         run: shellcheck run.sh smoke.sh
