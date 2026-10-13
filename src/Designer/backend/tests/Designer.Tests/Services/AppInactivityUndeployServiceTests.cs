@@ -290,9 +290,11 @@ public class AppInactivityUndeployServiceTests
             );
         var spans = new List<Activity>();
         using var root = new Activity("test-root").SetIdFormat(ActivityIdFormat.W3C).Start();
+        // Initializes ServiceTelemetry first: creating its ActivitySource calls the listener's filter.
+        string sourceName = ServiceTelemetry.Source.Name;
         using var listener = new ActivityListener
         {
-            ShouldListenTo = source => source.Name == ServiceTelemetry.Source.Name,
+            ShouldListenTo = source => source.Name == sourceName,
             Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
             ActivityStopped = activity =>
             {

@@ -625,20 +625,12 @@ public class SourceControlService(
         }
     }
 
-    public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext)
-    {
-        using var activity = StartActivity(editingContext);
-        return ExecuteWithTelemetry(
-            activity,
-            editingContext,
-            static (self, editingContext) =>
-                Path.Join(
-                    Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
-                        ?? self._repositorySettings.RepositoryLocation,
-                    editingContext.Path
-                )
+    public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext) =>
+        Path.Join(
+            Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
+                ?? _repositorySettings.RepositoryLocation,
+            editingContext.Path
         );
-    }
 
     /// <inheritdoc />
     public void CloneIfNotExists(AltinnAuthenticatedRepoEditingContext authenticatedContext)

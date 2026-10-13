@@ -136,7 +136,11 @@ http {
     }
 
     location ^~ /hubs/ {
-      otel_span_name "$span_method /hubs/*";
+      # A SignalR hub connection stays open for as long as the client is connected, so it's not traced.
+      # Designer traces each hub method call as its own root span. With tracing off, propagate would
+      # still send an unsampled traceparent, and Designer would then drop its spans for negotiation.
+      otel_trace off;
+      otel_trace_context ignore;
       proxy_http_version 1.1;
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection "Upgrade";

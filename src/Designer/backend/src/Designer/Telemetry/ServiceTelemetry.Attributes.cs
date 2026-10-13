@@ -12,6 +12,7 @@ internal static partial class ServiceTelemetry
         public const string ServiceVersion = "service.version";
         public const string UrlFull = "url.full";
         public const string EndUserId = "enduser.id";
+        public const string ErrorType = "error.type";
 
         public const string ServiceOwner = "altinn.service_owner";
         public const string App = "altinn.app";
@@ -178,6 +179,13 @@ internal static partial class ServiceTelemetry
             public const string PublishResult = Prefix + "publish.result";
             public const string PublishStatusCode = Prefix + "publish.status_code";
             public const string PublishValidationErrors = Prefix + "publish.validation_errors";
+        }
+
+        public static class SignalR
+        {
+            private const string Prefix = "altinn.designer.signalr.";
+
+            public const string ConnectionId = Prefix + "connection_id";
         }
 
         public static class Studioctl
