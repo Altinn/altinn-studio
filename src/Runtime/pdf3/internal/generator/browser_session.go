@@ -349,11 +349,6 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 	}
 }
 
-// pageErrors is where the errors a request's page reports go: a warning each, with the request's
-// context, so it links to the request's trace, and the counts on the request's attributes. Set
-// before the request starts, so the CDP event goroutine never reads the request, or the session's
-// logger, which handleRequests swaps per request.
-//
 // The kinds of error a page reports, as altinn.pdf.page.error.kind.
 const (
 	pageErrorKindConsole   = "console"
@@ -361,6 +356,11 @@ const (
 	pageErrorKindException = "exception"
 )
 
+// pageErrors is where the errors a request's page reports go: a warning each, with the request's
+// context, so it links to the request's trace, and the counts on the request's attributes. Set
+// before the request starts, so the CDP event goroutine never reads the request, or the session's
+// logger, which handleRequests swaps per request.
+//
 //nolint:containedctx // The request's context is what links each warning to the request's trace.
 type pageErrors struct {
 	ctx        context.Context

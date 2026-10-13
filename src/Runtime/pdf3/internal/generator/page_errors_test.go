@@ -201,7 +201,9 @@ func runRequestsWith(
 			t.Fatalf("response error = %v", response.Error)
 		}
 	}
-	// Cleanup runs after the response; the loop must not be stopped in the middle of it.
+	// Cleanup runs after the response; the loop must not be stopped in the middle of it, or its
+	// assertions exit the test binary. A test that fails before this leaves the loop waiting on its
+	// queue, idle, rather than risk that.
 	deadline := time.Now().Add(5 * time.Second)
 	for logs.count("Cleanup completed") < len(urls) {
 		if time.Now().After(deadline) {
@@ -249,19 +251,22 @@ func TestHandleRequests_LogsPageErrorsWithTheirRequest(t *testing.T) {
 // -race.
 func TestHandleRequests_PageErrorsStayWithTheirRequest(t *testing.T) {
 	logs := newCaptureHandler()
-	stop := make(chan struct{})
-	stopped := make(chan struct{})
 	urls := make([]string, 20)
 	for i := range urls {
 		urls[i] = fmt.Sprintf("https://ttd.apps.tt02.altinn.no/ttd/app%d/", i)
 	}
 
-	var sessionReady sync.WaitGroup
-	sessionReady.Add(1)
-	var session *browserSession
+	started := make(chan *browserSession, 1)
+	stop := make(chan struct{})
+	stopped := make(chan struct{})
 	go func() {
 		defer close(stopped)
-		sessionReady.Wait()
+		var session *browserSession
+		select {
+		case session = <-started:
+		case <-stop:
+			return
+		}
 		for {
 			select {
 			case <-stop:
@@ -273,17 +278,19 @@ func TestHandleRequests_PageErrorsStayWithTheirRequest(t *testing.T) {
 			}
 		}
 	}()
-	traces := runRequestsWith(t, logs, urls, func(w *browserSession) {
-		session = w
-		sessionReady.Done()
+	// Stops the errors however the test ends, so a failed test doesn't leave them spinning.
+	t.Cleanup(func() {
+		close(stop)
+		<-stopped
 	})
-	close(stop)
-	<-stopped
+	traces := runRequestsWith(t, logs, urls, func(w *browserSession) { started <- w })
 
+	pageErrors := 0
 	for _, record := range logs.snapshot() {
 		if _, ok := record.attrs[attr.PageErrorKind]; !ok {
 			continue
 		}
+		pageErrors++
 		if requestURL := traces[record.traceID]; requestURL == "" || record.attrs[attr.RequestURL] != requestURL {
 			t.Fatalf(
 				"page error with %s %q logged in the trace of %q",
@@ -292,5 +299,8 @@ func TestHandleRequests_PageErrorsStayWithTheirRequest(t *testing.T) {
 				requestURL,
 			)
 		}
+	}
+	if pageErrors == 0 {
+		t.Fatal("logged no page errors, so nothing was checked")
 	}
 }
