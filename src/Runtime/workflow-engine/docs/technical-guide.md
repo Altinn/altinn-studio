@@ -1617,7 +1617,15 @@ stays explicit.
             "heads": ["f47ac10b-58cc-4372-a567-0e02b2c3d479"],
             "createdAt": "2026-03-19T10:00:00+00:00",
             "updatedAt": "2026-03-19T10:00:05+00:00",
-            "workflowCounts": { "active": 3, "failedVisible": 0, "failedInvisible": 1, "total": 12 }
+            "workflowCounts": {
+                "active": 3,
+                "failedVisible": 0,
+                "failedInvisible": 1,
+                "requeuedVisible": 1,
+                "waitingVisible": 0,
+                "heldVisible": 0,
+                "total": 12
+            }
         }
     ],
     "pageSize": 25,

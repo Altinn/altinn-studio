@@ -150,7 +150,8 @@ internal sealed partial class EngineRepository
     /// grouped query (translated to <c>COUNT(*) FILTER (WHERE …)</c>). The failed buckets split on
     /// head visibility (<c>is_head IS DISTINCT FROM false</c> vs <c>is_head = false</c>) and exclude
     /// <see cref="PersistentItemStatus.Abandoned"/> — a written-off failure is not an open one —
-    /// while the total counts every workflow in the collection.
+    /// while the total counts every workflow in the collection. The parked counts take the visible
+    /// side of the same split, one status each.
     /// </summary>
     private static async Task<Dictionary<string, CollectionWorkflowCounts>> GetCollectionWorkflowCounts(
         Context.EngineDbContext context,
@@ -180,6 +181,9 @@ internal sealed partial class EngineRepository
                 // class; the rollup integration test pins a null directive to the visible bucket.
                 FailedVisible = g.Count(w => failedStatuses.Contains(w.Status) && w.IsHead != false),
                 FailedInvisible = g.Count(w => failedStatuses.Contains(w.Status) && w.IsHead == false),
+                RequeuedVisible = g.Count(w => w.Status == PersistentItemStatus.Requeued && w.IsHead != false),
+                WaitingVisible = g.Count(w => w.Status == PersistentItemStatus.Waiting && w.IsHead != false),
+                HeldVisible = g.Count(w => w.Status == PersistentItemStatus.Held && w.IsHead != false),
                 Total = g.Count(),
             })
             .ToListAsync(cancellationToken);
@@ -196,6 +200,9 @@ internal sealed partial class EngineRepository
                 Active = c.Active,
                 FailedVisible = c.FailedVisible,
                 FailedInvisible = c.FailedInvisible,
+                RequeuedVisible = c.RequeuedVisible,
+                WaitingVisible = c.WaitingVisible,
+                HeldVisible = c.HeldVisible,
                 Total = c.Total,
             };
         }

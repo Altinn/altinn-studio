@@ -345,13 +345,16 @@ every entry carries a `workflowCounts` rollup across
 **all** of the collection's workflows, visible and invisible alike:
 
 ```json
-"workflowCounts": { "active": 3, "failedVisible": 0, "failedInvisible": 1, "total": 12 }
+"workflowCounts": { "active": 3, "failedVisible": 0, "failedInvisible": 1, "requeuedVisible": 1, "waitingVisible": 0, "heldVisible": 0, "total": 12 }
 ```
 
 - `active` = the engine's non-terminal (`Incomplete`) status set: `Enqueued | Processing | Requeued | Waiting | Held`.
   A `Held` mailbox receiver is active — parked, but consuming admission budget and gating its dependents
 - `failedVisible` = `Failed | Canceled | DependencyFailed` and visible (`is_head IS DISTINCT FROM false`)
 - `failedInvisible` = same statuses and invisible (`is_head = false`)
+- `requeuedVisible`, `waitingVisible`, `heldVisible` = the visible workflows in `Requeued`, `Waiting` and
+  `Held`. Subsets of `active`, not buckets of their own: they let a reader say why an instance is not
+  moving — retrying, waiting on an outcome, or waiting on a message — instead of only that work is in flight
 - `total` = every workflow in the collection. There is deliberately no named "settled" bucket —
   successful, abandoned, and any future status appear as the remainder, so a new status can never be
   silently misfiled.

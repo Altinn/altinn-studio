@@ -3,6 +3,7 @@ using System.Text.Json;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestApp;
 using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
@@ -297,6 +298,77 @@ public partial class EngineTests
         var detailJson = await detailResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         using var detailDoc = JsonDocument.Parse(detailJson);
         Assert.False(detailDoc.RootElement.TryGetProperty("workflowCounts", out _));
+    }
+
+    [Fact]
+    public async Task ListCollections_Rollup_CountsVisibleParkedWorkflowsByStatus()
+    {
+        // Arrange — one collection with a workflow in every parked status, and the invisible twin of
+        // one of them to pin that the parked counts take the visible side only:
+        //   requeued           → Requeued, a 500 held still by a ten-minute backoff  (requeuedVisible)
+        //   requeued-invisible → the same, IsHead=false                           (active only)
+        //   waiting            → Waiting, a deferral ten minutes out                (waitingVisible)
+        //   held-receiver      → Held on an open mailbox                            (heldVisible)
+        //   scheduled          → Enqueued with a future StartAt                     (active only)
+        fixture.FailPaths("/retrying");
+        var mailbox = await _client.MintMailbox("parked-mailbox", TimeSpan.FromHours(1));
+        var retryLater = RetryStrategy.Constant(TimeSpan.FromMinutes(10), maxRetries: 5);
+        var waitingStep = new StepRequest
+        {
+            OperationId = "defer-parked",
+            Command = CommandDefinition.Create(
+                "test-defer",
+                new DeferringCommandData
+                {
+                    Key = $"parked-{Guid.NewGuid():N}",
+                    SucceedOnAttempt = int.MaxValue,
+                    DeferDelayMs = 600_000,
+                }
+            ),
+        };
+
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow(
+                "requeued",
+                [_testHelpers.CreateWebhookStep("/retrying", retryStrategy: retryLater)]
+            ),
+            _testHelpers.CreateWorkflow(
+                "requeued-invisible",
+                [_testHelpers.CreateWebhookStep("/retrying", retryStrategy: retryLater)],
+                isHead: false
+            ),
+            _testHelpers.CreateWorkflow("waiting", [waitingStep]),
+            _testHelpers.CreateWorkflow("held-receiver", [_testHelpers.CreateWebhookStep("/hook")]) with
+            {
+                Mailbox = new MailboxReference { Id = mailbox.Id },
+            },
+            _testHelpers.CreateWorkflow(
+                "scheduled",
+                [_testHelpers.CreateWebhookStep("/hook")],
+                startAt: DateTimeOffset.UtcNow.AddHours(1)
+            ),
+        ]);
+        var response = await _client.Enqueue(request, collectionKey: "parked-col");
+        var byRef = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+
+        await _client.WaitForWorkflowStatus(byRef["requeued"], PersistentItemStatus.Requeued);
+        await _client.WaitForWorkflowStatus(byRef["requeued-invisible"], PersistentItemStatus.Requeued);
+        await _client.WaitForWorkflowStatus(byRef["waiting"], PersistentItemStatus.Waiting, TimeSpan.FromSeconds(30));
+        await _client.WaitForWorkflowStatus(byRef["held-receiver"], PersistentItemStatus.Held);
+
+        // Act
+        var result = await _client.ListCollectionsPaginated();
+
+        // Assert
+        var collection = Assert.Single(result.Data);
+        var counts = collection.WorkflowCounts;
+        Assert.NotNull(counts);
+        Assert.Equal(5, counts.Active);
+        Assert.Equal(1, counts.RequeuedVisible);
+        Assert.Equal(1, counts.WaitingVisible);
+        Assert.Equal(1, counts.HeldVisible);
+        Assert.Equal(0, counts.FailedVisible);
+        Assert.Equal(0, counts.FailedInvisible);
     }
 
     [Fact]

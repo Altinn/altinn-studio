@@ -61,7 +61,10 @@ public sealed record WorkflowCollectionResponse
 /// engine's adjudication marker for a written-off failure — but still counts toward
 /// <see cref="Total"/>. There is deliberately no named "settled" bucket: successful, abandoned, and
 /// any future status show up as the remainder <c>total - active - failedVisible - failedInvisible</c>,
-/// so a new status can never be silently misfiled.
+/// so a new status can never be silently misfiled. <see cref="RequeuedVisible"/>,
+/// <see cref="WaitingVisible"/> and <see cref="HeldVisible"/> are not buckets of their own but
+/// subsets of <see cref="Active"/>: the visible workflows parked for a reason a reader may want to
+/// name, rather than running or queued.
 /// </remarks>
 public sealed record CollectionWorkflowCounts
 {
@@ -91,6 +94,27 @@ public sealed record CollectionWorkflowCounts
     /// </summary>
     [JsonPropertyName("failedInvisible")]
     public required int FailedInvisible { get; init; }
+
+    /// <summary>
+    /// Gets how many of the <see cref="Active"/> workflows visible to the head frontier are waiting to
+    /// try again after a retryable error (<see cref="PersistentItemStatus.Requeued"/>).
+    /// </summary>
+    [JsonPropertyName("requeuedVisible")]
+    public required int RequeuedVisible { get; init; }
+
+    /// <summary>
+    /// Gets how many of the <see cref="Active"/> workflows visible to the head frontier are parked by a
+    /// deferral, waiting for an outcome that is not available yet (<see cref="PersistentItemStatus.Waiting"/>).
+    /// </summary>
+    [JsonPropertyName("waitingVisible")]
+    public required int WaitingVisible { get; init; }
+
+    /// <summary>
+    /// Gets how many of the <see cref="Active"/> workflows visible to the head frontier are parked on a
+    /// mailbox until their message arrives or the mailbox closes (<see cref="PersistentItemStatus.Held"/>).
+    /// </summary>
+    [JsonPropertyName("heldVisible")]
+    public required int HeldVisible { get; init; }
 
     /// <summary>
     /// Gets the total number of workflows in the collection, regardless of status or visibility.

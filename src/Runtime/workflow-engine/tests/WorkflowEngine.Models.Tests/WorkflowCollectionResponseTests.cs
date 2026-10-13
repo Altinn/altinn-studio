@@ -27,13 +27,16 @@ public class WorkflowCollectionResponseTests
     }
 
     [Fact]
-    public void WorkflowCounts_WhenPopulated_CarriesAllFourBuckets()
+    public void WorkflowCounts_WhenPopulated_CarriesAllBucketsAndParkedCounts()
     {
         var counts = new CollectionWorkflowCounts
         {
             Active = 3,
             FailedVisible = 0,
             FailedInvisible = 1,
+            RequeuedVisible = 1,
+            WaitingVisible = 2,
+            HeldVisible = 0,
             Total = 12,
         };
 
@@ -44,6 +47,9 @@ public class WorkflowCollectionResponseTests
         Assert.Equal(3, element.GetProperty("active").GetInt32());
         Assert.Equal(0, element.GetProperty("failedVisible").GetInt32());
         Assert.Equal(1, element.GetProperty("failedInvisible").GetInt32());
+        Assert.Equal(1, element.GetProperty("requeuedVisible").GetInt32());
+        Assert.Equal(2, element.GetProperty("waitingVisible").GetInt32());
+        Assert.Equal(0, element.GetProperty("heldVisible").GetInt32());
         Assert.Equal(12, element.GetProperty("total").GetInt32());
     }
 
