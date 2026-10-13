@@ -207,7 +207,7 @@ internal sealed class ValidationDescriptionTextKeyMigration
         string? renamedKey
     )
     {
-        var assignment = MemberAssignment(initializer, DescriptionName)!;
+        var assignment = DescriptionAssignment(initializer);
         var left = SyntaxFactory.IdentifierName(CustomTextKeyName).WithTriviaFrom(assignment.Left);
         var right = renamedKey is null
             ? assignment.Right
@@ -224,9 +224,13 @@ internal sealed class ValidationDescriptionTextKeyMigration
         initializer.WithExpressions(
             RemoveKeepingLayout(
                 initializer.Expressions,
-                initializer.Expressions.IndexOf(MemberAssignment(initializer, DescriptionName)!)
+                initializer.Expressions.IndexOf(DescriptionAssignment(initializer))
             )
         );
+
+    private static AssignmentExpressionSyntax DescriptionAssignment(InitializerExpressionSyntax initializer) =>
+        MemberAssignment(initializer, DescriptionName)
+        ?? throw new InvalidOperationException("The initializer does not set Description");
 
     /// <summary>
     /// Removes the item at <paramref name="index"/> with its comma, keeping the layout of the items around it.

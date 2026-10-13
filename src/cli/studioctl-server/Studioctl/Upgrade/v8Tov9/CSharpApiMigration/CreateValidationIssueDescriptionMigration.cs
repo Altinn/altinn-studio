@@ -165,7 +165,9 @@ internal sealed class CreateValidationIssueDescriptionMigration
     private static InvocationExpressionSyntax RemoveDescription(InvocationExpressionSyntax invocation)
     {
         var arguments = invocation.ArgumentList.Arguments;
-        var description = Argument(invocation.ArgumentList, DescriptionIndex)!;
+        var description =
+            Argument(invocation.ArgumentList, DescriptionIndex)
+            ?? throw new InvalidOperationException("The call has no description argument to remove");
         var index = arguments.IndexOf(description);
 
         for (var i = index + 1; i < arguments.Count; i++)
