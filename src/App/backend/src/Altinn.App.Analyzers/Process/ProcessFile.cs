@@ -1,5 +1,6 @@
 using System.Xml;
 using System.Xml.Linq;
+using Altinn.App.Analyzers.Utils;
 
 namespace Altinn.App.Analyzers.Process;
 
@@ -44,30 +45,12 @@ internal static class ProcessFile
     /// <summary>A sequence flow's condition, which an exclusive gateway evaluates to choose the flow.</summary>
     internal static readonly XName ConditionExpression = Bpmn + "conditionExpression";
 
-    /// <summary>
-    /// The app's process file. More than one means a project layout this analysis cannot reason about, so it
-    /// stays quiet rather than guessing.
-    /// </summary>
-    internal static AdditionalText? FindSingle(ImmutableArray<AdditionalText> additionalFiles)
-    {
-        AdditionalText? found = null;
-        foreach (var file in additionalFiles)
-        {
-            if (!NormalizedPath(file).EndsWith(RelativePath, StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            if (found is not null)
-            {
-                return null;
-            }
-
-            found = file;
-        }
-
-        return found;
-    }
+    /// <summary>The app's process file; see <see cref="AdditionalFiles.Single"/>.</summary>
+    internal static AdditionalText? FindSingle(ImmutableArray<AdditionalText> additionalFiles) =>
+        AdditionalFiles.Single(
+            additionalFiles,
+            file => NormalizedPath(file).EndsWith(RelativePath, StringComparison.OrdinalIgnoreCase)
+        );
 
     /// <summary>
     /// The process file's text and its document with line info, or null when it cannot be read or is not valid
@@ -89,6 +72,16 @@ internal static class ProcessFile
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// The process the runtime binds, or null when the definitions hold none or more than one. With more than one,
+    /// which the runtime reads is not worth guessing at.
+    /// </summary>
+    internal static XElement? SingleProcess(XDocument document)
+    {
+        var processes = document.Root?.Elements(Process).ToList();
+        return processes is { Count: 1 } ? processes[0] : null;
     }
 
     /// <summary>

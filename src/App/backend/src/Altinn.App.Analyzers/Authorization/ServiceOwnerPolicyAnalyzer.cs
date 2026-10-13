@@ -1,4 +1,7 @@
 using Altinn.App.Analyzers.Authorization;
+using Altinn.App.Analyzers.Metadata;
+using Altinn.App.Analyzers.Process;
+using Altinn.App.Analyzers.Utils;
 
 namespace Altinn.App.Analyzers;
 
@@ -30,11 +33,9 @@ public sealed class ServiceOwnerPolicyAnalyzer : DiagnosticAnalyzer
 
         var additionalFiles = compilationContext.Options.AdditionalFiles;
 
-        // A single app project has exactly one of each of these. More than one means a project
-        // layout this analysis cannot reason about, so it stays quiet rather than guessing.
-        var policyFile = Single(additionalFiles, ServiceOwnerPolicyUtils.IsPolicyFile);
-        var processFile = Single(additionalFiles, ServiceOwnerPolicyUtils.IsProcessFile);
-        var metadataFile = Single(additionalFiles, FormDataWrapperUtils.IsApplicationMetadataFile);
+        var policyFile = AdditionalFiles.Single(additionalFiles, ServiceOwnerPolicyUtils.IsPolicyFile);
+        var processFile = ProcessFile.FindSingle(additionalFiles);
+        var metadataFile = MetadataFile.FindSingle(additionalFiles);
 
         var diagnostics = new List<Diagnostic>();
         ServiceOwnerPolicyUtils.CollectPolicyDiagnostics(
@@ -49,25 +50,5 @@ public sealed class ServiceOwnerPolicyAnalyzer : DiagnosticAnalyzer
         {
             compilationContext.ReportDiagnostic(diagnostic);
         }
-    }
-
-    private static AdditionalText? Single(
-        ImmutableArray<AdditionalText> additionalFiles,
-        Func<AdditionalText, bool> predicate
-    )
-    {
-        AdditionalText? found = null;
-        foreach (var file in additionalFiles)
-        {
-            if (!predicate(file))
-                continue;
-
-            if (found is not null)
-                return null;
-
-            found = file;
-        }
-
-        return found;
     }
 }

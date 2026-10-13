@@ -258,6 +258,80 @@ public static class Diagnostics
             "Exclusive gateway '{0}' lists {1}, which has an empty condition, so the app fails every time an instance "
                 + "leaves the gateway. Give the flow a condition, or remove the empty <bpmn:conditionExpression>."
         );
+
+        // Only for references whose failure is certain: an unknown id fails startup, the sign or payment action, or
+        // the task when an instance reaches it. The others are ALTINNAPP1018 and ALTINNAPP1019.
+        // '{1}' is the quoted id, or says that it is empty.
+        public static readonly DiagnosticDescriptor UnknownDataType = Error(
+            "ALTINNAPP1013",
+            Category.Process,
+            "Process references an unknown data type",
+            "Task '{0}' names {1} in {2}, but no entry in 'dataTypes' in applicationmetadata.json has that id, so the "
+                + "app fails where it uses it. Correct the id, or add the data type."
+        );
+
+        // Nothing creates the data type, and nothing checks for it at startup: the PDF is generated and then fails
+        // to be stored, whenever the task generates one. '{2}' says when that is.
+        public static readonly DiagnosticDescriptor PdfDataTypeMissing = Error(
+            "ALTINNAPP1014",
+            Category.Process,
+            "PDF service task has no data type to store its PDFs in",
+            "Task '{0}' of type '{1}' stores the PDFs it generates in the data type 'ref-data-as-pdf', but no entry "
+                + "in 'dataTypes' in applicationmetadata.json has that id, so storing them fails {2}. Add a data type "
+                + "'ref-data-as-pdf' with allowedContentTypes [\"application/pdf\"]."
+        );
+
+        // '{3}' says what is wrong with the data type and what happens, '{4}' how to fix it.
+        public static readonly DiagnosticDescriptor DataTypeCannotHoldTaskData = Error(
+            "ALTINNAPP1015",
+            Category.Process,
+            "Data type cannot hold what the task stores in it",
+            "Task '{0}' stores {1} in the data type '{2}', but {3}. {4}."
+        );
+
+        // A warning, since only the Development startup check (AllowedContributorsHelper) fails on it. Who else may
+        // write depends on the list (AllowedContributorsHelper.IsValidContributor): anyone when it is empty, the
+        // service owners it names otherwise.
+        public static readonly DiagnosticDescriptor DataTypeNotAppOwned = Warning(
+            "ALTINNAPP1016",
+            Category.Process,
+            "Data type must be app-owned",
+            "Task '{0}' keeps {1} in the data type '{2}', whose allowedContributors is not exactly [\"app:owned\"]. "
+                + "The app does not start in the Development environment, and parties other than the app may be "
+                + "able to change that data through the app's API. Set allowedContributors to [\"app:owned\"]."
+        );
+
+        // A warning, since keeping a data type for a task that was removed is legitimate: old instances still hold
+        // its data.
+        public static readonly DiagnosticDescriptor DataTypeTaskNotFound = Warning(
+            "ALTINNAPP1017",
+            Category.Process,
+            "Data type belongs to a task that does not exist",
+            "Data type '{0}' has the taskId '{1}', but {2}. The process never stops there, so users cannot change "
+                + "the data type's data through the app, and its minCount and validation never apply. Set taskId to "
+                + "the task the data belongs to, or remove it."
+        );
+
+        // A warning, since nothing fails: the runtime filters by these ids, so one that matches nothing is skipped.
+        // '{1}' is the quoted id, '{3}' says what the app skips, '{4}' how to fix it.
+        public static readonly DiagnosticDescriptor DataTypeIgnored = Warning(
+            "ALTINNAPP1018",
+            Category.Process,
+            "Process references a data type that the app skips",
+            "Task '{0}' names {1} in {2}, but {3}. {4}."
+        );
+
+        // A warning, since the connected data type matters only to conditions that read the data model without
+        // naming a data type (ExpressionsExclusiveGateway), and to the app's own gateway for that id.
+        public static readonly DiagnosticDescriptor GatewayUnknownDataType = Warning(
+            "ALTINNAPP1019",
+            Category.Process,
+            "Exclusive gateway references an unknown data type",
+            "Exclusive gateway '{0}' names {1} in <altinn:connectedDataTypeId>, but no entry in 'dataTypes' in "
+                + "applicationmetadata.json has that id. The gateway's conditions then find no data element, so a "
+                + "condition that reads [\"dataModel\", ...] without naming a data type fails when an instance "
+                + "leaves the gateway. Correct the id, or add the data type."
+        );
     }
 
     internal static class Deprecations
