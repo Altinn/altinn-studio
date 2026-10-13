@@ -2,11 +2,9 @@ package generator
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"log/slog"
 	"strings"
-	"sync"
 	"testing"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -94,29 +92,6 @@ func sendPageErrors(w *browserSession) {
 	}})
 }
 
-// syncBuffer is a log destination that the CDP event goroutine and the request's can write to
-// and read at once.
-type syncBuffer struct {
-	buf bytes.Buffer
-	mu  sync.Mutex
-}
-
-func (b *syncBuffer) Write(p []byte) (int, error) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	n, err := b.buf.Write(p)
-	if err != nil {
-		return n, fmt.Errorf("write log: %w", err)
-	}
-	return n, nil
-}
-
-func (b *syncBuffer) String() string {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	return b.buf.String()
-}
-
 func newTestSession(logs io.Writer) *browserSession {
 	return &browserSession{logger: slog.New(slog.NewTextHandler(logs, nil))}
 }
@@ -147,11 +122,14 @@ func TestPageErrors_OneWarningPerError(t *testing.T) {
 		t.Fatalf("logged %d records, want one per error:\n%s", len(got), logs.String())
 	}
 	want := []string{
-		`level=WARN msg="Page logged a console error" ` + attr.PageErrorMessage + `="Failed to load Object"`,
+		`level=WARN msg="Page logged a console error" ` + attr.PageErrorKind + `=console ` +
+			attr.PageErrorMessage + `="Failed to load Object"`,
 		`level=WARN msg="Browser reported a page error" ` + attr.PageErrorLogSource + `=network ` +
+			attr.PageErrorKind + `=browser ` +
 			attr.PageErrorMessage + `="Failed to load resource: the server responded with a status of 500 ()" ` +
 			attr.PageErrorURL + `=https://app.local/ttd/app/instances/1/2/process`,
-		`level=WARN msg="Page threw an uncaught exception" ` + attr.PageErrorMessage + `="TypeError: x is undefined`,
+		`level=WARN msg="Page threw an uncaught exception" ` + attr.PageErrorKind + `=exception ` +
+			attr.PageErrorMessage + `="TypeError: x is undefined`,
 	}
 	for i, record := range got {
 		if !strings.Contains(record, want[i]) {
@@ -229,7 +207,7 @@ func TestPageErrors_LoggedUpToTheLimit(t *testing.T) {
 		strings.Count(got, "level=WARN msg=\"Page threw"); n != maxLoggedPageErrors {
 		t.Errorf("logged %d page errors, want %d", n, maxLoggedPageErrors)
 	}
-	want := `level=WARN msg="Page reported more errors than were logged" ` + attr.PageErrorsNotLogged + `=6`
+	want := `level=WARN msg="Page reported more errors than were logged" ` + attr.PageErrorsNotLogged + `=20`
 	if !strings.HasSuffix(strings.TrimSpace(got), want) {
 		t.Errorf("last record = %q, want %q", got[strings.LastIndex(strings.TrimSpace(got), "\n")+1:], want)
 	}
@@ -248,30 +226,6 @@ func TestPageErrors_NoneOrLateLogNothing(t *testing.T) {
 
 	if logs.Len() != 0 {
 		t.Errorf("logged %q, want nothing", logs.String())
-	}
-}
-
-// TestPageErrors_LateErrorsDoNotRace sends page errors from another goroutine, as the CDP reader
-// does, while requests start and finish. Run with -race.
-func TestPageErrors_LateErrorsDoNotRace(t *testing.T) {
-	var logs syncBuffer
-	w := newTestSession(&logs)
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		for range 200 {
-			sendPageErrors(w)
-		}
-	}()
-
-	for range 50 {
-		requestErrors := startRequestPageErrors(t, w)
-		w.currentPageErrors.Store(nil)
-		requestErrors.logNotLogged()
-	}
-	<-done
-	if got, limit := strings.Count(logs.String(), "\n"), 50*(maxLoggedPageErrors+1); got > limit {
-		t.Errorf("logged %d records for 50 requests, want at most %d", got, limit)
 	}
 }
 

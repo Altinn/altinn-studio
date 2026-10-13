@@ -56,7 +56,7 @@ const (
 	maxBrowserMessageLength = 1024
 	// maxLoggedPageErrors is how many warnings one request's page errors log. A broken page can
 	// report hundreds of errors.
-	maxLoggedPageErrors = 24
+	maxLoggedPageErrors = 10
 	cleanupBlankURL     = "about:blank"
 )
 
@@ -154,7 +154,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 		if p, ok := params.(map[string]any); ok {
 			if apiType, ok := p["type"].(string); ok && apiType == "error" {
 				w.consoleErrors.Add(1)
-				w.recordPageError("Page logged a console error", consoleMessage(p), "")
+				w.recordPageError(pageErrorKindConsole, "Page logged a console error", consoleMessage(p), "")
 			}
 		}
 	case "Log.entryAdded":
@@ -163,6 +163,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 				if level, ok := entry["level"].(string); ok && level == "error" {
 					w.browserErrors.Add(1)
 					w.recordPageError(
+						pageErrorKindBrowser,
 						"Browser reported a page error",
 						stringField(entry, "text"),
 						stringField(entry, "url"),
@@ -174,7 +175,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 	case "Runtime.exceptionThrown":
 		if p, ok := params.(map[string]any); ok {
 			w.jsExceptions.Add(1)
-			w.recordPageError("Page threw an uncaught exception", exceptionMessage(p), "")
+			w.recordPageError(pageErrorKindException, "Page threw an uncaught exception", exceptionMessage(p), "")
 		}
 	case "Page.frameNavigated":
 		w.trySignalCleanupBlankCommitted(params)
@@ -263,7 +264,8 @@ func (w *browserSession) handleRequests() {
 			w.currentPageErrors.Store(requestPageErrors)
 			w.handleRequest(&req)
 			w.currentRequest.Store(nil)
-			// Errors the page reports from here on are not this request's.
+			// Cleanup has already stopped recording the page's errors, unless the request never
+			// got that far.
 			w.currentPageErrors.Store(nil)
 			requestPageErrors.logNotLogged()
 			w.logger = rootLogger
@@ -352,6 +354,13 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 // before the request starts, so the CDP event goroutine never reads the request, or the session's
 // logger, which handleRequests swaps per request.
 //
+// The kinds of error a page reports, as altinn.pdf.page.error.kind.
+const (
+	pageErrorKindConsole   = "console"
+	pageErrorKindBrowser   = "browser"
+	pageErrorKindException = "exception"
+)
+
 //nolint:containedctx // The request's context is what links each warning to the request's trace.
 type pageErrors struct {
 	ctx        context.Context
@@ -368,7 +377,7 @@ type pageErrors struct {
 //
 // The counts go on the request's attributes as the errors arrive, while its entry span is still
 // open: the entry span ends with the response, before the request's cleanup.
-func (w *browserSession) recordPageError(logMessage, message, url string, args ...any) {
+func (w *browserSession) recordPageError(kind, logMessage, message, url string, args ...any) {
 	requestErrors := w.currentPageErrors.Load()
 	if requestErrors == nil {
 		return
@@ -380,7 +389,13 @@ func (w *browserSession) recordPageError(logMessage, message, url string, args .
 	if requestErrors.reported.Add(1) > maxLoggedPageErrors {
 		return
 	}
-	args = append(args, attr.PageErrorMessage, truncate(telemetry.RedactURLsInText(message), maxBrowserMessageLength))
+	args = append(
+		args,
+		attr.PageErrorKind,
+		kind,
+		attr.PageErrorMessage,
+		truncate(telemetry.RedactURLsInText(message), maxBrowserMessageLength),
+	)
 	if redactedURL := telemetry.RedactURL(url); redactedURL != "" {
 		args = append(args, attr.PageErrorURL, redactedURL)
 	}
@@ -494,6 +509,10 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest, startedProcessi
 	_, cleanupSpan := w.tracer.Start(cleanupCtx, "pdf.session.cleanup", trace.WithSpanKind(trace.SpanKindInternal))
 	cleanupStart := time.Now()
 	defer cleanupSpan.End()
+
+	// Errors the page reports from here on, as cleanup navigates away from it, are not the page's
+	// own.
+	w.currentPageErrors.Store(nil)
 
 	// The queue slot is already free by the time cleanup runs, so this path must stay
 	// fast enough that we do not accumulate dirty browser state under load.

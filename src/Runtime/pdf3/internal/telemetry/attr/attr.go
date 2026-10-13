@@ -143,6 +143,11 @@ const (
 	PageErrorMessage    = prefix + "page.error.message"
 	PageErrorURL        = prefix + "page.error.url"
 
+	// PageErrorKind is what reported an error: console for the page's console.error, browser for
+	// an error the browser logged, such as a resource that failed to load, and exception for an
+	// uncaught exception.
+	PageErrorKind = prefix + "page.error.kind"
+
 	// PageErrorLogSource is the part of the browser an error it reported came from, such as network
 	// for a resource that failed to load.
 	PageErrorLogSource = prefix + "page.error.log_source"
