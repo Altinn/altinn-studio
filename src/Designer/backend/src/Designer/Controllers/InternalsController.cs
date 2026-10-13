@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Quartz;
 
 namespace Altinn.Studio.Designer.Controllers;
 
@@ -18,6 +19,7 @@ namespace Altinn.Studio.Designer.Controllers;
 public class InternalsController(
     IDeploymentService deploymentService,
     IAppInactivityUndeployJobQueue jobQueue,
+    ISchedulerFactory schedulerFactory,
     IUserOrganizationService userOrganizationService
 ) : ControllerBase
 {
@@ -104,6 +106,54 @@ public class InternalsController(
                 Queued = queued,
             }
         );
+    }
+
+    /// <summary>
+    /// Runs read-only activity collection for the deployed apps of an org now.
+    /// </summary>
+    [HttpGet("app-activity/collect")]
+    public async Task<IActionResult> CollectAppActivity(string org, CancellationToken cancellationToken = default)
+    {
+        if (!await HasInternalDeveloperAccess())
+        {
+            return Forbid();
+        }
+
+        try
+        {
+            Guard.AssertValidateOrganization(org);
+        }
+        catch (ArgumentException)
+        {
+            return BadRequest($"Invalid org value '{org}'.");
+        }
+
+        await TriggerAppActivityCollection(
+            new JobDataMap { [AppActivityCollectionJobConstants.JobDataOrgKey] = org },
+            cancellationToken
+        );
+        return Accepted();
+    }
+
+    /// <summary>
+    /// Runs read-only activity collection for all orgs now instead of waiting for the nightly schedule.
+    /// </summary>
+    [HttpGet("app-activity/collect-all")]
+    public async Task<IActionResult> CollectAppActivityForAllOrgs(CancellationToken cancellationToken = default)
+    {
+        if (!await HasInternalDeveloperAccess())
+        {
+            return Forbid();
+        }
+
+        await TriggerAppActivityCollection(new JobDataMap(), cancellationToken);
+        return Accepted();
+    }
+
+    private async Task TriggerAppActivityCollection(JobDataMap jobData, CancellationToken cancellationToken)
+    {
+        var scheduler = await schedulerFactory.GetScheduler(cancellationToken);
+        await scheduler.TriggerJob(AppActivityCollectionJobConstants.JobKey, jobData, cancellationToken);
     }
 
     private Task<bool> HasInternalDeveloperAccess()
