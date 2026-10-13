@@ -18,4 +18,9 @@ public interface IAppInactivityUndeployJobQueue
         int index,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Counts the per-app undeploy jobs that are queued and haven't finished, across all orgs.
+    /// </summary>
+    Task<int> CountPendingPerAppUndeployJobsAsync(CancellationToken cancellationToken = default);
 }

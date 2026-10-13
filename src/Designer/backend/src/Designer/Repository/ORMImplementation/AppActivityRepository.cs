@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -111,6 +112,25 @@ public class AppActivityRepository : IAppActivityRepository
         return await _dbContext
             .AppActivity.AsNoTracking()
             .AnyAsync(a => a.Org == org && a.Environment == environment && a.Deployed, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<AppActivityRecord>> GetForEnvironmentAsync(
+        string org,
+        string environment,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await _dbContext
+            .AppActivity.AsNoTracking()
+            .Where(a => a.Org == org && a.Environment == environment)
+            .Select(a => new AppActivityRecord
+            {
+                App = a.App,
+                LastWriteAt = a.LastWriteAt,
+                ObservedSince = a.ObservedSince,
+                LastCollectedAt = a.LastCollectedAt,
+            })
+            .ToListAsync(cancellationToken);
     }
 
     public async Task UpsertBatchAsync(AppActivityCollectionBatch batch, CancellationToken cancellationToken = default)
