@@ -20,8 +20,3 @@ Flux deploys them through the [runtime syncroot](../../../infra/runtime/syncroot
 The [Makefile](Makefile) defines the build and test commands. E2E tests require Docker or Podman.
 `make test-e2e` tests the compiled AOT image, which unit tests do not cover.
 It leaves its Kind cluster running. `make stop` removes it.
-
-## Constraints
-
-The public API uses Maskinporten authentication. The internal API relies on its
-[network policy](infra/kustomize/base/networkpolicy.yaml) to restrict access to Flux.
