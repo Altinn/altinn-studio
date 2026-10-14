@@ -1,41 +1,43 @@
 # Environments
 
-Where our services run, how a change gets there, and where the details are.
+This page lists where our services run, how a change reaches them, and where to find the details.
 
 ## Runtime clusters
 
 Each service owner has one cluster per environment it uses.
 
 - The [service owner registry](https://github.com/Altinn/altinn-cdn/blob/master/orgs/altinn-orgs.json) lists the
-  service owners and their environments, with prod as `production`. Only `ttd` has the AT environments.
+  service owners and their environments. It calls prod `production`.
+- Only `ttd` has the AT environments.
 - A cluster runs the service owner's apps and the services in the [runtime syncroot](../../infra/runtime/syncroot).
-- Designer deploys apps through [`deploy-app.yaml`](../../src/App/azure-pipelines/deploy-app.yaml), with the Helm
-  chart from [altinn-studio-charts](https://github.com/Altinn/altinn-studio-charts).
-- Other services are tagged with rings, and each cluster follows one. The rings are listed in
-  [`construct-environments.mjs`](../../.github/scripts/construct-environments.mjs).
+- Designer deploys apps with [`deploy-app.yaml`](../../src/App/azure-pipelines/deploy-app.yaml) and the Helm chart
+  from [altinn-studio-charts](https://github.com/Altinn/altinn-studio-charts).
+- Other services are tagged per ring, and each cluster follows one ring.
+- [`construct-environments.mjs`](../../.github/scripts/construct-environments.mjs) lists the rings.
 - By default, a merged change reaches the AT rings and `tt_ring1`. `tt_ring2` and the production rings need
   approval.
 - A cluster's ring, environment and service owner are set outside this repository.
 
 ## DIS Core
 
-Clusters shared by Altinn's products, run by the platform team.
+DIS Core clusters are shared by Altinn's products. The platform team runs them.
 
-- pdf3 is moving there, to serve all service owners. Its manifests are in
-  [`src/Runtime/pdf3/infra/syncroot`](../../src/Runtime/pdf3/infra/syncroot).
-- The environments we deploy pdf3 to are listed in
+- pdf3 is moving to DIS Core to serve all service owners.
+- pdf3's manifests are in [`src/Runtime/pdf3/infra/syncroot`](../../src/Runtime/pdf3/infra/syncroot).
+- A pdf3 change is deployed to the DIS Core environments listed in
   [`construct-environments.mjs`](../../.github/scripts/construct-environments.mjs).
+- yt01, tt02 and prod need approval.
 - Runtime clusters reach DIS Core through DIS Edge.
-- No rings: a change goes to all environments. yt01, tt02 and prod need approval.
 
 ## Studio clusters
 
-One cluster each for dev, staging and prod, set up in altinn-studio-infra.
+Studio has one cluster each for dev, staging and prod. They are set up in altinn-studio-infra.
 
 - A cluster runs Designer, Gitea with the app repositories, and the services in the
   [Studio syncroot](../../infra/studio/syncroot).
-- All three deploy apps to the same runtime clusters. Only prod reaches the production runtime clusters.
-- prod needs approval. Designer and Studio Assistant use `preapproved-prod`, which needs none.
+- dev, staging and prod share the runtime clusters they deploy apps to.
+- Only prod deploys to the production runtime clusters.
+- Deploys to prod need approval. Designer and Studio Assistant skip it by deploying to `preapproved-prod`.
 
 ## Platform cluster
 
@@ -43,18 +45,18 @@ The old platform cluster runs Altinn platform services such as
 [altinn-storage](https://github.com/Altinn/altinn-storage), [altinn-receipt](https://github.com/Altinn/altinn-receipt)
 and [altinn-file-scan](https://github.com/Altinn/altinn-file-scan).
 
-- They live in their own repositories. Nothing here deploys them.
-- Apps reach them through the endpoints in the runtime [apps-config](../../infra/runtime/apps-config).
-- They move to [DIS Core](#dis-core) after pdf3.
+- Each service has its own repository.
+- Apps reach these services through the endpoints in the runtime [apps-config](../../infra/runtime/apps-config).
+- They will move to [DIS Core](#dis-core) after pdf3.
 
 ## Adminservices
 
-Shared resources run by the platform team.
+Adminservices holds shared resources that the platform team runs.
 
-- Ours is the workflow engine's PostgreSQL server, in [`infra/admin`](../../infra/admin). A
-  [template](../../infra/admin/workflow-engine-tenant-db-template) gives each runtime cluster its own database on
+- Our resource there is the workflow engine's PostgreSQL server, in [`infra/admin`](../../infra/admin).
+- A [template](../../infra/admin/workflow-engine-tenant-db-template) gives each runtime cluster its own database on
   that server.
-- Only test is deployed.
+- We deploy it only to test.
 
-The right to publish to DIS Core and adminservices is granted in altinn-platform's
+Our right to publish to DIS Core and adminservices is granted in altinn-platform's
 [`infrastructure/syncroots`](https://github.com/Altinn/altinn-platform/tree/main/infrastructure/syncroots).
