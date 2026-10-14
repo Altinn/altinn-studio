@@ -638,8 +638,8 @@ public class GiteaClient(
             response.StatusCode,
             filePath,
             branch,
-            org,
-            app
+            org.WithoutLineBreaks(),
+            app.WithoutLineBreaks()
         );
 
         // Gitea answers 409 or 422 when the file or branch has changed since the given sha was read
