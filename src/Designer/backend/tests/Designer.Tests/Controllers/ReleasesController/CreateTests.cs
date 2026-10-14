@@ -2,12 +2,10 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
-using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -28,7 +26,7 @@ public class CreateTests : DesignerEndpointsTestsBase<CreateTests>, IClassFixtur
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
-        services.AddSingleton<IGiteaClient, IGiteaClientMock>();
+        base.ConfigureTestServices(services);
         services.AddSingleton(_releaseServiceMock.Object);
     }
 
