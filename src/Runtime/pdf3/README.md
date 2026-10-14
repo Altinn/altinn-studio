@@ -19,9 +19,3 @@ and [DIS Core provisioning](infra/syncroot). The relay and shared service are no
 The [Makefile](Makefile) defines the build and test commands. Tests require Docker or Podman.
 Run `make test-e2e` after changing PDF generation. It leaves its Kind cluster running. `make stop` removes it.
 Outside CI, integration tests update snapshots by default. Review those changes before committing.
-
-## Constraints
-
-- studioctl can be older than the worker image. Keep changed settings compatible with the previous studioctl release.
-- Outside production, the [operator](../operator/README.md) can scale pdf3 down and pause Flux on its autoscalers.
-  Autoscaler changes take effect when pdf3 is scaled up again.
