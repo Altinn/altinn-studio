@@ -13,7 +13,7 @@ public class NullDataListProviderTest
         var provider = new NullDataListProvider();
 
         provider.Id.Should().Be(string.Empty);
-        var list = await provider.GetDataListAsync(LanguageConst.Nb, new Dictionary<string, string>());
+        var list = await provider.GetDataList(LanguageConst.Nb, new Dictionary<string, string>());
         list.ListItems.Should().BeNull();
     }
 }

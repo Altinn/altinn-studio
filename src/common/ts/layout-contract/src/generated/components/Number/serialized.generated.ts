@@ -1,21 +1,20 @@
+import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
   IFormatting,
-  SummarizableComponentProps,
   TRBLabel,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
-import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export type CompNumberSerialized = {
   type: 'Number';
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: TRBSummarizable & TRBLabel;
   formatting?: IFormatting;
   value: ExprValToActualOrExpr<ExprVal.Number>;
   direction?: 'horizontal' | 'vertical';
   icon?: string;
   dataModelBindings?: undefined;
-} & ComponentBase &
-  SummarizableComponentProps;
+} & ComponentBase;
 
-// Source hash: 056e24ab112134d6e28d365ced1114c0b4c635b88ac60b06496dcc6b4b2bb4f7
+// Source hash: 07d172ec12ee9c3e0880dd477c79386e1cd1a5308b80f427bdf47186b0f9d81f

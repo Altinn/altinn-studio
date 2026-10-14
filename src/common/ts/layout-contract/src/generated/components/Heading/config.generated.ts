@@ -2,16 +2,14 @@ import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contra
 import {
   ComponentBase,
   ISummaryOverridesCommon,
-  SummarizableComponentProps,
-  TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
-export interface CompHeadingExternal extends ComponentBase, SummarizableComponentProps {
+export interface CompHeadingExternal extends ComponentBase {
   type: 'Heading';
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     help?: ExprValToActualOrExpr<ExprVal.String>;
-  } & TRBSummarizable;
+  };
   size: 'L' | 'M' | 'S' | 'h2' | 'h3' | 'h4';
   dataModelBindings?: undefined;
 }
@@ -48,4 +46,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: HeadingSummaryOverridesWithRef;
 };
 
-// Source hash: b798913838720c0da2017fb1255990a9fc957e26a6f7e143f8f6527dae90a4cc
+// Source hash: a338264a40f3e24b1c3a4114f823a294ea68db26abf360d9a806173b1a9012a0

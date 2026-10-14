@@ -154,12 +154,6 @@ export interface SummaryRendererProps {
 
 abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type> {
   /**
-   * Render a summary for this component. For most components, this will return a:
-   * <SingleInputSummary formDataAsString={displayData} />
-   */
-  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
-
-  /**
    * Lets you control if the component renders something like <SummaryBoilerplate /> first, or if the Summary should
    * handle that for you.
    */

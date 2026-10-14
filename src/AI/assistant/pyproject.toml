@@ -26,7 +26,7 @@ dependencies = [
     "anthropic>=0.86.0",
 
     # Observability
-    "langfuse>=3.0.0",
+    "langfuse>=3.0.0,<5",
 
     # JSON repair for malformed LLM outputs
     "json-repair>=0.58.7",
@@ -80,6 +80,10 @@ include = ["agents", "api", "benchmarks", "scripts", "services", "shared", "test
 [tool.ruff]
 target-version = "py312"
 line-length = 120
+
+[tool.ruff.format]
+# Markdown formatting is optional and should not gate code changes in CI.
+exclude = ["*.md"]
 
 [tool.ruff.lint]
 select = [

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"altinn.studio/pdf3/internal/telemetry/attr"
 	"altinn.studio/pdf3/internal/types"
 )
 
@@ -53,11 +54,11 @@ func TestGeneratePdfHandlerLogsOnlyCurrentRequestURL(t *testing.T) {
 		if !strings.Contains(line, "Failed to write PDF response") {
 			t.Fatalf("expected write failure log, got %q", line)
 		}
-		if got := strings.Count(line, " url="); got != 1 {
-			t.Fatalf("expected exactly one url field, got %d in %q", got, line)
+		if got := strings.Count(line, " "+attr.RequestURL+"="); got != 1 {
+			t.Fatalf("expected exactly one %s field, got %d in %q", attr.RequestURL, got, line)
 		}
-		if !strings.Contains(line, " url="+url) {
-			t.Fatalf("expected url=%s in %q", url, line)
+		if !strings.Contains(line, " "+attr.RequestURL+"="+url) {
+			t.Fatalf("expected %s=%s in %q", attr.RequestURL, url, line)
 		}
 	}
 }
@@ -72,7 +73,7 @@ func TestGeneratePdfHandlerLogsURLWithoutQueryOrFragment(t *testing.T) {
 	handler(failingBodyWriter{httptest.NewRecorder()}, r)
 
 	line := logs.String()
-	if !strings.Contains(line, " url=http://example.com/ttd/app ") {
+	if !strings.Contains(line, " "+attr.RequestURL+"=http://example.com/ttd/app ") {
 		t.Errorf("expected the URL without user, query or fragment in %q", line)
 	}
 	for _, leaked := range []string{"pass", "secret", "instance"} {

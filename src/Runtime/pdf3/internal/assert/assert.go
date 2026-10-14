@@ -12,6 +12,7 @@ import (
 	"go.opentelemetry.io/otel/log/global"
 
 	"altinn.studio/pdf3/internal/log"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 )
 
 var logger *slog.Logger = log.NewComponent("assert")
@@ -31,7 +32,7 @@ func panicking(message string, userArgs ...any) {
 	var args []any
 	if message != "" {
 		args = make([]any, 0, 2+len(userArgs))
-		args = append(args, "message", message)
+		args = append(args, attr.AssertMessage, message)
 	} else {
 		args = make([]any, 0, len(userArgs))
 	}
@@ -50,21 +51,21 @@ func flushOTel() {
 		ForceFlush(flushCtx context.Context) error
 	}); ok {
 		if err := tp.ForceFlush(ctx); err != nil {
-			logger.Warn("Failed to flush tracer provider", "error", err)
+			logger.Warn("Failed to flush tracer provider", attr.Error, err)
 		}
 	}
 	if mp, ok := otel.GetMeterProvider().(interface {
 		ForceFlush(flushCtx context.Context) error
 	}); ok {
 		if err := mp.ForceFlush(ctx); err != nil {
-			logger.Warn("Failed to flush meter provider", "error", err)
+			logger.Warn("Failed to flush meter provider", attr.Error, err)
 		}
 	}
 	if lp, ok := global.GetLoggerProvider().(interface {
 		ForceFlush(flushCtx context.Context) error
 	}); ok {
 		if err := lp.ForceFlush(ctx); err != nil {
-			logger.Warn("Failed to flush logger provider", "error", err)
+			logger.Warn("Failed to flush logger provider", attr.Error, err)
 		}
 	}
 }

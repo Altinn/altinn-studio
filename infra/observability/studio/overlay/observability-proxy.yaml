@@ -92,6 +92,11 @@ spec:
             - containerPort: 8080
               name: http
               protocol: TCP
+            # Only /metrics, for vmagent-self (infra/observability/studio/victoria/self-monitoring.yaml).
+            # The Service the load balancer and the gateway reach exposes 8080 alone.
+            - containerPort: 9090
+              name: metrics
+              protocol: TCP
           lifecycle:
             # Keeps serving while the endpoint removal reaches kube-proxy and the load
             # balancer, so a replica being stopped is not sent new requests it would refuse.
@@ -101,8 +106,20 @@ spec:
               sleep:
                 seconds: 5
           env:
-            - name: ASPNETCORE_URLS
-              value: http://+:8080
+            # The two ports above. The proxy listens on these itself and refuses to
+            # start with ASPNETCORE_URLS set.
+            - name: ObservabilityProxy__Port
+              value: "8080"
+            - name: ObservabilityProxy__MetricsPort
+              value: "9090"
+            # The pod's name as service.instance.id, which the proxy puts on every
+            # metric series, so a replica reading from the standby copy can be named.
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.instance.id=$(POD_NAME)
             - name: ASPNETCORE_ENVIRONMENT
               value: Production
             # Downstream addresses are the Victoria service names, which this repository
@@ -208,6 +225,16 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
+    # Scrapes of the metrics port by vmagent-self, which runs where the Victoria
+    # backend does; elsewhere this selects nothing.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+              app.kubernetes.io/instance: self
+      ports:
+        - protocol: TCP
+          port: 9090
 ---
 # Egress only to what the proxy forwards to: the three agents on their OTLP ports and
 # the six storage instances on their HTTP ports, which is also where the read

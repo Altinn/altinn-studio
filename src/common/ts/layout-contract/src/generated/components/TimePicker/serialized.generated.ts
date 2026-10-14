@@ -2,7 +2,6 @@ import {
   ComponentBase,
   FormComponentProps,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -13,6 +12,8 @@ import { IDataModelBindingsSimple } from '@app/layout-contract/generated/seriali
 export type CompTimePickerSerialized = {
   type: 'TimePicker';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -23,7 +24,6 @@ export type CompTimePickerSerialized = {
   maxTime?: ExprValToActualOrExpr<ExprVal.String> | string;
 } & ComponentBase &
   FormComponentProps &
-  SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 86049f27cdaa5aafaa1366594a3d6a427d0f67b14c7418beb1d03d8e1680eac2
+// Source hash: 15d37eb69acecdc0bbb631948379f323ad6a31eb08b27ddf88be887f802390e9

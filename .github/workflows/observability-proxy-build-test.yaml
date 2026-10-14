@@ -7,6 +7,12 @@ on:
       - 'src/observability-proxy/**'
       - '.github/workflows/observability-proxy-build-test.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   workflow_dispatch:
 
 concurrency:
@@ -51,13 +57,13 @@ jobs:
 
       # The image is compiled ahead of time, and the tests run just-in-time compiled, so they cannot
       # reach a failure that only the published image has. Start it, and check that it rejects a
-      # request without a token and forwards one with a token.
+      # request without a token, forwards one with a token, and serves metrics on their own port.
       - name: Build the image
         run: docker build -t observability-proxy:ci -f Dockerfile .
 
       - name: Smoke test the image
         run: |
-          docker run -d --name observability-proxy -p 8080:8080 \
+          docker run -d --name observability-proxy -p 8080:8080 -p 9090:9090 \
             -e ObservabilityProxy__Authentication__Tokens__0__Token=ci-smoke-test-token-0123456789 \
             -e ObservabilityProxy__Authentication__Tokens__0__SourceIdentity=ci \
             -e ObservabilityProxy__Authentication__Tokens__0__AllowedRouteGroups__0=metrics \
@@ -76,6 +82,19 @@ jobs:
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/internal/observability/metrics/api/v1/query)" = 401
           # Authenticated and forwarded; the backend address is unreachable, so the proxy answers 502.
           test "$(curl -s -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer ci-smoke-test-token-0123456789' http://127.0.0.1:8080/internal/observability/metrics/api/v1/query)" = 502
+          # The metrics port serves both requests above, per identity, and the traffic port serves
+          # no metrics. A request is counted just after its response, so the scrape is retried.
+          for _ in $(seq 1 10); do
+            metrics=$(curl -fsS http://127.0.0.1:9090/metrics)
+            grep -q '^http_server_request_duration_seconds_count{.*altinn_observability_proxy_source_identity="ci".*http_response_status_code="502"' <<<"$metrics" && break
+            sleep 1
+          done
+          grep -q '^http_server_request_duration_seconds_count{.*altinn_observability_proxy_source_identity="ci".*http_response_status_code="502"' <<<"$metrics"
+          grep -q '^altinn_observability_proxy_authentication_failures_total{.*error_type="missing_bearer_token"' <<<"$metrics"
+          # The forwarder's own outgoing requests, through the meter factory only the published image
+          # wires up in production.
+          grep -q '^http_client_request_duration_seconds_count{.*server_port="1"' <<<"$metrics"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/metrics)" = 404
 
       - name: Image logs
         if: ${{ always() }}

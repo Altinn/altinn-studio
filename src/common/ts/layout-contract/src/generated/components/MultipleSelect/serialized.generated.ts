@@ -4,7 +4,6 @@ import {
   IRawDataModelBinding,
   ISelectionComponentFull,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -20,6 +19,8 @@ export interface IDataModelBindingsForGroupMultiselect extends IDataModelBinding
 export type CompMultipleSelectSerialized = {
   type: 'MultipleSelect';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   alertOnChange?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -28,8 +29,7 @@ export type CompMultipleSelectSerialized = {
   deletionStrategy?: 'soft' | 'hard';
 } & ComponentBase &
   FormComponentProps &
-  SummarizableComponentProps &
   ISelectionComponentFull &
   LabeledComponentProps;
 
-// Source hash: 4ddc375f859b7ef7084877f1294c17e28f0f19a6bac674227a7baa29588df379
+// Source hash: 3ea09831fe2f268db4af4db14a118fec9dc724c7b84c7f8a8b2338f792066c61
