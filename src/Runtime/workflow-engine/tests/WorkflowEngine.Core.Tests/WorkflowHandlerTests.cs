@@ -1537,6 +1537,183 @@ public class WorkflowHandlerTests
         Assert.Equal(workflowSpan.TraceId, errorLog.TraceId);
     }
 
+    [Fact]
+    public async Task Handle_StepWriteBackThrows_StepSpanEndsInErrorWithTheException()
+    {
+        // A span that is never stopped is never exported, and the trace would show the workflow without the step.
+        // The exception's details are in the handler's one ERROR log, in the same trace
+        using var listener = ListenToEngineSpans();
+        var spans = new CapturedSpans();
+        var logger = new TraceCapturingLogger();
+        var writeBackFailure = new InvalidOperationException("write-back failed");
+        var buffer = MockBuffer(
+            (w, _) =>
+                w.Status == PersistentItemStatus.Processing ? Task.FromException(writeBackFailure) : Task.CompletedTask
+        );
+        var handler = CreateHandler(
+            MockExecutorCapturingSpans(spans, ExecutionResult.Success()).Object,
+            buffer: buffer.Object,
+            logger: logger
+        );
+        var step = CreateStep();
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        var stepSpan = Assert.IsType<Activity>(spans.Step);
+        Assert.True(stepSpan.IsStopped);
+        Assert.Null(step.EngineActivity);
+        Assert.Equal(ActivityStatusCode.Error, stepSpan.Status);
+        Assert.Equal("write-back failed", stepSpan.StatusDescription);
+        Assert.Equal("System.InvalidOperationException", stepSpan.GetTagItem("error.type"));
+        Assert.Empty(stepSpan.Events);
+        var errorLog = Assert.Single(logger.Entries, e => e.Level == LogLevel.Error);
+        Assert.Same(writeBackFailure, errorLog.Exception);
+        Assert.Equal(stepSpan.TraceId, errorLog.TraceId);
+    }
+
+    [Fact]
+    public async Task Handle_ExecutorThrows_StepSpanEndsInErrorWithTheException()
+    {
+        using var listener = ListenToEngineSpans();
+        var spans = new CapturedSpans();
+        var handler = CreateHandler(
+            MockExecutorCapturingSpans(
+                spans,
+                _ => Task.FromException<ExecutionResult>(new InvalidOperationException("executor broke its contract"))
+            ).Object
+        );
+        var step = CreateStep();
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        var stepSpan = Assert.IsType<Activity>(spans.Step);
+        Assert.True(stepSpan.IsStopped);
+        Assert.Null(step.EngineActivity);
+        Assert.Equal(ActivityStatusCode.Error, stepSpan.Status);
+        Assert.Equal("System.Diagnostics.UnreachableException", stepSpan.GetTagItem("error.type"));
+    }
+
+    [Fact]
+    public async Task Handle_FailureWriteBackAlsoThrows_StepAndWorkflowSpansEndAsTheExceptionEscapes()
+    {
+        using var listener = ListenToEngineSpans();
+        var spans = new CapturedSpans();
+        var buffer = MockBuffer(
+            (w, _) =>
+                Task.FromException(
+                    new InvalidOperationException(
+                        w.Status == PersistentItemStatus.Processing
+                            ? "step write-back failed"
+                            : "failure write-back failed"
+                    )
+                )
+        );
+        var handler = CreateHandler(
+            MockExecutorCapturingSpans(spans, ExecutionResult.Success()).Object,
+            buffer: buffer.Object
+        );
+        var step = CreateStep();
+        var workflow = CreateWorkflow(step);
+
+        var escaped = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            handler.Handle(workflow, TestContext.Current.CancellationToken)
+        );
+
+        Assert.Equal("failure write-back failed", escaped.Message);
+        var stepSpan = Assert.IsType<Activity>(spans.Step);
+        Assert.True(stepSpan.IsStopped);
+        Assert.Null(step.EngineActivity);
+        Assert.Equal(ActivityStatusCode.Error, stepSpan.Status);
+        Assert.Equal("step write-back failed", stepSpan.StatusDescription);
+        var workflowSpan = Assert.IsType<Activity>(spans.Workflow);
+        Assert.True(workflowSpan.IsStopped);
+        Assert.Null(workflow.EngineActivity);
+        Assert.Equal(ActivityStatusCode.Error, workflowSpan.Status);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Handle_ShutdownMidStep_StepSpanEndsWithItsStatusUnset(bool duringWriteBack)
+    {
+        // The handler's own cancellation is not an error on the step span, wherever in the attempt it lands: the span
+        // ends without a status, as it always has when the executor is canceled. The workflow span names the shutdown
+        using var listener = ListenToEngineSpans();
+        using var cts = new CancellationTokenSource();
+        var spans = new CapturedSpans();
+        var executor = MockExecutorCapturingSpans(
+            spans,
+            async ct =>
+            {
+                if (!duringWriteBack)
+                {
+                    await cts.CancelAsync();
+                    ct.ThrowIfCancellationRequested();
+                }
+
+                return ExecutionResult.Success();
+            }
+        );
+        var buffer = MockBuffer(
+            async (w, ct) =>
+            {
+                if (duringWriteBack && w.Status == PersistentItemStatus.Processing)
+                {
+                    await cts.CancelAsync();
+                    ct.ThrowIfCancellationRequested();
+                }
+            }
+        );
+        var handler = CreateHandler(executor.Object, buffer: buffer.Object);
+        var step = CreateStep();
+        var workflow = CreateWorkflow(step);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => handler.Handle(workflow, cts.Token));
+
+        Assert.Equal(PersistentItemStatus.Requeued, workflow.Status);
+        var stepSpan = Assert.IsType<Activity>(spans.Step);
+        Assert.True(stepSpan.IsStopped);
+        Assert.Null(step.EngineActivity);
+        Assert.Equal(ActivityStatusCode.Unset, stepSpan.Status);
+        Assert.Null(stepSpan.GetTagItem("error.type"));
+        var workflowSpan = Assert.IsType<Activity>(spans.Workflow);
+        Assert.Equal(ActivityStatusCode.Error, workflowSpan.Status);
+        Assert.Equal("shutdown", workflowSpan.GetTagItem("error.type"));
+    }
+
+    [Fact]
+    public async Task Handle_LeaseLostAtStepWriteBack_StepSpanEndsInErrorWithLeaseLost()
+    {
+        using var listener = ListenToEngineSpans();
+        var spans = new CapturedSpans();
+        var buffer = MockBuffer(
+            (w, _) =>
+                w.Status == PersistentItemStatus.Processing
+                    ? Task.FromException(new LeaseLostException(w.DatabaseId))
+                    : Task.CompletedTask
+        );
+        var handler = CreateHandler(
+            MockExecutorCapturingSpans(spans, ExecutionResult.Success()).Object,
+            buffer: buffer.Object
+        );
+        var step = CreateStep();
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        var stepSpan = Assert.IsType<Activity>(spans.Step);
+        Assert.True(stepSpan.IsStopped);
+        Assert.Null(step.EngineActivity);
+        Assert.Equal(ActivityStatusCode.Error, stepSpan.Status);
+        Assert.Equal("lease_lost", stepSpan.GetTagItem("error.type"));
+        var workflowSpan = Assert.IsType<Activity>(spans.Workflow);
+        Assert.Equal("lease_lost", workflowSpan.GetTagItem("error.type"));
+    }
+
     /// <summary>
     /// Records each log entry with the trace it was written in, as an OpenTelemetry log exporter would see it.
     /// </summary>
@@ -1589,16 +1766,22 @@ public class WorkflowHandlerTests
         public Activity? Step { get; set; }
     }
 
-    private static Mock<IWorkflowExecutor> MockExecutorCapturingSpans(CapturedSpans spans, ExecutionResult result)
+    private static Mock<IWorkflowExecutor> MockExecutorCapturingSpans(CapturedSpans spans, ExecutionResult result) =>
+        MockExecutorCapturingSpans(spans, _ => Task.FromResult(result));
+
+    private static Mock<IWorkflowExecutor> MockExecutorCapturingSpans(
+        CapturedSpans spans,
+        Func<CancellationToken, Task<ExecutionResult>> execute
+    )
     {
         var mock = new Mock<IWorkflowExecutor>();
         mock.Setup(e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                (Workflow workflow, Step step, CancellationToken _) =>
+            .Returns(
+                (Workflow workflow, Step step, CancellationToken ct) =>
                 {
                     spans.Workflow = workflow.EngineActivity;
                     spans.Step = step.EngineActivity;
-                    return result;
+                    return execute(ct);
                 }
             );
 

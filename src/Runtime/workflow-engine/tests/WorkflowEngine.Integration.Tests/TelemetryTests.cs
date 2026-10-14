@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Net;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
@@ -605,6 +606,70 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         Assert.Equal("execution", processStep.GetTagItem("error.type"));
         Assert.Contains("500", processStep.StatusDescription, StringComparison.Ordinal);
         Assert.All(collector.Activities.Where(a => a.TraceId == handle.TraceId), a => Assert.Empty(a.Events));
+    }
+
+    [Fact]
+    public async Task StepWriteBackFails_TheStepSpanIsStillExported()
+    {
+        // Arrange — a trigger refuses this step's completion, so the database error reaches the handler through the
+        // update buffer the way an outage's would. Only an ended span is exported, and so collected
+        using var collector = new TelemetryCollector();
+        const string operationId = "/refused-write-back";
+
+        await using (var context = fixture.GetDbContext())
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                $"""
+                CREATE FUNCTION public.refuse_step_write_back() RETURNS trigger LANGUAGE plpgsql AS $$
+                BEGIN
+                    RAISE EXCEPTION 'step write-back refused';
+                END
+                $$;
+                CREATE TRIGGER refuse_step_write_back BEFORE UPDATE ON engine.steps FOR EACH ROW
+                    WHEN (NEW.operation_id = '{operationId}' AND NEW.status = {(int)PersistentItemStatus.Completed})
+                    EXECUTE FUNCTION public.refuse_step_write_back();
+                """,
+                TestContext.Current.CancellationToken
+            );
+        }
+
+        try
+        {
+            var request = _testHelpers.CreateEnqueueRequest([
+                _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep(operationId)]),
+            ]);
+
+            // Act
+            var response = await _client.Enqueue(request);
+            var workflowId = response.Workflows.Single().DatabaseId;
+            await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
+
+            // Assert
+            var handle = await collector.WaitForActivity(a =>
+                a.OperationName == "WorkflowHandler.Handle"
+                && a.GetTagItem("altinn.workflow_engine.workflow.id") is Guid id
+                && id == workflowId
+            );
+            var processStep = await collector.WaitForActivity(a =>
+                a.OperationName == "WorkflowHandler.ProcessStep" && a.TraceId == handle.TraceId
+            );
+
+            AssertChildOf(handle, processStep);
+            Assert.Equal(ActivityStatusCode.Error, processStep.Status);
+            Assert.Equal("Npgsql.PostgresException", processStep.GetTagItem("error.type"));
+            Assert.Empty(processStep.Events);
+        }
+        finally
+        {
+            await using var context = fixture.GetDbContext();
+            await context.Database.ExecuteSqlRawAsync(
+                """
+                DROP TRIGGER refuse_step_write_back ON engine.steps;
+                DROP FUNCTION public.refuse_step_write_back();
+                """,
+                CancellationToken.None
+            );
+        }
     }
 
     // ─── Span hierarchy helpers ────────────────────────────────────
