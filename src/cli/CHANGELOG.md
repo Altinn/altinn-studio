@@ -60,6 +60,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - _Errors Rate_ counts each request once, so fast errors are no longer overstated
     - _Feil_ shows 0 when the app has no server errors
 - `studioctl app upgrade v9` renames every call to an app's own `Analyse` method on an `IFileAnalyser` implementation, even when the call is in a different file from the class. Some were left unchanged, and the app then failed to build. ([#21047](https://github.com/Altinn/altinn-studio/pull/21047))
+- After `studioctl app upgrade v9`, users could not open an instance, or retry a failed service task, while it was in a PDF or eFormidling service task the upgrade added, if `policy.xml` gave them read or write only in specific tasks. The upgrade now extends those rules. (PRLINK)
+- `studioctl app upgrade v9` renames every call to an app's own `Analyse` method on an `IFileAnalyser` implementation, even when the call is in a different file from the class. Some were left unchanged, and the app then failed to build.
 
 ## [0.1.0-preview.28] - 2026-10-07
 
