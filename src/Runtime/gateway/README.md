@@ -4,16 +4,10 @@ The gateway connects Designer to each service owner's
 [runtime cluster](../../../docs/infrastructure/environments.md#runtime-clusters).
 Designer uses it to manage app deployments and read metrics. The gateway reports deployment results and forwards alerts to Designer.
 
-Several Studio environments share the same runtime cluster. The gateway and the
-[app deployment pipeline](../../App/azure-pipelines/deploy-app.yaml) must agree on how to identify the Studio
-environment that owns a deployment.
+Several Studio environments share the same runtime cluster. The gateway reports each deployment's results to the
+Studio environment that owns it.
 
 The [operator](../operator/README.md) supplies the gateway's credentials and can scale it down outside production.
-
-## Deployment
-
-The [deployment workflow](../../../.github/workflows/deploy-runtime-gateway.yaml) publishes the gateway image and configuration.
-Flux deploys them through the [runtime syncroot](../../../infra/runtime/syncroot/base/gateway.yaml).
 
 ## Development
 
