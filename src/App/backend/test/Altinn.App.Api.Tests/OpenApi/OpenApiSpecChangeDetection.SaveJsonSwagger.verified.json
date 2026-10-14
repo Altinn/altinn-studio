@@ -106,37 +106,48 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserActionResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ProblemDetails"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UserActionResponse"
+                    }
+                  ]
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserActionResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ProblemDetails"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UserActionResponse"
+                    }
+                  ]
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserActionResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserActionResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ProblemDetails"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UserActionResponse"
+                    }
+                  ]
                 }
               },
-              "application/json": {
+              "application/xml": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserActionResponse"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
-              "text/json": {
+              "text/xml": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserActionResponse"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -163,6 +174,26 @@
           },
           "403": {
             "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserActionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserActionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserActionResponse"
+                }
+              }
+            }
           },
           "409": {
             "description": "Conflict",
@@ -408,16 +439,6 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
           "404": {
             "description": "Not Found",
             "content": {
@@ -444,6 +465,16 @@
               "text/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -488,16 +519,6 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
           "404": {
             "description": "Not Found",
             "content": {
@@ -524,6 +545,16 @@
               "text/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -691,27 +722,67 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Party"
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Party"
+                    }
+                  ]
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Party"
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Party"
+                    }
+                  ]
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Party"
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Party"
+                    }
+                  ]
                 }
               },
               "application/xml": {
                 "schema": {
-                  "$ref": "#/components/schemas/Party"
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Party"
+                    }
+                  ]
                 }
               },
               "text/xml": {
                 "schema": {
-                  "$ref": "#/components/schemas/Party"
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Party"
+                    }
+                  ]
                 }
               }
             }
@@ -976,6 +1047,66 @@
               }
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "409": {
             "description": "Conflict",
             "content": {
@@ -1018,66 +1149,6 @@
           },
           "422": {
             "description": "Unprocessable Content",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1201,16 +1272,6 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -1255,6 +1316,16 @@
                 }
               },
               "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
@@ -1467,6 +1538,26 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalculationResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalculationResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalculationResult"
+                }
+              }
+            }
+          },
           "201": {
             "description": "Created",
             "content": {
@@ -1493,26 +1584,6 @@
               "text/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/DataElement"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/CalculationResult"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CalculationResult"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CalculationResult"
                 }
               }
             }
@@ -1567,6 +1638,16 @@
               }
             }
           },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "413": {
             "description": "Content Too Large",
             "content": {
@@ -1591,16 +1672,6 @@
                 }
               },
               "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
@@ -2811,8 +2882,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
@@ -2841,8 +2912,8 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
+          "404": {
+            "description": "Not Found",
             "content": {
               "text/plain": {
                 "schema": {
@@ -2977,8 +3048,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
@@ -3037,8 +3108,8 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
+          "404": {
+            "description": "Not Found",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4449,8 +4520,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4479,8 +4550,8 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
+          "404": {
+            "description": "Not Found",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4678,8 +4749,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
@@ -4708,8 +4779,8 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
+          "404": {
+            "description": "Not Found",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5517,17 +5588,38 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AppProcessState"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                    }
+                  ]
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AppProcessState"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                    }
+                  ]
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AppProcessState"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -8033,8 +8125,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict",
+          "404": {
+            "description": "Not Found",
             "content": {
               "text/plain": {
                 "schema": {
@@ -8063,8 +8155,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found",
+          "409": {
+            "description": "Conflict",
             "content": {
               "text/plain": {
                 "schema": {
@@ -8167,8 +8259,7 @@
             "nullable": true
           },
           "message": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "metadata": {
             "type": "object",
@@ -8340,12 +8431,10 @@
         "type": "object",
         "properties": {
           "idempotencyKey": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "payload": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "acceptedAt": {
             "type": "string",
@@ -8365,8 +8454,7 @@
         "type": "object",
         "properties": {
           "commandKey": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "actor": {
             "$ref": "#/components/schemas/Actor"
@@ -8490,8 +8578,7 @@
             "nullable": true
           },
           "label": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "description": {
             "type": "string",
@@ -8559,8 +8646,7 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UserAction"
-            },
-            "nullable": true
+            }
           },
           "read": {
             "type": "boolean"
@@ -8896,8 +8982,7 @@
             "nullable": true
           },
           "id": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "features": {
             "type": "object",
@@ -8910,8 +8995,7 @@
             "$ref": "#/components/schemas/Logo"
           },
           "altinnNugetVersion": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "promptForParty": {
             "type": "string",
@@ -8937,13 +9021,11 @@
         "properties": {
           "orgNumber": {
             "type": "string",
-            "description": "The organization number.",
-            "nullable": true
+            "description": "The organization number."
           },
           "orgName": {
             "type": "string",
-            "description": "The name of the organization.",
-            "nullable": true
+            "description": "The name of the organization."
           },
           "partyId": {
             "type": "integer",
@@ -9088,8 +9170,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "metadata": {
             "type": "object",
@@ -9163,8 +9244,7 @@
         "type": "object",
         "properties": {
           "senderName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "text": {
             "$ref": "#/components/schemas/CustomText"
@@ -9181,16 +9261,13 @@
         "type": "object",
         "properties": {
           "nb": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "nn": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "en": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
@@ -9451,8 +9528,7 @@
                 "$ref": "#/components/schemas/ValidationIssueWithSource"
               }
             },
-            "description": "The validation issues that were found during the patch operation.",
-            "nullable": true
+            "description": "The validation issues that were found during the patch operation."
           },
           "newDataModel": {
             "description": "The current data model after the patch operation."
@@ -9878,15 +9954,13 @@
             "type": "object",
             "additionalProperties": {
               "$ref": "#/components/schemas/DataModelInfo"
-            },
-            "nullable": true
+            }
           },
           "staticOptions": {
             "type": "object",
             "additionalProperties": {
               "$ref": "#/components/schemas/StaticOptionSet"
-            },
-            "nullable": true
+            }
           },
           "validationIssues": {
             "type": "array",
@@ -10447,8 +10521,7 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PatchOperation"
-            },
-            "nullable": true
+            }
           }
         },
         "additionalProperties": false
@@ -10503,8 +10576,7 @@
             "nullable": true
           },
           "size": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
@@ -10532,13 +10604,11 @@
         "properties": {
           "socialSecurityNumber": {
             "type": "string",
-            "description": "The social security number of the person to search for.",
-            "nullable": true
+            "description": "The social security number of the person to search for."
           },
           "lastName": {
             "type": "string",
-            "description": "The last name of the person to search for.",
-            "nullable": true
+            "description": "The last name of the person to search for."
           }
         },
         "additionalProperties": false,
@@ -10642,8 +10712,7 @@
         "type": "object",
         "properties": {
           "paymentProcessorId": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "receiver": {
             "$ref": "#/components/schemas/PaymentReceiver"
@@ -10652,15 +10721,13 @@
             "$ref": "#/components/schemas/Payer"
           },
           "currency": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "orderLines": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PaymentOrderLine"
-            },
-            "nullable": true
+            }
           },
           "allowedPayerTypes": {
             "type": "array",
@@ -10766,13 +10833,11 @@
         "properties": {
           "orgNr": {
             "type": "string",
-            "description": "The organization number",
-            "nullable": true
+            "description": "The organization number"
           },
           "name": {
             "type": "string",
-            "description": "The full name",
-            "nullable": true
+            "description": "The full name"
           }
         },
         "additionalProperties": false,
@@ -11018,8 +11083,7 @@
         "type": "object",
         "properties": {
           "paymentId": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "redirectUrl": {
             "type": "string",
@@ -11062,8 +11126,7 @@
         "type": "object",
         "properties": {
           "taskId": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "status": {
             "$ref": "#/components/schemas/PaymentStatus"
@@ -11087,12 +11150,10 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "name": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "textResourceKey": {
             "type": "string",
@@ -11111,8 +11172,7 @@
             "format": "double"
           },
           "unit": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false
@@ -11245,13 +11305,11 @@
         "properties": {
           "ssn": {
             "type": "string",
-            "description": "The social security number",
-            "nullable": true
+            "description": "The social security number"
           },
           "name": {
             "type": "string",
-            "description": "The full name",
-            "nullable": true
+            "description": "The full name"
           },
           "firstName": {
             "type": "string",
@@ -11265,8 +11323,7 @@
           },
           "lastName": {
             "type": "string",
-            "description": "The last name",
-            "nullable": true
+            "description": "The last name"
           }
         },
         "additionalProperties": false,
@@ -11538,8 +11595,7 @@
             "items": {
               "type": "string"
             },
-            "description": "A list of tags to set on the data element represented as string values.",
-            "nullable": true
+            "description": "A list of tags to set on the data element represented as string values."
           }
         },
         "additionalProperties": false,
@@ -11553,8 +11609,7 @@
             "items": {
               "type": "string"
             },
-            "description": "A list of tags represented as string values.",
-            "nullable": true
+            "description": "A list of tags represented as string values."
           },
           "validationIssues": {
             "type": "array",
@@ -11631,8 +11686,7 @@
             "items": {
               "$ref": "#/components/schemas/AuthorizedOrganizationDetails"
             },
-            "description": "The list of authorized organizations.",
-            "nullable": true
+            "description": "The list of authorized organizations."
           }
         },
         "additionalProperties": false,
@@ -11649,8 +11703,7 @@
             "items": {
               "$ref": "#/components/schemas/DataElement"
             },
-            "description": "The data elements that should be signed.",
-            "nullable": true
+            "description": "The data elements that should be signed."
           }
         },
         "additionalProperties": false,
@@ -11667,8 +11720,7 @@
             "items": {
               "$ref": "#/components/schemas/SigneeState"
             },
-            "description": "The signees for the current task.",
-            "nullable": true
+            "description": "The signees for the current task."
           }
         },
         "additionalProperties": false,
@@ -11721,8 +11773,7 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AppOption"
-            },
-            "nullable": true
+            }
           },
           "downstreamParameters": {
             "type": "string",
@@ -11901,8 +11952,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "authorized": {
             "type": "boolean"
@@ -12238,8 +12288,7 @@
             "format": "date-time"
           },
           "message": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "httpStatusCode": {
             "type": "integer",
@@ -12374,12 +12423,10 @@
         "type": "object",
         "properties": {
           "method": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "path": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         },
         "additionalProperties": false,

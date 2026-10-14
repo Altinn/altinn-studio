@@ -16,9 +16,10 @@ public class HasAuditorProcessGateway : IProcessExclusiveGateway
 
     public string GatewayId => "Gateway_HasAuditor";
 
-    public async Task<List<SequenceFlow>> FilterAsync(
+    public async Task<List<SequenceFlow>> Filter(
         List<SequenceFlow> outgoingFlows,
         Instance instance,
+        IInstanceDataAccessor dataAccessor,
         ProcessGatewayInformation processGatewayInformation
     )
     {

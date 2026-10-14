@@ -511,7 +511,7 @@ public class FormBootstrapServiceTests
             }
         );
         _appOptionsService
-            .Setup(x => x.GetOptionsAsync("countries", "nb", It.IsAny<Dictionary<string, string>>()))
+            .Setup(x => x.GetOptions("countries", "nb", It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(
                 new AppOptions
                 {
@@ -523,7 +523,7 @@ public class FormBootstrapServiceTests
                 }
             );
         _appOptionsService
-            .Setup(x => x.GetOptionsAsync("regions", "nb", It.IsAny<Dictionary<string, string>>()))
+            .Setup(x => x.GetOptions("regions", "nb", It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(new AppOptions { Options = [new AppOption { Value = "1", Label = "Region 1" }] });
 
         var service = CreateService();
@@ -560,10 +560,10 @@ public class FormBootstrapServiceTests
             }
         );
         _appOptionsService
-            .Setup(x => x.GetOptionsAsync("valid", "nb", It.IsAny<Dictionary<string, string>>()))
+            .Setup(x => x.GetOptions("valid", "nb", It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(new AppOptions { Options = [new AppOption { Value = "1", Label = "Valid" }] });
         _appOptionsService
-            .Setup(x => x.GetOptionsAsync("invalid", "nb", It.IsAny<Dictionary<string, string>>()))
+            .Setup(x => x.GetOptions("invalid", "nb", It.IsAny<Dictionary<string, string>>()))
             .ThrowsAsync(new Exception("Not found"));
 
         var service = CreateService();
@@ -645,7 +645,7 @@ public class FormBootstrapServiceTests
         SetupMocks(appMetadata, staticOptions: dynamicReference);
 
         _appOptionsFileHandler
-            .Setup(x => x.ReadOptionsFromFileAsync("fileBased"))
+            .Setup(x => x.ReadOptionsFromFile("fileBased"))
             .ReturnsAsync([new AppOption { Value = "1", Label = "From file" }]);
 
         var service = CreateService();
@@ -655,7 +655,7 @@ public class FormBootstrapServiceTests
         Assert.True(result.StaticOptions.ContainsKey("fileBased"));
         Assert.Single(result.StaticOptions["fileBased"].Options);
         _appOptionsService.Verify(
-            x => x.GetOptionsAsync("fileBased", It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()),
+            x => x.GetOptions("fileBased", It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()),
             Times.Never
         );
     }
@@ -676,10 +676,10 @@ public class FormBootstrapServiceTests
         );
 
         _appOptionsFileHandler
-            .Setup(x => x.ReadOptionsFromFileAsync("fileBased"))
+            .Setup(x => x.ReadOptionsFromFile("fileBased"))
             .ReturnsAsync([new AppOption { Value = "1", Label = "From file" }]);
         _appOptionsService
-            .Setup(x => x.GetOptionsAsync("countries", "nb", It.IsAny<Dictionary<string, string>>()))
+            .Setup(x => x.GetOptions("countries", "nb", It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(
                 new AppOptions
                 {
@@ -1256,12 +1256,12 @@ public class FormBootstrapServiceTests
             )
             .ReturnsAsync(new ModelSerializationService(_appModel).SerializeToXml(new DummyModel()).ToArray());
         _appOptionsFileHandler
-            .Setup(x => x.ReadOptionsFromFileAsync(It.IsAny<string>()))
+            .Setup(x => x.ReadOptionsFromFile(It.IsAny<string>()))
             .ReturnsAsync((List<AppOption>?)null);
 
         _appOptionsService
             .Setup(x =>
-                x.GetOptionsAsync(
+                x.GetOptions(
                     It.IsAny<InstanceIdentifier>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -1270,9 +1270,7 @@ public class FormBootstrapServiceTests
             )
             .ReturnsAsync((AppOptions?)null);
         _appOptionsService
-            .Setup(x =>
-                x.GetOptionsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())
-            )
+            .Setup(x => x.GetOptions(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(new AppOptions { Options = [] });
         _validationService
             .Setup(x =>
@@ -1330,12 +1328,10 @@ public class FormBootstrapServiceTests
 
         _appMetadata.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
         _appOptionsFileHandler
-            .Setup(x => x.ReadOptionsFromFileAsync(It.IsAny<string>()))
+            .Setup(x => x.ReadOptionsFromFile(It.IsAny<string>()))
             .ReturnsAsync((List<AppOption>?)null);
         _appOptionsService
-            .Setup(x =>
-                x.GetOptionsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())
-            )
+            .Setup(x => x.GetOptions(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(new AppOptions { Options = [] });
 
         // Default to unauthenticated - GetStatelessInstanceOwner returns null so only query-parameter prefill can run.
