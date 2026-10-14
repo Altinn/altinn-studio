@@ -21,6 +21,8 @@ export const Config = new CG.component({
 
   directRendering: false,
 })
+  .makeSummarizable()
+  .addSummaryOverrides()
   .addTextResource(
     new CG.trb({
       name: 'title',

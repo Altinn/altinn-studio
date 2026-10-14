@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync/atomic"
 	"testing"
 
 	"go.opentelemetry.io/otel"
@@ -112,8 +111,7 @@ func newTestGenerator(convertToPDFA bool, responseData []byte) *Custom {
 	}
 
 	session := &browserSession{queue: make(chan workerRequest, 1)}
-	g.activeSession = atomic.Pointer[browserSession]{}
-	g.activeSession.Store(session)
+	g.session.Store(session)
 
 	go func() {
 		req := <-session.queue

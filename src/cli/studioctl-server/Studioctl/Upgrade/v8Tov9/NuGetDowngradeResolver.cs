@@ -45,13 +45,24 @@ internal sealed class NuGetDowngradeResolver
             cancellationToken.ThrowIfCancellationRequested();
 
             var restoreOutput = await RunRestoreAsync(projectFile, projectFolder, cancellationToken);
-            var downgrades = ParseDowngrades(restoreOutput);
+            var downgrades = ParseDowngrades(restoreOutput.Output);
 
             var pending = downgrades.Where(d => attempted.Add($"{d.PackageId}@{d.RequiredVersion}")).ToList();
             if (pending.Count == 0)
             {
-                // Either restore is clean, or everything it still reports is something we already tried
-                // to fix (and warned about). Either way, no further progress is possible here.
+                // An SDK, network or project error is not a successful downgrade check. Report the
+                // failed restore too, so an upgrade cannot quietly claim the dependency graph is clean.
+                if (restoreOutput.ExitCode != 0)
+                {
+                    var lastLine = restoreOutput
+                        .Output.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                        .LastOrDefault()
+                        ?.Trim();
+                    messages.Todo(
+                        $"Could not complete dotnet restore (exit code {restoreOutput.ExitCode})"
+                            + (lastLine is null ? "." : $": {lastLine}")
+                    );
+                }
                 break;
             }
 
@@ -102,13 +113,13 @@ internal sealed class NuGetDowngradeResolver
         return downgrades;
     }
 
-    private static async Task<string> RunRestoreAsync(
+    private static async Task<(string Output, int ExitCode)> RunRestoreAsync(
         string projectFile,
         string projectFolder,
         CancellationToken cancellationToken
     )
     {
-        var startInfo = ProcessUtil.CreateStartInfo("dotnet", "restore", projectFile);
+        var startInfo = ProcessUtil.CreateDotnetStartInfo("restore", projectFile);
         startInfo.WorkingDirectory = projectFolder;
         startInfo.RedirectStandardOutput = true;
         startInfo.RedirectStandardError = true;
@@ -146,7 +157,7 @@ internal sealed class NuGetDowngradeResolver
         builder.Append(await stdoutTask);
         builder.Append('\n');
         builder.Append(await stderrTask);
-        return builder.ToString();
+        return (builder.ToString(), process.ExitCode);
     }
 
     /// <param name="PackageId">The package with a downgrade.</param>

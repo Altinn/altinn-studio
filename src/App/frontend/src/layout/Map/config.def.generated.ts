@@ -1,10 +1,18 @@
+import type { JSX } from 'react';
+
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class MapDef extends FormComponent<'Map'> implements DisplayData {
   protected readonly type = 'Map';
+
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
+
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -17,4 +25,4 @@ export abstract class MapDef extends FormComponent<'Map'> implements DisplayData
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: a6ece11e187db6f15f8c312c4a1d7b0e654437c7dcb261a005bf41395755a3ff
+// Source hash: 073192db0efd91893c99526647aaf4e569c7482383a5a7199dc36e22317a2a30

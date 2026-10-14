@@ -8,6 +8,7 @@ import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { LikertItemDef } from 'src/layout/LikertItem/config.def.generated';
 import { LikertItemComponent } from 'src/layout/LikertItem/LikertItemComponent';
+import { LikertItemSummary } from 'src/layout/LikertItem/LikertItemSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
@@ -19,6 +20,7 @@ import type {
 } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class LikertItem extends LikertItemDef {
   render = forwardRef<HTMLTableRowElement, PropsFromGenericComponent<'LikertItem'>>(
@@ -51,6 +53,10 @@ export class LikertItem extends LikertItemDef {
   renderSummary({ targetBaseComponentId }: SummaryRendererProps): JSX.Element | null {
     const displayData = useDisplayData(targetBaseComponentId);
     return <SummaryItemSimple formDataAsString={displayData} />;
+  }
+
+  renderSummary2(props: Summary2Props): JSX.Element | null {
+    return <LikertItemSummary {...props} />;
   }
 
   validateEmptyField(ctx: ComponentValidationContext<'LikertItem'>): ComponentValidation[] {
