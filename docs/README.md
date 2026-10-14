@@ -8,6 +8,10 @@ and app developers is on [docs.altinn.studio](https://docs.altinn.studio).
 
 - [Environments](infrastructure/environments.md)
 
+## Development
+
+- [Write documentation](development/documentation.md)
+
 ## Architecture decision records
 
 Start a new ADR from [the template](adr/yyyy-mm-dd-template.md).
