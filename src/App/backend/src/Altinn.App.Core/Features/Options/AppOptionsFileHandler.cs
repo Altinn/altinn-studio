@@ -24,7 +24,7 @@ internal sealed class AppOptionsFileHandler : IAppOptionsFileHandler
     }
 
     /// <inheritdoc/>
-    public Task<List<AppOption>?> ReadOptionsFromFileAsync(string optionId)
+    public Task<List<AppOption>?> ReadOptionsFromFile(string optionId)
     {
         if (_appFiles.Current.GetOptions(optionId) is not { } bytes)
         {

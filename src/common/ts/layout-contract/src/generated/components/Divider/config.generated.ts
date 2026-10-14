@@ -1,15 +1,13 @@
 import {
   ComponentBase,
   ISummaryOverridesCommon,
-  SummarizableComponentProps,
-  TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 import { CompCategory } from '@app/layout-contract';
 
-export interface CompDividerExternal extends ComponentBase, SummarizableComponentProps {
+export interface CompDividerExternal extends ComponentBase {
   type: 'Divider';
-  textResourceBindings?: TRBSummarizable;
   dataModelBindings?: undefined;
+  textResourceBindings?: undefined;
 }
 
 export type DividerSummaryOverridesWithRef =
@@ -44,4 +42,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: DividerSummaryOverridesWithRef;
 };
 
-// Source hash: 4e74d528493ee5a8a40272f1d0d8908e983f7cce171649ad50f1a04d2ee9c441
+// Source hash: 5d2a7b7921d98bbae16ae33f2b870af1120667b6690030b624a2a8e2e32e6b22

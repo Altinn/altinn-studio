@@ -7,6 +7,14 @@ on:
       - 'src/AI/assistant/**'
       - '.github/workflows/assistant-evals.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
+      # Workbench usage guide; eval behavior is defined in code and datasets.
+      - '!src/AI/assistant/benchmarks/EVALS.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}

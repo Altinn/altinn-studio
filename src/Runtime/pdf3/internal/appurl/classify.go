@@ -15,6 +15,10 @@ const (
 	KindStandard Kind = "standard"
 	// KindAppOther is another page of the app, on its own host and under /{org}/{app}/.
 	KindAppOther Kind = "app_other"
+	// KindClusterLocal is a Kubernetes service inside the cluster, on a host ending in
+	// .cluster.local or .svc, with any scheme or port. pdf3 in a cluster shared by every service
+	// owner cannot reach another cluster's services.
+	KindClusterLocal Kind = "cluster_local"
 	// KindOther is anything else: another host, scheme or path, or an invalid URL.
 	KindOther Kind = "other"
 )
@@ -34,9 +38,13 @@ var standardPagePath = regexp.MustCompile(
 var standardQueryKeys = map[string]bool{"pdf": true, "lang": true, "task": true}
 
 // Classify returns the kind of page rawURL is in the environment whose app hostname is
-// appHostname, which must be set. For KindOther it also returns why the URL is not an app
-// URL, as a short reason such as "host" or "org_mismatch".
+// appHostname, which must be set: KindStandard, KindAppOther, KindClusterLocal or KindOther.
+// For KindOther it also returns why the URL is not an app URL, as a short reason such as
+// "host" or "org_mismatch".
 func Classify(rawURL string, appHostname string) (Kind, string) {
+	if isClusterLocal(rawURL) {
+		return KindClusterLocal, ""
+	}
 	app, err := Parse(rawURL, appHostname)
 	if err != nil {
 		return KindOther, rejectionReason(err)
@@ -45,6 +53,18 @@ func Classify(rawURL string, appHostname string) (Kind, string) {
 		return KindStandard, ""
 	}
 	return KindAppOther, ""
+}
+
+// isClusterLocal reports whether rawURL's host is a Kubernetes service name:
+// {service}.{namespace}.svc.cluster.local, or the short form {service}.{namespace}.svc.
+func isClusterLocal(rawURL string) bool {
+	// Read "\" as "/", as browsers do in http and https URLs, so the host is the one the browser loads.
+	u, err := url.Parse(strings.ReplaceAll(rawURL, `\`, "/"))
+	if err != nil {
+		return false
+	}
+	host := strings.TrimSuffix(strings.ToLower(u.Hostname()), ".")
+	return strings.HasSuffix(host, ".cluster.local") || strings.HasSuffix(host, ".svc")
 }
 
 // isStandardPage reports whether rawURL, which Parse accepted for app, is the app's normal PDF

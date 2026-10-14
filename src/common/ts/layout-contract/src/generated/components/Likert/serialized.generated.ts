@@ -5,7 +5,6 @@ import {
   ILikertColumnProperties,
   ISelectionComponent,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 import { IDataModelBindingsLikert } from '@app/layout-contract/generated/serialized-common.generated';
@@ -14,6 +13,8 @@ export type ILikertFilter = { key: 'start' | 'stop'; value: string | number }[];
 
 export type CompLikertSerialized = {
   type: 'Likert';
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
@@ -29,10 +30,9 @@ export type CompLikertSerialized = {
   dataModelBindings: IDataModelBindingsLikert;
   filter?: ILikertFilter;
 } & ComponentBase &
-  SummarizableComponentProps &
   ISelectionComponent &
   FormComponentProps &
   LabeledComponentProps &
   ILikertColumnProperties;
 
-// Source hash: 60e579a8925d8f24239642d3205d84088d9ff8a3f089f4b5662841a2e80c9db2
+// Source hash: b28b03040987f54b1a81607f129c46ea54fdcd1f648b1a46612dc86f68532624

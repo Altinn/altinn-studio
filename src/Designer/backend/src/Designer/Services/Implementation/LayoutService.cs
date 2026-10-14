@@ -235,7 +235,12 @@ public class LayoutService(
         appRepository.EnsureLayoutWritesAreAllowed(layoutSetId, createdPages, deletedPages);
         foreach (string pageId in deletedPages)
         {
-            appRepository.DeleteLayout(layoutSetId, pageId);
+            // Settings.json can list a page without a layout file when the repository was edited outside
+            // Designer. Removing that page from the groups is all there is left to do.
+            if (appRepository.LayoutFileExistsByExactName(layoutSetId, pageId))
+            {
+                appRepository.DeleteLayout(layoutSetId, pageId);
+            }
             await mediatr.Publish(
                 new LayoutPageDeletedEvent
                 {
@@ -249,6 +254,12 @@ public class LayoutService(
         bool includeShowBackButton = !appVersionService.IsV9App(editingContext);
         foreach (string pageId in createdPages)
         {
+            // A layout file can already exist for a page Settings.json does not list, for instance one whose
+            // name in Settings.json differs only in case. Adding the page keeps the content of that file.
+            if (appRepository.LayoutFileExistsByExactName(layoutSetId, pageId))
+            {
+                continue;
+            }
             AltinnPageLayout altinnPageLayout = new(appRepository.LayoutSchemaUrl);
             if (originalOrder.Any())
             {

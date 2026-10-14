@@ -1,5 +1,4 @@
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Security.Claims;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;

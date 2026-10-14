@@ -7,7 +7,6 @@ import {
   ISummaryOverridesCommon,
   LabeledComponentProps,
   LayoutStyle,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -23,14 +22,11 @@ export type CheckboxesSummaryOverridesWithRef =
   | ({ componentType: 'Checkboxes' } & CheckboxesSummaryOverrides);
 
 export interface CompCheckboxesExternal
-  extends
-    ComponentBase,
-    FormComponentProps,
-    SummarizableComponentProps,
-    ISelectionComponentFull,
-    LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, ISelectionComponentFull, LabeledComponentProps {
   type: 'Checkboxes';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -74,4 +70,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: CheckboxesSummaryOverridesWithRef;
 };
 
-// Source hash: 113a3d8938bb4e3bf7adc0af34cd02495e29f49bc95c0cec5c66a6b0a31d7a6e
+// Source hash: e102ec6a0b4a1f686086cb1159ba5c790ebce9a8d217e5bd97dd7cb3a208f090
