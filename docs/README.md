@@ -6,7 +6,7 @@ and app developers is on [docs.altinn.studio](https://docs.altinn.studio).
 
 ## Infrastructure
 
-- [Environments](infrastructure/environment.md)
+- [Environments](infrastructure/environments.md)
 
 ## Architecture decision records
 

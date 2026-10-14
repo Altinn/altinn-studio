@@ -4,8 +4,11 @@ Where Altinn Studio's services run, how a change gets there, and where the detai
 
 ## Runtime clusters
 
-Each service owner has a runtime cluster per environment (at22, at23, at24, yt01, tt02 and prod). It runs the
-service owner's apps and the runtime services listed in the [runtime syncroot](../../infra/runtime/syncroot).
+A service owner has a runtime cluster in each environment it uses. Most service owners have tt02 and prod, some
+also have yt01, and only `ttd` has at22, at23 and at24. The
+[service owner registry](https://github.com/Altinn/altinn-cdn/blob/master/orgs/altinn-orgs.json) lists the
+service owners and their environments, with prod listed as `production`. A cluster runs the service owner's apps
+and the runtime services listed in the [runtime syncroot](../../infra/runtime/syncroot).
 
 Flux in each cluster pulls the services from a container registry. A service's deploy workflow publishes it as an
 artifact and tags it with rings, and each cluster follows one ring. The rings are listed in
