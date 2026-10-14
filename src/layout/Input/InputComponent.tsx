@@ -13,7 +13,7 @@ import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/
 import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Input/InputComponent.module.css';
-import { isNumberFormat, isPatternFormat } from 'src/layout/Input/number-format-helpers';
+import { isNumberFormat, isPatternFormat, parsePastedNumber } from 'src/layout/Input/number-format-helpers';
 import { buildAriaDescribedBy } from 'src/utils/inputUtils';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -239,11 +239,7 @@ export const InputVariant = ({
               return;
             }
             const pastedText = event.clipboardData.getData('Text');
-            if (pastedText.indexOf(',') !== -1) {
-              setValue('simpleBinding', pastedText.replace(',', '.'));
-            } else {
-              setValue('simpleBinding', pastedText);
-            }
+            setValue('simpleBinding', parsePastedNumber(pastedText, variant.format));
           }}
           maxLength={maxLength}
         />
