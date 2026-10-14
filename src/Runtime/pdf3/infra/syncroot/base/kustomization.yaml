@@ -6,3 +6,10 @@ namespace: product-studio-pdf3
 resources:
   - identity.yaml
   - vault.yaml
+  - environment.yaml
+  - secrets.yaml
+  - proxy.yaml
+  - worker.yaml
+  - httproute.yaml
+  - linkerd-policies.yaml
+  - network-policies.yaml

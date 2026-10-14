@@ -242,14 +242,52 @@ namespace.
 
 **Manifests**: `infra/syncroot/`
 
-- `base/` - What every environment gets: the ApplicationIdentity and Key Vault `pdf3`
+- `base/` - What every environment gets: the ApplicationIdentity and Key Vault `pdf3`, the proxy
+  and workers, the HTTPRoute, and Linkerd and Cilium policies
 - `<env>/` - Applied by the platform. It only holds the Flux Kustomization `pdf3` (`app.yaml`),
   which applies `./<env>/app` from the same artifact with pruning, so removing a resource from
   the manifests deletes it. The Vault and the ApplicationIdentity are the exception: they are
   annotated `kustomize.toolkit.fluxcd.io/prune: disabled`, so removing them takes a manual
   `kubectl delete`. Deleting the Vault deletes the Key Vault, and purge protection keeps its name
   taken for the 90 days of soft delete
-- `<env>/app/` - The environment's overlay of `base/`
+- `<env>/app/` - The environment's overlay of `base/`: the image tags, the environment's name,
+  hostname and admin group, and sizing
+
+They are not an overlay of `infra/kustomize/base`: Flux only gets `infra/syncroot`, and the tenant
+manifests go away once every tenant cluster relays to DIS Core. Keep the two in step until then.
+
+- **Endpoint**: `POST /pdf/v3/generate` on DIS Edge's platform host (in at22
+  `https://platform.at22.altinn.cloud/pdf/v3/generate`), which forwards to
+  `pdf3.<env>.dis-core.altinn.cloud`. Traefik routes `/pdf/v3/generate` and
+  `/generate` there to the proxy's `/pdf` and nothing else. Only one of the two will remain, once
+  it is confirmed whether Edge keeps the prefix
+- **Callers**: the relays in the tenant clusters, with an API key and `X-Altinn-Service-Owner`.
+  `PDF3_SERVICEOWNER` is unset. The valid keys are the lines of the Key Vault secret
+  `pdf3-api-keys`, one key per line; lines starting with `#` are ignored. Keep it one secret: a
+  deleted Key Vault secret stays soft-deleted for 90 days and blocks writing its name again
+- **First deployment**: write `pdf3-api-keys` once the Vault exists and before the proxy is
+  deployed. Without it the proxy's pods wait for the missing Secret, the Deployment exceeds its
+  60s progress deadline and the Kustomization `pdf3` goes Ready=False. ESO retries a failed sync
+  with a backoff of up to 7 minutes (about 17 before ESO 0.14), so the first sync can lag the
+  write by that much. To sync at once:
+  `kubectl -n product-studio-pdf3 annotate externalsecret pdf3-api-keys force-sync=$(date +%s) --overwrite`
+- **Rotating a key**: add the new key to `pdf3-api-keys` on a new line, and wait about 7 minutes
+  for the ExternalSecret's refresh (5m), the kubelet's sync of the Secret (about 1m) and the
+  proxy's check of the file (30s); the proxy logs `Reloaded API keys`. Then switch the relays to
+  the new key and remove the old line. Emptying the secret revokes nothing: the proxy keeps its
+  keys until its pods restart, and then fails to start. Never delete `pdf3-api-keys`, only write
+  a new version: deleting it revokes nothing either, as ESO keeps the Secret, and soft delete
+  then blocks the name for 90 days
+- **Workers** are not meshed, so Chrome's requests don't carry a mesh identity. Their Cilium policy
+  only lets them reach DNS and public addresses. DNS is allowed to CoreDNS (`kube-dns`) only, and
+  link-local addresses are denied, so if DIS Core's pods resolve through AKS LocalDNS
+  (169.254.10.x), the workers can't resolve anything. Not confirmed yet: after deploying, check
+  that a worker's nameserver is the `kube-dns` Service's IP:
+  `kubectl -n product-studio-pdf3 exec deploy/pdf3-worker -- cat /etc/resolv.conf`
+- **Telemetry**: the proxy and workers export to the collector `pdf3-collector`, which is not
+  deployed yet. Until it is, exports fail in the background and are logged
+- **Images** are pinned per environment in `<env>/app/kustomization.yaml`; bump the proxy and
+  worker tags together with a PR. Each Core environment is promoted on its own, by bumping its pin
 
 **Publishing**: `.github/workflows/deploy-dis-pdf3-syncroot.yaml` pushes `infra/syncroot` as
 `studio-pdf3/syncroot:<sha>` on every change on main, then moves each Core environment's tag to it

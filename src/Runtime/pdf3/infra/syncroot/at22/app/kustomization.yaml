@@ -4,6 +4,14 @@ kind: Kustomization
 resources:
   - ../../base
 
+# The pdf3 build at22 runs. Bump both tags together, by PR. Each Core environment pins its own
+# build, so this promotes at22 only.
+images:
+  - name: altinncr.azurecr.io/ghcr.io/altinn/altinn-studio/runtime-pdf3-proxy
+    newTag: 608dae250a
+  - name: altinncr.azurecr.io/ghcr.io/altinn/altinn-studio/runtime-pdf3-worker
+    newTag: 608dae250a
+
 patches:
   # The object ID of the Entra group DIS AKS Admin Dev STUDIO.
   - target:
@@ -13,3 +21,40 @@ patches:
       - op: add
         path: /spec/groupObjectId
         value: 0ff23f19-87a9-455c-928d-226b4ea41f16
+  - target:
+      kind: ConfigMap
+      name: pdf3-environment
+    patch: |-
+      - op: replace
+        path: /data/environment
+        value: at22
+  - target:
+      kind: HTTPRoute
+      group: gateway.networking.k8s.io
+      name: pdf3-proxy
+    patch: |-
+      - op: replace
+        path: /spec/hostnames
+        value:
+          - pdf3.at22.dis-core.altinn.cloud
+  # A playground without traffic.
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: pdf3-proxy
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 1
+      - op: replace
+        path: /spec/maxReplicas
+        value: 3
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: pdf3-worker
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 1
+      - op: replace
+        path: /spec/maxReplicas
+        value: 5

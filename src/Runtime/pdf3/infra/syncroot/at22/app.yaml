@@ -12,7 +12,23 @@ spec:
   retryInterval: 1m
   timeout: 5m
   prune: true
-  wait: true
+  # Waiting for every resource would also wait for ExternalSecrets whose Vault secret doesn't
+  # exist yet, and keep the Kustomization from being ready until it does. It is ready once these
+  # are, and pdf3-proxy only becomes ready with its API keys.
+  wait: false
+  healthChecks:
+    - apiVersion: vault.dis.altinn.cloud/v1alpha1
+      kind: Vault
+      name: pdf3
+      namespace: product-studio-pdf3
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: pdf3-proxy
+      namespace: product-studio-pdf3
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: pdf3-worker
+      namespace: product-studio-pdf3
   path: ./at22/app
   targetNamespace: product-studio-pdf3
   serviceAccountName: flux-applier

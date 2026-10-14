@@ -1,0 +1,103 @@
+# Linkerd inbound authorization for the meshed pods, the proxy. DIS Core denies inbound traffic
+# to meshed pods by default. The workers are not meshed (worker.yaml), so network-policies.yaml
+# alone decides who reaches them.
+#
+# The kubelet probes the pods unmeshed from the node subnet, which is 10.205.0.0/16 and
+# fd12:2291:d70a::/48 on DIS Core according to Dialogporten (verified in at22 and at23). It is
+# deliberately not the pod subnet.
+apiVersion: policy.linkerd.io/v1alpha1
+kind: NetworkAuthentication
+metadata:
+  name: pdf3-kubelet
+spec:
+  networks:
+    - cidr: 10.205.0.0/16
+    - cidr: fd12:2291:d70a::/48
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: MeshTLSAuthentication
+metadata:
+  name: pdf3-traefik
+spec:
+  identities:
+    - "altinn-traefik.traefik.serviceaccount.identity.linkerd.cluster.local"
+---
+# The proxy's port. Defining HTTPRoutes replaces the Server's default catch-all, so anything
+# other than the routes below is refused.
+apiVersion: policy.linkerd.io/v1beta3
+kind: Server
+metadata:
+  name: pdf3-proxy-http
+spec:
+  podSelector:
+    matchLabels:
+      app: pdf3-proxy
+  port: 5030
+  proxyProtocol: HTTP/1
+---
+# POST /pdf, from Traefik only.
+apiVersion: policy.linkerd.io/v1beta3
+kind: HTTPRoute
+metadata:
+  name: pdf3-proxy-pdf
+spec:
+  parentRefs:
+    - group: policy.linkerd.io
+      kind: Server
+      name: pdf3-proxy-http
+  rules:
+    - matches:
+        - method: POST
+          path:
+            type: Exact
+            value: /pdf
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: AuthorizationPolicy
+metadata:
+  name: pdf3-proxy-allow-traefik
+spec:
+  targetRef:
+    group: policy.linkerd.io
+    kind: HTTPRoute
+    name: pdf3-proxy-pdf
+  requiredAuthenticationRefs:
+    - group: policy.linkerd.io
+      kind: MeshTLSAuthentication
+      name: pdf3-traefik
+---
+# Exactly the probe paths, for the kubelet.
+apiVersion: policy.linkerd.io/v1beta3
+kind: HTTPRoute
+metadata:
+  name: pdf3-proxy-health
+spec:
+  parentRefs:
+    - group: policy.linkerd.io
+      kind: Server
+      name: pdf3-proxy-http
+  rules:
+    - matches:
+        - path:
+            type: Exact
+            value: /health/startup
+        - path:
+            type: Exact
+            value: /health/ready
+        - path:
+            type: Exact
+            value: /health/live
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: AuthorizationPolicy
+metadata:
+  name: pdf3-proxy-allow-kubelet
+spec:
+  targetRef:
+    group: policy.linkerd.io
+    kind: HTTPRoute
+    name: pdf3-proxy-health
+  requiredAuthenticationRefs:
+    - group: policy.linkerd.io
+      kind: NetworkAuthentication
+      name: pdf3-kubelet
