@@ -7,8 +7,6 @@ pdf3 generates PDFs for Altinn apps. A proxy distributes requests to workers, wh
 pdf3 runs in each service owner's [runtime cluster](../../../docs/infrastructure/environments.md#runtime-clusters).
 Apps use the address in [apps-config](../../../infra/runtime/apps-config/base/apps-runtime-common-env.yaml),
 which the [runtime routing configuration](../../../infra/runtime/syncroot/base/pdf.yaml) directs to pdf3.
-The [deployment workflow](../../../.github/workflows/deploy-runtime-pdf3.yaml) publishes its image and
-[configuration](infra/kustomize).
 
 [Local environments](../../cli/README.md#which-images-the-environment-runs) run the worker directly, without the proxy.
 studioctl supplies its settings and selects the image.
