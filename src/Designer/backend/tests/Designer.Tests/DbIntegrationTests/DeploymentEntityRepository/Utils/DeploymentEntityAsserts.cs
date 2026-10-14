@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Altinn.AccessManagement.Tests.Utils;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
