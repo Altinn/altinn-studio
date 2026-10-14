@@ -492,11 +492,11 @@ internal sealed class Engine(
 
         if (failed is not null)
         {
-            Metrics.StepsFailed.Add(1, ("reason", "manual"));
+            Metrics.StepsFailed.Add(1, (TelemetryAttributes.Reason, "manual"));
             Metrics.WorkflowsFailed.Add(
                 1,
-                ("reason", "manual"),
-                ("is_head", WorkflowExtensions.IsHeadTagValue(failed.IsHead))
+                (TelemetryAttributes.Reason, "manual"),
+                (TelemetryAttributes.WorkflowIsHead, WorkflowExtensions.IsHeadTagValue(failed.IsHead))
             );
 
             // The failure may unblock dependents (they settle as DependencyFailed on their next
@@ -652,7 +652,10 @@ internal sealed class Engine(
 
         // Counted for every outcome, pre-lock refusals included, so a storm of bad forwards is visible in the
         // mailbox metrics and not only in HTTP status codes.
-        Metrics.MailboxDeliveriesReceived.Add(1, ("outcome", MailboxDeliveryOutcomeTag(result)));
+        Metrics.MailboxDeliveriesReceived.Add(
+            1,
+            (TelemetryAttributes.MailboxDeliveryOutcome, MailboxDeliveryOutcomeTag(result))
+        );
 
         return result;
     }

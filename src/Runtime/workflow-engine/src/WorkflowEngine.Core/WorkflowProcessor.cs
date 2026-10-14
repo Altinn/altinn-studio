@@ -96,7 +96,7 @@ internal sealed class WorkflowProcessor(
                     {
                         consecutiveDbFailures++;
                         engineStatus.SetDatabaseUnavailable();
-                        Metrics.Errors.Add(1, ("operation", "fetchAndLock"));
+                        Metrics.Errors.Add(1, (TelemetryAttributes.Operation, "fetch_and_lock"));
 
                         var delay = _databaseBackoff.CalculateDelay(consecutiveDbFailures);
                         logger.DatabaseUnavailable(consecutiveDbFailures, delay, ex);

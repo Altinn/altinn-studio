@@ -336,9 +336,9 @@ public sealed class MailboxDeliveryEndpointTests(EngineAppFixture<Program> fixtu
         );
         await Refuse(mailbox.Id, new() { IdempotencyKey = "   ", Payload = "{}" });
 
-        var measurements = collector.GetMeasurements("engine.mailboxes.deliveries.received");
+        var measurements = collector.GetMeasurements("altinn.workflow_engine.mailbox.delivery.received");
         var byOutcome = measurements
-            .GroupBy(m => (string)m.Tags.Single(t => t.Key == "outcome").Value!)
+            .GroupBy(m => (string)m.Tags.Single(t => t.Key == "altinn.workflow_engine.mailbox.delivery.outcome").Value!)
             .ToDictionary(g => g.Key, g => g.Sum(m => Convert.ToInt64(m.Value, CultureInfo.InvariantCulture)));
 
         Assert.Equal(

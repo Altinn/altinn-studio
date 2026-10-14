@@ -206,7 +206,10 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
             case MailboxReceiptResult.Unregistered:
                 _logger.MailboxReceiverUnregistered(step, workflow, workflow.MailboxId.Value);
-                Metrics.MailboxRendezvousViolations.Add(1, ("state", "unregistered"));
+                Metrics.MailboxRendezvousViolations.Add(
+                    1,
+                    (TelemetryAttributes.MailboxRendezvousState, "unregistered")
+                );
                 return new MailboxRendezvous(
                     null,
                     ExecutionResult.CriticalError(
@@ -218,7 +221,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
             case MailboxReceiptResult.Undecided(var mailboxId, var seq):
                 _logger.MailboxReceiverUndecided(step, workflow, mailboxId, seq);
-                Metrics.MailboxRendezvousViolations.Add(1, ("state", "undecided"));
+                Metrics.MailboxRendezvousViolations.Add(1, (TelemetryAttributes.MailboxRendezvousState, "undecided"));
                 return new MailboxRendezvous(
                     null,
                     ExecutionResult.CriticalError(

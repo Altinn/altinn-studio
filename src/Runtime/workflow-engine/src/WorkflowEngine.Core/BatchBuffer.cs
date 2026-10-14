@@ -242,8 +242,8 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
 
             // Recorded together, at the one point a batch is known answered: a dashboard divides the two, so a
             // faulted flush must count in neither
-            Metrics.MailboxBufferFlushedItems.Add(batch.Count, ("operation", _operation));
-            Metrics.MailboxBufferFlushedBatches.Add(1, ("operation", _operation));
+            Metrics.MailboxBufferFlushedItems.Add(batch.Count, (TelemetryAttributes.MailboxOperation, _operation));
+            Metrics.MailboxBufferFlushedBatches.Add(1, (TelemetryAttributes.MailboxOperation, _operation));
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {

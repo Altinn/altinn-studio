@@ -1041,7 +1041,7 @@ public class WorkflowHandlerTests
             BackoffUntil = _t0.AddMinutes(10),
         };
 
-        using var durations = new WorkflowDurationCollector("cancel-bypass-durations");
+        using var durations = new WorkflowDurationCollector();
         await handler.Handle(workflow, TestContext.Current.CancellationToken);
 
         Assert.Equal(PersistentItemStatus.Canceled, workflow.Status);
@@ -1244,38 +1244,41 @@ public class WorkflowHandlerTests
     }
 
     /// <summary>
-    /// Captures the workflow queue/total duration histograms for one workflow, filtered by its
-    /// operation-id tag so concurrently running tests never bleed into the assertions.
+    /// Captures the workflow queue/total duration histograms recorded by the test that created it. The
+    /// histograms carry no attribute that tells one workflow from another, so the collector keeps only what is
+    /// recorded in the creating test's async flow — concurrently running tests never bleed into the assertions.
     /// </summary>
     private sealed class WorkflowDurationCollector : IDisposable
     {
+        private static readonly AsyncLocal<WorkflowDurationCollector?> _current = new();
+
         private readonly MeterListener _listener;
 
         public ConcurrentBag<(string Instrument, double Value)> Measurements { get; } = [];
 
-        public WorkflowDurationCollector(string operationId)
+        public WorkflowDurationCollector()
         {
+            _current.Value = this;
+
             _listener = new MeterListener();
             _listener.InstrumentPublished = (instrument, listener) =>
             {
                 if (
                     instrument.Meter.Name == Metrics.Meter.Name
-                    && instrument.Name is "engine.workflows.time.queue" or "engine.workflows.time.total"
+                    && instrument.Name
+                        is "altinn.workflow_engine.workflow.queue.duration"
+                            or "altinn.workflow_engine.workflow.duration"
                 )
                 {
                     listener.EnableMeasurementEvents(instrument);
                 }
             };
             _listener.SetMeasurementEventCallback<double>(
-                (instrument, measurement, tags, _) =>
+                (instrument, measurement, _, _) =>
                 {
-                    foreach (var tag in tags)
+                    if (ReferenceEquals(_current.Value, this))
                     {
-                        if (tag.Key == "workflow.operation.id" && Equals(tag.Value, operationId))
-                        {
-                            Measurements.Add((instrument.Name, measurement));
-                            return;
-                        }
+                        Measurements.Add((instrument.Name, measurement));
                     }
                 }
             );

@@ -64,15 +64,5 @@ public static class StepExtensions
                 ("step.operation.id", step.OperationId),
                 ("step.command.type", step.Command.Type),
             ];
-
-        /// <summary>
-        /// Step metadata useful for enriching telemetry histograms.
-        /// </summary>
-        public (string key, object? value)[] GetHistogramTags() =>
-            [
-                ("operation.type", step.Command.Type),
-                ("operation.id", step.OperationId),
-                ("operation.order", step.ProcessingOrder),
-            ];
     }
 }

@@ -168,8 +168,8 @@ public sealed class MailboxReceiverEndpointTests(EngineAppFixture<Program> fixtu
         (await _client.EnqueueRaw(_helpers.CreateEnqueueRequest(Receiver(Guid.CreateVersion7())))).Dispose();
 
         var byBirth = collector
-            .GetMeasurements("engine.mailboxes.receivers.created")
-            .GroupBy(m => (string)m.Tags.Single(t => t.Key == "birth").Value!)
+            .GetMeasurements("altinn.workflow_engine.mailbox.receiver.created")
+            .GroupBy(m => (string)m.Tags.Single(t => t.Key == "altinn.workflow_engine.mailbox.receiver.birth").Value!)
             .ToDictionary(g => g.Key, g => g.Sum(m => Convert.ToInt64(m.Value, CultureInfo.InvariantCulture)));
 
         Assert.Equal(
