@@ -1,6 +1,5 @@
-// Package assert stops the process when a condition the program relies on does not hold, such as a wrong
-// assumption about program state or a failed startup. It exits with os.Exit after logging and flushing
-// telemetry, so deferred calls do not run. Return errors for failures a request can cause.
+// Package assert is for invariants and failed startup. A failed assertion exits the process, so deferred
+// calls do not run. Return errors for failures a request can cause.
 package assert
 
 import (
