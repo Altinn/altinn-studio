@@ -6,6 +6,10 @@ Shared steps live in [composite actions](actions).
 Use the component's Makefile targets or package scripts for builds and tests so developers can run the same
 checks locally. The [operator checks](workflows/runtime-operator-build.yml) show this approach.
 
+Use `self-hosted-ubuntu` for builds and tests that benefit from the
+[runner image's installed tools](../src/ci/github-runner/Dockerfile) and caches.
+Use `ubuntu-latest` for short checks that do not need them.
+
 Reuse deployment templates for environment selection and artifact publishing.
 The [Designer deployment](workflows/deploy-designer.yaml) shows how to combine them.
 See [Environments](../docs/infrastructure/environments.md) for deployment targets and configuration sources.
