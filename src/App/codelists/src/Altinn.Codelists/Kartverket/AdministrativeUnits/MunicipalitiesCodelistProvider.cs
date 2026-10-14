@@ -13,6 +13,14 @@ internal sealed class MunicipalitiesCodelistProvider(IAdministrativeUnitsClient 
     /// <inheritdoc/>
     public string Id => "kommuner-kv";
 
+    /// <summary>
+    /// Calls <see cref="GetAppOptions(string?, Dictionary{string, string})"/>. A release pack builds against an
+    /// Altinn.App.Core version from before <c>IAppOptionsProvider.GetAppOptionsAsync</c> was renamed, where this
+    /// implements the interface. Remove it when the pin in Directory.Packages.props has the rename.
+    /// </summary>
+    public Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs) =>
+        GetAppOptions(language, keyValuePairs);
+
     /// <inheritdoc/>
     public async Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
     {
