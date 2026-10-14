@@ -63,7 +63,8 @@ export function findVisibleLineIndexes(
   let index = 0;
   while (index < lines.length) {
     visibleIndexes.push(index);
-    index = collapsedIndexes.has(index) ? foldRegions.get(index).endIndex + 1 : index + 1;
+    const foldRegion = foldRegions.get(index);
+    index = foldRegion && collapsedIndexes.has(index) ? foldRegion.endIndex + 1 : index + 1;
   }
   return visibleIndexes;
 }
