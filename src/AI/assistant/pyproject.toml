@@ -26,7 +26,7 @@ dependencies = [
     "anthropic>=0.86.0",
 
     # Observability
-    "langfuse>=3.0.0",
+    "langfuse>=3.0.0,<5",
 
     # JSON repair for malformed LLM outputs
     "json-repair>=0.58.7",
