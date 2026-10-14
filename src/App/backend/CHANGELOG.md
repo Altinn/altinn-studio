@@ -9,6 +9,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [9.0.0-preview.8] - 2026-10-14
+
 ### Changed
 
 - Breaking: app library methods no longer end in `Async`, for example `IAppOptionsProvider.GetAppOptions`, `IDataListProvider.GetDataList`, `IProcessExclusiveGateway.Filter` and `ISecretsClient.GetSecret`. Rename your implementations and calls; `studioctl app upgrade v9` does this for you. ([#19774](https://github.com/Altinn/altinn-studio/issues/19774))
