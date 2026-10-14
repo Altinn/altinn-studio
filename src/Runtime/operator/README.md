@@ -1,22 +1,25 @@
 # Altinn Studio Operator
 
-Home of Kubernetes operator(s) for Altinn 3.
-Operators are implemented using Go and Kubebuilder.
+The operator is a Kubernetes operator in every
+[runtime cluster](../../../docs/infrastructure/environments.md#runtime-clusters). It does the cluster-side work for
+the apps there, such as Maskinporten clients, secrets, alert routing and databases. Each job is a controller in
+[`internal/controller`](internal/controller), registered in [`cmd/main.go`](cmd/main.go).
 
-## Contributing
+## How it fits with the rest
 
-See [/CONTRIBUTING.md](/CONTRIBUTING.md).
+- [`deploy-app.yaml`](../../App/azure-pipelines/deploy-app.yaml) creates a `MaskinportenClient` resource for each
+  app that needs Maskinporten scopes. The operator creates the client in Maskinporten and writes its credentials to
+  the app's secret.
+- Outside production, the inactivity scaler scales down the gateway and [pdf3](../pdf3/README.md) in clusters with
+  no apps, and the apps too outside working hours in some test clusters. It pauses Flux only on pdf3's autoscalers,
+  as pdf3's README describes.
 
-## Architecture
+## Developing
 
-[Architecture diagram](/docs/maskinporten.drawio.svg)
+The tests need Docker or Podman. Outside CI, `make test` and `make test-e2e` update changed snapshots instead of
+failing, so review the snapshot diff. `make test-e2e` leaves its Kind cluster running; `make stop` removes it.
 
-### Controllers
+Flux never deletes the operator's CRDs, so removing a CRD is a manual step.
+[`config/crd/kustomization.yaml`](config/crd/kustomization.yaml) explains why.
 
-- `maskinporten`: Reconciles `MaskinportenClient` resources and related secrets.
-- `secretsync`: Syncs selected secrets between namespaces.
-- `appcodesync`: Maintains `app-codes.json` in app deployment secrets and rotates callback verification codes per use case.
-- `grafanapolicysync`: Upserts the Altinn Grafana notification route via Grafana API without replacing unrelated policy branches.
-- `azurekeyvaultsync`: Syncs selected Key Vault secrets to Kubernetes.
-- `cnpgsync`: Provisions CNPG resources via Flux in selected environments.
-- `inactivityscaler`: Scales selected workloads up/down based on environment, service owner, app presence, and workhours (`Europe/Oslo`, weekdays 06-18).
+[`docs/maintenance.md`](docs/maintenance.md) describes recurring maintenance work.
