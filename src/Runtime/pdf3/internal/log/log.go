@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"go.opentelemetry.io/contrib/bridges/otelslog"
+
+	"altinn.studio/pdf3/internal/telemetry/attr"
 )
 
 // logger writes every record to stderr, and through the global OpenTelemetry LoggerProvider,
@@ -17,5 +19,5 @@ var logger *slog.Logger = slog.New(slog.NewMultiHandler(
 
 // NewComponent creates a new logger with a component name.
 func NewComponent(name string) *slog.Logger {
-	return logger.With("component", name)
+	return logger.With(attr.Component, name)
 }

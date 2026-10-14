@@ -203,6 +203,67 @@ internal sealed class AzureMonitorClient(
         }
     }
 
+    public async Task<AppActivitySignalsResult> GetAppActivitySignals(
+        int windowDays,
+        CancellationToken cancellationToken
+    )
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowDays);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(windowDays, MaxActivityWindowDays);
+
+        try
+        {
+            var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
+            Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+                logAnalyticsWorkspaceId,
+                AppActivitySignalQueries.BuildQuery(windowDays),
+                new LogsQueryTimeRange(TimeSpan.FromDays(windowDays)),
+                cancellationToken: cancellationToken
+            );
+
+            var signals = response
+                .Value.Table.Rows.Select(row => new AppActivitySignalRow(
+                    row.GetString("AppRoleName") ?? string.Empty,
+                    row.GetString("Category") ?? string.Empty,
+                    row.GetDouble("Count") ?? 0,
+                    row.GetDateTimeOffset("LastSeenAt") ?? DateTimeOffset.MinValue
+                ))
+                .Where(static row => row.App.Length > 0)
+                .ToArray();
+
+            return new AppActivitySignalsResult { Status = ActivityStatus.Ok, Signals = signals };
+        }
+        catch (CredentialUnavailableException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor credentials are unavailable while getting app activity signals.");
+            return new AppActivitySignalsResult { Status = ActivityStatus.Unavailable, Signals = [] };
+        }
+        catch (AuthenticationFailedException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor authentication failed while getting app activity signals.");
+            return new AppActivitySignalsResult { Status = ActivityStatus.Unavailable, Signals = [] };
+        }
+        catch (RequestFailedException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor request failed while getting app activity signals.");
+            return new AppActivitySignalsResult { Status = ActivityStatus.Unavailable, Signals = [] };
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (OperationCanceledException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor request timed out while getting app activity signals.");
+            return new AppActivitySignalsResult { Status = ActivityStatus.Unavailable, Signals = [] };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while getting app activity signals from Azure Monitor.");
+            return new AppActivitySignalsResult { Status = ActivityStatus.Error, Signals = [] };
+        }
+    }
+
     public async Task<IEnumerable<AppFailedRequest>> GetAppFailedRequests(
         string app,
         int range,

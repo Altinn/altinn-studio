@@ -71,6 +71,7 @@ describe('Service task', () => {
       callback: () => {
         cy.expectPageBreaks(2);
         cy.findByText('En hilsen fra Task_Utfylling1').should('be.visible');
+        cy.findByText('Denne teksten skal ikke være med i PDF-en').should('not.exist');
         cy.findByText('Lykkeønsker fra et underskjema').should('be.visible');
         cy.findByText('Himling med øyne og skuldertrekk fra Task_Utfylling2').should('be.visible');
       },
@@ -93,6 +94,7 @@ describe('Service task', () => {
 function startAppAndFillForm({ shouldFail }: { shouldFail: boolean }) {
   cy.startAppInstance(appFrontend.apps.serviceTask, { cyUser: 'manager' });
   cy.get('#finishedLoading').should('exist');
+  cy.findByText('Denne teksten skal ikke være med i PDF-en').should('be.visible');
   cy.findByRole('textbox', { name: 'En tekst i Task_Utfylling1' }).type('En hilsen fra Task_Utfylling1');
   cy.waitUntilSaved();
 

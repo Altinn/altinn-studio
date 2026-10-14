@@ -44,7 +44,7 @@ internal sealed class AgentDownstreamOptions
     {
         ArgumentNullException.ThrowIfNull(signal);
 
-        return signal.RouteGroup switch
+        return signal.Name switch
         {
             ObservabilityPaths.TracesRouteGroup => Traces,
             ObservabilityPaths.MetricsRouteGroup => Metrics,
@@ -68,7 +68,7 @@ internal sealed class StorageDownstreamOptions
     {
         ArgumentNullException.ThrowIfNull(signal);
 
-        return signal.RouteGroup switch
+        return signal.Name switch
         {
             ObservabilityPaths.TracesRouteGroup => Traces,
             ObservabilityPaths.MetricsRouteGroup => Metrics,

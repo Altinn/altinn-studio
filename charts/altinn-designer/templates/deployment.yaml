@@ -41,6 +41,8 @@ spec:
                   fieldPath: metadata.uid
             - name: OTEL_RESOURCE_ATTRIBUTES
               value: "k8s.pod.uid=$(POD_UID)"
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "15000"
             {{- if not (hasKey .Values.environmentVariables .Values.environment) }}
               {{ fail "the chosen environment does not exist" }}
             {{- end }}

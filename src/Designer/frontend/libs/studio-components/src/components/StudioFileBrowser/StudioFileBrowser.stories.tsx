@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { FileNameUtils } from '@studio/pure-functions';
 import { StudioFileBrowser } from './StudioFileBrowser';
 import type {
   StudioFileBrowserEntry,
@@ -29,7 +30,7 @@ const directories: Record<string, string[]> = {
 
 function toEntry(path: string): StudioFileBrowserEntry {
   return {
-    name: path.split('/').pop(),
+    name: FileNameUtils.extractFileName(path),
     path,
     type: path in directories ? 'directory' : 'file',
   };

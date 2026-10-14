@@ -44,9 +44,8 @@ function StudioCodeViewer(
   const visibleLineIndexes = findVisibleLineIndexes(codeLines, collapsedIndexes);
   const foldIndexes = visibleLineIndexes.filter((index) => codeLines.foldRegions.has(index));
   // All fold buttons share one Tab stop. The user moves between them with the arrow keys.
-  const tabbableFoldIndex = foldIndexes.includes(focusedFoldIndex)
-    ? focusedFoldIndex
-    : foldIndexes[0];
+  const tabbableFoldIndex =
+    foldIndexes.find((index) => index === focusedFoldIndex) ?? foldIndexes[0];
 
   const toggleLine = (index: number): void => {
     const indexes = new Set(collapsedIndexes);
@@ -55,7 +54,7 @@ function StudioCodeViewer(
   };
 
   const moveFoldFocus = (event: KeyboardEvent<HTMLButtonElement>): void => {
-    const foldButtons = Array.from(linesRef.current.querySelectorAll('button'));
+    const foldButtons = Array.from(linesRef.current?.querySelectorAll('button') ?? []);
     const targetButton = findFoldButtonForKey(foldButtons, event.currentTarget, event.key);
     if (!targetButton) return;
     event.preventDefault();
@@ -159,7 +158,7 @@ function CodeLine({
           // The highlighter escapes the code, so the result contains only its own span elements.
           <span dangerouslySetInnerHTML={{ __html: highlightedLine }} />
         )}
-        {isCollapsed && (
+        {foldRegion && isCollapsed && (
           <>
             <span className={classes.collapsedContent}>…</span>
             {codeLines.lines[foldRegion.endIndex].slice(foldRegion.closingColumn)}

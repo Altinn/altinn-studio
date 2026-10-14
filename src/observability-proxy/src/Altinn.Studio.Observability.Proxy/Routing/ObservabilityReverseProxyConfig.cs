@@ -21,7 +21,10 @@ internal static class ObservabilityReverseProxyConfig
         foreach (var signal in ObservabilitySignal.All)
         {
             routes.Add(CreateWriteRoute(pathPrefix, signal));
-            routes.Add(CreateReadRoute(pathPrefix, signal));
+            foreach (var readApi in signal.ReadApis)
+            {
+                routes.Add(CreateReadRoute(pathPrefix, signal, readApi));
+            }
         }
 
         return routes;
@@ -63,8 +66,8 @@ internal static class ObservabilityReverseProxyConfig
     /// <summary>The signal <paramref name="route"/> writes, or <c>null</c> when it is not a write route.</summary>
     public static ObservabilitySignal? WriteSignalOf(RouteConfig? route)
     {
-        return route?.Metadata?.GetValueOrDefault(SignalMetadataKey) is { } routeGroup
-            ? ObservabilitySignal.ForReadRouteGroup(routeGroup)
+        return route?.Metadata?.GetValueOrDefault(SignalMetadataKey) is { } signalName
+            ? ObservabilitySignal.Named(signalName)
             : null;
     }
 
@@ -77,8 +80,8 @@ internal static class ObservabilityReverseProxyConfig
     {
         return new RouteConfig
         {
-            RouteId = WriteClusterPrefix + signal.RouteGroup,
-            ClusterId = WriteClusterPrefix + signal.RouteGroup,
+            RouteId = WriteClusterPrefix + signal.Name,
+            ClusterId = WriteClusterPrefix + signal.Name,
             Match = new RouteMatch
             {
                 Path = $"{pathPrefix}/{ObservabilityPaths.OtlpRouteGroup}{signal.PublicWritePath}",
@@ -94,46 +97,48 @@ internal static class ObservabilityReverseProxyConfig
             Metadata = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 [ObservabilityPaths.RouteGroupMetadataKey] = ObservabilityPaths.OtlpRouteGroup,
-                [SignalMetadataKey] = signal.RouteGroup,
+                [SignalMetadataKey] = signal.Name,
             },
         };
     }
 
     /// <summary>
-    /// One read route per signal. The public prefix is stripped and the backend's own path put in
-    /// its place, so the datasource's base URL is the public prefix and nothing else has to know
-    /// where the backend serves its query API. Which paths below the prefix a token may reach is
-    /// the signal's <see cref="ObservabilitySignal.ReadEndpoints"/>, checked before forwarding.
+    /// One read route per read API, to the signal's storage pair. The public prefix is stripped and
+    /// the backend's own path put in its place, so the datasource's base URL is the public prefix
+    /// and nothing else has to know where the backend serves its query API. Which paths below the
+    /// prefix a token may reach is the API's <see cref="ReadApi.Endpoints"/>, checked before
+    /// forwarding. A signal's read APIs share its cluster, so they all read from the instance
+    /// failover chose.
     /// </summary>
-    private static RouteConfig CreateReadRoute(string pathPrefix, ObservabilitySignal signal)
+    private static RouteConfig CreateReadRoute(string pathPrefix, ObservabilitySignal signal, ReadApi readApi)
     {
         var transforms = new List<Dictionary<string, string>>
         {
-            new(StringComparer.OrdinalIgnoreCase) { ["PathRemovePrefix"] = $"{pathPrefix}/{signal.RouteGroup}" },
+            new(StringComparer.OrdinalIgnoreCase) { ["PathRemovePrefix"] = $"{pathPrefix}/{readApi.RouteGroup}" },
         };
 
-        if (!string.IsNullOrEmpty(signal.StorageReadPath))
+        if (!string.IsNullOrEmpty(readApi.StoragePath))
         {
             transforms.Add(
                 new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                 {
-                    ["PathPrefix"] = signal.StorageReadPath,
+                    ["PathPrefix"] = readApi.StoragePath,
                 }
             );
         }
 
         return new RouteConfig
         {
-            RouteId = signal.RouteGroup,
-            ClusterId = signal.RouteGroup,
+            RouteId = readApi.RouteGroup,
+            ClusterId = signal.Name,
             Match = new RouteMatch
             {
-                Path = $"{pathPrefix}/{signal.RouteGroup}/{{**{ObservabilityPaths.ReadPathRouteValue}}}",
+                Path = $"{pathPrefix}/{readApi.RouteGroup}/{{**{ObservabilityPaths.ReadPathRouteValue}}}",
             },
             Transforms = transforms,
             Metadata = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                [ObservabilityPaths.RouteGroupMetadataKey] = signal.RouteGroup,
+                [ObservabilityPaths.RouteGroupMetadataKey] = readApi.RouteGroup,
             },
         };
     }
@@ -142,7 +147,7 @@ internal static class ObservabilityReverseProxyConfig
     {
         return new ClusterConfig
         {
-            ClusterId = WriteClusterPrefix + signal.RouteGroup,
+            ClusterId = WriteClusterPrefix + signal.Name,
             Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
             {
                 ["agent"] = new() { Address = EnsureTrailingSlash(address) },
@@ -177,7 +182,7 @@ internal static class ObservabilityReverseProxyConfig
 
         return new ClusterConfig
         {
-            ClusterId = signal.RouteGroup,
+            ClusterId = signal.Name,
             // Only the destination StickyFailover chose reaches load balancing.
             LoadBalancingPolicy = LoadBalancingPolicies.FirstAlphabetical,
             Destinations = destinations,
