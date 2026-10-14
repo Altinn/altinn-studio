@@ -14,6 +14,22 @@ The shared proxy trusts the service owner in the `X-Altinn-Service-Owner` header
 That header controls PDF/A conversion and identifies the service owner in telemetry. Revisit this trust before
 anything else depends on the header, such as limits per service owner.
 
+## Keys in DIS Core
+
+In [DIS Core](dis-core.md), the proxy's key file is the secret `pdf3-api-keys` in the Key Vault, with one key per
+line. An [ExternalSecret](../infra/syncroot/base/secrets.yaml) syncs it to the proxy. Its comment says how long a
+change takes to reach the proxy.
+
+- Write the secret before the proxy is first deployed. The proxy does not start without it.
+- Change the key file by writing a new version of the secret. Never delete the secret. Deleting it revokes nothing,
+  and soft delete then blocks its name for 90 days.
+- The Key Vault's firewall blocks direct access. Write the secret through the Tailscale exit node `ts-exit-test`.
+- To sync a change at once instead of waiting for the next refresh or retry, run:
+
+  ```sh
+  kubectl -n product-studio-pdf3 annotate externalsecret pdf3-api-keys force-sync=$(date +%s) --overwrite
+  ```
+
 ## Rotate a key
 
 Every proxy must accept the new key before any relay sends it. For each file update, wait for the affected pods to

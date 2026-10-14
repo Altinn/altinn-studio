@@ -46,6 +46,7 @@ Each service owner has one runtime cluster per environment it uses.
 The platform team runs DIS Core clusters for services shared by Altinn's products.
 
 - Services in DIS Core can serve multiple service owners.
+- Services include [pdf3](../../src/Runtime/pdf3/docs/dis-core.md).
 - Deployments use a separate artifact tag for each environment.
 - Publishing permissions are configured in
   [altinn-platform's syncroot configuration](https://github.com/Altinn/altinn-platform/tree/main/infrastructure/syncroots).

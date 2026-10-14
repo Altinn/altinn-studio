@@ -9,8 +9,12 @@ which the [runtime routing configuration](../../../infra/runtime/syncroot/base/p
 [Local environments](../../cli/README.md#which-images-the-environment-runs) run the worker directly, without the proxy.
 studioctl supplies its settings and selects the image.
 
-Support for a shared service consists of a [relay](cmd/relay), [API-key authentication](docs/api-keys.md),
-and [DIS Core provisioning](infra/syncroot). The relay and shared service are not deployed by the current manifests.
+pdf3 also runs as a shared service in [DIS Core](docs/dis-core.md), so far only in at22 and without traffic.
+Runtime clusters will reach it through a [relay](cmd/relay) with an [API key](docs/api-keys.md).
+The relay is not deployed yet.
+
+[`deploy-runtime-pdf3.yaml`](../../../.github/workflows/deploy-runtime-pdf3.yaml) builds pdf3 and deploys the same
+build to the runtime clusters, through the release rings, and to DIS Core.
 
 ## Development
 
