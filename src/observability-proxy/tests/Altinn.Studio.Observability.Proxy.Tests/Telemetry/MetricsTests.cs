@@ -246,6 +246,25 @@ public sealed class MetricsTests : IDisposable
     }
 
     [Fact]
+    public async Task EverySeries_NamesThePod()
+    {
+        // The Deployment sets service.instance.id to the pod's name through OTEL_RESOURCE_ATTRIBUTES.
+        await using var downstream = await TestWebApplication.StartDownstreamAsync();
+        var configuration = ProxyConfiguration.WithBothTokens(downstream.Address);
+        configuration["OTEL_RESOURCE_ATTRIBUTES"] = "service.instance.id=observability-proxy-5d9f-x2x4z";
+        await using var proxy = await TestWebApplication.StartProxyAsync(configuration);
+
+        Assert.Equal(HttpStatusCode.OK, await PostAsync(proxy, "/otlp/v1/logs", ProxyConfiguration.IngestToken));
+        var metrics = await proxy.ScrapeUntilAsync(scraped => scraped.Sum(Requests) >= 1);
+
+        Assert.Single(metrics.Series("target_info", ("service_instance_id", "observability-proxy-5d9f-x2x4z")));
+        Assert.All(
+            metrics.Series(Requests),
+            series => Assert.Equal("observability-proxy-5d9f-x2x4z", series.Labels["service_instance_id"])
+        );
+    }
+
+    [Fact]
     public async Task Failover_MovesTheActiveDestination_AndIsCounted()
     {
         var firstHealthy = true;

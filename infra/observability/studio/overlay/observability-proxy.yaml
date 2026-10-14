@@ -112,6 +112,14 @@ spec:
               value: "8080"
             - name: ObservabilityProxy__MetricsPort
               value: "9090"
+            # The pod's name as service.instance.id, which the proxy puts on every
+            # metric series, so a replica reading from the standby copy can be named.
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.instance.id=$(POD_NAME)
             - name: ASPNETCORE_ENVIRONMENT
               value: Production
             # Downstream addresses are the Victoria service names, which this repository

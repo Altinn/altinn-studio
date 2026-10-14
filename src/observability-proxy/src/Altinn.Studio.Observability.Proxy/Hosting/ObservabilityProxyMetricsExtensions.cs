@@ -21,6 +21,8 @@ internal static class ObservabilityProxyMetricsExtensions
 
     private const string ServiceName = "observability-proxy";
 
+    private const string ServiceInstanceIdAttribute = "service.instance.id";
+
     public static WebApplicationBuilder AddObservabilityProxyMetrics(this WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -45,7 +47,9 @@ internal static class ObservabilityProxyMetricsExtensions
         });
         builder
             .Services.AddOpenTelemetry()
-            .ConfigureResource(resource => resource.AddService(ServiceName))
+            // service.instance.id is the pod's name, from OTEL_RESOURCE_ATTRIBUTES in the Deployment, so
+            // a replica's series say which pod they are; a generated one would say nothing.
+            .ConfigureResource(resource => resource.AddService(ServiceName, autoGenerateServiceInstanceId: false))
             .WithMetrics(metrics =>
                 metrics
                     // A histogram per backend address of how long a request waited for a connection,
@@ -53,7 +57,13 @@ internal static class ObservabilityProxyMetricsExtensions
                     .AddView("http.client.request.time_in_queue", MetricStreamConfiguration.Drop)
                     // Every series would name its meter in otel_scope_name otherwise. No two meters
                     // here share an instrument name, and the OTLP path drops the scope too.
-                    .AddPrometheusExporter(exporter => exporter.ScopeInfoEnabled = false)
+                    .AddPrometheusExporter(exporter =>
+                    {
+                        exporter.ScopeInfoEnabled = false;
+                        // On every series, not only target_info, so a replica reading from the standby
+                        // copy is named by its pod. It is one value per pod, as instance is.
+                        exporter.ResourceConstantLabels = attribute => attribute == ServiceInstanceIdAttribute;
+                    })
             );
 
         return builder;
