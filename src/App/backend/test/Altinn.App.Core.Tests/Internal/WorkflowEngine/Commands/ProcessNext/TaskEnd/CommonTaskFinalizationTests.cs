@@ -4,11 +4,13 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -60,14 +62,15 @@ public class CommonTaskFinalizationTests
     private static CommonTaskFinalization CreateCommand(
         ApplicationMetadata applicationMetadata,
         bool removeHiddenData = false,
-        Mock<IDataElementAccessChecker>? accessCheckerMock = null
+        Mock<IDataElementAccessChecker>? accessCheckerMock = null,
+        ILayoutEvaluatorStateInitializer? layoutEvaluatorStateInitializer = null
     )
     {
         var appMetadataMock = new Mock<IAppMetadata>();
         appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         var appModelMock = new Mock<IAppModel>();
-        var layoutInitMock = new Mock<ILayoutEvaluatorStateInitializer>();
+        layoutEvaluatorStateInitializer ??= new Mock<ILayoutEvaluatorStateInitializer>().Object;
 
         var appSettings = new AppSettings { RemoveHiddenData = removeHiddenData };
         var appSettingsOptions = Options.Create(appSettings);
@@ -81,7 +84,7 @@ public class CommonTaskFinalizationTests
         return new CommonTaskFinalization(
             appMetadataMock.Object,
             appModelMock.Object,
-            layoutInitMock.Object,
+            layoutEvaluatorStateInitializer,
             appSettingsOptions,
             accessCheckerMock.Object
         );
@@ -112,6 +115,55 @@ public class CommonTaskFinalizationTests
         };
 
         var command = CreateCommand(appMetadata);
+        var (context, mutatorMock) = CreateContextWithMutator(instance);
+        mutatorMock.Setup(x => x.GetFormDataWrapper(dataElement)).ReturnsAsync(formDataWrapperMock.Object);
+
+        // Act
+        var result = await command.Execute(context);
+
+        // Assert
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        formDataWrapperMock.Verify(x => x.RemoveAltinnRowIds(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Execute_RemoveHiddenData_TaskWithoutLayouts_ReturnsSuccess()
+    {
+        // Arrange: a service task that owns a data type with a model, but has no layouts
+        var instance = CreateInstance("Verify");
+        var dataElement = new DataElement { Id = Guid.NewGuid().ToString(), DataType = "verificationResult" };
+        instance.Data = [dataElement];
+
+        var formDataWrapperMock = new Mock<IFormDataWrapper>();
+        formDataWrapperMock.Setup(x => x.BackingData<object>()).Returns(new object());
+
+        var appMetadata = new ApplicationMetadata("ttd/test-app")
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = "verificationResult",
+                    TaskId = "Verify",
+                    AppLogic = new ApplicationLogic { ClassRef = "App.Models.VerificationResult" },
+                },
+            ],
+        };
+
+        var appResourcesMock = new Mock<IAppResources>();
+        appResourcesMock.Setup(x => x.GetLayoutModelForFolder("Verify")).Returns((LayoutModel?)null);
+        var layoutEvaluatorStateInitializer = new LayoutEvaluatorStateInitializer(
+            appResourcesMock.Object,
+            Mock.Of<ITranslationService>(),
+            Mock.Of<IAppMetadata>(),
+            Options.Create(new FrontEndSettings())
+        );
+
+        var command = CreateCommand(
+            appMetadata,
+            removeHiddenData: true,
+            layoutEvaluatorStateInitializer: layoutEvaluatorStateInitializer
+        );
         var (context, mutatorMock) = CreateContextWithMutator(instance);
         mutatorMock.Setup(x => x.GetFormDataWrapper(dataElement)).ReturnsAsync(formDataWrapperMock.Object);
 

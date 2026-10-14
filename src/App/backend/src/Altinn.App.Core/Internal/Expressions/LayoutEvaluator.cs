@@ -26,6 +26,12 @@ public static class LayoutEvaluator
         bool evaluateRemoveWhenHidden
     )
     {
+        // A task without layouts, such as a service task, has no components that can be hidden
+        if (!state.HasComponentModel)
+        {
+            return [];
+        }
+
         var hiddenModelBindings = new HashSet<DataReference>();
         var nonHiddenModelBindings = new HashSet<DataReference>();
 
