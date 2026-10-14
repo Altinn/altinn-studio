@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useDeployPermissionsQuery } from 'app-development/hooks/queries';
 import { StudioSpinner, StudioError, StudioAlert } from '@studio/components';
-import type { DeployAppStatus } from 'app-shared/types/AppStatus';
 
 export interface DeployProps {
   appDeployedVersion: string;
@@ -13,7 +12,6 @@ export interface DeployProps {
   envName: string;
   isProduction: boolean;
   orgName: string;
-  defaultAppStatus: DeployAppStatus;
 }
 
 export const Deploy = ({
@@ -22,7 +20,6 @@ export const Deploy = ({
   envName,
   isProduction,
   orgName,
-  defaultAppStatus,
 }: DeployProps) => {
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const { t } = useTranslation();
@@ -55,11 +52,10 @@ export const Deploy = ({
     );
   }
 
-  const startDeploy = (appStatus: DeployAppStatus) =>
+  const startDeploy = () =>
     mutate({
       tagName: selectedImageTag,
       envName,
-      appStatus,
     });
 
   const deployInProgress: boolean = isPendingCreateDeployment || isDeploymentInProgress;
@@ -72,7 +68,6 @@ export const Deploy = ({
       selectedImageTag={selectedImageTag}
       setSelectedImageTag={setSelectedImageTag}
       startDeploy={startDeploy}
-      defaultAppStatus={defaultAppStatus}
     />
   );
 };
