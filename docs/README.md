@@ -4,6 +4,10 @@ Documentation for developing Altinn Studio. Agent-specific guidance lives in `AG
 [the documentation ADR](adr/2026-10-07-documentation-structure-and-content.md). Documentation for service owners
 and app developers is on [docs.altinn.studio](https://docs.altinn.studio).
 
+## Infrastructure
+
+- [Environments](infrastructure/environments.md)
+
 ## Architecture decision records
 
 Start a new ADR from [the template](adr/yyyy-mm-dd-template.md).
