@@ -101,6 +101,7 @@ beforeEach(() => {
       loginUrl: 'https://platform.tt02.altinn.no/authentication/api/v1/authentication?goto={goTo}',
       upgradeAuthenticationLevelUrl:
         'https://platform.tt02.altinn.no/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high',
+      allFormsUrl: 'https://tt02.altinn.no/skjemaoversikt',
       arbeidsflateInboxUrl: 'https://af.tt02.altinn.no/',
       arbeidsflateDialogUrl: 'https://af.tt02.altinn.no/inbox/{dialogId}',
       arbeidsflateProfileUrl: 'https://af.tt02.altinn.no/profile',

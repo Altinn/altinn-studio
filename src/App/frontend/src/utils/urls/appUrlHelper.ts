@@ -56,7 +56,7 @@ export const getDataElementIdUrl = (instanceId: string, dataElementId: string) =
   `${appPath}/instances/${instanceId}/data/${dataElementId}`;
 
 export const getDataModelTypeUrl = (instanceId: string, dataType: string) =>
-  `${appPath}/instances/${instanceId}/data?dataType=${dataType}`;
+  `${appPath}/instances/${instanceId}/data/type/${encodeURIComponent(dataType)}`;
 
 export const getDataElementUrl = (instanceId: string, dataElementId: string, language: string) =>
   `${appPath}/instances/${instanceId}/data/${dataElementId}?language=${language}`;
