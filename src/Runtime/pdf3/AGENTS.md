@@ -87,7 +87,9 @@ make check                # Complete CI check (tidy, fmt, lint, test)
      `https://platform.<env>/pdf/v3/generate`) with the first key in `PDF3_UPSTREAM_API_KEY_FILE`
      and the cluster's `PDF3_SERVICEOWNER` in `X-Altinn-Service-Owner`
    - Only retries requests that failed to connect; the shared proxy retries busy workers. It sends an
-     `Idempotency-Key`, so Go's transport may send a request again that failed on a reused connection
+     `Idempotency-Key`, which lets Go's HTTP/1.1 transport resend a POST that failed on a stale reused
+     connection. Over HTTP/2, which DIS Edge likely speaks, Go ignores the header and retries only
+     after a GOAWAY or `REFUSED_STREAM`
    - Waits up to 2 minutes, a safety net above apps' own 100-second timeout, which is what ends a
      slow request on the local path, as the local proxy has no overall deadline
    - Answers what the local proxy checks before reading the body (method, `Content-Type`, body over

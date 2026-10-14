@@ -45,9 +45,10 @@ const (
 	// maxAttempts bounds retries of requests that never reached the upstream.
 	maxAttempts = 3
 	retryDelay  = 250 * time.Millisecond
-	// idempotencyKeyHeader marks a POST as safe to send again, which lets Go's transport retry a
-	// request that failed on a reused connection the upstream had closed. A PDF request has no
-	// side effects, so generating it twice only costs time.
+	// idempotencyKeyHeader marks a POST as safe to send again, which lets Go's HTTP/1.1 transport
+	// resend a request that failed on a stale reused connection, one the upstream had closed. Over
+	// HTTP/2 the header changes nothing: Go retries only after a GOAWAY or REFUSED_STREAM, whatever
+	// the request. A PDF request has no side effects, so generating it twice only costs time.
 	idempotencyKeyHeader = "Idempotency-Key"
 )
 

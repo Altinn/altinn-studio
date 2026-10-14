@@ -281,9 +281,17 @@ func TestRelayForwardsRequestWithAPIKeyAndServiceOwner(t *testing.T) {
 	}
 }
 
-// pdf3Error is an error as pdf3's proxy answers it.
-func pdf3Error(status int) string {
-	return fmt.Sprintf(`{"type":"https://pdf3","title":"pdf3 title","detail":"pdf3 detail","status":%d}`, status)
+// pdf3Error returns the Content-Type and body of an error pdf3's proxy answers, problem details
+// with status, as the proxy writes them.
+func pdf3Error(status int) (contentType, body string) {
+	rec := httptest.NewRecorder()
+	ihttp.WriteProblemDetails(slog.New(slog.DiscardHandler), rec, nil, status, ihttp.ProblemDetails{
+		Type:   "https://pdf3",
+		Title:  "pdf3 title",
+		Detail: "pdf3 detail",
+		Status: status,
+	})
+	return rec.Header().Get("Content-Type"), rec.Body.String()
 }
 
 func TestRelayAnswersUpstreamResponses(t *testing.T) {
@@ -296,8 +304,11 @@ func TestRelayAnswersUpstreamResponses(t *testing.T) {
 		contentType string
 		body        string
 		status      int
-		wantStatus  int
-		want        int
+		// pdf3Status, when set, makes the upstream answer with pdf3Error(pdf3Status) in place of
+		// contentType and body.
+		pdf3Status int
+		wantStatus int
+		want       int
 	}{
 		{
 			name:        "PDF",
@@ -316,28 +327,25 @@ func TestRelayAnswersUpstreamResponses(t *testing.T) {
 			want:        passedOn,
 		},
 		{
-			name:        "pdf3 400",
-			status:      http.StatusBadRequest,
-			contentType: "application/json",
-			body:        pdf3Error(http.StatusBadRequest),
-			wantStatus:  http.StatusBadRequest,
-			want:        passedOn,
+			name:       "pdf3 400",
+			status:     http.StatusBadRequest,
+			pdf3Status: http.StatusBadRequest,
+			wantStatus: http.StatusBadRequest,
+			want:       passedOn,
 		},
 		{
-			name:        "pdf3 429",
-			status:      http.StatusTooManyRequests,
-			contentType: "application/json",
-			body:        pdf3Error(http.StatusTooManyRequests),
-			wantStatus:  http.StatusTooManyRequests,
-			want:        passedOn,
+			name:       "pdf3 429",
+			status:     http.StatusTooManyRequests,
+			pdf3Status: http.StatusTooManyRequests,
+			wantStatus: http.StatusTooManyRequests,
+			want:       passedOn,
 		},
 		{
-			name:        "pdf3 500",
-			status:      http.StatusInternalServerError,
-			contentType: "application/json",
-			body:        pdf3Error(http.StatusInternalServerError),
-			wantStatus:  http.StatusInternalServerError,
-			want:        passedOn,
+			name:       "pdf3 500",
+			status:     http.StatusInternalServerError,
+			pdf3Status: http.StatusInternalServerError,
+			wantStatus: http.StatusInternalServerError,
+			want:       passedOn,
 		},
 		{
 			name:        "HTML page with 200",
@@ -370,20 +378,18 @@ func TestRelayAnswersUpstreamResponses(t *testing.T) {
 			want:        relayError,
 		},
 		{
-			name:        "307",
-			status:      http.StatusTemporaryRedirect,
-			contentType: "application/json",
-			body:        pdf3Error(http.StatusTemporaryRedirect),
-			wantStatus:  http.StatusBadGateway,
-			want:        relayError,
+			name:       "307",
+			status:     http.StatusTemporaryRedirect,
+			pdf3Status: http.StatusTemporaryRedirect,
+			wantStatus: http.StatusBadGateway,
+			want:       relayError,
 		},
 		{
-			name:        "pdf3 401",
-			status:      http.StatusUnauthorized,
-			contentType: "application/json",
-			body:        pdf3Error(http.StatusUnauthorized),
-			wantStatus:  http.StatusBadGateway,
-			want:        relayError,
+			name:       "pdf3 401",
+			status:     http.StatusUnauthorized,
+			pdf3Status: http.StatusUnauthorized,
+			wantStatus: http.StatusBadGateway,
+			want:       relayError,
 		},
 		{
 			name:        "403",
@@ -426,26 +432,38 @@ func TestRelayAnswersUpstreamResponses(t *testing.T) {
 			want:        relayError,
 		},
 		{
-			name:        "Edge 500 with another status in its JSON",
-			status:      http.StatusInternalServerError,
-			contentType: "application/json",
-			body:        pdf3Error(http.StatusBadRequest),
-			wantStatus:  http.StatusInternalServerError,
+			name:       "Edge 500 with another status in its JSON",
+			status:     http.StatusInternalServerError,
+			pdf3Status: http.StatusBadRequest,
+			wantStatus: http.StatusInternalServerError,
+			want:       relayError,
+		},
+		{
+			// Only an application/json body can be pdf3's, whatever it holds.
+			name:        "Edge 503 with the response's status in a text body",
+			status:      http.StatusServiceUnavailable,
+			contentType: "text/plain",
+			body:        `{"title":"edge title","status":503}`,
+			wantStatus:  http.StatusServiceUnavailable,
 			want:        relayError,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			contentType, body := tt.contentType, tt.body
+			if tt.pdf3Status != 0 {
+				contentType, body = pdf3Error(tt.pdf3Status)
+			}
 			var calls atomic.Int32
 			var upstream *httptest.Server
 			upstream = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				calls.Add(1)
 				w.Header().Set("Location", upstream.URL+"/elsewhere")
-				if tt.contentType != "" {
-					w.Header().Set("Content-Type", tt.contentType)
+				if contentType != "" {
+					w.Header().Set("Content-Type", contentType)
 				}
 				w.WriteHeader(tt.status)
-				if _, err := io.WriteString(w, tt.body); err != nil {
+				if _, err := io.WriteString(w, body); err != nil {
 					t.Errorf("Write() error = %v", err)
 				}
 			}))
@@ -466,7 +484,7 @@ func TestRelayAnswersUpstreamResponses(t *testing.T) {
 				t.Fatalf("passed on Location %q", rec.Header().Get("Location"))
 			}
 			if tt.want == passedOn {
-				requirePassedOn(t, rec, logs, tt.contentType, tt.body)
+				requirePassedOn(t, rec, logs, contentType, body)
 			} else {
 				requireRelayError(t, rec, logs, tt.status, tt.wantStatus)
 			}
@@ -705,7 +723,7 @@ func TestRelayLetsTheTransportRetryOnAStaleConnection(t *testing.T) {
 		}
 	}
 
-	// The transport sends the second request again on a new connection, as the same request.
+	// The HTTP/1.1 transport sends the second request again on a new connection, as the same request.
 	if len(keys) != 3 || keys[0] == "" || keys[1] != keys[2] || keys[0] == keys[1] {
 		t.Fatalf("upstream got %s %q, want one per app request, sent again as it was", idempotencyKeyHeader, keys)
 	}

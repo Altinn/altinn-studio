@@ -32,6 +32,8 @@ EXPOSE 5030
 EXPOSE 5032
 
 COPY --from=builder /etc/passwd /etc/passwd
+# The relay verifies DIS Edge's certificate against these, scratch has none
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 USER nobody
 
 ENTRYPOINT ["./main"]
