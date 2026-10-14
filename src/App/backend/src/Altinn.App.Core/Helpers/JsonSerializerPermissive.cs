@@ -31,7 +31,7 @@ public static class JsonSerializerPermissive
     /// <summary>
     /// Simple wrapper of <see cref="JsonSerializer.DeserializeAsync{TValue}(Stream, JsonSerializerOptions, CancellationToken)"/> with permissive defaults.
     /// </summary>
-    public static async Task<T> DeserializeAsync<T>(HttpContent content, CancellationToken cancellationToken = default)
+    public static async Task<T> Deserialize<T>(HttpContent content, CancellationToken cancellationToken = default)
     {
         await using var stream = await content.ReadAsStreamAsync(cancellationToken);
         return await JsonSerializer.DeserializeAsync<T>(stream, JsonSerializerOptionsDefaults, cancellationToken)

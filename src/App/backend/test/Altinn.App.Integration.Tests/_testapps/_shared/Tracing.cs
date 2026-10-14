@@ -127,9 +127,9 @@ internal sealed class AppOptionsProvider : IAppOptionsProvider
 {
     public string Id => "tracing-app-options";
 
-    public Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
+    public Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
     {
-        SnapshotLogger.LogInfo("IAppOptionsProvider.GetAppOptionsAsync");
+        SnapshotLogger.LogInfo("IAppOptionsProvider.GetAppOptions");
         return Task.FromResult(new AppOptions());
     }
 }
@@ -154,9 +154,9 @@ internal sealed class DataListProvider : IDataListProvider
 {
     public string Id => "tracing-data-list";
 
-    public Task<DataList> GetDataListAsync(string? language, Dictionary<string, string> keyValuePairs)
+    public Task<DataList> GetDataList(string? language, Dictionary<string, string> keyValuePairs)
     {
-        SnapshotLogger.LogInfo("IDataListProvider.GetDataListAsync");
+        SnapshotLogger.LogInfo("IDataListProvider.GetDataList");
         return Task.FromResult(new DataList());
     }
 }
@@ -216,13 +216,13 @@ internal sealed class InstanceAppOptionsProvider : IInstanceAppOptionsProvider
 {
     public string Id => "tracing-instance-app-options";
 
-    public Task<AppOptions> GetInstanceAppOptionsAsync(
+    public Task<AppOptions> GetInstanceAppOptions(
         InstanceIdentifier instanceIdentifier,
         string? language,
         Dictionary<string, string> keyValuePairs
     )
     {
-        SnapshotLogger.LogInfo("IInstanceAppOptionsProvider.GetInstanceAppOptionsAsync");
+        SnapshotLogger.LogInfo("IInstanceAppOptionsProvider.GetInstanceAppOptions");
         return Task.FromResult(new AppOptions());
     }
 }
@@ -231,13 +231,13 @@ internal sealed class InstanceDataListProvider : IInstanceDataListProvider
 {
     public string Id => "tracing-instance-data-list";
 
-    public Task<DataList> GetInstanceDataListAsync(
+    public Task<DataList> GetInstanceDataList(
         InstanceIdentifier instanceIdentifier,
         string? language,
         Dictionary<string, string> keyValuePairs
     )
     {
-        SnapshotLogger.LogInfo("IInstanceDataListProvider.GetInstanceDataListAsync");
+        SnapshotLogger.LogInfo("IInstanceDataListProvider.GetInstanceDataList");
         return Task.FromResult(new DataList());
     }
 }
@@ -367,12 +367,12 @@ internal sealed class ExternalApiClient : IExternalApiClient
 {
     public string Id => "tracing-external-api";
 
-    public Task<object?> GetExternalApiDataAsync(
+    public Task<object?> GetExternalApiData(
         InstanceIdentifier instanceIdentifier,
         Dictionary<string, string> queryParams
     )
     {
-        SnapshotLogger.LogInfo("IExternalApiClient.GetExternalApiDataAsync");
+        SnapshotLogger.LogInfo("IExternalApiClient.GetExternalApiData");
         return Task.FromResult<object?>(new object());
     }
 }
@@ -390,9 +390,9 @@ internal sealed class FileAnalyzer : IFileAnalyzer
 
 internal sealed class AppOptionsFileHandler : IAppOptionsFileHandler
 {
-    public Task<List<AppOption>?> ReadOptionsFromFileAsync(string optionId)
+    public Task<List<AppOption>?> ReadOptionsFromFile(string optionId)
     {
-        SnapshotLogger.LogInfo("IAppOptionsFileHandler.ReadOptionsFromFileAsync");
+        SnapshotLogger.LogInfo("IAppOptionsFileHandler.ReadOptionsFromFile");
         return Task.FromResult<List<AppOption>?>([]);
     }
 }

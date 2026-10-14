@@ -1,6 +1,6 @@
 # app-template-dotnet
 
-Altinn application template using .NET 8.
+Altinn application templates using .NET 8 (v8) and .NET 11 (v9).
 Used by Altinn Studio to scaffold apps.
 
 # Notes
