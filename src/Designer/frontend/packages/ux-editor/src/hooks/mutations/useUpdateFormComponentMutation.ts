@@ -222,9 +222,10 @@ const buildDataTypeForFileUpload = (
 };
 
 /**
- * A minCount that differs from the component's minNumberOfAttachments has been set on purpose, and must not be
+ * A minCount lower than the component's minNumberOfAttachments has been set on purpose, and must not be
  * overwritten when the component is saved. Typical case: minCount 0 on an attachment that is required only while
  * the component is shown, since the backend counts data elements for the whole task and does not check `hidden`.
+ * A higher minCount would make the backend stricter than the form, so it follows minNumberOfAttachments.
  */
 const hasCustomMinCount = (
   oldDataType?: ApplicationAttachmentMetadata,
@@ -232,4 +233,4 @@ const hasCustomMinCount = (
 ): boolean =>
   oldDataType !== undefined &&
   oldComponent !== undefined &&
-  (oldDataType.minCount ?? 0) !== (oldComponent.minNumberOfAttachments ?? 0);
+  (oldDataType.minCount ?? 0) < (oldComponent.minNumberOfAttachments ?? 0);

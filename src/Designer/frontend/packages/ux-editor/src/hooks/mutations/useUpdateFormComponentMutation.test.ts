@@ -374,10 +374,10 @@ describe('useUpdateFormComponentMutation', () => {
       id: 'fileUploadOutsideRepeatingGroup',
     };
 
-    const renderWithFileUploadDataType = (minCount: number) => {
+    const renderWithFileUpload = (oldMinCount?: number, oldMinNumberOfAttachments?: number) => {
       renderAndWaitForData();
       queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
-        dataTypes: [{ id: fileUploadComponent.id, maxCount: 1, minCount }],
+        dataTypes: [{ id: fileUploadComponent.id, maxCount: 2, minCount: oldMinCount }],
       });
       queryClientMock.setQueryData(
         [QueryKey.FormLayouts, org, app, selectedLayoutSet],
@@ -385,13 +385,17 @@ describe('useUpdateFormComponentMutation', () => {
           ...externalLayoutsMock,
           [selectedLayoutName]: {
             ...externalLayoutsMock[selectedLayoutName],
-            data: { layout: [fileUploadComponent] },
+            data: {
+              layout: [
+                { ...fileUploadComponent, minNumberOfAttachments: oldMinNumberOfAttachments },
+              ],
+            },
           },
         }),
       );
     };
 
-    const updateFileUpload = async (minNumberOfAttachments: number) => {
+    const updateFileUpload = async (minNumberOfAttachments?: number) => {
       const updateFormComponentResult = renderHookWithProviders(() =>
         useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
       ).result;
@@ -401,25 +405,36 @@ describe('useUpdateFormComponentMutation', () => {
       });
     };
 
-    it('Keeps a minCount that differs from minNumberOfAttachments', async () => {
-      renderWithFileUploadDataType(0);
-      await updateFileUpload(fileUploadComponent.minNumberOfAttachments);
-      expect(queriesMock.updateAppAttachmentMetadata).toHaveBeenCalledWith(
-        org,
-        app,
-        expect.objectContaining({ minCount: 0 }),
-      );
-    });
-
-    it('Updates minCount when it was equal to minNumberOfAttachments', async () => {
-      renderWithFileUploadDataType(fileUploadComponent.minNumberOfAttachments);
-      await updateFileUpload(0);
-      expect(queriesMock.updateAppAttachmentMetadata).toHaveBeenCalledWith(
-        org,
-        app,
-        expect.objectContaining({ minCount: 0 }),
-      );
-    });
+    it.each`
+      oldMinCount  | oldMinNumberOfAttachments | newMinNumberOfAttachments | expectedMinCount | reason
+      ${undefined} | ${undefined}              | ${undefined}              | ${undefined}     | ${'nothing set'}
+      ${undefined} | ${undefined}              | ${1}                      | ${1}             | ${'a new requirement is synced'}
+      ${0}         | ${1}                      | ${1}                      | ${0}             | ${'a lower minCount is kept'}
+      ${undefined} | ${1}                      | ${1}                      | ${undefined}     | ${'an unset minCount counts as 0 and is kept'}
+      ${0}         | ${1}                      | ${2}                      | ${0}             | ${'a lower minCount is kept when the requirement is raised'}
+      ${0}         | ${1}                      | ${0}                      | ${0}             | ${'a lower minCount is kept when the requirement is removed'}
+      ${1}         | ${1}                      | ${0}                      | ${0}             | ${'an equal minCount follows a lowered requirement'}
+      ${1}         | ${1}                      | ${2}                      | ${2}             | ${'an equal minCount follows a raised requirement'}
+      ${1}         | ${undefined}              | ${undefined}              | ${undefined}     | ${'a higher minCount than an unset requirement is synced'}
+      ${1}         | ${0}                      | ${0}                      | ${0}             | ${'a higher minCount than 0 is synced'}
+      ${2}         | ${1}                      | ${1}                      | ${1}             | ${'a higher minCount is synced'}
+    `(
+      'Sets minCount to $expectedMinCount when minCount was $oldMinCount and minNumberOfAttachments changes from $oldMinNumberOfAttachments to $newMinNumberOfAttachments ($reason)',
+      async ({
+        oldMinCount,
+        oldMinNumberOfAttachments,
+        newMinNumberOfAttachments,
+        expectedMinCount,
+      }) => {
+        renderWithFileUpload(oldMinCount, oldMinNumberOfAttachments);
+        await updateFileUpload(newMinNumberOfAttachments);
+        expect(queriesMock.updateAppAttachmentMetadata).toHaveBeenCalledWith(
+          org,
+          app,
+          expect.objectContaining({ minCount: expectedMinCount }),
+        );
+      },
+    );
   });
 });
 
