@@ -33,3 +33,14 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
+    # As in production: vmagent-self scrapes the metrics port. The list above replaces
+    # production's, so this rule is restated; without vmagent-self (the light profile)
+    # it selects nothing.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+              app.kubernetes.io/instance: self
+      ports:
+        - protocol: TCP
+          port: 9090

@@ -14,6 +14,7 @@ import (
 var (
 	errCheckFailed    = errors.New("alert rule check failed")
 	errNoReceiver     = errors.New("rule's receiver is not a contact point")
+	errTargetsDown    = errors.New("self-monitoring targets are down")
 	errEmptyTemplate  = errors.New("contact point template renders nothing")
 	errNoRules        = errors.New("grafana has no alert rules; is the fixture running with --monitoring-profile full?")
 	labelReference    = regexp.MustCompile(`{{-?\s*\$labels\.([a-zA-Z_][a-zA-Z0-9_]*)\s*-?}}`)
@@ -48,6 +49,10 @@ func Check(ctx context.Context, env *Env) error {
 	}
 
 	var failures []error
+	if err := checkTargets(ctx, env); err != nil {
+		ev.Logf("FAIL self-monitoring targets: %v", err)
+		failures = append(failures, err)
+	}
 	slices.SortFunc(rules, func(a, b Rule) int { return strings.Compare(a.UID, b.UID) })
 	for _, rule := range rules {
 		if err := checkRule(ctx, env, rule, states[rule.UID], byName); err != nil {
@@ -83,6 +88,26 @@ func Check(ctx context.Context, env *Env) error {
 		return fmt.Errorf("%w: %w", errCheckFailed, errors.Join(failures...))
 	}
 	ev.Logf("PASS: %d rules and %d contact points checked", len(rules), len(byName))
+	return nil
+}
+
+// checkTargets checks that vmagent-self scrapes every target of the stack, since the rules read
+// what it scrapes: a target that is down hides the metrics a rule needs.
+func checkTargets(ctx context.Context, env *Env) error {
+	samples, err := env.Grafana.Query(ctx, "up")
+	if err != nil {
+		return err
+	}
+	var down []string
+	for _, sample := range samples {
+		if sample.Float() < 1 {
+			down = append(down, sample.Metric["job"]+" "+sample.Metric["instance"])
+		}
+	}
+	if len(samples) == 0 || len(down) > 0 {
+		return fmt.Errorf("%w: %d targets, down: %v", errTargetsDown, len(samples), down)
+	}
+	env.Evidence.Logf("ok   all %d self-monitoring targets are up", len(samples))
 	return nil
 }
 
