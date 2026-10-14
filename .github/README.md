@@ -19,10 +19,6 @@ after it. Explain in a comment which build or test needs the file.
 
 Formatting checks are optional for Markdown documentation. Compiled `.mdx` files follow the code formatting rules.
 
-Preview cleanup runs on closure without path filters, since a preview can outlive the changes that created it.
-Share its concurrency group with the build so cleanup cancels any build that could deploy afterward.
-See the [Storybook preview cleanup](workflows/apps-storybook-preview-cleanup.yaml).
-
 ## Jobs and access
 
 Group concurrent runs by workflow and pull request or ref, with a run ID fallback.
