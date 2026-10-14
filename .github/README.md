@@ -19,10 +19,10 @@ after it. Explain in a comment which build or test needs the file.
 
 Formatting checks are optional for Markdown documentation. Compiled `.mdx` files follow the code formatting rules.
 
-## Jobs and access
-
 Group concurrent runs by workflow and pull request or ref, with a run ID fallback.
 Cancel superseded checks, but allow deployments and publishing to finish.
+
+## Runners and permissions
 
 Use `ubuntu-latest` for short checks and `self-hosted-ubuntu` when the
 [runner image's tools](../src/ci/github-runner/Dockerfile) or caches help.
