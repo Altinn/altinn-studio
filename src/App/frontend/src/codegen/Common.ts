@@ -322,7 +322,7 @@ const common = {
           nb: 'Tittelen som brukes i aria-label på redigeringsknappen i oppsummeringen. Overstyrer både den vanlige tittelen og oppsummeringstittelen.',
         },
       },
-    }),
+    }).requireBehaviors('isSummarizable'),
   TRBFormComp: () =>
     makeTRB({
       tableTitle: {
@@ -735,29 +735,28 @@ const common = {
           'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
         ),
     ),
-  SummarizableComponentProps: () =>
-    new CG.obj(
-      new CG.prop(
-        'renderAsSummary',
-        new CG.bool()
-          .optional({ default: false })
-          .setTitle('Render as summary', 'Vis som oppsummering')
-          .setDescription(
-            'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
-            'Angir om komponenten skal vises som en oppsummering.',
-          ),
-      ),
-      new CG.prop(
-        'forceShowInSummary',
-        new CG.expr(ExprVal.Boolean)
-          .optional({ default: false })
-          .setTitle('Force show in summary', 'Tving visning i oppsummering')
-          .setDescription(
-            'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
-            'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
-          ),
-      ),
-    ),
+  renderAsSummary: () =>
+    new CG.prop(
+      'renderAsSummary',
+      new CG.bool()
+        .optional({ default: false })
+        .setTitle('Render as summary', 'Vis som oppsummering')
+        .setDescription(
+          'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+          'Angir om komponenten skal vises som en oppsummering.',
+        ),
+    ).requireBehaviors('isSummarizable'),
+  forceShowInSummary: () =>
+    new CG.prop(
+      'forceShowInSummary',
+      new CG.expr(ExprVal.Boolean)
+        .optional({ default: false })
+        .setTitle('Force show in summary', 'Tving visning i oppsummering')
+        .setDescription(
+          'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+          'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+        ),
+    ).requireBehaviors('isSummarizable'),
   LabeledComponentProps: () => new CG.obj(new CG.prop('labelSettings', CG.common('ILabelSettings').optional())),
 
   // Reusable Grid component properties (used by both Grid and repeating Group):

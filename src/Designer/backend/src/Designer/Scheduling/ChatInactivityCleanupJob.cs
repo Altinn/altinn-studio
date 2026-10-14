@@ -22,17 +22,17 @@ public class ChatInactivityCleanupJob : IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
-        using var activity = ServiceTelemetry.Source.StartActivity(
-            $"{nameof(ChatInactivityCleanupJob)}.{nameof(Execute)}",
-            ActivityKind.Internal
-        );
+        var activity = RootSpan.OfJob();
         activity?.SetAlwaysSample();
-        activity?.SetTag("retention.days", _schedulingSettings.ChatInactivityCleanup.RetentionDays);
+        activity?.SetTag(
+            ServiceTelemetry.Attributes.ChatCleanup.RetentionDays,
+            _schedulingSettings.ChatInactivityCleanup.RetentionDays
+        );
 
         try
         {
             int deletedCount = await _chatService.DeleteInactiveThreadsAsync(context.CancellationToken);
-            activity?.SetTag("threads.deleted", deletedCount);
+            activity?.SetTag(ServiceTelemetry.Attributes.ChatCleanup.ThreadsDeleted, deletedCount);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

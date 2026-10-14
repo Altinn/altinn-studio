@@ -110,7 +110,7 @@ constraints (idempotency, state passthrough, callback auth):
 
 ### Technology Stack
 
-- **.NET 10.0** (see global.json)
+- **.NET 11.0** (see global.json)
 - **ASP.NET Core** for web APIs
 - **OpenTelemetry** for observability
 - **xUnit** with FluentAssertions and Moq for testing

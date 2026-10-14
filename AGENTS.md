@@ -99,8 +99,9 @@ stack (see `README.md`).
   the `changelog` skill.
 - **Spelling and language:** Code is **US English** — identifiers, comments, doc comments, log and
   exception messages, docs, and translation _keys_ (a key is a code contract). Text a user reads in
-  the product is **British English** for the English values and checked **Norwegian** (bokmål and
-  nynorsk, via hunspell + Norsk Ordbank) for the `nb`/`nn` values. Run `yarn spell:quick` for fast
+  the product is **British English** for the English values (checked by `typos` and by a hunspell
+  en_GB dictionary pass, which catches misspellings `typos` has no entry for) and checked
+  **Norwegian** (bokmål and nynorsk, via hunspell + Norsk Ordbank) for the `nb`/`nn` values. Run `yarn spell:quick` for fast
   feedback on everything your branch changed, `yarn spell:check` for everything, and `yarn spell:fix`
   to apply unambiguous corrections — note that the fix mode also edits misspelled _identifiers_, which
   is a semantic change, so always review the diff. It cannot tell prose from a wire literal (a route,
@@ -140,8 +141,9 @@ stack (see `README.md`).
 
   When a check flags something, prefer fixing the spelling. If a Norwegian domain term is genuinely
   correct, add it to `scripts/spellcheck/glossary.nb.txt` / `glossary.nn.txt` (the dictionary is
-  full-form, so inflections need their own lines); language-neutral tokens — names, quoted
-  identifiers, formats — go in `glossary.shared.txt`, which both languages accept. A glossary
+  full-form, so inflections need their own lines); a correct English word the en_GB dictionary
+  lacks goes in `glossary.en.txt`; language-neutral tokens — names, quoted identifiers, formats —
+  go in `glossary.shared.txt`, which all three languages accept. A glossary
   entry that no longer rescues any flagged word is reported as stale. If an English spelling
   genuinely cannot change
   (a wire contract, someone else's API), add a scoped entry to `suppressions.txt`. Deliberate

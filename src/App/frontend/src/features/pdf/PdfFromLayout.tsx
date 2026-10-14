@@ -59,8 +59,6 @@ function AutoGeneratePdfFromLayout() {
     );
   }
 
-  const pdfExclusions = usePdfExclusions();
-
   return (
     <DummyPresentation>
       <PdfWrapping>
@@ -74,7 +72,7 @@ function AutoGeneratePdfFromLayout() {
             }}
           />
         </div>
-        <AllPages pdfExclusions={pdfExclusions} />
+        <AllPages />
         <AllSubformSummaryComponent2 />
       </PdfWrapping>
     </DummyPresentation>
@@ -113,7 +111,7 @@ function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
             taskId={taskId}
           >
             {idx > 0 && <div className={classes.pageBreak} />}
-            <AllPages pdfExclusions={noPdfExclusions} />
+            <AllPages />
             <AllSubformSummaryComponent2 />
           </TaskSummaryWrapper>
         ))}
@@ -188,10 +186,9 @@ function PlainPage({ pageKey }: { pageKey: string }) {
   );
 }
 
-const noPdfExclusions: PdfExclusions = { pages: [], components: [] };
-
-function AllPages({ pdfExclusions }: { pdfExclusions: PdfExclusions }) {
+function AllPages() {
   const order = usePageOrder();
+  const pdfExclusions = usePdfExclusions();
   const visiblePages = order.filter((pageKey) => !pdfExclusions.pages.includes(pageKey));
 
   return (

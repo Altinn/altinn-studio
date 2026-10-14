@@ -27,6 +27,9 @@
           server.address: localhost
         },
         {
+          server.port: 80
+        },
+        {
           TestId: Guid_2
         },
         {Scrubbed},
@@ -82,6 +85,9 @@
         },
         {
           server.address: localhost
+        },
+        {
+          server.port: 80
         },
         {
           TestId: Guid_2

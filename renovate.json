@@ -201,6 +201,13 @@
       "automerge": true
     },
     {
+      "description": "Keep the v8 app template's .NET SDK on 8.x: it targets net8.0 and its Dockerfile builds with the 8.0 SDK image",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/App/template/v8/global.json"],
+      "matchPackageNames": ["dotnet-sdk"],
+      "allowedVersions": "<9"
+    },
+    {
       "description": "Automerge non-major harness releases installed into the Agent images so the published images track current Claude Code and Codex",
       "matchManagers": ["custom.regex"],
       "matchFileNames": ["agents/Dockerfile"],

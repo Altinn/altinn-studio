@@ -22,6 +22,7 @@ patches:
         PlatformSettings__ApiAccessManagementEndpoint: https://platform.at23.altinn.cloud/accessmanagement/api/v1/
         PlatformSettings__ApiCorrespondenceEndpoint: https://platform.at23.altinn.cloud/correspondence/api/v1/
         GeneralSettings__HostName: at23.altinn.cloud
+        PlatformFrontendSettings__AllFormsUrl: https://at23.altinn.cloud/skjemaoversikt
         PlatformFrontendSettings__LogoutUrl: https://platform.at23.altinn.cloud/authentication/api/v1/logout
         PlatformFrontendSettings__LoginUrl: https://platform.at23.altinn.cloud/authentication/api/v1/authentication?goto={goTo}
         PlatformFrontendSettings__UpgradeAuthenticationLevelUrl: https://platform.at23.altinn.cloud/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high
@@ -54,6 +55,7 @@ patches:
               "HostName": "at23.altinn.cloud"
             },
             "PlatformFrontendSettings": {
+              "AllFormsUrl": "https://at23.altinn.cloud/skjemaoversikt",
               "LogoutUrl": "https://platform.at23.altinn.cloud/authentication/api/v1/logout",
               "LoginUrl": "https://platform.at23.altinn.cloud/authentication/api/v1/authentication?goto={goTo}",
               "UpgradeAuthenticationLevelUrl": "https://platform.at23.altinn.cloud/authentication/api/v1/authentication?goTo={goTo}&acr_values=idporten-loa-high",

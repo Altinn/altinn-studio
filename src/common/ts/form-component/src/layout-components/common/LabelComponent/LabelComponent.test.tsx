@@ -48,7 +48,7 @@ describe('LabelComponent', () => {
 
   it('renders the help text button and description when given', () => {
     render({ help: 'my.help', description: 'my.description' });
-    expect(screen.getByRole('button', { name: /Helptext for First name/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Help text for First name/i })).toBeInTheDocument();
     expect(screen.getByText('A short description')).toBeInTheDocument();
   });
 });
