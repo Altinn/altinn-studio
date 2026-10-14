@@ -2,7 +2,7 @@
 
 pdf3 generates the PDFs for Altinn apps. A worker loads a page of the app in headless Chrome and prints it to PDF.
 A proxy in front of the workers is the API that apps call. pdf3 runs in each service owner's
-[runtime cluster](../../../docs/infrastructure/environment.md#runtime-clusters), from the manifests in
+[runtime cluster](../../../docs/infrastructure/environments.md#runtime-clusters), from the manifests in
 [`infra/kustomize`](infra/kustomize).
 
 ## How it fits with the rest
@@ -21,7 +21,7 @@ A proxy in front of the workers is the API that apps call. pdf3 runs in each ser
 
 ## Moving to DIS Core
 
-pdf3 is moving to [DIS Core](../../../docs/infrastructure/environment.md#dis-core), where one pdf3 serves all
+pdf3 is moving to [DIS Core](../../../docs/infrastructure/environments.md#dis-core), where one pdf3 serves all
 service owners. Apps will keep calling the same address: the [relay](cmd/relay) will forward their requests through
 DIS Edge to the shared proxy, with an API key and the cluster's service owner. [API keys](docs/api-keys.md)
 describes the keys. Neither the relay nor the shared pdf3 is deployed yet.
