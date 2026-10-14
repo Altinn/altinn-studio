@@ -7,6 +7,7 @@ import { CommonExpressions } from '@app/layout-contract/generated/expressions.ge
 import cn from 'classnames';
 
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
+import { useIsExcludedFromPdf } from 'src/features/pdf/useIsExcludedFromPdf';
 import { getComponentDef } from 'src/layout';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { useHasOnlyEmptyChildren, useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
@@ -74,12 +75,13 @@ export function useSummarySoftHidden(hidden: boolean | undefined) {
 
 function useIsHiddenInSummary(baseComponentId: string) {
   const hiddenInOverride = useSummaryOverrides(baseComponentId)?.hidden;
+  const excludedFromPdf = useIsExcludedFromPdf(baseComponentId);
 
   // We say that we're not respecting DevTools here, but that's just because Summary2 implements that support
   // on its own, by also supporting 'greying out' hidden components from Summary2.
   const hidden = useIsHidden(baseComponentId, { respectDevTools: false });
 
-  return !!(hidden || hiddenInOverride);
+  return !!(hidden || hiddenInOverride || excludedFromPdf);
 }
 
 function useIsHiddenBecauseEmpty<T extends CompTypes>(baseComponentId: string, type: T, content: SummaryContains) {
