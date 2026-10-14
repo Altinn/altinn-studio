@@ -262,15 +262,16 @@ as a terminal `Failed` workflow that nothing waits on and no user ever sees. A t
 auxiliary workflow means outbound events/notifications were **lost** — downstream event
 subscribers never learn of the transition — so this class must be monitored explicitly:
 
-- **Alert** on the engine metric `engine.workflows.execution.failed` with `reason` in
-  (`execution`, `poisoned`) across **all** `is_head` values — every terminal failure needs ops.
+- **Alert** on the engine metric `altinn.workflow_engine.workflow.execution.failed` with
+  `altinn.workflow_engine.reason` in (`execution`, `poisoned`) across **all**
+  `altinn.workflow_engine.workflow.is_head` (`is_head` below) values — every terminal failure needs ops.
   There is no user-facing Retry for terminally failed workflows (the failed screen shows error
   details + contact support; the frontend recovers on its own once the workflow is resumed), so
   an ops resume is the only recovery path. Use `is_head` to route/prioritize, not to filter:
   `is_head="false"` means an auxiliary workflow failed — outbound events were lost, re-deliver
   via the engine resume; `is_head="unset"` (or `"true"`) means a primary workflow failed — the
   instance is stuck for the user until ops resumes it (cascade) via `process/resume`. Do **not**
-  alert on `reason="dependency_failed"`: an auxiliary workflow has no dependencies and never
+  alert on the reason `dependency_failed`: an auxiliary workflow has no dependencies and never
   lands there; the increments come from dependent primary workflows (process continuations)
   condemned by an upstream primary failure that already fired the alert, and the cascade resume of
   that failure revives them.

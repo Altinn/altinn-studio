@@ -71,6 +71,37 @@ export const abbrevGuids = (s) =>
               )
               .replace(/[0-9a-f]{32}/gi, (m) => `${m.slice(0, 8)}…`);
 
+/**
+ * The Grafana that `studioctl env up --monitoring` starts, and its traces datasource: Grafana's Tempo
+ * datasource over VictoriaTraces. Only that local stack serves this address, so a trace link resolves
+ * only where it runs.
+ */
+const GRAFANA_URL = 'http://local.altinn.cloud:8000/grafana';
+const GRAFANA_TRACES_DATASOURCE = { type: 'tempo', uid: 'altinn-studio-traces' };
+
+/**
+ * Grafana Explore URL that opens one trace by its ID. Every trace link on the dashboard is built here.
+ * @param {string} traceId
+ * @returns {string}
+ */
+export const grafanaTraceUrl = (traceId) => {
+    const panes = {
+        trace: {
+            datasource: GRAFANA_TRACES_DATASOURCE.uid,
+            queries: [
+                {
+                    refId: 'A',
+                    datasource: GRAFANA_TRACES_DATASOURCE,
+                    queryType: 'traceql',
+                    query: traceId,
+                },
+            ],
+            range: { from: 'now-24h', to: 'now' },
+        },
+    };
+    return `${GRAFANA_URL}/explore?schemaVersion=1&panes=${encodeURIComponent(JSON.stringify(panes))}&orgId=1`;
+};
+
 /** @param {number} seconds */
 export const formatElapsed = (seconds) => {
     if (seconds < 60) return `${seconds.toFixed(1)}s`;

@@ -18,7 +18,7 @@ wwwroot/
   modules/
     core/                            — "set and forget" plumbing (no imports from shared/ or features/)
       state.js                       — types, DOM refs, state objects, BPMN transition parsing
-      helpers.js                     — cssId, esc, escHtml, formatElapsed, fmtDuration, fmtAgo, JSON utilities, lineDiff
+      helpers.js                     — cssId, esc, escHtml, formatElapsed, fmtDuration, fmtAgo, JSON utilities, lineDiff, grafanaTraceUrl
       sse.js                         — connectSSE(), hot-reload watcher
     shared/                          — reusable UI building blocks (imports from core/ only)
       cards.js                       — all card renderers (full, compact, scheduled), filter data, label segments
@@ -86,7 +86,7 @@ The dashboard's workflow actions (Retry, Retry now / Check now, Fail) are not da
 - Pipeline scroll-on-change: a card rebuild keeps the operator's sideways pipeline scroll (`setCardHTMLKeepingPipelineScroll`); the pipeline only scrolls to the active step when the processing step index changes
 - Inline `onclick` handlers exposed via `window.*` for cards generated as HTML strings
 - URL state sync via `syncUrl()`/`restoreUrl()` — shareable URLs capture full dashboard state
-- Grafana trace links built from workflow `traceId` for Tempo integration
+- Grafana trace links (the cards' trace icon and the step modal's _Open Grafana_) open the workflow's `traceId` in the Grafana that `studioctl env up --monitoring` starts, at `http://local.altinn.cloud:8000/grafana`, on its traces datasource (`{ type: 'tempo', uid: 'altinn-studio-traces' }`). `grafanaTraceUrl()` in `core/helpers.js` is the one place the address and the datasource are written: build every trace link through it rather than spelling the URL again
 - Label filters use `toggleLabelFilter(key, value)` from clickable card segments (namespace, collectionKey, labels)
 - Retry button on failed pipeline steps; nudge and fail buttons on parked steps (nudge only while a backoff timer is pending)
 - **Escaping in generated markup — three helpers, and they are not interchangeable.** `esc()` is for element _content_ only: it escapes `&`, `<` and `>` and leaves quotes intact. A value interpolated into an attribute needs `escAttr()`, and one interpolated into a single-quoted JS argument of an inline `onclick` needs `escJsArg()` — with `esc()` there, a quote in a caller-supplied value (a collection key, an operationId, a label) closes the attribute and the remainder parses as attributes of its own, which is a working event handler on a value the engine stores and replays to every operator. Re-run both of these and expect no hits; the first is deliberately wider than an anchored match, because an `esc()` later in an attribute value is the same bug:
