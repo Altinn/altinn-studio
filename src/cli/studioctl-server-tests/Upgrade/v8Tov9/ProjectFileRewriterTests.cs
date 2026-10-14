@@ -138,6 +138,25 @@ public sealed class ProjectFileRewriterTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task SetTargetFramework_WritesUtf8WithoutByteOrderMark(bool hadBom)
+    {
+        var content = Encoding.UTF8.GetBytes(
+            "<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup></Project>"
+        );
+        var path = _app.WriteBytes("App.csproj", hadBom ? [.. Encoding.UTF8.Preamble, .. content] : content);
+
+        await new ProjectFileRewriter(path, targetFramework: "net11.0").SetTargetFramework(
+            TestContext.Current.CancellationToken
+        );
+
+        var rewritten = _app.ReadBytes("App.csproj");
+        Assert.False(rewritten.AsSpan().StartsWith(Encoding.UTF8.Preamble));
+        Assert.Equal("net11.0", XDocument.Load(path).Descendants("TargetFramework").Single().Value);
+    }
+
+    [Theory]
     [InlineData("9.0.0-preview.7", "9.0.0-preview.9", "9.0.0-preview.8", "9.0.0-preview.9")]
     [InlineData("9.0.0-preview.9", "9.0.0-preview.7", "9.0.0-preview.9", "9.0.0-preview.8")]
     [InlineData("[9.0.0-preview.9]", "9.0.0-preview.7", "[9.0.0-preview.9]", "9.0.0-preview.8")]

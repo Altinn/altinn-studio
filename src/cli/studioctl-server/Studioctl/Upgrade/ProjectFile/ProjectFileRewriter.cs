@@ -360,7 +360,7 @@ internal sealed class ProjectFileRewriter
         xws.Async = true;
         xws.OmitXmlDeclaration = true;
         xws.Indent = true;
-        xws.Encoding = Encoding.UTF8;
+        xws.Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
         var originalBytes = await File.ReadAllBytesAsync(_projectFilePath, cancellationToken);
         try
         {

@@ -31,6 +31,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- `studioctl app upgrade` no longer adds a byte order mark to the project files it rewrites, and removes an existing one.
 - The App dashboard in `studioctl env up --monitoring`: ([#20578](https://github.com/Altinn/altinn-studio/pull/20578))
     - _Feil_ shows one total of server errors instead of one value per endpoint with an "SMS" unit
     - panels show "No data" instead of 0 when the app does not report the metric
