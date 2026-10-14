@@ -1136,7 +1136,7 @@ public class ProcessNextRequestFactoryTests
 
     /// <summary>
     /// The transition's action reaches the service task it enters: a dependent workflow carries the action it
-    /// was computed for, and instantiation, which has none, carries null.
+    /// was computed for, null included, and instantiation, which has none, carries null.
     /// </summary>
     [Fact]
     public async Task Create_ServiceTask_CarriesTheTransitionsActionOnTheServiceTaskStep()
@@ -1153,6 +1153,15 @@ public class ProcessNextRequestFactoryTests
             "test-process-next-idempotency-key",
             "confirm"
         );
+        var dependentWithoutAction = await factory.CreateDependent(
+            TestInstance,
+            stateChange,
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key-2",
+            action: null
+        );
         var initiating = await factory.CreateChainInitiating(
             TestInstance,
             stateChange,
@@ -1162,6 +1171,7 @@ public class ProcessNextRequestFactoryTests
         );
 
         Assert.Equal("confirm", Assert.Single(ExtractExecuteServiceTaskPayloads(dependent)).Action);
+        Assert.Null(Assert.Single(ExtractExecuteServiceTaskPayloads(dependentWithoutAction)).Action);
         Assert.Null(Assert.Single(ExtractExecuteServiceTaskPayloads(initiating)).Action);
     }
 

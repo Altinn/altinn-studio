@@ -313,6 +313,27 @@ public class ExecuteServiceTaskTests
     }
 
     [Fact]
+    public async Task Execute_TaskEnteredWithAnAction_ReturningSuccessWithoutOne_ContinuesWithNoAction()
+    {
+        // Arrange — a task that does not forward the action it was entered with clears it: the transition out of
+        // the task routes on what the task returned, never on the action that led into it.
+        var serviceTask = new FakeServiceTask(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+        var command = CreateCommand(serviceTask);
+        var context = CreateContext(CreateInstance(), "myServiceTask");
+
+        // Act
+        var result = await command.Execute(
+            context,
+            new ExecuteServiceTaskPayload("myServiceTask", ItemIndex: 0, Action: "reject")
+        );
+
+        // Assert
+        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Null(success.ProcessNextContinuation.Action);
+    }
+
+    [Fact]
     public async Task Execute_ForwardsRetryCountAndExecutionDeadlineToServiceTaskContext()
     {
         // Arrange — the per-attempt pair, mirroring the per-wait pair below. A task that cannot see the
