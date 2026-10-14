@@ -74,6 +74,36 @@ when there are several), runs the agent, and stores every published JSON entry o
 halts on the task and the next `process/next` retries. Steps with a `template` need the
 `typst` binary in the app image; JSON-only agents run in a stock image.
 
+### What the submitter sees while the agent runs
+
+On app-lib v9 the task **yields before it runs**: the first attempt defers, the engine
+parks the transition, and the agent runs on the next callback. The point is the browser.
+Without the yield, the submitter's `process/next` stays open for the whole run — the app
+waits out its own polling timeout (100 seconds) before answering, so a run of minutes
+means a minute and a half of frozen form before the waiting page appears at all. With it
+the call returns in a few seconds and the waiting page arrives while the agent works.
+
+The waiting page is Altinn's own, and every line on it is a text resource the app can
+override in `App/config/texts/resource.<lang>.json` — `process_workflow.advancing_title`
+and `process_workflow.advancing_body`. An agent that takes minutes should say so there;
+the frontend's own "this is taking a while" notice does not appear until 30 seconds in.
+
+Tune it under `AiEnrichment:Step`:
+
+```jsonc
+{
+  "YieldBeforeRun": true,      // false runs inside the request, as before
+  "YieldDelay": "00:00:05",    // must stay wider than app-lib's 2s poll interval
+  "WaitBudget": "01:00:00",    // how long the yield itself may take
+  "MaxExecutionTime": "01:00:00",
+  "MaxRetries": 2,
+  "RetryInterval": "00:01:00"
+}
+```
+
+None of this applies on v8, where `process/next` is synchronous and there is no engine to
+park the transition — the setting is read and ignored.
+
 ## Layout
 
 ```
