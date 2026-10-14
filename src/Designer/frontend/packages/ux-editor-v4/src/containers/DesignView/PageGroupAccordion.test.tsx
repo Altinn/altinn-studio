@@ -29,8 +29,7 @@ const pagesMock: PagesModel = {
   ],
 };
 
-// The second group has no name and one page, so it is shown with the name of its page.
-const groupDisplayNames = ['Group 1', 'Side 3'];
+const groupDisplayNames = [pagesMock.groups[0].name, pagesMock.groups[1].order[0].id];
 
 const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
