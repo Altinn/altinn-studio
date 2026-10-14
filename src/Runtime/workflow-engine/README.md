@@ -87,5 +87,5 @@ k6 scripts for stress testing and benchmarking are available in the [`.k6/`](.k6
 
 - [Technical guide](docs/technical-guide.md)
 - [Architectural overview](docs/architecture.md)
-- [Batch enqueue & dependency graphs](docs/batch-enqueue.md)
+- [Batch enqueue & dependency graphs](docs/technical-guide.md#dependency-graphs)
 - [Notes on db connections during dev cycle](docs/db-connections-notes.md)
