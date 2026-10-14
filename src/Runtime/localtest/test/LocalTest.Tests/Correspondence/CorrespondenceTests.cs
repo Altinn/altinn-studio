@@ -189,23 +189,95 @@ public sealed class CorrespondenceTests : IDisposable
     }
 
     [Fact]
-    public void Attachments_AreNotImplemented()
+    public async Task Attachment_InitializeUploadAndRead_IsPublishedWithTheUploadedData()
     {
-        var attachmentId = Guid.NewGuid();
+        byte[] data = "%PDF-1.7 signed document"u8.ToArray();
 
-        foreach (
-            var result in new[]
+        Guid attachmentId = await InitializeAttachment();
+        var uploaded = await UploadAttachment(attachmentId, data);
+        var read = Assert.IsType<AttachmentOverviewDto>(
+            Assert.IsType<OkObjectResult>(await _controller.GetAttachmentOverview(attachmentId)).Value
+        );
+
+        Assert.Equal(AttachmentStatus.Published, uploaded.Status);
+        Assert.Equal(AttachmentStatus.Published, read.Status);
+        Assert.Equal("application/pdf", read.DataType);
+        Assert.Equal("signed.pdf", read.FileName);
+        Assert.Equal(
+            data,
+            await File.ReadAllBytesAsync(
+                Path.Join(_storagePath, "correspondence", "attachments", $"{attachmentId}.bin")
+            )
+        );
+    }
+
+    [Fact]
+    public async Task Attachment_UploadedTwice_ReturnsBadRequest()
+    {
+        Guid attachmentId = await InitializeAttachment();
+        await UploadAttachment(attachmentId, [1]);
+
+        var result = await Upload(attachmentId, [2]);
+
+        Assert.Equal(StatusCodes.Status400BadRequest, Assert.IsType<ObjectResult>(result).StatusCode);
+    }
+
+    [Fact]
+    public async Task Attachment_Unknown_ReturnsNotFound()
+    {
+        var upload = await Upload(Guid.NewGuid(), [1]);
+        var read = await _controller.GetAttachmentOverview(Guid.NewGuid());
+
+        Assert.Equal(StatusCodes.Status404NotFound, Assert.IsType<ObjectResult>(upload).StatusCode);
+        Assert.Equal(StatusCodes.Status404NotFound, Assert.IsType<ObjectResult>(read).StatusCode);
+    }
+
+    [Fact]
+    public async Task Initialize_WithUploadedAttachment_LinksIt()
+    {
+        Guid attachmentId = await InitializeAttachment();
+        await UploadAttachment(attachmentId, [1]);
+
+        var response = await Initialize(Request([OrganizationRecipient], null, [attachmentId]));
+
+        Assert.Equal([attachmentId], response.AttachmentIds);
+    }
+
+    [Fact]
+    public async Task Initialize_WithAttachmentNotUploaded_ReturnsBadRequest()
+    {
+        Guid attachmentId = await InitializeAttachment();
+
+        var problem = await InitializeProblem(Request([OrganizationRecipient], null, [attachmentId]));
+
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
+        Assert.Empty(await _repository.Read());
+    }
+
+    private async Task<Guid> InitializeAttachment()
+    {
+        var result = await _controller.InitializeAttachment(
+            new InitializeAttachmentRequestDto
             {
-                _controller.InitializeAttachment(),
-                _controller.UploadAttachment(attachmentId),
-                _controller.GetAttachmentOverview(attachmentId),
+                ResourceId = ResourceId,
+                FileName = "signed.pdf",
+                DisplayName = "Signed document",
+                SendersReference = "senders-reference",
             }
-        )
-        {
-            var problem = Assert.IsType<ProblemDetails>(Assert.IsType<ObjectResult>(result).Value);
-            Assert.Equal(StatusCodes.Status501NotImplemented, problem.Status);
-            Assert.Equal("Attachments are not supported", problem.Title);
-        }
+        );
+        return Assert.IsType<Guid>(Assert.IsType<OkObjectResult>(result).Value);
+    }
+
+    private async Task<AttachmentOverviewDto> UploadAttachment(Guid attachmentId, byte[] data) =>
+        Assert.IsType<AttachmentOverviewDto>(Assert.IsType<OkObjectResult>(await Upload(attachmentId, data)).Value);
+
+    private async Task<ActionResult> Upload(Guid attachmentId, byte[] data)
+    {
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Body = new MemoryStream(data);
+        httpContext.Request.ContentType = "application/pdf";
+        _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+        return await _controller.UploadAttachment(attachmentId);
     }
 
     private async Task<InitializeCorrespondencesResponseDto> Initialize(JsonElement request)
@@ -230,7 +302,11 @@ public sealed class CorrespondenceTests : IDisposable
     private static JsonElement Request(string first, string second, Guid idempotentKey) =>
         Request([first, second], idempotentKey);
 
-    private static JsonElement Request(IReadOnlyList<string> recipients, Guid? idempotentKey)
+    private static JsonElement Request(
+        IReadOnlyList<string> recipients,
+        Guid? idempotentKey,
+        IReadOnlyList<Guid>? attachments = null
+    )
     {
         var body = new Dictionary<string, object?>
         {
@@ -250,7 +326,7 @@ public sealed class CorrespondenceTests : IDisposable
                 ["isConfidential"] = false,
             },
             ["recipients"] = recipients,
-            ["existingAttachments"] = Array.Empty<Guid>(),
+            ["existingAttachments"] = attachments ?? [],
         };
 
         if (idempotentKey is not null)

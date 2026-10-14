@@ -87,6 +87,19 @@ public class CorrespondenceController(LocalCorrespondenceRepository repository) 
             );
         }
 
+        foreach (var attachmentId in request.ExistingAttachments ?? [])
+        {
+            var attachment = await _repository.FindAttachment(attachmentId);
+            if (attachment?.Status != AttachmentStatus.Published)
+            {
+                return ProblemResult(
+                    StatusCodes.Status400BadRequest,
+                    "Invalid request",
+                    $"Attachment {attachmentId} does not exist or has not been uploaded."
+                );
+            }
+        }
+
         var created = await _repository.TryCreate(request, body.Clone(), InitialStatus);
         if (created is null)
         {
@@ -108,6 +121,7 @@ public class CorrespondenceController(LocalCorrespondenceRepository repository) 
                         Recipient = correspondence.Recipient,
                     })
                     .ToArray(),
+                AttachmentIds = request.ExistingAttachments ?? [],
             }
         );
     }
@@ -172,39 +186,99 @@ public class CorrespondenceController(LocalCorrespondenceRepository repository) 
     }
 
     /// <summary>
-    /// Attachments are not emulated. Signing sends none.
+    /// Initializes an attachment, which the app then uploads the data for and references from a correspondence.
     /// </summary>
     [HttpPost]
     [Route("v1/attachment")]
+    [Consumes(MediaTypeNames.Application.Json)]
     [Produces(MediaTypeNames.Application.Json)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status501NotImplemented)]
-    public ActionResult InitializeAttachment() => AttachmentsNotSupported();
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> InitializeAttachment([FromBody] InitializeAttachmentRequestDto request)
+    {
+        if (string.IsNullOrWhiteSpace(request.ResourceId) || string.IsNullOrWhiteSpace(request.SendersReference))
+        {
+            return ProblemResult(
+                StatusCodes.Status400BadRequest,
+                "Invalid request",
+                "An attachment must have a resource ID and a senders reference."
+            );
+        }
+
+        var attachment = await _repository.CreateAttachment(request);
+        return Ok(attachment.AttachmentId);
+    }
 
     /// <summary>
-    /// Attachments are not emulated. Signing sends none.
+    /// Uploads an attachment's data. The attachment is published right away, since Localtest does no malware scan.
     /// </summary>
     [HttpPost]
     [Route("v1/attachment/{attachmentId:guid}/upload")]
     [Produces(MediaTypeNames.Application.Json)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status501NotImplemented)]
-    public ActionResult UploadAttachment([FromRoute] Guid attachmentId) =>
-        AttachmentsNotSupported();
+    [ProducesResponseType(typeof(AttachmentOverviewDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> UploadAttachment(
+        [FromRoute] Guid attachmentId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var data = new MemoryStream();
+        await Request.Body.CopyToAsync(data, cancellationToken);
+
+        var (outcome, attachment) = await _repository.UploadAttachment(
+            attachmentId,
+            data.ToArray(),
+            Request.ContentType
+        );
+        return outcome switch
+        {
+            AttachmentUploadOutcome.NotFound => AttachmentNotFound(attachmentId),
+            AttachmentUploadOutcome.AlreadyUploaded => ProblemResult(
+                StatusCodes.Status400BadRequest,
+                "Invalid request",
+                $"The data for attachment {attachmentId} has already been uploaded."
+            ),
+            _ => Ok(Overview(attachment!)),
+        };
+    }
 
     /// <summary>
-    /// Attachments are not emulated. Signing sends none.
+    /// Returns an attachment's status.
     /// </summary>
     [HttpGet]
     [Route("v1/attachment/{attachmentId:guid}")]
     [Produces(MediaTypeNames.Application.Json)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status501NotImplemented)]
-    public ActionResult GetAttachmentOverview([FromRoute] Guid attachmentId) =>
-        AttachmentsNotSupported();
+    [ProducesResponseType(typeof(AttachmentOverviewDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> GetAttachmentOverview([FromRoute] Guid attachmentId)
+    {
+        var attachment = await _repository.FindAttachment(attachmentId);
+        return attachment is null ? AttachmentNotFound(attachmentId) : Ok(Overview(attachment));
+    }
 
-    private ActionResult AttachmentsNotSupported() =>
+    private static AttachmentOverviewDto Overview(StoredAttachment attachment) =>
+        new()
+        {
+            AttachmentId = attachment.AttachmentId,
+            Status = attachment.Status,
+            StatusText = attachment.Status.ToString(),
+            StatusChanged = attachment.StatusChanged,
+            DataType = attachment.DataType,
+            ResourceId = attachment.Request.ResourceId ?? string.Empty,
+            FileName = attachment.Request.FileName,
+            DisplayName = attachment.Request.DisplayName,
+            IsEncrypted = attachment.Request.IsEncrypted,
+            Checksum = attachment.Request.Checksum,
+            SendersReference = attachment.Request.SendersReference ?? string.Empty,
+            ExpirationInDays = attachment.Request.ExpirationInDays,
+        };
+
+    private ActionResult AttachmentNotFound(Guid attachmentId) =>
         ProblemResult(
-            StatusCodes.Status501NotImplemented,
-            "Attachments are not supported",
-            "The local Correspondence API does not emulate attachments. Send a correspondence without attachments, or test attachments in a deployed environment."
+            StatusCodes.Status404NotFound,
+            "Attachment not found",
+            $"No attachment with id {attachmentId} exists."
         );
 
     private ActionResult ProblemResult(int statusCode, string title, string detail) =>

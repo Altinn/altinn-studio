@@ -10,7 +10,7 @@ namespace LocalTest.Services.Correspondence;
 /// <summary>
 /// Stores the correspondences the local Correspondence API has created, one JSON file per correspondence
 /// under <see cref="LocalPlatformSettings.CorrespondenceDataFolder"/>, so a developer can inspect exactly
-/// what an app sent.
+/// what an app sent. Attachments are stored in its <c>attachments</c> subfolder.
 /// </summary>
 public sealed class LocalCorrespondenceRepository : IDisposable
 {
@@ -48,7 +48,7 @@ public sealed class LocalCorrespondenceRepository : IDisposable
         var result = new List<StoredCorrespondence>();
         foreach (var file in Storage().GetFiles("*.json"))
         {
-            var correspondence = await ReadFile(file.FullName);
+            var correspondence = await ReadFile<StoredCorrespondence>(file.FullName);
             if (correspondence is not null)
             {
                 result.Add(correspondence);
@@ -64,7 +64,7 @@ public sealed class LocalCorrespondenceRepository : IDisposable
     public async Task<StoredCorrespondence?> Find(Guid correspondenceId)
     {
         var fileName = FileName(Storage(), correspondenceId);
-        return File.Exists(fileName) ? await ReadFile(fileName) : null;
+        return File.Exists(fileName) ? await ReadFile<StoredCorrespondence>(fileName) : null;
     }
 
     /// <summary>
@@ -114,13 +114,80 @@ public sealed class LocalCorrespondenceRepository : IDisposable
         return correspondences;
     }
 
+    /// <summary>
+    /// Creates an attachment awaiting its data.
+    /// </summary>
+    public async Task<StoredAttachment> CreateAttachment(InitializeAttachmentRequestDto request)
+    {
+        var attachment = new StoredAttachment
+        {
+            AttachmentId = Guid.NewGuid(),
+            Status = AttachmentStatus.Initialized,
+            StatusChanged = DateTimeOffset.UtcNow,
+            Request = request,
+        };
+        await Write(AttachmentFileName(attachment.AttachmentId), attachment);
+        return attachment;
+    }
+
+    /// <summary>
+    /// Reads a single attachment, or <c>null</c> when it does not exist.
+    /// </summary>
+    public async Task<StoredAttachment?> FindAttachment(Guid attachmentId)
+    {
+        var fileName = AttachmentFileName(attachmentId);
+        return File.Exists(fileName) ? await ReadFile<StoredAttachment>(fileName) : null;
+    }
+
+    /// <summary>
+    /// Stores an attachment's data and publishes it straight away: Localtest does no malware scan. Data can be
+    /// uploaded once.
+    /// </summary>
+    public async Task<(AttachmentUploadOutcome Outcome, StoredAttachment? Attachment)> UploadAttachment(
+        Guid attachmentId,
+        byte[] data,
+        string? contentType
+    )
+    {
+        using var mutationLock = await _mutationLock.Lock();
+
+        var attachment = await FindAttachment(attachmentId);
+        if (attachment is null)
+        {
+            return (AttachmentUploadOutcome.NotFound, null);
+        }
+        if (attachment.Status != AttachmentStatus.Initialized)
+        {
+            return (AttachmentUploadOutcome.AlreadyUploaded, attachment);
+        }
+
+        await File.WriteAllBytesAsync(AttachmentDataFileName(attachmentId), data);
+        attachment.Status = AttachmentStatus.Published;
+        attachment.StatusChanged = DateTimeOffset.UtcNow;
+        attachment.DataType = contentType;
+        attachment.Size = data.LongLength;
+        await Write(AttachmentFileName(attachmentId), attachment);
+        return (AttachmentUploadOutcome.Uploaded, attachment);
+    }
+
     public void Dispose() => _mutationLock.Dispose();
+
+    /// <summary>
+    /// Attachments live in a folder of their own, so reading the correspondences never picks them up.
+    /// </summary>
+    private DirectoryInfo AttachmentStorage() => Storage().CreateSubdirectory("attachments");
+
+    private string AttachmentFileName(Guid attachmentId) =>
+        Path.Join(AttachmentStorage().FullName, $"{attachmentId}.json");
+
+    private string AttachmentDataFileName(Guid attachmentId) =>
+        Path.Join(AttachmentStorage().FullName, $"{attachmentId}.bin");
 
     private async Task<bool> IdempotentKeyExists(Guid idempotentKey)
     {
         foreach (var file in Storage().GetFiles("*.json"))
         {
-            var correspondence = await ReadFile(file.FullName);
+            var correspondence = await ReadFile<StoredCorrespondence>(file.FullName);
             if (correspondence?.IdempotentKey == idempotentKey)
             {
                 return true;
@@ -133,21 +200,21 @@ public sealed class LocalCorrespondenceRepository : IDisposable
     private static string FileName(DirectoryInfo directory, Guid correspondenceId) =>
         Path.Join(directory.FullName, $"{correspondenceId}.json");
 
-    private static async Task<StoredCorrespondence?> ReadFile(string fileName)
+    private static async Task<T?> ReadFile<T>(string fileName)
     {
         await using var stream = File.OpenRead(fileName);
-        return await JsonSerializer.DeserializeAsync<StoredCorrespondence>(stream, _options);
+        return await JsonSerializer.DeserializeAsync<T>(stream, _options);
     }
 
-    private static async Task Write(string fileName, StoredCorrespondence correspondence)
+    private static async Task Write<T>(string fileName, T record)
     {
-        // Publish a complete file so a concurrent read cannot observe a partially written correspondence.
+        // Publish a complete file so a concurrent read cannot observe a partially written record.
         var temporaryFile = fileName + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
             await using (var stream = File.Create(temporaryFile))
             {
-                await JsonSerializer.SerializeAsync(stream, correspondence, _options);
+                await JsonSerializer.SerializeAsync(stream, record, _options);
             }
             File.Move(temporaryFile, fileName, overwrite: true);
         }
@@ -156,4 +223,11 @@ public sealed class LocalCorrespondenceRepository : IDisposable
             File.Delete(temporaryFile);
         }
     }
+}
+
+public enum AttachmentUploadOutcome
+{
+    Uploaded,
+    NotFound,
+    AlreadyUploaded,
 }

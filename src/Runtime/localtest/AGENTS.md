@@ -25,9 +25,12 @@ signee receives. `studioctl` points `PlatformSettings__ApiCorrespondenceEndpoint
   `Initialized` (nothing publishes it further). `GET …/correspondence/{id}/details` returns it.
 - **`idempotentKey` is load-bearing:** a reused key answers 409 Conflict, which apps treat as "already sent"
   when they retry. Duplicate detection runs under a lock, so concurrent sends with one key create one message.
-- Attachments are not emulated (501).
+- Attachments go through `POST …/attachment`, `POST …/attachment/{id}/upload` and `GET …/attachment/{id}`, as
+  the app client sends them. An upload is published at once (no malware scan), and a correspondence may only
+  reference published attachments. Signing uses them for the receipt a signee gets.
 - Each correspondence is stored as `{correspondenceId}.json` in the `correspondence` folder under the storage
-  path, with the request body the app sent, so you can see exactly what went out.
+  path, with the request body the app sent, so you can see exactly what went out. Attachments are stored in
+  its `attachments` subfolder, as `{attachmentId}.json` with their data in `{attachmentId}.bin`.
 
 ## Build & run
 

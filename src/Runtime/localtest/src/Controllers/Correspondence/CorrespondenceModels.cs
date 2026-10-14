@@ -68,7 +68,7 @@ public sealed class InitializeCorrespondencesRequestDto
     public IReadOnlyList<string>? Recipients { get; set; }
 
     /// <summary>
-    /// IDs of pre-uploaded attachments. Localtest does not support attachments.
+    /// IDs of attachments uploaded beforehand through the attachment endpoints.
     /// </summary>
     [JsonPropertyName("existingAttachments")]
     public IReadOnlyList<Guid>? ExistingAttachments { get; set; }
@@ -161,7 +161,7 @@ public sealed class InitializeCorrespondencesResponseDto
     [JsonPropertyName("correspondences")]
     public required IReadOnlyList<CorrespondenceOverviewDto> Correspondences { get; set; }
 
-    /// <summary>The attachments linked to the correspondence. Always empty in Localtest.</summary>
+    /// <summary>The attachments linked to the correspondence.</summary>
     [JsonPropertyName("attachmentIds")]
     public IReadOnlyList<Guid> AttachmentIds { get; set; } = [];
 }
@@ -333,4 +333,152 @@ public sealed class StoredCorrespondence
     /// <summary>The request body the app sent, stored verbatim.</summary>
     [JsonPropertyName("request")]
     public JsonElement Request { get; set; }
+}
+
+/// <summary>
+/// The status of an attachment. Mirrors the status enum the Correspondence API serializes by member name.
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum AttachmentStatus
+{
+    /// <summary>The attachment has been initialized, and its data has not been uploaded yet.</summary>
+    Initialized,
+
+    /// <summary>The attachment's data is being processed.</summary>
+    UploadProcessing,
+
+    /// <summary>The attachment is ready to be referenced from a correspondence.</summary>
+    Published,
+
+    /// <summary>The attachment has been purged.</summary>
+    Purged,
+
+    /// <summary>The attachment's upload failed.</summary>
+    Failed,
+
+    /// <summary>The attachment has expired.</summary>
+    Expired,
+}
+
+/// <summary>
+/// Request body for <c>POST correspondence/api/v1/attachment</c>.
+/// </summary>
+public sealed class InitializeAttachmentRequestDto
+{
+    /// <summary>The resource ID for the correspondence service.</summary>
+    [JsonPropertyName("resourceId")]
+    public string? ResourceId { get; set; }
+
+    /// <summary>The name the recipient sees for the attachment.</summary>
+    [JsonPropertyName("displayName")]
+    public string? DisplayName { get; set; }
+
+    /// <summary>The attachment's file name.</summary>
+    [JsonPropertyName("fileName")]
+    public string? FileName { get; set; }
+
+    /// <summary>Whether the attachment is encrypted.</summary>
+    [JsonPropertyName("isEncrypted")]
+    public bool IsEncrypted { get; set; }
+
+    /// <summary>A checksum of the attachment's data, if the sender supplies one.</summary>
+    [JsonPropertyName("checksum")]
+    public string? Checksum { get; set; }
+
+    /// <summary>A reference value given to the attachment by the sender.</summary>
+    [JsonPropertyName("sendersReference")]
+    public string? SendersReference { get; set; }
+
+    /// <summary>How many days the attachment is kept.</summary>
+    [JsonPropertyName("expirationInDays")]
+    public int? ExpirationInDays { get; set; }
+}
+
+/// <summary>
+/// Response body for <c>POST correspondence/api/v1/attachment/{attachmentId}/upload</c> and
+/// <c>GET correspondence/api/v1/attachment/{attachmentId}</c>.
+/// </summary>
+public sealed class AttachmentOverviewDto
+{
+    /// <summary>The attachment identifier.</summary>
+    [JsonPropertyName("attachmentId")]
+    public Guid AttachmentId { get; set; }
+
+    /// <summary>The status of the attachment.</summary>
+    [JsonPropertyName("status")]
+    public AttachmentStatus Status { get; set; }
+
+    /// <summary>The status as text.</summary>
+    [JsonPropertyName("statusText")]
+    public required string StatusText { get; set; }
+
+    /// <summary>When the current status was set.</summary>
+    [JsonPropertyName("statusChanged")]
+    public DateTimeOffset StatusChanged { get; set; }
+
+    /// <summary>The correspondences the attachment is linked to. Always empty in Localtest.</summary>
+    [JsonPropertyName("correspondenceIds")]
+    public IReadOnlyList<Guid> CorrespondenceIds { get; set; } = [];
+
+    /// <summary>The content type of the uploaded data, once uploaded.</summary>
+    [JsonPropertyName("dataType")]
+    public string? DataType { get; set; }
+
+    /// <summary>The resource ID for the correspondence service.</summary>
+    [JsonPropertyName("resourceId")]
+    public required string ResourceId { get; set; }
+
+    /// <summary>The attachment's file name.</summary>
+    [JsonPropertyName("fileName")]
+    public string? FileName { get; set; }
+
+    /// <summary>The name the recipient sees for the attachment.</summary>
+    [JsonPropertyName("displayName")]
+    public string? DisplayName { get; set; }
+
+    /// <summary>Whether the attachment is encrypted.</summary>
+    [JsonPropertyName("isEncrypted")]
+    public bool IsEncrypted { get; set; }
+
+    /// <summary>A checksum of the attachment's data, if the sender supplied one.</summary>
+    [JsonPropertyName("checksum")]
+    public string? Checksum { get; set; }
+
+    /// <summary>A reference value given to the attachment by the sender.</summary>
+    [JsonPropertyName("sendersReference")]
+    public required string SendersReference { get; set; }
+
+    /// <summary>How many days the attachment is kept.</summary>
+    [JsonPropertyName("expirationInDays")]
+    public int? ExpirationInDays { get; set; }
+}
+
+/// <summary>
+/// One attachment as Localtest persists it. Its data is stored next to it, in a file of its own.
+/// </summary>
+public sealed class StoredAttachment
+{
+    /// <summary>The attachment identifier, and the name of the files this record and its data are stored in.</summary>
+    [JsonPropertyName("attachmentId")]
+    public Guid AttachmentId { get; set; }
+
+    /// <summary>The status of the attachment.</summary>
+    [JsonPropertyName("status")]
+    public AttachmentStatus Status { get; set; }
+
+    /// <summary>When the current status was set.</summary>
+    [JsonPropertyName("statusChanged")]
+    public DateTimeOffset StatusChanged { get; set; }
+
+    /// <summary>The content type of the uploaded data, once uploaded.</summary>
+    [JsonPropertyName("dataType")]
+    public string? DataType { get; set; }
+
+    /// <summary>The size of the uploaded data in bytes, once uploaded.</summary>
+    [JsonPropertyName("size")]
+    public long? Size { get; set; }
+
+    /// <summary>The request the app initialized the attachment with.</summary>
+    [JsonPropertyName("request")]
+    public required InitializeAttachmentRequestDto Request { get; set; }
 }
