@@ -69,7 +69,9 @@ make check                # Complete CI check (tidy, fmt, lint, test)
    - Forwards requests to worker via HTTP with the request's service owner in
      `X-Altinn-Service-Owner`, resolved as the worker does (see below)
    - When `PDF3_API_KEYS_FILE` is set, requires `Authorization: Bearer <key>` (see `internal/auth`);
-     off by default, as in tenant clusters
+     off by default, as in tenant clusters. In an environment with app URLs (not a local cluster or
+     localtest), it refuses to start without `PDF3_API_KEYS_FILE` unless `PDF3_SERVICEOWNER` is set,
+     so a proxy shared by all service owners can't run without API keys
 
 2. **cmd/worker/main.go** - PDF generator (port 5031)
    - Endpoint: `POST /generate` - generates PDFs
@@ -81,16 +83,26 @@ make check                # Complete CI check (tidy, fmt, lint, test)
      PDF/A conversion and is recorded as `altinn.service_owner`
 
 3. **cmd/relay/main.go** - Forwards apps' requests to a pdf3 shared by all service owners (port 5032)
-   - Endpoint: `POST /pdf` - sends the request to `PDF3_UPSTREAM_URL` with the key in
-     `PDF3_API_KEY_FILE` and the cluster's `PDF3_SERVICEOWNER` in `X-Altinn-Service-Owner`
-   - Only retries requests that failed to connect; the shared proxy retries busy workers
+   - Endpoint: `POST /pdf` - sends the request to `PDF3_UPSTREAM_URL` (DIS Edge's
+     `https://platform.<env>/pdf/v3/generate`) with the first key in `PDF3_UPSTREAM_API_KEY_FILE`
+     and the cluster's `PDF3_SERVICEOWNER` in `X-Altinn-Service-Owner`
+   - Only retries requests that failed to connect; the shared proxy retries busy workers. It sends an
+     `Idempotency-Key`, so Go's transport may send a request again that failed on a reused connection
    - Waits up to 2 minutes, a safety net above apps' own 100-second timeout, which is what ends a
      slow request on the local path, as the local proxy has no overall deadline
-   - Answers a request it can't forward (wrong `Content-Type`, body over 64 KiB) as the local proxy does
+   - Answers what the local proxy checks before reading the body (method, `Content-Type`, body over
+     64 KiB, `X-Internals-Test-Input` outside test internals mode) as the local proxy does, in the
+     same order; the shared proxy checks the JSON and its answers are passed on
    - Sends only the trace context upstream, not baggage
    - Aborts a response that fails after its status is sent, so an app never gets a cut-off PDF
-     with 200; a shutdown is logged as a warning, an app that disconnected at INFO
-   - Doesn't follow redirects, and answers an upstream 3xx, 401 or 403 with 502, as apps can't fix them
+     with 200, outside the telemetry middleware so the request is still in its metrics; a
+     shutdown is logged as a warning, an app that disconnected at INFO
+   - Only a 200 with `application/pdf` is a success. pdf3's own 4xx and 5xx (problem details with
+     the response's status) are passed on, except 401 and 403, which are the relay's to fix and
+     become 502. Any other answer is from something in between, such as DIS Edge: a 429 or 5xx keeps
+     its status with the relay's own body, and anything else (another 2xx, a 3xx, a 404) becomes 502,
+     so an app never sees a status the local path couldn't give it
+   - Doesn't follow redirects, so the API key is only sent to the upstream
    - Ships in the proxy image as `./relay`
 
 4. **test/cmd/tester/main.go** - Test orchestration CLI
@@ -132,9 +144,18 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 
 - **internal/auth** - API keys read from a file, one per line (lines starting with `#` are
   comments), checked every 30 seconds and reread when it changed so a rotated Secret takes effect;
-  compared in constant time. The shared pdf3 (DIS Core) trusts `X-Altinn-Service-Owner` from any
-  holder of a valid key. That is accepted because the service owner only affects telemetry and
-  PDF/A conversion; revisit it before adding limits per service owner
+  compared in constant time
+  - A Secret mounted with `subPath` never receives updates; such a pod only sees a new key when it
+    restarts
+  - Rotation order: the shared pdf3 must accept the new key before any relay sends it. Add it to the
+    shared pdf3's keys, then make it the relays' (first) key, then remove the old one
+  - Revoking a key means replacing it, or restarting. A file that is empty or can't be read keeps
+    the current keys, so emptying the file revokes nothing
+  - Threat model: service owners, their apps and their tenant clusters are trusted, and a malicious
+    service owner insider is out of scope. The API key protects the shared pdf3 (DIS Core) against
+    the internet. It trusts `X-Altinn-Service-Owner` from any holder of a valid key, which only
+    affects telemetry and PDF/A conversion; revisit that before adding limits per service owner. No
+    policy restricts the URLs a request may render
 
 - **internal/serviceowner** - The `X-Altinn-Service-Owner` header and how the worker resolves a
   request's service owner; a header value that isn't a lowercase DNS label is ignored

@@ -142,9 +142,23 @@ func main() {
 }
 
 // loadAPIKeys returns the API keys callers must present, or nil if PDF3_API_KEYS_FILE is not set
-// and no API key is required. It exits if the keys can't be loaded.
+// and no API key is required. It exits if the keys can't be loaded, or if they are missing where
+// they are required.
 func loadAPIKeys(logger *slog.Logger, cfg *config.Config) *auth.KeyFile {
 	if cfg.APIKeysFile == "" {
+		// Without PDF3_SERVICEOWNER, a proxy in an environment is shared by all service owners and
+		// reachable from the internet, so it must not start without API keys. Tenant clusters set
+		// PDF3_SERVICEOWNER, and local clusters and localtest have no app hostname.
+		if cfg.AppHostname != "" && cfg.ServiceOwner == "" {
+			logger.Error(
+				"PDF3_API_KEYS_FILE must be set where PDF3_SERVICEOWNER is not, in a cluster shared by all service owners",
+				attr.ConfigEnvVar,
+				config.APIKeysFileEnv,
+				attr.DeploymentEnvironmentName,
+				cfg.Environment,
+			)
+			os.Exit(1)
+		}
 		return nil
 	}
 	keys, err := auth.Load(logger, cfg.APIKeysFile)

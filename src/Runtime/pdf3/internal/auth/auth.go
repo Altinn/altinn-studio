@@ -1,9 +1,20 @@
 // Package auth handles the API keys that callers of a shared pdf3 present, and the relay sends.
 //
 // Keys are read from a file with one key per line, mounted from a Secret. Lines starting with #
-// are comments.
-// Kubernetes replaces the mounted file when the Secret changes, so the file is
-// reread when it changes and two keys can be valid while a key is rotated.
+// are comments. The proxy accepts every key in its file; the relay sends the first key in its own.
+//
+// Kubernetes replaces the mounted file when the Secret changes, so the file is reread when it
+// changes and two keys can be valid while a key is rotated. A Secret mounted with subPath is never
+// updated, so a change only takes effect when the pod restarts.
+//
+// To rotate a key, the shared pdf3 must accept the new key before any relay sends it:
+//  1. Add the new key to the shared pdf3's file, and wait until every proxy has reloaded it.
+//  2. Make the new key the relays' key, and wait until every relay has reloaded it.
+//  3. Remove the old key from the shared pdf3's file.
+//
+// Revoking a key means replacing it: write the file without it but with another key, or restart
+// a pod whose file isn't updated. A file that can't be read or has no keys is not loaded and the
+// current keys stay valid, so emptying the file revokes nothing, and a pod can't start with it.
 package auth
 
 import (

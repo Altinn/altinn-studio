@@ -8,6 +8,9 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -18,6 +21,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
+	"altinn.studio/pdf3/internal/config"
 	ihttp "altinn.studio/pdf3/internal/http"
 	"altinn.studio/pdf3/internal/serviceowner"
 	"altinn.studio/pdf3/internal/telemetry/attr"
@@ -259,6 +263,60 @@ func TestGeneratePdf_OversizedBody(t *testing.T) {
 			}
 			if w.Code != tt.want.Status || !reflect.DeepEqual(got, tt.want) {
 				t.Fatalf("response = %d %+v, want %+v", w.Code, got, tt.want)
+			}
+		})
+	}
+}
+
+// loadAPIKeysEnv makes the test binary run loadAPIKeys, so TestLoadAPIKeys sees whether it exits.
+const loadAPIKeysEnv = "PDF3_TEST_LOAD_API_KEYS"
+
+// TestLoadAPIKeys checks that a proxy shared by all service owners, one in an environment without
+// PDF3_SERVICEOWNER, refuses to start without API keys, and that every other proxy starts as before.
+func TestLoadAPIKeys(t *testing.T) {
+	t.Parallel()
+	if os.Getenv(loadAPIKeysEnv) != "" {
+		loadAPIKeys(slog.New(slog.NewTextHandler(os.Stderr, nil)), config.ReadConfig())
+		return
+	}
+
+	keyFile := filepath.Join(t.TempDir(), "keys")
+	if err := os.WriteFile(keyFile, []byte("core-key\n"), 0o600); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+	tests := []struct {
+		name         string
+		environment  string
+		serviceOwner string
+		apiKeysFile  string
+		wantExit     bool
+	}{
+		{name: "shared cluster without keys", environment: "tt02", wantExit: true},
+		{name: "shared cluster with keys", environment: "tt02", apiKeysFile: keyFile},
+		{name: "tenant cluster", environment: "tt02", serviceOwner: "ttd"},
+		{name: "local cluster", environment: "local"},
+		{name: "localtest", environment: config.EnvironmentLocaltest},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			cmd := exec.CommandContext(t.Context(), os.Args[0], "-test.run=^TestLoadAPIKeys$")
+			cmd.Env = append(
+				os.Environ(),
+				loadAPIKeysEnv+"=1",
+				"PDF3_ENVIRONMENT="+tt.environment,
+				config.ServiceOwnerEnv+"="+tt.serviceOwner,
+				config.APIKeysFileEnv+"="+tt.apiKeysFile,
+			)
+			output, err := cmd.CombinedOutput()
+			var exitErr *exec.ExitError
+			exited := errors.As(err, &exitErr) && exitErr.ExitCode() == 1
+			if exited != tt.wantExit || (!tt.wantExit && err != nil) {
+				t.Fatalf("exited = %v (%v), want %v; output: %s", exited, err, tt.wantExit, output)
+			}
+			if tt.wantExit && !strings.Contains(string(output), "level=ERROR msg=\"PDF3_API_KEYS_FILE must be set") {
+				t.Fatalf("output = %s, want the error logged", output)
 			}
 		})
 	}

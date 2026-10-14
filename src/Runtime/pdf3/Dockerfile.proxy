@@ -28,6 +28,8 @@ COPY --from=builder /app/main .
 COPY --from=builder /app/relay .
 
 EXPOSE 5030
+# The relay, when the image runs ./relay
+EXPOSE 5032
 
 COPY --from=builder /etc/passwd /etc/passwd
 USER nobody

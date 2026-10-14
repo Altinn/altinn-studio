@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strconv"
@@ -26,15 +27,19 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.opentelemetry.io/otel/trace"
 
 	"altinn.studio/pdf3/internal/auth"
+	"altinn.studio/pdf3/internal/config"
 	ihttp "altinn.studio/pdf3/internal/http"
+	iruntime "altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/serviceowner"
-	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/telemetry/attr"
+	itesting "altinn.studio/pdf3/internal/testing"
 )
 
 const requestBody = `{"url":"https://ttd.apps.tt02.altinn.no/ttd/app/instance/1/abc?pdf=1"}`
@@ -91,13 +96,14 @@ func recordSpans(t *testing.T) *tracetest.SpanRecorder {
 	return spans
 }
 
-// serveRelay serves rl as main does, with the middleware and with base as the context its requests
-// derive from, and calls done when a request has been handled, aborted or not.
+// serveRelay serves rl as main does, with base as the context its requests derive from, and calls
+// done when a request has been handled, aborted or not.
 func serveRelay(t *testing.T, rl *relay, base context.Context, done func()) *httptest.Server {
 	t.Helper()
-	handler := telemetry.WrapHandler("POST /pdf", func(w http.ResponseWriter, r *http.Request) {
+	relayHandler := rl.handler()
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer done()
-		rl.handlePdf(w, r)
+		relayHandler.ServeHTTP(w, r)
 	})
 	server := httptest.NewUnstartedServer(handler)
 	server.Config.BaseContext = func(net.Listener) context.Context { return base }
@@ -147,14 +153,52 @@ func startPDF(t *testing.T, release <-chan struct{}) http.HandlerFunc {
 	}
 }
 
-// requireAborted checks that resp, a 200, is cut off with a read error rather than ending cleanly.
+// requireAborted checks that resp, a 200, is cut off rather than ending cleanly.
 func requireAborted(t *testing.T, resp *http.Response) {
 	t.Helper()
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("status = %d, want the upstream's 200", resp.StatusCode)
 	}
-	if body, err := io.ReadAll(resp.Body); err == nil {
-		t.Fatalf("read a complete response of %d bytes, want a read error", len(body))
+	if body, err := io.ReadAll(resp.Body); !errors.Is(err, io.ErrUnexpectedEOF) {
+		t.Fatalf("read %d bytes with error %v, want %v", len(body), err, io.ErrUnexpectedEOF)
+	}
+}
+
+// recordMetrics makes the global meter provider, which the relay's middleware uses, record its
+// metrics for the rest of the test.
+func recordMetrics(t *testing.T) *sdkmetric.ManualReader {
+	t.Helper()
+	reader := sdkmetric.NewManualReader()
+	previous := otel.GetMeterProvider()
+	otel.SetMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader)))
+	t.Cleanup(func() { otel.SetMeterProvider(previous) })
+	return reader
+}
+
+// requireRequestDuration checks that the request is in http.server.request.duration, with the
+// status that was sent and errorType.
+func requireRequestDuration(t *testing.T, reader *sdkmetric.ManualReader, errorType string) {
+	t.Helper()
+	var data metricdata.ResourceMetrics
+	if err := reader.Collect(t.Context(), &data); err != nil {
+		t.Fatalf("Collect() error = %v", err)
+	}
+	got := map[string]uint64{}
+	for _, scope := range data.ScopeMetrics {
+		for _, m := range scope.Metrics {
+			histogram, ok := m.Data.(metricdata.Histogram[float64])
+			if m.Name != "http.server.request.duration" || !ok {
+				continue
+			}
+			for _, point := range histogram.DataPoints {
+				status, _ := point.Attributes.Value(attribute.Key(attr.HTTPResponseStatusCode))
+				errType, _ := point.Attributes.Value(attribute.Key(attr.ErrorType))
+				got[fmt.Sprintf("%d/%s", status.AsInt64(), errType.AsString())] += point.Count
+			}
+		}
+	}
+	if want := "200/" + errorType; len(got) != 1 || got[want] != 1 {
+		t.Fatalf("http.server.request.duration by status/error.type = %v, want {%s: 1}", got, want)
 	}
 }
 
@@ -213,8 +257,8 @@ func TestRelayForwardsRequestWithAPIKeyAndServiceOwner(t *testing.T) {
 	}))
 	defer upstream.Close()
 
-	rl := newTestRelay(t, upstream.URL+"/pdf3/pdf")
-	rec := post(t, http.HandlerFunc(rl.handlePdf), nil)
+	rl := newTestRelay(t, upstream.URL+"/pdf/v3/generate")
+	rec := post(t, rl.handler(), nil)
 
 	if rec.Code != http.StatusOK || rec.Body.String() != "%PDF-1.7 test" {
 		t.Fatalf("response = %d %q", rec.Code, rec.Body.String())
@@ -226,7 +270,7 @@ func TestRelayForwardsRequestWithAPIKeyAndServiceOwner(t *testing.T) {
 			rec.Header().Get("Content-Length"),
 		)
 	}
-	if got.method != http.MethodPost || got.path != "/pdf3/pdf" || got.body != requestBody {
+	if got.method != http.MethodPost || got.path != "/pdf/v3/generate" || got.body != requestBody {
 		t.Fatalf("upstream got %s %s %q", got.method, got.path, got.body)
 	}
 	if got.auth != "Bearer relay-key" || got.contentType != "application/json" {
@@ -237,53 +281,171 @@ func TestRelayForwardsRequestWithAPIKeyAndServiceOwner(t *testing.T) {
 	}
 }
 
-func TestRelayPassesErrorsThroughWithoutRetrying(t *testing.T) {
-	for _, status := range []int{
-		http.StatusBadRequest,
-		http.StatusTooManyRequests,
-		http.StatusInternalServerError,
-	} {
-		t.Run(http.StatusText(status), func(t *testing.T) {
-			var calls atomic.Int32
-			upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				calls.Add(1)
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(status)
-				if _, err := w.Write([]byte(`{"title":"upstream"}`)); err != nil {
-					t.Errorf("Write() error = %v", err)
-				}
-			}))
-			defer upstream.Close()
-
-			rl := newTestRelay(t, upstream.URL)
-			rec := post(t, http.HandlerFunc(rl.handlePdf), nil)
-
-			if rec.Code != status || rec.Body.String() != `{"title":"upstream"}` {
-				t.Fatalf("response = %d %q", rec.Code, rec.Body.String())
-			}
-			if calls.Load() != 1 {
-				t.Fatalf("upstream called %d times, want 1", calls.Load())
-			}
-		})
-	}
+// pdf3Error is an error as pdf3's proxy answers it.
+func pdf3Error(status int) string {
+	return fmt.Sprintf(`{"type":"https://pdf3","title":"pdf3 title","detail":"pdf3 detail","status":%d}`, status)
 }
 
-func TestRelayReturnsBadGatewayWhenUpstreamDoesNotAccept(t *testing.T) {
-	for _, status := range []int{
-		http.StatusFound,
-		http.StatusTemporaryRedirect,
-		http.StatusUnauthorized,
-		http.StatusForbidden,
-	} {
-		t.Run(http.StatusText(status), func(t *testing.T) {
+func TestRelayAnswersUpstreamResponses(t *testing.T) {
+	const (
+		passedOn = iota
+		relayError
+	)
+	tests := []struct {
+		name        string
+		contentType string
+		body        string
+		status      int
+		wantStatus  int
+		want        int
+	}{
+		{
+			name:        "PDF",
+			status:      http.StatusOK,
+			contentType: "application/pdf",
+			body:        "%PDF-1.7 test",
+			wantStatus:  http.StatusOK,
+			want:        passedOn,
+		},
+		{
+			name:        "PDF with parameters",
+			status:      http.StatusOK,
+			contentType: "Application/PDF; name=out.pdf",
+			body:        "%PDF-1.7 test",
+			wantStatus:  http.StatusOK,
+			want:        passedOn,
+		},
+		{
+			name:        "pdf3 400",
+			status:      http.StatusBadRequest,
+			contentType: "application/json",
+			body:        pdf3Error(http.StatusBadRequest),
+			wantStatus:  http.StatusBadRequest,
+			want:        passedOn,
+		},
+		{
+			name:        "pdf3 429",
+			status:      http.StatusTooManyRequests,
+			contentType: "application/json",
+			body:        pdf3Error(http.StatusTooManyRequests),
+			wantStatus:  http.StatusTooManyRequests,
+			want:        passedOn,
+		},
+		{
+			name:        "pdf3 500",
+			status:      http.StatusInternalServerError,
+			contentType: "application/json",
+			body:        pdf3Error(http.StatusInternalServerError),
+			wantStatus:  http.StatusInternalServerError,
+			want:        passedOn,
+		},
+		{
+			name:        "HTML page with 200",
+			status:      http.StatusOK,
+			contentType: "text/html",
+			body:        "<html>edge title</html>",
+			wantStatus:  http.StatusBadGateway,
+			want:        relayError,
+		},
+		{
+			name:       "204",
+			status:     http.StatusNoContent,
+			wantStatus: http.StatusBadGateway,
+			want:       relayError,
+		},
+		{
+			name:        "PDF with 201",
+			status:      http.StatusCreated,
+			contentType: "application/pdf",
+			body:        "%PDF-1.7 test",
+			wantStatus:  http.StatusBadGateway,
+			want:        relayError,
+		},
+		{
+			name:        "302",
+			status:      http.StatusFound,
+			contentType: "text/html",
+			body:        "<html>edge title</html>",
+			wantStatus:  http.StatusBadGateway,
+			want:        relayError,
+		},
+		{
+			name:        "307",
+			status:      http.StatusTemporaryRedirect,
+			contentType: "application/json",
+			body:        pdf3Error(http.StatusTemporaryRedirect),
+			wantStatus:  http.StatusBadGateway,
+			want:        relayError,
+		},
+		{
+			name:        "pdf3 401",
+			status:      http.StatusUnauthorized,
+			contentType: "application/json",
+			body:        pdf3Error(http.StatusUnauthorized),
+			wantStatus:  http.StatusBadGateway,
+			want:        relayError,
+		},
+		{
+			name:        "403",
+			status:      http.StatusForbidden,
+			contentType: "text/html",
+			body:        "<html>edge title</html>",
+			wantStatus:  http.StatusBadGateway,
+			want:        relayError,
+		},
+		{
+			name:        "Edge 404",
+			status:      http.StatusNotFound,
+			contentType: "text/html",
+			body:        "<html>edge title</html>",
+			wantStatus:  http.StatusBadGateway,
+			want:        relayError,
+		},
+		{
+			name:        "Edge 413 as JSON",
+			status:      http.StatusRequestEntityTooLarge,
+			contentType: "application/json",
+			body:        `{"title":"edge title"}`,
+			wantStatus:  http.StatusBadGateway,
+			want:        relayError,
+		},
+		{
+			name:        "Edge 429",
+			status:      http.StatusTooManyRequests,
+			contentType: "text/plain",
+			body:        "edge title",
+			wantStatus:  http.StatusTooManyRequests,
+			want:        relayError,
+		},
+		{
+			name:        "Edge 503",
+			status:      http.StatusServiceUnavailable,
+			contentType: "text/html",
+			body:        "<html>edge title</html>",
+			wantStatus:  http.StatusServiceUnavailable,
+			want:        relayError,
+		},
+		{
+			name:        "Edge 500 with another status in its JSON",
+			status:      http.StatusInternalServerError,
+			contentType: "application/json",
+			body:        pdf3Error(http.StatusBadRequest),
+			wantStatus:  http.StatusInternalServerError,
+			want:        relayError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			var calls atomic.Int32
 			var upstream *httptest.Server
 			upstream = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				calls.Add(1)
 				w.Header().Set("Location", upstream.URL+"/elsewhere")
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(status)
-				if _, err := w.Write([]byte(`{"title":"upstream title"}`)); err != nil {
+				if tt.contentType != "" {
+					w.Header().Set("Content-Type", tt.contentType)
+				}
+				w.WriteHeader(tt.status)
+				if _, err := io.WriteString(w, tt.body); err != nil {
 					t.Errorf("Write() error = %v", err)
 				}
 			}))
@@ -291,26 +453,63 @@ func TestRelayReturnsBadGatewayWhenUpstreamDoesNotAccept(t *testing.T) {
 
 			rl := newTestRelay(t, upstream.URL)
 			logs := recordLogs(rl)
-			rec := post(t, http.HandlerFunc(rl.handlePdf), nil)
+			rec := post(t, rl.handler(), nil)
 
-			if rec.Code != http.StatusBadGateway {
-				t.Fatalf("status = %d, want %d", rec.Code, http.StatusBadGateway)
+			if rec.Code != tt.wantStatus {
+				t.Fatalf("status = %d, want %d", rec.Code, tt.wantStatus)
 			}
-			if rec.Header().Get("Location") != "" || strings.Contains(rec.Body.String(), "upstream title") {
-				t.Fatalf(
-					"passed on the upstream response: Location %q, body %q",
-					rec.Header().Get("Location"),
-					rec.Body.String(),
-				)
-			}
+			// The relay only retries requests that failed to connect.
 			if calls.Load() != 1 {
 				t.Fatalf("upstream called %d times, want 1", calls.Load())
 			}
-			if got := logs.String(); !strings.Contains(got, "level=ERROR") ||
-				!strings.Contains(got, attr.HTTPResponseStatusCode+"="+strconv.Itoa(status)) {
-				t.Fatalf("logs = %q, want an error with the upstream status", got)
+			if rec.Header().Get("Location") != "" {
+				t.Fatalf("passed on Location %q", rec.Header().Get("Location"))
+			}
+			if tt.want == passedOn {
+				requirePassedOn(t, rec, logs, tt.contentType, tt.body)
+			} else {
+				requireRelayError(t, rec, logs, tt.status, tt.wantStatus)
 			}
 		})
+	}
+}
+
+// requirePassedOn checks that rec is the upstream's response, with contentType and body, and that
+// no error was logged.
+func requirePassedOn(t *testing.T, rec *httptest.ResponseRecorder, logs *logRecorder, contentType, body string) {
+	t.Helper()
+	if rec.Body.String() != body || rec.Header().Get("Content-Type") != contentType {
+		t.Fatalf(
+			"response = %q %q, want the upstream's %q %q",
+			rec.Header().Get("Content-Type"),
+			rec.Body.String(),
+			contentType,
+			body,
+		)
+	}
+	if got := rec.Header().Get("Content-Length"); got != strconv.Itoa(len(body)) {
+		t.Fatalf("Content-Length = %q, want %d", got, len(body))
+	}
+	if strings.Contains(logs.String(), "level=ERROR") {
+		t.Fatalf("logs = %q, want no error", logs.String())
+	}
+}
+
+// requireRelayError checks that rec is the relay's own problem details with status, for an
+// upstream response with upstreamStatus, and that the upstream status was logged as an error.
+func requireRelayError(t *testing.T, rec *httptest.ResponseRecorder, logs *logRecorder, upstreamStatus, status int) {
+	t.Helper()
+	var got ihttp.ProblemDetails
+	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
+		t.Fatalf("Unmarshal(%q) error = %v", rec.Body.String(), err)
+	}
+	want := fmt.Sprintf("Unexpected response from the PDF service: %d", upstreamStatus)
+	if got.Status != status || got.Detail != want {
+		t.Fatalf("problem = %+v, want status %d and detail %q", got, status, want)
+	}
+	if logged := logs.String(); !strings.Contains(logged, "level=ERROR") ||
+		!strings.Contains(logged, attr.HTTPResponseStatusCode+"="+strconv.Itoa(upstreamStatus)) {
+		t.Fatalf("logs = %q, want an error with the upstream status", logged)
 	}
 }
 
@@ -349,6 +548,7 @@ func TestRelayAbortsTruncatedResponse(t *testing.T) {
 	rl := newTestRelay(t, upstream.URL)
 	logs := recordLogs(rl)
 	spans := recordSpans(t)
+	metrics := recordMetrics(t)
 	// A real server, with the middleware main uses, so the abort reaches the connection.
 	handled := make(chan struct{})
 	server := serveRelay(t, rl, t.Context(), func() { close(handled) })
@@ -365,6 +565,7 @@ func TestRelayAbortsTruncatedResponse(t *testing.T) {
 		t.Fatalf("logs = %q, want an error", got)
 	}
 	requireErrorSpan(t, spans, "upstream_response_failed")
+	requireRequestDuration(t, metrics, "upstream_response_failed")
 }
 
 func TestRelayAbortsResponseOnShutdown(t *testing.T) {
@@ -379,6 +580,7 @@ func TestRelayAbortsResponseOnShutdown(t *testing.T) {
 	rl.shuttingDown = func() bool { return shutdown.Err() != nil }
 	logs := recordLogs(rl)
 	spans := recordSpans(t)
+	metrics := recordMetrics(t)
 	handled := make(chan struct{})
 	server := serveRelay(t, rl, shutdown, func() { close(handled) })
 
@@ -398,6 +600,7 @@ func TestRelayAbortsResponseOnShutdown(t *testing.T) {
 		t.Fatalf("logs = %q, want the shutdown at WARN", got)
 	}
 	requireErrorSpan(t, spans, "shutting_down")
+	requireRequestDuration(t, metrics, "shutting_down")
 }
 
 func TestRelayLogsClientThatGaveUpDuringCopyAtInfo(t *testing.T) {
@@ -437,6 +640,7 @@ func TestRelayRetriesConnectFailures(t *testing.T) {
 			t.Errorf("ReadAll() error = %v", err)
 		}
 		gotBody = string(body)
+		w.Header().Set("Content-Type", "application/pdf")
 		if _, err := w.Write([]byte("%PDF-1.7 test")); err != nil {
 			t.Errorf("Write() error = %v", err)
 		}
@@ -454,7 +658,7 @@ func TestRelayRetriesConnectFailures(t *testing.T) {
 			return dialer.DialContext(ctx, network, addr)
 		},
 	}
-	rec := post(t, http.HandlerFunc(rl.handlePdf), nil)
+	rec := post(t, rl.handler(), nil)
 
 	if rec.Code != http.StatusOK || rec.Body.String() != "%PDF-1.7 test" {
 		t.Fatalf("response = %d %q", rec.Code, rec.Body.String())
@@ -464,6 +668,46 @@ func TestRelayRetriesConnectFailures(t *testing.T) {
 	}
 	if gotBody != requestBody {
 		t.Fatalf("upstream got body %q, want %q", gotBody, requestBody)
+	}
+}
+
+func TestRelayLetsTheTransportRetryOnAStaleConnection(t *testing.T) {
+	var keys []string
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, err := io.Copy(io.Discard, r.Body); err != nil {
+			t.Errorf("Copy() error = %v", err)
+		}
+		keys = append(keys, r.Header.Get(idempotencyKeyHeader))
+		if len(keys) == 2 {
+			// The second request comes on the first one's connection, which closes without an
+			// answer, as one the upstream closed while it was idle does.
+			conn, _, err := http.NewResponseController(w).Hijack()
+			if err != nil {
+				t.Errorf("Hijack() error = %v", err)
+				return
+			}
+			if err := conn.Close(); err != nil {
+				t.Errorf("Close() error = %v", err)
+			}
+			return
+		}
+		w.Header().Set("Content-Type", "application/pdf")
+		if _, err := w.Write([]byte("%PDF-1.7 test")); err != nil {
+			t.Errorf("Write() error = %v", err)
+		}
+	}))
+	defer upstream.Close()
+
+	rl := newTestRelay(t, upstream.URL)
+	for i := range 2 {
+		if rec := post(t, rl.handler(), nil); rec.Code != http.StatusOK {
+			t.Fatalf("request %d: status = %d, want %d", i+1, rec.Code, http.StatusOK)
+		}
+	}
+
+	// The transport sends the second request again on a new connection, as the same request.
+	if len(keys) != 3 || keys[0] == "" || keys[1] != keys[2] || keys[0] == keys[1] {
+		t.Fatalf("upstream got %s %q, want one per app request, sent again as it was", idempotencyKeyHeader, keys)
 	}
 }
 
@@ -487,7 +731,7 @@ func TestRelayDoesNotRetryAfterConnecting(t *testing.T) {
 	defer upstream.Close()
 
 	rl := newTestRelay(t, upstream.URL)
-	rec := post(t, http.HandlerFunc(rl.handlePdf), nil)
+	rec := post(t, rl.handler(), nil)
 
 	if rec.Code != http.StatusBadGateway {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusBadGateway)
@@ -604,7 +848,7 @@ func TestRelayReturnsBadGatewayWhenUpstreamIsDown(t *testing.T) {
 
 	rl := newTestRelay(t, "http://"+addr+"/pdf")
 	start := time.Now()
-	rec := post(t, http.HandlerFunc(rl.handlePdf), nil)
+	rec := post(t, rl.handler(), nil)
 
 	if rec.Code != http.StatusBadGateway {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusBadGateway)
@@ -629,7 +873,7 @@ func TestRelayReturnsGatewayTimeoutWhenUpstreamIsSlow(t *testing.T) {
 	rl := newTestRelay(t, upstream.URL)
 	rl.timeout = 100 * time.Millisecond
 	logs := recordLogs(rl)
-	rec := post(t, http.HandlerFunc(rl.handlePdf), nil)
+	rec := post(t, rl.handler(), nil)
 
 	if rec.Code != http.StatusGatewayTimeout {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusGatewayTimeout)
@@ -649,7 +893,7 @@ func TestRelayRejectsBadRequestsLocally(t *testing.T) {
 	rl := newTestRelay(t, upstream.URL)
 
 	getRec := httptest.NewRecorder()
-	rl.handlePdf(getRec, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/pdf", nil))
+	rl.handler().ServeHTTP(getRec, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/pdf", nil))
 	if getRec.Code != http.StatusMethodNotAllowed {
 		t.Fatalf("GET: status = %d", getRec.Code)
 	}
@@ -659,16 +903,56 @@ func TestRelayRejectsBadRequestsLocally(t *testing.T) {
 	}
 }
 
-// TestRelayAnswersOversizedBodiesAsTheProxy pins the local proxy's answers, which
-// TestGeneratePdf_OversizedBody in cmd/proxy pins too.
-func TestRelayAnswersOversizedBodiesAsTheProxy(t *testing.T) {
+// TestRelayAnswersRequestsItCantForwardAsTheProxy pins the local proxy's answers, which
+// TestGeneratePdf_OversizedBody in cmd/proxy pins too, outside test internals mode as in a cluster.
+func TestRelayAnswersRequestsItCantForwardAsTheProxy(t *testing.T) {
+	iruntime.IsTestInternalsMode = false
+	t.Cleanup(func() { iruntime.IsTestInternalsMode = true })
+
 	oversized := `{"url":"https://ttd.apps.tt02.altinn.no/` + strings.Repeat("x", maxBodySize) + `"}`
+	illegalTestHeader := ihttp.ProblemDetails{
+		Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+		Title:  "Bad Request",
+		Status: http.StatusBadRequest,
+		Detail: "Illegal test internals mode header",
+	}
 	tests := []struct {
 		name          string
+		body          string
 		contentType   string
+		testInput     string
 		want          ihttp.ProblemDetails
 		contentLength int64
 	}{
+		{
+			name:          "test internals header",
+			body:          requestBody,
+			contentType:   "application/json",
+			contentLength: int64(len(requestBody)),
+			testInput:     "{}",
+			want:          illegalTestHeader,
+		},
+		{
+			name:          "test internals header and chunked",
+			body:          oversized,
+			contentType:   "application/json",
+			contentLength: -1,
+			testInput:     "{}",
+			want:          illegalTestHeader,
+		},
+		{
+			name:          "test internals header and Content-Length too large",
+			body:          oversized,
+			contentType:   "application/json",
+			contentLength: int64(len(oversized)),
+			testInput:     "{}",
+			want: ihttp.ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.11",
+				Title:  "Request Entity Too Large",
+				Status: http.StatusRequestEntityTooLarge,
+				Detail: "Request body too large (max 65536 bytes)",
+			},
+		},
 		{
 			name:          "with Content-Length",
 			contentType:   "application/json",
@@ -712,11 +996,18 @@ func TestRelayAnswersOversizedBodiesAsTheProxy(t *testing.T) {
 			defer upstream.Close()
 			rl := newTestRelay(t, upstream.URL)
 
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/pdf", strings.NewReader(oversized))
+			body := tt.body
+			if body == "" {
+				body = oversized
+			}
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/pdf", strings.NewReader(body))
 			req.Header.Set("Content-Type", tt.contentType)
+			if tt.testInput != "" {
+				req.Header.Set(itesting.TestInputHeaderName, tt.testInput)
+			}
 			req.ContentLength = tt.contentLength
 			rec := httptest.NewRecorder()
-			rl.handlePdf(rec, req)
+			rl.handler().ServeHTTP(rec, req)
 
 			var got ihttp.ProblemDetails
 			if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
@@ -746,7 +1037,7 @@ func TestRelayPropagatesTraceContextButNotBaggage(t *testing.T) {
 	defer upstream.Close()
 
 	rl := newTestRelay(t, upstream.URL)
-	handler := telemetry.WrapHandler("POST /pdf", rl.handlePdf)
+	handler := rl.handler()
 	const traceID = "4bf92f3577b34da6a3ce929d0e0e4736"
 	post(t, handler, http.Header{
 		"Traceparent": {"00-" + traceID + "-b7ad6b7169203331-01"},
@@ -770,7 +1061,7 @@ func TestRelaySendsItsOwnServiceOwner(t *testing.T) {
 
 	rl := newTestRelay(t, upstream.URL)
 	// An app can't make the shared pdf3 act for another service owner.
-	post(t, http.HandlerFunc(rl.handlePdf), http.Header{serviceowner.Header: {"ikta"}})
+	post(t, rl.handler(), http.Header{serviceowner.Header: {"ikta"}})
 
 	if got != "ttd" {
 		t.Fatalf("upstream got %s %q, want ttd", serviceowner.Header, got)
@@ -779,10 +1070,10 @@ func TestRelaySendsItsOwnServiceOwner(t *testing.T) {
 
 func TestParseUpstreamURL(t *testing.T) {
 	for upstream, want := range map[string]bool{
-		"https://platform.tt02.altinn.no/pdf3/pdf":     true,
-		"http://pdf3-proxy.pdf3.svc.cluster.local/pdf": true,
+		"https://platform.tt02.altinn.no/pdf/v3/generate": true,
+		"http://pdf3-proxy.pdf3.svc.cluster.local/pdf":    true,
 		"":                                  false,
-		"/pdf3/pdf":                         false,
+		"/pdf/v3/generate":                  false,
 		"ftp://platform.tt02.altinn.no/pdf": false,
 		"https://user:secret@platform.tt02.altinn.no/pdf": false,
 		"https://platform.tt02.altinn.no/pdf?key=secret":  false,
@@ -792,5 +1083,56 @@ func TestParseUpstreamURL(t *testing.T) {
 		if _, got := parseUpstreamURL(upstream); got != want {
 			t.Errorf("parseUpstreamURL(%q) = %v, want %v", upstream, got, want)
 		}
+	}
+}
+
+// readUpstreamEnv makes the test binary run readUpstream, so TestReadUpstream sees whether it exits.
+const readUpstreamEnv = "PDF3_TEST_READ_UPSTREAM"
+
+// TestReadUpstream checks that the relay reads its key from PDF3_UPSTREAM_API_KEY_FILE, named apart
+// from the proxy's PDF3_API_KEYS_FILE, and refuses to start without it or a service owner.
+func TestReadUpstream(t *testing.T) {
+	if os.Getenv(readUpstreamEnv) != "" {
+		readUpstream(slog.New(slog.NewTextHandler(os.Stderr, nil)), config.ReadConfig())
+		return
+	}
+
+	keyFile := filepath.Join(t.TempDir(), "key")
+	if err := os.WriteFile(keyFile, []byte("relay-key\n"), 0o600); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+	tests := []struct {
+		name     string
+		env      []string
+		wantExit bool
+	}{
+		{name: "configured", env: []string{config.ServiceOwnerEnv + "=ttd", "PDF3_UPSTREAM_API_KEY_FILE=" + keyFile}},
+		{name: "without service owner", env: []string{"PDF3_UPSTREAM_API_KEY_FILE=" + keyFile}, wantExit: true},
+		{
+			name:     "with the proxy's variable",
+			env:      []string{config.ServiceOwnerEnv + "=ttd", config.APIKeysFileEnv + "=" + keyFile},
+			wantExit: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := exec.CommandContext(t.Context(), os.Args[0], "-test.run=^TestReadUpstream$")
+			cmd.Env = append(
+				os.Environ(),
+				readUpstreamEnv+"=1",
+				"PDF3_ENVIRONMENT=tt02",
+				"PDF3_UPSTREAM_URL=https://platform.tt02.altinn.no/pdf/v3/generate",
+				config.ServiceOwnerEnv+"=",
+				config.APIKeysFileEnv+"=",
+				"PDF3_UPSTREAM_API_KEY_FILE=",
+			)
+			cmd.Env = append(cmd.Env, tt.env...)
+			output, err := cmd.CombinedOutput()
+			var exitErr *exec.ExitError
+			exited := errors.As(err, &exitErr) && exitErr.ExitCode() == 1
+			if exited != tt.wantExit || (!tt.wantExit && err != nil) {
+				t.Fatalf("exited = %v (%v), want %v; output: %s", exited, err, tt.wantExit, output)
+			}
+		})
 	}
 }

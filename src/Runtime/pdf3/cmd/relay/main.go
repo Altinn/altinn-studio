@@ -25,10 +25,12 @@ import (
 )
 
 const (
-	// upstreamURLEnv is the shared pdf3's PDF endpoint, e.g. https://platform.tt02.altinn.no/pdf3/pdf.
+	// upstreamURLEnv is the shared pdf3's PDF endpoint, e.g. https://platform.tt02.altinn.no/pdf/v3/generate.
 	upstreamURLEnv = "PDF3_UPSTREAM_URL"
-	// apiKeyFileEnv points to a file whose first key is the API key to send, see auth.KeyFile.
-	apiKeyFileEnv = "PDF3_API_KEY_FILE" //nolint:gosec // The name of an environment variable, not a credential.
+	// upstreamAPIKeyFileEnv points to a file whose first key is the API key to send, see auth.KeyFile.
+	// It is named apart from the proxy's PDF3_API_KEYS_FILE, the keys the proxy accepts.
+	//nolint:gosec // The name of an environment variable, not a credential.
+	upstreamAPIKeyFileEnv = "PDF3_UPSTREAM_API_KEY_FILE"
 )
 
 //nolint:funlen // The relay entrypoint owns startup, probes, and shutdown wiring, like the proxy's.
@@ -74,7 +76,7 @@ func main() {
 	http.HandleFunc("/health/live", func(w http.ResponseWriter, r *http.Request) {
 		ihttp.WriteText(r.Context(), logger, w, http.StatusOK, "OK")
 	})
-	http.Handle("/pdf", telemetry.WrapHandler("POST /pdf", rl.handlePdf))
+	http.Handle("/pdf", rl.handler())
 
 	server := &http.Server{
 		Addr:              ":5032",
@@ -154,12 +156,12 @@ func readUpstream(logger *slog.Logger, cfg *config.Config) (string, *auth.KeyFil
 		)
 	}
 
-	keyFile := os.Getenv(apiKeyFileEnv)
+	keyFile := os.Getenv(upstreamAPIKeyFileEnv)
 	keys, err := auth.Load(logger, keyFile)
 	if err != nil {
 		logger.Error(
 			"Failed to load the API key",
-			attr.ConfigEnvVar, apiKeyFileEnv,
+			attr.ConfigEnvVar, upstreamAPIKeyFileEnv,
 			attr.APIKeysFile, keyFile,
 			attr.Error, err,
 		)

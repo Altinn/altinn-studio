@@ -12,6 +12,7 @@ const (
 	DeploymentEnvironmentName = "deployment.environment.name"
 	ErrorType                 = "error.type"
 	HTTPResponseStatusCode    = "http.response.status_code"
+	HTTPResponseContentType   = "http.response.header.content-type"
 )
 
 // Error is the key for an error value on a log record. The OpenTelemetry log bridge moves an
