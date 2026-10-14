@@ -13,6 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- Breaking: the app libraries target .NET 11 and need its SDK, release candidate 2 or later. ([#21108](https://github.com/Altinn/altinn-studio/pull/21108))
 - Breaking: app library methods no longer end in `Async`, for example `IAppOptionsProvider.GetAppOptions`, `IDataListProvider.GetDataList`, `IProcessExclusiveGateway.Filter` and `ISecretsClient.GetSecret`. Rename your implementations and calls; `studioctl app upgrade v9` does this for you. ([#19774](https://github.com/Altinn/altinn-studio/issues/19774))
 
 ### Fixed
