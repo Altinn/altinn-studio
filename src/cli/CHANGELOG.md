@@ -9,6 +9,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.29] - 2026-10-14
+
 ### Added
 
 - The OpenTelemetry collector in `studioctl env up --monitoring` also accepts OTLP over HTTP, on port 4318. ([#21114](https://github.com/Altinn/altinn-studio/pull/21114))
