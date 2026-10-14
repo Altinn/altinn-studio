@@ -10,6 +10,7 @@ import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ComponentLayoutValidationProps } from 'src/layout/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class SigneeList extends SigneeListDef {
@@ -21,6 +22,10 @@ export class SigneeList extends SigneeListDef {
 
   renderLayoutValidators(props: ComponentLayoutValidationProps<'SigneeList'>): JSX.Element | null {
     return <ValidateSigningTaskType {...props} />;
+  }
+
+  renderSummary({ targetBaseComponentId }: SummaryRendererProps): JSX.Element | null {
+    return <SigneeListComponent baseComponentId={targetBaseComponentId} />;
   }
 
   renderSummary2({ targetBaseComponentId }: Summary2Props): JSX.Element | null {

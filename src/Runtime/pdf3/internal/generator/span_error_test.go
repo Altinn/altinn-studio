@@ -21,13 +21,18 @@ var errCommandFailed = errors.New("command failed")
 // failingConnection fails every CDP command.
 type failingConnection struct{}
 
-func (failingConnection) SendCommand(context.Context, string, any) (*cdp.CDPResponse, error) {
+func (failingConnection) SendCommand(context.Context, string, any) (*cdp.CDPMessage, error) {
 	return nil, errCommandFailed
 }
 
 func (failingConnection) SendCommandBatch(context.Context, []cdp.Command) []*cdp.CommandResponse {
 	return nil
 }
+
+//nolint:ireturn // Implements cdp.Connection.
+func (c failingConnection) Session(string) cdp.Commander { return c }
+
+func (failingConnection) Done() <-chan struct{} { return nil }
 
 func (failingConnection) Close() error { return nil }
 
@@ -39,8 +44,12 @@ func TestSpanErrorType_MatchesResponse(t *testing.T) {
 		want string
 	}{
 		"set cookies": {(*browserSession).setCookies, "set_cookie_failed"},
-		"navigate":    {(*browserSession).navigateToPage, "generation_failed"},
-		"print":       {(*browserSession).printPDF, "generation_failed"},
+		"navigate": {func(w *browserSession, req *workerRequest) error {
+			return w.navigateToPage(req, w.conn)
+		}, "generation_failed"},
+		"print": {func(w *browserSession, req *workerRequest) error {
+			return w.printPDF(req, w.conn)
+		}, "generation_failed"},
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -95,8 +104,8 @@ type evaluatingConnection struct {
 	result any
 }
 
-func (c evaluatingConnection) SendCommand(context.Context, string, any) (*cdp.CDPResponse, error) {
-	return &cdp.CDPResponse{Result: c.result}, nil
+func (c evaluatingConnection) SendCommand(context.Context, string, any) (*cdp.CDPMessage, error) {
+	return &cdp.CDPMessage{Result: c.result}, nil
 }
 
 // TestWaitForPageLoad_FailedWaitAnswersOnce checks that a page-load wait that fails answers the
@@ -121,7 +130,7 @@ func TestWaitForPageLoad_FailedWaitAnswersOnce(t *testing.T) {
 			responder := make(chan workerResponse, 1)
 			req := &workerRequest{ctx: t.Context(), responder: responder, logger: slog.New(slog.DiscardHandler)}
 
-			if err := w.waitForPageLoad(req, 100); err != nil {
+			if err := w.waitForPageLoad(req, w.conn, 100); err != nil {
 				t.Fatalf("waitForPageLoad() = %v, want nil once the request is answered", err)
 			}
 			if got := (<-responder).Error.ErrorType(); got != "element_not_ready" {
@@ -150,18 +159,18 @@ func TestFailedWait_LogsDetailsAtInfo(t *testing.T) {
 		msg  string
 	}{
 		"page load command fails": {
-			wait: func(w *browserSession, req *workerRequest) error { return w.waitForPageLoad(req, 100) },
+			wait: func(w *browserSession, req *workerRequest) error { return w.waitForPageLoad(req, w.conn, 100) },
 			conn: failingConnection{},
 			msg:  "Failed to wait for page load event",
 		},
 		"page never loads": {
-			wait: func(w *browserSession, req *workerRequest) error { return w.waitForPageLoad(req, 100) },
+			wait: func(w *browserSession, req *workerRequest) error { return w.waitForPageLoad(req, w.conn, 100) },
 			conn: notLoaded,
 			msg:  "Wait condition not satisfied within timeout",
 		},
 		"element command fails": {
 			wait: func(w *browserSession, req *workerRequest) error {
-				return w.waitForElement(req, "#ready", 100, false, false)
+				return w.waitForElement(req, w.conn, "#ready", 100, false, false)
 			},
 			conn: failingConnection{},
 			msg:  "Failed to wait for element",

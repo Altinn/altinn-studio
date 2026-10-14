@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Altinn.Studio.Observability.Proxy.Telemetry;
 using Yarp.ReverseProxy.Model;
 
 namespace Altinn.Studio.Observability.Proxy.Routing;
@@ -19,14 +20,49 @@ namespace Altinn.Studio.Observability.Proxy.Routing;
 /// failover is exactly when only one is.
 ///
 /// The choice lives in each proxy replica's memory. Replicas see the same health checks, so they
-/// normally agree, but a failure only one of them observed moves only that replica.
+/// normally agree, but a failure only one of them observed moves only that replica, and only a
+/// read moves it: a replica that serves no read while a copy is down stays where it was.
 /// </summary>
-internal sealed class StickyFailover(ILogger<StickyFailover> logger)
+internal sealed class StickyFailover(ILogger<StickyFailover> logger, ObservabilityProxyMetrics metrics)
 {
     private readonly ConcurrentDictionary<string, string> _current = new(StringComparer.Ordinal);
 
     /// <summary>The destination of <paramref name="clusterId"/> to read from, or <c>null</c> when none is healthy.</summary>
     public DestinationState? Choose(string clusterId, IReadOnlyList<DestinationState> availableDestinations)
+    {
+        var currentId = _current.GetValueOrDefault(clusterId);
+        var next = Select(currentId, availableDestinations);
+        if (next is null || string.Equals(next.DestinationId, currentId, StringComparison.Ordinal))
+        {
+            return next;
+        }
+
+        if (currentId is null)
+        {
+            _current.TryAdd(clusterId, next.DestinationId);
+        }
+        else if (_current.TryUpdate(clusterId, next.DestinationId, currentId))
+        {
+            logger.LogWarning(
+                "Reads for {Cluster} moved from {From} to {To}, and stay there until the proxy restarts",
+                clusterId,
+                currentId,
+                next.DestinationId
+            );
+            metrics.RecordFailover(clusterId, next.DestinationId);
+        }
+
+        return next;
+    }
+
+    /// <summary>
+    /// The destination <see cref="Choose"/> would return now, without moving reads there: the
+    /// current one while it is available, otherwise the one reads would move to.
+    /// </summary>
+    public DestinationState? Peek(string clusterId, IReadOnlyList<DestinationState> availableDestinations) =>
+        Select(_current.GetValueOrDefault(clusterId), availableDestinations);
+
+    private static DestinationState? Select(string? currentId, IReadOnlyList<DestinationState> availableDestinations)
     {
         ArgumentNullException.ThrowIfNull(availableDestinations);
 
@@ -35,7 +71,6 @@ internal sealed class StickyFailover(ILogger<StickyFailover> logger)
             return null;
         }
 
-        var currentId = _current.GetValueOrDefault(clusterId);
         if (currentId is not null)
         {
             foreach (var destination in availableDestinations)
@@ -54,20 +89,6 @@ internal sealed class StickyFailover(ILogger<StickyFailover> logger)
             {
                 next = destination;
             }
-        }
-
-        if (currentId is null)
-        {
-            _current.TryAdd(clusterId, next.DestinationId);
-        }
-        else if (_current.TryUpdate(clusterId, next.DestinationId, currentId))
-        {
-            logger.LogWarning(
-                "Reads for {Cluster} moved from {From} to {To}, and stay there until the proxy restarts",
-                clusterId,
-                currentId,
-                next.DestinationId
-            );
         }
 
         return next;

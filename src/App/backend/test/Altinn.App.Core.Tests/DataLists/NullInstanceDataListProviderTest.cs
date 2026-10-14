@@ -14,7 +14,7 @@ public class NullInstanceDataListProviderTest
         var provider = new NullInstanceDataListProvider();
 
         provider.Id.Should().Be(string.Empty);
-        var options = await provider.GetInstanceDataListAsync(
+        var options = await provider.GetInstanceDataList(
             new InstanceIdentifier(12345, Guid.NewGuid()),
             LanguageConst.Nb,
             new Dictionary<string, string>()

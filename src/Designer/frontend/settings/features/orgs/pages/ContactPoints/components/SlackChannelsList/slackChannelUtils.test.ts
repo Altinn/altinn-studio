@@ -8,6 +8,7 @@ const channel: SlackChannel = {
   webhookUrl: 'https://hooks.slack.com/services/abc',
   isActive: true,
   environments: ['tt02', 'production'],
+  reportFrequency: 'none',
 };
 
 const channelNoWebhook: SlackChannel = {
@@ -15,6 +16,7 @@ const channelNoWebhook: SlackChannel = {
   webhookUrl: '',
   isActive: false,
   environments: [],
+  reportFrequency: 'none',
 };
 
 describe('slackChannelToPayload', () => {
@@ -43,6 +45,7 @@ const contactPointWithSlack: ContactPoint = {
   name: 'general',
   isActive: true,
   environments: ['tt02'],
+  reportFrequency: 'none',
   methods: [{ id: 'm1', methodType: 'slack', value: 'https://hooks.slack.com/services/abc' }],
 };
 
@@ -51,6 +54,7 @@ const contactPointNoSlack: ContactPoint = {
   name: 'alerts',
   isActive: false,
   environments: [],
+  reportFrequency: 'none',
   methods: [],
 };
 

@@ -52,6 +52,67 @@ func TestClassify(t *testing.T) {
 		{name: "v8 custom route", url: app + "#/custom?pdf=1", want: KindAppOther},
 		{name: "app API", url: app + "api/v1/data", want: KindAppOther},
 
+		{name: "cluster local http", url: "http://myapp.default.svc.cluster.local/ttd/app/", want: KindClusterLocal},
+		{name: "cluster local https", url: "https://myapp.default.svc.cluster.local/ttd/app/", want: KindClusterLocal},
+		{
+			name: "cluster local port",
+			url:  "http://myapp.default.svc.cluster.local:5005/ttd/app/",
+			want: KindClusterLocal,
+		},
+		{name: "cluster local short form", url: "http://myapp.default.svc/ttd/app/", want: KindClusterLocal},
+		{name: "cluster local short form port", url: "http://myapp.default.svc:80/", want: KindClusterLocal},
+		{name: "cluster local trailing dot", url: "http://myapp.default.svc.cluster.local./", want: KindClusterLocal},
+		{name: "cluster local short form trailing dot", url: "http://myapp.default.svc./", want: KindClusterLocal},
+		{
+			name: "cluster local mixed case",
+			url:  "HTTP://MyApp.Default.SVC.Cluster.Local/ttd/app/",
+			want: KindClusterLocal,
+		},
+		{name: "cluster local user info", url: "http://user@myapp.default.svc.cluster.local/", want: KindClusterLocal},
+		{
+			name: "cluster local backslash",
+			url:  `http://myapp.default.svc.cluster.local\ttd\app\`,
+			want: KindClusterLocal,
+		},
+		{
+			name: "cluster local behind backslash",
+			url:  `http://myapp.default.svc.cluster.local\@example.com/`,
+			want: KindClusterLocal,
+		},
+		{
+			name:       "cluster local lookalike",
+			url:        "https://x.svc.cluster.local.evil.com/ttd/app/",
+			want:       KindOther,
+			wantReason: "host",
+		},
+		{
+			name:       "cluster localhost lookalike",
+			url:        "https://foo.cluster.localhost/",
+			want:       KindOther,
+			wantReason: "host",
+		},
+		{name: "svc lookalike", url: "https://myapp.svc.example.com/", want: KindOther, wantReason: "host"},
+		{
+			name:       "cluster local in user info behind backslash",
+			url:        `http://example.com\@myapp.default.svc.cluster.local/`,
+			want:       KindOther,
+			wantReason: "invalid",
+		},
+		{
+			name:       "cluster local in path",
+			url:        "http://example.com/myapp.default.svc.cluster.local",
+			want:       KindOther,
+			wantReason: "scheme",
+		},
+		{
+			name:       "cluster local unparsable",
+			url:        "http://myapp.default.svc.cluster.local/\n",
+			want:       KindOther,
+			wantReason: "invalid",
+		},
+		{name: "private IP", url: "http://10.0.0.1/ttd/app/", want: KindOther, wantReason: "scheme"},
+		{name: "single label host", url: "http://myapp/ttd/app/", want: KindOther, wantReason: "scheme"},
+
 		{
 			name:       "other host",
 			url:        "https://example.com/ttd/frontend-test/" + instance + "?pdf=1",
