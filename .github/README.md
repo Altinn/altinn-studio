@@ -50,12 +50,3 @@ The LocalTest image cache references also have consumers in the CLI's
 
 Use fallback restore keys for dependency caches, but require exact matches for caches keyed by their contents.
 Put tools that every run needs in the [runner image](../src/ci/github-runner/Dockerfile).
-
-## Check failures
-
-Before investigating missing checks, check whether the pull request has merge conflicts.
-GitHub cannot run `pull_request` workflows against a merge commit it cannot create.
-
-A check watcher can finish before all expected workflows have registered. Confirm that the expected runs exist
-and inspect their conclusions before reporting success. For a failed matrix, find the job that failed first.
-Other jobs may have been canceled by fail-fast.
