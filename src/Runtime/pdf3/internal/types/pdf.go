@@ -250,15 +250,6 @@ func RequestTimeout() time.Duration {
 	return time.Duration(RequestTimeoutMs) * time.Millisecond
 }
 
-// The proxy's retries of a worker whose queue is full (429) or that it can't reach. It makes up to
-// WorkerMaxAttempts attempts, the first included, waiting WorkerRetryDelay between them, so it
-// may look for a free worker for about 10 seconds before the request's own RequestTimeout starts.
-// If the cluster has capacity, a new worker pod boots in 2-10 seconds.
-const (
-	WorkerMaxAttempts = 40
-	WorkerRetryDelay  = 250 * time.Millisecond
-)
-
 // MaxWaitForTimeout returns the maximum WaitFor timeout as a time.Duration.
 // This is the maximum time users can configure for waiting for page elements.
 func MaxWaitForTimeout() time.Duration {

@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -16,6 +18,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
+	ihttp "altinn.studio/pdf3/internal/http"
 	"altinn.studio/pdf3/internal/serviceowner"
 	"altinn.studio/pdf3/internal/telemetry/attr"
 )
@@ -182,6 +185,80 @@ func TestGeneratePdf_ServiceOwnerAndApp(t *testing.T) {
 				if want != "" && got.AsString() != want {
 					t.Errorf("span %s = %q, want %q", key, got.AsString(), want)
 				}
+			}
+		})
+	}
+}
+
+// TestGeneratePdf_OversizedBody pins how the proxy answers a body over its limit, which the relay
+// must answer the same way (TestRelayAnswersOversizedBodiesAsTheProxy in cmd/relay).
+func TestGeneratePdf_OversizedBody(t *testing.T) {
+	t.Parallel()
+
+	oversized := `{"url":"https://ttd.apps.tt02.altinn.no/` + strings.Repeat("x", 64*1024) + `"}`
+	tests := []struct {
+		name          string
+		contentType   string
+		want          ihttp.ProblemDetails
+		contentLength int64
+	}{
+		{
+			name:          "with Content-Length",
+			contentType:   "application/json",
+			contentLength: int64(len(oversized)),
+			want: ihttp.ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.11",
+				Title:  "Request Entity Too Large",
+				Status: http.StatusRequestEntityTooLarge,
+				Detail: "Request body too large (max 65536 bytes)",
+			},
+		},
+		{
+			name:          "chunked",
+			contentType:   "application/json",
+			contentLength: -1,
+			want: ihttp.ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+				Title:  "Bad Request",
+				Status: http.StatusBadRequest,
+				Detail: "Invalid JSON payload: http: request body too large",
+			},
+		},
+		{
+			name:          "not JSON",
+			contentType:   "text/plain",
+			contentLength: int64(len(oversized)),
+			want: ihttp.ProblemDetails{
+				Type:   "https://tools.ietf.org/html/rfc7231#section-6.5.13",
+				Title:  "Unsupported Media Type",
+				Status: http.StatusUnsupportedMediaType,
+				Detail: "Content-Type must be application/json",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			handler := generatePdf(
+				slog.New(slog.DiscardHandler),
+				&http.Client{Transport: failingTransport{}},
+				"http://worker",
+				"",
+				"",
+			)
+			r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/pdf", strings.NewReader(oversized))
+			r.Header.Set("Content-Type", tt.contentType)
+			r.ContentLength = tt.contentLength
+			w := httptest.NewRecorder()
+			handler(w, r)
+
+			var got ihttp.ProblemDetails
+			if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil {
+				t.Fatalf("Unmarshal(%q) error = %v", w.Body.String(), err)
+			}
+			if w.Code != tt.want.Status || !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("response = %d %+v, want %+v", w.Code, got, tt.want)
 			}
 		})
 	}

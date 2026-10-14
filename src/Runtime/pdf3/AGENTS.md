@@ -84,7 +84,12 @@ make check                # Complete CI check (tidy, fmt, lint, test)
    - Endpoint: `POST /pdf` - sends the request to `PDF3_UPSTREAM_URL` with the key in
      `PDF3_API_KEY_FILE` and the cluster's `PDF3_SERVICEOWNER` in `X-Altinn-Service-Owner`
    - Only retries requests that failed to connect; the shared proxy retries busy workers
-   - Waits as long as the shared proxy's retries and a render may take (`types.WorkerMaxAttempts`)
+   - Waits up to 2 minutes, a safety net above apps' own 100-second timeout, which is what ends a
+     slow request on the local path, as the local proxy has no overall deadline
+   - Answers a request it can't forward (wrong `Content-Type`, body over 64 KiB) as the local proxy does
+   - Sends only the trace context upstream, not baggage
+   - Aborts a response that fails after its status is sent, so an app never gets a cut-off PDF
+     with 200; a shutdown is logged as a warning, an app that disconnected at INFO
    - Doesn't follow redirects, and answers an upstream 3xx, 401 or 403 with 502, as apps can't fix them
    - Ships in the proxy image as `./relay`
 

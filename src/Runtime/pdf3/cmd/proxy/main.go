@@ -246,8 +246,13 @@ func generatePdf(
 			return
 		}
 
-		// Start generating the PDF with some (rather dumb) retry logic, see types.WorkerMaxAttempts.
-		const maxRetries = types.WorkerMaxAttempts
+		// Start generating the PDF with some (rather dumb) retry logic
+		// Retry logic:
+		//   Max 40 retry attempts on 429 (queue full) errors,
+		//   while waiting 250ms in between attempts
+		//   means we might try to allocate a worker for 10 seconds before giving up.
+		//   If the cluster has available capacity a pod can boot in 2-10 seconds
+		const maxRetries = 40
 		reqLogger := logger.With(attr.RequestURL, telemetry.RedactURL(req.URL), attr.MaxRetries, maxRetries)
 		reqLogger.Info("Generating PDF")
 
@@ -362,7 +367,7 @@ func callWorker(
 				attr.Error, err,
 			)
 			select {
-			case <-time.After(types.WorkerRetryDelay):
+			case <-time.After(250 * time.Millisecond):
 			case <-ctx.Done():
 			}
 			return false
@@ -419,7 +424,7 @@ func callWorker(
 			attr.ElapsedMs, time.Since(start).Milliseconds(),
 		)
 		select {
-		case <-time.After(types.WorkerRetryDelay):
+		case <-time.After(250 * time.Millisecond):
 		case <-ctx.Done():
 		}
 		return false

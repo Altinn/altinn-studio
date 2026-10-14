@@ -61,7 +61,8 @@ func main() {
 
 	go keys.Watch(host.ServerContext(), auth.ReloadInterval)
 
-	rl := newRelay(logger, upstream, keys, cfg.ServiceOwner)
+	// The host cancels the server's context, and so every request, when it stops waiting for them.
+	rl := newRelay(logger, upstream, keys, cfg.ServiceOwner, func() bool { return host.ServerContext().Err() != nil })
 
 	// Probes only reflect this process, so an unreachable upstream doesn't take the relay out of rotation.
 	http.HandleFunc("/health/startup", func(w http.ResponseWriter, r *http.Request) {
