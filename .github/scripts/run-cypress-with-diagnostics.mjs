@@ -219,6 +219,8 @@ async function nativeBrowserStacks(processes) {
           '-ex',
           `python assert gdb.selected_inferior().pid == ${target.pid}`,
           '-ex',
+          "python print('Executable:', gdb.current_progspace().filename); print('Build ID:', gdb.objfiles()[0].build_id)",
+          '-ex',
           'info proc mappings',
           '-ex',
           'thread apply all bt 30',
