@@ -199,7 +199,7 @@ const buildDataTypeForFileUpload = (
     taskId,
     maxSize: component.maxFileSizeInMB,
     maxCount: component.maxNumberOfAttachments,
-    minCount: shouldUpdateMinCount(oldDataType, oldComponent)
+    minCount: shouldUpdateMinCount(component, oldDataType, oldComponent)
       ? component.minNumberOfAttachments
       : oldDataType.minCount,
   };
@@ -225,15 +225,20 @@ const buildDataTypeForFileUpload = (
 };
 
 /**
- * minCount follows the component's minNumberOfAttachments, unless it was lower before the save. A lower minCount
- * has been set on purpose, typically 0 on an attachment that is required only while the component is shown, since
- * the backend counts data elements for the whole task and does not check `hidden`. A higher minCount would make
- * the backend stricter than the form, so it is updated.
+ * minCount follows the component's minNumberOfAttachments, unless it was lower before the save and is not higher
+ * than the new minNumberOfAttachments. A lower minCount has been set on purpose, typically 0 on an attachment that
+ * is required only while the component is shown, since the backend counts data elements for the whole task and
+ * does not check `hidden`. A higher minCount would make the backend stricter than the form, so it is updated.
  */
 const shouldUpdateMinCount = (
+  component: FormFileUploaderComponent,
   oldDataType?: ApplicationAttachmentMetadata,
   oldComponent?: FormFileUploaderComponent,
-): boolean =>
-  oldDataType === undefined ||
-  oldComponent === undefined ||
-  (oldDataType.minCount ?? 0) >= (oldComponent.minNumberOfAttachments ?? 0);
+): boolean => {
+  if (oldDataType === undefined || oldComponent === undefined) return true;
+  const oldMinCount = oldDataType.minCount ?? 0;
+  return (
+    oldMinCount >= (oldComponent.minNumberOfAttachments ?? 0) ||
+    oldMinCount > (component.minNumberOfAttachments ?? 0)
+  );
+};
