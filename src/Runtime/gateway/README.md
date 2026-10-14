@@ -6,53 +6,68 @@ The gateway is Altinn Studio's API in each [runtime cluster](../../../docs/infra
 
 ### Designer
 
-- Designer calls the gateway through
-  [`RuntimeGatewayClient`](../../Designer/backend/src/Designer/TypedHttpClients/RuntimeGateway/RuntimeGatewayClient.cs)
-  to list the apps it deployed, trigger Flux to reconcile them, and read metrics and alert rules.
-- The gateway's routes are under `/runtime/gateway/api/v1` on the cluster's apps domain.
-- Designer sends a Maskinporten token for the `altinn:studio/gateway` scope.
-- Production clusters accept only production Maskinporten tokens, which limits their callers to altinn.studio.
-- Several Studio environments can deploy to the same cluster. Deploy requests name the calling Studio environment in
-  the path, and `metrics/report` names it in the `originEnvironment` query parameter.
+Designer calls the gateway through
+[`RuntimeGatewayClient`](../../Designer/backend/src/Designer/TypedHttpClients/RuntimeGateway/RuntimeGatewayClient.cs)
+to list the apps it deployed, trigger Flux to reconcile them, and read metrics and alert rules.
+Several Studio environments can deploy to the same cluster, so requests identify the calling Studio environment.
+
+The gateway's public API uses Maskinporten authentication with the `altinn:studio/gateway` scope.
+The [production configuration](src/Altinn.Studio.Gateway.Api/appsettings.prod.json) accepts only tokens from production
+Maskinporten. The [authorization policy](src/Altinn.Studio.Gateway.Api/Authentication/MaskinportenAuthenticationExtensions.cs)
+requires that scope.
 
 ### App releases
 
-- [`deploy-app.yaml`](../../App/azure-pipelines/deploy-app.yaml) names each app's Flux `HelmRelease`
-  `{org}-{app}-{studio-env}` and sets its `altinn.studio/*` labels.
-- The gateway finds the app and its Studio environment in those labels. Once a release is deleted, it uses the name
-  instead.
-- When you change the labels or the name, change `deploy-app.yaml` and the gateway together.
-- [`flux-config`](../../../infra/runtime/flux-config/flux-config.yaml) makes Flux post release events to the gateway's
-  internal port.
-- The gateway sends install, upgrade and uninstall results to the Designer that deployed the app.
+[`deploy-app.yaml`](../../App/azure-pipelines/deploy-app.yaml) names each app's Flux `HelmRelease`
+`{org}-{app}-{studio-env}` and sets its `altinn.studio/*` labels. The gateway uses those labels to identify the app
+and the Studio environment that deployed it. After deletion, the gateway identifies the release from its name instead.
+The pipeline and the gateway must use the same names and labels.
+
+The [Flux configuration](../../../infra/runtime/flux-config/flux-config.yaml) directs release events to the gateway's
+internal port. The [webhook handler](src/Altinn.Studio.Gateway.Api/Endpoints/Internal/FluxWebhookEndpoints.cs) uses the
+release's Studio environment to send install, upgrade, and uninstall results to the Designer that deployed the app.
 
 ### Alerts and metrics
 
-- In tt02 and prod, Grafana posts alerts to the gateway through the contact point in
-  [`grafana-manifests`](../../../infra/runtime/grafana-manifests).
-- The gateway forwards each alert to Designer with a link to the logs.
-- [`HandleAlerts`](src/Altinn.Studio.Gateway.Api/Application/Alerts/HandleAlerts.cs) picks the Designer from the
-  `DesignerEnvironment` label. Nothing sets that label, so alerts always go to production Designer.
-- The gateway reads metrics from the service owner's Log Analytics workspace with its own workload identity.
+In `tt02` and `prod`, Grafana posts alerts through the
+[gateway contact point](../../../infra/runtime/grafana-manifests/contact-points/altinn-studio-gateway.yaml).
+The gateway forwards alerts to Designer with a link to the logs.
+[`HandleAlerts`](src/Altinn.Studio.Gateway.Api/Application/Alerts/HandleAlerts.cs) selects the Studio environment from
+the `DesignerEnvironment` label and defaults to `prod`. The
+[alert rules](../../../infra/runtime/grafana-manifests/alert-rules/altinn-apps.yaml) do not set that label, so alerts from
+these rules go to production Designer.
+
+The gateway reads metrics from the service owner's Log Analytics workspace with its own workload identity.
 
 ### The operator
 
-- The [operator](../operator/README.md) copies the gateway's Maskinporten client from the environment's Key Vault. The
-  gateway uses this client to call Designer.
-- The Grafana operator creates the gateway's Grafana token. The operator then copies it to the gateway.
-- Outside production, the operator's inactivity scaler can scale the gateway down.
+The [operator](../operator/README.md) copies the gateway's Maskinporten client credentials from the environment's
+Key Vault. The gateway uses these credentials to call Designer. The operator also copies the Grafana token,
+created by the Grafana operator, to the gateway.
+
+Outside production, the operator's inactivity scaler can scale the gateway down.
+
+## Deployment
+
+The [gateway deployment workflow](../../../.github/workflows/deploy-runtime-gateway.yaml) builds the image and publishes
+the deployment configuration as an OCI artifact. The
+[runtime syncroot](../../../infra/runtime/syncroot/base/gateway.yaml) configures Flux to apply that artifact using the
+cluster's release ring and environment. The shared [environment documentation](../../../docs/infrastructure/environments.md#deployment-configuration)
+links to deployment targets and approval settings.
 
 ## Developing
 
-- `make help` lists the targets.
-- `make test-e2e` runs the gateway's image in a Kind cluster with Flux. It needs Docker or Podman.
-- The e2e test leaves the cluster running, and `make stop` removes it.
-- The image is built with native AOT, and the unit tests are not. Only `make test-e2e` catches AOT failures.
+The [Makefile](Makefile) defines the build and test commands. `make help` lists the targets.
+`make test-e2e` runs the gateway's image in a Kind cluster with Flux and requires Docker or Podman.
+The test leaves the cluster running, and `make stop` removes it.
+
+The [Dockerfile](Dockerfile) builds the image with native AOT. Unit tests do not run that image, so the e2e tests are
+needed to check behavior after AOT compilation.
 
 ## Constraints
 
-- The internal port does not authenticate requests. Its `NetworkPolicy` protects it by admitting traffic from
-  `flux-system` alone.
-- Put endpoints that need authentication on the public port.
-- In tt02 and prod, options validation requires the Grafana token. The gateway crash-loops at start until the token
-  exists.
+- The internal port does not authenticate requests. Its
+  [network policy](infra/kustomize/base/networkpolicy.yaml) admits traffic from `flux-system`.
+  Endpoints that need authentication belong on the public port.
+- In `tt02` and `prod`, [options validation](src/Altinn.Studio.Gateway.Api/Hosting/GatewayExtensions.cs) requires the Grafana
+  token. The gateway cannot start until the operator supplies it.
