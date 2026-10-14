@@ -16,6 +16,19 @@ Part of the [Runtime services](../AGENTS.md). Full details: [`README.md`](README
   rebuilding (`STUDIOCTL_INTERNAL_DEV=true studioctl env up`). See `README.md` for how the two combine.
 - k6 sample load test (`k6/loadtest.sample.js`) that can be adapted to run against a local app.
 
+## Correspondence
+
+Localtest emulates the Correspondence API apps use to send messages, such as the signing call to action each
+signee receives. `studioctl` points `PlatformSettings__ApiCorrespondenceEndpoint` at it.
+
+- `POST correspondence/api/v1/correspondence` creates one correspondence per recipient, with status
+  `Initialized` (nothing publishes it further). `GET …/correspondence/{id}/details` returns it.
+- **`idempotentKey` is load-bearing:** a reused key answers 409 Conflict, which apps treat as "already sent"
+  when they retry. Duplicate detection runs under a lock, so concurrent sends with one key create one message.
+- Attachments are not emulated (501).
+- Each correspondence is stored as `{correspondenceId}.json` in the `correspondence` folder under the storage
+  path, with the request body the app sent, so you can see exactly what went out.
+
 ## Build & run
 
 `LocalTest.sln` / `src/LocalTest.csproj` is a normal .NET project:
