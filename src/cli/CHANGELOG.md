@@ -14,6 +14,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `studioctl app upgrade v9` removes the `JsonObjectInDataResponse` feature flag from the appsettings files, and points out when it was off, since clients of the data API then get validation issues as JSON instead of text. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
 - Localtest answers the Correspondence API, so apps that send messages, such as the signing call to action and the receipt with the signed documents, work locally. Messages are published at once, and their email and SMS notifications are recorded, not sent. Localtest checks requests against selected rules of the real API, with the same error codes. ([#21177](https://github.com/Altinn/altinn-studio/pull/21177))
+- `studioctl env up --monitoring` shows the workflow engine's traces, metrics and logs, as service `workflow-engine-app`, and adds a Workflow Engine dashboard to Grafana.
 
 ### Changed
 
