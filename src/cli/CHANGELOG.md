@@ -34,6 +34,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - _Feil_ shows one total of server errors instead of one value per endpoint with an "SMS" unit
     - panels show "No data" instead of 0 when the app does not report the metric
 - `studioctl app upgrade v9` renames every call to an app's own `Analyse` method on an `IFileAnalyser` implementation, even when the call is in a different file from the class. Some were left unchanged, and the app then failed to build.
+- Payment, signing and PDF tasks no longer fail to store the file they generate, such as the receipt after the user has paid, in apps upgraded with `studioctl app upgrade v9`. Run it again to fix an upgraded app. ([#21119](https://github.com/Altinn/altinn-studio/pull/21119))
 
 ## [0.1.0-preview.28] - 2026-10-07
 
