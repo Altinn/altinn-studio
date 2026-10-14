@@ -11,7 +11,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- Breaking: app library methods no longer end in `Async`, for example `IAppOptionsProvider.GetAppOptions`, `IDataListProvider.GetDataList`, `IProcessExclusiveGateway.Filter` and `ISecretsClient.GetSecret`. Rename your implementations and calls; `studioctl app upgrade v9` does this for you. ([#19774](https://github.com/Altinn/altinn-studio/issues/19774))
 - Breaking: the data API returns its errors as JSON, and the `JsonObjectInDataResponse` feature flag is removed. `studioctl app upgrade v9` removes the flag from the app. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
   - the obsolete `POST .../data?dataType=` returns a list of validation issues
   - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
@@ -19,7 +18,17 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - The OpenAPI description of the data API lists its error responses, and shows that creating data returns 200, not 201.
-- A service task that gives up when `Wait.IsFinalCheck` is `true` can no longer fail with the generic error for an exhausted wait budget instead of its own. In unit tests, set `IsFinalCheck` directly: a past `Deadline` no longer implies it.
+
+## [9.0.0-preview.8] - 2026-10-14
+
+### Changed
+
+- Breaking: the app libraries target .NET 11 RC2. ([#21108](https://github.com/Altinn/altinn-studio/pull/21108))
+- Breaking: app library methods no longer end in `Async`, for example `IAppOptionsProvider.GetAppOptions`, `IDataListProvider.GetDataList`, `IProcessExclusiveGateway.Filter` and `ISecretsClient.GetSecret`. Rename your implementations and calls; `studioctl app upgrade v9` does this for you. ([#19774](https://github.com/Altinn/altinn-studio/issues/19774))
+
+### Fixed
+
+- A service task that gives up when `Wait.IsFinalCheck` is `true` can no longer fail with the generic error for an exhausted wait budget instead of its own. In unit tests, set `IsFinalCheck` directly: a past `Deadline` no longer implies it. ([#20999](https://github.com/Altinn/altinn-studio/pull/20999))
 - Pages and components listed in `excludeFromPdf` in a task's `Settings.json` are now left out of the PDF that a PDF service task creates for that task through `autoPdfTaskIds`. ([#21107](https://github.com/Altinn/altinn-studio/issues/21107))
 
 ### Removed
