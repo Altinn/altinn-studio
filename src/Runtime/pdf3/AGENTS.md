@@ -193,7 +193,10 @@ namespace.
 - `base/` - What every environment gets: the ApplicationIdentity and Key Vault `pdf3`
 - `<env>/` - Applied by the platform. It only holds the Flux Kustomization `pdf3` (`app.yaml`),
   which applies `./<env>/app` from the same artifact with pruning, so removing a resource from
-  the manifests deletes it
+  the manifests deletes it. The Vault and the ApplicationIdentity are the exception: they are
+  annotated `kustomize.toolkit.fluxcd.io/prune: disabled`, so removing them takes a manual
+  `kubectl delete`. Deleting the Vault deletes the Key Vault, and purge protection keeps its name
+  taken for the 90 days of soft delete
 - `<env>/app/` - The environment's overlay of `base/`
 
 **Publishing**: `.github/workflows/deploy-dis-pdf3-syncroot.yaml` pushes `infra/syncroot` as

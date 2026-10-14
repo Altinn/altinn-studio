@@ -7,6 +7,7 @@ on:
     paths:
       - src/Runtime/pdf3/**
       - .github/workflows/deploy-runtime-pdf3.yaml
+      - "!**/AGENTS.md"
       # DIS Core's manifests, published by deploy-dis-pdf3-syncroot.yaml.
       - "!src/Runtime/pdf3/infra/syncroot/**"
   workflow_dispatch:

@@ -4,4 +4,9 @@ apiVersion: application.dis.altinn.cloud/v1alpha1
 kind: ApplicationIdentity
 metadata:
   name: pdf3
+  annotations:
+    # Flux never deletes it, not even when it is removed from the manifests or the Kustomization
+    # pdf3 is deleted. Deleting it deletes the managed identity the Vault and its SecretStore
+    # authenticate as, and a recreated one is a new principal. Removing it is a manual step.
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec: {}

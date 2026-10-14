@@ -7,6 +7,7 @@ on:
     paths:
       - src/Runtime/pdf3/infra/syncroot/**
       - .github/workflows/deploy-dis-pdf3-syncroot.yaml
+      - "!**/AGENTS.md"
   workflow_dispatch:
 
 permissions:
