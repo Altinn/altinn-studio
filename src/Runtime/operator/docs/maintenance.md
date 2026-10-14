@@ -2,7 +2,7 @@
 
 ## Updating the Maskinporten API models
 
-The Go models for Maskinporten's self-service API are not generated. When the API changes:
+The Go models for Maskinporten's self-service API are written by hand. Follow these steps when the API changes.
 
 1. Download the [specification](https://api.samarbeid.digdir.dev/v3/api-docs/altinn-admin) to
    [`schemas/spec.json`](../schemas/spec.json).
@@ -14,10 +14,10 @@ The [Swagger UI](https://api.samarbeid.digdir.dev/swagger-ui/index.html) and the
 
 ## Upgrading Kubebuilder
 
-When Kubebuilder releases a new major version:
+Follow these steps when Kubebuilder releases a new major version.
 
 1. Upgrade the Kubebuilder CLI.
-2. Scaffold a new project in an empty directory, with a CRD that we use:
+2. Scaffold a new project with one of our CRDs in an empty directory.
 
     ```sh
     kubebuilder init --domain altinn.studio --repo altinn.studio/operator --project-name operator
@@ -25,31 +25,33 @@ When Kubebuilder releases a new major version:
     make manifests
     ```
 
-3. Compare it with this project, and search for hard-coded versions.
+3. Compare the new project with this one, and look for hard-coded versions.
 4. Run the builds, tests and linters.
 
 ## The operator's own Maskinporten client
 
-- Its name in Maskinporten's self-service UI is `altinn_apps_supplier_client`.
-- Its ID and JWK are in the environment's Azure Key Vault. The operator rereads them without a restart.
+- The client is named `altinn_apps_supplier_client` in Maskinporten's self-service UI.
+- Its ID and JWK are stored in the environment's Azure Key Vault. The operator rereads them, so it does not need a
+  restart when they change.
 
-To renew the JWK, or set up the client in a new environment:
+Follow these steps to renew the JWK or to set up the client in a new environment.
 
-1. In a new environment, create the client in the self-service UI.
-2. Create a JWK. The command prints the private JWK, then the public JWK. Without `-not-after`, the certificate
-   expires after a year.
+1. If the environment is new, create the client in the self-service UI.
+2. Create a JWK. The command prints the private JWK first and then the public JWK. The certificate expires after a
+   year unless you set `-not-after`.
 
     ```sh
     go run cmd/utils/main.go create jwk -cert-org Digdir -cert-cn altinn_studio_operator_supplier_client
     ```
 
 3. Add the public JWK to the client in the self-service UI.
-4. Write the client ID and private JWK to the Key Vault with `go run cmd/utils/main.go init env`. Add `-force` to
-   overwrite existing secrets. Set an expiry on the secrets in Key Vault that matches the certificate's.
+4. Write the client ID and the private JWK to Key Vault with `go run cmd/utils/main.go init env`. Add `-force` to
+   overwrite existing secrets.
+5. In Key Vault, set the secrets' expiry date to the certificate's expiry date.
 
-To try the client against the API:
+Follow these steps to test the client against the API.
 
-- Sign in with `az` to an account that can read the environment's Key Vault.
-- Write an `<env>.env` file with the settings from `config/<env>/operator-config-patch.yaml`, in the format of
-  [`localtest.env`](../localtest.env).
-- `go run cmd/utils/main.go` lists the commands.
+1. Sign in with `az` to an account that can read the environment's Key Vault.
+2. Write an `<env>.env` file with the settings from `config/<env>/operator-config-patch.yaml`. Use the format of
+   [`localtest.env`](../localtest.env).
+3. Run `go run cmd/utils/main.go` to list the available commands.

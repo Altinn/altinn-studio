@@ -1,25 +1,29 @@
 # Altinn Studio Operator
 
-Kubernetes operator in every [runtime cluster](../../../docs/infrastructure/environments.md#runtime-clusters).
+This Kubernetes operator runs in every [runtime cluster](../../../docs/infrastructure/environments.md#runtime-clusters).
 
-- Does the cluster-side work for apps, such as Maskinporten clients, secrets, alert routing and databases.
-- Each job is a controller in [`internal/controller`](internal/controller), registered in [`cmd/main.go`](cmd/main.go).
+- It does the cluster-side work for apps, such as Maskinporten clients, secrets, alert routing and databases.
+- Each task has its own controller in [`internal/controller`](internal/controller).
+  [`cmd/main.go`](cmd/main.go) registers the controllers.
 
 ## How it fits with the rest
 
 - [`deploy-app.yaml`](../../App/azure-pipelines/deploy-app.yaml) creates a `MaskinportenClient` resource for each
-  app that needs Maskinporten scopes. The operator creates the client in Maskinporten and writes its credentials to
-  the app's secret.
-- The inactivity scaler runs outside production:
-    - In clusters with no apps, it scales the gateway and [pdf3](../pdf3/README.md) down to one replica.
-    - In `ttd`'s clusters, it also scales apps, the gateway and pdf3 down outside working hours.
-    - pdf3's README describes what this means for pdf3.
+  app that needs Maskinporten scopes. The operator then creates the client in Maskinporten and writes its
+  credentials to the app's secret.
+- Outside production, the inactivity scaler scales workloads down to one replica.
+    - In clusters with no apps, it scales down the gateway and pdf3.
+    - In `ttd`'s clusters, it also scales down apps, the gateway and pdf3 outside working hours.
+    - The [pdf3 README](../pdf3/README.md) describes how this affects pdf3.
 
 ## Developing
 
 - The tests need Docker or Podman.
-- Outside CI, `make test` and `make test-e2e` update changed snapshots instead of failing.
+- When run outside CI, `make test` and `make test-e2e` update changed snapshots instead of failing.
 - `make test-e2e` leaves its Kind cluster running. `make stop` removes it.
-- Flux never deletes the operator's CRDs, so removing one is manual. See
-  [`config/crd/kustomization.yaml`](config/crd/kustomization.yaml).
-- Recurring maintenance: [`docs/maintenance.md`](docs/maintenance.md).
+- [`docs/maintenance.md`](docs/maintenance.md) describes recurring maintenance tasks.
+
+## Constraints
+
+- Flux never deletes the operator's CRDs. If a CRD is removed from the manifests, someone must delete it from the
+  cluster by hand. [`config/crd/kustomization.yaml`](config/crd/kustomization.yaml) explains why.
