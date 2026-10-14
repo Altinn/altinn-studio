@@ -361,7 +361,7 @@ def _code_without_docstrings(source: str) -> str | None:
 def read_working_tree(path: str) -> str | None:
     try:
         return (ASSISTANT_ROOT / path).read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError):
+    except OSError, UnicodeDecodeError:
         return None
 
 

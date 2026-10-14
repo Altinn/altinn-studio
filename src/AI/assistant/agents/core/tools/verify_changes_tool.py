@@ -294,7 +294,7 @@ def _text_keys_by_language(repo: Path) -> dict[str, set[str]]:
 def _read_text_keys(resource_path: Path) -> set[str] | None:
     try:
         parsed = json.loads(resource_path.read_text(encoding=_JSON_FILE_ENCODING))
-    except (OSError, json.JSONDecodeError):
+    except OSError, json.JSONDecodeError:
         return None
     return {
         entry["id"]
@@ -325,7 +325,7 @@ def _read_page_order(settings_path: Path) -> list[str] | None:
     """Return `pages.order` from a layout-set Settings.json, or None."""
     try:
         settings = json.loads(settings_path.read_text(encoding=_JSON_FILE_ENCODING))
-    except (OSError, json.JSONDecodeError):
+    except OSError, json.JSONDecodeError:
         return None
     order = (settings.get("pages") or {}).get("order")
     if isinstance(order, list) and all(isinstance(p, str) for p in order):
@@ -345,7 +345,7 @@ def _read_layout_components(layout_path: Path) -> list[Any] | None:
     """Return `data.layout`, or None when the file is unreadable or has no layout list."""
     try:
         parsed = json.loads(layout_path.read_text(encoding=_JSON_FILE_ENCODING))
-    except (OSError, json.JSONDecodeError):
+    except OSError, json.JSONDecodeError:
         return None
     layout = ((parsed.get("data") or {}).get("layout")) if isinstance(parsed, dict) else None
     return layout if isinstance(layout, list) else None

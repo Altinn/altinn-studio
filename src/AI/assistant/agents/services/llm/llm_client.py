@@ -217,7 +217,7 @@ class LLMClient:
 
         self.use_anthropic = True
 
-    def _require_anthropic_client(self) -> "Anthropic":
+    def _require_anthropic_client(self) -> Anthropic:
         if self.anthropic_client is None:
             raise ValueError("Anthropic client not initialized")
         return self.anthropic_client

@@ -98,7 +98,7 @@ async def _receive_initial_registration(ws: WebSocket):
                 )
             elif msg_type == "session":
                 return data.get("session_id"), data.get("developer")
-    except (WebSocketDisconnect, Exception):
+    except WebSocketDisconnect, Exception:
         return None, None
 
 
@@ -176,7 +176,7 @@ def register_websocket_routes(app: FastAPI):
                                     "developer": new_developer,
                                 },
                             )
-            except (WebSocketDisconnect, Exception):
+            except WebSocketDisconnect, Exception:
                 pass
 
         except Exception as e:

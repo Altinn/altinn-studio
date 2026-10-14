@@ -70,7 +70,7 @@ def signature(text: str | None) -> tuple[str, ...] | None:
         return None
     try:
         parsed = json.loads(text)
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         return None
     if not isinstance(parsed, (dict, list)):
         return None
