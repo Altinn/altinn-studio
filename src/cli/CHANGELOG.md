@@ -37,6 +37,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - The App dashboard in `studioctl env up --monitoring`: ([#20578](https://github.com/Altinn/altinn-studio/pull/20578))
     - _Feil_ shows one total of server errors instead of one value per endpoint with an "SMS" unit
     - panels show "No data" instead of 0 when the app does not report the metric
+- The _App_ and _ASP.NET Core_ dashboards in `studioctl env up --monitoring`: ([#21194](https://github.com/Altinn/altinn-studio/pull/21194))
+    - count an app's first forms, errors and requests, such as a single 500 or one completed form, which showed as 0 or "No data"
+    - _Errors Rate_ counts each request once, so fast errors are no longer overstated
+    - _Feil_ shows 0 when the app has no server errors
 - `studioctl app upgrade v9` renames every call to an app's own `Analyse` method on an `IFileAnalyser` implementation, even when the call is in a different file from the class. Some were left unchanged, and the app then failed to build. ([#21047](https://github.com/Altinn/altinn-studio/pull/21047))
 
 ## [0.1.0-preview.28] - 2026-10-07
