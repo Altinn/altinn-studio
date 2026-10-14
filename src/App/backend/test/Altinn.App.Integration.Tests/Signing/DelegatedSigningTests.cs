@@ -40,9 +40,9 @@ public class DelegatedSigningTests(ITestOutputHelper output, AppFixtureClassFixt
         Assert.Equal(1, probe.ProviderCalls);
         Assert.Equal(SigneeCount, probe.Delegations.Length);
         Assert.All(probe.Delegations, attempt => Assert.True(attempt.Succeeded));
-        Assert.Equal(SigneeCount, probe.Notifications.Length);
-        Assert.All(probe.Notifications, attempt => Assert.Equal(200, attempt.StatusCode));
-        Assert.Equal(SigneeCount, probe.Notifications.Select(attempt => attempt.IdempotentKey).Distinct().Count());
+        Assert.Equal(SigneeCount, probe.Correspondences.Length);
+        Assert.All(probe.Correspondences, attempt => Assert.Equal(200, attempt.StatusCode));
+        Assert.Equal(SigneeCount, probe.Correspondences.Select(attempt => attempt.IdempotentKey).Distinct().Count());
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class DelegatedSigningTests(ITestOutputHelper output, AppFixtureClassFixt
         Assert.Equal([true, true], bySignee[0].Select(attempt => attempt.Succeeded));
         Assert.Equal([true, false], bySignee[1].Select(attempt => attempt.Injected));
         Assert.True(bySignee[1].Last().Succeeded);
-        Assert.Equal(SigneeCount, probe.Notifications.Length);
+        Assert.Equal(SigneeCount, probe.Correspondences.Length);
     }
 
     [Fact]
@@ -83,10 +83,13 @@ public class DelegatedSigningTests(ITestOutputHelper output, AppFixtureClassFixt
         Assert.Equal(SigneeCount, probe.Delegations.Length);
         // Localtest stored the first signee's message, but the app never saw it. The retry sends it again with the
         // same idempotency key, Localtest answers 409, and the app counts it as sent.
-        var first = probe.Notifications.Where(attempt => attempt.Recipient == probe.Notifications[0].Recipient);
+        var first = probe.Correspondences.Where(attempt => attempt.Recipient == probe.Correspondences[0].Recipient);
         Assert.Equal([200, 409], first.Select(attempt => attempt.StatusCode));
         Assert.Single(first.Select(attempt => attempt.IdempotentKey).Distinct());
-        Assert.Equal(1, probe.Notifications.Count(attempt => attempt.Recipient != probe.Notifications[0].Recipient));
+        Assert.Equal(
+            1,
+            probe.Correspondences.Count(attempt => attempt.Recipient != probe.Correspondences[0].Recipient)
+        );
     }
 
     [Fact]
@@ -118,8 +121,37 @@ public class DelegatedSigningTests(ITestOutputHelper output, AppFixtureClassFixt
         Assert.Equal(2, probe.ProviderCalls);
         Assert.Equal(2 * SigneeCount, probe.Delegations.Count(attempt => attempt.Succeeded));
         // A new visit to the task is a new step, so every signee is notified again, under a new key.
-        Assert.Equal(2 * SigneeCount, probe.Notifications.Length);
-        Assert.Equal(2 * SigneeCount, probe.Notifications.Select(attempt => attempt.IdempotentKey).Distinct().Count());
+        Assert.Equal(2 * SigneeCount, probe.Correspondences.Length);
+        Assert.Equal(
+            2 * SigneeCount,
+            probe.Correspondences.Select(attempt => attempt.IdempotentKey).Distinct().Count()
+        );
+    }
+
+    [Fact]
+    public async Task Sign_SendsTheSigneeAReceiptWithTheSignedDocumentAttached()
+    {
+        await using var fixtureScope = await classFixture.Get(output, TestApps.Basic, scenario: Scenario);
+        var fixture = fixtureScope.Fixture;
+        await ResetProbe(fixture, new());
+        using SigningRun run = await EnterSigning(fixture);
+
+        // User 1001 is the first signee, and signs on the strength of the rights delegated to them.
+        string signeeToken = await fixture.Auth.GetUserToken(userId: 1001);
+        Instance instance = run.Instance.Data.Model!;
+        using var signResponse = await fixture.Generic.Post(
+            $"/ttd/{fixture.App}/instances/{instance.Id}/actions",
+            signeeToken,
+            JsonContent.Create(new UserActionRequest { Action = "sign" })
+        );
+        using var signed = await signResponse.Read<UserActionResponse>();
+        Assert.Equal(HttpStatusCode.OK, signed.Response.StatusCode);
+
+        ProbeState probe = await GetProbe(fixture);
+        CorrespondenceAttempt receipt = Assert.Single(probe.Correspondences, attempt => attempt.IdempotentKey is null);
+        Assert.Equal("urn:altinn:person:identifier-no:01899699552", receipt.Recipient);
+        Assert.Equal(200, receipt.StatusCode);
+        Assert.True(receipt.AttachmentCount > 0);
     }
 
     private sealed record SigningRun(string Token, AppFixture.ReadApiResponse<Instance> Instance) : IDisposable
@@ -214,12 +246,18 @@ public class DelegatedSigningTests(ITestOutputHelper output, AppFixtureClassFixt
         int ProviderCalls,
         DelegationAttempt[] Delegations,
         RevocationAttempt[] Revocations,
-        NotificationAttempt[] Notifications
+        CorrespondenceAttempt[] Correspondences
     );
 
     private sealed record DelegationAttempt(string Recipient, bool Injected, bool Succeeded);
 
     private sealed record RevocationAttempt(string Recipient, bool Succeeded);
 
-    private sealed record NotificationAttempt(string Recipient, Guid IdempotentKey, int StatusCode, bool ResponseLost);
+    private sealed record CorrespondenceAttempt(
+        string Recipient,
+        Guid? IdempotentKey,
+        int AttachmentCount,
+        int StatusCode,
+        bool ResponseLost
+    );
 }

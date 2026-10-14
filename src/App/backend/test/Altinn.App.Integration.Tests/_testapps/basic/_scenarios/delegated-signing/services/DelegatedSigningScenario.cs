@@ -37,7 +37,14 @@ public sealed record DelegationAttempt(string Recipient, bool Injected, bool Suc
 
 public sealed record RevocationAttempt(string Recipient, bool Succeeded);
 
-public sealed record NotificationAttempt(string Recipient, Guid IdempotentKey, int StatusCode, bool ResponseLost);
+/// <summary>One message sent through Correspondence: a call to action, which carries an idempotency key, or a receipt.</summary>
+public sealed record CorrespondenceAttempt(
+    string Recipient,
+    Guid? IdempotentKey,
+    int AttachmentCount,
+    int StatusCode,
+    bool ResponseLost
+);
 
 /// <summary>
 /// Records every call signee initialization makes to the signee provider, Access Management and Correspondence,
@@ -53,7 +60,7 @@ internal sealed class SigningProbe : IEndpointConfigurator
     private int _providerCalls;
     private readonly List<DelegationAttempt> _delegations = [];
     private readonly List<RevocationAttempt> _revocations = [];
-    private readonly List<NotificationAttempt> _notifications = [];
+    private readonly List<CorrespondenceAttempt> _correspondences = [];
     private readonly List<string> _delegationRecipients = [];
     private readonly List<string> _notificationRecipients = [];
 
@@ -69,7 +76,7 @@ internal sealed class SigningProbe : IEndpointConfigurator
                     _providerCalls = 0;
                     _delegations.Clear();
                     _revocations.Clear();
-                    _notifications.Clear();
+                    _correspondences.Clear();
                     _delegationRecipients.Clear();
                     _notificationRecipients.Clear();
                 }
@@ -83,7 +90,12 @@ internal sealed class SigningProbe : IEndpointConfigurator
                 lock (_gate)
                 {
                     return Results.Ok(
-                        new SigningProbeState(_providerCalls, [.. _delegations], [.. _revocations], [.. _notifications])
+                        new SigningProbeState(
+                            _providerCalls,
+                            [.. _delegations],
+                            [.. _revocations],
+                            [.. _correspondences]
+                        )
                     );
                 }
             }
@@ -136,10 +148,10 @@ internal sealed class SigningProbe : IEndpointConfigurator
             _revocations.Add(attempt);
     }
 
-    public void Record(NotificationAttempt attempt)
+    public void Record(CorrespondenceAttempt attempt)
     {
         lock (_gate)
-            _notifications.Add(attempt);
+            _correspondences.Add(attempt);
     }
 }
 
@@ -147,7 +159,7 @@ public sealed record SigningProbeState(
     int ProviderCalls,
     DelegationAttempt[] Delegations,
     RevocationAttempt[] Revocations,
-    NotificationAttempt[] Notifications
+    CorrespondenceAttempt[] Correspondences
 );
 
 internal sealed class IntegrationSigneeProvider(SigningProbe probe) : ISigneeProvider
@@ -237,7 +249,7 @@ internal sealed class SigningHttpFilter(SigningProbe probe) : IHttpMessageHandle
 
 /// <summary>
 /// Answers the Altinn CDN's organization list, so the service owner resolves without the internet, and watches
-/// the calls to action on their way to Localtest's Correspondence emulation.
+/// the messages on their way to Localtest's Correspondence emulation.
 /// </summary>
 internal sealed class SigningHttpHandler(SigningProbe probe) : DelegatingHandler
 {
@@ -280,11 +292,22 @@ internal sealed class SigningHttpHandler(SigningProbe probe) : DelegatingHandler
 
         using var body = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(cancellationToken));
         string recipient = body.RootElement.GetProperty("recipients").EnumerateArray().Single().GetString()!;
-        Guid idempotentKey = body.RootElement.GetProperty("idempotentKey").GetGuid();
+        Guid? idempotentKey =
+            body.RootElement.TryGetProperty("idempotentKey", out JsonElement key)
+            && key.ValueKind == JsonValueKind.String
+                ? key.GetGuid()
+                : null;
+        int attachmentCount =
+            body.RootElement.TryGetProperty("existingAttachments", out JsonElement attachments)
+            && attachments.ValueKind == JsonValueKind.Array
+                ? attachments.GetArrayLength()
+                : 0;
 
         HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
         bool loseResponse = response.IsSuccessStatusCode && probe.TakeNotificationFault(recipient);
-        probe.Record(new NotificationAttempt(recipient, idempotentKey, (int)response.StatusCode, loseResponse));
+        probe.Record(
+            new CorrespondenceAttempt(recipient, idempotentKey, attachmentCount, (int)response.StatusCode, loseResponse)
+        );
         if (!loseResponse)
         {
             return response;
