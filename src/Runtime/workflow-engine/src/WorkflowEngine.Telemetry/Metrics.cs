@@ -15,7 +15,9 @@ namespace WorkflowEngine.Telemetry;
 public static class Metrics
 {
     /// <summary>
-    /// The OpenTelemetry service name used by the engine's <see cref="ActivitySource"/> and <see cref="Meter"/>.
+    /// The name of the engine's <see cref="ActivitySource"/> and <see cref="Meter"/>, and the <c>service.name</c>
+    /// resource attribute when the deployment sets neither <c>OTEL_SERVICE_NAME</c> nor <c>service.name</c> in
+    /// <c>OTEL_RESOURCE_ATTRIBUTES</c>.
     /// </summary>
     public const string ServiceName = "WorkflowEngine";
 
@@ -37,20 +39,24 @@ public static class Metrics
     /// <summary>
     /// Counter of generic engine-side errors that don't have a more specific instrument.
     /// </summary>
-    public static readonly Counter<long> Errors = Meter.CreateCounter<long>("engine.errors");
+    public static readonly Counter<long> Errors = Meter.CreateCounter<long>(
+        "altinn.workflow_engine.errors",
+        unit: "{error}"
+    );
 
     /// <summary>
     /// Counter incremented once per main-loop iteration. Useful for liveness alerts.
     /// </summary>
     public static readonly Counter<long> EngineMainLoopIterations = Meter.CreateCounter<long>(
-        "engine.mainloop.iterations"
+        "altinn.workflow_engine.main_loop.iterations",
+        unit: "{iteration}"
     );
 
     /// <summary>
     /// Histogram of seconds the main loop spent waiting for tasks to complete and/or new workflows to arrive.
     /// </summary>
     public static readonly Histogram<double> EngineMainLoopQueueTime = Meter.CreateHistogram<double>(
-        "engine.mainloop.time.queue",
+        "altinn.workflow_engine.main_loop.wait.duration",
         "s",
         "Amount of time the main loop spent waiting for tasks to complete and/or new workflows to arrive (seconds)."
     );
@@ -59,16 +65,16 @@ public static class Metrics
     /// Histogram of seconds the main loop spent actively executing workflows and/or database IO.
     /// </summary>
     public static readonly Histogram<double> EngineMainLoopServiceTime = Meter.CreateHistogram<double>(
-        "engine.mainloop.time.service",
+        "altinn.workflow_engine.main_loop.processing.duration",
         "s",
         "Amount of time the main loop spent actively executing workflows and/or database IO (seconds)."
     );
 
     /// <summary>
-    /// Histogram of seconds the main loop spent on a full execution (queue + service).
+    /// Histogram of seconds the main loop spent on a full execution (wait + processing).
     /// </summary>
     public static readonly Histogram<double> EngineMainLoopTotalTime = Meter.CreateHistogram<double>(
-        "engine.mainloop.time.total",
+        "altinn.workflow_engine.main_loop.duration",
         "s",
         "Amount of time the main loop spent on a full execution (seconds)."
     );
@@ -77,50 +83,57 @@ public static class Metrics
     /// Counter of inbound workflow query requests received (list/get endpoints).
     /// </summary>
     public static readonly Counter<long> WorkflowQueriesReceived = Meter.CreateCounter<long>(
-        "engine.workflows.query.received"
+        "altinn.workflow_engine.workflow.query.received",
+        unit: "{request}"
     );
 
     /// <summary>
     /// Counter of inbound workflow enqueue requests received (before validation).
     /// </summary>
     public static readonly Counter<long> WorkflowRequestsReceived = Meter.CreateCounter<long>(
-        "engine.workflows.request.received"
+        "altinn.workflow_engine.workflow.request.received",
+        unit: "{workflow}"
     );
 
     /// <summary>
     /// Counter of workflow enqueue requests that passed validation and were accepted for processing.
     /// </summary>
     public static readonly Counter<long> WorkflowRequestsAccepted = Meter.CreateCounter<long>(
-        "engine.workflows.request.accepted"
+        "altinn.workflow_engine.workflow.request.accepted",
+        unit: "{workflow}"
     );
 
     /// <summary>
     /// Counter of workflows that completed successfully.
     /// </summary>
     public static readonly Counter<long> WorkflowsSucceeded = Meter.CreateCounter<long>(
-        "engine.workflows.execution.success"
+        "altinn.workflow_engine.workflow.execution.success",
+        unit: "{workflow}"
     );
 
     /// <summary>
     /// Counter of workflows requeued after a retryable failure.
     /// </summary>
     public static readonly Counter<long> WorkflowsRequeued = Meter.CreateCounter<long>(
-        "engine.workflows.execution.requeued"
+        "altinn.workflow_engine.workflow.execution.requeued",
+        unit: "{workflow}"
     );
 
     /// <summary>
     /// Counter of workflows parked in <c>Waiting</c> because a step deferred (not a failure signal).
     /// </summary>
     public static readonly Counter<long> WorkflowsDeferred = Meter.CreateCounter<long>(
-        "engine.workflows.execution.deferred",
+        "altinn.workflow_engine.workflow.execution.deferred",
+        unit: "{workflow}",
         description: "Number of workflow attempts that ended in Waiting because a step deferred"
     );
 
     /// <summary>
-    /// Counter of workflows that terminated in a <c>Failed</c> state. Tagged with <c>reason</c>
-    /// (<c>execution</c> / <c>dependency_failed</c> / <c>poisoned</c> / <c>wait_expired</c> / <c>manual</c>) and
-    /// <c>is_head</c> (<c>true</c> / <c>false</c> / <c>unset</c>). Alert on <c>reason</c> in
-    /// (<c>execution</c>, <c>poisoned</c>) across all <c>is_head</c> values; <c>is_head</c> is a
+    /// Counter of workflows that terminated in a <c>Failed</c> state. Tagged with
+    /// <c>altinn.workflow_engine.reason</c> (<c>execution</c> / <c>dependency_failed</c> / <c>poisoned</c> /
+    /// <c>wait_expired</c> / <c>manual</c>) and <c>altinn.workflow_engine.workflow.is_head</c> (<c>true</c> /
+    /// <c>false</c> / <c>unset</c>). Alert on <c>altinn.workflow_engine.reason</c> in (<c>execution</c>,
+    /// <c>poisoned</c>) across all <c>altinn.workflow_engine.workflow.is_head</c> values; the head attribute is a
     /// routing/severity dimension, not the filter - <c>"false"</c> marks deliberately invisible
     /// workflows (non-blocking side chains) whose terminal failures surface nowhere else. Exclude
     /// <c>dependency_failed</c>: such an increment just mirrors a dependency's failure, which
@@ -131,21 +144,24 @@ public static class Metrics
     /// endpoint (the dashboard's Fail button included).
     /// </summary>
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
-        "engine.workflows.execution.failed"
+        "altinn.workflow_engine.workflow.execution.failed",
+        unit: "{workflow}"
     );
 
     /// <summary>
     /// Counter of workflows that terminated in a <c>Canceled</c> state.
     /// </summary>
     public static readonly Counter<long> WorkflowsCanceled = Meter.CreateCounter<long>(
-        "engine.workflows.execution.canceled"
+        "altinn.workflow_engine.workflow.execution.canceled",
+        unit: "{workflow}"
     );
 
     /// <summary>
     /// Counter of terminal workflows resumed for re-processing.
     /// </summary>
     public static readonly Counter<long> WorkflowsResumed = Meter.CreateCounter<long>(
-        "engine.workflows.execution.resumed",
+        "altinn.workflow_engine.workflow.execution.resumed",
+        unit: "{workflow}",
         description: "Number of terminal workflows resumed for re-processing"
     );
 
@@ -153,7 +169,8 @@ public static class Metrics
     /// Counter of unsuccessful terminal workflows marked <c>Abandoned</c> (failure written off by a caller).
     /// </summary>
     public static readonly Counter<long> WorkflowsAbandoned = Meter.CreateCounter<long>(
-        "engine.workflows.execution.abandoned",
+        "altinn.workflow_engine.workflow.execution.abandoned",
+        unit: "{workflow}",
         description: "Number of unsuccessful terminal workflows whose failure was written off by a caller"
     );
 
@@ -163,7 +180,8 @@ public static class Metrics
     /// that accelerates a poll; it is an optimization, never load-bearing for correctness.
     /// </summary>
     public static readonly Counter<long> WorkflowsNudged = Meter.CreateCounter<long>(
-        "engine.workflows.execution.nudged",
+        "altinn.workflow_engine.workflow.execution.nudged",
+        unit: "{workflow}",
         description: "Number of parked workflows whose pending backoff was cleared for an immediate re-check"
     );
 
@@ -171,7 +189,8 @@ public static class Metrics
     /// Counter of stale workflows reclaimed from crashed workers.
     /// </summary>
     public static readonly Counter<long> WorkflowsReclaimed = Meter.CreateCounter<long>(
-        "engine.workflows.execution.reclaimed",
+        "altinn.workflow_engine.workflow.execution.reclaimed",
+        unit: "{workflow}",
         description: "Number of stale workflows reclaimed from crashed workers"
     );
 
@@ -179,7 +198,8 @@ public static class Metrics
     /// Counter of DependencyFailed workflows re-enqueued because their dependencies have since completed.
     /// </summary>
     public static readonly Counter<long> WorkflowsDependencyRecovered = Meter.CreateCounter<long>(
-        "engine.workflows.execution.dependency_recovered",
+        "altinn.workflow_engine.workflow.execution.dependency_recovered",
+        unit: "{workflow}",
         description: "Number of DependencyFailed workflows re-enqueued because their dependencies have since completed"
     );
 
@@ -187,7 +207,8 @@ public static class Metrics
     /// Counter of in-flight workflows this host gave up processing because their lease was reclaimed by another host.
     /// </summary>
     public static readonly Counter<long> WorkflowsLeaseLost = Meter.CreateCounter<long>(
-        "engine.workflows.execution.lease_lost",
+        "altinn.workflow_engine.workflow.execution.lease_lost",
+        unit: "{workflow}",
         description: "Number of in-flight workflows this host gave up processing because their lease was reclaimed by another host"
     );
 
@@ -195,7 +216,8 @@ public static class Metrics
     /// Counter of fetched workflows skipped because they were already in-flight on this host (DbMaintenance reclaim race).
     /// </summary>
     public static readonly Counter<long> WorkflowFetchRaceDropped = Meter.CreateCounter<long>(
-        "engine.workflows.fetch.race_dropped",
+        "altinn.workflow_engine.workflow.fetch.race_dropped",
+        unit: "{workflow}",
         description: "Number of fetched workflows skipped because they were already in-flight on this host (DbMaintenance reclaim race)"
     );
 
@@ -203,7 +225,7 @@ public static class Metrics
     /// Histogram of seconds a workflow waited in the queue before this attempt was picked up.
     /// </summary>
     public static readonly Histogram<double> WorkflowQueueTime = Meter.CreateHistogram<double>(
-        "engine.workflows.time.queue",
+        "altinn.workflow_engine.workflow.queue.duration",
         "s",
         "Time the workflow waited in the queue before this attempt was picked up by a worker (seconds). Recorded once per attempt."
     );
@@ -212,53 +234,66 @@ public static class Metrics
     /// Histogram of seconds spent actively processing a workflow attempt.
     /// </summary>
     public static readonly Histogram<double> WorkflowServiceTime = Meter.CreateHistogram<double>(
-        "engine.workflows.time.service",
+        "altinn.workflow_engine.workflow.processing.duration",
         "s",
         "Time spent actively processing this workflow attempt (seconds). Includes step execution and database IO. Recorded once per attempt."
     );
 
     /// <summary>
-    /// Histogram of total wall-clock seconds for a workflow attempt (queue + service).
+    /// Histogram of total wall-clock seconds for a workflow attempt (queue + processing).
     /// </summary>
     public static readonly Histogram<double> WorkflowTotalTime = Meter.CreateHistogram<double>(
-        "engine.workflows.time.total",
+        "altinn.workflow_engine.workflow.duration",
         "s",
-        "Total wall-clock time of this workflow attempt — queue + service (seconds). Recorded once per attempt."
+        "Total wall-clock time of this workflow attempt — queue + processing (seconds). Recorded once per attempt."
     );
 
     /// <summary>
     /// Counter of step requests accepted for execution.
     /// </summary>
     public static readonly Counter<long> StepRequestsAccepted = Meter.CreateCounter<long>(
-        "engine.steps.request.accepted"
+        "altinn.workflow_engine.step.request.accepted",
+        unit: "{step}"
     );
 
     /// <summary>
     /// Counter of steps that completed successfully.
     /// </summary>
-    public static readonly Counter<long> StepsSucceeded = Meter.CreateCounter<long>("engine.steps.execution.success");
+    public static readonly Counter<long> StepsSucceeded = Meter.CreateCounter<long>(
+        "altinn.workflow_engine.step.execution.success",
+        unit: "{step}"
+    );
 
     /// <summary>
     /// Counter of steps requeued after a retryable failure.
     /// </summary>
-    public static readonly Counter<long> StepsRequeued = Meter.CreateCounter<long>("engine.steps.execution.requeued");
+    public static readonly Counter<long> StepsRequeued = Meter.CreateCounter<long>(
+        "altinn.workflow_engine.step.execution.requeued",
+        unit: "{step}"
+    );
 
     /// <summary>
     /// Counter of step deferrals (successful executions whose awaited outcome was not available yet).
     /// Deliberately separate from <see cref="StepsRequeued"/>/<see cref="StepsFailed"/>: a deferral is not a failure.
     /// </summary>
-    public static readonly Counter<long> StepsDeferred = Meter.CreateCounter<long>("engine.steps.execution.deferred");
+    public static readonly Counter<long> StepsDeferred = Meter.CreateCounter<long>(
+        "altinn.workflow_engine.step.execution.deferred",
+        unit: "{step}"
+    );
 
     /// <summary>
     /// Counter of steps that terminated in failure.
     /// </summary>
-    public static readonly Counter<long> StepsFailed = Meter.CreateCounter<long>("engine.steps.execution.failed");
+    public static readonly Counter<long> StepsFailed = Meter.CreateCounter<long>(
+        "altinn.workflow_engine.step.execution.failed",
+        unit: "{step}"
+    );
 
     /// <summary>
     /// Histogram of seconds between the prior step finishing and this step beginning execution.
     /// </summary>
     public static readonly Histogram<double> StepQueueTime = Meter.CreateHistogram<double>(
-        "engine.steps.time.queue",
+        "altinn.workflow_engine.step.queue.duration",
         "s",
         "Time between the prior step finishing (or the workflow attempt starting, for the first step) and this step beginning execution (seconds). Mostly captures engine-internal database IO. Recorded once per step per attempt."
     );
@@ -267,18 +302,18 @@ public static class Metrics
     /// Histogram of seconds spent actively executing a step (command execution + DB IO).
     /// </summary>
     public static readonly Histogram<double> StepServiceTime = Meter.CreateHistogram<double>(
-        "engine.steps.time.service",
+        "altinn.workflow_engine.step.processing.duration",
         "s",
         "Time spent actively executing this step (seconds). Includes command execution and database IO. Recorded once per step per attempt."
     );
 
     /// <summary>
-    /// Histogram of total seconds for a step within the workflow attempt (queue + service).
+    /// Histogram of total seconds for a step within the workflow attempt (queue + processing).
     /// </summary>
     public static readonly Histogram<double> StepTotalTime = Meter.CreateHistogram<double>(
-        "engine.steps.time.total",
+        "altinn.workflow_engine.step.duration",
         "s",
-        "Total time for this step within the workflow attempt — queue + service (seconds). Recorded once per step per attempt."
+        "Total time for this step within the workflow attempt — queue + processing (seconds). Recorded once per step per attempt."
     );
 
     /// <summary>
@@ -287,20 +322,22 @@ public static class Metrics
     /// rather than blown — compare upper percentiles against the configured <c>command.waitBudget</c>.
     /// </summary>
     public static readonly Histogram<double> StepWaitDuration = Meter.CreateHistogram<double>(
-        "engine.steps.wait.duration",
+        "altinn.workflow_engine.step.wait.duration",
         "s",
         "Wait budget consumed by a deferring step, from first deferral to resolution (seconds). Recorded once per deferring step."
     );
 
     /// <summary>An idempotent replay creates nothing, so counting it would overstate how many exchanges are open.</summary>
     public static readonly Counter<long> MailboxesCreated = Meter.CreateCounter<long>(
-        "engine.mailboxes.created",
+        "altinn.workflow_engine.mailbox.created",
+        unit: "{mailbox}",
         description: "Number of mailboxes minted (idempotent replays excluded — they create nothing)"
     );
 
     /// <summary>Counts the close that actually happened, so an idempotent repeat does not count twice.</summary>
     public static readonly Counter<long> MailboxesClosed = Meter.CreateCounter<long>(
-        "engine.mailboxes.closed",
+        "altinn.workflow_engine.mailbox.closed",
+        unit: "{mailbox}",
         description: "Number of mailboxes closed for deliveries, tagged by reason (request or deadline)"
     );
 
@@ -309,13 +346,15 @@ public static class Metrics
     /// after the exchange gave up on it.
     /// </summary>
     public static readonly Counter<long> MailboxDeliveriesReceived = Meter.CreateCounter<long>(
-        "engine.mailboxes.deliveries.received",
+        "altinn.workflow_engine.mailbox.delivery.received",
+        unit: "{delivery}",
         description: "Number of messages offered to the mailbox delivery endpoint, tagged with the outcome"
     );
 
     /// <summary>The deadline is the one closure with no caller to report the number to.</summary>
     public static readonly Counter<long> MailboxDeliveriesUnpaired = Meter.CreateCounter<long>(
-        "engine.mailboxes.deliveries.unpaired",
+        "altinn.workflow_engine.mailbox.delivery.unpaired",
+        unit: "{delivery}",
         description: "Number of accepted deliveries no receiver was ever enqueued for, counted when a mailbox closes at its deadline"
     );
 
@@ -324,7 +363,8 @@ public static class Metrics
     /// rolled-back birth is not counted.
     /// </summary>
     public static readonly Counter<long> MailboxReceiversCreated = Meter.CreateCounter<long>(
-        "engine.mailboxes.receivers.created",
+        "altinn.workflow_engine.mailbox.receiver.created",
+        unit: "{receiver}",
         description: "Number of mailbox receive workflows created, tagged by the state they were born in"
     );
 
@@ -333,7 +373,8 @@ public static class Metrics
     /// receiver: both release paths skip stamped rows.
     /// </summary>
     public static readonly Counter<long> MailboxReceiversReleased = Meter.CreateCounter<long>(
-        "engine.mailboxes.receivers.released",
+        "altinn.workflow_engine.mailbox.receiver.released",
+        unit: "{receiver}",
         description: "Number of parked mailbox receivers released to run, tagged by cause (delivered or closed)"
     );
 
@@ -342,7 +383,7 @@ public static class Metrics
     /// <c>held_at</c>. Clamped at zero: the two ends come from two pods' clocks.
     /// </summary>
     public static readonly Histogram<double> MailboxReceiverWakeLatency = Meter.CreateHistogram<double>(
-        "engine.mailboxes.receivers.wake_latency",
+        "altinn.workflow_engine.mailbox.receiver.wake.duration",
         "s",
         "Seconds between a mailbox receiver being released and a worker first claiming it. Recorded once per release."
     );
@@ -352,7 +393,8 @@ public static class Metrics
     /// its own rendezvous invariant, which the ordinary execution-failed counter would not distinguish.
     /// </summary>
     public static readonly Counter<long> MailboxRendezvousViolations = Meter.CreateCounter<long>(
-        "engine.mailboxes.rendezvous.violations",
+        "altinn.workflow_engine.mailbox.rendezvous.violations",
+        unit: "{violation}",
         description: "Number of receive workflows the rendezvous could not answer for, tagged by the state that could not be answered"
     );
 
@@ -360,7 +402,8 @@ public static class Metrics
     /// Counter of redundant status updates eliminated by deduplication in the update buffer.
     /// </summary>
     public static readonly Counter<long> UpdateBufferDeduplicatedItems = Meter.CreateCounter<long>(
-        "engine.update_buffer.deduplicated",
+        "altinn.workflow_engine.update_buffer.deduplicated",
+        unit: "{update}",
         description: "Number of redundant status updates eliminated by deduplication in the update buffer"
     );
 
@@ -368,7 +411,8 @@ public static class Metrics
     /// Counter of fire-and-forget status updates dropped because the update buffer channel was full.
     /// </summary>
     public static readonly Counter<long> UpdateBufferDroppedItems = Meter.CreateCounter<long>(
-        "engine.update_buffer.dropped",
+        "altinn.workflow_engine.update_buffer.dropped",
+        unit: "{update}",
         description: "Number of fire-and-forget status updates dropped because the update buffer channel was full"
     );
 
@@ -376,27 +420,29 @@ public static class Metrics
     /// Counter of workflow status updates actually written to the database after deduplication.
     /// </summary>
     public static readonly Counter<long> UpdateBufferFlushedItems = Meter.CreateCounter<long>(
-        "engine.update_buffer.flushed",
+        "altinn.workflow_engine.update_buffer.flushed",
+        unit: "{update}",
         description: "Number of workflow status updates actually written to the database after deduplication"
     );
 
     /// <summary>
-    /// Counter of mailbox <b>requests</b> answered by a batch flush, tagged with <c>operation</c> (<c>mint</c>,
-    /// <c>close</c> or <c>delivery</c>) — requests rather than flushes, counted once the batch's database work has
-    /// returned without faulting. Divide by <see cref="MailboxBufferFlushedBatches"/> over the same window and
-    /// tag for the mean batch size.
+    /// Counter of mailbox <b>requests</b> answered by a batch flush, tagged with
+    /// <c>altinn.workflow_engine.mailbox.operation</c> (<c>mint</c>, <c>close</c> or <c>delivery</c>) — requests
+    /// rather than flushes, counted once the batch's database work has returned without faulting. Divide by
+    /// <see cref="MailboxBufferFlushedBatches"/> over the same window and operation for the mean batch size.
     /// </summary>
     public static readonly Counter<long> MailboxBufferFlushedItems = Meter.CreateCounter<long>(
-        "engine.mailbox_buffer.flushed",
-        description: "Number of mailbox requests answered by a batch flush — one per request, not per flush — tagged by operation (mint, close, delivery). Divide by engine.mailbox_buffer.batches for the mean batch size"
+        "altinn.workflow_engine.mailbox_buffer.flushed",
+        unit: "{request}",
+        description: "Number of mailbox requests answered by a batch flush — one per request, not per flush — tagged by operation (mint, close, delivery). Divide by altinn.workflow_engine.mailbox_buffer.batches for the mean batch size"
     );
 
     /// <summary>
-    /// Counter of mailbox <b>batch flushes</b>, one per flush whatever its size, tagged with <c>operation</c>
-    /// (<c>mint</c>, <c>close</c> or <c>delivery</c>). The denominator of
-    /// <see cref="MailboxBufferFlushedItems"/> ÷ this, the mean batch size — the only thing the engine emits that
-    /// says whether requests are actually being batched. Recorded at exactly the same point as the numerator, so
-    /// a flush that faulted answers nobody and counts in neither.
+    /// Counter of mailbox <b>batch flushes</b>, one per flush whatever its size, tagged with
+    /// <c>altinn.workflow_engine.mailbox.operation</c> (<c>mint</c>, <c>close</c> or <c>delivery</c>). The
+    /// denominator of <see cref="MailboxBufferFlushedItems"/> ÷ this, the mean batch size — the only thing the
+    /// engine emits that says whether requests are actually being batched. Recorded at exactly the same point as
+    /// the numerator, so a flush that faulted answers nobody and counts in neither.
     /// </summary>
     /// <remarks>
     /// Named <c>batches</c> rather than <c>flushes</c> on purpose: it counts what
@@ -404,72 +450,87 @@ public static class Metrics
     /// carrying different units is a ratio silently misread as 1.00.
     /// </remarks>
     public static readonly Counter<long> MailboxBufferFlushedBatches = Meter.CreateCounter<long>(
-        "engine.mailbox_buffer.batches",
-        description: "Number of mailbox batch flushes — one per flush whatever its size, not per request — tagged by operation (mint, close, delivery). The denominator of engine.mailbox_buffer.flushed for the mean batch size"
+        "altinn.workflow_engine.mailbox_buffer.batches",
+        unit: "{batch}",
+        description: "Number of mailbox batch flushes — one per flush whatever its size, not per request — tagged by operation (mint, close, delivery). The denominator of altinn.workflow_engine.mailbox_buffer.flushed for the mean batch size"
     );
 
     /// <summary>
     /// Counter of database operations that succeeded.
     /// </summary>
     public static readonly Counter<long> DbOperationsSucceeded = Meter.CreateCounter<long>(
-        "engine.db.operations.success"
+        "altinn.workflow_engine.db.operation.success",
+        unit: "{operation}"
     );
 
     /// <summary>
     /// Counter of database operations that were requeued for retry.
     /// </summary>
     public static readonly Counter<long> DbOperationsRequeued = Meter.CreateCounter<long>(
-        "engine.db.operations.requeued"
+        "altinn.workflow_engine.db.operation.requeued",
+        unit: "{operation}"
     );
 
     /// <summary>
     /// Counter of database operations that failed terminally.
     /// </summary>
-    public static readonly Counter<long> DbOperationsFailed = Meter.CreateCounter<long>("engine.db.operations.failed");
+    public static readonly Counter<long> DbOperationsFailed = Meter.CreateCounter<long>(
+        "altinn.workflow_engine.db.operation.failed",
+        unit: "{operation}"
+    );
 
     /// <summary>
-    /// Counter of namespace circuit breaker trips, tagged with <c>namespace</c> — including
-    /// re-trips from a failed recovery. Namespace is a safe tag here: trips are rare events whose
+    /// Counter of namespace circuit breaker trips, tagged with <c>altinn.workflow_engine.namespace</c> —
+    /// including re-trips from a failed recovery. Namespace is a safe tag here: trips are rare events whose
     /// cardinality is bounded by incident count, not fleet size (a documented decision in the
     /// failure-throttling ADR).
     /// </summary>
     public static readonly Counter<long> ThrottleTripped = Meter.CreateCounter<long>(
-        "engine.throttle.tripped",
+        "altinn.workflow_engine.throttle.tripped",
+        unit: "{trip}",
         description: "Number of namespace circuit breaker trips, including re-trips from failed recovery"
     );
 
     /// <summary>
-    /// Counter of throttle window extensions (every canary failed its probe), tagged with <c>namespace</c>.
+    /// Counter of throttle window extensions (every canary failed its probe), tagged with
+    /// <c>altinn.workflow_engine.namespace</c>.
     /// </summary>
     public static readonly Counter<long> ThrottleExtended = Meter.CreateCounter<long>(
-        "engine.throttle.extended",
+        "altinn.workflow_engine.throttle.extended",
+        unit: "{extension}",
         description: "Number of throttle window extensions after unanimous canary failure"
     );
 
     /// <summary>
-    /// Counter of workflows released from throttling in recovery cohorts, tagged with <c>namespace</c>.
+    /// Counter of workflows released from throttling in recovery cohorts, tagged with
+    /// <c>altinn.workflow_engine.namespace</c>.
     /// Incremented by the cohort size actually released, not by 1 per cohort.
     /// </summary>
     public static readonly Counter<long> ThrottleCohortReleased = Meter.CreateCounter<long>(
-        "engine.throttle.released",
+        "altinn.workflow_engine.throttle.released",
+        unit: "{workflow}",
         description: "Number of workflows released from throttling in recovery cohorts"
     );
 
     /// <summary>
-    /// Counter of namespace circuit breakers cleared after successful recovery, tagged with <c>namespace</c>.
+    /// Counter of namespace circuit breakers cleared after successful recovery, tagged with
+    /// <c>altinn.workflow_engine.namespace</c>.
     /// </summary>
     public static readonly Counter<long> ThrottleCleared = Meter.CreateCounter<long>(
-        "engine.throttle.cleared",
+        "altinn.workflow_engine.throttle.cleared",
+        unit: "{breaker}",
         description: "Number of namespace circuit breakers cleared after successful recovery"
     );
 
     /// <summary>
     /// Counter of workflows parked cooperatively by the workflow handler — a retryable failure in
-    /// a namespace whose breaker was tripped in the handler's snapshot — tagged with <c>namespace</c>.
+    /// a namespace whose breaker was tripped in the handler's snapshot — tagged with
+    /// <c>altinn.workflow_engine.namespace</c>.
     /// The sweep's own parking is not counted here.
     /// </summary>
     public static readonly Counter<long> ThrottleHandlerParked = Meter.CreateCounter<long>(
-        "engine.throttle.handler_parked",
+        "altinn.workflow_engine.throttle.handler_parked",
+        unit: "{workflow}",
         description: "Number of workflows parked by the workflow handler on retryable failure in a tripped namespace"
     );
 
@@ -479,8 +540,9 @@ public static class Metrics
     /// Gauge of namespace circuit breakers currently in the Tripped state.
     /// </summary>
     public static readonly ObservableGauge<long> TrippedThrottleBreakers = Meter.CreateObservableGauge(
-        "engine.throttle.breakers.tripped",
+        "altinn.workflow_engine.throttle.breaker.tripped",
         static () => _trippedThrottleBreakersCount,
+        unit: "{breaker}",
         description: "Number of namespace circuit breakers currently tripped"
     );
 
@@ -490,8 +552,9 @@ public static class Metrics
     /// Gauge of consecutive database maintenance failures (0 = healthy).
     /// </summary>
     public static readonly ObservableGauge<long> MaintenanceConsecutiveFailures = Meter.CreateObservableGauge(
-        "engine.maintenance.consecutive_failures",
+        "altinn.workflow_engine.maintenance.consecutive_failures",
         static () => _maintenanceConsecutiveFailures,
+        unit: "{failure}",
         description: "Number of consecutive database maintenance failures (0 = healthy)"
     );
 
@@ -501,7 +564,7 @@ public static class Metrics
     /// Gauge of overall engine health (0=healthy, 1=degraded, 2=unhealthy).
     /// </summary>
     public static readonly ObservableGauge<long> HealthStatus = Meter.CreateObservableGauge(
-        "engine.health.status",
+        "altinn.workflow_engine.health.status",
         static () => _healthStatus,
         description: "Engine health: 0=healthy, 1=degraded, 2=unhealthy"
     );
@@ -512,8 +575,9 @@ public static class Metrics
     /// Gauge of currently active workflows (any non-terminal status).
     /// </summary>
     public static readonly ObservableGauge<long> ActiveWorkflows = Meter.CreateObservableGauge(
-        "engine.workflows.active",
-        static () => _activeWorkflowsCount
+        "altinn.workflow_engine.workflow.active",
+        static () => _activeWorkflowsCount,
+        unit: "{workflow}"
     );
 
     private static long _scheduledWorkflowsCount;
@@ -522,8 +586,9 @@ public static class Metrics
     /// Gauge of workflows scheduled for future execution.
     /// </summary>
     public static readonly ObservableGauge<long> ScheduledWorkflows = Meter.CreateObservableGauge(
-        "engine.workflows.scheduled",
-        static () => _scheduledWorkflowsCount
+        "altinn.workflow_engine.workflow.scheduled",
+        static () => _scheduledWorkflowsCount,
+        unit: "{workflow}"
     );
 
     private static long _waitingWorkflowsCount;
@@ -532,8 +597,9 @@ public static class Metrics
     /// Gauge of workflows currently parked in <c>Waiting</c> (deferred steps awaiting an external outcome).
     /// </summary>
     public static readonly ObservableGauge<long> WaitingWorkflows = Meter.CreateObservableGauge(
-        "engine.workflows.waiting",
-        static () => _waitingWorkflowsCount
+        "altinn.workflow_engine.workflow.waiting",
+        static () => _waitingWorkflowsCount,
+        unit: "{workflow}"
     );
 
     private static long _failedWorkflowsCount;
@@ -542,8 +608,9 @@ public static class Metrics
     /// Gauge of terminal failed workflows currently retained.
     /// </summary>
     public static readonly ObservableGauge<long> FailedWorkflows = Meter.CreateObservableGauge(
-        "engine.workflows.failed",
-        static () => _failedWorkflowsCount
+        "altinn.workflow_engine.workflow.failed",
+        static () => _failedWorkflowsCount,
+        unit: "{workflow}"
     );
 
     private static long _successfulWorkflowsCount;
@@ -552,8 +619,9 @@ public static class Metrics
     /// Gauge of terminal successful workflows currently retained.
     /// </summary>
     public static readonly ObservableGauge<long> SuccessfulWorkflows = Meter.CreateObservableGauge(
-        "engine.workflows.successful",
-        static () => _successfulWorkflowsCount
+        "altinn.workflow_engine.workflow.successful",
+        static () => _successfulWorkflowsCount,
+        unit: "{workflow}"
     );
 
     private static long _finishedWorkflowsCount;
@@ -562,8 +630,9 @@ public static class Metrics
     /// Gauge of all terminal workflows currently retained (success + failure + canceled + dependency-failed).
     /// </summary>
     public static readonly ObservableGauge<long> FinishedWorkflows = Meter.CreateObservableGauge(
-        "engine.workflows.finished",
-        static () => _finishedWorkflowsCount
+        "altinn.workflow_engine.workflow.finished",
+        static () => _finishedWorkflowsCount,
+        unit: "{workflow}"
     );
 
     private static long _overdueOpenMailboxesCount;
@@ -573,8 +642,9 @@ public static class Metrics
     /// it to. Zero is the only healthy value; alert on it staying above zero.
     /// </summary>
     public static readonly ObservableGauge<long> OverdueOpenMailboxes = Meter.CreateObservableGauge(
-        "engine.mailboxes.open.overdue",
+        "altinn.workflow_engine.mailbox.open.overdue",
         static () => _overdueOpenMailboxesCount,
+        unit: "{mailbox}",
         description: "Number of mailboxes still open more than one sweep cadence past their deadline (0 = healthy)"
     );
 
@@ -583,22 +653,33 @@ public static class Metrics
     private static long _mailboxDeliveryBufferDepth;
 
     /// <summary>
-    /// Gauge of mailbox requests waiting for a batch flush, tagged with <c>operation</c> (<c>mint</c>,
-    /// <c>close</c> or <c>delivery</c>). Read it as latency rather than as capacity — the queues wait rather than
-    /// refuse when full — and read only the sustained value: it is a coarse sample, written once per
+    /// Gauge of mailbox requests waiting for a batch flush, tagged with
+    /// <c>altinn.workflow_engine.mailbox.operation</c> (<c>mint</c>, <c>close</c> or <c>delivery</c>). Read it as
+    /// latency rather than as capacity — the queues wait rather than refuse when full — and read only the
+    /// sustained value: it is a coarse sample, written once per
     /// <c>MetricsCollectionInterval</c> over a queue that fills and drains between flushes, so a zero is no
     /// evidence the queue never filled and this cannot show whether requests are being batched at all.
     /// <see cref="MailboxBufferFlushedItems"/> ÷ <see cref="MailboxBufferFlushedBatches"/> is what shows that.
     /// </summary>
     public static readonly ObservableGauge<long> MailboxBufferDepth = Meter.CreateObservableGauge(
-        "engine.mailbox_buffer.depth",
+        "altinn.workflow_engine.mailbox_buffer.depth",
         static () =>
             new Measurement<long>[]
             {
-                new(_mailboxMintBufferDepth, new KeyValuePair<string, object?>("operation", "mint")),
-                new(_mailboxCloseBufferDepth, new KeyValuePair<string, object?>("operation", "close")),
-                new(_mailboxDeliveryBufferDepth, new KeyValuePair<string, object?>("operation", "delivery")),
+                new(
+                    _mailboxMintBufferDepth,
+                    new KeyValuePair<string, object?>(TelemetryAttributes.MailboxOperation, "mint")
+                ),
+                new(
+                    _mailboxCloseBufferDepth,
+                    new KeyValuePair<string, object?>(TelemetryAttributes.MailboxOperation, "close")
+                ),
+                new(
+                    _mailboxDeliveryBufferDepth,
+                    new KeyValuePair<string, object?>(TelemetryAttributes.MailboxOperation, "delivery")
+                ),
             },
+        unit: "{request}",
         description: "Number of mailbox requests waiting for a batch flush, tagged by operation (mint, close, delivery)"
     );
 
@@ -608,8 +689,9 @@ public static class Metrics
     /// Gauge of remaining inbox capacity before the engine reports backpressure.
     /// </summary>
     public static readonly ObservableGauge<long> AvailableInboxSlots = Meter.CreateObservableGauge(
-        "engine.slots.inbox.available",
-        static () => _availableInboxSlotsCount
+        "altinn.workflow_engine.slot.inbox.available",
+        static () => _availableInboxSlotsCount,
+        unit: "{slot}"
     );
 
     private static long _usedInboxSlotsCount;
@@ -618,8 +700,9 @@ public static class Metrics
     /// Gauge of currently consumed inbox slots.
     /// </summary>
     public static readonly ObservableGauge<long> UsedInboxSlots = Meter.CreateObservableGauge(
-        "engine.slots.inbox.used",
-        static () => _usedInboxSlotsCount
+        "altinn.workflow_engine.slot.inbox.used",
+        static () => _usedInboxSlotsCount,
+        unit: "{slot}"
     );
 
     private static long _availableDbSlotsCount;
@@ -628,8 +711,9 @@ public static class Metrics
     /// Gauge of available concurrency slots in the database semaphore pool.
     /// </summary>
     public static readonly ObservableGauge<long> AvailableDbSlots = Meter.CreateObservableGauge(
-        "engine.slots.db.available",
-        static () => _availableDbSlotsCount
+        "altinn.workflow_engine.slot.db.available",
+        static () => _availableDbSlotsCount,
+        unit: "{slot}"
     );
 
     private static long _usedDbSlotsCount;
@@ -638,8 +722,9 @@ public static class Metrics
     /// Gauge of in-use concurrency slots in the database semaphore pool.
     /// </summary>
     public static readonly ObservableGauge<long> UsedDbSlots = Meter.CreateObservableGauge(
-        "engine.slots.db.used",
-        static () => _usedDbSlotsCount
+        "altinn.workflow_engine.slot.db.used",
+        static () => _usedDbSlotsCount,
+        unit: "{slot}"
     );
 
     private static long _availableHttpSlotsCount;
@@ -648,8 +733,9 @@ public static class Metrics
     /// Gauge of available concurrency slots in the outbound-HTTP semaphore pool.
     /// </summary>
     public static readonly ObservableGauge<long> AvailableHttpSlots = Meter.CreateObservableGauge(
-        "engine.slots.http.available",
-        static () => _availableHttpSlotsCount
+        "altinn.workflow_engine.slot.http.available",
+        static () => _availableHttpSlotsCount,
+        unit: "{slot}"
     );
 
     private static long _usedHttpSlotsCount;
@@ -658,8 +744,9 @@ public static class Metrics
     /// Gauge of in-use concurrency slots in the outbound-HTTP semaphore pool.
     /// </summary>
     public static readonly ObservableGauge<long> UsedHttpSlots = Meter.CreateObservableGauge(
-        "engine.slots.http.used",
-        static () => _usedHttpSlotsCount
+        "altinn.workflow_engine.slot.http.used",
+        static () => _usedHttpSlotsCount,
+        unit: "{slot}"
     );
 
     private static long _availableWorkerSlotsCount;
@@ -668,8 +755,9 @@ public static class Metrics
     /// Gauge of available worker slots (concurrent workflow processors).
     /// </summary>
     public static readonly ObservableGauge<long> AvailableWorkerSlots = Meter.CreateObservableGauge(
-        "engine.slots.workers.available",
-        static () => _availableWorkerSlotsCount
+        "altinn.workflow_engine.slot.worker.available",
+        static () => _availableWorkerSlotsCount,
+        unit: "{slot}"
     );
 
     private static long _usedWorkerSlotsCount;
@@ -678,8 +766,9 @@ public static class Metrics
     /// Gauge of in-use worker slots.
     /// </summary>
     public static readonly ObservableGauge<long> UsedWorkerSlots = Meter.CreateObservableGauge(
-        "engine.slots.workers.used",
-        static () => _usedWorkerSlotsCount
+        "altinn.workflow_engine.slot.worker.used",
+        static () => _usedWorkerSlotsCount,
+        unit: "{slot}"
     );
 
     /// <summary>

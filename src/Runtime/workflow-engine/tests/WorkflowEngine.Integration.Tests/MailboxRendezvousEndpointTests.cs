@@ -128,8 +128,10 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
         (await _client.CloseMailboxRaw(closed.Id)).Dispose();
 
         var byCause = collector
-            .GetMeasurements("engine.mailboxes.receivers.released")
-            .GroupBy(m => (string)m.Tags.Single(t => t.Key == "cause").Value!)
+            .GetMeasurements("altinn.workflow_engine.mailbox.receiver.released")
+            .GroupBy(m =>
+                (string)m.Tags.Single(t => t.Key == "altinn.workflow_engine.mailbox.receiver.release_cause").Value!
+            )
             .ToDictionary(g => g.Key, g => g.Sum(m => Convert.ToInt64(m.Value, CultureInfo.InvariantCulture)));
 
         Assert.Equal(new Dictionary<string, long> { ["delivered"] = 1, ["closed"] = 1 }, byCause);
@@ -146,7 +148,7 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
         await _client.DeliverToMailbox(mailbox.Id, "source-msg-1");
         await _client.WaitForWorkflowStatus(receiver, PersistentItemStatus.Completed);
 
-        var latencies = collector.GetMeasurements("engine.mailboxes.receivers.wake_latency");
+        var latencies = collector.GetMeasurements("altinn.workflow_engine.mailbox.receiver.wake.duration");
         var recorded = Assert.Single(latencies);
         Assert.True(
             Convert.ToDouble(recorded.Value, CultureInfo.InvariantCulture) >= 0,
@@ -169,7 +171,7 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
         var receiver = Assert.Single(accepted.Workflows).DatabaseId;
         await _client.WaitForWorkflowStatus(receiver, PersistentItemStatus.Completed);
 
-        Assert.Empty(collector.GetMeasurements("engine.mailboxes.receivers.wake_latency"));
+        Assert.Empty(collector.GetMeasurements("altinn.workflow_engine.mailbox.receiver.wake.duration"));
     }
 
     #endregion

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.Studio.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using WorkflowEngine.Core.Extensions;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
@@ -60,7 +61,7 @@ internal sealed class WorkflowHandler(
     private void HandleLeaseLost(Workflow workflow)
     {
         logger.WorkflowLeaseLost(workflow);
-        Metrics.WorkflowsLeaseLost.Add(1, workflow.GetHistogramTags());
+        Metrics.WorkflowsLeaseLost.Add(1);
 
         // Steps run sequentially so at most one span is open, but a per-step Submit that
         // throws LeaseLostException unwinds past the per-step StopActivity. Loop to catch it.
@@ -85,16 +86,16 @@ internal sealed class WorkflowHandler(
         // next attempt, which would corrupt every duration measured against it.
         var attemptAnchor = AttemptAnchor(workflow);
 
-        RecordWorkflowQueueTime(workflow, attemptAnchor);
+        RecordWorkflowQueueTime(attemptAnchor);
 
         if (workflow.CancellationRequestedAt is not null)
         {
             workflow.Status = PersistentItemStatus.Canceled;
             workflow.EngineActivity?.Errored(errorMessage: "Canceled before processing started");
 
-            Metrics.WorkflowsCanceled.Add(1, ("reason", "before_processing"));
+            Metrics.WorkflowsCanceled.Add(1, (TelemetryAttributes.Reason, "before_processing"));
             RecordWorkflowServiceTime(workflow);
-            RecordWorkflowTotalTime(workflow, attemptAnchor);
+            RecordWorkflowTotalTime(attemptAnchor);
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
@@ -108,9 +109,13 @@ internal sealed class WorkflowHandler(
             workflow.Status = PersistentItemStatus.DependencyFailed;
 
             RecordWorkflowServiceTime(workflow);
-            RecordWorkflowTotalTime(workflow, attemptAnchor);
+            RecordWorkflowTotalTime(attemptAnchor);
 
-            Metrics.WorkflowsFailed.Add(1, ("reason", "dependency_failed"), ("is_head", workflow.IsHeadTagValue()));
+            Metrics.WorkflowsFailed.Add(
+                1,
+                (TelemetryAttributes.Reason, "dependency_failed"),
+                (TelemetryAttributes.WorkflowIsHead, workflow.IsHeadTagValue())
+            );
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
@@ -130,16 +135,16 @@ internal sealed class WorkflowHandler(
                 if (workflow.CancellationRequestedAt is not null)
                 {
                     workflow.Status = PersistentItemStatus.Canceled;
-                    Metrics.WorkflowsCanceled.Add(1, ("reason", "during_processing"));
+                    Metrics.WorkflowsCanceled.Add(1, (TelemetryAttributes.Reason, "during_processing"));
                     RecordWorkflowServiceTime(workflow);
-                    RecordWorkflowTotalTime(workflow, attemptAnchor);
+                    RecordWorkflowTotalTime(attemptAnchor);
                 }
                 else
                 {
                     workflow.Status = PersistentItemStatus.Requeued;
-                    Metrics.WorkflowsRequeued.Add(1, ("reason", "shutdown"));
+                    Metrics.WorkflowsRequeued.Add(1, (TelemetryAttributes.Reason, "shutdown"));
                     RecordWorkflowServiceTime(workflow);
-                    RecordWorkflowTotalTime(workflow, attemptAnchor);
+                    RecordWorkflowTotalTime(attemptAnchor);
                 }
             }
 
@@ -163,9 +168,8 @@ internal sealed class WorkflowHandler(
             Metrics.Errors.Add(
                 1,
                 [
-                    ("operation", "workflowProcessing"),
-                    ("target", workflow.Namespace),
-                    ("operationId", workflow.OperationId),
+                    (TelemetryAttributes.Operation, "workflow_processing"),
+                    (TelemetryAttributes.Namespace, workflow.Namespace),
                 ]
             );
 
@@ -179,7 +183,7 @@ internal sealed class WorkflowHandler(
         if (workflow.Status == PersistentItemStatus.Completed)
         {
             RecordWorkflowServiceTime(workflow);
-            RecordWorkflowTotalTime(workflow, attemptAnchor);
+            RecordWorkflowTotalTime(attemptAnchor);
 
             Metrics.WorkflowsSucceeded.Add(1);
             workflow.EngineActivity?.Succeeded();
@@ -188,26 +192,26 @@ internal sealed class WorkflowHandler(
         else if (workflow.Status == PersistentItemStatus.Failed)
         {
             RecordWorkflowServiceTime(workflow);
-            RecordWorkflowTotalTime(workflow, attemptAnchor);
+            RecordWorkflowTotalTime(attemptAnchor);
 
             workflow.EngineActivity?.Errored();
             Metrics.WorkflowsFailed.Add(
                 1,
-                ("reason", workflow.FailureReason ?? "execution"),
-                ("is_head", workflow.IsHeadTagValue())
+                (TelemetryAttributes.Reason, workflow.FailureReason ?? "execution"),
+                (TelemetryAttributes.WorkflowIsHead, workflow.IsHeadTagValue())
             );
         }
         else if (workflow.Status == PersistentItemStatus.Requeued)
         {
             RecordWorkflowServiceTime(workflow);
-            RecordWorkflowTotalTime(workflow, attemptAnchor);
+            RecordWorkflowTotalTime(attemptAnchor);
 
-            Metrics.WorkflowsRequeued.Add(1, ("reason", "step_retry"));
+            Metrics.WorkflowsRequeued.Add(1, (TelemetryAttributes.Reason, "step_retry"));
         }
         else if (workflow.Status == PersistentItemStatus.Waiting)
         {
             RecordWorkflowServiceTime(workflow);
-            RecordWorkflowTotalTime(workflow, attemptAnchor);
+            RecordWorkflowTotalTime(attemptAnchor);
 
             Metrics.WorkflowsDeferred.Add(1);
         }
@@ -455,7 +459,7 @@ internal sealed class WorkflowHandler(
             workflow.BackoffUntil = null;
             workflow.FailureReason = "wait_expired";
 
-            Metrics.StepsFailed.Add(1, ("reason", "wait_expired"));
+            Metrics.StepsFailed.Add(1, (TelemetryAttributes.Reason, "wait_expired"));
             logger.FailingStepWaitExpired(currentStep, currentStep.DeferCount, waitBudget);
 
             return;
@@ -520,7 +524,7 @@ internal sealed class WorkflowHandler(
 
         workflow.ThrottledUntil = throttledUntil;
 
-        Metrics.ThrottleHandlerParked.Add(1, ("namespace", workflow.Namespace));
+        Metrics.ThrottleHandlerParked.Add(1, (TelemetryAttributes.Namespace, workflow.Namespace));
         logger.ParkingThrottledWorkflow(workflow, throttledUntil);
     }
 
@@ -583,10 +587,10 @@ internal sealed class WorkflowHandler(
         return anchor > now ? now : anchor;
     }
 
-    private void RecordWorkflowQueueTime(Workflow workflow, DateTimeOffset attemptAnchor)
+    private void RecordWorkflowQueueTime(DateTimeOffset attemptAnchor)
     {
         var queueDuration = timeProvider.GetUtcNow().Subtract(attemptAnchor).TotalSeconds;
-        Metrics.WorkflowQueueTime.Record(queueDuration, workflow.GetHistogramTags());
+        Metrics.WorkflowQueueTime.Record(queueDuration);
     }
 
     private void RecordWorkflowServiceTime(Workflow workflow)
@@ -596,13 +600,13 @@ internal sealed class WorkflowHandler(
             .Subtract(workflow.ExecutionStartedAt ?? workflow.CreatedAt)
             .TotalSeconds;
 
-        Metrics.WorkflowServiceTime.Record(serviceDuration, workflow.GetHistogramTags());
+        Metrics.WorkflowServiceTime.Record(serviceDuration);
     }
 
-    private void RecordWorkflowTotalTime(Workflow workflow, DateTimeOffset attemptAnchor)
+    private void RecordWorkflowTotalTime(DateTimeOffset attemptAnchor)
     {
         var totalDuration = timeProvider.GetUtcNow().Subtract(attemptAnchor).TotalSeconds;
-        Metrics.WorkflowTotalTime.Record(totalDuration, workflow.GetHistogramTags());
+        Metrics.WorkflowTotalTime.Record(totalDuration);
     }
 
     private void RecordStepQueueTime(Step step, DateTimeOffset anchor)

@@ -1,4 +1,8 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using System.Net;
+using Microsoft.Extensions.DependencyInjection;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WorkflowEngine.Integration.Tests.Fixtures;
@@ -45,60 +49,75 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Wait for async telemetry to flush (histogram is recorded last in the update buffer)
-        await collector.WaitForMeasurement("engine.workflows.time.total");
+        await collector.WaitForMeasurement("altinn.workflow_engine.workflow.duration");
 
         // Assert counters — request lifecycle
         Assert.True(
-            collector.GetCounterTotal("engine.workflows.request.received") >= 1,
+            collector.GetCounterTotal("altinn.workflow_engine.workflow.request.received") >= 1,
             "Expected at least 1 WorkflowRequestsReceived"
         );
         Assert.True(
-            collector.GetCounterTotal("engine.workflows.request.accepted") >= 1,
+            collector.GetCounterTotal("altinn.workflow_engine.workflow.request.accepted") >= 1,
             "Expected at least 1 WorkflowRequestsAccepted"
         );
         Assert.True(
-            collector.GetCounterTotal("engine.steps.request.accepted") >= 1,
+            collector.GetCounterTotal("altinn.workflow_engine.step.request.accepted") >= 1,
             "Expected at least 1 StepRequestsAccepted"
         );
 
         // Assert counters — execution lifecycle
         Assert.True(
-            collector.GetCounterTotal("engine.workflows.execution.success") >= 1,
+            collector.GetCounterTotal("altinn.workflow_engine.workflow.execution.success") >= 1,
             "Expected at least 1 WorkflowsSucceeded"
         );
         Assert.True(
-            collector.GetCounterTotal("engine.steps.execution.success") >= 1,
+            collector.GetCounterTotal("altinn.workflow_engine.step.execution.success") >= 1,
             "Expected at least 1 StepsSucceeded"
         );
 
         // Assert counters — database operations
         Assert.True(
-            collector.GetCounterTotal("engine.db.operations.success") >= 1,
+            collector.GetCounterTotal("altinn.workflow_engine.db.operation.success") >= 1,
             "Expected at least 1 DbOperationsSucceeded"
         );
 
         // Assert counters — main loop ran at least once
         Assert.True(
-            collector.GetCounterTotal("engine.mainloop.iterations") >= 1,
+            collector.GetCounterTotal("altinn.workflow_engine.main_loop.iterations") >= 1,
             "Expected at least 1 EngineMainLoopIterations"
         );
 
         // Assert histograms — workflow timing
-        Assert.True(collector.HasMeasurement("engine.workflows.time.total"), "Expected WorkflowTotalTime histogram");
         Assert.True(
-            collector.HasMeasurement("engine.workflows.time.service"),
+            collector.HasMeasurement("altinn.workflow_engine.workflow.duration"),
+            "Expected WorkflowTotalTime histogram"
+        );
+        Assert.True(
+            collector.HasMeasurement("altinn.workflow_engine.workflow.processing.duration"),
             "Expected WorkflowServiceTime histogram"
         );
-        Assert.True(collector.HasMeasurement("engine.workflows.time.queue"), "Expected WorkflowQueueTime histogram");
+        Assert.True(
+            collector.HasMeasurement("altinn.workflow_engine.workflow.queue.duration"),
+            "Expected WorkflowQueueTime histogram"
+        );
 
         // Assert histograms — step timing
-        Assert.True(collector.HasMeasurement("engine.steps.time.total"), "Expected StepTotalTime histogram");
-        Assert.True(collector.HasMeasurement("engine.steps.time.service"), "Expected StepServiceTime histogram");
-        Assert.True(collector.HasMeasurement("engine.steps.time.queue"), "Expected StepQueueTime histogram");
+        Assert.True(
+            collector.HasMeasurement("altinn.workflow_engine.step.duration"),
+            "Expected StepTotalTime histogram"
+        );
+        Assert.True(
+            collector.HasMeasurement("altinn.workflow_engine.step.processing.duration"),
+            "Expected StepServiceTime histogram"
+        );
+        Assert.True(
+            collector.HasMeasurement("altinn.workflow_engine.step.queue.duration"),
+            "Expected StepQueueTime histogram"
+        );
 
         // Assert histograms — main loop timing
         Assert.True(
-            collector.HasMeasurement("engine.mainloop.time.total"),
+            collector.HasMeasurement("altinn.workflow_engine.main_loop.duration"),
             "Expected EngineMainLoopTotalTime histogram"
         );
     }
@@ -188,36 +207,39 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
 
         // Wait for async telemetry to flush
-        await collector.WaitForMeasurement("engine.workflows.time.total");
+        await collector.WaitForMeasurement("altinn.workflow_engine.workflow.duration");
 
         // Assert failure counters — step retries before permanent failure
         Assert.True(
-            collector.GetCounterTotal("engine.steps.execution.requeued") >= 1,
+            collector.GetCounterTotal("altinn.workflow_engine.step.execution.requeued") >= 1,
             "Expected at least 1 StepsRequeued"
         );
-        Assert.True(collector.GetCounterTotal("engine.steps.execution.failed") >= 1, "Expected at least 1 StepsFailed");
         Assert.True(
-            collector.GetCounterTotal("engine.workflows.execution.failed") >= 1,
+            collector.GetCounterTotal("altinn.workflow_engine.step.execution.failed") >= 1,
+            "Expected at least 1 StepsFailed"
+        );
+        Assert.True(
+            collector.GetCounterTotal("altinn.workflow_engine.workflow.execution.failed") >= 1,
             "Expected at least 1 WorkflowsFailed"
         );
 
         // Assert the request-level counters still fire even for failed workflows
         Assert.True(
-            collector.GetCounterTotal("engine.workflows.request.received") >= 1,
+            collector.GetCounterTotal("altinn.workflow_engine.workflow.request.received") >= 1,
             "Expected WorkflowRequestsReceived even for failed workflows"
         );
         Assert.True(
-            collector.GetCounterTotal("engine.workflows.request.accepted") >= 1,
+            collector.GetCounterTotal("altinn.workflow_engine.workflow.request.accepted") >= 1,
             "Expected WorkflowRequestsAccepted even for failed workflows"
         );
 
         // Assert histograms still recorded for failed workflows
         Assert.True(
-            collector.HasMeasurement("engine.steps.time.service"),
+            collector.HasMeasurement("altinn.workflow_engine.step.processing.duration"),
             "Expected StepServiceTime histogram for failed workflow"
         );
         Assert.True(
-            collector.HasMeasurement("engine.steps.time.total"),
+            collector.HasMeasurement("altinn.workflow_engine.step.duration"),
             "Expected StepTotalTime histogram for failed workflow"
         );
     }
@@ -247,17 +269,159 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         await _client.GetWorkflow(workflowId);
 
         // Wait for both query counter increments (list + get)
-        await collector.WaitForCounterTotal("engine.workflows.query.received", 2);
+        await collector.WaitForCounterTotal("altinn.workflow_engine.workflow.query.received", 2);
 
         // Assert query counters
         Assert.True(
-            collector.GetCounterTotal("engine.workflows.query.received") >= 2,
+            collector.GetCounterTotal("altinn.workflow_engine.workflow.query.received") >= 2,
             "Expected at least 2 WorkflowQueriesReceived (one for list, one for get)"
         );
+        var endpoints = collector
+            .GetMeasurements("altinn.workflow_engine.workflow.query.received")
+            .Select(m => Assert.Single(m.Tags, t => t.Key == "altinn.workflow_engine.endpoint").Value)
+            .ToList();
+        Assert.Contains("list", endpoints);
+        Assert.Contains("get", endpoints);
 
         // Assert repository activities for query operations
         Assert.NotEmpty(collector.GetActivities("EngineRepository.QueryWorkflows"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.GetWorkflow"));
+    }
+
+    [Fact]
+    public async Task SingleWorkflow_DurationHistograms_CarryOnlyBoundedAttributes()
+    {
+        // Arrange
+        using var collector = new TelemetryCollector();
+
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/cmd")]),
+        ]);
+
+        // Act
+        var response = await _client.Enqueue(request);
+        var workflowId = response.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        await collector.WaitForMeasurement("altinn.workflow_engine.workflow.duration");
+
+        // Assert — the collector sees every host in the process, so this holds for every measurement, not
+        // only this workflow's: no ID, and nothing an app builds, ever reaches these series
+        string[] workflowHistograms =
+        [
+            "altinn.workflow_engine.workflow.queue.duration",
+            "altinn.workflow_engine.workflow.processing.duration",
+            "altinn.workflow_engine.workflow.duration",
+        ];
+        foreach (var name in workflowHistograms)
+        {
+            var measurements = collector.GetMeasurements(name);
+            Assert.NotEmpty(measurements);
+            Assert.All(measurements, m => Assert.Empty(m.Tags));
+        }
+
+        string[] stepHistograms =
+        [
+            "altinn.workflow_engine.step.queue.duration",
+            "altinn.workflow_engine.step.processing.duration",
+            "altinn.workflow_engine.step.duration",
+        ];
+        foreach (var name in stepHistograms)
+        {
+            var measurements = collector.GetMeasurements(name);
+            Assert.NotEmpty(measurements);
+            Assert.All(
+                measurements,
+                m => Assert.Equal("altinn.workflow_engine.step.command.type", Assert.Single(m.Tags).Key)
+            );
+            Assert.Contains(measurements, m => Equals(m.Tags[0].Value, "webhook"));
+        }
+    }
+
+    [Fact]
+    public async Task HealthEndpoints_AreLeftOutOfHttpRequestMetrics()
+    {
+        // Arrange
+        using var requestDurations = new HttpRequestDurationCollector(
+            fixture.Services.GetRequiredService<IMeterFactory>()
+        );
+        using var client = fixture.CreateEngineClient();
+        string[] probes =
+        [
+            "/api/v1/health",
+            "/api/v1/health/ready",
+            "/api/v1/health/live",
+            "/health",
+            "/health/ready",
+            "/health/live",
+        ];
+
+        // Act
+        foreach (var probe in probes)
+        {
+            using var probeResponse = await client.GetAsync(probe, TestContext.Current.CancellationToken);
+            Assert.NotEqual(HttpStatusCode.NotFound, probeResponse.StatusCode);
+        }
+
+        // An ordinary request after the probes: once it is recorded, theirs would have been too
+        using var apiResponse = await client.GetAsync("/api/v1/namespaces", TestContext.Current.CancellationToken);
+        await requestDurations.WaitForRoute("/api/v1/namespaces");
+
+        // Assert
+        Assert.DoesNotContain(
+            requestDurations.Routes,
+            route => route?.Contains("health", StringComparison.Ordinal) is true
+        );
+    }
+
+    /// <summary>
+    /// Collects the <c>http.route</c> of every <c>http.server.request.duration</c> measurement one host records.
+    /// The meter comes from the host's own <see cref="IMeterFactory"/>, so other hosts in the process stay out.
+    /// </summary>
+    private sealed class HttpRequestDurationCollector : IDisposable
+    {
+        private readonly MeterListener _listener = new();
+
+        public ConcurrentBag<string?> Routes { get; } = [];
+
+        public HttpRequestDurationCollector(IMeterFactory hostMeterFactory)
+        {
+            _listener.InstrumentPublished = (instrument, listener) =>
+            {
+                if (
+                    ReferenceEquals(instrument.Meter.Scope, hostMeterFactory)
+                    && instrument.Meter.Name == "Microsoft.AspNetCore.Hosting"
+                    && instrument.Name == "http.server.request.duration"
+                )
+                {
+                    listener.EnableMeasurementEvents(instrument);
+                }
+            };
+            _listener.SetMeasurementEventCallback<double>(
+                (_, _, tags, _) =>
+                {
+                    string? route = null;
+                    foreach (var tag in tags)
+                    {
+                        if (tag.Key == "http.route")
+                            route = tag.Value as string;
+                    }
+
+                    Routes.Add(route);
+                }
+            );
+            _listener.Start();
+        }
+
+        public async Task WaitForRoute(string route)
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            while (!Routes.Contains(route))
+            {
+                await Task.Delay(25, cts.Token);
+            }
+        }
+
+        public void Dispose() => _listener.Dispose();
     }
 
     /// <summary>

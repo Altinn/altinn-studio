@@ -1049,7 +1049,7 @@ internal sealed partial class EngineRepository
                 };
 
                 // Tagged apart from the sweep pass's own failures: the two want opposite operator responses.
-                Metrics.Errors.Add(1, ("operation", "mailboxDeadlineClose"));
+                Metrics.Errors.Add(1, (TelemetryAttributes.Operation, "mailbox_deadline_close"));
                 logger.FailedMailboxOperation("close at its deadline", mailboxId, ex.Message, ex);
             }
         }
@@ -1720,10 +1720,16 @@ internal readonly record struct MailboxReleaseCounts(int Delivered, int Closed)
     public void Record()
     {
         if (Delivered > 0)
-            Metrics.MailboxReceiversReleased.Add(Delivered, new KeyValuePair<string, object?>("cause", "delivered"));
+            Metrics.MailboxReceiversReleased.Add(
+                Delivered,
+                new KeyValuePair<string, object?>(TelemetryAttributes.MailboxReceiverReleaseCause, "delivered")
+            );
 
         if (Closed > 0)
-            Metrics.MailboxReceiversReleased.Add(Closed, new KeyValuePair<string, object?>("cause", "closed"));
+            Metrics.MailboxReceiversReleased.Add(
+                Closed,
+                new KeyValuePair<string, object?>(TelemetryAttributes.MailboxReceiverReleaseCause, "closed")
+            );
     }
 }
 
@@ -1761,7 +1767,7 @@ internal abstract record MailboxCloseResult
             {
                 Metrics.MailboxesClosed.Add(
                     1,
-                    new KeyValuePair<string, object?>("reason", MailboxStatusMap.ToDbValue(reason))
+                    new KeyValuePair<string, object?>(TelemetryAttributes.Reason, MailboxStatusMap.ToDbValue(reason))
                 );
             }
 

@@ -9,8 +9,8 @@ namespace WorkflowEngine.Core.Tests;
 /// </summary>
 /// <remarks>
 /// The meter is process-global, so an exact-total assertion holds only if nothing else records into the same
-/// instrument while the test runs — which is why the classes asserting on <c>engine.mailbox_buffer.*</c> all
-/// share one test collection.
+/// instrument while the test runs — which is why the classes asserting on
+/// <c>altinn.workflow_engine.mailbox_buffer.*</c> all share one test collection.
 /// </remarks>
 internal sealed class MeterCollector : IDisposable
 {

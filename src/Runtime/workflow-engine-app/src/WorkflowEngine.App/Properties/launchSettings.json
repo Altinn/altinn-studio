@@ -7,7 +7,9 @@
       "launchBrowser": false,
       "applicationUrl": "http://localhost:9090",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "OTEL_SERVICE_NAME": "workflow-engine-app",
+        "OTEL_METRIC_EXPORT_INTERVAL": "15000"
       }
     },
     "http-stress": {
@@ -18,7 +20,9 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "EngineSettings__TraceSamplingRate": "0.01",
-        "EngineSettings__EnableDatabaseInstrumentation": "false"
+        "EngineSettings__EnableDatabaseInstrumentation": "false",
+        "OTEL_SERVICE_NAME": "workflow-engine-app",
+        "OTEL_METRIC_EXPORT_INTERVAL": "15000"
       }
     }
   }

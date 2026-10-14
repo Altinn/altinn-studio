@@ -32,10 +32,13 @@ public static class ServiceCollectionExtensions
                 .AddOpenTelemetry()
                 .ConfigureResource(r =>
                     r.AddService(
-                        serviceName: Metrics.ServiceName,
-                        serviceVersion: Metrics.ServiceVersion,
-                        serviceInstanceId: Environment.MachineName
-                    )
+                            serviceName: Metrics.ServiceName,
+                            serviceVersion: Metrics.ServiceVersion,
+                            serviceInstanceId: Environment.MachineName
+                        )
+                        // Detected again after AddService, which would otherwise override them: a deployment's
+                        // OTEL_SERVICE_NAME and OTEL_RESOURCE_ATTRIBUTES take precedence over these defaults.
+                        .AddEnvironmentVariableDetector()
                 )
                 .WithTracing(builder =>
                 {
@@ -208,27 +211,25 @@ public static class ServiceCollectionExtensions
                         builder.AddMeter("Npgsql");
                     }
 
+                    // Views match by instrument name, so they take it from the instrument: a stale name would
+                    // silently leave the instrument on the SDK's default buckets.
                     builder
-                        .AddView("engine.workflows.time.queue", durationView)
-                        .AddView("engine.workflows.time.service", durationView)
-                        .AddView("engine.workflows.time.total", durationView)
-                        .AddView("engine.steps.time.queue", durationView)
-                        .AddView("engine.steps.time.service", durationView)
-                        .AddView("engine.steps.time.total", durationView)
-                        .AddView("engine.mainloop.time.queue", durationView)
-                        .AddView("engine.mainloop.time.service", durationView)
-                        .AddView("engine.mainloop.time.total", durationView)
-                        .AddView("engine.mailboxes.receivers.wake_latency", wakeLatencyView)
-                        .AddView("engine.steps.wait.duration", waitBudgetView)
+                        .AddView(Metrics.WorkflowQueueTime.Name, durationView)
+                        .AddView(Metrics.WorkflowServiceTime.Name, durationView)
+                        .AddView(Metrics.WorkflowTotalTime.Name, durationView)
+                        .AddView(Metrics.StepQueueTime.Name, durationView)
+                        .AddView(Metrics.StepServiceTime.Name, durationView)
+                        .AddView(Metrics.StepTotalTime.Name, durationView)
+                        .AddView(Metrics.EngineMainLoopQueueTime.Name, durationView)
+                        .AddView(Metrics.EngineMainLoopServiceTime.Name, durationView)
+                        .AddView(Metrics.EngineMainLoopTotalTime.Name, durationView)
+                        .AddView(Metrics.MailboxReceiverWakeLatency.Name, wakeLatencyView)
+                        .AddView(Metrics.StepWaitDuration.Name, waitBudgetView)
                         .AddRuntimeInstrumentation()
                         .AddHttpClientInstrumentation()
                         .AddAspNetCoreInstrumentation()
-                        .AddOtlpExporter(
-                            (_, reader) =>
-                            {
-                                reader.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 10_000;
-                            }
-                        );
+                        // The export interval is the deployment's to set, through OTEL_METRIC_EXPORT_INTERVAL.
+                        .AddOtlpExporter();
                 });
 
             services.AddLogging(logging =>
