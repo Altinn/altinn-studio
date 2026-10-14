@@ -47,6 +47,17 @@ public static class SchedulingDependencyInjectionExtensions
                     .WithCronSchedule(AppInactivityUndeployJobConstants.CronScheduleNightlyMidnight)
             );
 
+            configure.AddJob<AppActivityCollectionJob>(options =>
+                options.WithIdentity(AppActivityCollectionJobConstants.JobKey).StoreDurably()
+            );
+
+            configure.AddTrigger(options =>
+                options
+                    .ForJob(AppActivityCollectionJobConstants.JobKey)
+                    .WithIdentity(AppActivityCollectionJobConstants.TriggerName)
+                    .WithCronSchedule(AppActivityCollectionJobConstants.CronScheduleNightly)
+            );
+
             configure.AddJob<ChatInactivityCleanupJob>(options =>
                 options.WithIdentity(ChatInactivityCleanupJobConstants.JobName)
             );

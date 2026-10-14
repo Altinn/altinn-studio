@@ -7,6 +7,7 @@ ARG YARN_CHANNEL=stable
 ARG RUST_VERSION=1.97.1
 ARG RUSTUP_VERSION=1.29.0
 ARG DOTNET_CHANNEL=10.0
+ARG DOTNET_11_CHANNEL=11.0
 ARG CHROME_FOR_TESTING_CHANNEL=Stable
 ARG DOTNET_INSTALL_SCRIPT_COMMIT=6f559c420847ded38591392dafe785ad511f39f5
 ARG DOTNET_INSTALL_SCRIPT_SHA256=082f7685e156738a1b2e2ed8381a621870d4ce8e8c59278034556f05c186eb2e
@@ -70,6 +71,7 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
       lsb-release \
       make \
       pkg-config \
+      shellcheck \
       tar \
       unzip \
       util-linux \
@@ -143,6 +145,7 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
     && echo "${DOTNET_INSTALL_SCRIPT_SHA256}  /tmp/dotnet-install.sh" | sha256sum -c - \
     && chmod +x /tmp/dotnet-install.sh \
     && /tmp/dotnet-install.sh --install-dir /usr/share/dotnet --channel "${DOTNET_CHANNEL}" --quality GA \
+    && /tmp/dotnet-install.sh --install-dir /usr/share/dotnet --channel "${DOTNET_11_CHANNEL}" \
     && rm -f /tmp/dotnet-install.sh \
     && PATH="/opt/tools/node/current/bin:${PATH}" COREPACK_HOME=/opt/corepack corepack enable \
     && PATH="/opt/tools/node/current/bin:${PATH}" COREPACK_HOME=/opt/corepack corepack prepare "yarn@${YARN_CHANNEL}" --activate \

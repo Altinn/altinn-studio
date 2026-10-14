@@ -13,7 +13,7 @@ public class NullDataListProvider : IDataListProvider
     public string Id => string.Empty;
 
     /// <inheritdoc/>
-    public Task<DataList> GetDataListAsync(string? language, Dictionary<string, string> keyValuePairs)
+    public Task<DataList> GetDataList(string? language, Dictionary<string, string> keyValuePairs)
     {
 #nullable disable
         return Task.FromResult(new DataList() { ListItems = null });

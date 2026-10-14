@@ -13,22 +13,26 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - The OpenTelemetry collector in `studioctl env up --monitoring` also accepts OTLP over HTTP, on port 4318. ([#21114](https://github.com/Altinn/altinn-studio/pull/21114))
 - `studioctl app upgrade v9` points out `IPdfFormatter` implementations and their registrations, which no longer compile in v9, and suggests `excludeFromPdf` or, for conditional logic, a PDF service task with a custom layout instead. ([#19785](https://github.com/Altinn/altinn-studio/issues/19785))
+- `studioctl app upgrade v9` deletes `IPdfFormatter` implementations that do not change the PDF, with their registrations, so only the ones with logic are left to port. ([#19785](https://github.com/Altinn/altinn-studio/issues/19785))
+- `studioctl app upgrade v9` removes the `Async` suffix from app code that implements or calls the renamed app library methods, such as `GetAppOptionsAsync` and `FilterAsync`, and lists the calls it cannot verify for you to check. ([#19774](https://github.com/Altinn/altinn-studio/issues/19774))
+- `studioctl app upgrade v9` moves `IProcessExclusiveGateway` implementations off the removed three-parameter `FilterAsync`: it adds the `dataAccessor` parameter, or deletes the method where the app already implements the four-parameter one. ([#19782](https://github.com/Altinn/altinn-studio/issues/19782))
 
 ### Changed
 
+- `studioctl app upgrade v9` removes unsupported summary flags and summary title bindings from component layouts, while keeping supported settings such as Payment receipt rendering. ([#21141](https://github.com/Altinn/altinn-studio/pull/21141))
 - `studioctl app upgrade v9` removes unsupported `required` and `readOnly` properties from known components. It preserves `minNumberOfAttachments` and `minCount`; conflicts with `required` produce a TODO asking you to verify the minimum. ([#16618](https://github.com/Altinn/altinn-studio/issues/16618))
 - `studioctl env up --monitoring` now runs VictoriaMetrics, VictoriaTraces and VictoriaLogs, with Grafana 12.4: ([#20578](https://github.com/Altinn/altinn-studio/pull/20578))
-  - metrics keep their OpenTelemetry names, such as `http.server.request.duration`
-  - `STUDIOCTL_IMAGE_VICTORIA_METRICS`, `_TRACES` and `_LOGS` replace the Tempo, Mimir and Loki variables
-  - dashboards built locally work in the shared Altinn Studio Grafana, with `deployment.environment.name` set to `local` ([#21114](https://github.com/Altinn/altinn-studio/pull/21114))
-  - traces link to their logs and to request metrics
-  - starting needs network access
+    - metrics keep their OpenTelemetry names, such as `http.server.request.duration`
+    - `STUDIOCTL_IMAGE_VICTORIA_METRICS`, `_TRACES` and `_LOGS` replace the Tempo, Mimir and Loki variables
+    - dashboards built locally work in the shared Altinn Studio Grafana, with `deployment.environment.name` set to `local` ([#21114](https://github.com/Altinn/altinn-studio/pull/21114))
+    - traces link to their logs and to request metrics
+    - starting needs network access
 
 ### Fixed
 
 - The App dashboard in `studioctl env up --monitoring`: ([#20578](https://github.com/Altinn/altinn-studio/pull/20578))
-  - *Feil* shows one total of server errors instead of one value per endpoint with an "SMS" unit
-  - panels show "No data" instead of 0 when the app does not report the metric
+    - _Feil_ shows one total of server errors instead of one value per endpoint with an "SMS" unit
+    - panels show "No data" instead of 0 when the app does not report the metric
 - `studioctl app upgrade v9` renames every call to an app's own `Analyse` method on an `IFileAnalyser` implementation, even when the call is in a different file from the class. Some were left unchanged, and the app then failed to build.
 
 ## [0.1.0-preview.28] - 2026-10-07

@@ -1,6 +1,5 @@
 using Altinn.Studio.Gateway.Api.Application;
 using Altinn.Studio.Gateway.Api.Clients.MetricsClient;
-using Altinn.Studio.Gateway.Api.Clients.MetricsClient.Contracts.AzureMonitor;
 using Altinn.Studio.Gateway.Api.Settings;
 using Altinn.Studio.Gateway.Contracts.Metrics;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -18,7 +17,7 @@ public sealed class AppActivityMetricsTests
         var now = new DateTimeOffset(2026, 2, 12, 9, 30, 0, TimeSpan.Zero);
         var timeProvider = new FakeTimeProvider(now);
         var metricsClient = new FakeMetricsClient(
-            new ActiveAppsResult
+            activeAppsResult: new ActiveAppsResult
             {
                 Status = ActivityStatus.Ok,
                 ActiveAppRequestCounts = new Dictionary<string, double> { ["app-a"] = 11, ["app-b"] = 7 },
@@ -49,7 +48,7 @@ public sealed class AppActivityMetricsTests
         var now = new DateTimeOffset(2026, 2, 12, 9, 30, 0, TimeSpan.Zero);
         var timeProvider = new FakeTimeProvider(now);
         var metricsClient = new FakeMetricsClient(
-            new ActiveAppsResult
+            activeAppsResult: new ActiveAppsResult
             {
                 Status = ActivityStatus.Unavailable,
                 ActiveAppRequestCounts = new Dictionary<string, double> { ["stale-app"] = 99 },
@@ -79,7 +78,7 @@ public sealed class AppActivityMetricsTests
         var now = new DateTimeOffset(2026, 2, 12, 9, 30, 0, TimeSpan.Zero);
         var timeProvider = new FakeTimeProvider(now);
         var metricsClient = new FakeMetricsClient(
-            new ActiveAppsResult
+            activeAppsResult: new ActiveAppsResult
             {
                 Status = ActivityStatus.Error,
                 ActiveAppRequestCounts = new Dictionary<string, double> { ["stale-app"] = 99 },
@@ -109,7 +108,7 @@ public sealed class AppActivityMetricsTests
         var now = new DateTimeOffset(2026, 2, 12, 9, 30, 0, TimeSpan.Zero);
         var timeProvider = new FakeTimeProvider(now);
         var metricsClient = new FakeMetricsClient(
-            new ActiveAppsResult
+            activeAppsResult: new ActiveAppsResult
             {
                 Status = ActivityStatus.Ok,
                 ActiveAppRequestCounts = new Dictionary<string, double> { ["app-a"] = 1 },
@@ -151,44 +150,5 @@ public sealed class AppActivityMetricsTests
         public T Get(string? name) => currentValue;
 
         public IDisposable? OnChange(Action<T, string?> listener) => null;
-    }
-
-    private sealed class FakeMetricsClient(ActiveAppsResult activeAppsResult) : IMetricsClient
-    {
-        public Task<IEnumerable<FailedRequest>> GetFailedRequests(int range, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
-
-        public Task<ActiveAppsResult> GetActiveApps(int windowDays, CancellationToken cancellationToken) =>
-            Task.FromResult(activeAppsResult);
-
-        public Task<IEnumerable<AppFailedRequest>> GetAppFailedRequests(
-            string app,
-            int range,
-            CancellationToken cancellationToken
-        ) => throw new NotSupportedException();
-
-        public Task<
-            IEnumerable<Altinn.Studio.Gateway.Api.Clients.MetricsClient.Contracts.AzureMonitor.Metric>
-        > GetMetrics(int range, CancellationToken cancellationToken) => throw new NotSupportedException();
-
-        public Task<IEnumerable<AllAppsFailedRequest>> GetAllAppsFailedRequests(
-            int range,
-            CancellationToken cancellationToken
-        ) => throw new NotSupportedException();
-
-        public Task<
-            IEnumerable<Altinn.Studio.Gateway.Api.Clients.MetricsClient.Contracts.AzureMonitor.AppMetric>
-        > GetAppMetrics(string app, int range, CancellationToken cancellationToken) =>
-            throw new NotSupportedException();
-
-        public Uri GetLogsUrl(
-            string subscriptionId,
-            string org,
-            string env,
-            IReadOnlyCollection<string> apps,
-            string metricName,
-            DateTimeOffset from,
-            DateTimeOffset to
-        ) => throw new NotSupportedException();
     }
 }
