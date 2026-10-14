@@ -13,9 +13,11 @@ Scope path filters to the inputs a workflow uses, including the workflow itself.
 pushes, exclude `AGENTS.md`, README files, `CONTRIBUTING.md`, `CHANGELOG.md`, and `docs/` directories from code checks.
 Documentation, spelling, and release workflows still include the documents they check or publish.
 
-Do not exclude all Markdown. Prompts, shipped skills, package readmes, and other Markdown can be build or test inputs.
-Add positive patterns after the exclusions for those inputs, with a comment explaining the consumer.
-Markdown formatting is optional. Compiled `.mdx` files remain code inputs.
+Keep Markdown files that a build or test uses in its path filters. For example, changes to a skill shipped with
+the CLI must trigger the CLI build. If a documentation exclusion matches such a file, add an include pattern
+after it. Explain in a comment which build or test needs the file.
+
+Formatting checks are optional for Markdown documentation. Compiled `.mdx` files follow the code formatting rules.
 
 Preview cleanup runs on closure without path filters, since a preview can outlive the changes that created it.
 Share its concurrency group with the build so cleanup cancels any build that could deploy afterward.
