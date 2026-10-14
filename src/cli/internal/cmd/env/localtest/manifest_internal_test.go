@@ -1,6 +1,7 @@
 package localtest
 
 import (
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -192,6 +193,78 @@ func assertWorkflowEngineContainerConfig(t *testing.T, workflowEngine components
 			"workflowEngine.Environment[AppCommandSettings__CommandEndpoint] = %q, want localtest network callback URL",
 			got,
 		)
+	}
+}
+
+// The engine exports to the collector only while monitoring runs: without the collector, its host
+// alias does not resolve on the environment network.
+func TestWorkflowEngineContainer_TelemetryFollowsMonitoring(t *testing.T) {
+	t.Setenv(config.EnvCI, "")
+
+	tests := map[string]struct {
+		wantDependencies  []string
+		includeMonitoring bool
+	}{
+		"without monitoring": {
+			includeMonitoring: false,
+			wantDependencies:  []string{components.ContainerWorkflowEngineDb, components.ContainerLocaltest},
+		},
+		"with monitoring": {
+			includeMonitoring: true,
+			wantDependencies: []string{
+				components.ContainerWorkflowEngineDb,
+				components.ContainerLocaltest,
+				components.ContainerOtelCollector,
+			},
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			resources := localtestResources(t, t.TempDir(), tt.includeMonitoring)
+			workflowEngine := mustContainerSpec(t, resources, components.ContainerWorkflowEngine)
+
+			assertEnvValue(t, workflowEngine.Environment, "OTEL_SERVICE_NAME", "workflow-engine-app")
+			assertEnvValue(t, workflowEngine.Environment, "OTEL_METRIC_EXPORT_INTERVAL", "15000")
+			if !slices.Equal(workflowEngine.Dependencies, tt.wantDependencies) {
+				t.Fatalf("workflowEngine.Dependencies = %v, want %v", workflowEngine.Dependencies, tt.wantDependencies)
+			}
+
+			if !tt.includeMonitoring {
+				assertEnvMissing(t, workflowEngine.Environment, "OTEL_EXPORTER_OTLP_ENDPOINT")
+				return
+			}
+			assertEndpointReachesCollector(
+				t,
+				workflowEngine.Environment["OTEL_EXPORTER_OTLP_ENDPOINT"],
+				mustContainerSpec(t, resources, components.ContainerOtelCollector),
+			)
+		})
+	}
+}
+
+// An endpoint reaches the collector when it names one of the collector's aliases on the environment
+// network, on a port the collector receives OTLP on. It is the one apps are given.
+func assertEndpointReachesCollector(t *testing.T, endpoint string, collector components.ContainerSpec) {
+	t.Helper()
+	if want := testTopology().OTelURL(); endpoint != want {
+		t.Fatalf("OTLP endpoint = %q, want %q", endpoint, want)
+	}
+	parsed, err := url.Parse(endpoint)
+	if err != nil {
+		t.Fatalf("parse OTLP endpoint %q: %v", endpoint, err)
+	}
+	if !slices.Contains(collector.NetworkAliases, parsed.Hostname()) {
+		t.Fatalf(
+			"OTLP endpoint host %q, want one of the collector aliases %v",
+			parsed.Hostname(),
+			collector.NetworkAliases,
+		)
+	}
+	if !slices.ContainsFunc(collector.Ports, func(port containertypes.PortMapping) bool {
+		return port.ContainerPort == parsed.Port()
+	}) {
+		t.Fatalf("OTLP endpoint port %q, want one of the collector ports %v", parsed.Port(), collector.Ports)
 	}
 }
 

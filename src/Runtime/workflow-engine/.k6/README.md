@@ -63,9 +63,12 @@ k6 run .k6/constant-rate.js -e RATE=500 -e MAX_VUS=1000 -e POLL_INTERVAL=5
 
 A generator that never stops, whose job is to make every panel on the Grafana dashboard show
 something true. The other scripts measure; this one **populates**. Point it at the playground stack,
-leave it running, and open <http://localhost:7070>.
+leave it running, and open the _Workflow Engine_ dashboard (folder _Altinn Studio_) in studioctl's
+Grafana, <http://local.altinn.cloud:8000/grafana>, with the `workflow-engine-testapp` service
+selected.
 
 ```bash
+studioctl env up --monitoring   # once — the collector the engine exports to, and Grafana
 make playground                 # from src/Runtime/workflow-engine — throttling ON, fast windows
 k6 run .k6/perpetual-mix.js     # Ctrl+C to stop
 make playground-stop            # stack down; `make reset` also drops the database volume
@@ -74,6 +77,14 @@ make playground-stop            # stack down; `make reset` also drops the databa
 It needs the playground stack rather than `make run` for one reason: the namespace circuit breaker
 ships dark, and without it the throttle arm has nothing to show. See
 `.k6/docker-compose.playground.yaml` for exactly what the overrides change and why.
+
+The playground has no monitoring of its own: its engine exports to the collector studioctl publishes
+on the host. How, and where that does not work, is in [`docs/docker.md`](../docs/docker.md#monitoring).
+
+The playground and studioctl's environment publish no host port in common as long as studioctl runs
+without `--dev-workflow-engine`. That flag publishes studioctl's engine database on port 9543, which
+the playground's `postgres` holds, and routes the environment's engine traffic to port 9090 on the
+host, where the playground's engine listens. Leave it off while the playground runs.
 
 Give the throttle panels about eight minutes before reading anything into them. `storm-a` trips
 within a sweep of its first burst and its trip → extend → release → clear arc takes two to three
@@ -108,8 +119,8 @@ inside one tick can be claimed before any sample sees it.
 namespace that stays _absent_ while the storm namespaces come and go, which is the attribution story
 those panels exist to tell. `playground-retries` holds the work that fails, kept apart so a pile of
 retrying workflows can never get the mailbox and durable-yield arms throttled. `storm-a` and
-`storm-b` get one breaker each, their cycles phase-offset by half a period so `by (namespace)` shows
-two series in different phases at once.
+`storm-b` get one breaker each, their cycles phase-offset by half a period so a split by namespace
+shows two series in different phases at once.
 
 **How the storm works.** `setup()` gives each storm namespace its own WireMock target backed by a
 two-state scenario, and the arm switches that scenario as it goes. It breaks the target, fires a batch
@@ -125,8 +136,8 @@ back empty and the breaker clears. So `tripped`, `extended`, `handler_parked`, `
 **`STORM_RETRY_BUDGET` must comfortably outlast `STORM_DOWN_SECONDS`,** and this is the one setting
 that is easy to get wrong. If the parked workflows die of exhausted retries before the downstream
 comes back, recovery opens onto an empty parked population, releases nothing, and jumps straight from
-Tripped to Clear — leaving `engine.throttle.released` flat and the recovery panel empty. That is not
-hypothetical: it is what the first version of this arm did.
+Tripped to Clear — leaving `altinn.workflow_engine.throttle.released` flat and the recovery panel
+empty. That is not hypothetical: it is what the first version of this arm did.
 
 The two stubs per namespace cannot be committed as mapping files the way `/flaky` and
 `/permanent-error` are, because there is one pair per entry in `STORM_NAMESPACES` and that list is
