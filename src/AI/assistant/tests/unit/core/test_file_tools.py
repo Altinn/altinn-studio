@@ -350,7 +350,7 @@ class TestDiscardFileChanges:
             called["cwd"] = kwargs.get("cwd")
             return subprocess.CompletedProcess(args, 0, "", "")
 
-        monkeypatch.setattr("agents.core.tools.file_tool.subprocess.run", fake_run)
+        monkeypatch.setattr("agents.core.tools.discard_file_changes_tool.subprocess.run", fake_run)
 
         ctx = _ctx(tmp_path)
         ctx.extras["changed_files"] = {"App/x.json", "App/y.json"}
@@ -369,7 +369,7 @@ class TestDiscardFileChanges:
         def fake_run(args, **kwargs):
             raise subprocess.CalledProcessError(1, args, output="", stderr="error: pathspec did not match")
 
-        monkeypatch.setattr("agents.core.tools.file_tool.subprocess.run", fake_run)
+        monkeypatch.setattr("agents.core.tools.discard_file_changes_tool.subprocess.run", fake_run)
 
         tool = DiscardFileChangesTool()
         result = await tool.run(

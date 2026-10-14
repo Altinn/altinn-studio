@@ -42,7 +42,7 @@ from agents.core import (
     format_skill_listing,
     run_loop,
 )
-from agents.core.tools.git_tool import unverified_changed_files
+from agents.core.tools.commit_session_branch_tool import unverified_changed_files
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
 from agents.services.llm.recent_turns import truncate_to_history_limit

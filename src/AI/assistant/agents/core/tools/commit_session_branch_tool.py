@@ -23,7 +23,7 @@ def unverified_changed_files(ctx: LoopContext) -> set[str]:
     """Return changed files that haven't been verified since their last edit.
 
     `verify_changes` populates `ctx.extras["verified_files"]` on success;
-    `_mark_changed` removes a file from that set on every write so a
+    `mark_changed` removes a file from that set on every write so a
     re-edit invalidates its prior badge.  The gate is simply
     `changed_files - verified_files`.
     """
@@ -140,7 +140,7 @@ class CommitSessionBranchTool(WriteToolMixin[CommitSessionBranchArgs]):
 
 
 # `RollbackTool` (broad `git reset --hard HEAD`) was removed in favor
-# of `discard_file_changes` in `file_tool.py`, which is surgical (one
+# of `discard_file_changes` in `discard_file_changes_tool.py`, which is surgical (one
 # file at a time) and integrates with the read-before-write
 # enforcement.  The broad reset became a foot-gun: the model would
 # call it on any setback, wiping prior progress instead of iterating.

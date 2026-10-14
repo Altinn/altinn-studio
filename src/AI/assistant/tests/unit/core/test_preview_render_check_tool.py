@@ -13,7 +13,7 @@ from agents.core import LoopContext, PreviewRenderCheckTool
 from agents.services.preview.render_check import PageRenderResult, PreviewCheckUnavailable
 from shared.config.base_config import BaseConfig
 
-ENGINE_PATH = "agents.core.tools.preview_check_tool.render_check"
+ENGINE_PATH = "agents.core.tools.preview_render_check_tool.render_check"
 
 
 @pytest.fixture(autouse=True)

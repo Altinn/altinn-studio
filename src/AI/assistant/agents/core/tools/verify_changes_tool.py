@@ -11,7 +11,7 @@ Dispatches each changed file to the appropriate in-process validator
 Successful verification records the file in `ctx.extras["verified_files"]`
 so `commit_session_branch` can refuse to commit any changed file that
 hasn't been verified since its last edit (the set is reset whenever a
-file is edited or written — see `_write_base.WriteToolMixin`).
+file is edited or written — see `_repo_files.mark_changed`).
 
 Validation runs in-process — no network round-trip except the (cached)
 v8 schema fetch from altinncdn.no.  v9 schemas are read from disk.
