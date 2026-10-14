@@ -1,3 +1,3 @@
 # GitHub Actions agent guidance
 
-Read the [workflow conventions](README.md) before changing workflows or composite actions.
+Read the [GitHub Actions overview](README.md) before changing workflows or composite actions.
