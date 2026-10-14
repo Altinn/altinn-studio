@@ -13,7 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `IOnProcessEndedHandler` runs your code after the ended process is saved, before data marked `autoDeleteOnProcessEnd` is deleted and the instance is released. Like the other process hooks, it can read and change instance data. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
-- Pipeline service tasks can name their steps for display, such as in Studio's admin panel: pass `name` to `Stage`, `HandleReplies`, `Finally` or `ConcludeOnReplies`. Without one, a step goes by the method's name written as words. Renaming a step does not affect how it runs.
+- Pipeline service tasks can name their steps for display, such as in Studio's admin panel: pass `name` to `Stage`, `HandleReplies`, `Finally` or `ConcludeOnReplies`. Without one, a step goes by the method's name written as words. Renaming a step does not affect how it runs. ([#21195](https://github.com/Altinn/altinn-studio/pull/21195))
 
 ### Changed
 
