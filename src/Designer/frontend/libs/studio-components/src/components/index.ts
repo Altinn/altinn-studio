@@ -41,6 +41,7 @@ export * from './StudioErrorSummary';
 export * from './StudioExpression';
 export * from './StudioField';
 export * from './StudioFieldset';
+export * from './StudioFileBrowser';
 export * from './StudioFileUploader';
 export * from './StudioFormActions';
 export * from './StudioFormGroup';
