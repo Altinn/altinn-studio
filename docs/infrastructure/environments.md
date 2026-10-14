@@ -4,8 +4,8 @@ Where Altinn Studio's services run, how a change gets there, and where the detai
 
 ## Runtime clusters
 
-A service owner has a runtime cluster in each environment it uses. Most service owners have tt02 and prod, some
-also have yt01, and only `ttd` has at22, at23 and at24. The
+A service owner has a runtime cluster in each environment it uses. Service owners with a cluster have one in tt02,
+and most also in prod. A few also have yt01, and only `ttd` has at22, at23 and at24. The
 [service owner registry](https://github.com/Altinn/altinn-cdn/blob/master/orgs/altinn-orgs.json) lists the
 service owners and their environments, with prod listed as `production`. A cluster runs the service owner's apps
 and the runtime services listed in the [runtime syncroot](../../infra/runtime/syncroot).
@@ -21,9 +21,10 @@ artifact and tags it with rings, and each cluster follows one ring. The rings ar
 
 ## DIS Core
 
-DIS Core has one cluster per environment, shared by all service owners and run by Digdir's platform team. pdf3 is
-moving there, and its manifests are in [`src/Runtime/pdf3/infra/syncroot`](../../src/Runtime/pdf3/infra/syncroot).
-So far they set up only pdf3's identity and Key Vault, and only in at22.
+DIS Core has one cluster in each environment except at24, shared by all service owners and run by Digdir's
+platform team. pdf3 is moving there, and its manifests are in
+[`src/Runtime/pdf3/infra/syncroot`](../../src/Runtime/pdf3/infra/syncroot). So far they set up only pdf3's
+identity and Key Vault, and only in at22.
 
-DIS Core has no rings: a change goes to every environment. yt01, tt02 and prod wait for a reviewer's approval,
+DIS Core has no rings: a change goes to all its clusters. yt01, tt02 and prod wait for a reviewer's approval,
 set on the `dis_core_<env>` environments in the repository's GitHub settings.
