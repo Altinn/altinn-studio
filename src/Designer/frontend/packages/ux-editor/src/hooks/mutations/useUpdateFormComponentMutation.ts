@@ -205,9 +205,9 @@ const buildDataTypeForFileUpload = (
     id: component.id,
     taskId,
     ...metadataProperties,
-    minCount: hasCustomMinCount(oldDataType, oldComponent)
-      ? oldDataType.minCount
-      : metadataProperties.minCount,
+    minCount: shouldUpdateMinCount(oldDataType, oldComponent)
+      ? metadataProperties.minCount
+      : oldDataType.minCount,
   };
 
   const isInRepeatingGroup = isItemChildOfContainer(
@@ -229,15 +229,15 @@ const buildDataTypeForFileUpload = (
 };
 
 /**
- * A minCount lower than the component's minNumberOfAttachments has been set on purpose, and must not be
- * overwritten when the component is saved. Typical case: minCount 0 on an attachment that is required only while
- * the component is shown, since the backend counts data elements for the whole task and does not check `hidden`.
- * A higher minCount would make the backend stricter than the form, so it follows minNumberOfAttachments.
+ * minCount follows the component's minNumberOfAttachments, unless it was lower before the save. A lower minCount
+ * has been set on purpose, typically 0 on an attachment that is required only while the component is shown, since
+ * the backend counts data elements for the whole task and does not check `hidden`. A higher minCount would make
+ * the backend stricter than the form, so it is updated.
  */
-const hasCustomMinCount = (
+const shouldUpdateMinCount = (
   oldDataType?: ApplicationAttachmentMetadata,
   oldComponent?: FormFileUploaderComponent,
 ): boolean =>
-  oldDataType !== undefined &&
-  oldComponent !== undefined &&
-  (oldDataType.minCount ?? 0) < (oldComponent.minNumberOfAttachments ?? 0);
+  oldDataType === undefined ||
+  oldComponent === undefined ||
+  (oldDataType.minCount ?? 0) >= (oldComponent.minNumberOfAttachments ?? 0);
