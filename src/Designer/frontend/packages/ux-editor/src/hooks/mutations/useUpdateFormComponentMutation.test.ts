@@ -413,6 +413,8 @@ describe('useUpdateFormComponentMutation', () => {
       ${undefined} | ${1}                      | ${1}                      | ${undefined}     | ${'an unset minCount counts as 0 and is kept'}
       ${0}         | ${1}                      | ${2}                      | ${0}             | ${'a lower minCount is kept when the requirement is raised'}
       ${0}         | ${1}                      | ${0}                      | ${0}             | ${'a lower minCount is kept when the requirement is removed'}
+      ${1}         | ${3}                      | ${2}                      | ${1}             | ${'a lower minCount is kept when the requirement is lowered to above it'}
+      ${1}         | ${2}                      | ${0}                      | ${0}             | ${'a lower minCount follows a requirement lowered below it'}
       ${1}         | ${1}                      | ${0}                      | ${0}             | ${'an equal minCount follows a lowered requirement'}
       ${1}         | ${1}                      | ${2}                      | ${2}             | ${'an equal minCount follows a raised requirement'}
       ${1}         | ${undefined}              | ${undefined}              | ${undefined}     | ${'a higher minCount than an unset requirement is synced'}
