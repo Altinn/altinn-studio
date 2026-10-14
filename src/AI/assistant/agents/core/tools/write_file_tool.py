@@ -4,11 +4,10 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from agents.core.tool import LoopContext, ToolResult
+from agents.core.tool import LoopContext, ToolResult, WriteTool
 
-from ._repo_files import PathError, is_read, mark_changed, mark_read, resolve_repo_path
-from ._studio_json import describe_formatting, format_json_like_studio
-from ._write_base import WriteToolMixin
+from .utils.repo_files import PathError, is_read, mark_changed, mark_read, resolve_repo_path
+from .utils.studio_json import describe_formatting, format_json_like_studio
 
 
 class WriteFileArgs(BaseModel):
@@ -17,7 +16,7 @@ class WriteFileArgs(BaseModel):
     content: str = Field(description="Full new contents of the file.")
 
 
-class WriteFileTool(WriteToolMixin[WriteFileArgs]):
+class WriteFileTool(WriteTool[WriteFileArgs]):
     name = "write_file"
     description = (
         "Create a new file, or completely overwrite an existing one.\n\n"

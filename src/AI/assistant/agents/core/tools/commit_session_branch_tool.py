@@ -13,10 +13,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from agents.core.tool import LoopContext, ToolResult
+from agents.core.tool import LoopContext, ToolResult, WriteTool
 from agents.services.git import git_ops
-
-from ._write_base import WriteToolMixin
 
 
 def unverified_changed_files(ctx: LoopContext) -> set[str]:
@@ -56,7 +54,7 @@ class CommitSessionBranchArgs(BaseModel):
     )
 
 
-class CommitSessionBranchTool(WriteToolMixin[CommitSessionBranchArgs]):
+class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
     name = "commit_session_branch"
     description = (
         "Commit all changes on disk to the session branch and push it to the "

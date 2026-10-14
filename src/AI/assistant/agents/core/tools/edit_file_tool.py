@@ -10,11 +10,10 @@ import re
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from agents.core.tool import LoopContext, ToolResult
+from agents.core.tool import LoopContext, ToolResult, WriteTool
 
-from ._repo_files import PathError, is_read, mark_changed, resolve_repo_path
-from ._studio_json import describe_formatting, format_json_like_studio
-from ._write_base import WriteToolMixin
+from .utils.repo_files import PathError, is_read, mark_changed, resolve_repo_path
+from .utils.studio_json import describe_formatting, format_json_like_studio
 
 
 class EditFileArgs(BaseModel):
@@ -33,7 +32,7 @@ class EditFileArgs(BaseModel):
     )
 
 
-class EditFileTool(WriteToolMixin[EditFileArgs]):
+class EditFileTool(WriteTool[EditFileArgs]):
     name = "edit_file"
     description = (
         "Find a literal string in a file and replace it.  Surgical: one "

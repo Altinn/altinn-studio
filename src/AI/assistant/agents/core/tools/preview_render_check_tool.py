@@ -13,15 +13,13 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
-from agents.core.tool import LoopContext, ToolResult
+from agents.core.tool import LoopContext, ToolResult, WriteTool
 from agents.services.preview.render_check import (
     PreviewCheckUnavailable,
     read_page_order,
     render_check,
 )
 from shared.config.base_config import get_config
-
-from ._write_base import WriteToolMixin
 
 _STORAGE_STATE_PATH = Path(tempfile.gettempdir()) / "altinity_preview_auth.json"
 
@@ -36,7 +34,7 @@ class PreviewRenderCheckArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class PreviewRenderCheckTool(WriteToolMixin[PreviewRenderCheckArgs]):
+class PreviewRenderCheckTool(WriteTool[PreviewRenderCheckArgs]):
     name = "preview_render_check"
     description = (
         "Render every ordered page of the app in Studio's app preview "

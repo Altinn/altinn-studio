@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from agents.core.tool import LoopContext, Tool, ToolResult
 
-from ._repo_files import PathError, mark_read, resolve_repo_path
+from .utils.repo_files import PathError, mark_read, resolve_repo_path
 
 # Cap on a single read's payload — without this, a 200kB schema file
 # would dominate the model's context budget.  Truncation marker mirrors

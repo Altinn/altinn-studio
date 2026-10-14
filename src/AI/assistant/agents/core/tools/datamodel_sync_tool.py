@@ -13,10 +13,9 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 from agents.altinn.datamodel import datamodel_sync
-from agents.core.tool import LoopContext, ToolResult
+from agents.core.tool import LoopContext, ToolResult, WriteTool
 
-from ._repo_files import PathError, resolve_repo_path
-from ._write_base import WriteToolMixin
+from .utils.repo_files import PathError, resolve_repo_path
 
 
 class DatamodelSyncArgs(BaseModel):
@@ -25,7 +24,7 @@ class DatamodelSyncArgs(BaseModel):
     )
 
 
-class DatamodelSyncTool(WriteToolMixin[DatamodelSyncArgs]):
+class DatamodelSyncTool(WriteTool[DatamodelSyncArgs]):
     """Generate XSD + C# from a JSON Schema model (Altinn Studio parity)."""
 
     name = "altinn_datamodel_sync"

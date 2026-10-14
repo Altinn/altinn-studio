@@ -11,10 +11,9 @@ import subprocess
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from agents.core.tool import LoopContext, ToolResult
+from agents.core.tool import LoopContext, ToolResult, WriteTool
 
-from ._repo_files import PathError, resolve_repo_path
-from ._write_base import WriteToolMixin
+from .utils.repo_files import PathError, resolve_repo_path
 
 
 class DiscardFileChangesArgs(BaseModel):
@@ -22,7 +21,7 @@ class DiscardFileChangesArgs(BaseModel):
     path: str = Field(min_length=1, description="Repo-relative path to reset to HEAD.")
 
 
-class DiscardFileChangesTool(WriteToolMixin[DiscardFileChangesArgs]):
+class DiscardFileChangesTool(WriteTool[DiscardFileChangesArgs]):
     name = "discard_file_changes"
     description = (
         "Reset ONE file in the working tree back to its last committed state "
