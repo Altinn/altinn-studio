@@ -1,6 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"context"
+	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"maps"
@@ -9,7 +13,9 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -20,9 +26,38 @@ import (
 	"altinn.studio/pdf3/internal/auth"
 	"altinn.studio/pdf3/internal/serviceowner"
 	"altinn.studio/pdf3/internal/telemetry"
+	"altinn.studio/pdf3/internal/telemetry/attr"
+	"altinn.studio/pdf3/internal/types"
 )
 
 const requestBody = `{"url":"https://ttd.apps.tt02.altinn.no/ttd/app/instance/1/abc?pdf=1"}`
+
+var errConnectionRefused = errors.New("connection refused")
+
+// logRecorder collects a relay's log records, from whichever goroutine serves the request.
+type logRecorder struct {
+	buf bytes.Buffer
+	mu  sync.Mutex
+}
+
+func (l *logRecorder) Write(p []byte) (int, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.buf.Write(p) //nolint:wrapcheck // io.Writer passes on the buffer's error as it is.
+}
+
+func (l *logRecorder) String() string {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.buf.String()
+}
+
+// recordLogs makes rl log to the returned recorder.
+func recordLogs(rl *relay) *logRecorder {
+	logs := &logRecorder{}
+	rl.logger = slog.New(slog.NewTextHandler(logs, nil))
+	return logs
+}
 
 func newTestRelay(t *testing.T, upstream string) *relay {
 	t.Helper()
@@ -73,8 +108,12 @@ func TestRelayForwardsRequestWithAPIKeyAndServiceOwner(t *testing.T) {
 	if rec.Code != http.StatusOK || rec.Body.String() != "%PDF-1.7 test" {
 		t.Fatalf("response = %d %q", rec.Code, rec.Body.String())
 	}
-	if rec.Header().Get("Content-Type") != "application/pdf" {
-		t.Fatalf("Content-Type = %q", rec.Header().Get("Content-Type"))
+	if rec.Header().Get("Content-Type") != "application/pdf" || rec.Header().Get("Content-Length") != "13" {
+		t.Fatalf(
+			"Content-Type = %q, Content-Length = %q",
+			rec.Header().Get("Content-Type"),
+			rec.Header().Get("Content-Length"),
+		)
 	}
 	if got.method != http.MethodPost || got.path != "/pdf3/pdf" || got.body != requestBody {
 		t.Fatalf("upstream got %s %s %q", got.method, got.path, got.body)
@@ -90,7 +129,6 @@ func TestRelayForwardsRequestWithAPIKeyAndServiceOwner(t *testing.T) {
 func TestRelayPassesErrorsThroughWithoutRetrying(t *testing.T) {
 	for _, status := range []int{
 		http.StatusBadRequest,
-		http.StatusUnauthorized,
 		http.StatusTooManyRequests,
 		http.StatusInternalServerError,
 	} {
@@ -116,6 +154,228 @@ func TestRelayPassesErrorsThroughWithoutRetrying(t *testing.T) {
 				t.Fatalf("upstream called %d times, want 1", calls.Load())
 			}
 		})
+	}
+}
+
+func TestRelayReturnsBadGatewayWhenUpstreamDoesNotAccept(t *testing.T) {
+	for _, status := range []int{
+		http.StatusFound,
+		http.StatusTemporaryRedirect,
+		http.StatusUnauthorized,
+		http.StatusForbidden,
+	} {
+		t.Run(http.StatusText(status), func(t *testing.T) {
+			var calls atomic.Int32
+			var upstream *httptest.Server
+			upstream = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				calls.Add(1)
+				w.Header().Set("Location", upstream.URL+"/elsewhere")
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(status)
+				if _, err := w.Write([]byte(`{"title":"upstream title"}`)); err != nil {
+					t.Errorf("Write() error = %v", err)
+				}
+			}))
+			defer upstream.Close()
+
+			rl := newTestRelay(t, upstream.URL)
+			logs := recordLogs(rl)
+			rec := post(t, http.HandlerFunc(rl.handlePdf), requestBody, nil)
+
+			if rec.Code != http.StatusBadGateway {
+				t.Fatalf("status = %d, want %d", rec.Code, http.StatusBadGateway)
+			}
+			if rec.Header().Get("Location") != "" || strings.Contains(rec.Body.String(), "upstream title") {
+				t.Fatalf(
+					"passed on the upstream response: Location %q, body %q",
+					rec.Header().Get("Location"),
+					rec.Body.String(),
+				)
+			}
+			if calls.Load() != 1 {
+				t.Fatalf("upstream called %d times, want 1", calls.Load())
+			}
+			if got := logs.String(); !strings.Contains(got, "level=ERROR") ||
+				!strings.Contains(got, attr.HTTPResponseStatusCode+"="+strconv.Itoa(status)) {
+				t.Fatalf("logs = %q, want an error with the upstream status", got)
+			}
+		})
+	}
+}
+
+func TestRelayAbortsTruncatedResponse(t *testing.T) {
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, err := io.Copy(io.Discard, r.Body); err != nil {
+			t.Errorf("Copy() error = %v", err)
+		}
+		conn, buf, err := http.NewResponseController(w).Hijack()
+		if err != nil {
+			t.Errorf("Hijack() error = %v", err)
+			return
+		}
+		defer func() {
+			if err := conn.Close(); err != nil {
+				t.Errorf("Close() error = %v", err)
+			}
+		}()
+		// A 200 and the start of a PDF, large enough that the relay sends its status on, then the
+		// connection closes before the last chunk.
+		chunk := "%PDF-" + strings.Repeat("x", 64*1024)
+		if _, err := fmt.Fprintf(
+			buf,
+			"HTTP/1.1 200 OK\r\nContent-Type: application/pdf\r\nTransfer-Encoding: chunked\r\n\r\n%x\r\n%s\r\n",
+			len(chunk),
+			chunk,
+		); err != nil {
+			t.Errorf("WriteString() error = %v", err)
+		}
+		if err := buf.Flush(); err != nil {
+			t.Errorf("Flush() error = %v", err)
+		}
+	}))
+	defer upstream.Close()
+
+	rl := newTestRelay(t, upstream.URL)
+	logs := recordLogs(rl)
+	// A real server, with the middleware main uses, so the abort reaches the connection.
+	server := httptest.NewServer(telemetry.WrapHandler("POST /pdf", rl.handlePdf))
+	defer server.Close()
+
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, server.URL, strings.NewReader(requestBody))
+	if err != nil {
+		t.Fatalf("NewRequest() error = %v", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := server.Client().Do(req)
+	if err != nil {
+		t.Fatalf("Do() error = %v", err)
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			t.Errorf("Close() error = %v", err)
+		}
+	}()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want the upstream's 200", resp.StatusCode)
+	}
+	if body, err := io.ReadAll(resp.Body); err == nil {
+		t.Fatalf("read a complete response of %d bytes, want a read error", len(body))
+	}
+	if got := logs.String(); !strings.Contains(got, `level=ERROR msg="Failed to copy the PDF service response"`) {
+		t.Fatalf("logs = %q, want an error", got)
+	}
+}
+
+func TestRelayRetriesConnectFailures(t *testing.T) {
+	var gotBody string
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("ReadAll() error = %v", err)
+		}
+		gotBody = string(body)
+		if _, err := w.Write([]byte("%PDF-1.7 test")); err != nil {
+			t.Errorf("Write() error = %v", err)
+		}
+	}))
+	defer upstream.Close()
+
+	rl := newTestRelay(t, upstream.URL)
+	var dials atomic.Int32
+	var dialer net.Dialer
+	rl.client.Transport = &http.Transport{
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			if dials.Add(1) == 1 {
+				return nil, &net.OpError{Op: "dial", Net: network, Err: errConnectionRefused}
+			}
+			return dialer.DialContext(ctx, network, addr)
+		},
+	}
+	rec := post(t, http.HandlerFunc(rl.handlePdf), requestBody, nil)
+
+	if rec.Code != http.StatusOK || rec.Body.String() != "%PDF-1.7 test" {
+		t.Fatalf("response = %d %q", rec.Code, rec.Body.String())
+	}
+	if dials.Load() != 2 {
+		t.Fatalf("dialed %d times, want 2", dials.Load())
+	}
+	if gotBody != requestBody {
+		t.Fatalf("upstream got body %q, want %q", gotBody, requestBody)
+	}
+}
+
+func TestRelayDoesNotRetryAfterConnecting(t *testing.T) {
+	var calls atomic.Int32
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls.Add(1)
+		if _, err := io.Copy(io.Discard, r.Body); err != nil {
+			t.Errorf("Copy() error = %v", err)
+		}
+		// The request may have been processed, so the relay must not send it again.
+		conn, _, err := http.NewResponseController(w).Hijack()
+		if err != nil {
+			t.Errorf("Hijack() error = %v", err)
+			return
+		}
+		if err := conn.Close(); err != nil {
+			t.Errorf("Close() error = %v", err)
+		}
+	}))
+	defer upstream.Close()
+
+	rl := newTestRelay(t, upstream.URL)
+	rec := post(t, http.HandlerFunc(rl.handlePdf), requestBody, nil)
+
+	if rec.Code != http.StatusBadGateway {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusBadGateway)
+	}
+	if calls.Load() != 1 {
+		t.Fatalf("upstream called %d times, want 1", calls.Load())
+	}
+}
+
+func TestRelayLogsClientThatGaveUpAtInfo(t *testing.T) {
+	received := make(chan struct{})
+	release := make(chan struct{})
+	upstream := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		if _, err := io.Copy(io.Discard, r.Body); err != nil {
+			t.Errorf("Copy() error = %v", err)
+		}
+		close(received)
+		select {
+		case <-release:
+		case <-r.Context().Done():
+		}
+	}))
+	defer upstream.Close()
+	defer close(release)
+
+	rl := newTestRelay(t, upstream.URL)
+	logs := recordLogs(rl)
+	ctx, cancel := context.WithCancel(t.Context())
+	req := httptest.NewRequestWithContext(ctx, http.MethodPost, "/pdf", strings.NewReader(requestBody))
+	req.Header.Set("Content-Type", "application/json")
+	done := make(chan struct{})
+	go func() {
+		rl.handlePdf(httptest.NewRecorder(), req)
+		close(done)
+	}()
+	<-received
+	cancel()
+	<-done
+
+	got := logs.String()
+	if strings.Contains(got, "level=ERROR") ||
+		!strings.Contains(got, `level=INFO msg="The client gave up before the PDF service responded"`) {
+		t.Fatalf("logs = %q, want the client giving up at INFO", got)
+	}
+}
+
+func TestRelayTimeoutCoversTheProxysRetriesAndRender(t *testing.T) {
+	rl := newTestRelay(t, "http://upstream")
+	want := types.WorkerMaxAttempts*types.WorkerRetryDelay + types.RequestTimeout() + upstreamTimeoutMargin
+	if rl.timeout != want {
+		t.Fatalf("timeout = %v, want %v", rl.timeout, want)
 	}
 }
 
@@ -157,10 +417,15 @@ func TestRelayReturnsGatewayTimeoutWhenUpstreamIsSlow(t *testing.T) {
 
 	rl := newTestRelay(t, upstream.URL)
 	rl.timeout = 100 * time.Millisecond
+	logs := recordLogs(rl)
 	rec := post(t, http.HandlerFunc(rl.handlePdf), requestBody, nil)
 
 	if rec.Code != http.StatusGatewayTimeout {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusGatewayTimeout)
+	}
+	// The relay's own timeout is an error, unlike a client that gives up.
+	if got := logs.String(); !strings.Contains(got, `level=ERROR msg="Failed to reach the PDF service"`) {
+		t.Fatalf("logs = %q, want an error", got)
 	}
 }
 

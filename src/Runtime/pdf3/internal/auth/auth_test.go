@@ -1,12 +1,14 @@
 package auth
 
 import (
+	"bufio"
 	"context"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -106,6 +108,61 @@ func TestReloadKeepsKeysWhenFileBreaks(t *testing.T) {
 	}
 	if !keys.Valid("key") {
 		t.Fatal("keys must be kept when the file can't be used")
+	}
+}
+
+func TestLongLineIsAnError(t *testing.T) {
+	// A line longer than the scanner's buffer stops the scan; the keys after it must not be lost silently.
+	content := "key\n" + strings.Repeat("x", bufio.MaxScanTokenSize+1) + "\nother-key\n"
+
+	path := filepath.Join(t.TempDir(), "keys")
+	writeKeys(t, path, content)
+	if _, err := Load(slog.New(slog.DiscardHandler), path); err == nil {
+		t.Fatal("Load() succeeded for a file with a line longer than the scanner's buffer")
+	}
+
+	keys, path := loadKeys(t, "key\n")
+	writeKeys(t, path, content)
+	if _, err := keys.reload(); err == nil {
+		t.Fatal("reload() succeeded for a file with a line longer than the scanner's buffer")
+	}
+	if !keys.Valid("key") || keys.Valid("other-key") {
+		t.Fatal("keys must be kept when the file can't be parsed")
+	}
+}
+
+func TestWatchReloadsChangedFile(t *testing.T) {
+	keys, path := loadKeys(t, "old-key\n")
+	ctx, cancel := context.WithCancel(t.Context())
+	done := make(chan struct{})
+	go func() {
+		keys.Watch(ctx, time.Millisecond)
+		close(done)
+	}()
+	defer func() {
+		cancel()
+		<-done
+	}()
+
+	writeKeys(t, path, "new-key\n")
+	// Give the file a distinct modification time even on coarse filesystem clocks.
+	future := time.Now().Add(time.Minute)
+	if err := os.Chtimes(path, future, future); err != nil {
+		t.Fatalf("Chtimes() error = %v", err)
+	}
+
+	deadline := time.Now().Add(5 * time.Second)
+	for !keys.Valid("new-key") {
+		if time.Now().After(deadline) {
+			t.Fatal("Watch() did not pick up the changed file")
+		}
+		time.Sleep(time.Millisecond)
+	}
+	if keys.Valid("old-key") {
+		t.Fatal("removed key is still valid")
+	}
+	if got := keys.First(); got != "new-key" {
+		t.Fatalf("First() = %q, want new-key", got)
 	}
 }
 

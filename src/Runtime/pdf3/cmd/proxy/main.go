@@ -86,7 +86,7 @@ func main() {
 		ihttp.WriteText(r.Context(), logger, w, http.StatusOK, "OK")
 	})
 
-	pdfHandler := generatePdf(logger, httpClient, workerHTTPAddr, cfg.AppHostname)
+	pdfHandler := generatePdf(logger, httpClient, workerHTTPAddr, cfg.AppHostname, cfg.ServiceOwner)
 	if apiKeys != nil {
 		go apiKeys.Watch(host.ServerContext(), auth.ReloadInterval)
 		pdfHandler = auth.RequireAPIKey(logger, apiKeys, pdfHandler)
@@ -167,10 +167,13 @@ func generatePdf(
 	client *http.Client,
 	workerAddr string,
 	appHostname string,
+	configuredServiceOwner string,
 ) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		if serviceOwner := requestServiceOwner(r); serviceOwner != "" {
+		// The worker resolves it the same way, so the proxy's and the worker's spans agree.
+		serviceOwner := serviceowner.Resolve(configuredServiceOwner, r.Header.Get(serviceowner.Header))
+		if serviceOwner != "" {
 			trace.SpanFromContext(r.Context()).SetAttributes(attribute.String(attr.ServiceOwner, serviceOwner))
 		}
 		if r.Method != http.MethodPost {
@@ -243,13 +246,8 @@ func generatePdf(
 			return
 		}
 
-		// Start generating the PDF with some (rather dumb) retry logic
-		// Retry logic:
-		//   Max 40 retry attempts on 429 (queue full) errors,
-		//   while waiting 250ms in between attempts
-		//   means we might try to allocate a worker for 10 seconds before giving up.
-		//   If the cluster has available capacity a pod can boot in 2-10 seconds
-		const maxRetries = 40
+		// Start generating the PDF with some (rather dumb) retry logic, see types.WorkerMaxAttempts.
+		const maxRetries = types.WorkerMaxAttempts
 		reqLogger := logger.With(attr.RequestURL, telemetry.RedactURL(req.URL), attr.MaxRetries, maxRetries)
 		reqLogger.Info("Generating PDF")
 
@@ -282,6 +280,7 @@ func generatePdf(
 				attempt,
 				maxRetries,
 				reqBody,
+				serviceOwner,
 			)
 			if ret {
 				return
@@ -309,6 +308,7 @@ func callWorker(
 	attempt int,
 	maxRetries int,
 	reqBody []byte,
+	serviceOwner string,
 ) bool {
 	// Call worker via HTTP
 	//nolint:gosec // workerEndpoint comes from trusted runtime configuration, not an external client input.
@@ -327,7 +327,7 @@ func callWorker(
 	// Done manually because we don't use otelhttp.NewTransport (it would mark each
 	// retried 429 response as a span error, creating false error noise).
 	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(httpReq.Header))
-	if serviceOwner := requestServiceOwner(r); serviceOwner != "" {
+	if serviceOwner != "" {
 		httpReq.Header.Set(serviceowner.Header, serviceOwner)
 	}
 	if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
@@ -362,7 +362,7 @@ func callWorker(
 				attr.Error, err,
 			)
 			select {
-			case <-time.After(250 * time.Millisecond):
+			case <-time.After(types.WorkerRetryDelay):
 			case <-ctx.Done():
 			}
 			return false
@@ -419,7 +419,7 @@ func callWorker(
 			attr.ElapsedMs, time.Since(start).Milliseconds(),
 		)
 		select {
-		case <-time.After(250 * time.Millisecond):
+		case <-time.After(types.WorkerRetryDelay):
 		case <-ctx.Done():
 		}
 		return false
@@ -508,12 +508,6 @@ func recordApp(ctx context.Context, appHostname string, rawURL string) {
 		return
 	}
 	trace.SpanFromContext(ctx).SetAttributes(attribute.String(attr.App, app.App))
-}
-
-// requestServiceOwner returns the service owner the relay sent with the request, which the worker
-// gets too, or "" if there is none or it isn't valid.
-func requestServiceOwner(r *http.Request) string {
-	return serviceowner.FromHeader(r.Header.Get(serviceowner.Header))
 }
 
 func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(http.ResponseWriter, *http.Request) {

@@ -66,7 +66,8 @@ make check                # Complete CI check (tidy, fmt, lint, test)
    - Endpoint: `POST /pdf` - accepts PDF generation requests
    - Health: `/health/startup`, `/health/ready`, `/health/live`
    - Retries on worker queue-full (429) responses
-   - Forwards requests to worker via HTTP, passing on the relay's `X-Altinn-Service-Owner` header
+   - Forwards requests to worker via HTTP with the request's service owner in
+     `X-Altinn-Service-Owner`, resolved as the worker does (see below)
    - When `PDF3_API_KEYS_FILE` is set, requires `Authorization: Bearer <key>` (see `internal/auth`);
      off by default, as in tenant clusters
 
@@ -83,6 +84,8 @@ make check                # Complete CI check (tidy, fmt, lint, test)
    - Endpoint: `POST /pdf` - sends the request to `PDF3_UPSTREAM_URL` with the key in
      `PDF3_API_KEY_FILE` and the cluster's `PDF3_SERVICEOWNER` in `X-Altinn-Service-Owner`
    - Only retries requests that failed to connect; the shared proxy retries busy workers
+   - Waits as long as the shared proxy's retries and a render may take (`types.WorkerMaxAttempts`)
+   - Doesn't follow redirects, and answers an upstream 3xx, 401 or 403 with 502, as apps can't fix them
    - Ships in the proxy image as `./relay`
 
 4. **test/cmd/tester/main.go** - Test orchestration CLI
@@ -122,8 +125,11 @@ make check                # Complete CI check (tidy, fmt, lint, test)
   `altinn.pdf.url_kind`, and the proxy and worker the app as `altinn.app`; it never changes how a
   request is served
 
-- **internal/auth** - API keys read from a file, one per line, reread every 30 seconds so a
-  rotated Secret takes effect; compared in constant time
+- **internal/auth** - API keys read from a file, one per line (lines starting with `#` are
+  comments), checked every 30 seconds and reread when it changed so a rotated Secret takes effect;
+  compared in constant time. The shared pdf3 (DIS Core) trusts `X-Altinn-Service-Owner` from any
+  holder of a valid key. That is accepted because the service owner only affects telemetry and
+  PDF/A conversion; revisit it before adding limits per service owner
 
 - **internal/serviceowner** - The `X-Altinn-Service-Owner` header and how the worker resolves a
   request's service owner; a header value that isn't a lowercase DNS label is ignored

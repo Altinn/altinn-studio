@@ -143,7 +143,7 @@ func TestGeneratePdf_URLKind(t *testing.T) {
 			worker := &workerStub{status: tt.workerStatus}
 			client := &http.Client{Transport: worker}
 			handler := otelhttp.NewHandler(
-				http.HandlerFunc(generatePdf(logger, client, "http://worker", tt.appHostname)),
+				http.HandlerFunc(generatePdf(logger, client, "http://worker", tt.appHostname, "")),
 				"POST /pdf",
 				otelhttp.WithMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))),
 				otelhttp.WithTracerProvider(sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(spans))),

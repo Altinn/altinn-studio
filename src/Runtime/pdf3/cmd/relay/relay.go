@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"strconv"
 	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -23,7 +24,7 @@ import (
 const (
 	// maxBodySize matches the proxy's limit for the JSON request.
 	maxBodySize = 64 * 1024
-	// upstreamTimeoutMargin is added to the shared proxy's request timeout to cover the network hop.
+	// upstreamTimeoutMargin is added to the shared proxy's worst case to cover the network hop.
 	upstreamTimeoutMargin = 5 * time.Second
 	// maxAttempts bounds retries of requests that never reached the upstream.
 	maxAttempts = 3
@@ -57,12 +58,22 @@ func newRelay(logger *slog.Logger, upstream string, keys *auth.KeyFile, serviceO
 	return &relay{
 		logger: logger,
 		keys:   keys,
-		// otelhttp injects the trace context, so the shared pdf3's spans join the app's trace.
-		client:       &http.Client{Transport: otelhttp.NewTransport(transport)},
+		client: &http.Client{
+			// otelhttp injects the trace context, so the shared pdf3's spans join the app's trace.
+			Transport: otelhttp.NewTransport(transport),
+			// A redirect is not followed, so the API key is only ever sent to the upstream.
+			CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
+		},
 		upstream:     upstream,
 		serviceOwner: serviceOwner,
-		timeout:      types.RequestTimeout() + upstreamTimeoutMargin,
+		timeout:      upstreamTimeout(),
 	}
+}
+
+// upstreamTimeout is how long the relay waits for the shared proxy: its retries of busy workers,
+// then a render, then the network hop.
+func upstreamTimeout() time.Duration {
+	return types.WorkerMaxAttempts*types.WorkerRetryDelay + types.RequestTimeout() + upstreamTimeoutMargin
 }
 
 //nolint:funlen // Request validation and response mapping are easier to follow in one flow.
@@ -111,12 +122,22 @@ func (rl *relay) handlePdf(w http.ResponseWriter, r *http.Request) {
 			status = http.StatusGatewayTimeout
 			title = "Gateway Timeout"
 		}
-		rl.logger.ErrorContext(
-			ctx,
-			"Failed to reach the PDF service",
-			attr.ElapsedMs, time.Since(start).Milliseconds(),
-			attr.Error, err,
-		)
+		if r.Context().Err() != nil {
+			// The app gave up, which is not the relay's error; the relay's own timeout is.
+			rl.logger.InfoContext(
+				ctx,
+				"The client gave up before the PDF service responded",
+				attr.ElapsedMs, time.Since(start).Milliseconds(),
+				attr.Error, err,
+			)
+		} else {
+			rl.logger.ErrorContext(
+				ctx,
+				"Failed to reach the PDF service",
+				attr.ElapsedMs, time.Since(start).Milliseconds(),
+				attr.Error, err,
+			)
+		}
 		ihttp.WriteProblemDetails(rl.logger, w, r, status, ihttp.ProblemDetails{
 			Type:   "https://tools.ietf.org/html/rfc7231#section-6.6",
 			Title:  title,
@@ -132,13 +153,24 @@ func (rl *relay) handlePdf(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	switch {
-	case resp.StatusCode == http.StatusUnauthorized:
-		// The relay's API key is wrong or expired, which apps can't fix.
+	case resp.StatusCode >= http.StatusMultipleChoices && resp.StatusCode < http.StatusBadRequest,
+		resp.StatusCode == http.StatusUnauthorized,
+		resp.StatusCode == http.StatusForbidden:
+		// A redirect isn't followed, and a rejected API key is the relay's to fix, not the app's,
+		// so neither is passed on as it is.
 		rl.logger.ErrorContext(
 			ctx,
-			"The PDF service rejected the API key",
+			"The PDF service did not accept the request",
+			attr.HTTPResponseStatusCode, resp.StatusCode,
 			attr.ElapsedMs, time.Since(start).Milliseconds(),
 		)
+		ihttp.WriteProblemDetails(rl.logger, w, r, http.StatusBadGateway, ihttp.ProblemDetails{
+			Type:   "https://tools.ietf.org/html/rfc7231#section-6.6.3",
+			Title:  "Bad Gateway",
+			Status: http.StatusBadGateway,
+			Detail: fmt.Sprintf("The PDF service did not accept the request: %d", resp.StatusCode),
+		})
+		return
 	case resp.StatusCode >= http.StatusInternalServerError:
 		rl.logger.WarnContext(
 			ctx,
@@ -151,14 +183,29 @@ func (rl *relay) handlePdf(w http.ResponseWriter, r *http.Request) {
 	if contentType := resp.Header.Get("Content-Type"); contentType != "" {
 		w.Header().Set("Content-Type", contentType)
 	}
+	if resp.ContentLength >= 0 {
+		w.Header().Set("Content-Length", strconv.FormatInt(resp.ContentLength, 10))
+	}
 	w.WriteHeader(resp.StatusCode)
 	if _, err := io.Copy(w, resp.Body); err != nil {
+		if r.Context().Err() != nil {
+			rl.logger.InfoContext(
+				ctx,
+				"The client gave up while the PDF service response was copied",
+				attr.ElapsedMs, time.Since(start).Milliseconds(),
+				attr.Error, err,
+			)
+			return
+		}
 		rl.logger.ErrorContext(
 			ctx,
 			"Failed to copy the PDF service response",
 			attr.ElapsedMs, time.Since(start).Milliseconds(),
 			attr.Error, err,
 		)
+		// The status is sent, so abort the response: the app must see a failed request, not a
+		// truncated PDF.
+		panic(http.ErrAbortHandler)
 	}
 }
 

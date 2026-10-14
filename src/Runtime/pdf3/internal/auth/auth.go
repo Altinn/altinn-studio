@@ -1,6 +1,7 @@
 // Package auth handles the API keys that callers of a shared pdf3 present, and the relay sends.
 //
-// Keys are read from a file with one key per line, mounted from a Secret.
+// Keys are read from a file with one key per line, mounted from a Secret. Lines starting with #
+// are comments.
 // Kubernetes replaces the mounted file when the Secret changes, so the file is
 // reread when it changes and two keys can be valid while a key is rotated.
 package auth
@@ -122,7 +123,10 @@ func (k *KeyFile) reload() (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("read key file: %w", err)
 	}
-	keys := parseKeys(data)
+	keys, err := parseKeys(data)
+	if err != nil {
+		return false, err
+	}
 	if len(keys) == 0 {
 		return false, errNoKeys
 	}
@@ -140,8 +144,8 @@ func (k *KeyFile) reload() (bool, error) {
 	return true, nil
 }
 
-// parseKeys returns the non-empty lines that aren't comments.
-func parseKeys(data []byte) []string {
+// parseKeys returns the non-empty lines that aren't comments, which start with #.
+func parseKeys(data []byte) ([]string, error) {
 	var keys []string
 	scanner := bufio.NewScanner(bytes.NewReader(data))
 	for scanner.Scan() {
@@ -151,7 +155,10 @@ func parseKeys(data []byte) []string {
 		}
 		keys = append(keys, line)
 	}
-	return keys
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("parse key file: %w", err)
+	}
+	return keys, nil
 }
 
 // RequireAPIKey rejects requests without a valid "Authorization: Bearer <key>" header with 401,

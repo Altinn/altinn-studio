@@ -47,6 +47,7 @@ func TestCallWorker_LogsRetriesAtInfoAndExhaustionAtError(t *testing.T) {
 		1,
 		maxRetries,
 		nil,
+		"",
 	); done {
 		t.Fatal("callWorker() = true on a retryable failure, want a retry")
 	}
@@ -66,6 +67,7 @@ func TestCallWorker_LogsRetriesAtInfoAndExhaustionAtError(t *testing.T) {
 		maxRetries,
 		maxRetries,
 		nil,
+		"",
 	); !done {
 		t.Fatal("callWorker() = false on the last attempt, want it to give up")
 	}
@@ -97,6 +99,7 @@ func TestGeneratePdf_ServiceOwnerAndApp(t *testing.T) {
 	const appPage = "https://ttd.apps.tt02.altinn.no/ttd/my-app/instance/512345/0fc98a23?pdf=1"
 	tests := []struct {
 		name             string
+		configured       string
 		header           string
 		appHostname      string
 		url              string
@@ -106,6 +109,23 @@ func TestGeneratePdf_ServiceOwnerAndApp(t *testing.T) {
 		{
 			name:             "header and app page",
 			header:           "ttd",
+			appHostname:      "tt02.altinn.no",
+			url:              appPage,
+			wantServiceOwner: "ttd",
+			wantApp:          "my-app",
+		},
+		{
+			name:             "configured service owner wins over the header",
+			configured:       "ttd",
+			header:           "ikta",
+			appHostname:      "tt02.altinn.no",
+			url:              appPage,
+			wantServiceOwner: "ttd",
+			wantApp:          "my-app",
+		},
+		{
+			name:             "configured service owner without a header",
+			configured:       "ttd",
 			appHostname:      "tt02.altinn.no",
 			url:              appPage,
 			wantServiceOwner: "ttd",
@@ -124,7 +144,13 @@ func TestGeneratePdf_ServiceOwnerAndApp(t *testing.T) {
 			var workerHeader http.Header
 			client := &http.Client{Transport: headerRecorder{got: &workerHeader}}
 			handler := otelhttp.NewHandler(
-				http.HandlerFunc(generatePdf(slog.New(slog.DiscardHandler), client, "http://worker", tt.appHostname)),
+				http.HandlerFunc(generatePdf(
+					slog.New(slog.DiscardHandler),
+					client,
+					"http://worker",
+					tt.appHostname,
+					tt.configured,
+				)),
 				"POST /pdf",
 				otelhttp.WithTracerProvider(sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(spans))),
 			)
