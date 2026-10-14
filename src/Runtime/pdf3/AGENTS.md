@@ -177,6 +177,38 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 - `base/` - Base deployment configs
 - `local-minimal/`, `local-standard/` - Local variants
 
+These are deployed to every service owner's cluster by `.github/workflows/deploy-runtime-pdf3.yaml`
+and promoted through the rings.
+
+### DIS Core
+
+pdf3 is moving to one cluster per environment shared by all service owners, DIS Core, run by
+Digdir's platform team. There it is the product `studio-pdf3`, in the namespace
+`product-studio-pdf3`. Flux reads `oci://altinncr.azurecr.io/studio-pdf3/syncroot:<env>` and applies
+`./<env>` without pruning, as the identity `flux-applier`, which may only create resources in that
+namespace.
+
+**Manifests**: `infra/syncroot/`
+
+- `base/` - What every environment gets: the ApplicationIdentity and Key Vault `pdf3`
+- `<env>/` - Applied by the platform. It only holds the Flux Kustomization `pdf3` (`app.yaml`),
+  which applies `./<env>/app` from the same artifact with pruning, so removing a resource from
+  the manifests deletes it. The Vault and the ApplicationIdentity are the exception: they are
+  annotated `kustomize.toolkit.fluxcd.io/prune: disabled`, so removing them takes a manual
+  `kubectl delete`. Deleting the Vault deletes the Key Vault, and purge protection keeps its name
+  taken for the 90 days of soft delete
+- `<env>/app/` - The environment's overlay of `base/`
+
+**Publishing**: `.github/workflows/deploy-dis-pdf3-syncroot.yaml` pushes `infra/syncroot` as
+`studio-pdf3/syncroot:<sha>` on every change on main, then moves each Core environment's tag to it
+in that environment's GitHub environment (`dis_core_<env>`), one tag job each. Like Studio's own
+deploys it is addressed by environment: a push covers every Core environment (at22, at23, yt01,
+tt02, prod), and a manual run the environments in its `environments` input. DIS Core has no
+rings; there is one cluster per environment for every service owner. `dis_core_yt01`,
+`dis_core_tt02` and `dis_core_prod` need a reviewer's approval. Only at22 has resources so far; the
+other environments' folders hold an empty kustomization, the same content the platform seeded. The
+tenant workflows ignore changes under `infra/syncroot/`.
+
 ## Testing Strategy
 
 **Always run integration tests after changes** to PDF generation logic.
