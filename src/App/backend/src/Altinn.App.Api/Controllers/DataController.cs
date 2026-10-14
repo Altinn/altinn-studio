@@ -1180,8 +1180,22 @@ public class DataController : ControllerBase
         return e.Response.StatusCode switch
         {
             HttpStatusCode.Forbidden => Forbid(),
-            HttpStatusCode.NotFound => NotFound(),
-            HttpStatusCode.Conflict => Conflict(),
+            HttpStatusCode.NotFound => Problem(
+                new ProblemDetails()
+                {
+                    Title = "Not found",
+                    Detail = defaultMessage,
+                    Status = StatusCodes.Status404NotFound,
+                }
+            ),
+            HttpStatusCode.Conflict => Problem(
+                new ProblemDetails()
+                {
+                    Title = "Conflict",
+                    Detail = defaultMessage,
+                    Status = StatusCodes.Status409Conflict,
+                }
+            ),
             _ => ExceptionResponse(e, defaultMessage),
         };
     }

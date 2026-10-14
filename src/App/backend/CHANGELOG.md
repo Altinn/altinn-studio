@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- Breaking: the data API returns its errors as JSON, and the `JsonObjectInDataResponse` feature flag is removed. `studioctl app upgrade v9` removes the flag from the app.
+- Breaking: the data API returns its errors as JSON, and the `JsonObjectInDataResponse` feature flag is removed. `studioctl app upgrade v9` removes the flag from the app. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
   - the obsolete `POST .../data?dataType=` returns a list of validation issues
   - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
 

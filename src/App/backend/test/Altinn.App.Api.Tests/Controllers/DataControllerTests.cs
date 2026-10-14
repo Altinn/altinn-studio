@@ -436,7 +436,9 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
             $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}"
         );
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var problem = await VerifyStatusAndDeserialize<ProblemDetails>(response, HttpStatusCode.NotFound);
+        Assert.Equal(StatusCodes.Status404NotFound, problem.Status);
+        Assert.Contains(dataGuid.ToString(), problem.Detail);
     }
 
     private static async Task<ByteArrayContent> CreateBinaryContent(
