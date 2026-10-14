@@ -41,12 +41,6 @@ _JSON_TOKEN = re.compile(r'"(?:[^"\\]|\\.)*"|[{}\[\],:]|[^\s{}\[\],:"]+')
 _JSON_OPENERS = {"{", "["}
 _JSON_CLOSERS = {"}", "]"}
 _JSON_LINE_ENDERS = {"{", "[", ","}
-_JSON_REFORMATTED_NOTE = (
-    "  The JSON is now formatted as Studio formats it, so its whitespace can differ from what you sent."
-)
-_WHITESPACE_MATCH_NOTE = (
-    "  `old_string` matched only after ignoring whitespace, so that region now carries your formatting."
-)
 
 
 # ---------------------------------------------------------------------------
@@ -148,9 +142,9 @@ def _get_json_separator(previous: str, token: str, depth: int) -> str:
 
 def _describe_formatting(*, is_reformatted: bool, matched_on_whitespace: bool) -> str:
     if is_reformatted:
-        return _JSON_REFORMATTED_NOTE
+        return "  The JSON is now formatted as Studio formats it, so its whitespace can differ from what you sent."
     if matched_on_whitespace:
-        return _WHITESPACE_MATCH_NOTE
+        return "  `old_string` matched only after ignoring whitespace, so that region now carries your formatting."
     return ""
 
 
