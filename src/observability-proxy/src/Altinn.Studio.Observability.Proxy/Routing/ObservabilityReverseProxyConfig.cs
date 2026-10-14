@@ -63,8 +63,8 @@ internal static class ObservabilityReverseProxyConfig
         return cluster?.Metadata?.ContainsKey(StoragePairMetadataKey) == true;
     }
 
-    /// <summary>The signal <paramref name="route"/> writes, or <c>null</c> when it is not a write route.</summary>
-    public static ObservabilitySignal? WriteSignalOf(RouteConfig? route)
+    /// <summary>The signal <paramref name="route"/> writes or reads, or <c>null</c> when it is not a proxy route.</summary>
+    public static ObservabilitySignal? SignalOf(RouteConfig? route)
     {
         return route?.Metadata?.GetValueOrDefault(SignalMetadataKey) is { } signalName
             ? ObservabilitySignal.Named(signalName)
@@ -139,6 +139,7 @@ internal static class ObservabilityReverseProxyConfig
             Metadata = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 [ObservabilityPaths.RouteGroupMetadataKey] = readApi.RouteGroup,
+                [SignalMetadataKey] = signal.Name,
             },
         };
     }
@@ -162,6 +163,9 @@ internal static class ObservabilityReverseProxyConfig
     /// destination keys are ordered so that is the first configured address. After a failover,
     /// reads stay on the second instance until the proxy restarts; see there for why they do not
     /// return on their own.
+    ///
+    /// The keys are the copies' letters in configuration order, <c>a</c> and <c>b</c>, which is how
+    /// the storage instances are named. Logs and metrics name a destination by its key.
     /// </summary>
     private static ClusterConfig CreateReadCluster(
         ObservabilitySignal signal,
@@ -172,7 +176,7 @@ internal static class ObservabilityReverseProxyConfig
         var destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase);
         for (var index = 0; index < addresses.Count; index++)
         {
-            destinations[$"instance-{index}"] = new DestinationConfig
+            destinations[CopyName(index)] = new DestinationConfig
             {
                 Address = EnsureTrailingSlash(addresses[index]),
                 // Probed at the backend's root, not through the query path the route prepends.
@@ -204,6 +208,8 @@ internal static class ObservabilityReverseProxyConfig
             },
         };
     }
+
+    private static string CopyName(int index) => new((char)('a' + index), 1);
 
     private static string EnsureTrailingSlash(string address)
     {
