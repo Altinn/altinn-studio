@@ -1,7 +1,11 @@
+using System.Data;
+using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Npgsql;
 using OpenTelemetry;
+using OpenTelemetry.Instrumentation.EntityFrameworkCore;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -101,6 +105,8 @@ public sealed class TelemetryConfigurationTests
         ["altinn.workflow_engine.mailbox.receiver.wake.duration"] = _wakeLatencyBuckets,
         ["altinn.workflow_engine.step.wait.duration"] = _waitBudgetBuckets,
     };
+
+    private static readonly string[] _arrayParameter = ["a", "b"];
 
     public static TheoryData<string> CustomBucketHistograms => new(_histogramBuckets.Keys);
 
@@ -226,16 +232,81 @@ public sealed class TelemetryConfigurationTests
         Assert.Equal(emitted, _histogramBuckets.Keys.Order(StringComparer.Ordinal));
     }
 
+    [Fact]
+    public void AddTelemetry_QueryParametersEmitted_EachParameterIsItsOwnSemanticConventionAttribute()
+    {
+        // Arrange
+        using var sp = BuildProvider(enableDatabaseInstrumentation: true, emitQueryParameters: true);
+        using var command = QueryWithParameters();
+        using var activity = new Activity("db");
+
+        // Act
+        EnrichDatabaseSpan(sp)(activity, command);
+
+        // Assert — named by the parameter without its placeholder prefix, or by its index when it has no name
+        Assert.Equal("ttd/e2e-tests", activity.GetTagItem("db.query.parameter.__ns_0"));
+        Assert.Equal("42", activity.GetTagItem("db.query.parameter.p1"));
+        Assert.Equal("[\"a\",\"b\"]", activity.GetTagItem("db.query.parameter.p2"));
+        Assert.Equal("7", activity.GetTagItem("db.query.parameter.4"));
+        Assert.DoesNotContain(activity.TagObjects, t => t.Key == "db.query.parameter.p3");
+        Assert.DoesNotContain(activity.TagObjects, t => t.Key == "db.statement.parameters");
+    }
+
+    [Fact]
+    public void AddTelemetry_QueryParametersNotEmitted_DatabaseSpanCarriesNoParameterValues()
+    {
+        // Arrange
+        using var sp = BuildProvider(enableDatabaseInstrumentation: true);
+        using var command = QueryWithParameters();
+        using var activity = new Activity("db");
+
+        // Act
+        EnrichDatabaseSpan(sp)(activity, command);
+
+        // Assert
+        Assert.DoesNotContain(
+            activity.TagObjects,
+            t => t.Key.StartsWith("db.query.parameter.", StringComparison.Ordinal)
+        );
+    }
+
+    private static NpgsqlCommand QueryWithParameters()
+    {
+        var command = new NpgsqlCommand("SELECT 1");
+        command.Parameters.AddWithValue("@__ns_0", "ttd/e2e-tests");
+        command.Parameters.AddWithValue("p1", 42);
+        command.Parameters.AddWithValue("@p2", _arrayParameter);
+        command.Parameters.AddWithValue("@p3", DBNull.Value);
+        command.Parameters.Add(new NpgsqlParameter { Value = 7 });
+        return command;
+    }
+
+    /// <summary>
+    /// The enrichment the engine registers on the Entity Framework Core instrumentation, which runs for every
+    /// database span.
+    /// </summary>
+    private static Action<Activity, IDbCommand> EnrichDatabaseSpan(ServiceProvider sp)
+    {
+        var options = sp.GetRequiredService<IOptionsMonitor<EntityFrameworkInstrumentationOptions>>()
+            .Get(Options.DefaultName);
+        return Assert.IsType<Action<Activity, IDbCommand>>(options.EnrichWithIDbCommand);
+    }
+
     private static ServiceProvider BuildProvider(
         Dictionary<string, string?>? configuration = null,
-        Action<IServiceCollection>? configureServices = null
+        Action<IServiceCollection>? configureServices = null,
+        bool enableDatabaseInstrumentation = false,
+        bool emitQueryParameters = false
     )
     {
         var services = new ServiceCollection();
         services.AddSingleton<IConfiguration>(
             new ConfigurationBuilder().AddInMemoryCollection(configuration ?? []).Build()
         );
-        services.AddTelemetry();
+        services.AddTelemetry(
+            emitQueryParameters: emitQueryParameters,
+            enableDatabaseInstrumentation: enableDatabaseInstrumentation
+        );
         configureServices?.Invoke(services);
         return services.BuildServiceProvider();
     }

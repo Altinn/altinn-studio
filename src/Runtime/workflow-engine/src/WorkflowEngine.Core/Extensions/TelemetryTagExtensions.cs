@@ -12,8 +12,33 @@ namespace WorkflowEngine.Core.Extensions;
 /// </remarks>
 internal static class TelemetryTagExtensions
 {
+    extension(Workflow workflow)
+    {
+        /// <summary>
+        /// The attributes on a workflow's entry span: its IDs, the caller's keys and its namespace.
+        /// </summary>
+        public (string key, object? value)[] GetActivityTags() =>
+            [
+                (TelemetryAttributes.WorkflowId, workflow.DatabaseId),
+                (TelemetryAttributes.CollectionKey, workflow.CollectionKey),
+                (TelemetryAttributes.WorkflowIdempotencyKey, workflow.IdempotencyKey),
+                (TelemetryAttributes.WorkflowOperationId, workflow.OperationId),
+                (TelemetryAttributes.Namespace, workflow.Namespace),
+            ];
+    }
+
     extension(Step step)
     {
+        /// <summary>
+        /// The attributes on a step's span: its IDs and the type of command it runs.
+        /// </summary>
+        public (string key, object? value)[] GetActivityTags() =>
+            [
+                (TelemetryAttributes.StepId, step.DatabaseId),
+                (TelemetryAttributes.StepOperationId, step.OperationId),
+                (TelemetryAttributes.StepCommandType, step.Command.Type),
+            ];
+
         /// <summary>
         /// The attributes on a step's duration histograms: only the command type, which every app shares — an
         /// operation ID is built per app, so it would make the series unbounded across the fleet.

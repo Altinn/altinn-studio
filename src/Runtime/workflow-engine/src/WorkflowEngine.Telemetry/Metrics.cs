@@ -871,15 +871,15 @@ public static class Metrics
 
     /// <summary>
     /// Parses a W3C traceparent string into an <see cref="ActivityContext"/>.
-    /// Returns <c>null</c> when the input is null; returns the default context when parsing fails.
+    /// Returns <c>null</c> when the input is null or does not parse, so a malformed value yields no link rather
+    /// than a link to the all-zero trace.
     /// </summary>
     public static ActivityContext? ParseTraceContext(string? traceContext)
     {
         if (traceContext is null)
             return null;
 
-        ActivityContext.TryParse(traceContext, null, out var context);
-        return context;
+        return ActivityContext.TryParse(traceContext, null, out var context) ? context : null;
     }
 
     /// <summary>

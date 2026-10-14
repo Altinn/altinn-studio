@@ -1024,7 +1024,7 @@ internal sealed partial class EngineRepository
             return default;
 
         activity?.Record();
-        activity?.SetTag("mailboxes.overdue", candidates.Count);
+        activity?.SetTag(TelemetryAttributes.MailboxOverdueCount, candidates.Count);
 
         var result = new MailboxSweepResult();
         foreach (var mailboxId in candidates)

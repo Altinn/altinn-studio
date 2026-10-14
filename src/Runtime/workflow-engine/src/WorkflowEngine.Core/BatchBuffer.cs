@@ -229,7 +229,7 @@ internal abstract class BatchBuffer<TItem, TResult> : BackgroundService
 
         using var activity = Metrics.Source.StartActivity(
             _flushActivityName,
-            tags: [("batch.size", batch.Count)],
+            tags: [(TelemetryAttributes.BatchSize, batch.Count)],
             links: batch.Select(x => Metrics.ParseTraceContext(x.TraceContext)).ToActivityLinks()
         );
 

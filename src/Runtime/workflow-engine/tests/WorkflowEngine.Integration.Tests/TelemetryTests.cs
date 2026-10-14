@@ -151,7 +151,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         // === Processing phase ===
         Assert.NotEmpty(collector.GetActivities("WorkflowHandler.Handle"));
 
-        var processStepActivities = collector.GetActivitiesStartingWith("WorkflowHandler.ProcessStep");
+        var processStepActivities = collector.GetActivities("WorkflowHandler.ProcessStep");
         Assert.True(
             processStepActivities.Count >= 2,
             $"Expected at least 2 ProcessStep activities, got {processStepActivities.Count}"
@@ -429,27 +429,31 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
     /// <para>
     /// The engine produces multiple traces per workflow lifecycle. Validation runs in
     /// the HTTP request context. The write buffer flushes in standalone background traces.
-    /// Processing starts a new root trace that links back to the original request:
+    /// Processing starts a new root trace that links back to the original request
+    /// (the concurrency limiter's slot spans are left out):
     /// </para>
     /// <code>
     /// Trace A — HTTP request:
-    ///   ValidationUtils.ValidateWorkflowGraph   (child of HTTP server span)
+    ///   HTTP server span
+    ///     └── Engine.EnqueueWorkflow
+    ///           ├── ValidationUtils.ValidateWorkflowGraph
+    ///           └── WorkflowWriteBuffer.Enqueue
     ///
-    /// Background — Write buffer (standalone traces):
-    ///   Engine.FlushBatch
+    /// Background — Write buffer (standalone traces, linked → Trace A):
+    ///   WorkflowWriteBuffer.FlushBatch
     ///     └── EngineRepository.BatchEnqueueWorkflows
     ///
     /// Trace B — Processing (new root, linked → Trace A):
-    ///   Engine.ProcessWorkflow
-    ///     ├── Engine.ProcessStep.{operationId}
-    ///     │     └── WorkflowExecutor.Execute
-    ///     │           └── WebhookCommand.Execute
-    ///     ├── Engine.SubmitAndForget     (step → Processing, fire-and-forget)
-    ///     ├── Engine.SubmitStatusUpdate  (step done)
-    ///     └── Engine.SubmitStatusUpdate  (workflow done)
+    ///   WorkflowHandler.Handle
+    ///     ├── WorkflowHandler.ProcessStep
+    ///     │     ├── WorkflowUpdateBuffer.SubmitAndForget  (step_started, fire-and-forget)
+    ///     │     ├── WorkflowExecutor.Execute
+    ///     │     │     └── WebhookCommand.Execute
+    ///     │     └── WorkflowUpdateBuffer.Submit           (step_completed)
+    ///     └── WorkflowUpdateBuffer.Submit                 (workflow_completed)
     ///
-    /// Background — Status write buffer (standalone traces):
-    ///   Engine.FlushStatusBatch
+    /// Background — Status write buffer (standalone traces, linked → Trace B):
+    ///   WorkflowUpdateBuffer.FlushBatch
     ///     └── EngineRepository.BatchUpdateWorkflowsAndSteps
     /// </code>
     /// </summary>
@@ -487,10 +491,14 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         // Trace B — Processing tree (new root trace)
         // ───────────────────────────────────────────────────────────
 
-        //   Engine.ProcessWorkflow
-        //     ├── Engine.ProcessStep.{operationId}
-        var processStep = SingleStartingWith(collector, processWorkflow.TraceId, "WorkflowHandler.ProcessStep");
+        //   WorkflowHandler.Handle
+        //     ├── WorkflowHandler.ProcessStep — one name for every step; the operation ID is an attribute
+        var processStep = SingleInTrace(collector, processWorkflow.TraceId, "WorkflowHandler.ProcessStep");
         AssertChildOf(processWorkflow, processStep);
+        Assert.Equal("/cmd", processStep.GetTagItem("altinn.workflow_engine.step.operation_id"));
+        Assert.Equal("webhook", processStep.GetTagItem("altinn.workflow_engine.step.command.type"));
+        Assert.IsType<Guid>(processStep.GetTagItem("altinn.workflow_engine.step.id"));
+        Assert.Equal(ActivityStatusCode.Ok, processStep.Status);
 
         //     │     └── WorkflowExecutor.Execute
         var execute = SingleInTrace(collector, processWorkflow.TraceId, "WorkflowExecutor.Execute");
@@ -500,9 +508,9 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         var webhookCommand = SingleInTrace(collector, processWorkflow.TraceId, "WebhookCommand.Execute");
         AssertChildOf(execute, webhookCommand);
 
-        //     │     ├── WorkflowUpdateBuffer.SubmitAndForget [step.started — fire-and-forget]
-        //     │     └── WorkflowUpdateBuffer.Submit [step.completed]
-        //     └── WorkflowUpdateBuffer.Submit [workflow.completed]
+        //     │     ├── WorkflowUpdateBuffer.SubmitAndForget [step_started — fire-and-forget]
+        //     │     └── WorkflowUpdateBuffer.Submit [step_completed]
+        //     └── WorkflowUpdateBuffer.Submit [workflow_completed]
         var submitAndForgets = collector
             .GetActivities("WorkflowUpdateBuffer.SubmitAndForget")
             .Where(a => a.TraceId == processWorkflow.TraceId)
@@ -518,8 +526,12 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
 
         var stepSubmits = submitStatuses.Where(s => s.ParentSpanId == processStep.SpanId).ToList();
         var workflowSubmits = submitStatuses.Where(s => s.ParentSpanId == processWorkflow.SpanId).ToList();
-        Assert.Single(stepSubmits);
-        Assert.Single(workflowSubmits);
+        Assert.Equal("step_completed", Assert.Single(stepSubmits).GetTagItem("altinn.workflow_engine.update.reason"));
+        Assert.Equal(
+            "workflow_completed",
+            Assert.Single(workflowSubmits).GetTagItem("altinn.workflow_engine.update.reason")
+        );
+        Assert.Equal("step_started", submitAndForgets[0].GetTagItem("altinn.workflow_engine.update.reason"));
 
         // ───────────────────────────────────────────────────────────
         // Standalone background activities (exist but not in workflow traces)
@@ -528,6 +540,71 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflows"));
         Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatch"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchUpdateWorkflowsAndSteps"));
+    }
+
+    [Fact]
+    public async Task Enqueue_ServerSpan_CarriesTheWorkflowIdsAsAStringArray()
+    {
+        // Arrange — the server span is ASP.NET Core's, so its source is collected too
+        using var collector = new TelemetryCollector("Microsoft.AspNetCore");
+
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/cmd-a")]),
+            _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/cmd-b")]),
+        ]);
+
+        // Act
+        var response = await _client.Enqueue(request);
+        string[] workflowIds = [.. response.Workflows.Select(w => w.DatabaseId.ToString())];
+
+        // Assert — one attribute holding every ID in request order, not a joined string
+        var serverSpan = await collector.WaitForActivity(a =>
+            a.Source.Name == "Microsoft.AspNetCore"
+            && a.GetTagItem("altinn.workflow_engine.workflow.ids") is string[] ids
+            && ids.Contains(workflowIds[0])
+        );
+
+        Assert.Equal(ActivityKind.Server, serverSpan.Kind);
+        Assert.Equal(
+            workflowIds,
+            Assert.IsType<string[]>(serverSpan.GetTagItem("altinn.workflow_engine.workflow.ids"))
+        );
+        Assert.Equal(response.Workflows[0].Namespace, serverSpan.GetTagItem("altinn.workflow_engine.namespace"));
+        Assert.NotNull(serverSpan.GetTagItem("altinn.workflow_engine.workflow.idempotency_key"));
+    }
+
+    [Fact]
+    public async Task FailedStep_SpansCarryTheErrorTypeAndNoExceptionEvent()
+    {
+        // Arrange — WireMock always returns 500 → step exhausts retries → Failed
+        using var collector = new TelemetryCollector();
+
+        fixture.WireMock.Reset();
+        fixture.WireMock.Given(Request.Create().UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(500));
+
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/cmd")]),
+        ]);
+
+        // Act
+        var response = await _client.Enqueue(request);
+        var workflowId = response.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
+
+        // Assert — the attempt that failed the workflow: earlier attempts were requeued and leave the status unset
+        var handle = await collector.WaitForActivity(a =>
+            a.OperationName == "WorkflowHandler.Handle"
+            && a.GetTagItem("altinn.workflow_engine.workflow.id") is Guid id
+            && id == workflowId
+            && a.Status == ActivityStatusCode.Error
+        );
+        var processStep = SingleInTrace(collector, handle.TraceId, "WorkflowHandler.ProcessStep");
+
+        Assert.Equal("execution", handle.GetTagItem("error.type"));
+        Assert.Equal(ActivityStatusCode.Error, processStep.Status);
+        Assert.Equal("execution", processStep.GetTagItem("error.type"));
+        Assert.Contains("500", processStep.StatusDescription, StringComparison.Ordinal);
+        Assert.All(collector.Activities.Where(a => a.TraceId == handle.TraceId), a => Assert.Empty(a.Events));
     }
 
     // ─── Span hierarchy helpers ────────────────────────────────────
@@ -543,14 +620,14 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
 
     /// <summary>
     /// Returns the single activity matching <paramref name="operationName"/> that has a
-    /// <c>workflow.database.id</c> tag equal to <paramref name="workflowId"/>.
+    /// <c>altinn.workflow_engine.workflow.id</c> tag equal to <paramref name="workflowId"/>.
     /// Filters by workflow to avoid picking up activities from concurrent tests.
     /// </summary>
     private static Activity SingleForWorkflow(TelemetryCollector collector, string operationName, Guid workflowId)
     {
         var matches = collector
             .GetActivities(operationName)
-            .Where(a => a.GetTagItem("workflow.database.id") is Guid id && id == workflowId)
+            .Where(a => a.GetTagItem("altinn.workflow_engine.workflow.id") is Guid id && id == workflowId)
             .ToList();
         Assert.True(
             matches.Count == 1,
@@ -568,19 +645,6 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         Assert.True(
             matches.Count == 1,
             $"Expected exactly 1 '{operationName}' in trace {traceId}, got {matches.Count}"
-        );
-        return matches[0];
-    }
-
-    /// <summary>
-    /// Returns the single activity whose name starts with <paramref name="prefix"/> within the given trace.
-    /// </summary>
-    private static Activity SingleStartingWith(TelemetryCollector collector, ActivityTraceId traceId, string prefix)
-    {
-        var matches = collector.GetActivitiesStartingWith(prefix).Where(a => a.TraceId == traceId).ToList();
-        Assert.True(
-            matches.Count == 1,
-            $"Expected exactly 1 activity starting with '{prefix}' in trace {traceId}, got {matches.Count}"
         );
         return matches[0];
     }
