@@ -57,7 +57,7 @@ public interface IApplicationMetadataService
     /// <summary>
     /// Commits the app status to applicationmetadata.json on the default branch, on top of the given commit.
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="app">Application</param>
     /// <param name="baseCommitId">The commit to set the status on. It must be the latest commit on the default branch.</param>
     /// <param name="appStatus">The app status to commit</param>
