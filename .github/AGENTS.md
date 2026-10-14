@@ -16,6 +16,13 @@ on:
       - 'src/<area>/**'
       - '.github/workflows/<this-workflow>.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
+      # Add positive patterns for any excluded documentation consumed by this workflow.
 
 jobs:
   build:
@@ -25,8 +32,10 @@ jobs:
 Guard every job that does work, rather than filtering at `on:`. Listing
 `ready_for_review` _without_ the guard is the one combination that is strictly
 wrong: the workflow then runs on every draft push and again on ready. Teardown
-work goes in a separate job keyed on `github.event.action == 'closed'` — see
-[`apps-storybook-preview.yaml`](workflows/apps-storybook-preview.yaml).
+work goes in a workflow triggered by `closed` without path filters — see
+[`apps-storybook-preview-cleanup.yaml`](workflows/apps-storybook-preview-cleanup.yaml).
+Share its concurrency group with the build workflow so cleanup cancels builds
+that could otherwise deploy after the PR closes.
 
 A few workflows run on drafts deliberately, for example
 [`pr-labeler.yml`](workflows/pr-labeler.yml) and
@@ -50,7 +59,28 @@ when they do both.
 ## Path filters
 
 Scope `paths` to what the workflow tests, always including its own file, and
-exclude `'!**/AGENTS.md'`.
+exclude `'!**/AGENTS.md'`. Build, test, and analysis workflows also exclude
+`README.md`, `readme.md`, `_readme.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, and
+`docs/` directories. Keep spelling, documentation, changelog validation, and
+release workflows scoped to the documents they check or publish.
+Apply the documentation policy to both `pull_request` and `push` filters in CI
+workflows so documentation-only merges also skip builds, tests, and analysis.
+Comment unusual documentation filenames and positive exceptions beside their
+patterns, explaining the document's purpose or the build/test consumer.
+
+Do not exclude all Markdown: prompts, skills, analyzer release manifests,
+and other Markdown files can be product or test inputs. Add positive patterns
+**after** the exclusions for documentation that the workflow consumes, such as
+NuGet package readmes, embedded repository fixtures, generated layout-contract
+documentation, and the workflow engine's technical guide. Changes to those
+inputs must still trigger their checks. CLI resources also include shipped
+Markdown skills and must trigger the CLI build.
+
+Markdown formatting is optional. The Designer frontend's Prettier check and the
+Assistant's Ruff formatter exclude `.md` files so documentation changes cannot
+cause formatting failures in later code checks. Compiled Storybook `.mdx` files
+remain covered by code formatting and CI. Audit new build or test inputs under
+`docs/` directories and add exceptions for them before relying on the exclusions.
 
 ## Runners
 

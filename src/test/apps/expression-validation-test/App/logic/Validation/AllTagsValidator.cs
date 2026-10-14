@@ -27,7 +27,7 @@ public class AllTagsValidator(IAppOptionsService appOptionsService) : IValidator
 
         var files = dataAccessor.Instance.Data.Where(e => e.DataType == "vedlegg-cv").ToList();
         var allTags = files.SelectMany(f => f.Tags).Distinct().ToList();
-        var options = await appOptionsService.GetOptionsAsync("applicationdocs", language, new Dictionary<string, string>());
+        var options = await appOptionsService.GetOptions("applicationdocs", language, new Dictionary<string, string>());
 
         var documentOptions = options.Options
             ?? throw new InvalidOperationException("Expected the 'applicationdocs' options to be configured.");

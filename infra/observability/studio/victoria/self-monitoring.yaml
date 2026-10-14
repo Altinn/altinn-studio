@@ -8,7 +8,8 @@
 # does not take down what notices it.
 #
 # Labels. job is the binary a target runs: vmsingle, vlsingle, vtsingle, vmagent,
-# vlagent, vtagent, operator, or vmagent-self for this scraper. That is the one job
+# vlagent, vtagent, operator, observability-proxy, or vmagent-self for this
+# scraper. That is the one job
 # per component VictoriaMetrics' own Grafana dashboards select by, so they work
 # against these series unchanged. The storage and agent targets add signal
 # (metrics, logs or traces) and role (storage or agent), and the storage targets
@@ -83,6 +84,18 @@ data:
           - source_labels: [__name__]
             regex: config_parameter|go_.*
             action: drop
+      # observability-proxy's replicas are a Deployment's pods, which have no
+      # stable names, so they are found through DNS rather than listed: the
+      # headless Service below resolves to every replica's address. A pod that
+      # no longer exists drops out of the targets rather than showing up == 0,
+      # so a rule counts the replicas that are up against the expected two.
+      # The proxy serves /metrics on a port of its own, which the load balancer
+      # does not reach.
+      - job_name: observability-proxy
+        dns_sd_configs:
+          - names: [observability-proxy-metrics]
+            type: A
+            port: 9090
 ---
 # Ingest-only mode is what keeps this pod away from the Kubernetes API, even
 # though it scrapes. In the operator's scrape mode, the scrape configuration it
@@ -194,5 +207,26 @@ spec:
     - name: http
       port: 8429
       targetPort: 8429
+      protocol: TCP
+      appProtocol: http
+---
+# Every observability-proxy replica's address, for the observability-proxy
+# scrape job. Not-ready replicas are listed too: the proxy serves its metrics
+# whether or not it is ready for traffic, and a replica that is running but
+# not ready is one to see rather than lose. Only the metrics port is named, so
+# nothing reaches the proxy's traffic port through this Service.
+apiVersion: v1
+kind: Service
+metadata:
+  name: observability-proxy-metrics
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: observability-proxy
+  ports:
+    - name: metrics
+      port: 9090
+      targetPort: 9090
       protocol: TCP
       appProtocol: http

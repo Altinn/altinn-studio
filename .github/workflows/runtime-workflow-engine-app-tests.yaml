@@ -16,6 +16,12 @@ on:
       - 'src/Runtime/workflow-engine-app/global.json'
       - '.github/workflows/runtime-workflow-engine-app-tests.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   workflow_dispatch:
 
 concurrency:

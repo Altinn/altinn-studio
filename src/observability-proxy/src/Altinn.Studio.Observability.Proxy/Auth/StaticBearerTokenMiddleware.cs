@@ -1,5 +1,6 @@
 using Altinn.Studio.Observability.Proxy.Configuration;
 using Altinn.Studio.Observability.Proxy.Routing;
+using Altinn.Studio.Observability.Proxy.Telemetry;
 using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Model;
 
@@ -20,18 +21,21 @@ internal sealed class StaticBearerTokenMiddleware
     private readonly RequestDelegate _next;
     private readonly StaticBearerTokenAuthenticator _authenticator;
     private readonly IOptionsMonitor<ObservabilityProxyOptions> _options;
+    private readonly ObservabilityProxyMetrics _metrics;
     private readonly ILogger<StaticBearerTokenMiddleware> _logger;
 
     public StaticBearerTokenMiddleware(
         RequestDelegate next,
         StaticBearerTokenAuthenticator authenticator,
         IOptionsMonitor<ObservabilityProxyOptions> options,
+        ObservabilityProxyMetrics metrics,
         ILogger<StaticBearerTokenMiddleware> logger
     )
     {
         _next = next;
         _authenticator = authenticator;
         _options = options;
+        _metrics = metrics;
         _logger = logger;
     }
 
@@ -45,8 +49,17 @@ internal sealed class StaticBearerTokenMiddleware
             return;
         }
 
-        if (!_authenticator.TryAuthenticate(context.Request.Headers.Authorization, out var source))
+        ObservabilityProxyMetrics.TagRoute(context, route?.Config);
+
+        string? authorization = context.Request.Headers.Authorization;
+        if (!_authenticator.TryAuthenticate(authorization, out var source))
         {
+            _metrics.RecordAuthenticationFailure(
+                route?.Config,
+                StaticBearerTokenAuthenticator.HasBearerToken(authorization)
+                    ? ObservabilityProxyMetrics.UnknownToken
+                    : ObservabilityProxyMetrics.MissingBearerToken
+            );
             _logger.LogWarning(
                 "Rejected unauthenticated observability request. Method={Method} Path={Path}",
                 context.Request.Method,
@@ -56,6 +69,8 @@ internal sealed class StaticBearerTokenMiddleware
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return;
         }
+
+        ObservabilityProxyMetrics.TagSource(context, source);
 
         var routeGroup = ObservabilityReverseProxyConfig.RouteGroupOf(route?.Config);
         if (routeGroup is null)

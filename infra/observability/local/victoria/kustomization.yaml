@@ -28,6 +28,7 @@ patches:
   - patch: '{"$patch": "delete", "apiVersion": "v1", "kind": "Service", "metadata": {"name": "vmagent-metrics-0"}}'
   - patch: '{"$patch": "delete", "apiVersion": "v1", "kind": "Service", "metadata": {"name": "vmagent-metrics-1"}}'
   - patch: '{"$patch": "delete", "apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy", "metadata": {"name": "vmagent-self"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "v1", "kind": "Service", "metadata": {"name": "observability-proxy-metrics"}}'
   - path: storage.yaml
     target:
       group: operator.victoriametrics.com
