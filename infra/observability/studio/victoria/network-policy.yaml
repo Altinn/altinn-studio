@@ -262,8 +262,10 @@ spec:
 ---
 # The scraper takes no connections: it scrapes itself over loopback, which
 # NetworkPolicy does not filter. It connects to each target's HTTP port, the
-# operator's metrics port among them, and to cluster DNS to resolve them. The
-# metrics storage port is also where it writes.
+# operator's and observability-proxy's metrics ports among them, and to cluster
+# DNS to resolve them. The metrics storage port is also where it writes.
+# observability-proxy admits it in observability-proxy-ingress
+# (../overlay/observability-proxy.yaml).
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -330,6 +332,13 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
+    - to:
+        - podSelector:
+            matchLabels:
+              app: observability-proxy
+      ports:
+        - protocol: TCP
+          port: 9090
     - to:
         - namespaceSelector:
             matchLabels:

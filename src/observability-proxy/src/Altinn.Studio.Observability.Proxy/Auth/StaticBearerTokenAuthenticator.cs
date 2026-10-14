@@ -22,12 +22,7 @@ internal sealed class StaticBearerTokenAuthenticator
     {
         source = null;
 
-        if (
-            string.IsNullOrWhiteSpace(authorizationHeader)
-            || !AuthenticationHeaderValue.TryParse(authorizationHeader, out var parsedHeader)
-            || !string.Equals(parsedHeader.Scheme, "Bearer", StringComparison.OrdinalIgnoreCase)
-            || string.IsNullOrWhiteSpace(parsedHeader.Parameter)
-        )
+        if (BearerTokenOf(authorizationHeader) is not { } presentedToken)
         {
             return false;
         }
@@ -43,17 +38,32 @@ internal sealed class StaticBearerTokenAuthenticator
                 continue;
             }
 
-            if (TokenEquals(parsedHeader.Parameter, configuredToken.Token))
+            if (TokenEquals(presentedToken, configuredToken.Token))
             {
                 source = new ObservabilitySource(
                     configuredToken.SourceIdentity,
                     TokenTag.Of(configuredToken.Token),
+                    configuredToken.Slot,
                     configuredToken.AllowedRouteGroups
                 );
             }
         }
 
         return source is not null;
+    }
+
+    /// <summary>Whether <paramref name="authorizationHeader"/> carries a bearer token at all, accepted or not.</summary>
+    public static bool HasBearerToken(string? authorizationHeader) => BearerTokenOf(authorizationHeader) is not null;
+
+    private static string? BearerTokenOf(string? authorizationHeader)
+    {
+        return
+            !string.IsNullOrWhiteSpace(authorizationHeader)
+            && AuthenticationHeaderValue.TryParse(authorizationHeader, out var parsedHeader)
+            && string.Equals(parsedHeader.Scheme, "Bearer", StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrWhiteSpace(parsedHeader.Parameter)
+            ? parsedHeader.Parameter
+            : null;
     }
 
     private IEnumerable<BearerTokenOptions> AcceptedTokens()

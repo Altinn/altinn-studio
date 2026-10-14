@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Globalization;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Altinn.Studio.Observability.Proxy.Hosting;
@@ -17,15 +19,24 @@ internal sealed class TestWebApplication : IAsyncDisposable
 {
     private readonly WebApplication _app;
 
-    private TestWebApplication(WebApplication app, string address, ConcurrentQueue<string> receivedPaths)
+    private TestWebApplication(
+        WebApplication app,
+        string address,
+        string? metricsAddress,
+        ConcurrentQueue<string> receivedPaths
+    )
     {
         _app = app;
         Address = address;
         ReceivedPaths = receivedPaths;
         Client = new HttpClient { BaseAddress = new Uri(address) };
+        MetricsClient = metricsAddress is null ? null : new HttpClient { BaseAddress = new Uri(metricsAddress) };
     }
 
     public string Address { get; }
+
+    /// <summary>A client of the proxy's metrics port, as the scraper is; <c>null</c> for a downstream.</summary>
+    public HttpClient? MetricsClient { get; }
 
     public HttpClient Client { get; }
 
@@ -35,15 +46,58 @@ internal sealed class TestWebApplication : IAsyncDisposable
     /// </summary>
     public ConcurrentQueue<string> ReceivedPaths { get; }
 
+    /// <summary>
+    /// The proxy as it runs in the cluster: traffic on one port and metrics on another, whose number
+    /// the proxy has to be told, so it is picked here rather than left to the system.
+    /// </summary>
     public static async Task<TestWebApplication> StartProxyAsync(IReadOnlyDictionary<string, string?> configuration)
     {
+        var metricsPort = FreeLoopbackPort();
         var builder = CreateBuilder();
+        builder.WebHost.UseUrls("http://127.0.0.1:0", $"http://127.0.0.1:{metricsPort}");
         builder.Configuration.AddInMemoryCollection(configuration);
+        builder.Configuration.AddInMemoryCollection(
+            new Dictionary<string, string?>
+            {
+                ["ObservabilityProxy:MetricsPort"] = metricsPort.ToString(CultureInfo.InvariantCulture),
+            }
+        );
         builder.AddObservabilityProxy();
 
         var app = builder.Build();
         app.UseObservabilityProxy();
-        return await StartAsync(app, new ConcurrentQueue<string>());
+        return await StartAsync(app, new ConcurrentQueue<string>(), metricsPort);
+    }
+
+    /// <summary>What the proxy's metrics port serves at <c>/metrics</c>.</summary>
+    public async Task<ScrapedMetrics> ScrapeAsync()
+    {
+        var metricsClient = MetricsClient ?? throw new InvalidOperationException("Only the proxy serves metrics.");
+        var body = await metricsClient.GetStringAsync(
+            new Uri("/metrics", UriKind.Relative),
+            TestContext.Current.CancellationToken
+        );
+        return ScrapedMetrics.Parse(body);
+    }
+
+    /// <summary>
+    /// Scrapes until <paramref name="condition"/> holds. A request is recorded once its response
+    /// has been sent, so a client can see the response before the request is counted, and the
+    /// exporter caches a scrape for a short while.
+    /// </summary>
+    public async Task<ScrapedMetrics> ScrapeUntilAsync(Func<ScrapedMetrics, bool> condition)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(15);
+        while (true)
+        {
+            var metrics = await ScrapeAsync();
+            if (condition(metrics) || DateTime.UtcNow > deadline)
+            {
+                return metrics;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken);
+        }
     }
 
     /// <summary>
@@ -173,6 +227,7 @@ internal sealed class TestWebApplication : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         Client.Dispose();
+        MetricsClient?.Dispose();
         await _app.DisposeAsync();
     }
 
@@ -190,20 +245,34 @@ internal sealed class TestWebApplication : IAsyncDisposable
         return builder;
     }
 
-    private static async Task<TestWebApplication> StartAsync(WebApplication app, ConcurrentQueue<string> receivedPaths)
+    private static async Task<TestWebApplication> StartAsync(
+        WebApplication app,
+        ConcurrentQueue<string> receivedPaths,
+        int? metricsPort = null
+    )
     {
         await app.StartAsync();
 
-        var address = app
-            .Services.GetRequiredService<IServer>()
-            .Features.Get<IServerAddressesFeature>()
-            ?.Addresses.Single();
+        var addresses =
+            app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()?.Addresses.ToList()
+            ?? [];
+        var metricsAddress = addresses.SingleOrDefault(candidate => new Uri(candidate).Port == metricsPort);
+        var address = addresses.SingleOrDefault(candidate => candidate != metricsAddress);
 
-        if (string.IsNullOrWhiteSpace(address))
+        if (string.IsNullOrWhiteSpace(address) || (metricsPort is not null && metricsAddress is null))
         {
             throw new InvalidOperationException("Unable to determine test application address.");
         }
 
-        return new TestWebApplication(app, address, receivedPaths);
+        return new TestWebApplication(app, address, metricsAddress, receivedPaths);
+    }
+
+    private static int FreeLoopbackPort()
+    {
+        using var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+        listener.Stop();
+        return port;
     }
 }

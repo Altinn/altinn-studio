@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Altinn.Studio.Observability.Proxy.Auth;
 
 namespace Altinn.Studio.Observability.Proxy.Configuration;
 
@@ -7,6 +8,13 @@ internal sealed class ObservabilityProxyOptions
     public const string SectionName = "ObservabilityProxy";
 
     public string PathPrefix { get; set; } = ObservabilityPaths.DefaultPathPrefix;
+
+    /// <summary>
+    /// The port that serves <c>/metrics</c> and nothing else, apart from the one that serves
+    /// traffic, so the load balancer, which reaches the traffic port, never reaches the metrics.
+    /// The proxy listens on it only when it is one of the URLs Kestrel is given.
+    /// </summary>
+    public int MetricsPort { get; set; } = 9090;
 
     public DownstreamOptions Downstreams { get; set; } = new();
 
@@ -99,6 +107,9 @@ internal sealed class BearerTokenOptions
     public string Token { get; set; } = string.Empty;
 
     public string SourceIdentity { get; set; } = string.Empty;
+
+    /// <summary>The token's slot in the token file. Tokens configured inline are current.</summary>
+    public TokenSlot Slot { get; set; } = TokenSlot.Current;
 
     public Collection<string> AllowedRouteGroups { get; } = [];
 }
