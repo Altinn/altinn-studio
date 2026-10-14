@@ -1,8 +1,8 @@
 export type AppStatus = 'UnderDevelopment' | 'Completed' | 'Deprecated';
 
-export type DeployAppStatus = Exclude<AppStatus, 'Deprecated'>;
+export type BuildAppStatus = Exclude<AppStatus, 'Deprecated'>;
 
-export const deployAppStatuses: readonly DeployAppStatus[] = ['UnderDevelopment', 'Completed'];
+export const buildAppStatuses: readonly BuildAppStatus[] = ['UnderDevelopment', 'Completed'];
 
-export const isDeployAppStatus = (status: AppStatus | undefined): status is DeployAppStatus =>
-  deployAppStatuses.includes(status as DeployAppStatus);
+export const isBuildAppStatus = (status: AppStatus | undefined): status is BuildAppStatus =>
+  buildAppStatuses.includes(status as BuildAppStatus);
