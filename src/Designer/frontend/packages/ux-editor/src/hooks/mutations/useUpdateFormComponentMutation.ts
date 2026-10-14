@@ -72,7 +72,12 @@ export const useUpdateFormComponentMutation = (
 
       // Prepare static metadata before saving so unsupported limits cannot leave a partial rename.
       const updateFileUploadMetadata = isFileUploadComponent(updatedComponent)
-        ? prepareFileUploadUpdate({ updatedComponent, oldId: id, updatedLayout })
+        ? prepareFileUploadUpdate({
+            updatedComponent,
+            oldId: id,
+            oldComponent: layout.components[id] as FormFileUploaderComponent,
+            updatedLayout,
+          })
         : undefined;
 
       return saveLayout({ internalLayout: updatedLayout, componentIdsChange })
@@ -104,6 +109,7 @@ const isImageUploadComponent = (
 type PrepareFileUploadComponentUpdateParams = {
   updatedComponent: FormFileUploaderComponent;
   oldId: string;
+  oldComponent?: FormFileUploaderComponent;
   updatedLayout: IInternalLayout;
 };
 
@@ -116,6 +122,7 @@ const usePrepareFileUploadComponentUpdate = (org: string, app: string, layoutSet
   return ({
     updatedComponent,
     oldId,
+    oldComponent,
     updatedLayout,
   }: PrepareFileUploadComponentUpdateParams): (() => Promise<void>) => {
     const oldDataType = findAttachmentDataType(appMetadata, oldId);
@@ -124,6 +131,7 @@ const usePrepareFileUploadComponentUpdate = (org: string, app: string, layoutSet
       updatedLayout,
       taskId,
       oldDataType,
+      oldComponent,
     );
 
     return async () => {
@@ -190,11 +198,16 @@ const buildDataTypeForFileUpload = (
   layout: IInternalLayout,
   taskId: string,
   oldDataType?: ApplicationAttachmentMetadata,
+  oldComponent?: FormFileUploaderComponent,
 ): ApplicationAttachmentMetadata => {
+  const metadataProperties = getFileUploadMetadataProperties(component, oldDataType);
   const baseDataType: ApplicationAttachmentMetadata = {
     id: component.id,
     taskId,
-    ...getFileUploadMetadataProperties(component, oldDataType),
+    ...metadataProperties,
+    minCount: hasCustomMinCount(oldDataType, oldComponent)
+      ? oldDataType.minCount
+      : metadataProperties.minCount,
   };
 
   const isInRepeatingGroup = isItemChildOfContainer(
@@ -214,3 +227,16 @@ const buildDataTypeForFileUpload = (
     minCount: oldDataType?.minCount,
   };
 };
+
+/**
+ * A minCount that differs from the component's minNumberOfAttachments has been set on purpose, and must not be
+ * overwritten when the component is saved. Typical case: minCount 0 on an attachment that is required only while
+ * the component is shown, since the backend counts data elements for the whole task and does not check `hidden`.
+ */
+const hasCustomMinCount = (
+  oldDataType?: ApplicationAttachmentMetadata,
+  oldComponent?: FormFileUploaderComponent,
+): boolean =>
+  oldDataType !== undefined &&
+  oldComponent !== undefined &&
+  (oldDataType.minCount ?? 0) !== (oldComponent.minNumberOfAttachments ?? 0);
