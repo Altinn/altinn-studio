@@ -19,8 +19,8 @@ after it. Explain in a comment which build or test needs the file.
 
 Formatting checks are optional for Markdown documentation. Compiled `.mdx` files follow the code formatting rules.
 
-Group concurrent runs by workflow and pull request or ref, with a run ID fallback.
-Cancel superseded checks, but allow deployments and publishing to finish.
+For check workflows, group concurrent runs by workflow and pull request or ref, with a run ID fallback.
+Cancel superseded checks.
 
 ## Runners and permissions
 
