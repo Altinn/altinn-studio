@@ -5,6 +5,40 @@ import type { CompExternal } from 'src/layout/layout';
 const appFrontend = new AppFrontend();
 
 describe('Group summary test', () => {
+  it('Evaluates readOnly expressions inside nested groups in Summary2', () => {
+    cy.interceptLayout('ComponentLayouts', (component) => {
+      if (component.type === 'Input' && component.id === 'RepeatingGroup-With-Group-Input-Name') {
+        component.readOnly = [
+          'or',
+          ['equals', ['dataModel', 'repeatingGroup.points'], '1'],
+          ['equals', ['dataModel', 'repeatingGroup.points'], '8'],
+        ];
+      }
+    });
+
+    cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
+    cy.gotoNavPage('Repeterende gruppe');
+
+    ['1', '8', '2'].forEach((points, index) => {
+      cy.findAllByRole('button', { name: /Legg til ny/ })
+        .eq(1)
+        .click();
+      cy.findByRole('textbox', { name: /Navn/ }).type(`Navn ${index}`);
+      cy.findByRole('textbox', { name: /Poeng/ }).type(points);
+      cy.findByRole('textbox', { name: /Navn/ }).should(points === '2' ? 'not.have.attr' : 'have.attr', 'readonly');
+      cy.findAllByRole('button', { name: /Lagre og lukk/ })
+        .first()
+        .click();
+    });
+
+    const summary = '[data-componentid="RepeatingGroup-With-Group-Summary2"]';
+    cy.get(summary).should('contain.text', 'Navn 0').and('contain.text', 'Navn 1').and('contain.text', 'Navn 2');
+    cy.get(`${summary} button[data-target-id="RepeatingGroup-With-Group-Input-Name-0"]`).should('not.exist');
+    cy.get(`${summary} button[data-target-id="RepeatingGroup-With-Group-Input-Name-1"]`).should('not.exist');
+    cy.get(`${summary} button[data-target-id="RepeatingGroup-With-Group-Input-Name-2"]`).should('be.visible');
+    cy.get('@window.logError').should('not.be.calledWithMatch', 'Cannot lookup dataType undefined');
+  });
+
   it('Renders the different options for add buttons correctly', () => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.gotoNavPage('Repeterende gruppe');

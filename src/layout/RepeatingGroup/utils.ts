@@ -65,8 +65,18 @@ function evalBool({ expr, defaultValue = false, dataSources, groupBinding, rowIn
   return evalExpr(expr, { ...dataSources, currentDataModelPath }, { returnType: ExprVal.Boolean, defaultValue });
 }
 
-function getReadOnlyExpression(component: CompExternal): ExprValToActualOrExpr<ExprVal.Boolean> | undefined {
-  return 'readOnly' in component ? component.readOnly : undefined;
+function getReadOnlyExpressions(
+  childBaseComponentId: string,
+  layoutLookups: LayoutLookups,
+): ExprValToActualOrExpr<ExprVal.Boolean>[] {
+  const component = layoutLookups.getComponent(childBaseComponentId);
+  const componentDef = getComponentDef(component.type);
+  if (componentDef.category === CompCategory.Container) {
+    const children = 'children' in component ? (component.children ?? []) : [];
+    return children.flatMap((id) => getReadOnlyExpressions(id, layoutLookups));
+  }
+
+  return 'readOnly' in component && component.readOnly !== undefined ? [component.readOnly] : [];
 }
 
 function isReadOnlyComponent(
@@ -135,7 +145,7 @@ function collectEditableChildren(
   const componentDef = getComponentDef(childComponent.type);
 
   if (componentDef.category === CompCategory.Container) {
-    const containerChildren = (childComponent as { children?: string[] }).children ?? [];
+    const containerChildren = 'children' in childComponent ? (childComponent.children ?? []) : [];
     for (const grandChildId of containerChildren) {
       collectEditableChildren(
         grandChildId,
@@ -339,11 +349,7 @@ export const RepGroupHooks = {
     const component = layoutLookups.getComponent(baseComponentId, 'RepeatingGroup');
     const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
     const readOnlyExpressions = useMemo(
-      () =>
-        childrenBaseIds
-          .map((id) => layoutLookups.getComponent(id))
-          .map(getReadOnlyExpression)
-          .filter((value) => value !== undefined),
+      () => childrenBaseIds.flatMap((id) => getReadOnlyExpressions(id, layoutLookups)),
       [childrenBaseIds, layoutLookups],
     );
     const dataSources = useExpressionDataSources(readOnlyExpressions);
