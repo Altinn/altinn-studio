@@ -70,6 +70,12 @@ public interface IRuntimeGatewayClient
         int windowDays,
         CancellationToken cancellationToken
     );
+    Task<AppActivitySignalsResponse> GetAppActivitySignalsAsync(
+        string org,
+        AltinnEnvironment environment,
+        int windowDays,
+        CancellationToken cancellationToken
+    );
     Task TriggerReconcileAsync(
         string org,
         string app,

@@ -6,6 +6,7 @@ internal interface IMetricsClient
 {
     public Task<IEnumerable<FailedRequest>> GetFailedRequests(int range, CancellationToken cancellationToken);
     public Task<ActiveAppsResult> GetActiveApps(int windowDays, CancellationToken cancellationToken);
+    public Task<AppActivitySignalsResult> GetAppActivitySignals(int windowDays, CancellationToken cancellationToken);
     public Task<IEnumerable<AppFailedRequest>> GetAppFailedRequests(
         string app,
         int range,
