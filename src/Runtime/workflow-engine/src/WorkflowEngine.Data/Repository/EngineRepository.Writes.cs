@@ -1875,8 +1875,7 @@ internal sealed partial class EngineRepository
 
             if (rejected.Count > 0)
             {
-                activity?.SetTag("lease.lost", true);
-                activity?.SetTag("lease.lost.count", rejected.Count);
+                activity?.SetTag(TelemetryAttributes.WorkflowLeaseLostCount, rejected.Count);
                 logger.BatchUpdateLeaseLost(rejected.Count, updates.Count);
             }
 

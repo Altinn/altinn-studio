@@ -6,16 +6,20 @@ namespace WorkflowEngine.Telemetry;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Every key is <c>altinn.workflow_engine.</c> followed by the concept's path, and every member is named after
-/// that path in PascalCase, so the members group by the entity they describe: <c>Workflow…</c>, <c>Step…</c>,
-/// <c>Mailbox…</c>, with the concepts that belong to no single entity unprefixed. A new key follows the same
-/// rule.
+/// The keys come in three groups. The engine's own concepts are <c>altinn.workflow_engine.</c> followed by the
+/// concept's path, and each member is named after that path in PascalCase, so the members group by the entity
+/// they describe: <c>Workflow…</c>, <c>Step…</c>, <c>Mailbox…</c>, <c>Batch…</c>, with the concepts that belong
+/// to no single entity unprefixed. Concepts every Altinn service shares — the service owner, the app, the
+/// instance — use the shared Altinn vocabulary, <c>altinn.</c> followed by the concept, so a trace can be found by
+/// the same key whichever service it passed through. The few OpenTelemetry semantic-convention keys the engine
+/// sets itself are spelled exactly as the conventions spell them and never carry another meaning. A new key
+/// joins the group it belongs to and follows the same rule.
 /// </para>
 /// <para>
 /// The keys are a contract with dashboards and alerts, so renaming one is a breaking change. A value the
-/// engine chooses is lowercase <c>snake_case</c>. A metric takes only attributes whose values are bounded
-/// across every app the engine serves — never an ID, nor anything an app builds, such as an operation ID.
-/// Spans may carry those.
+/// engine chooses is lowercase <c>snake_case</c>, and a count on a span ends in <c>_count</c>. A metric takes
+/// only attributes whose values are bounded across every app the engine serves — never an ID, nor anything an
+/// app builds, such as an operation ID. Spans may carry those.
 /// </para>
 /// </remarks>
 public static class TelemetryAttributes
@@ -50,11 +54,65 @@ public static class TelemetryAttributes
     public const string Endpoint = "altinn.workflow_engine.endpoint";
 
     /// <summary>
+    /// The key of the collection a workflow belongs to, chosen by the caller. For the Altinn apps it is the
+    /// instance GUID.
+    /// </summary>
+    public const string CollectionKey = "altinn.workflow_engine.collection.key";
+
+    /// <summary>
+    /// The number of workflows in one enqueue request.
+    /// </summary>
+    public const string RequestWorkflowCount = "altinn.workflow_engine.request.workflow_count";
+
+    /// <summary>
+    /// The engine's ID of a workflow: its database row ID.
+    /// </summary>
+    public const string WorkflowId = "altinn.workflow_engine.workflow.id";
+
+    /// <summary>
+    /// The engine's IDs of the workflows one enqueue request created or matched, as a string array in request
+    /// order. Set on the producer side, so a trace of the request leads to the workflows it started.
+    /// </summary>
+    public const string WorkflowIds = "altinn.workflow_engine.workflow.ids";
+
+    /// <summary>
+    /// The idempotency key of the enqueue request a workflow came from, chosen by the caller.
+    /// </summary>
+    public const string WorkflowIdempotencyKey = "altinn.workflow_engine.workflow.idempotency_key";
+
+    /// <summary>
+    /// The operation ID a workflow was enqueued with. Built by the app, so it is a span attribute only.
+    /// </summary>
+    public const string WorkflowOperationId = "altinn.workflow_engine.workflow.operation_id";
+
+    /// <summary>
+    /// A workflow's lifecycle status, such as <c>Processing</c>, <c>Completed</c> or <c>Failed</c>: the status
+    /// names of the engine API.
+    /// </summary>
+    public const string WorkflowStatus = "altinn.workflow_engine.workflow.status";
+
+    /// <summary>
     /// The workflow's head-visibility directive: <c>true</c>, <c>false</c> or <c>unset</c>. <c>false</c> marks
     /// a deliberately invisible workflow — a non-blocking side chain, say — whose terminal failure surfaces
     /// nowhere else.
     /// </summary>
     public const string WorkflowIsHead = "altinn.workflow_engine.workflow.is_head";
+
+    /// <summary>
+    /// The number of workflows in a batch write-back whose lease another host had reclaimed, so their updates
+    /// were skipped. Set only when it is above zero.
+    /// </summary>
+    public const string WorkflowLeaseLostCount = "altinn.workflow_engine.workflow.lease_lost_count";
+
+    /// <summary>
+    /// The engine's ID of a step: its database row ID.
+    /// </summary>
+    public const string StepId = "altinn.workflow_engine.step.id";
+
+    /// <summary>
+    /// The operation ID a step was enqueued with. Built by the app, so it is a span attribute only.
+    /// </summary>
+    public const string StepOperationId = "altinn.workflow_engine.step.operation_id";
 
     /// <summary>
     /// The type of command a step runs, such as <c>app</c> or <c>webhook</c>. Bounded by the commands a host
@@ -63,9 +121,73 @@ public static class TelemetryAttributes
     public const string StepCommandType = "altinn.workflow_engine.step.command.type";
 
     /// <summary>
+    /// The command key an app command calls back with — which of the app's handlers the step runs. Set by the
+    /// <c>workflow-engine-app</c> host's app command.
+    /// </summary>
+    public const string AppCommandKey = "altinn.workflow_engine.app_command.key";
+
+    /// <summary>
+    /// Why a workflow's state was submitted for write-back: <c>step_started</c>, <c>step_completed</c>, or
+    /// <c>workflow_</c> followed by the workflow's status in <c>snake_case</c>, such as
+    /// <c>workflow_completed</c>.
+    /// </summary>
+    public const string UpdateReason = "altinn.workflow_engine.update.reason";
+
+    /// <summary>
+    /// The number of steps one write-back submission carries.
+    /// </summary>
+    public const string UpdateDirtyStepCount = "altinn.workflow_engine.update.dirty_step_count";
+
+    /// <summary>
+    /// The number of requests a buffer flushes in one batch.
+    /// </summary>
+    public const string BatchSize = "altinn.workflow_engine.batch.size";
+
+    /// <summary>
+    /// The number of workflows in one enqueue flush.
+    /// </summary>
+    public const string BatchWorkflowCount = "altinn.workflow_engine.batch.workflow_count";
+
+    /// <summary>
+    /// The number of steps in one enqueue flush.
+    /// </summary>
+    public const string BatchStepCount = "altinn.workflow_engine.batch.step_count";
+
+    /// <summary>
+    /// The number of distinct namespaces one flush writes to.
+    /// </summary>
+    public const string BatchNamespaceCount = "altinn.workflow_engine.batch.namespace_count";
+
+    /// <summary>
+    /// The number of write-back submissions a flush drained, before deduplication.
+    /// </summary>
+    public const string BatchReceivedCount = "altinn.workflow_engine.batch.received_count";
+
+    /// <summary>
+    /// The number of drained write-back submissions a flush dropped because a later one for the same workflow
+    /// superseded them.
+    /// </summary>
+    public const string BatchDeduplicatedCount = "altinn.workflow_engine.batch.deduplicated_count";
+
+    /// <summary>
+    /// The number of write-back submissions a flush wrote.
+    /// </summary>
+    public const string BatchFlushedCount = "altinn.workflow_engine.batch.flushed_count";
+
+    /// <summary>
+    /// The number of steps a write-back flush wrote.
+    /// </summary>
+    public const string BatchDirtyStepCount = "altinn.workflow_engine.batch.dirty_step_count";
+
+    /// <summary>
     /// The mailbox write a batch buffer serves: <c>mint</c>, <c>close</c> or <c>delivery</c>.
     /// </summary>
     public const string MailboxOperation = "altinn.workflow_engine.mailbox.operation";
+
+    /// <summary>
+    /// The number of open mailboxes past their deadline one sweep found to close.
+    /// </summary>
+    public const string MailboxOverdueCount = "altinn.workflow_engine.mailbox.overdue_count";
 
     /// <summary>
     /// The verdict on a message offered to a mailbox, such as <c>accepted</c>, <c>duplicate</c> or
@@ -87,4 +209,37 @@ public static class TelemetryAttributes
     /// The mailbox rendezvous state the executor could not answer for: <c>unregistered</c> or <c>undecided</c>.
     /// </summary>
     public const string MailboxRendezvousState = "altinn.workflow_engine.mailbox.rendezvous.state";
+
+    // Shared Altinn vocabulary. The engine core treats a workflow's context as opaque, so it never sets these
+    // itself: a host's command reads them from the context it understands, and the engine puts what the command
+    // returns on the step's span and the workflow's entry span.
+
+    /// <summary>
+    /// The organization that owns the service, such as <c>ttd</c>: the <c>org</c> of an Altinn app.
+    /// </summary>
+    public const string ServiceOwner = "altinn.service_owner";
+
+    /// <summary>
+    /// The app's name within its service owner, such as <c>e2e-tests</c>: the <c>app</c> of an Altinn app.
+    /// </summary>
+    public const string App = "altinn.app";
+
+    /// <summary>
+    /// The GUID of the app instance a workflow works on, as a lowercase string in the <c>D</c> format.
+    /// </summary>
+    public const string InstanceGuid = "altinn.instance.guid";
+
+    // OpenTelemetry semantic-convention keys the engine sets itself, spelled as the conventions spell them.
+
+    /// <summary>
+    /// The class of error a failed span ended with: an exception's full type name, a low-cardinality reason the
+    /// engine already names, or <c>_OTHER</c>. Never a value from a request.
+    /// </summary>
+    public const string ErrorType = "error.type";
+
+    /// <summary>
+    /// The prefix of the per-parameter keys on a database span, <c>db.query.parameter.&lt;name&gt;</c>. Set only
+    /// in development, where parameter values may be read.
+    /// </summary>
+    public const string DbQueryParameterPrefix = "db.query.parameter.";
 }

@@ -381,9 +381,9 @@ internal static class EngineRequestHandlers
         var ns = NormalizeNamespace(@namespace);
         var inbound = MetadataExtractor.ExtractEnqueueMetadata(httpContext, ns);
 
-        Activity.Current?.SetTag("workflow.collection.key", inbound.CollectionKey);
-        Activity.Current?.SetTag("workflow.idempotency.key", inbound.IdempotencyKey);
-        Activity.Current?.SetTag("workflow.namespace", inbound.Namespace);
+        Activity.Current?.SetTag(TelemetryAttributes.CollectionKey, inbound.CollectionKey);
+        Activity.Current?.SetTag(TelemetryAttributes.WorkflowIdempotencyKey, inbound.IdempotencyKey);
+        Activity.Current?.SetTag(TelemetryAttributes.Namespace, inbound.Namespace);
 
         var metadata = new WorkflowRequestMetadata(
             inbound.Namespace,
@@ -397,8 +397,8 @@ internal static class EngineRequestHandlers
         if (response is WorkflowEnqueueResponse.Accepted accepted)
         {
             Activity.Current?.SetTag(
-                "workflow.database.ids",
-                string.Join(", ", accepted.Workflows.Select(w => w.DatabaseId))
+                TelemetryAttributes.WorkflowIds,
+                accepted.Workflows.Select(w => w.DatabaseId.ToString()).ToArray()
             );
         }
 

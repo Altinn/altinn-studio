@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
@@ -51,7 +52,8 @@ public class WorkflowHandlerTests
         EngineSettings? settings = null,
         IWorkflowUpdateBuffer? buffer = null,
         TimeProvider? timeProvider = null,
-        IThrottleStateView? throttleStateView = null
+        IThrottleStateView? throttleStateView = null,
+        ILogger<WorkflowHandler>? logger = null
     ) =>
         new(
             executor,
@@ -59,7 +61,7 @@ public class WorkflowHandlerTests
             Options.Create(settings ?? _defaultSettings),
             timeProvider ?? _fixedTime,
             throttleStateView ?? new FakeThrottleStateView(),
-            NullLogger<WorkflowHandler>.Instance
+            logger ?? NullLogger<WorkflowHandler>.Instance
         );
 
     /// <summary>
@@ -1311,7 +1313,7 @@ public class WorkflowHandlerTests
     public async Task Handle_StepStartedWriteBack_AlreadyCarriesTheStamp()
     {
         // The stamp reaches a status read only through the write-back, and the first one for a step is
-        // the "step.started" fire-and-forget. It must carry the stamp on both rows, so a dashboard reading
+        // the "step_started" fire-and-forget. It must carry the stamp on both rows, so a dashboard reading
         // a Processing step sees when the attempt began rather than the previous attempt's value.
         var executor = MockExecutor(ExecutionResult.Success());
         var time = new FakeTimeProvider(_t0);
@@ -1325,7 +1327,7 @@ public class WorkflowHandlerTests
                     It.IsAny<Workflow>(),
                     It.IsAny<CancellationToken>(),
                     It.IsAny<IReadOnlyList<Step>?>(),
-                    "step.started",
+                    "step_started",
                     It.IsAny<Activity?>()
                 )
             )
@@ -1391,5 +1393,215 @@ public class WorkflowHandlerTests
 
         Assert.Equal(_t0.AddHours(-1), done.ExecutionStartedAt);
         Assert.Equal(_t0, pending.ExecutionStartedAt);
+    }
+
+    // ── Spans ──────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_StepSucceeds_StepSpanEndsOk()
+    {
+        using var listener = ListenToEngineSpans();
+        var spans = new CapturedSpans();
+        var handler = CreateHandler(MockExecutorCapturingSpans(spans, ExecutionResult.Success()).Object);
+        var workflow = CreateWorkflow(CreateStep("step-op"));
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        var stepSpan = Assert.IsType<Activity>(spans.Step);
+        Assert.Equal("WorkflowHandler.ProcessStep", stepSpan.OperationName);
+        Assert.Equal("step-op", stepSpan.GetTagItem("altinn.workflow_engine.step.operation_id"));
+        Assert.True(stepSpan.IsStopped);
+        Assert.Equal(ActivityStatusCode.Ok, stepSpan.Status);
+        Assert.Null(stepSpan.GetTagItem("error.type"));
+    }
+
+    [Fact]
+    public async Task Handle_StepFails_StepAndWorkflowSpansEndInErrorWithTheFailureReason()
+    {
+        using var listener = ListenToEngineSpans();
+        var spans = new CapturedSpans();
+        var handler = CreateHandler(MockExecutorCapturingSpans(spans, ExecutionResult.CriticalError("fatal")).Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        var stepSpan = Assert.IsType<Activity>(spans.Step);
+        Assert.True(stepSpan.IsStopped);
+        Assert.Equal(ActivityStatusCode.Error, stepSpan.Status);
+        Assert.Equal("fatal", stepSpan.StatusDescription);
+        Assert.Equal("execution", stepSpan.GetTagItem("error.type"));
+        Assert.Empty(stepSpan.Events);
+
+        var workflowSpan = Assert.IsType<Activity>(spans.Workflow);
+        Assert.Equal(ActivityStatusCode.Error, workflowSpan.Status);
+        Assert.Equal("execution", workflowSpan.GetTagItem("error.type"));
+    }
+
+    [Fact]
+    public async Task Handle_StepWaitBudgetExpires_StepSpanErrorTypeIsWaitExpired()
+    {
+        using var listener = ListenToEngineSpans();
+        var spans = new CapturedSpans();
+        var handler = CreateHandler(
+            MockExecutorCapturingSpans(spans, ExecutionResult.Defer(TimeSpan.FromMinutes(5))).Object
+        );
+        var step = CreateStep();
+        step.FirstDeferredAt = DateTimeOffset.UtcNow - TimeSpan.FromDays(2);
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Failed, step.Status);
+        var stepSpan = Assert.IsType<Activity>(spans.Step);
+        Assert.Equal(ActivityStatusCode.Error, stepSpan.Status);
+        Assert.Equal("wait_expired", stepSpan.GetTagItem("error.type"));
+    }
+
+    [Fact]
+    public async Task Handle_StepRequeued_StepSpanStatusStaysUnset()
+    {
+        using var listener = ListenToEngineSpans();
+        var spans = new CapturedSpans();
+        var settings = _defaultSettings with
+        {
+            DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
+        };
+        var handler = CreateHandler(
+            MockExecutorCapturingSpans(spans, ExecutionResult.RetryableError("transient")).Object,
+            settings
+        );
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Requeued, workflow.Status);
+        var stepSpan = Assert.IsType<Activity>(spans.Step);
+        Assert.True(stepSpan.IsStopped);
+        Assert.Equal(ActivityStatusCode.Unset, stepSpan.Status);
+    }
+
+    [Fact]
+    public async Task Handle_LeaseLost_SpansEndInErrorWithLeaseLost()
+    {
+        using var listener = ListenToEngineSpans();
+        var spans = new CapturedSpans();
+        var buffer = MockBuffer(
+            (w, _) =>
+                w.Status == PersistentItemStatus.Completed
+                    ? Task.FromException(new LeaseLostException(w.DatabaseId))
+                    : Task.CompletedTask
+        );
+        var handler = CreateHandler(
+            MockExecutorCapturingSpans(spans, ExecutionResult.Success()).Object,
+            buffer: buffer.Object
+        );
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        var workflowSpan = Assert.IsType<Activity>(spans.Workflow);
+        Assert.Equal(ActivityStatusCode.Error, workflowSpan.Status);
+        Assert.Equal("lease_lost", workflowSpan.GetTagItem("error.type"));
+    }
+
+    [Fact]
+    public async Task Handle_ProcessingThrows_TheErrorLogIsWrittenInTheWorkflowTrace()
+    {
+        // The exception is no longer an event on the workflow span, so the ERROR log that carries it must be
+        // findable from the span by trace ID — even though the handler runs under the processor's own span
+        using var listener = ListenToEngineSpans();
+        using var processorSpan = Metrics.Source.StartActivity("test.processor");
+        var spans = new CapturedSpans();
+        var logger = new TraceCapturingLogger();
+        var buffer = MockBuffer(
+            (w, _) =>
+                w.Status == PersistentItemStatus.Processing
+                    ? Task.FromException(new InvalidOperationException("write-back failed"))
+                    : Task.CompletedTask
+        );
+        var handler = CreateHandler(
+            MockExecutorCapturingSpans(spans, ExecutionResult.Success()).Object,
+            buffer: buffer.Object,
+            logger: logger
+        );
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        var workflowSpan = Assert.IsType<Activity>(spans.Workflow);
+        Assert.Equal("System.InvalidOperationException", workflowSpan.GetTagItem("error.type"));
+        Assert.Empty(workflowSpan.Events);
+        var errorLog = Assert.Single(logger.Entries, e => e.Level == LogLevel.Error);
+        Assert.IsType<InvalidOperationException>(errorLog.Exception);
+        Assert.Equal(workflowSpan.TraceId, errorLog.TraceId);
+    }
+
+    /// <summary>
+    /// Records each log entry with the trace it was written in, as an OpenTelemetry log exporter would see it.
+    /// </summary>
+    private sealed class TraceCapturingLogger : ILogger<WorkflowHandler>
+    {
+        public ConcurrentQueue<(LogLevel Level, Exception? Exception, ActivityTraceId? TraceId)> Entries { get; } = [];
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter
+        ) => Entries.Enqueue((logLevel, exception, Activity.Current?.TraceId));
+    }
+
+    /// <summary>
+    /// Makes <see cref="Metrics.Source"/> create its activities, which it does only while something listens. The
+    /// listener is process-wide, so tests read the spans they own off the workflow and step rather than off it.
+    /// </summary>
+    /// <remarks>
+    /// Matches by name: reading <see cref="Metrics.Source"/> here could run its type initializer from inside
+    /// the listener registration, which creates the source before the field holding it is set, so the listener
+    /// would never attach.
+    /// </remarks>
+    private static ActivityListener ListenToEngineSpans()
+    {
+        var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == Metrics.ServiceName,
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
+        };
+        ActivitySource.AddActivityListener(listener);
+        return listener;
+    }
+
+    /// <summary>
+    /// The spans a workflow and its step had open while the step executed. The handler releases both once it is
+    /// done, so they are only reachable through what the executor saw.
+    /// </summary>
+    private sealed class CapturedSpans
+    {
+        public Activity? Workflow { get; set; }
+
+        public Activity? Step { get; set; }
+    }
+
+    private static Mock<IWorkflowExecutor> MockExecutorCapturingSpans(CapturedSpans spans, ExecutionResult result)
+    {
+        var mock = new Mock<IWorkflowExecutor>();
+        mock.Setup(e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                (Workflow workflow, Step step, CancellationToken _) =>
+                {
+                    spans.Workflow = workflow.EngineActivity;
+                    spans.Step = step.EngineActivity;
+                    return result;
+                }
+            );
+
+        return mock;
     }
 }

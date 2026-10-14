@@ -260,14 +260,18 @@ internal sealed class Engine(
     {
         using var activity = Metrics.Source.StartActivity(
             "Engine.EnqueueWorkflow",
-            tags: [("request.namespace", metadata.Namespace), ("request.workflows.count", request.Workflows.Count)]
+            tags:
+            [
+                (TelemetryAttributes.Namespace, metadata.Namespace),
+                (TelemetryAttributes.RequestWorkflowCount, request.Workflows.Count),
+            ]
         );
 
         // Validate input size limits before expensive graph validation or command deserialization
         var constraintResult = ValidateRequestConstraints(request, metadata);
         if (constraintResult is RequestConstraintValidationResult.Invalid constraintError)
         {
-            activity?.Errored(errorMessage: constraintError.Message);
+            activity?.Errored(errorType: "invalid", errorMessage: constraintError.Message);
             return new WorkflowEnqueueResponse.Rejected.Invalid(constraintError.Message);
         }
 
@@ -287,13 +291,16 @@ internal sealed class Engine(
         var validationResult = ValidateCommands(request);
         if (validationResult is CommandValidationResult.Invalid error)
         {
-            activity?.Errored(errorMessage: error.Message);
+            activity?.Errored(errorType: "invalid", errorMessage: error.Message);
             return new WorkflowEnqueueResponse.Rejected.Invalid(error.Message);
         }
 
         if (ActiveWorkflowCount >= _settings.Concurrency.BackpressureThreshold)
         {
-            activity?.Errored(errorMessage: "Engine has too many items in the queue, please try again later.");
+            activity?.Errored(
+                errorType: "at_capacity",
+                errorMessage: "Engine has too many items in the queue, please try again later."
+            );
             return new WorkflowEnqueueResponse.Rejected.AtCapacity(
                 "Engine has too many items in the queue, please try again later."
             );
@@ -308,13 +315,13 @@ internal sealed class Engine(
             // they answer before the zip below.
             if (outcome.Status is BatchEnqueueResultStatus.MailboxNotFound)
             {
-                activity?.Errored(errorMessage: outcome.Message);
+                activity?.Errored(errorType: "invalid", errorMessage: outcome.Message);
                 return new WorkflowEnqueueResponse.Rejected.Invalid(outcome.Message ?? "Unknown mailbox.");
             }
 
             if (outcome.Status is BatchEnqueueResultStatus.MailboxLogFull)
             {
-                activity?.Errored(errorMessage: outcome.Message);
+                activity?.Errored(errorType: "at_capacity", errorMessage: outcome.Message);
                 return new WorkflowEnqueueResponse.Rejected.AtCapacity(
                     outcome.Message ?? "The mailbox's receivers log is full."
                 );
@@ -343,7 +350,10 @@ internal sealed class Engine(
         }
         catch (IdempotencyConflictException)
         {
-            activity?.Errored(errorMessage: $"Idempotency conflict for key '{metadata.IdempotencyKey}'");
+            activity?.Errored(
+                errorType: "idempotency_conflict",
+                errorMessage: $"Idempotency conflict for key '{metadata.IdempotencyKey}'"
+            );
             return new WorkflowEnqueueResponse.Rejected.Duplicate(
                 $"Idempotency conflict: the key '{metadata.IdempotencyKey}' was already used with a different request body."
             );

@@ -46,18 +46,6 @@ public static class WorkflowExtensions
         }
 
         /// <summary>
-        /// Workflow metadata useful for enriching telemetry activities.
-        /// </summary>
-        public (string key, object? value)[] GetActivityTags() =>
-            [
-                ("workflow.database.id", workflow.DatabaseId),
-                ("workflow.collection.key", workflow.CollectionKey),
-                ("workflow.idempotency.key", workflow.IdempotencyKey),
-                ("workflow.operation.id", workflow.OperationId),
-                ("workflow.namespace", workflow.Namespace),
-            ];
-
-        /// <summary>
         /// Low-cardinality metric tag value for the workflow's head-visibility directive. "false"
         /// identifies deliberately invisible workflows (e.g. non-blocking side chains) whose terminal
         /// failures surface nowhere else - alert on <c>altinn.workflow_engine.workflow.is_head="false"</c>

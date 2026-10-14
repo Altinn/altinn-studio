@@ -1,3 +1,7 @@
+using System.Data;
+using System.Diagnostics;
+using System.Globalization;
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
@@ -53,13 +57,9 @@ public static class ServiceCollectionExtensions
 
                     builder
                         .AddSource(Metrics.ServiceName)
-                        .AddHttpClientInstrumentation(opts =>
-                        {
-                            opts.RecordException = true;
-                        })
+                        .AddHttpClientInstrumentation()
                         .AddAspNetCoreInstrumentation(opts =>
                         {
-                            opts.RecordException = true;
                             opts.Filter = httpContext =>
                             {
                                 var path = httpContext.Request.Path.Value ?? "";
@@ -90,16 +90,9 @@ public static class ServiceCollectionExtensions
 
                                 activity.DisplayName = $"SQL EFCore: {commandType} @ {command.Connection?.Database}";
 
-                                if (emitQueryParameters && command.Parameters.Count > 0)
+                                if (emitQueryParameters)
                                 {
-                                    var paramDict = new Dictionary<string, object?>(command.Parameters.Count);
-                                    foreach (System.Data.IDbDataParameter param in command.Parameters)
-                                        paramDict[param.ParameterName] = param.Value is DBNull ? null : param.Value;
-
-                                    activity.SetTag(
-                                        "db.statement.parameters",
-                                        System.Text.Json.JsonSerializer.Serialize(paramDict)
-                                    );
+                                    SetQueryParameterTags(activity, command.Parameters);
                                 }
                             };
                         });
@@ -244,4 +237,33 @@ public static class ServiceCollectionExtensions
             return services;
         }
     }
+
+    /// <summary>
+    /// Sets one <c>db.query.parameter.&lt;name&gt;</c> attribute per parameter, as the semantic conventions name
+    /// them: keyed by the parameter's name without its <c>@</c> placeholder prefix, or by its 0-based index when
+    /// it has none, with a string representation of the value. A null value sets nothing.
+    /// </summary>
+    private static void SetQueryParameterTags(Activity activity, IDataParameterCollection parameters)
+    {
+        int index = 0;
+        foreach (IDataParameter parameter in parameters)
+        {
+            var name = parameter.ParameterName.TrimStart('@');
+            var key =
+                TelemetryAttributes.DbQueryParameterPrefix
+                + (name.Length > 0 ? name : index.ToString(CultureInfo.InvariantCulture));
+
+            activity.SetTag(key, FormatQueryParameterValue(parameter.Value));
+            index++;
+        }
+    }
+
+    private static string? FormatQueryParameterValue(object? value) =>
+        value switch
+        {
+            null or DBNull => null,
+            string text => text,
+            IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+            _ => JsonSerializer.Serialize(value),
+        };
 }
