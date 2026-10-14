@@ -232,6 +232,7 @@
   "app_create_release.release_version_number": "Versjonsnummer",
   "app_create_release.release_version_number_already_exists": "Det finnes allerede et versjonnummer med dette navnet.",
   "app_create_release.release_version_number_validation": "Må være en unik kombinasjon av tall, små bokstaver (a-z) og spesialtegnene \".\" og \"-\". Maks 128 tegn.",
+  "app_create_release.starting_build": "Starter byggingen av versjonen...",
   "app_create_release.status_popover": "Status for neste bygg",
   "app_create_release.still_building_release": "Bygger fortsatt versjon {{version}}",
   "app_create_release.validation_error_message": "Rett valideringsfeilene i <0>listen</0> før du publiserer appen. Publiserer du uten å rette feilene, blir appen publisert til miljøet – men Ressursregisteret får ikke oppdatert informasjon.",

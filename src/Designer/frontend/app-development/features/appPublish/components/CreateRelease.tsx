@@ -16,6 +16,7 @@ import {
   StudioParagraph,
   StudioRadio,
   StudioRadioGroup,
+  StudioSpinner,
   StudioTextarea,
   StudioTextfield,
 } from '@studio/components';
@@ -46,6 +47,7 @@ export function CreateRelease() {
   const [tagName, setTagName] = useState<string>('');
   const [body, setBody] = useState<string>('');
   const [selectedAppStatus, setSelectedAppStatus] = useState<BuildAppStatus | undefined>();
+  const [isStartingBuild, setIsStartingBuild] = useState<boolean>(false);
   const appStatusRadioGroupName = useId();
   const { data: appMetadata } = useAppMetadataQuery(org, app);
   const appStatus = selectedAppStatus ?? getDefaultAppStatus(appMetadata?.status);
@@ -64,20 +66,35 @@ export function CreateRelease() {
   const handleBodyChange = (e: ChangeEvent<HTMLTextAreaElement>) => setBody(e.currentTarget.value);
 
   const mutation = useCreateReleaseMutation(org, app);
+  const resetForm = (): void => {
+    setTagName('');
+    setBody('');
+    setSelectedAppStatus(undefined);
+  };
+
   const handleBuildVersionClick = async () => {
-    if (versionNameValid(releases, tagName) && tagName !== '') {
-      const { data: newMasterBranchStatus } = await getMasterBranchStatus();
-      mutation.mutate({
+    if (!versionNameValid(releases, tagName) || tagName === '') return;
+
+    // Keep the form hidden until the server answers, so it does not show stale values while the build starts
+    setIsStartingBuild(true);
+    const { data: newMasterBranchStatus } = await getMasterBranchStatus();
+    if (!newMasterBranchStatus) {
+      setIsStartingBuild(false);
+      return;
+    }
+    mutation.mutate(
+      {
         tagName,
         name: tagName,
         body,
         targetCommitish: newMasterBranchStatus.commit.id,
         appStatus,
-      });
-      setTagName('');
-      setBody('');
-      setSelectedAppStatus(undefined);
-    }
+      },
+      {
+        onSuccess: resetForm,
+        onSettled: () => setIsStartingBuild(false),
+      },
+    );
   };
 
   const appHasCriticalErrors = appHasCriticalValidationErrors(
@@ -91,6 +108,10 @@ export function CreateRelease() {
     selectedMaskinportenScopes !== undefined &&
     isVersionAtLeast(appVersion.backendVersion, 9, 0, 0) &&
     !hasDefaultMaskinportenScopes(selectedMaskinportenScopes);
+
+  if (isStartingBuild) {
+    return <StudioSpinner aria-hidden spinnerTitle={t('app_create_release.starting_build')} />;
+  }
 
   return (
     <div className={classes.createReleaseForm}>

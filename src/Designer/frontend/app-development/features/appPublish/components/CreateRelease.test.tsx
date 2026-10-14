@@ -245,6 +245,45 @@ describe('CreateRelease', () => {
     );
   });
 
+  it('shows a spinner instead of the form while the build is starting', async () => {
+    const user = userEvent.setup();
+    renderCreateRelease({
+      getBranchStatus: () => Promise.resolve({ commit: { id: '123' } } as never),
+      createRelease: () => new Promise(() => {}),
+    });
+
+    await startBuild(user, 'v2', 'Completed');
+
+    expect(
+      await screen.findByText(textMock('app_create_release.starting_build')),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('radio', { name: textMock('app_create_release.app_status_completed') }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the form with the entered values again when the build could not start', async () => {
+    const user = userEvent.setup();
+    renderCreateRelease({
+      getBranchStatus: () => Promise.resolve({ commit: { id: '123' } } as never),
+      createRelease: () => Promise.reject(new Error('Conflict')),
+    });
+
+    await startBuild(user, 'v2', 'Completed');
+
+    expect(
+      await screen.findByRole('radio', {
+        name: textMock('app_create_release.app_status_completed'),
+      }),
+    ).toBeChecked();
+    expect(
+      screen.getByLabelText(textMock('app_create_release.release_version_number')),
+    ).toHaveValue('v2');
+    expect(
+      screen.queryByText(textMock('app_create_release.starting_build')),
+    ).not.toBeInTheDocument();
+  });
+
   it('disables build version button when tag name is invalid', async () => {
     const user = userEvent.setup();
     renderCreateRelease();
@@ -322,3 +361,22 @@ describe('CreateRelease', () => {
     });
   });
 });
+
+const startBuild = async (
+  user: ReturnType<typeof userEvent.setup>,
+  tagName: string,
+  appStatus: 'UnderDevelopment' | 'Completed',
+): Promise<void> => {
+  const appStatusLabels = {
+    UnderDevelopment: 'app_create_release.app_status_under_development',
+    Completed: 'app_create_release.app_status_completed',
+  };
+  await user.type(
+    screen.getByLabelText(textMock('app_create_release.release_version_number')),
+    tagName,
+  );
+  await user.click(screen.getByRole('radio', { name: textMock(appStatusLabels[appStatus]) }));
+  await user.click(
+    screen.getByRole('button', { name: textMock('app_create_release.build_version') }),
+  );
+};
