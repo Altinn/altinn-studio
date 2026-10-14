@@ -409,11 +409,30 @@
         "summary": "Delete data element",
         "description": "Delete data for a specific data element",
         "responses": {
-          "204": {
-            "description": "Data deleted"
+          "200": {
+            "description": "Data deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
           },
           "404": {
-            "description": "Data not found"
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1162,8 +1181,20 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
           "404": {
-            "description": "Attachment not found"
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1261,8 +1292,20 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
           "404": {
-            "description": "Attachment not found"
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -1360,8 +1403,20 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
           "404": {
-            "description": "Attachment not found"
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -2356,8 +2411,20 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProblemDetails"
+          },
           "404": {
-            "description": "Attachment not found"
+            "$ref": "#/components/responses/ProblemDetails"
+          },
+          "500": {
+            "$ref": "#/components/responses/ProblemDetails"
           }
         }
       },
@@ -3121,6 +3188,37 @@
           }
         },
         "additionalProperties": {}
+      },
+      "DataPostResponse": {
+        "required": [
+          "instance",
+          "newDataElementId",
+          "newDataModels",
+          "validationIssues"
+        ],
+        "type": "object",
+        "properties": {
+          "newDataElementId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "instance": {
+            "$ref": "#/components/schemas/Instance"
+          },
+          "validationIssues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationSourcePair"
+            }
+          },
+          "newDataModels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataModelPairResponse"
+            }
+          }
+        },
+        "additionalProperties": false
       },
       "ProcessNext": {
         "type": "object",
@@ -4029,37 +4127,6 @@
         "properties": {
           "melding": {
             "$ref": "#/components/schemas/Dummy"
-          }
-        },
-        "additionalProperties": false
-      },
-      "DataPostResponse": {
-        "required": [
-          "instance",
-          "newDataElementId",
-          "newDataModels",
-          "validationIssues"
-        ],
-        "type": "object",
-        "properties": {
-          "newDataElementId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "instance": {
-            "$ref": "#/components/schemas/Instance"
-          },
-          "validationIssues": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ValidationSourcePair"
-            }
-          },
-          "newDataModels": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DataModelPairResponse"
-            }
           }
         },
         "additionalProperties": false

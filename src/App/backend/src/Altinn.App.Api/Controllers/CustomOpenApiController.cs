@@ -502,11 +502,23 @@ public class CustomOpenApiController : Controller
                         Tags = instanceTags,
                         Summary = "Delete data element",
                         Description = "Delete data for a specific data element",
-                        Responses = new()
-                        {
-                            ["204"] = new OpenApiResponse() { Description = "Data deleted" },
-                            ["404"] = new OpenApiResponse() { Description = "Data not found" },
-                        },
+                        Responses = Snippets.AddCommonErrorResponses(
+                            HttpStatusCode.OK,
+                            new OpenApiResponse()
+                            {
+                                Description = "Data deleted",
+                                Content = new Dictionary<string, OpenApiMediaType>
+                                {
+                                    ["application/json"] = new OpenApiMediaType()
+                                    {
+                                        Schema = _schemaGenerator.GenerateSchema(
+                                            typeof(DataPostResponse),
+                                            _schemaRepository
+                                        ),
+                                    },
+                                },
+                            }
+                        ),
                     },
                 },
                 Parameters =
@@ -1181,9 +1193,9 @@ public class CustomOpenApiController : Controller
                         Tags = tags,
                         Summary = "Get attachment",
                         Description = "Get attachment for a specific data element",
-                        Responses = new()
-                        {
-                            ["200"] = new OpenApiResponse()
+                        Responses = Snippets.AddCommonErrorResponses(
+                            HttpStatusCode.OK,
+                            new OpenApiResponse()
                             {
                                 Description = "Attachment found",
                                 Content = new Dictionary<string, OpenApiMediaType>
@@ -1197,9 +1209,8 @@ public class CustomOpenApiController : Controller
                                         },
                                     },
                                 },
-                            },
-                            ["404"] = new OpenApiResponse() { Description = "Attachment not found" },
-                        },
+                            }
+                        ),
                     },
                 },
                 Parameters =
