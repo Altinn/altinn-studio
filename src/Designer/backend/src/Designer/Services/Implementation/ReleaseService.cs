@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
@@ -89,7 +90,10 @@ public class ReleaseService : IReleaseService
 
         if (appStatus is not null)
         {
-            // The app serves applicationmetadata.json from its image, so the status must be committed before the build
+            // The app serves applicationmetadata.json from its image, so the status must be committed before the build.
+            // The commit stays on master if queuing the build fails below. A retry then finds the status in place
+            // and makes no new commit. Gitea commits on top of the head of master when the update is made, and only
+            // checks that this file is unchanged, so a push to another file just before that ends up in the build.
             release.TargetCommitish = await _applicationMetadataService.CommitAppStatusAsync(
                 release.Org,
                 release.App,

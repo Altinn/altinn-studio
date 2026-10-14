@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;
 

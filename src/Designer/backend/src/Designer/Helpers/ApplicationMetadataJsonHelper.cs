@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Altinn.Studio.Designer.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 
 namespace Altinn.Studio.Designer.Helpers;
 

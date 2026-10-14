@@ -1,6 +1,6 @@
 #nullable disable
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;

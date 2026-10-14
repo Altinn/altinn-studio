@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Altinn.Studio.Designer.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Repository.Models;
