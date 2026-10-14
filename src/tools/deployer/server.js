@@ -71,7 +71,7 @@ const ADMIN_ENVS = Object.freeze([createEnv('adminservices_test', ['test'], true
 // DIS Core workflows name their tag jobs after the Core environment, e.g. "Tag syncroot (at22)".
 // The at environments need no approval; yt01, tt02 and prod need a reviewer.
 const DIS_CORE_ENVS = Object.freeze(
-  ['at22', 'at23', 'at24', 'yt01', 'tt02', 'prod'].map((name) =>
+  ['at22', 'at23', 'yt01', 'tt02', 'prod'].map((name) =>
     createEnv(`dis_core_${name}`, [name], name.startsWith('at')),
   ),
 );

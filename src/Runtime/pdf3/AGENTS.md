@@ -201,21 +201,10 @@ namespace.
 
 **Publishing**: `.github/workflows/deploy-dis-pdf3-syncroot.yaml` pushes `infra/syncroot` as
 `studio-pdf3/syncroot:<sha>` on every change on main, then moves each Core environment's tag to it
-in that environment's GitHub environment (`dis_core_<env>`). Like the runtime workflows it takes
-rings: a push covers every ring, and a manual run the rings in its `environments` input. The
-template's `dis-core` mode in `.github/scripts/construct-environments.mjs` resolves them to Core
-environments, one tag job each:
-
-| Ring         | Core environments |
-| ------------ | ----------------- |
-| `at_ring1`   | at22              |
-| `at_ring2`   | at23, at24        |
-| `tt_ring1`   | none              |
-| `tt_ring2`   | yt01, tt02        |
-| `prod_ring1` | none              |
-| `prod_ring2` | prod              |
-
-A run for rings with no Core environment pushes the artifact and tags nothing. `dis_core_yt01`,
+in that environment's GitHub environment (`dis_core_<env>`), one tag job each. Like Studio's own
+deploys it is addressed by environment: a push covers every Core environment (at22, at23, yt01,
+tt02, prod), and a manual run the environments in its `environments` input. DIS Core has no
+rings; there is one cluster per environment for every service owner. `dis_core_yt01`,
 `dis_core_tt02` and `dis_core_prod` need a reviewer's approval. Only at22 has resources so far; the
 other environments' folders hold an empty kustomization, the same content the platform seeded. The
 tenant workflows ignore changes under `infra/syncroot/`.
