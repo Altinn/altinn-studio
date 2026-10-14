@@ -1,15 +1,18 @@
 import { pathToFileURL } from "node:url";
 
-const VALID_MODES = new Set(["studio", "studio-preapproved", "runtime"]);
+const VALID_MODES = new Set(["studio", "studio-preapproved", "runtime", "dis-core"]);
+const RUNTIME_RINGS = "at_ring1,at_ring2,tt_ring1,tt_ring2,prod_ring1,prod_ring2";
 const DEFAULTS_BY_MODE = {
   "studio": "dev,staging,prod",
   "studio-preapproved": "dev,staging,preapproved-prod",
-  "runtime": "at_ring1,at_ring2,tt_ring1,tt_ring2,prod_ring1,prod_ring2",
+  "runtime": RUNTIME_RINGS,
+  "dis-core": RUNTIME_RINGS,
 };
 const OVERRIDE_DEFAULT_ENV_BY_MODE = {
   "studio": "OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS",
   "studio-preapproved": "OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS",
   "runtime": "OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS",
+  "dis-core": "OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS",
 };
 const ALLOWED_VALUES_BY_MODE = {
   "studio": new Set(DEFAULTS_BY_MODE["studio"].split(",").map((value) => value.trim())),
@@ -17,17 +20,28 @@ const ALLOWED_VALUES_BY_MODE = {
     DEFAULTS_BY_MODE["studio-preapproved"].split(",").map((value) => value.trim())
   ),
   "runtime": new Set(DEFAULTS_BY_MODE["runtime"].split(",").map((value) => value.trim())),
+  "dis-core": new Set(DEFAULTS_BY_MODE["dis-core"].split(",").map((value) => value.trim())),
+};
+// The DIS Core environments each runtime ring promotes to. A ring may cover several Core
+// environments or none, so a valid ring list can resolve to no environments at all.
+const DIS_CORE_ENVIRONMENTS_BY_RING = {
+  "at_ring1": ["at22"],
+  "at_ring2": ["at23", "at24"],
+  "tt_ring1": [],
+  "tt_ring2": ["yt01", "tt02"],
+  "prod_ring1": [],
+  "prod_ring2": ["prod"],
 };
 
 /**
- * Construct parsed output for studio or runtime environment inputs.
+ * Construct parsed output for studio, runtime or DIS Core environment inputs.
  * @param {{mode: string, inputs?: string, allowEmpty?: boolean|string}} input
- * @returns {Array<{environment: string, ring?: string}>}
+ * @returns {Array<{environment: string, ring?: string, tag?: string}>}
  */
 export function constructResult(input) {
   const mode = input.mode;
   if (!VALID_MODES.has(mode)) {
-    throw new Error("mode must be 'studio', 'studio-preapproved', or 'runtime'.");
+    throw new Error("mode must be 'studio', 'studio-preapproved', 'runtime', or 'dis-core'.");
   }
 
   const allowEmpty = parseBool(input.allowEmpty);
@@ -62,6 +76,15 @@ export function constructResult(input) {
     case "runtime":
       validateValues(values, allowedValues, "runtime ring");
       return values.map((ring) => ({ ring, environment: `runtime_${ring}` }));
+    case "dis-core":
+      validateValues(values, allowedValues, "runtime ring");
+      return values.flatMap((ring) =>
+        DIS_CORE_ENVIRONMENTS_BY_RING[ring].map((tag) => ({
+          ring,
+          environment: `dis_core_${tag}`,
+          tag,
+        }))
+      );
     default:
       throw new Error("unreachable mode.");
   }
@@ -150,7 +173,7 @@ function parseBool(value) {
 }
 
 /**
- * @param {"studio"|"studio-preapproved"|"runtime"} mode
+ * @param {"studio"|"studio-preapproved"|"runtime"|"dis-core"} mode
  * @returns {string}
  */
 function getDefaultOverrideValue(mode) {

@@ -28,7 +28,7 @@ class FatalSyncError extends Error {
 // --- Service & environment definitions ---
 
 function envDisplayName(name) {
-  return name.replace(/^(runtime_|studio_|adminservices_)/, '');
+  return name.replace(/^(runtime_|studio_|adminservices_|dis_core_)/, '');
 }
 
 function createEnv(name, aliases = [], ungated = false) {
@@ -52,7 +52,7 @@ function createPlane(name, envs) {
 function workflowDisplayName(workflow) {
   return workflow
     .replace(/\.ya?ml$/i, '')
-    .replace(/^deploy-(runtime|studio|admin)-/, '')
+    .replace(/^deploy-(runtime|studio|admin|dis)-/, '')
     .replace(/^deploy-/, '');
 }
 
@@ -68,8 +68,16 @@ const STUDIO_ENVS = Object.freeze([
 ]);
 // Admin workflows name their tag jobs after the matrix tag, e.g. "Tag syncroot (test)".
 const ADMIN_ENVS = Object.freeze([createEnv('adminservices_test', ['test'], true)]);
+// DIS Core workflows name their tag jobs after the Core environment, e.g. "Tag syncroot (at22)".
+// The at environments need no approval; yt01, tt02 and prod need a reviewer.
+const DIS_CORE_ENVS = Object.freeze(
+  ['at22', 'at23', 'at24', 'yt01', 'tt02', 'prod'].map((name) =>
+    createEnv(`dis_core_${name}`, [name], name.startsWith('at')),
+  ),
+);
 const PLANE_DEFINITIONS = Object.freeze([
   { name: 'runtime', envs: RUNTIME_ENVS },
+  { name: 'dis-core', envs: DIS_CORE_ENVS },
   { name: 'studio', envs: STUDIO_ENVS },
   { name: 'admin', envs: ADMIN_ENVS },
 ]);
@@ -125,6 +133,7 @@ const SERVICES = [
     ['studio', STUDIO_ENVS],
   ]),
   ...RUNTIME_SERVICE_DEFS.map(([workflow, envs]) => service(workflow, [['runtime', envs]])),
+  service('deploy-dis-pdf3-syncroot.yaml', [['dis-core', DIS_CORE_ENVS]]),
   ...ADMIN_WORKFLOWS.map((workflow) => service(workflow, [['admin', ADMIN_ENVS]])),
   ...STUDIO_PROD_WORKFLOWS.map((workflow) => service(workflow, [['studio', STUDIO_ENVS.slice(2)]])),
   service('deploy-studio-syncroot.yaml', [['studio', STUDIO_ENVS]]),

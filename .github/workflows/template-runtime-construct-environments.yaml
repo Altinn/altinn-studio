@@ -3,6 +3,12 @@ name: Construct rings array
 on:
   workflow_call:
     inputs:
+      # Resolve the rings to the DIS Core environments they cover ({ring, environment, tag}),
+      # rather than to runtime_<ring>. A ring may cover none, so the result can be empty.
+      dis-core:
+        required: false
+        default: false
+        type: boolean
       inputs:
         required: false
         default: "null"
@@ -38,10 +44,16 @@ jobs:
         env:
           INPUTS: ${{ inputs.inputs }}
           ALLOW_EMPTY: ${{ inputs['allow-empty'] }}
+          DIS_CORE: ${{ inputs['dis-core'] }}
           OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS: ${{ inputs['override-default-runtime-environments'] }}
         run: |
+          mode="runtime"
+          if [[ "$DIS_CORE" == "true" ]]; then
+            mode="dis-core"
+          fi
+
           result="$(node .github/scripts/construct-environments.mjs \
-            --mode runtime \
+            --mode "${mode}" \
             --inputs "$INPUTS" \
             --allow-empty "$ALLOW_EMPTY")"
           echo "result=${result}" >> "$GITHUB_OUTPUT"

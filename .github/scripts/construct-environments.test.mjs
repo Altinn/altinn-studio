@@ -249,3 +249,86 @@ test("runtime: explicit environments input takes precedence over default overrid
     delete process.env.OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS;
   }
 });
+
+test("dis-core: maps every ring to its DIS Core environments when inputs context is null", () => {
+  const result = constructResult({
+    mode: "dis-core",
+    inputs: "null",
+    allowEmpty: false,
+  });
+
+  assert.deepEqual(result, [
+    { ring: "at_ring1", environment: "dis_core_at22", tag: "at22" },
+    { ring: "at_ring2", environment: "dis_core_at23", tag: "at23" },
+    { ring: "at_ring2", environment: "dis_core_at24", tag: "at24" },
+    { ring: "tt_ring2", environment: "dis_core_yt01", tag: "yt01" },
+    { ring: "tt_ring2", environment: "dis_core_tt02", tag: "tt02" },
+    { ring: "prod_ring2", environment: "dis_core_prod", tag: "prod" },
+  ]);
+});
+
+test("dis-core: maps rings from inputs.environments", () => {
+  const result = constructResult({
+    mode: "dis-core",
+    inputs: '{"environments":"tt_ring2,prod_ring2"}',
+    allowEmpty: false,
+  });
+
+  assert.deepEqual(result, [
+    { ring: "tt_ring2", environment: "dis_core_yt01", tag: "yt01" },
+    { ring: "tt_ring2", environment: "dis_core_tt02", tag: "tt02" },
+    { ring: "prod_ring2", environment: "dis_core_prod", tag: "prod" },
+  ]);
+});
+
+test("dis-core: rings without a DIS Core environment resolve to []", () => {
+  const result = constructResult({
+    mode: "dis-core",
+    inputs: '{"environments":"tt_ring1,prod_ring1"}',
+    allowEmpty: false,
+  });
+
+  assert.deepEqual(result, []);
+});
+
+test("dis-core: rejects invalid ring", () => {
+  assert.throws(
+    () =>
+      constructResult({
+        mode: "dis-core",
+        inputs: '{"environments":"at22"}',
+        allowEmpty: false,
+      }),
+    /invalid runtime ring 'at22'/
+  );
+});
+
+test("dis-core: empty string with allow-empty false throws", () => {
+  assert.throws(
+    () =>
+      constructResult({
+        mode: "dis-core",
+        inputs: '{"environments":""}',
+        allowEmpty: false,
+      }),
+    /cannot be empty/
+  );
+});
+
+test("dis-core: uses OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS in push context", () => {
+  process.env.OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS = "at_ring2";
+  try {
+    const result = constructResult({
+      mode: "dis-core",
+      inputs: "null",
+      allowEmpty: false,
+    });
+
+    assert.deepEqual(result, [
+      { ring: "at_ring2", environment: "dis_core_at23", tag: "at23" },
+      { ring: "at_ring2", environment: "dis_core_at24", tag: "at24" },
+    ]);
+  } finally {
+    delete process.env.OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS;
+  }
+});
