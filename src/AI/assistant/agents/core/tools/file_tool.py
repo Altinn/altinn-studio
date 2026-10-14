@@ -19,6 +19,7 @@ modify" rhythm that CC uses to prevent blind retries.
 from __future__ import annotations
 
 import asyncio
+import json
 import subprocess
 from pathlib import Path
 
@@ -84,6 +85,28 @@ def _mark_changed(ctx: LoopContext, rel_path: str) -> None:
 
 def _is_read(ctx: LoopContext, rel_path: str) -> bool:
     return rel_path in (ctx.extras.get("read_set") or set())
+
+
+def _format_json_like_studio(rel_path: str, text: str) -> str:
+    """Studio saves JSON in this format, so a file keeps one format when Studio and the assistant both change it.
+
+    Text that is not valid JSON stays as written, and `verify_changes` reports it.
+    """
+    if not rel_path.endswith(".json"):
+        return text
+    try:
+        parsed = json.loads(text)
+    except ValueError:
+        return text
+    return json.dumps(parsed, ensure_ascii=False, indent=2)
+
+
+def _describe_formatting(is_reformatted: bool, matched_on_whitespace: bool = False) -> str:
+    if is_reformatted:
+        return "  The JSON is now formatted as Studio formats it, so its whitespace can differ from what you sent."
+    if matched_on_whitespace:
+        return "  `old_string` matched only after ignoring whitespace, so that region now carries your formatting."
+    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -264,18 +287,15 @@ class EditFileTool(WriteToolMixin[EditFileArgs]):
         else:
             new_text = text.replace(args.old_string, args.new_string, 1)
             replaced = 1
+        formatted_text = _format_json_like_studio(args.path, new_text)
 
         try:
-            full.write_text(new_text, encoding="utf-8")
+            full.write_text(formatted_text, encoding="utf-8")
         except OSError as exc:
             return ToolResult(content=f"Write failed: {exc}", is_error=True)
 
         _mark_changed(ctx, args.path)
-        note = (
-            "  `old_string` matched only after ignoring whitespace, so that region now carries your formatting."
-            if matched_on_whitespace
-            else ""
-        )
+        note = _describe_formatting(formatted_text != new_text, matched_on_whitespace)
         return ToolResult(
             content=f"Edited {args.path}: replaced {replaced} occurrence(s).{note}",
             metadata={
@@ -407,9 +427,10 @@ class WriteFileTool(WriteToolMixin[WriteFileArgs]):
                 ),
                 is_error=True,
             )
+        content = _format_json_like_studio(args.path, args.content)
         try:
             full.parent.mkdir(parents=True, exist_ok=True)
-            full.write_text(args.content, encoding="utf-8")
+            full.write_text(content, encoding="utf-8")
         except OSError as exc:
             return ToolResult(content=f"Write failed: {exc}", is_error=True)
 
@@ -418,8 +439,9 @@ class WriteFileTool(WriteToolMixin[WriteFileArgs]):
         # state — future edits on the same path are safe.
         _mark_read(ctx, args.path)
         verb = "Overwrote" if existing else "Created"
+        note = _describe_formatting(content != args.content)
         return ToolResult(
-            content=f"{verb} {args.path} ({len(args.content)} chars).",
+            content=f"{verb} {args.path} ({len(content)} chars).{note}",
             metadata={"path": args.path, "created": not existing},
         )
 
