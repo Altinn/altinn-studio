@@ -9,6 +9,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `ServiceTaskContext.Action` gives a service task the action the user took on the task before it, such as `confirm` or `reject`. Return `ServiceTaskResult.Success(action: context.Action)` to pass it on to a gateway after the task. ([#21180](https://github.com/Altinn/altinn-studio/pull/21180))
+
+### Fixed
+
+- A gateway after a PDF service task that routes on `gatewayAction`, such as after the PDF tasks `studioctl app upgrade v9` inserts, now gets the action the user took on the task before, instead of matching no flow. On `reject`, the PDF task creates no PDF. ([#21180](https://github.com/Altinn/altinn-studio/pull/21180))
+
 ## [9.0.0-preview.8] - 2026-10-14
 
 ### Changed

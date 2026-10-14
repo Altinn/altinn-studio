@@ -203,6 +203,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string collectionKey,
         string state,
         Actor actor,
+        string? action,
         string? idempotencyKey = null,
         CancellationToken cancellationToken = default
     ) =>
@@ -213,6 +214,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             collectionKey,
             state,
             actor,
+            action,
             idempotencyKey,
             cancellationToken
         );
@@ -407,6 +409,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string collectionKey,
         string state,
         Actor actor,
+        string? action,
         string? idempotencyKey,
         CancellationToken cancellationToken
     )
@@ -417,7 +420,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             state,
             actor,
             [WorkflowRef.FromDatabaseId(dependsOnWorkflowId)],
-            idempotencyKey ?? CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId)
+            idempotencyKey ?? CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId),
+            action
         );
         try
         {

@@ -46,6 +46,7 @@ internal static class WorkflowEngineCommandValidator
                 {
                     TaskId = "DummyTask",
                     ServiceTask = null,
+                    Action = null,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
@@ -58,6 +59,7 @@ internal static class WorkflowEngineCommandValidator
                 {
                     TaskId = "DummyTask",
                     ServiceTask = null,
+                    Action = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
                     RegisterEvents = true,
@@ -71,6 +73,7 @@ internal static class WorkflowEngineCommandValidator
                 {
                     TaskId = "DummyTask",
                     ServiceTask = null,
+                    Action = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
                     Notification = new InstantiationNotification(),
@@ -85,6 +88,7 @@ internal static class WorkflowEngineCommandValidator
                 {
                     TaskId = "DummyTask",
                     ServiceTask = new ResolvedServiceTask("DummyServiceTask", CreateDummyPipeline()),
+                    Action = null,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
@@ -99,6 +103,7 @@ internal static class WorkflowEngineCommandValidator
                 {
                     TaskId = "DummyTask",
                     ServiceTask = new ResolvedServiceTask("DummyMailboxServiceTask", CreateDummyMailboxPipeline()),
+                    Action = null,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }

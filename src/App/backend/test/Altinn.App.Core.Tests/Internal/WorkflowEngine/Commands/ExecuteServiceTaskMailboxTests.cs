@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -515,6 +516,43 @@ public class ExecuteServiceTaskMailboxTests
         Assert.Null(continuing.Handover.Target);
         // The exchange has not started: its entry keeps traveling.
         Assert.NotNull(carry.FindMailbox(SendStageIndex));
+    }
+
+    /// <summary>The action each <c>ExecuteServiceTask</c> step of the hand-over carries.</summary>
+    private static List<string?> HandoverActions(MailboxHandover handover) =>
+        handover
+            .Plan.Steps.Where(step => step.CommandKey == ExecuteServiceTask.Key)
+            .Select(step =>
+            {
+                AppCommandData appData =
+                    step.Command.Data?.Deserialize<AppCommandData>()
+                    ?? throw new InvalidOperationException("A service task step carries no command data.");
+                ExecuteServiceTaskPayload payload =
+                    CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)
+                    ?? throw new InvalidOperationException("A service task step carries no payload.");
+                return payload.Action;
+            })
+            .ToList();
+
+    /// <summary>
+    /// A stage that ends its workflow hands the action its own step carried to the segment it starts, whether
+    /// it opened a mailbox or is a plain stage before a handler.
+    /// </summary>
+    [Fact]
+    public async Task StageThatEndsItsWorkflow_HandsItsActionToTheSegmentItStarts()
+    {
+        ProcessEngineCommandResult opening = await CreateCommand(new SendOnlyTask())
+            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex) with { Action = "confirm" });
+        ProcessEngineCommandResult plain = await CreateCommand(new ArchivingTask())
+            .Execute(CreateContext(MintedCarry()), Payload(itemIndex: 1) with { Action = "confirm" });
+
+        foreach (ProcessEngineCommandResult result in new[] { opening, plain })
+        {
+            MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
+                Assert.IsType<SuccessfulProcessEngineCommandResult>(result).MailboxContinuation
+            );
+            Assert.Equal(["confirm"], HandoverActions(continuing.Handover));
+        }
     }
 
     private static List<string> OperationIds(MailboxHandover handover) =>

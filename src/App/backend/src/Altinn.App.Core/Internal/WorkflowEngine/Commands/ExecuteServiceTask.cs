@@ -19,8 +19,11 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// a non-nullable <c>int</c> would either throw an old index-less payload out as an unhandled callback
 /// exception or bind <c>0</c> and silently dispatch the pipeline's first item. Guarded in
 /// <see cref="ExecuteServiceTask.Execute"/> so the refusal is a legible permanent failure.
+/// <see cref="Action"/> is the action of the transition that entered the task, copied onto every step of the
+/// task's pipeline so each one exposes the same <see cref="ServiceTaskContext.Action"/>.
 /// </remarks>
-internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType, int? ItemIndex = null) : CommandRequestPayload;
+internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType, int? ItemIndex = null, string? Action = null)
+    : CommandRequestPayload;
 
 internal sealed class ExecuteServiceTask(
     AppImplementationFactory appImplementationFactory,
@@ -83,6 +86,7 @@ internal sealed class ExecuteServiceTask(
                 WorkflowId = context.Payload.WorkflowId,
                 StepId = context.Payload.StepId,
                 ExecutionReferenceTime = context.Payload.ExecutionReferenceTime,
+                Action = payload.Action,
                 Attempt = new ServiceTaskAttempt
                 {
                     RetryCount = context.Payload.RetryCount,
@@ -178,7 +182,8 @@ internal sealed class ExecuteServiceTask(
                 serviceTask,
                 context,
                 stageIndex,
-                pipeline
+                pipeline,
+                serviceTaskContext.Action
             ),
             ServiceTaskStage.MailboxOpening opening => await ExecuteMailboxOpeningStage(
                 context,
@@ -221,7 +226,8 @@ internal sealed class ExecuteServiceTask(
             serviceTask,
             context,
             stageIndex,
-            pipeline
+            pipeline,
+            serviceTaskContext.Action
         );
     }
 
@@ -313,7 +319,8 @@ internal sealed class ExecuteServiceTask(
                 receipt,
                 context.StateCarry,
                 handlerItemIndex,
-                exchange.OpeningIndex
+                exchange.OpeningIndex,
+                serviceTaskContext.Action
             );
     }
 
@@ -347,7 +354,8 @@ internal sealed class ExecuteServiceTask(
                 context.StateCarry,
                 handlerItemIndex,
                 segment.OpeningIndex,
-                pipeline
+                pipeline,
+                serviceTaskContext.Action
             );
     }
 
@@ -430,7 +438,8 @@ internal sealed class ExecuteServiceTask(
         IPipelineServiceTask task,
         ProcessEngineCommandContext context,
         int stageIndex,
-        ServiceTaskPipeline pipeline
+        ServiceTaskPipeline pipeline,
+        string? action
     ) =>
         result switch
         {
@@ -445,7 +454,8 @@ internal sealed class ExecuteServiceTask(
                     context.Payload.StepId,
                     context.StateCarry,
                     stageIndex,
-                    pipeline
+                    pipeline,
+                    action
                 ),
             CompletedServiceTaskStageResult => new SuccessfulProcessEngineCommandResult(),
             DeferredServiceTaskStageResult deferred => new DeferredProcessEngineCommandResult
@@ -483,7 +493,8 @@ internal sealed class ExecuteServiceTask(
         IPipelineServiceTask task,
         ProcessEngineCommandContext context,
         int stageIndex,
-        ServiceTaskPipeline pipeline
+        ServiceTaskPipeline pipeline,
+        string? action
     ) =>
         result switch
         {
@@ -492,7 +503,8 @@ internal sealed class ExecuteServiceTask(
                 context.Payload.StepId,
                 context.StateCarry,
                 stageIndex,
-                pipeline
+                pipeline,
+                action
             ),
             DeferredServiceTaskOpeningStageResult deferred => new DeferredProcessEngineCommandResult
             {

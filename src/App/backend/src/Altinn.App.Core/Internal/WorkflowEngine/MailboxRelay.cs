@@ -57,14 +57,16 @@ internal sealed class MailboxRelay
     /// exchange than the one the handler after it answers. Which stages are their workflow's last is derived
     /// by the caller from the pipeline it resolved: a mailbox-opening stage always is one, and a plain stage
     /// is one when a reply handler follows it. Nothing closes here — neither this stage's exchange nor an
-    /// earlier one's.
+    /// earlier one's. <paramref name="action"/> is the action the stage's own step carried, copied onto the
+    /// steps it hands over to.
     /// </summary>
     internal static ProcessEngineCommandResult DecideStageEnd(
         string serviceTaskType,
         Guid stepId,
         WorkflowCallbackStateCarry carry,
         int stageIndex,
-        ServiceTaskPipeline pipeline
+        ServiceTaskPipeline pipeline,
+        string? action
     )
     {
         if (StepIdMissing(stepId, serviceTaskType, "start what the pipeline composes after this stage") is { } noKey)
@@ -78,6 +80,7 @@ internal sealed class MailboxRelay
                 carry,
                 afterItemIndex: stageIndex,
                 pipeline,
+                action,
                 out MailboxHandover? handover,
                 out FailedProcessEngineCommandResult? refusal
             )
@@ -105,12 +108,13 @@ internal sealed class MailboxRelay
         WorkflowCallbackStateCarry carry,
         int afterItemIndex,
         ServiceTaskPipeline pipeline,
+        string? action,
         [NotNullWhen(true)] out MailboxHandover? handover,
         [NotNullWhen(false)] out FailedProcessEngineCommandResult? refusal
     )
     {
         handover = null;
-        ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment(serviceTaskType, pipeline, afterItemIndex);
+        ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment(serviceTaskType, pipeline, action, afterItemIndex);
 
         // A pipeline's items always end with its conclusion, and a conclusion starts nothing, so no
         // well-formed composition can leave a hop that reached this point with nothing to plan. Refused rather
@@ -232,7 +236,8 @@ internal sealed class MailboxRelay
     /// payload; <paramref name="openingStageIndex"/> is the item that opened the exchange (the carry's key),
     /// read off the handler this hop's <c>ResolvePipeline()</c> produced. Re-deriving the latter carries a
     /// mid-flight-reshape hazard, accepted and unguarded — see the Mailboxes section of this folder's
-    /// AGENTS.md.
+    /// AGENTS.md. <paramref name="action"/> is the action the handler's own step carried, copied onto a
+    /// successor receiver's step.
     /// </summary>
     internal static ProcessEngineCommandResult Decide(
         ServiceTaskExchangeResult result,
@@ -241,7 +246,8 @@ internal sealed class MailboxRelay
         AppCallbackMailbox mailbox,
         WorkflowCallbackStateCarry carry,
         int handlerItemIndex,
-        int openingStageIndex
+        int openingStageIndex,
+        string? action
     )
     {
         switch (result)
@@ -258,7 +264,8 @@ internal sealed class MailboxRelay
                         mailbox.Id,
                         serviceTaskType,
                         handlerItemIndex,
-                        mailbox.Seq
+                        mailbox.Seq,
+                        action
                     ),
                 };
 
@@ -329,7 +336,8 @@ internal sealed class MailboxRelay
         WorkflowCallbackStateCarry carry,
         int handlerItemIndex,
         int openingStageIndex,
-        ServiceTaskPipeline pipeline
+        ServiceTaskPipeline pipeline,
+        string? action
     )
     {
         switch (result)
@@ -346,7 +354,8 @@ internal sealed class MailboxRelay
                         mailbox.Id,
                         serviceTaskType,
                         handlerItemIndex,
-                        mailbox.Seq
+                        mailbox.Seq,
+                        action
                     ),
                 };
 
@@ -361,6 +370,7 @@ internal sealed class MailboxRelay
                         carry,
                         afterItemIndex: handlerItemIndex,
                         pipeline,
+                        action,
                         out MailboxHandover? handover,
                         out FailedProcessEngineCommandResult? refusal
                     )
@@ -451,7 +461,13 @@ internal sealed class MailboxRelay
                 await EnqueueReceiver(
                     awaitNext.MailboxId,
                     awaitNext.ServiceTaskType,
-                    [WorkflowCommandSet.CreateItemStep(awaitNext.ServiceTaskType, awaitNext.HandlerItemIndex)],
+                    [
+                        WorkflowCommandSet.CreateItemStep(
+                            awaitNext.ServiceTaskType,
+                            awaitNext.HandlerItemIndex,
+                            awaitNext.Action
+                        ),
+                    ],
                     operationIdSuffix: "after message " + awaitNext.Position.ToString(CultureInfo.InvariantCulture),
                     request,
                     cancellationToken
