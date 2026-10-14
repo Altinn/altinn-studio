@@ -63,24 +63,7 @@ internal sealed class WorkflowHandler(
         logger.WorkflowLeaseLost(workflow);
         Metrics.WorkflowsLeaseLost.Add(1);
 
-        // Steps run sequentially so at most one span is open, but a per-step Submit that
-        // throws LeaseLostException unwinds past the per-step StopActivity. Loop to catch it.
-        foreach (var step in workflow.Steps)
-        {
-            if (step.EngineActivity is null)
-                continue;
-
-            step.EngineActivity.Errored(
-                errorType: "lease_lost",
-                errorMessage: "Lease lost — workflow reclaimed by another host"
-            );
-            StopActivity(step);
-        }
-
-        workflow.EngineActivity?.Errored(
-            errorType: "lease_lost",
-            errorMessage: "Lease lost — workflow reclaimed by another host"
-        );
+        MarkLeaseLost(workflow.EngineActivity);
     }
 
     private async Task ProcessWorkflow(Workflow workflow, CancellationToken ct)
@@ -243,8 +226,47 @@ internal sealed class WorkflowHandler(
                 continue;
             }
 
-            StartProcessStepActivity(workflow, step);
+            await ProcessStep(workflow, step, previous, queueAnchor, ct);
 
+            queueAnchor = step.UpdatedAt ?? throw new UnreachableException();
+
+            if (step.Status == PersistentItemStatus.Completed)
+            {
+                continue;
+            }
+
+            if (
+                step.Status
+                is PersistentItemStatus.Requeued
+                    or PersistentItemStatus.Waiting
+                    or PersistentItemStatus.Failed
+            )
+            {
+                break;
+            }
+
+            throw new UnreachableException();
+        }
+    }
+
+    /// <summary>
+    /// Runs one attempt of <paramref name="step"/> under its <c>WorkflowHandler.ProcessStep</c> span, and ends that span
+    /// however the attempt ends: a span left open is never exported, so the trace would lose the step. When an exception
+    /// ends the attempt, the span is left without a status if it is the handler's own cancellation, marked
+    /// <c>lease_lost</c> if the lease was lost, and otherwise marked with the exception, which
+    /// <see cref="ProcessWorkflow"/> then logs at ERROR in the same trace.
+    /// </summary>
+    private async Task ProcessStep(
+        Workflow workflow,
+        Step step,
+        Step? previous,
+        DateTimeOffset queueAnchor,
+        CancellationToken ct
+    )
+    {
+        StartProcessStepActivity(workflow, step);
+        try
+        {
             RecordStepQueueTime(step, queueAnchor);
 
             step.Status = PersistentItemStatus.Processing;
@@ -269,7 +291,6 @@ internal sealed class WorkflowHandler(
                     ? PersistentItemStatus.Canceled
                     : PersistentItemStatus.Requeued;
 
-                StopActivity(step);
                 throw;
             }
             catch (Exception e)
@@ -293,26 +314,24 @@ internal sealed class WorkflowHandler(
             RecordStepTotalTime(step, queueAnchor);
             RecordStepWaitDuration(step);
             SetStepActivityStatus(workflow, step, result);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (LeaseLostException)
+        {
+            MarkLeaseLost(step.EngineActivity);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            step.EngineActivity?.Errored(ex);
+            throw;
+        }
+        finally
+        {
             StopActivity(step);
-
-            queueAnchor = step.UpdatedAt ?? throw new UnreachableException();
-
-            if (step.Status == PersistentItemStatus.Completed)
-            {
-                continue;
-            }
-
-            if (
-                step.Status
-                is PersistentItemStatus.Requeued
-                    or PersistentItemStatus.Waiting
-                    or PersistentItemStatus.Failed
-            )
-            {
-                break;
-            }
-
-            throw new UnreachableException();
         }
     }
 
@@ -590,6 +609,12 @@ internal sealed class WorkflowHandler(
     /// Why a failed workflow failed, as the low-cardinality reason its failure metric and its spans carry.
     /// </summary>
     private static string FailureReason(Workflow workflow) => workflow.FailureReason ?? "execution";
+
+    /// <summary>
+    /// Marks a workflow or step span as ended by the loss of the workflow's lease to another host.
+    /// </summary>
+    private static void MarkLeaseLost(Activity? span) =>
+        span?.Errored(errorType: "lease_lost", errorMessage: "Lease lost — workflow reclaimed by another host");
 
     private static void StopActivity(PersistentItem item)
     {
