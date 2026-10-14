@@ -371,6 +371,60 @@ describe('useUpdateFormComponentMutation', () => {
       );
     });
   });
+  describe('Updating minCount for FileUpload components', () => {
+    // Not in a repeating group, where Studio already keeps the old minCount
+    const fileUploadComponent = {
+      ...componentMocks[ComponentType.FileUpload],
+      id: 'fileUploadOutsideRepeatingGroup',
+    };
+
+    const renderWithFileUploadDataType = (minCount: number) => {
+      renderAndWaitForData();
+      queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
+        dataTypes: [{ id: fileUploadComponent.id, maxCount: 1, minCount }],
+      });
+      queryClientMock.setQueryData(
+        [QueryKey.FormLayouts, org, app, selectedLayoutSet],
+        convertExternalLayoutsToInternalFormat({
+          ...externalLayoutsMock,
+          [selectedLayoutName]: {
+            ...externalLayoutsMock[selectedLayoutName],
+            data: { layout: [fileUploadComponent] },
+          },
+        }),
+      );
+    };
+
+    const updateFileUpload = async (minNumberOfAttachments: number) => {
+      const updateFormComponentResult = renderHookWithProviders(() =>
+        useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+      ).result;
+      await updateFormComponentResult.current.mutateAsync({
+        id: fileUploadComponent.id,
+        updatedComponent: { ...fileUploadComponent, maxFileSizeInMB: 2, minNumberOfAttachments },
+      });
+    };
+
+    it('Keeps a minCount that differs from minNumberOfAttachments', async () => {
+      renderWithFileUploadDataType(0);
+      await updateFileUpload(fileUploadComponent.minNumberOfAttachments);
+      expect(queriesMock.updateAppAttachmentMetadata).toHaveBeenCalledWith(
+        org,
+        app,
+        expect.objectContaining({ minCount: 0 }),
+      );
+    });
+
+    it('Updates minCount when it was equal to minNumberOfAttachments', async () => {
+      renderWithFileUploadDataType(fileUploadComponent.minNumberOfAttachments);
+      await updateFileUpload(0);
+      expect(queriesMock.updateAppAttachmentMetadata).toHaveBeenCalledWith(
+        org,
+        app,
+        expect.objectContaining({ minCount: 0 }),
+      );
+    });
+  });
 });
 
 const renderAndWaitForData = () => {
