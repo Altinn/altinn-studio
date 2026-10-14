@@ -271,7 +271,7 @@ def report(
 
 
 def current_digests() -> dict[str, str | None]:
-    """The digests of this checkout. They import the agent code, so they need requirements.txt."""
+    """The digests of this checkout. They import the agent code, so they need its dependencies."""
     from benchmarks import provenance
 
     return provenance.digests(on_failure=print_digest_failure)
@@ -384,7 +384,7 @@ def _git(*args: str, strip: bool = True) -> str | None:
 
 
 def _main() -> int:
-    """The CI entry point. The digests import the agent code, so CI installs requirements.txt."""
+    """The CI entry point. The digests import the agent code, so CI installs the dependencies from uv.lock."""
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)

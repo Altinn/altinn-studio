@@ -155,6 +155,13 @@
       "allowedVersions": "/^\\d+\\.(?:\\d*[02468])\\./"
     },
     {
+      "description": "Move the Studio Assistant image Python and .python-version in one PR, because the image build fails when they differ",
+      "matchFileNames": ["src/AI/assistant/dockerfile", "src/AI/assistant/.python-version"],
+      "matchPackageNames": ["python"],
+      "groupName": "Studio Assistant Python",
+      "groupSlug": "assistant-python"
+    },
+    {
       "matchFileNames": ["src/Designer/**"],
       "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
       "groupName": "Design system in Designer"

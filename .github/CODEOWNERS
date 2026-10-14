@@ -30,8 +30,6 @@ src/Designer/frontend/resourceadm/**/package.json                         @altin
 src/AI/assistant/**/docker-compose.yaml                                   @ErlingHauan
 src/AI/assistant/**/dockerfile*                                           @ErlingHauan
 src/AI/assistant/**/pyproject.toml                                        @ErlingHauan
-src/AI/assistant/**/requirements-dev.txt                                  @ErlingHauan
-src/AI/assistant/**/requirements.txt                                      @ErlingHauan
 src/AI/assistant/**/uv.lock                                               @ErlingHauan
 src/AI/augmenter-agent/**/*.csproj                                        @ErlingHauan
 src/AI/augmenter-agent/**/docker-compose.yaml                             @ErlingHauan
@@ -147,6 +145,7 @@ src/tools/releaser/**/go.mod                                              @altin
 src/Runtime/workflow-engine-app/**/*.csproj                               @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine-app/**/Directory.Packages.props               @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine-app/**/Dockerfile*                            @altinn/team-altinn-studio-flyt
+src/Runtime/workflow-engine-app/**/global.json                            @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine/**/*.csproj                                   @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine/**/Directory.Packages.props                   @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine/**/docker-compose.yaml                        @altinn/team-altinn-studio-flyt

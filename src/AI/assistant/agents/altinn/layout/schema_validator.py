@@ -5,12 +5,13 @@ from collections.abc import Mapping
 from typing import Any
 from urllib.parse import urlparse
 
-import requests
+import httpx
 from jsonschema import Draft7Validator, ValidationError
 from referencing import Registry, Resource
 from referencing.exceptions import NoSuchResource
 from referencing.jsonschema import DRAFT7
 
+_SCHEMA_FETCH_TIMEOUT_SECONDS = 10
 _EXPRESSION_SCHEMA_FILE_NAME = "expression.schema.v1.json"
 # Stands in for an expression schema that cannot be fetched. The layout schemas
 # reference only these three of its definitions.
@@ -231,7 +232,7 @@ def load_layout_schema(schema_url: str) -> dict[str, Any]:
                 f"DO NOT RETRY with the same URL."
             )
 
-        response = requests.get(schema_url)
+        response = httpx.get(schema_url, follow_redirects=True, timeout=_SCHEMA_FETCH_TIMEOUT_SECONDS)
         response.raise_for_status()
 
         schema_path = response.json()
