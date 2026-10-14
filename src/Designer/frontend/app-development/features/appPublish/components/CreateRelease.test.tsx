@@ -219,7 +219,7 @@ describe('CreateRelease', () => {
   it('sends the selected status when building', async () => {
     const user = userEvent.setup();
     const mockCommitId = '123';
-    const mockCreateRelease = jest.fn();
+    const mockCreateRelease = vi.fn();
     renderCreateRelease({
       getBranchStatus: () => Promise.resolve({ commit: { id: mockCommitId } } as never),
       createRelease: mockCreateRelease,
