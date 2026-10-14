@@ -217,13 +217,23 @@ public class AiServiceTaskTests
     /// no such members. Tests that care about the workflow identity pass it explicitly - the rest
     /// get a fresh one, which is what a first attempt looks like to the replay guard.
     /// </summary>
-    private static ServiceTaskContext CreateContext(IInstanceDataMutator mutator, Guid? workflowId = null) =>
+    /// <summary>
+    /// A context for the attempt that does the work. On v9 the task yields once before
+    /// running (see <see cref="AiEnrichmentStepOptions.YieldBeforeRun"/>), so the default
+    /// here is the attempt *after* that yield — otherwise every test below would assert
+    /// against a deferral. The yield itself has its own tests.
+    /// </summary>
+    private static ServiceTaskContext CreateContext(
+        IInstanceDataMutator mutator,
+        Guid? workflowId = null,
+        int deferCount = 1) =>
 #if NET10_0_OR_GREATER
         new()
         {
             InstanceDataMutator = mutator,
             WorkflowId = workflowId ?? Guid.NewGuid(),
             StepId = Guid.NewGuid(),
+            Wait = new ServiceTaskWait { DeferCount = deferCount },
         };
 #else
         new() { InstanceDataMutator = mutator };
@@ -251,6 +261,60 @@ public class AiServiceTaskTests
         storedMetadata.Should().AllSatisfy(metadata =>
             metadata.Should().ContainSingle(entry =>
                 entry.Key == AiServiceTask.LangfuseTraceIdMetadataKey && entry.Value == traceId));
+    }
+
+    [Fact]
+    public async Task Execute_OpeningAttempt_YieldsWithoutRunningTheAgent()
+    {
+        // The yield exists so process/next returns to the browser in seconds rather than
+        // being held for the whole run. It must do nothing else: a deferring attempt is
+        // stateless, so any data change would be rejected by the engine as a contract
+        // violation, and a trace started here would be an empty run beside every real one.
+        using var spans = new RecordedSpans();
+        var stored = new List<(string DataType, string ContentType, string? Filename, byte[] Bytes)>();
+        var mutator = CreateMutator("demo-json", stored);
+
+        var result = await CreateSut(trace: new EnrichmentTrace(Options.Create(new LangfuseOptions())))
+            .Execute(CreateContext(mutator, deferCount: 0));
+
+        // The delay is a window app-lib has to catch, not a cost to minimise: it only
+        // releases the caller if one of its polls lands while the transition is parked,
+        // and those polls slow to one every two seconds. A shorter yield falls between
+        // two of them and buys nothing — measured, at 1 second, it bought nothing.
+        result.Should().BeOfType<ServiceTaskDeferredResult>()
+            .Which.Delay.Should().BeGreaterThan(
+                TimeSpan.FromSeconds(2),
+                "app-lib polls a transition at most every two seconds");
+
+        stored.Should().BeEmpty();
+        await mutator.DidNotReceive().GetFormData(Arg.Any<DataElementIdentifier>());
+        spans.Stopped.Should().BeEmpty("an empty trace per submission would be worse than none");
+    }
+
+    [Fact]
+    public async Task Execute_YieldDisabled_RunsOnTheOpeningAttempt()
+    {
+        // The escape hatch for an agent fast enough to finish inside the request, where
+        // the waiting page would only flicker.
+        var stored = new List<(string DataType, string ContentType, string? Filename, byte[] Bytes)>();
+        var mutator = CreateMutator("demo-json", stored);
+        var options = new AiEnrichmentOptions();
+        options.Step.YieldBeforeRun = false;
+
+        var result = await CreateSut(options).Execute(CreateContext(mutator, deferCount: 0));
+
+        result.Should().BeOfType<ServiceTaskSuccessResult>();
+        stored.Should().ContainSingle();
+    }
+
+    [Fact]
+    public void StepOptions_CarryTheWaitBudgetTheYieldNeeds()
+    {
+        // Without it the engine's own default bounds the wait instead of ours.
+        var options = new AiEnrichmentOptions();
+        options.Step.WaitBudget = TimeSpan.FromMinutes(42);
+
+        CreateSut(options).StepOptions!.WaitBudget.Should().Be(TimeSpan.FromMinutes(42));
     }
 #endif
 
