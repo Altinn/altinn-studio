@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.ResourceRegistry.Core.Models;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;

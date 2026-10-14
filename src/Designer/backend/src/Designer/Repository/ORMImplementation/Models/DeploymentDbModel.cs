@@ -1,6 +1,7 @@
 ﻿#nullable disable
 using System;
 using System.Collections.Generic;
+using Altinn.Platform.Storage.Interface.Enums;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Infrastructure.Models;
@@ -1053,6 +1054,11 @@ public class DeploymentServiceTest
             { "production", true, null, null, AppStatus.Completed },
             { "tt02", true, AppStatus.Completed, AppStatus.UnderDevelopment, AppStatus.UnderDevelopment },
             { "production", true, AppStatus.UnderDevelopment, AppStatus.Completed, AppStatus.Completed },
+            // A release cannot carry Deprecated or Withdrawn, so a hand-written one falls back to the default
+            { "tt02", false, null, AppStatus.Deprecated, AppStatus.UnderDevelopment },
+            { "production", false, null, AppStatus.Deprecated, AppStatus.Completed },
+            { "production", false, null, AppStatus.Withdrawn, AppStatus.Completed },
+            { "tt02", true, AppStatus.Completed, AppStatus.Deprecated, AppStatus.Completed },
         };
 
     [Theory]

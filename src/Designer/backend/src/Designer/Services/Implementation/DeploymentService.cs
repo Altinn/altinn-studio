@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Helpers;
@@ -118,14 +119,21 @@ public class DeploymentService : IDeploymentService
         );
 
         // The status is committed to applicationmetadata.json when the release is built, so the app image has it.
-        // Releases built before that have no status, and fall back to a default.
+        // Releases built before that have no status, and fall back to a default. A status that a release cannot
+        // carry, such as a hand-written Deprecated, also falls back, since only an undeploy may deprecate the app.
+        AppStatus? committedAppStatus = await _applicationInformationService.GetAppStatusAsync(
+            authenticatedContext.Org,
+            authenticatedContext.Repo,
+            release.TargetCommitish
+        );
         AppStatus appStatus =
-            await _applicationInformationService.GetAppStatusAsync(
-                authenticatedContext.Org,
-                authenticatedContext.Repo,
-                release.TargetCommitish
-            )
-            ?? await GetDefaultAppStatusAsync(authenticatedContext.Org, authenticatedContext.Repo, deployment.EnvName);
+            committedAppStatus?.IsReleaseStatus() == true
+                ? committedAppStatus.Value
+                : await GetDefaultAppStatusAsync(
+                    authenticatedContext.Org,
+                    authenticatedContext.Repo,
+                    deployment.EnvName
+                );
         deploymentEntity.AppStatus = appStatus;
 
         await _applicationInformationService.UpdateApplicationMetadataAndPoliciesAsync(
@@ -217,7 +225,7 @@ public class DeploymentService : IDeploymentService
     private async Task<AppStatus> GetDefaultAppStatusAsync(string org, string app, string envName)
     {
         DeploymentEntity latestDeploy = await _deploymentRepository.GetLatestDeploy(org, app, envName);
-        if (latestDeploy?.AppStatus is AppStatus.UnderDevelopment or AppStatus.Completed)
+        if (latestDeploy?.AppStatus?.IsReleaseStatus() == true)
         {
             return latestDeploy.AppStatus.Value;
         }
