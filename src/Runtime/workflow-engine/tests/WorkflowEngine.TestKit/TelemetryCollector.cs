@@ -10,8 +10,8 @@ namespace WorkflowEngine.TestKit;
 
 /// <summary>
 /// Collects OpenTelemetry activities and meter measurements in-process for test assertions.
-/// Registers an <see cref="ActivityListener"/> on <see cref="Metrics.Source"/> and a
-/// <see cref="MeterListener"/> on <see cref="Metrics.Meter"/>.
+/// Registers an <see cref="ActivityListener"/> on <see cref="Metrics.Source"/> (and on any further sources
+/// named at construction) and a <see cref="MeterListener"/> on <see cref="Metrics.Meter"/>.
 /// </summary>
 public sealed class TelemetryCollector : IDisposable
 {
@@ -21,11 +21,15 @@ public sealed class TelemetryCollector : IDisposable
     public ConcurrentBag<Activity> Activities { get; } = [];
     public ConcurrentBag<(string Name, object Value, KeyValuePair<string, object?>[] Tags)> Measurements { get; } = [];
 
-    public TelemetryCollector()
+    /// <param name="additionalSources">
+    /// Further activity sources to collect from, such as <c>Microsoft.AspNetCore</c> for the hosts' server spans.
+    /// </param>
+    public TelemetryCollector(params string[] additionalSources)
     {
         _activityListener = new ActivityListener
         {
-            ShouldListenTo = source => source.Name == Metrics.Source.Name,
+            ShouldListenTo = source =>
+                source.Name == Metrics.ServiceName || additionalSources.Contains(source.Name, StringComparer.Ordinal),
             Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
             ActivityStopped = activity => Activities.Add(activity),
         };
@@ -122,6 +126,26 @@ public sealed class TelemetryCollector : IDisposable
             if (GetActivities(operationName).Count >= minCount)
                 return;
             await Task.Delay(25, cts.Token);
+        }
+    }
+
+    /// <summary>
+    /// Polls until a collected (stopped) activity matches <paramref name="predicate"/>, and returns it.
+    /// </summary>
+    public async Task<Activity> WaitForActivity(Func<Activity, bool> predicate, TimeSpan? timeout = null)
+    {
+        var limit = timeout ?? TimeSpan.FromSeconds(5);
+        using var cts = new CancellationTokenSource(limit);
+        while (true)
+        {
+            var match = Activities.FirstOrDefault(predicate);
+            if (match is not null)
+                return match;
+
+            if (cts.IsCancellationRequested)
+                Assert.Fail($"No collected activity matched within {limit}.");
+
+            await Task.Delay(25, CancellationToken.None);
         }
     }
 

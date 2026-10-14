@@ -37,4 +37,18 @@ public interface ICommand
     /// and <see cref="CommandExecutionContext.GetWorkflowContext{T}"/>.
     /// </summary>
     Task<ExecutionResult> Execute(CommandExecutionContext context, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Describes the domain object a step works on, as telemetry attributes: the engine treats the command data
+    /// and the workflow context as opaque, so only the command can name what they refer to. The engine sets the
+    /// returned attributes on the step's span and on the workflow's entry span. None by default.
+    /// </summary>
+    /// <remarks>
+    /// Called on every attempt, with the same deserialized values <see cref="Execute"/> receives, before the
+    /// command runs — and only while those spans are recorded. Keep it cheap and free of I/O, and return
+    /// identifiers, never personal data or secrets. Use the shared Altinn attribute keys where a concept has one.
+    /// A throw is logged and ignored: it never affects the step.
+    /// </remarks>
+    IReadOnlyList<KeyValuePair<string, object?>> GetTelemetryAttributes(object? commandData, object? workflowContext) =>
+        [];
 }

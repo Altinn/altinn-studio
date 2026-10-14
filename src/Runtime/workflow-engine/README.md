@@ -16,7 +16,7 @@ Built on .NET 10, PostgreSQL, and OpenTelemetry.
 > [!TIP]
 > All Docker Compose commands below have `make` equivalents. Run `make help` to see available targets.
 
-Start the infrastructure (Postgres, PgAdmin, Grafana/LGTM, exporters, WireMock):
+Start the infrastructure (Postgres, PgAdmin, WireMock):
 
 ```sh
 docker compose up -d
@@ -40,15 +40,19 @@ docker compose --profile core up -d
 
 The dashboard's `wwwroot/` directory is bind-mounted into the container, so frontend file edits are reflected immediately without rebuilding.
 
+### Monitoring
+
+Telemetry goes to studioctl's monitoring stack. Start it with `studioctl env up --monitoring`, and the engine — on the host or in the `core` profile — exports to its collector. See [Monitoring](docs/docker.md#monitoring) for how, and for the studioctl flag that clashes with this stack.
+
 ### Ports & URLs
 
-| Service    | URL                                                             | Notes                                                   |
-| ---------- | --------------------------------------------------------------- | ------------------------------------------------------- |
-| Engine API | [http://localhost:9090](http://localhost:9090)                  | Swagger UI at [/swagger](http://localhost:9090/swagger) |
-| Grafana    | [http://localhost:7070](http://localhost:7070)                  | Dashboards, logs, traces, metrics                       |
-| WireMock   | [http://localhost:6060](http://localhost:6060/__admin/requests) | Mock app/webhook target                                 |
-| PgAdmin    | [http://localhost:5050](http://localhost:5050)                  | Db password: postgres123                                |
-| PostgreSQL | `localhost:9543`                                                |                                                         |
+| Service    | URL                                                                              | Notes                                                   |
+| ---------- | -------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Engine API | [http://localhost:9090](http://localhost:9090)                                   | Swagger UI at [/swagger](http://localhost:9090/swagger) |
+| Grafana    | [http://local.altinn.cloud:8000/grafana](http://local.altinn.cloud:8000/grafana) | From `studioctl env up --monitoring`                    |
+| WireMock   | [http://localhost:6060](http://localhost:6060/__admin/requests)                  | Mock app/webhook target                                 |
+| PgAdmin    | [http://localhost:5050](http://localhost:5050)                                   | Db password: postgres123                                |
+| PostgreSQL | `localhost:9543`                                                                 |                                                         |
 
 ### API endpoints
 
@@ -83,5 +87,5 @@ k6 scripts for stress testing and benchmarking are available in the [`.k6/`](.k6
 
 - [Technical guide](docs/technical-guide.md)
 - [Architectural overview](docs/architecture.md)
-- [Batch enqueue & dependency graphs](docs/batch-enqueue.md)
+- [Batch enqueue & dependency graphs](docs/technical-guide.md#dependency-graphs)
 - [Notes on db connections during dev cycle](docs/db-connections-notes.md)

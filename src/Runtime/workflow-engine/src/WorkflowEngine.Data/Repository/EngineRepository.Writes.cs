@@ -727,13 +727,22 @@ internal sealed partial class EngineRepository
         public void Record()
         {
             if (Delivered > 0)
-                Metrics.MailboxReceiversCreated.Add(Delivered, new KeyValuePair<string, object?>("birth", "delivered"));
+                Metrics.MailboxReceiversCreated.Add(
+                    Delivered,
+                    new KeyValuePair<string, object?>(TelemetryAttributes.MailboxReceiverBirth, "delivered")
+                );
 
             if (Closed > 0)
-                Metrics.MailboxReceiversCreated.Add(Closed, new KeyValuePair<string, object?>("birth", "closed"));
+                Metrics.MailboxReceiversCreated.Add(
+                    Closed,
+                    new KeyValuePair<string, object?>(TelemetryAttributes.MailboxReceiverBirth, "closed")
+                );
 
             if (Held > 0)
-                Metrics.MailboxReceiversCreated.Add(Held, new KeyValuePair<string, object?>("birth", "held"));
+                Metrics.MailboxReceiversCreated.Add(
+                    Held,
+                    new KeyValuePair<string, object?>(TelemetryAttributes.MailboxReceiverBirth, "held")
+                );
         }
     }
 
@@ -1866,8 +1875,7 @@ internal sealed partial class EngineRepository
 
             if (rejected.Count > 0)
             {
-                activity?.SetTag("lease.lost", true);
-                activity?.SetTag("lease.lost.count", rejected.Count);
+                activity?.SetTag(TelemetryAttributes.WorkflowLeaseLostCount, rejected.Count);
                 logger.BatchUpdateLeaseLost(rejected.Count, updates.Count);
             }
 

@@ -200,17 +200,17 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.NotNull(dbWf);
         Assert.Equal(PersistentItemStatus.Failed, dbWf.Status);
 
-        // Poisoned finalization feeds the same is_head alert dimension as the execution failure
-        // paths: an is_head=false workflow (e.g. a fire-and-forget side chain) that dies poisoned
-        // gates nothing and must be visible to the is_head="false" failure alert.
+        // Poisoned finalization feeds the same head-visibility alert dimension as the execution
+        // failure paths: an is_head = false workflow (e.g. a fire-and-forget side chain) that dies
+        // poisoned gates nothing and must be visible to the "false" failure alert.
         var (value, tags) = Assert.Single(collector.Measurements);
         Assert.Equal(1L, value);
-        Assert.Equal("poisoned", tags["reason"]);
-        Assert.Equal("false", tags["is_head"]);
+        Assert.Equal("poisoned", tags["altinn.workflow_engine.reason"]);
+        Assert.Equal("false", tags["altinn.workflow_engine.workflow.is_head"]);
     }
 
     /// <summary>
-    /// Lightweight meter listener that collects <c>engine.workflows.execution.failed</c>
+    /// Lightweight meter listener that collects <c>altinn.workflow_engine.workflow.execution.failed</c>
     /// measurements with their tags.
     /// </summary>
     private sealed class FailedWorkflowMetricCollector : IDisposable
@@ -226,7 +226,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
             {
                 if (
                     instrument.Meter.Name == Metrics.Meter.Name
-                    && instrument.Name == "engine.workflows.execution.failed"
+                    && instrument.Name == "altinn.workflow_engine.workflow.execution.failed"
                 )
                 {
                     listener.EnableMeasurementEvents(instrument);

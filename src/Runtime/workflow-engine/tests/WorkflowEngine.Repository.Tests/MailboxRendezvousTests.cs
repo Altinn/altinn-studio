@@ -832,7 +832,7 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
         public void Dispose() => _listener.Dispose();
     }
 
-    private const string WakeLatencyInstrument = "engine.mailboxes.receivers.wake_latency";
+    private const string WakeLatencyInstrument = "altinn.workflow_engine.mailbox.receiver.wake.duration";
 
     #endregion
 }

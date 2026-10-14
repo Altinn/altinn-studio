@@ -89,7 +89,7 @@ The engine is a **reusable class library**, not a standalone application. Hosts 
 | `WorkflowEngine.Models`     | Domain models, wire contract, `RetryStrategy`. No project or package references       |
 | `WorkflowEngine.Data`       | EF Core persistence, `IEngineRepository`, PostgreSQL implementation                   |
 | `WorkflowEngine.Resilience` | `IConcurrencyLimiter` (DB/HTTP/Worker semaphore pools), retry delay calculation       |
-| `WorkflowEngine.Telemetry`  | OpenTelemetry counters, histograms, observable gauges, activity source                |
+| `WorkflowEngine.Telemetry`  | `Metrics` (instruments, activity source) and `TelemetryAttributes` (attribute keys)   |
 | `WorkflowEngine.TestKit`    | Reusable integration test infrastructure: fixtures, API client, test helpers          |
 
 ## Hosting Model
@@ -165,10 +165,15 @@ public interface ICommand
 
     CommandValidationResult Validate(object? data, object? context);
     Task<ExecutionResult> Execute(CommandExecutionContext context, CancellationToken ct);
+
+    // Optional: what the step works on, as span attributes. None by default.
+    IReadOnlyList<KeyValuePair<string, object?>> GetTelemetryAttributes(object? data, object? context) => [];
 }
 ```
 
-Base classes `Command<TData, TContext>` and `Command<TData>` provide typed overrides.
+Base classes `Command<TData, TContext>` and `Command<TData>` provide typed overrides. A command that
+knows what domain object a step works on names it for the traces through `GetTelemetryAttributes` — see
+[Domain attributes on spans](#domain-attributes-on-spans).
 
 ### Built-in: WebhookCommand
 
@@ -270,13 +275,13 @@ to say, in its own words, what it is waiting for.
 
 Deferrals are kept rigorously separate from errors:
 
-|                | Retryable error                   | Deferral                          |
-| -------------- | --------------------------------- | --------------------------------- |
-| Status         | `Requeued`                        | `Waiting`                         |
-| `ErrorHistory` | Appends an entry                  | Records nothing                   |
-| `RequeueCount` | Incremented                       | **Reset to 0**                    |
-| Metric         | `engine.steps.execution.requeued` | `engine.steps.execution.deferred` |
-| Bounded by     | `RetryStrategy`                   | The step's wait budget            |
+|                | Retryable error                                  | Deferral                                         |
+| -------------- | ------------------------------------------------ | ------------------------------------------------ |
+| Status         | `Requeued`                                       | `Waiting`                                        |
+| `ErrorHistory` | Appends an entry                                 | Records nothing                                  |
+| `RequeueCount` | Incremented                                      | **Reset to 0**                                   |
+| Metric         | `altinn.workflow_engine.step.execution.requeued` | `altinn.workflow_engine.step.execution.deferred` |
+| Bounded by     | `RetryStrategy`                                  | The step's wait budget                           |
 
 Resetting `RequeueCount` is deliberate: retries bound _consecutive errors between_ deferrals, not
 errors across the step's whole lifetime. A poll that fails transiently, recovers, and then polls for
@@ -287,8 +292,8 @@ another six hours should not arrive at hour six with its retry budget already sp
 `Defer`/`Deferred` is what a **command returns**; `Waiting` is the **state the engine puts the step
 in**. The same split already exists for failures — a command returns `RetryableError`, the engine
 records `Requeued` — and it is worth keeping: the command describes its own outcome, the engine
-describes what it did about it. So counters count the event (`engine.steps.execution.deferred`) while
-the gauge measures the state (`engine.workflows.waiting`).
+describes what it did about it. So counters count the event (`altinn.workflow_engine.step.execution.deferred`) while
+the gauge measures the state (`altinn.workflow_engine.workflow.waiting`).
 
 ### Three separate clocks
 
@@ -353,8 +358,8 @@ returns after it is re-run at once, and that run is the final check. Commands re
 A deferral from an attempt that started _at or past_ the deadline is what fails the step — with a
 distinct classification:
 
-```text
-engine.workflows.execution.failed{reason="wait_expired"}
+```promql
+{"altinn.workflow_engine.workflow.execution.failed", "altinn.workflow_engine.reason"="wait_expired"}
 ```
 
 Keep `wait_expired` out of the default ops alert: it means the awaited external outcome never arrived,
@@ -379,7 +384,7 @@ own cadence adaptively — or, when `IsFinalWaitCheck` says this attempt is the 
 deliberately instead of being failed anonymously when the budget expires. `WaitDeadline` is an absolute instant rather than a remaining duration: a duration
 starts aging the moment it is computed, and a command that receives it across a network boundary (as
 the Altinn app callback does) cannot tell how much has already been spent.
-`engine.steps.wait.duration` records the budget a step actually consumed, once per deferring step at
+`altinn.workflow_engine.step.wait.duration` records the budget a step actually consumed, once per deferring step at
 the moment it resolves — the only signal that shows budgets being _approached_ rather than blown, so
 compare its upper percentiles against the configured budget when sizing one.
 
@@ -401,7 +406,7 @@ Three independent semaphore pools via `IConcurrencyLimiter`:
 
 When `ActiveWorkflowCount` ≥ `BackpressureThreshold` (default: 500,000), the engine returns HTTP 429 on enqueue requests.
 
-Five buffered write paths are outside the DB pool: the workflow enqueue buffer, the workflow status write-back buffer, and the three [mailbox](#the-three-write-paths-are-batched) endpoint writes. Each holds one connection per in-flight flush and takes no DB slot, so what bounds them is their own flush concurrency rather than `MaxDbOperations` — 10 enqueue + 1 write-back (its drain awaits each flush, so one at a time) + 2 mint + 1 close + 2 delivery = 16 connections, none of which the `engine.slots.db.*` gauges account for. Size the Postgres pool for `MaxDbOperations` + 16. Everything else takes a slot each, mailbox work included: the deadline sweep's scan and its closes, and every mailbox read.
+Five buffered write paths are outside the DB pool: the workflow enqueue buffer, the workflow status write-back buffer, and the three [mailbox](#the-three-write-paths-are-batched) endpoint writes. Each holds one connection per in-flight flush and takes no DB slot, so what bounds them is their own flush concurrency rather than `MaxDbOperations` — 10 enqueue + 1 write-back (its drain awaits each flush, so one at a time) + 2 mint + 1 close + 2 delivery = 16 connections, none of which the `altinn.workflow_engine.slot.db.*` gauges account for. Size the Postgres pool for `MaxDbOperations` + 16. Everything else takes a slot each, mailbox work included: the deadline sweep's scan and its closes, and every mailbox read.
 
 ## Heartbeat & Stale Recovery
 
@@ -526,12 +531,12 @@ configuration and state-machine behavior under
   `GET /api/v1/{namespace}/throttle` fetches one. Both work whether or not throttling is enabled.
 - The dashboard shows a **Throttled Namespaces** panel (Live tab, above Scheduled) whenever any
   breaker state exists, with force-trip/force-clear actions behind a two-click confirm.
-- Metrics (all tagged with `namespace`): `engine.throttle.tripped` (trips and re-trips, including
-  force-trips), `engine.throttle.extended` (window extensions after unanimous canary failure),
-  `engine.throttle.released` (workflows released in recovery cohorts),
-  `engine.throttle.cleared` (clears, including force-clears),
-  `engine.throttle.handler_parked` (workflows parked cooperatively by the handler), and the gauge
-  `engine.throttle.breakers.tripped` (breakers currently tripped, untagged).
+- Metrics (all tagged with `altinn.workflow_engine.namespace`): `altinn.workflow_engine.throttle.tripped` (trips and
+  re-trips, including force-trips), `altinn.workflow_engine.throttle.extended` (window extensions after unanimous
+  canary failure), `altinn.workflow_engine.throttle.released` (workflows released in recovery cohorts),
+  `altinn.workflow_engine.throttle.cleared` (clears, including force-clears),
+  `altinn.workflow_engine.throttle.handler_parked` (workflows parked cooperatively by the handler), and the gauge
+  `altinn.workflow_engine.throttle.breaker.tripped` (breakers currently tripped, untagged).
 - Trip/extend/release/clear events are logged at Warning/Information by `NamespaceThrottleService`.
 
 **Manual overrides — one-shot interventions, not standing policy.**
@@ -606,10 +611,9 @@ longer wanted.
 Returns `409 Conflict` when the workflow is not parked — including when it is already `Failed`: a manual failure
 is indistinguishable from one the engine produced, so unlike [abandon](#abandon) there is no idempotent replay,
 and a client that must retry the call reads the workflow's status first. `404 Not Found` when it does not exist,
-`400 Bad Request` when `reason` is blank or over-long. The failure is counted as
-`engine.workflows.execution.failed{reason="manual"}` (and `engine.steps.execution.failed{reason="manual"}` for
-the step) — keep that reason out of the default ops alert alongside
-`wait_expired`. The dashboard's _Fail_ button calls this endpoint with a fixed reason naming the dashboard.
+`400 Bad Request` when `reason` is blank or over-long. The failure is counted on
+`altinn.workflow_engine.workflow.execution.failed` (and `altinn.workflow_engine.step.execution.failed` for the step) with
+`altinn.workflow_engine.reason="manual"` — keep that reason out of the default ops alert alongside `wait_expired`. The dashboard's _Fail_ button calls this endpoint with a fixed reason naming the dashboard.
 
 ## Mailboxes
 
@@ -757,8 +761,8 @@ one structural distinction: stamped means the receiver parked (the unreleased su
 set the releases walk); null means born runnable, with `released_at` carrying the birth instant so no
 release can ever match it.
 
-Metric: `engine.mailboxes.receivers.created`, tagged `birth` (`delivered`/`closed`/`held`) — the one
-number that separates "the relay is running" from "the relay is parked".
+Metric: `altinn.workflow_engine.mailbox.receiver.created`, tagged `altinn.workflow_engine.mailbox.receiver.birth`
+(`delivered`/`closed`/`held`) — the one number that separates "the relay is running" from "the relay is parked".
 
 ### The rendezvous: exactly two things release a parked receiver
 
@@ -789,9 +793,9 @@ commit and drops it on rollback — so it fires exactly when the release is dura
 acceleration and never correctness**: a release that commits unannounced is claimed on the next fetch
 cycle.
 
-Metrics: `engine.mailboxes.receivers.released`, tagged `cause` (`delivered`/`closed`) — against the
-`held` births, the relay's balance sheet — and `engine.mailboxes.receivers.wake_latency`, seconds
-from release to first claim. Recorded once per release (the fetch stamps `claimed_at` under
+Metrics: `altinn.workflow_engine.mailbox.receiver.released`, tagged `altinn.workflow_engine.mailbox.receiver.release_cause`
+(`delivered`/`closed`) — against the `held` births, the relay's balance sheet — and
+`altinn.workflow_engine.mailbox.receiver.wake.duration`, seconds from release to first claim. Recorded once per release (the fetch stamps `claimed_at` under
 `claimed_at IS NULL`), so a failing receiver reports its wake once, not its retry ladder; a receiver
 born runnable records no sample (`held_at IS NULL` — there was no wake to time), keeping ordinary
 fetch-cycle latency out of a histogram built for a sub-second gap.
@@ -934,13 +938,13 @@ token's validity.
 - **There is no second half.** Nothing is enqueued: the workflow that concludes the exchange already
   exists and carries the app's own steps, so closing _releases_ it.
 
-The sweep counts what it finds: `engine.mailboxes.closed` tagged `reason=deadline`,
-`engine.mailboxes.receivers.released`, and `engine.mailboxes.deliveries.unpaired` — the last is the
-sweep's alone, since a `DELETE` reports the same number to a caller who can act on it.
+The sweep counts what it finds: `altinn.workflow_engine.mailbox.closed` tagged `altinn.workflow_engine.reason="deadline"`,
+`altinn.workflow_engine.mailbox.receiver.released`, and `altinn.workflow_engine.mailbox.delivery.unpaired` — the last is
+the sweep's alone, since a `DELETE` reports the same number to a caller who can act on it.
 
 **No leak backstop exists, and none is needed.** Every mailbox closes by its deadline, so an open
 mailbox materially older than its deadline plus a cadence is an invariant violation worth an alert —
-the `engine.mailboxes.open.overdue` gauge under [Mailbox metrics](#mailbox-metrics) — not a
+the `altinn.workflow_engine.mailbox.open.overdue` gauge under [Mailbox metrics](#mailbox-metrics) — not a
 garbage-collection policy.
 
 ### Retention
@@ -1008,7 +1012,7 @@ one statement where the flush splits them. Below a mean batch of about 1.25 the 
 delivery than that one did — one more at a batch of exactly 1 — and only above it does it issue fewer.
 That much is arithmetic on the statement counts, so it holds on any machine. Which side of it a
 running engine is on is readable without database access, from
-`engine.mailbox_buffer.flushed ÷ engine.mailbox_buffer.batches` (see
+`altinn.workflow_engine.mailbox_buffer.flushed ÷ altinn.workflow_engine.mailbox_buffer.batches` (see
 [Mailbox metrics](#mailbox-metrics)).
 
 The batch itself is the arrival rate times the flush latency, which makes the regime a property of the
@@ -1076,7 +1080,7 @@ command timeout instead of being answered.
 The delivery buffer's queue is bounded as well, and it **waits rather than refuses**: a caller
 arriving at a full queue is delayed until a flush makes room, never turned away. Batching therefore
 leaves the no-admission-gate rule above intact: `MaxMailboxLogLength` stays the only capacity refusal
-on the delivery path, and queue depth (`engine.mailbox_buffer.depth`) is a latency signal rather than
+on the delivery path, and queue depth (`altinn.workflow_engine.mailbox_buffer.depth`) is a latency signal rather than
 a loss one — a coarsely sampled one, so read it as [the metrics section](#mailbox-metrics) says.
 
 ## Dependency Graphs
@@ -1108,38 +1112,167 @@ Reference previously-enqueued workflows by database ID:
 
 ## Telemetry & Observability
 
-OpenTelemetry data exported via OTLP, designed for Grafana (Tempo + Prometheus).
+The engine reports through OpenTelemetry: traces, metrics and logs, each exported over OTLP to
+`OTEL_EXPORTER_OTLP_ENDPOINT` (the SDK's default, `http://localhost:4317`, when it is unset). The
+activity source and the meter are both named `WorkflowEngine`.
+
+The deployment owns two settings the code would otherwise default. The resource's `service.name` comes
+from `OTEL_SERVICE_NAME` or `OTEL_RESOURCE_ATTRIBUTES`, which take precedence over the code's
+`WorkflowEngine`: the App host runs as `workflow-engine-app` and the TestApp as `workflow-engine-testapp`.
+`service.version` (the build's informational version) and `service.instance.id` (the machine name) come
+from the code. The metric export interval is `OTEL_METRIC_EXPORT_INTERVAL`, which every deployment sets
+to `15000`; left unset, the SDK exports every 60 s.
+
+Health probes are not traffic. The health endpoints are left out of the ASP.NET Core HTTP request
+metrics and out of the traces, and the dashboard's `/dashboard/*` requests are left out of the traces.
+
+### Naming
+
+The names follow the observability standard the team has proposed
+([#21073](https://github.com/Altinn/altinn-studio/issues/21073)) and the naming rules of the
+OpenTelemetry semantic conventions.
+
+- **A metric** is `altinn.workflow_engine.<object>.<name>`. The object is singular (`workflow`,
+  `step`, `mailbox`, `slot`, `throttle`), and a segment of two words is snake_case (`main_loop`,
+  `update_buffer`). A count carries an annotation unit such as `{workflow}` and never ends in `_total`.
+- **A timing histogram** ends in `.duration` and records seconds. `<object>.duration` is the whole,
+  split into `<object>.queue.duration`, the time before the work began, and
+  `<object>.processing.duration`, the work itself. The main loop idles rather than queues, so its first
+  part is `main_loop.wait.duration`.
+- **An attribute key** is a constant in `TelemetryAttributes` (`WorkflowEngine.Telemetry`), and one of
+  three kinds. The engine's own concepts are `altinn.workflow_engine.<object>.<property>`, such as
+  `altinn.workflow_engine.workflow.is_head`. Concepts every Altinn service shares use the shared
+  vocabulary — `altinn.service_owner`, `altinn.app`, `altinn.instance.guid` — so a trace is found by
+  the same key whichever service it passed through. The few semantic-convention keys the engine sets
+  itself, such as `error.type`, are spelled as the conventions spell them and never carry another
+  meaning.
+- **One key per concept.** The namespace is `altinn.workflow_engine.namespace` on a throttle counter
+  and on a span alike. A value the engine chooses is lowercase snake_case, and a count on a span ends in
+  `_count`.
+- **Names and keys are a contract** with the _Workflow Engine_ dashboard
+  ([`workflow-engine.json`](../../localtest/infra/grafana-dashboards/workflow-engine.json) in
+  studioctl's monitoring stack) and with alerts. Use the constants instead of spelling a key again, and
+  treat a rename as a breaking change that updates the dashboard with it.
+
+Log records are not part of the scheme yet: their attributes keep the log messages' own placeholder
+names. A log is found from a span by its trace ID.
+
+### Metrics carry bounded attributes, spans carry identities
+
+A metric takes only attributes whose values are bounded across every app the engine serves: a reason, an
+outcome, an endpoint, a command type. Never an ID, and never a value an app builds. An operation ID such
+as `Process next … Task_1 -> Task_2` is bounded within one app but not across the fleet, and every value
+would be a time series of its own. IDs and operation IDs go on spans instead, where an attribute costs one
+span rather than one series. A metric tells you that something is wrong and of what class; the spans and
+logs tell you which workflow.
+
+The one exception is `altinn.workflow_engine.namespace` — `{org}/{app}` for the Altinn apps, and
+unbounded across the fleet. It is on the throttle counters, whose cardinality is bounded by incident
+count (a decision recorded in the
+[failure-throttling ADR](../../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md)), and on
+the errors counter's `workflow_processing` errors. Both count rare events.
 
 ### Metrics
 
-| Type       | Examples                                                                                         |
-| ---------- | ------------------------------------------------------------------------------------------------ |
-| Counters   | `engine.workflows.request.received`, `.execution.success`, `.failed`, `.requeued`, `.reclaimed`  |
-| Histograms | `engine.workflows.time.queue`, `.time.service`, `.time.total` (also per step)                    |
-| Gauges     | `engine.workflows.active`, `.scheduled`, `.failed`; `engine.slots.workers.*`, `.db.*`, `.http.*` |
+[`Metrics.cs`](../src/WorkflowEngine.Telemetry/Metrics.cs) is the source of truth; the tables below are
+the map. Each lists names under the prefix in its heading, and an attribute key is always written in
+full. Beside its own instruments, the engine exports the .NET runtime, ASP.NET Core and HttpClient
+metrics, Npgsql's connection and command metrics, and, with database instrumentation enabled, EF Core's.
+
+#### Workflows — `altinn.workflow_engine.workflow.`
+
+| Name                                                                                                  | Type      | Attributes                                                                                                                                                               |
+| ----------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `request.received`                                                                                    | Counter   | `altinn.workflow_engine.endpoint` (`enqueue`)                                                                                                                            |
+| `request.accepted`                                                                                    | Counter   | —                                                                                                                                                                        |
+| `query.received`                                                                                      | Counter   | `altinn.workflow_engine.endpoint` (`list`, `get`, `cancel`, `resume`, `nudge`, `fail`, `mint_mailbox`, `deliver_to_mailbox`, …)                                          |
+| `execution.success`                                                                                   | Counter   | —                                                                                                                                                                        |
+| `execution.failed`                                                                                    | Counter   | `altinn.workflow_engine.reason` (`execution`/`poisoned`/`dependency_failed`/`wait_expired`/`manual`), `altinn.workflow_engine.workflow.is_head` (`true`/`false`/`unset`) |
+| `execution.requeued`                                                                                  | Counter   | `altinn.workflow_engine.reason` (`step_retry`/`shutdown`)                                                                                                                |
+| `execution.canceled`                                                                                  | Counter   | `altinn.workflow_engine.reason` (`before_processing`/`during_processing`)                                                                                                |
+| `execution.deferred`, `execution.resumed`, `execution.abandoned`, `execution.nudged`                  | Counter   | —                                                                                                                                                                        |
+| `execution.reclaimed`, `execution.dependency_recovered`, `execution.lease_lost`, `fetch.race_dropped` | Counter   | —                                                                                                                                                                        |
+| `duration`, `queue.duration`, `processing.duration`                                                   | Histogram | — (once per attempt)                                                                                                                                                     |
+| `active`, `scheduled`, `waiting`, `failed`, `successful`, `finished`                                  | Gauge     | —                                                                                                                                                                        |
+
+#### Steps — `altinn.workflow_engine.step.`
+
+| Name                                                                                | Type      | Attributes                                                                   |
+| ----------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------- |
+| `request.accepted`, `execution.success`, `execution.requeued`, `execution.deferred` | Counter   | —                                                                            |
+| `execution.failed`                                                                  | Counter   | `altinn.workflow_engine.reason` on `wait_expired` and `manual` failures only |
+| `duration`, `queue.duration`, `processing.duration`                                 | Histogram | `altinn.workflow_engine.step.command.type` (once per step per attempt)       |
+| `wait.duration`                                                                     | Histogram | `altinn.workflow_engine.step.command.type` (once per deferring step)         |
+
+#### Engine internals — `altinn.workflow_engine.`
+
+| Name                                                                                                        | Type      | Attributes                                                                                                                                                                                                                                           |
+| ----------------------------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `errors`                                                                                                    | Counter   | `altinn.workflow_engine.operation` (`fetch_and_lock`/`db_maintenance`/`mailbox_deadline_close`/`mailbox_deadline_sweep`/`metrics_collector`/`throttle_sweep`/`workflow_processing`), and `altinn.workflow_engine.namespace` on `workflow_processing` |
+| `main_loop.iterations`                                                                                      | Counter   | —                                                                                                                                                                                                                                                    |
+| `main_loop.duration`, `main_loop.wait.duration`, `main_loop.processing.duration`                            | Histogram | —                                                                                                                                                                                                                                                    |
+| `update_buffer.flushed`, `update_buffer.deduplicated`, `update_buffer.dropped`                              | Counter   | —                                                                                                                                                                                                                                                    |
+| `db.operation.success`, `db.operation.requeued`, `db.operation.failed`                                      | Counter   | —                                                                                                                                                                                                                                                    |
+| `throttle.tripped`, `throttle.extended`, `throttle.released`, `throttle.cleared`, `throttle.handler_parked` | Counter   | `altinn.workflow_engine.namespace`                                                                                                                                                                                                                   |
+| `throttle.breaker.tripped`, `maintenance.consecutive_failures`                                              | Gauge     | —                                                                                                                                                                                                                                                    |
+| `health.status`                                                                                             | Gauge     | — (0 healthy, 1 degraded, 2 unhealthy)                                                                                                                                                                                                               |
+| `slot.worker.available`, `slot.worker.used`, and the same for `slot.db`, `slot.http` and `slot.inbox`       | Gauge     | —                                                                                                                                                                                                                                                    |
+
+`MetricsCollector` samples most gauges once per `MetricsCollectionInterval` (5 s);
+`maintenance.consecutive_failures` and `throttle.breaker.tripped` are set by the services they describe.
+The mailbox metrics are in [their own table](#mailbox-metrics).
+
+### Alerting on terminal failures
+
+The default ops alert is a terminal failure that the engine or the command caused:
+`altinn.workflow_engine.workflow.execution.failed` with `altinn.workflow_engine.reason` in
+(`execution`, `poisoned`), across **every** `altinn.workflow_engine.workflow.is_head` value. Route and
+prioritize on `is_head`, never filter on it: `false` marks a deliberately invisible workflow — an app's
+side-effects chain, say — whose terminal failure gates nothing and surfaces nowhere else (see
+[workflow collections](workflow-collections.md)). Leave three reasons out:
+
+- `dependency_failed` mirrors an upstream failure that fired the alert in its own right, and a cascade
+  resume of that failure revives the dependent;
+- `wait_expired` means the awaited external outcome never arrived, which is for the team that owns the
+  integration (see [the wait budget](#the-wait-budget));
+- `manual` is a caller [failing a parked workflow](#fail) on purpose.
+
+Two mailbox signals alert on any value above zero: `altinn.workflow_engine.mailbox.rendezvous.violations`
+and a sustained `altinn.workflow_engine.mailbox.open.overdue` (see [Mailbox metrics](#mailbox-metrics)).
+
+VictoriaMetrics stores the metrics under their OpenTelemetry names, so a query quotes the dotted names
+and adds no `_total`; a histogram's series take the `_bucket`, `_count` and `_sum` suffixes:
+
+```promql
+sum by ("altinn.workflow_engine.workflow.is_head") (
+  increase({"altinn.workflow_engine.workflow.execution.failed", "altinn.workflow_engine.reason"=~"execution|poisoned"}[5m])
+) > 0
+```
 
 ### Mailbox metrics
 
-| Metric                                    | Type      | Tags                                                                                     |
-| ----------------------------------------- | --------- | ---------------------------------------------------------------------------------------- |
-| `engine.mailboxes.created`                | Counter   | —                                                                                        |
-| `engine.mailboxes.closed`                 | Counter   | `reason` (`request`/`deadline`)                                                          |
-| `engine.mailboxes.deliveries.received`    | Counter   | `outcome` (`accepted`/`duplicate`/`not_found`/`closed`/`log_full`/`too_large`/`invalid`) |
-| `engine.mailboxes.deliveries.unpaired`    | Counter   | — (recorded by the deadline sweep alone)                                                 |
-| `engine.mailboxes.receivers.created`      | Counter   | `birth` (`delivered`/`closed`/`held`)                                                    |
-| `engine.mailboxes.receivers.released`     | Counter   | `cause` (`delivered`/`closed`)                                                           |
-| `engine.mailboxes.receivers.wake_latency` | Histogram | — (seconds from release to first claim, recorded once per release)                       |
-| `engine.mailboxes.rendezvous.violations`  | Counter   | `state` (`unregistered`/`undecided`)                                                     |
-| `engine.mailboxes.open.overdue`           | Gauge     | —                                                                                        |
-| `engine.mailbox_buffer.flushed`           | Counter   | `operation` (`mint`/`close`/`delivery`) — **one per request**                            |
-| `engine.mailbox_buffer.batches`           | Counter   | `operation` (`mint`/`close`/`delivery`) — **one per flush**, whatever its size           |
-| `engine.mailbox_buffer.depth`             | Gauge     | `operation` (`mint`/`close`/`delivery`)                                                  |
+Names under `altinn.workflow_engine.`:
+
+| Name                             | Type      | Attributes                                                                                                                       |
+| -------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `mailbox.created`                | Counter   | —                                                                                                                                |
+| `mailbox.closed`                 | Counter   | `altinn.workflow_engine.reason` (`request`/`deadline`)                                                                           |
+| `mailbox.delivery.received`      | Counter   | `altinn.workflow_engine.mailbox.delivery.outcome` (`accepted`/`duplicate`/`not_found`/`closed`/`log_full`/`too_large`/`invalid`) |
+| `mailbox.delivery.unpaired`      | Counter   | — (recorded by the deadline sweep alone)                                                                                         |
+| `mailbox.receiver.created`       | Counter   | `altinn.workflow_engine.mailbox.receiver.birth` (`delivered`/`closed`/`held`)                                                    |
+| `mailbox.receiver.released`      | Counter   | `altinn.workflow_engine.mailbox.receiver.release_cause` (`delivered`/`closed`)                                                   |
+| `mailbox.receiver.wake.duration` | Histogram | — (seconds from release to first claim, recorded once per release)                                                               |
+| `mailbox.rendezvous.violations`  | Counter   | `altinn.workflow_engine.mailbox.rendezvous.state` (`unregistered`/`undecided`)                                                   |
+| `mailbox.open.overdue`           | Gauge     | —                                                                                                                                |
+| `mailbox_buffer.flushed`         | Counter   | `altinn.workflow_engine.mailbox.operation` (`mint`/`close`/`delivery`) — **one per request**                                     |
+| `mailbox_buffer.batches`         | Counter   | `altinn.workflow_engine.mailbox.operation` (`mint`/`close`/`delivery`) — **one per flush**, whatever its size                    |
+| `mailbox_buffer.depth`           | Gauge     | `altinn.workflow_engine.mailbox.operation` (`mint`/`close`/`delivery`)                                                           |
 
 Reading them:
 
 - `created` and `closed` count **state changes rather than requests**, so idempotent replays do not
   inflate them.
-- `deliveries.received` counts **every verdict, refusals included** — even the ones refused before the
+- `delivery.received` counts **every verdict, refusals included** — even the ones refused before the
   row lock — so a storm of oversized or misaddressed forwards is visible here and not only in HTTP
   metrics. A call that throws instead of reaching a verdict is not an outcome and increments nothing;
   that case shows up in the database and HTTP error metrics.
@@ -1156,17 +1289,18 @@ Reading them:
 - `mailbox_buffer.flushed` counts **requests, not flushes** — the requests a batch answered, counted
   once its database work has returned without faulting, so a batch a fault answered with exceptions
   counts nothing. `mailbox_buffer.batches` counts the flushes themselves, **one per flush whatever its
-  size**, recorded at the same point and under the same tag, so a faulted flush counts in neither and
-  the two are always consistent. **`flushed ÷ batches`, per `operation` and over one window, is the
-  mean batch size.** What is not the denominator is `engine.db.operations.success`: it counts every
-  engine database operation rather than only these flushes, and dividing by it reads far below the
-  truth — 0.12 against a true 1.00, in one measured run.
+  size**, recorded at the same point and under the same attribute, so a faulted flush counts in neither
+  and the two are always consistent. **`flushed ÷ batches`, per `altinn.workflow_engine.mailbox.operation`
+  and over one window, is the mean batch size.** What is not the denominator is
+  `altinn.workflow_engine.db.operation.success`: it counts every engine database operation rather than
+  only these flushes, and dividing by it reads far below the truth — 0.12 against a true 1.00, in one
+  measured run.
 - `mailbox_buffer.batches` exists to answer **"is batching actually happening?"**, which matters
   because a delivery only gets cheaper above a mean batch of about 1.25 (see
   [The saving arrives with the batches](#the-saving-arrives-with-the-batches)). A ratio at 1.0 means
   every request flushed alone, so the change is costing a statement per delivery instead of saving one;
   a ratio near `maxBatchSize` means the buffer is saturated and that setting is the next thing to tune.
-  Read it per `operation` — mint, close and delivery queue independently. The workflow write and update
+  Read it per operation — mint, close and delivery queue independently. The workflow write and update
   buffers have **no** equivalent counter, which is deliberate rather than an oversight: the mailbox
   delivery path is the one with a measured statement-count crossover, so it is the one where batch fill
   has to be watched rather than assumed.
@@ -1174,10 +1308,11 @@ Reading them:
   depth that stays high means callers waiting longer for a verdict, never requests turned away. It is
   **a coarse sample of a fast queue**, and only a sustained reading means anything. `MetricsCollector`
   reads the queues once per `MetricsCollectionInterval` (5 s) and the exporter ships whatever it last
-  wrote every 10 s, while a queue fills and drains between flushes. A storm at 3 000 deliveries/s that
-  was plainly queuing — a mean of 3.86 messages accepted per flush can only come from requests that
-  waited — held the gauge at **0** throughout. So a zero is not evidence that the queue never filled,
-  and the gauge cannot tell you whether batching is happening — `flushed ÷ batches` is what does.
+  wrote once per export interval (15 s), while a queue fills and drains between flushes. A storm at
+  3 000 deliveries/s that was plainly queuing — a mean of 3.86 messages accepted per flush can only come
+  from requests that waited — held the gauge at **0** throughout. So a zero is not evidence that the
+  queue never filled, and the gauge cannot tell you whether batching is happening — `flushed ÷ batches`
+  is what does.
 - **`pg_stat_statements` answers a finer question, and is worth keeping as the cross-check.** On the
   `engine.mailbox_deliveries` insert, `rows ÷ calls` gives _accepted rows per accepting flush_ — not
   the same quantity as `flushed ÷ batches`, which is _requests per flush_. The two diverge by exactly
@@ -1189,19 +1324,95 @@ Reading them:
   last reset.
 - **The slot gauges do not see the buffered mailbox writes.** A
   [flush](#the-three-write-paths-are-batched) holds a connection without taking a slot from the
-  `MaxDbOperations` pool, so `engine.slots.db.used` under-reports by up to the five flushes the three
-  buffers may have in flight between them — on top of the eleven the enqueue and write-back buffers
-  may hold (see [Concurrency Model](#concurrency-model)). The deadline sweep and the mailbox reads —
-  including the receipt read every receive workflow makes — still take slots, so mailbox activity has
-  not left the gauges entirely; only the three endpoint write paths have.
-  `engine.db.operations.success` counts **once per flush** on those three paths rather than once per
-  request, so their traffic moves it far less than it used to.
+  `MaxDbOperations` pool, so `altinn.workflow_engine.slot.db.used` under-reports by up to the five
+  flushes the three buffers may have in flight between them — on top of the eleven the enqueue and
+  write-back buffers may hold (see [Concurrency Model](#concurrency-model)). The deadline sweep and the
+  mailbox reads — including the receipt read every receive workflow makes — still take slots, so mailbox
+  activity has not left the gauges entirely; only the three endpoint write paths have.
+  `altinn.workflow_engine.db.operation.success` counts **once per flush** on those three paths rather
+  than once per request, so their traffic moves it far less than it used to.
 
 ### Traces
 
-Activity source `WorkflowEngine` with spans for workflow handling, step execution, command callbacks, and resource acquisition. Workflows carry W3C `DistributedTraceContext` for cross-service correlation.
+Spans come from the `WorkflowEngine` activity source and from the ASP.NET Core and HttpClient
+instrumentation — plus EF Core's and Npgsql's when database instrumentation is enabled.
 
-A mailbox write is two traces rather than one. The request's span covers the wait for a verdict — `MailboxMintBuffer.Enqueue`, `MailboxCloseBuffer.Enqueue`, `MailboxDeliveryBuffer.Enqueue` — while the database work runs in a separate trace named for the same buffer — `MailboxDeliveryBuffer.FlushBatch` and so on — tagged `batch.size` and carrying an `ActivityLink` back to every request it answered. Follow the links rather than the parent: a flush belongs to no single request, which is also why the rows it writes share one transaction, and so one `xmin`, with every other request in its batch.
+A workflow is processed in a trace of its own rather than under the request that enqueued it. The entry
+span links back to that request's trace and to each dependency's, and the request's server span carries
+`altinn.workflow_engine.workflow.ids`, a string array of the workflows it created or matched, so the
+correlation runs both ways.
+
+| Span                                                                  | Kind     | What it carries                                                                                                                                                                                                                                                                                                     |
+| --------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Engine.EnqueueWorkflow`                                              | Internal | Validation and admission of one enqueue request: `altinn.workflow_engine.namespace`, `altinn.workflow_engine.request.workflow_count`                                                                                                                                                                                |
+| `WorkflowHandler.Handle`                                              | Consumer | The workflow's entry span: `altinn.workflow_engine.workflow.id`, `altinn.workflow_engine.collection.key`, `altinn.workflow_engine.workflow.idempotency_key`, `altinn.workflow_engine.workflow.operation_id`, `altinn.workflow_engine.namespace`, and the command's [domain attributes](#domain-attributes-on-spans) |
+| `WorkflowHandler.ProcessStep`                                         | Consumer | One step attempt, under the entry span: `altinn.workflow_engine.step.id`, `altinn.workflow_engine.step.operation_id`, `altinn.workflow_engine.step.command.type`, and the domain attributes                                                                                                                         |
+| `WorkflowExecutor.Execute`                                            | Internal | The executor's run of the step                                                                                                                                                                                                                                                                                      |
+| `AppCommand.Execute`, `WebhookCommand.Execute`                        | Client   | The callback; `altinn.workflow_engine.app_command.key` on the app command. The HttpClient span beneath carries `url.full`, with query values redacted by the instrumentation                                                                                                                                        |
+| `ConcurrencyLimiter.AcquireDbSlot`, `.AcquireHttpSlot`, …             | Internal | The wait for a slot                                                                                                                                                                                                                                                                                                 |
+| `WorkflowUpdateBuffer.Submit`, `WorkflowUpdateBuffer.SubmitAndForget` | Internal | One write-back submission: `altinn.workflow_engine.update.reason` (`step_started`, `step_completed`, or `workflow_` and the status, such as `workflow_completed`), `altinn.workflow_engine.workflow.status`, `altinn.workflow_engine.update.dirty_step_count`                                                       |
+| `…Buffer.FlushBatch`                                                  | Internal | One flush of a write buffer, in a trace of its own (see below): `altinn.workflow_engine.batch.size` and the `altinn.workflow_engine.batch.…_count` attributes                                                                                                                                                       |
+| `EngineRepository.…`, `DbMaintenanceService.…`, …                     | Internal | Database work and the background services                                                                                                                                                                                                                                                                           |
+
+A step span's name never carries the step's operation ID — a span name holds no value from a request —
+so the step is found by `altinn.workflow_engine.step.operation_id` instead.
+
+Every buffered write is two traces rather than one. The request's span covers the wait for a verdict —
+`WorkflowWriteBuffer.Enqueue`, `MailboxMintBuffer.Enqueue`, `MailboxCloseBuffer.Enqueue`,
+`MailboxDeliveryBuffer.Enqueue` — while the database work runs in a separate trace named for the same
+buffer — `MailboxDeliveryBuffer.FlushBatch` and so on — tagged `altinn.workflow_engine.batch.size` and
+carrying an `ActivityLink` back to every request it answered. `WorkflowUpdateBuffer.FlushBatch` links the
+same way to the workflows whose write-backs it wrote. Follow the links rather than the parent: a flush
+belongs to no single request, which is also why the rows it writes share one transaction, and so one
+`xmin`, with every other request in its batch.
+
+#### Domain attributes on spans
+
+The engine core treats a workflow's namespace and context as opaque: it never parses `{org}/{app}`, and
+cannot say which app instance a step works on. The host's command can, so the command names it, through
+`ICommand.GetTelemetryAttributes(commandData, workflowContext)` — on `Command<TData, TContext>` and
+`Command<TData>` a typed `protected virtual`, bridged the way `Validate` is, returning nothing by default.
+
+`WorkflowExecutor` calls it on every attempt, with the values `Execute` receives, before the command
+runs, and sets what it returns on the step's `WorkflowHandler.ProcessStep` span **and** on the workflow's
+`WorkflowHandler.Handle` entry span, so a search for the object finds the whole unit of work and not just
+one step. It is skipped while neither span is recorded, so an unsampled step costs the command nothing,
+and a command that throws is logged and otherwise ignored: what telemetry says about a step never
+decides how the step runs.
+
+A command returns identifiers, never personal data or secrets, keeps the call cheap and free of I/O, and
+uses the shared Altinn key wherever a concept has one. `AppCommand` returns `altinn.service_owner` (the
+org), `altinn.app` and `altinn.instance.guid` (lowercase, `D` format) — not the instance owner's party ID
+and not the actor. `WebhookCommand` returns nothing. So every engine span for an app instance is one
+search away on the traces datasource, for example `{span.altinn.instance.guid="<guid>"}` in TraceQL.
+
+#### Errors and exceptions
+
+A failed span gets status Error, with the failure's message as its description, and `error.type`: the
+exception's full type name when an exception caused the failure, otherwise a low-cardinality reason the
+engine already names at the call site — `lease_lost`, `canceled`, `shutdown`, `invalid`, `at_capacity`,
+`idempotency_conflict`, or on the workflow and step spans the workflow's failure reason (`execution`,
+`wait_expired`, …) — and the semantic conventions' `_OTHER` where there is none. Never a value from a
+request. A span that later turns out to have succeeded drops its `error.type` with the Error status.
+
+No exception event is recorded on a span: the engine adds none, and the HttpClient and ASP.NET Core
+instrumentation are left at their default, which adds none either. An exception's details, stack trace
+included, go to an ERROR log written in the same trace instead — every place that catches an exception
+without rethrowing it logs it — and a log record carries the trace and span IDs of the activity it was
+written under. From a failed span, the traces datasource's link to the logs (by trace ID) shows them.
+
+### Where to look locally
+
+`studioctl env up --monitoring` runs the monitoring stack: an OpenTelemetry collector on the host's ports
+4317 and 4318, VictoriaMetrics, VictoriaTraces and VictoriaLogs behind it, and Grafana at
+<http://local.altinn.cloud:8000/grafana>. The _Workflow Engine_ dashboard is in the _Altinn Studio_
+folder; pick the service on it — `workflow-engine-testapp` for the TestApp, `workflow-engine-app` for the
+App host. In Explore, the datasources are _Metrics_ (uid `altinn-studio-metrics`), _Traces_
+(`altinn-studio-traces`, Grafana's Tempo datasource over VictoriaTraces, so it takes TraceQL) and _Logs_
+(`altinn-studio-logs`). The engine dashboard's trace links — the Grafana icon on a workflow card, _Open
+Grafana_ in the step modal — open the workflow's trace there. How an engine on the host or in the compose
+stack reaches the collector, and the one studioctl flag that clashes with the compose stack, are in
+[Monitoring](docker.md#monitoring).
 
 ## Dashboard
 
@@ -1214,12 +1425,16 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
   or _Fail_ a parked one by hand ([fail](#fail)) — all through the public `/api/v1` endpoints, so the UI
   exercises the same contract external callers use
 - State evolution viewer
-- Grafana Tempo click-through links
+- A link from each workflow to its trace in the local studioctl Grafana (see [Where to look locally](#where-to-look-locally))
 - Paginated query interface with namespace/status/label filters
 - Mailboxes rendered under their collections, log laid out position by position
   (`GET /dashboard/mailboxes` — payload and bounds in `src/WorkflowEngine.Core/wwwroot/DASHBOARD_SPEC.md`)
 
 ## API Reference
+
+The workflow, collection, mailbox and per-namespace throttle routes are scoped by `{namespace}`, a string the caller
+chooses and the engine treats as opaque. The Altinn apps use `{org}/{app}`, and so do the examples below. The namespace is one path
+segment, so its slash is percent-encoded in a URL: `ttd/my-app` is `ttd%2Fmy-app`.
 
 ### Enqueue Workflows
 
@@ -1294,7 +1509,7 @@ POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collection
         {
             "ref": "validate-and-sign",
             "databaseId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-            "namespace": "ttd:my-app"
+            "namespace": "ttd/my-app"
         }
     ]
 }
@@ -1326,7 +1541,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
     "collectionKey": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     "operationId": "process-task-2",
     "idempotencyKey": "process-next-abc123",
-    "namespace": "ttd:my-app",
+    "namespace": "ttd/my-app",
     "createdAt": "2026-03-19T10:00:00+00:00",
     "updatedAt": "2026-03-19T10:00:05+00:00",
     "executionStartedAt": "2026-03-19T10:00:01+00:00",
@@ -1387,7 +1602,7 @@ re-executions included). `executionStartedAt − createdAt` is queue wait; on a 
 deriving a duration: that counts queue wait as processing time.
 
 The persisted value trails the in-memory one by at most one write-back. A step's first write-back of an
-attempt (`step.started`) is fire-and-forget and is dropped when the update buffer is saturated, so under
+attempt (`step_started`) is fire-and-forget and is dropped when the update buffer is saturated, so under
 pressure a `Processing` step can read with the previous attempt's stamp — or none — until the attempt
 settles. A duration derived from a settled step is exact; one derived from a `Processing` step is
 indicative.
@@ -1411,25 +1626,25 @@ Supports the following optional query parameters (all repeatable params can be s
 Filter by status — e.g. all failed workflows (combine values to widen the set):
 
 ```http
-GET /api/v1/ttd:my-app/workflows?status=Failed&status=DependencyFailed
+GET /api/v1/ttd%2Fmy-app/workflows?status=Failed&status=DependencyFailed
 ```
 
 Filter by labels (repeated `label` param, `key:value` format):
 
 ```http
-GET /api/v1/ttd:my-app/workflows?label=org:ttd&label=app:my-app
+GET /api/v1/ttd%2Fmy-app/workflows?label=org:ttd&label=app:my-app
 ```
 
 Find all workflows for a specific collection via collectionKey:
 
 ```http
-GET /api/v1/ttd:my-app/workflows?collectionKey=a1b2c3d4-e5f6-7890-abcd-ef1234567890
+GET /api/v1/ttd%2Fmy-app/workflows?collectionKey=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ```
 
 Or combine filters — e.g. all failed workflows for a specific instance owner:
 
 ```http
-GET /api/v1/ttd:my-app/workflows?status=Failed&label=instanceOwnerPartyId:50001234
+GET /api/v1/ttd%2Fmy-app/workflows?status=Failed&label=instanceOwnerPartyId:50001234
 ```
 
 **Response (200 OK):** a cursor-paginated `PaginatedResponse` wrapping `WorkflowStatusResponse` items (each the same shape as the single workflow GET above). Returns `204 No Content` when no workflows match.
@@ -1589,7 +1804,7 @@ GET /api/v1/{namespace}/collections
 [
     {
         "key": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-        "namespace": "ttd:my-app",
+        "namespace": "ttd/my-app",
         "heads": ["f47ac10b-58cc-4372-a567-0e02b2c3d479"],
         "createdAt": "2026-03-19T10:00:00+00:00",
         "updatedAt": "2026-03-19T10:00:05+00:00"
@@ -1608,7 +1823,7 @@ GET /api/v1/{namespace}/collections/{key}
 ```json
 {
     "key": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "namespace": "ttd:my-app",
+    "namespace": "ttd/my-app",
     "heads": [{ "databaseId": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "status": "Completed" }],
     "createdAt": "2026-03-19T10:00:00+00:00",
     "updatedAt": "2026-03-19T10:00:05+00:00"
@@ -1636,7 +1851,7 @@ POST /api/v1/{namespace}/mailboxes
 ```json
 {
     "id": "0195f4e2-1a3b-7c00-9d21-3f5a6b7c8d9e",
-    "namespace": "ttd:my-app",
+    "namespace": "ttd/my-app",
     "idempotencyKey": "Task_1:SendToArchive",
     "collectionKey": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     "timeout": "2.00:00:00",
@@ -1676,7 +1891,7 @@ DELETE /api/v1/{namespace}/mailboxes/{mailboxId}
 ```json
 {
     "id": "0195f4e2-1a3b-7c00-9d21-3f5a6b7c8d9e",
-    "namespace": "ttd:my-app",
+    "namespace": "ttd/my-app",
     "idempotencyKey": "Task_1:SendToArchive",
     "timeout": "2.00:00:00",
     "deadline": "2026-03-21T10:00:00+00:00",
@@ -1732,10 +1947,14 @@ is the position.
 ## Health Checks
 
 ```
-GET /health        — basic health
-GET /health/ready  — readiness (includes DB + engine status)
-GET /health/live   — liveness
+GET /api/v1/health        — all checks
+GET /api/v1/health/ready  — readiness: the checks tagged `ready` (the engine's status)
+GET /api/v1/health/live   — liveness: 200 while the process runs
 ```
+
+The versionless `/health`, `/health/ready` and `/health/live` are `301` redirects to `/api/v1/health`.
+Never point a probe at them: a `3xx` counts as a pass, and the redirect never evaluates the readiness
+check. Probes are left out of the HTTP request metrics and the traces.
 
 | Flag                      | Health Result |
 | ------------------------- | ------------- |
@@ -1968,6 +2187,10 @@ The `workflow-engine-app` project is the Altinn-specific host. It adds `AppComma
 - **Data**: `AppCommandData` — `{ commandKey, payload? }`
 - **Context**: `AppWorkflowContext` — `{ actor, callbackToken, org, app, instanceOwnerPartyId, instanceGuid }`
 - **Execution**: HTTP POST to a templated URL expanded from the workflow context
+- **Telemetry**: names the app instance on the step's span and the workflow's entry span through
+  [`GetTelemetryAttributes`](#domain-attributes-on-spans) — `altinn.service_owner`, `altinn.app` and
+  `altinn.instance.guid`, never the instance owner's party ID or the actor. Its `AppCommand.Execute`
+  client span carries the command key as `altinn.workflow_engine.app_command.key`
 
 ### Error Classification
 

@@ -303,12 +303,12 @@ public sealed class MailboxEndpointTests(EngineAppFixture<Program> fixture) : IA
         await _client.CloseMailbox(minted.Id);
         await _client.CloseMailbox(minted.Id);
 
-        Assert.Equal(1, collector.GetCounterTotal("engine.mailboxes.created"));
+        Assert.Equal(1, collector.GetCounterTotal("altinn.workflow_engine.mailbox.created"));
 
-        var closures = collector.GetMeasurements("engine.mailboxes.closed");
+        var closures = collector.GetMeasurements("altinn.workflow_engine.mailbox.closed");
         var closure = Assert.Single(closures);
         Assert.Equal(1L, closure.Value);
-        Assert.Contains(closure.Tags, t => t.Key == "reason" && (string?)t.Value == "request");
+        Assert.Contains(closure.Tags, t => t.Key == "altinn.workflow_engine.reason" && (string?)t.Value == "request");
     }
 
     #endregion

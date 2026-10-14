@@ -3,8 +3,8 @@
  * Grafana dashboard show something true.
  *
  * This is not a benchmark. `stress-test.js` and `mailbox-storm.js` measure; this one *populates*.
- * It runs until Ctrl+C and produces a deliberately varied mix, so an engineer opening
- * http://localhost:7070 sees real curves rather than an hour of flat zeroes:
+ * It runs until Ctrl+C and produces a deliberately varied mix, so an engineer opening the Workflow
+ * Engine dashboard in studioctl's Grafana sees real curves rather than an hour of flat zeroes:
  *
  *   healthy      — webhooks that complete first time (the baseline the rest is read against)
  *   scheduled    — webhooks enqueued with a future `startAt`, so a population sits in `Scheduled`
@@ -23,7 +23,7 @@
  *                  left to hit their deadline
  *   storm        — one namespace per storm arm, each with its own switchable WireMock downstream:
  *                  break it and the breaker trips and extends, repair it and the breaker releases
- *                  cohorts and clears. The arms are phase-offset so `by (namespace)` shows two
+ *                  cohorts and clears. The arms are phase-offset so a split by namespace shows two
  *                  breakers in different phases at once
  *
  * Four namespaces, on purpose: `playground` for work that should succeed, `playground-retries` for
@@ -33,8 +33,10 @@
  * Every arm is independently tunable, and setting a rate to 0 removes its scenario entirely.
  *
  * Requires the playground stack, because the throttle arm needs the namespace circuit breaker
- * switched on and it ships dark:
+ * switched on and it ships dark, and studioctl's monitoring, which collects the engine's telemetry
+ * and serves the dashboard:
  *
+ *   studioctl env up --monitoring
  *   make playground          # from src/Runtime/workflow-engine
  *   k6 run .k6/perpetual-mix.js
  *
@@ -161,7 +163,7 @@ const STORM_DOWN_SECONDS = num('STORM_DOWN_SECONDS', 75);
  * How long a storm workflow keeps retrying before the engine writes it off. Deliberately much longer
  * than `STORM_DOWN_SECONDS`: the parked population has to still be alive when recovery opens, or the
  * cohorts have nothing to release and the breaker jumps straight from Tripped to Clear with
- * `engine.throttle.released` never moving at all.
+ * `altinn.workflow_engine.throttle.released` never moving at all.
  */
 const STORM_RETRY_BUDGET = __ENV.STORM_RETRY_BUDGET || '00:06:00';
 
@@ -396,7 +398,8 @@ export function enqueueFlaky() {
 /**
  * Two ways to lose a workflow for good, alternating: a 422 the engine refuses to retry at all, and a
  * 500 retried until a deliberately short budget runs out. They land on the same
- * `engine.workflows.execution.failed{reason="execution"}` series but reach it by different paths.
+ * `altinn.workflow_engine.workflow.execution.failed{altinn.workflow_engine.reason="execution"}` series
+ * but reach it by different paths.
  */
 export function enqueueDoomed() {
     const permanent = Math.random() < 0.5;
@@ -417,7 +420,8 @@ export function enqueueDoomed() {
  * Durable yield. `test-defer` parks the step in `Waiting` until it has been invoked
  * `succeedOnAttempt` times, which is the stand-in for a real long-poll integration. One workflow in
  * `WAIT_EXPIRE_EVERY` is given a budget far below what it would need, so the wait budget expires and
- * the workflow fails with `reason="wait_expired"` — the tail this row exists to make visible.
+ * the workflow fails with `altinn.workflow_engine.reason="wait_expired"` — the tail this row exists
+ * to make visible.
  */
 export function enqueueDeferring() {
     const expiring = Math.floor(Math.random() * WAIT_EXPIRE_EVERY) === 0;
@@ -498,11 +502,11 @@ export function runNudger() {
 }
 
 /**
- * The only arm that drives `engine.workflows.execution.dependency_recovered`, which nobody can
- * trigger directly: it is the maintenance sweep noticing that a `DependencyFailed` workflow's
- * dependencies have all completed since. Built in three moves — fail a workflow that something else
- * depends on, let the dependent settle as `DependencyFailed`, then resume the upstream until it
- * completes.
+ * The only arm that drives `altinn.workflow_engine.workflow.execution.dependency_recovered`, which
+ * nobody can trigger directly: it is the maintenance sweep noticing that a `DependencyFailed`
+ * workflow's dependencies have all completed since. Built in three moves — fail a workflow that
+ * something else depends on, let the dependent settle as `DependencyFailed`, then resume the upstream
+ * until it completes.
  *
  * The upstream targets the flaky downstream with no room to retry, so its first attempt fails two
  * times in three; every resume is an independent draw, and it takes about three of them to land a
@@ -590,8 +594,8 @@ function workflowStatus(id) {
 /**
  * One full request–reply exchange per iteration, shaped to hit every mailbox verdict the dashboard
  * plots. The order matters: a receiver enqueued before its message is born `held` and later released
- * by the delivery (which is what `wake_latency` measures), while one enqueued after its message is
- * born `delivered` and never parks at all.
+ * by the delivery (which is what `altinn.workflow_engine.mailbox.receiver.wake.duration` measures),
+ * while one enqueued after its message is born `delivered` and never parks at all.
  */
 export function runMailboxExchange() {
     const collectionKey = `pg-mb-${uuidv4()}`;
@@ -750,7 +754,7 @@ function enqueueReceiver(mailboxId, collectionKey) {
  * The retry budget has to outlast the broken window by a wide margin, and that is the one part of
  * this easy to get wrong: if the parked workflows die of exhausted retries before the downstream
  * comes back, recovery opens onto an empty parked population, releases nothing, and goes straight to
- * Clear — leaving `engine.throttle.released` flat and the recovery panel empty.
+ * Clear — leaving `altinn.workflow_engine.throttle.released` flat and the recovery panel empty.
  */
 export function runStorm() {
     const namespace = __ENV.STORM_NAMESPACE || STORM_NAMESPACES[0];
