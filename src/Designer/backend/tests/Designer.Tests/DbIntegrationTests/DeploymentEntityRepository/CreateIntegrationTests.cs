@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Designer.Tests.Fixtures;

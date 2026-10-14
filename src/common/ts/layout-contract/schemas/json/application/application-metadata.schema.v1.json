@@ -67,8 +67,8 @@
     "status": {
       "type": "string",
       "title": "App status",
-      "description": "The lifecycle status of the app. Altinn Studio sets it when the app is built, and registers it in Storage and Resource Registry when the app is deployed.",
-      "enum": ["UnderDevelopment", "Completed", "Deprecated"]
+      "description": "The lifecycle status of this version of the app. Altinn Studio sets it when the app is built, and registers it in Storage and Resource Registry when the app is deployed. Undeploying the app marks it as deprecated in Storage and Resource Registry.",
+      "enum": ["UnderDevelopment", "Completed"]
     },
     "disallowUserInstantiation": {
       "type": "boolean",

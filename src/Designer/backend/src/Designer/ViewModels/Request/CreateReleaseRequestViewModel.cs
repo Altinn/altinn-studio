@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Models;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.ViewModels.Request;
@@ -66,11 +66,11 @@ public class CreateReleaseRequestViewModel : IValidatableObject
         {
             issues.Add(new ValidationResult("Branch name is invalid.", new[] { nameof(Branch) }));
         }
-        if (AppStatus is not (null or Models.AppStatus.UnderDevelopment or Models.AppStatus.Completed))
+        if (AppStatus?.IsReleaseStatus() == false)
         {
             issues.Add(
                 new ValidationResult(
-                    $"App status must be {Models.AppStatus.UnderDevelopment} or {Models.AppStatus.Completed}.",
+                    $"App status must be {Altinn.Platform.Storage.Interface.Enums.AppStatus.UnderDevelopment} or {Altinn.Platform.Storage.Interface.Enums.AppStatus.Completed}.",
                     new[] { nameof(AppStatus) }
                 )
             );
