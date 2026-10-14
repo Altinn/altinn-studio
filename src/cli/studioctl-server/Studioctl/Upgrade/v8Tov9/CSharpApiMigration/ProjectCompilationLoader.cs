@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Altinn.Studio.StudioctlServer.Platform;
-using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
@@ -28,11 +27,11 @@ internal static class ProjectCompilationLoader
     )
     {
         var restoreError = await RunRestoreAsync(projectFolder, projectFile, configuration, cancellationToken);
-        if (!MSBuildLocator.IsRegistered)
-        {
-            MSBuildLocator.RegisterDefaults();
-        }
+        MSBuildRegistration.EnsureRegistered();
 
+        // The workspace API still needs in-process MSBuild assembly resolution. Actual design-time
+        // builds run in its own build host, which selects the project's SDK and can run on a newer
+        // runtime than studioctl-server itself.
         // Design-time builds normally omit unresolved assembly references without diagnostics.
         // Name simplification needs a complete reference graph, including unused plain References.
         var properties = new Dictionary<string, string>
@@ -73,7 +72,7 @@ internal static class ProjectCompilationLoader
         CancellationToken cancellationToken
     )
     {
-        var startInfo = ProcessUtil.CreateStartInfo("dotnet", "restore", projectFile);
+        var startInfo = ProcessUtil.CreateDotnetStartInfo("restore", projectFile);
         if (configuration is not null)
         {
             startInfo.ArgumentList.Add($"-p:Configuration={configuration}");
