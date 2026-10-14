@@ -64,4 +64,19 @@ internal class PlatformFrontendSettings
     /// switching party.
     /// </summary>
     public string? AccessManagementChangeAndRedirectUrl { get; set; }
+
+    /// <summary>
+    /// URL of the access management front page, where users can see who can delegate rights. Null hides the link to it.
+    /// </summary>
+    public string? AccessManagementUrl { get; set; }
+
+    /// <summary>
+    /// URL of the Altinn help page about roles and rights. Null hides the link to it.
+    /// </summary>
+    public string? RolesAndRightsHelpUrl { get; set; }
+
+    /// <summary>
+    /// URL of the arbeidsflate profile settings for parties. Null hides the link to it.
+    /// </summary>
+    public string? ArbeidsflatePartiesUrl { get; set; }
 }

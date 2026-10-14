@@ -29,6 +29,9 @@ patches:
         PlatformFrontendSettings__ArbeidsflateDialogUrl: https://af.altinn.no/inbox/{dialogId}
         PlatformFrontendSettings__ArbeidsflateProfileUrl: https://af.altinn.no/profile
         PlatformFrontendSettings__AccessManagementChangeAndRedirectUrl: https://am.ui.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}
+        PlatformFrontendSettings__AccessManagementUrl: https://am.ui.altinn.no/accessmanagement/ui
+        PlatformFrontendSettings__RolesAndRightsHelpUrl: https://altinn.no/hjelp/profil/enkelttjenester-og-roller/
+        PlatformFrontendSettings__ArbeidsflatePartiesUrl: https://af.altinn.no/profile/parties
         AppSettings__OpenIdWellKnownEndpoint: https://platform.altinn.no/authentication/api/v1/openid/
         ASPNETCORE_ENVIRONMENT: Production
         AppSettings__EFormidlingSender: "991825827"
@@ -62,7 +65,10 @@ patches:
               "ArbeidsflateInboxUrl": "https://af.altinn.no/",
               "ArbeidsflateDialogUrl": "https://af.altinn.no/inbox/{dialogId}",
               "ArbeidsflateProfileUrl": "https://af.altinn.no/profile",
-              "AccessManagementChangeAndRedirectUrl": "https://am.ui.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}"
+              "AccessManagementChangeAndRedirectUrl": "https://am.ui.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}",
+              "AccessManagementUrl": "https://am.ui.altinn.no/accessmanagement/ui",
+              "RolesAndRightsHelpUrl": "https://altinn.no/hjelp/profil/enkelttjenester-og-roller/",
+              "ArbeidsflatePartiesUrl": "https://af.altinn.no/profile/parties"
             },
             "AppSettings": {
               "OpenIdWellKnownEndpoint": "https://platform.altinn.no/authentication/api/v1/openid/",

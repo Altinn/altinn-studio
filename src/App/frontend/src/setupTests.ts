@@ -106,6 +106,9 @@ beforeEach(() => {
       arbeidsflateProfileUrl: 'https://af.tt02.altinn.no/profile',
       accessManagementChangeAndRedirectUrl:
         'https://am.ui.tt02.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}',
+      accessManagementUrl: 'https://am.ui.tt02.altinn.no/accessmanagement/ui',
+      rolesAndRightsHelpUrl: 'https://tt02.altinn.no/hjelp/profil/enkelttjenester-og-roller/',
+      arbeidsflatePartiesUrl: 'https://af.tt02.altinn.no/profile/parties',
     },
     footer: getFooterLayoutMock(),
     ui: getUiConfigMock(),
