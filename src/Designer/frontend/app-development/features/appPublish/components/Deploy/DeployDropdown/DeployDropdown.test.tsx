@@ -19,7 +19,6 @@ const defaultProps: DeployDropdownProps = {
   selectedImageTag: 'test1',
   startDeploy: vi.fn(),
   isPending: false,
-  defaultAppStatus: 'UnderDevelopment',
 };
 
 const created = '01.01.2024 18:53';
@@ -181,13 +180,10 @@ describe('DeployDropdown', () => {
     });
     await user.click(deployButton);
 
-    const confirmButton = screen.getByRole('button', {
-      name: textMock('app_deployment.deploy_dialog_confirm'),
-    });
+    const confirmButton = screen.getByRole('button', { name: textMock('general.yes') });
     await user.click(confirmButton);
 
     expect(defaultProps.startDeploy).toHaveBeenCalledTimes(1);
-    expect(defaultProps.startDeploy).toHaveBeenCalledWith('UnderDevelopment');
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 });

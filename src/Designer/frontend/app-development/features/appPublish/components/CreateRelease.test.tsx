@@ -186,8 +186,63 @@ describe('CreateRelease', () => {
         name: newVersionNumber,
         body: newVersionDescription,
         targetCommitish: mockCommitId,
+        appStatus: 'UnderDevelopment',
       });
     });
+  });
+
+  it('selects under development when the app has no status', async () => {
+    renderCreateRelease();
+
+    expect(
+      await screen.findByRole('radio', {
+        name: textMock('app_create_release.app_status_under_development'),
+      }),
+    ).toBeChecked();
+    expect(
+      screen.getByRole('radio', { name: textMock('app_create_release.app_status_completed') }),
+    ).not.toBeChecked();
+  });
+
+  it('selects the status the app already has', async () => {
+    renderCreateRelease({
+      getAppMetadata: () => Promise.resolve({ id: `${org}/${app}`, org, status: 'Completed' }),
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('radio', { name: textMock('app_create_release.app_status_completed') }),
+      ).toBeChecked(),
+    );
+  });
+
+  it('sends the selected status when building', async () => {
+    const user = userEvent.setup();
+    const mockCommitId = '123';
+    const mockCreateRelease = jest.fn();
+    renderCreateRelease({
+      getBranchStatus: () => Promise.resolve({ commit: { id: mockCommitId } } as never),
+      createRelease: mockCreateRelease,
+    });
+
+    await user.type(
+      screen.getByLabelText(textMock('app_create_release.release_version_number')),
+      'v2',
+    );
+    await user.click(
+      screen.getByRole('radio', { name: textMock('app_create_release.app_status_completed') }),
+    );
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_create_release.build_version') }),
+    );
+
+    await waitFor(() =>
+      expect(mockCreateRelease).toHaveBeenCalledWith(
+        org,
+        app,
+        expect.objectContaining({ tagName: 'v2', appStatus: 'Completed' }),
+      ),
+    );
   });
 
   it('disables build version button when tag name is invalid', async () => {
