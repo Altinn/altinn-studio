@@ -7,10 +7,12 @@ using Yarp.ReverseProxy.Model;
 
 namespace Altinn.Studio.Observability.Proxy.Tests.Routing;
 
-public sealed class StickyFailoverTests
+public sealed class StickyFailoverTests : IDisposable
 {
-    private static readonly DestinationState First = new("instance-0");
-    private static readonly DestinationState Second = new("instance-1");
+    private readonly ServiceProvider _services = new ServiceCollection().AddMetrics().BuildServiceProvider();
+
+    private static readonly DestinationState First = new("a");
+    private static readonly DestinationState Second = new("b");
 
     [Fact]
     public void Picks_TheFirstDestination_WhenBothAreHealthy()
@@ -87,12 +89,12 @@ public sealed class StickyFailoverTests
         Assert.Null(Pick(NewFailover(), "traces"));
     }
 
-    private static StickyFailover NewFailover() =>
+    public void Dispose() => _services.Dispose();
+
+    private StickyFailover NewFailover() =>
         new(
             NullLogger<StickyFailover>.Instance,
-            new ObservabilityProxyMetrics(
-                new ServiceCollection().AddMetrics().BuildServiceProvider().GetRequiredService<IMeterFactory>()
-            )
+            new ObservabilityProxyMetrics(_services.GetRequiredService<IMeterFactory>())
         );
 
     private static DestinationState? Pick(
