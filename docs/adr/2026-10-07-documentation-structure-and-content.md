@@ -1,6 +1,6 @@
 # Structure and content of Altinn Studio product development documentation
 
-- Status: Proposed
+- Status: Accepted
 - Deciders: Team Studio
 - Date: 07.10.2026
 
