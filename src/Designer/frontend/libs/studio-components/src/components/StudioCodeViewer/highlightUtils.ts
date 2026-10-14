@@ -1,4 +1,5 @@
 import type { HLJSApi } from 'highlight.js';
+import { FileNameUtils } from '@studio/pure-functions';
 import type { StudioCodeViewerLanguage } from './registerHighlighter';
 
 const languagesByFileExtension: Record<string, StudioCodeViewerLanguage> = {
@@ -32,8 +33,8 @@ const languagesByFileExtension: Record<string, StudioCodeViewerLanguage> = {
 export function getCodeLanguageFromFileName(
   fileName: string,
 ): StudioCodeViewerLanguage | undefined {
-  const extension = fileName.split('/').pop().split('.').pop().toLowerCase();
-  return languagesByFileExtension[extension];
+  const extension = FileNameUtils.extractExtension(FileNameUtils.extractFileName(fileName));
+  return languagesByFileExtension[extension.toLowerCase()];
 }
 
 let highlighterCache: HLJSApi | undefined;
