@@ -292,6 +292,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingServiceTasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateInsertedServiceTaskPolicy(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -1947,7 +1950,30 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Job 11: warn about feedback tasks sitting behind service tasks - a v8 waiting pattern the v9
+    /// Job 11: give users read/write on the PDF and eFormidling service tasks jobs 8 and 10 insert, where
+    /// the policy grants them those actions only in the task each service task follows. Runs after both,
+    /// so it sees every service task they insert.
+    /// </summary>
+    static async Task<int> MigrateInsertedServiceTaskPolicy(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("User access to inserted service tasks");
+        try
+        {
+            var migrator = new PolicyMigration.InsertedServiceTaskPolicyMigrator(projectFolder);
+            var result = await migrator.Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No user rule needs extending to the inserted service tasks"
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error extending user rules to the inserted service tasks", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 12: warn about feedback tasks sitting behind service tasks - a v8 waiting pattern the v9
     /// implicit waiting step makes redundant. Advisory only (never rewrites the process); runs after
     /// the PDF/eFormidling migrations so service tasks they insert are included in the analysis.
     /// </summary>
@@ -1971,7 +1997,7 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Job 12: remove the Fiks Arkiv moveToNextTask settings v9 no longer has (a concluded Fiks Arkiv task
+    /// Job 13: remove the Fiks Arkiv moveToNextTask settings v9 no longer has (a concluded Fiks Arkiv task
     /// always moves the process on), say what changes where they were false, and point out a Fiks Arkiv task
     /// not followed by the exclusive gateway the v9 app requires at startup.
     /// </summary>
@@ -1995,7 +2021,7 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Job 13: rename the misspelled allowedContributers property on the data types in applicationmetadata.json
+    /// Job 14: rename the misspelled allowedContributers property on the data types in applicationmetadata.json
     /// to allowedContributors, the only spelling the application metadata schema accepts.
     /// </summary>
     static async Task<int> MigrateAllowedContributors(string projectFolder)
