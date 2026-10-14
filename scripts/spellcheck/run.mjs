@@ -22,13 +22,16 @@
  *              something or is declared precautionary (no dead engine rules)
  *   en         British English over English UI text values; US English over
  *              translation keys (typos over extracted copies — fixes are
- *              applied to the real files by key, never by byte offset)
+ *              applied to the real files by key, never by byte offset);
+ *              the values also against the pinned LibreOffice en_GB or
+ *              en_US dictionary (hunspell, glossary.en/shared.txt), which
+ *              catches misspellings typos has no entry for
  *   no         bokmål and nynorsk UI text values (hunspell, pinned
- *              LibreOffice dictionaries, glossary.*.txt)
+ *              LibreOffice dictionaries, glossary.nb/nn/shared.txt)
  *
  * Usage:
  *   node scripts/spellcheck/run.mjs [check ...]     default: self-test + all
- *   node scripts/spellcheck/run.mjs quick [files…]  changed files only, for
+ *   node scripts/spellcheck/run.mjs quick [files…]  the branch's changed files, for
  *           the inner dev loop and the pre-commit hook; never fetches
  *           dictionaries. `yarn spell:quick`.
  *   --fix   apply unambiguous corrections through the suppression registry
@@ -398,26 +401,41 @@ function checkCoverage({ registry, root }) {
 
 // --------------------------------------------------------- english check ---
 
-async function checkEnglish({ registry, root, fix, keysPath = KEYS_PATH, staleCheck = true }) {
+/** The English values of every group with an `english` dialect, by dialect. */
+async function englishValues(registry, root) {
+  const values = { 'en-gb': [], 'en-us': [] }; // items: { sourceFile, key, text }
+  for (const group of registry.GROUPS.filter((g) => g.english)) {
+    for (const [key, text] of (await readGroup(group, root)).en ?? []) {
+      values[group.english].push({ sourceFile: sourcePath(group, 'en'), key, text });
+    }
+  }
+  return values;
+}
+
+async function checkEnglish({
+  registry,
+  root,
+  fix,
+  keysPath = KEYS_PATH,
+  staleCheck = true,
+  staleGlossary = staleCheck,
+  offline = false,
+  ci = false,
+}) {
   const keyDecls = compileKeyDeclarations(readKeyDeclarations(keysPath));
-  const batches = { 'en-gb': [], 'en-us': [] }; // items: { group, kind, key, text, sourceFile }
+  const batches = { 'en-gb': [], 'en-us': [] }; // items: { kind, key, text, sourceFile }
+  const values = await englishValues(registry, root);
   let valueCount = 0;
   let keyCount = 0;
 
+  for (const [dialect, items] of Object.entries(values)) {
+    for (const i of items) {
+      batches[dialect].push({ ...i, kind: 'value', text: i.text.replace(/\s+/g, ' ') });
+      valueCount += 1;
+    }
+  }
   for (const group of registry.GROUPS) {
     const langs = await readGroup(group, root);
-    if (group.english) {
-      for (const [key, text] of langs.en ?? []) {
-        batches[group.english].push({
-          group,
-          kind: 'value',
-          key,
-          text: text.replace(/\s+/g, ' '),
-          sourceFile: sourcePath(group, 'en'),
-        });
-        valueCount += 1;
-      }
-    }
     if (group.checkKeys !== false) {
       // A key is one code contract however many languages define it — check
       // it once, reported against the first language that has it.
@@ -427,7 +445,6 @@ async function checkEnglish({ registry, root, fix, keysPath = KEYS_PATH, staleCh
           if (seen.has(key)) continue;
           seen.add(key);
           batches['en-us'].push({
-            group,
             kind: 'key',
             key,
             text: key,
@@ -489,6 +506,21 @@ async function checkEnglish({ registry, root, fix, keysPath = KEYS_PATH, staleCh
     if (applied > 0) console.log(`  applied ${applied} value fix(es) — re-run to verify`);
   }
 
+  // A word typos flagged is left to that finding, which carries the fix.
+  const typoWords = new Set(
+    findings.filter((f) => f.item.kind === 'value').map((f) => f.typo.toLowerCase()),
+  );
+  const dictionary = await checkEnglishDictionary({
+    registry,
+    values,
+    typoWords,
+    root,
+    offline,
+    ci,
+    staleGlossary,
+  });
+  findings.push(...dictionary.findings);
+
   if (staleCheck) {
     findings.unshift(
       ...staleKeyDeclarations(keyDecls, 'key-contract').map((e) =>
@@ -500,7 +532,167 @@ async function checkEnglish({ registry, root, fix, keysPath = KEYS_PATH, staleCh
       ),
     );
   }
-  return { findings, counts: `${valueCount} values + ${keyCount} keys examined` };
+  return {
+    findings,
+    counts: `${valueCount} values + ${keyCount} keys examined; ${dictionary.counts}`,
+    dictionarySkipped: dictionary.skipped,
+  };
+}
+
+/**
+ * The dictionary pass over English values. typos only flags misspellings on
+ * its list (it passes `occcurred`), so every value is also checked against
+ * the pinned hunspell dictionary of its group's dialect. A word is accepted
+ * by the dictionary, glossary.en.txt (English words the dictionary lacks) or
+ * glossary.shared.txt (language-neutral tokens, whose liveness the
+ * Norwegian check judges across all languages). Under --ci a missing
+ * hunspell or an uncached dictionary fails; otherwise the pass is skipped,
+ * visibly.
+ */
+async function checkEnglishDictionary({
+  registry,
+  values,
+  typoWords,
+  root,
+  offline,
+  ci,
+  staleGlossary,
+}) {
+  let cacheDir;
+  if (!toolAvailable('hunspell')) {
+    const reason = 'hunspell is not installed (`brew install hunspell` / `apt install hunspell`)';
+    if (ci) throw new HarnessError(reason);
+    return { skipped: reason, findings: [], counts: `dictionary pass SKIPPED (${reason})` };
+  }
+  try {
+    cacheDir = await ensureDictionaries({ offline });
+  } catch (err) {
+    if (!(err instanceof HarnessError) || !offline || ci) throw err;
+    return {
+      skipped: err.message,
+      findings: [],
+      counts: `dictionary pass SKIPPED (${err.message})`,
+    };
+  }
+
+  const shared = readGlossary(join(HERE, 'glossary.shared.txt'));
+  const glossary = readGlossary(join(HERE, 'glossary.en.txt'));
+  const configFindings = [...glossary]
+    .filter((t) => shared.has(t))
+    .sort()
+    .map((term) =>
+      finding(
+        'scripts/spellcheck/glossary.en.txt',
+        undefined,
+        `'${term}' is already in glossary.shared.txt — redundant entry, remove it`,
+      ),
+    );
+  const declared = new Set(
+    registry.GROUPS.filter((g) => g.english && !g.mayBeEmpty).map((g) => g.english),
+  );
+  const usedOwn = new Set();
+  const usedShared = new Set();
+  const findings = [];
+  const countsParts = [];
+  for (const { dialect, items, words: rejected } of englishRejects(values, cacheDir, declared)) {
+    const words = rejected
+      .filter((w) => !typoWords.has(w.toLowerCase()))
+      .filter((w) => {
+        const lc = w.toLowerCase();
+        if (glossary.has(lc)) return (usedOwn.add(lc), false);
+        if (shared.has(lc)) return (usedShared.add(lc), false);
+        return true;
+      })
+      .sort((a, b) => a.localeCompare(b, 'en'));
+    findings.push(...unknownWordFindings(dialect, words, items, root));
+    const wordCount = items
+      .map((i) => i.text)
+      .join(' ')
+      .split(/\s+/)
+      .filter(Boolean).length;
+    countsParts.push(`${dialect}: ~${wordCount} words, ${words.length} distinct flagged`);
+  }
+  if (staleGlossary) {
+    for (const term of [...glossary].filter((t) => !usedOwn.has(t)).sort()) {
+      configFindings.push(
+        finding(
+          'scripts/spellcheck/glossary.en.txt',
+          undefined,
+          `'${term}' no longer rescues any flagged English word — stale entry, remove it`,
+        ),
+      );
+    }
+  }
+  countsParts.push(
+    `${usedOwn.size}/${glossary.size} glossary and ${usedShared.size} shared terms at work`,
+  );
+  return {
+    findings: [...configFindings, ...findings].map((f) => ({ ...f, pass: 'dictionary' })),
+    counts: `dictionary ${countsParts.join(', ')}`,
+  };
+}
+
+/**
+ * The words hunspell rejects in each dialect's values, before any glossary.
+ * A dialect the registry declares must produce words, or the pass did no
+ * work for it.
+ */
+function englishRejects(values, cacheDir, declared = new Set()) {
+  const out = [];
+  for (const [dialect, raw] of Object.entries(values)) {
+    const items = raw
+      .map((i) => ({ ...i, text: stripNonProse(i.text) }))
+      .filter((i) => i.text !== '');
+    if (items.length === 0) {
+      if (declared.has(dialect)) {
+        throw new HarnessError(`${dialect}: the registry declares values but none were extracted`);
+      }
+      continue;
+    }
+    const dictBases = DICTIONARY_FOR_LANG[dialect].map((d) => join(cacheDir, d));
+    out.push({
+      dialect,
+      items,
+      words: dictionaryRejects(items.map((i) => i.text).join('\n'), dictBases),
+    });
+  }
+  if (out.length === 0) throw new HarnessError('the dictionary pass extracted no English values');
+  return out;
+}
+
+// ------------------------------------------------------ dictionary words ---
+
+/**
+ * The distinct words hunspell rejects that a dictionary pass reports.
+ * Deliberately unchecked: tokens with digits or other non-letters (the first
+ * filter) and ALL-CAPS tokens (acronyms — BPMN, PDF); a shouted or
+ * digit-bearing misspelling is invisible here.
+ */
+function dictionaryRejects(text, dictBases) {
+  return [...runHunspell(text, dictBases)]
+    .filter((w) => /^[\p{L}'’-]{2,}$/u.test(w))
+    .filter((w) => w !== w.toUpperCase());
+}
+
+/** One finding per unknown word, naming up to three of the values that use it. */
+function unknownWordFindings(label, words, items, root) {
+  return words.map((word) => {
+    const re = new RegExp(
+      `(?:^|\\P{L})${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\P{L}|$)`,
+      'u',
+    );
+    const hits = items.filter((i) => re.test(i.text));
+    const where = hits
+      .slice(0, 3)
+      .map((i) => `${i.sourceFile} → '${i.key}'`)
+      .join(', ');
+    return {
+      file: hits[0]?.sourceFile,
+      key: hits[0]?.key,
+      line: hits[0] ? findKeyLine(root, hits[0].sourceFile, hits[0].key) : undefined,
+      message: `${label}: '${word}' is not in the dictionary or glossary (${hits.length} place(s): ${where}${hits.length > 3 ? ', …' : ''})`,
+    };
+  });
 }
 
 // -------------------------------------------------------- norwegian check ---
@@ -598,19 +790,13 @@ async function checkNorwegian({
     const wordCount = doc.split(/\s+/).filter(Boolean).length;
     if (wordCount === 0) throw new HarnessError(`${lang}: extracted zero words`);
 
-    const flagged = runHunspell(
-      doc,
-      DICTIONARY_FOR_LANG[lang].map((d) => join(cacheDir, d)),
-    );
     // A word is accepted by ANY of: the hunspell dictionary (which is what
     // handles compounds), the Norsk Ordbank full-form list (which covers the
     // frozen dictionary's gaps — see dictionaries.mjs), or the glossaries.
-    // Deliberately unchecked: tokens with digits or other non-letters (the
-    // first filter) and ALL-CAPS tokens (acronyms — BPMN, PDF); a shouted or
-    // digit-bearing misspelling is invisible here.
-    const words = [...flagged]
-      .filter((w) => /^[\p{L}'’-]{2,}$/u.test(w))
-      .filter((w) => w !== w.toUpperCase())
+    const words = dictionaryRejects(
+      doc,
+      DICTIONARY_FOR_LANG[lang].map((d) => join(cacheDir, d)),
+    )
       .filter((w) => !fullforms.has(w) && !fullforms.has(w.toLowerCase()))
       .filter((w) => {
         const lc = w.toLowerCase();
@@ -619,24 +805,7 @@ async function checkNorwegian({
         return true;
       })
       .sort((a, b) => a.localeCompare(b, 'nb'));
-
-    for (const word of words) {
-      const re = new RegExp(
-        `(?:^|\\P{L})${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\P{L}|$)`,
-        'u',
-      );
-      const hits = items.filter((i) => re.test(i.text));
-      const where = hits
-        .slice(0, 3)
-        .map((i) => `${i.sourceFile} → '${i.key}'`)
-        .join(', ');
-      findings.push({
-        file: hits[0]?.sourceFile,
-        key: hits[0]?.key,
-        line: hits[0] ? findKeyLine(root, hits[0].sourceFile, hits[0].key) : undefined,
-        message: `${lang}: '${word}' is not in the dictionary or glossary (${hits.length} place(s): ${where}${hits.length > 3 ? ', …' : ''})`,
-      });
-    }
+    findings.push(...unknownWordFindings(lang, words, items, root));
     if (staleCheck) {
       for (const term of [...glossary].filter((t) => !usedOwn.has(t)).sort()) {
         configFindings.push(
@@ -654,9 +823,16 @@ async function checkNorwegian({
     );
   }
   if (countsParts.length === 0) throw new HarnessError('no Norwegian values were extracted');
-  countsParts.push(`shared glossary: ${usedShared.size}/${shared.size} terms at work`);
   if (staleCheck) {
-    // Shared terms are alive when either language needed them.
+    // Shared terms are alive when any language needed them — English too,
+    // whose pass would otherwise report them (see checkEnglishDictionary).
+    if ([...shared].some((t) => !usedShared.has(t))) {
+      for (const { words } of englishRejects(await englishValues(registry, root), cacheDir)) {
+        for (const lc of words.map((w) => w.toLowerCase()).filter((w) => shared.has(w))) {
+          usedShared.add(lc);
+        }
+      }
+    }
     for (const term of [...shared].filter((t) => !usedShared.has(t)).sort()) {
       configFindings.push(
         finding(
@@ -667,6 +843,7 @@ async function checkNorwegian({
       );
     }
   }
+  countsParts.push(`shared glossary: ${usedShared.size}/${shared.size} terms at work`);
   return { findings: [...configFindings, ...findings], counts: countsParts.join('; ') };
 }
 
@@ -674,17 +851,21 @@ async function checkNorwegian({
 
 /**
  * Fast feedback for the inner dev loop and the pre-commit hook: only the
- * given files (default: everything changed relative to HEAD, plus staged and
- * untracked), only the checks that can run instantly. The Norwegian pass
+ * given files (default: everything the branch changed since it left
+ * origin/main, committed or not, plus untracked files), only the checks that
+ * can run instantly. The Norwegian pass
  * runs offline-only — it never fetches dictionaries here.
  */
 async function checkQuick(ctx, fileArgs) {
   const root = ctx.root;
-  const files = (fileArgs.length > 0 ? fileArgs : gitChangedFiles(root))
+  const changed = fileArgs.length > 0 ? null : gitChangedFiles(root);
+  // Name the comparison base, so a run that fell back to uncommitted changes says so.
+  const scope = changed ? ` since ${changed.base}` : '';
+  const files = (changed ? changed.files : fileArgs)
     .map((f) => f.replace(/^\.\//, ''))
     .filter((f) => existsSync(join(root, f)));
   if (files.length === 0) {
-    return { findings: [], counts: 'no changed files to check' };
+    return { findings: [], counts: `no changed files to check${scope}` };
   }
 
   // The code pass, scoped. --force-exclude keeps typos.toml's excludes
@@ -722,8 +903,18 @@ async function checkQuick(ctx, fileArgs) {
     const structure = await checkStructure({ registry: subset, root, staleCheck: false });
     findings.push(...structure.findings);
     if (affected.some((g) => g.english || g.checkKeys !== false)) {
-      const english = await checkEnglish({ registry: subset, root, fix: false, staleCheck: false });
+      const english = await checkEnglish({
+        registry: subset,
+        root,
+        fix: false,
+        staleCheck: false,
+        offline: true,
+        ci: ctx.ci,
+      });
       findings.push(...english.findings);
+      if (english.dictionarySkipped) {
+        notes.push(`english dictionary skipped: ${english.dictionarySkipped}`);
+      }
     }
     if (affected.some((g) => Object.keys(g.files ?? {}).some((l) => l === 'nb' || l === 'nn'))) {
       try {
@@ -746,26 +937,28 @@ async function checkQuick(ctx, fileArgs) {
   return {
     findings,
     counts:
-      `${files.length} file(s), ${norwegian + data + pattern} classified, ${suppressedCount} suppressed` +
+      `${files.length} file(s)${scope}, ${norwegian + data + pattern} classified, ${suppressedCount} suppressed` +
       (affected.length > 0 ? `, ${affected.length} language group(s)` : ''),
   };
 }
 
 function gitChangedFiles(root) {
+  const git = (args) =>
+    spawnSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
+  // Diffing against the fork point keeps committed branch work in scope; a
+  // checkout without origin/main falls back to the uncommitted changes alone.
+  const forkPoint = git(['merge-base', 'HEAD', 'origin/main']);
+  const base = forkPoint.status === 0 ? forkPoint.stdout.trim() : 'HEAD';
   const out = new Set();
   for (const args of [
-    ['diff', '--name-only', '--diff-filter=ACMR', 'HEAD'],
+    ['diff', '--name-only', '--diff-filter=ACMR', base],
     ['ls-files', '-o', '--exclude-standard'],
   ]) {
-    const res = spawnSync('git', args, {
-      cwd: root,
-      encoding: 'utf8',
-      maxBuffer: 16 * 1024 * 1024,
-    });
+    const res = git(args);
     if (res.status !== 0) throw new HarnessError(`git ${args[0]} failed: ${res.stderr}`);
     for (const f of res.stdout.split('\n').filter(Boolean)) out.add(f);
   }
-  return [...out];
+  return { files: [...out], base: base === 'HEAD' ? 'HEAD (uncommitted only)' : base.slice(0, 10) };
 }
 
 // -------------------------------------------------------------- self-test ---
@@ -886,13 +1079,32 @@ async function checkSelfTest({ ci }) {
   const coverage = checkCoverage({ registry, root: REPO_ROOT });
   assertFindings('coverage', coverage.findings, 'coverage');
 
+  // staleGlossary off for the same reason as the Norwegian check below;
+  // @key-contract staleness still runs against the fixture declarations.
   const english = await checkEnglish({
     registry,
     root: REPO_ROOT,
     fix: false,
     keysPath: fixtureKeys,
+    staleGlossary: false,
+    ci,
   });
-  assertFindings('en', english.findings, 'en');
+  assertFindings(
+    'en',
+    english.findings.filter((f) => f.pass !== 'dictionary'),
+    'en',
+  );
+  if (english.dictionarySkipped) {
+    const why = `en dictionary: skipped (${english.dictionarySkipped})`;
+    if (ci) failures.push(finding('(self-test)', undefined, why));
+    else console.log(`  ⚠ self-test of the ${why}`);
+  } else {
+    assertFindings(
+      'en dictionary',
+      english.findings.filter((f) => f.pass === 'dictionary'),
+      'enDictionary',
+    );
+  }
 
   // staleCheck off: against fixture values alone, nearly every production
   // glossary term would read as stale. (@language staleness is covered by
@@ -1318,7 +1530,7 @@ async function main() {
     console.log(`
 How to fix: prefer correcting the spelling. Deliberate exceptions are
 declared in scripts/spellcheck/ — suppressions.txt (WRONG spellings that
-are contracts, scoped to where they are load-bearing), glossary.nb/nn/
+are contracts, scoped to where they are load-bearing), glossary.nb/nn/en/
 shared.txt (CORRECT words the dictionaries lack; shared = language-neutral
 tokens only), keys.txt (per-key @empty / @key-contract / @language). Each
 file's header documents its grammar; every entry is stale-checked, so an

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved, within } from '@testing-library/react';
 import { Dashboard } from './Dashboard';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -43,10 +43,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('Dashboard', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should display favorite list with one item', async () => {
     renderWithMockServices({
       getStarredRepos: vi.fn().mockResolvedValue([{ ...repository, hasStarred: true }]),

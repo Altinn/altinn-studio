@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { internalExpressionWithMultipleSubExpressions } from '../../../../../../testing/expressionMocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -19,10 +19,6 @@ const layouts: IFormLayouts = {
 };
 
 describe('SimpleExpression', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('displays two data source selector components from subExpressionContent when there are two subExpressions in the expression', () => {
     render({});
     const subExpressionDataSourceSelectors = screen.queryAllByLabelText(

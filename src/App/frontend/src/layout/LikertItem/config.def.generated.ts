@@ -1,10 +1,18 @@
+import type { JSX } from 'react';
+
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class LikertItemDef extends FormComponent<'LikertItem'> implements DisplayData {
   protected readonly type = 'LikertItem';
+
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
+
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -17,4 +25,4 @@ export abstract class LikertItemDef extends FormComponent<'LikertItem'> implemen
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 83980688620a43b1d226d202ab9724200f8cc17fd29066657233a6b6815b84d8
+// Source hash: 23de44a5104b5755ea2093d22b06d764a5f05ead6ce5aa5c2c30732f290a72d4

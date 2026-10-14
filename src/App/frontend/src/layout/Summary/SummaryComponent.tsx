@@ -162,7 +162,7 @@ const SummaryComponentInner = React.forwardRef(function (
   }
 
   const component = getComponentDef(targetItem.type);
-  const RenderSummary = 'renderSummary' in component ? component.renderSummary.bind(component) : null;
+  const RenderSummary = component.renderSummary?.bind(component) ?? null;
   const shouldShowBorder =
     RenderSummary && 'renderSummaryBoilerplate' in component && component?.renderSummaryBoilerplate();
 

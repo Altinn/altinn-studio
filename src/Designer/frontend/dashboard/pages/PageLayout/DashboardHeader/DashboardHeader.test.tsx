@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -36,8 +36,6 @@ vi.mock('react-router-dom', async () => ({
 vi.mock('@studio/hooks/src/hooks/useMediaQuery');
 
 describe('DashboardHeader', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render the user name as the profile button when in self context', () => {
     renderDashboardHeader({ selectedContext: SelectedContextType.Self });
     expect(screen.getByRole('button', { name: userMock.full_name })).toBeInTheDocument();

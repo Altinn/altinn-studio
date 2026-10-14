@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import type { DeploymentEnvironmentLogListProps } from './DeploymentEnvironmentLogList';
 import { DeploymentEnvironmentLogList } from './DeploymentEnvironmentLogList';
@@ -66,10 +66,6 @@ describe('DeploymentEnvironmentLogList', () => {
 
   beforeEach(() => {
     useStudioEnvironmentParamsMock.mockReturnValue({ org, app });
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
   });
 
   it('renders with no history', () => {

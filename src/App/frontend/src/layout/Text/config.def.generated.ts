@@ -1,7 +1,15 @@
+import type { JSX } from 'react';
+
 import { PresentationComponent } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class TextDef extends PresentationComponent<'Text'> {
   protected readonly type = 'Text';
+
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
+
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 }
 
-// Source hash: 27df9c5390f0d6888ef1850dda08c6daab3ad5694e0b0c8f04c7817fc7358a63
+// Source hash: 916b2ff2c4c06ef1343977ed560764519758e01656ccc8ad6e8b3a1e55cda91c

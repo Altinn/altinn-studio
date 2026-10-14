@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { VersionControlButtons } from './VersionControlButtons';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -14,8 +14,6 @@ import { renderWithProviders } from '../mocks/renderWithProviders';
 const mockOnPullSuccess = vi.fn();
 
 describe('VersionControlButtons', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render FetchChangesPopover and ShareChangesPopover components', () => {
     renderVersionControlButtons();
 

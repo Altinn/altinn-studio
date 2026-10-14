@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { DefinedBinding, type DefinedBindingProps } from './DefinedBinding';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -46,10 +46,6 @@ const renderDefinedBinding = ({
 };
 
 describe('DefinedBinding', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render loading spinner', async () => {
     renderDefinedBinding();
     const loadingSpinnerLabel = textMock('ux_editor.modal_properties_loading');

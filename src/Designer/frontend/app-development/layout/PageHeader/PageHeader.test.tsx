@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import { PageHeader, type PageHeaderProps } from './PageHeader';
@@ -20,8 +20,6 @@ const defaultProps: PageHeaderProps = {
 };
 
 describe('PageHeader', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('should render the app title when on a large screen', () => {
     renderPageHeader();
 

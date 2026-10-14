@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { PolicyEditorPageProps } from './PolicyEditorPage';
 import { PolicyEditorPage } from './PolicyEditorPage';
@@ -89,8 +89,6 @@ const defaultProps: PolicyEditorPageProps = {
 };
 
 describe('PolicyEditorPage', () => {
-  afterEach(vi.clearAllMocks);
-
   it('fetches policy on mount', () => {
     renderPolicyEditorPage();
     expect(getPolicy).toHaveBeenCalledTimes(1);

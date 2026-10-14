@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { useUpdateBpmn } from './useUpdateBpmn';
 import { queriesMock } from '../mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
@@ -24,8 +24,6 @@ vi.mock('bpmn-moddle', () => ({
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
 describe('useUpdateBpmn', () => {
-  afterEach(vi.clearAllMocks);
-
   describe('removeDataTypeIdsToSign', () => {
     it('update the bpmn file if the deleted data type ids are present', async () => {
       const { result } = renderUpdateBpmnHook();
@@ -53,8 +51,6 @@ describe('useUpdateBpmn', () => {
   });
 
   describe('updateDataTypeIdsToSign', () => {
-    afterEach(vi.clearAllMocks);
-
     it('update the bpmn file if the updated data type ids are present', async () => {
       const { result } = renderUpdateBpmnHook();
 

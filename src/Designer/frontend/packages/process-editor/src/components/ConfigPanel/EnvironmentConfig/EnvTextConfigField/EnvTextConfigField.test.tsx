@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -9,8 +9,6 @@ const fieldLabel = 'Document type';
 const globalLabel = textMock('process_editor.configuration_panel.environment_config.scope_global');
 
 describe('EnvTextConfigField', () => {
-  afterEach(vi.clearAllMocks);
-
   it('saves text without surrounding spaces', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();

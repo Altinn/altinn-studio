@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   MAXIMUM_SUPPORTED_BACKEND_VERSION,
   MAXIMUM_SUPPORTED_FRONTEND_VERSION,
@@ -14,10 +14,6 @@ vi.mock('@studio/feature-flags', async () => ({
 }));
 
 describe('useVersionStatus', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('returns correct version status when NextV9 flag is disabled', () => {
     mockUseFeatureFlag.mockReturnValue(false);
     const versionStatus = useVersionStatus({

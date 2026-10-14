@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Content } from './Content';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -28,8 +28,6 @@ vi.mock('../TextResourceEdit', () => ({
 }));
 
 describe('ContentTab', () => {
-  afterEach(vi.clearAllMocks);
-
   describe('when editing a text resource', () => {
     it('should render the component', async () => {
       await render({ props: {}, editId: 'test' });

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
@@ -68,10 +68,6 @@ const expectToggleAccordion = async (name: string, user: UserEvent) => {
 };
 
 describe('ComponentConfigPanel', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render an unknown component alert when the component is unknown', () => {
     const unknownComponentType = 'UnknownComponent';
     renderComponentConfig({ formItem: unknownComponentType } as any);

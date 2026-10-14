@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from 'app-development/test/mocks';
@@ -11,8 +11,6 @@ import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
 
 describe('RunTab', () => {
-  afterEach(vi.clearAllMocks);
-
   it('initially displays spinner when loading data', () => {
     renderRunTab();
     expect(screen.getByText(textMock('app_settings.loading_content'))).toBeInTheDocument();

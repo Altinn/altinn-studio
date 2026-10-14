@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import type { ServiceOwnerSelectorProps } from './ServiceOwnerSelector';
 import { ServiceOwnerSelector } from './ServiceOwnerSelector';
@@ -29,8 +29,6 @@ const renderServiceOwnerSelector = (props: Partial<ServiceOwnerSelectorProps> = 
 };
 
 describe('ServiceOwnerSelector', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders select with all options', async () => {
     const user = userEvent.setup();
     renderServiceOwnerSelector();

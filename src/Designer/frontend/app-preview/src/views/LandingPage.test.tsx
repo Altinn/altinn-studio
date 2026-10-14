@@ -31,7 +31,6 @@ vi.mock('app-shared/api/mutations', () => ({
 describe('LandingPage', () => {
   afterEach(() => {
     vi.restoreAllMocks();
-    vi.clearAllMocks();
   });
 
   it('should display a spinner initially when loading user', () => {

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { OptionsMainConfig } from './OptionsMainConfig';
@@ -20,10 +20,6 @@ const optionsComponent: FormItem = {
 
 describe('ComponentMainConfig', () => {
   describe('Options', () => {
-    beforeEach(() => {
-      vi.clearAllMocks();
-    });
-
     it('should render options config', async () => {
       render(optionsComponent);
       expect(screen.getByText(textMock('ux_editor.options.section_heading'))).toBeInTheDocument();

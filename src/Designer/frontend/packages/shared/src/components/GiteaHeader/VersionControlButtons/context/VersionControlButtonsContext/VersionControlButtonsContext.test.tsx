@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import {
   VersionControlButtonsContextProvider,
@@ -21,8 +21,6 @@ const repoStatusTestId: string = 'repoStatus';
 const commitAndPushButtonTestId: string = 'commitAndPushButton';
 
 describe('VersionControlButtonsContext', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render children', () => {
     const buttonText: string = 'My button';
     renderVersionControlButtonsContextProvider({

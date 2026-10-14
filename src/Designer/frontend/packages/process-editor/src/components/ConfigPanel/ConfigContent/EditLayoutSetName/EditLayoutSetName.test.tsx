@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { EditLayoutSetName } from './EditLayoutSetName';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -14,8 +14,6 @@ vi.mock('../../../../hooks/useUpdateLayoutSetId', () => ({
 const existingLayoutSetNameMock = 'existingLayoutSetName';
 
 describe('EditLayoutSetName', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render the layoutSetName button', () => {
     renderEditLayoutSetName();
     const editLayoutSetName = screen.getByRole('button', {

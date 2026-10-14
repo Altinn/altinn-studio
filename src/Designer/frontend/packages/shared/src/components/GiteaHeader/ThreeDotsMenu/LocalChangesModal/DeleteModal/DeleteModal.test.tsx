@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { screen } from '@testing-library/react';
@@ -19,8 +19,6 @@ const defaultProps: DeleteModalProps = {
 };
 
 describe('DeleteModal', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Closes the dialog when the Cancel button is clicked', async () => {
     const user = userEvent.setup();
     await renderDeleteModal();

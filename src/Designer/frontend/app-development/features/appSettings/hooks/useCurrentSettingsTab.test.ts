@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useCurrentSettingsTab } from './useCurrentSettingsTab';
@@ -13,10 +13,6 @@ const mockUseSearchParams = useSearchParams as Mock;
 const validTabs: SettingsPageTabId[] = ['about', 'setup', 'policy'];
 
 describe('useCurrentSettingsTab', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('returns the current tab from search params if valid', () => {
     const mockGet = vi.fn().mockReturnValue('setup');
     const mockSetSearchParams = vi.fn();

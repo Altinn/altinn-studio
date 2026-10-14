@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { renderWithProviders } from '../../testing/mocks';
@@ -39,10 +39,6 @@ const singlePageGroupMock: PagesModel = {
 };
 
 describe('PageGroupAccordion', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should disable move-up for first group, and move-down for last group', async () => {
     const user = userEvent.setup();
     await renderPageGroupAccordion({});

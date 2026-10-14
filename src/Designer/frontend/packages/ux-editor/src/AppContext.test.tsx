@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import React, { useEffect } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -138,7 +138,6 @@ describe('AppContext', () => {
   beforeEach(() => {
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), vi.fn()]);
   });
-  afterEach(vi.clearAllMocks);
 
   it('sets selectedFormLayoutName correctly', async () => {
     const setSearchParamsMock = vi.fn();

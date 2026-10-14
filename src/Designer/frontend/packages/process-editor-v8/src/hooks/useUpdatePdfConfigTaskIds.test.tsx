@@ -10,7 +10,6 @@ vi.mock('@studio/hooks');
 
 describe('useUpdatePdfConfigTaskIds', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     (useDebounce as Mock).mockReturnValue({
       debounce: (fn: () => void) => fn(),
     });

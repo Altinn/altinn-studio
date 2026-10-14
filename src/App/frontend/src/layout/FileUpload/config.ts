@@ -36,7 +36,11 @@ export const Config = asOptionsComponent(
     }),
   ),
   { supportsPreselection: false },
-);
+)
+  .makeSummarizable()
+  .addProperty(CG.common('renderAsSummary'))
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'));
 
 export function asUploaderComponent(config: ComponentConfig) {
   return asAttachmentUploader(config)

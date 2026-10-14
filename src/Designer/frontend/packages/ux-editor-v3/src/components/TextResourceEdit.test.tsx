@@ -27,7 +27,6 @@ const closeText = textMock('general.close');
 
 describe('TextResourceEdit', () => {
   afterEach(() => {
-    vi.clearAllMocks();
     queryClientMock.clear();
   });
 

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
@@ -28,8 +28,6 @@ const widget: IWidget = {
 const defaultArgs: AddWidgetMutationArgs = { widget, position: 0 };
 
 describe('useAddWidgetMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Saves layout', async () => {
     const { result } = await renderAddWidgetMutation();
     await result.current.mutateAsync(defaultArgs);

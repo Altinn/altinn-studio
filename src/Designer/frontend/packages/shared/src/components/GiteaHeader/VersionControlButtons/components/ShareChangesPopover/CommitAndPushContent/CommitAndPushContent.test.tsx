@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { CommitAndPushContent, type CommitAndPushContentProps } from './CommitAndPushContent';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -15,8 +15,6 @@ const defaultProps: CommitAndPushContentProps = {
 };
 
 describe('CommitAndPushContent', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render the component with all texts and textarea', () => {
     renderCommitAndPushContent();
 

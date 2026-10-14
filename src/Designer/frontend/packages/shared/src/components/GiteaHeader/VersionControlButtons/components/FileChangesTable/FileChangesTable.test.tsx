@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -28,8 +28,6 @@ const defaultProps: FileChangesTableProps = {
 };
 
 describe('FileChangesTable', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render a table with filePath and fileStatus column headers', () => {
     renderFileChangesTable();
     expect(getFileNameHeading()).toBeInTheDocument();

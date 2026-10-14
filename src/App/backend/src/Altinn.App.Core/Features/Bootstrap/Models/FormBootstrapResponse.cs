@@ -88,6 +88,13 @@ public sealed class DataModelInfo
     public object? ExpressionValidationConfig { get; init; }
 
     /// <summary>
+    /// Expression calculation configuration. Null for PDF mode or locked data.
+    /// </summary>
+    [JsonPropertyName("calculationConfig")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public object? CalculationConfig { get; init; }
+
+    /// <summary>
     /// Initial validation issues scoped to this data model/data element.
     /// Null for stateless mode or PDF generation.
     /// </summary>

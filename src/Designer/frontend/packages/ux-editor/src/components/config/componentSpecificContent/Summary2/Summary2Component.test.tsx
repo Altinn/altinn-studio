@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 import { screen, waitFor } from '@testing-library/react';
@@ -19,10 +19,6 @@ import { Summary2Component } from './Summary2Component';
 import userEvent from '@testing-library/user-event';
 
 describe('Summary2ComponentTargetSelector', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render', async () => {
     render();
 

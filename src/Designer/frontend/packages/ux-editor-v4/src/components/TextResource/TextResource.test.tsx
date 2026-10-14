@@ -29,7 +29,6 @@ const textResources: ITextResource[] = [
 
 describe('TextResource', () => {
   afterEach(() => {
-    vi.clearAllMocks();
     queryClientMock.clear();
   });
 

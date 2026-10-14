@@ -22,7 +22,6 @@ describe('CreateBranchDialog', () => {
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
     Object.defineProperty(window, 'location', {
       writable: true,
       value: originalLocation,
@@ -151,7 +150,6 @@ describe('CreateBranchDialog', () => {
 const defaultProps: CreateBranchDialogProps = {
   isOpen: true,
   onClose,
-  currentBranch: 'master',
   existingBranchNames: [],
   createError: '',
   isLoading: false,

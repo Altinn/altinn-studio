@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -37,8 +37,6 @@ const defaultProps: AccessListDetailProps = {
 const updateAccessListMock = vi.fn().mockImplementation(() => Promise.resolve({}));
 
 describe('AccessListDetail', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should call service to update name', async () => {
     const user = userEvent.setup();
     renderAccessListDetail({}, { updateAccessList: updateAccessListMock });

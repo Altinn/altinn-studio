@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import type { NavigationMenuProps } from './NavigationMenu';
 import { NavigationMenu } from './NavigationMenu';
@@ -37,8 +37,6 @@ const defaultProps: NavigationMenuProps = {
 };
 
 describe('NavigationMenu', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should open the menu when clicking the menu icon', async () => {
     const user = userEvent.setup();
     await render();

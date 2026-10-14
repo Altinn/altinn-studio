@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
@@ -38,8 +38,6 @@ const updatedComponent: FormComponent = {
 const defaultArgs: UpdateFormComponentMutationArgs = { id, updatedComponent };
 
 describe('useUpdateFormComponentMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Saves layout with updated component', async () => {
     renderAndWaitForData();
 
@@ -103,6 +101,37 @@ describe('useUpdateFormComponentMutation', () => {
     };
     await updateFormComponentResult.current.mutateAsync(args);
     expect(queriesMock.updateAppAttachmentMetadata).toHaveBeenCalledTimes(1);
+  });
+
+  it('Keeps enableFileScan from the old data type when updating the id of a FileUpload component', async () => {
+    const newId = 'newId';
+    renderAndWaitForData();
+    queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
+      dataTypes: [{ id, enableFileScan: false }],
+    });
+    const updateFormComponentResult = renderHookWithMockStore()(() =>
+      useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+    ).renderHookResult.result;
+    const newComponent: FormFileUploaderComponent = {
+      ...updatedComponent,
+      id: newId,
+      description: 'test',
+      displayMode: 'test',
+      hasCustomFileEndings: false,
+      maxFileSizeInMB: 100,
+      maxNumberOfAttachments: 2,
+      minNumberOfAttachments: 1,
+      type: ComponentTypeV3.FileUpload,
+    };
+
+    await updateFormComponentResult.current.mutateAsync({ id, updatedComponent: newComponent });
+
+    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledTimes(1);
+    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(
+      org,
+      app,
+      expect.objectContaining({ id: newId, enableFileScan: false }),
+    );
   });
 
   it('Does not keep original optionsId and options props from component when updating RadioButtons and CheckBoxes', async () => {

@@ -82,16 +82,16 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 ### Key Internal Packages
 
 - **internal/generator** - Core PDF generation using CDP
-  - Manages 1 browser session, 30-second timeout
-  - States: Ready → Generating → CleaningUp → Ready
+  - Runs one browser for the worker's lifetime, with a fresh browser context per request
+  - 30-second timeout
   - Returns 429 (ErrQueueFull) when at capacity
 
 - **internal/browser** - Chrome process management
   - Starts/stops headless Chrome at `/headless-shell/headless-shell`
 
 - **internal/cdp** - Chrome DevTools Protocol client
-  - WebSocket connection to browser debug port
-  - CDP command/response handling
+  - Pipe connection to the browser (`--remote-debugging-pipe`), no debugging port is opened
+  - CDP command/response handling, safe for concurrent use
 
 - **internal/types** - Shared types
   - `PdfRequest`, `PdfResult`, `PDFError`
@@ -106,6 +106,18 @@ make check                # Complete CI check (tidy, fmt, lint, test)
   - Headers: `X-Internals-Test-Input`, `X-Internals-Test-Output`
   - Tracks browser errors and console logs
 
+- **internal/appurl** - Parses and classifies a request's URL as an app URL
+  (`https://{org}.apps.{hostname}/{org}/{app}/...`). The proxy records the classification as
+  `altinn.pdf.url_kind`; it never changes how a request is served
+
+- **internal/telemetry** - OpenTelemetry setup, the attributes of a request's entry span, and URL
+  redaction
+  - **internal/telemetry/attr** - The name of every attribute pdf3 puts on a span or log record.
+    Use its constants for span attributes and log keys alike, never a string literal, so a concept
+    has one name on every signal. pdf3's own names are under `altinn.pdf.`, shared concepts use
+    the Altinn vocabulary (`altinn.service_owner`, …) and standard ones the semantic conventions
+    ([#21073](https://github.com/Altinn/altinn-studio/issues/21073))
+
 - **internal/assert** - Runtime assertions for invariant checking. Asserts should be used to catch programmer errors (e.g. invalid/unchecked assumptions about program state)
 - **internal/concurrent** - Thread-safe data structures (e.g., `Map`)
 - **internal/log** - Logging configuration
@@ -116,12 +128,13 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 2. Proxy validates and forwards to Worker
 3. Worker queues request (returns 429 if queue full)
 4. Browser session:
+   - Opens a page in a new browser context, so no state is shared between requests
    - Sets cookies
    - Navigates to URL
    - Waits for element/timeout (if `waitFor` specified)
    - Calls `Page.printToPDF` via CDP
    - Returns base64-encoded PDF
-   - Cleans up (navigate to `about:blank`, clear storage)
+   - Cleans up by disposing the browser context, which drops all its state on every origin
 5. Worker returns PDF to Proxy
 6. Proxy retries on 429 (configurable)
 7. Proxy returns PDF to client

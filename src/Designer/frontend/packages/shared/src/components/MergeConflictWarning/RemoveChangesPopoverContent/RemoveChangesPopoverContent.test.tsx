@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -39,8 +39,6 @@ const defaultProps: RemoveChangesPopoverContentProps = {
 };
 
 describe('DownloadRepoPopoverContent', () => {
-  afterEach(vi.clearAllMocks);
-
   it('enables the confirm button when the correct app name is typed', async () => {
     const user = userEvent.setup();
     renderRemoveChangesPopoverContent();

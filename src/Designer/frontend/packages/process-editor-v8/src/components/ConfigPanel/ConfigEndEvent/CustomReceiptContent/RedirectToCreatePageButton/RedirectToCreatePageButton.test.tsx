@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { RedirectToCreatePageButton } from './RedirectToCreatePageButton';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
@@ -15,10 +15,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 describe('RedirectToCreatePageButton', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('Renders link with correct href', async () => {
     renderRedirectToCreatePageButton();
 

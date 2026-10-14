@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { org, app } from '@studio/testing/testids';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useUpdateGroupsMutation } from './useUpdateGroupsMutation';
@@ -9,9 +9,6 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 const invalidateQueriesMock = vi.fn();
 
 describe('useUpdateGroupsMutation', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
   const renderUseUpdateGroupsMutation = (
     org: string,
     app: string,

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../test/renderWithProviders';
 import { StudioDragAndDropTree } from '@studio/components';
 import { SchemaNode } from './SchemaNode';
@@ -26,8 +26,6 @@ const setupSchemaModel = () => SchemaModel.fromArray(uiSchemaNodesMock).deepClon
 
 /* eslint-disable testing-library/no-node-access */ // Disabled because Eslint misinterprets the "children" properties as React children
 describe('SchemaNode', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders a node', () => {
     const { schemaPointer } = objectNodeMock;
     const name = extractNameFromPointer(schemaPointer);

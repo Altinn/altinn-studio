@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import {
   formLayoutSettingsMock,
@@ -80,10 +80,6 @@ const dragAndDrop = (src: Element, dst: Element) => {
 };
 
 describe('FormDesigner', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render the spinner', () => {
     render();
     expect(screen.getByLabelText(textMock('ux_editor.loading_form_layout'))).toBeInTheDocument();

@@ -20,6 +20,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - A service task that gives up when `Wait.IsFinalCheck` is `true` can no longer fail with the generic error for an exhausted wait budget instead of its own. In unit tests, set `IsFinalCheck` directly: a past `Deadline` no longer implies it.
 - Validation messages with texts from the app backend, such as XSD errors, now show as text in the form instead of a raw key like `backend.xsd_validation`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - File validation errors during upload are now in the user's language. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- Pages and components listed in `excludeFromPdf` in a task's `Settings.json` are now left out of the PDF that a PDF service task creates for that task through `autoPdfTaskIds`. ([#21107](https://github.com/Altinn/altinn-studio/issues/21107))
 
 ### Removed
 

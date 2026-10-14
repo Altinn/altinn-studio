@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { AddItemContent, type AddItemContentProps } from './AddItemContent';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -8,10 +8,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../testing/mocks';
 
 describe('AddItemContent', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   const MockIcon = () => <span>Icon</span>;
 
   const mockAvailableComponents: KeyValuePairs<IToolbarElement[]> = {

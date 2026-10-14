@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -29,7 +29,6 @@ vi.mock('@studio/hooks/src/hooks/useDebounce.ts', () => ({
 }));
 
 describe('HiddenExpressionOnLayout', () => {
-  afterEach(() => vi.clearAllMocks());
   it('renders expression builder when layout has no expression set on hidden prop', () => {
     renderHiddenExpressionOnLayout();
     screen.getByRole('group', { name: textMock('right_menu.expressions_property_preview_hidden') });

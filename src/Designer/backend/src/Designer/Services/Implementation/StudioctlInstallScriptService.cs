@@ -183,19 +183,19 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
         using var activity = ServiceTelemetry.Source.StartActivity(
             $"{nameof(StudioctlInstallScriptService)}.{nameof(FetchAndCacheAsync)}"
         );
-        activity?.SetTag("studioctl.install_script.type", scriptType.ToString());
+        activity?.SetTag(ServiceTelemetry.Attributes.Studioctl.InstallScriptType, scriptType.ToString());
 
         string fileName = GetFileName(scriptType);
         using HttpClient client = _httpClientFactory.CreateClient();
         ReleaseLookupResult releaseLookup = await ResolveLatestStudioctlReleaseAsync(client, cancellationToken);
-        activity?.SetTag("studioctl.release.discovery_status", releaseLookup.Status.ToString());
+        activity?.SetTag(ServiceTelemetry.Attributes.Studioctl.ReleaseDiscoveryStatus, releaseLookup.Status.ToString());
         if (releaseLookup.Status == StudioctlInstallScriptStatus.Unavailable)
         {
             _logger.LogWarning(
                 "Using last-known-good studioctl release {Tag} because release discovery is unavailable",
                 FallbackStudioctlReleaseTag
             );
-            activity?.SetTag("studioctl.release.fallback", true);
+            activity?.SetTag(ServiceTelemetry.Attributes.Studioctl.ReleaseFallback, true);
             activity.SetAlwaysSample();
             releaseLookup = new ReleaseLookupResult(StudioctlInstallScriptStatus.Ok, FallbackStudioctlReleaseTag);
         }
@@ -205,7 +205,7 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
             return new StudioctlInstallScriptResult(releaseLookup.Status, Array.Empty<byte>(), fileName, false);
         }
 
-        activity?.SetTag("studioctl.release.tag", releaseLookup.TagName);
+        activity?.SetTag(ServiceTelemetry.Attributes.Studioctl.ReleaseTag, releaseLookup.TagName);
 
         Uri url = new(s_downloadBaseUrl, $"{releaseLookup.TagName}/{fileName}");
 
@@ -325,9 +325,9 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
                 return new ReleaseLookupResult(StudioctlInstallScriptStatus.Unavailable, null);
             }
 
-            activity?.SetTag("github.release_lookup.page", page);
-            activity?.SetTag("github.response.status_code", (int)response.StatusCode);
-            activity?.SetTag("github.rate_limited", IsGitHubRateLimited(response));
+            activity?.SetTag(ServiceTelemetry.Attributes.Studioctl.GithubReleaseLookupPage, page);
+            activity?.SetTag(ServiceTelemetry.Attributes.Studioctl.GithubResponseStatusCode, (int)response.StatusCode);
+            activity?.SetTag(ServiceTelemetry.Attributes.Studioctl.GithubRateLimited, IsGitHubRateLimited(response));
 
             if (!response.IsSuccessStatusCode)
             {

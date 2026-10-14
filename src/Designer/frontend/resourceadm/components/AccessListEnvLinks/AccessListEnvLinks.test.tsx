@@ -1,4 +1,4 @@
-import { afterEach, describe, it, vi } from 'vitest';
+import { describe, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -47,8 +47,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('AccessListEnvLinks', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should show warning when resource is not published in some environments', async () => {
     renderAccessListEnvLinks();
 

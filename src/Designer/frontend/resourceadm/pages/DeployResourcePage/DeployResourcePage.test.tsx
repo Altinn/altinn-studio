@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { DeployResourcePageProps } from './DeployResourcePage';
 import { DeployResourcePage } from './DeployResourcePage';
@@ -63,8 +63,6 @@ const defaultProps: DeployResourcePageProps = {
 };
 
 describe('DeployResourcePage', () => {
-  afterEach(vi.clearAllMocks);
-
   it('initially displays the spinner when loading data', () => {
     renderDeployResourcePage();
 

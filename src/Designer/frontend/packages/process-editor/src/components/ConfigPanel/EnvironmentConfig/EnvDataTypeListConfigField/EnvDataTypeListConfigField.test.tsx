@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
@@ -18,8 +18,6 @@ const combinedAlert = textMock(
 const dataTypeIds = ['model', 'ref-data-as-pdf', 'attachment'];
 
 describe('EnvDataTypeListConfigField', () => {
-  afterEach(vi.clearAllMocks);
-
   it('combines data types for the same environment into one list', async () => {
     const user = userEvent.setup();
     renderEnvDataTypeListConfigField({

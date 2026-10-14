@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -26,8 +26,6 @@ const defaultActionsEditorProps: ActionsEditorProps = {
 };
 
 describe('ActionsEditor', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should display action in view mode by default', () => {
     renderActionsEditor();
     const actionButton = screen.getByRole('button', {

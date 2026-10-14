@@ -13,7 +13,7 @@ namespace Altinn.Studio.Observability.Proxy.Auth;
 /// group, reaches nothing. Any proxy route is authenticated whatever its path, and so is anything
 /// else under the prefix. The order of the answers is 401 for a missing or unknown token, 404 for
 /// no route, 403 for a route group the token was not granted, and 404 for a read path outside the
-/// signal's allowlist, so only an authenticated caller learns which paths exist.
+/// read API's allowlist, so only an authenticated caller learns which paths exist.
 /// </summary>
 internal sealed class StaticBearerTokenMiddleware
 {
@@ -71,8 +71,8 @@ internal sealed class StaticBearerTokenMiddleware
         }
 
         if (
-            ObservabilitySignal.ForReadRouteGroup(routeGroup) is { } signal
-            && !signal.AllowsRead(context.Request.Method, ReadPath(context))
+            ObservabilitySignal.ReadApiFor(routeGroup) is { } readApi
+            && !readApi.AllowsRead(context.Request.Method, ReadPath(context))
         )
         {
             Reject(context, source, routeGroup, "read path not allowed", StatusCodes.Status404NotFound);
@@ -92,7 +92,7 @@ internal sealed class StaticBearerTokenMiddleware
         await _next(context);
     }
 
-    /// <summary>The path below the signal's public read prefix, as the read route captured it.</summary>
+    /// <summary>The path below the read API's public prefix, as the read route captured it.</summary>
     private static string ReadPath(HttpContext context)
     {
         return "/" + context.Request.RouteValues[ObservabilityPaths.ReadPathRouteValue];

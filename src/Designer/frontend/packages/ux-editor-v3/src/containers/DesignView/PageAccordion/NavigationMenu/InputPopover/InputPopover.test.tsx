@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { InputPopoverProps } from './InputPopover';
 import { InputPopover } from './InputPopover';
@@ -26,8 +26,6 @@ const defaultProps: InputPopoverProps = {
 };
 
 describe('InputPopover', () => {
-  afterEach(vi.clearAllMocks);
-
   it('does hides dropdown menu item by default when not open', () => {
     render(<InputPopover {...defaultProps} />);
 

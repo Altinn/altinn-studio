@@ -56,7 +56,10 @@ exclude `'!**/AGENTS.md'`.
 
 `ubuntu-latest` for short checks; `self-hosted-ubuntu` (the image in
 [`src/ci/github-runner`](../src/ci/github-runner/Dockerfile)) when the baked-in
-toolchains or the local cache help. Jobs serving fork PRs pick per event:
+toolchains or the local cache help. Fork PRs run on `self-hosted-ubuntu` like
+any other PR. Pick the runner by origin only when forks take a separate path
+because the trusted jobs need secrets, which fork PRs do not receive, as in
+[`app-frontend-cypress.yml`](workflows/app-frontend-cypress.yml):
 
 ```yaml
 runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-ubuntu' }}
@@ -100,7 +103,7 @@ Three mechanisms, by content type:
 3. **The runner image**
    ([`src/ci/github-runner`](../src/ci/github-runner/Dockerfile)): anything
    identical on every run (Go/Node/Rust/.NET toolchains, Chrome, Cypress,
-   cargo-machete) is baked in, not downloaded or cached per job.
+   cargo-machete, shellcheck) is baked in, not downloaded or cached per job.
 
 Couplings to keep in sync:
 
@@ -116,3 +119,23 @@ Prefer `restore-keys` prefixes on hash-keyed caches (dependency-bump PRs get
 partial hits from the latest main entry) but never on content-addressed ones (a
 partial restore is silently stale). A new heavy per-run download belongs in the
 runner image, not in a workflow step.
+
+## Reading pull request checks
+
+- **A PR with merge conflicts runs no suites.** Every `pull_request` workflow checks out
+  `refs/pull/N/merge`, which cannot be computed, so the suites never start, and the Azure checks
+  (`altinn-studio-build-app-image-v2`, `bruksmønster-*`) show as failed. Check
+  `gh pr view <n> --json mergeable,mergeStateStatus` first; only resolving the conflict helps.
+  A concurrent `CHANGELOG.md` bullet landing on `main` is the usual cause.
+- **`gh pr checks --watch` and `gh run watch --exit-status` can report success before or despite
+  the work.** Workflows register over the first minutes, so a watch started right after a push can
+  end green with only the labeler done. Wait for the expected suites to appear, and read the verdict
+  with `gh run view <id> --json conclusion`.
+- **A matrix shows one cause as several failures.** Fail-fast cancels the sibling legs ("The
+  operation was canceled"); find the job that failed on its own with `gh run view <id> --json jobs`.
+- **App Frontend Cypress shards** that stop making progress are ended by a watchdog
+  (`run-cypress-with-diagnostics.mjs`), which uploads diagnostics for the blocked spec. Re-running
+  only the failed shard can fail at once with "The focused App Frontend dependency cache was not
+  populated by the prerequisite job", because `--failed` does not re-run the job that seeded the
+  cache; re-run the whole workflow then. A failure screenshot showing a 502 page means the app
+  never started, not that the change broke it.

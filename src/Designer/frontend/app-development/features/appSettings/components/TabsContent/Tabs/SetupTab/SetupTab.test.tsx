@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { SetupTab } from './SetupTab';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -9,8 +9,6 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
 
 describe('SetupTab', () => {
-  afterEach(vi.clearAllMocks);
-
   it('initially displays the spinner when loading data', () => {
     renderSetupTab();
     expect(screen.getByText(textMock('app_settings.loading_content'))).toBeInTheDocument();

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { usePageHeaderTitle } from './usePageHeaderTitle';
 import { HeaderContext, type HeaderContextProps } from '../../context/HeaderContext';
@@ -23,10 +23,6 @@ const renderUsePageHeaderTitleHook = (
 };
 
 describe('usePageHeaderTitle', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should return the organization name when a valid context is selected', () => {
     (useSelectedContext as Mock).mockReturnValue(mockOrg1.username);
 

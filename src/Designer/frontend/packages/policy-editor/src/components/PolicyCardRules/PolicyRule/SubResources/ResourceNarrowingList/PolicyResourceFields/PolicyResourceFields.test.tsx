@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { PolicyResourceFieldsProps } from './PolicyResourceFields';
@@ -26,8 +26,6 @@ const defaultProps: PolicyResourceFieldsProps = {
 };
 
 describe('PolicyResourceFields', () => {
-  afterEach(vi.clearAllMocks);
-
   it('sets text fields to readonly when "canEditTypeAndId" is false', () => {
     renderPolicyResourceFieldsWithMultipleNarrowingPolicies({ canEditTypeAndId: false });
 
