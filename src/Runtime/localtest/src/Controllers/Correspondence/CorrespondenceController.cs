@@ -60,6 +60,15 @@ public class CorrespondenceController(LocalCorrespondenceRepository repository) 
             );
         }
 
+        if (recipients.Any(string.IsNullOrWhiteSpace))
+        {
+            return ProblemResult(
+                StatusCodes.Status400BadRequest,
+                "Invalid request",
+                "A correspondence recipient cannot be empty."
+            );
+        }
+
         if (request.IdempotentKey == Guid.Empty)
         {
             return ProblemResult(

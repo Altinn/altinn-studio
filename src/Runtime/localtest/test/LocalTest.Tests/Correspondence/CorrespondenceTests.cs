@@ -143,6 +143,19 @@ public sealed class CorrespondenceTests : IDisposable
     }
 
     [Fact]
+    public async Task Initialize_EmptyRecipient_ReturnsBadRequest()
+    {
+        var request = JsonDocument
+            .Parse("""{"recipients": ["urn:altinn:organization:identifier-no:991825827", null, " "]}""")
+            .RootElement;
+
+        var problem = await InitializeProblem(request);
+
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
+        Assert.Empty(await _repository.Read());
+    }
+
+    [Fact]
     public async Task Details_ReturnsTheStoredCorrespondence()
     {
         var response = await Initialize(
