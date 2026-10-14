@@ -81,6 +81,10 @@ include = ["agents", "api", "benchmarks", "scripts", "services", "shared", "test
 target-version = "py312"
 line-length = 120
 
+[tool.ruff.format]
+# Markdown formatting is optional and should not gate code changes in CI.
+exclude = ["*.md"]
+
 [tool.ruff.lint]
 select = [
     "E",     # pycodestyle errors: whitespace, comparisons to None, bare except, ambiguous names

@@ -85,12 +85,13 @@ public sealed class ReverseProxyConfigTests
         Assert.Equal("FirstAlphabetical", cluster.LoadBalancingPolicy);
         Assert.True(ObservabilityReverseProxyConfig.IsStoragePair(cluster));
         Assert.NotNull(cluster.Destinations);
-        Assert.Equal(["instance-0", "instance-1"], cluster.Destinations.Keys.Order());
-        Assert.Equal("http://traces-a:10428/", cluster.Destinations["instance-0"].Address);
-        Assert.Equal("http://traces-b:10428/", cluster.Destinations["instance-1"].Address);
+        // Named after the copies, in configuration order; logs and metrics use these names.
+        Assert.Equal(["a", "b"], cluster.Destinations.Keys.Order());
+        Assert.Equal("http://traces-a:10428/", cluster.Destinations["a"].Address);
+        Assert.Equal("http://traces-b:10428/", cluster.Destinations["b"].Address);
 
         // Probed at the root, not through the Tempo path the route prepends.
-        Assert.Equal("http://traces-a:10428/", cluster.Destinations["instance-0"].Health);
+        Assert.Equal("http://traces-a:10428/", cluster.Destinations["a"].Health);
         var activeHealthCheck = cluster.HealthCheck?.Active;
         Assert.NotNull(activeHealthCheck);
         Assert.True(activeHealthCheck.Enabled);

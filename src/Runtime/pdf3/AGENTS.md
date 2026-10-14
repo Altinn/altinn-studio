@@ -82,16 +82,16 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 ### Key Internal Packages
 
 - **internal/generator** - Core PDF generation using CDP
-  - Manages 1 browser session, 30-second timeout
-  - States: Ready → Generating → CleaningUp → Ready
+  - Runs one browser for the worker's lifetime, with a fresh browser context per request
+  - 30-second timeout
   - Returns 429 (ErrQueueFull) when at capacity
 
 - **internal/browser** - Chrome process management
   - Starts/stops headless Chrome at `/headless-shell/headless-shell`
 
 - **internal/cdp** - Chrome DevTools Protocol client
-  - WebSocket connection to browser debug port
-  - CDP command/response handling
+  - Pipe connection to the browser (`--remote-debugging-pipe`), no debugging port is opened
+  - CDP command/response handling, safe for concurrent use
 
 - **internal/types** - Shared types
   - `PdfRequest`, `PdfResult`, `PDFError`
@@ -128,12 +128,13 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 2. Proxy validates and forwards to Worker
 3. Worker queues request (returns 429 if queue full)
 4. Browser session:
+   - Opens a page in a new browser context, so no state is shared between requests
    - Sets cookies
    - Navigates to URL
    - Waits for element/timeout (if `waitFor` specified)
    - Calls `Page.printToPDF` via CDP
    - Returns base64-encoded PDF
-   - Cleans up (navigate to `about:blank`, clear storage)
+   - Cleans up by disposing the browser context, which drops all its state on every origin
 5. Worker returns PDF to Proxy
 6. Proxy retries on 429 (configurable)
 7. Proxy returns PDF to client

@@ -3,7 +3,6 @@ package generator
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"sync/atomic"
 	"time"
@@ -12,7 +11,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"altinn.studio/pdf3/internal/assert"
-	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
 	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/log"
@@ -25,47 +23,13 @@ import (
 )
 
 type Custom struct {
-	tracer           trace.Tracer
-	logger           *slog.Logger
-	activeSession    atomic.Pointer[browserSession]
-	pdfaConverter    *pdfa.Converter
-	browserVersion   types.BrowserVersion
-	sessionIDCounter atomic.Int32
-	convertToPDFA    bool
-}
-
-// getBrowserVersion starts a temporary browser and retrieves its version information.
-func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
-	// Start temporary browser instance
-	browserProc, err := browser.Start(-1)
-	if err != nil {
-		return types.BrowserVersion{}, fmt.Errorf("failed to create temporary browser for version info: %w", err)
-	}
-	defer func() {
-		if closeErr := browserProc.Close(); closeErr != nil {
-			logger.Error("Failed to close temporary browser", attr.Error, closeErr)
-		}
-	}()
-
-	// Connect to get version only (no event handler needed)
-	conn, _, err := cdp.Connect(context.Background(), -1, browserProc.DebugBaseURL, nil)
-	if err != nil {
-		return types.BrowserVersion{}, fmt.Errorf("failed to connect to temporary browser: %w", err)
-	}
-	defer func() {
-		// Closing connection during init - will be recreated anyway
-		if closeErr := conn.Close(); closeErr != nil {
-			logger.Error("Failed to close temporary browser connection", attr.Error, closeErr)
-		}
-	}()
-
-	// Get browser version using CDP command
-	version, err := cdp.GetBrowserVersion(conn)
-	if err != nil {
-		return types.BrowserVersion{}, fmt.Errorf("failed to get browser version: %w", err)
-	}
-
-	return *version, nil
+	tracer trace.Tracer
+	logger *slog.Logger
+	// session is set once the browser has started, the worker isn't ready before
+	session        atomic.Pointer[browserSession]
+	pdfaConverter  *pdfa.Converter
+	browserVersion types.BrowserVersion
+	convertToPDFA  bool
 }
 
 func New() (*Custom, error) {
@@ -97,14 +61,18 @@ func New() (*Custom, error) {
 
 		logger.Info("Initializing Custom CDP")
 
-		// Get and set browser version
-		version, err := getBrowserVersion(logger)
+		// The worker runs one browser for its whole lifetime. Every request gets its own browser
+		// context, disposed afterwards, so no request leaves state behind in the browser.
+		session, err := newBrowserSession(logger, 1)
+		assert.That(err == nil, "Failed to create worker", attr.Error, err)
+
+		version, err := cdp.GetBrowserVersion(session.conn)
 		if err != nil {
 			telemetry.SetError(span, "get_browser_version_failed", err)
 			assert.That(err == nil, "Failed to get browser version", attr.Error, err)
 		}
 
-		generator.browserVersion = version
+		generator.browserVersion = *version
 		if span.IsRecording() {
 			span.SetAttributes(
 				attribute.String(attr.BrowserVersionProduct, version.Product),
@@ -118,36 +86,20 @@ func New() (*Custom, error) {
 			attr.BrowserVersionProtocol, version.ProtocolVersion,
 		)
 
-		init := func(id int) *browserSession {
-			logger.Info("Starting browser worker", attr.SessionID, id)
-
-			session, err := newBrowserSession(logger, id)
-			assert.That(err == nil, "Failed to create worker", attr.SessionID, id, attr.Error, err)
-
-			return session
-		}
-
-		generator.sessionIDCounter.Store(1)
-		firstSession := init(1)
-		generator.activeSession.Store(firstSession)
-		if span.IsRecording() {
-			span.SetAttributes(attribute.Int(attr.SessionID, firstSession.id))
-		}
-
-		go generator.periodicRestart()
+		generator.session.Store(session)
 	}()
 
 	return generator, nil
 }
 
 func (g *Custom) IsReady() bool {
-	return g.activeSession.Load() != nil
+	return g.session.Load() != nil
 }
 
 func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types.PdfResult, *types.PDFError) {
 	// The URL as logs show it: without query or fragment.
 	requestURL := telemetry.RedactURL(request.URL)
-	session := g.activeSession.Load()
+	session := g.session.Load()
 	assert.That(
 		session != nil,
 		"The worker should not call the generator unless it is ready",
@@ -165,7 +117,6 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 		responder:  responder,
 		ctx:        ctx,
 		enqueuedAt: time.Now(),
-		cleanedUp:  false,
 		logger:     g.logger.With(attr.RequestURL, requestURL),
 	}
 
@@ -253,86 +204,11 @@ func (g *Custom) postProcessPDF(ctx context.Context, data []byte) ([]byte, *type
 
 func (g *Custom) Close() error {
 	g.logger.Info("Closing PDF generator")
-	session := g.activeSession.Load()
+	session := g.session.Load()
 	if session != nil {
 		session.close()
 	}
 	return nil
-}
-
-func (g *Custom) periodicRestart() {
-	const recheckInterval = 1 * time.Minute // How often to recheck if restart is disabled
-
-	for {
-		interval := config.ReadConfig().BrowserRestartInterval
-
-		// If interval is 0 or negative, periodic restart is disabled
-		if interval <= 0 {
-			g.logger.Info(
-				"Periodic browser restart is disabled, will recheck",
-				attr.RestartRecheckInMs,
-				recheckInterval.Milliseconds(),
-			)
-			time.Sleep(recheckInterval)
-			continue
-		}
-
-		g.logger.Info("Periodic browser restart enabled", attr.RestartIntervalMs, interval.Milliseconds())
-		ticker := time.NewTicker(interval)
-
-		// Wait for first tick
-		<-ticker.C
-		ticker.Stop()
-
-		// Perform restart
-		g.logger.Info("Starting periodic browser restart")
-		_, restartSpan := g.tracer.Start(context.Background(), "pdf.generator.restart")
-		if restartSpan.IsRecording() {
-			restartSpan.SetAttributes(attribute.Int64(attr.RestartIntervalMs, interval.Milliseconds()))
-		}
-
-		nextID := int(g.sessionIDCounter.Add(1))
-
-		g.logger.Info("Creating new browser session for restart", attr.SessionID, nextID)
-		newSession, err := newBrowserSession(g.logger, nextID)
-		if err != nil {
-			g.logger.Error(
-				"Failed to create new browser session, keeping old session",
-				attr.SessionID,
-				nextID,
-				attr.Error,
-				err,
-			)
-			telemetry.SetError(restartSpan, "new_session_failed", err)
-			restartSpan.End()
-			// Wait a bit before retrying to avoid tight loop on persistent errors
-			time.Sleep(1 * time.Minute)
-			continue
-		}
-
-		oldSession := g.activeSession.Swap(newSession)
-		g.logger.Info("Swapped to new browser session", attr.SessionOldID, oldSession.id, attr.SessionNewID, nextID)
-		if restartSpan.IsRecording() {
-			restartSpan.SetAttributes(
-				attribute.Int(attr.SessionOldID, oldSession.id),
-				attribute.Int(attr.SessionNewID, nextID),
-			)
-		}
-
-		drained := oldSession.waitForDrain(types.SessionDrainTimeout)
-		if restartSpan.IsRecording() {
-			restartSpan.SetAttributes(
-				attribute.Bool(attr.SessionDrained, drained),
-				attribute.Int64(attr.SessionDrainTimeoutMs, types.SessionDrainTimeout.Milliseconds()),
-			)
-		}
-
-		oldSession.close()
-		g.logger.Info("Browser restart complete", attr.SessionOldID, oldSession.id, attr.SessionNewID, nextID)
-		restartSpan.End()
-
-		// Loop back to recheck interval (allows dynamic config changes)
-	}
 }
 
 type workerRequest struct {
@@ -341,8 +217,9 @@ type workerRequest struct {
 	ctx       context.Context
 	responder chan workerResponse
 	logger    *slog.Logger
-	request   types.PdfRequest
-	cleanedUp bool
+	// browserContextID is the context that holds all browser state of the request
+	browserContextID string
+	request          types.PdfRequest
 }
 
 func (r *workerRequest) tryGetTestModeInput() *testing.PdfInternalsTestInput {

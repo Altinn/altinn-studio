@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"slices"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -27,57 +28,101 @@ const (
 	cleanupError  = "Failed to load resource: net::ERR_ABORTED"
 )
 
-// pageConnection plays a page that reports an error as it loads, and another as cleanup
-// navigates away from it, and otherwise loads, passes its wait and prints. Like Chrome, it reports
-// events from another goroutine than the one sending commands.
+// pageConnection plays a browser that opens a page in a new context for each request. The page
+// reports an error as it loads, and another as cleanup disposes of its context, and otherwise
+// loads, passes its wait and prints. Like Chrome, it reports events from another goroutine than
+// the one sending commands.
 type pageConnection struct {
 	session *browserSession
+	// pageSessionID is the session of the page the browser has open
+	pageSessionID atomic.Pointer[string]
+	pages         atomic.Int32
 }
 
-func (c *pageConnection) SendCommand(_ context.Context, method string, params any) (*cdp.CDPResponse, error) {
+// events sends events from the page's session from another goroutine, and returns once they're
+// handled.
+func (c *pageConnection) events(sessionID string, events ...cdp.CDPMessage) {
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for _, event := range events {
+			c.session.handleEvent(sessionID, event.Method, event.Params)
+		}
+	}()
+	<-done
+}
+
+func logEntry(entry map[string]any) cdp.CDPMessage {
+	return cdp.CDPMessage{Method: "Log.entryAdded", Params: map[string]any{"entry": entry}}
+}
+
+func (c *pageConnection) SendCommand(_ context.Context, method string, _ any) (*cdp.CDPMessage, error) {
+	switch method {
+	case "Target.createBrowserContext":
+		return &cdp.CDPMessage{Result: map[string]any{"browserContextId": "context"}}, nil
+	case "Target.createTarget":
+		return &cdp.CDPMessage{Result: map[string]any{"targetId": "target"}}, nil
+	case "Target.attachToTarget":
+		sessionID := fmt.Sprintf("page-%d", c.pages.Add(1))
+		c.pageSessionID.Store(&sessionID)
+		return &cdp.CDPMessage{Result: map[string]any{"sessionId": sessionID}}, nil
+	case "Target.disposeBrowserContext":
+		if sessionID := c.pageSessionID.Swap(nil); sessionID != nil {
+			c.events(*sessionID, logEntry(map[string]any{"level": "error", "source": "network", "text": cleanupError}))
+		}
+	}
+	return &cdp.CDPMessage{Result: map[string]any{}}, nil
+}
+
+func (c *pageConnection) SendCommandBatch(_ context.Context, batch []cdp.Command) []*cdp.CommandResponse {
+	responses := make([]*cdp.CommandResponse, len(batch))
+	for i := range batch {
+		responses[i] = &cdp.CommandResponse{Resp: &cdp.CDPMessage{Result: map[string]any{}}}
+	}
+	return responses
+}
+
+//nolint:ireturn // Implements cdp.Connection.
+func (c *pageConnection) Session(sessionID string) cdp.Commander {
+	return &fakePage{conn: c, sessionID: sessionID}
+}
+
+func (c *pageConnection) Done() <-chan struct{} { return nil }
+
+func (c *pageConnection) Close() error { return nil }
+
+// fakePage is the page of a pageConnection.
+type fakePage struct {
+	conn      *pageConnection
+	sessionID string
+}
+
+func (p *fakePage) SendCommand(_ context.Context, method string, params any) (*cdp.CDPMessage, error) {
 	switch method {
 	case "Page.navigate":
 		navigateParams, ok := params.(map[string]any)
 		if !ok {
 			return nil, errUnexpectedParams
 		}
-		navigatedTo := stringField(navigateParams, "url")
-		events := make(chan struct{})
-		go func() {
-			defer close(events)
-			if navigatedTo != cleanupBlankURL {
-				c.session.handleEvent("Log.entryAdded", map[string]any{"entry": map[string]any{
-					"level": "error", "source": "network", "text": pageLoadError, "url": navigatedTo + "api/process",
-				}})
-				return
-			}
-			c.session.handleEvent("Log.entryAdded", map[string]any{"entry": map[string]any{
-				"level": "error", "source": "network", "text": cleanupError,
-			}})
-			c.session.handleEvent(
-				"Page.frameNavigated",
-				map[string]any{"frame": map[string]any{"url": cleanupBlankURL}},
-			)
-			c.session.handleEvent("Page.loadEventFired", map[string]any{})
-		}()
-		<-events
+		p.conn.events(p.sessionID, logEntry(map[string]any{
+			"level": "error", "source": "network", "text": pageLoadError,
+			"url": stringField(navigateParams, "url") + "api/process",
+		}))
 	case "Runtime.evaluate":
-		return &cdp.CDPResponse{Result: map[string]any{"result": map[string]any{"type": "boolean", "value": true}}}, nil
+		return &cdp.CDPMessage{Result: map[string]any{"result": map[string]any{"type": "boolean", "value": true}}}, nil
 	case "Page.printToPDF":
-		return &cdp.CDPResponse{Result: map[string]any{"data": base64.StdEncoding.EncodeToString([]byte("%PDF"))}}, nil
+		return &cdp.CDPMessage{Result: map[string]any{"stream": "pdf"}}, nil
+	case "IO.read":
+		return &cdp.CDPMessage{Result: map[string]any{
+			"base64Encoded": true, "data": base64.StdEncoding.EncodeToString([]byte("%PDF")), "eof": true,
+		}}, nil
 	}
-	return &cdp.CDPResponse{Result: map[string]any{}}, nil
+	return &cdp.CDPMessage{Result: map[string]any{}}, nil
 }
 
-func (c *pageConnection) SendCommandBatch(_ context.Context, batch []cdp.Command) []*cdp.CommandResponse {
-	responses := make([]*cdp.CommandResponse, len(batch))
-	for i := range batch {
-		responses[i] = &cdp.CommandResponse{Resp: &cdp.CDPResponse{Result: map[string]any{}}}
-	}
-	return responses
+func (p *fakePage) SendCommandBatch(ctx context.Context, batch []cdp.Command) []*cdp.CommandResponse {
+	return p.conn.SendCommandBatch(ctx, batch)
 }
-
-func (c *pageConnection) Close() error { return nil }
 
 type capturedRecord struct {
 	attrs   map[string]string
@@ -192,8 +237,9 @@ func runRequestsWith(
 			ctx:        ctx,
 			enqueuedAt: time.Now(),
 			responder:  responder,
-			logger:     slog.New(slog.DiscardHandler),
-			request:    types.PdfRequest{URL: requestURL},
+			// As Generate gives it
+			logger:  logger.With(attr.RequestURL, telemetry.RedactURL(requestURL)),
+			request: types.PdfRequest{URL: requestURL},
 		}
 	}
 	for _, responder := range responders {
@@ -217,8 +263,8 @@ func runRequestsWith(
 }
 
 // TestHandleRequests_LogsPageErrorsWithTheirRequest checks that a page error is logged with the
-// request's URL and in its trace, and that an error the page reports as cleanup navigates away
-// from it is not logged as the page's.
+// request's URL and in its trace, and that an error the page reports as cleanup disposes of its
+// context is not logged as the page's.
 func TestHandleRequests_LogsPageErrorsWithTheirRequest(t *testing.T) {
 	logs := newCaptureHandler()
 	requestURL := "https://ttd.apps.tt02.altinn.no/ttd/app/"
@@ -272,7 +318,13 @@ func TestHandleRequests_PageErrorsStayWithTheirRequest(t *testing.T) {
 			case <-stop:
 				return
 			default:
-				session.handleEvent("Runtime.exceptionThrown", map[string]any{
+				// The page's session can end, and the next request's start, before the event is
+				// handled, as when Chrome's events race the worker's requests.
+				sessionID := ""
+				if id := session.pageSessionID.Load(); id != nil {
+					sessionID = *id
+				}
+				session.handleEvent(sessionID, "Runtime.exceptionThrown", map[string]any{
 					"exceptionDetails": map[string]any{"text": "Uncaught TypeError"},
 				})
 			}

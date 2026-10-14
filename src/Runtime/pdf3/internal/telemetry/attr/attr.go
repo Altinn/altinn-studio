@@ -121,16 +121,8 @@ const (
 	QueueCapacity = prefix + "queue.capacity"
 )
 
-// The browser session a request ran in, and the restarts that replace it.
-const (
-	SessionID             = prefix + "session.id"
-	SessionOldID          = prefix + "session.old_id"
-	SessionNewID          = prefix + "session.new_id"
-	SessionDrained        = prefix + "session.drained"
-	SessionDrainTimeoutMs = prefix + "session.drain_timeout_ms"
-	RestartIntervalMs     = prefix + "restart.interval_ms"
-	RestartRecheckInMs    = prefix + "restart.recheck_in_ms"
-)
+// SessionID is the browser session a request ran in.
+const SessionID = prefix + "session.id"
 
 // What the page reported as errors while it served a request: the counts, on its entry span, and
 // each error, in a log record of its own. An error's message is truncated, and its URLs, like the
@@ -153,6 +145,14 @@ const (
 	PageErrorLogSource = prefix + "page.error.log_source"
 )
 
+// The JavaScript dialogs (alert, confirm, prompt) the page opened while it served a request, which
+// pdf3 dismisses: how many, the limit after which the render ends, and the first one's type.
+const (
+	PageDialogs      = prefix + "page.dialogs"
+	PageDialogsLimit = prefix + "page.dialogs_limit"
+	PageDialogType   = prefix + "page.dialog.type"
+)
+
 // WaitException is the exception the expression that waits for the request's waitFor threw,
 // truncated.
 const WaitException = prefix + "wait.exception"
@@ -161,10 +161,8 @@ const WaitException = prefix + "wait.exception"
 // returned, when it isn't the boolean it should be.
 const WaitResultBytes = prefix + "wait.result_bytes"
 
-// The reset of the browser session after a request.
+// The cleanup after a request, which disposes of its browser context.
 const (
-	CleanupAttempts     = prefix + "cleanup.attempts"
-	CleanupSucceeded    = prefix + "cleanup.succeeded"
 	CleanupSkipped      = prefix + "cleanup.skipped"
 	CleanupDelaySeconds = prefix + "cleanup.delay_seconds"
 )
@@ -185,26 +183,21 @@ const (
 	BrowserVersionRevision = prefix + "browser.version.revision"
 	BrowserVersionProtocol = prefix + "browser.version.protocol"
 	BrowserPath            = prefix + "browser.path"
-	BrowserDebugPort       = prefix + "browser.debug_port"
 	BrowserDataDir         = prefix + "browser.data_dir"
 	BrowserPGID            = prefix + "browser.pgid"
 	BrowserArgs            = prefix + "browser.args"
 	BrowserOutput          = prefix + "browser.output"
+
+	// BrowserOutputTruncatedBytes is how much of a line of the browser's output was cut off.
+	BrowserOutputTruncatedBytes = prefix + "browser.output_truncated_bytes"
 )
 
 // The Chrome DevTools Protocol connection to the browser.
 const (
-	CDPURL             = prefix + "cdp.url"
-	CDPCommandID       = prefix + "cdp.command_id"
-	CDPPendingCommands = prefix + "cdp.pending_commands"
-	CDPPayloadBytes    = prefix + "cdp.payload_bytes"
-	CDPCloseCode       = prefix + "cdp.close.code"
-	CDPCloseText       = prefix + "cdp.close.text"
-	CDPTargetCount     = prefix + "cdp.target_count"
-	CDPTargetIndex     = prefix + "cdp.target.index"
-	CDPTargetType      = prefix + "cdp.target.type"
-	CDPTargetID        = prefix + "cdp.target.id"
-	CDPTargetURL       = prefix + "cdp.target.url"
+	CDPCommandID = prefix + "cdp.command_id"
+
+	// CDPResultField is the field of a command's result the record is about.
+	CDPResultField = prefix + "cdp.result_field"
 )
 
 // AssertMessage is a failed assertion's message.

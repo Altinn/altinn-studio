@@ -23,10 +23,13 @@ Build tooling (`Directory.Build.props`, CSharpier config, `.config`, `.vscode`) 
 instead. MSBuild and CSharpier search upwards, and none of it is inside `src/`, so it never reaches a
 generated app. Move a file into `<id>/` only when the versions genuinely need different tooling.
 
-| Folder | Altinn.App | TFM       |
-| ------ | ---------- | --------- |
-| `v8`   | 8.x        | `net8.0`  |
-| `v9`   | 9.x        | `net10.0` |
+| Folder | Altinn.App | TFM       | SDK  |
+| ------ | ---------- | --------- | ---- |
+| `v8`   | 8.x        | `net8.0`  | 8.0  |
+| `v9`   | 9.x        | `net10.0` | 10.0 |
+
+Each `<id>/global.json` pins the SDK that version's Dockerfile builds with, so CI and local builds match
+the app image rather than the newest SDK installed. Building `v8` therefore needs a .NET 8 SDK.
 
 The folder name is the template id. Each folder carries an `src/apptemplate.json` naming it for the
 dashboard picker:
@@ -39,9 +42,10 @@ dashboard picker:
 `studioctl app upgrade v9 -p src/App/template/v9/src`. From there it is maintained on its own — changes
 to `v8` are not carried over.
 
-**Adding a version is a folder drop.** Copy a folder, edit its manifest and `App.csproj`, add the id to
-the CI matrices, the Renovate rules, and the release-rsync stages in `src/Designer/Dockerfile` — without
-the last one the template is missing from the image. No backend change — the Designer discovers them.
+**Adding a version is a folder drop.** Copy a folder, edit its manifest, `App.csproj` and `global.json`,
+add the id to the CI matrices, the Renovate rules, and the release-rsync stages in
+`src/Designer/Dockerfile` — without the last one the template is missing from the image. No backend
+change — the Designer discovers them.
 
 Users pick the template when creating an application (`appTemplate` on the create-app request, listed by
 `GET designer/api/apptemplates`, behind the `appTemplates` feature flag). Without a choice the Designer
