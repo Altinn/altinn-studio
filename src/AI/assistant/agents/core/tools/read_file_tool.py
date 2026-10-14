@@ -5,6 +5,8 @@ Marks the file as read, so `edit_file` and `write_file` may change it.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from agents.core.tool import LoopContext, Tool, ToolResult
@@ -40,32 +42,12 @@ class ReadFileTool(Tool[ReadFileArgs]):
     is_concurrency_safe = True
 
     async def run(self, args: ReadFileArgs, ctx: LoopContext) -> ToolResult:
-        try:
-            full = resolve_repo_path(ctx.repo_path, args.path)
-        except PathError as exc:
-            return ToolResult(content=str(exc), is_error=True)
-        if not full.exists():
-            return ToolResult(content=f"File does not exist: {args.path}", is_error=True)
-        if full.is_dir():
-            return ToolResult(
-                content=(
-                    f"Not a file: {args.path} is a directory.  "
-                    "Call `scan_repo` to see the repo inventory, or call "
-                    "`read_file` on a specific file inside this directory."
-                ),
-                is_error=True,
-            )
-        if not full.is_file():
-            return ToolResult(content=f"Not a file: {args.path}", is_error=True)
-        try:
-            text = full.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            return ToolResult(
-                content=f"File {args.path} is not UTF-8 text — cannot read.",
-                is_error=True,
-            )
-        except OSError as exc:
-            return ToolResult(content=f"Read failed: {exc}", is_error=True)
+        full = _find_file(ctx, args.path)
+        if isinstance(full, ToolResult):
+            return full
+        text = _read_text(full, args.path)
+        if isinstance(text, ToolResult):
+            return text
 
         mark_read(ctx, args.path)
 
@@ -79,3 +61,36 @@ class ReadFileTool(Tool[ReadFileArgs]):
                 metadata={"truncated": True, "chars": len(text)},
             )
         return ToolResult(content=text, metadata={"chars": len(text)})
+
+
+def _find_file(ctx: LoopContext, rel_path: str) -> Path | ToolResult:
+    try:
+        full = resolve_repo_path(ctx.repo_path, rel_path)
+    except PathError as exc:
+        return ToolResult(content=str(exc), is_error=True)
+    if not full.exists():
+        return ToolResult(content=f"File does not exist: {rel_path}", is_error=True)
+    if full.is_dir():
+        return ToolResult(
+            content=(
+                f"Not a file: {rel_path} is a directory.  "
+                "Call `scan_repo` to see the repo inventory, or call "
+                "`read_file` on a specific file inside this directory."
+            ),
+            is_error=True,
+        )
+    if not full.is_file():
+        return ToolResult(content=f"Not a file: {rel_path}", is_error=True)
+    return full
+
+
+def _read_text(full: Path, rel_path: str) -> str | ToolResult:
+    try:
+        return full.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        return ToolResult(
+            content=f"File {rel_path} is not UTF-8 text — cannot read.",
+            is_error=True,
+        )
+    except OSError as exc:
+        return ToolResult(content=f"Read failed: {exc}", is_error=True)

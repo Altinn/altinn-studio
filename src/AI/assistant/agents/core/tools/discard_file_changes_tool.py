@@ -57,10 +57,15 @@ class DiscardFileChangesTool(WriteTool[DiscardFileChangesArgs]):
                 content=f"Discard failed: {exc.stderr.strip() or exc}",
                 is_error=True,
             )
-        # Drop the file from all tracking sets — its in-memory state is
-        # no longer "the version we modified" nor "the version we read",
-        # and its prior verification badge no longer applies.
-        (ctx.extras.get("changed_files") or set()).discard(args.path)
-        (ctx.extras.get("read_set") or set()).discard(args.path)
-        (ctx.extras.get("verified_files") or set()).discard(args.path)
+        _forget_file(ctx, args.path)
         return ToolResult(content=f"Reset {args.path} to HEAD.")
+
+
+def _forget_file(ctx: LoopContext, rel_path: str) -> None:
+    """Drop the file from all tracking sets.
+
+    Its in-memory state is no longer "the version we modified" nor "the
+    version we read", and its prior verification badge no longer applies.
+    """
+    for tracking_key in ("changed_files", "read_set", "verified_files"):
+        (ctx.extras.get(tracking_key) or set()).discard(rel_path)

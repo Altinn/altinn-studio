@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -39,16 +40,10 @@ class DatamodelSyncTool(WriteTool[DatamodelSyncArgs]):
     is_concurrency_safe = False  # writes files
 
     async def run(self, args: DatamodelSyncArgs, ctx: LoopContext) -> ToolResult:
-        try:
-            schema_file = resolve_repo_path(ctx.repo_path, args.schema_path)
-        except PathError as exc:
-            return ToolResult(content=str(exc), is_error=True)
-        if not schema_file.is_file():
-            return ToolResult(content=f"Schema file not found: {args.schema_path}", is_error=True)
-        try:
-            schema_content = schema_file.read_text(encoding="utf-8")
-        except OSError as exc:
-            return ToolResult(content=f"Cannot read schema: {exc}", is_error=True)
+        schema = _read_schema(ctx, args.schema_path)
+        if isinstance(schema, ToolResult):
+            return schema
+        schema_file, schema_content = schema
 
         result = datamodel_sync(
             user_goal="agentic-loop",
@@ -56,28 +51,11 @@ class DatamodelSyncTool(WriteTool[DatamodelSyncArgs]):
             schema_filename=schema_file.name,
         )
         if not isinstance(result, dict) or result.get("status") != "ok":
-            errors = result.get("errors") if isinstance(result, dict) else [str(result)]
-            return ToolResult(
-                content="Datamodel generation failed:\n" + "\n".join(str(e) for e in (errors or ["unknown error"])),
-                is_error=True,
-            )
+            return _report_generation_failure(result)
 
-        schema_dir = Path(args.schema_path).parent
-        written: list[str] = []
-        changed: set[str] = ctx.extras.setdefault("changed_files", set())
-        verified: set[str] = ctx.extras.setdefault("verified_files", set())
-        for entry in result.get("generated") or []:
-            rel = str(schema_dir / entry["path"])
-            try:
-                out_path = resolve_repo_path(ctx.repo_path, rel)
-                out_path.write_text(entry["content"], encoding="utf-8")
-            except (PathError, OSError) as exc:
-                return ToolResult(content=f"Could not write {rel}: {exc}", is_error=True)
-            written.append(rel)
-            changed.add(rel)
-            # Generated files must be re-verified before commit like any
-            # other write.
-            verified.discard(rel)
+        written = _write_generated_files(ctx, Path(args.schema_path).parent, result)
+        if isinstance(written, ToolResult):
+            return written
 
         return ToolResult(
             content=json.dumps(
@@ -89,3 +67,43 @@ class DatamodelSyncTool(WriteTool[DatamodelSyncArgs]):
                 ensure_ascii=False,
             )
         )
+
+
+def _read_schema(ctx: LoopContext, schema_path: str) -> tuple[Path, str] | ToolResult:
+    try:
+        schema_file = resolve_repo_path(ctx.repo_path, schema_path)
+    except PathError as exc:
+        return ToolResult(content=str(exc), is_error=True)
+    if not schema_file.is_file():
+        return ToolResult(content=f"Schema file not found: {schema_path}", is_error=True)
+    try:
+        return schema_file, schema_file.read_text(encoding="utf-8")
+    except OSError as exc:
+        return ToolResult(content=f"Cannot read schema: {exc}", is_error=True)
+
+
+def _report_generation_failure(result: Any) -> ToolResult:
+    errors = result.get("errors") if isinstance(result, dict) else [str(result)]
+    return ToolResult(
+        content="Datamodel generation failed:\n" + "\n".join(str(e) for e in (errors or ["unknown error"])),
+        is_error=True,
+    )
+
+
+def _write_generated_files(ctx: LoopContext, schema_dir: Path, result: dict[str, Any]) -> list[str] | ToolResult:
+    written: list[str] = []
+    changed: set[str] = ctx.extras.setdefault("changed_files", set())
+    verified: set[str] = ctx.extras.setdefault("verified_files", set())
+    for entry in result.get("generated") or []:
+        rel = str(schema_dir / entry["path"])
+        try:
+            out_path = resolve_repo_path(ctx.repo_path, rel)
+            out_path.write_text(entry["content"], encoding="utf-8")
+        except (PathError, OSError) as exc:
+            return ToolResult(content=f"Could not write {rel}: {exc}", is_error=True)
+        written.append(rel)
+        changed.add(rel)
+        # Generated files must be re-verified before commit like any
+        # other write.
+        verified.discard(rel)
+    return written

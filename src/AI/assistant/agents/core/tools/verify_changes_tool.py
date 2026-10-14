@@ -34,6 +34,17 @@ from shared.utils.langfuse_utils import trace_span
 
 # App files can start with a UTF-8 BOM.
 _JSON_FILE_ENCODING = "utf-8-sig"
+_MAX_LISTED_ERRORS = 10
+_MAX_LISTED_WARNINGS = 5
+_MAX_LISTED_TEXT_KEYS = 8
+_MAX_LISTED_COMPONENT_TYPES = 3
+_SCHEMA_VIOLATION_KEYWORDS = (
+    "additionalproperties",
+    "unknown property",
+    "not allowed",
+    "required property",
+    "is required",
+)
 
 
 class VerifyChangesArgs(BaseModel):
@@ -73,27 +84,10 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
                 is_error=True,
             )
 
-        notes: list[str] = []
-        passed = True
-        verified_now: set[str] = set()
-
-        for file_path in changed:
-            try:
-                ok, file_notes = _verify_one(ctx, file_path)
-            except Exception as exc:
-                ok = False
-                file_notes = [f"{file_path}: verifier crashed — {exc}"]
-
-            notes.extend(file_notes)
-            if ok:
-                verified_now.add(file_path)
-            else:
-                passed = False
-
-        for cross_file_check in _CROSS_FILE_CHECKS:
-            check_ok, check_notes = cross_file_check(ctx, changed)
-            notes.extend(check_notes)
-            passed = passed and check_ok
+        file_notes, verified_now = _verify_files(ctx, changed)
+        cross_file_passed, cross_file_notes = _run_cross_file_checks(ctx, changed)
+        notes = file_notes + cross_file_notes
+        passed = verified_now == set(changed) and cross_file_passed
 
         # Only mark files verified-passed on the assertion that *this whole
         # run* passed.  A partial-pass would let the model commit some
@@ -112,6 +106,32 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
             is_error=not passed,
             metadata={"file_count": len(changed), "passed": passed},
         )
+
+
+def _verify_files(ctx: LoopContext, changed: list[str]) -> tuple[list[str], set[str]]:
+    """Return the notes for each file and the files that passed."""
+    notes: list[str] = []
+    passed_files: set[str] = set()
+    for file_path in changed:
+        try:
+            ok, file_notes = _verify_one(ctx, file_path)
+        except Exception as exc:
+            ok = False
+            file_notes = [f"{file_path}: verifier crashed — {exc}"]
+        notes.extend(file_notes)
+        if ok:
+            passed_files.add(file_path)
+    return notes, passed_files
+
+
+def _run_cross_file_checks(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[str]]:
+    notes: list[str] = []
+    passed = True
+    for cross_file_check in _CROSS_FILE_CHECKS:
+        check_ok, check_notes = cross_file_check(ctx, changed)
+        notes.extend(check_notes)
+        passed = passed and check_ok
+    return passed, notes
 
 
 # ---------------------------------------------------------------------------
@@ -186,30 +206,27 @@ def _check_page_navigation(ctx: LoopContext, changed: list[str]) -> tuple[bool, 
     navigation never block a commit.
     """
     repo = Path(ctx.repo_path)
-    notes: list[str] = []
-    ok = True
+    candidates = (_describe_missing_navigation(repo, f) for f in changed if _is_layout_file(f))
+    notes = [note for note in candidates if note]
+    return not notes, notes
 
-    changed_layouts = [f for f in changed if _is_layout_file(f)]
-    for file_path in changed_layouts:
-        layouts_dir = Path(file_path).parent
-        settings_path = repo / layouts_dir.parent / "Settings.json"
-        order = _read_page_order(settings_path)
-        if order is None or len(order) < 2:
-            continue  # single-page set (or unreadable settings) — nothing to navigate
-        if Path(file_path).stem not in order:
-            continue  # not part of the ordered page flow
-        if _has_navigation_component(repo / file_path):
-            continue
-        ok = False
-        notes.append(
-            f"{file_path}: page is in a multi-page flow ({len(order)} pages in "
-            "`pages.order`) but has no `NavigationButtons` component — users "
-            "cannot move between pages.  Add a `NavigationButtons` component "
-            "to the layout (check `altinn_layout_props(component_type="
-            "'NavigationButtons')` for its schema)."
-        )
 
-    return ok, notes
+def _describe_missing_navigation(repo: Path, file_path: str) -> str | None:
+    layouts_dir = Path(file_path).parent
+    order = _read_page_order(repo / layouts_dir.parent / "Settings.json")
+    if order is None or len(order) < 2:
+        return None  # single-page set (or unreadable settings) — nothing to navigate
+    if Path(file_path).stem not in order:
+        return None  # not part of the ordered page flow
+    if _has_navigation_component(repo / file_path):
+        return None
+    return (
+        f"{file_path}: page is in a multi-page flow ({len(order)} pages in "
+        "`pages.order`) but has no `NavigationButtons` component — users "
+        "cannot move between pages.  Add a `NavigationButtons` component "
+        "to the layout (check `altinn_layout_props(component_type="
+        "'NavigationButtons')` for its schema)."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -227,26 +244,40 @@ def _check_text_keys(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[s
     if not by_language:
         return True, []  # no readable text resources — nothing to resolve against
 
-    # A changed resource file can strip a key any layout still references.
-    touched_texts = any(_is_text_resource(f) for f in changed)
-    layouts = _all_layout_files(repo) if touched_texts else [repo / f for f in changed if _is_layout_file(f)]
+    notes = [
+        note
+        for layout in _select_layouts_to_check(repo, changed)
+        for note in _describe_missing_text_keys(repo, layout, by_language)
+    ]
+    return not notes, notes
 
+
+def _select_layouts_to_check(repo: Path, changed: list[str]) -> list[Path]:
+    # A changed resource file can strip a key any layout still references.
+    if any(_is_text_resource(f) for f in changed):
+        return _all_layout_files(repo)
+    return [repo / f for f in changed if _is_layout_file(f)]
+
+
+def _describe_missing_text_keys(repo: Path, layout: Path, by_language: dict[str, set[str]]) -> list[str]:
+    referenced = _referenced_text_keys(layout)
     notes: list[str] = []
-    for layout in layouts:
-        referenced = _referenced_text_keys(layout)
-        for language, known in sorted(by_language.items()):
-            missing = sorted(key for key in referenced if key not in known)
-            if not missing:
-                continue
-            listed = ", ".join(f"`{key}`" for key in missing[:8])
-            if len(missing) > 8:
-                listed += f", and {len(missing) - 8} more"
+    for language, known in sorted(by_language.items()):
+        missing = sorted(key for key in referenced if key not in known)
+        if missing:
             notes.append(
-                f"{layout.relative_to(repo)}: text key(s) {listed} have no entry in "
+                f"{layout.relative_to(repo)}: text key(s) {_list_text_keys(missing)} have no entry in "
                 f"`App/config/texts/resource.{language}.json`, so the page shows the "
                 "key instead of the text in that language."
             )
-    return not notes, notes
+    return notes
+
+
+def _list_text_keys(keys: list[str]) -> str:
+    listed = ", ".join(f"`{key}`" for key in keys[:_MAX_LISTED_TEXT_KEYS])
+    if len(keys) > _MAX_LISTED_TEXT_KEYS:
+        listed += f", and {len(keys) - _MAX_LISTED_TEXT_KEYS} more"
+    return listed
 
 
 def _text_keys_by_language(repo: Path) -> dict[str, set[str]]:
@@ -254,17 +285,22 @@ def _text_keys_by_language(repo: Path) -> dict[str, set[str]]:
     texts_dir = repo / "App" / "config" / "texts"
     by_language: dict[str, set[str]] = {}
     for path in sorted(texts_dir.glob("resource.*.json")):
-        try:
-            parsed = json.loads(path.read_text(encoding=_JSON_FILE_ENCODING))
-        except (OSError, json.JSONDecodeError):
-            continue
-        keys = {
-            entry["id"]
-            for entry in parsed.get("resources") or []
-            if isinstance(entry, dict) and isinstance(entry.get("id"), str)
-        }
-        by_language[_infer_resource_language(str(path))] = keys
+        keys = _read_text_keys(path)
+        if keys is not None:
+            by_language[_infer_resource_language(str(path))] = keys
     return by_language
+
+
+def _read_text_keys(resource_path: Path) -> set[str] | None:
+    try:
+        parsed = json.loads(resource_path.read_text(encoding=_JSON_FILE_ENCODING))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return {
+        entry["id"]
+        for entry in parsed.get("resources") or []
+        if isinstance(entry, dict) and isinstance(entry.get("id"), str)
+    }
 
 
 def _all_layout_files(repo: Path) -> list[Path]:
@@ -272,21 +308,17 @@ def _all_layout_files(repo: Path) -> list[Path]:
 
 
 def _referenced_text_keys(layout_path: Path) -> set[str]:
-    try:
-        parsed = json.loads(layout_path.read_text(encoding=_JSON_FILE_ENCODING))
-    except (OSError, json.JSONDecodeError):
-        return set()  # the schema validator owns unreadable layouts
-    layout = ((parsed.get("data") or {}).get("layout")) if isinstance(parsed, dict) else None
-    if not isinstance(layout, list):
-        return set()
     keys: set[str] = set()
-    for component in layout:
-        if not isinstance(component, dict):
-            continue
-        for value in (component.get("textResourceBindings") or {}).values():
-            if isinstance(value, str) and value.strip():
-                keys.add(value)
+    # An unreadable layout has no keys here: the schema validator owns unreadable layouts.
+    for component in _read_layout_components(layout_path) or []:
+        if isinstance(component, dict):
+            keys.update(_get_bound_text_keys(component))
     return keys
+
+
+def _get_bound_text_keys(component: dict[str, Any]) -> set[str]:
+    bindings = component.get("textResourceBindings") or {}
+    return {value for value in bindings.values() if isinstance(value, str) and value.strip()}
 
 
 def _read_page_order(settings_path: Path) -> list[str] | None:
@@ -303,14 +335,20 @@ def _read_page_order(settings_path: Path) -> list[str] | None:
 
 def _has_navigation_component(layout_path: Path) -> bool:
     """Does the layout contain a NavigationButtons/NavigationBar component?"""
+    components = _read_layout_components(layout_path)
+    if components is None:
+        return True  # unreadable/invalid JSON is the schema validator's problem
+    return any(isinstance(c, dict) and c.get("type") in _NAVIGATION_COMPONENT_TYPES for c in components)
+
+
+def _read_layout_components(layout_path: Path) -> list[Any] | None:
+    """Return `data.layout`, or None when the file is unreadable or has no layout list."""
     try:
         parsed = json.loads(layout_path.read_text(encoding=_JSON_FILE_ENCODING))
     except (OSError, json.JSONDecodeError):
-        return True  # unreadable/invalid JSON is the schema validator's problem
+        return None
     layout = ((parsed.get("data") or {}).get("layout")) if isinstance(parsed, dict) else None
-    if not isinstance(layout, list):
-        return True
-    return any(isinstance(c, dict) and c.get("type") in _NAVIGATION_COMPONENT_TYPES for c in layout)
+    return layout if isinstance(layout, list) else None
 
 
 # ---------------------------------------------------------------------------
@@ -380,25 +418,28 @@ def _validate_layout(file_path: str, full_path: Path, schema_location: str) -> t
         result = validate_layout_json(_as_full_layout(layout), schema, referenced_schemas)
         span.update(output={"result": {"status": result.get("status")}})
 
+    return _describe_layout_result(file_path, result)
+
+
+def _describe_layout_result(file_path: str, result: dict[str, Any]) -> tuple[bool, list[str]]:
     status = result.get("status")
     if status == "validation_passed":
         return True, [f"{file_path}: layout schema valid"]
-
-    errors = result.get("validation_errors") or []
     if status == "validation_failed":
-        formatted = [f"  - {_describe_error(e)}" for e in errors[:10]]
-        if len(errors) > 10:
-            formatted.append(f"  - …and {len(errors) - 10} more")
-        notes = [f"{file_path}: layout validation failed ({len(errors)} error(s))"]
-        notes.extend(formatted)
-        breadcrumb = _layout_props_breadcrumb(errors)
-        if breadcrumb:
-            notes.append(breadcrumb)
-        return False, notes
+        return False, _describe_layout_errors(file_path, result.get("validation_errors") or [])
 
     # status == "error" or unknown — the validator itself failed
     message = result.get("message", "validator error")
     return False, [f"{file_path}: layout validator error — {message}"]
+
+
+def _describe_layout_errors(file_path: str, errors: list[Any]) -> list[str]:
+    notes = [f"{file_path}: layout validation failed ({len(errors)} error(s))"]
+    notes.extend(_format_errors(errors))
+    breadcrumb = _layout_props_breadcrumb(errors)
+    if breadcrumb:
+        notes.append(breadcrumb)
+    return notes
 
 
 def _as_full_layout(parsed: Any) -> dict[str, Any]:
@@ -440,16 +481,13 @@ def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> tup
     if result.get("valid") is True:
         notes = [f"{file_path}: resource schema valid"]
         warnings = result.get("warnings") or []
-        for w in warnings[:5]:
+        for w in warnings[:_MAX_LISTED_WARNINGS]:
             notes.append(f"  - warning: {w}")
         return True, notes
 
     errors = result.get("errors") or []
-    formatted = [f"  - {_describe_error(e)}" for e in errors[:10]]
-    if len(errors) > 10:
-        formatted.append(f"  - …and {len(errors) - 10} more")
     notes = [f"{file_path}: resource validation failed ({len(errors)} error(s))"]
-    notes.extend(formatted)
+    notes.extend(_format_errors(errors))
     return False, notes
 
 
@@ -503,13 +541,24 @@ def _basic_json_check(file_path: str, full_path: Path) -> tuple[bool, list[str]]
     return True, [f"{file_path}: JSON parses (no schema validator for this path)"]
 
 
+def _format_errors(errors: list[Any]) -> list[str]:
+    formatted = [f"  - {_describe_error(e)}" for e in errors[:_MAX_LISTED_ERRORS]]
+    if len(errors) > _MAX_LISTED_ERRORS:
+        formatted.append(f"  - …and {len(errors) - _MAX_LISTED_ERRORS} more")
+    return formatted
+
+
 def _describe_error(err: Any) -> str:
     """Compact description of one validator error entry."""
     if isinstance(err, dict):
         path = err.get("path") or err.get("location") or ""
-        message = err.get("message") or err.get("error") or json.dumps(err)
+        message = _get_error_message(err) or json.dumps(err)
         return f"{path}: {message}" if path else str(message)
     return str(err)
+
+
+def _get_error_message(err: dict[str, Any]) -> Any:
+    return err.get("message") or err.get("error")
 
 
 def _layout_props_breadcrumb(errors: list[Any]) -> str | None:
@@ -523,32 +572,12 @@ def _layout_props_breadcrumb(errors: list[Any]) -> str | None:
     spot one in the error path (e.g. `$.data.layout[3].type == "Input"`
     or the component shape via the message).
     """
-    keywords = (
-        "additionalproperties",
-        "unknown property",
-        "not allowed",
-        "required property",
-        "is required",
-    )
-    component_types: list[str] = []
-    matched = False
-    for err in errors:
-        if not isinstance(err, dict):
-            text = str(err).lower()
-            if any(k in text for k in keywords):
-                matched = True
-            continue
-        message = str(err.get("message") or err.get("error") or "").lower()
-        if any(k in message for k in keywords):
-            matched = True
-            ctype = err.get("component_type") or err.get("componentType")
-            if isinstance(ctype, str) and ctype not in component_types:
-                component_types.append(ctype)
-
-    if not matched:
+    violations = [err for err in errors if _is_schema_violation(err)]
+    if not violations:
         return None
+    component_types = _collect_component_types(violations)
     if component_types:
-        joined = ", ".join(f"'{c}'" for c in component_types[:3])
+        joined = ", ".join(f"'{c}'" for c in component_types[:_MAX_LISTED_COMPONENT_TYPES])
         return (
             f"  → call `altinn_layout_props(component_type={joined})` for the "
             "canonical schema; trust the tool, not memory."
@@ -557,3 +586,19 @@ def _layout_props_breadcrumb(errors: list[Any]) -> str | None:
         "  → call `altinn_layout_props(component_type='<Type>')` for the "
         "component you're editing to get the canonical property list."
     )
+
+
+def _is_schema_violation(err: Any) -> bool:
+    text = str(_get_error_message(err) or "") if isinstance(err, dict) else str(err)
+    return any(keyword in text.lower() for keyword in _SCHEMA_VIOLATION_KEYWORDS)
+
+
+def _collect_component_types(violations: list[Any]) -> list[str]:
+    component_types: list[str] = []
+    for err in violations:
+        if not isinstance(err, dict):
+            continue
+        component_type = err.get("component_type") or err.get("componentType")
+        if isinstance(component_type, str) and component_type not in component_types:
+            component_types.append(component_type)
+    return component_types

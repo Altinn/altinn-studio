@@ -15,6 +15,7 @@ from pydantic import BaseModel, ConfigDict
 
 from agents.core.tool import LoopContext, ToolResult, WriteTool
 from agents.services.preview.render_check import (
+    PageRenderResult,
     PreviewCheckUnavailable,
     read_page_order,
     render_check,
@@ -58,31 +59,9 @@ class PreviewRenderCheckTool(WriteTool[PreviewRenderCheckArgs]):
 
     async def run(self, args: PreviewRenderCheckArgs, ctx: LoopContext) -> ToolResult:
         config = get_config()
-        if not config.PREVIEW_CHECK_ENABLED:
-            return ToolResult(
-                content=f"Preview render check is disabled in this deployment. {_UNAVAILABLE_GUIDANCE}",
-                is_error=True,
-                metadata={"unavailable": True},
-            )
-
-        branch = ctx.extras.get("session_branch")
-        if not ctx.extras.get("session_committed") or not branch:
-            return ToolResult(
-                content=(
-                    "Nothing to check yet: the preview renders the pushed session "
-                    "branch.  Run `commit_session_branch` first, then call "
-                    "`preview_render_check`."
-                ),
-                is_error=True,
-            )
-
-        app = ctx.extras.get("app_name")
-        if not app or not ctx.org:
-            return ToolResult(
-                content=f"Preview render check cannot resolve the app's org/name. {_UNAVAILABLE_GUIDANCE}",
-                is_error=True,
-                metadata={"unavailable": True},
-            )
+        refusal = _check_preconditions(ctx, is_enabled=config.PREVIEW_CHECK_ENABLED)
+        if refusal is not None:
+            return refusal
 
         page_order = read_page_order(Path(ctx.repo_path))
         if not page_order:
@@ -101,34 +80,56 @@ class PreviewRenderCheckTool(WriteTool[PreviewRenderCheckArgs]):
                 studio_base=config.PREVIEW_STUDIO_BASE_URL,
                 username=config.PREVIEW_STUDIO_USER,
                 org=ctx.org,
-                app=app,
-                branch=branch,
+                app=ctx.extras["app_name"],
+                branch=ctx.extras["session_branch"],
                 page_order=page_order,
                 storage_state_path=_STORAGE_STATE_PATH,
                 host_resolver_rules=config.PREVIEW_HOST_RESOLVER_RULES or None,
             )
         except PreviewCheckUnavailable as reason:
-            return ToolResult(
-                content=f"Preview render check unavailable: {reason}. {_UNAVAILABLE_GUIDANCE}",
-                is_error=True,
-                metadata={"unavailable": True},
-            )
+            return _report_unavailable(f"Preview render check unavailable: {reason}.")
+        return _report_results(results)
 
-        failures = [result for result in results if not result.rendered]
-        body = {
-            "passed": not failures,
-            "pages": [
-                {"page": result.page, "rendered": result.rendered, "detail": result.detail} for result in results
-            ],
-        }
-        content = json.dumps(body, ensure_ascii=False, indent=2)
-        if failures:
-            content += (
-                "\n\nFix the failing page(s), then `verify_changes`, "
-                "`commit_session_branch`, and run `preview_render_check` again."
-            )
+
+def _check_preconditions(ctx: LoopContext, *, is_enabled: bool) -> ToolResult | None:
+    if not is_enabled:
+        return _report_unavailable("Preview render check is disabled in this deployment.")
+    if not ctx.extras.get("session_committed") or not ctx.extras.get("session_branch"):
         return ToolResult(
-            content=content,
-            is_error=bool(failures),
-            metadata={"page_count": len(results), "passed": not failures},
+            content=(
+                "Nothing to check yet: the preview renders the pushed session "
+                "branch.  Run `commit_session_branch` first, then call "
+                "`preview_render_check`."
+            ),
+            is_error=True,
         )
+    if not ctx.extras.get("app_name") or not ctx.org:
+        return _report_unavailable("Preview render check cannot resolve the app's org/name.")
+    return None
+
+
+def _report_unavailable(reason: str) -> ToolResult:
+    return ToolResult(
+        content=f"{reason} {_UNAVAILABLE_GUIDANCE}",
+        is_error=True,
+        metadata={"unavailable": True},
+    )
+
+
+def _report_results(results: list[PageRenderResult]) -> ToolResult:
+    failures = [result for result in results if not result.rendered]
+    body = {
+        "passed": not failures,
+        "pages": [{"page": result.page, "rendered": result.rendered, "detail": result.detail} for result in results],
+    }
+    content = json.dumps(body, ensure_ascii=False, indent=2)
+    if failures:
+        content += (
+            "\n\nFix the failing page(s), then `verify_changes`, "
+            "`commit_session_branch`, and run `preview_render_check` again."
+        )
+    return ToolResult(
+        content=content,
+        is_error=bool(failures),
+        metadata={"page_count": len(results), "passed": not failures},
+    )
