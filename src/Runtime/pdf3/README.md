@@ -1,20 +1,19 @@
 # pdf3
 
-New PDF generation solution for Altinn Studio apps.
+pdf3 generates PDFs for Altinn apps. A proxy distributes requests to workers, which render app pages in headless Chrome.
 
-- OS support: Linux and macOS
-- Required Go 1.26.4+
-- Requires `docker` or `podman` on the host system
+pdf3 runs in each service owner's [runtime cluster](../../../docs/infrastructure/environments.md#runtime-clusters).
+Apps use the address in [apps-config](../../../infra/runtime/apps-config/base/apps-runtime-common-env.yaml),
+which the [runtime routing configuration](../../../infra/runtime/syncroot/base/pdf.yaml) directs to pdf3.
 
-## Local browser headless-shell installation
+[Local environments](../../cli/README.md#which-images-the-environment-runs) run the worker directly, without the proxy.
+studioctl supplies its settings and selects the image.
 
-Some dependencies might be needed to run the headless-shell instance installed through `make browser`.
-You can run `ldd <binary> | grep not` to see any dependencies the binary expects to be installed.
+Support for a shared service consists of a [relay](cmd/relay), [API-key authentication](docs/api-keys.md),
+and [DIS Core provisioning](infra/syncroot). The relay and shared service are not deployed by the current manifests.
 
-### Arch
+## Development
 
-These may or may not already be present, depending on env. On WSL 2 arch this is necessary:
-
-```sh
-sudo pacman -Sy nss at-spi2-core libxcomposite libxdamage libxrandr libxkbcommon mesa alsa-lib
-```
+The [Makefile](Makefile) defines the build and test commands. Tests require Docker or Podman.
+Run `make test-e2e` after changing PDF generation. It leaves its Kind cluster running. `make stop` removes it.
+Outside CI, integration tests update snapshots by default. Review those changes before committing.
