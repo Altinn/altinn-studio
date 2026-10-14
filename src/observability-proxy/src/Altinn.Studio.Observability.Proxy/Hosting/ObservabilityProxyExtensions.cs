@@ -8,6 +8,7 @@ using Altinn.Studio.Observability.Proxy.Telemetry;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Model;
 
 namespace Altinn.Studio.Observability.Proxy.Hosting;
@@ -36,6 +37,7 @@ internal static class ObservabilityProxyExtensions
             builder.Configuration.GetSection(ObservabilityProxyOptions.SectionName).Get<ObservabilityProxyOptions>()
             ?? new ObservabilityProxyOptions();
 
+        ProxyListeners.Configure(builder, proxyOptions);
         builder.AddObservabilityProxyMetrics();
 
         builder.Services.TryAddSingleton(TimeProvider.System);
@@ -53,8 +55,8 @@ internal static class ObservabilityProxyExtensions
                 ObservabilityReverseProxyConfig.CreateRoutes(proxyOptions),
                 ObservabilityReverseProxyConfig.CreateClusters(proxyOptions)
             )
-            .AddTransforms(ObservabilityRequestTransforms.Apply)
-            .ConfigureHttpClient((_, handler) => ConfigureForwarderHandler(handler));
+            .AddTransforms(ObservabilityRequestTransforms.Apply);
+        builder.Services.AddSingleton<IForwarderHttpClientFactory, ObservabilityForwarderHttpClientFactory>();
 
         return builder;
     }

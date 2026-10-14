@@ -24,8 +24,8 @@ RUN dotnet publish src/Altinn.Studio.Observability.Proxy/Altinn.Studio.Observabi
 FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:9cae0b131d058693c8d7496fed4a188380f05f27f34c98dd9a516b4d0331b0c4 AS final
 WORKDIR /app
 
-# 8080 serves traffic, 9090 only /metrics (ObservabilityProxy:MetricsPort).
-ENV ASPNETCORE_URLS=http://+:8080;http://+:9090
+# 8080 serves traffic and 9090 only /metrics: ObservabilityProxy:Port and
+# ObservabilityProxy:MetricsPort, on which the proxy listens itself.
 EXPOSE 8080 9090
 
 COPY --from=build /app/out .

@@ -106,9 +106,10 @@ spec:
               sleep:
                 seconds: 5
           env:
-            - name: ASPNETCORE_URLS
-              value: http://+:8080;http://+:9090
-            # Which of the ports above serves only /metrics.
+            # The two ports above. The proxy listens on these itself and refuses to
+            # start with ASPNETCORE_URLS set.
+            - name: ObservabilityProxy__Port
+              value: "8080"
             - name: ObservabilityProxy__MetricsPort
               value: "9090"
             - name: ASPNETCORE_ENVIRONMENT

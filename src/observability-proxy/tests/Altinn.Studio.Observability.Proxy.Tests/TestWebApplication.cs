@@ -47,26 +47,34 @@ internal sealed class TestWebApplication : IAsyncDisposable
     public ConcurrentQueue<string> ReceivedPaths { get; }
 
     /// <summary>
-    /// The proxy as it runs in the cluster: traffic on one port and metrics on another, whose number
-    /// the proxy has to be told, so it is picked here rather than left to the system.
+    /// The proxy as it runs in the cluster, with traffic and metrics on ports of their own. Both are
+    /// port 0, so the system picks free ones as it binds them, and the ports in use are read back
+    /// from the proxy once it has started.
     /// </summary>
     public static async Task<TestWebApplication> StartProxyAsync(IReadOnlyDictionary<string, string?> configuration)
     {
-        var metricsPort = FreeLoopbackPort();
-        var builder = CreateBuilder();
-        builder.WebHost.UseUrls("http://127.0.0.1:0", $"http://127.0.0.1:{metricsPort}");
-        builder.Configuration.AddInMemoryCollection(configuration);
+        var builder = CreateBuilder(listenOnUrl: false);
         builder.Configuration.AddInMemoryCollection(
             new Dictionary<string, string?>
             {
-                ["ObservabilityProxy:MetricsPort"] = metricsPort.ToString(CultureInfo.InvariantCulture),
+                ["ObservabilityProxy:Port"] = "0",
+                ["ObservabilityProxy:MetricsPort"] = "0",
             }
         );
+        builder.Configuration.AddInMemoryCollection(configuration);
         builder.AddObservabilityProxy();
 
         var app = builder.Build();
         app.UseObservabilityProxy();
-        return await StartAsync(app, new ConcurrentQueue<string>(), metricsPort);
+        await app.StartAsync();
+
+        var listeners = app.Services.GetRequiredService<ProxyListeners>();
+        return new TestWebApplication(
+            app,
+            $"http://127.0.0.1:{listeners.TrafficPort}",
+            $"http://127.0.0.1:{listeners.MetricsPort}",
+            new ConcurrentQueue<string>()
+        );
     }
 
     /// <summary>What the proxy's metrics port serves at <c>/metrics</c>.</summary>
@@ -122,6 +130,14 @@ internal sealed class TestWebApplication : IAsyncDisposable
                 return context.Response.WriteAsync(name, context.RequestAborted);
             }
         );
+        return await StartAsync(app, new ConcurrentQueue<string>());
+    }
+
+    /// <summary>A downstream that answers every request, health probes included, with <paramref name="handler"/>.</summary>
+    public static async Task<TestWebApplication> StartDownstreamAsync(RequestDelegate handler)
+    {
+        var app = CreateBuilder().Build();
+        app.Map("/{**path}", handler);
         return await StartAsync(app, new ConcurrentQueue<string>());
     }
 
@@ -231,7 +247,7 @@ internal sealed class TestWebApplication : IAsyncDisposable
         await _app.DisposeAsync();
     }
 
-    private static WebApplicationBuilder CreateBuilder()
+    private static WebApplicationBuilder CreateBuilder(bool listenOnUrl = true)
     {
         var builder = WebApplication.CreateSlimBuilder(
             new WebApplicationOptions
@@ -241,38 +257,28 @@ internal sealed class TestWebApplication : IAsyncDisposable
             }
         );
 
-        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        if (listenOnUrl)
+        {
+            builder.WebHost.UseUrls("http://127.0.0.1:0");
+        }
+
         return builder;
     }
 
-    private static async Task<TestWebApplication> StartAsync(
-        WebApplication app,
-        ConcurrentQueue<string> receivedPaths,
-        int? metricsPort = null
-    )
+    private static async Task<TestWebApplication> StartAsync(WebApplication app, ConcurrentQueue<string> receivedPaths)
     {
         await app.StartAsync();
 
-        var addresses =
-            app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()?.Addresses.ToList()
-            ?? [];
-        var metricsAddress = addresses.SingleOrDefault(candidate => new Uri(candidate).Port == metricsPort);
-        var address = addresses.SingleOrDefault(candidate => candidate != metricsAddress);
+        var address = app
+            .Services.GetRequiredService<IServer>()
+            .Features.Get<IServerAddressesFeature>()
+            ?.Addresses.Single();
 
-        if (string.IsNullOrWhiteSpace(address) || (metricsPort is not null && metricsAddress is null))
+        if (string.IsNullOrWhiteSpace(address))
         {
             throw new InvalidOperationException("Unable to determine test application address.");
         }
 
-        return new TestWebApplication(app, address, metricsAddress, receivedPaths);
-    }
-
-    private static int FreeLoopbackPort()
-    {
-        using var listener = new TcpListener(IPAddress.Loopback, 0);
-        listener.Start();
-        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
-        listener.Stop();
-        return port;
+        return new TestWebApplication(app, address, metricsAddress: null, receivedPaths);
     }
 }

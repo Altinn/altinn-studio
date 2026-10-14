@@ -9,10 +9,12 @@ internal sealed class ObservabilityProxyOptions
 
     public string PathPrefix { get; set; } = ObservabilityPaths.DefaultPathPrefix;
 
+    /// <summary>The port that serves traffic: OTLP writes, reads and the health probes.</summary>
+    public int Port { get; set; } = 8080;
+
     /// <summary>
     /// The port that serves <c>/metrics</c> and nothing else, apart from the one that serves
     /// traffic, so the load balancer, which reaches the traffic port, never reaches the metrics.
-    /// The proxy listens on it only when it is one of the URLs Kestrel is given.
     /// </summary>
     public int MetricsPort { get; set; } = 9090;
 

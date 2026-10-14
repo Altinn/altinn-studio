@@ -26,16 +26,17 @@ internal sealed class ObservabilityProxyMetrics
 
     /// <summary>
     /// The library meters exported beside <see cref="MeterName"/>: requests served, Kestrel's
-    /// connections, the forwarder's requests to each backend (<c>http.client.*</c>, by
-    /// <c>server.address</c>), and the .NET runtime.
+    /// connections and the .NET runtime.
     /// </summary>
     public static readonly IReadOnlyList<string> LibraryMeterNames =
     [
         "Microsoft.AspNetCore.Hosting",
         "Microsoft.AspNetCore.Server.Kestrel",
-        "System.Net.Http",
         "System.Runtime",
     ];
+
+    /// <summary>The forwarder's requests to each backend, health probes included (<c>http.client.*</c>, by <c>server.address</c>).</summary>
+    public const string HttpClientMeterName = "System.Net.Http";
 
     public const string IngestDirection = "ingest";
 

@@ -1,4 +1,3 @@
-using Altinn.Studio.Observability.Proxy.Configuration;
 using Altinn.Studio.Observability.Proxy.Telemetry;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Diagnostics.Metrics;
@@ -39,6 +38,10 @@ internal static class ObservabilityProxyMetricsExtensions
             {
                 metrics.EnableMetrics(meterName);
             }
+
+            // The forwarder's own, not the process-wide one other HTTP clients share
+            // (ObservabilityForwarderHttpClientFactory).
+            metrics.EnableMetrics(ObservabilityProxyMetrics.HttpClientMeterName, scopes: MeterScope.Local);
         });
         builder
             .Services.AddOpenTelemetry()
@@ -57,7 +60,7 @@ internal static class ObservabilityProxyMetricsExtensions
     }
 
     /// <summary>
-    /// Serves <see cref="ScrapePath"/> on <see cref="ObservabilityProxyOptions.MetricsPort"/> and
+    /// Serves <see cref="ScrapePath"/> on <see cref="ProxyListeners.MetricsPort"/> and
     /// nothing else there: no proxy route, no health endpoint. Call it before anything else that
     /// handles requests, and before the reverse proxy is mapped.
     /// </summary>
@@ -66,18 +69,19 @@ internal static class ObservabilityProxyMetricsExtensions
         ArgumentNullException.ThrowIfNull(app);
 
         // Metrics are collected from host start, when options are validated, but the reverse proxy
-        // sends its first health probes as its routes are mapped, before that. A probe under way
-        // when collection starts counts as finished but never started, which leaves the backend's
-        // http.client.active_requests at -1 for good. Validating now starts collection first; the
-        // host does not validate twice.
+        // sends its first health probes as its routes are mapped, before that. A probe that finishes
+        // around the time collection starts can then be counted as finished but not as started,
+        // which leaves the backend's http.client.active_requests below zero for good. Validating now
+        // starts collection first; the host does not validate twice. Covered by
+        // StartupMetricsTests.HealthProbesUnderWayAtStartup_LeaveNoActiveRequestsBehind.
         app.Services.GetService<IStartupValidator>()?.Validate();
 
         // The observable instruments exist once this is created, and nothing else asks for it.
         app.Services.GetRequiredService<ReadDestinationMetrics>();
 
-        var metricsPort = app.Services.GetRequiredService<IOptions<ObservabilityProxyOptions>>().Value.MetricsPort;
+        var listeners = app.Services.GetRequiredService<ProxyListeners>();
         app.MapWhen(
-            context => context.Connection.LocalPort == metricsPort,
+            context => context.Connection.LocalPort == listeners.MetricsPort,
             metricsApp =>
             {
                 // A scrape is not traffic, so it is left out of the request metrics.
