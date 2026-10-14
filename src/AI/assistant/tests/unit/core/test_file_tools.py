@@ -257,6 +257,22 @@ LAYOUT_AS_STUDIO_WRITES_IT = """{
   }
 }"""
 
+VALUES_ON_ONE_LINE = (
+    r'{"maximum":999999999999999.99,"big":1e999,"label":"S\u00F8ker","text":"a, b: {c} \"d\"",'
+    r'"codes":[],"extra":{},"id":"a","id":"b"}'
+)
+
+VALUES_INDENTED = r"""{
+  "maximum": 999999999999999.99,
+  "big": 1e999,
+  "label": "S\u00F8ker",
+  "text": "a, b: {c} \"d\"",
+  "codes": [],
+  "extra": {},
+  "id": "a",
+  "id": "b"
+}"""
+
 
 class TestJsonIsFormattedLikeStudio:
     """Studio writes JSON indented.  A file on one line is hard to read, and the next save from
@@ -294,12 +310,24 @@ class TestJsonIsFormattedLikeStudio:
         assert layout.read_text(encoding="utf-8") == LAYOUT_AS_STUDIO_WRITES_IT
         assert "formatted as Studio formats it" in result.content
 
-    async def test_json_that_does_not_parse_is_saved_as_written(self, tmp_path: Path):
-        """`verify_changes` reports the parse error at the place the model wrote it."""
-        result = await self._write(tmp_path, "broken.json", '{"a": 1,}')
+    async def test_only_the_whitespace_changes(self, tmp_path: Path):
+        """Numbers, escapes and duplicate keys keep the text of the model, so lines it did not change stay the same."""
+        result = await self._write(tmp_path, "model.schema.json", VALUES_ON_ONE_LINE)
 
         assert not result.is_error
-        assert (tmp_path / "broken.json").read_text() == '{"a": 1,}'
+        assert (tmp_path / "model.schema.json").read_text(encoding="utf-8") == VALUES_INDENTED
+
+    @pytest.mark.parametrize(
+        "content",
+        ['{"a": 1,}', '{"a": NaN}', "[" * 100_000 + "]" * 100_000],
+        ids=["trailing comma", "NaN", "too deep for the parser"],
+    )
+    async def test_text_that_is_not_strict_json_is_saved_as_written(self, tmp_path: Path, content: str):
+        """A parse error stays at the place the model wrote it."""
+        result = await self._write(tmp_path, "broken.json", content)
+
+        assert not result.is_error
+        assert (tmp_path / "broken.json").read_text() == content
         assert "formatted" not in result.content
 
     async def test_a_file_that_is_not_json_is_saved_as_written(self, tmp_path: Path):
