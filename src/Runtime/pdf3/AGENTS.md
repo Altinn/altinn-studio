@@ -177,6 +177,30 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 - `base/` - Base deployment configs
 - `local-minimal/`, `local-standard/` - Local variants
 
+These are deployed to every service owner's cluster by `.github/workflows/deploy-runtime-pdf3.yaml`
+and promoted through the rings.
+
+### DIS Core
+
+pdf3 is moving to one cluster per environment shared by all service owners, DIS Core, run by
+Digdir's platform team. There it is the product `studio-pdf3`, in the namespace
+`product-studio-pdf3`. Flux reads `oci://altinncr.azurecr.io/studio-pdf3/syncroot:<env>` and applies
+`./<env>` without pruning, as the identity `flux-applier`, which may only create resources in that
+namespace.
+
+**Manifests**: `infra/syncroot/`
+
+- `base/` - What every environment gets: the ApplicationIdentity and Key Vault `pdf3`
+- `<env>/` - Applied by the platform. It only holds the Flux Kustomization `pdf3` (`app.yaml`),
+  which applies `./<env>/app` from the same artifact with pruning, so removing a resource from
+  the manifests deletes it
+- `<env>/app/` - The environment's overlay of `base/`
+
+**Publishing**: `.github/workflows/deploy-dis-pdf3-syncroot.yaml` pushes `infra/syncroot` as
+`studio-pdf3/syncroot:<sha>` on every change on main, then moves each environment's tag to it in
+that environment's GitHub environment (`dis_core_<env>`). Only `at22` is tagged so far; the other
+environments' folders are empty. The tenant workflows ignore changes under `infra/syncroot/`.
+
 ## Testing Strategy
 
 **Always run integration tests after changes** to PDF generation logic.

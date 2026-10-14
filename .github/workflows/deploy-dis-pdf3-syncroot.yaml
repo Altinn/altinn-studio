@@ -1,0 +1,90 @@
+name: pdf3 - deploy DIS Core syncroot
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - src/Runtime/pdf3/infra/syncroot/**
+      - .github/workflows/deploy-dis-pdf3-syncroot.yaml
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  push-syncroot-artifact:
+    name: Push syncroot as OCI artifact
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    outputs:
+      short-sha: ${{ steps.vars.outputs.short-sha }}
+    defaults:
+      run:
+        working-directory: ./src/Runtime/pdf3/infra/syncroot
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set vars
+        id: vars
+        run: echo "short-sha=${GITHUB_SHA::10}" >> "$GITHUB_OUTPUT"
+
+      - name: az login
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
+        with:
+          client-id: ${{ secrets.DIS_SYNCROOT_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.DIS_SYNCROOT_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.DIS_SYNCROOT_AZURE_SUBSCRIPTION_ID }}
+
+      - name: az acr login
+        run: az acr login --name altinncr
+
+      - name: flux install
+        uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
+
+      - name: push syncroot artifact
+        run: |
+          flux push artifact oci://altinncr.azurecr.io/studio-pdf3/syncroot:${{ steps.vars.outputs.short-sha }} \
+            --provider=generic \
+            --reproducible \
+            --path="." \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+  # Each DIS Core cluster's Flux reads the tag named after its environment. Only environments
+  # pdf3 is deployed to are tagged.
+  tag-syncroot:
+    name: Tag syncroot (${{ matrix.tag }})
+    needs: push-syncroot-artifact
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    permissions:
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tag: at22
+            environment: dis_core_at22
+    steps:
+      - name: az login
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
+        with:
+          client-id: ${{ secrets.DIS_SYNCROOT_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.DIS_SYNCROOT_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.DIS_SYNCROOT_AZURE_SUBSCRIPTION_ID }}
+
+      - name: az acr login
+        run: az acr login --name altinncr
+
+      - name: flux install
+        uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
+
+      - name: tag syncroot artifact
+        run: |
+          flux tag artifact oci://altinncr.azurecr.io/studio-pdf3/syncroot:${{ needs.push-syncroot-artifact.outputs.short-sha }} \
+            --tag ${{ matrix.tag }}

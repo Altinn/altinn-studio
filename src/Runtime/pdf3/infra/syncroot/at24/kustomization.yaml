@@ -1,0 +1,5 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# pdf3 is not deployed to DIS Core in at24 yet.
+resources: []

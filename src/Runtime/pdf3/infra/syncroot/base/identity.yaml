@@ -1,0 +1,7 @@
+# The Azure identity pdf3 runs as. dis-identity-operator creates a ServiceAccount with the same
+# name for it.
+apiVersion: application.dis.altinn.cloud/v1alpha1
+kind: ApplicationIdentity
+metadata:
+  name: pdf3
+spec: {}
