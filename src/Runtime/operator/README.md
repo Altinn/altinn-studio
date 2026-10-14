@@ -10,9 +10,9 @@ the apps there, such as Maskinporten clients, secrets, alert routing and databas
 - [`deploy-app.yaml`](../../App/azure-pipelines/deploy-app.yaml) creates a `MaskinportenClient` resource for each
   app that needs Maskinporten scopes. The operator creates the client in Maskinporten and writes its credentials to
   the app's secret.
-- Outside production, the inactivity scaler scales down the gateway and [pdf3](../pdf3/README.md) in clusters with
-  no apps, and the apps too outside working hours in some test clusters. It pauses Flux only on pdf3's autoscalers,
-  as pdf3's README describes.
+- Outside production, the inactivity scaler scales the gateway and [pdf3](../pdf3/README.md) down in clusters with
+  no apps. In `ttd`'s clusters it also scales the apps, the gateway and pdf3 down outside working hours. It pauses
+  Flux on the autoscalers it scales down, such as pdf3's, but not on deployments.
 
 ## Developing
 
