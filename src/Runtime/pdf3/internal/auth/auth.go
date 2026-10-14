@@ -7,14 +7,8 @@
 // changes and two keys can be valid while a key is rotated. A Secret mounted with subPath is never
 // updated, so a change only takes effect when the pod restarts.
 //
-// To rotate a key, the shared pdf3 must accept the new key before any relay sends it:
-//  1. Add the new key to the shared pdf3's file, and wait until every proxy has reloaded it.
-//  2. Make the new key the relays' key, and wait until every relay has reloaded it.
-//  3. Remove the old key from the shared pdf3's file.
-//
-// Revoking a key means replacing it: write the file without it but with another key, or restart
-// a pod whose file isn't updated. A file that can't be read or has no keys is not loaded and the
-// current keys stay valid, so emptying the file revokes nothing, and a pod can't start with it.
+// src/Runtime/pdf3/docs/api-keys.md describes how to rotate and revoke a key, and what the keys
+// protect.
 package auth
 
 import (
