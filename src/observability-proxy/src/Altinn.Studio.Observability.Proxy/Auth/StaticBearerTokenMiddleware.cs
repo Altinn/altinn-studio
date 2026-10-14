@@ -58,7 +58,7 @@ internal sealed class StaticBearerTokenMiddleware
                 route?.Config,
                 StaticBearerTokenAuthenticator.HasBearerToken(authorization)
                     ? ObservabilityProxyMetrics.UnknownToken
-                    : ObservabilityProxyMetrics.MissingToken
+                    : ObservabilityProxyMetrics.MissingBearerToken
             );
             _logger.LogWarning(
                 "Rejected unauthenticated observability request. Method={Method} Path={Path}",

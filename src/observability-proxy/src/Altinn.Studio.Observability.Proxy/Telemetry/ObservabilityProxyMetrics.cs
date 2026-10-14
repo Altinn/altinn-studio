@@ -42,7 +42,8 @@ internal sealed class ObservabilityProxyMetrics
 
     public const string QueryDirection = "query";
 
-    public const string MissingToken = "missing_token";
+    /// <summary>No bearer token: no Authorization header, or one with another scheme such as Basic.</summary>
+    public const string MissingBearerToken = "missing_bearer_token";
 
     public const string UnknownToken = "unknown_token";
 
@@ -59,7 +60,8 @@ internal sealed class ObservabilityProxyMetrics
         _authenticationFailures = Meter.CreateCounter<long>(
             "altinn.observability_proxy.authentication.failures",
             "{request}",
-            "Requests refused because they carried no bearer token or one the proxy does not accept."
+            "Requests refused with 401: error.type is missing_bearer_token when the request has no bearer token "
+                + "(no Authorization header, or another scheme), unknown_token when the proxy does not accept it."
         );
         _rateLimitRejections = Meter.CreateCounter<long>(
             "altinn.observability_proxy.rate_limit.rejections",
@@ -69,7 +71,8 @@ internal sealed class ObservabilityProxyMetrics
         _forwardingErrors = Meter.CreateCounter<long>(
             "altinn.observability_proxy.forwarding.errors",
             "{request}",
-            "Requests the proxy could not forward to a backend, or not completely."
+            "Requests the proxy could not forward to a backend, or not completely, through no fault of the client. "
+                + "A client that cancels or breaks off its own request is not counted here."
         );
         _failovers = Meter.CreateCounter<long>(
             "altinn.observability_proxy.read.failovers",
@@ -111,7 +114,7 @@ internal sealed class ObservabilityProxyMetrics
         metricsTags.Tags.Add(new(Attributes.TokenSlot, SlotName(source.TokenSlot)));
     }
 
-    /// <param name="errorType"><see cref="MissingToken"/> or <see cref="UnknownToken"/>.</param>
+    /// <param name="errorType"><see cref="MissingBearerToken"/> or <see cref="UnknownToken"/>.</param>
     public void RecordAuthenticationFailure(RouteConfig? route, string errorType)
     {
         var tags = new TagList { { Attributes.ErrorType, errorType } };
@@ -142,9 +145,19 @@ internal sealed class ObservabilityProxyMetrics
         _rateLimitRejections.Add(1, tags);
     }
 
+    /// <summary>
+    /// Counts a forwarding failure on the backend's or the proxy's side. A failure the client caused,
+    /// by cancelling or breaking off its request or by not reading the response, is not counted:
+    /// Grafana cancels queries routinely, and the request metric already shows those as 499.
+    /// </summary>
     /// <param name="destinationId">The destination the request was sent to, or <c>null</c> when none was available.</param>
     public void RecordForwardingError(RouteConfig route, string? destinationId, ForwarderError error)
     {
+        if (IsCausedByClient(error))
+        {
+            return;
+        }
+
         var tags = new TagList
         {
             { Attributes.ErrorType, JsonNamingPolicy.SnakeCaseLower.ConvertName(error.ToString()) },
@@ -161,6 +174,19 @@ internal sealed class ObservabilityProxyMetrics
 
         _forwardingErrors.Add(1, tags);
     }
+
+    /// <summary>Whether the client, not the backend or the proxy, ended the forwarding.</summary>
+    public static bool IsCausedByClient(ForwarderError error) =>
+        error
+            is ForwarderError.RequestCanceled
+                or ForwarderError.RequestBodyCanceled
+                or ForwarderError.RequestBodyClient
+                or ForwarderError.ResponseBodyCanceled
+                or ForwarderError.ResponseBodyClient
+                or ForwarderError.UpgradeRequestCanceled
+                or ForwarderError.UpgradeRequestClient
+                or ForwarderError.UpgradeResponseCanceled
+                or ForwarderError.UpgradeResponseClient;
 
     /// <param name="signal">The signal whose storage pair failed over, which is also its read cluster's ID.</param>
     /// <param name="destinationId">The copy reads moved to.</param>

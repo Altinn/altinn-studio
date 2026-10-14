@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Net;
-using System.Net.Sockets;
 
 namespace Altinn.Studio.Observability.Proxy.Tests.Telemetry;
 
@@ -24,6 +23,12 @@ public sealed class MetricsTests : IDisposable
     private const string Direction = "altinn_observability_proxy_direction";
     private const string Destination = "altinn_observability_proxy_destination";
     private const string Status = "http_response_status_code";
+
+    /// <summary>
+    /// Nothing listens on port 1, so a connection there is refused. A port picked free and released
+    /// would not do: another test running alongside can bind it in between.
+    /// </summary>
+    private const string RefusingAddress = "http://127.0.0.1:1";
 
     private const string CurrentToken = "current-secret-0123456789abcdef0123";
     private const string PreviousToken = "previous-secret-0123456789abcdef012";
@@ -92,8 +97,8 @@ public sealed class MetricsTests : IDisposable
 
         Assert.Equal(HttpStatusCode.OK, await PostAsync(proxy, "/otlp/v1/logs", ProxyConfiguration.IngestToken));
 
-        // The HTTP client meter is the process's, so it also counts this test's own request to the
-        // proxy; the backend is told apart by its port.
+        // Only the forwarder's requests: not this test's own request to the proxy, which is to the
+        // same address on another port.
         var backend = new Uri(downstream.Address);
         (string, string)[] forwardedWrite =
         [
@@ -125,16 +130,21 @@ public sealed class MetricsTests : IDisposable
         const string unknownToken = "unknown-secret-0123456789abcdef0123";
 
         Assert.Equal(HttpStatusCode.Unauthorized, await PostAsync(proxy, "/otlp/v1/metrics", token: null));
+        using var basic = new HttpRequestMessage(HttpMethod.Post, "/internal/observability/otlp/v1/metrics");
+        basic.Headers.Authorization = new("Basic", "dXNlcjpwYXNzd29yZA==");
+        using var basicResponse = await proxy.Client.SendAsync(basic, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.Unauthorized, basicResponse.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, await PostAsync(proxy, "/otlp/v1/metrics", unknownToken));
         Assert.Equal(HttpStatusCode.Unauthorized, await GetAsync(proxy, "/logs/select/logsql/query", unknownToken));
 
-        var metrics = await proxy.ScrapeUntilAsync(scraped => scraped.Sum(Requests, (Status, "401")) >= 3);
+        var metrics = await proxy.ScrapeUntilAsync(scraped => scraped.Sum(Requests, (Status, "401")) >= 4);
 
+        // No Authorization header and another scheme alike: no bearer token.
         Assert.Equal(
-            1,
+            2,
             metrics.Sum(
                 AuthenticationFailures,
-                ("error_type", "missing_token"),
+                ("error_type", "missing_bearer_token"),
                 (Signal, "metrics"),
                 (Direction, "ingest")
             )
@@ -152,7 +162,7 @@ public sealed class MetricsTests : IDisposable
             1,
             metrics.Sum(AuthenticationFailures, ("error_type", "unknown_token"), (Signal, "logs"), (Direction, "query"))
         );
-        Assert.Equal(2, metrics.Sum(Requests, (Signal, "metrics"), (Direction, "ingest"), (Status, "401")));
+        Assert.Equal(3, metrics.Sum(Requests, (Signal, "metrics"), (Direction, "ingest"), (Status, "401")));
         Assert.All(
             metrics.Series(Requests, (Status, "401")),
             series => Assert.DoesNotContain(SourceIdentity, series.Labels.Keys)
@@ -223,7 +233,7 @@ public sealed class MetricsTests : IDisposable
     {
         await using var downstream = await TestWebApplication.StartDownstreamAsync();
         var configuration = ProxyConfiguration.WithBothTokens(downstream.Address);
-        configuration["ObservabilityProxy:Downstreams:Agents:Metrics"] = $"http://127.0.0.1:{ClosedLoopbackPort()}";
+        configuration["ObservabilityProxy:Downstreams:Agents:Metrics"] = RefusingAddress;
         await using var proxy = await TestWebApplication.StartProxyAsync(configuration);
 
         Assert.Equal(
@@ -243,6 +253,58 @@ public sealed class MetricsTests : IDisposable
                 ("error_type", "request")
             )
         );
+    }
+
+    [Fact]
+    public async Task ClientCancellations_AreNotCountedAsForwardingErrors()
+    {
+        // Grafana cancels queries it no longer needs; that says nothing about the backend.
+        await using var slow = await TestWebApplication.StartDownstreamAsync(async context =>
+        {
+            if (context.Request.Path == "/health")
+            {
+                return;
+            }
+
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(30), context.RequestAborted);
+            }
+            catch (OperationCanceledException)
+            {
+                // The proxy gave up on the request when its client did.
+            }
+        });
+        var configuration = ProxyConfiguration.WithBothTokens(slow.Address);
+        configuration["ObservabilityProxy:Downstreams:Agents:Metrics"] = RefusingAddress;
+        await using var proxy = await TestWebApplication.StartProxyAsync(configuration);
+
+        using (var cancel = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken))
+        {
+            cancel.CancelAfter(TimeSpan.FromMilliseconds(500));
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                "/internal/observability/metrics/api/v1/query?query=up"
+            );
+            request.Headers.Authorization = new("Bearer", ProxyConfiguration.QueryToken);
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                proxy.Client.SendAsync(request, cancel.Token)
+            );
+        }
+
+        // A backend that refuses the connection is, for comparison.
+        Assert.Equal(
+            HttpStatusCode.BadGateway,
+            await PostAsync(proxy, "/otlp/v1/metrics", ProxyConfiguration.IngestToken)
+        );
+
+        var metrics = await proxy.ScrapeUntilAsync(scraped =>
+            scraped.Sum(Requests, (SourceIdentity, "grafana")) >= 1 && scraped.Sum(ForwardingErrors) >= 1
+        );
+
+        Assert.Equal(1, metrics.Sum(Requests, (SourceIdentity, "grafana"), (Status, "499")));
+        Assert.Equal(0, metrics.Sum(ForwardingErrors, (Direction, "query")));
+        Assert.Equal(1, metrics.Sum(ForwardingErrors, (Destination, "agent"), ("error_type", "request")));
     }
 
     [Fact]
@@ -397,14 +459,5 @@ public sealed class MetricsTests : IDisposable
 
         using var response = await proxy.Client.SendAsync(request, TestContext.Current.CancellationToken);
         return response.StatusCode;
-    }
-
-    private static int ClosedLoopbackPort()
-    {
-        using var listener = new TcpListener(IPAddress.Loopback, 0);
-        listener.Start();
-        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
-        listener.Stop();
-        return port;
     }
 }
