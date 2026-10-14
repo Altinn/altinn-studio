@@ -1,62 +1,86 @@
 # Environments
 
-This page lists where our services run, how a change reaches them, and where to find the details.
+Altinn Studio hosts services and applications on Kubernetes clusters:
 
-## Runtime clusters
-
-Each service owner has one cluster per environment it uses.
-
-- The [service owner registry](https://github.com/Altinn/altinn-cdn/blob/master/orgs/altinn-orgs.json) lists the
-  service owners and their environments. It calls prod `production`.
-- Only `ttd` has the AT environments.
-- A cluster runs the service owner's apps and the services in the [runtime syncroot](../../infra/runtime/syncroot).
-- Designer deploys apps with [`deploy-app.yaml`](../../src/App/azure-pipelines/deploy-app.yaml) and the Helm chart
-  from [altinn-studio-charts](https://github.com/Altinn/altinn-studio-charts).
-- Other services are tagged per ring, and each cluster follows one ring.
-- [`construct-environments.mjs`](../../.github/scripts/construct-environments.mjs) lists the rings.
-- By default, a merged change reaches the AT rings and `tt_ring1`. `tt_ring2` and the production rings need
-  approval.
-- A cluster's ring, environment and service owner are set outside this repository.
-
-## DIS Core
-
-DIS Core clusters are shared by Altinn's products. The platform team runs them.
-
-- pdf3 is moving to DIS Core to serve all service owners.
-- pdf3's manifests are in [`src/Runtime/pdf3/infra/syncroot`](../../src/Runtime/pdf3/infra/syncroot).
-- A pdf3 change is deployed to the DIS Core environments listed in
-  [`construct-environments.mjs`](../../.github/scripts/construct-environments.mjs).
-- yt01, tt02 and prod need approval.
-- Runtime clusters reach DIS Core through DIS Edge.
+- Studio clusters, for control plane.
+- Runtime clusters, for service owner apps and our runtime-services.
+- DIS Core and platform clusters for shared platform-services.
+- Admin services clusters for non-dataplane shared services.
 
 ## Studio clusters
 
-Studio has one cluster each for dev, staging and prod. They are set up in altinn-studio-infra.
+Each Studio environment has its own cluster, configured in
+[altinn-studio-infra](https://dev.azure.com/brreg/altinn-studio-ops/_git/altinn-studio-infra).
 
-- A cluster runs Designer, Gitea with the app repositories, and the services in the
-  [Studio syncroot](../../infra/studio/syncroot).
-- dev, staging and prod share the runtime clusters they deploy apps to.
-- Only prod deploys to the production runtime clusters.
-- Deploys to prod need approval. Designer and Studio Assistant skip it by deploying to `preapproved-prod`.
+- A cluster runs Designer, Gitea with the app repositories, and other supporting
+  services defined in the [Studio syncroot](../../infra/studio/syncroot).
+- Studio environments share runtime clusters as app deployment targets.
+  Only Studio `prod` offers deployment to production runtime clusters.
+- The GitHub environments `prod` and `preapproved-prod` both target the Studio
+  production cluster.
+
+## Runtime clusters
+
+Each service owner has one runtime cluster per environment it uses.
+
+- A cluster runs the service owner's apps and the supporting services defined
+  in the [runtime syncroot](../../infra/runtime/syncroot).
+- The [service owner registry](https://github.com/Altinn/altinn-cdn/blob/master/orgs/altinn-orgs.json)
+  lists each service owner's environments. It names the production environment
+  `production`; runtime configuration uses `prod`.
+- Designer deploys apps through
+  [`deploy-app.yaml`](../../src/App/azure-pipelines/deploy-app.yaml). The pipeline
+  publishes the app's deployment manifests as an OCI artifact. The manifests use
+  the Helm chart in [altinn-studio-charts](https://github.com/Altinn/altinn-studio-charts).
+- Designer maintains the apps syncroot in the Gitea repository `als/<service-owner>-gitops`.
+  The deployment pipeline publishes the syncroot as a separate OCI artifact.
+  [`apps-syncroot.yaml`](../../infra/runtime/syncroot/base/apps-syncroot.yaml)
+  configures Flux to read that artifact from the service owner's container registry.
+- Runtime services deploy using release rings per environment. `ring1` contains only `ttd`.
+  `ring2` contains the other service owners.
+- The platform team manages these clusters as deployments of the DIS container runtime.
+  Cluster configuration lives outside this repository.
+
+## DIS Core
+
+The platform team runs DIS Core clusters for services shared by Altinn's products.
+
+- Services in DIS Core can serve multiple service owners.
+- Deployments use a separate artifact tag for each environment.
+- Publishing permissions are configured in
+  [altinn-platform's syncroot configuration](https://github.com/Altinn/altinn-platform/tree/main/infrastructure/syncroots).
 
 ## Platform cluster
 
-The old platform cluster runs Altinn platform services such as
-[altinn-storage](https://github.com/Altinn/altinn-storage), [altinn-receipt](https://github.com/Altinn/altinn-receipt)
-and [altinn-file-scan](https://github.com/Altinn/altinn-file-scan).
+The platform cluster runs shared Altinn services.
 
-- Each service has its own repository.
-- Apps reach these services through the endpoints in the runtime [apps-config](../../infra/runtime/apps-config).
-- They will move to [DIS Core](#dis-core) after pdf3.
+- Services include [altinn-storage](https://github.com/Altinn/altinn-storage),
+  [altinn-receipt](https://github.com/Altinn/altinn-receipt), and
+  [altinn-file-scan](https://github.com/Altinn/altinn-file-scan).
+  Each service has its own repository.
+- Apps connect to these services through the endpoints configured in
+  [`infra/runtime/apps-config`](../../infra/runtime/apps-config).
 
 ## Adminservices
 
-Adminservices holds shared resources that the platform team runs.
+The platform team runs adminservices for shared resources.
 
-- Our resource there is the workflow engine's PostgreSQL server, in [`infra/admin`](../../infra/admin).
-- A [template](../../infra/admin/workflow-engine-tenant-db-template) gives each runtime cluster its own database on
-  that server.
-- We deploy it only to test.
+- Altinn Studio's configuration in [`infra/admin`](../../infra/admin) defines
+  the workflow engine's PostgreSQL server.
+- The [database template](../../infra/admin/workflow-engine-tenant-db-template)
+  defines a separate database for each runtime cluster on that server.
+- Publishing permissions are configured in
+  [altinn-platform's syncroot configuration](https://github.com/Altinn/altinn-platform/tree/main/infrastructure/syncroots).
 
-Our right to publish to DIS Core and adminservices is granted in altinn-platform's
-[`infrastructure/syncroots`](https://github.com/Altinn/altinn-platform/tree/main/infrastructure/syncroots).
+## Deployment configuration
+
+Deployment targets and approvals are defined in these sources:
+
+- [`construct-environments.mjs`](../../.github/scripts/construct-environments.mjs)
+  defines the Studio environments, runtime release rings, and DIS Core
+  environments used by the deployment workflows.
+- The repository's
+  [GitHub environment settings](https://github.com/Altinn/altinn-studio/settings/environments)
+  define deployment approval requirements.
+- The [deployment workflows](../../.github/workflows) define what triggers
+  a deployment and which configuration it publishes.
