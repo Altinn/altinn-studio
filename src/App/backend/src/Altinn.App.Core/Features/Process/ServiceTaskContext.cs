@@ -58,7 +58,7 @@ public sealed record ServiceTaskContext
     /// can forward it to the element after it by returning
     /// <c>ServiceTaskResult.Success(action: context.Action)</c>.
     /// </summary>
-    public string? Action { get; internal init; }
+    public string? Action { get; init; }
 
     /// <summary>
     /// The clock bounding <em>this attempt</em> (<see cref="ProcessStepOptions.MaxExecutionTime"/>):
