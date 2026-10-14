@@ -59,6 +59,3 @@ GitHub cannot run `pull_request` workflows against a merge commit it cannot crea
 A check watcher can finish before all expected workflows have registered. Confirm that the expected runs exist
 and inspect their conclusions before reporting success. For a failed matrix, find the job that failed first.
 Other jobs may have been canceled by fail-fast.
-
-The [App Frontend Cypress workflow](workflows/app-frontend-cypress.yml) passes cached prerequisites between jobs.
-If retrying failed jobs reports a missing prerequisite cache, rerun the whole workflow.
