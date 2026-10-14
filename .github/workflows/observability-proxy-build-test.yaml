@@ -85,6 +85,9 @@ jobs:
           done
           grep -q '^http_server_request_duration_seconds_count{.*altinn_observability_proxy_source_identity="ci".*http_response_status_code="502"' <<<"$metrics"
           grep -q '^altinn_observability_proxy_authentication_failures_total{.*error_type="missing_bearer_token"' <<<"$metrics"
+          # The forwarder's own outgoing requests, through the meter factory only the published image
+          # wires up in production.
+          grep -q '^http_client_request_duration_seconds_count{.*server_port="1"' <<<"$metrics"
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/metrics)" = 404
 
       - name: Image logs

@@ -148,7 +148,8 @@ internal sealed class ObservabilityProxyMetrics
     /// <summary>
     /// Counts a forwarding failure on the backend's or the proxy's side. A failure the client caused,
     /// by cancelling or breaking off its request or by not reading the response, is not counted:
-    /// Grafana cancels queries routinely, and the request metric already shows those as 499.
+    /// Grafana cancels queries routinely. The request metric shows a request cancelled before its
+    /// response started as 499; a response broken off while streaming keeps the status already sent.
     /// </summary>
     /// <param name="destinationId">The destination the request was sent to, or <c>null</c> when none was available.</param>
     public void RecordForwardingError(RouteConfig route, string? destinationId, ForwarderError error)
