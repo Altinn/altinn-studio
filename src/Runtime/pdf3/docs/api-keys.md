@@ -1,32 +1,36 @@
 # pdf3 API keys
 
-The shared pdf3 in DIS Core will be reachable from the internet through DIS Edge. Its proxy therefore accepts only
-requests that carry one of its API keys.
-
-- The [relay](../cmd/relay) in each service owner's cluster sends a key with each request.
-- The [`internal/auth`](../internal/auth) package comment describes the key file and when a change to it takes effect.
-- The shared pdf3 keeps its keys in its Key Vault, which [`vault.yaml`](../infra/syncroot/base/vault.yaml) defines.
+When pdf3 runs as a shared service, the proxy requires an API key. The [relay](../cmd/relay) sends a key with each
+request. The [`internal/auth`](../internal/auth) package comment describes the key file and when changes take effect.
+The [DIS Core vault manifest](../infra/syncroot/base/vault.yaml) defines the Key Vault for the shared service.
 
 ## What the keys protect
 
-- The keys protect the shared pdf3 against requests from the internet.
-- Service owners, their apps and their clusters are trusted. The keys do not protect against a malicious insider at a
-  service owner.
-- The shared pdf3 trusts the service owner in the `X-Altinn-Service-Owner` header of any request with a valid key.
-- The service owner in that header decides only PDF/A conversion and what telemetry records. Revisit this trust
-  before anything else depends on the header, such as limits per service owner.
-- A request with a valid key can ask pdf3 to render any URL.
+API keys protect the shared pdf3 against requests from the internet. Service owners, their apps, and their clusters
+are trusted. A request with a valid key can ask pdf3 to render any URL, so the keys do not protect against a malicious
+insider at a service owner.
 
-## Rotating a key
+The shared proxy trusts the service owner in the `X-Altinn-Service-Owner` header of any request with a valid key.
+That header controls PDF/A conversion and identifies the service owner in telemetry. Revisit this trust before
+anything else depends on the header, such as limits per service owner.
 
-The shared pdf3 must accept a new key before any relay sends it. Rotate a key in three steps:
+## Rotate a key
 
-1. Add the new key to the shared pdf3's keys. Wait until every proxy has reloaded its keys.
-2. Make the new key the first key in each relay's file. Wait until every relay has reloaded its file.
-3. Remove the old key from the shared pdf3's keys.
+Every proxy must accept the new key before any relay sends it. For each file update, wait for the affected pods to
+log `Reloaded API keys` before continuing. If a pod's file does not update when its Secret changes, restart the pod
+and verify that it starts with the updated file.
 
-## Revoking a key
+Rotate the key in this order:
 
-- To revoke a key, write the file without that key and with another key in its place.
-- If a pod's file is not updated when the Secret changes, restart the pod.
-- Do not empty the file to revoke a key. A file without keys is not loaded, so the current keys stay valid.
+1. Add the new key to every proxy's key file, keeping the old key.
+2. Make the new key the first key in every relay's key file.
+3. Remove the old key from every proxy's key file.
+
+## Revoke a key
+
+Keep at least one valid key in each proxy's key file. An empty or unreadable file leaves the proxy's current keys
+valid. Removing a key from a relay's file does not stop the proxy from accepting it.
+
+To revoke a key, remove it from every proxy's key file. Wait for each proxy to log `Reloaded API keys`.
+If a proxy's file does not update when its Secret changes, restart the pod and verify that it starts with the updated
+file.
