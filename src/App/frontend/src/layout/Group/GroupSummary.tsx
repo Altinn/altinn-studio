@@ -7,6 +7,7 @@ import cn from 'classnames';
 import type { HeadingLevel } from '@app/layout-contract/generated/common.generated';
 
 import { Lang } from 'src/features/language/Lang';
+import { useIsExcludedFromPdf } from 'src/features/pdf/useIsExcludedFromPdf';
 import classes from 'src/layout/Group/GroupSummary.module.css';
 import { EmptyChildrenBoundary, useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import {
@@ -81,6 +82,10 @@ export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: Grou
   const isNestedGroup = hierarchyLevel > 0;
   const dataTestId = hierarchyLevel > 0 ? `summary-group-component-${hierarchyLevel}` : 'summary-group-component';
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
+  const excludedFromPdf = useIsExcludedFromPdf(targetBaseComponentId);
+  if (excludedFromPdf) {
+    return null;
+  }
   return (
     <SummaryFlexForContainer
       hideWhen={hideEmptyFields}
