@@ -68,6 +68,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pdf3-proxy
+  annotations:
+    altinn.studio/image: runtime-pdf3-proxy:latest
+    altinn.studio/image-tag: latest
 spec:
   minReadySeconds: 3
   revisionHistoryLimit: 5
@@ -128,7 +131,7 @@ spec:
             secretName: pdf3-api-keys
       containers:
         - name: pdf3-proxy
-          image: altinncr.azurecr.io/ghcr.io/altinn/altinn-studio/runtime-pdf3-proxy:set-per-environment
+          image: ""
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false

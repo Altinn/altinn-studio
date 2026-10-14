@@ -77,6 +77,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pdf3-worker
+  annotations:
+    altinn.studio/image: runtime-pdf3-worker:latest
+    altinn.studio/image-tag: latest
 spec:
   minReadySeconds: 3
   revisionHistoryLimit: 5
@@ -130,7 +133,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: pdf3-worker
-          image: altinncr.azurecr.io/ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:set-per-environment
+          image: ""
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false

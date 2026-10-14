@@ -13,3 +13,27 @@ resources:
   - httproute.yaml
   - linkerd-policies.yaml
   - network-policies.yaml
+
+# The images come from the annotations, which deploy-runtime-pdf3.yaml sets to the build it
+# publishes this artifact with, as in the tenant manifests (infra/kustomize/base).
+replacements:
+- source:
+    kind: Deployment
+    name: pdf3-proxy
+    fieldPath: metadata.annotations.[altinn.studio/image]
+  targets:
+  - select:
+      kind: Deployment
+      name: pdf3-proxy
+    fieldPaths:
+      - spec.template.spec.containers.[name=pdf3-proxy].image
+- source:
+    kind: Deployment
+    name: pdf3-worker
+    fieldPath: metadata.annotations.[altinn.studio/image]
+  targets:
+  - select:
+      kind: Deployment
+      name: pdf3-worker
+    fieldPaths:
+      - spec.template.spec.containers.[name=pdf3-worker].image

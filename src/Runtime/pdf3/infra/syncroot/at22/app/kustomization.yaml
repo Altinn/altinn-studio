@@ -4,14 +4,6 @@ kind: Kustomization
 resources:
   - ../../base
 
-# The pdf3 build at22 runs. Bump both tags together, by PR. Each Core environment pins its own
-# build, so this promotes at22 only.
-images:
-  - name: altinncr.azurecr.io/ghcr.io/altinn/altinn-studio/runtime-pdf3-proxy
-    newTag: 608dae250a
-  - name: altinncr.azurecr.io/ghcr.io/altinn/altinn-studio/runtime-pdf3-worker
-    newTag: 608dae250a
-
 patches:
   # The object ID of the Entra group DIS AKS Admin Dev STUDIO.
   - target:

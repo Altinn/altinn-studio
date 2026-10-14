@@ -250,8 +250,8 @@ namespace.
   annotated `kustomize.toolkit.fluxcd.io/prune: disabled`, so removing them takes a manual
   `kubectl delete`. Deleting the Vault deletes the Key Vault, and purge protection keeps its name
   taken for the 90 days of soft delete
-- `<env>/app/` - The environment's overlay of `base/`: the image tags, the environment's name,
-  hostname and admin group, and sizing
+- `<env>/app/` - The environment's overlay of `base/`: the environment's name, hostname and admin
+  group, and sizing
 
 They are not an overlay of `infra/kustomize/base`: Flux only gets `infra/syncroot`, and the tenant
 manifests go away once every tenant cluster relays to DIS Core. Keep the two in step until then.
@@ -286,18 +286,26 @@ manifests go away once every tenant cluster relays to DIS Core. Keep the two in 
   `kubectl -n product-studio-pdf3 exec deploy/pdf3-worker -- cat /etc/resolv.conf`
 - **Telemetry**: the proxy and workers export to the collector `pdf3-collector`, which is not
   deployed yet. Until it is, exports fail in the background and are logged
-- **Images** are pinned per environment in `<env>/app/kustomization.yaml`; bump the proxy and
-  worker tags together with a PR. Each Core environment is promoted on its own, by bumping its pin
+- **Images** come from the build that publishes the artifact, as in the tenant manifests: the
+  Deployments carry `altinn.studio/image` and `altinn.studio/image-tag` with `:latest`
+  placeholders and `image: ""`, a `replacements` rule in `base/` copies the annotation into the
+  container, and the workflow sets the annotations to its build before pushing. Don't pin images
+  in the overlays
 
-**Publishing**: `.github/workflows/deploy-dis-pdf3-syncroot.yaml` pushes `infra/syncroot` as
-`studio-pdf3/syncroot:<sha>` on every change on main, then moves each Core environment's tag to it
-in that environment's GitHub environment (`dis_core_<env>`), one tag job each. Like Studio's own
-deploys it is addressed by environment: a push covers every Core environment (at22, at23, yt01,
-tt02, prod), and a manual run the environments in its `environments` input. DIS Core has no
-rings; there is one cluster per environment for every service owner. `dis_core_yt01`,
-`dis_core_tt02` and `dis_core_prod` need a reviewer's approval. Only at22 has resources so far; the
-other environments' folders hold an empty kustomization, the same content the platform seeded. The
-tenant workflows ignore changes under `infra/syncroot/`.
+**Publishing**: `.github/workflows/deploy-runtime-pdf3.yaml` publishes the tenant artifact and
+DIS Core's syncroot in the same run, from the images it builds. After the build, a job outside
+any GitHub environment sets the images in `infra/syncroot/base` and pushes `infra/syncroot` as
+`studio-pdf3/syncroot:<sha>` with the DIS publishing identity (`DIS_SYNCROOT_AZURE_*`), which
+trusts `main` and the `dis_core_*` environments only. Then each Core environment's tag is moved to
+it in that environment's GitHub environment (`dis_core_<env>`), one tag job each, next to the
+ring tag jobs. A push covers every Core environment (at22, at23, yt01, tt02, prod); a manual run
+the environments in its `dis-core-environments` input (at22 by default, empty for none), and the
+rings in `environments`. DIS Core has no rings; there is one cluster per environment for every
+service owner. `dis_core_yt01`, `dis_core_tt02` and `dis_core_prod` need a reviewer's approval,
+so Core environments are promoted by approving their tag jobs, like the rings. Any change under
+`src/Runtime/pdf3`, including one to `infra/syncroot/` only, builds pdf3 and rolls it through the
+rings as well. Only at22 has resources so far; the other environments' folders hold an empty
+kustomization, the same content the platform seeded.
 
 ## Testing Strategy
 
