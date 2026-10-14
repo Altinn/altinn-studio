@@ -17,8 +17,6 @@ Keep Markdown files that a build or test uses in its path filters. For example, 
 the CLI must trigger the CLI build. If a documentation exclusion matches such a file, add an include pattern
 after it. Explain in a comment which build or test needs the file.
 
-Formatting checks are optional for Markdown documentation. Compiled `.mdx` files follow the code formatting rules.
-
 For check workflows, group concurrent runs by workflow and pull request or ref, with a run ID fallback.
 Cancel superseded checks.
 
