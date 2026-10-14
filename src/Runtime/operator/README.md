@@ -1,29 +1,31 @@
-# Altinn Studio Operator
+# Altinn Studio operator
 
 This Kubernetes operator runs in every [runtime cluster](../../../docs/infrastructure/environments.md#runtime-clusters).
-
-- It does the cluster-side work for apps, such as Maskinporten clients, secrets, alert routing and databases.
-- Each task has its own controller in [`internal/controller`](internal/controller).
-  [`cmd/main.go`](cmd/main.go) registers the controllers.
+It manages resources that apps depend on, including Maskinporten clients, secrets, alert routing, and databases.
+[`cmd/main.go`](cmd/main.go) registers the controllers that manage these resources.
 
 ## How it fits with the rest
 
-- [`deploy-app.yaml`](../../App/azure-pipelines/deploy-app.yaml) creates a `MaskinportenClient` resource for each
-  app that needs Maskinporten scopes. The operator then creates the client in Maskinporten and writes its
-  credentials to the app's secret.
-- Outside production, the inactivity scaler scales workloads down to one replica.
-    - In clusters with no apps, it scales down the gateway and pdf3.
-    - In `ttd`'s clusters, it also scales down apps, the gateway and pdf3 outside working hours.
-    - The [pdf3 README](../pdf3/README.md) describes how this affects pdf3.
+[`deploy-app.yaml`](../../App/azure-pipelines/deploy-app.yaml) creates a `MaskinportenClient` resource for each
+app that needs Maskinporten scopes. The operator then creates the client in Maskinporten and writes its
+credentials to the app's secret.
+
+Outside production, the operator can reduce replicas for apps, the gateway, and pdf3 during periods of inactivity.
+The [inactivity scaler](internal/controller/inactivityscaler/controller.go) defines which workloads it scales
+based on the service owner, app presence, and working hours.
 
 ## Developing
 
-- The tests need Docker or Podman.
-- When run outside CI, `make test` and `make test-e2e` update changed snapshots instead of failing.
+The [Makefile](Makefile) defines the build, test, and lint targets. The test targets have these requirements and behaviors:
+
+- Docker or Podman must be available.
+- Outside CI, `make test` and `make test-e2e` update changed snapshots by default instead of failing on snapshot differences.
 - `make test-e2e` leaves its Kind cluster running. `make stop` removes it.
-- [`docs/maintenance.md`](docs/maintenance.md) describes recurring maintenance tasks.
+
+[Maintaining the operator](docs/maintenance.md) covers API model updates, Kubebuilder upgrades, and renewal of the operator's Maskinporten credentials.
 
 ## Constraints
 
-- Flux never deletes the operator's CRDs. If a CRD is removed from the manifests, someone must delete it from the
-  cluster by hand. [`config/crd/kustomization.yaml`](config/crd/kustomization.yaml) explains why.
+Flux does not prune the operator's CRDs because deleting a CRD also deletes its custom resources.
+If a CRD is removed from the manifests, it remains in the cluster until someone deletes it by hand.
+[`config/crd/kustomization.yaml`](config/crd/kustomization.yaml) defines this constraint and explains its effect on Maskinporten clients.
