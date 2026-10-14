@@ -9,6 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -27,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/discovery/cached/memory"
 	"k8s.io/client-go/dynamic"
@@ -47,6 +50,8 @@ var (
 	DeploymentGVR           = appsv1.SchemeGroupVersion.WithResource("deployments")
 	errRolloutTimeout       = errors.New("timeout waiting for deployment rollout")
 	errRolloutWatchClosed   = errors.New("deployment watch channel closed")
+	errStatefulSetTimeout   = errors.New("timeout waiting for statefulset rollout")
+	errStatefulSetClosed    = errors.New("statefulset watch channel closed")
 	errConditionTimeout     = errors.New("timeout waiting for resource condition")
 	errConditionWatchClosed = errors.New("resource watch channel closed")
 	errSourceRefNotFound    = errors.New("sourceRef not found")
@@ -292,50 +297,77 @@ func (c *KubernetesClient) RolloutStatus(
 	namespace string,
 	timeout time.Duration,
 ) error {
-	if timeout > 0 {
+	return waitForRollout(ctx, c.clientset.AppsV1().Deployments(namespace), rolloutWait[*appsv1.Deployment]{
+		kind:       "deployment",
+		name:       deployment,
+		timeout:    timeout,
+		complete:   isRolloutComplete,
+		errTimeout: errRolloutTimeout,
+		errClosed:  errRolloutWatchClosed,
+	})
+}
+
+// rolloutClient is the part of a typed workload client a rollout wait uses.
+type rolloutClient[T metav1.Object] interface {
+	Get(ctx context.Context, name string, opts metav1.GetOptions) (T, error)
+	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
+}
+
+// rolloutWait describes what a rollout wait waits for.
+type rolloutWait[T metav1.Object] struct {
+	complete   func(T) bool
+	errTimeout error
+	errClosed  error
+	kind       string
+	name       string
+	timeout    time.Duration
+}
+
+// waitForRollout watches a workload until complete reports it rolled out. One that does not
+// exist yet is waited for too.
+func waitForRollout[T metav1.Object](ctx context.Context, client rolloutClient[T], wait rolloutWait[T]) error {
+	if wait.timeout > 0 {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, timeout)
+		ctx, cancel = context.WithTimeout(ctx, wait.timeout)
 		defer cancel()
 	}
 
-	// Without a resource version, the watch starts with the deployment's current state if it
+	// Without a resource version, the watch starts with the workload's current state if it
 	// exists, so one created after the Get below is not missed.
 	resourceVersion := ""
-	dep, err := c.clientset.AppsV1().Deployments(namespace).Get(ctx, deployment, metav1.GetOptions{})
+	current, err := client.Get(ctx, wait.name, metav1.GetOptions{})
 	switch {
 	case apierrors.IsNotFound(err):
 	case err != nil:
-		return fmt.Errorf("failed to get deployment %s: %w", deployment, err)
-	case isRolloutComplete(dep):
+		return fmt.Errorf("failed to get %s %s: %w", wait.kind, wait.name, err)
+	case wait.complete(current):
 		return nil
 	default:
-		resourceVersion = dep.ResourceVersion
+		resourceVersion = current.GetResourceVersion()
 	}
 
-	watcher, err := c.clientset.AppsV1().Deployments(namespace).Watch(ctx, metav1.ListOptions{
-		FieldSelector:   "metadata.name=" + deployment,
+	watcher, err := client.Watch(ctx, metav1.ListOptions{
+		FieldSelector:   "metadata.name=" + wait.name,
 		ResourceVersion: resourceVersion,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to watch deployment %s: %w", deployment, err)
+		return fmt.Errorf("failed to watch %s %s: %w", wait.kind, wait.name, err)
 	}
 	defer watcher.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf("%w: %s", errRolloutTimeout, deployment)
+			return fmt.Errorf("%w: %s", wait.errTimeout, wait.name)
 		case event, ok := <-watcher.ResultChan():
 			if !ok {
-				return fmt.Errorf("%w: %s", errRolloutWatchClosed, deployment)
+				return fmt.Errorf("%w: %s", wait.errClosed, wait.name)
 			}
-
-			dep, ok := event.Object.(*appsv1.Deployment)
+			object, ok := event.Object.(T)
 			if !ok {
 				continue
 			}
-
-			if isRolloutComplete(dep) {
+			if wait.complete(object) {
 				return nil
 			}
 		}
@@ -351,6 +383,36 @@ func isRolloutComplete(dep *appsv1.Deployment) bool {
 		dep.Status.UpdatedReplicas == replicas &&
 		dep.Status.AvailableReplicas == replicas &&
 		dep.Status.UnavailableReplicas == 0
+}
+
+// StatefulSetRolloutStatus waits until every replica of a StatefulSet runs its current revision
+// and is ready, using a watch and ctx. A StatefulSet that does not exist yet, such as one an
+// operator creates from a custom resource, is waited for as well.
+func (c *KubernetesClient) StatefulSetRolloutStatus(
+	ctx context.Context,
+	statefulSet,
+	namespace string,
+	timeout time.Duration,
+) error {
+	return waitForRollout(ctx, c.clientset.AppsV1().StatefulSets(namespace), rolloutWait[*appsv1.StatefulSet]{
+		kind:       "statefulset",
+		name:       statefulSet,
+		timeout:    timeout,
+		complete:   isStatefulSetRolloutComplete,
+		errTimeout: errStatefulSetTimeout,
+		errClosed:  errStatefulSetClosed,
+	})
+}
+
+func isStatefulSetRolloutComplete(set *appsv1.StatefulSet) bool {
+	replicas := int32(1)
+	if set.Spec.Replicas != nil {
+		replicas = *set.Spec.Replicas
+	}
+	return set.Status.ObservedGeneration >= set.Generation &&
+		set.Status.UpdatedReplicas == replicas &&
+		set.Status.ReadyReplicas == replicas &&
+		(set.Status.UpdateRevision == "" || set.Status.CurrentRevision == set.Status.UpdateRevision)
 }
 
 // WatchCondition watches a resource until a condition reaches the target status.
@@ -863,4 +925,125 @@ func (c *KubernetesClient) StreamLogs(ctx context.Context, opts StreamLogOptions
 //nolint:errcheck,gosec // Stream and pipe cleanup is best-effort.
 func closeBestEffort(closer io.Closer) {
 	closer.Close()
+}
+
+// GetResource returns a Kubernetes object, or an error wrapping a NotFound status.
+func (c *KubernetesClient) GetResource(
+	ctx context.Context,
+	gvr schema.GroupVersionResource,
+	namespace,
+	name string,
+) (*unstructured.Unstructured, error) {
+	obj, err := c.resourceInterface(gvr, namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("get %s %s/%s: %w", gvr.Resource, namespace, name, err)
+	}
+	return obj, nil
+}
+
+// PatchResource patches a Kubernetes object with a JSON, merge or strategic merge patch.
+func (c *KubernetesClient) PatchResource(
+	ctx context.Context,
+	gvr schema.GroupVersionResource,
+	namespace,
+	name string,
+	patchType types.PatchType,
+	patch []byte,
+) error {
+	if _, err := c.resourceInterface(gvr, namespace).
+		Patch(ctx, name, patchType, patch, metav1.PatchOptions{}); err != nil {
+		return fmt.Errorf("patch %s %s/%s: %w", gvr.Resource, namespace, name, err)
+	}
+	return nil
+}
+
+// DeleteResource deletes a Kubernetes object and its dependents; one that does not exist is
+// not an error.
+func (c *KubernetesClient) DeleteResource(
+	ctx context.Context,
+	gvr schema.GroupVersionResource,
+	namespace,
+	name string,
+) error {
+	propagation := metav1.DeletePropagationBackground
+	err := c.resourceInterface(gvr, namespace).Delete(ctx, name, metav1.DeleteOptions{PropagationPolicy: &propagation})
+	if err != nil && !apierrors.IsNotFound(err) {
+		return fmt.Errorf("delete %s %s/%s: %w", gvr.Resource, namespace, name, err)
+	}
+	return nil
+}
+
+// ServiceProxyRequest is an HTTP request to a Service through the API server's proxy, which
+// reaches a ClusterIP Service without a port-forward.
+type ServiceProxyRequest struct {
+	Query     url.Values
+	Header    http.Header
+	Namespace string
+	Service   string
+	Port      string
+	Method    string
+	Path      string
+	Body      []byte
+}
+
+// ServiceProxy sends a request to a Service through the API server's proxy and returns the
+// response's status code and body. A response with an error status is returned as well,
+// not as an error.
+func (c *KubernetesClient) ServiceProxy(ctx context.Context, req ServiceProxyRequest) (int, []byte, error) {
+	method := req.Method
+	if method == "" {
+		method = http.MethodGet
+	}
+	request := c.clientset.CoreV1().RESTClient().
+		Verb(method).
+		AbsPath("/api/v1/namespaces", req.Namespace, "services", req.Service+":"+req.Port, "proxy", req.Path)
+	for key, values := range req.Query {
+		for _, value := range values {
+			request = request.Param(key, value)
+		}
+	}
+	for key, values := range req.Header {
+		request = request.SetHeader(key, values...)
+	}
+	if req.Body != nil {
+		request = request.Body(req.Body)
+	}
+	var status int
+	body, err := request.Do(ctx).StatusCode(&status).Raw()
+	if err != nil && status == 0 {
+		return 0, nil, fmt.Errorf("%s %s/%s%s: %w", method, req.Namespace, req.Service, req.Path, err)
+	}
+	return status, body, nil
+}
+
+// PodLogs returns the logs of every container of the pods matching labelSelector, each
+// prefixed with its pod name, without following them.
+func (c *KubernetesClient) PodLogs(ctx context.Context, namespace, labelSelector string) (string, error) {
+	pods, err := c.clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{LabelSelector: labelSelector})
+	if err != nil {
+		return "", fmt.Errorf("list pods %s in %s: %w", labelSelector, namespace, err)
+	}
+	var out strings.Builder
+	for _, pod := range pods.Items {
+		for _, container := range pod.Spec.Containers {
+			data, err := c.clientset.CoreV1().Pods(namespace).
+				GetLogs(pod.Name, &corev1.PodLogOptions{Container: container.Name}).Do(ctx).Raw()
+			if err != nil {
+				fmt.Fprintf(&out, "== %s/%s: %v\n", pod.Name, container.Name, err)
+				continue
+			}
+			fmt.Fprintf(&out, "== %s/%s\n%s\n", pod.Name, container.Name, data)
+		}
+	}
+	return out.String(), nil
+}
+
+func (c *KubernetesClient) resourceInterface(
+	gvr schema.GroupVersionResource,
+	namespace string,
+) dynamic.ResourceInterface {
+	if namespace == "" {
+		return c.dynamicClient.Resource(gvr)
+	}
+	return c.dynamicClient.Resource(gvr).Namespace(namespace)
 }

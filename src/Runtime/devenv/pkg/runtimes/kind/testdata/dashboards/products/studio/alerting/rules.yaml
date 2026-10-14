@@ -1,0 +1,59 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaAlertRuleGroup
+metadata:
+  name: studio-observability
+  namespace: grafana
+spec:
+  name: Observability
+  folderRef: external-grafana-studio-observability
+  interval: 1m
+  rules:
+    - uid: studio-obs-sample
+      title: Sample rule
+      condition: C
+      for: 0s
+      noDataState: OK
+      execErrState: OK
+      labels:
+        Severity: Critical
+      annotations:
+        summary: 'Queue {{ $labels.job }} dropping'
+        __dashboardUid__: sample
+        __panelId__: "10"
+      notificationSettings:
+        receiver: Studio Slack Critical
+        repeat_interval: 24h
+      data:
+        - refId: A
+          relativeTimeRange: {from: 300, to: 0}
+          datasourceUid: altinn-studio-metrics
+          model:
+            expr: sum(increase(up[5m]))
+            refId: A
+        - refId: C
+          datasourceUid: __expr__
+          model:
+            type: threshold
+            expression: A
+            refId: C
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaAlertRuleGroup
+metadata:
+  name: elsewhere
+  namespace: grafana
+spec:
+  name: Elsewhere
+  folderRef: external-grafana-studio
+  interval: 1m
+  rules:
+    - uid: studio-elsewhere
+      title: A rule on a datasource the local Grafana lacks
+      condition: A
+      for: 0s
+      noDataState: OK
+      execErrState: OK
+      data:
+        - refId: A
+          datasourceUid: azure-monitor-oob
+          model: {refId: A}

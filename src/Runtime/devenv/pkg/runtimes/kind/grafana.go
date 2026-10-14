@@ -83,11 +83,28 @@ func resolveDashboardsRepository(explicit, cachePath string) (string, error) {
 	return checkout.Path, nil
 }
 
-// loadGrafanaContent reads the product's datasources, folder and dashboards from the
-// dashboards repository, as the shared Grafana's operator would apply them.
-func loadGrafanaContent(repository string) (manifests.GrafanaContent, error) {
+// grafanaContentOptions selects what the local Grafana loads besides datasources and dashboards.
+type grafanaContentOptions struct {
+	recorderURL string
+	alerting    bool
+}
+
+// grafanaResources are the product's Grafana resources from the dashboards repository.
+type grafanaResources struct {
+	folders          map[string]grafanaFolder
+	dashboardFolders map[string]string
+	datasources      []map[string]any
+	ruleGroups       []grafanaObject
+	contactPoints    []grafanaObject
+	templates        []grafanaObject
+}
+
+// loadGrafanaContent reads the product's datasources, folders and dashboards from the
+// dashboards repository, and with options.alerting its alert rules and contact points, as
+// the shared Grafana's operator would apply them.
+func loadGrafanaContent(repository string, options grafanaContentOptions) (manifests.GrafanaContent, error) {
 	productDir := filepath.Join(repository, "products", dashboardsProduct)
-	datasources, folder, err := readGrafanaResources(productDir)
+	resources, err := readGrafanaResources(productDir)
 	if err != nil {
 		return manifests.GrafanaContent{}, err
 	}
@@ -99,94 +116,152 @@ func loadGrafanaContent(repository string) (manifests.GrafanaContent, error) {
 	datasourcesFile, err := yaml.Marshal(map[string]any{
 		"apiVersion":  1,
 		"prune":       true,
-		"datasources": datasources,
+		"datasources": resources.datasources,
 	})
 	if err != nil {
 		return manifests.GrafanaContent{}, fmt.Errorf("render Grafana datasources: %w", err)
 	}
-	providersFile, err := yaml.Marshal(map[string]any{
-		"apiVersion": 1,
-		"providers": []any{map[string]any{
-			"name":                  dashboardsProduct,
-			"folder":                folder,
-			"type":                  "file",
-			"allowUiUpdates":        true,
-			"updateIntervalSeconds": dashboardsReloadSeconds,
-			"options":               map[string]any{"path": "/var/lib/grafana/dashboards"},
-		}},
-	})
+	dashboardDirs, providers, err := dashboardProviders(resources, dashboards)
+	if err != nil {
+		return manifests.GrafanaContent{}, err
+	}
+	providersFile, err := yaml.Marshal(map[string]any{"apiVersion": 1, "providers": providers})
 	if err != nil {
 		return manifests.GrafanaContent{}, fmt.Errorf("render Grafana dashboard providers: %w", err)
+	}
+	alerting := ""
+	if options.alerting {
+		if alerting, err = renderGrafanaAlerting(resources, options.recorderURL); err != nil {
+			return manifests.GrafanaContent{}, err
+		}
 	}
 
 	digest := sha256.New()
 	digest.Write(datasourcesFile)
 	digest.Write(providersFile)
+	digest.Write([]byte(alerting))
 	for _, name := range slices.Sorted(maps.Keys(dashboards)) {
 		digest.Write([]byte(name))
+		digest.Write([]byte(dashboardDirs[name]))
 		digest.Write([]byte(dashboards[name]))
 	}
 	return manifests.GrafanaContent{
 		Datasources:        string(datasourcesFile),
 		DashboardProviders: string(providersFile),
 		Dashboards:         dashboards,
+		DashboardDirs:      dashboardDirs,
+		Alerting:           alerting,
 		Digest:             hex.EncodeToString(digest.Sum(nil))[:16],
 	}, nil
 }
 
-// readGrafanaResources returns the product's datasources as Grafana provisioning entries
-// and the title of its folder, from the GrafanaDatasource and GrafanaFolder resources
-// anywhere under the product directory.
-func readGrafanaResources(productDir string) ([]map[string]any, string, error) {
-	var datasources []map[string]any
-	folder := ""
+// dashboardProviders places each dashboard in the folder its GrafanaDashboard names, with one
+// provider per folder reading its own directory. Grafana's file provider creates only
+// top-level folders, so a dashboard in a nested folder goes into that folder's top-level
+// ancestor; its UID, and so every link to it, is unchanged. A dashboard without a
+// GrafanaDashboard goes into the product's top-level folder.
+func dashboardProviders(
+	resources grafanaResources,
+	dashboards map[string]string,
+) (map[string]string, []any, error) {
+	defaultFolder := ""
+	for _, name := range slices.Sorted(maps.Keys(resources.folders)) {
+		if resources.folders[name].parent == "" {
+			defaultFolder = resources.folders[name].title
+			break
+		}
+	}
+	titles := map[string]string{}
+	for _, file := range slices.Sorted(maps.Keys(dashboards)) {
+		title := defaultFolder
+		if ref, ok := resources.dashboardFolders[file]; ok {
+			root, err := rootFolderTitle(resources.folders, ref)
+			if err != nil {
+				return nil, nil, fmt.Errorf("dashboard %s: %w", file, err)
+			}
+			title = root
+		}
+		titles[file] = title
+	}
+
+	dirs := map[string]string{}
+	providers := []any{}
+	for i, title := range slices.Compact(slices.Sorted(maps.Values(titles))) {
+		dir := fmt.Sprintf("folder-%d", i)
+		for file, fileTitle := range titles {
+			if fileTitle == title {
+				dirs[file] = dir
+			}
+		}
+		providers = append(providers, map[string]any{
+			"name":                  fmt.Sprintf("%s-%d", dashboardsProduct, i),
+			"folder":                title,
+			"type":                  "file",
+			"allowUiUpdates":        true,
+			"updateIntervalSeconds": dashboardsReloadSeconds,
+			"options":               map[string]any{"path": manifests.GrafanaDashboardsPath + "/" + dir},
+		})
+	}
+	return dirs, providers, nil
+}
+
+// readGrafanaResources returns the product's Grafana resources from every YAML file under the
+// product directory.
+func readGrafanaResources(productDir string) (grafanaResources, error) {
+	resources := grafanaResources{
+		folders:          map[string]grafanaFolder{},
+		dashboardFolders: map[string]string{},
+	}
 	err := filepath.WalkDir(productDir, func(path string, entry os.DirEntry, walkErr error) error {
 		if walkErr != nil || entry.IsDir() || !strings.HasSuffix(path, ".yaml") {
 			return walkErr
 		}
-		fileDatasources, fileFolder, err := readGrafanaResourceFile(path)
-		if err != nil {
-			return err
-		}
-		datasources = append(datasources, fileDatasources...)
-		if fileFolder != "" {
-			folder = fileFolder
-		}
-		return nil
+		return readGrafanaResourceFile(path, &resources)
 	})
 	if err != nil {
-		return nil, "", fmt.Errorf("read Grafana resources in %s: %w", productDir, err)
+		return grafanaResources{}, fmt.Errorf("read Grafana resources in %s: %w", productDir, err)
 	}
-	slices.SortFunc(datasources, func(a, b map[string]any) int {
+	slices.SortFunc(resources.datasources, func(a, b map[string]any) int {
 		return strings.Compare(fmt.Sprint(a["uid"]), fmt.Sprint(b["uid"]))
 	})
-	return datasources, folder, nil
+	for _, objects := range [][]grafanaObject{resources.ruleGroups, resources.contactPoints, resources.templates} {
+		slices.SortFunc(objects, func(a, b grafanaObject) int { return strings.Compare(a.name, b.name) })
+	}
+	return resources, nil
 }
 
-func readGrafanaResourceFile(path string) ([]map[string]any, string, error) {
+func readGrafanaResourceFile(path string, resources *grafanaResources) error {
 	// #nosec G304 -- Paths come from walking the dashboards checkout.
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, "", fmt.Errorf("read %s: %w", path, err)
+		return fmt.Errorf("read %s: %w", path, err)
 	}
 	docs, err := yamlDocuments(data)
 	if err != nil {
-		return nil, "", fmt.Errorf("%s: %w", path, err)
+		return fmt.Errorf("%s: %w", path, err)
 	}
-	var datasources []map[string]any
-	folder := ""
 	for _, doc := range docs {
 		var object struct {
-			Spec map[string]any `json:"spec"`
-			Kind string         `json:"kind"`
+			Spec     map[string]any `json:"spec"`
+			Kind     string         `json:"kind"`
+			Metadata struct {
+				Name string `json:"name"`
+			} `json:"metadata"`
 		}
 		if err := yaml.Unmarshal(doc, &object); err != nil {
-			return nil, "", fmt.Errorf("parse %s: %w", path, err)
+			return fmt.Errorf("parse %s: %w", path, err)
 		}
+		named := grafanaObject{name: object.Metadata.Name, spec: object.Spec, path: path}
 		switch object.Kind {
 		case "GrafanaFolder":
-			if title, ok := object.Spec["title"].(string); ok {
-				folder = title
+			title := field[string](object.Spec, "title")
+			parent := field[string](object.Spec, "parentFolderRef")
+			resources.folders[object.Metadata.Name] = grafanaFolder{title: title, parent: parent}
+		case "GrafanaDashboard":
+			configMap := field[map[string]any](object.Spec, "configMapRef")
+			key := field[string](configMap, "key")
+			if ref, ok := object.Spec["folderRef"].(string); ok && key != "" {
+				resources.dashboardFolders[key] = ref
 			}
 		case "GrafanaDatasource":
 			datasource, err := localDatasource(object.Spec)
@@ -197,12 +272,18 @@ func readGrafanaResourceFile(path string) ([]map[string]any, string, error) {
 				continue
 			}
 			if err != nil {
-				return nil, "", fmt.Errorf("%s: %w", path, err)
+				return fmt.Errorf("%s: %w", path, err)
 			}
-			datasources = append(datasources, datasource)
+			resources.datasources = append(resources.datasources, datasource)
+		case "GrafanaAlertRuleGroup":
+			resources.ruleGroups = append(resources.ruleGroups, named)
+		case "GrafanaContactPoint":
+			resources.contactPoints = append(resources.contactPoints, named)
+		case "GrafanaNotificationTemplate":
+			resources.templates = append(resources.templates, named)
 		}
 	}
-	return datasources, folder, nil
+	return nil
 }
 
 // yamlDocuments splits multi-document YAML into its non-empty documents.

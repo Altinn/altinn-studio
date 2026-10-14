@@ -28,3 +28,8 @@ make run / make stop # start/stop the standard runtime-fixture container
 - The monitoring Grafana reads `products/studio` from `Altinn/altinn-dashboards-grafana` (a clone in the
   cache, or `DEVENV_DASHBOARDS_REPOSITORY`). Unit tests use `pkg/runtimes/kind/testdata/dashboards` so
   they never clone.
+- `MonitoringProfileFull` (`--monitoring-profile full`) reconciles the `*-full` overlays and loads the
+  repository's alert rules and contact points too, notifying the in-cluster `alert-recorder`.
+  `cmd/alerttest` (`make test-alerts-check`, `make test-alerts`) checks and fires those rules; each
+  fault scenario is a `Scenario` in `pkg/alerttest`, and reads the rule from Grafana rather than
+  copying its query.

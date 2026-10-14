@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Local alert notifications</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #1a1d21;
+        color: #d1d2d3;
+        font:
+          15px/1.46 -apple-system,
+          'Segoe UI',
+          system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      header {
+        margin-bottom: 20px;
+      }
+      h1 {
+        color: #fff;
+        font-size: 20px;
+        margin: 0 0 4px;
+      }
+      header p {
+        margin: 0;
+        color: #9a9b9e;
+        font-size: 13px;
+      }
+      .message {
+        display: flex;
+        gap: 10px;
+        padding: 10px 0;
+        border-top: 1px solid #2c2d30;
+      }
+      .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 6px;
+        background: #f46800;
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        flex: none;
+      }
+      .meta {
+        margin-bottom: 4px;
+      }
+      .meta strong {
+        color: #fff;
+      }
+      .app {
+        background: #3a3b3e;
+        font-size: 10px;
+        padding: 1px 4px;
+        border-radius: 3px;
+        margin: 0 6px;
+      }
+      .time,
+      .path {
+        color: #9a9b9e;
+        font-size: 12px;
+      }
+      .attachment {
+        border-left: 4px solid #888;
+        padding: 2px 0 2px 12px;
+        margin: 6px 0;
+      }
+      .title {
+        font-weight: 700;
+        color: #fff;
+      }
+      .title a {
+        color: #1d9bd1;
+        text-decoration: none;
+      }
+      .text {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        margin-top: 2px;
+      }
+      .text a {
+        color: #1d9bd1;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .footer {
+        color: #9a9b9e;
+        font-size: 12px;
+        margin-top: 4px;
+      }
+      details {
+        margin-top: 6px;
+      }
+      summary {
+        color: #9a9b9e;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      pre {
+        background: #222529;
+        border: 1px solid #35373b;
+        border-radius: 4px;
+        padding: 8px;
+        font-size: 12px;
+        overflow-x: auto;
+      }
+      .empty {
+        color: #9a9b9e;
+        border: 1px dashed #4a4c50;
+        border-radius: 6px;
+        padding: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Local alert notifications</h1>
+        <p>
+          Slack messages as the local Grafana sent them to the recorder, newest first, with each raw
+          payload. A preview of the payload, not the Slack app.
+        </p>
+      </header>
+      <div id="messages" class="empty">No notifications yet.</div>
+    </main>
+    <!-- An exported copy embeds the messages here; served by the recorder, it fetches them. -->
+    <script id="embedded-messages" type="application/json">
+      null
+    </script>
+    <script>
+      const escape = (value) =>
+        String(value ?? '')
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;');
+
+      // Slack mrkdwn: <url|label> and <url> links, *bold*, and line breaks.
+      function mrkdwn(text) {
+        const source = String(text ?? '');
+        let out = '';
+        let last = 0;
+        for (const match of source.matchAll(/<(https?:\/\/[^>|]+)(?:\|([^>]+))?>/g)) {
+          out += escape(source.slice(last, match.index));
+          out += `<a href="${escape(match[1])}">${escape(match[2] ?? match[1])}</a>`;
+          last = match.index + match[0].length;
+        }
+        out += escape(source.slice(last));
+        return out.replace(/\*([^*\n]+)\*/g, '<strong>$1</strong>');
+      }
+
+      function attachment(a) {
+        const title = a.title_link
+          ? `<a href="${escape(a.title_link)}">${mrkdwn(a.title)}</a>`
+          : mrkdwn(a.title);
+        const color = /^#?[0-9a-fA-F]{6}$/.test(a.color ?? '')
+          ? '#' + a.color.replace('#', '')
+          : '#888';
+        return `<div class="attachment" style="border-left-color:${color}">
+    <div class="title">${title}</div>
+    <div class="text">${mrkdwn(a.text)}</div>
+    ${a.footer ? `<div class="footer">${escape(a.footer)}</div>` : ''}
+  </div>`;
+      }
+
+      function render(messages) {
+        const root = document.getElementById('messages');
+        if (!messages.length) {
+          root.className = 'empty';
+          root.textContent = 'No notifications yet.';
+          return;
+        }
+        root.className = '';
+        root.innerHTML = [...messages]
+          .reverse()
+          .map((m) => {
+            const body =
+              typeof m.body === 'object' && m.body !== null ? m.body : { text: String(m.body) };
+            const time =
+              new Date(m.receivedAt).toLocaleString('en-GB', { timeZone: 'UTC' }) + ' UTC';
+            return `<div class="message">
+      <div class="avatar">G</div>
+      <div style="min-width:0;flex:1">
+        <div class="meta"><strong>${escape(body.username || 'Grafana')}</strong><span class="app">APP</span>
+          <span class="time">${escape(time)}</span> <span class="path">${escape(m.path)}</span></div>
+        ${body.text ? `<div class="text">${mrkdwn(body.text)}</div>` : ''}
+        ${(body.attachments || []).map(attachment).join('')}
+        <details><summary>Raw JSON</summary><pre>${escape(JSON.stringify(body, null, 2))}</pre></details>
+      </div>
+    </div>`;
+          })
+          .join('');
+      }
+
+      const embedded = JSON.parse(document.getElementById('embedded-messages').textContent);
+      if (embedded) {
+        render(embedded);
+      } else {
+        const refresh = () =>
+          fetch('api/messages')
+            .then((r) => r.json())
+            .then(render)
+            .catch(() => {});
+        refresh();
+        setInterval(refresh, 3000);
+      }
+    </script>
+  </body>
+</html>

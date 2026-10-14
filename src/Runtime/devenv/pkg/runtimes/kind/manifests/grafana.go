@@ -2,6 +2,12 @@
 package manifests
 
 import (
+	"crypto/sha256"
+	_ "embed"
+	"encoding/hex"
+	"maps"
+	"slices"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -21,10 +27,17 @@ const (
 	// GrafanaAdminPassword is the local Grafana's admin password, which the MCP server uses.
 	GrafanaAdminPassword = "admin"
 
-	grafanaDashboardsPath = "/var/lib/grafana/dashboards"
-	grafanaPort           = 3000
-	grafanaMCPPort        = 8000
-	grafanaMCPHealthPort  = 8001
+	// GrafanaDashboardsPath is where the local Grafana's dashboard providers read from, each
+	// from a directory of its own.
+	GrafanaDashboardsPath = "/var/lib/grafana/dashboards"
+	// AlertRecorderName is the in-cluster webhook recorder the full monitoring profile's
+	// contact points notify, as Service and Deployment.
+	AlertRecorderName    = "alert-recorder"
+	alertRecorderImage   = "python:3.13-alpine"
+	alertRecorderPort    = 8080
+	grafanaPort          = 3000
+	grafanaMCPPort       = 8000
+	grafanaMCPHealthPort = 8001
 )
 
 // GrafanaContent is what the local Grafana provisions.
@@ -35,6 +48,11 @@ type GrafanaContent struct {
 	DashboardProviders string
 	// Dashboards maps a dashboard file name to its JSON.
 	Dashboards map[string]string
+	// DashboardDirs maps a dashboard file name to the directory its provider reads.
+	DashboardDirs map[string]string
+	// Alerting is a Grafana alerting provisioning file with alert rules, contact points and
+	// notification templates. When set, the webhook recorder they notify is deployed too.
+	Alerting string
 	// Digest identifies the content, so a change restarts Grafana and it provisions again.
 	Digest string
 }
@@ -53,17 +71,25 @@ type GrafanaCABundle struct {
 // fixture's ingress listens on every host interface, so both are reached with
 // kubectl port-forward, which listens on localhost.
 func BuildGrafana(content GrafanaContent, caBundle *GrafanaCABundle) []runtime.Object {
-	return []runtime.Object{
+	provisioning := map[string]string{
+		"datasources.yaml": content.Datasources,
+		"dashboards.yaml":  content.DashboardProviders,
+	}
+	if content.Alerting != "" {
+		provisioning["alerting.yaml"] = content.Alerting
+	}
+	objects := []runtime.Object{
 		buildGrafanaNamespace(),
-		buildGrafanaConfigMap("grafana-provisioning", map[string]string{
-			"datasources.yaml": content.Datasources,
-			"dashboards.yaml":  content.DashboardProviders,
-		}),
+		buildGrafanaConfigMap("grafana-provisioning", provisioning),
 		buildGrafanaConfigMap("grafana-dashboards", content.Dashboards),
-		buildGrafanaDeployment(content.Digest, caBundle),
+		buildGrafanaDeployment(content, caBundle),
 		buildGrafanaService(),
 		buildGrafanaMCPDeployment(),
 	}
+	if content.Alerting != "" {
+		objects = append(objects, BuildAlertRecorder()...)
+	}
+	return objects
 }
 
 func buildGrafanaNamespace() *corev1.Namespace {
@@ -81,7 +107,7 @@ func buildGrafanaConfigMap(name string, data map[string]string) *corev1.ConfigMa
 	}
 }
 
-func buildGrafanaDeployment(digest string, caBundle *GrafanaCABundle) *appsv1.Deployment {
+func buildGrafanaDeployment(content GrafanaContent, caBundle *GrafanaCABundle) *appsv1.Deployment {
 	container := corev1.Container{
 		Name:            "grafana",
 		Image:           GrafanaImage,
@@ -98,6 +124,8 @@ func buildGrafanaDeployment(digest string, caBundle *GrafanaCABundle) *appsv1.De
 			// Keep the datasources bundled with the pinned image instead of fetching newer ones.
 			{Name: "GF_PLUGINS_PREINSTALL_AUTO_UPDATE", Value: "false"},
 			{Name: "GF_LOG_LEVEL", Value: "warn"},
+			// Links in notifications are absolute, for the port-forward the README gives.
+			{Name: "GF_SERVER_ROOT_URL", Value: "http://localhost:3000/"},
 		},
 		VolumeMounts: []corev1.VolumeMount{
 			{
@@ -112,7 +140,7 @@ func buildGrafanaDeployment(digest string, caBundle *GrafanaCABundle) *appsv1.De
 				SubPath:   "dashboards.yaml",
 				ReadOnly:  true,
 			},
-			{Name: "dashboards", MountPath: grafanaDashboardsPath, ReadOnly: true},
+			{Name: "dashboards", MountPath: GrafanaDashboardsPath, ReadOnly: true},
 		},
 		ReadinessProbe: &corev1.Probe{
 			ProbeHandler: corev1.ProbeHandler{
@@ -122,9 +150,25 @@ func buildGrafanaDeployment(digest string, caBundle *GrafanaCABundle) *appsv1.De
 		},
 		Resources: grafanaResources("50m", "128Mi", "512Mi"),
 	}
+	if content.Alerting != "" {
+		container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
+			Name:      "provisioning",
+			MountPath: "/etc/grafana/provisioning/alerting/alerting.yaml",
+			SubPath:   "alerting.yaml",
+			ReadOnly:  true,
+		})
+	}
+	dashboards := configMapVolume("dashboards", "grafana-dashboards")
+	for _, file := range slices.Sorted(maps.Keys(content.Dashboards)) {
+		path := file
+		if dir := content.DashboardDirs[file]; dir != "" {
+			path = dir + "/" + file
+		}
+		dashboards.ConfigMap.Items = append(dashboards.ConfigMap.Items, corev1.KeyToPath{Key: file, Path: path})
+	}
 	volumes := []corev1.Volume{
 		configMapVolume("provisioning", "grafana-provisioning"),
-		configMapVolume("dashboards", "grafana-dashboards"),
+		dashboards,
 	}
 	if caBundle != nil {
 		container.Env = append(container.Env, caBundle.Env...)
@@ -136,7 +180,12 @@ func buildGrafanaDeployment(digest string, caBundle *GrafanaCABundle) *appsv1.De
 		})
 		volumes = append(volumes, configMapVolume("ca-bundle", caBundle.ConfigMapName))
 	}
-	return grafanaDeployment("grafana", map[string]string{"altinn.studio/grafana-content": digest}, container, volumes)
+	return grafanaDeployment(
+		"grafana",
+		map[string]string{"altinn.studio/grafana-content": content.Digest},
+		container,
+		volumes,
+	)
 }
 
 func buildGrafanaMCPDeployment() *appsv1.Deployment {
@@ -236,4 +285,96 @@ func grafanaResources(cpu, memory, memoryLimit string) corev1.ResourceRequiremen
 			corev1.ResourceMemory: resource.MustParse(memoryLimit),
 		},
 	}
+}
+
+//go:embed alertrecorder/server.py
+var alertRecorderServer string
+
+//go:embed alertrecorder/preview.html
+var alertRecorderPreview string
+
+// BuildAlertRecorder creates the webhook recorder that stands in for Slack in the full
+// monitoring profile: it keeps the notifications Grafana sends and shows them as Slack would.
+// Like Grafana, it is reached with kubectl port-forward or through the API server's proxy.
+func BuildAlertRecorder() []runtime.Object {
+	labels := map[string]string{"app": AlertRecorderName}
+	replicas := int32(1)
+	nonRoot := true
+	readOnly := true
+	noEscalation := false
+	user := int64(65534)
+	container := corev1.Container{
+		Name:            AlertRecorderName,
+		Image:           alertRecorderImage,
+		ImagePullPolicy: corev1.PullIfNotPresent,
+		Command:         []string{"python3", "-u", "/opt/alert-recorder/server.py"},
+		Ports: []corev1.ContainerPort{
+			{Name: "http", ContainerPort: alertRecorderPort, Protocol: corev1.ProtocolTCP},
+		},
+		VolumeMounts: []corev1.VolumeMount{{Name: "code", MountPath: "/opt/alert-recorder", ReadOnly: true}},
+		ReadinessProbe: &corev1.Probe{
+			ProbeHandler: corev1.ProbeHandler{
+				HTTPGet: &corev1.HTTPGetAction{Path: "/healthz", Port: intstr.FromInt32(alertRecorderPort)},
+			},
+			PeriodSeconds: 5,
+		},
+		SecurityContext: &corev1.SecurityContext{
+			RunAsNonRoot:             &nonRoot,
+			RunAsUser:                &user,
+			ReadOnlyRootFilesystem:   &readOnly,
+			AllowPrivilegeEscalation: &noEscalation,
+			Capabilities:             &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
+		},
+		Resources: grafanaResources("5m", "32Mi", "128Mi"),
+	}
+	return []runtime.Object{
+		buildGrafanaConfigMap(AlertRecorderName, map[string]string{
+			"server.py":    alertRecorderServer,
+			"preview.html": alertRecorderPreview,
+		}),
+		&appsv1.Deployment{
+			TypeMeta:   metav1.TypeMeta{APIVersion: "apps/v1", Kind: "Deployment"},
+			ObjectMeta: metav1.ObjectMeta{Name: AlertRecorderName, Namespace: GrafanaNamespace},
+			Spec: appsv1.DeploymentSpec{
+				Replicas: &replicas,
+				Selector: &metav1.LabelSelector{MatchLabels: labels},
+				Template: corev1.PodTemplateSpec{
+					ObjectMeta: metav1.ObjectMeta{
+						Labels: labels,
+						// The code is mounted from the ConfigMap, so a change restarts the pod.
+						Annotations: map[string]string{
+							"altinn.studio/alert-recorder": contentDigest(alertRecorderServer, alertRecorderPreview),
+						},
+					},
+					Spec: corev1.PodSpec{
+						AutomountServiceAccountToken: &noEscalation,
+						Containers:                   []corev1.Container{container},
+						Volumes:                      []corev1.Volume{configMapVolume("code", AlertRecorderName)},
+					},
+				},
+			},
+		},
+		&corev1.Service{
+			TypeMeta:   metav1.TypeMeta{APIVersion: "v1", Kind: "Service"},
+			ObjectMeta: metav1.ObjectMeta{Name: AlertRecorderName, Namespace: GrafanaNamespace},
+			Spec: corev1.ServiceSpec{
+				Type:     corev1.ServiceTypeClusterIP,
+				Selector: labels,
+				Ports: []corev1.ServicePort{{
+					Name:       "http",
+					Port:       80,
+					TargetPort: intstr.FromInt32(alertRecorderPort),
+					Protocol:   corev1.ProtocolTCP,
+				}},
+			},
+		},
+	}
+}
+
+func contentDigest(parts ...string) string {
+	digest := sha256.New()
+	for _, part := range parts {
+		digest.Write([]byte(part))
+	}
+	return hex.EncodeToString(digest.Sum(nil))[:16]
 }

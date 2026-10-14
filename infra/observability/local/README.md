@@ -6,6 +6,7 @@ service you are working on can be queried the way it is in Studio prod. Start it
 ```bash
 make start-minimal-monitoring      # in src/Runtime/pdf3, src/Runtime/operator or src/Runtime/gateway
 make run-monitoring                # in src/Runtime/devenv, without a service
+make run-monitoring-full           # in src/Runtime/devenv: production's backend and the alert rules
 ```
 
 The services need no change: their manifests already send OTLP to
@@ -21,6 +22,13 @@ The services need no change: their manifests already send OTLP to
 | `observability` | `observability-proxy`                                        | `studio` (the proxy from the Studio overlay) |
 | `observability` | `vmsingle-metrics-a`, `vtsingle-traces-a`, `vlsingle-logs-a` | `victoria`                                   |
 
+That is the light profile, the default. The full profile (`--monitoring-profile full`) reconciles
+`syncroot-full`, `studio-full` and `victoria-full` instead: production's backend, with the agents
+(`vmagent-metrics`, `vlagent-logs`, `vtagent-traces`), the `-b` storage copies, `vmagent-self`,
+and two proxy replicas writing to the agents. It needs the standard variant, whose three workers
+are in different zones, so the copies and replicas keep production's zone anti-affinity.
+`studio-common` holds what both profiles change in the Studio overlay.
+
 devenv pushes `infra/observability` and the two operators as OCI artifacts to the fixture's
 registry, builds the proxy from `src/observability-proxy`, and applies Studio's and the runtime's
 own syncroot entries through `operators` and `syncroot`, pointed at those artifacts. Flux then
@@ -31,9 +39,13 @@ reconciles the overlays in this directory, as it does the real ones in a cluster
 - **No Application Insights.** The gateway exports to Victoria only.
 - **One cluster plays both sides.** The runtime collectors send to the proxy in the same cluster
   instead of `https://altinn.studio/internal/observability/otlp`.
-- **One copy, no agents.** One storage instance per signal, written to by the proxy directly,
-  with 1Gi volumes and three days of retention.
-- **No self-monitoring.** The scraper of the stack's own metrics, `vmagent-self`, is left out.
+- **One copy, no agents** in the light profile. One storage instance per signal, written to by
+  the proxy directly, with 1Gi volumes and three days of retention. The full profile keeps the
+  agents and both copies, with the same volumes and retention and 1GiB agent queues.
+- **No self-monitoring** in the light profile. The scraper of the stack's own metrics,
+  `vmagent-self`, runs only in the full profile.
+- **No node pools.** The observability node selectors and tolerations are left out; the zones
+  of the standard variant's workers stand in for them.
 - **Fixed tokens.** The collectors ingest with `local-runtime-ingest-token-not-a-secret` and
   queries use `local-grafana-query-token-not-a-secret`.
 
@@ -67,6 +79,13 @@ kubectl -n grafana port-forward svc/grafana 3000:80              # http://localh
 kubectl -n grafana port-forward deploy/grafana-mcp 8000:8000     # MCP, only on local port 8000
 claude mcp add --transport http grafana-local http://localhost:8000/mcp
 ```
+
+Grafana's file provisioning creates only top-level folders, so a dashboard in a nested folder
+(such as `Altinn Studio/Observability`) appears in its top-level folder locally; its UID, and so
+every link to it, is the same. In the full profile, Grafana also loads the alert rules, contact
+points and notification templates, in their real folders, and every contact point's webhook goes
+to `alert-recorder` in the `grafana` namespace. `make test-alerts-check` and `make test-alerts`
+in `src/Runtime/devenv` check and fire them; see its README.
 
 To add a dashboard to the shared Grafana, build it here in the Altinn Studio folder, export its
 JSON into `products/studio/dashboards/` in the dashboards repository with its `GrafanaDashboard`

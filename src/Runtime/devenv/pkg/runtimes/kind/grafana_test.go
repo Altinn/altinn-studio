@@ -10,10 +10,13 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-const testDashboardsRepository = "testdata/dashboards"
+const (
+	testDashboardsRepository = "testdata/dashboards"
+	studioFolderTitle        = "Altinn Studio"
+)
 
 func TestLoadGrafanaContent(t *testing.T) {
-	content, err := loadGrafanaContent(testDashboardsRepository)
+	content, err := loadGrafanaContent(testDashboardsRepository, grafanaContentOptions{})
 	if err != nil {
 		t.Fatalf("loadGrafanaContent() error = %v", err)
 	}
@@ -53,7 +56,7 @@ func TestLoadGrafanaContent(t *testing.T) {
 	if err := yaml.Unmarshal([]byte(content.DashboardProviders), &providers); err != nil {
 		t.Fatalf("parse dashboard providers: %v", err)
 	}
-	if got := providers.Providers[0]["folder"]; got != "Altinn Studio" {
+	if got := providers.Providers[0]["folder"]; got != studioFolderTitle {
 		t.Errorf("dashboard folder = %v, want the GrafanaFolder's title", got)
 	}
 	if _, ok := content.Dashboards["sample.json"]; !ok || len(content.Dashboards) != 1 {
@@ -111,7 +114,7 @@ spec:
 	if err := os.WriteFile(filepath.Join(dir, "other.yaml"), datasource, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	content, err := loadGrafanaContent(repository)
+	content, err := loadGrafanaContent(repository, grafanaContentOptions{})
 	if err != nil {
 		t.Fatalf("loadGrafanaContent() error = %v", err)
 	}
@@ -125,6 +128,8 @@ func TestReadGrafanaResourceFile_MultipleDocuments(t *testing.T) {
 	resources := []byte(`---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
+metadata:
+  name: studio
 spec:
   title: Altinn Studio
 ---
@@ -142,14 +147,14 @@ spec:
 	if err := os.WriteFile(path, resources, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	datasources, folder, err := readGrafanaResourceFile(path)
-	if err != nil {
+	read := grafanaResources{folders: map[string]grafanaFolder{}, dashboardFolders: map[string]string{}}
+	if err := readGrafanaResourceFile(path, &read); err != nil {
 		t.Fatalf("readGrafanaResourceFile() error = %v", err)
 	}
-	if folder != "Altinn Studio" {
-		t.Errorf("folder = %q, want the GrafanaFolder's title", folder)
+	if read.folders["studio"].title != studioFolderTitle {
+		t.Errorf("folders = %v, want the GrafanaFolder's title", read.folders)
 	}
-	if len(datasources) != 1 || datasources[0]["uid"] != "altinn-studio-metrics" {
-		t.Errorf("datasources = %v, want the one GrafanaDatasource", datasources)
+	if len(read.datasources) != 1 || read.datasources[0]["uid"] != "altinn-studio-metrics" {
+		t.Errorf("datasources = %v, want the one GrafanaDatasource", read.datasources)
 	}
 }

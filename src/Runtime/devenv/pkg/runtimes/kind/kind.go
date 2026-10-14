@@ -90,33 +90,11 @@ func (v KindContainerRuntimeVariant) String() string {
 
 // KindContainerRuntimeOptions holds configuration options for the Kind runtime.
 type KindContainerRuntimeOptions struct {
-	// DashboardsRepository is a local checkout of Altinn/altinn-dashboards-grafana for the
-	// monitoring Grafana. When empty, DEVENV_DASHBOARDS_REPOSITORY is used, and when that is
-	// empty too, the repository is cloned into the cache directory.
-	DashboardsRepository string
-
-	// IncludeMonitoring controls whether the platform observability stack is deployed.
-	// When true, the runtime collectors, the observability-proxy and a Victoria backend
-	// are deployed from infra/observability, with their operators, so the runtime
-	// services' telemetry can be queried as it would be in Studio prod. It needs the
-	// Altinn Studio repository, which it finds from the working directory. A Grafana with
-	// the Studio datasources and dashboards from Altinn/altinn-dashboards-grafana, and an
-	// MCP server for it, are deployed with it.
-	IncludeMonitoring bool
-
-	// IncludeTestserver controls whether the testserver deployment is deployed.
-	// When false (default), no testserver is deployed.
-	// When true, the testserver (nginx with test pages) is deployed for integration testing.
-	IncludeTestserver bool
-
-	// IncludeLinkerd controls whether Linkerd service mesh is deployed.
-	// When false (default), no linkerd resources are provisioned.
-	// When true, linkerd-crds and linkerd-control-plane are deployed.
-	IncludeLinkerd bool
-
-	// IncludeFluxNotificationController controls whether the Flux notification-controller is installed.
-	// When false (default), notification-controller is not deployed (saves startup time).
-	// When true, notification-controller is deployed (needed for Gateway alerts).
+	DashboardsRepository              string
+	MonitoringProfile                 MonitoringProfile
+	IncludeMonitoring                 bool
+	IncludeTestserver                 bool
+	IncludeLinkerd                    bool
 	IncludeFluxNotificationController bool
 }
 
@@ -422,6 +400,9 @@ func New(
 	if err != nil {
 		return nil, err
 	}
+	if err = validateMonitoringOptions(variant, options); err != nil {
+		return nil, err
+	}
 	r.options = options
 	err = newInternal(r, clusters, variant, cachePath, false)
 	if err != nil {
@@ -439,6 +420,9 @@ func Load(
 ) (*KindContainerRuntime, error) {
 	r, clusters, err := initialize(cachePath, true)
 	if err != nil {
+		return nil, err
+	}
+	if err = validateMonitoringOptions(variant, options); err != nil {
 		return nil, err
 	}
 	r.options = options
@@ -676,19 +660,31 @@ func (r *KindContainerRuntime) BaseInfrastructureRef() resource.ResourceRef {
 	return resource.RefID(resource.KubernetesObjectSetID(baseInfrastructureName))
 }
 
+// monitoringProfile is the validated profile; the zero value is light.
+func (r *KindContainerRuntime) monitoringProfile() MonitoringProfile {
+	if r.options.MonitoringProfile == MonitoringProfileFull {
+		return MonitoringProfileFull
+	}
+	return MonitoringProfileLight
+}
+
 func (r *KindContainerRuntime) addMonitoring(graph *resource.Graph, baseInfra *resource.KubernetesObjectSet) error {
 	root, err := projectroot.Find(projectroot.RepositoryMarker)
 	if err != nil {
 		return fmt.Errorf("find repository root for monitoring: %w", err)
 	}
-	if err = addMonitoringResources(graph, root, r.ClusterRef(), r.RegistryRef(), baseInfra); err != nil {
+	profile := r.monitoringProfile()
+	if err = addMonitoringResources(graph, root, profile, r.ClusterRef(), r.RegistryRef(), baseInfra); err != nil {
 		return err
 	}
 	dashboards, err := resolveDashboardsRepository(r.options.DashboardsRepository, r.cachePath)
 	if err != nil {
 		return err
 	}
-	content, err := loadGrafanaContent(dashboards)
+	content, err := loadGrafanaContent(dashboards, grafanaContentOptions{
+		alerting:    profile.isFull(),
+		recorderURL: recorderURL(),
+	})
 	if err != nil {
 		return err
 	}
