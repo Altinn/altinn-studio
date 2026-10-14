@@ -5,6 +5,8 @@ kind: Kustomization
 # neither the copy in a second zone nor the fan-out to it. The observability-proxy
 # writes to the -a instances directly (see ../studio). Storage is sized for a
 # few days of one developer's telemetry, on the cluster's default storage class.
+# The self-monitoring scraper goes too: most of its targets, and one of the two
+# instances it writes to, are not here.
 resources:
   - ../../studio/victoria
   - backend-auth-key.yaml
@@ -20,6 +22,12 @@ patches:
   - patch: '{"$patch": "delete", "apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy", "metadata": {"name": "vmagent-metrics"}}'
   - patch: '{"$patch": "delete", "apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy", "metadata": {"name": "vtagent-traces"}}'
   - patch: '{"$patch": "delete", "apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy", "metadata": {"name": "vlagent-logs"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "operator.victoriametrics.com/v1beta1", "kind": "VMAgent", "metadata": {"name": "self"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "v1", "kind": "ConfigMap", "metadata": {"name": "vmagent-self-scrape"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "v1", "kind": "ServiceAccount", "metadata": {"name": "vmagent-self-no-api-access"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "v1", "kind": "Service", "metadata": {"name": "vmagent-metrics-0"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "v1", "kind": "Service", "metadata": {"name": "vmagent-metrics-1"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy", "metadata": {"name": "vmagent-self"}}'
   - path: storage.yaml
     target:
       group: operator.victoriametrics.com

@@ -51,6 +51,7 @@ jobs:
           sudo install /tmp/typos-dist/typos /usr/local/bin/typos
           typos --version
 
+      # The English and Norwegian UI text checks both run hunspell.
       - name: Install hunspell
         run: |
           sudo apt-get update -q
@@ -88,7 +89,7 @@ jobs:
         if: always()
         run: node scripts/spellcheck/run.mjs coverage
 
-      - name: English UI text (en-GB values, en-US keys)
+      - name: English UI text (values against typos and hunspell, en-US keys)
         id: en
         if: always()
         run: node scripts/spellcheck/run.mjs en

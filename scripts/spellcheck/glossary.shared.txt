@@ -1,14 +1,14 @@
-# Shared glossary: language-NEUTRAL tokens the Norwegian checks accept in
-# both bokmål and nynorsk — names, quoted identifiers, formats and literals.
-# Norwegian *words* never belong here; they go in glossary.nb.txt /
+# Shared glossary: language-NEUTRAL tokens the dictionary checks accept in
+# bokmål, nynorsk and English — names, quoted identifiers, formats and
+# literals. Norwegian *words* never belong here; they go in glossary.nb.txt /
 # glossary.nn.txt so a native reviewer of one language never has to rule on
-# the other. One word per line; '#' starts a comment; matching is
-# case-insensitive.
+# the other, and English words go in glossary.en.txt. One word per line; '#'
+# starts a comment; matching is case-insensitive.
 #
-# Entries must earn their keep: the check reports an entry that no longer
-# rescues any flagged word as stale, in either language. Reviewing this file
-# in a PR is a name-spotting exercise, not a language ruling. Keep entries
-# alphabetized within each section.
+# Entries must earn their keep: the Norwegian check reports an entry that no
+# longer rescues any flagged word in any of the three languages as stale.
+# Reviewing this file in a PR is a name-spotting exercise, not a language
+# ruling. Keep entries alphabetized within each section.
 
 # Product and organisation names in UI text
 altinn
@@ -28,6 +28,7 @@ helfo
 luftfartstilsynet
 maskinporten
 minid
+servicedesk # "Altinn servicedesk", the official name of Altinn's support desk
 studioctl
 svarut
 
@@ -114,6 +115,7 @@ applicationmetadata
 componentref
 deletionstrategy
 disallowusercreate
+fileupload  # the FileUpload component type
 folderid
 funksjonforsubuttrykk
 inntektsaar
@@ -125,6 +127,7 @@ oid         # the "oid" claim named in the OIDC admin help text
 pagebreak
 pageref
 showaddbutton
+taxform     # "taxform-2019", an example app name
 
 # JSON Schema combination keywords (allOf/anyOf/oneOf) quoted in the
 # schema-editor UI text

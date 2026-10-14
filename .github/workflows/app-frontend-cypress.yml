@@ -27,7 +27,8 @@ on:
       - 'src/common/ts/language/src/**'
       - 'src/common/ts/language/package.json'
       - '.github/actions/**'
-      - '.github/scripts/*cypress*.mjs'
+      - '.github/scripts/*cypress*'
+      - '.yarn/patches/@percy-cli-exec-*.patch'
       - '.github/workflows/app-frontend-cypress.yml'
       - '!**/AGENTS.md'
   workflow_dispatch:
@@ -121,9 +122,10 @@ jobs:
 
       - name: Build app process outputs
         if: ${{ steps.cache-app-process-outputs.outputs.cache-hit != 'true' }}
+        working-directory: src/test/apps
         shell: bash
         run: |
-          mapfile -t app_projects < <(find src/test/apps -path '*/App/*.csproj' -type f | sort)
+          mapfile -t app_projects < <(find . -path '*/App/*.csproj' -type f | sort)
           if [ "${#app_projects[@]}" -eq 0 ]; then
             echo "No app projects were found."
             exit 1
@@ -255,6 +257,12 @@ jobs:
         with:
           cache-key: ${{ needs.prepare-app-frontend-dependencies.outputs.cache-key }}
           require-cache-hit: true
+
+      - name: Prepare native Cypress diagnostics
+        shell: bash
+        timeout-minutes: 3
+        working-directory: ${{ github.workspace }}
+        run: .github/scripts/prepare-cypress-diagnostics.sh "${GITHUB_WORKSPACE}/src/App/frontend/test/logs/cypress-diagnostics"
 
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
@@ -393,6 +401,12 @@ jobs:
         with:
           cache-key: ${{ needs.prepare-app-frontend-dependencies.outputs.cache-key }}
           require-cache-hit: true
+
+      - name: Prepare native Cypress diagnostics
+        shell: bash
+        timeout-minutes: 3
+        working-directory: ${{ github.workspace }}
+        run: .github/scripts/prepare-cypress-diagnostics.sh "${GITHUB_WORKSPACE}/src/App/frontend/test/logs/cypress-diagnostics"
 
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env

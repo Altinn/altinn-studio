@@ -52,9 +52,7 @@ internal sealed class NotificationService(
         using var activity = ServiceTelemetry.Source.StartActivity(
             $"{nameof(NotificationService)}.{nameof(NotifyInternalAsync)}"
         );
-        activity?.SetTag("title", payload.Title);
-        activity?.SetTag("org", org);
-        activity?.SetTag("environment", environment.Name);
+        activity?.SetTag(ServiceTelemetry.Attributes.Notification.Title, payload.Title);
 
         try
         {
@@ -81,9 +79,7 @@ internal sealed class NotificationService(
         using var activity = ServiceTelemetry.Source.StartActivity(
             $"{nameof(NotificationService)}.{nameof(NotifyServiceOwnersAsync)}"
         );
-        activity?.SetTag("title", payload.Title);
-        activity?.SetTag("org", org);
-        activity?.SetTag("environment", environment.Name);
+        activity?.SetTag(ServiceTelemetry.Attributes.Notification.Title, payload.Title);
 
         IReadOnlyList<ContactPointEntity> contactPoints;
         try
@@ -123,10 +119,7 @@ internal sealed class NotificationService(
         using var activity = ServiceTelemetry.Source.StartActivity(
             $"{nameof(NotificationService)}.{nameof(NotifyReportContactPointsAsync)}"
         );
-        activity?.SetTag("title", payload.Title);
-        activity?.SetTag("org", org);
-        activity?.SetTag("environment", environment.Name);
-        activity?.SetTag("frequency", frequency.ToString());
+        activity?.SetTag(ServiceTelemetry.Attributes.Notification.Title, payload.Title);
 
         IReadOnlyList<ContactPointEntity> contactPoints =
             await contactPointsRepository.GetActiveReportContactPointsAsync(org, environment.Name, cancellationToken);
@@ -142,8 +135,8 @@ internal sealed class NotificationService(
         );
 
         int failedCount = deliveries.Count(delivered => !delivered);
-        activity?.SetTag("delivery.count", deliveries.Length);
-        activity?.SetTag("delivery.failed_count", failedCount);
+        activity?.SetTag(ServiceTelemetry.Attributes.Notification.DeliveryCount, deliveries.Length);
+        activity?.SetTag(ServiceTelemetry.Attributes.Notification.DeliveryFailedCount, failedCount);
         if (failedCount > 0)
         {
             var exception = new NotificationDeliveryException(failedCount, deliveries.Length);
@@ -163,9 +156,9 @@ internal sealed class NotificationService(
         using var activity = ServiceTelemetry.Source.StartActivity(
             $"{nameof(NotificationService)}.{nameof(SendContactMethodAsync)}"
         );
-        activity?.SetTag("title", payload.Title);
-        activity?.SetTag("contact_point.id", contactPoint.Id);
-        activity?.SetTag("contact_method.type", method.MethodType.ToString());
+        activity?.SetTag(ServiceTelemetry.Attributes.Notification.Title, payload.Title);
+        activity?.SetTag(ServiceTelemetry.Attributes.Notification.ContactPointId, contactPoint.Id);
+        activity?.SetTag(ServiceTelemetry.Attributes.Notification.ContactMethodType, method.MethodType.ToString());
 
         try
         {

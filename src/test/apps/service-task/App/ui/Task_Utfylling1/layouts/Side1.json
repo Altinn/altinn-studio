@@ -26,6 +26,13 @@
         "required": true
       },
       {
+        "id": "Paragraph-ExcludedFromPdf",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Side1.Paragraph-ExcludedFromPdf.title"
+        }
+      },
+      {
         "id": "Subform-z8we7d",
         "type": "Subform",
         "layoutSet": "Subform",

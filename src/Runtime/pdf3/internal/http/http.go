@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"altinn.studio/pdf3/internal/telemetry"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 )
 
 type ProblemDetails struct {
@@ -40,7 +41,7 @@ func WriteProblemDetails(
 	encoder := json.NewEncoder(w)
 	encoder.SetEscapeHTML(false) // Don't escape <, >, & for cleaner error messages
 	if err := encoder.Encode(problem); err != nil {
-		logger.ErrorContext(ctx, "Failed to encode error response", "error", err)
+		logger.ErrorContext(ctx, "Failed to encode error response", attr.Error, err)
 	}
 }
 
@@ -48,7 +49,7 @@ func WriteText(ctx context.Context, logger *slog.Logger, w http.ResponseWriter, 
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(statusCode)
 	if _, err := io.WriteString(w, body); err != nil {
-		logger.ErrorContext(ctx, "Failed to write response body", "error", err)
+		logger.ErrorContext(ctx, "Failed to write response body", attr.Error, err)
 	}
 }
 

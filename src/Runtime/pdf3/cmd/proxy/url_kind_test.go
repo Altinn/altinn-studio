@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 
@@ -18,12 +19,24 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 )
 
-// workerStub answers every worker request with status.
+// workerStub answers every worker request with status, and records the URL of each.
 type workerStub struct {
+	urls   []string
 	status int
 }
 
-func (s workerStub) RoundTrip(*http.Request) (*http.Response, error) {
+func (s *workerStub) RoundTrip(r *http.Request) (*http.Response, error) {
+	var req struct {
+		URL string `json:"url"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if closeErr := r.Body.Close(); closeErr != nil {
+		return nil, fmt.Errorf("close worker request body: %w", closeErr)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("decode worker request: %w", err)
+	}
+	s.urls = append(s.urls, req.URL)
 	return &http.Response{
 		StatusCode: s.status,
 		Header:     http.Header{},
@@ -92,6 +105,14 @@ func TestGeneratePdf_URLKind(t *testing.T) {
 			wantReason:   "org_mismatch",
 		},
 		{
+			name:         "cluster local service is served",
+			url:          "http://myapp.default.svc.cluster.local:5005/ttd/app/" + instance + "?pdf=1&lang=nb",
+			appHostname:  tt02,
+			workerStatus: http.StatusOK,
+			wantStatus:   http.StatusOK,
+			wantKind:     "cluster_local",
+		},
+		{
 			name:        "request that fails validation",
 			url:         "",
 			appHostname: tt02,
@@ -119,7 +140,8 @@ func TestGeneratePdf_URLKind(t *testing.T) {
 			reader := sdkmetric.NewManualReader()
 			spans := tracetest.NewSpanRecorder()
 			logger := slog.New(slog.DiscardHandler)
-			client := &http.Client{Transport: workerStub{status: tt.workerStatus}}
+			worker := &workerStub{status: tt.workerStatus}
+			client := &http.Client{Transport: worker}
 			handler := otelhttp.NewHandler(
 				http.HandlerFunc(generatePdf(logger, client, "http://worker", tt.appHostname)),
 				"POST /pdf",
@@ -142,6 +164,13 @@ func TestGeneratePdf_URLKind(t *testing.T) {
 
 			if response.Code != tt.wantStatus {
 				t.Fatalf("status = %d, want %d", response.Code, tt.wantStatus)
+			}
+			var wantForwarded []string
+			if tt.workerStatus != 0 {
+				wantForwarded = []string{tt.url}
+			}
+			if !slices.Equal(worker.urls, wantForwarded) {
+				t.Errorf("URLs forwarded to the worker = %q, want %q", worker.urls, wantForwarded)
 			}
 			want := fmt.Sprintf("%d/%s", tt.wantStatus, tt.wantKind)
 			if got := requestDurationByURLKind(t, reader); len(got) != 1 || got[want] != 1 {
