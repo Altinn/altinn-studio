@@ -382,6 +382,7 @@ export interface IPlatformFrontendSettings {
   loginUrl?: string;
   /** Takes a {goTo} placeholder. */
   upgradeAuthenticationLevelUrl?: string;
+  allFormsUrl?: string;
   /** URL templates; undefined in environments where the arbeidsflate is not deployed. */
   arbeidsflateInboxUrl?: string;
   /** Supports the {dialogId} placeholder. */

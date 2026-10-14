@@ -5,7 +5,6 @@ import {
   getUrlWithLanguage,
   logoutUrlAltinn,
   makeUrlRelativeIfSameDomain,
-  returnBaseUrlToAltinn,
   returnUrlToAccessManagement,
   returnUrlToAllForms,
   returnUrlToArchive,
@@ -16,8 +15,6 @@ import {
 import type { IPlatformFrontendSettings } from 'src/types/shared';
 
 const hostTT = 'ttd.apps.tt02.altinn.no';
-const hostAT = 'ttd.apps.at21.altinn.cloud';
-const hostYT = 'ttd.apps.yt01.altinn.cloud';
 const hostProd = 'ttd.apps.altinn.no';
 const hostDocker = 'local.altinn.cloud';
 const hostPodman = 'local.altinn.cloud:8000';
@@ -41,18 +38,6 @@ describe('Shared urlHelper.ts', () => {
     expect(getMessageBoxUrl()).toBe(undefined);
   });
 
-  test('returnBaseUrlToAltinn() returning correct environemnts', () => {
-    expect(returnBaseUrlToAltinn(hostTT)).toBe('https://tt02.altinn.no/');
-    expect(returnBaseUrlToAltinn(hostAT)).toBe('https://at21.altinn.cloud/');
-    expect(returnBaseUrlToAltinn(hostYT)).toBe('https://yt01.altinn.cloud/');
-    expect(returnBaseUrlToAltinn(hostProd)).toBe('https://altinn.no/');
-    expect(returnBaseUrlToAltinn(hostDocker)).toBe(undefined);
-    expect(returnBaseUrlToAltinn(hostPodman)).toBe(undefined);
-    expect(returnBaseUrlToAltinn(hostStudio)).toBe(undefined);
-    expect(returnBaseUrlToAltinn(hostStudioDev)).toBe(undefined);
-    expect(returnBaseUrlToAltinn(hostUnknown)).toBe(undefined);
-  });
-
   test('returnUrlTProfile() returning correct environments', () => {
     expect(returnUrlToProfile(hostTT)).toBe('https://af.tt02.altinn.no/profile');
     // localtest has no profile page, so it gets the front page like returnUrlToArchive does
@@ -65,14 +50,24 @@ describe('Shared urlHelper.ts', () => {
 
   test('returnUrlAllForms() returning correct environments', () => {
     expect(returnUrlToAllForms(hostTT)).toBe('https://tt02.altinn.no/skjemaoversikt');
-    expect(returnUrlToAllForms(hostAT)).toBe('https://at21.altinn.cloud/skjemaoversikt');
-    expect(returnUrlToAllForms(hostYT)).toBe('https://yt01.altinn.cloud/skjemaoversikt');
-    expect(returnUrlToAllForms(hostProd)).toBe('https://altinn.no/skjemaoversikt');
     expect(returnUrlToAllForms(hostDocker)).toBe('http://local.altinn.cloud/');
     expect(returnUrlToAllForms(hostPodman)).toBe('http://local.altinn.cloud:8000/');
     expect(returnUrlToAllForms(hostStudio)).toBe(undefined);
     expect(returnUrlToAllForms(hostStudioDev)).toBe(undefined);
     expect(returnUrlToAllForms(hostUnknown)).toBe(undefined);
+  });
+
+  test('returnUrlToAllForms() uses the configured url, not one derived from the host', () => {
+    window.altinnAppGlobalData.platformFrontendSettings.allFormsUrl = 'https://ny.altinn.no/alle-skjema';
+
+    expect(returnUrlToAllForms(hostTT)).toBe('https://ny.altinn.no/alle-skjema');
+    expect(returnUrlToAllForms(hostProd)).toBe('https://ny.altinn.no/alle-skjema');
+  });
+
+  test('returnUrlToAllForms() returns undefined when no url is configured', () => {
+    window.altinnAppGlobalData.platformFrontendSettings.allFormsUrl = undefined;
+
+    expect(returnUrlToAllForms(hostTT)).toBe(undefined);
   });
 
   test('returnUrlToArchive() returning correct environments without dialogId', () => {
