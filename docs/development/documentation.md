@@ -9,21 +9,22 @@ those files define the facts.
 
 Each fact has one home. Other files link to it instead of repeating it.
 
-| Content | Home |
-| --- | --- |
-| Product introduction and repository map | Root `README.md` |
-| Documentation index | `docs/README.md` |
-| Development practices | `CONTRIBUTING.md`, with details in `docs/development/` |
-| Architecture, environments, deployment, and DIS | `docs/architecture/` and `docs/infrastructure/` |
-| Vocabulary | `docs/glossary.md` |
-| Related repositories | `docs/repositories.md` |
-| Service, library, or tool: purpose, relationships, and how it runs | Its `README.md`, with longer material in adjacent `docs/` |
-| Diagrams | `docs/diagrams/` for shared diagrams, otherwise an adjacent `docs/` folder |
-| Decisions and reasoning | `docs/adr/` |
-| Documentation rules | `docs/development/documentation.md` |
-| Agent direction needed in every session | `AGENTS.md` |
-| Agent knowledge and procedures for particular tasks | Skills in `agents/skills/` |
-| Agent image behavior | `agents/` |
+| Content                                              | Home                                                                       |
+| ---------------------------------------------------- | -------------------------------------------------------------------------- |
+| Product introduction and repository map              | Root `README.md`                                                           |
+| Documentation index                                  | `docs/README.md`                                                           |
+| Development practices                                | `CONTRIBUTING.md`, with details in `docs/development/`                     |
+| Architecture, environments, deployment, and DIS      | `docs/architecture/` and `docs/infrastructure/`                            |
+| Vocabulary                                           | `docs/glossary.md`                                                         |
+| Related repositories                                 | `docs/repositories.md`                                                     |
+| Service, library, or tool: purpose and relationships | Its `README.md`, with longer material in adjacent `docs/`                  |
+| Conventions for CI, builds, and deployment           | `.github/README.md`                                                        |
+| Diagrams                                             | `docs/diagrams/` for shared diagrams, otherwise an adjacent `docs/` folder |
+| Decisions and reasoning                              | `docs/adr/`                                                                |
+| Documentation rules                                  | `docs/development/documentation.md`                                        |
+| Agent direction needed in every session              | `AGENTS.md`                                                                |
+| Agent knowledge and procedures for particular tasks  | Skills in `agents/skills/`                                                 |
+| Agent image behavior                                 | `agents/`                                                                  |
 
 Documentation describes the current system. ADRs record decisions at a point in time.
 Facts about another repository belong there. Describe how we use that repository and link to its documentation.
@@ -31,19 +32,17 @@ Keep development documentation in this repository, not in the GitHub wiki. Priva
 
 ## README files and docs
 
-Each service, library, or tool has a README that explains its purpose, how it fits with the rest, and how it is
-built, run, and deployed where applicable. Put longer material in a `docs/` folder next to it. Root `docs/`
-covers shared topics, such as architecture, environments, and development practices.
+A README introduces a service, library, or tool: what it is for, what uses it, what it uses, and what other parts
+of the system expect of it or do to it. Link to the code or configuration that defines these relationships.
 
-Keep this documentation high level:
-
-- Link to code and configuration instead of restating it, such as a file, type, workflow, or Makefile target.
-- Explain connections that are hard to find from the code, and link to where they are defined.
-- Explain constraints and pitfalls that have no single home in the code, such as those shared by services, libraries, or tools
-  or depend on infrastructure.
-- Leave out folder trees, package and class lists, method signatures, field-by-field configuration descriptions,
-  and dependency versions.
-- Generate useful structure summaries, such as the repository map, from their source and check their freshness in CI.
+- Leave out implementation details: internal structure, request flows, lists of endpoints, packages or classes,
+  configuration field by field, and versions. If a refactor that keeps behavior would change a sentence, the
+  sentence is an implementation detail.
+- Rely on the conventions for building, testing and deploying in [`.github/README.md`](../../.github/README.md).
+  Document only exceptions. READMEs do not link deploy workflows.
+- Put procedures and reference material for a task in separate documents in an adjacent `docs/` folder. Root
+  `docs/` covers shared topics, such as architecture, environments, and development practices.
+- Generate structure summaries, such as the repository map, from their source, and check them in CI.
 
 Update affected documentation with the code change. Update [docs.altinn.studio](https://docs.altinn.studio)
 when the change affects service owners or app developers.

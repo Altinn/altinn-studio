@@ -13,20 +13,21 @@ instead of repeating it. Each skill we maintain has one source of truth in `agen
 
 ### Structure
 
-| Content                                                                            | Home                                                                                 |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| What the product is, the repository map, where to read next                        | Root `README.md`, and `docs/README.md` as the index of `docs/`                       |
-| How we work: issue types and labels, pull requests, changelogs, releases, spelling | `CONTRIBUTING.md`, with details in `docs/development/`                               |
-| Architecture, environments and clusters, deployment, DIS                           | `docs/architecture/` and `docs/infrastructure/`                                      |
-| Vocabulary                                                                         | `docs/glossary.md`                                                                   |
-| Related repositories and what lives where                                          | `docs/repositories.md`                                                               |
-| A service, library, or tool: what it is, how it fits with the rest, where and how it runs          | Its `README.md`, with longer material in a `docs/` folder next to it     |
+| Content                                                                            | Home                                                                       |
+| ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| What the product is, the repository map, where to read next                        | Root `README.md`, and `docs/README.md` as the index of `docs/`             |
+| How we work: issue types and labels, pull requests, changelogs, releases, spelling | `CONTRIBUTING.md`, with details in `docs/development/`                     |
+| Architecture, environments and clusters, deployment, DIS                           | `docs/architecture/` and `docs/infrastructure/`                            |
+| Vocabulary                                                                         | `docs/glossary.md`                                                         |
+| Related repositories and what lives where                                          | `docs/repositories.md`                                                     |
+| A service, library, or tool: what it is and how it fits with the rest              | Its `README.md`, with longer material in a `docs/` folder next to it       |
+| Conventions for CI, builds and deployment                                          | `.github/README.md`                                                        |
 | Diagrams                                                                           | `docs/diagrams/` for shared diagrams, otherwise an adjacent `docs/` folder |
-| Decisions and their reasoning                                                      | `docs/adr/`                                                                          |
-| How we write documentation: the rules this ADR decides                             | `docs/development/documentation.md`                                                  |
-| Direction for agents in every session                                              | `AGENTS.md`                                                                          |
-| Agent knowledge and procedures needed only for some tasks                          | Skills in `agents/skills/`                                                           |
-| How our agent images behave                                                        | `agents/`                                                                            |
+| Decisions and their reasoning                                                      | `docs/adr/`                                                                |
+| How we write documentation: the rules this ADR decides                             | `docs/development/documentation.md`                                        |
+| Direction for agents in every session                                              | `AGENTS.md`                                                                |
+| Agent knowledge and procedures needed only for some tasks                          | Skills in `agents/skills/`                                                 |
+| How our agent images behave                                                        | `agents/`                                                                  |
 
 - Each fact has one home. Other files link to it instead of repeating it.
 - Every directory with an `AGENTS.md` also has a `README.md`. The `AGENTS.md` links to the README and adds only
@@ -86,22 +87,17 @@ changed together with the code.
 
 #### README files and `docs/`
 
-Each service, library, or tool has a `README.md` for someone arriving at its code: what it is for, how it fits
-with the rest, and how it is built, run and deployed where applicable. Longer material goes in a `docs/` folder
-next to it. The root `docs/` covers shared topics, such as architecture, environments and clusters, and how we work.
+A README introduces a service, library, or tool: what it is for, what uses it, what it uses, and what other parts
+of the system expect of it or do to it.
 
-All of them are kept high level and refer to where the truth is:
-
-- Point to code and configuration instead of restating it: a file, a type, a workflow, a Makefile target. For
-  example, link the kustomization that lists the services on a cluster, or the type that defines a CRD's fields.
-- Write down connections that are hard to find from the code, and link to where they are defined. For example,
-  apps are deployed by `src/App/azure-pipelines/deploy-app.yaml` with the Helm chart in `altinn-studio-charts`.
-- Write down constraints and pitfalls that have no single place in the code, such as those shared by services, libraries, or tools
-  or are enforced by infrastructure or a pipeline.
-- Leave out what the reader can easily get from the code: folder trees, lists of packages, classes or files,
-  method signatures, configuration field by field, and dependency or framework versions.
-- When a description of structure is worth having, such as the repository map, generate it from the source and
-  check in CI that it is up to date.
+- Leave out implementation details: internal structure, request flows, lists of endpoints, packages or classes,
+  configuration field by field, and versions. If a refactor that keeps behavior would change a sentence, the
+  sentence is an implementation detail.
+- Rely on the repository's conventions for building, testing and deploying, described in `.github/README.md`.
+  Document only exceptions. READMEs do not link deploy workflows.
+- Put procedures and reference material for a task in separate documents in an adjacent `docs/` folder. The root
+  `docs/` covers shared topics, such as architecture, environments and clusters, and how we work.
+- Generate structure summaries, such as the repository map, from their source, and check them in CI.
 
 A change updates the documentation it affects: in this repository, and on
 [docs.altinn.studio](https://docs.altinn.studio) when the change affects service owners or app developers.
