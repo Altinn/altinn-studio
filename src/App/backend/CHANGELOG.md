@@ -14,6 +14,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: built-in validation messages, such as a file that is too large, are now in the user's language and use `validation_errors.*` text keys; built-in PDF texts use `pdf.*`. `studioctl app upgrade v9` renames your texts under old keys, such as `DataElementTooLarge`, `backend.xsd_validation` and `pdfPreviewText`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - Breaking: for clients calling the API directly, `description` on built-in validation issues is now translated text instead of the issue code or an English message. Use `code` to tell issues apart. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - Breaking: the form shows a validation issue's `Description` as text and no longer looks it up as a text key. To show a text from your app's text resources, set `CustomTextKey` instead; `studioctl app upgrade v9` moves the text keys it finds. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- Apps that use `Altinn.FileAnalyzers` must upgrade it together with `Altinn.App.Core`: the earlier version only sets an English description for the "file type not allowed" error, which Norwegian users now see untranslated. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 
 ### Fixed
 
