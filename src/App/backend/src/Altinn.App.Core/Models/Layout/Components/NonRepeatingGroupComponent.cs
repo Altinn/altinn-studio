@@ -9,20 +9,26 @@ namespace Altinn.App.Core.Models.Layout.Components;
 public sealed class NonRepeatingGroupComponent : ReferenceComponent
 {
     /// <summary>
+    /// The ids of the components this component claims as children.
+    /// </summary>
+    internal static IEnumerable<string> ClaimChildren(JsonElement componentElement) =>
+        ParseChildReferences(componentElement);
+
+    /// <summary>
     /// Parser for NonRepeatingGroupComponent.
     /// </summary>
-    public static NonRepeatingGroupComponent Parse(JsonElement componentElement, string pageId, string layoutId)
+    internal static NonRepeatingGroupComponent Parse(
+        JsonElement componentElement,
+        string pageId,
+        string layoutId,
+        IReadOnlyList<BaseLayoutComponent> children
+    )
     {
-        var id = ParseId(componentElement);
-        var type = ParseType(componentElement);
-
-        var children = ParseChildReferences(componentElement, layoutId, pageId);
-
         return new NonRepeatingGroupComponent()
         {
             // BaseComponent properties
-            Id = id,
-            Type = type,
+            Id = ParseId(componentElement),
+            Type = ParseType(componentElement),
             PageId = pageId,
             LayoutId = layoutId,
             Required = ParseRequiredExpression(componentElement),
@@ -31,8 +37,8 @@ public sealed class NonRepeatingGroupComponent : ReferenceComponent
             RemoveWhenHidden = ParseRemoveWhenHiddenExpression(componentElement),
             DataModelBindings = ParseDataModelBindings(componentElement),
             TextResourceBindings = ParseTextResourceBindings(componentElement),
-            // GridComponent properties
-            ChildReferences = children,
+            // ReferenceComponent properties
+            Children = children,
         };
     }
 }

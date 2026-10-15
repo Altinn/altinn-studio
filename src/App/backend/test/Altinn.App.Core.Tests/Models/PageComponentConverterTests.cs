@@ -49,7 +49,7 @@ public class PageComponentConverterTests
             component switch
             {
                 PageComponent page => page.ChildComponents,
-                ReferenceComponent referenceComponent => referenceComponent.AllChildren,
+                ReferenceComponent referenceComponent => referenceComponent.Children,
                 NoReferenceComponent => [],
                 _ => throw new NotSupportedException(
                     $"Component type {component.GetType().Name} is not supported for hierarchy generation."

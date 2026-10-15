@@ -80,13 +80,4 @@ public sealed class SubFormComponent : Base.BaseLayoutComponent
 
         return new ComponentContext(dataAccessor, this, rowIndexes, defaultDataElementIdentifier, childContexts);
     }
-
-    /// <inheritdoc />
-    public override void ClaimChildren(
-        Dictionary<string, Base.BaseLayoutComponent> unclaimedComponents,
-        Dictionary<string, string> claimedComponents
-    )
-    {
-        // Sub form does not claim children from the same layout
-    }
 }

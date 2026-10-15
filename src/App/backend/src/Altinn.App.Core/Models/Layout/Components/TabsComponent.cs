@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models.Layout.Components.Base;
@@ -10,11 +11,21 @@ namespace Altinn.App.Core.Models.Layout.Components;
 public sealed class TabsComponent : ReferenceComponent
 {
     /// <summary>
+    /// The ids of the components this component claims as children.
+    /// </summary>
+    internal static IEnumerable<string> ClaimChildren(JsonElement componentElement) =>
+        ParseTabs(componentElement).SelectMany(t => t.Children);
+
+    /// <summary>
     /// Parser for TabsComponent
     /// </summary>
-    public static TabsComponent Parse(JsonElement componentElement, string pageId, string layoutId)
+    internal static TabsComponent Parse(
+        JsonElement componentElement,
+        string pageId,
+        string layoutId,
+        IReadOnlyList<BaseLayoutComponent> children
+    )
     {
-        var tabs = ParseTabs(componentElement, pageId, layoutId);
         return new TabsComponent()
         {
             // BaseComponent properties
@@ -29,27 +40,30 @@ public sealed class TabsComponent : ReferenceComponent
             DataModelBindings = ParseDataModelBindings(componentElement),
             TextResourceBindings = ParseTextResourceBindings(componentElement),
             // TabsComponent properties
-            Tabs = tabs,
-            ChildReferences = tabs.SelectMany(t => t.Children ?? []).ToList(),
+            Tabs = ParseTabs(componentElement),
+            Children = children,
         };
     }
 
-    private static List<TabsConfig> ParseTabs(JsonElement componentElement, string pageId, string layoutId)
+    private static ImmutableArray<TabsConfig> ParseTabs(JsonElement componentElement)
     {
-        if (!componentElement.TryGetProperty("tabs", out JsonElement tabsElement))
+        if (
+            !componentElement.TryGetProperty("tabs", out JsonElement tabsElement)
+            || tabsElement.ValueKind != JsonValueKind.Array
+        )
         {
-            var type = ParseType(componentElement);
-            throw new JsonException($"{type} component on {layoutId}.{pageId} must have a \"tabs\" property.");
+            throw new JsonException(
+                $"{ParseType(componentElement)} component must have a \"tabs\" property of type array."
+            );
         }
 
-        return tabsElement.Deserialize<List<TabsConfig>>()
-            ?? throw new JsonException("Failed to deserialize tabs in TabsComponent.");
+        return tabsElement.Deserialize<ImmutableArray<TabsConfig>>();
     }
 
     /// <summary>
     /// Configuration for the tabs in the TabsComponent.
     /// </summary>
-    public required IReadOnlyCollection<TabsConfig> Tabs { get; init; }
+    public required IReadOnlyList<TabsConfig> Tabs { get; init; }
 }
 
 /// <summary>
@@ -58,8 +72,17 @@ public sealed class TabsComponent : ReferenceComponent
 public sealed class TabsConfig
 {
     /// <summary>
+    /// Create the configuration for a tab
+    /// </summary>
+    [JsonConstructor]
+    public TabsConfig(ImmutableArray<string> children)
+    {
+        Children = children.IsDefault ? [] : children;
+    }
+
+    /// <summary>
     /// List of child component IDs that belong to this tab.
     /// </summary>
     [JsonPropertyName("children")]
-    public List<string>? Children { get; init; }
+    public ImmutableArray<string> Children { get; }
 }

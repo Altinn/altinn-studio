@@ -9,12 +9,9 @@ namespace Altinn.App.Core.Models.Layout.Components.Base;
 public abstract class NoReferenceComponent : BaseLayoutComponent
 {
     /// <summary>
-    /// No children to claim for NoReferenceComponent
+    /// Only components in this assembly can derive from <see cref="NoReferenceComponent"/>.
     /// </summary>
-    public override void ClaimChildren(
-        Dictionary<string, BaseLayoutComponent> unclaimedComponents,
-        Dictionary<string, string> claimedComponents
-    ) { }
+    private protected NoReferenceComponent() { }
 
     /// <summary>
     /// No child contexts to return for NoReferenceComponent
