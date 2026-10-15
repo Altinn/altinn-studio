@@ -21,6 +21,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Files;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Profile;
@@ -43,6 +44,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
 
@@ -1073,7 +1075,7 @@ public class InstancesController : ControllerBase
                 validationResult
             );
             await TranslateValidationResult(validationResult, language);
-            return StatusCode(StatusCodes.Status403Forbidden, validationResult);
+            return ValidationFailedResult(validationResult, application, language);
         }
 
         var copyInstanceValidator = _appImplementationFactory.Get<ICopyInstanceValidator>();
@@ -1094,7 +1096,7 @@ public class InstancesController : ControllerBase
                     validationResult
                 );
                 await TranslateValidationResult(validationResult, language);
-                return StatusCode(StatusCodes.Status403Forbidden, validationResult);
+                return ValidationFailedResult(validationResult, application, language);
             }
         }
 
@@ -2172,6 +2174,101 @@ public class InstancesController : ControllerBase
                 CancellationToken.None
             );
         }
+    }
+
+    /// <summary>
+    /// The copy endpoint is navigated to directly from the browser, so a JSON body is not useful for end users.
+    /// Returns a minimal HTML page when the client prefers html over json, otherwise the usual JSON response.
+    /// </summary>
+    private ActionResult ValidationFailedResult(
+        InstantiationValidationResult validationResult,
+        ApplicationMetadata application,
+        string? language
+    )
+    {
+        if (!RequestPrefersHtml())
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, validationResult);
+        }
+
+        language ??= LanguageConst.Nb;
+        string title =
+            application.Title?.GetValueOrDefault(language)
+            ?? application.Title?.GetValueOrDefault(LanguageConst.Nb)
+            ?? application.Id;
+        string encodedTitle = HtmlEncoder.Default.Encode(title);
+        string encodedMessage = HtmlEncoder.Default.Encode(validationResult.Message ?? string.Empty);
+
+        string html = $$"""
+            <!DOCTYPE html>
+            <html lang="{{HtmlEncoder.Default.Encode(language)}}">
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>{{encodedTitle}}</title>
+                <style>
+                    body { font-family: system-ui, sans-serif; margin: 0; padding: 2rem 1rem; background: #f4f5f6; color: #1e2b3c; }
+                    main { max-width: 40rem; margin: 0 auto; background: #fff; padding: 2rem; border-radius: 0.5rem; }
+                    h1 { font-size: 1.5rem; margin-top: 0; }
+                </style>
+            </head>
+            <body>
+                <main>
+                    <h1>{{encodedTitle}}</h1>
+                    <p>{{encodedMessage}}</p>
+                </main>
+            </body>
+            </html>
+            """;
+
+        return new ContentResult
+        {
+            StatusCode = StatusCodes.Status403Forbidden,
+            ContentType = "text/html; charset=utf-8",
+            Content = html,
+        };
+    }
+
+    private static readonly MediaTypeHeaderValue _htmlMediaType = MediaTypeHeaderValue.Parse("text/html");
+    private static readonly MediaTypeHeaderValue _jsonMediaType = MediaTypeHeaderValue.Parse("application/json");
+
+    private bool RequestPrefersHtml()
+    {
+        if (!MediaTypeHeaderValue.TryParseList(Request.Headers.Accept, out var accept))
+        {
+            return false;
+        }
+
+        return AcceptQuality(accept, _htmlMediaType) > AcceptQuality(accept, _jsonMediaType);
+    }
+
+    /// <summary>
+    /// Finds the quality the Accept header assigns to <paramref name="mediaType"/>, using the most specific
+    /// matching media range (exact type, then type wildcard, then */*) as described in RFC 7231 section 5.3.2.
+    /// </summary>
+    private static double AcceptQuality(IList<MediaTypeHeaderValue> accept, MediaTypeHeaderValue mediaType)
+    {
+        double quality = 0;
+        int bestSpecificity = -1;
+        foreach (var range in accept)
+        {
+            if (!mediaType.IsSubsetOf(range))
+            {
+                continue;
+            }
+
+            int specificity =
+                range.MatchesAllTypes ? 0
+                : range.MatchesAllSubTypes ? 1
+                : 2;
+            if (specificity > bestSpecificity)
+            {
+                bestSpecificity = specificity;
+                quality = range.Quality ?? 1;
+            }
+        }
+
+        return quality;
     }
 
     private async Task TranslateValidationResult(InstantiationValidationResult validationResult, string? language)
