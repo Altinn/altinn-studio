@@ -11,7 +11,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Localtest answers the Correspondence API, so apps that send messages, such as the signing call to action and the receipt with the signed documents, work locally. Messages are published at once, and their email and SMS notifications are recorded, not sent. ([#21177](https://github.com/Altinn/altinn-studio/pull/21177))
+
+### Changed
+
+- `studioctl app upgrade v9` no longer asks you to grant the app owner task-specific actions in `policy.xml`, such as `confirm`, `reject` or an action named after a custom task type. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 
 ## [0.1.0-preview.29] - 2026-10-14
 
