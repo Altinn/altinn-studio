@@ -41,7 +41,7 @@ On macOS, `make dev-run` from a deeply nested checkout (an agent worktree) fails
 
 ### Bundled app-development skill
 
-[`agents/skills/app-development`](../../agents/skills/app-development/SKILL.md) ships with studioctl. Keep its
+[`agents/_skills/app-development`](../../agents/_skills/app-development/SKILL.md) ships with studioctl. Keep its
 commands and workflows current when changing studioctl's user-facing flags, output, or behavior.
 
 ### Shared .NET libraries

@@ -3,7 +3,7 @@
 *
 
 !src/AI/assistant
-!agents/skills/altinn-*
+!agents/_skills
 !src/common/ts/layout-contract/schemas/json/layout
 
 # Heavy or irrelevant paths inside the included dirs.

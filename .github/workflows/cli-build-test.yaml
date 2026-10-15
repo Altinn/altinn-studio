@@ -16,7 +16,7 @@ on:
       - "!**/CHANGELOG.md"
       - "!**/docs/**"
       # The shipped skill is a build input, including its Markdown files.
-      - "agents/skills/app-development/**"
+      - "agents/_skills/app-development/**"
   workflow_dispatch:
 
 concurrency:

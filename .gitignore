@@ -29,7 +29,7 @@ Session.vim
 ## AI settings
 **/.claude/settings.local.json
 
-## Harness skill directories; skills live in agents/skills
+## Harness skill directories; skills are maintained in agents/_skills
 /.claude/skills/
 /.agents/skills/
 

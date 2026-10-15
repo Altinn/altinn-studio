@@ -1,4 +1,4 @@
-# Built from the repo root so the image can bundle the skills from agents/skills and
+# Built from the repo root so the image can bundle the skills from agents/_skills and
 # the v9 layout schemas from src/common. dockerfile.dockerignore limits the context to
 # what the image needs.
 FROM debian:trixie-slim@sha256:a29215f6a35e51e22adffa17f89e9d2ef06214e64a2bad10d765c46aea49f11f
@@ -30,8 +30,8 @@ COPY src/AI/assistant/shared/ ./shared/
 # The v9 layout schemas, where BaseConfig.LAYOUT_SCHEMA_V9_DIR points from /app. The CDN
 # serves only the v8 contract.
 COPY src/common/ts/layout-contract/schemas/json/layout/ /common/ts/layout-contract/schemas/json/layout/
-# The altinn-* skills, where BaseConfig.SKILLS_DIR points from /app.
-COPY agents/skills/ /agents/skills/
+# The skills, where BaseConfig.SKILLS_DIR points from /app. BaseConfig.SKILLS picks the ones to load.
+COPY agents/_skills/ /agents/_skills/
 
 EXPOSE 8071
 

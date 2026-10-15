@@ -24,7 +24,7 @@ const (
 	buildDir = "build"
 
 	localtestDir           = "../Runtime/localtest"
-	appDevelopmentSkillDir = "../../agents/skills/app-development"
+	appDevelopmentSkillDir = "../../agents/_skills/app-development"
 
 	helpFlag = "--help"
 

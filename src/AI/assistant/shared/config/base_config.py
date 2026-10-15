@@ -67,7 +67,17 @@ class BaseConfig:
     LAYOUT_SCHEMA_V9_DIR = (
         PROJECT_ROOT.parent.parent / "common" / "ts" / "layout-contract" / "schemas" / "json" / "layout"
     )
-    SKILLS_DIR = PROJECT_ROOT.parent.parent.parent / "agents" / "skills"
+    SKILLS_DIR = PROJECT_ROOT.parent.parent.parent / "agents" / "_skills"
+    # The skills in SKILLS_DIR that the assistant loads. The directory also holds skills for other agents.
+    SKILLS = (
+        "altinn-datamodel",
+        "altinn-docs",
+        "altinn-expressions",
+        "altinn-planning",
+        "altinn-policy",
+        "altinn-prefill",
+        "altinn-resources",
+    )
 
     LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
     LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")

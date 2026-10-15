@@ -95,9 +95,9 @@ stack (see `README.md`).
 
 ## Conventions across the repo
 
-- **Skills:** Skills live in [`agents/skills/`](agents/skills). If a skill is not installed in your
-  harness, read `agents/skills/<name>/SKILL.md` directly, or copy that directory into your harness's
-  skill directory.
+- **Skills:** Skills are developed and maintained in [`agents/_skills/`](agents/_skills). If a skill
+  is not installed in your harness, read `agents/_skills/<name>/SKILL.md` directly, or copy that
+  directory into your harness's skill directory.
 - **Changelogs:** Changelog entries are release notes for product users. Write and edit them with
   the `changelog` skill.
 - **Spelling and language:** Code is **US English** — identifiers, comments, doc comments, log and

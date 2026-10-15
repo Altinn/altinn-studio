@@ -39,7 +39,7 @@ extend-exclude = [
     # Agent tooling: .claude/worktrees may hold entire nested checkouts of
     # this repository, and these skills are deliberately written in Norwegian.
     ".claude/**",
-    "agents/skills/tekstforfatter-docs/**", "agents/skills/text-content-review/**",
+    "agents/_skills/tekstforfatter-docs/**", "agents/_skills/text-content-review/**",
 
     # Build output, generated and vendored code. Kept even when currently
     # silent: a typo a generator emits cannot be fixed by hand, so it must

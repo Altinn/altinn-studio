@@ -1,7 +1,8 @@
 # Assistant skills
 
-The assistant loads the skills in [`agents/skills/`](../../../../agents/skills) that have a name that starts with
-`altinn-`. The other skills in that folder are for agents that work on this repository.
+Skills are developed and maintained in [`agents/_skills/`](../../../../agents/_skills). The assistant loads the
+ones listed in `SKILLS` in [`base_config.py`](../shared/config/base_config.py). The other skills in that folder are
+for agents that work on this repository.
 
 A skill has a `SKILL.md` file with two parts:
 
@@ -28,7 +29,7 @@ The loader is in `src/AI/assistant/agents/core/skills.py`. The tool is in
 
 ## Add a skill
 
-1. Make the directory `agents/skills/altinn-<kebab-name>` at the repository root.
+1. Make the directory `agents/_skills/altinn-<kebab-name>` at the repository root, and add its name to `SKILLS`.
 2. Write `SKILL.md`:
 
    ```markdown
@@ -47,7 +48,7 @@ The loader is in `src/AI/assistant/agents/core/skills.py`. The tool is in
    descriptions. The body can have the length that is necessary. It costs tokens
    only when the model loads it.
 
-The agent finds the skills automatically when the session starts.
+The agent loads the listed skills when the session starts.
 
 `description` is the only necessary field. The optional fields are:
 

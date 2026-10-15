@@ -1,10 +1,10 @@
 """Skill discovery and loading for the agentic loop.
 
 A skill is a directory containing a `SKILL.md` file.  The repository keeps
-every skill in `agents/skills/`; the assistant's skills are the ones named
-`altinn-*`:
+every skill in `agents/_skills/`; the assistant loads the ones listed in
+`BaseConfig.SKILLS`:
 
-    agents/skills/
+    agents/_skills/
       altinn-policy/
         SKILL.md          <- frontmatter + markdown body
         v8.md, v9.md      <- optional text for apps of one version only
@@ -27,6 +27,7 @@ and costs zero context until actually needed.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -36,12 +37,12 @@ from shared.utils.logging_utils import get_logger
 log = get_logger(__name__)
 
 SKILL_FILENAME = "SKILL.md"
-SKILL_NAME_PREFIX = "altinn-"
 # Keep listing lines short — the full body loads on invocation, so a
 # verbose description only wastes tokens on every request.
 MAX_LISTING_DESCRIPTION_CHARS = 250
 
 _DEFAULT_SKILLS_DIR = get_config().SKILLS_DIR
+_DEFAULT_SKILL_NAMES = get_config().SKILLS
 
 _FRONTMATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 
@@ -132,20 +133,27 @@ def _parse_frontmatter(raw: str) -> dict[str, str]:
     return fields
 
 
-def discover_skills(skills_dir: Path | None = None) -> list[Skill]:
-    """Scan the skills directory and return all valid skills, sorted by name.
+def discover_skills(skills_dir: Path | None = None, names: Iterable[str] | None = None) -> list[Skill]:
+    """Return the valid skills in a skills directory, sorted by name.
 
-    A valid skill is a subdirectory named `altinn-*` containing SKILL.md with
+    Without arguments, this loads the skills in `BaseConfig.SKILLS` from
+    `BaseConfig.SKILLS_DIR`.  With only `skills_dir`, it loads every skill in
+    that directory.  A valid skill is a subdirectory containing SKILL.md with
     a non-empty `description` in its frontmatter.  Invalid entries are logged
     and skipped — a broken skill must not take down the loop.
     """
+    if skills_dir is None and names is None:
+        names = _DEFAULT_SKILL_NAMES
     root = skills_dir or _DEFAULT_SKILLS_DIR
     if not root.is_dir():
         return []
 
+    entries = sorted(root / name for name in names) if names is not None else sorted(root.iterdir())
     skills: list[Skill] = []
-    for entry in sorted(root.glob(f"{SKILL_NAME_PREFIX}*")):
+    for entry in entries:
         if not entry.is_dir():
+            if names is not None:
+                log.warning("Skipping skill %s: no such directory in %s", entry.name, root)
             continue
         skill_file = entry / SKILL_FILENAME
         if not skill_file.is_file():

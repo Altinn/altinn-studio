@@ -32,13 +32,13 @@ spec:
     - source: ../full/environment.md
     - source: desktop.md
   skills:
-    - source: ../skills/app-development
+    - source: ../_skills/app-development
       name: altinn-studio-app-development
-    - source: ../skills/pr-evidence
-    - source: ../skills/computer-use
-    - source: ../skills/changelog
-    - source: ../skills/tekstforfatter-docs
-    - source: ../skills/text-content-review
+    - source: ../_skills/pr-evidence
+    - source: ../_skills/computer-use
+    - source: ../_skills/changelog
+    - source: ../_skills/tekstforfatter-docs
+    - source: ../_skills/text-content-review
   harnesses:
     - type: claudeCode
       auth: mediated

@@ -87,6 +87,7 @@ class TestDigestsCoverEveryAppVersion:
         (skill_dir / "SKILL.md").write_text("---\ndescription: An example.\n---\nBody.\n")
         (skill_dir / "v9.md").write_text("Old v9 text.\n")
         monkeypatch.setattr(skills, "_DEFAULT_SKILLS_DIR", tmp_path)
+        monkeypatch.setattr(skills, "_DEFAULT_SKILL_NAMES", ("altinn-example",))
         before = provenance._hash_tools()
         (skill_dir / "v9.md").write_text("New v9 text.\n")
 

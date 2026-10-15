@@ -166,8 +166,8 @@ For the architecture and the security model, refer to [docs/README.md](docs/READ
 
 ## Skills
 
-The agent loads the `altinn-*` skills in [`agents/skills/`](../../../agents/skills) at the repository root. To add or
-change a skill, refer to [docs/skills.md](docs/skills.md).
+The agent loads the skills listed in `SKILLS` in [`base_config.py`](shared/config/base_config.py) from
+[`agents/_skills/`](../../../agents/_skills). To add or change a skill, refer to [docs/skills.md](docs/skills.md).
 
 ## Prompts and Langfuse
 
