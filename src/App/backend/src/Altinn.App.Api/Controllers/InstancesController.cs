@@ -1640,7 +1640,7 @@ public class InstancesController : ControllerBase
                     CancellationToken.None
                 );
 
-                await _dataClient.InsertBinaryData(
+                DataElement newDataElement = await _dataClient.InsertBinaryData(
                     targetInstance.Id,
                     de.DataType,
                     de.ContentType,
@@ -1650,6 +1650,18 @@ public class InstancesController : ControllerBase
                     authenticationMethod: null,
                     CancellationToken.None
                 );
+
+                // Tags (e.g. the file type chosen in FileUploadWithTag) can't be set on insert
+                if (de.Tags is { Count: > 0 })
+                {
+                    newDataElement.Tags = [.. de.Tags];
+                    await _dataClient.Update(
+                        targetInstance,
+                        newDataElement,
+                        authenticationMethod: null,
+                        CancellationToken.None
+                    );
+                }
             }
         }
     }

@@ -1530,6 +1530,82 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         TestData.DeleteInstanceAndData(org, app, secondCopy.Id);
     }
 
+    [Fact]
+    public async Task CopyInstance_SimplifiedEndpoint_CopiesTagsOnAttachments()
+    {
+        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
+        using var pdfReturnStream = new MemoryStream();
+        pdfMock
+            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pdfReturnStream);
+
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddSingleton(pdfMock.Object);
+            services.AddSingleton(
+                new AppMetadataMutationHook(app => app.CopyInstanceSettings.IncludeAttachments = true)
+            );
+        };
+        HttpClient client = GetRootedClient(org, app);
+        string orgToken = TestAuthentication.GetServiceOwnerToken("405003309", org: "tdd");
+        string userToken = TestAuthentication.GetUserToken(1337, instanceOwnerPartyId);
+
+        // Create source instance
+        var (sourceInstance, _) = await InstancesControllerFixture.CreateInstanceSimplified(
+            org,
+            app,
+            instanceOwnerPartyId,
+            client,
+            userToken,
+            prefill: new() { ["melding.name"] = "Ola Olsen" }
+        );
+
+        // Add a tagged attachment (customElement only allows the service owner as contributor)
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            AuthorizationSchemes.Bearer,
+            orgToken
+        );
+        using var attachmentContent = new ByteArrayContent(Encoding.UTF8.GetBytes("attachment"));
+        attachmentContent.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+        attachmentContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+        {
+            FileName = "attachment.pdf",
+        };
+        using var attachmentResponse = await client.PostAsync(
+            $"{org}/{app}/instances/{sourceInstance.Id}/data?dataType=customElement",
+            attachmentContent
+        );
+        Assert.Equal(HttpStatusCode.Created, attachmentResponse.StatusCode);
+        var sourceAttachment = await attachmentResponse.Content.ReadFromJsonAsync<DataElement>(JsonSerializerOptions);
+        Assert.NotNull(sourceAttachment);
+        using var tagsResponse = await client.PutAsJsonAsync(
+            $"{org}/{app}/instances/{sourceInstance.Id}/data/{sourceAttachment.Id}/tags",
+            new SetTagsRequest { Tags = ["innhold"] }
+        );
+        Assert.Equal(HttpStatusCode.OK, tagsResponse.StatusCode);
+
+        await CompleteInstance(org, app, client, userToken, sourceInstance.Id);
+
+        // Copy instance
+        InstanceResponse copiedInstance = await CopyInstanceSimplified(org, app, client, userToken, sourceInstance.Id);
+        DataElement copiedAttachment = Assert.Single(copiedInstance.Data, d => d.DataType == "customElement");
+        Assert.NotEqual(sourceAttachment.Id, copiedAttachment.Id);
+
+        using var copiedTagsResponse = await client.GetAsync(
+            $"{org}/{app}/instances/{copiedInstance.Id}/data/{copiedAttachment.Id}/tags"
+        );
+        Assert.Equal(HttpStatusCode.OK, copiedTagsResponse.StatusCode);
+        var copiedTags = await copiedTagsResponse.Content.ReadFromJsonAsync<TagsList>(JsonSerializerOptions);
+        Assert.NotNull(copiedTags);
+        Assert.Equal(["innhold"], copiedTags.Tags);
+
+        TestData.DeleteInstanceAndData(org, app, sourceInstance.Id);
+        TestData.DeleteInstanceAndData(org, app, copiedInstance.Id);
+    }
+
     private async Task<InstanceResponse> CopyInstanceSimplified(
         string org,
         string app,
