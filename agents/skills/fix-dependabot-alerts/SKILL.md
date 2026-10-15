@@ -18,7 +18,7 @@ Fix open Dependabot alerts and report back to the user with a table of fixed and
 
    If you do not have access, give this command to the user. Ask the user to run it and give you the result.
 
-2. Skip an alert if its `manifest_path` is not in the checkout, or if it has no patched version.
+2. Skip an alert if its `manifest_path` is not on `origin/main`, or if it has no patched version.
 3. Update each package in the directory of its `manifest_path`. The repository has many lockfiles, and each one can
    have its own tool version. Update an indirect dependency as Dependabot does:
 
