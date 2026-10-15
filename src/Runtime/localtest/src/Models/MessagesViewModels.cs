@@ -38,15 +38,14 @@ public sealed record NotificationTemplateView(string Kind, string? Subject, stri
 /// <summary>Display helpers shared by the messages views.</summary>
 public static class MessagesDisplay
 {
-    /// <summary>A correspondence recipient as "Person …" or "Organization …".</summary>
-    public static string Recipient(string recipient)
-    {
-        (string? organizationNumber, string? nationalIdentityNumber) =
-            CorrespondenceNotificationBuilder.ParseRecipient(recipient);
-        return nationalIdentityNumber is not null
-            ? $"Person {nationalIdentityNumber}"
-            : $"Organization {organizationNumber}";
-    }
+    /// <summary>A correspondence recipient as "Person …" or "Organization …", or as sent when it is neither.</summary>
+    public static string Recipient(string recipient) =>
+        CorrespondenceRecipient.TryParse(recipient) switch
+        {
+            { NationalIdentityNumber: { } nationalIdentityNumber } => $"Person {nationalIdentityNumber}",
+            { OrganizationNumber: { } organizationNumber } => $"Organization {organizationNumber}",
+            _ => recipient,
+        };
 
     /// <summary>A notification recipient's address and who it belongs to.</summary>
     public static string Recipient(NotificationRecipientDto recipient)

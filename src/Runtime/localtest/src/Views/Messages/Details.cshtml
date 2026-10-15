@@ -75,7 +75,7 @@
         <div class="card-header d-flex justify-content-between">
             <span>
                 @(notification.IsReminder ? "Reminder" : "Notification") by @notification.Channel,
-                @(notification.Template == Altinn.Correspondence.Controllers.NotificationTemplate.GenericAltinnMessage ? "Altinn's standard text" : "custom text")
+                @(notification.Template == Altinn.Correspondence.Controllers.NotificationTemplate.CustomMessage ? "custom text" : "Altinn's standard text, worded differently in Altinn")
             </span>
             <span class="text-muted">@(notification.IsReminder ? "Due" : "Sent") @MessagesDisplay.Time(notification.RequestedSendTime)</span>
         </div>
