@@ -3,6 +3,29 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 const appFrontend = new AppFrontend();
 
 describe('List component', () => {
+  it('shows informational Lists in Summary2 unless hidden by an override', () => {
+    cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
+    cy.gotoNavPage('Liste (tabell)');
+
+    const source = '[data-componentid=ListPage-InformationalList]';
+    const summary = '[data-summary-target=ListPage-InformationalList]';
+    cy.get(source).findByRole('cell', { name: 'Kari' }).should('be.visible');
+    cy.get(summary).findByRole('table', { name: 'Personoversikt' }).should('be.visible');
+    cy.get(summary).findByRole('cell', { name: 'Kari' }).should('be.visible');
+    cy.get(summary).findByRole('cell', { name: 'Johanne' }).should('be.visible');
+    cy.get(summary).findByRole('button', { name: 'Endre', timeout: 0 }).should('not.exist');
+    cy.get(summary).findByRole('radio', { timeout: 0 }).should('not.exist');
+    cy.get(summary).findByRole('checkbox', { timeout: 0 }).should('not.exist');
+
+    cy.changeLayout((component) => {
+      if (component.type === 'Summary2' && component.id === 'ListPage-InformationalSummary') {
+        component.overrides = [{ componentType: 'List', hidden: true }];
+      }
+    });
+    cy.get(source).findByRole('cell', { name: 'Kari' }).should('be.visible');
+    cy.get(summary).should('not.exist');
+  });
+
   it('Adds and removes data properly when using group and soft deletion', () => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.gotoNavPage('Liste (tabell)');
