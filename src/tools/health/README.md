@@ -9,7 +9,7 @@ Run `az graph query -h` once to install the Resource Graph extension if prompted
 ```sh
 go run cmd/main.go init tt02
 go run cmd/main.go status -s ttd tt02,prod ks runtime-pdf3/pdf3-app
-go run cmd/main.go set-weight --dry-run tt02 pdf/pdf3-migration 50 50
+go run cmd/main.go status at22,tt02 httproute pdf/pdf3
 go run cmd/main.go exec tt02 kubectl get pods -n default
 ```
 
