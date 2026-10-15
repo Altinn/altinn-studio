@@ -107,10 +107,11 @@ internal sealed class ExpressionValidator : IValidator
     )
     {
         var formDataWrapper = await dataAccessor.GetFormDataWrapper(dataElement);
-        var hiddenFields = await LayoutEvaluator.GetHiddenFieldsForRemoval(
-            dataAccessor.GetLayoutEvaluatorState(),
-            evaluateRemoveWhenHidden: false
-        );
+        var evaluatorState = dataAccessor.GetLayoutEvaluatorState();
+        // Without layouts for the task there are no components, so no field is hidden
+        List<DataReference> hiddenFields = evaluatorState.HasComponentModel
+            ? await LayoutEvaluator.GetHiddenFieldsForRemoval(evaluatorState, evaluateRemoveWhenHidden: false)
+            : [];
 
         var validationIssues = new List<ValidationIssue>();
         DataElementIdentifier dataElementIdentifier = dataElement;
@@ -118,11 +119,9 @@ internal sealed class ExpressionValidator : IValidator
 
         foreach (var (baseField, validations) in expressionValidations)
         {
-            var resolvedFields = await dataAccessor
-                .GetLayoutEvaluatorState()
-                .GetResolvedKeys(
-                    new DataReference() { Field = baseField, DataElementIdentifier = dataElementIdentifier }
-                );
+            var resolvedFields = await evaluatorState.GetResolvedKeys(
+                new DataReference() { Field = baseField, DataElementIdentifier = dataElementIdentifier }
+            );
             foreach (var resolvedField in resolvedFields)
             {
                 if (

@@ -21,6 +21,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
 
     private readonly IAppMetadata _appMetadata;
     private readonly IAppModel _appModel;
+    private readonly IAppResources _appResources;
     private readonly ILayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
     private readonly IOptions<AppSettings> _appSettings;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
@@ -28,6 +29,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
     public CommonTaskFinalization(
         IAppMetadata appMetadata,
         IAppModel appModel,
+        IAppResources appResources,
         ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
         IOptions<AppSettings> appSettings,
         IDataElementAccessChecker dataElementAccessChecker
@@ -35,6 +37,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
     {
         _appMetadata = appMetadata;
         _appModel = appModel;
+        _appResources = appResources;
         _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
         _appSettings = appSettings;
         _dataElementAccessChecker = dataElementAccessChecker;
@@ -97,7 +100,11 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
         var data = formDataWrapper.BackingData<object>();
 
         // Remove hidden data before validation, ignore hidden rows.
-        if (_appSettings.Value?.RemoveHiddenData == true)
+        // Without layouts for the task there are no components, so nothing is hidden.
+        if (
+            _appSettings.Value?.RemoveHiddenData == true
+            && _appResources.GetLayoutSettingsForFolder(taskId) is not null
+        )
         {
             // Backend removal of data is deprecated in favor of
             // implementing frontend removal of hidden data, so
