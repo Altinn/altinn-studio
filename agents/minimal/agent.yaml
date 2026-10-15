@@ -31,11 +31,9 @@ spec:
     - source: ../../src/cli/resources/agent/skills/app-development
       name: altinn-studio-app-development
     - source: ../skills/pr-evidence
-    # Repository-wide Skills live where Claude Code discovers them in a plain checkout, and the
-    # manifests reach across so every harness in an Agent gets them too.
-    - source: ../../.claude/skills/changelog
-    - source: ../../.claude/skills/tekstforfatter-docs
-    - source: ../../.claude/skills/text-content-review
+    - source: ../skills/changelog
+    - source: ../skills/tekstforfatter-docs
+    - source: ../skills/text-content-review
   harnesses:
     - type: claudeCode
       auth: mediated

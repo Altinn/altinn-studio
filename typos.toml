@@ -36,9 +36,10 @@ ignore-hidden = false
 extend-exclude = [
     ".git/**",
 
-    # Agent tooling: skills are deliberately written in Norwegian, and
-    # .claude/worktrees may hold entire nested checkouts of this repository.
+    # Agent tooling: .claude/worktrees may hold entire nested checkouts of
+    # this repository, and these skills are deliberately written in Norwegian.
     ".claude/**",
+    "agents/skills/tekstforfatter-docs/**", "agents/skills/text-content-review/**",
 
     # Build output, generated and vendored code. Kept even when currently
     # silent: a typo a generator emits cannot be fixed by hand, so it must
