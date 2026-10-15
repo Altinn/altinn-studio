@@ -9,11 +9,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Localtest answers the Correspondence API, so apps that send messages, such as the signing call to action and the receipt with the signed documents, work locally. Each message and attachment is saved as a file in the Localtest storage folder. ([#21177](https://github.com/Altinn/altinn-studio/pull/21177))
+
 ## [0.1.0-preview.29] - 2026-10-14
 
 ### Added
 
-- Localtest answers the Correspondence API, so apps that send messages, such as the signing call to action and the receipt with the signed documents, work locally. Each message and attachment is saved as a file in the Localtest storage folder. ([#21177](https://github.com/Altinn/altinn-studio/pull/21177))
 - The OpenTelemetry collector in `studioctl env up --monitoring` also accepts OTLP over HTTP, on port 4318. ([#21114](https://github.com/Altinn/altinn-studio/pull/21114))
 - `studioctl app upgrade v9` ports more app code to v9:
     - deletes `IPdfFormatter` implementations that leave the PDF unchanged and points out the rest ([#19785](https://github.com/Altinn/altinn-studio/issues/19785))
