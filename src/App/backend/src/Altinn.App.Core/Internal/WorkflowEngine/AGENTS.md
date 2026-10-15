@@ -188,7 +188,6 @@ Main continuation workflow (W2; no acquire):
 ── instance.Process.CurrentTask = Task_1 (OLD) ──
 EndTask → CommonTaskFinalization → OnTaskEndingHook → LockTaskData
   ── MutateProcessState (in-memory: CurrentTask → null, EndEvent set) ──
-OnProcessEndingHook
   ── CommitProcessState (stages ended state/events; keeps processing) ──
 OnProcessEndedHook (no-op without an IOnProcessEndedHandler)
 DeleteDataOnProcessEnd (data types with autoDeleteOnProcessEnd; no-op without any)
@@ -229,7 +228,7 @@ Main continuation workflow (W2; no acquire):
 ── instance.Process.CurrentTask = Task_1 (OLD) ──
 AbandonTask → OnTaskAbandonHook
   ── MutateProcessState (in-memory: CurrentTask → null or next task) ──
-[OnProcessEndingHook if ending] / [task-start commands if moving to next task]
+[task-start commands if moving to next task]
   ── CommitProcessState (stages process state, keeps processing; controller save commits it) ──
 [EnqueueSideEffectsWorkflow if the target emits side effects] → [critical post-commit commands, ending with
                                                                 ReleaseProcessingStatus unless a service task follows]
@@ -380,9 +379,9 @@ Each callback needs the app's workflow callback state (`instance` + storage vers
 - Commands pass `context.CancellationToken` into app-facing contexts (`ProcessTaskContext`, hook contexts, and `ServiceTaskContext`)
 - Commands do not persist directly. They stage work on the unit of work; the callback controller performs the workflow-owned save after successful execution
 - The acquire callback computes the process-next continuation only after the save, using the restored unit of work for all gateway data. Its action payload contains no later steps. The same restored-data path serves process continuations after successful service tasks, including mailbox conclusions
-- Hook commands (`OnTaskStarting`, `OnTaskEnding`, `OnTaskAbandon`, `OnProcessEnding`) enforce max 1 handler per task
+- Hook commands (`OnTaskStarting`, `OnTaskEnding`, `OnTaskAbandon`, `OnProcessEnded`) enforce max 1 handler per task (per app for `OnProcessEnded`)
 - Each service task gets one `ExecuteServiceTask` callback after `CommitProcessState` has durably installed the target task with `processing`. `ServiceTaskContext.IdempotencyKey` is the retry-stable workflow step database id from the callback payload (`AppCallbackPayload.StepId`); the required `ExecutionReferenceTime` is `Workflow.StartAt ?? Step.CreatedAt`. The engine reuses both values on retries of that persisted step.
-- `CommitProcessState` keeps `processing` from the factory-known fact that a service-task command follows. `ExecuteServiceTask` keeps `processing` and returns a process continuation with the result’s action when the task succeeds; the callback controller saves staged service data/status before enqueueing the dependent process-next workflow
+- `CommitProcessState` keeps `processing` from the factory-known fact that critical post-commit steps follow (a service task, or the process-ended hook and its release). `ExecuteServiceTask` keeps `processing` and returns a process continuation with the result’s action when the task succeeds; the callback controller saves staged service data/status before enqueueing the dependent process-next workflow
 
 ### Mailboxes
 

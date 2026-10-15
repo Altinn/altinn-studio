@@ -80,7 +80,7 @@ public class WorkflowCommandSetTests
     {
         var commandSet = WorkflowCommandSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true });
 
-        Assert.Equal([OnProcessEndingHook.Key], Keys(commandSet.Commands));
+        Assert.Empty(commandSet.Commands);
         Assert.Equal([OnProcessEndedHook.Key, DeleteDataOnProcessEnd.Key], Keys(commandSet.CriticalPostCommitCommands));
         Assert.Equal([CompletedAltinnEvent.Key], Keys(commandSet.SideEffectCommands));
     }
