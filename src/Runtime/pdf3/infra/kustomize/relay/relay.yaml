@@ -2,6 +2,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: pdf3-relay-pdb
+  namespace: runtime-pdf3
 spec:
   unhealthyPodEvictionPolicy: AlwaysAllow
   maxUnavailable: 1
@@ -13,6 +14,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: pdf3-relay-hpa
+  namespace: runtime-pdf3
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -32,6 +34,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: pdf3-relay
+  namespace: runtime-pdf3
   labels:
     app: pdf3-relay
     component: pdf3
@@ -50,11 +53,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: pdf3-relay-sa
+  namespace: runtime-pdf3
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: pdf3-relay-allow-ingress-from-apps
+  namespace: runtime-pdf3
 spec:
   # The same callers as the proxy's: apps, and the Azure Monitor Agent
   podSelector:
@@ -78,6 +83,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pdf3-relay
+  namespace: runtime-pdf3
   annotations:
     altinn.studio/image: runtime-pdf3-proxy:latest
     altinn.studio/image-tag: latest

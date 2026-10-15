@@ -12,6 +12,7 @@ patches:
       kind: Deployment
       metadata:
         name: pdf3-relay
+        namespace: runtime-pdf3
       spec:
         template:
           spec:
@@ -21,16 +22,3 @@ patches:
                   # DIS Edge, which forwards to the environment's DIS Core
                   - name: PDF3_UPSTREAM_URL
                     value: https://studio.platform.at23.altinn.cloud/pdf/v3/generate
-# pdf3-app's targetNamespace moves every object to runtime-pdf3. Replacements run after that, so
-# this puts the route back in its Service's namespace, the only place it applies to apps' requests.
-replacements:
-- source:
-    kind: HTTPRoute
-    name: pdf3
-    fieldPath: spec.parentRefs.0.namespace
-  targets:
-  - select:
-      kind: HTTPRoute
-      name: pdf3
-    fieldPaths:
-      - metadata.namespace
