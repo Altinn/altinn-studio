@@ -3074,6 +3074,15 @@ const ISummaryOverridesCommon = {
   properties: {
     hidden: { type: 'boolean', required: false },
     emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
   },
   additionalProperties: false,
 } as const;
@@ -3086,6 +3095,7 @@ const AddressSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3103,6 +3113,7 @@ const AddressSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Address', required: true },
       },
       additionalProperties: false,
@@ -3126,6 +3137,7 @@ const AlertSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3140,6 +3152,7 @@ const AlertSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Alert', required: true },
       },
       additionalProperties: false,
@@ -3163,6 +3176,7 @@ const AttachmentListSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3180,6 +3194,7 @@ const AttachmentListSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'AttachmentList', required: true },
       },
       additionalProperties: false,
@@ -3203,6 +3218,7 @@ const AudioSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3217,6 +3233,7 @@ const AudioSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Audio', required: true },
       },
       additionalProperties: false,
@@ -3237,6 +3254,7 @@ const CheckboxesSummaryOverrides = {
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
     emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
     displayType: {
       type: 'string',
       allowedValues: ['list', 'string'],
@@ -3259,6 +3277,7 @@ const CheckboxesSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         displayType: CheckboxesSummaryOverrides['properties']['displayType'],
         componentId: { type: 'string', required: true },
       },
@@ -3277,6 +3296,7 @@ const CheckboxesSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         displayType: CheckboxesSummaryOverrides['properties']['displayType'],
         componentType: { type: 'constant', value: 'Checkboxes', required: true },
       },
@@ -3301,6 +3321,7 @@ const DateSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3315,6 +3336,7 @@ const DateSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Date', required: true },
       },
       additionalProperties: false,
@@ -3338,6 +3360,7 @@ const DatepickerSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3355,6 +3378,7 @@ const DatepickerSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Datepicker', required: true },
       },
       additionalProperties: false,
@@ -3378,6 +3402,7 @@ const DividerSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3395,6 +3420,7 @@ const DividerSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Divider', required: true },
       },
       additionalProperties: false,
@@ -3418,6 +3444,7 @@ const DropdownSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3435,6 +3462,7 @@ const DropdownSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Dropdown', required: true },
       },
       additionalProperties: false,
@@ -3455,6 +3483,7 @@ const GridSummaryOverrides = {
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
     emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
     hideEmptyRows: {
       type: 'boolean',
       title: { en: 'Hide empty rows', nb: 'Skjul tomme rader' },
@@ -3476,6 +3505,7 @@ const GridSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         hideEmptyRows: GridSummaryOverrides['properties']['hideEmptyRows'],
         componentId: { type: 'string', required: true },
       },
@@ -3491,6 +3521,7 @@ const GridSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         hideEmptyRows: GridSummaryOverrides['properties']['hideEmptyRows'],
         componentType: { type: 'constant', value: 'Grid', required: true },
       },
@@ -3515,6 +3546,7 @@ const GroupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3529,6 +3561,7 @@ const GroupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Group', required: true },
       },
       additionalProperties: false,
@@ -3552,6 +3585,7 @@ const HeadingSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3569,6 +3603,7 @@ const HeadingSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Heading', required: true },
       },
       additionalProperties: false,
@@ -3592,6 +3627,7 @@ const IFrameSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3606,6 +3642,7 @@ const IFrameSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'IFrame', required: true },
       },
       additionalProperties: false,
@@ -3629,6 +3666,7 @@ const ImageSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3643,6 +3681,7 @@ const ImageSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Image', required: true },
       },
       additionalProperties: false,
@@ -3666,6 +3705,7 @@ const ImageUploadSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3683,6 +3723,7 @@ const ImageUploadSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'ImageUpload', required: true },
       },
       additionalProperties: false,
@@ -3706,6 +3747,7 @@ const InputSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3720,6 +3762,7 @@ const InputSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Input', required: true },
       },
       additionalProperties: false,
@@ -3743,6 +3786,7 @@ const InstanceInformationSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3760,6 +3804,7 @@ const InstanceInformationSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'InstanceInformation', required: true },
       },
       additionalProperties: false,
@@ -3783,6 +3828,7 @@ const LikertSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3797,6 +3843,7 @@ const LikertSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Likert', required: true },
       },
       additionalProperties: false,
@@ -3820,6 +3867,7 @@ const LikertItemSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3837,6 +3885,7 @@ const LikertItemSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'LikertItem', required: true },
       },
       additionalProperties: false,
@@ -3860,6 +3909,7 @@ const ListSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3874,6 +3924,7 @@ const ListSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'List', required: true },
       },
       additionalProperties: false,
@@ -3897,6 +3948,7 @@ const MapSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3911,6 +3963,7 @@ const MapSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Map', required: true },
       },
       additionalProperties: false,
@@ -3931,6 +3984,7 @@ const MultipleSelectSummaryOverrides = {
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
     emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
     displayType: {
       type: 'string',
       allowedValues: ['list', 'string'],
@@ -3953,6 +4007,7 @@ const MultipleSelectSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         displayType: MultipleSelectSummaryOverrides['properties']['displayType'],
         componentId: { type: 'string', required: true },
       },
@@ -3971,6 +4026,7 @@ const MultipleSelectSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         displayType: MultipleSelectSummaryOverrides['properties']['displayType'],
         componentType: { type: 'constant', value: 'MultipleSelect', required: true },
       },
@@ -3995,6 +4051,7 @@ const NumberSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4009,6 +4066,7 @@ const NumberSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Number', required: true },
       },
       additionalProperties: false,
@@ -4032,6 +4090,7 @@ const OptionSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4046,6 +4105,7 @@ const OptionSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Option', required: true },
       },
       additionalProperties: false,
@@ -4069,6 +4129,7 @@ const OrganizationLookupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4086,6 +4147,7 @@ const OrganizationLookupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'OrganizationLookup', required: true },
       },
       additionalProperties: false,
@@ -4109,6 +4171,7 @@ const PanelSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4123,6 +4186,7 @@ const PanelSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Panel', required: true },
       },
       additionalProperties: false,
@@ -4146,6 +4210,7 @@ const ParagraphSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4163,6 +4228,7 @@ const ParagraphSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Paragraph', required: true },
       },
       additionalProperties: false,
@@ -4186,6 +4252,7 @@ const PaymentSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4203,6 +4270,7 @@ const PaymentSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Payment', required: true },
       },
       additionalProperties: false,
@@ -4226,6 +4294,7 @@ const PaymentDetailsSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4243,6 +4312,7 @@ const PaymentDetailsSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'PaymentDetails', required: true },
       },
       additionalProperties: false,
@@ -4266,6 +4336,7 @@ const PersonLookupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4283,6 +4354,7 @@ const PersonLookupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'PersonLookup', required: true },
       },
       additionalProperties: false,
@@ -4306,6 +4378,7 @@ const RadioButtonsSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4323,6 +4396,7 @@ const RadioButtonsSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'RadioButtons', required: true },
       },
       additionalProperties: false,
@@ -4343,6 +4417,7 @@ const RepeatingGroupSummaryOverrides = {
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
     emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
     display: {
       type: 'string',
       allowedValues: ['table', 'full'],
@@ -4366,6 +4441,7 @@ const RepeatingGroupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         display: RepeatingGroupSummaryOverrides['properties']['display'],
         componentId: { type: 'string', required: true },
       },
@@ -4384,6 +4460,7 @@ const RepeatingGroupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         display: RepeatingGroupSummaryOverrides['properties']['display'],
         componentType: { type: 'constant', value: 'RepeatingGroup', required: true },
       },
@@ -4405,6 +4482,7 @@ const SubformSummaryOverrides = {
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
     emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
     display: {
       type: 'string',
       allowedValues: ['table', 'full'],
@@ -4428,6 +4506,7 @@ const SubformSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         display: SubformSummaryOverrides['properties']['display'],
         componentId: { type: 'string', required: true },
       },
@@ -4446,6 +4525,7 @@ const SubformSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         display: SubformSummaryOverrides['properties']['display'],
         componentType: { type: 'constant', value: 'Subform', required: true },
       },
@@ -4470,6 +4550,7 @@ const TabsSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4484,6 +4565,7 @@ const TabsSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Tabs', required: true },
       },
       additionalProperties: false,
@@ -4507,6 +4589,7 @@ const TextSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4521,6 +4604,7 @@ const TextSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Text', required: true },
       },
       additionalProperties: false,
@@ -4544,6 +4628,7 @@ const TextAreaSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4561,6 +4646,7 @@ const TextAreaSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'TextArea', required: true },
       },
       additionalProperties: false,
@@ -4584,6 +4670,7 @@ const TimePickerSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4601,6 +4688,7 @@ const TimePickerSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'TimePicker', required: true },
       },
       additionalProperties: false,
@@ -4624,6 +4712,7 @@ const VideoSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4638,6 +4727,7 @@ const VideoSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Video', required: true },
       },
       additionalProperties: false,
