@@ -1,8 +1,8 @@
 # Service task pipelines and mailboxes
 
 Authoring guide for service tasks built on `IPipelineServiceTask` — durable multi-step tasks, waiting,
-and message-answered (mailbox) exchanges. This is the app-developer companion to the runtime's internal
-spec in `src/Altinn.App.Core/Internal/WorkflowEngine/AGENTS.md`; until it lands on docs.altinn.studio,
+and message-answered (mailbox) exchanges. This is the app-developer companion to
+[workflow engine integration](workflow-engine-integration.md); until it lands on docs.altinn.studio,
 this file is the reference the API docs point to.
 
 ## The shape of a pipeline

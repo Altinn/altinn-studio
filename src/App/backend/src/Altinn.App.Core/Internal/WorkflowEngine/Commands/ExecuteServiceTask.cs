@@ -262,6 +262,8 @@ internal sealed class ExecuteServiceTask(
             }
             catch (MailboxDeliveryEnvelopeException ex)
             {
+                // Permanent: the delivery at this position never changes, so a retry opens the same bytes
+                // and fails the same way.
                 return DeliveryEnvelopeInvalid(serviceTaskType, receipt, ex);
             }
 

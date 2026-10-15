@@ -26,6 +26,8 @@ internal static class TaskDataLockStatusHelper
             return;
         }
 
+        // Data-type locking is workflow-owned and deliberately not on IInstanceDataMutator, so it needs the
+        // concrete unit of work that the callback controller restores.
         if (instanceDataMutator is not InstanceDataUnitOfWork instanceDataUnitOfWork)
         {
             throw new UnreachableException(
