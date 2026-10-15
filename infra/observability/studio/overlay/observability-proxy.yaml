@@ -149,6 +149,16 @@ spec:
               value: "120000"
             - name: ObservabilityProxy__RateLimiting__PermitLimits__runtime-prod
               value: "120000"
+            # dis-core-nonprod (at22, at23, yt01, tt02) and dis-core-prod are pdf3's
+            # Collector in the shared DIS Core clusters, one per environment. As pdf3 moves
+            # there, they carry what pdf3 in every serviceowner cluster of an environment
+            # sends today under runtime-*, and their Collectors drain a queue of up to
+            # 256 MiB each after an outage. They get the runtime limit rather than an
+            # estimate of their own.
+            - name: ObservabilityProxy__RateLimiting__PermitLimits__dis-core-nonprod
+              value: "120000"
+            - name: ObservabilityProxy__RateLimiting__PermitLimits__dis-core-prod
+              value: "120000"
             - name: ObservabilityProxy__RateLimiting__WindowSeconds
               value: "60"
             - name: ObservabilityProxy__RateLimiting__QueueLimit

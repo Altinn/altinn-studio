@@ -581,7 +581,7 @@ def test_the_gate_reads_old_files_at_origin_main_by_default(monkeypatch):
 class TestOnlyACodeChangeMovesAnAxis:
     """A docstring, a comment or a format change must not require a check."""
 
-    PATH = "agents/core/tools/file_tool.py"
+    PATH = "agents/core/tools/edit_file_tool.py"
     SOURCE = '''\
 """Module docstring."""
 

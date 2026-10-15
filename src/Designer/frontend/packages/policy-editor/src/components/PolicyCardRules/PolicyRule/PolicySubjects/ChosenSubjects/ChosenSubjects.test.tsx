@@ -54,6 +54,30 @@ describe('ChosenSubjects', () => {
     expect(cherry.compareDocumentPosition(apple)).toBe(DOCUMENT_POSITION_FOLLOWING);
   });
 
+  it('places groups that were not present on the first render last', () => {
+    const DOCUMENT_POSITION_FOLLOWING = 4;
+
+    const initialGroups = [
+      { heading: 'Group A', handleRemove: vi.fn(), items: [{ urn: 'u1', label: 'Apple' }] },
+      { heading: 'Group B', handleRemove: vi.fn(), items: [{ urn: 'u2', label: 'Banana' }] },
+    ];
+    const newGroup = {
+      heading: 'Group New',
+      handleRemove: vi.fn(),
+      items: [{ urn: 'u3', label: 'Cherry' }],
+    };
+
+    const { rerender } = render(<ChosenSubjects groups={initialGroups} />);
+    rerender(<ChosenSubjects groups={[newGroup, ...initialGroups]} />);
+
+    const groupA = screen.getByText('Group A');
+    const groupB = screen.getByText('Group B');
+    const groupNew = screen.getByText('Group New');
+
+    expect(groupA.compareDocumentPosition(groupNew)).toBe(DOCUMENT_POSITION_FOLLOWING);
+    expect(groupB.compareDocumentPosition(groupNew)).toBe(DOCUMENT_POSITION_FOLLOWING);
+  });
+
   it('calls handleRemove when checkbox is unchecked', async () => {
     const user = userEvent.setup();
 

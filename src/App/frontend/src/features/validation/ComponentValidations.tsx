@@ -68,7 +68,7 @@ export function ComponentValidations({ validations, baseComponentId }: Props) {
 
   return (
     <ValidationMessages
-      id={`${baseComponentId}-validations`}
+      id={`${indexedId}-validations`}
       dataValidation={indexedId}
       validations={filteredValidations.map((validation) => ({
         id: String(getUniqueKeyFromObject(validation)),

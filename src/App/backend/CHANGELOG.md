@@ -9,8 +9,16 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+- `IOnProcessEndedHandler` runs your code after the ended process is saved, before data marked `autoDeleteOnProcessEnd` is deleted and the instance is released. Like the other process hooks, it can read and change instance data. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+
 ### Changed
 
+- End users with `write` can now retry a failed service task that your app registers itself, such as your own `IServiceTask`. They previously needed an action named after the task type, which your policy no longer needs to grant. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
+- Build check `ALTINNAPP0800` no longer asks you to grant the app owner task-specific actions in `config/authorization/policy.xml`, such as `confirm`, `reject` or an action named after a custom task type. The app owner still needs `read` and `write`. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
+- An app no longer starts when more than one `IOnTaskStartingHandler`, `IOnTaskEndingHandler` or `IOnTaskAbandonHandler` runs for the same task, or more than one `IOnProcessEndedHandler` is registered. Combine them into one. ([#21069](https://github.com/Altinn/altinn-studio/pull/21069))
 - Breaking: built-in validation messages, such as a file that is too large, are now in the user's language and use `validation_errors.*` text keys; built-in PDF texts use `pdf.*`. `studioctl app upgrade v9` renames your texts under old keys, such as `DataElementTooLarge`, `backend.xsd_validation` and `pdfPreviewText`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - Breaking: for clients calling the API directly, `description` on built-in validation issues is now translated text instead of the issue code or an English message. Use `code` to tell issues apart. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - Breaking: the form shows a validation issue's `Description` as text and no longer looks it up as a text key. To show a text from your app's text resources, set `CustomTextKey` instead; `studioctl app upgrade v9` moves the text keys it finds. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
@@ -19,6 +27,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Validation messages with texts from the app backend, such as XSD errors, now show as text in the form instead of a raw key like `backend.xsd_validation`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - File validation errors during upload are now in the user's language. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+
+### Removed
+
+- Breaking: remove `IOnProcessEndingHandler`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. Logic that must stop the process from ending belongs in the last task's `IOnTaskEndingHandler`, or its `IOnTaskAbandonHandler` when a rejection ends the process. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+- Breaking: remove `IProcessEnd`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. `studioctl app upgrade v9` lists the classes and registrations to port. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 
 ## [9.0.0-preview.8] - 2026-10-14
 
