@@ -35,7 +35,7 @@ class TestScanRepoTool:
             return FakePlanContext()
 
         monkeypatch.setattr(
-            "agents.core.tools.repo_tool.discover_repository_context",
+            "agents.core.tools.scan_repo_tool.discover_repository_context",
             fake_discover,
         )
 
@@ -54,7 +54,7 @@ class TestScanRepoTool:
             raise FileNotFoundError(repo_path)
 
         monkeypatch.setattr(
-            "agents.core.tools.repo_tool.discover_repository_context",
+            "agents.core.tools.scan_repo_tool.discover_repository_context",
             boom,
         )
 

@@ -13,17 +13,15 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from agents.core.tool import LoopContext, ToolResult
+from agents.core.tool import LoopContext, ToolResult, WriteTool
 from agents.services.git import git_ops
-
-from ._write_base import WriteToolMixin
 
 
 def unverified_changed_files(ctx: LoopContext) -> set[str]:
     """Return changed files that haven't been verified since their last edit.
 
     `verify_changes` populates `ctx.extras["verified_files"]` on success;
-    `_mark_changed` removes a file from that set on every write so a
+    `mark_changed` removes a file from that set on every write so a
     re-edit invalidates its prior badge.  The gate is simply
     `changed_files - verified_files`.
     """
@@ -56,7 +54,7 @@ class CommitSessionBranchArgs(BaseModel):
     )
 
 
-class CommitSessionBranchTool(WriteToolMixin[CommitSessionBranchArgs]):
+class CommitSessionBranchTool(WriteTool[CommitSessionBranchArgs]):
     name = "commit_session_branch"
     description = (
         "Commit all changes on disk to the session branch and push it to the "
@@ -140,7 +138,7 @@ class CommitSessionBranchTool(WriteToolMixin[CommitSessionBranchArgs]):
 
 
 # `RollbackTool` (broad `git reset --hard HEAD`) was removed in favor
-# of `discard_file_changes` in `file_tool.py`, which is surgical (one
+# of `discard_file_changes` in `discard_file_changes_tool.py`, which is surgical (one
 # file at a time) and integrates with the read-before-write
 # enforcement.  The broad reset became a foot-gun: the model would
 # call it on any setback, wiping prior progress instead of iterating.
