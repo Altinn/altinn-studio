@@ -6,8 +6,8 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// Releases workflow ownership by staging the processing-to-idle status transition. The last step of every
-/// process/next workflow that no service task continues. On an ended process with
+/// Releases workflow ownership by staging the processing-to-idle status transition. The last save of every
+/// transition workflow that no service task continues. On an ended process with
 /// <c>autoDeleteOnProcessEnd</c>, the same save hard-deletes the instance, the only shape Storage accepts
 /// for a workflow-owned hard delete.
 /// </summary>

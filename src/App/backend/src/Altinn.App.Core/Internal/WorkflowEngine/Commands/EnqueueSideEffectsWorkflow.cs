@@ -17,8 +17,9 @@ internal sealed record EnqueueSideEffectsWorkflowPayload(WorkflowEnqueueRequest 
 /// <summary>
 /// Critical post-commit command that enqueues the transition's side-effects workflows — one
 /// independent single-step workflow per side effect, submitted as a single atomic batch. Runs
-/// immediately after <see cref="CommitProcessState"/>, so the side effects exist if and
-/// only if the transition committed — and, as independent roots each carrying their own
+/// after <see cref="CommitProcessState"/>: immediately for a task transition, and after the
+/// release for a process end. The side effects therefore exist only for a committed transition, and,
+/// as independent roots each carrying their own
 /// commit-time state, they survive whatever happens to Main afterwards and fail independently of
 /// each other. Idempotent per Main workflow: the derived idempotency key covers the whole batch,
 /// so step retries dedup.
@@ -77,6 +78,9 @@ internal sealed class EnqueueSideEffectsWorkflow(
                             App = context.AppId.App,
                             InstanceOwnerPartyId = context.InstanceId.InstanceOwnerPartyId,
                             InstanceGuid = context.InstanceId.InstanceGuid,
+                            // The workflows come from this step's payload, which the engine stores unsigned,
+                            // so this token's command list is only as trustworthy as the engine. The token
+                            // stays bound to the verified actor and instance.
                             CallbackToken = callbackTokenGenerator.GenerateToken(
                                 context.InstanceId.InstanceGuid,
                                 context.Payload.Actor,

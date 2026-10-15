@@ -12,6 +12,11 @@ internal interface IWorkflowEngineCommand
 {
     string GetKey();
 
+    /// <remarks>
+    /// Report failures as a <see cref="FailedProcessEngineCommandResult"/> instead of throwing. The callback
+    /// controller does not catch exceptions from a command, so a throw becomes an unclassified 500 that the
+    /// engine retries as transient.
+    /// </remarks>
     Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context);
 
     /// <summary>

@@ -49,7 +49,8 @@ internal interface IWorkflowEngineService
     /// whether a workflow is idle, processing (executing / auto-retrying) or failed, together with
     /// the task the transition targets and — for the failed case — the failure detail. Unlike
     /// <see cref="GetCurrentTaskWorkflowState"/> (which the process engine uses for control flow),
-    /// this is a presentation projection and carries no engine ids.
+    /// this is a presentation projection. Its only engine id is the failed workflow's, as a support
+    /// reference.
     /// </summary>
     Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(
         Instance instance,

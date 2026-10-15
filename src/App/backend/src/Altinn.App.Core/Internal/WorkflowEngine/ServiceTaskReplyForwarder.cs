@@ -14,6 +14,10 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// mapping lives here and nowhere else. No lookup: which handler reads the message is <em>told</em> by the
 /// caller, because a derivation could be wrong at signing time and sign its own mistake.
 /// </summary>
+/// <remarks>
+/// There is no pre-check of the mailbox's status. The engine answers a key it already holds with 200 even
+/// after the mailbox closed, so a pre-check would dead-letter a message that is still waiting to be read.
+/// </remarks>
 internal sealed class ServiceTaskReplyForwarder(
     IWorkflowEngineClient workflowEngineClient,
     MailboxDeliveryEnvelope envelope,
