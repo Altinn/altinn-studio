@@ -106,20 +106,11 @@ export function LikertSummaryComponent({
     <>
       <div
         data-testid='summary-group-component'
-        style={{ width: '100%' }}
+        className={classes.container}
       >
-        <div className={classes.container}>
-          <span className={classes.label}>{title}</span>
+        <span className={classes.label}>{title}</span>
 
-          {!display?.hideChangeButton ? (
-            <EditButton
-              onClick={onChangeClick}
-              editText={changeText}
-              label={ariaLabel}
-            />
-          ) : null}
-        </div>
-        <div style={{ width: '100%' }}>
+        <div className={classes.values}>
           {rows.length === 0 ? (
             <span className={classes.emptyField}>{lang('general.empty_summary')}</span>
           ) : (
@@ -140,6 +131,15 @@ export function LikertSummaryComponent({
             ))
           )}
         </div>
+        {!display?.hideChangeButton ? (
+          <span className={classes.editBtn}>
+            <EditButton
+              onClick={onChangeClick}
+              editText={changeText}
+              label={ariaLabel}
+            />
+          </span>
+        ) : null}
       </div>
 
       {groupHasErrors && !display?.hideValidationMessages && (
