@@ -17,7 +17,7 @@ environment. Runtime clusters call it through the [relay](cmd/relay), which send
 The runtime clusters of every environment also run the [relay](infra/kustomize/relay). There, the
 [HTTPRoute `pdf/pdf3`](infra/kustomize/route) splits apps' requests between the proxy and the relay, with weights
 from Git that the Flux Kustomization `pdf3-route` in
-[`infra/runtime/syncroot/pdf3-relay`](../../../infra/runtime/syncroot/pdf3-relay) applies. The relay's weight is 0
+[`infra/runtime/syncroot/base/pdf3-route.yaml`](../../../infra/runtime/syncroot/base/pdf3-route.yaml) applies. The relay's weight is 0
 everywhere so far. The route takes precedence over `pdf/pdf3-migration` in the
 [runtime routing configuration](../../../infra/runtime/syncroot/base/pdf.yaml), which sends every request to the
 proxy. at24 has no DIS Core, so its relay calls tt02's.

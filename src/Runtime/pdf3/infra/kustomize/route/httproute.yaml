@@ -1,5 +1,5 @@
 # Splits apps' PDF requests between the local proxy and the relay to DIS Core. The Flux
-# Kustomization pdf3-route in the runtime syncroot (infra/runtime/syncroot/pdf3-relay) applies it
+# Kustomization pdf3-route in the runtime syncroot (infra/runtime/syncroot/base/pdf3-route.yaml) applies it
 # in every environment and sets the weights. The defaults here only apply if its ConfigMap lacks
 # one.
 #
