@@ -9,12 +9,19 @@ which the [runtime routing configuration](../../../infra/runtime/syncroot/base/p
 [Local environments](../../cli/README.md#which-images-the-environment-runs) run the worker directly, without the proxy.
 studioctl supplies its settings and selects the image.
 
-pdf3 also runs as a shared service in [DIS Core](docs/dis-core.md), so far only in at22 and without traffic.
-Runtime clusters will reach it through a [relay](cmd/relay) with an [API key](docs/api-keys.md).
-The relay is not deployed yet.
+## DIS Core
 
-[`deploy-runtime-pdf3.yaml`](../../../.github/workflows/deploy-runtime-pdf3.yaml) builds pdf3 and deploys the same
-build to the runtime clusters, through the release rings, and to DIS Core.
+pdf3 also runs as a shared service in [DIS Core](../../../docs/infrastructure/environments.md#dis-core), so far only
+in at22 and without traffic. Runtime clusters are to call it through the [relay](cmd/relay) with an
+[API key](docs/api-keys.md), and the relay is not deployed yet.
+
+The DIS Core manifests in [`infra/syncroot`](infra/syncroot) are adapted from the runtime clusters' manifests in
+[`infra/kustomize`](infra/kustomize), not an overlay of them. Keep the two in step.
+[`deploy-runtime-pdf3.yaml`](../../../.github/workflows/deploy-runtime-pdf3.yaml) publishes them with the images it builds
+for the runtime clusters.
+
+The workers' [network policy](infra/syncroot/base/network-policies.yaml) allows DNS only through CoreDNS. It is not
+confirmed that DIS Core's pods use CoreDNS rather than AKS LocalDNS. If they do not, the workers cannot resolve names.
 
 ## Development
 
