@@ -371,14 +371,17 @@ describe('useUpdateFormComponentMutation', () => {
       );
     });
   });
-  describe('Updating minCount for FileUpload components', () => {
-    // Not in a repeating group, where Studio already keeps the old minCount
+  describe('Updating minCount for FileUpload components outside repeating groups', () => {
     const fileUploadComponent = {
       ...componentMocks[ComponentType.FileUpload],
       id: 'fileUploadOutsideRepeatingGroup',
     };
 
-    const renderWithFileUpload = (oldMinCount?: number, oldMinNumberOfAttachments?: number) => {
+    const renderAndMutate = async (
+      oldMinCount?: number,
+      oldMinNumberOfAttachments?: number,
+      newMinNumberOfAttachments?: number,
+    ) => {
       renderAndWaitForData();
       queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
         dataTypes: [{ id: fileUploadComponent.id, maxCount: 2, minCount: oldMinCount }],
@@ -397,22 +400,23 @@ describe('useUpdateFormComponentMutation', () => {
           },
         }),
       );
-    };
-
-    const updateFileUpload = async (minNumberOfAttachments?: number) => {
       const updateFormComponentResult = renderHookWithProviders(() =>
         useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
       ).result;
       await updateFormComponentResult.current.mutateAsync({
         id: fileUploadComponent.id,
-        updatedComponent: { ...fileUploadComponent, maxFileSizeInMB: 2, minNumberOfAttachments },
+        updatedComponent: {
+          ...fileUploadComponent,
+          maxFileSizeInMB: 2,
+          minNumberOfAttachments: newMinNumberOfAttachments,
+        },
       });
     };
 
     it.each`
       oldMinCount  | oldMinNumberOfAttachments | newMinNumberOfAttachments | expectedMinCount | reason
       ${undefined} | ${undefined}              | ${undefined}              | ${undefined}     | ${'nothing set'}
-      ${undefined} | ${undefined}              | ${1}                      | ${1}             | ${'a new requirement is synced'}
+      ${undefined} | ${undefined}              | ${1}                      | ${1}             | ${'minCount follows a new requirement'}
       ${0}         | ${1}                      | ${1}                      | ${0}             | ${'a lower minCount is kept'}
       ${undefined} | ${1}                      | ${1}                      | ${undefined}     | ${'an unset minCount counts as 0 and is kept'}
       ${0}         | ${1}                      | ${2}                      | ${0}             | ${'a lower minCount is kept when the requirement is raised'}
@@ -423,9 +427,9 @@ describe('useUpdateFormComponentMutation', () => {
       ${1}         | ${2}                      | ${undefined}              | ${undefined}     | ${'a lower minCount follows a requirement unset below it'}
       ${1}         | ${1}                      | ${0}                      | ${0}             | ${'an equal minCount follows a lowered requirement'}
       ${1}         | ${1}                      | ${2}                      | ${2}             | ${'an equal minCount follows a raised requirement'}
-      ${1}         | ${undefined}              | ${undefined}              | ${undefined}     | ${'a higher minCount than an unset requirement is synced'}
-      ${1}         | ${0}                      | ${0}                      | ${0}             | ${'a higher minCount than 0 is synced'}
-      ${2}         | ${1}                      | ${1}                      | ${1}             | ${'a higher minCount is synced'}
+      ${1}         | ${undefined}              | ${undefined}              | ${undefined}     | ${'a higher minCount follows an unset requirement'}
+      ${1}         | ${0}                      | ${0}                      | ${0}             | ${'a higher minCount follows a requirement of 0'}
+      ${2}         | ${1}                      | ${1}                      | ${1}             | ${'a higher minCount follows a lower requirement'}
     `(
       'Sets minCount to $expectedMinCount when minCount was $oldMinCount and minNumberOfAttachments changes from $oldMinNumberOfAttachments to $newMinNumberOfAttachments ($reason)',
       async ({
@@ -434,8 +438,7 @@ describe('useUpdateFormComponentMutation', () => {
         newMinNumberOfAttachments,
         expectedMinCount,
       }) => {
-        renderWithFileUpload(oldMinCount, oldMinNumberOfAttachments);
-        await updateFileUpload(newMinNumberOfAttachments);
+        await renderAndMutate(oldMinCount, oldMinNumberOfAttachments, newMinNumberOfAttachments);
         expect(queriesMock.updateAppAttachmentMetadata).toHaveBeenCalledWith(
           org,
           app,
