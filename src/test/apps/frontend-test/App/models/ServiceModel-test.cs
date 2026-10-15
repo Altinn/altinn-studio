@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 // ReSharper disable InconsistentNaming
 // ReSharper disable IdentifierTypo
 
+// Edit this model by hand. Designer cannot generate it from its schema, which is a legacy Seres export.
 namespace Altinn.App.Models
 {
     public class Skjema

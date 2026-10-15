@@ -28,6 +28,7 @@ namespace Altinn.App.Models.Moped
         [JsonPropertyName("Modell")]
         public string? Modell { get; set; }
 
+        // Designer cannot generate this member. Restore it after regenerating the model.
         [XmlElement("EkstraInfoCheck", Order = 4)]
         [JsonProperty("EkstraInfoCheck")]
         [JsonPropertyName("EkstraInfoCheck")]

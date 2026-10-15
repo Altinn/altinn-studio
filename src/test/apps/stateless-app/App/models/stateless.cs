@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
+// Edit this model by hand. Designer cannot generate it from its schema, which is a legacy Seres export.
 namespace Altinn.App.Models
 {
   public class Skjema{
