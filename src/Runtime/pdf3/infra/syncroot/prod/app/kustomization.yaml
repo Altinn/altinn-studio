@@ -8,7 +8,7 @@ components:
   - ../../components/without-traffic
 
 patches:
-  # The object ID of the Entra group in the prod tenant whose members may write the Vault's secrets.
+  # The object ID of the Entra group DIS AKS Admin Prod STUDIO.
   - target:
       kind: Vault
       name: pdf3

@@ -17,8 +17,18 @@ anything else depends on the header, such as limits per service owner.
 ## Keys in DIS Core
 
 In DIS Core, the proxy's key file comes from the Key Vault secret `pdf3-api-keys` through an
-[ExternalSecret](../infra/syncroot/base/secrets.yaml). Change it by writing a new version of the secret, and never
-delete it. Writing requires network access that the Key Vault's firewall allows.
+[ExternalSecret](../infra/syncroot/base/secrets.yaml). The secret holds the whole file, one key per line, so the steps
+below change a proxy's key file by writing a new version of the secret. Never delete the secret: that revokes nothing,
+and soft delete blocks its name for 90 days. Writing requires network access that the Key Vault's firewall allows.
+
+The first deploy to an environment creates its Key Vault. Until `pdf3-api-keys` is written, the proxy's pods wait for
+their Secret and the Flux Kustomization `pdf3` is not ready. That is harmless while pdf3 has no traffic.
+
+The Secret follows a write at the ExternalSecret's next refresh, or later after a failed sync. To sync at once:
+
+```sh
+kubectl -n product-studio-pdf3 annotate externalsecret pdf3-api-keys force-sync="$(date +%s)" --overwrite
+```
 
 ## Rotate a key
 

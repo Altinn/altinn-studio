@@ -29,6 +29,7 @@ jobs:
     uses: ./.github/workflows/template-runtime-construct-environments.yaml
     with:
       inputs: ${{ toJSON(github.event.inputs) }}
+      allow-empty: true
 
   construct-dis-core-environments:
     uses: ./.github/workflows/template-dis-core-construct-environments.yaml
@@ -156,6 +157,7 @@ jobs:
   tag-pdf3:
     name: Tag pdf3
     needs: [push-pdf3-artifact, construct-rings-array]
+    if: ${{ fromJSON(needs.construct-rings-array.outputs.result)[0] != null }}
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
     permissions:
