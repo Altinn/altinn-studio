@@ -45,13 +45,10 @@ public class MessagesController(LocalCorrespondenceRepository repository, IOptio
             }
         }
 
-        var request = correspondence.Request.ValueKind == JsonValueKind.Object
-            ? correspondence.Request.Deserialize<InitializeCorrespondencesRequestDto>(_requestOptions)?.Correspondence
-            : null;
         return View(
             new CorrespondenceViewModel(
                 correspondence,
-                request,
+                StoredRequest(correspondence),
                 attachments,
                 JsonSerializer.Serialize(correspondence.Request, _indented)
             )
@@ -72,6 +69,24 @@ public class MessagesController(LocalCorrespondenceRepository repository, IOptio
             attachment.DataType ?? "application/octet-stream",
             attachment.Request.FileName ?? $"{id}.bin"
         );
+    }
+
+    /// <summary>
+    /// The correspondence part of the request a record was created from, or <c>null</c> when the stored request is
+    /// in a shape this version of Localtest does not know. The raw request is still shown.
+    /// </summary>
+    private static CorrespondenceRequestDto? StoredRequest(StoredCorrespondence correspondence)
+    {
+        try
+        {
+            return correspondence
+                .Request.Deserialize<InitializeCorrespondencesRequestDto>(_requestOptions)
+                ?.Correspondence;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     /// <summary>
@@ -98,7 +113,10 @@ public class MessagesController(LocalCorrespondenceRepository repository, IOptio
             try
             {
                 using var document = JsonDocument.Parse(await System.IO.File.ReadAllTextAsync(file.FullName));
-                orders.Add(ToView(document.RootElement));
+                if (document.RootElement.ValueKind == JsonValueKind.Object)
+                {
+                    orders.Add(ToView(document.RootElement));
+                }
             }
             catch (JsonException)
             {
@@ -151,12 +169,16 @@ public class MessagesController(LocalCorrespondenceRepository repository, IOptio
     }
 
     private static IEnumerable<JsonElement> Array(JsonElement element, string property) =>
-        element.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.Array
+        element.ValueKind == JsonValueKind.Object
+        && element.TryGetProperty(property, out var value)
+        && value.ValueKind == JsonValueKind.Array
             ? value.EnumerateArray()
             : [];
 
     private static string? String(JsonElement element, string property) =>
-        element.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.String
+        element.ValueKind == JsonValueKind.Object
+        && element.TryGetProperty(property, out var value)
+        && value.ValueKind == JsonValueKind.String
             ? value.GetString()
             : null;
 

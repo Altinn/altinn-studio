@@ -86,14 +86,21 @@ public static class MessagesDisplay
     }
 
     /// <summary>The correspondence's title, from the request the app sent.</summary>
+    /// <summary>
+    /// The title the app gave the message. Read from the stored request as plain JSON, so a request in a shape
+    /// this version of Localtest does not know still lists.
+    /// </summary>
     public static string Title(StoredCorrespondence correspondence) =>
-        correspondence.Request.ValueKind == System.Text.Json.JsonValueKind.Object
-        && correspondence.Request.TryGetProperty("correspondence", out var details)
-        && details.TryGetProperty("content", out var content)
-        && content.TryGetProperty("messageTitle", out var title)
+        Property(Property(Property(correspondence.Request, "correspondence"), "content"), "messageTitle")
+            is { ValueKind: System.Text.Json.JsonValueKind.String } title
         && title.GetString() is { Length: > 0 } text
             ? text
             : "(no title)";
+
+    private static System.Text.Json.JsonElement Property(System.Text.Json.JsonElement element, string name) =>
+        element.ValueKind == System.Text.Json.JsonValueKind.Object && element.TryGetProperty(name, out var value)
+            ? value
+            : default;
 
     public static string Time(DateTimeOffset time) => time.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
 
