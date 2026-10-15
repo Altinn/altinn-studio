@@ -4,13 +4,18 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { FormStore, type FormStoreSet, type FormStoreState } from 'src/features/form/FormContext';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 
+type ReturnToView = {
+  pageId: string;
+  showNextButton?: boolean;
+};
+
 export type PageNavigationSliceState = {
   /**
    * Keeps track of which view to return to when the user has navigated
    * with the summary component buttons.
    */
-  returnToView?: string;
-  setReturnToView: (returnToView?: string) => void;
+  returnToView?: ReturnToView;
+  setReturnToView: (returnToView?: ReturnToView) => void;
 
   /**
    * Keeps track of which Summary component the user navigated from.
@@ -63,7 +68,7 @@ export function PageNavigationEffects() {
   const hiddenPages = useHiddenPages({ respectPageOrder: true, respectDevTools: false });
 
   useEffect(() => {
-    if (returnToView && hiddenPages.has(returnToView)) {
+    if (returnToView && hiddenPages.has(returnToView.pageId)) {
       setReturnToView?.(undefined);
       setSummaryNodeOfOrigin?.(undefined);
     }
