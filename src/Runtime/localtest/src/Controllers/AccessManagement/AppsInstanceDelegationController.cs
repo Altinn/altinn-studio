@@ -169,6 +169,7 @@ public class RightDto
     /// <summary>
     /// Gets or sets the list of resource matches which uniquely identifies the resource this right applies to.
     /// </summary>
+    [Required]
     public IEnumerable<UrnValue> Resource { get; set; }
 
     /// <summary>
