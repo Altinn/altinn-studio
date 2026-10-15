@@ -20,6 +20,6 @@ public abstract class NoReferenceComponent : BaseLayoutComponent
         IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, UiFolderComponent> layoutsLookup
+        IReadOnlyDictionary<string, UiFolderComponent> layoutsLookup
     ) => Task.FromResult(new ComponentContext(dataAccessor, this, rowIndexes, defaultDataElementIdentifier));
 }

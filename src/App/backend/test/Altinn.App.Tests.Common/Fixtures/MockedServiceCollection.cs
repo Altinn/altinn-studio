@@ -260,7 +260,7 @@ public sealed class MockedServiceCollection
             var layoutComponent = new UiFolderComponent(
                 pages: grouping.ToList(),
                 id: layoutSet.Id,
-                defaultDataType: dataType
+                defaultDataTypeId: dataType.Id
             );
 
             _uiFolderComponents.Add(layoutComponent);

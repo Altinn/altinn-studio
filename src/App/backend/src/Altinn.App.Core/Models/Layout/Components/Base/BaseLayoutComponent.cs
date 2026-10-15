@@ -30,7 +30,7 @@ public abstract class BaseLayoutComponent : BaseComponent
         LayoutEvaluatorState state,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, UiFolderComponent> layoutsLookup
+        IReadOnlyDictionary<string, UiFolderComponent> layoutsLookup
     )
     {
         throw new NotImplementedException(
@@ -50,6 +50,6 @@ public abstract class BaseLayoutComponent : BaseComponent
         IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, UiFolderComponent> layoutsLookup
+        IReadOnlyDictionary<string, UiFolderComponent> layoutsLookup
     );
 }

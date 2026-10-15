@@ -3,7 +3,7 @@ namespace Altinn.App.Core.Models.Layout;
 /// <summary>
 /// Represents a reference to a value stored in the data model
 /// </summary>
-public record struct DataReference
+public readonly record struct DataReference
 {
     /// <summary>
     /// Reference to a field in the data model, using our standard notation (eg "model.gruppe[0].element")

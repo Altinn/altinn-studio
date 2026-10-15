@@ -152,7 +152,7 @@ public sealed class SubFormTests : IClassFixture<DataAnnotationsTestFixture>, ID
             ),
         ],
         MainLayoutId,
-        _applicationMetadata.DataTypes[0]
+        _applicationMetadata.DataTypes[0].Id
     );
 
     private static readonly UiFolderComponent _subLayoutComponent = new(
@@ -239,7 +239,7 @@ public sealed class SubFormTests : IClassFixture<DataAnnotationsTestFixture>, ID
             ),
         ],
         SubLayoutId,
-        _applicationMetadata.DataTypes[1]
+        _applicationMetadata.DataTypes[1].Id
     );
 
     private static readonly string _defaultValidationConfig = Json(

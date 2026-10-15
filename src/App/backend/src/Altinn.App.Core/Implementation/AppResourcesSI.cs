@@ -301,7 +301,7 @@ internal sealed class AppResourcesSI : IAppResources
                 $"Layout folder {folderId} default data type missing, or does not exist in applicationmetadata.json"
             );
 
-        return new UiFolderComponent(pages, folderId, dataType);
+        return new UiFolderComponent(pages, folderId, dataType.Id);
     }
 
     /// <inheritdoc />

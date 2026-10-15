@@ -169,7 +169,7 @@ public sealed class DataModelFieldCalculatorTests
         var dataType = new DataType() { Id = "default" };
 
         _dataElement = new DataElement { Id = "30844cc0-81af-4429-9f9e-035d78f1f9da", DataType = "default" };
-        var layout = new UiFolderComponent(testCase.Layouts, "layout", dataType);
+        var layout = new UiFolderComponent(testCase.Layouts, "layout", dataType.Id);
         var componentModel = new LayoutModel([layout], null);
         var translationService = new TranslationService(
             new AppIdentifier("org", "app"),

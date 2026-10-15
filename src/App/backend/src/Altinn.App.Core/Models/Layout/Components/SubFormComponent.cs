@@ -53,7 +53,7 @@ public sealed class SubFormComponent : Base.BaseLayoutComponent
         IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, UiFolderComponent> layoutsLookup
+        IReadOnlyDictionary<string, UiFolderComponent> layoutsLookup
     )
     {
         if (!layoutsLookup.TryGetValue(LayoutSetId, out var layoutSet))
@@ -66,7 +66,7 @@ public sealed class SubFormComponent : Base.BaseLayoutComponent
         List<ComponentContext> childContexts = [];
         foreach (
             DataElementIdentifier dataElement in dataAccessor.Instance.Data.Where(d =>
-                d.DataType == layoutSet.DefaultDataType.Id
+                d.DataType == layoutSet.DefaultDataTypeId
             )
         )
         {

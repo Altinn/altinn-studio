@@ -118,7 +118,7 @@ public class AppResourcesSITests
             var model = appResources.GetLayoutModelForFolder("Task_1");
 
             model.Should().NotBeNull();
-            model!.DefaultDataType.Id.Should().Be("main");
+            model!.DefaultDataTypeId.Should().Be("main");
             appResources.GetClassRefForLogicDataType("main").Should().Be("Model.Main");
             appResources.GetClassRefForLogicDataType("missing").Should().BeEmpty();
         }
@@ -166,7 +166,7 @@ public class AppResourcesSITests
             var model = appResources.GetLayoutModelForFolder("Task_1");
 
             model.Should().NotBeNull();
-            model!.DefaultDataType.Id.Should().Be("added");
+            model!.DefaultDataTypeId.Should().Be("added");
         }
         finally
         {

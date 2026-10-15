@@ -113,7 +113,7 @@ public sealed class OptionsComponent : Base.NoReferenceComponent
         IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, UiFolderComponent> layoutsLookup
+        IReadOnlyDictionary<string, UiFolderComponent> layoutsLookup
     )
     {
         // Context works normally when we don't have a group binding

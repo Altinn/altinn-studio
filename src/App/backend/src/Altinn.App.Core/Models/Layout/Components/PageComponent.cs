@@ -345,7 +345,7 @@ public sealed class PageComponent : BaseComponent
         IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, UiFolderComponent> layoutsLookup
+        IReadOnlyDictionary<string, UiFolderComponent> layoutsLookup
     )
     {
         List<ComponentContext> childContexts = [];

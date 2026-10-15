@@ -53,7 +53,7 @@ public abstract class ReferenceComponent : BaseLayoutComponent
         IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, UiFolderComponent> layoutsLookup
+        IReadOnlyDictionary<string, UiFolderComponent> layoutsLookup
     )
     {
         List<ComponentContext> childContexts = new(Children.Count);

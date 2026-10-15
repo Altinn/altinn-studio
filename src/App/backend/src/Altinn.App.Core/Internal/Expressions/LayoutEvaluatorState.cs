@@ -445,11 +445,11 @@ public class LayoutEvaluatorState
     // }
 
     /// <summary>
-    /// Get the default data type from the current layout model
+    /// Get the id of the default data type from the current layout model
     /// </summary>
-    public DataType? GetDefaultDataType()
+    public string? GetDefaultDataTypeId()
     {
-        return _componentModel?.DefaultDataType;
+        return _componentModel?.DefaultDataTypeId;
     }
 
     internal LayoutEvaluatorState WithDataAccessor(IInstanceDataAccessor dataAccessor)

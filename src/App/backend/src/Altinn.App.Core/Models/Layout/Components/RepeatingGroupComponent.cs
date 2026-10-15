@@ -185,7 +185,7 @@ public sealed class RepeatingGroupComponent : ReferenceComponent
         IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, UiFolderComponent> layoutsLookup
+        IReadOnlyDictionary<string, UiFolderComponent> layoutsLookup
     )
     {
         var childContexts = new List<ComponentContext>();

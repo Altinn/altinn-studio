@@ -19,7 +19,7 @@ namespace Altinn.App.Core.Tests.Models.Layout;
 /// </summary>
 public class LayoutImmutabilityTests
 {
-    private const string ComponentsNamespace = "Altinn.App.Core.Models.Layout.Components";
+    private const string LayoutNamespace = "Altinn.App.Core.Models.Layout";
 
     private static readonly Type[] _otherSharedTypes =
     [
@@ -78,7 +78,7 @@ public class LayoutImmutabilityTests
             .Assembly.GetTypes()
             .Where(t =>
                 t.Namespace is { } ns
-                && (ns == ComponentsNamespace || ns.StartsWith(ComponentsNamespace + ".", StringComparison.Ordinal))
+                && (ns == LayoutNamespace || ns.StartsWith(LayoutNamespace + ".", StringComparison.Ordinal))
             )
             .Concat(_otherSharedTypes)
             .Where(t => !t.IsEnum && !t.IsInterface && t.GetCustomAttribute<CompilerGeneratedAttribute>() is null);
@@ -170,14 +170,26 @@ public class LayoutImmutabilityTests
     }
 
     [Fact]
+    public void UiFolder_KeepsItsOwnCopyOfThePages()
+    {
+        var pages = new List<PageComponent> { ParsePage() };
+        var folder = new UiFolderComponent(pages, "layout", "default");
+
+        pages.Clear();
+
+        Assert.IsType<ImmutableArray<PageComponent>>(folder.Pages);
+        Assert.Single(folder.Pages);
+    }
+
+    [Fact]
     public async Task SharedLayout_ConcurrentContextGeneration_MatchesSequential()
     {
         using var subformDocument = JsonDocument.Parse("""{ "data": { "layout": [] } }""");
         var subformPage = PageComponent.Parse(subformDocument.RootElement, "subformPage", "subformLayout");
         var layoutModel = new LayoutModel(
             [
-                new UiFolderComponent([ParsePage()], "layout", new DataType { Id = "default" }),
-                new UiFolderComponent([subformPage], "subformLayout", new DataType { Id = "subformData" }),
+                new UiFolderComponent([ParsePage()], "layout", "default"),
+                new UiFolderComponent([subformPage], "subformLayout", "subformData"),
             ],
             "layout"
         );

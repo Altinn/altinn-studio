@@ -187,7 +187,7 @@ public sealed class DataAccessorFixture
                 .Setup(am => am.Create(spec.ModelType.FullName!))
                 .Returns(Activator.CreateInstance(spec.ModelType)!);
 
-            var layoutSet = new UiFolderComponent(pages.ToList(), spec.LayoutSetName, dataType);
+            var layoutSet = new UiFolderComponent(pages.ToList(), spec.LayoutSetName, dataType.Id);
             layouts.Add(layoutSet);
         }
 

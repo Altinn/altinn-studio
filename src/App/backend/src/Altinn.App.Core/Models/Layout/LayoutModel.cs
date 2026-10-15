@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout.Components.Base;
@@ -10,7 +11,7 @@ namespace Altinn.App.Core.Models.Layout;
 /// </summary>
 public sealed class LayoutModel
 {
-    private readonly Dictionary<string, UiFolderComponent> _layoutsLookup;
+    private readonly FrozenDictionary<string, UiFolderComponent> _layoutsLookup;
     private readonly UiFolderComponent _defaultFolder;
 
     /// <summary>
@@ -18,16 +19,17 @@ public sealed class LayoutModel
     /// </summary>
     /// <param name="folders">List of layouts we need</param>
     /// <param name="defaultFolder">Optional default layout id (if not just using the first)</param>
-    public LayoutModel(List<UiFolderComponent> folders, string? defaultFolder)
+    public LayoutModel(IEnumerable<UiFolderComponent> folders, string? defaultFolder)
     {
-        _layoutsLookup = folders.ToDictionary(l => l.Name);
-        _defaultFolder = defaultFolder is not null ? _layoutsLookup[defaultFolder] : folders[0];
+        var folderList = folders.ToList();
+        _layoutsLookup = folderList.ToDictionary(l => l.Name).ToFrozenDictionary();
+        _defaultFolder = defaultFolder is not null ? _layoutsLookup[defaultFolder] : folderList[0];
     }
 
     /// <summary>
-    /// The default data type for the layout model
+    /// Id of the default data type for the layout model
     /// </summary>
-    public DataType DefaultDataType => _defaultFolder.DefaultDataType;
+    public string DefaultDataTypeId => _defaultFolder.DefaultDataTypeId;
 
     /// <summary>
     /// All components in the layout model
