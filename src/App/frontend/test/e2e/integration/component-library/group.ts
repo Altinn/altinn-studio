@@ -77,6 +77,12 @@ describe('Group summary test', () => {
     cy.get('[data-summary-target="GroupPage-Group"]').should('contain.text', 'Hide nested groups');
     cy.get('[data-testid="summary-group-component-1"]', { timeout: 0 }).should('not.exist');
     cy.get('[data-testid="summary-group-component-2"]', { timeout: 0 }).should('not.exist');
+    cy.changeLayout((component) => {
+      if (component.id === 'GroupPage-Input' || component.id === 'GroupPage-Group-Nested') {
+        component.hidden = true;
+      }
+    });
+    cy.get('[data-summary-target="GroupPage-Group"]').should('not.be.visible');
   });
 
   it('Hides empty nested group headings without hiding a populated parent', () => {
