@@ -228,6 +228,8 @@ async function nativeBrowserStacks(processes) {
           '-ex',
           'thread apply all bt 30',
           '-ex',
+          'thread apply all info registers rbp rsp',
+          '-ex',
           'detach',
         ],
         { timeout: 20000, killSignal: 'SIGKILL', maxBuffer: 2 * 1024 * 1024 },
