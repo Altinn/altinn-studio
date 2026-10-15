@@ -1,8 +1,10 @@
-# The relay, for the environment overlays. Each of them sets PDF3_UPSTREAM_URL.
+# The relay and the route pdf/pdf3 that sends it traffic, for the environment overlays. Each of
+# them sets PDF3_UPSTREAM_URL, moves the route back to its namespace, and can patch its weights.
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 resources:
   - relay.yaml
+  - httproute.yaml
 replacements:
 - source:
     kind: Deployment

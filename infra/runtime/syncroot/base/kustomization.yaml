@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - apps-config.yaml
   - pdf3.yaml
-  - pdf3-route.yaml
   - operator.yaml
   - pdf.yaml
   - gateway.yaml

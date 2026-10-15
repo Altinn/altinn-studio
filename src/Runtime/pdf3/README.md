@@ -13,8 +13,8 @@ studioctl supplies its settings and selects the image.
 
 pdf3 also runs as a shared service in every [DIS Core](../../../docs/infrastructure/environments.md#dis-core)
 environment. Runtime clusters call it through the [relay](cmd/relay) with an [API key](docs/api-keys.md), and the
-[HTTPRoute `pdf/pdf3`](infra/kustomize/route) splits apps' requests between the local proxy and the relay by weights
-set in the [runtime syncroot](../../../infra/runtime/syncroot/base/pdf3-route.yaml). at24's relay calls tt02's DIS Core.
+[HTTPRoute `pdf/pdf3`](infra/kustomize/relay/httproute.yaml) splits apps' requests between the local proxy and the
+relay. Its weights are set in the [environment overlays](infra/kustomize). at24's relay calls tt02's DIS Core.
 
 The DIS Core manifests in [`infra/syncroot`](infra/syncroot) are adapted from the runtime clusters' manifests in
 [`infra/kustomize`](infra/kustomize), not an overlay of them. Keep the two in step.
