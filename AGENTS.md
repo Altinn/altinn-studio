@@ -163,7 +163,8 @@ stack (see `README.md`).
   must also `git grep` the old segment.
 
 - **Docs:** `AGENTS.md` is the only agent-guidance file in a directory; never add a `CLAUDE.md`.
-  Run `yarn docs:validate` after changing documentation. CI runs it too.
+  Follow the [documentation rules](docs/development/documentation.md), and run `yarn docs:validate` after changing
+  documentation. CI runs it too.
 - **Languages/stacks vary by project:** .NET (C#), React/TypeScript, Go, and Python all appear here.
   Framework versions differ per project and are documented at the leaf, not here — check the project's
   own `AGENTS.md`, `global.json`, `go.mod`, or `pyproject.toml` before assuming a version.
