@@ -155,11 +155,17 @@
       "allowedVersions": "/^\\d+\\.(?:\\d*[02468])\\./"
     },
     {
-      "description": "Move the Studio Assistant image Python and .python-version in one PR, because the image build fails when they differ",
-      "matchFileNames": ["src/AI/assistant/dockerfile", "src/AI/assistant/.python-version"],
-      "matchPackageNames": ["python"],
-      "groupName": "Studio Assistant Python",
-      "groupSlug": "assistant-python"
+      "description": "Move uv in the Studio Assistant CI and image, and .python-version, in one PR. uv installs the Python in .python-version, so uv must know that Python release",
+      "matchFileNames": [
+        ".github/workflows/altinity-build-test.yaml",
+        ".github/workflows/assistant-evals.yaml",
+        ".github/workflows/assistant-prompts.yaml",
+        "src/AI/assistant/dockerfile",
+        "src/AI/assistant/.python-version"
+      ],
+      "matchPackageNames": ["astral-sh/uv", "ghcr.io/astral-sh/uv", "python"],
+      "groupName": "Studio Assistant uv and Python",
+      "groupSlug": "assistant-uv-python"
     },
     {
       "matchFileNames": ["src/Designer/**"],

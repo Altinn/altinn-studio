@@ -1,18 +1,18 @@
 # Built from the repo root so the image can bundle the v9 layout schemas from
 # src/common. dockerfile.dockerignore limits the context to what the image needs.
-FROM python:3.14.7-slim-bookworm@sha256:82bc3c539b8813ada9d68c63b40158fa002f7f33de9bf3312a3dfdc0620dff56
+FROM debian:bookworm-slim@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587
 
 COPY --from=ghcr.io/astral-sh/uv:0.13.0@sha256:cdc6093146eb3ff6a40107b38f008b789e050e77ad87865e381d9917da55a168 /uv /usr/local/bin/uv
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y ca-certificates git && rm -rf /var/lib/apt/lists/*
 
 RUN git config --system user.name "Altinity Agent" && \
     git config --system user.email "agent@altinn.studio"
 
-# uv must use the Python of the base image. The build fails if it is not the version in .python-version.
-ENV UV_PYTHON_DOWNLOADS=never \
+# uv installs the Python version in .python-version, the same build that CI uses.
+ENV UV_PYTHON_INSTALL_DIR=/opt/python \
     UV_COMPILE_BYTECODE=1 \
     UV_NO_CACHE=1 \
     PATH="/app/.venv/bin:$PATH"

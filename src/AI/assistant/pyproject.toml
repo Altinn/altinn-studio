@@ -74,6 +74,8 @@ addopts = [
 asyncio_mode = "auto"
 
 [tool.pyright]
+# Pyright does not read requires-python. Keep this equal to the minor version in .python-version.
+pythonVersion = "3.14"
 typeCheckingMode = "basic"
 include = ["agents", "api", "benchmarks", "scripts", "services", "shared", "tests"]
 
