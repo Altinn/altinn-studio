@@ -21,9 +21,16 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 )]
 [JsonDerivedType(typeof(EnqueueSideEffectsWorkflowPayload), typeDiscriminator: "enqueueSideEffectsWorkflow")]
 [JsonDerivedType(typeof(MintMailboxPayload), typeDiscriminator: "mintMailbox")]
+[JsonDerivedType(typeof(ProcessTaskStagePayload), typeDiscriminator: "processTaskStage")]
 internal abstract record CommandRequestPayload;
 
 internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayload;
+
+/// <summary>
+/// Selects the one stage of a process task's lifecycle pipeline a <c>StartTask</c>, <c>EndTask</c> or
+/// <c>AbandonTask</c> step runs. Absent when the step runs the whole pipeline.
+/// </summary>
+internal sealed record ProcessTaskStagePayload(int StageIndex) : CommandRequestPayload;
 
 /// <summary>
 /// Source-generated JSON serialization context for command payloads.
@@ -39,6 +46,7 @@ internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayloa
 [JsonSerializable(typeof(NotifyInstanceOwnerOnInstantiationPayload))]
 [JsonSerializable(typeof(EnqueueSideEffectsWorkflowPayload))]
 [JsonSerializable(typeof(MintMailboxPayload))]
+[JsonSerializable(typeof(ProcessTaskStagePayload))]
 [JsonSerializable(typeof(InstantiationNotification))]
 [JsonSerializable(typeof(InstantiationNotificationReminder))]
 [JsonSerializable(typeof(CustomSms))]

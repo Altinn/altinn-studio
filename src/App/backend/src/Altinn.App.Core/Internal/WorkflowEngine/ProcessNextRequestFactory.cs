@@ -6,6 +6,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
@@ -431,6 +432,7 @@ internal sealed class ProcessNextRequestFactory
             WorkflowCommandSet? workflowCommands = GetWorkflowStepsForInstanceEvent(
                 instanceEvent,
                 instanceEventType,
+                altinnTaskType,
                 serviceTaskType,
                 isInitialTaskStart,
                 isInstantiation,
@@ -518,6 +520,7 @@ internal sealed class ProcessNextRequestFactory
     private WorkflowCommandSet? GetWorkflowStepsForInstanceEvent(
         InstanceEvent instanceEvent,
         InstanceEventType eventType,
+        string? altinnTaskType,
         string? serviceTaskType,
         bool isInitialTaskStart,
         bool isInstantiation,
@@ -535,6 +538,7 @@ internal sealed class ProcessNextRequestFactory
                     new TaskStartContext
                     {
                         TaskId = GetRequiredEventTaskId(instanceEvent, eventType),
+                        StartPipeline = ResolveProcessTaskPipeline(altinnTaskType, ProcessTaskPhase.Start),
                         ServiceTask = ResolveServiceTask(serviceTaskType),
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
@@ -545,9 +549,14 @@ internal sealed class ProcessNextRequestFactory
                 );
             }
             case InstanceEventType.process_EndTask:
-                return WorkflowCommandSet.GetTaskEndSteps(GetRequiredEventTaskId(instanceEvent, eventType));
+                return WorkflowCommandSet.GetTaskEndSteps(
+                    GetRequiredEventTaskId(instanceEvent, eventType),
+                    ResolveProcessTaskPipeline(altinnTaskType, ProcessTaskPhase.End)
+                );
             case InstanceEventType.process_AbandonTask:
-                return WorkflowCommandSet.GetTaskAbandonSteps();
+                return WorkflowCommandSet.GetTaskAbandonSteps(
+                    ResolveProcessTaskPipeline(altinnTaskType, ProcessTaskPhase.Abandon)
+                );
             case InstanceEventType.process_EndEvent:
                 return WorkflowCommandSet.GetProcessEndSteps(
                     new ProcessEndContext { RegisterEvents = _appSettings.RegisterEventsWithEventsComponent }
@@ -576,6 +585,22 @@ internal sealed class ProcessNextRequestFactory
         && _appImplementationFactory.FindServiceTask(serviceTaskType)?.ResolvePipeline() is { } pipeline
             ? new ResolvedServiceTask(serviceTaskType, pipeline)
             : null;
+
+    /// <summary>
+    /// The lifecycle pipeline the task type composes for <paramref name="phase"/>, resolved the same way the
+    /// step resolves it when it runs. Read at enqueue time to plan one step per stage. A type with no registered
+    /// implementation (startup validation rejects that) gets the single step every transition had before, which
+    /// reports the missing implementation when it runs.
+    /// </summary>
+    private ProcessTaskPipeline ResolveProcessTaskPipeline(string? altinnTaskType, ProcessTaskPhase phase) =>
+        new ProcessTaskResolver(_appImplementationFactory)
+            .FindProcessTaskInstance(altinnTaskType)
+            ?.ResolvePipeline(phase)
+        ?? _unresolvedTaskPipeline;
+
+    private static readonly ProcessTaskPipeline _unresolvedTaskPipeline = new ProcessTaskPipelineBuilder()
+        .Stage(_ => Task.CompletedTask)
+        .Build();
 
     private static string GetRequiredEventTaskId(InstanceEvent instanceEvent, InstanceEventType eventType) =>
         instanceEvent.ProcessInfo?.CurrentTask?.ElementId

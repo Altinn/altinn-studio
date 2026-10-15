@@ -64,7 +64,7 @@ public class AbandonTaskTests
     public async Task Execute_ResolvesProcessTaskAndCallsAbandon_ReturnsSuccess()
     {
         // Arrange
-        var processTask = new Mock<IProcessTask>();
+        var processTask = new Mock<IProcessTask> { CallBase = true };
         processTask.Setup(x => x.Type).Returns("data");
         processTask.Setup(x => x.Abandon(It.IsAny<ProcessTaskContext>())).Returns(Task.CompletedTask);
         var command = CreateCommand(processTask.Object);
@@ -91,7 +91,7 @@ public class AbandonTaskTests
     public async Task Execute_WhenAbandonThrows_ReturnsFailedResult()
     {
         // Arrange
-        var processTask = new Mock<IProcessTask>();
+        var processTask = new Mock<IProcessTask> { CallBase = true };
         processTask.Setup(x => x.Type).Returns("data");
         processTask
             .Setup(x => x.Abandon(It.IsAny<ProcessTaskContext>()))

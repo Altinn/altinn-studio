@@ -61,6 +61,15 @@ all tasks have been validated.
 The built-in eFormidling task uses this hook for its environment-specific BPMN configuration, data
 types, and required service registrations.
 
+The work any task type does when a task starts, ends or is abandoned composes the same way.
+`IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon` take a `ProcessTaskPipelineBuilder` and compose
+`Stage(work, options?)` calls, where `work` takes a `ProcessTaskContext`; the defaults run `Start`, `End` and
+`Abandon` as a single stage. With several stages, each runs as its own workflow step that saves on its own,
+and a failed stage is retried without the ones before it. There is no conclusion: the stages run inside the
+transition and never advance the process. The built-in signing task resolves, delegates and notifies its
+signees this way. Stages are dispatched by position too, so the rules in
+[Redeploys and in-flight workflows](#redeploys-and-in-flight-workflows) apply to them as well.
+
 ## Stages: durability and idempotency
 
 Each stage runs as its own workflow-engine step, with its own retry budget, timeout, wait budget and

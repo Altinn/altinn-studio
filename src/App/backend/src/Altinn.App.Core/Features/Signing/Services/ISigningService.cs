@@ -7,13 +7,48 @@ namespace Altinn.App.Core.Features.Signing.Services;
 internal interface ISigningService
 {
     /// <summary>
-    /// Delegates access to the current task, notifies the signees about
-    /// a new task to sign and saves the signee contexts to Storage.
+    /// Resolves, delegates and notifies the task's signees in one go, and stores the outcome as the task's signee
+    /// state. For a transition enqueued before these became separate steps; see <see cref="ResolveSignees"/>,
+    /// <see cref="DelegateSigneeRights"/> and <see cref="NotifySignees"/> for how each part handles failures.
     /// </summary>
-    Task<List<SigneeContext>> InitializeSignees(
+    Task InitializeSignees(
         IInstanceDataMutator instanceDataMutator,
-        List<SigneeContext> signeeContexts,
         AltinnSignatureConfiguration signatureConfiguration,
+        Guid stepId,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Resolves the task's signees through the app's signee provider and stores them, not yet delegated or
+    /// notified, as the task's signee state, replacing any earlier state.
+    /// </summary>
+    Task ResolveSignees(
+        IInstanceDataMutator instanceDataMutator,
+        AltinnSignatureConfiguration signatureConfiguration,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Delegates the task's signing rights to every signee in the signee state not yet delegated, and records the
+    /// outcome there. A failure that concerns one signee is recorded on that signee; any other failure is thrown
+    /// for the step to be retried, without recording anything.
+    /// </summary>
+    Task DelegateSigneeRights(
+        IInstanceDataMutator instanceDataMutator,
+        AltinnSignatureConfiguration signatureConfiguration,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Sends the call to sign to every delegated signee in the signee state not yet notified, and records the
+    /// outcome there. A transient failure is thrown for the step to be retried; every other failure is recorded on
+    /// the signee. Each message carries an idempotency key derived from <paramref name="stepId"/>, so a retried
+    /// step does not notify anyone twice.
+    /// </summary>
+    Task NotifySignees(
+        IInstanceDataMutator instanceDataMutator,
+        AltinnSignatureConfiguration signatureConfiguration,
+        Guid stepId,
         CancellationToken cancellationToken = default
     );
 

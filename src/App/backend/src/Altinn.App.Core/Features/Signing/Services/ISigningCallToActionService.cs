@@ -11,7 +11,9 @@ namespace Altinn.App.Core.Features.Signing.Services;
 internal interface ISigningCallToActionService
 {
     /// <summary>
-    /// Sends correspondence to a signee to notify them of a signing call to action.
+    /// Sends correspondence to a signee to notify them of a signing call to action. A send repeated with the same
+    /// <paramref name="idempotentKey"/> fails with a 409 <see cref="Correspondence.Exceptions.CorrespondenceRequestException"/>
+    /// instead of sending the message twice.
     /// </summary>
     Task<SendCorrespondenceResponse?> SendSignCallToAction(
         CommunicationConfig? communicationConfig,
@@ -20,6 +22,7 @@ internal interface ISigningCallToActionService
         Party signingParty,
         Party serviceOwnerParty,
         List<AltinnEnvironmentConfig>? correspondenceResources,
+        Guid idempotentKey,
         CancellationToken cancellationToken
     );
 }

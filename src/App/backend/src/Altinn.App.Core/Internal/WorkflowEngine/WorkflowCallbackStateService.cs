@@ -4,6 +4,7 @@ using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Models;
@@ -21,13 +22,15 @@ internal sealed class WorkflowCallbackStateService
     private readonly IAppMetadata _appMetadata;
     private readonly IAppModel _appModel;
     private readonly WorkflowStateSigner _stateSigner;
+    private readonly IProcessReader _processReader;
 
     public WorkflowCallbackStateService(
         InstanceDataUnitOfWorkInitializer unitOfWorkInitializer,
         ModelSerializationService modelSerializationService,
         IAppMetadata appMetadata,
         IAppModel appModel,
-        WorkflowStateSigner stateSigner
+        WorkflowStateSigner stateSigner,
+        IProcessReader processReader
     )
     {
         _unitOfWorkInitializer = unitOfWorkInitializer;
@@ -35,6 +38,7 @@ internal sealed class WorkflowCallbackStateService
         _appMetadata = appMetadata;
         _appModel = appModel;
         _stateSigner = stateSigner;
+        _processReader = processReader;
     }
 
     /// <summary>
@@ -67,12 +71,14 @@ internal sealed class WorkflowCallbackStateService
                 Data = x.Data,
             })
             .ToList();
+        List<BinaryDataEntry> binaryData = CaptureCarriedBinaryData(unitOfWork, formData);
         var callbackState = new WorkflowCallbackState
         {
             Instance = unitOfWork.Instance,
             InstanceVersion = instanceVersion,
             ProcessStateVersion = processStateVersion,
             FormData = formData,
+            BinaryData = binaryData.Count > 0 ? binaryData : null,
             // A concluded exchange stops traveling: the workflow this blob starts may itself open a mailbox, and a
             // blob still naming the finished one would make that mint refuse. The carry has already dropped it.
             Mailboxes = carry?.Mailboxes,
@@ -167,8 +173,65 @@ internal sealed class WorkflowCallbackStateService
             unitOfWork.PreloadBinaryData(identifier, storageBytes);
         }
 
+        foreach (BinaryDataEntry entry in callbackState.BinaryData ?? [])
+        {
+            // Only bytes that still describe the element's blob version are usable; anything else is read from
+            // Storage as usual.
+            DataElement? dataElement = instance.Data.Find(d => d.Id == entry.Id);
+            if (dataElement is not null && dataElement.BlobVersionId == entry.BlobVersionId)
+            {
+                unitOfWork.PreloadBinaryData(dataElement, entry.Data);
+            }
+        }
+
         return new RestoredWorkflowCallbackState(unitOfWork, new WorkflowCallbackStateCarry(callbackState));
     }
+
+    /// <summary>
+    /// The signee-state documents whose bytes this unit of work already holds — the ones a step wrote or was given.
+    /// Never reads Storage: a document only travels once a step has handled it, and only steps that rewrite it need
+    /// it to.
+    /// </summary>
+    private List<BinaryDataEntry> CaptureCarriedBinaryData(
+        InstanceDataUnitOfWork unitOfWork,
+        List<FormDataEntry> formData
+    )
+    {
+        List<BinaryDataEntry> entries = [];
+        HashSet<string>? carriedDataTypes = null;
+        foreach (DataElement dataElement in unitOfWork.Instance.Data)
+        {
+            if (
+                formData.Exists(entry => entry.Id == dataElement.Id)
+                || !unitOfWork.TryGetCachedBinaryData(dataElement, out ReadOnlyMemory<byte> bytes)
+            )
+            {
+                continue;
+            }
+
+            carriedDataTypes ??= GetSigneeStateDataTypes();
+            if (carriedDataTypes.Contains(dataElement.DataType))
+            {
+                entries.Add(
+                    new BinaryDataEntry
+                    {
+                        Id = dataElement.Id,
+                        BlobVersionId = dataElement.BlobVersionId,
+                        Data = bytes.ToArray(),
+                    }
+                );
+            }
+        }
+
+        return entries;
+    }
+
+    private HashSet<string> GetSigneeStateDataTypes() =>
+        _processReader
+            .GetProcessTasks()
+            .Select(task => task.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SigneeStatesDataTypeId)
+            .OfType<string>()
+            .ToHashSet(StringComparer.Ordinal);
 
     private static void ValidateInstanceIdentity(Instance instance, InstanceIdentifier expectedInstance, string source)
     {
