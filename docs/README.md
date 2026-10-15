@@ -10,7 +10,7 @@ and app developers is on [docs.altinn.studio](https://docs.altinn.studio).
 
 ## Development
 
-- [Write documentation](development/documentation.md)
+- [Documentation structure and content](development/documentation.md)
 
 ## Architecture decision records
 
