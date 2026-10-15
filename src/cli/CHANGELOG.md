@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- Localtest accepts delegating or revoking the same instance rights more than once, as Access Management does, so a delegated signing task that retries its delegation no longer fails locally. ([#21176](https://github.com/Altinn/altinn-studio/pull/21176))
+
 ## [0.1.0-preview.29] - 2026-10-14
 
 ### Added
@@ -33,7 +37,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- Localtest accepts delegating or revoking the same instance rights more than once, as Access Management does, so a delegated signing task that retries its delegation no longer fails locally. ([#21176](https://github.com/Altinn/altinn-studio/pull/21176))
 - `studioctl app upgrade` no longer adds a byte order mark to the project files it rewrites, and removes an existing one. ([#21167](https://github.com/Altinn/altinn-studio/pull/21167))
 - The App dashboard in `studioctl env up --monitoring`: ([#20578](https://github.com/Altinn/altinn-studio/pull/20578))
     - _Feil_ shows one total of server errors instead of one value per endpoint with an "SMS" unit
