@@ -103,17 +103,10 @@ spec:
     matchLabels:
       app: pdf3-collector
   ingress:
-    # The proxy is meshed and may arrive on Linkerd's transport port; the workers are not.
+    # The collector is not meshed, so the meshed proxy reaches it on 4317 too.
     - fromEndpoints:
         - matchLabels:
             app: pdf3-proxy
-      toPorts:
-        - ports:
-            - port: "4317"
-              protocol: TCP
-            - port: "4143"
-              protocol: TCP
-    - fromEndpoints:
         - matchLabels:
             app: pdf3-worker
       toPorts:

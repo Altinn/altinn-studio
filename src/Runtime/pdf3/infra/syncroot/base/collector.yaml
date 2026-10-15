@@ -23,20 +23,16 @@ spec:
         app: pdf3-collector
         component: pdf3
       annotations:
-        linkerd.io/inject: enabled
-        # Studio's observability endpoint is reached without the Linkerd proxy.
-        config.linkerd.io/skip-outbound-ports: "443"
-        # Graceful shutdown relies on Kubernetes stopping the proxy only after the Collector has
-        # exited, so it runs as a native sidecar, with no wait before exit, and gets 5s to drain.
-        config.beta.linkerd.io/proxy-enable-native-sidecar: "true"
-        config.linkerd.io/shutdown-grace-period: "5s"
+        # Not meshed: the workers send plaintext anyway, so network-policies.yaml decides who
+        # reaches it.
+        linkerd.io/inject: disabled
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       serviceAccountName: pdf3-collector
       automountServiceAccountToken: false
       # On deletion the pod first leaves the Service and keeps working while its queue drains;
       # then the Collector shuts down and flushes. Native sleep: the image has no shell.
-      terminationGracePeriodSeconds: 120 # 60s below, 30s to shut down, the sidecar's drain, margin
+      terminationGracePeriodSeconds: 120 # 60s below, 30s to shut down, margin
       securityContext:
         runAsUser: 10001
         runAsGroup: 10001
@@ -46,6 +42,8 @@ spec:
           type: RuntimeDefault
       containers:
         - name: otel-collector
+          # The runtime collectors' version (infra/observability/base/router.yaml and
+          # gateway.yaml). Bump them together.
           image: altinncr.azurecr.io/ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.161.0
           args:
             - --config=/conf/config.yaml
@@ -134,6 +132,6 @@ spec:
       port: 4317
       targetPort: otlp-grpc
       protocol: TCP
-      # Linkerd treats an appProtocol it doesn't know, such as grpc, as opaque, and the gRPC
-      # Server in linkerd-policies.yaml refuses opaque connections from the proxy.
+      # Linkerd treats an appProtocol it doesn't know, such as grpc, as opaque. This one it
+      # treats as HTTP/2, which OTLP over gRPC is.
       appProtocol: kubernetes.io/h2c

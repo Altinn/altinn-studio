@@ -43,9 +43,10 @@ processors:
     logs:
       log_record:
         - 'severity_number < SEVERITY_NUMBER_WARN'
-  # The router's, verbatim (infra/observability/base/router.yaml): resource and record
-  # attributes the runtime strips, so the SDK's process, OS and SDK details don't become
-  # VictoriaMetrics labels.
+  # The runtime router's, verbatim (infra/observability/base/router.yaml), copied to stay
+  # aligned with it. pdf3's Go SDK sends no telemetry.sdk.*, process.* or os.* attributes, so
+  # here it mainly blanks the instrumentation scope and drops otelhttp's
+  # network.protocol.version from http.server.* (and network.peer.port from its spans).
   transform/drop:
     metric_statements:
       - context: datapoint
