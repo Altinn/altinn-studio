@@ -4,6 +4,9 @@ kind: Kustomization
 resources:
   - ../../base
 
+components:
+  - ../../components/without-traffic
+
 patches:
   # The object ID of the Entra group DIS AKS Admin Dev STUDIO.
   - target:
@@ -29,24 +32,3 @@ patches:
         path: /spec/hostnames
         value:
           - pdf3.at22.dis-core.altinn.cloud
-  # A playground without traffic.
-  - target:
-      kind: HorizontalPodAutoscaler
-      name: pdf3-proxy
-    patch: |-
-      - op: replace
-        path: /spec/minReplicas
-        value: 1
-      - op: replace
-        path: /spec/maxReplicas
-        value: 3
-  - target:
-      kind: HorizontalPodAutoscaler
-      name: pdf3-worker
-    patch: |-
-      - op: replace
-        path: /spec/minReplicas
-        value: 1
-      - op: replace
-        path: /spec/maxReplicas
-        value: 5

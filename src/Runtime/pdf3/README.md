@@ -11,8 +11,8 @@ studioctl supplies its settings and selects the image.
 
 ## DIS Core
 
-pdf3 also runs as a shared service in [DIS Core](../../../docs/infrastructure/environments.md#dis-core), so far only
-in at22 and without traffic. Runtime clusters are to call it through the [relay](cmd/relay) with an
+pdf3 also runs as a shared service in every [DIS Core](../../../docs/infrastructure/environments.md#dis-core)
+environment, without traffic so far. Runtime clusters are to call it through the [relay](cmd/relay) with an
 [API key](docs/api-keys.md), and the relay is not deployed yet.
 
 The DIS Core manifests in [`infra/syncroot`](infra/syncroot) are adapted from the runtime clusters' manifests in
