@@ -3,7 +3,7 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 const appFrontend = new AppFrontend();
 
 describe('Summary2 navigation', () => {
-  it('uses type and component overrides to show Next after editing from Summary2', () => {
+  it('uses overrides to show Next after editing and validates forward navigation', () => {
     cy.interceptLayout('Task_2', undefined, (layouts) => {
       layouts.summary!.data.layout = [
         {
@@ -41,6 +41,15 @@ describe('Summary2 navigation', () => {
     cy.findByRole('button', { name: 'Tilbake til oppsummering' }).click();
 
     cy.get('[data-summary-target="newMiddleName"]').findByRole('button', { name: 'Endre' }).click();
+    cy.get(appFrontend.changeOfName.newFirstName).clear();
+    cy.findByRole('button', { name: 'Neste' }).click();
+    cy.get(appFrontend.errorReport).should('be.visible');
+    cy.navPage('form').should('have.attr', 'aria-current', 'page');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).click();
+    cy.navPage('summary').should('have.attr', 'aria-current', 'page');
+
+    cy.get('[data-summary-target="newMiddleName"]').findByRole('button', { name: 'Endre' }).click();
+    cy.get(appFrontend.changeOfName.newFirstName).type('Anne');
     cy.findByRole('button', { name: 'Neste' }).click();
     cy.navPage('summary').should('have.attr', 'aria-current', 'page');
     cy.findByRole('button', { name: 'Tilbake til oppsummering', timeout: 0 }).should('not.exist');
