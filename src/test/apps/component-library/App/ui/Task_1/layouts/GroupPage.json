@@ -241,6 +241,7 @@
             {
                 "id": "GroupPage-Group-Nested-Nested",
                 "type": "Group",
+                "headingLevel": 2,
                 "groupingIndicator": "indented",
                 "hidden": false,
                 "textResourceBindings": {
