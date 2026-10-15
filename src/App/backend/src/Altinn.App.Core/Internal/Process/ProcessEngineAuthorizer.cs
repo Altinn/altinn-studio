@@ -1,4 +1,6 @@
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
@@ -15,16 +17,19 @@ internal sealed class ProcessEngineAuthorizer : IProcessEngineAuthorizer
 {
     private readonly IAuthorizationService _authorizationService;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly AppImplementationFactory _appImplementationFactory;
     private readonly ILogger<ProcessEngineAuthorizer> _logger;
 
     public ProcessEngineAuthorizer(
         IAuthorizationService authorizationService,
         IHttpContextAccessor httpContextAccessor,
+        AppImplementationFactory appImplementationFactory,
         ILogger<ProcessEngineAuthorizer> logger
     )
     {
         _authorizationService = authorizationService;
         _httpContextAccessor = httpContextAccessor;
+        _appImplementationFactory = appImplementationFactory;
         _logger = logger;
     }
 
@@ -71,7 +76,7 @@ internal sealed class ProcessEngineAuthorizer : IProcessEngineAuthorizer
         }
 
         // When no action is provided we check if the user is authorized for at least one of the actions that allow process next for the current task type.
-        string[] actionsThatAllowProcessNextForTaskType = GetActionsThatAllowProcessNextForTaskType(altinnTaskType);
+        string[] actionsThatAllowProcessNextForTaskType = GetActionsThatAllowProcessNext(altinnTaskType);
 
         var isAnyActionAuthorized = false;
         foreach (string actionToAuthorize in actionsThatAllowProcessNextForTaskType)
@@ -109,19 +114,20 @@ internal sealed class ProcessEngineAuthorizer : IProcessEngineAuthorizer
     /// Get all actions that allow process next for the given task type. Meant to be used to authorize the process next when no action is provided.
     /// </summary>
     /// <remarks>
-    /// A task type not listed here allows process next without an action only through a policy action with the same
-    /// name as the task type; <c>write</c> does not grant it.
+    /// Every service task, built-in or registered by the app, is allowed by <c>write</c>: the workflow engine runs it
+    /// without user interaction, so a user only ever retries or resumes it. A user task type not listed here allows
+    /// process next only through a policy action with the same name as the task type; <c>write</c> does not grant it.
     /// </remarks>
-    public static string[] GetActionsThatAllowProcessNextForTaskType(string taskType)
+    private string[] GetActionsThatAllowProcessNext(string taskType)
     {
+        if (_appImplementationFactory.FindServiceTask(taskType) is not null)
+        {
+            return ["write"];
+        }
+
         return taskType switch
         {
-            AltinnTaskTypes.Data
-            or AltinnTaskTypes.Feedback
-            or AltinnTaskTypes.Pdf
-            or AltinnTaskTypes.EFormidling
-            or AltinnTaskTypes.FiksArkiv
-            or AltinnTaskTypes.SubformPdf => ["write"],
+            AltinnTaskTypes.Data or AltinnTaskTypes.Feedback => ["write"],
             AltinnTaskTypes.Payment => ["pay", "write"],
             AltinnTaskTypes.Confirmation => ["confirm"],
             AltinnTaskTypes.Signing => ["sign", "write"],
