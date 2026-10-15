@@ -43,6 +43,35 @@ describe('Summary2 navigation', () => {
     cy.findByRole('button', { name: 'Tilbake til oppsummering', timeout: 0 }).should('not.exist');
   });
 
+  it('hides Next when an override targets a field on the last page', () => {
+    cy.interceptLayout('Task_2', undefined, (layouts) => {
+      layouts.summary!.data.layout = [
+        {
+          id: 'summary2-last-page',
+          type: 'Summary2',
+          target: { type: 'component', id: 'gjeld' },
+          overrides: [{ componentId: 'gjeld', showNextButton: true }],
+        },
+        ...layouts.summary!.data.layout.filter(
+          (component) => component.type === 'NavigationButtons' || component.type === 'NavigationBar',
+        ),
+      ];
+    });
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('Anne');
+    cy.findByRole('checkbox', { name: /ja, jeg bekrefter/i }).check();
+    cy.findByRole('radio', { name: /adoptivforelders/i }).check();
+    cy.gotoNavPage('summary');
+
+    cy.get('[data-summary-target="gjeld"]').findByRole('button', { name: 'Endre' }).click();
+    cy.get('#gjeld').should('be.focused');
+    cy.navPage('grid').should('have.attr', 'aria-current', 'page');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('be.visible');
+    cy.findByRole('button', { name: 'Neste', timeout: 0 }).should('not.exist');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).click();
+    cy.navPage('summary').should('have.attr', 'aria-current', 'page');
+  });
+
   it('returns to Summary2 after editing and restores normal navigation when that page becomes hidden', () => {
     cy.interceptLayout('Task_2', undefined, (layouts) => {
       layouts.summary!.data.hidden = ['equals', ['component', 'newFirstName'], 'Hide'];
