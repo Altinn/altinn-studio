@@ -2,7 +2,7 @@
 
 A .NET application (`Altinn.Studio.KubernetesWrapper`) exposing a **REST API with information about
 Kubernetes deployments**. It surfaces cluster/deployment state to other platform components (e.g. the
-[gateway](../gateway/AGENTS.md) / Studio) over HTTP.
+[gateway](../gateway/README.md) / Studio) over HTTP.
 
 Part of the [Runtime services](../AGENTS.md). See [`README.md`](README.md).
 

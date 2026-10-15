@@ -36,33 +36,33 @@ Each area below links to its own `AGENTS.md` where one exists.
 
 | Area                                     | What it is                                                                                                                                                                                                                                                                                                                                                                                |
 | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`src/Designer`](src/Designer/AGENTS.md) | **Altinn Studio Designer** — React + .NET web app where users build apps (forms, data models, policies, BPMN processes). Split into [`backend`](src/Designer/backend/AGENTS.md) (.NET) and [`frontend`](src/Designer/frontend/AGENTS.md) (React/TS).                                                                                                                                      |
-| [`src/App`](src/App/AGENTS.md)           | The **Altinn 3 app runtime** every deployed service builds on: [`backend`](src/App/backend/AGENTS.md) (Altinn.App .NET libraries), [`frontend`](src/App/frontend/AGENTS.md) (React form renderer), plus support libs [`codelists`](src/App/codelists/AGENTS.md), [`fileanalyzers`](src/App/fileanalyzers/AGENTS.md), the [`template`](src/App/template/AGENTS.md), and `azure-pipelines`. |
+| [`src/Designer`](src/Designer/README.md) | **Altinn Studio Designer** — React + .NET web app where users build apps (forms, data models, policies, BPMN processes). Split into [`backend`](src/Designer/backend/README.md) (.NET) and [`frontend`](src/Designer/frontend/README.md) (React/TS).                                                                                                                                      |
+| [`src/App`](src/App/README.md)           | The **Altinn 3 app runtime** every deployed service builds on: [`backend`](src/App/backend/README.md) (Altinn.App .NET libraries), [`frontend`](src/App/frontend/README.md) (React form renderer), plus support libs [`codelists`](src/App/codelists/README.md), [`fileanalyzers`](src/App/fileanalyzers/README.md), the [`template`](src/App/template/README.md), and `azure-pipelines`. |
 
-### Runtime & platform services — [`src/Runtime`](src/Runtime/AGENTS.md)
+### Runtime & platform services — [`src/Runtime`](src/Runtime/README.md)
 
 .NET and Go services supporting apps in production and local dev (one-liners + stacks in the area doc):
-[`workflow-engine`](src/Runtime/workflow-engine/AGENTS.md) (+ its host
-[`workflow-engine-app`](src/Runtime/workflow-engine-app/AGENTS.md)),
-[`gateway`](src/Runtime/gateway/AGENTS.md), [`operator`](src/Runtime/operator/AGENTS.md),
-[`pdf3`](src/Runtime/pdf3/AGENTS.md), [`localtest`](src/Runtime/localtest/AGENTS.md),
-[`devenv`](src/Runtime/devenv/AGENTS.md), and
-[`kubernetes-wrapper`](src/Runtime/kubernetes-wrapper/AGENTS.md).
+[`workflow-engine`](src/Runtime/workflow-engine/README.md) (+ its host
+[`workflow-engine-app`](src/Runtime/workflow-engine-app/README.md)),
+[`gateway`](src/Runtime/gateway/README.md), [`operator`](src/Runtime/operator/README.md),
+[`pdf3`](src/Runtime/pdf3/README.md), [`localtest`](src/Runtime/localtest/README.md),
+[`devenv`](src/Runtime/devenv/README.md), and
+[`kubernetes-wrapper`](src/Runtime/kubernetes-wrapper/README.md).
 
 ### Developer tooling
 
 | Area                               | What it is                                                                                                                           |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | [`agents`](agents)                 | Published Altinn development Agent images and manifests: minimal and full toolchains, and full with a desktop.                       |
-| [`src/cli`](src/cli/AGENTS.md)     | **`studioctl`** — the primary local-dev CLI (Go + an embedded .NET companion server) for cloning, running, and testing apps locally. |
-| [`src/tools`](src/tools/AGENTS.md) | Standalone utilities used by the Studio team. See [`src/tools/AGENTS.md`](src/tools/AGENTS.md) for the list of tools.                |
+| [`src/cli`](src/cli/README.md)     | **`studioctl`** — the primary local-dev CLI (Go + an embedded .NET companion server) for cloning, running, and testing apps locally. |
+| [`src/tools`](src/tools/README.md) | Standalone utilities used by the Studio team. Its README lists the tools.                |
 
-### AI — [`src/AI`](src/AI/AGENTS.md)
+### AI — [`src/AI`](src/AI/README.md)
 
 R&D projects from the AI lab (to be handed off to the Studio team): `assistant` (Studio Assistant natural-language
 app builder) and `augmenter-agent` (document/PDF augmentation microservice).
 
-### Continuous integration — [`src/ci`](src/ci/AGENTS.md)
+### Continuous integration — [`src/ci`](src/ci/README.md)
 
 Runner images and cluster integration used to execute GitHub and Gitea CI workloads.
 
@@ -70,10 +70,10 @@ Runner images and cluster integration used to execute GitHub and Gitea CI worklo
 
 | Area                                                 | What it is                                                                                                                             |
 | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| [`src/common`](src/common/AGENTS.md)                 | Repository-wide common code grouped by stack, including `Altinn.Studio.Common` and shared TypeScript libraries.                        |
-| [`src/Runtime/common`](src/Runtime/common/AGENTS.md) | Runtime-wide common code grouped by stack, including `Altinn.Studio.Runtime.Common` and its cross-language local-runtime capabilities. |
+| [`src/common`](src/common/README.md)                 | Repository-wide common code grouped by stack, including `Altinn.Studio.Common` and shared TypeScript libraries.                        |
+| [`src/Runtime/common`](src/Runtime/common/README.md) | Runtime-wide common code grouped by stack, including `Altinn.Studio.Runtime.Common` and its cross-language local-runtime capabilities. |
 
-### Testing — [`src/test`](src/test/AGENTS.md)
+### Testing — [`src/test`](src/test/README.md)
 
 `K6` load/performance scripts and `apps` (sample Altinn apps used as E2E/frontend test targets).
 
@@ -89,7 +89,7 @@ Small build/ops images and configs, documented here rather than individually:
   observability backend, routing OTLP ingest and Grafana read traffic to the Victoria stack.
 
 Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (ADRs, diagrams),
-`scripts/`, [`.github/`](.github/AGENTS.md) (workflows + composite actions, incl. the CI caching
+`scripts/`, [`.github/`](.github/README.md) (workflows + composite actions, incl. the CI caching
 architecture and its cross-repo couplings), and root Docker/compose files for the Designer dev
 stack (see `README.md`).
 

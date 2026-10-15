@@ -3,7 +3,7 @@
 A Bash script that clones every Altinn 3 app running in tt02 and prod, and checks out the commit of the
 version deployed in each environment. The result is a folder of app repositories to search across. It
 can also be used as `ALTINN_ALL_APPS_DIR` for the all-apps tests in
-[`src/App/frontend`](../../App/frontend/AGENTS.md).
+[`src/App/frontend`](../../App/frontend/README.md).
 
 One of the standalone [tools](../AGENTS.md). Full docs: [`README.md`](README.md).
 

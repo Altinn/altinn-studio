@@ -46,7 +46,7 @@ commands and workflows current when changing studioctl's user-facing flags, outp
 
 ### Shared .NET libraries
 
-Libraries shared between the .NET projects in this area live under [`common/`](common/AGENTS.md) and are
+Libraries shared between the .NET projects in this area live under [`common/`](common/README.md) and are
 part of `studioctl.slnx`, so `make test` covers them.
 
 ### Container images
