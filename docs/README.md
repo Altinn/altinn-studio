@@ -1,8 +1,8 @@
 # Altinn Studio documentation
 
 Documentation for developing Altinn Studio. Agent-specific guidance lives in `AGENTS.md` files and skills, see
-[the documentation ADR](adr/2026-10-07-documentation-structure-and-content.md). Documentation for service owners
-and app developers is on [docs.altinn.studio](https://docs.altinn.studio).
+[Documentation structure and content](development/documentation.md). Documentation for service owners and app
+developers is on [docs.altinn.studio](https://docs.altinn.studio).
 
 ## Infrastructure
 

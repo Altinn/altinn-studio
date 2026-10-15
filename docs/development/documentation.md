@@ -5,6 +5,9 @@ These are the current rules for documentation in this repository. The
 Agent-specific direction belongs in `AGENTS.md`, skills, and agent definitions. Everything else goes in ordinary
 documentation that people and agents both read.
 
+Update affected documentation with the code change. Update [docs.altinn.studio](https://docs.altinn.studio) when the
+change affects service owners or app developers.
+
 ## Where information belongs
 
 Each fact has one home. Other files link to it instead of repeating it.
@@ -35,8 +38,7 @@ Each fact has one home. Other files link to it instead of repeating it.
 
 - Write short, complete sentences with a subject and a verb.
 - Use bullets for independent, parallel items. Use short paragraphs when each sentence builds on the one before.
-- Cut words that add nothing, such as ", not in code" after a sentence that already says where something is.
-- Don't restate what a linked file says. Link to it.
+- Cut words that add nothing, such as ", not in code".
 - Describe what something is or does, not what it lacks.
 
 ## README files and docs
@@ -49,12 +51,8 @@ of the system expect of it or do to it. Link to the code or configuration that d
   sentence is an implementation detail.
 - Rely on the conventions for building, testing and deploying in [`.github/README.md`](../../.github/README.md).
   Document only exceptions. READMEs do not link deploy workflows.
-- Put procedures and reference material for a task in separate documents in an adjacent `docs/` folder. Root
-  `docs/` covers shared topics, such as architecture, environments, and development practices.
+- Put procedures and reference material for a task in separate documents in an adjacent `docs/` folder.
 - Generate structure summaries, such as the repository map, from their source, and check them in CI.
-
-Update affected documentation with the code change. Update [docs.altinn.studio](https://docs.altinn.studio)
-when the change affects service owners or app developers.
 
 ## Code comments
 
@@ -70,7 +68,7 @@ A comment explains the code next to it to someone already reading that code. Rev
 Every directory with an `AGENTS.md` also has a `README.md`, and the `AGENTS.md` links to it. `AGENTS.md` holds
 only agent-specific direction needed in every session in its directory, such as what to read before a change,
 where to find skills, or when to ask before acting. Anything a person also needs goes in ordinary documentation or
-the code, and task-specific agent procedures go in skills, so `AGENTS.md` stays short.
+the code. Task-specific agent procedures go in skills. This keeps `AGENTS.md` short.
 
 Use plain Markdown links, not harness-specific imports such as `@README.md`. Do not add `CLAUDE.md` files.
 
