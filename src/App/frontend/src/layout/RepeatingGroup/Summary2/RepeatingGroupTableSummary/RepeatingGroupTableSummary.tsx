@@ -186,7 +186,10 @@ function HeaderCell({
   }
 
   return (
-    <Table.HeaderCell style={style}>
+    <Table.HeaderCell
+      className={repeatingGroupClasses.tableCellFormatting}
+      style={style}
+    >
       <RepeatingGroupTableTitle
         baseComponentId={baseComponentId}
         columnSettings={columnSettings}
@@ -295,14 +298,10 @@ function DataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
   return (
     <Table.Cell
       data-header-title={headerTitle}
-      className={tableClasses.dataCell}
+      className={cn(tableClasses.dataCell, repeatingGroupClasses.tableCellFormatting)}
+      style={style}
     >
-      <span
-        className={cn(repeatingGroupClasses.contentFormatting, tableClasses.cellValue)}
-        style={style}
-      >
-        {displayData}
-      </span>
+      <span className={cn(repeatingGroupClasses.contentFormatting, tableClasses.cellValue)}>{displayData}</span>
       {errors.map((validation, index) => (
         <ValidationMessage
           key={`${baseComponentId}-${validation.message.key}-${index}`}
