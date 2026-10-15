@@ -116,7 +116,15 @@ export function SubformSummaryTable({
 }: Pick<Summary2Props, 'targetBaseComponentId'>): React.JSX.Element | null {
   const config = useComponentConfig(targetBaseComponentId, 'Subform');
   const componentId = useIndexedId(targetBaseComponentId);
-  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Subform.textResourceBindings.title);
+  const summaryTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Subform.textResourceBindings.summaryTitle,
+  );
+  const resolvedTitle = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.Subform.textResourceBindings.title,
+  );
+  const title = summaryTitle ?? resolvedTitle;
   const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.Subform.textResourceBindings.description,
