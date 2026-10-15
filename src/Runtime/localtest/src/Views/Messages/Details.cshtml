@@ -1,0 +1,123 @@
+@model CorrespondenceViewModel
+@{
+    var correspondence = Model.Correspondence;
+    var content = Model.Request?.Content;
+    ViewData["Title"] = MessagesDisplay.Title(correspondence);
+}
+
+<p><a asp-action="Index">&larr; All messages</a></p>
+<h1 class="h3">@ViewData["Title"]</h1>
+
+<dl class="row mt-3">
+    <dt class="col-sm-3">Recipient</dt>
+    <dd class="col-sm-9">@MessagesDisplay.Recipient(correspondence.Recipient)</dd>
+    <dt class="col-sm-3">Status</dt>
+    <dd class="col-sm-9">@correspondence.Status</dd>
+    <dt class="col-sm-3">Sent</dt>
+    <dd class="col-sm-9">@MessagesDisplay.Time(correspondence.Created)</dd>
+    @if (!string.IsNullOrEmpty(correspondence.MessageSender))
+    {
+        <dt class="col-sm-3">Sender name</dt>
+        <dd class="col-sm-9">@correspondence.MessageSender</dd>
+    }
+    <dt class="col-sm-3">Resource</dt>
+    <dd class="col-sm-9"><code>@correspondence.ResourceId</code></dd>
+    <dt class="col-sm-3">Senders reference</dt>
+    <dd class="col-sm-9"><code>@correspondence.SendersReference</code></dd>
+    @if (Model.Request?.DueDateTime is { } due)
+    {
+        <dt class="col-sm-3">Due</dt>
+        <dd class="col-sm-9">@MessagesDisplay.Time(due)</dd>
+    }
+    @if (correspondence.IdempotentKey is { } key)
+    {
+        <dt class="col-sm-3">Idempotent key</dt>
+        <dd class="col-sm-9"><code>@key</code></dd>
+    }
+    <dt class="col-sm-3">Correspondence ID</dt>
+    <dd class="col-sm-9"><code>@correspondence.CorrespondenceId</code></dd>
+</dl>
+
+<div class="card mb-4">
+    <div class="card-header">Message@(content?.Language is { } language ? $" ({language})" : "")</div>
+    <div class="card-body">
+        @if (!string.IsNullOrEmpty(content?.MessageSummary))
+        {
+            <p class="lead">@content.MessageSummary</p>
+        }
+        @* Rendered as markdown, as the Altinn inbox does; plain text when the scripts cannot load. *@
+        <div id="message-body" class="message-text">@content?.MessageBody</div>
+    </div>
+</div>
+
+@if (Model.Attachments.Count > 0)
+{
+    <h2 class="h5">Attachments</h2>
+    <ul>
+        @foreach (var attachment in Model.Attachments)
+        {
+            <li>
+                <a asp-action="Attachment" asp-route-id="@attachment.AttachmentId">@(attachment.Request.DisplayName ?? attachment.Request.FileName ?? attachment.AttachmentId.ToString())</a>
+                <span class="text-muted">@attachment.DataType @MessagesDisplay.Size(attachment.Size)</span>
+            </li>
+        }
+    </ul>
+}
+
+<h2 class="h5 mt-4">Notifications</h2>
+@if (correspondence.Notifications.Count == 0)
+{
+    <p>The correspondence ordered no notification.</p>
+}
+@foreach (var notification in correspondence.Notifications)
+{
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between">
+            <span>
+                @(notification.IsReminder ? "Reminder" : "Notification") by @notification.Channel,
+                @(notification.Template == Altinn.Correspondence.Controllers.NotificationTemplate.CustomMessage ? "custom text" : "Altinn's standard text, worded differently in Altinn")
+            </span>
+            <span class="text-muted">@(notification.IsReminder ? "Due" : "Sent") @MessagesDisplay.Time(notification.RequestedSendTime)</span>
+        </div>
+        <div class="card-body">
+            @if (notification.Emails.Count + notification.Smses.Count == 0)
+            {
+                <p class="text-danger mb-0">
+                    Nobody to notify: the recipient has no contact information for this channel in the test data.
+                </p>
+            }
+            @foreach (var email in notification.Emails)
+            {
+                <div class="mb-3">
+                    <div><span class="badge text-bg-light">Email</span> to @MessagesDisplay.Recipient(email.Recipient)</div>
+                    <div><strong>@email.Subject</strong></div>
+                    <div class="message-text">@email.Body</div>
+                </div>
+            }
+            @foreach (var sms in notification.Smses)
+            {
+                <div class="mb-3">
+                    <div><span class="badge text-bg-light">SMS</span> to @MessagesDisplay.Recipient(sms.Recipient)</div>
+                    <div class="message-text">@sms.Body</div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<details class="mt-4">
+    <summary>Request the app sent</summary>
+    <pre class="mt-2"><code>@Model.RawRequest</code></pre>
+</details>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/marked@14.1.4/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
+    <script>
+        const body = document.getElementById('message-body');
+        if (body && window.marked && window.DOMPurify) {
+            body.innerHTML = DOMPurify.sanitize(marked.parse(body.textContent));
+            body.classList.remove('message-text');
+        }
+    </script>
+}
