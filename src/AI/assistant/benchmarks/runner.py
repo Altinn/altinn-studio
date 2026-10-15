@@ -464,7 +464,7 @@ def menu() -> int:
 
     try:
         choice = input("  Number, name, or blank to quit: ").strip()
-    except (EOFError, KeyboardInterrupt):
+    except EOFError, KeyboardInterrupt:
         print()
         return 0
     if not choice:

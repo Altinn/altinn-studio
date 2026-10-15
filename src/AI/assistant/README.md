@@ -27,9 +27,12 @@ docker compose up
 
 ### Local Python
 
+Install [uv](https://docs.astral.sh/uv/). `uv sync` installs the Python version in `.python-version` and the dependencies in `uv.lock`.
+
 ```bash
-# 1. Install the dependencies
-pip install -r requirements.txt
+# 1. Install the dependencies and activate the environment
+uv sync
+source .venv/bin/activate
 
 # 2. Make the configuration file
 cp .env.example .env
@@ -41,9 +44,9 @@ python -m uvicorn api.main:app --host 0.0.0.0 --port 8071 --reload
 
 ### Lint, format, type check and test
 
-```bash
-pip install -r requirements.txt -r requirements-dev.txt
+`uv sync` also installs the development tools.
 
+```bash
 ruff check .          # lint (add --fix to correct the problems)
 ruff format .         # format
 pyright               # type check

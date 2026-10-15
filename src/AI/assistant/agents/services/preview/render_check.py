@@ -82,7 +82,7 @@ def render_check(
         from playwright.sync_api import sync_playwright
     except ImportError as error:
         raise PreviewCheckUnavailable(
-            "playwright is not installed (pip install playwright && playwright install chromium)"
+            "playwright is not installed (uv sync && uv run playwright install chromium)"
         ) from error
 
     studio_base = studio_base.rstrip("/")
@@ -114,7 +114,7 @@ def read_page_order(repo_root: Path) -> list[str]:
     for settings_path in sorted(ui_dir.rglob(LAYOUT_SETTINGS_FILE_NAME)):
         try:
             settings = json.loads(settings_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
+        except OSError, json.JSONDecodeError:
             continue
         if not isinstance(settings, dict):
             continue
