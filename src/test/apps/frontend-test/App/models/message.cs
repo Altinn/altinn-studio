@@ -46,6 +46,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("SomeNumberValue")]
     public int? SomeNumberValue { get; set; }
 
+    // Designer cannot generate this member. Restore it after regenerating the model.
     [XmlElement("GwTargetTask")]
     [JsonProperty("GwTargetTask")]
     [JsonPropertyName("GwTargetTask")]

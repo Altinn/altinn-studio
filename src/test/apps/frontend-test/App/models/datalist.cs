@@ -24,6 +24,7 @@ namespace Altinn.App.Models
         [JsonPropertyName("Search")]
         public string? Search { get; set; }
 
+        // Designer cannot generate this member. Restore it after regenerating the model.
         [XmlElement("UseCustomConfirm", Order = 4)]
         [JsonProperty("UseCustomConfirm")]
         [JsonPropertyName("UseCustomConfirm")]

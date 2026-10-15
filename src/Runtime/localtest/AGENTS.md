@@ -29,7 +29,7 @@ local services. The `Makefile` here only holds the `podman-selinux-bind-hack` he
 
 ## Working here
 
-- Prerequisites: a .NET SDK, Docker or Podman, and `studioctl` (see [`src/cli`](../../cli/AGENTS.md)).
+- Prerequisites: a .NET SDK, Docker or Podman, and `studioctl` (see [`src/cli`](../../cli/README.md)).
 - Changes to emulated behavior should stay faithful to the real Platform contracts apps depend on — the
   point is that an app behaves the same locally as in the cloud.
 - Common gotcha: if Localtest reports the app isn't running when it is, it's usually a firewall/port

@@ -488,6 +488,7 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("SetDate")]
     public string? SetDate { get; set; }
 
+    // Designer cannot generate this member. Restore it after regenerating the model.
     [XmlElement("String", Order = 2)]
     [JsonProperty("String")]
     [JsonPropertyName("String")]
@@ -500,6 +501,7 @@ namespace Altinn.App.Models.Model
 
     public bool ShouldSerializeDateTime() => DateTime.HasValue;
 
+    // Designer cannot generate this member. Restore it after regenerating the model.
     [XmlElement("DateOnly", Order = 4)]
     [JsonProperty("DateOnly")]
     [JsonPropertyName("DateOnly")]

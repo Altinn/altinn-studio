@@ -1,3 +1,8 @@
+//! Sandbox Provider construction.
+//!
+//! Only this module depends on the concrete Provider, so the runner lifecycle stays backend-neutral. The
+//! coordinator, runner scripts and deployment treat the Provider's home, image cache and prepared images as opaque.
+
 use std::{fs, io, path::Path, path::PathBuf, rc::Rc};
 
 use clap::Args;

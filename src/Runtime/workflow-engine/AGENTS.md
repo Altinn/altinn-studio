@@ -64,7 +64,7 @@ Reusable class library for async workflow processing. Provides the core engine, 
 - `DELETE /api/v1/{namespace}/mailboxes/{mailboxId:guid}` — close for deliveries and release every parked receiver, in one transaction; terminal and idempotent (202 effected, 200 replay with the original disposal)
 - `POST /api/v1/{namespace}/mailboxes/{mailboxId:guid}/deliveries` — deliver one message (202 appended, idempotent 200 on a replayed key, 409 always means _too late_). Full status tables for all four endpoints are in the [technical guide's API reference](docs/technical-guide.md#api-reference)
 - Health endpoints: `/api/v1/health` (all checks), `/api/v1/health/ready` (checks tagged `ready`), `/api/v1/health/live`. The versionless `/health`, `/health/ready` and `/health/live` are **301 redirects to `/api/v1/health`** for convenience — never point a probe at them, because a 3xx counts as a pass and the redirect never evaluates the readiness check
-- `GET /dashboard/mailboxes` — mailboxes grouped under named collections, each log laid out position by position; a bounded fetch rather than a field on the live SSE stream. Payload and bounds in `src/WorkflowEngine.Core/wwwroot/DASHBOARD_SPEC.md`
+- `GET /dashboard/mailboxes` — mailboxes grouped under named collections, each log laid out position by position; a bounded fetch rather than a field on the live SSE stream. Payload and bounds in [`docs/dashboard.md`](docs/dashboard.md#get-dashboardmailboxes)
 - Dashboard SSE/REST endpoints under `/dashboard/*` (see Dashboard docs) — read-only projections; the dashboard's workflow actions go through the `/api/v1` endpoints above
 
 ## Docker Compose
@@ -126,7 +126,14 @@ For test conventions, scaffolding templates, and infrastructure details, see
 
 ## Dashboard
 
-The dashboard UI is embedded directly in `WorkflowEngine.Core`. Static files (`wwwroot/`) are compiled as embedded resources and served by `MapDashboardUI()` alongside the data endpoints from `MapDashboardEndpoints()`. In development, a `PhysicalFileProvider` serves files from disk for live editing without rebuilds.
+Read the [Dashboard section of the README](README.md#dashboard) and the [dashboard spec](docs/dashboard.md) before
+changing the dashboard. The engine embeds and serves every file in `src/WorkflowEngine.Core/wwwroot`, so put
+documentation for it elsewhere.
 
-For module structure and code patterns, see `src/WorkflowEngine.Core/wwwroot/AGENTS.md`.
-For full behavioral spec (sections, endpoints, card anatomy, filtering, modals, URL sync), see `src/WorkflowEngine.Core/wwwroot/DASHBOARD_SPEC.md`.
+After changing generated markup, run these checks from `src/WorkflowEngine.Core/wwwroot` and fix every hit. Each hit
+is an `esc()` call inside an attribute or an inline handler argument, where `escAttr()` or `escJsArg()` belongs:
+
+```sh
+grep -rnE '[a-zA-Z-]+="[^"]*\$\{esc\(' modules/
+grep -rn "'\${esc(" modules/
+```

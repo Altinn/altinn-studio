@@ -1,6 +1,6 @@
 # Dashboard Functional Specification
 
-Detailed behavioral spec for the workflow engine dashboard. For module structure and architecture patterns, see `src/WorkflowEngine.Core/wwwroot/AGENTS.md`.
+Detailed behavioral spec for the workflow engine dashboard. The [README](../README.md#dashboard) introduces the dashboard.
 
 ---
 
@@ -321,7 +321,7 @@ engine's public API directly, so the same contract that external callers use is 
 
 The namespace and workflow id are URL-encoded route segments. Both 200 and 202 count as success; a refusal
 (409 for the wrong state, 400 for a bad request) carries problem details, whose `detail` becomes the button's
-tooltip. The contracts are documented in the technical guide's [API reference](../../../docs/technical-guide.md#api-reference).
+tooltip. The contracts are documented in the technical guide's [API reference](technical-guide.md#api-reference).
 
 **Retry now** / **Check now** also clears the workflow's `throttled_until` stamp: an explicit poke wins over
 the namespace circuit breaker, so the workflow gets its re-check even while its namespace is throttled.

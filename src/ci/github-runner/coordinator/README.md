@@ -1,8 +1,8 @@
 # GitHub runner coordinator
 
 This package coordinates one ephemeral GitHub Actions runner through the backend-neutral Sandbox SDK and provides
-the `sandbox-image` helper used to export and import prepared images. See the directory-level
-[`AGENTS.md`](../AGENTS.md) for design constraints.
+the `sandbox-image` helper used to export and import prepared images. The
+[GitHub Actions runner README](../README.md) describes how the runners fit together.
 
 See the [`Makefile`](Makefile) for available development commands.
 

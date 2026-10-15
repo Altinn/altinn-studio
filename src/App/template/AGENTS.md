@@ -62,9 +62,9 @@ at `src/App/template`.
 ## What a template contains
 
 The skeleton of a runnable Altinn 3 app: the `App` project referencing the
-[Altinn.App backend libraries](../backend/AGENTS.md), default configuration, process/BPMN,
+[Altinn.App backend libraries](../backend/README.md), default configuration, process/BPMN,
 data model wiring, and the Dockerfile used to build the app image. Optional feature libraries such as
-[codelists](../codelists/AGENTS.md) and [fileanalyzers](../fileanalyzers/AGENTS.md) plug in on top.
+[codelists](../codelists/README.md) and [fileanalyzers](../fileanalyzers/README.md) plug in on top.
 
 ## Build & validate
 
