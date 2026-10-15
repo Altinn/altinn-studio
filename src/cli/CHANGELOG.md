@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
-- `studioctl app upgrade v9` warns when the app's layouts can hide fields that hold data, since v9 deletes that data when a task ends. To keep it, set `AppSettings:RemoveHiddenData` to `false` or `removeWhenHidden` to `false` on the component. ([#21251](https://github.com/Altinn/altinn-studio/pull/21251))
+- `studioctl app upgrade v9` sets `AppSettings:RemoveHiddenData` to `false` for apps whose layouts can hide fields that hold data, so hidden data is kept as in v8 instead of being deleted when a task ends. Remove the setting to use the v9 default. ([#21251](https://github.com/Altinn/altinn-studio/pull/21251))
 
 ### Changed
 
