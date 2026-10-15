@@ -8,7 +8,7 @@ import httpx
 import pytest
 
 from agents.core import LoopContext, WebFetchTool
-from agents.core.tools.web_fetch_tool import MAX_RESPONSE_CHARS
+from agents.core.tools.web_fetch_tool import MAX_REDIRECTS, MAX_RESPONSE_CHARS
 
 DOCS_URL = "https://docs.altinn.studio/nb/altinn-studio/guides/"
 DOCS_URL_WITHOUT_SLASH = DOCS_URL.removesuffix("/")
@@ -42,13 +42,13 @@ def _respond(body: str, *, status: int = 200, content_type: str = HTML) -> Handl
     return lambda request: httpx.Response(status, text=body, headers={"content-type": content_type})
 
 
-def _redirect_to(location: str) -> Handler:
-    """Send `DOCS_URL_WITHOUT_SLASH` to `location`, and answer each other request with a page."""
+def _redirect_to(location: str, *, status: int = 200) -> Handler:
+    """Send `DOCS_URL_WITHOUT_SLASH` to `location`, and answer each other request with a page that has `status`."""
 
     def handle(request: httpx.Request) -> httpx.Response:
         if str(request.url) == DOCS_URL_WITHOUT_SLASH:
             return httpx.Response(301, headers={"location": location})
-        return httpx.Response(200, text="<p>Guides</p>", headers={"content-type": HTML})
+        return httpx.Response(status, text="<p>Guides</p>", headers={"content-type": HTML})
 
     return handle
 
@@ -79,6 +79,16 @@ class TestRefusedUrls:
         assert "docs.altinn.studio" in result.content
         assert requests == []
 
+    @pytest.mark.parametrize("url", ["https://docs.altinn.studio:abc/", "https://docs.altinn.\tstudio/"])
+    async def test_refuses_a_url_that_is_not_valid(self, serve, url):
+        requests = serve(_respond("x"))
+
+        result = await _fetch(url)
+
+        assert result.is_error
+        assert result.content.startswith("Invalid URL: ")
+        assert requests == []
+
 
 class TestFailedRequests:
     async def test_tells_the_model_not_to_guess_when_the_page_is_not_found(self, serve):
@@ -89,6 +99,14 @@ class TestFailedRequests:
         assert result.is_error
         assert result.content.startswith(f"HTTP 404 fetching {DOCS_URL}.")
         assert "Do not guess URLs" in result.content
+
+    async def test_names_the_url_that_was_not_found_after_a_redirect(self, serve):
+        serve(_redirect_to(DOCS_URL, status=404))
+
+        result = await _fetch(DOCS_URL_WITHOUT_SLASH)
+
+        assert result.is_error
+        assert result.content.startswith(f"HTTP 404 fetching {DOCS_URL}.")
 
     async def test_reports_other_http_errors_without_the_hint(self, serve):
         serve(_respond("error", status=500))
@@ -170,6 +188,18 @@ class TestRedirects:
         assert "Only https:// URLs are allowed." in result.content
         assert [str(request.url) for request in requests] == [DOCS_URL_WITHOUT_SLASH]
 
+    async def test_stops_after_the_maximum_number_of_redirects(self, serve):
+        def redirect_each_time(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(301, headers={"location": f"{request.url}next/"})
+
+        requests = serve(redirect_each_time)
+
+        result = await _fetch(DOCS_URL)
+
+        assert result.is_error
+        assert result.content.startswith("Fetch failed: ")
+        assert len(requests) == MAX_REDIRECTS + 1
+
 
 class TestSourceRecord:
     async def test_uses_the_page_title(self, serve):
@@ -179,6 +209,14 @@ class TestSourceRecord:
 
         assert result.metadata["url"] == DOCS_URL
         assert result.metadata["source"] == {"title": "Guides | Altinn", "url": DOCS_URL, "kind": "docs"}
+
+    async def test_uses_the_url_after_a_redirect(self, serve):
+        serve(_redirect_to(DOCS_URL))
+
+        result = await _fetch(DOCS_URL_WITHOUT_SLASH)
+
+        assert result.metadata["url"] == DOCS_URL
+        assert result.metadata["source"]["url"] == DOCS_URL
 
     @pytest.mark.parametrize(
         ("url", "title"),
