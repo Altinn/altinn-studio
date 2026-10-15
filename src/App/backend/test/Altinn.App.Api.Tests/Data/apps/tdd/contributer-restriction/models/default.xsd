@@ -17,7 +17,7 @@
   <xs:complexType name="DummyType">
     <xs:sequence>
       <xs:element name="name" type="xs:string" minOccurs="0" maxOccurs="1"/>
-      <xs:element name="random" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="random" type="StringType1To60" minOccurs="0" maxOccurs="1"/>
       <xs:element name="tags" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="simple_list" type="ValuesListType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="nested_list" type="NestedListType" minOccurs="0" maxOccurs="1"/>

@@ -5,6 +5,7 @@ using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Features.Validation.Default;
@@ -104,57 +105,56 @@ internal sealed class XsdValidator : IValidator
             {
                 parsedSchema.Add(null, xsdReader);
             }
-            var settings = new XmlReaderSettings
+            var readerSettings = new XmlReaderSettings
             {
-                ValidationType = ValidationType.Schema,
-                Schemas = parsedSchema,
                 DtdProcessing = DtdProcessing.Prohibit,
                 XmlResolver = null,
                 CloseInput = true,
             };
-            settings.ValidationEventHandler += (sender, e) =>
-            {
-                validationIssues.Add(
-                    new ValidationIssue()
-                    {
-                        Code = "Xsd",
-                        CustomTextKey = "backend.xsd_validation",
-                        DataElementId = dataElement.Id,
-                        Severity = ValidationIssueSeverity.Error,
-                        CustomTextParameters = new Dictionary<string, string>()
-                        {
-                            { "schema", dataType.Id },
-                            { "message", e.Message },
-                        },
-                    }
-                );
-            };
 
             try
             {
-                var xmlStream = new MemoryAsStream(serializedFormData);
-                using var reader = XmlReader.Create(xmlStream, settings);
-                while (reader.Read()) { }
+                // Validate a DOM instead of a streaming reader so that the validation events carry the
+                // offending node (SourceObject), which lets us report the full path of the invalid field.
+                // Whitespace-only text must be kept, otherwise values like "   " would validate as empty strings.
+                var document = new XmlDocument { XmlResolver = null, PreserveWhitespace = true };
+                using (var reader = XmlReader.Create(new MemoryAsStream(serializedFormData), readerSettings))
+                {
+                    document.Load(reader);
+                }
+                document.Schemas = parsedSchema;
+                document.Validate(
+                    (sender, e) =>
+                    {
+                        var node = (e.Exception as XmlSchemaValidationException)?.SourceObject as XmlNode;
+                        validationIssues.Add(CreateIssue(dataElement, dataType, e.Message, XmlNodePath.Get(node)));
+                    }
+                );
             }
             catch (XmlException ex)
             {
-                validationIssues.Add(
-                    new ValidationIssue()
-                    {
-                        Code = "Xsd",
-                        CustomTextKey = "backend.xsd_validation",
-                        DataElementId = dataElement.Id,
-                        Severity = ValidationIssueSeverity.Error,
-                        CustomTextParameters = new Dictionary<string, string>()
-                        {
-                            { "schema", dataType.Id },
-                            { "message", ex.Message },
-                        },
-                    }
-                );
+                validationIssues.Add(CreateIssue(dataElement, dataType, ex.Message, path: null));
             }
         }
 
         return validationIssues;
+    }
+
+    private static ValidationIssue CreateIssue(DataElement dataElement, DataType dataType, string message, string? path)
+    {
+        return new ValidationIssue()
+        {
+            Code = "Xsd",
+            CustomTextKey = "backend.xsd_validation",
+            DataElementId = dataElement.Id,
+            Severity = ValidationIssueSeverity.Error,
+            CustomTextParameters = new Dictionary<string, string>()
+            {
+                { "schema", dataType.Id },
+                { "message", message },
+                // Fall back to the document itself when the offending node is unknown (e.g. malformed xml)
+                { "path", path ?? "/" },
+            },
+        };
     }
 }

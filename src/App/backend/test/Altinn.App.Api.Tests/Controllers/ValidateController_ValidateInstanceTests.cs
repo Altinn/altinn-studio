@@ -172,13 +172,51 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
         var issue = parsedResponse[0];
 
         Assert.Equal(
-            "Et felt bryter reglene satt av XSD. Melding: The element 'melding' has invalid child element 'missing-from-xsd'. List of possible elements expected: 'tag-with-attribute, hidden, SF_test, hiddenNotRemove, hiddenPage, hiddenPageNotRemove'.",
+            "Feltet /Skjema/melding/missing-from-xsd bryter reglene satt av XSD. Melding: The element 'melding' has invalid child element 'missing-from-xsd'. List of possible elements expected: 'tag-with-attribute, hidden, SF_test, hiddenNotRemove, hiddenPage, hiddenPageNotRemove'.",
             issue.Description
         );
-        Assert.Null(issue.Field); // XSD validator does not provide field references, only the data element id (would be nice if that could be fixed)
+        Assert.Null(issue.Field); // XSD validator does not provide field references (data model bindings), only the xml path in the message
         Assert.Equal(DataGuid.ToString(), issue.DataElementId);
         Assert.Equal(ValidationIssueSeverity.Error, issue.Severity);
         Assert.Equal("Xsd", issue.Source);
+
+        _dataProcessorMock.Verify();
+    }
+
+    [Fact]
+    public async Task ValidateInstance_WithXsdValidator_WhitespaceOnlyValueIsPreserved()
+    {
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IValidator, XsdValidator>();
+        };
+
+        TestData.UpdateXmlDataElement(
+            Org,
+            App,
+            InstanceOwnerPartyId,
+            InstanceGuid,
+            DataGuid,
+            new Skjema()
+            {
+                Melding = new()
+                {
+                    Name = "Name is required in layout",
+                    // The xsd requires minLength 1 for random, and whitespace must count as content
+                    Random = "   ",
+                },
+            }
+        );
+
+        var response = await CallValidateInstanceApi();
+        var responseString = await LogResponse(response);
+
+        response.Should().HaveStatusCode(HttpStatusCode.OK);
+        var parsedResponse = ParseResponse<List<ValidationIssue>>(responseString);
+
+        // The nullable missing-from-xsd element is always serialized (xsi:nil) and always fails, but random must not
+        var issue = Assert.Single(parsedResponse);
+        Assert.Equal("/Skjema/melding/missing-from-xsd", issue.CustomTextParameters?["path"]);
 
         _dataProcessorMock.Verify();
     }

@@ -332,9 +332,9 @@ internal sealed class TranslationService : ITranslationService
                     Id = "backend.xsd_validation",
                     Value = language switch
                     {
-                        LanguageConst.Nb => "Et felt bryter reglene satt av XSD. Melding: {0}",
-                        LanguageConst.Nn => "Eit felt bryt reglane sette av XSD. Melding: {0}",
-                        _ => "A field is in violation of the rules set by the XSD schema. Message: {0}",
+                        LanguageConst.Nb => "Feltet {1} bryter reglene satt av XSD. Melding: {0}",
+                        LanguageConst.Nn => "Feltet {1} bryt reglane sette av XSD. Melding: {0}",
+                        _ => "The field {1} is in violation of the rules set by the XSD schema. Message: {0}",
                     },
                     Variables =
                     [
@@ -342,6 +342,12 @@ internal sealed class TranslationService : ITranslationService
                         {
                             DataSource = "customTextParameters",
                             Key = "message",
+                            DefaultValue = "",
+                        },
+                        new TextResourceVariable()
+                        {
+                            DataSource = "customTextParameters",
+                            Key = "path",
                             DefaultValue = "",
                         },
                     ],
