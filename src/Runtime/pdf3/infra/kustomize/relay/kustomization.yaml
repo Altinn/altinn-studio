@@ -1,4 +1,4 @@
-# The relay, for the environments with a DIS Core. Each of their overlays sets PDF3_UPSTREAM_URL.
+# The relay, for the environment overlays. Each of them sets PDF3_UPSTREAM_URL.
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 resources:

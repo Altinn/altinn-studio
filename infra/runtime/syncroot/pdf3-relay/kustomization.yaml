@@ -1,4 +1,4 @@
-# pdf3's route to the relay, for the environments with a DIS Core. See the pdf3 README.
+# pdf3's route to the relay, for every environment. See the pdf3 README.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:

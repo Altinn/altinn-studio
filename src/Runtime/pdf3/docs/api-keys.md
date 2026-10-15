@@ -36,7 +36,8 @@ In runtime clusters, the relay's key file is the Secret `pdf3-upstream-api-key`,
 secret `Pdf3--Upstream--ApiKey` in the environment's Key Vault `mpo-<env>-kv`. The
 [`azurekeyvaultsync`](../../operator/internal/controller/azurekeyvaultsync/controller.go) controller defines the
 mapping and polls the Key Vault. All runtime clusters in an environment send the same key, which the environment's
-DIS Core proxy must accept. The secret is written by hand.
+DIS Core proxy must accept. at24's relay calls tt02's DIS Core, so `mpo-at24-kv` holds a tt02 key. The secret is
+written by hand.
 
 Write the secret before the relay is deployed to an environment. Until the Secret exists, the relay's pods wait for it
 and the Flux Kustomization `pdf3-app` in the runtime clusters is not ready.
