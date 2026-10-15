@@ -37,6 +37,8 @@ on:
       - '!**/CONTRIBUTING.md'
       - '!**/CHANGELOG.md'
       - '!**/docs/**'
+      # DIS Core's manifests for pdf3, published by deploy-dis-pdf3-syncroot.yaml.
+      - '!src/Runtime/pdf3/infra/syncroot/**'
       # Package readmes are inputs to the NuGet packages.
       - 'src/App/backend/README.md'
       - 'src/App/codelists/README.md'
@@ -129,6 +131,12 @@ jobs:
         with:
           path: app-process-build.tar.gz
           key: ${{ steps.app-process-cache-key.outputs.key }}
+
+      - name: Setup .NET
+        if: ${{ steps.cache-app-process-outputs.outputs.cache-hit != 'true' }}
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/test/apps/global.json
 
       - name: Build app process outputs
         if: ${{ steps.cache-app-process-outputs.outputs.cache-hit != 'true' }}

@@ -19,6 +19,8 @@ modify" rhythm that CC uses to prevent blind retries.
 from __future__ import annotations
 
 import asyncio
+import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -32,6 +34,13 @@ from ._write_base import WriteToolMixin
 # would dominate the model's context budget.  Truncation marker mirrors
 # the compaction layer's style so the model recognizes it.
 _MAX_READ_CHARS = 60_000
+
+_JSON_FILE_SUFFIX = ".json"
+_STUDIO_JSON_INDENT = "  "
+_JSON_TOKEN = re.compile(r'"(?:[^"\\]|\\.)*"|[{}\[\],:]|[^\s{}\[\],:"]+')
+_JSON_OPENERS = {"{", "["}
+_JSON_CLOSERS = {"}", "]"}
+_JSON_LINE_ENDERS = {"{", "[", ","}
 
 
 # ---------------------------------------------------------------------------
@@ -84,6 +93,59 @@ def _mark_changed(ctx: LoopContext, rel_path: str) -> None:
 
 def _is_read(ctx: LoopContext, rel_path: str) -> bool:
     return rel_path in (ctx.extras.get("read_set") or set())
+
+
+def _format_json_like_studio(rel_path: str, text: str) -> str:
+    """Studio saves JSON in this format, so a file keeps one format when Studio and the assistant both change it.
+
+    Only whitespace changes. Strings and numbers keep their text, so escapes, number precision and duplicate keys
+    elsewhere in the file stay as they are. Text that is not strict JSON, such as `NaN`, stays as written.
+    """
+    if not rel_path.endswith(_JSON_FILE_SUFFIX):
+        return text
+    try:
+        json.loads(text, parse_constant=_reject_json_constant)
+    except (ValueError, RecursionError):
+        return text
+    return _indent_json_tokens(_JSON_TOKEN.findall(text))
+
+
+def _reject_json_constant(name: str) -> None:
+    raise ValueError(f"{name} is not valid JSON.")
+
+
+def _indent_json_tokens(tokens: list[str]) -> str:
+    parts: list[str] = []
+    depth = 0
+    previous = ""
+    for token in tokens:
+        if token in _JSON_CLOSERS:
+            depth -= 1
+        parts.append(_get_json_separator(previous, token, depth))
+        parts.append(token)
+        if token in _JSON_OPENERS:
+            depth += 1
+        previous = token
+    return "".join(parts)
+
+
+def _get_json_separator(previous: str, token: str, depth: int) -> str:
+    """Studio puts each value on its own line and writes an empty array or object as `[]` or `{}`."""
+    if previous == ":":
+        return " "
+    is_empty_container = previous in _JSON_OPENERS and token in _JSON_CLOSERS
+    starts_line = previous in _JSON_LINE_ENDERS or token in _JSON_CLOSERS
+    if starts_line and not is_empty_container:
+        return "\n" + _STUDIO_JSON_INDENT * depth
+    return ""
+
+
+def _describe_formatting(*, is_reformatted: bool, matched_on_whitespace: bool) -> str:
+    if is_reformatted:
+        return "  The JSON is now formatted as Studio formats it, so its whitespace can differ from what you sent."
+    if matched_on_whitespace:
+        return "  `old_string` matched only after ignoring whitespace, so that region now carries your formatting."
+    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -264,17 +326,17 @@ class EditFileTool(WriteToolMixin[EditFileArgs]):
         else:
             new_text = text.replace(args.old_string, args.new_string, 1)
             replaced = 1
+        formatted_text = _format_json_like_studio(args.path, new_text)
 
         try:
-            full.write_text(new_text, encoding="utf-8")
+            full.write_text(formatted_text, encoding="utf-8")
         except OSError as exc:
             return ToolResult(content=f"Write failed: {exc}", is_error=True)
 
         _mark_changed(ctx, args.path)
-        note = (
-            "  `old_string` matched only after ignoring whitespace, so that region now carries your formatting."
-            if matched_on_whitespace
-            else ""
+        note = _describe_formatting(
+            is_reformatted=formatted_text != new_text,
+            matched_on_whitespace=matched_on_whitespace,
         )
         return ToolResult(
             content=f"Edited {args.path}: replaced {replaced} occurrence(s).{note}",
@@ -407,9 +469,10 @@ class WriteFileTool(WriteToolMixin[WriteFileArgs]):
                 ),
                 is_error=True,
             )
+        content = _format_json_like_studio(args.path, args.content)
         try:
             full.parent.mkdir(parents=True, exist_ok=True)
-            full.write_text(args.content, encoding="utf-8")
+            full.write_text(content, encoding="utf-8")
         except OSError as exc:
             return ToolResult(content=f"Write failed: {exc}", is_error=True)
 
@@ -418,8 +481,9 @@ class WriteFileTool(WriteToolMixin[WriteFileArgs]):
         # state — future edits on the same path are safe.
         _mark_read(ctx, args.path)
         verb = "Overwrote" if existing else "Created"
+        note = _describe_formatting(is_reformatted=content != args.content, matched_on_whitespace=False)
         return ToolResult(
-            content=f"{verb} {args.path} ({len(args.content)} chars).",
+            content=f"{verb} {args.path} ({len(content)} chars).{note}",
             metadata={"path": args.path, "created": not existing},
         )
 

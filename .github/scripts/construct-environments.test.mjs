@@ -249,3 +249,107 @@ test("runtime: explicit environments input takes precedence over default overrid
     delete process.env.OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS;
   }
 });
+
+test("dis-core: uses every DIS Core environment when inputs context is null", () => {
+  const result = constructResult({
+    mode: "dis-core",
+    inputs: "null",
+    allowEmpty: false,
+  });
+
+  assert.deepEqual(result, [
+    { environment: "dis_core_at22", tag: "at22" },
+    { environment: "dis_core_at23", tag: "at23" },
+    { environment: "dis_core_yt01", tag: "yt01" },
+    { environment: "dis_core_tt02", tag: "tt02" },
+    { environment: "dis_core_prod", tag: "prod" },
+  ]);
+});
+
+test("dis-core: resolves environments from inputs.environments", () => {
+  const result = constructResult({
+    mode: "dis-core",
+    inputs: '{"environments":"tt02,prod"}',
+    allowEmpty: false,
+  });
+
+  assert.deepEqual(result, [
+    { environment: "dis_core_tt02", tag: "tt02" },
+    { environment: "dis_core_prod", tag: "prod" },
+  ]);
+});
+
+test("dis-core: rejects runtime rings", () => {
+  assert.throws(
+    () =>
+      constructResult({
+        mode: "dis-core",
+        inputs: '{"environments":"at_ring1"}',
+        allowEmpty: false,
+      }),
+    /invalid DIS Core environment 'at_ring1'/
+  );
+});
+
+test("dis-core: rejects at24, which has no DIS Core cluster", () => {
+  assert.throws(
+    () =>
+      constructResult({
+        mode: "dis-core",
+        inputs: '{"environments":"at23,at24"}',
+        allowEmpty: false,
+      }),
+    /invalid DIS Core environment 'at24'/
+  );
+});
+
+test("dis-core: rejects studio environments", () => {
+  assert.throws(
+    () =>
+      constructResult({
+        mode: "dis-core",
+        inputs: '{"environments":"at22,dev"}',
+        allowEmpty: false,
+      }),
+    /invalid DIS Core environment 'dev'/
+  );
+});
+
+test("dis-core: empty string with allow-empty false throws", () => {
+  assert.throws(
+    () =>
+      constructResult({
+        mode: "dis-core",
+        inputs: '{"environments":""}',
+        allowEmpty: false,
+      }),
+    /cannot be empty/
+  );
+});
+
+test("dis-core: empty string with allow-empty true returns []", () => {
+  const result = constructResult({
+    mode: "dis-core",
+    inputs: '{"environments":""}',
+    allowEmpty: true,
+  });
+
+  assert.deepEqual(result, []);
+});
+
+test("dis-core: ignores the runtime and studio default overrides in push context", () => {
+  process.env.OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS = "at_ring2";
+  process.env.OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS = "dev";
+  try {
+    const result = constructResult({
+      mode: "dis-core",
+      inputs: "null",
+      allowEmpty: false,
+    });
+
+    assert.equal(result.length, 5);
+  } finally {
+    delete process.env.OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS;
+    delete process.env.OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS;
+  }
+});

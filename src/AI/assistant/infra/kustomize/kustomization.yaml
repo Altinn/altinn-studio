@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - serviceaccount.yaml
   - service.yaml
+  - networkpolicy.yaml
   - deployment.yaml
   - external-secret.yaml
 replacements:

@@ -135,11 +135,15 @@ export const doAttachmentRemove = async (
 };
 
 export const doSubformEntryAdd = async (instanceId: string, dataType: string, data: unknown): Promise<IData> => {
-  const response = await httpPost<IData>(getDataModelTypeUrl(instanceId, dataType), undefined, data);
-  if (response.status >= 300) {
+  const response = await httpPost<DataPostResponse>(getDataModelTypeUrl(instanceId, dataType), undefined, data);
+  if (response.status < 200 || response.status >= 300) {
     throw new Error('Failed to add sub form');
   }
-  return response.data;
+  const newDataElement = response.data.instance.data.find((element) => element.id === response.data.newDataElementId);
+  if (!newDataElement) {
+    throw new Error('Created subform data element is missing from the instance');
+  }
+  return newDataElement;
 };
 
 export const doSubformEntryDelete = async (instanceId: string, dataElementId: string): Promise<void> => {
