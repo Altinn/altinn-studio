@@ -1,6 +1,6 @@
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
-import { getRepeatingBinding, isRepeatingComponent } from 'src/features/form/layout/utils/repeating';
+import { getRepeatingBinding, isRepeatingParent } from 'src/features/form/layout/utils/repeating';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { RepeatingComponents } from 'src/features/form/layout/utils/repeating';
@@ -26,13 +26,15 @@ export function getDataModelLocationForIndexedNode(
 
   const { baseComponentId, depth } = splitDashedKey(indexedId);
   const repeatingParents: CompExternal<RepeatingComponents>[] = [];
-  let parent = lookups.componentToParent[baseComponentId];
+  let childId = baseComponentId;
+  let parent = lookups.componentToParent[childId];
   while (parent?.type === 'node') {
     const component = lookups.allComponents[parent.id];
-    if (isRepeatingComponent(component)) {
+    if (isRepeatingParent(component, childId)) {
       repeatingParents.unshift(component);
     }
-    parent = lookups.componentToParent[parent.id];
+    childId = parent.id;
+    parent = lookups.componentToParent[childId];
   }
 
   const nearestRepeatingParent = repeatingParents.at(-1);
