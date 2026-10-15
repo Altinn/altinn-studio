@@ -28,7 +28,7 @@ spec:
     - source: ../instructions.md
     - source: environment.md
   skills:
-    - source: ../../src/cli/resources/agent/skills/app-development
+    - source: ../skills/app-development
       name: altinn-studio-app-development
     - source: ../skills/pr-evidence
     - source: ../skills/changelog

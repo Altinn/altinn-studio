@@ -23,8 +23,8 @@ const (
 
 	buildDir = "build"
 
-	localtestDir = "../Runtime/localtest"
-	resourcesDir = "resources"
+	localtestDir           = "../Runtime/localtest"
+	appDevelopmentSkillDir = "../../agents/skills/app-development"
 
 	helpFlag = "--help"
 
@@ -323,12 +323,12 @@ func buildPlatformResources(
 
 	fmt.Println("Creating resources archive...")
 	archivePath, err = installpkg.CreateResourcesArchive(installpkg.ResourcesArchiveOptions{
-		GOOS:         goos,
-		GOARCH:       goarch,
-		OutputDir:    outputDir,
-		ServerDir:    serverDir,
-		LocaltestDir: localtestDir,
-		ResourcesDir: resourcesDir,
+		GOOS:           goos,
+		GOARCH:         goarch,
+		OutputDir:      outputDir,
+		ServerDir:      serverDir,
+		LocaltestDir:   localtestDir,
+		AgentSkillDirs: []string{appDevelopmentSkillDir},
 	})
 	if err != nil {
 		return "", fmt.Errorf("create resources archive: %w", err)

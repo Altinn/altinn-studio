@@ -15,8 +15,8 @@ on:
       - "!**/CONTRIBUTING.md"
       - "!**/CHANGELOG.md"
       - "!**/docs/**"
-      # Shipped skills remain build inputs, including their Markdown files.
-      - "src/cli/resources/**"
+      # The shipped skill is a build input, including its Markdown files.
+      - "agents/skills/app-development/**"
   workflow_dispatch:
 
 concurrency:
