@@ -51,7 +51,8 @@ the app libraries send and read; a field the app client marks `required` must be
 `LocalTest.sln` / `src/LocalTest.csproj` is a normal .NET project:
 
 ```bash
-dotnet build LocalTest.sln    # from src/Runtime/localtest
+dotnet build LocalTest.sln                           # from src/Runtime/localtest
+dotnet test test/LocalTest.Tests/LocalTest.Tests.csproj  # CI runs these too
 ```
 
 Normally you don't run it by hand — `studioctl env up` starts it (Docker/Podman) alongside the other
