@@ -71,8 +71,6 @@ internal sealed class CommitProcessState : WorkflowEngineCommandBase<ProcessStat
             }
 
             Instance instance = unitOfWork.Instance;
-            // The status comes from the acquired instance, never the payload, so only ReleaseProcessingStatus
-            // moves it to idle.
             newProcessState.Status = instance.Process?.Status;
             instance.Process = newProcessState;
             unitOfWork.UpdateProcessState(processStateChange);

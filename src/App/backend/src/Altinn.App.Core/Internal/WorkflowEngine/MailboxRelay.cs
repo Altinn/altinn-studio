@@ -231,8 +231,8 @@ internal sealed class MailboxRelay
     /// is the item this execution ran (what a successor receiver's step names), taken from the step's own
     /// payload; <paramref name="openingStageIndex"/> is the item that opened the exchange (the carry's key),
     /// read off the handler this hop's <c>ResolvePipeline()</c> produced. Re-deriving the latter carries a
-    /// mid-flight-reshape hazard, accepted and unguarded — see "Redeploys and reshaped pipelines" in
-    /// docs/workflow-engine-integration.md at the backend root.
+    /// mid-flight-reshape hazard, accepted and unguarded — see the Mailboxes section of this folder's
+    /// AGENTS.md.
     /// </summary>
     internal static ProcessEngineCommandResult Decide(
         ServiceTaskExchangeResult result,

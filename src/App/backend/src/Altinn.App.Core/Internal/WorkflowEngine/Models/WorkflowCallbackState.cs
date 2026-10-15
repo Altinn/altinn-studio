@@ -31,10 +31,10 @@ internal sealed record WorkflowCallbackState
     /// anything the engine reads. <c>null</c> for every workflow that has not opened a mailbox.
     /// </summary>
     /// <remarks>
-    /// A mailbox is minted under the <c>MintMailbox</c> step's engine-assigned step id, and no later step can
-    /// re-derive that key. The blob is the only channel between steps of one workflow, so the mailbox travels
-    /// here: written when it is minted, carried unchanged by every step in between, and read by the declaring
-    /// stage and by the step that enqueues the first receive workflow. Keyed per opening stage rather than held as a single value so a
+    /// A mailbox is minted under its declaring stage's engine-assigned step id, and no later step can re-derive
+    /// that key. The blob is the only channel between steps of one workflow, so the mailbox travels here:
+    /// written when it is minted, carried unchanged by every step in between, and read by the step that
+    /// enqueues the first receive workflow. Keyed per opening stage rather than held as a single value so a
     /// task that opens more than one exchange needs no blob-format change. Absent from blobs written before
     /// mailboxes existed, which deserialize to <c>null</c>.
     /// </remarks>

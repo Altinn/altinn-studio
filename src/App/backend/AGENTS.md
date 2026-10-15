@@ -106,7 +106,7 @@ All process transitions (ProcessNext) execute through the async Workflow Engine 
 an external engine service that calls back into the app. Anything touching process state, task
 start/end hooks, or service tasks runs on this foundation. Architecture, command sequences, and hard
 constraints (idempotency, state passthrough, callback auth):
-[workflow engine integration](docs/workflow-engine-integration.md).
+[WorkflowEngine/AGENTS.md](src/Altinn.App.Core/Internal/WorkflowEngine/AGENTS.md).
 
 ### Technology Stack
 

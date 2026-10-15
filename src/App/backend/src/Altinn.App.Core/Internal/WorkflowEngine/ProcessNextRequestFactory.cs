@@ -84,7 +84,7 @@ internal sealed class ProcessNextRequestFactory
 
     /// <summary>
     /// OperationId prefix for the fire-and-forget side-effects workflows (one single-step workflow
-    /// per side effect, enqueued as an atomic batch after the commit by
+    /// per side effect, enqueued as an atomic batch at the commit boundary by
     /// <see cref="EnqueueSideEffectsWorkflow"/>; each OperationId carries the command key as a
     /// suffix). A human-readable naming convention for ops queries and logs only - identification
     /// (wait/settle scoping, failure classification) is by the engine-persisted
@@ -196,8 +196,6 @@ internal sealed class ProcessNextRequestFactory
             CallbackToken = _callbackTokenGenerator.GenerateToken(instanceId.InstanceGuid, actor, workflows),
         };
         var labels = new Dictionary<string, string>(StringComparer.Ordinal);
-        // W1's only process-next label. Admission (GetCurrentTaskWorkflowState) finds the in-flight chain by
-        // it before W2 exists.
         if (CreateProcessNextId(instance.Process?.CurrentTask) is { } sourceId)
         {
             labels[ProcessNextSourceIdLabel] = sourceId;
@@ -284,8 +282,7 @@ internal sealed class ProcessNextRequestFactory
         labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
 
         // One EnqueueSideEffectsWorkflow step after the CommitProcessState commit schedules the
-        // transition's side effects, so they exist only for a committed transition. A process end
-        // schedules them after its post-commit steps, so a failure there delays them until a resume.
+        // transition's side effects, so they exist if and only if the transition committed.
         List<StepRequest> sideEffects = [];
         if (commands.SideEffects.Count > 0)
         {
@@ -391,8 +388,8 @@ internal sealed class ProcessNextRequestFactory
     /// <summary>
     /// The assembled step lists for one transition: the Main workflow's sequence through the
     /// CommitProcessState commit, the critical post-commit commands that follow it, and the
-    /// non-critical side-effect steps destined for the separate side-effects workflow (enqueued after
-    /// the commit by <see cref="EnqueueSideEffectsWorkflow"/>).
+    /// non-critical side-effect steps destined for the separate side-effects workflow (enqueued at
+    /// the commit boundary by <see cref="EnqueueSideEffectsWorkflow"/>).
     /// </summary>
     private readonly record struct AssembledCommands(
         List<StepRequest> ThroughCommit,
@@ -505,9 +502,6 @@ internal sealed class ProcessNextRequestFactory
         {
             commands.Add(CreateMutateProcessStateCommand(processStateChange));
         }
-        // Task-start steps save data before CommitProcessState persists the new task, so Storage authorizes
-        // those saves against the task being left. This relies on the service owner's write right not being
-        // limited to a task.
         commands.AddRange(taskStartSteps);
         commands.Add(CreateCommitProcessStateCommand(processStateChange));
 

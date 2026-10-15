@@ -794,8 +794,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// </summary>
     internal static bool IsSideEffectsWorkflow(WorkflowStatusResponse workflow) => workflow.IsHead == false;
 
-    // One namespace per app. The engine scopes idempotency keys, collections and mailboxes to it, so keys
-    // need to be unique only within this app.
     private string GetNamespace() => $"{_appIdentifier.Org}/{_appIdentifier.App}";
 
     private async Task<IReadOnlyList<WorkflowStatusResponse>> ListCurrentTaskProcessNextWorkflows(
@@ -1064,9 +1062,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// <summary>
     /// The engine records a failed app callback as e.g.
     /// <c>AppCommand failed with client error UnprocessableEntity: {ProblemDetails json}</c>.
-    /// Extract the ProblemDetails <c>detail</c> - the human-readable reason, e.g. a service task's
-    /// failure message - when the engine message embeds one, so server-side logs carry it. Clients
-    /// receive only a generic message. Falls back to the raw engine message otherwise.
+    /// This message surfaces all the way to the end user (the frontend shows the failure as a
+    /// notification), so extract the ProblemDetails <c>detail</c> - the human-readable reason,
+    /// e.g. a service task's failure message - when the engine message embeds one. Falls back to
+    /// the raw engine message otherwise.
     /// </summary>
     internal static string ExtractCallbackErrorDetail(string message)
     {
@@ -1097,9 +1096,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return message;
     }
 
-    // Keyed on the instance version alone, not the action or target: two different transitions submitted
-    // from the same snapshot collide in the engine as a concurrent transition, while a retried identical
-    // request deduplicates.
     internal static string CreateProcessNextIdempotencyKey(Instance instance, StorageVersionMetadata instanceVersions)
     {
         int instanceVersion =
