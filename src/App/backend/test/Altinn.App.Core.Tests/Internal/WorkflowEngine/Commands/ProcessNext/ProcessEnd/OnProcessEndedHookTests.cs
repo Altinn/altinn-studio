@@ -12,7 +12,7 @@ using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 
-public class OnProcessEndingHookTests
+public class OnProcessEndedHookTests
 {
     private static ProcessEngineCommandContext CreateContext(Instance instance)
     {
@@ -28,7 +28,7 @@ public class OnProcessEndingHookTests
             CancellationToken = new CancellationToken(canceled: true),
             Payload = new AppCallbackPayload
             {
-                CommandKey = OnProcessEndingHook.Key,
+                CommandKey = OnProcessEndedHook.Key,
                 Actor = new Actor { UserId = 1337 },
                 State = "{}",
                 WorkflowId = Guid.Empty,
@@ -38,17 +38,17 @@ public class OnProcessEndingHookTests
         };
     }
 
-    private static Instance CreateInstance(string taskId = "Task_1")
+    private static Instance CreateInstance()
     {
         return new Instance
         {
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
+            Process = new ProcessState { Ended = DateTime.UtcNow, EndEvent = "EndEvent_1" },
         };
     }
 
-    private static OnProcessEndingHook CreateCommand(params IOnProcessEndingHandler[] handlers)
+    private static OnProcessEndedHook CreateCommand(params IOnProcessEndedHandler[] handlers)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -57,7 +57,7 @@ public class OnProcessEndingHookTests
             services.AddSingleton(handler);
         }
         var sp = services.BuildServiceProvider();
-        return new OnProcessEndingHook(sp);
+        return new OnProcessEndedHook(sp);
     }
 
     [Fact]
@@ -78,8 +78,8 @@ public class OnProcessEndingHookTests
     public async Task Execute_WithOneHandler_ReturnsSuccess()
     {
         // Arrange
-        var handler = new Mock<IOnProcessEndingHandler>();
-        handler.Setup(x => x.Execute(It.IsAny<OnProcessEndingContext>())).ReturnsAsync(HookResult.Success());
+        var handler = new Mock<IOnProcessEndedHandler>();
+        handler.Setup(x => x.Execute(It.IsAny<OnProcessEndedContext>())).ReturnsAsync(HookResult.Success());
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
 
@@ -91,7 +91,7 @@ public class OnProcessEndingHookTests
         handler.Verify(
             x =>
                 x.Execute(
-                    It.Is<OnProcessEndingContext>(c =>
+                    It.Is<OnProcessEndedContext>(c =>
                         c.InstanceDataMutator == context.InstanceDataMutator
                         && c.CancellationToken.Equals(context.CancellationToken)
                     )
@@ -104,8 +104,8 @@ public class OnProcessEndingHookTests
     public async Task Execute_WithMultipleHandlers_ReturnsNonRetryableFailedResult()
     {
         // Arrange
-        var handler1 = new Mock<IOnProcessEndingHandler>();
-        var handler2 = new Mock<IOnProcessEndingHandler>();
+        var handler1 = new Mock<IOnProcessEndedHandler>();
+        var handler2 = new Mock<IOnProcessEndedHandler>();
         var command = CreateCommand(handler1.Object, handler2.Object);
         var context = CreateContext(CreateInstance());
 
@@ -117,16 +117,15 @@ public class OnProcessEndingHookTests
         Assert.True(failed.NonRetryable);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
         Assert.Contains("Multiple", failed.ErrorMessage);
-        Assert.Contains("Task_1", failed.ErrorMessage);
     }
 
     [Fact]
     public async Task Execute_WhenHandlerReturnsPermanentFailure_ReturnsNonRetryableFailedResult()
     {
         // Arrange
-        var handler = new Mock<IOnProcessEndingHandler>();
+        var handler = new Mock<IOnProcessEndedHandler>();
         handler
-            .Setup(x => x.Execute(It.IsAny<OnProcessEndingContext>()))
+            .Setup(x => x.Execute(It.IsAny<OnProcessEndedContext>()))
             .ReturnsAsync(HookResult.FailedPermanent("Hook failed"));
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
@@ -144,9 +143,9 @@ public class OnProcessEndingHookTests
     public async Task Execute_WhenHandlerReturnsRetryableFailure_ReturnsRetryableFailedResult()
     {
         // Arrange
-        var handler = new Mock<IOnProcessEndingHandler>();
+        var handler = new Mock<IOnProcessEndedHandler>();
         handler
-            .Setup(x => x.Execute(It.IsAny<OnProcessEndingContext>()))
+            .Setup(x => x.Execute(It.IsAny<OnProcessEndedContext>()))
             .ReturnsAsync(HookResult.FailedRetryable("Transient error"));
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
@@ -164,9 +163,9 @@ public class OnProcessEndingHookTests
     public async Task Execute_WhenHandlerThrows_ReturnsFailedResult()
     {
         // Arrange
-        var handler = new Mock<IOnProcessEndingHandler>();
+        var handler = new Mock<IOnProcessEndedHandler>();
         handler
-            .Setup(x => x.Execute(It.IsAny<OnProcessEndingContext>()))
+            .Setup(x => x.Execute(It.IsAny<OnProcessEndedContext>()))
             .ThrowsAsync(new InvalidOperationException("Handler exploded"));
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
