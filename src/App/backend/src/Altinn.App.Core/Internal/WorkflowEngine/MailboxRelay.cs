@@ -661,9 +661,8 @@ internal sealed class MailboxRelay
 
     /// <summary>
     /// The transition labels every workflow the relay enqueues must carry, re-derived from the committed
-    /// instance: <c>ResolveWorkflowTaskStatus</c> and the collection lookup in
-    /// <c>ListCurrentTaskProcessNextWorkflows</c> read them, and a successor invisible to that filter would
-    /// let downstream work start on an open exchange once retention purged the earlier workflows.
+    /// instance: <c>ResolveWorkflowTaskStatus</c> reads the target task to identify the successor's
+    /// destination.
     /// <c>processNextSourceId</c> is unrecoverable here and deliberately omitted.
     /// </summary>
     private static Dictionary<string, string> CreateSuccessorLabels(MailboxRelayRequest request)

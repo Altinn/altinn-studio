@@ -42,8 +42,7 @@ internal sealed class ProcessNextRequestFactory
 
     /// <summary>
     /// Composite process-next id (<c>"{taskId}:{flow}"</c>) of the task the transition moves to.
-    /// Absent on process end. Together with the source id this lets current-task lookups match a
-    /// transition leaving or entering the task.
+    /// Absent on process end. Identifies the destination task visit.
     /// </summary>
     internal const string ProcessNextTargetIdLabel = "processNextTargetId";
 
@@ -162,13 +161,11 @@ internal sealed class ProcessNextRequestFactory
         );
 
     /// <summary>
-    /// Claims the instance before the callback computes and enqueues the transition's steps.
-    /// Only the source task is known until acquisition succeeds and the callback computes the transition.
-    /// <paramref name="language"/> is the language process/next was called with (see <see cref="ExtractActor"/>).
+    /// Creates the acquire-only workflow for process/next.
     /// </summary>
     public async Task<WorkflowEnqueueEnvelope> CreateAcquire(
         Instance instance,
-        string? action,
+        ProcessStateChange processStateChange,
         string state,
         string idempotencyKey,
         string? language
@@ -182,7 +179,10 @@ internal sealed class ProcessNextRequestFactory
             new WorkflowRequest
             {
                 OperationId = $"{MainOperationIdPrefix} Mark instance as processing",
-                Steps = [CreateCommand(AcquireProcessingStatus.Key, new AcquireProcessingStatusPayload(action))],
+                Steps =
+                [
+                    CreateCommand(ProcessingStatusAcquirer.Key, new AcquireProcessingStatusPayload(processStateChange)),
+                ],
                 State = state,
             },
         ];
@@ -495,7 +495,7 @@ internal sealed class ProcessNextRequestFactory
         var commands = new List<StepRequest>();
         if (acquireProcessingStatus)
         {
-            commands.Add(CreateCommand(AcquireProcessingStatus.Key));
+            commands.Add(CreateCommand(ProcessingStatusAcquirer.Key));
         }
         commands.AddRange(taskEndSteps);
         if (taskEndSteps.Count > 0)

@@ -593,60 +593,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     }
 
     [Fact]
-    public async Task PostNewInstance_Simplified_AcquireConflictRetainsInstanceWithoutResumeAction()
-    {
-        string org = "tdd";
-        string app = "permissive-app";
-        int instanceOwnerPartyId = 501337;
-        using HttpClient client = GetRootedClient(
-            org,
-            app,
-            configureServices: services =>
-            {
-                services.RemoveAll<IWorkflowEngineClient>();
-                services.AddSingleton<IWorkflowEngineClient>(
-                    new AcceptedFailingWorkflowEngineClient(acquireConflict: true)
-                );
-            }
-        );
-        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
-
-        using var content = new StringContent(
-            $$"""
-            {
-              "instanceOwner": {
-                "partyId": "{{instanceOwnerPartyId}}"
-              }
-            }
-            """,
-            Encoding.UTF8,
-            "application/json"
-        );
-
-        using HttpResponseMessage createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
-        string createResponseContent = await createResponse.Content.ReadAsStringAsync();
-        OutputHelper.WriteLine(createResponseContent);
-
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
-        using JsonDocument document = JsonDocument.Parse(createResponseContent);
-        JsonElement root = document.RootElement;
-        root.GetProperty("status").GetInt32().Should().Be(StatusCodes.Status409Conflict);
-        root.GetProperty("initializationState").GetString().Should().Be("workflowFailed");
-        root.GetProperty("workflowAccepted").GetBoolean().Should().BeTrue();
-        root.GetProperty("recommendedAction").GetString().Should().Be("inspectInstance");
-        root.GetProperty("workflowFailure").GetProperty("kind").GetString().Should().Be("acquireConflict");
-        root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
-
-        string instanceId = root.GetProperty("instanceId").GetString()!;
-        Guid instanceGuid = Guid.Parse(instanceId.Split('/')[1]);
-        Instance storedInstance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
-        storedInstance.Status?.IsHardDeleted.Should().NotBe(true);
-
-        TestData.DeleteInstanceAndData(org, app, instanceId);
-    }
-
-    [Fact]
     public async Task PostNewInstance_Simplified_KeepsCreatedInstanceWhenAcceptedWorkflowFails()
     {
         string org = "tdd";
@@ -1560,9 +1506,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
-            throw new NotSupportedException();
-
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
@@ -1583,7 +1526,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         ) => throw new NotSupportedException();
     }
 
-    private sealed class AcceptedFailingWorkflowEngineClient(bool acquireConflict = false) : IWorkflowEngineClient
+    private sealed class AcceptedFailingWorkflowEngineClient : IWorkflowEngineClient
     {
         private readonly Guid _workflowId = Guid.NewGuid();
         private string? _collectionKey;
@@ -1659,7 +1602,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                         new StepStatusResponse
                         {
                             DatabaseId = Guid.NewGuid(),
-                            OperationId = acquireConflict ? AcquireProcessingStatus.Key : "StartTask",
+                            OperationId = "StartTask",
                             ProcessingOrder = 0,
                             Command = new StepStatusResponse.CommandDetails { Type = "app" },
                             Status = PersistentItemStatus.Failed,
@@ -1668,15 +1611,9 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                             [
                                 new ErrorEntry(
                                     DateTimeOffset.UtcNow,
-                                    acquireConflict
-                                        ? "AppCommand failed with client error Conflict: "
-                                            + "{\"workflowFailureCode\":\"acquireConcurrencyConflict\","
-                                            + "\"detail\":\"Refresh and retry.\"}"
-                                        : "Simulated workflow callback failure.",
-                                    acquireConflict
-                                        ? StatusCodes.Status409Conflict
-                                        : StatusCodes.Status500InternalServerError,
-                                    WasRetryable: !acquireConflict
+                                    "Simulated workflow callback failure.",
+                                    StatusCodes.Status500InternalServerError,
+                                    WasRetryable: true
                                 ),
                             ],
                         },
@@ -1696,9 +1633,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             bool cascade = false,
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
-
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
-            acquireConflict ? Task.FromResult(true) : throw new NotSupportedException();
 
         public Task<MailboxMintResult> MintMailbox(
             string ns,

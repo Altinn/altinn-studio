@@ -515,7 +515,6 @@ public class ProcessController : ControllerBase
         {
             int statusCode = result.WorkflowFailure.Kind switch
             {
-                WorkflowFailureKind.AcquireConflict => StatusCodes.Status409Conflict,
                 WorkflowFailureKind.Timeout => StatusCodes.Status504GatewayTimeout,
                 _ => StatusCodes.Status500InternalServerError,
             };
@@ -534,10 +533,7 @@ public class ProcessController : ControllerBase
             {
                 Detail = CreateClientWorkflowFailureDetail(result.WorkflowFailure.Kind),
                 Status = statusCode,
-                Title =
-                    result.WorkflowFailure.Kind == WorkflowFailureKind.AcquireConflict
-                        ? "The instance changed before the transition started."
-                        : "Something went wrong while moving to the next task.",
+                Title = "Something went wrong while moving to the next task.",
             };
             problemDetails.Extensions["workflowFailure"] = SanitizeWorkflowFailureForClient(result.WorkflowFailure);
             if (result.ProcessStateOnFailure is not null)
@@ -683,6 +679,7 @@ public class ProcessController : ControllerBase
         {
             ProcessNextState.Retrying => "retrying",
             ProcessNextState.ResumeRequired => "resumeRequired",
+            ProcessNextState.InstanceChanged => "instanceChanged",
             _ => throw new ArgumentOutOfRangeException(nameof(processNextState), processNextState, null),
         };
 
@@ -694,8 +691,6 @@ public class ProcessController : ControllerBase
     private static string CreateClientWorkflowFailureDetail(WorkflowFailureKind kind) =>
         kind switch
         {
-            WorkflowFailureKind.AcquireConflict =>
-                "The instance changed before the process transition could start. Refresh the instance and try again.",
             WorkflowFailureKind.Timeout => "Timeout while waiting for workflows to complete.",
             WorkflowFailureKind.DependencyFailed => "A workflow failed because a workflow it depends on failed.",
             WorkflowFailureKind.EngineFault => "The workflow engine failed while performing the process action.",
