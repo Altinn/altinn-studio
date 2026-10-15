@@ -176,6 +176,7 @@ const SummaryComponentInner = React.forwardRef(function (
         md: grid?.md,
         lg: grid?.lg,
       }}
+      data-summary-container
       data-testid={`summary-${summaryTestId}`}
       data-componentid={componentId}
       data-componentbaseid={componentBaseId}
