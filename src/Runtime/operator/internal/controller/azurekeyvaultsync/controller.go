@@ -49,7 +49,7 @@ func DefaultMappings(runtime rt.Runtime) []KeyVaultSecretMapping {
 	}
 	clientIdKey := fmt.Sprintf("Gateway--MaskinportenClientForDesigner--%s--ClientId", envInKey)
 	jwkKey := fmt.Sprintf("Gateway--MaskinportenClientForDesigner--%s--Jwk", envInKey)
-	return []KeyVaultSecretMapping{
+	mappings := []KeyVaultSecretMapping{
 		{
 			Name:      "maskinporten-client-for-designer",
 			Namespace: "runtime-gateway",
@@ -98,6 +98,31 @@ func DefaultMappings(runtime rt.Runtime) []KeyVaultSecretMapping {
 			},
 		},
 	}
+	// The pdf3 relay's key file, with the key the environment's DIS Core pdf3 accepts. Only
+	// environments with a DIS Core have the secret in their Key Vault.
+	if _, ok := disCoreEnvironments[env]; ok {
+		mappings = append(mappings, KeyVaultSecretMapping{
+			Name:      "pdf3-upstream-api-key",
+			Namespace: "runtime-pdf3",
+			FileName:  "key",
+			Secrets:   []string{"Pdf3--Upstream--ApiKey"},
+			Raw:       true,
+			BuildOutput: func(secrets map[string]string) any {
+				return secrets["Pdf3--Upstream--ApiKey"]
+			},
+		})
+	}
+	return mappings
+}
+
+// disCoreEnvironments are the environments with a DIS Core, see
+// docs/infrastructure/environments.md.
+var disCoreEnvironments = map[string]struct{}{
+	"at22":                          {},
+	"at23":                          {},
+	"yt01":                          {},
+	"tt02":                          {},
+	operatorcontext.EnvironmentProd: {},
 }
 
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;create;update
