@@ -20,6 +20,8 @@ vi.mock('react-router');
 vi.mock('src/utils/layout/hooks');
 vi.mock('src/utils/layout/useEvalExpression', () => ({
   useEvalExpression: (value: unknown, descriptor: { defaultValue: unknown }) => value ?? descriptor.defaultValue,
+  useEvalOptionalTrb: (config: { textResourceBindings?: Record<string, unknown> }, key: string) =>
+    config.textResourceBindings?.[key],
   useEvalOptionalText: (value: unknown, descriptor: { defaultValue: unknown }) =>
     value === undefined ? undefined : (value ?? descriptor.defaultValue),
 }));
