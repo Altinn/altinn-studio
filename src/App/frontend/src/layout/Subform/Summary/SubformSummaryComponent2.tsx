@@ -40,7 +40,15 @@ const SummarySubformWrapperInner = ({
 }>) => {
   const config = useComponentConfig(targetBaseComponentId, 'Subform');
   const componentId = useIndexedId(targetBaseComponentId);
-  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Subform.textResourceBindings.title);
+  const summaryTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Subform.textResourceBindings.summaryTitle,
+  );
+  const resolvedTitle = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.Subform.textResourceBindings.title,
+  );
+  const title = summaryTitle ?? resolvedTitle;
 
   const dataType = getDefaultDataTypeFromUiFolder(config.layoutSet);
   const dataElements = useInstanceDataElements(dataType);
