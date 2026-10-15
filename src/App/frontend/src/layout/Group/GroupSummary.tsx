@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ConditionalWrapper, Flex } from '@app/form-component';
+import { Flex } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -8,6 +8,7 @@ import type { HeadingProps } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
+import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig } from 'src/utils/layout/hooks';
@@ -44,12 +45,12 @@ function ChildComponent({ id, hierarchyLevel }: ChildComponentProps) {
 
   if (child.type === 'Group') {
     return (
-      <Flex item>
+      <EmptyChildrenBoundary>
         <GroupSummary
           targetBaseComponentId={id}
           hierarchyLevel={hierarchyLevel ? hierarchyLevel + 1 : 1}
         />
-      </Flex>
+      </EmptyChildrenBoundary>
     );
   }
 
@@ -73,16 +74,9 @@ export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: Grou
   const dataTestId = hierarchyLevel > 0 ? `summary-group-component-${hierarchyLevel}` : 'summary-group-component';
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
   return (
-    <ConditionalWrapper
-      condition={hierarchyLevel === 0}
-      wrapper={(children) => (
-        <SummaryFlexForContainer
-          hideWhen={hideEmptyFields}
-          targetBaseId={targetBaseComponentId}
-        >
-          {children}
-        </SummaryFlexForContainer>
-      )}
+    <SummaryFlexForContainer
+      hideWhen={hideEmptyFields}
+      targetBaseId={targetBaseComponentId}
     >
       <section
         className={cn(classes.groupContainer, { [classes.nested]: isNestedGroup })}
@@ -110,6 +104,6 @@ export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: Grou
           ))}
         </Flex>
       </section>
-    </ConditionalWrapper>
+    </SummaryFlexForContainer>
   );
 };
