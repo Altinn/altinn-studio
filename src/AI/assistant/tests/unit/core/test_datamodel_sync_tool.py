@@ -8,7 +8,7 @@ import pytest
 
 from agents.core import DatamodelSyncTool, LoopContext, ToolResult
 
-ALTINN_TOOLS_MODULE = "agents.core.tools.altinn_tools"
+DATAMODEL_SYNC_TOOL_MODULE = "agents.core.tools.datamodel_sync_tool"
 GENERATED_FILES = [
     {"path": "model.xsd", "content": "<xs:schema/>"},
     {"path": "model.cs", "content": "public class Model {}"},
@@ -18,7 +18,7 @@ GENERATED_FILES = [
 @pytest.fixture(autouse=True)
 def stub_generator(monkeypatch):
     monkeypatch.setattr(
-        f"{ALTINN_TOOLS_MODULE}.datamodel_sync",
+        f"{DATAMODEL_SYNC_TOOL_MODULE}.datamodel_sync",
         lambda **_: {"status": "ok", "generated": GENERATED_FILES},
     )
 

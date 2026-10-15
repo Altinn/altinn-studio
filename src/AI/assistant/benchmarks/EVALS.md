@@ -230,9 +230,9 @@ It reads the diff and matches it against the declaration below. It also computes
 `actor_prompt` and `tools` digests of the checkout and compares them with the digests in
 `BASELINE.json`. It fails when a change moves what is measured without a new
 `BASELINE.json`, or when the digests of the checkout are not equal to the baseline. It needs
-no secrets. It installs `requirements.txt`, because the digests import the agent code. If a
-digest fails, the gate fails, so a broken dependency cannot make the gate pass. The gate
-writes the error of a failed digest to the job log.
+no secrets. It installs the dependencies from `uv.lock`, because the digests import the agent
+code. If a digest fails, the gate fails, so a broken dependency cannot make the gate pass. The
+gate writes the error of a failed digest to the job log.
 
 Three reasons the pipeline does not run the bench.
 

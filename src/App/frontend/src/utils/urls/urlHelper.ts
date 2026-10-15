@@ -32,14 +32,6 @@ function isRecognizedAltinnHost(host: string): boolean {
   return extractAltinnHost(host) !== undefined;
 }
 
-export const returnBaseUrlToAltinn = (host: string): string | undefined => {
-  const altinnHost = extractAltinnHost(host);
-  if (!altinnHost) {
-    return undefined;
-  }
-  return `https://${altinnHost}/`;
-};
-
 function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?: string): string | undefined {
   if (isLocalEnvironment(host)) {
     return `http://${host}/`;
@@ -94,15 +86,14 @@ export const returnUrlToProfile = (host: string, _partyId?: number | undefined):
 };
 
 export const returnUrlToAllForms = (host: string): string | undefined => {
-  if (host.match(localRegex)) {
+  if (isLocalEnvironment(host)) {
     return `http://${host}/`;
   }
-
-  const baseUrl = returnBaseUrlToAltinn(host);
-  if (!baseUrl) {
-    return;
+  if (!isRecognizedAltinnHost(host)) {
+    return undefined;
   }
-  return `${baseUrl}skjemaoversikt`;
+
+  return GlobalData.platformFrontendSettings.allFormsUrl;
 };
 
 export function logoutUrlAltinn(host: string): string | undefined {

@@ -16,6 +16,7 @@ import (
 	"altinn.studio/pdf3/internal/log"
 	"altinn.studio/pdf3/internal/pdfa"
 	"altinn.studio/pdf3/internal/runtime"
+	"altinn.studio/pdf3/internal/serviceowner"
 	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/telemetry/attr"
 	"altinn.studio/pdf3/internal/testing"
@@ -28,8 +29,9 @@ type Custom struct {
 	// session is set once the browser has started, the worker isn't ready before
 	session        atomic.Pointer[browserSession]
 	pdfaConverter  *pdfa.Converter
+	environment    string
 	browserVersion types.BrowserVersion
-	convertToPDFA  bool
+	pdfa           config.PDFAConversionConfig
 }
 
 func New() (*Custom, error) {
@@ -37,13 +39,16 @@ func New() (*Custom, error) {
 	logger.Info("Starting PDF generator")
 	cfg := config.ReadConfig()
 
+	// Whether a PDF is converted to PDF/A depends on the request's service owner, so the converter
+	// is there for every request.
 	generator := &Custom{
 		logger:        logger,
 		tracer:        telemetry.Tracer(),
-		convertToPDFA: cfg.ShouldConvertToPDFA(),
+		pdfaConverter: pdfa.NewConverter(),
+		environment:   cfg.Environment,
+		pdfa:          cfg.PDFA,
 	}
-	if generator.convertToPDFA {
-		generator.pdfaConverter = pdfa.NewConverter()
+	if cfg.PDFA.EnabledFor(cfg.Environment, cfg.ServiceOwner) {
 		logger.Info(
 			"PDF/A conversion enabled",
 			attr.DeploymentEnvironmentName, cfg.Environment,
@@ -158,21 +163,24 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 	}
 }
 
+// prepareResponsePDF converts the PDF to PDF/A if that is enabled for the environment and the
+// request's service owner, see serviceowner.FromContext.
 func (g *Custom) prepareResponsePDF(ctx context.Context, requestURL string, data []byte) ([]byte, *types.PDFError) {
 	requestAttributes := telemetry.RequestAttributesFromContext(ctx)
-	if !g.convertToPDFA {
-		requestAttributes.SetPDFAConversion(g.convertToPDFA, "skipped", len(data), 0)
+	convertToPDFA := g.pdfa.EnabledFor(g.environment, serviceowner.FromContext(ctx))
+	if !convertToPDFA {
+		requestAttributes.SetPDFAConversion(convertToPDFA, "skipped", len(data), 0)
 		return data, nil
 	}
 
 	if ctx.Err() != nil {
-		requestAttributes.SetPDFAConversion(g.convertToPDFA, "canceled", len(data), 0)
+		requestAttributes.SetPDFAConversion(convertToPDFA, "canceled", len(data), 0)
 		return nil, types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
 	}
 
 	converted, pdfErr := g.postProcessPDF(ctx, data)
 	if pdfErr != nil {
-		requestAttributes.SetPDFAConversion(g.convertToPDFA, "failed", len(data), 0)
+		requestAttributes.SetPDFAConversion(convertToPDFA, "failed", len(data), 0)
 		g.logger.WarnContext(
 			ctx,
 			"PDF/A conversion failed, returning original PDF",
@@ -184,12 +192,11 @@ func (g *Custom) prepareResponsePDF(ctx context.Context, requestURL string, data
 		return data, nil
 	}
 
-	requestAttributes.SetPDFAConversion(g.convertToPDFA, "success", len(data), len(converted))
+	requestAttributes.SetPDFAConversion(convertToPDFA, "success", len(data), len(converted))
 	return converted, nil
 }
 
 func (g *Custom) postProcessPDF(ctx context.Context, data []byte) ([]byte, *types.PDFError) {
-	assert.That(g.convertToPDFA, "convertToPDFA config must be true for this method")
 	assert.That(g.pdfaConverter != nil, "PDF/A converter must be configured when conversion is enabled")
 	_, span := g.tracer.Start(ctx, "pdf.convert_to_pdfa", trace.WithSpanKind(trace.SpanKindInternal))
 	defer span.End()

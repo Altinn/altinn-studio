@@ -1,3 +1,5 @@
+// Package assert checks invariants and startup conditions. A failed assertion exits the process, so
+// deferred calls do not run. Return an error instead for a failure that a request can cause.
 package assert
 
 import (

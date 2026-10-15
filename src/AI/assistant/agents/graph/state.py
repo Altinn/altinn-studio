@@ -1,4 +1,4 @@
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -139,7 +139,7 @@ class AgentState(BaseModel):
     repo_path: str
     app_name: str
     developer: str
-    experiment: Optional["ExperimentContext"] = None
+    experiment: ExperimentContext | None = None
     org: str
     designer_api_key: str | None = None  # Designer API key for git operations through Gitea proxy
     trace_id: str | None = None  # Langfuse trace id, captured once at the root span

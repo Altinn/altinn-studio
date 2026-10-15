@@ -18,8 +18,12 @@ const (
 	EnvironmentLocaltest = "localtest"
 	// LocaltestPublicBaseURLEnv provides the canonical public base URL used for localtest URL rewriting.
 	LocaltestPublicBaseURLEnv = "PDF3_LOCALTEST_PUBLIC_BASE_URL"
-	// ServiceOwnerEnv provides the service owner for the current runtime cluster.
+	// ServiceOwnerEnv provides the service owner for the current runtime cluster. It is unset in a
+	// cluster shared by all service owners, see the serviceowner package.
 	ServiceOwnerEnv = "PDF3_SERVICEOWNER"
+	// APIKeysFileEnv points to a file with the API keys callers of the proxy must present, one per
+	// line. When it is unset, the proxy requires no API key.
+	APIKeysFileEnv = "PDF3_API_KEYS_FILE" //nolint:gosec // The name of an environment variable, not a credential.
 )
 
 // appHostnames maps environments to the hostname in app URLs, https://{org}.apps.{hostname}/{org}/{app}/,
@@ -56,8 +60,10 @@ type Config struct {
 	AppHostname            string
 	LocaltestPublicBaseURL string
 	ServiceOwner           string
-	PDFA                   PDFAConversionConfig
-	QueueSize              int
+	// APIKeysFile is the file of API keys the proxy requires, or empty if it requires none.
+	APIKeysFile string
+	PDFA        PDFAConversionConfig
+	QueueSize   int
 }
 
 func ReadConfig() *Config {
@@ -88,12 +94,9 @@ func ReadConfig() *Config {
 		QueueSize:              queueSize,
 		LocaltestPublicBaseURL: os.Getenv(LocaltestPublicBaseURLEnv),
 		ServiceOwner:           os.Getenv(ServiceOwnerEnv),
+		APIKeysFile:            os.Getenv(APIKeysFileEnv),
 		PDFA:                   defaultPDFAConversionConfig,
 	}
-}
-
-func (c *Config) ShouldConvertToPDFA() bool {
-	return c.PDFA.EnabledFor(c.Environment, c.ServiceOwner)
 }
 
 func (c PDFAConversionConfig) EnabledFor(environment string, serviceOwner string) bool {
