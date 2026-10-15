@@ -1,0 +1,10 @@
+{
+  "solution": {
+    "path": "All.sln",
+    "projects": [
+      "..\\test\\Altinn.App.Api.Tests\\Altinn.App.Api.Tests.csproj",
+      "..\\test\\Altinn.App.Core.Tests\\Altinn.App.Core.Tests.csproj",
+      "..\\test\\Altinn.App.SourceGenerator.Integration.Tests\\Altinn.App.SourceGenerator.Integration.Tests.csproj"
+    ]
+  }
+}
