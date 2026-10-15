@@ -10,6 +10,7 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
+import { getSelectionMode, ListComponent } from 'src/layout/List/ListComponent';
 import classes from 'src/layout/List/ListComponent.module.css';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
@@ -21,7 +22,25 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 
 type Row = Record<string, string | number | boolean>;
 
-export const ListSummary = ({ targetBaseComponentId }: Summary2Props) => {
+export const ListSummary = (props: Summary2Props) => {
+  const bindings = useDataModelBindingsFor(props.targetBaseComponentId, 'List');
+  if (getSelectionMode(bindings) === 'readonly') {
+    return (
+      <SummaryFlex
+        targetBaseId={props.targetBaseComponentId}
+        content={SummaryContains.Presentational}
+      >
+        <ListComponent
+          baseComponentId={props.targetBaseComponentId}
+          isSummary
+        />
+      </SummaryFlex>
+    );
+  }
+  return <SelectableListSummary {...props} />;
+};
+
+const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const emptyFieldText = useSummaryOverrides<'List'>(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
   const displayData = useDisplayData(targetBaseComponentId);
