@@ -9,10 +9,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
-### Changed
-
-- A task end that fails because of an error in the app, such as a broken layout expression, now fails the transition at once instead of retrying it for up to 24 hours. Fix the app, then resume it in the admin panel. ([#21175](https://github.com/Altinn/altinn-studio/pull/21175))
-
 ### Fixed
 
 - A service task that gives up when `Wait.IsFinalCheck` is `true` can no longer fail with the generic error for an exhausted wait budget instead of its own. In unit tests, set `IsFinalCheck` directly: a past `Deadline` no longer implies it.

@@ -272,7 +272,7 @@ public class CommonTaskFinalizationTests
     }
 
     [Fact]
-    public async Task Execute_WhenProcessingFails_ReturnsPermanentFailure()
+    public async Task Execute_WhenExceptionThrown_ReturnsFailedResult()
     {
         // Arrange
         var instance = CreateInstance("Task_1");
@@ -304,45 +304,5 @@ public class CommonTaskFinalizationTests
         // Assert
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.Contains("Form data not found", failed.ErrorMessage);
-        Assert.True(failed.NonRetryable);
-    }
-
-    [Fact]
-    public async Task Execute_WhenAccessCheckFails_ReturnsRetryableFailure()
-    {
-        // Arrange
-        var instance = CreateInstance("Task_1");
-        var dataElement = new DataElement { Id = Guid.NewGuid().ToString(), DataType = "model" };
-        instance.Data = [dataElement];
-
-        var accessCheckerMock = new Mock<IDataElementAccessChecker>();
-        accessCheckerMock
-            .Setup(x => x.CanRead(It.IsAny<Instance>(), It.IsAny<DataType>()))
-            .ThrowsAsync(new HttpRequestException("Authorization unavailable"));
-
-        var appMetadata = new ApplicationMetadata("ttd/test-app")
-        {
-            DataTypes =
-            [
-                new DataType
-                {
-                    Id = "model",
-                    TaskId = "Task_1",
-                    AppLogic = new ApplicationLogic { ClassRef = "App.Models.TestModel" },
-                },
-            ],
-        };
-
-        var command = CreateCommand(appMetadata, accessCheckerMock: accessCheckerMock);
-        var (context, mutatorMock) = CreateContextWithMutator(instance);
-
-        // Act
-        var result = await command.Execute(context);
-
-        // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.Contains("Authorization unavailable", failed.ErrorMessage);
-        Assert.False(failed.NonRetryable);
-        mutatorMock.Verify(x => x.GetFormDataWrapper(It.IsAny<DataElementIdentifier>()), Times.Never);
     }
 }
