@@ -46,17 +46,18 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
         Instance instance = dataMutator.Instance;
         string taskId = instance.Process.CurrentTask.ElementId;
 
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
+
+        List<(DataElement DataElement, DataType DataType)> dataElements = [];
         try
         {
-            ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
-
-            List<Task> tasks = [];
             foreach (
                 var dataType in applicationMetadata.DataTypes.Where(dt =>
                     dt.TaskId == taskId && dt.AppLogic?.ClassRef is not null
                 )
             )
             {
+                // May call Altinn Authorization, so a failure here can be transient
                 if (await _dataElementAccessChecker.CanRead(instance, dataType) is false)
                 {
                     continue;
@@ -64,19 +65,30 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
 
                 foreach (var dataElement in instance.Data.Where(de => de.DataType == dataType.Id))
                 {
-                    tasks.Add(
-                        RemoveFieldsOnTaskComplete(dataMutator, taskId, applicationMetadata, dataElement, dataType)
-                    );
+                    dataElements.Add((dataElement, dataType));
                 }
             }
+        }
+        catch (Exception ex)
+        {
+            return FailedProcessEngineCommandResult.Retryable(ex);
+        }
 
-            await Task.WhenAll(tasks);
+        try
+        {
+            await Task.WhenAll(
+                dataElements.Select(d =>
+                    RemoveFieldsOnTaskComplete(dataMutator, taskId, applicationMetadata, d.DataElement, d.DataType)
+                )
+            );
 
             return new SuccessfulProcessEngineCommandResult();
         }
         catch (Exception ex)
         {
-            return FailedProcessEngineCommandResult.Retryable(ex);
+            // The form data comes with the callback state and the app files are in memory, so this fails
+            // the same way on every attempt until the app is fixed
+            return FailedProcessEngineCommandResult.Permanent(ex.Message, ex.GetType().Name);
         }
     }
 
