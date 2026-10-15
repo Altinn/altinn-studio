@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process';
 //   1. AGENTS.md is the only agent instruction file, so a CLAUDE.md is a regression.
 //   2. Every directory with an AGENTS.md also has a README.md.
 //   3. AGENTS.md files use plain Markdown links, not harness-specific imports such as `@README.md`.
-//   4. Skills live only in agents/skills/.
+//   4. Skills live only in agents/_skills/.
 //   5. Relative links in AGENTS.md, README.md and docs/ files resolve.
 //   6. docs/README.md links every file under docs/.
 //   7. The root AGENTS.md repository map mentions every tracked top-level directory and every
@@ -14,7 +14,7 @@ import { execFileSync } from 'node:child_process';
 
 const ROOT_DOC = 'AGENTS.md';
 const DOCS_INDEX = 'docs/README.md';
-const SKILLS_DIR = 'agents/skills/';
+const SKILLS_DIR = 'agents/_skills/';
 // Directories that intentionally have no entry in the root map.
 const COVERAGE_EXEMPT = new Set(['node_modules']);
 
@@ -75,7 +75,7 @@ for (const file of agentsFiles) {
   });
 }
 
-// --- 4. Skills only in agents/skills/ ---
+// --- 4. Skills only in agents/_skills/ ---
 
 for (const file of gitListFiles('SKILL.md', '**/SKILL.md')) {
   if (!file.startsWith(SKILLS_DIR)) {
