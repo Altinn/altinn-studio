@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.Expressions;
@@ -21,7 +21,7 @@ public readonly struct Expression : IEquatable<Expression>
     public Expression(ExpressionValue value)
     {
         Function = ExpressionFunction.LITERAL_VALUE;
-        Args = null;
+        Args = default;
         ValueUnion = value;
     }
 
@@ -39,6 +39,26 @@ public readonly struct Expression : IEquatable<Expression>
             throw new ArgumentNullException(
                 nameof(args),
                 "Args cannot be null when constructing a function expression"
+            );
+        }
+        Function = function;
+        Args = ImmutableArray.Create(args);
+    }
+
+    /// <summary>
+    /// Construct a function expression without copying the arguments
+    /// </summary>
+    internal Expression(ExpressionFunction function, ImmutableArray<Expression> args)
+    {
+        if (function == ExpressionFunction.LITERAL_VALUE)
+        {
+            throw new ArgumentException("Function LITERAL_VALUE cannot have arguments", nameof(function));
+        }
+        if (args.IsDefault)
+        {
+            throw new ArgumentNullException(
+                nameof(args),
+                "Args cannot be default when constructing a function expression"
             );
         }
         Function = function;
@@ -75,15 +95,13 @@ public readonly struct Expression : IEquatable<Expression>
     /// <summary>
     /// Test function to see if this is representing a function with args.
     /// </summary>
-    [MemberNotNullWhen(true, nameof(Args))]
     [Obsolete("Use !IsLiteralValue instead")]
     public bool IsFunctionExpression => !IsLiteralValue;
 
     /// <summary>
     /// Test to see if this expression must be evaluated or is just a literal value.
     /// </summary>
-    [MemberNotNullWhen(false, nameof(Args))]
-    public bool IsLiteralValue => Args == null;
+    public bool IsLiteralValue => Args.IsDefault;
 
     /// <summary>
     /// Name of the function. Must be one those actually implemented in <see cref="ExpressionEvaluator" />
@@ -93,7 +111,10 @@ public readonly struct Expression : IEquatable<Expression>
     /// <summary>
     /// List of arguments to the function. These expressions will be evaluated before passed to the function.
     /// </summary>
-    public Expression[]? Args { get; }
+    /// <remarks>
+    /// Default (<see cref="ImmutableArray{T}.IsDefault"/>) for a literal value, see <see cref="IsLiteralValue"/>.
+    /// </remarks>
+    public ImmutableArray<Expression> Args { get; }
 
     /// <summary>
     /// Get the object value for backwards compatibility
