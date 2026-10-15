@@ -1,6 +1,7 @@
 # Documentation structure and content
 
-These rules implement the [documentation ADR](../adr/2026-10-07-documentation-structure-and-content.md).
+These are the current rules for documentation in this repository. The
+[documentation ADR](../adr/2026-10-07-documentation-structure-and-content.md) records why we chose them.
 Agent-specific direction belongs in `AGENTS.md`, skills, and agent definitions. Everything else goes in ordinary
 documentation that people and agents both read.
 
