@@ -30,6 +30,9 @@ patches:
         PlatformFrontendSettings__ArbeidsflateDialogUrl: https://af.at23.altinn.cloud/inbox/{dialogId}
         PlatformFrontendSettings__ArbeidsflateProfileUrl: https://af.at23.altinn.cloud/profile
         PlatformFrontendSettings__AccessManagementChangeAndRedirectUrl: https://am.ui.at23.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}
+        PlatformFrontendSettings__AccessManagementUrl: https://am.ui.at23.altinn.cloud/accessmanagement/ui
+        PlatformFrontendSettings__RolesAndRightsHelpUrl: https://at23.altinn.cloud/hjelp/profil/enkelttjenester-og-roller/
+        PlatformFrontendSettings__ArbeidsflatePartiesUrl: https://af.at23.altinn.cloud/profile/parties
         AppSettings__OpenIdWellKnownEndpoint: https://platform.at23.altinn.cloud/authentication/api/v1/openid/
         ASPNETCORE_ENVIRONMENT: Staging
   - target:
@@ -62,7 +65,10 @@ patches:
               "ArbeidsflateInboxUrl": "https://af.at23.altinn.cloud/",
               "ArbeidsflateDialogUrl": "https://af.at23.altinn.cloud/inbox/{dialogId}",
               "ArbeidsflateProfileUrl": "https://af.at23.altinn.cloud/profile",
-              "AccessManagementChangeAndRedirectUrl": "https://am.ui.at23.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}"
+              "AccessManagementChangeAndRedirectUrl": "https://am.ui.at23.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}",
+              "AccessManagementUrl": "https://am.ui.at23.altinn.cloud/accessmanagement/ui",
+              "RolesAndRightsHelpUrl": "https://at23.altinn.cloud/hjelp/profil/enkelttjenester-og-roller/",
+              "ArbeidsflatePartiesUrl": "https://af.at23.altinn.cloud/profile/parties"
             },
             "AppSettings": {
               "OpenIdWellKnownEndpoint": "https://platform.at23.altinn.cloud/authentication/api/v1/openid/"

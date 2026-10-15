@@ -23,6 +23,9 @@ patches:
       - op: replace
         path: /data/environment
         value: prod
+      - op: replace
+        path: /data/cluster
+        value: dis-core-prod-aks
   - target:
       kind: HTTPRoute
       group: gateway.networking.k8s.io

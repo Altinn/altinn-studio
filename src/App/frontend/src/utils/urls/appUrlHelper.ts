@@ -100,22 +100,6 @@ export const getEnvironmentLoginUrl = (oidcProvider: string | null): string | un
   return `${loginUrl}${loginUrl.includes('?') ? '&' : '?'}iss=${oidcProvider}`;
 };
 
-export const getHostname = () => {
-  // First split away the protocol 'https://' and take the last part. Then split on dots.
-  const domainSplit: string[] = window.location.host.split('.');
-  if (domainSplit.length === 5) {
-    return `${domainSplit[2]}.${domainSplit[3]}.${domainSplit[4]}`;
-  }
-  if (domainSplit.length === 4) {
-    return `${domainSplit[2]}.${domainSplit[3]}`;
-  }
-  if (domainSplit[0] === 'altinn3local' || domainSplit[0] === 'local') {
-    // Local test, needs to be backward compat with users who uses old local test
-    return window.location.host;
-  }
-  throw new Error('Unknown domain');
-};
-
 export const redirectToUpgrade = () => {
   const upgradeUrl = getUpgradeAuthLevelUrl();
   if (upgradeUrl) {
