@@ -1,11 +1,13 @@
 import { pathToFileURL } from "node:url";
 
-const VALID_MODES = new Set(["studio", "studio-preapproved", "runtime"]);
+const VALID_MODES = new Set(["studio", "studio-preapproved", "runtime", "dis-core"]);
 const DEFAULTS_BY_MODE = {
   "studio": "dev,staging,prod",
   "studio-preapproved": "dev,staging,preapproved-prod",
   "runtime": "at_ring1,at_ring2,tt_ring1,tt_ring2,prod_ring1,prod_ring2",
+  "dis-core": "at22,at23,yt01,tt02,prod",
 };
+// DIS Core has no override: a push covers every Core environment.
 const OVERRIDE_DEFAULT_ENV_BY_MODE = {
   "studio": "OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS",
   "studio-preapproved": "OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS",
@@ -17,26 +19,31 @@ const ALLOWED_VALUES_BY_MODE = {
     DEFAULTS_BY_MODE["studio-preapproved"].split(",").map((value) => value.trim())
   ),
   "runtime": new Set(DEFAULTS_BY_MODE["runtime"].split(",").map((value) => value.trim())),
+  "dis-core": new Set(DEFAULTS_BY_MODE["dis-core"].split(",").map((value) => value.trim())),
 };
 
 /**
- * Construct parsed output for studio or runtime environment inputs.
- * @param {{mode: string, inputs?: string, allowEmpty?: boolean|string}} input
- * @returns {Array<{environment: string, ring?: string}>}
+ * Construct parsed output for studio, runtime or DIS Core environment inputs.
+ * @param {{mode: string, inputs?: string, inputsKey?: string, allowEmpty?: boolean|string}} input
+ * @returns {Array<{environment: string, ring?: string, tag?: string}>}
  */
 export function constructResult(input) {
   const mode = input.mode;
   if (!VALID_MODES.has(mode)) {
-    throw new Error("mode must be 'studio', 'studio-preapproved', or 'runtime'.");
+    throw new Error("mode must be 'studio', 'studio-preapproved', 'runtime', or 'dis-core'.");
   }
 
   const allowEmpty = parseBool(input.allowEmpty);
   const inputs = input.inputs ?? "null";
+  const inputsKey = input.inputsKey ?? "environments";
+  if (inputsKey === "") {
+    throw new Error("inputs-key cannot be empty.");
+  }
   const parsedInputs = parseInputs(inputs);
   let raw = "";
 
   if (raw === "" && parsedInputs !== null) {
-    raw = getEnvironmentsFromInputs(parsedInputs);
+    raw = getEnvironmentsFromInputs(parsedInputs, inputsKey);
   }
 
   // No workflow_dispatch inputs context (e.g. push) with no explicit value/input:
@@ -62,6 +69,9 @@ export function constructResult(input) {
     case "runtime":
       validateValues(values, allowedValues, "runtime ring");
       return values.map((ring) => ({ ring, environment: `runtime_${ring}` }));
+    case "dis-core":
+      validateValues(values, allowedValues, "DIS Core environment");
+      return values.map((tag) => ({ environment: `dis_core_${tag}`, tag }));
     default:
       throw new Error("unreachable mode.");
   }
@@ -96,19 +106,20 @@ function parseInputs(inputs) {
 
 /**
  * @param {Record<string, unknown>} parsedInputs
+ * @param {string} key
  * @returns {string}
  */
-function getEnvironmentsFromInputs(parsedInputs) {
-  if (!("environments" in parsedInputs)) {
+function getEnvironmentsFromInputs(parsedInputs, key) {
+  if (!Object.hasOwn(parsedInputs, key)) {
     return "";
   }
 
-  const value = parsedInputs.environments;
+  const value = parsedInputs[key];
   if (value === null || value === undefined) {
     return "";
   }
   if (typeof value !== "string") {
-    throw new Error("input 'environments' must be a string.");
+    throw new Error(`input '${key}' must be a string.`);
   }
   return value;
 }
@@ -150,21 +161,26 @@ function parseBool(value) {
 }
 
 /**
- * @param {"studio"|"studio-preapproved"|"runtime"} mode
+ * @param {"studio"|"studio-preapproved"|"runtime"|"dis-core"} mode
  * @returns {string}
  */
 function getDefaultOverrideValue(mode) {
-  return (process.env[OVERRIDE_DEFAULT_ENV_BY_MODE[mode]] ?? "").trim();
+  const name = OVERRIDE_DEFAULT_ENV_BY_MODE[mode];
+  if (name === undefined) {
+    return "";
+  }
+  return (process.env[name] ?? "").trim();
 }
 
 /**
  * @param {string[]} argv
- * @returns {{mode: string, inputs: string, allowEmpty: string}}
+ * @returns {{mode: string, inputs: string, inputsKey: string, allowEmpty: string}}
  */
 function parseArgs(argv) {
   const args = {
     mode: "",
     inputs: "null",
+    inputsKey: "environments",
     allowEmpty: "false",
   };
 
@@ -185,6 +201,9 @@ function parseArgs(argv) {
       case "--inputs":
         args.inputs = next;
         break;
+      case "--inputs-key":
+        args.inputsKey = next;
+        break;
       case "--allow-empty":
         args.allowEmpty = next;
         break;
@@ -203,6 +222,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     const result = constructResult({
       mode: args.mode,
       inputs: args.inputs,
+      inputsKey: args.inputsKey,
       allowEmpty: args.allowEmpty,
     });
     process.stdout.write(`${JSON.stringify(result)}\n`);

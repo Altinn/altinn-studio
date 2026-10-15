@@ -695,22 +695,8 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	}
 	startedAt := time.Now()
 
-	//nolint:gosec // G204: binary path comes from resolved studioctl config.
-	cmd := exec.CommandContext(context.WithoutCancel(ctx), cfg.StudioctlServerBinaryPath())
-	cmd.Dir = startConfig.WorkingDir
-	cmd.Env = studioctlServerEnvironment(startConfig)
-	devNull, err := os.OpenFile(os.DevNull, os.O_RDWR, 0)
-	if err != nil {
-		return fmt.Errorf("open null device: %w", err)
-	}
-	defer ignoreError(devNull.Close())
-
-	cmd.Stdin = devNull
-	cmd.Stdout = devNull
-	cmd.Stderr = devNull
-	osutil.ApplyDetachedAttrs(cmd)
-
-	err = cmd.Start()
+	cmd := studioctlServerCommand(ctx, cfg, startConfig)
+	err := cmd.Start()
 	if err != nil {
 		return fmt.Errorf("start studioctl-server: %w", err)
 	}
@@ -741,6 +727,17 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	ignoreError(osutil.KillProcess(startedPID))
 	ignoreError(removeStudioctlServerState(cfg))
 	return err
+}
+
+func studioctlServerCommand(ctx context.Context, cfg *config.Config, startConfig startConfig) *exec.Cmd {
+	//nolint:gosec // G204: binary path comes from resolved studioctl config.
+	cmd := exec.CommandContext(context.WithoutCancel(ctx), cfg.StudioctlServerBinaryPath())
+	cmd.Dir = startConfig.WorkingDir
+	cmd.Env = studioctlServerEnvironment(startConfig)
+	// Leave Stdin, Stdout, and Stderr nil so os/exec connects them to the null device
+	// and closes its parent-side handles after Start.
+	osutil.ApplyDetachedAttrs(cmd)
+	return cmd
 }
 
 func studioctlServerEnvironment(startConfig startConfig) []string {
