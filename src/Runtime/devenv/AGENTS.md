@@ -32,4 +32,6 @@ make run / make stop # start/stop the standard runtime-fixture container
   `pkg/runtimes/kind/testdata/dashboards` so they never clone.
 - `MonitoringProfileFull` (`--monitoring-profile full`) reconciles the `*-full` overlays and syncs the
   alert rules and contact points too, notifying the in-cluster `alert-recorder`. `cmd/alerttest`
-  (`make test-alerts-check`) checks them against the running fixture.
+  (`make test-alerts-check`, `make test-alerts`, `make test-alerts-quiet`) checks and fires them against
+  the running fixture; each fault is a `Scenario` in `pkg/alerttest`, and reads the rule from Grafana
+  rather than copying its query.

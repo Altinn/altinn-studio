@@ -45,6 +45,7 @@ type Rule struct {
 	UID       string `json:"uid"`
 	Title     string `json:"title"`
 	RuleGroup string `json:"ruleGroup"`
+	For       string `json:"for"`
 }
 
 // Rules returns every alert rule Grafana has.
@@ -54,16 +55,31 @@ func (g *Grafana) Rules(ctx context.Context) ([]Rule, error) {
 	return rules, err
 }
 
+// Rule returns the alert rule with the given UID.
+func (g *Grafana) Rule(ctx context.Context, uid string) (Rule, error) {
+	var rule Rule
+	err := g.request(ctx, http.MethodGet, "/api/v1/provisioning/alert-rules/"+url.PathEscape(uid), nil, nil, &rule)
+	return rule, err
+}
+
 // RuleState is a rule's latest evaluation, with the folder path and group Grafana lists it in.
 type RuleState struct {
 	// LastEvaluation is zero until Grafana evaluates the rule.
-	LastEvaluation time.Time `json:"lastEvaluation"`
-	UID            string    `json:"uid"`
-	State          string    `json:"state"`
-	Health         string    `json:"health"`
-	LastError      string    `json:"lastError"`
-	Folder         string    `json:"folder"`
-	Group          string    `json:"group"`
+	LastEvaluation time.Time       `json:"lastEvaluation"`
+	UID            string          `json:"uid"`
+	State          string          `json:"state"`
+	Health         string          `json:"health"`
+	LastError      string          `json:"lastError"`
+	Folder         string          `json:"folder"`
+	Group          string          `json:"group"`
+	Alerts         []AlertInstance `json:"alerts"`
+}
+
+// AlertInstance is one series of a rule and its state, such as Normal, Pending, Alerting, or
+// one of them with a reason, such as "Normal (NoData)".
+type AlertInstance struct {
+	Labels map[string]string `json:"labels"`
+	State  string            `json:"state"`
 }
 
 // RuleStates returns the latest evaluation of every rule, by UID.
@@ -117,6 +133,50 @@ func (g *Grafana) Query(ctx context.Context, expr string) ([]Sample, error) {
 	path := "/api/datasources/proxy/uid/" + metricsDatasourceUID + "/api/v1/query"
 	err := g.request(ctx, http.MethodGet, path, url.Values{"query": {expr}}, nil, &response)
 	return response.Data.Result, err
+}
+
+// QueryValue runs an instant query and returns the value of its first series, and whether it
+// returned one.
+func (g *Grafana) QueryValue(ctx context.Context, expr string) (float64, bool, error) {
+	samples, err := g.Query(ctx, expr)
+	if err != nil || len(samples) == 0 {
+		return 0, false, err
+	}
+	return samples[0].Float(), true, nil
+}
+
+// DashboardPanels returns a dashboard's panel titles by ID.
+func (g *Grafana) DashboardPanels(ctx context.Context, uid string) (map[int]string, error) {
+	type panel struct {
+		Title  string  `json:"title"`
+		Panels []panel `json:"panels"`
+		ID     int     `json:"id"`
+	}
+	var response struct {
+		Dashboard struct {
+			Panels []panel `json:"panels"`
+		} `json:"dashboard"`
+	}
+	if err := g.request(
+		ctx,
+		http.MethodGet,
+		"/api/dashboards/uid/"+url.PathEscape(uid),
+		nil,
+		nil,
+		&response,
+	); err != nil {
+		return nil, err
+	}
+	panels := map[int]string{}
+	var walk func([]panel)
+	walk = func(items []panel) {
+		for _, item := range items {
+			panels[item.ID] = item.Title
+			walk(item.Panels)
+		}
+	}
+	walk(response.Dashboard.Panels)
+	return panels, nil
 }
 
 // ContactPoint is one receiver of a contact point, with its settings decrypted.
