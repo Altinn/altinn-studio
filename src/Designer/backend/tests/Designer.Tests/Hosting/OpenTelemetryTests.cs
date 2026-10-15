@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Filters.IO;
 using Altinn.Studio.Designer.Hosting;
@@ -27,6 +28,9 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using WireMock.RequestBuilders;
+using WireMock.ResponseBuilders;
+using WireMock.Server;
 using Xunit;
 
 namespace Designer.Tests.Hosting;
@@ -90,6 +94,97 @@ public class OpenTelemetryTests
             resource.Attributes,
             attribute => attribute is { Key: "service.version", Value: ServiceVersion }
         );
+    }
+
+    [Fact]
+    public async Task Resource_HasSameProcessInstanceIdForAllSignals()
+    {
+        await StartAsync();
+
+        Resource traces = Services.GetRequiredService<TracerProvider>().GetResource();
+        Resource metrics = Services.GetRequiredService<MeterProvider>().GetResource();
+        Resource logs = Assert
+            .Single(Services.GetServices<ILoggerProvider>().OfType<OpenTelemetryLoggerProvider>())
+            .GetResource();
+        foreach (Resource resource in new[] { traces, metrics, logs })
+        {
+            Assert.Contains(
+                resource.Attributes,
+                attribute =>
+                    attribute is { Key: "service.instance.id" }
+                    && Equals(attribute.Value, InstanceTelemetry.ServiceInstanceId)
+            );
+        }
+        Assert.True(Guid.TryParse(InstanceTelemetry.ServiceInstanceId, out _));
+    }
+
+    [Fact]
+    public async Task Resource_AllowsConfiguredInstanceId()
+    {
+        JsonConfigOverrides.Add(
+            """{ "OTEL_RESOURCE_ATTRIBUTES": "service.instance.id=configured-instance,service.version=overridden" }"""
+        );
+        await StartAsync();
+
+        Resource resource = Services.GetRequiredService<MeterProvider>().GetResource();
+
+        Assert.Contains(
+            resource.Attributes,
+            attribute => attribute is { Key: "service.instance.id", Value: "configured-instance" }
+        );
+        Assert.Contains(
+            resource.Attributes,
+            attribute => attribute is { Key: "service.version", Value: ServiceVersion }
+        );
+    }
+
+    [Fact]
+    public async Task InstanceStartTime_ExportsOneGaugePerCollectionWithTheProcessStartTime()
+    {
+        await StartAsync();
+        using Process process = Process.GetCurrentProcess();
+        double expectedStartTime =
+            new DateTimeOffset(process.StartTime.ToUniversalTime()).ToUnixTimeMilliseconds() / 1000d;
+        MeterProvider provider = Services.GetRequiredService<MeterProvider>();
+
+        for (int collection = 0; collection < 2; collection++)
+        {
+            _metrics.Clear();
+            provider.ForceFlush();
+
+            Metric metric = Assert.Single(_metrics, metric => metric.Name == "altinn.instance.start_time");
+            Assert.Equal("s", metric.Unit);
+            Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
+            MetricPoint point = Assert.Single(MetricPoints("altinn.instance.start_time"));
+            Assert.Equal(expectedStartTime, point.GetGaugeLastValueDouble());
+            Assert.Equal(0, point.Tags.Count);
+        }
+    }
+
+    [Fact]
+    public async Task InstanceStartTime_KeepsItsNameInTheOtlpPayload()
+    {
+        using WireMockServer collector = WireMockServer.Start();
+        collector
+            .Given(Request.Create().WithPath("/v1/metrics").UsingPost())
+            .RespondWith(Response.Create().WithStatusCode(200));
+        JsonConfigOverrides.Add(
+            $$"""
+            {
+                "OTEL_EXPORTER_OTLP_ENDPOINT": "{{collector.Url}}",
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf"
+            }
+            """
+        );
+        await StartAsync();
+
+        Assert.True(Services.GetRequiredService<MeterProvider>().ForceFlush());
+
+        var request = Assert
+            .Single(collector.LogEntries, entry => entry.RequestMessage?.Path == "/v1/metrics")
+            .RequestMessage!;
+        Assert.Equal("application/x-protobuf", Assert.Single(request.Headers!["Content-Type"]));
+        Assert.Contains("altinn.instance.start_time", Encoding.UTF8.GetString(request.BodyData!.BodyAsBytes!));
     }
 
     [Fact]

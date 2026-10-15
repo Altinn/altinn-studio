@@ -18,6 +18,7 @@ func TestNewResource(t *testing.T) {
 			}
 			for key, want := range map[attribute.Key]string{
 				semconv.ServiceVersionKey:            serviceVersion,
+				semconv.ServiceInstanceIDKey:         instanceID,
 				semconv.DeploymentEnvironmentNameKey: environment,
 				semconv.K8SPodUIDKey:                 "pod",
 			} {
@@ -26,5 +27,18 @@ func TestNewResource(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestNewResourceAllowsIdentityOverride(t *testing.T) {
+	t.Setenv("OTEL_RESOURCE_ATTRIBUTES", "service.instance.id=explicit,service.version=build-42")
+	res, err := newResource(t.Context(), "local")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for key, want := range map[attribute.Key]string{semconv.ServiceInstanceIDKey: "explicit", semconv.ServiceVersionKey: "build-42"} {
+		if got, _ := res.Set().Value(key); got.AsString() != want {
+			t.Errorf("%s = %q, want %q", key, got.AsString(), want)
+		}
 	}
 }
