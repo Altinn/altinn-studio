@@ -1,9 +1,8 @@
 # Documentation structure and content
 
 These rules implement the [documentation ADR](../adr/2026-10-07-documentation-structure-and-content.md).
-Product development documentation is useful to everyone. Only agent-specific direction belongs in `AGENTS.md`,
-skills, and agent definitions. Keep technical information high level and link to code or configuration where
-those files define the facts.
+Agent-specific direction belongs in `AGENTS.md`, skills, and agent definitions. Everything else goes in ordinary
+documentation that people and agents both read.
 
 ## Where information belongs
 
@@ -14,7 +13,7 @@ Each fact has one home. Other files link to it instead of repeating it.
 | Product introduction and repository map              | Root `README.md`                                                           |
 | Documentation index                                  | `docs/README.md`                                                           |
 | Development practices                                | `CONTRIBUTING.md`, with details in `docs/development/`                     |
-| Architecture, environments, deployment, and DIS      | `docs/architecture/` and `docs/infrastructure/`                            |
+| Architecture, environments and clusters              | `docs/architecture/` and `docs/infrastructure/`                            |
 | Vocabulary                                           | `docs/glossary.md`                                                         |
 | Related repositories                                 | `docs/repositories.md`                                                     |
 | Service, library, or tool: purpose and relationships | Its `README.md`, with longer material in adjacent `docs/`                  |
@@ -26,9 +25,18 @@ Each fact has one home. Other files link to it instead of repeating it.
 | Agent knowledge and procedures for particular tasks  | Skills in `agents/skills/`                                                 |
 | Agent image behavior                                 | `agents/`                                                                  |
 
-Documentation describes the current system. ADRs record decisions at a point in time.
-Facts about another repository belong there. Describe how we use that repository and link to its documentation.
-Keep development documentation in this repository, not in the GitHub wiki. Private information stays in Confluence.
+- Documentation describes the current system. ADRs record decisions at a point in time.
+- Facts about another repository belong in that repository. Describe how we use it and link to its documentation.
+- Development documentation lives in this repository, not in the GitHub wiki.
+- Private information stays in Confluence.
+
+## Writing
+
+- Write short, complete sentences with a subject and a verb.
+- Use bullets for independent, parallel items. Use short paragraphs when each sentence builds on the one before.
+- Cut words that add nothing, such as ", not in code" after a sentence that already says where something is.
+- Don't restate what a linked file says. Link to it.
+- Describe what something is or does, not what it lacks.
 
 ## README files and docs
 
@@ -58,34 +66,32 @@ A comment explains the code next to it to someone already reading that code. Rev
 
 ## Agent guidance
 
-Every directory with an `AGENTS.md` also needs a `README.md`. Link to the README from `AGENTS.md` and add only
-direction specific to agents. Anything a person working on the code also needs belongs in ordinary documentation
-or the code.
+Every directory with an `AGENTS.md` also has a `README.md`, and the `AGENTS.md` links to it. `AGENTS.md` holds
+only agent-specific direction needed in every session in its directory, such as what to read before a change,
+where to find skills, or when to ask before acting. Anything a person also needs goes in ordinary documentation or
+the code, and task-specific agent procedures go in skills, so `AGENTS.md` stays short.
 
-Keep `AGENTS.md` short. It holds direction needed in every session within its directory, such as what to read
-before a change, where to find skills, or when to ask before acting. Put task-specific agent procedures in skills.
 Use plain Markdown links, not harness-specific imports such as `@README.md`. Do not add `CLAUDE.md` files.
 
-Agent definitions under `agents/` describe their environment and role. They do not repeat repository documentation.
-Product knowledge learned by an agent goes into the repository through a pull request, not into one harness's memory.
+Agent definitions under `agents/` describe their environment and role, and do not repeat repository
+documentation. Product knowledge an agent learns goes into the repository through a pull request, not into one
+harness's memory.
 
 ## Skills
 
-Maintain each skill in one directory under `agents/skills/`. Harness directories, agent images, and products
-receive copies from that source. Keep distribution separate from the maintained skill.
+Each skill we maintain has one directory under `agents/skills/`. Harness directories, agent images, and products
+get copies from there, so edit a skill only in `agents/skills/`. Repository-level skill directories, such as
+`.claude/skills/` and `.agents/skills/`, are ignored by Git, and root `AGENTS.md` explains how to read or install a
+skill that is missing.
 
-Use the standard Agent Skills format. Skills must not depend on one harness's tools or runtime.
-Put runtime-specific guidance with that runtime. Ignore repository-level skill installation directories,
-such as `.claude/skills/` and `.agents/skills/`, in Git.
+Skills use the standard Agent Skills format and do not depend on one harness's tools or runtime. Runtime-specific
+guidance lives with that runtime.
 
-Skills describe how to do a kind of task. Link to README files and docs for system facts instead of repeating them.
-Skills distributed outside the team link to [docs.altinn.studio](https://docs.altinn.studio), since their readers
-do not have this repository. Root `AGENTS.md` must explain how to read or install a missing skill.
+A skill describes how to do a kind of task and links to README files and docs for facts about the system. Skills
+distributed outside the team link to [docs.altinn.studio](https://docs.altinn.studio) instead, since their readers
+don't have this repository.
 
 ## Documentation checks
 
-Check that links resolve and that every document under `docs/` appears in `docs/README.md`.
-Keep generated structure summaries current and follow the file placement rules above.
-
-Run `yarn docs:validate`. The [validator](../../.github/scripts/agents-docs-validate.mjs) currently checks only
-part of the ADR's requirements, so a passing check does not replace review against these rules.
+Run `yarn docs:validate`. The [validator](../../.github/scripts/agents-docs-validate.mjs) checks only some of these
+rules, so review changes against them as well.
