@@ -1702,6 +1702,245 @@ public class InstancesController_CopyInstanceTests
             );
     }
 
+    [Fact]
+    public async Task CopyInstance_IncludedValuesConfigured_CopiesDueBeforeDataValuesAndPresentationTexts()
+    {
+        // Arrange
+        const int instanceOwnerPartyId = 343234;
+        DateTime dueBefore = new(2026, 12, 24, 12, 0, 0, DateTimeKind.Utc);
+        Instance instance = CreateArchivedInstance(instanceOwnerPartyId);
+        instance.DueBefore = dueBefore;
+        instance.DataValues = new Dictionary<string, string>
+        {
+            ["appVersion"] = "1.2.3",
+            ["customerId"] = "42",
+            ["notCopied"] = "secret",
+        };
+        instance.PresentationTexts = new Dictionary<string, string>
+        {
+            ["name"] = "Ola Olsen",
+            ["notCopied"] = "secret",
+        };
+
+        ApplicationMetadata application = CreateApplicationMetadata("ttd", "copy-instance", true);
+        application.CopyInstanceSettings!.IncludeDueBefore = true;
+        application.CopyInstanceSettings.IncludedDataValues = ["appVersion", "customerId", "missingOnSource"];
+        application.CopyInstanceSettings.IncludedPresentationTexts = ["name", "missingOnSource"];
+
+        var auth = TestAuthentication.GetUserAuthentication(userPartyId: instanceOwnerPartyId);
+        using var fixture = InstancesControllerFixture.Create(auth);
+        Func<Instance?> getInstanceTemplate = SetupSuccessfulCopy(fixture, instance, application);
+
+        // Act
+        var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
+        ActionResult actual = await controller.CopyInstance(
+            "ttd",
+            "copy-instance",
+            instanceOwnerPartyId,
+            Guid.Parse(instance.Id.Split("/")[1])
+        );
+
+        // Assert
+        Assert.IsType<RedirectResult>(actual);
+        Instance? instanceTemplate = getInstanceTemplate();
+        Assert.NotNull(instanceTemplate);
+        Assert.Equal(dueBefore, instanceTemplate.DueBefore);
+        Assert.Equal(
+            new Dictionary<string, string> { ["appVersion"] = "1.2.3", ["customerId"] = "42" },
+            instanceTemplate.DataValues
+        );
+        Assert.Equal(new Dictionary<string, string> { ["name"] = "Ola Olsen" }, instanceTemplate.PresentationTexts);
+        VerifyNoSeparateDataValuesOrPresentationTextsUpdate(fixture);
+    }
+
+    [Fact]
+    public async Task CopyInstance_IncludedValuesNotConfigured_DoesNotCopyDueBeforeDataValuesOrPresentationTexts()
+    {
+        // Arrange
+        const int instanceOwnerPartyId = 343234;
+        Instance instance = CreateArchivedInstance(instanceOwnerPartyId);
+        instance.DueBefore = new DateTime(2026, 12, 24, 12, 0, 0, DateTimeKind.Utc);
+        instance.DataValues = new Dictionary<string, string> { ["appVersion"] = "1.2.3" };
+        instance.PresentationTexts = new Dictionary<string, string> { ["name"] = "Ola Olsen" };
+
+        ApplicationMetadata application = CreateApplicationMetadata("ttd", "copy-instance", true);
+
+        var auth = TestAuthentication.GetUserAuthentication(userPartyId: instanceOwnerPartyId);
+        using var fixture = InstancesControllerFixture.Create(auth);
+        Func<Instance?> getInstanceTemplate = SetupSuccessfulCopy(fixture, instance, application);
+
+        // Act
+        var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
+        ActionResult actual = await controller.CopyInstance(
+            "ttd",
+            "copy-instance",
+            instanceOwnerPartyId,
+            Guid.Parse(instance.Id.Split("/")[1])
+        );
+
+        // Assert
+        Assert.IsType<RedirectResult>(actual);
+        Instance? instanceTemplate = getInstanceTemplate();
+        Assert.NotNull(instanceTemplate);
+        Assert.Null(instanceTemplate.DueBefore);
+        Assert.Null(instanceTemplate.DataValues);
+        Assert.Null(instanceTemplate.PresentationTexts);
+        VerifyNoSeparateDataValuesOrPresentationTextsUpdate(fixture);
+    }
+
+    private static void VerifyNoSeparateDataValuesOrPresentationTextsUpdate(InstancesControllerFixture fixture)
+    {
+        fixture
+            .Mock<IInstanceClient>()
+            .Verify(
+                i =>
+                    i.UpdateDataValues(
+                        It.IsAny<int>(),
+                        It.IsAny<Guid>(),
+                        It.IsAny<DataValues>(),
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Never
+            );
+        fixture
+            .Mock<IInstanceClient>()
+            .Verify(
+                i =>
+                    i.UpdatePresentationTexts(
+                        It.IsAny<int>(),
+                        It.IsAny<Guid>(),
+                        It.IsAny<PresentationTexts>(),
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Never
+            );
+    }
+
+    private static Instance CreateArchivedInstance(int instanceOwnerPartyId)
+    {
+        return new Instance
+        {
+            Id = $"{instanceOwnerPartyId}/{Guid.NewGuid()}",
+            AppId = "ttd/copy-instance",
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
+            Status = new InstanceStatus { IsArchived = true },
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "First" } },
+            Data = [new DataElement { Id = Guid.NewGuid().ToString(), DataType = "data_type_1" }],
+        };
+    }
+
+    /// <summary>
+    /// Sets up the mocks needed for a successful copy of <paramref name="instance"/> where the created instance
+    /// is the same as the source. The returned function gives the template passed to
+    /// <see cref="IInstanceClient.CreateInstance(string, string, Instance, StorageAuthenticationMethod?, CancellationToken)"/>.
+    /// </summary>
+    private static Func<Instance?> SetupSuccessfulCopy(
+        InstancesControllerFixture fixture,
+        Instance instance,
+        ApplicationMetadata application
+    )
+    {
+        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+        Instance? instanceTemplate = null;
+
+        fixture
+            .Mock<HttpContext>()
+            .Setup(httpContext => httpContext.User)
+            .Returns(TestAuthentication.GetUserPrincipal(partyId: instanceOwnerPartyId));
+        fixture.Mock<HttpContext>().Setup(hc => hc.Request).Returns(Mock.Of<HttpRequest>());
+        fixture.Mock<IAppMetadata>().Setup(a => a.GetApplicationMetadata()).ReturnsAsync(application);
+        fixture
+            .Mock<IPDP>()
+            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .ReturnsAsync(CreateXacmlResponse("Permit"));
+        fixture
+            .Mock<IInstanceClient>()
+            .Setup(i =>
+                i.GetInstance(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(instance);
+        fixture
+            .Mock<IInstanceClient>()
+            .Setup(i =>
+                i.CreateInstance(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<string, string, Instance, StorageAuthenticationMethod?, CancellationToken>(
+                (_, _, template, _, _) => instanceTemplate = template
+            )
+            .ReturnsAsync(instance);
+        fixture
+            .Mock<IInstanceClient>()
+            .Setup(i =>
+                i.GetInstance(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(instance);
+        fixture
+            .Mock<IInstantiationValidator>()
+            .Setup(v => v.Validate(It.IsAny<Instance>()))
+            .ReturnsAsync(new InstantiationValidationResult { Valid = true });
+        fixture
+            .Mock<ICopyInstanceValidator>()
+            .Setup(v => v.Validate(It.IsAny<IInstanceDataAccessor>()))
+            .ReturnsAsync(new InstantiationValidationResult { Valid = true });
+        fixture
+            .Mock<IProcessEngine>()
+            .Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()))
+            .ReturnsAsync(new ProcessChangeResult { Success = true });
+        fixture
+            .Mock<IProcessEngine>()
+            .Setup(p =>
+                p.HandleEventsAndUpdateStorage(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Dictionary<string, string>>(),
+                    It.IsAny<List<InstanceEvent>>()
+                )
+            );
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p =>
+                p.GetFormData(
+                    It.IsAny<Instance>(),
+                    It.IsAny<DataElement>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new { test = "test" });
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p =>
+                p.InsertFormData(
+                    It.IsAny<Instance>(),
+                    It.IsAny<string>(),
+                    It.IsAny<object>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new DataElement());
+
+        return () => instanceTemplate;
+    }
+
     private static ApplicationMetadata CreateApplicationMetadata(string org, string app, bool enableCopyInstance)
     {
         return new($"{org}/{app}")
