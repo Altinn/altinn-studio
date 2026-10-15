@@ -51,4 +51,34 @@ describe('Repeating group navigation', () => {
       cy.get(`#nested-${position}-0`, { timeout: 0 }).should('not.exist');
     }
   });
+
+  it('edits the requested summary row instead of the openByDefault row', () => {
+    cy.interceptLayout('Task_3', undefined, (layouts) => {
+      for (const component of layouts.repeating!.data.layout) {
+        if (component.type === 'RepeatingGroup' && component.id === 'mainGroup') {
+          component.edit = { ...component.edit, openByDefault: 'first' };
+        }
+        if (component.type === 'Input' && component.id === 'currentValue') {
+          component.readOnly = false;
+        }
+      }
+      layouts.summary!.data.layout.push({
+        id: 'summary2-group',
+        type: 'Summary2',
+        target: { type: 'component', id: 'mainGroup' },
+      });
+    });
+    cy.goto('group');
+    cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).check();
+    cy.findByRole('checkbox', { name: appFrontend.group.prefill.middels }).check();
+    cy.findByRole('button', { name: /Neste/ }).click();
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
+    cy.get('#useBothRepGroups').findByRole('radio', { name: 'Ja' }).check();
+    cy.get('#currentValue-0').should('have.value', 'NOK 1');
+
+    cy.gotoNavPage('summary');
+    cy.get('button[data-target-id="currentValue-1"]').click();
+    cy.get('#currentValue-1').should('be.focused').and('have.value', 'NOK 120');
+    cy.get('#currentValue-0', { timeout: 0 }).should('not.exist');
+  });
 });
