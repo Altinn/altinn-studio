@@ -11,6 +11,7 @@ from agents.core import LoopContext, WebFetchTool
 from agents.core.tools.web_fetch_tool import MAX_RESPONSE_CHARS
 
 DOCS_URL = "https://docs.altinn.studio/nb/altinn-studio/guides/"
+DOCS_URL_WITHOUT_SLASH = DOCS_URL.removesuffix("/")
 HTML = "text/html; charset=utf-8"
 REAL_CLIENT = httpx.AsyncClient
 
@@ -39,6 +40,17 @@ def serve(monkeypatch) -> Callable[[Handler], list[httpx.Request]]:
 
 def _respond(body: str, *, status: int = 200, content_type: str = HTML) -> Handler:
     return lambda request: httpx.Response(status, text=body, headers={"content-type": content_type})
+
+
+def _redirect_to(location: str) -> Handler:
+    """Send `DOCS_URL_WITHOUT_SLASH` to `location`, and answer each other request with a page."""
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        if str(request.url) == DOCS_URL_WITHOUT_SLASH:
+            return httpx.Response(301, headers={"location": location})
+        return httpx.Response(200, text="<p>Guides</p>", headers={"content-type": HTML})
+
+    return handle
 
 
 async def _fetch(url: str):
@@ -127,20 +139,36 @@ class TestPageContent:
 
         assert result.content == "x" * MAX_RESPONSE_CHARS + "\n…[truncated]"
 
-    async def test_follows_a_redirect(self, serve):
-        moved_url = "https://docs.altinn.studio/nb/altinn-studio/v8/guides/"
 
-        def redirect(request: httpx.Request) -> httpx.Response:
-            if str(request.url) == DOCS_URL:
-                return httpx.Response(301, headers={"location": moved_url})
-            return httpx.Response(200, text="<p>Guides</p>", headers={"content-type": HTML})
+class TestRedirects:
+    async def test_follows_a_redirect_to_an_allowed_host(self, serve):
+        """The docs site sends each URL without a final slash to the URL with the slash."""
+        requests = serve(_redirect_to(DOCS_URL))
 
-        requests = serve(redirect)
+        result = await _fetch(DOCS_URL_WITHOUT_SLASH)
 
-        result = await _fetch(DOCS_URL)
-
+        assert not result.is_error
         assert result.content == "Guides"
-        assert [str(request.url) for request in requests] == [DOCS_URL, moved_url]
+        assert [str(request.url) for request in requests] == [DOCS_URL_WITHOUT_SLASH, DOCS_URL]
+
+    async def test_refuses_a_redirect_to_a_host_that_is_not_allowed(self, serve):
+        requests = serve(_redirect_to("https://example.com/guides/"))
+
+        result = await _fetch(DOCS_URL_WITHOUT_SLASH)
+
+        assert result.is_error
+        assert result.content.startswith("Fetch failed: Redirect to https://example.com/guides/ refused.")
+        assert "Host 'example.com' is not allowed." in result.content
+        assert [str(request.url) for request in requests] == [DOCS_URL_WITHOUT_SLASH]
+
+    async def test_refuses_a_redirect_to_http(self, serve):
+        requests = serve(_redirect_to(DOCS_URL.replace("https://", "http://")))
+
+        result = await _fetch(DOCS_URL_WITHOUT_SLASH)
+
+        assert result.is_error
+        assert "Only https:// URLs are allowed." in result.content
+        assert [str(request.url) for request in requests] == [DOCS_URL_WITHOUT_SLASH]
 
 
 class TestSourceRecord:

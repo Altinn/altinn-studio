@@ -8,6 +8,9 @@ scan the index, pick the relevant page, fetch it.  Deliberately narrow:
     also keeps prompt-injection surface small: pages fetched are
     first-party Altinn documentation.
   * GET only, response capped, HTML reduced to readable text.
+  * Redirects are followed, because the docs site sends each URL without
+    a final slash to the URL with the slash.  Each redirect must pass the
+    same allowlist check as the first URL.
 """
 
 from __future__ import annotations
@@ -89,7 +92,11 @@ def _check_url(url: str) -> ToolResult | None:
 
 async def _fetch(url: str) -> httpx.Response | ToolResult:
     try:
-        async with httpx.AsyncClient(follow_redirects=True, timeout=FETCH_TIMEOUT_SECONDS) as client:
+        async with httpx.AsyncClient(
+            follow_redirects=True,
+            timeout=FETCH_TIMEOUT_SECONDS,
+            event_hooks={"request": [_check_redirect]},
+        ) as client:
             response = await client.get(url)
             response.raise_for_status()
     except httpx.HTTPStatusError as exc:
@@ -104,6 +111,17 @@ async def _fetch(url: str) -> httpx.Response | ToolResult:
     except httpx.HTTPError as exc:
         return ToolResult(content=f"Fetch failed: {exc}", is_error=True)
     return response
+
+
+class _RefusedRedirectError(httpx.RequestError):
+    """A redirect goes to a URL that `_check_url` refuses."""
+
+
+async def _check_redirect(request: httpx.Request) -> None:
+    """httpx calls this before each request, so also before each redirect."""
+    refusal = _check_url(str(request.url))
+    if refusal is not None:
+        raise _RefusedRedirectError(f"Redirect to {request.url} refused. {refusal.content}", request=request)
 
 
 def _extract_page(response: httpx.Response) -> tuple[str, str | None]:
