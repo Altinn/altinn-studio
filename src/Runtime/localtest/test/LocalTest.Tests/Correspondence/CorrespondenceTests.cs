@@ -1,5 +1,7 @@
 using System.Text.Json;
 using Altinn.Correspondence.Controllers;
+using Altinn.Notifications.Core.Integrations;
+using Altinn.Notifications.Core.Models.ContactPoints;
 using LocalTest.Configuration;
 using LocalTest.Services.Correspondence;
 using Microsoft.AspNetCore.Http;
@@ -13,7 +15,9 @@ public sealed class CorrespondenceTests : IDisposable
 {
     private const string ResourceId = "ttd-signing-call-to-action";
     private const string OrganizationRecipient = "urn:altinn:organization:identifier-no:991825827";
-    private const string PersonRecipient = "urn:altinn:person:identifier-no:01039012345";
+    private const string PersonNumber = "01039012345";
+    private const string PersonRecipient = "urn:altinn:person:identifier-no:" + PersonNumber;
+    private const string OrganizationNumber = "991825827";
 
     private readonly string _storagePath = Path.Join(
         Path.GetTempPath(),
@@ -21,13 +25,17 @@ public sealed class CorrespondenceTests : IDisposable
     );
     private readonly LocalCorrespondenceRepository _repository;
     private readonly CorrespondenceController _controller;
+    private readonly FakeContacts _contacts = new();
 
     public CorrespondenceTests()
     {
         _repository = new LocalCorrespondenceRepository(
             Options.Create(new LocalPlatformSettings { LocalTestingStorageBasePath = _storagePath })
         );
-        _controller = new CorrespondenceController(_repository);
+        _controller = new CorrespondenceController(
+            _repository,
+            new CorrespondenceNotificationBuilder(_contacts, _contacts)
+        );
     }
 
     [Fact]
@@ -45,7 +53,7 @@ public sealed class CorrespondenceTests : IDisposable
             correspondence =>
             {
                 Assert.NotEqual(Guid.Empty, correspondence.CorrespondenceId);
-                Assert.Equal(CorrespondenceStatus.Initialized, correspondence.Status);
+                Assert.Equal(CorrespondenceStatus.Published, correspondence.Status);
             }
         );
         Assert.Equal(
@@ -76,7 +84,7 @@ public sealed class CorrespondenceTests : IDisposable
         Assert.Equal(OrganizationRecipient, stored.Recipient);
         Assert.Equal(ResourceId, stored.ResourceId);
         Assert.Equal("senders-reference", stored.SendersReference);
-        Assert.Equal(CorrespondenceStatus.Initialized, stored.Status);
+        Assert.Equal(CorrespondenceStatus.Published, stored.Status);
         Assert.Equal(
             "Task_1 is ready for signing",
             stored
@@ -172,11 +180,17 @@ public sealed class CorrespondenceTests : IDisposable
         Assert.Equal(OrganizationRecipient, details.Recipient);
         Assert.Equal(ResourceId, details.ResourceId);
         Assert.Equal("senders-reference", details.SendersReference);
-        Assert.Equal(CorrespondenceStatus.Initialized, details.Status);
-        Assert.Equal(CorrespondenceStatus.Initialized, Assert.Single(details.StatusHistory).Status);
+        Assert.Equal(CorrespondenceStatus.Published, details.Status);
+        Assert.Equal(
+            [CorrespondenceStatus.Initialized, CorrespondenceStatus.ReadyForPublish, CorrespondenceStatus.Published],
+            details.StatusHistory.Select(statusEvent => statusEvent.Status)
+        );
+        Assert.Equal("0192:991825827", details.Sender);
         Assert.Equal("Task_1 is ready for signing", details.Content?.MessageTitle);
+        Assert.Equal("You have a document to sign", details.Content?.MessageSummary);
         Assert.Equal("nb", details.Content?.Language);
-        Assert.Null(details.Published);
+        Assert.NotNull(details.Published);
+        Assert.Empty(details.Notifications);
     }
 
     [Fact]
@@ -254,6 +268,195 @@ public sealed class CorrespondenceTests : IDisposable
         Assert.Empty(await _repository.Read());
     }
 
+    [Fact]
+    public async Task Notification_CustomMessage_EmailsThePersonsRegisteredAddress()
+    {
+        _contacts.Users[PersonNumber] = new UserContactPoints
+        {
+            NationalIdentityNumber = PersonNumber,
+            Email = "signee@example.com",
+            MobileNumber = "+4799999999",
+        };
+
+        var response = await Initialize(
+            Request([PersonRecipient], null, notification: Notification("Email"))
+        );
+
+        var initialized = Assert.Single(Assert.Single(response.Correspondences).Notifications);
+        Assert.Equal(NotificationStatus.Success, initialized.Status);
+        Assert.False(initialized.IsReminder);
+        var stored = Assert.Single(await _repository.Read());
+        var email = Assert.Single(Assert.Single(stored.Notifications).Emails);
+        Assert.Equal("signee@example.com", email.Recipient.EmailAddress);
+        Assert.Equal(PersonNumber, email.Recipient.NationalIdentityNumber);
+        Assert.Equal("Sign the document", email.Subject);
+        Assert.Equal("You have a document to sign in Altinn.", email.Body);
+        Assert.Empty(stored.Notifications[0].Smses);
+    }
+
+    [Theory]
+    [InlineData("EmailPreferred", "", "+4799999999", 0, 1)]
+    [InlineData("SmsPreferred", "signee@example.com", "", 1, 0)]
+    [InlineData("EmailAndSms", "signee@example.com", "+4799999999", 1, 1)]
+    [InlineData("Sms", "signee@example.com", "", 0, 0)]
+    public async Task Notification_Channel_PicksTheAddressesItCan(
+        string channel,
+        string email,
+        string mobile,
+        int expectedEmails,
+        int expectedSms
+    )
+    {
+        _contacts.Users[PersonNumber] = new UserContactPoints
+        {
+            NationalIdentityNumber = PersonNumber,
+            Email = email,
+            MobileNumber = mobile,
+        };
+
+        var response = await Initialize(Request([PersonRecipient], null, notification: Notification(channel)));
+
+        var notification = Assert.Single((await _repository.Read())[0].Notifications);
+        Assert.Equal(expectedEmails, notification.Emails.Count);
+        Assert.Equal(expectedSms, notification.Smses.Count);
+        Assert.Equal(
+            expectedEmails + expectedSms > 0 ? NotificationStatus.Success : NotificationStatus.MissingContact,
+            Assert.Single(response.Correspondences[0].Notifications).Status
+        );
+    }
+
+    [Fact]
+    public async Task Notification_WithReminder_OrdersTheReminderAWeekLater()
+    {
+        _contacts.Organizations[OrganizationNumber] = new OrganizationContactPoints
+        {
+            OrganizationNumber = OrganizationNumber,
+            EmailList = ["post@org.example", "boss@org.example"],
+        };
+        var notification = Notification("Email");
+        notification["sendReminder"] = true;
+        notification["reminderEmailSubject"] = "Reminder: sign the document";
+
+        await Initialize(Request([OrganizationRecipient], null, notification: notification));
+
+        var stored = Assert.Single(await _repository.Read());
+        Assert.Equal(2, stored.Notifications.Count);
+        var reminder = Assert.Single(stored.Notifications, order => order.IsReminder);
+        Assert.Equal(CorrespondenceNotificationBuilder.ReminderDelay, reminder.RequestedSendTime - reminder.Created);
+        Assert.All(reminder.Emails, email => Assert.Equal("Reminder: sign the document", email.Subject));
+        Assert.Equal(
+            ["boss@org.example", "post@org.example"],
+            reminder.Emails.Select(email => email.Recipient.EmailAddress).Order()
+        );
+    }
+
+    [Fact]
+    public async Task Notification_GenericTemplate_UsesAltinnsText()
+    {
+        _contacts.Users[PersonNumber] = new UserContactPoints
+        {
+            NationalIdentityNumber = PersonNumber,
+            Email = "signee@example.com",
+        };
+        var notification = Notification("Email");
+        notification["notificationTemplate"] = "GenericAltinnMessage";
+
+        await Initialize(Request([PersonRecipient], null, notification: notification));
+
+        var email = Assert.Single(Assert.Single((await _repository.Read())[0].Notifications).Emails);
+        Assert.Equal(CorrespondenceNotificationBuilder.GenericEmailSubject, email.Subject);
+    }
+
+    [Fact]
+    public async Task Notification_CustomRecipients_ReplaceTheRegisteredAddresses()
+    {
+        _contacts.Users[PersonNumber] = new UserContactPoints
+        {
+            NationalIdentityNumber = PersonNumber,
+            Email = "registered@example.com",
+        };
+        var notification = Notification("Email");
+        notification["customRecipients"] = new[] { new Dictionary<string, object?> { ["emailAddress"] = "custom@example.com" } };
+        notification["overrideRegisteredContactInformation"] = true;
+
+        await Initialize(Request([PersonRecipient], null, notification: notification));
+
+        var email = Assert.Single(Assert.Single((await _repository.Read())[0].Notifications).Emails);
+        Assert.Equal("custom@example.com", email.Recipient.EmailAddress);
+    }
+
+    [Fact]
+    public async Task Details_ListAttachmentsAndNotifications()
+    {
+        _contacts.Users[PersonNumber] = new UserContactPoints
+        {
+            NationalIdentityNumber = PersonNumber,
+            Email = "signee@example.com",
+        };
+        Guid attachmentId = await InitializeAttachment();
+        await UploadAttachment(attachmentId, [1, 2, 3]);
+        var response = await Initialize(
+            Request([PersonRecipient], null, [attachmentId], notification: Notification("Email"))
+        );
+
+        var details = Assert.IsType<CorrespondenceDetailsResponseDto>(
+            Assert.IsType<OkObjectResult>(
+                await _controller.GetCorrespondenceDetails(response.Correspondences[0].CorrespondenceId)
+            ).Value
+        );
+
+        var attachment = Assert.Single(details.Content!.Attachments);
+        Assert.Equal(attachmentId, attachment.Id);
+        Assert.Equal("signed.pdf", attachment.FileName);
+        Assert.Equal(AttachmentStatus.Published, attachment.Status);
+        var order = Assert.Single(details.Notifications);
+        Assert.Equal(NotificationChannel.Email, order.NotificationChannel);
+        Assert.Equal("signee@example.com", order.NotificationStatusDetails?.Email?.Recipient?.EmailAddress);
+        Assert.True(order.NotificationStatusDetails?.Email?.Succeeded);
+    }
+
+    [Theory]
+    [InlineData(null, "Title")]
+    [InlineData(ResourceId, null)]
+    public async Task Initialize_WithoutResourceOrTitle_ReturnsBadRequest(string? resourceId, string? title)
+    {
+        var problem = await InitializeProblem(
+            Request([OrganizationRecipient], null, resourceId: resourceId, messageTitle: title)
+        );
+
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
+        Assert.Empty(await _repository.Read());
+    }
+
+    private static Dictionary<string, object?> Notification(string channel) =>
+        new()
+        {
+            ["notificationTemplate"] = "CustomMessage",
+            ["emailSubject"] = "Sign the document",
+            ["emailBody"] = "You have a document to sign in Altinn.",
+            ["smsBody"] = "You have a document to sign in Altinn.",
+            ["notificationChannel"] = channel,
+        };
+
+    private sealed class FakeContacts : IProfileClient, IRegisterClient
+    {
+        public Dictionary<string, UserContactPoints> Users { get; } = [];
+        public Dictionary<string, OrganizationContactPoints> Organizations { get; } = [];
+
+        public Task<List<UserContactPoints>> GetUserContactPoints(List<string> nationalIdentityNumbers) =>
+            Task.FromResult(nationalIdentityNumbers.Where(Users.ContainsKey).Select(nin => Users[nin]).ToList());
+
+        public Task<List<OrganizationContactPoints>> GetUserRegisteredContactPoints(
+            List<string> organizationNumbers,
+            string resourceId
+        ) => Task.FromResult(new List<OrganizationContactPoints>());
+
+        public Task<List<OrganizationContactPoints>> GetOrganizationContactPoints(List<string> organizationNumbers) =>
+            Task.FromResult(
+                organizationNumbers.Where(Organizations.ContainsKey).Select(org => Organizations[org]).ToList()
+            );
+    }
+
     private async Task<Guid> InitializeAttachment()
     {
         var result = await _controller.InitializeAttachment(
@@ -305,25 +508,29 @@ public sealed class CorrespondenceTests : IDisposable
     private static JsonElement Request(
         IReadOnlyList<string> recipients,
         Guid? idempotentKey,
-        IReadOnlyList<Guid>? attachments = null
+        IReadOnlyList<Guid>? attachments = null,
+        Dictionary<string, object?>? notification = null,
+        string? resourceId = ResourceId,
+        string? messageTitle = "Task_1 is ready for signing"
     )
     {
         var body = new Dictionary<string, object?>
         {
             ["correspondence"] = new Dictionary<string, object?>
             {
-                ["resourceId"] = ResourceId,
+                ["resourceId"] = resourceId,
                 ["sendersReference"] = "senders-reference",
                 ["messageSender"] = "Testdepartementet",
                 ["content"] = new Dictionary<string, object?>
                 {
                     ["language"] = "nb",
-                    ["messageTitle"] = "Task_1 is ready for signing",
+                    ["messageTitle"] = messageTitle,
                     ["messageSummary"] = "You have a document to sign",
                     ["messageBody"] = "Please sign the document.",
                 },
                 ["isConfirmationNeeded"] = false,
                 ["isConfidential"] = false,
+                ["notification"] = notification,
             },
             ["recipients"] = recipients,
             ["existingAttachments"] = attachments ?? [],

@@ -130,6 +130,7 @@ namespace LocalTest
             services.AddSingleton<IResourceRegistryRepository, RegisterResourceRepositoryMock>();
             services.AddSingleton<LocalInstanceDelegationsRepository>();
             services.AddSingleton<LocalCorrespondenceRepository>();
+            services.AddSingleton<CorrespondenceNotificationBuilder>();
 
             // Shared auth services
             services.AddSingleton<IAuthentication, AuthenticationService>();

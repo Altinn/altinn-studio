@@ -7,20 +7,30 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Correspondence.Controllers;
 
 /// <summary>
-/// Emulates the Altinn Correspondence API an app calls to send messages, for example the signing
-/// "call to action" message. Apps reach it through <c>PlatformSettings__ApiCorrespondenceEndpoint</c>,
-/// which studioctl points at <c>http://local.altinn.cloud:8000/correspondence/api/v1/</c>.
-/// Like the other emulated platform services here, it performs no authentication or authorization.
+/// Emulates the Altinn Correspondence API an app calls to send messages, such as the signing call to action and
+/// the receipt a signee gets. Apps reach it through <c>PlatformSettings__ApiCorrespondenceEndpoint</c>, which
+/// studioctl points at <c>http://local.altinn.cloud:8000/correspondence/api/v1/</c>. A correspondence is
+/// published as soon as it is created, and its notifications are worked out but not sent. Like the other
+/// emulated platform services here, it performs no authentication or authorization.
 /// </summary>
 [ApiController]
 [Route("correspondence/api")]
-public class CorrespondenceController(LocalCorrespondenceRepository repository) : ControllerBase
+public class CorrespondenceController(
+    LocalCorrespondenceRepository repository,
+    CorrespondenceNotificationBuilder notificationBuilder
+) : ControllerBase
 {
     /// <summary>
-    /// The status a freshly initialized correspondence has. The real service moves it on towards
-    /// <c>Published</c> asynchronously; Localtest has no publisher and leaves it here.
+    /// The organization a correspondence is sent from. Localtest serves one service owner, and uses the same
+    /// organization number for it as elsewhere.
     /// </summary>
-    private const CorrespondenceStatus InitialStatus = CorrespondenceStatus.Initialized;
+    internal const string SenderOrganizationNumber = "991825827";
+
+    /// <summary>The organization that orders the notifications, when the caller's token does not say.</summary>
+    private const string DefaultCreator = "ttd";
+
+    /// <summary>How long an attachment is kept when the sender does not say.</summary>
+    private const int DefaultAttachmentExpirationInDays = 365;
 
     private static readonly JsonSerializerOptions _options = new(JsonSerializerDefaults.Web)
     {
@@ -28,9 +38,10 @@ public class CorrespondenceController(LocalCorrespondenceRepository repository) 
     };
 
     private readonly LocalCorrespondenceRepository _repository = repository;
+    private readonly CorrespondenceNotificationBuilder _notificationBuilder = notificationBuilder;
 
     /// <summary>
-    /// Initializes one correspondence per recipient.
+    /// Creates and publishes one correspondence per recipient, with the notifications it orders.
     /// </summary>
     [HttpPost]
     [Route("v1/correspondence")]
@@ -48,60 +59,55 @@ public class CorrespondenceController(LocalCorrespondenceRepository repository) 
         }
         catch (JsonException e)
         {
-            return ProblemResult(StatusCodes.Status400BadRequest, "Invalid request", e.Message);
+            return InvalidRequest(e.Message);
         }
 
-        if (request?.Recipients is not { Count: > 0 } recipients)
+        if (request is null)
         {
-            return ProblemResult(
-                StatusCodes.Status400BadRequest,
-                "Invalid request",
-                "The correspondence must have at least one recipient."
-            );
+            return InvalidRequest("The request body is empty.");
+        }
+        if (Validate(request) is { } problem)
+        {
+            return InvalidRequest(problem);
         }
 
-        if (recipients.Any(string.IsNullOrWhiteSpace))
-        {
-            return ProblemResult(
-                StatusCodes.Status400BadRequest,
-                "Invalid request",
-                "A correspondence recipient cannot be empty."
-            );
-        }
-
-        if (request.IdempotentKey == Guid.Empty)
-        {
-            return ProblemResult(
-                StatusCodes.Status400BadRequest,
-                "Invalid request",
-                "The idempotent key cannot be an empty GUID."
-            );
-        }
-
-        if (request.IdempotentKey is not null && recipients.Count > 1)
-        {
-            return ProblemResult(
-                StatusCodes.Status400BadRequest,
-                "Invalid request",
-                "An idempotent key cannot be used when sending to multiple recipients."
-            );
-        }
+        IReadOnlyList<string> recipients = request.Recipients!;
+        CorrespondenceRequestDto correspondence = request.Correspondence!;
 
         foreach (var attachmentId in request.ExistingAttachments ?? [])
         {
             var attachment = await _repository.FindAttachment(attachmentId);
             if (attachment?.Status != AttachmentStatus.Published)
             {
-                return ProblemResult(
-                    StatusCodes.Status400BadRequest,
-                    "Invalid request",
-                    $"Attachment {attachmentId} does not exist or has not been uploaded."
-                );
+                return InvalidRequest($"Attachment {attachmentId} does not exist or has not been uploaded.");
             }
         }
 
-        var created = await _repository.TryCreate(request, body.Clone(), InitialStatus);
-        if (created is null)
+        var created = DateTimeOffset.UtcNow;
+        var stored = new List<StoredCorrespondence>();
+        foreach (var recipient in recipients)
+        {
+            stored.Add(
+                new StoredCorrespondence
+                {
+                    CorrespondenceId = Guid.NewGuid(),
+                    IdempotentKey = request.IdempotentKey,
+                    Recipient = recipient,
+                    ResourceId = correspondence.ResourceId!,
+                    SendersReference = correspondence.SendersReference!,
+                    MessageSender = correspondence.MessageSender,
+                    Sender = SenderOrganizationNumber,
+                    Status = CorrespondenceStatus.Published,
+                    Created = created,
+                    Published = created,
+                    AttachmentIds = request.ExistingAttachments ?? [],
+                    Notifications = await _notificationBuilder.Build(correspondence.Notification, recipient, created),
+                    Request = body.Clone(),
+                }
+            );
+        }
+
+        if (!await _repository.TryCreate(request.IdempotentKey, stored))
         {
             return ProblemResult(
                 StatusCodes.Status409Conflict,
@@ -113,21 +119,31 @@ public class CorrespondenceController(LocalCorrespondenceRepository repository) 
         return Ok(
             new InitializeCorrespondencesResponseDto
             {
-                Correspondences = created
-                    .Select(correspondence => new CorrespondenceOverviewDto
+                Correspondences =
+                [
+                    .. stored.Select(item => new CorrespondenceOverviewDto
                     {
-                        CorrespondenceId = correspondence.CorrespondenceId,
-                        Status = correspondence.Status,
-                        Recipient = correspondence.Recipient,
-                    })
-                    .ToArray(),
+                        CorrespondenceId = item.CorrespondenceId,
+                        Status = item.Status,
+                        Recipient = item.Recipient,
+                        Notifications =
+                        [
+                            .. item.Notifications.Select(notification => new InitializedNotificationDto
+                            {
+                                OrderId = notification.OrderId,
+                                IsReminder = notification.IsReminder,
+                                Status = notification.Status,
+                            }),
+                        ],
+                    }),
+                ],
                 AttachmentIds = request.ExistingAttachments ?? [],
             }
         );
     }
 
     /// <summary>
-    /// Returns the details of a single correspondence.
+    /// Returns the details of a single correspondence, with its content, attachments and notifications.
     /// </summary>
     [HttpGet]
     [Route("v1/correspondence/{correspondenceId:guid}/details")]
@@ -146,35 +162,59 @@ public class CorrespondenceController(LocalCorrespondenceRepository repository) 
             );
         }
 
-        var details =
-            correspondence.Request.ValueKind == JsonValueKind.Object
-                ? correspondence
-                    .Request.Deserialize<InitializeCorrespondencesRequestDto>(_options)
-                    ?.Correspondence
-                : null;
+        var details = correspondence.Request.Deserialize<InitializeCorrespondencesRequestDto>(_options)?.Correspondence;
+        var attachments = new List<CorrespondenceAttachmentDto>();
+        foreach (var attachmentId in correspondence.AttachmentIds)
+        {
+            if (await _repository.FindAttachment(attachmentId) is { } attachment)
+            {
+                attachments.Add(AttachmentDetails(attachment));
+            }
+        }
 
+        string creator = HttpContext?.User.FindFirst("urn:altinn:org")?.Value ?? DefaultCreator;
         return Ok(
             new CorrespondenceDetailsResponseDto
             {
                 CorrespondenceId = correspondence.CorrespondenceId,
                 Recipient = correspondence.Recipient,
                 ResourceId = correspondence.ResourceId,
+                Sender = $"0192:{correspondence.Sender}",
                 SendersReference = correspondence.SendersReference,
                 MessageSender = correspondence.MessageSender,
                 Status = correspondence.Status,
                 StatusText = correspondence.Status.ToString(),
-                StatusChanged = correspondence.Created,
+                StatusChanged = correspondence.Published ?? correspondence.Created,
                 Created = correspondence.Created,
+                Published = correspondence.Published,
                 StatusHistory =
                 [
-                    new CorrespondenceStatusEventDto
+                    .. new[]
                     {
-                        Status = correspondence.Status,
-                        StatusText = correspondence.Status.ToString(),
+                        CorrespondenceStatus.Initialized,
+                        CorrespondenceStatus.ReadyForPublish,
+                        CorrespondenceStatus.Published,
+                    }.Select(status => new CorrespondenceStatusEventDto
+                    {
+                        Status = status,
+                        StatusText = status.ToString(),
                         StatusChanged = correspondence.Created,
-                    },
+                    }),
                 ],
-                Content = details?.Content,
+                Content = new CorrespondenceContentResponseDto
+                {
+                    Language = details?.Content?.Language,
+                    MessageTitle = details?.Content?.MessageTitle ?? string.Empty,
+                    MessageSummary = details?.Content?.MessageSummary ?? string.Empty,
+                    MessageBody = details?.Content?.MessageBody ?? string.Empty,
+                    Attachments = attachments,
+                },
+                Notifications =
+                [
+                    .. correspondence.Notifications.Select(notification =>
+                        NotificationOrder(notification, correspondence, creator, details?.IgnoreReservation)
+                    ),
+                ],
                 RequestedPublishTime = details?.RequestedPublishTime,
                 DueDateTime = details?.DueDateTime,
                 PropertyList = details?.PropertyList,
@@ -184,6 +224,111 @@ public class CorrespondenceController(LocalCorrespondenceRepository repository) 
             }
         );
     }
+
+    /// <summary>
+    /// What the Correspondence API refuses before creating anything. Returns the reason, or <c>null</c> when the
+    /// request is valid.
+    /// </summary>
+    private static string? Validate(InitializeCorrespondencesRequestDto request)
+    {
+        if (request.Recipients is not { Count: > 0 } recipients)
+            return "The correspondence must have at least one recipient.";
+        if (recipients.Any(string.IsNullOrWhiteSpace))
+            return "A correspondence recipient cannot be empty.";
+        if (recipients.Distinct(StringComparer.OrdinalIgnoreCase).Count() != recipients.Count)
+            return "The recipients must be distinct.";
+        if (request.IdempotentKey == Guid.Empty)
+            return "The idempotent key cannot be an empty GUID.";
+        if (request.IdempotentKey is not null && recipients.Count > 1)
+            return "An idempotent key cannot be used when sending to multiple recipients.";
+
+        if (request.Correspondence is not { } correspondence)
+            return "The correspondence is missing.";
+        if (string.IsNullOrWhiteSpace(correspondence.ResourceId))
+            return "The correspondence must have a resource ID.";
+        if (string.IsNullOrWhiteSpace(correspondence.SendersReference))
+            return "The correspondence must have a senders reference.";
+        if (
+            correspondence.Content is not { } content
+            || string.IsNullOrWhiteSpace(content.Language)
+            || string.IsNullOrWhiteSpace(content.MessageTitle)
+            || string.IsNullOrWhiteSpace(content.MessageBody)
+        )
+            return "The correspondence content must have a language, a message title and a message body.";
+        if (correspondence.IsConfirmationNeeded && correspondence.DueDateTime is null)
+            return "A correspondence that needs confirmation must have a due date.";
+
+        return null;
+    }
+
+    private static NotificationOrderDto NotificationOrder(
+        StoredNotification notification,
+        StoredCorrespondence correspondence,
+        string creator,
+        bool? ignoreReservation
+    )
+    {
+        NotificationSendStatusDto Sent(Guid id, NotificationRecipientDto recipient, string status) =>
+            new()
+            {
+                Id = id,
+                Succeeded = true,
+                Recipient = recipient,
+                SendStatus = new NotificationProcessingStatusDto
+                {
+                    Status = status,
+                    Description = "Localtest does not send notifications. See them on the Localtest messages page.",
+                    LastUpdate = notification.RequestedSendTime,
+                },
+            };
+
+        var emails = notification.Emails.Select(email => Sent(email.Id, email.Recipient, "Delivered")).ToArray();
+        var smses = notification.Smses.Select(sms => Sent(sms.Id, sms.Recipient, "Delivered")).ToArray();
+        return new NotificationOrderDto
+        {
+            Id = notification.OrderId.ToString(),
+            SendersReference = notification.SendersReference ?? correspondence.SendersReference,
+            Creator = creator,
+            Created = notification.Created,
+            IsReminder = notification.IsReminder,
+            NotificationChannel = notification.Channel,
+            IgnoreReservation = ignoreReservation,
+            ResourceId = correspondence.ResourceId,
+            ProcessingStatus = new NotificationProcessingStatusDto
+            {
+                Status = "Completed",
+                LastUpdate = notification.RequestedSendTime,
+            },
+            NotificationStatusDetails = new NotificationStatusDetailsDto
+            {
+                Email = emails.FirstOrDefault(),
+                Sms = smses.FirstOrDefault(),
+                Emails = emails,
+                Smses = smses,
+            },
+        };
+    }
+
+    private static CorrespondenceAttachmentDto AttachmentDetails(StoredAttachment attachment) =>
+        new()
+        {
+            Id = attachment.AttachmentId,
+            Created = attachment.Created,
+            Status = attachment.Status,
+            StatusText = attachment.Status.ToString(),
+            StatusChanged = attachment.StatusChanged,
+            ExpirationTime = attachment.Created.AddDays(
+                attachment.Request.ExpirationInDays ?? DefaultAttachmentExpirationInDays
+            ),
+            FileName = attachment.Request.FileName,
+            IsEncrypted = attachment.Request.IsEncrypted,
+            Checksum = attachment.Request.Checksum,
+            SendersReference = attachment.Request.SendersReference ?? string.Empty,
+            DataType = attachment.DataType,
+        };
+
+    private ActionResult InvalidRequest(string detail) =>
+        ProblemResult(StatusCodes.Status400BadRequest, "Invalid request", detail);
 
     /// <summary>
     /// Initializes an attachment, which the app then uploads the data for and references from a correspondence.

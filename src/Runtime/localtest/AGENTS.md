@@ -19,15 +19,22 @@ Part of the [Runtime services](../AGENTS.md). Full details: [`README.md`](README
 ## Correspondence
 
 Localtest emulates the Correspondence API apps use to send messages, such as the signing call to action each
-signee receives. `studioctl` points `PlatformSettings__ApiCorrespondenceEndpoint` at it.
+signee receives and the receipt with the signed documents. `studioctl` points
+`PlatformSettings__ApiCorrespondenceEndpoint` at it. The wire models in `Controllers/Correspondence` mirror what
+the app libraries send and read; a field the app client marks `required` must be in every response.
 
-- `POST correspondence/api/v1/correspondence` creates one correspondence per recipient, with status
-  `Initialized` (nothing publishes it further). `GET …/correspondence/{id}/details` returns it.
+- `POST correspondence/api/v1/correspondence` creates one correspondence per recipient and publishes it at once.
+  It rejects what the real API rejects: no recipients, duplicate or empty recipients, a missing resource ID,
+  senders reference, language, title or body, and confirmation without a due date.
+  `GET …/correspondence/{id}/details` returns it with its attachments and notifications.
 - **`idempotentKey` is load-bearing:** a reused key answers 409 Conflict, which apps treat as "already sent"
   when they retry. Duplicate detection runs under a lock, so concurrent sends with one key create one message.
 - Attachments go through `POST …/attachment`, `POST …/attachment/{id}/upload` and `GET …/attachment/{id}`, as
   the app client sends them. An upload is published at once (no malware scan), and a correspondence may only
-  reference published attachments. Signing uses them for the receipt a signee gets.
+  reference published attachments.
+- **Notifications are worked out, not sent.** `CorrespondenceNotificationBuilder` applies the requested channel
+  and template to the recipient's contact information in the test data (or the custom recipients), and orders a
+  reminder a week later when asked. The result is stored with the correspondence.
 - Each correspondence is stored as `{correspondenceId}.json` in the `correspondence` folder under the storage
   path, with the request body the app sent, so you can see exactly what went out. Attachments are stored in
   its `attachments` subfolder, as `{attachmentId}.json` with their data in `{attachmentId}.bin`.

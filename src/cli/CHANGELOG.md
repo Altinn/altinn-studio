@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Localtest answers the Correspondence API, so apps that send messages, such as the signing call to action and the receipt with the signed documents, work locally. Each message and attachment is saved as a file in the Localtest storage folder. ([#21177](https://github.com/Altinn/altinn-studio/pull/21177))
+- Localtest answers the Correspondence API, so apps that send messages, such as the signing call to action and the receipt with the signed documents, work locally. Messages are published at once, and their email and SMS notifications are recorded, not sent. ([#21177](https://github.com/Altinn/altinn-studio/pull/21177))
 
 ## [0.1.0-preview.29] - 2026-10-14
 

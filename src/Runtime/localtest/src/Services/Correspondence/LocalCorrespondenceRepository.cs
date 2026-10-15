@@ -68,50 +68,27 @@ public sealed class LocalCorrespondenceRepository : IDisposable
     }
 
     /// <summary>
-    /// Creates one correspondence per recipient and persists them.
-    /// Returns <c>null</c> when the request's idempotent key has already been used, which the
-    /// Correspondence API answers with 409 Conflict.
+    /// Persists the correspondences one request created, one per recipient. Returns <c>false</c>, storing nothing,
+    /// when the request's idempotent key has already been used, which the Correspondence API answers with 409.
     /// </summary>
-    public async Task<IReadOnlyList<StoredCorrespondence>?> TryCreate(
-        InitializeCorrespondencesRequestDto request,
-        JsonElement rawRequest,
-        CorrespondenceStatus status
-    )
+    public async Task<bool> TryCreate(Guid? idempotentKey, IReadOnlyList<StoredCorrespondence> correspondences)
     {
         // The duplicate check and the write must not interleave, or two concurrent requests carrying the
         // same idempotent key would both find nothing stored and both create a correspondence.
         using var mutationLock = await _mutationLock.Lock();
 
-        if (request.IdempotentKey is { } idempotentKey && await IdempotentKeyExists(idempotentKey))
+        if (idempotentKey is { } key && await IdempotentKeyExists(key))
         {
-            return null;
+            return false;
         }
 
-        var details = request.Correspondence;
-        var created = DateTimeOffset.UtcNow;
         var directory = Storage();
-        var correspondences = new List<StoredCorrespondence>();
-
-        foreach (var recipient in request.Recipients ?? [])
+        foreach (var correspondence in correspondences)
         {
-            var correspondence = new StoredCorrespondence
-            {
-                CorrespondenceId = Guid.NewGuid(),
-                IdempotentKey = request.IdempotentKey,
-                Recipient = recipient,
-                ResourceId = details?.ResourceId ?? string.Empty,
-                SendersReference = details?.SendersReference ?? string.Empty,
-                MessageSender = details?.MessageSender,
-                Status = status,
-                Created = created,
-                Request = rawRequest,
-            };
-
             await Write(FileName(directory, correspondence.CorrespondenceId), correspondence);
-            correspondences.Add(correspondence);
         }
 
-        return correspondences;
+        return true;
     }
 
     /// <summary>
@@ -123,6 +100,7 @@ public sealed class LocalCorrespondenceRepository : IDisposable
         {
             AttachmentId = Guid.NewGuid(),
             Status = AttachmentStatus.Initialized,
+            Created = DateTimeOffset.UtcNow,
             StatusChanged = DateTimeOffset.UtcNow,
             Request = request,
         };
@@ -168,6 +146,15 @@ public sealed class LocalCorrespondenceRepository : IDisposable
         attachment.Size = data.LongLength;
         await Write(AttachmentFileName(attachmentId), attachment);
         return (AttachmentUploadOutcome.Uploaded, attachment);
+    }
+
+    /// <summary>
+    /// Reads an attachment's uploaded data, or <c>null</c> when there is none.
+    /// </summary>
+    public async Task<byte[]?> ReadAttachmentData(Guid attachmentId)
+    {
+        var fileName = AttachmentDataFileName(attachmentId);
+        return File.Exists(fileName) ? await File.ReadAllBytesAsync(fileName) : null;
     }
 
     public void Dispose() => _mutationLock.Dispose();
