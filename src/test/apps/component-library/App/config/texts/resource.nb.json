@@ -366,6 +366,74 @@
     {
       "id": "ParagraphPage",
       "value": "Avsnitt"
+    },
+    {
+      "id": "lookup.required",
+      "value": "Skal oppslagene være obligatoriske?"
+    },
+    {
+      "id": "lookup.required.yes",
+      "value": "Ja"
+    },
+    {
+      "id": "lookup.required.no",
+      "value": "Nei"
+    },
+    {
+      "id": "lookup.person.group",
+      "value": "Personer"
+    },
+    {
+      "id": "lookup.organization.group",
+      "value": "Virksomheter"
+    },
+    {
+      "id": "lookup.person.description",
+      "value": "Her legger du inn etternavn og fødselsnummer. I localtest kan du bruke fødselsnummer 08829698278 og etternavn Forelder. Oppslag krever innlogging på nivå 2 eller høyere."
+    },
+    {
+      "id": "lookup.organization.description",
+      "value": "Her legger du inn organisasjonsnummer. I localtest kan du bruke 043871668 for Skog og Fjell Consulting."
+    },
+    {
+      "id": "lookup.validation.title",
+      "value": "Validering fra serveren"
+    },
+    {
+      "id": "lookup.validation.enable",
+      "value": "Vis feil fra serveren"
+    },
+    {
+      "id": "lookup.validation.description",
+      "value": "Slå på før du henter opplysninger for å vise valideringsfeil fra serveren på alle utfylte oppslag."
+    },
+    {
+      "id": "lookup.validation.Ssn",
+      "value": "Feil fra serveren for fødselsnummer."
+    },
+    {
+      "id": "lookup.validation.FullName",
+      "value": "Feil fra serveren for navn."
+    },
+    {
+      "id": "lookup.validation.FirstName",
+      "value": "Feil fra serveren for fornavn."
+    },
+    {
+      "id": "lookup.validation.MiddleName",
+      "value": "Feil fra serveren for mellomnavn."
+    },
+    {
+      "id": "lookup.validation.LastName",
+      "value": "Feil fra serveren for etternavn."
+    },
+    {
+      "id": "lookup.validation.OrgNr",
+      "value": "Feil fra serveren for organisasjonsnummer."
+    },
+    {
+      "id": "lookup.validation.Name",
+      "value": "Feil fra serveren for organisasjonsnavn."
     }
   ]
 }
