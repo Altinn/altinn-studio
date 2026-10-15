@@ -60,6 +60,9 @@ spec:
             - name: health
               containerPort: 13133
           env:
+            # 80% of the memory limit below, as the Collector's memory_limiter docs recommend.
+            - name: GOMEMLIMIT
+              value: 819MiB
             - name: DEPLOYMENT_ENVIRONMENT
               valueFrom:
                 configMapKeyRef:
