@@ -9,6 +9,7 @@ import { ComponentValidations } from 'src/features/validation/ComponentValidatio
 import { useBindingValidationsFor } from 'src/features/validation/selectors/bindingValidationsForNode';
 import classes from 'src/layout/OrganizationLookup/OrganizationLookupSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { SummaryLabel } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -48,15 +49,21 @@ export function OrganizationLookupSummary({ targetBaseComponentId }: Summary2Pro
       }
     >
       <div className={classes.organisationSummaryWrapper}>
-        <Heading
-          data-size='sm'
-          level={2}
+        <SummaryLabel
+          baseComponentId={targetBaseComponentId}
+          title={<Lang id={title} />}
         >
-          <Lang id={title} />
-        </Heading>
+          <Heading
+            data-size='sm'
+            level={2}
+          >
+            <Lang id={title} />
+          </Heading>
+        </SummaryLabel>
         <div className={classes.organizationLookupSummary}>
           <div className={classes.organizationLookupSummaryNr}>
             <SingleValueSummary
+              showLabelMetadata={false}
               title={<Lang id='organization_lookup.orgnr_label' />}
               displayData={orgnr}
               targetBaseComponentId={targetBaseComponentId}
@@ -72,6 +79,7 @@ export function OrganizationLookupSummary({ targetBaseComponentId }: Summary2Pro
           {name && (
             <div className={classes.organizationLookupSummaryName}>
               <SingleValueSummary
+                showLabelMetadata={false}
                 title={<Lang id='organization_lookup.org_name' />}
                 displayData={name}
                 targetBaseComponentId={targetBaseComponentId}

@@ -12,6 +12,7 @@ import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
 import { useLikertRows } from 'src/layout/Likert/rowUtils';
 import classes from 'src/layout/Likert/Summary2/LikertSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { SummaryLabel } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import { EmptyChildrenBoundary, useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import {
   SummaryContains,
@@ -73,12 +74,17 @@ export function LikertSummary({ targetBaseComponentId }: Summary2Props) {
       >
         <div className={classes.summaryItemWrapper}>
           <div className={classes.summaryItem}>
-            <Heading
-              data-size='xs'
-              level={4}
+            <SummaryLabel
+              baseComponentId={targetBaseComponentId}
+              title={<Lang id={title} />}
             >
-              <Lang id={title} />
-            </Heading>
+              <Heading
+                data-size='xs'
+                level={4}
+              >
+                <Lang id={title} />
+              </Heading>
+            </SummaryLabel>
           </div>
           {rows.filter(typedBoolean).map((row) => (
             <DataModelLocationProvider

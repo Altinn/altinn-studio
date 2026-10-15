@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Label, List, Paragraph } from '@digdir/designsystemet-react';
+import { List, Paragraph } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import dot from 'dot-object';
 
@@ -13,6 +13,7 @@ import { validationsOfSeverity } from 'src/features/validation/utils';
 import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import classes from 'src/layout/Summary2/CommonSummaryComponents/MultipleValueSummary.module.css';
+import { SummaryLabel } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useFormDataFor } from 'src/utils/layout/useFormData';
 import type { CompTypes } from 'src/layout/layout';
@@ -94,7 +95,11 @@ export const MultipleValueSummary = ({
             [classes.compact]: isCompact,
           })}
         >
-          <Label weight='regular'>{title}</Label>
+          <SummaryLabel
+            baseComponentId={baseComponentId}
+            title={title}
+            isCompact={isCompact}
+          />
           {displayType === 'list' && (
             <List.Unordered>
               {displayValues?.map((item) => (

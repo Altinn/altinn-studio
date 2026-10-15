@@ -53,6 +53,10 @@ export class SigningDocumentList extends SigningDocumentListDef {
       config.textResourceBindings?.help,
       Expressions.SigningDocumentList.textResourceBindings.help,
     );
+    const description = useEvalOptionalText(
+      config.textResourceBindings?.description,
+      Expressions.SigningDocumentList.textResourceBindings.description,
+    );
     const summaryHeading = summaryTitle ?? title ?? 'signing_document_list_summary.header';
 
     return (
@@ -65,7 +69,7 @@ export class SigningDocumentList extends SigningDocumentListDef {
           textResourceBindings={{
             title: summaryHeading,
             help,
-            description: undefined,
+            description,
           }}
         />
       </SummaryFlex>

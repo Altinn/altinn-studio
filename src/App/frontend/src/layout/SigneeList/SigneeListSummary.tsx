@@ -12,6 +12,7 @@ import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { Lang } from 'src/features/language/Lang';
 import { type SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
 import classes from 'src/layout/SigneeList/SigneeListSummary.module.css';
+import { SummaryLabel } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { toTimeZonedDate } from 'src/utils/dateUtils';
 import { useComponentConfig } from 'src/utils/layout/hooks';
@@ -141,10 +142,15 @@ function SigneeListSummaryContainer({ baseComponentId, content, heading, childre
     >
       <div>
         {heading && (
-          <Label
-            label={heading}
-            size='lg'
-          />
+          <SummaryLabel
+            baseComponentId={baseComponentId}
+            title={heading}
+          >
+            <Label
+              label={heading}
+              size='lg'
+            />
+          </SummaryLabel>
         )}
         {children}
       </div>
