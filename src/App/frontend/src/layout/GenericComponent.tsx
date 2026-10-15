@@ -9,6 +9,7 @@ import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
+import { useIsExcludedFromPdf } from 'src/features/pdf/useIsExcludedFromPdf';
 import { useHandleFocusComponent } from 'src/layout/focusComponent';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
@@ -117,6 +118,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
     [handleFocusContainerMount],
   );
   const hiddenState = useIsHidden(baseComponentId, { includeReason: true });
+  const excludedFromPdf = useIsExcludedFromPdf(baseComponentId);
   const howToHide = useDevToolsStore((state) => (state.isOpen ? state.hiddenComponents : 'hide'));
   const layoutComponent = getComponentDef(component.type);
   const addError = FormStore.layoutDiagnostics.useAddError();
@@ -137,7 +139,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
     }
   }, [addError, baseComponentId, component.type, layoutComponent, nodeId]);
 
-  if (hiddenState.hidden) {
+  if (hiddenState.hidden || excludedFromPdf) {
     return null;
   }
 
