@@ -210,7 +210,8 @@ internal sealed class EFormidlingHookSignatureMigration
                         && implementation.ContainingType.TypeKind != TypeKind.Interface
                     )
                     {
-                        implementations.TryAdd(implementation, member.ContainingType.Name);
+                        // Keyed by declaration: each subclass of a generic base binds its own constructed method.
+                        implementations.TryAdd(implementation.OriginalDefinition, member.ContainingType.Name);
                     }
                 }
             }

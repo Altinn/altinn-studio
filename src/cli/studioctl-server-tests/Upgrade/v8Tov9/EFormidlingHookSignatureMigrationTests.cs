@@ -381,6 +381,44 @@ public sealed class EFormidlingHookSignatureMigrationTests : IDisposable
         );
     }
 
+    [Fact]
+    public async Task AGenericBase_IsMigratedOnce_AndCallsThroughASubclassAreReported()
+    {
+        // Each subclass resolves the hook to its own constructed method; they share one declaration.
+        var path = Write(
+            "logic/GenericHooks.cs",
+            ModelUsings
+                + "\n\n"
+                + """
+                public class MetadataBase<T> : IEFormidlingMetadata
+                {
+                    public Task<(string MetadataFilename, Stream Metadata)> GenerateEFormidlingMetadata(Instance instance) =>
+                        Task.FromResult((typeof(T).Name, (Stream)new MemoryStream()));
+                }
+
+                public class FirstMetadata : MetadataBase<int> { }
+
+                public class SecondMetadata : MetadataBase<string> { }
+
+                public class Preview
+                {
+                    public Task<(string MetadataFilename, Stream Metadata)> Direct(Instance instance) =>
+                        new FirstMetadata().GenerateEFormidlingMetadata(instance);
+                }
+                """
+        );
+
+        var result = Migrate(semantic: true);
+
+        Assert.Single(result.Warnings);
+        Assert.Single(
+            result.Todos,
+            static t => t.Replace('\\', '/').StartsWith("logic/GenericHooks.cs:22: ", StringComparison.Ordinal)
+        );
+        var migrated = await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken);
+        Assert.Contains($"GenerateEFormidlingMetadata({AccessorType} dataAccessor) =>", migrated);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
