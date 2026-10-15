@@ -1,5 +1,5 @@
 .PHONY: help build test test-e2e test-verbose test-coverage test-race clean tidy fmt lint lint-fix lint-config check
-.PHONY: run run-monitoring run-monitoring-full test-alerts-check stop diagnostics golangci-lint
+.PHONY: run run-monitoring run-monitoring-full test-alerts-check test-alerts test-alerts-quiet stop diagnostics golangci-lint
 .DEFAULT_GOAL := help
 
 CACHE_DIR := .cache
@@ -85,6 +85,12 @@ run-monitoring-full: ## Run the standard variant with production's observability
 
 test-alerts-check: ## Check Studio's alert rules, contact points and self-monitoring on the running full profile
 	@go run ./cmd/alerttest check --cache-dir $(CACHE_DIR)
+
+test-alerts: ## Fire and resolve Studio's alert rules with real faults on the running full profile (hours)
+	@go run ./cmd/alerttest run --cache-dir $(CACHE_DIR)
+
+test-alerts-quiet: ## Check that no Studio alert rule fires while the stack restarts, on the running full profile
+	@go run ./cmd/alerttest quiet --cache-dir $(CACHE_DIR)
 
 stop: ## Stop the standard variant of the container runtime fixture
 	@go run ./cmd/fixture --action stop --variant standard --cache-dir $(CACHE_DIR)

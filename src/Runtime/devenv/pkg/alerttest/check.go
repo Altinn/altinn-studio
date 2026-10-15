@@ -18,6 +18,7 @@ import (
 )
 
 const (
+	conditionTrue = "True"
 	// syncWait covers grafana-operator's first sync after the fixture starts, and the first
 	// evaluation of each rule, which Grafana runs every minute.
 	syncWait     = 3 * time.Minute
@@ -159,7 +160,7 @@ func synchronized(object unstructured.Unstructured) bool {
 		condition, isMap := item.(map[string]any)
 		if kind, isString := condition["type"].(string); isMap && isString && strings.HasSuffix(kind, "Synchronized") {
 			generation, hasGeneration := condition["observedGeneration"].(int64)
-			return condition["status"] == "True" && hasGeneration && generation == object.GetGeneration()
+			return condition["status"] == conditionTrue && hasGeneration && generation == object.GetGeneration()
 		}
 	}
 	return false
@@ -320,7 +321,7 @@ func sendTestNotifications(ctx context.Context, env *Env, points map[string]Cont
 }
 
 // poll calls check every pollInterval until it returns true or the timeout passes, and then
-// returns the last error check returned.
+// returns the last error check returned. A permanent error stops it at once.
 func poll(parent context.Context, timeout time.Duration, check func() (bool, error)) error {
 	ctx, cancel := context.WithTimeout(parent, timeout)
 	defer cancel()
@@ -328,6 +329,10 @@ func poll(parent context.Context, timeout time.Duration, check func() (bool, err
 		ok, err := check()
 		if ok && err == nil {
 			return nil
+		}
+		var stop permanentError
+		if errors.As(err, &stop) {
+			return stop.err
 		}
 		select {
 		case <-ctx.Done():

@@ -20,6 +20,7 @@ const (
 // snapshots each step checked.
 type Evidence struct {
 	out      func(string)
+	parent   *Evidence
 	dir      string
 	timeline []string
 	mu       sync.Mutex
@@ -33,15 +34,20 @@ func NewEvidence(dir string, out func(string)) (*Evidence, error) {
 	return &Evidence{dir: dir, out: out}, nil
 }
 
+// Child returns the evidence of a part of the run, such as a scenario, in a subdirectory with a
+// timeline of its own, whose lines also go to this timeline.
+func (e *Evidence) Child(name string) (*Evidence, error) {
+	child, err := NewEvidence(filepath.Join(e.dir, name), nil)
+	if err != nil {
+		return nil, err
+	}
+	child.parent = e
+	return child, nil
+}
+
 // Logf adds a timestamped line to the timeline.
 func (e *Evidence) Logf(format string, args ...any) {
-	line := time.Now().UTC().Format("15:04:05Z") + "  " + fmt.Sprintf(format, args...)
-	e.mu.Lock()
-	e.timeline = append(e.timeline, line)
-	e.mu.Unlock()
-	if e.out != nil {
-		e.out(line)
-	}
+	e.add(time.Now().UTC().Format("15:04:05Z") + "  " + fmt.Sprintf(format, args...))
 }
 
 // WriteJSON saves a value as indented JSON.
@@ -86,4 +92,16 @@ func saveNotifications(ctx context.Context, env *Env) error {
 		return err
 	}
 	return env.Evidence.WriteFile("notifications.html", preview)
+}
+
+func (e *Evidence) add(line string) {
+	e.mu.Lock()
+	e.timeline = append(e.timeline, line)
+	e.mu.Unlock()
+	if e.parent != nil {
+		e.parent.add(line)
+	}
+	if e.out != nil {
+		e.out(line)
+	}
 }

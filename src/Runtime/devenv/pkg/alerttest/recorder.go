@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"altinn.studio/devenv/pkg/kubernetes"
@@ -37,6 +38,23 @@ func (m Message) Text() string {
 		parts = append(parts, attachment.Title, attachment.Text)
 	}
 	return strings.Join(parts, "\n")
+}
+
+// slackLink is Slack's link markup, <url|label> or <url>.
+var slackLink = regexp.MustCompile(`<(https?://[^>|]+)(?:\|([^>]+))?>`)
+
+// Links returns the message's links: the attachments' title links and those in their text.
+func (m Message) Links() []string {
+	var links []string
+	for _, attachment := range m.Body.Attachments {
+		if attachment.TitleLink != "" {
+			links = append(links, attachment.TitleLink)
+		}
+		for _, match := range slackLink.FindAllStringSubmatch(attachment.Text, -1) {
+			links = append(links, match[1])
+		}
+	}
+	return links
 }
 
 // Messages returns every notification the recorder has, oldest first, and the raw JSON.

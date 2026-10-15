@@ -985,3 +985,58 @@ func (c *KubernetesClient) List(
 	}
 	return list.Items, nil
 }
+
+// GetResource returns a Kubernetes object.
+func (c *KubernetesClient) GetResource(
+	ctx context.Context,
+	gvr schema.GroupVersionResource,
+	namespace,
+	name string,
+) (*unstructured.Unstructured, error) {
+	obj, err := c.dynamicClient.Resource(gvr).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("get %s %s/%s: %w", gvr.Resource, namespace, name, err)
+	}
+	return obj, nil
+}
+
+// PatchResource patches a Kubernetes object with a JSON or merge patch.
+func (c *KubernetesClient) PatchResource(
+	ctx context.Context,
+	gvr schema.GroupVersionResource,
+	namespace,
+	name string,
+	patchType types.PatchType,
+	patch []byte,
+) error {
+	_, err := c.dynamicClient.Resource(gvr).
+		Namespace(namespace).
+		Patch(ctx, name, patchType, patch, metav1.PatchOptions{})
+	if err != nil {
+		return fmt.Errorf("patch %s %s/%s: %w", gvr.Resource, namespace, name, err)
+	}
+	return nil
+}
+
+// DeleteObjects deletes typed Kubernetes objects and their dependents, as ApplyObjects applied
+// them; one that does not exist is not an error.
+func (c *KubernetesClient) DeleteObjects(ctx context.Context, objs ...runtime.Object) error {
+	propagation := metav1.DeletePropagationBackground
+	for _, obj := range objs {
+		u, err := ObjectToUnstructured(obj)
+		if err != nil {
+			return err
+		}
+		gvk := u.GroupVersionKind()
+		mapping, err := c.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+		if err != nil {
+			return fmt.Errorf("failed to get REST mapping for %v: %w", gvk, err)
+		}
+		err = c.dynamicClient.Resource(mapping.Resource).Namespace(u.GetNamespace()).
+			Delete(ctx, u.GetName(), metav1.DeleteOptions{PropagationPolicy: &propagation})
+		if err != nil && !apierrors.IsNotFound(err) {
+			return fmt.Errorf("delete %s %s/%s: %w", gvk.Kind, u.GetNamespace(), u.GetName(), err)
+		}
+	}
+	return nil
+}
