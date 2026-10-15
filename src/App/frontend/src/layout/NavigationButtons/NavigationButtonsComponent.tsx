@@ -111,7 +111,8 @@ function NavigationButtonsComponentInner({
   const isAnyProcessing = useIsAnyProcessing();
 
   const showBackToSummaryButton = returnToView !== undefined;
-  const showNextButton = showBackToSummaryButton ? (returnToView.showNextButton ?? showNextButtonSummary) : hasNext;
+  const showNextButton =
+    hasNext && (!showBackToSummaryButton || (returnToView.showNextButton ?? showNextButtonSummary));
 
   const onPageNavigationValidation = useOnPageNavigationValidation();
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
