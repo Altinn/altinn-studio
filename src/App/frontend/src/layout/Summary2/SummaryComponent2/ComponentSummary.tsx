@@ -7,6 +7,7 @@ import { CommonExpressions } from '@app/layout-contract/generated/expressions.ge
 import cn from 'classnames';
 
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
+import { PdfOptionsError } from 'src/features/pdf/PdfOptionsError';
 import { getComponentDef } from 'src/layout';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { useHasOnlyEmptyChildren, useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
@@ -124,6 +125,7 @@ function SummaryFlexInternal({ targetBaseId, children, className }: Omit<Summary
       data-summary-target={indexedId}
       data-summary-target-type={config.type}
     >
+      <PdfOptionsError baseComponentId={targetBaseId} />
       {children}
     </Flex>
   );

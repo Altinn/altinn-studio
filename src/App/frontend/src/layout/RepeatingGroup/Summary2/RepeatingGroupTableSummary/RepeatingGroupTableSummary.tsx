@@ -13,6 +13,7 @@ import { FormStore } from 'src/features/form/FormContext';
 import { usePdfExclusions } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { PdfOptionsError } from 'src/features/pdf/PdfOptionsError';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
@@ -297,6 +298,7 @@ function DataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
       className={cn(tableClasses.dataCell, repeatingGroupClasses.tableCellFormatting)}
       style={style}
     >
+      <PdfOptionsError baseComponentId={baseComponentId} />
       <span className={cn(repeatingGroupClasses.contentFormatting, tableClasses.cellValue)}>{displayData}</span>
       <ValidationMessageList
         validations={errors}

@@ -21,6 +21,7 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { PdfOptionsError } from 'src/features/pdf/PdfOptionsError';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
@@ -452,6 +453,7 @@ function SummaryCellWithComponent({
       data-is-empty={isEmpty ? 'yes' : 'no'}
       data-cell-node={indexedId}
     >
+      <PdfOptionsError baseComponentId={baseComponentId} />
       <div className={cn(classes.contentWrapper, { [classes.validationError]: errors.length > 0 })}>
         {content}
         {isSmall && !rowReadOnly && (

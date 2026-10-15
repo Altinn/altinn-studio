@@ -9,6 +9,7 @@ import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
+import { PdfOptionsError } from 'src/features/pdf/PdfOptionsError';
 import { useHandleFocusComponent } from 'src/layout/focusComponent';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
@@ -173,6 +174,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   if (overrideDisplay?.directRender || layoutComponent.directRender()) {
     return (
       <AppLanguageTranslatorProvider>
+        <PdfOptionsError baseComponentId={baseComponentId} />
         <RenderComponent
           {...componentProps}
           ref={focusContainerRef}
@@ -194,6 +196,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
       className={classNames(classes.container, gridToClasses(grid?.labelGrid, classes), pageBreakStyles(pageBreak))}
     >
       <AppLanguageTranslatorProvider>
+        <PdfOptionsError baseComponentId={baseComponentId} />
         <RenderComponent {...componentProps} />
       </AppLanguageTranslatorProvider>
     </Flex>
