@@ -82,7 +82,7 @@ def render_check(
         from playwright.sync_api import sync_playwright
     except ImportError as error:
         raise PreviewCheckUnavailable(
-            "playwright is not installed (uv sync --extra preview && playwright install chromium)"
+            "playwright is not installed (uv sync && uv run playwright install chromium)"
         ) from error
 
     studio_base = studio_base.rstrip("/")

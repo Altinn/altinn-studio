@@ -192,10 +192,7 @@ class LLMClient:
 
     def _init_anthropic_client(self, role: str, model: str, temperature: float | None) -> None:
         """Initialize the Anthropic/Claude client for Azure AI Foundry"""
-        try:
-            from anthropic import Anthropic
-        except ImportError as e:
-            raise ImportError("anthropic package not installed. Install with: pip install anthropic") from e
+        from anthropic import Anthropic
 
         if not (config.AZURE_ANTHROPIC_ENDPOINT and config.AZURE_ANTHROPIC_API_KEY):
             raise ValueError(

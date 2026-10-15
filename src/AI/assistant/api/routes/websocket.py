@@ -25,7 +25,7 @@ import asyncio
 import contextlib
 import logging
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket
 from starlette.websockets import WebSocketState
 
 from agents.services.events import sink
@@ -98,7 +98,7 @@ async def _receive_initial_registration(ws: WebSocket):
                 )
             elif msg_type == "session":
                 return data.get("session_id"), data.get("developer")
-    except WebSocketDisconnect, Exception:
+    except Exception:
         return None, None
 
 
@@ -176,7 +176,7 @@ def register_websocket_routes(app: FastAPI):
                                     "developer": new_developer,
                                 },
                             )
-            except WebSocketDisconnect, Exception:
+            except Exception:
                 pass
 
         except Exception as e:
