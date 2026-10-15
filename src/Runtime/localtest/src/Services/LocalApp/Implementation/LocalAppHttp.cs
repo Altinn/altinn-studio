@@ -199,23 +199,15 @@ namespace LocalTest.Services.LocalApp.Implementation
 
                 foreach (var appRoute in GetBoundAppRoutes())
                 {
-                    try
+                    var result = await FetchAndMergeTestData(appRoute.AppId, merged, cancellationToken);
+                    if (result.AppWasReachable)
                     {
-                        var result = await FetchAndMergeTestData(appRoute.AppId, $"{appRoute.AppId}/testData.json", merged, cancellationToken);
-                        if (result.AppWasReachable)
+                        reachableApps++;
+                        if (result.AppHadData)
                         {
-                            reachableApps++;
-                            if (result.AppHadData)
-                            {
-                                appsWithData++;
-                            }
-                            merged = result.MergedData;
+                            appsWithData++;
                         }
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        _logger.LogCritical(ex, "Test data conflict detected when loading from app {AppId}", appRoute.AppId);
-                        throw;
+                        merged = result.MergedData;
                     }
                 }
 
@@ -229,12 +221,28 @@ namespace LocalTest.Services.LocalApp.Implementation
             return result ?? new ILocalApp.TestDataResult(null, false);
         }
 
-        private async Task<FetchResult> FetchAndMergeTestData(string? appId, string requestUri, AppTestDataModel? merged, CancellationToken cancellationToken = default)
+        private async Task<FetchResult> FetchAndMergeTestData(string appId, AppTestDataModel? merged, CancellationToken cancellationToken = default)
         {
+            var offline = new FetchResult(merged, AppWasReachable: false, AppHadData: false);
+
+            // The app list is a snapshot, so an app can stop (or the host bridge drop) before its turn comes
+            var appRoute = _hostBridgeClient.IsConnected ? ResolveAppRoute(appId) : null;
+            if (appRoute is null)
+            {
+                _logger.LogWarning("Skipping test data from app {AppId} - app is no longer reachable", appId);
+                return offline;
+            }
+
+            AppTestDataModel? appData;
             try
             {
-                using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-                using var response = await Send(request, appId, cancellationToken);
+                using var request = new HttpRequestMessage(HttpMethod.Get, $"{appId}/testData.json");
+                using var response = await _hostBridgeClient.SendToTarget(
+                    request,
+                    appRoute.TargetHost,
+                    appRoute.TargetPort,
+                    cancellationToken
+                );
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     return new FetchResult(merged, AppWasReachable: true, AppHadData: false);
@@ -242,31 +250,43 @@ namespace LocalTest.Services.LocalApp.Implementation
 
                 response.EnsureSuccessStatusCode();
                 var data = await response.Content.ReadAsByteArrayAsync(cancellationToken);
-                var appData = JsonSerializer.Deserialize<AppTestDataModel>(data.RemoveBom(), JSON_OPTIONS);
-
-                if (appData != null)
-                {
-                    if (merged == null)
-                    {
-                        return new FetchResult(appData, AppWasReachable: true, AppHadData: true);
-                    }
-
-                    var sourceModel = appData.GetTestDataModel();
-                    var targetModel = merged.GetTestDataModel();
-
-                    // MergeTestData will detect conflicts and throw if any already exist
-                    TestDataMerger.MergeTestData(sourceModel, targetModel, appId ?? "unknown app");
-                    merged = AppTestDataModel.FromTestDataModel(targetModel);
-                    return new FetchResult(merged, AppWasReachable: true, AppHadData: true);
-                }
-
-                return new FetchResult(merged, AppWasReachable: true, AppHadData: false);
+                appData = JsonSerializer.Deserialize<AppTestDataModel>(data.RemoveBom(), JSON_OPTIONS);
             }
-            catch (Exception e) when (e is HttpRequestException or OperationCanceledException)
+            // An app that stops mid-request can fail in any way (a cut-off body, a dropped bridge), and is offline rather than broken
+            catch (Exception e) when (e is HttpRequestException or OperationCanceledException || !IsReachable(appId))
             {
                 _logger.LogWarning(e, "Failed to get test data from app {AppId} - app appears to be offline", appId);
-                return new FetchResult(merged, AppWasReachable: false, AppHadData: false);
+                return offline;
             }
+
+            if (appData == null)
+            {
+                return new FetchResult(merged, AppWasReachable: true, AppHadData: false);
+            }
+
+            if (merged == null)
+            {
+                return new FetchResult(appData, AppWasReachable: true, AppHadData: true);
+            }
+
+            var sourceModel = appData.GetTestDataModel();
+            var targetModel = merged.GetTestDataModel();
+            try
+            {
+                TestDataMerger.MergeTestData(sourceModel, targetModel, appId);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogCritical(ex, "Test data conflict detected when loading from app {AppId}", appId);
+                throw;
+            }
+
+            return new FetchResult(AppTestDataModel.FromTestDataModel(targetModel), AppWasReachable: true, AppHadData: true);
+        }
+
+        private bool IsReachable(string appId)
+        {
+            return _hostBridgeClient.IsConnected && ResolveAppRoute(appId) is not null;
         }
 
         public void InvalidateTestDataCache()
