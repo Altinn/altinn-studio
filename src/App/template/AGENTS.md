@@ -26,7 +26,7 @@ generated app. Move a file into `<id>/` only when the versions genuinely need di
 | Folder | Altinn.App | TFM       | SDK  |
 | ------ | ---------- | --------- | ---- |
 | `v8`   | 8.x        | `net8.0`  | 8.0  |
-| `v9`   | 9.x        | `net10.0` | 10.0 |
+| `v9`   | 9.x        | `net11.0` | 11.0 |
 
 Each `<id>/global.json` pins the SDK that version's Dockerfile builds with, so CI and local builds match
 the app image rather than the newest SDK installed. Building `v8` therefore needs a .NET 8 SDK.

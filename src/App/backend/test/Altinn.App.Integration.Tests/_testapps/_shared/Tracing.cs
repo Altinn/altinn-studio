@@ -51,7 +51,6 @@ public static class TracingDI
         services.AddSingleton<IInstanceDataListProvider, InstanceDataListProvider>();
         services.AddSingleton<IInstantiationProcessor, InstantiationProcessor>();
         services.AddSingleton<IInstantiationValidator, InstantiationValidator>();
-        services.AddSingleton<IProcessEnd, ProcessEnd>();
         services.AddSingleton<IProcessTask, TracingDataProcessTask>();
         services.AddSingleton<IProcessTask, TracingConfirmationProcessTask>();
         services.AddSingleton<ITaskValidator, TaskValidator>();
@@ -258,15 +257,6 @@ internal sealed class InstantiationValidator : IInstantiationValidator
     {
         SnapshotLogger.LogInfo("IInstantiationValidator.Validate");
         return Task.FromResult<InstantiationValidationResult?>(null);
-    }
-}
-
-internal sealed class ProcessEnd : IProcessEnd
-{
-    public Task End(Instance instance, List<InstanceEvent>? events)
-    {
-        SnapshotLogger.LogInfo("IProcessEnd.End");
-        return Task.CompletedTask;
     }
 }
 

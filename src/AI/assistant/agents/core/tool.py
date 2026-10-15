@@ -134,3 +134,24 @@ class Tool[ArgsT: BaseModel](ABC):
         return `ToolResult(is_error=True, content=...)` so the model can
         see and react to the error.  Unexpected exceptions are caught by
         the loop dispatcher and converted to error results."""
+
+
+class WriteTool[ArgsT: BaseModel](Tool[ArgsT]):
+    """Base class for tools that change files or git state.
+
+    A single boolean (`ctx.allow_app_changes`) decides whether write tools
+    are available, mirroring today's chat-vs-workflow split.  Denied tools
+    surface as `tool_result` errors the model can read — it will fall back
+    to read-only behavior on its own.
+
+    Subclasses inherit `check_permission`, declare name/description/schema
+    and implement `run`.
+    """
+
+    async def check_permission(self, args: ArgsT, ctx: LoopContext) -> PermissionResult:
+        if not ctx.allow_app_changes:
+            return PermissionResult.deny(
+                "Write tools are disabled in this session (read-only mode).",
+                escalatable=True,
+            )
+        return PermissionResult.allow()

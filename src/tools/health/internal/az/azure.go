@@ -9,28 +9,31 @@ import (
 )
 
 var errClusterMissingSubscriptionID = errors.New("cluster has no subscription ID")
+var errInvalidDiscoveryResponse = errors.New("invalid Resource Graph response")
 
 type Cluster struct {
 	Name           string `json:"name"`
 	ResourceGroup  string `json:"resourceGroup"`
 	Location       string `json:"location"`
-	SubscriptionID string `json:"subscriptionId,omitempty"` // Not from Azure API, added by us
+	SubscriptionID string `json:"subscriptionId"`
 }
 
+//nolint:tagliatelle // Azure CLI emits snake_case keys, unlike the Resource Graph REST API.
 type resourceGraphResponse struct {
-	SkipToken string    `json:"$skipToken,omitempty"`
-	Data      []Cluster `json:"data"`
-	Count     int       `json:"count"`
+	TotalRecords *int      `json:"total_records"`
+	SkipToken    string    `json:"skip_token"`
+	Data         []Cluster `json:"data"`
+	Count        int       `json:"count"`
 }
 
-// ListContainerRuntimes queries all AKS clusters across all subscriptions using Azure Resource Graph
-// This is much faster than ListAllClusters as it uses a single query instead of one per subscription.
+// ListClusters queries AKS clusters across accessible subscriptions using Azure Resource Graph.
 func ListClusters() ([]Cluster, error) {
-	query := "resources | where type =~ 'microsoft.containerservice/managedclusters' | project name, resourceGroup, location, subscriptionId"
+	query := "resources | where type =~ 'microsoft.containerservice/managedclusters' | project id, name, resourceGroup, location, subscriptionId"
 
 	var allClusters []Cluster
 	var skipToken string
-	pageNum := 0 // Create a map for quick environment lookup
+	seenTokens := make(map[string]bool)
+	pageNum := 0
 
 	for {
 		pageNum++
@@ -57,36 +60,58 @@ func ListClusters() ([]Cluster, error) {
 		if err := json.Unmarshal(output, &response); err != nil {
 			return nil, fmt.Errorf("failed to parse Resource Graph response (page %d): %w", pageNum, err)
 		}
-
+		if err := response.validate(); err != nil {
+			return nil, fmt.Errorf("resource graph page %d: %w", pageNum, err)
+		}
 		allClusters = append(allClusters, response.Data...)
 
 		if response.SkipToken == "" {
+			if len(allClusters) != *response.TotalRecords {
+				return nil, fmt.Errorf(
+					"%w: discovered %d of %d clusters",
+					errInvalidDiscoveryResponse,
+					len(allClusters),
+					*response.TotalRecords,
+				)
+			}
 			break
 		}
+		if seenTokens[response.SkipToken] {
+			return nil, fmt.Errorf("%w: repeated continuation token", errInvalidDiscoveryResponse)
+		}
+		seenTokens[response.SkipToken] = true
 		skipToken = response.SkipToken
 	}
 
 	return allClusters, nil
 }
 
+func (r *resourceGraphResponse) validate() error {
+	if r.Data == nil || r.TotalRecords == nil || r.Count != len(r.Data) {
+		return fmt.Errorf("%w: missing data or inconsistent count", errInvalidDiscoveryResponse)
+	}
+	for _, cluster := range r.Data {
+		if cluster.Name == "" || cluster.ResourceGroup == "" || cluster.SubscriptionID == "" {
+			return fmt.Errorf("%w: missing cluster identity", errInvalidDiscoveryResponse)
+		}
+	}
+	return nil
+}
+
 // EnsureCredentials ensures credentials are available for the cluster
 // This must be called sequentially, not in parallel, as it mutates kube config.
 func EnsureCredentials(cluster *Cluster, kubeconfigPath string) error {
-	args := make([]string, 0, 11)
-	args = append(args,
+	if cluster.SubscriptionID == "" {
+		return fmt.Errorf("%w: %s", errClusterMissingSubscriptionID, cluster.Name)
+	}
+	args := []string{
 		"aks", "get-credentials",
 		"--resource-group", cluster.ResourceGroup,
 		"--name", cluster.Name,
 		"--overwrite-existing",
-	)
-	if kubeconfigPath != "" {
-		args = append(args, "--file", kubeconfigPath)
+		"--file", kubeconfigPath,
+		"--subscription", cluster.SubscriptionID,
 	}
-
-	if cluster.SubscriptionID == "" {
-		return fmt.Errorf("%w: %s", errClusterMissingSubscriptionID, cluster.Name)
-	}
-	args = append(args, "--subscription", cluster.SubscriptionID)
 
 	//nolint:gosec // The executable is fixed to az; only its arguments vary.
 	cmd := exec.CommandContext(context.Background(), "az", args...)

@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Flex } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Heading, ValidationMessage } from '@digdir/designsystemet-react';
+import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
@@ -10,6 +10,7 @@ import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
+import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
 import classes from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary.module.css';
 import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary';
 import { RepGroupSummaryEditableProvider } from 'src/layout/RepeatingGroup/Summary2/RepGroupSummaryEditableContext';
@@ -118,17 +119,10 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
             );
           })}
         </div>
-        {errors?.map(({ message }) => (
-          <ValidationMessage
-            key={message.key}
-            className={classes.errorMessage}
-          >
-            <Lang
-              id={message.key}
-              params={message.params}
-            />
-          </ValidationMessage>
-        ))}
+        <ValidationMessageList
+          validations={errors}
+          className={classes.errorMessage}
+        />
       </div>
     </SummaryFlexForContainer>
   );

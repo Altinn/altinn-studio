@@ -25,6 +25,7 @@ using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -1005,64 +1006,30 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_ProcessEnd_CommitsLockedCleanupClearAndHardDeleteAtomically()
+    public async Task ExecuteCommand_ReleaseProcessingStatus_OnEndedProcess_CommitsReleaseAndHardDeleteAtomically()
     {
-        Guid lockedDataElementId = Guid.NewGuid();
         var ended = new DateTime(2026, 7, 24, 8, 30, 0, DateTimeKind.Utc);
         await using ControllerSetup setup = CreateSetup(
             services =>
             {
                 services.AppMetadata.AutoDeleteOnProcessEnd = true;
-                DataType dataType = services.AppMetadata.DataTypes.Single(dataType => dataType.Id == DataTypeId);
-                dataType.AppLogic = new ApplicationLogic { AutoDeleteOnProcessEnd = true };
-                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new CommitProcessState(
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ReleaseProcessingStatus(
                     serviceProvider.GetRequiredService<IAppMetadata>()
                 ));
             },
             (services, instance) =>
             {
-                instance.Process!.Status = ProcessStatus.Processing;
-                instance.Data.Add(
-                    new DataElement
-                    {
-                        Id = lockedDataElementId.ToString(),
-                        InstanceGuid = GetInstanceGuid(instance).ToString(),
-                        DataType = DataTypeId,
-                        ContentType = ContentType,
-                        Filename = "locked.json",
-                        Locked = true,
-                        BlobVersionId = StorageClientInterceptor.CreateBlobVersionId(1),
-                    }
-                );
-                services.Storage.AddDataRaw(
-                    lockedDataElementId,
-                    """{"locked":true}"""u8.ToArray(),
-                    StorageClientInterceptor.CreateBlobVersionId(1)
-                );
+                instance.Process = new ProcessState
+                {
+                    Status = ProcessStatus.Processing,
+                    Ended = ended,
+                    EndEvent = "EndEvent_1",
+                };
             }
         );
-        string commandPayload = CommandPayloadSerializer.Serialize(
-            new ProcessStateChangePayload(
-                new ProcessStateChange
-                {
-                    OldProcessState = new ProcessState
-                    {
-                        Status = ProcessStatus.Processing,
-                        CurrentTask = new ProcessElementInfo { ElementId = "Task_1" },
-                    },
-                    NewProcessState = new ProcessState
-                    {
-                        Ended = ended,
-                        EndEvent = "EndEvent_1",
-                        CurrentTask = null,
-                    },
-                    Events = [new InstanceEvent { EventType = "process_EndEvent" }],
-                }
-            )
-        )!;
         Guid stepId = Guid.NewGuid();
 
-        IActionResult result = await setup.Execute(CommitProcessState.Key, stepId, commandPayload);
+        IActionResult result = await setup.Execute(ReleaseProcessingStatus.Key, stepId);
 
         var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
         WorkflowCallbackState callbackState = setup.DeserializeState(response.State!);
@@ -1075,10 +1042,8 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(ended, mutation.ProcessState?.State?.Ended);
         Assert.Equal("EndEvent_1", mutation.ProcessState?.State?.EndEvent);
         Assert.Null(mutation.ProcessState?.State?.CurrentTask);
-        Assert.Equal("process_EndEvent", Assert.Single(mutation.ProcessState!.Events!).EventType);
-        var delete = Assert.Single(mutation.DeleteDataElements);
-        Assert.Equal(lockedDataElementId, delete.DataElementId);
-        Assert.True(delete.IgnoreLock);
+        Assert.Empty(mutation.ProcessState!.Events!);
+        Assert.Empty(mutation.DeleteDataElements);
         Assert.True(mutation.DeleteInstance?.Hard);
         Assert.Empty(mutation.CreateDataElements);
         Assert.Empty(mutation.UpdateDataElements);
@@ -1100,7 +1065,6 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(ProcessStatus.Idle, callbackState.Instance.Process?.Status);
         Assert.Equal(ended, callbackState.Instance.Process?.Ended);
         Assert.True(callbackState.Instance.Status.IsHardDeleted);
-        Assert.Empty(callbackState.Instance.Data);
         Assert.Equal(2, callbackState.InstanceVersion);
         Assert.Equal(2, callbackState.ProcessStateVersion);
         var (storedInstance, storedData) = setup.Services.Storage.GetInstanceAndData(
@@ -1110,6 +1074,96 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(ProcessStatus.Idle, storedInstance.Process?.Status);
         Assert.Equal(ended, storedInstance.Process?.Ended);
         Assert.True(storedInstance.Status.IsHardDeleted);
+        Assert.Empty(storedInstance.Data);
+        Assert.Empty(storedData);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_DeleteDataOnProcessEnd_DeletesLockedDataAndKeepsProcessing()
+    {
+        Guid lockedDataElementId = Guid.NewGuid();
+        var ended = new DateTime(2026, 7, 24, 8, 30, 0, DateTimeKind.Utc);
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                DataType dataType = services.AppMetadata.DataTypes.Single(dataType => dataType.Id == DataTypeId);
+                dataType.AppLogic = new ApplicationLogic { AutoDeleteOnProcessEnd = true };
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new DeleteDataOnProcessEnd(
+                    serviceProvider.GetRequiredService<IAppMetadata>()
+                ));
+            },
+            (services, instance) =>
+            {
+                instance.Process = new ProcessState
+                {
+                    Status = ProcessStatus.Processing,
+                    Ended = ended,
+                    EndEvent = "EndEvent_1",
+                };
+                instance.Data.Add(
+                    new DataElement
+                    {
+                        Id = lockedDataElementId.ToString(),
+                        InstanceGuid = GetInstanceGuid(instance).ToString(),
+                        DataType = DataTypeId,
+                        ContentType = ContentType,
+                        Filename = "locked.json",
+                        Locked = true,
+                        BlobVersionId = StorageClientInterceptor.CreateBlobVersionId(1),
+                    }
+                );
+                services.Storage.AddDataRaw(
+                    lockedDataElementId,
+                    """{"locked":true}"""u8.ToArray(),
+                    StorageClientInterceptor.CreateBlobVersionId(1)
+                );
+            }
+        );
+        Guid stepId = Guid.NewGuid();
+
+        IActionResult result = await setup.Execute(DeleteDataOnProcessEnd.Key, stepId);
+
+        var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
+        WorkflowCallbackState callbackState = setup.DeserializeState(response.State!);
+        StorageClientInterceptor.RequestResponse request = Assert.Single(GetMutationRequests(setup.Services));
+        StorageInstanceMutationRequest mutation = NewtonsoftJson.DeserializeObject<StorageInstanceMutationRequest>(
+            request.RequestBody!
+        )!;
+        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+        Assert.Null(mutation.ProcessState);
+        var delete = Assert.Single(mutation.DeleteDataElements);
+        Assert.Equal(lockedDataElementId, delete.DataElementId);
+        Assert.True(delete.IgnoreLock);
+        Assert.Null(mutation.DeleteInstance);
+        Assert.Empty(mutation.CreateDataElements);
+        Assert.Empty(mutation.UpdateDataElements);
+        Assert.Empty(mutation.DataValues);
+        Assert.Empty(mutation.PresentationTexts);
+        Assert.Equal(
+            stepId.ToString(),
+            request.RequestHeaders.GetValues(StoragePreconditionHeaders.IdempotencyKeyHeaderName).Single()
+        );
+        Assert.Equal(
+            "1",
+            request.RequestHeaders.GetValues(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName).Single()
+        );
+        Assert.Equal(
+            "1",
+            request.RequestHeaders.GetValues(StoragePreconditionHeaders.IfProcessStateVersionMatchHeaderName).Single()
+        );
+
+        Assert.Equal(ProcessStatus.Processing, callbackState.Instance.Process?.Status);
+        Assert.False(callbackState.Instance.Status?.IsHardDeleted == true);
+        Assert.Empty(callbackState.Instance.Data);
+        Assert.Equal(2, callbackState.InstanceVersion);
+        // A save without process state leaves the process state version alone.
+        Assert.Equal(1, callbackState.ProcessStateVersion);
+        var (storedInstance, storedData) = setup.Services.Storage.GetInstanceAndData(
+            InstanceOwnerPartyId,
+            setup.InstanceGuid
+        );
+        Assert.Equal(ProcessStatus.Processing, storedInstance.Process?.Status);
+        Assert.False(storedInstance.Status?.IsHardDeleted == true);
         Assert.Empty(storedInstance.Data);
         Assert.Empty(storedData);
     }
