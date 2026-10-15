@@ -99,19 +99,17 @@ public static class LayoutTestUtils
     }
 
     /// <summary>
-    /// Initialize the state through the legacy <see cref="LayoutEvaluatorStateInitializer.Init(Instance, object, string?, string?)"/>
+    /// Initialize the state through the legacy <see cref="LayoutEvaluatorStateInitializer.Init(Instance, object, string, string?)"/>
     /// overload that apps call from <c>IDataProcessor</c>
     /// </summary>
     public static async Task<LayoutEvaluatorState> GetLegacyLayoutModelTools(object model, string folder)
     {
         var appMetadata = new Mock<IAppMetadata>(MockBehavior.Strict);
-        appMetadata.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(CreateApplicationMetadata(model.GetType()));
+        appMetadata.Setup(am => am.ApplicationMetadata).Returns(CreateApplicationMetadata(model.GetType()));
 
         var layoutModel = await LoadLayoutModel(folder);
         var resources = new Mock<IAppResources>(MockBehavior.Strict);
-#pragma warning disable CS0618 // Type or member is obsolete
-        resources.Setup(r => r.GetLayoutModel("layout")).Returns(layoutModel);
-#pragma warning restore CS0618 // Type or member is obsolete
+        resources.Setup(r => r.GetLayoutModelForFolder("layout")).Returns(layoutModel);
 
         var initializer = new LayoutEvaluatorStateInitializer(
             resources.Object,
@@ -161,7 +159,7 @@ public static class LayoutTestUtils
             pages.Add(PageComponent.Parse(document.RootElement, pageName, "layout"));
         }
         var dataType = new DataType() { Id = DataTypeId };
-        var layout = new LayoutSetComponent(pages, "layout", dataType);
+        var layout = new UiFolderComponent(pages, "layout", dataType);
         return new LayoutModel([layout], null);
     }
 }

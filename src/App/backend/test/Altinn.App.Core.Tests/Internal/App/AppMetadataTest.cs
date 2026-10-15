@@ -532,14 +532,10 @@ public class AppMetadataTest
     }
 
     [Fact]
-    public async Task GetApplicationMetadata_copyInstanceSettings_deserializes_settings()
+    public void GetApplicationMetadata_copyInstanceSettings_deserializes_settings()
     {
-        var featureManagerMock = new Mock<IFeatureManager>();
-        IFrontendFeatures frontendFeatures = new FrontendFeatures(featureManagerMock.Object);
-        Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
-
-        AppSettings appSettings = GetAppSettings("AppMetadata", "copy-instance-settings.applicationmetadata.json");
-        IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
+        AppFiles appFiles = GetAppFiles("AppMetadata", "copy-instance-settings.applicationmetadata.json");
+        IAppMetadata appMetadata = SetupAppMetadata(appFiles);
         CopyInstanceSettings expectedCopyInstanceSettings = new()
         {
             Enabled = true,
@@ -551,10 +547,9 @@ public class AppMetadataTest
             IncludedPresentationTexts = ["name"],
         };
 
-        var actual = await appMetadata.GetApplicationMetadata();
+        var actual = appMetadata.ApplicationMetadata;
 
         actual.Should().NotBeNull();
         actual.CopyInstanceSettings.Should().BeEquivalentTo(expectedCopyInstanceSettings);
-        actual.Features.Should().BeEquivalentTo(enabledFrontendFeatures);
     }
 }

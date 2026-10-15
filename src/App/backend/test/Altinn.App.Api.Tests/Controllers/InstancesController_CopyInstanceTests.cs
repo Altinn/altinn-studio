@@ -7,6 +7,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
@@ -411,16 +412,18 @@ public class InstancesController_CopyInstanceTests
         SetupRequestAcceptHeader(fixture, acceptHeader);
         fixture
             .Mock<IAppMetadata>()
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+            .Setup(a => a.ApplicationMetadata)
+            .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
-            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup<Task<XacmlJsonResponse>>(p =>
+                p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(CreateXacmlResponse("Permit"));
         fixture
-            .Mock<IInstanceClient>()
+            .Mock<IInstanceClientWithStorageMetadata>()
             .Setup(i =>
-                i.GetInstance(
+                i.GetInstanceWithStorageMetadata(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<int>(),
@@ -429,7 +432,7 @@ public class InstancesController_CopyInstanceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(instance);
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, SourceVersions));
         fixture
             .Mock<IInstantiationValidator>()
             .Setup(v => v.Validate(It.IsAny<Instance>()))
@@ -450,7 +453,7 @@ public class InstancesController_CopyInstanceTests
 
         fixture.Mock<IAppMetadata>().VerifyAll();
         fixture.Mock<IPDP>().VerifyAll();
-        fixture.Mock<IInstanceClient>().VerifyAll();
+        fixture.Mock<IInstanceClientWithStorageMetadata>().VerifyAll();
         fixture.Mock<IInstantiationValidator>().VerifyAll();
         fixture.Mock<ICopyInstanceValidator>().VerifyAll();
 
@@ -491,15 +494,17 @@ public class InstancesController_CopyInstanceTests
         SetupRequestAcceptHeader(fixture, acceptHeader);
         var application = CreateApplicationMetadata(Org, AppName, true);
         application.Title = new Dictionary<string, string> { ["nb"] = "Skjema <AS>", ["en"] = "Form <Ltd>" };
-        fixture.Mock<IAppMetadata>().Setup(a => a.GetApplicationMetadata()).ReturnsAsync(application);
+        fixture.Mock<IAppMetadata>().Setup(a => a.ApplicationMetadata).Returns(application);
         fixture
             .Mock<IPDP>()
-            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup<Task<XacmlJsonResponse>>(p =>
+                p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(CreateXacmlResponse("Permit"));
         fixture
-            .Mock<IInstanceClient>()
+            .Mock<IInstanceClientWithStorageMetadata>()
             .Setup(i =>
-                i.GetInstance(
+                i.GetInstanceWithStorageMetadata(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<int>(),
@@ -508,7 +513,7 @@ public class InstancesController_CopyInstanceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(instance);
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, SourceVersions));
         fixture
             .Mock<IInstantiationValidator>()
             .Setup(v => v.Validate(It.IsAny<Instance>()))
@@ -541,7 +546,7 @@ public class InstancesController_CopyInstanceTests
 
         fixture.Mock<IAppMetadata>().VerifyAll();
         fixture.Mock<IPDP>().VerifyAll();
-        fixture.Mock<IInstanceClient>().VerifyAll();
+        fixture.Mock<IInstanceClientWithStorageMetadata>().VerifyAll();
         fixture.Mock<IInstantiationValidator>().VerifyAll();
         fixture.Mock<ICopyInstanceValidator>().VerifyAll();
 
@@ -1940,15 +1945,17 @@ public class InstancesController_CopyInstanceTests
             .Setup(httpContext => httpContext.User)
             .Returns(TestAuthentication.GetUserPrincipal(partyId: instanceOwnerPartyId));
         fixture.Mock<HttpContext>().Setup(hc => hc.Request).Returns(Mock.Of<HttpRequest>());
-        fixture.Mock<IAppMetadata>().Setup(a => a.GetApplicationMetadata()).ReturnsAsync(application);
+        fixture.Mock<IAppMetadata>().Setup(a => a.ApplicationMetadata).Returns(application);
         fixture
             .Mock<IPDP>()
-            .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup<Task<XacmlJsonResponse>>(p =>
+                p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(CreateXacmlResponse("Permit"));
         fixture
-            .Mock<IInstanceClient>()
+            .Mock<IInstanceClientWithStorageMetadata>()
             .Setup(i =>
-                i.GetInstance(
+                i.GetInstanceWithStorageMetadata(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<int>(),
@@ -1957,7 +1964,7 @@ public class InstancesController_CopyInstanceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(instance);
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, SourceVersions));
         fixture
             .Mock<IInstanceClient>()
             .Setup(i =>
@@ -1974,15 +1981,15 @@ public class InstancesController_CopyInstanceTests
             )
             .ReturnsAsync(instance);
         fixture
-            .Mock<IInstanceClient>()
+            .Mock<IInstanceClientWithStorageMetadata>()
             .Setup(i =>
-                i.GetInstance(
+                i.GetInstanceWithStorageMetadata(
                     It.IsAny<Instance>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(instance);
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, TargetVersions));
         fixture
             .Mock<IInstantiationValidator>()
             .Setup(v => v.Validate(It.IsAny<Instance>()))
@@ -1993,17 +2000,29 @@ public class InstancesController_CopyInstanceTests
             .ReturnsAsync(new InstantiationValidationResult { Valid = true });
         fixture
             .Mock<IProcessEngine>()
-            .Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()))
-            .ReturnsAsync(new ProcessChangeResult { Success = true });
+            .Setup(p => p.CreateInitialProcessState(It.IsAny<ProcessStartRequest>()))
+            .ReturnsAsync(
+                new ProcessChangeResult
+                {
+                    Success = true,
+                    ProcessStateChange = new ProcessStateChange { Events = [] },
+                }
+            );
         fixture
             .Mock<IProcessEngine>()
             .Setup(p =>
-                p.HandleEventsAndUpdateStorage(
+                p.SubmitInitialProcessState(
                     It.IsAny<Instance>(),
-                    It.IsAny<Dictionary<string, string>>(),
-                    It.IsAny<List<InstanceEvent>>()
+                    It.IsAny<StorageVersionMetadata>(),
+                    It.IsAny<ProcessStateChange>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<InstantiationNotification?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
                 )
-            );
+            )
+            .ReturnsAsync(instance);
         fixture
             .Mock<IDataClient>()
             .Setup(p =>

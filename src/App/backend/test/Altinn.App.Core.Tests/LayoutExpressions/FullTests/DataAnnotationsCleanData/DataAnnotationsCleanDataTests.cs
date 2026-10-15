@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
@@ -110,6 +111,7 @@ public class DataAnnotationsCleanDataTests(ITestOutputHelper outputHelper, DataA
         var dataUnitOfWorkInitializer = sp.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         var dataMutator = await dataUnitOfWorkInitializer.Init(
             accessorFixture.Instance,
+            StorageVersionMetadata.Empty,
             DataAccessorFixture.TaskId,
             "nb"
         );

@@ -261,8 +261,7 @@ public class NotificationCallbackControllerTests
     public async Task NotificationCallback_WhenInstanceIsNotFound_ReturnsSendNotificationFalse()
     {
         // Arrange
-        using var notFound = new HttpResponseMessage(HttpStatusCode.NotFound);
-        SetupGetInstance().ThrowsAsync(new PlatformHttpException(notFound, "Instance not found"));
+        SetupGetInstance().ThrowsAsync(new PlatformHttpException(HttpStatusCode.NotFound, "Instance not found"));
         SetupValidCode();
 
         await using var sp = _serviceCollection.BuildStrictServiceProvider();
@@ -287,8 +286,8 @@ public class NotificationCallbackControllerTests
     public async Task NotificationCallback_WhenStorageReturnsError_ReturnsInternalServerError()
     {
         // Arrange
-        using var serverError = new HttpResponseMessage(HttpStatusCode.InternalServerError);
-        SetupGetInstance().ThrowsAsync(new PlatformHttpException(serverError, "Storage unavailable"));
+        SetupGetInstance()
+            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.InternalServerError, "Storage unavailable"));
         SetupValidCode();
 
         await using var sp = _serviceCollection.BuildStrictServiceProvider();

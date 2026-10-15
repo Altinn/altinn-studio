@@ -613,10 +613,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         HttpStatusCode expectedStatus
     )
     {
-        if (removeHiddenData)
-        {
-            OverrideAppSetting("AppSettings:RemoveHiddenData", "true");
-        }
+        OverrideAppSetting("AppSettings:RemoveHiddenData", removeHiddenData ? "true" : "false");
 
         // Mock pdf generation so that the test does not fail due to pof service not running.
         var pdfMock = SetupPdfGeneratorMock();

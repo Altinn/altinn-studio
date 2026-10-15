@@ -314,7 +314,7 @@ public class MapWithGeometriesTests
     [Fact]
     public async Task HiddenMap_RemoveHiddenDataWithDeleteRow_RemovesGeometries()
     {
-        // Same call as ProcessTaskFinalizer does when AppSettings.RemoveHiddenData is enabled
+        // Same call as CommonTaskFinalization does when AppSettings.RemoveHiddenData is enabled
         await using var provider = _collection.BuildServiceProvider();
         var dataMutator = await provider.CreateInstanceDataUnitOfWork(
             CreateModel(hideMap: true, hideGroup: true),
@@ -324,7 +324,7 @@ public class MapWithGeometriesTests
 
         var state = dataMutator.GetLayoutEvaluatorState();
         Assert.NotNull(state);
-        await LayoutEvaluator.RemoveHiddenDataAsync(state, RowRemovalOption.DeleteRow, evaluateRemoveWhenHidden: true);
+        await LayoutEvaluator.RemoveHiddenData(state, RowRemovalOption.DeleteRow, evaluateRemoveWhenHidden: true);
 
         var data = await dataMutator.GetFormData<SkjemaModel>();
         Assert.NotNull(data);
@@ -344,7 +344,7 @@ public class MapWithGeometriesTests
 
         var state = dataMutator.GetLayoutEvaluatorState();
         Assert.NotNull(state);
-        await LayoutEvaluator.RemoveHiddenDataAsync(state, RowRemovalOption.DeleteRow, evaluateRemoveWhenHidden: true);
+        await LayoutEvaluator.RemoveHiddenData(state, RowRemovalOption.DeleteRow, evaluateRemoveWhenHidden: true);
 
         var data = await dataMutator.GetFormData<SkjemaModel>();
         Assert.NotNull(data);
