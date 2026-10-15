@@ -77,11 +77,13 @@ public class WorkflowEngineCommandValidatorTests
         services.AddTransient<IWorkflowEngineCommand, AbandonTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskAbandonHook>();
         services.AddTransient<IWorkflowEngineCommand, OnProcessEndingHook>();
-        services.AddTransient<IWorkflowEngineCommand, EndProcessLegacyHook>();
+        services.AddTransient<IWorkflowEngineCommand, OnProcessEndedHook>();
+        services.AddTransient<IWorkflowEngineCommand, DeleteDataOnProcessEnd>();
         services.AddTransient<IWorkflowEngineCommand, CompletedAltinnEvent>();
         services.AddTransient<IWorkflowEngineCommand, AcquireProcessingStatus>();
         services.AddTransient<IWorkflowEngineCommand, MutateProcessState>();
         services.AddTransient<IWorkflowEngineCommand, CommitProcessState>();
+        services.AddTransient<IWorkflowEngineCommand, ReleaseProcessingStatus>();
         services.AddTransient<IWorkflowEngineCommand, EnqueueSideEffectsWorkflow>();
         services.AddTransient<IWorkflowEngineCommand, MintMailbox>();
     }

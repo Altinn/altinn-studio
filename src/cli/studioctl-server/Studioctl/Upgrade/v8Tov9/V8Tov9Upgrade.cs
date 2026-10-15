@@ -1124,6 +1124,7 @@ internal static class V8Tov9Upgrade
 
             var result = WarnOnlyDetector.Combine(
                 new RemovedTaskEventInterfaceDetector(scanner).Detect(),
+                new RemovedProcessEndInterfaceDetector(scanner).Detect(),
                 new RemovedPdfFormatterDetector(scanner).Detect(),
                 new RemovedEventsReceiveStackDetector(scanner).Detect(),
                 new ServiceTaskResultApiDetector(pristineView).Detect(),

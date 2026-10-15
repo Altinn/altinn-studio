@@ -55,8 +55,8 @@ internal sealed class WorkflowCommandSet
     public IReadOnlyList<StepRequest> SideEffectCommands => _sideEffectCommands;
 
     /// <summary>
-    /// Whether this command set schedules a service-task command after CommitProcessState.
-    /// The factory copies this exact sequence fact into the commit payload.
+    /// Whether this command set schedules a service-task command after CommitProcessState. The service task's
+    /// continuation then owns the release, so the factory adds no <see cref="ReleaseProcessingStatus"/>.
     /// </summary>
     public bool ServiceTaskFollowsCommit { get; private set; }
 
@@ -132,7 +132,10 @@ internal sealed class WorkflowCommandSet
     /// </summary>
     public static WorkflowCommandSet GetProcessEndSteps(ProcessEndContext context)
     {
-        var group = new WorkflowCommandSet().AddCommand(OnProcessEndingHook.Key).AddCommand(EndProcessLegacyHook.Key);
+        var group = new WorkflowCommandSet()
+            .AddCommand(OnProcessEndingHook.Key)
+            .AddCriticalPostCommitCommand(OnProcessEndedHook.Key)
+            .AddCriticalPostCommitCommand(DeleteDataOnProcessEnd.Key);
 
         if (context.RegisterEvents)
         {

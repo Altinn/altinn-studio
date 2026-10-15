@@ -4,12 +4,7 @@ namespace Altinn.App.Core.Features.Process;
 /// Hook interface for custom end process logic.
 /// </summary>
 /// <remarks>
-/// <para><strong>IMPORTANT: Implementations MUST be idempotent - this hook may be retried on failure.</strong></para>
-/// <para>
-/// Unlike the legacy <c>IProcessEnd</c>, this hook does not receive a <c>List&lt;InstanceEvent&gt;</c>. This is
-/// intentional: under the per-callback workflow-engine model there is no in-memory events list to mutate, so the
-/// parameter was dropped deliberately rather than overlooked.
-/// </para>
+/// <strong>IMPORTANT: Implementations MUST be idempotent - this hook may be retried on failure.</strong>
 /// </remarks>
 [ImplementableByApps]
 public interface IOnProcessEndingHandler : IProcessStepConfigurable
