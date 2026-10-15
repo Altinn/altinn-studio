@@ -113,10 +113,6 @@ public class ApplicationInformationService : IApplicationInformationService
             "PublishAltinnAppServiceResource",
             ActivityKind.Internal
         );
-        activity?.SetTag("org", org);
-        activity?.SetTag("app", app);
-        activity?.SetTag("env", envName);
-        activity?.SetTag("app_status", appStatus.ToString());
 
         try
         {
@@ -192,10 +188,6 @@ public class ApplicationInformationService : IApplicationInformationService
             "UpdateAltinnAppServiceResourceStatus",
             ActivityKind.Internal
         );
-        activity?.SetTag("org", org);
-        activity?.SetTag("app", app);
-        activity?.SetTag("env", envName);
-        activity?.SetTag("app_status", appStatus.ToString());
 
         try
         {
@@ -207,7 +199,7 @@ public class ApplicationInformationService : IApplicationInformationService
             );
             if (serviceResource is null)
             {
-                activity?.SetTag("publish.result", "resource_not_found");
+                activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishResult, "resource_not_found");
                 return new ResourceRegistryPublishResult(false, $"Resource {resourceId} not found");
             }
 
@@ -221,7 +213,7 @@ public class ApplicationInformationService : IApplicationInformationService
         }
         catch (Exception ex)
         {
-            activity?.SetTag("publish.result", "exception");
+            activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishResult, "exception");
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             activity?.AddException(ex);
             return new ResourceRegistryPublishResult(false, ex.Message);
