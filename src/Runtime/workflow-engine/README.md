@@ -1,6 +1,6 @@
 # Workflow Engine
 
-An asynchronous workflow orchestration service for Altinn Studio. It accepts process-advancement requests for app instances, queues them internally, and executes each step sequentially with idempotency guarantees, automatic retries (exponential backoff), and distributed tracing. Step execution is carried out by issuing HTTP callbacks to the originating Altinn app.
+An asynchronous workflow orchestration service for Altinn Studio. It accepts process-advancement requests for app instances, queues them internally, and executes each step sequentially with idempotency guarantees, automatic retries (exponential backoff), and distributed tracing. Step execution is carried out by issuing HTTP callbacks to the originating Altinn app. Apps submit work through the [app backend's integration](../../App/backend/src/Altinn.App.Core/Internal/WorkflowEngine).
 
 Built on .NET 10, PostgreSQL, and OpenTelemetry.
 
@@ -78,6 +78,17 @@ dotnet ef migrations add <Name> \
 ## Load testing
 
 k6 scripts for stress testing and benchmarking are available in the [`.k6/`](.k6/) directory. See the [k6 README](.k6/README.md) for setup instructions, available scripts, and configuration options.
+
+## Dashboard
+
+The engine serves a dashboard at its root. It shows workflows and their steps in real time, and lets an operator
+retry or fail a step and override a namespace's failure throttling. It reads data from the
+[dashboard endpoints](src/WorkflowEngine.Core/Endpoints/DashboardEndpoints.cs), and its workflow actions call the
+public API like any other caller. Its trace links open Tempo in the Grafana of the local stack.
+
+The browser loads the files in [`wwwroot`](src/WorkflowEngine.Core/wwwroot) directly as JavaScript modules. In the
+Development and Docker environments the engine serves them from disk, and the page reloads when a file changes.
+[Dashboard](docs/dashboard.md) describes its behavior in detail.
 
 ## Further reading
 

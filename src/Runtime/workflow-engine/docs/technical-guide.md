@@ -1217,7 +1217,7 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
 - Grafana Tempo click-through links
 - Paginated query interface with namespace/status/label filters
 - Mailboxes rendered under their collections, log laid out position by position
-  (`GET /dashboard/mailboxes` — payload and bounds in `src/WorkflowEngine.Core/wwwroot/DASHBOARD_SPEC.md`)
+  (`GET /dashboard/mailboxes` — payload and bounds in the [dashboard spec](dashboard.md#get-dashboardmailboxes))
 
 ## API Reference
 
