@@ -99,7 +99,8 @@
         "id": "subform-mopeder",
         "type": "Subform",
         "textResourceBindings": {
-          "title": "subform-moped.title",
+          "title": "moped-header.title",
+          "summaryTitle": "Registrerte mopeder",
           "addButton": "subform-moped.add",
           "tableEditButton": [
             "if",
@@ -143,6 +144,7 @@
         "type": "Subform",
         "textResourceBindings": {
           "title": "subform-bok.title",
+          "summaryTitle": "",
           "addButton": "subform-bok.add"
         },
         "layoutSet": "bok-subform",
