@@ -158,14 +158,13 @@ function NavigationButtonsComponentInner({
 
       const prevScrollPosition = getScrollPosition();
 
-      if (validateOnForward && !returnToView) {
+      if (validateOnForward) {
         const pageKey = layoutLookups.componentToPage[baseComponentId];
         if (!pageKey) {
           throw new Error(`Could not find page key for component ${baseComponentId}`);
         }
         const hasErrors = await onPageNavigationValidation(pageKey, validateOnForward);
         if (hasErrors) {
-          // Block navigation if validation fails, unless returnToView is set (Back to summary)
           resetScrollPosition(prevScrollPosition);
           return;
         }
