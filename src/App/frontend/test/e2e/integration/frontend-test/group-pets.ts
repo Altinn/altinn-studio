@@ -182,6 +182,15 @@ describe('Group (Pets)', () => {
     cy.testWcag();
     cy.gotoNavPage('option-comp');
     cy.get('#header-collection1').should('be.visible');
+    cy.get('[data-summary-target="option-test3"]').within(() => {
+      cy.contains('span', 'Ofte sett i morsomme videoer på nettet').should('be.visible');
+      cy.findByRole('button', { name: /Katter er selvstendige/ }).click();
+      cy.get('[data-testid="helptext"]').should('be.visible').and('contain.text', 'Katter er selvstendige');
+      cy.findByRole('button', { name: /Katter er selvstendige/ }).click();
+    });
+    cy.get('[data-summary-target="option-test4"]')
+      .should('contain.text', 'Svømmedyr')
+      .and('contain.text', 'Dyr som svømmer');
     cy.testWcag();
   });
 
