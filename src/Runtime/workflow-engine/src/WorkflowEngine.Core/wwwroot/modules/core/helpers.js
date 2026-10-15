@@ -3,7 +3,12 @@
 /** @param {string} s */
 export const cssId = (s) => s.replace(/[^a-zA-Z0-9-_]/g, '_');
 
-/** @param {string} s */
+/**
+ * Escape element content only. Quotes stay intact, so a value in an attribute needs `escAttr()`
+ * and one in an inline handler argument needs `escJsArg()`. With `esc()` there, a quote in a stored
+ * value would end the attribute and inject a handler for every dashboard user.
+ * @param {string} s
+ */
 export const esc = (s) => {
     if (!s) return '';
     const d = document.createElement('div');

@@ -1,6 +1,6 @@
 # Dashboard Functional Specification
 
-Detailed behavioral spec for the workflow engine dashboard. For module structure and architecture patterns, see `src/WorkflowEngine.Core/wwwroot/AGENTS.md`.
+Detailed behavioral spec for the workflow engine dashboard. [README.md](README.md) introduces the dashboard.
 
 ---
 
