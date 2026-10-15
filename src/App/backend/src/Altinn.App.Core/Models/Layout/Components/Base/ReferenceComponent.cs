@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Expressions;
 
@@ -19,9 +20,22 @@ public abstract class ReferenceComponent : BaseLayoutComponent
     public required IReadOnlyList<BaseLayoutComponent> Children { get; init; }
 
     /// <summary>
-    /// Find a child by id in the children passed to a component's parser.
+    /// Find children by id in the children passed to a component's parser.
     /// </summary>
-    private protected static BaseLayoutComponent FindChild(IReadOnlyList<BaseLayoutComponent> children, string id)
+    private protected static ImmutableArray<BaseLayoutComponent> FindChildren(
+        IReadOnlyList<BaseLayoutComponent> children,
+        ImmutableArray<string> ids
+    )
+    {
+        var result = ImmutableArray.CreateBuilder<BaseLayoutComponent>(ids.Length);
+        foreach (var id in ids)
+        {
+            result.Add(FindChild(children, id));
+        }
+        return result.MoveToImmutable();
+    }
+
+    private static BaseLayoutComponent FindChild(IReadOnlyList<BaseLayoutComponent> children, string id)
     {
         foreach (var child in children)
         {

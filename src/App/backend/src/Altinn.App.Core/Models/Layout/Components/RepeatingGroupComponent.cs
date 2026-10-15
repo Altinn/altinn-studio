@@ -72,9 +72,9 @@ public sealed class RepeatingGroupComponent : ReferenceComponent
             HiddenRow = hiddenRow,
             RowsBefore = ParseGridConfig("rowsBefore", componentElement),
             RowsAfter = ParseGridConfig("rowsAfter", componentElement),
-            BeforeChildren = [.. beforeIds.Select(childId => FindChild(children, childId))],
-            RepeatingChildren = [.. repeatingIds.Select(childId => FindChild(children, childId))],
-            AfterChildren = [.. afterIds.Select(childId => FindChild(children, childId))],
+            BeforeChildren = FindChildren(children, beforeIds),
+            RepeatingChildren = FindChildren(children, repeatingIds),
+            AfterChildren = FindChildren(children, afterIds),
             Children = children,
             RowComponent = new RepeatingGroupRowComponent()
             {

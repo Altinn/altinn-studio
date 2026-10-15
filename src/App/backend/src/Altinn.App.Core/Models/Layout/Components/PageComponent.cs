@@ -46,7 +46,8 @@ public sealed class PageComponent : BaseComponent
         foreach (var componentElement in componentsElement.EnumerateArray())
         {
             var index = nodes.Count;
-            var node = WithLocation(pageId, layoutId, index, null, () => ReadNode(componentElement, index));
+            var id = WithLocation(pageId, layoutId, index, null, () => ReadId(componentElement));
+            var node = WithLocation(pageId, layoutId, index, id, () => ReadNode(componentElement, index, id));
             if (!nodeLookup.TryAdd(node.Id, node))
             {
                 throw new JsonException(
@@ -202,15 +203,19 @@ public sealed class PageComponent : BaseComponent
         ImmutableArray<string> ChildIds
     );
 
-    private static ComponentNode ReadNode(JsonElement componentElement, int index)
+    private static string ReadId(JsonElement componentElement)
     {
         if (componentElement.ValueKind != JsonValueKind.Object)
         {
             throw new JsonException("Each component in the \"layout\" array must be an object.");
         }
 
+        return ParseId(componentElement);
+    }
+
+    private static ComponentNode ReadNode(JsonElement componentElement, int index, string id)
+    {
         var type = ParseType(componentElement);
-        var id = ParseId(componentElement);
 
         var maxCount =
             componentElement.TryGetProperty("maxCount", out JsonElement maxCountElement)
@@ -220,7 +225,7 @@ public sealed class PageComponent : BaseComponent
         // ensure maxCount is positive
         if (maxCount < 0)
         {
-            throw new JsonException($"Component {id} has invalid maxCount={maxCount}, must be positive.");
+            throw new JsonException($"Invalid maxCount={maxCount}, must be positive.");
         }
 
         var kind = type.ToLowerInvariant() switch
