@@ -121,6 +121,7 @@ function SummaryFlexInternal({ targetBaseId, children, className }: Omit<Summary
       size={config.grid}
       data-componentbaseid={summary2BaseId}
       data-componentid={summary2NodeId}
+      data-summary-container
       data-summary-target={indexedId}
       data-summary-target-type={config.type}
     >
