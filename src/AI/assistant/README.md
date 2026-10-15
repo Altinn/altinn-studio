@@ -56,10 +56,6 @@ python -m pytest      # unit tests
 CI runs `.github/workflows/altinity-build-test.yaml` on each pull request. This workflow runs `ruff check`, `ruff format --check`, `pyright` and `pytest`. Then it starts the server and examines `/health`.
 Ruff formatting applies to Python source. Markdown formatting is optional.
 
-### Change a dependency
-
-Use `uv add <package>` or `uv remove <package>`, then commit `pyproject.toml` and `uv.lock` together. CI and the image install only what `uv.lock` contains, and CI fails when `uv.lock` does not agree with `pyproject.toml`.
-
 ## API
 
 ### Start a workflow
