@@ -4,8 +4,9 @@ import warnings
 from abc import ABC, abstractmethod
 from typing import Any
 
-import httpx
 import regex
+
+from ..cdn import fetch_cdn_schema
 
 with warnings.catch_warnings():
     # RefResolver is deprecated in jsonschema, but we still rely on it here.
@@ -16,8 +17,6 @@ with warnings.catch_warnings():
         message="jsonschema.RefResolver is deprecated*",
     )
     from jsonschema import Draft7Validator, RefResolver, ValidationError, validators
-
-_SCHEMA_FETCH_TIMEOUT_SECONDS = 10
 
 
 def _check_ecma_pattern(validator, pattern, instance, _schema):
@@ -43,9 +42,7 @@ class BaseValidator(ABC):
     def _load_schema(self) -> dict[str, Any]:
         """Load schema from URL"""
         try:
-            response = httpx.get(self.schema_url, follow_redirects=True, timeout=_SCHEMA_FETCH_TIMEOUT_SECONDS)
-            response.raise_for_status()
-            return response.json()
+            return fetch_cdn_schema(self.schema_url)
         except Exception as e:
             raise Exception(f"Failed to load schema from {self.schema_url}: {e}") from e
 
