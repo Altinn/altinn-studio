@@ -66,4 +66,23 @@ describe('Group summary test', () => {
         cy.contains('span', 'Båt').should('not.exist');
       });
   });
+
+  it('Hides nested group headings when their source group is hidden', () => {
+    cy.get('#GroupPage-Nested-Input').type('A value in the nested group');
+    cy.get('[data-testid="summary-group-component-1"]').should('be.visible');
+    cy.get('#GroupPage-Input').type('Hide nested groups');
+    cy.waitUntilSaved();
+    cy.get('[data-summary-target="GroupPage-Group"]').should('contain.text', 'Hide nested groups');
+    cy.get('[data-testid="summary-group-component-1"]', { timeout: 0 }).should('not.exist');
+    cy.get('[data-testid="summary-group-component-2"]', { timeout: 0 }).should('not.exist');
+  });
+
+  it('Hides empty nested group headings without hiding a populated parent', () => {
+    cy.get('#GroupPage-Input').type('Keep the parent visible');
+    cy.waitUntilSaved();
+    cy.get('[data-summary-target="GroupPage-Group"]').should('contain.text', 'Keep the parent visible');
+    cy.get('[data-testid="summary-group-component-2"]').should('not.be.visible');
+    cy.get('#GroupPage-Nested-Nested-Input').type('Show the nested group');
+    cy.get('[data-testid="summary-group-component-2"]').should('be.visible');
+  });
 });
