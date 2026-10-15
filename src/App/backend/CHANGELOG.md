@@ -25,6 +25,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: the data API returns its errors as JSON, and the `JsonObjectInDataResponse` feature flag is removed. `studioctl app upgrade v9` removes the flag from the app. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
   - the obsolete `POST .../data?dataType=` returns a list of validation issues
   - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
+- Breaking: layout components in `Altinn.App.Core.Models.Layout.Components`, such as `GridComponent` and `RepeatingGroupComponent`, cannot be changed after parsing or subclassed in your app: ([#PR](https://github.com/Altinn/altinn-studio/pull/PR))
+  - containers list their child components, not ids: use `Children` instead of `ChildReferences`, `RepeatingChildren` instead of `RepeatingChildReferences`, and `.Id` to get an id
+  - collections such as `GridComponent.Rows`, `TabsComponent.Tabs` and `Expression.Args` are read-only; check `IsLiteralValue` instead of `Args == null`
+- Breaking: a layout where a component contains itself, directly or through other containers, now fails to load with an error. Such components were previously left out of expressions and validation. Remove the loop from the layout. ([#PR](https://github.com/Altinn/altinn-studio/pull/PR))
+- Layout errors name the component id, its position, such as `$.data.layout[3]`, the page and the layout folder. ([#PR](https://github.com/Altinn/altinn-studio/pull/PR))
 
 ### Fixed
 
@@ -34,6 +39,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Removed
 
+- Breaking: remove `RepeatingGroupRowComponent.FromGroup` and the public `Parse` and `ClaimChildren` methods on layout components, such as `GridComponent.Parse`. Use `RepeatingGroupComponent.RowComponent` instead, and `PageComponent.Parse` to parse a page. ([#PR](https://github.com/Altinn/altinn-studio/pull/PR))
 - Breaking: remove `IOnProcessEndingHandler`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. Logic that must stop the process from ending belongs in the last task's `IOnTaskEndingHandler`, or its `IOnTaskAbandonHandler` when a rejection ends the process. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Breaking: remove `IProcessEnd`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. `studioctl app upgrade v9` lists the classes and registrations to port. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 
