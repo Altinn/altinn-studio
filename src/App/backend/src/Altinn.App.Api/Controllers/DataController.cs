@@ -324,7 +324,7 @@ public class DataController : ControllerBase
                     };
                 }
 
-                var (bytes, actualLength) = await Request.ReadBodyAsByteArrayAsync(dataType.MaxSize * 1024 * 1024);
+                var (bytes, actualLength) = await Request.ReadBodyAsByteArray(dataType.MaxSize * 1024 * 1024);
                 if (bytes is null)
                 {
                     return new ProblemDetails()
@@ -1060,7 +1060,7 @@ public class DataController : ControllerBase
         var contentDispositionHeader = ContentDispositionHeaderValue.Parse(headerValues.ToString());
         _logger.LogInformation("Content-Disposition: {ContentDisposition}", headerValues.ToString());
 
-        var (bytes, actualLength) = await Request.ReadBodyAsByteArrayAsync(
+        var (bytes, actualLength) = await Request.ReadBodyAsByteArray(
             dataType.MaxSize * 1024 * 1024 ?? REQUEST_SIZE_LIMIT
         );
         if (bytes is null)

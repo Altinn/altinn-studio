@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import React, { useContext } from 'react';
 import { render, renderHook, screen, waitFor } from '@testing-library/react';
@@ -21,8 +21,6 @@ const renderStudioDragAndDropTreeRoot = (children?: ReactNode): ReturnType<typeo
   render(renderComponent(children));
 
 describe('StudioDragAndDropTreeRoot', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders children', () => {
     renderStudioDragAndDropTreeRoot();
     expect(screen.getByTestId(childrenTestId)).toBeInTheDocument();

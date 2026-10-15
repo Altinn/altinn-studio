@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
@@ -13,11 +14,9 @@ const errorMessage = textMock(
 );
 
 describe('EnvIntegerConfigField', () => {
-  afterEach(jest.clearAllMocks);
-
   it('shows an error without saving an invalid integer', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvIntegerConfigField({ onChange });
     await user.click(getCollapsedButton());
 
@@ -31,7 +30,7 @@ describe('EnvIntegerConfigField', () => {
 
   it('keeps the field open and focuses invalid input', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvIntegerConfigField({ entries: [{ value: '3' }], onChange });
     await user.click(getCollapsedButton());
     await user.clear(screen.getByRole('textbox', { name: globalLabel }));
@@ -60,7 +59,7 @@ describe('EnvIntegerConfigField', () => {
 
   it('saves a corrected integer without surrounding spaces', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderEnvIntegerConfigField({ onChange });
     await user.click(getCollapsedButton());
 

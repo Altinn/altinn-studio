@@ -99,7 +99,7 @@ spec:
           include:
             match_type: regexp
             metric_names:
-              - '^(altinn|http)([._].*)?$'
+              - '^(altinn|http|signalr\.server)([._].*)?$'
       tail_sampling:
         decision_wait: 40s
         num_traces: 50000

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import { TemplateSelector, type TemplateSelectorProps } from './TemplateSelector';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -82,7 +83,7 @@ describe('TemplateSelector', () => {
 
   it('should handle selection change', async () => {
     const user = userEvent.setup();
-    const onChangeMock = jest.fn();
+    const onChangeMock = vi.fn();
     renderTemplateSelectorContent({ availableTemplates: defaultTemplates, onChange: onChangeMock });
 
     const select = screen.getByRole('combobox', {
@@ -95,7 +96,7 @@ describe('TemplateSelector', () => {
 
   it('should handle deselection', async () => {
     const user = userEvent.setup();
-    const onChangeMock = jest.fn();
+    const onChangeMock = vi.fn();
     renderTemplateSelectorContent({
       availableTemplates: defaultTemplates,
       selectedTemplate: defaultTemplates[0],
@@ -114,7 +115,7 @@ describe('TemplateSelector', () => {
 function renderTemplateSelectorContent(props?: Partial<TemplateSelectorProps>) {
   const defaultProps: TemplateSelectorProps = {
     selectedTemplate: undefined,
-    onChange: jest.fn(),
+    onChange: vi.fn(),
     availableTemplates: [],
     organizations: [],
   };

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { calculateNewPosition, getDragCursorPosition } from './dndUtils';
 import type { ExistingDndItem, NewDndItem } from 'app-shared/types/dndTypes';
 import { DragCursorPosition } from 'app-shared/types/dndTypes';
@@ -18,7 +19,7 @@ const targetElementRect: DOMRect = {
   left: targetElementLeft,
   right: targetElementTop + targetElementWidth,
   bottom: targetElementLeft + targetElementHeight,
-  toJSON: jest.fn(),
+  toJSON: vi.fn(),
 };
 const dropRef: RefObject<HTMLDivElement> = {
   current: {
@@ -32,20 +33,20 @@ const xyCoord: XYCoord = {
 };
 const isOver = () => true;
 const dropTargetMonitor: DropTargetMonitor = {
-  canDrop: jest.fn(),
-  didDrop: jest.fn(),
+  canDrop: vi.fn(),
+  didDrop: vi.fn(),
   getClientOffset: () => xyCoord,
-  getDifferenceFromInitialOffset: jest.fn(),
-  getDropResult: jest.fn(),
-  getHandlerId: jest.fn(),
-  getInitialClientOffset: jest.fn(),
-  getInitialSourceClientOffset: jest.fn(),
-  getItem: jest.fn(),
-  getItemType: jest.fn(),
-  getSourceClientOffset: jest.fn(),
+  getDifferenceFromInitialOffset: vi.fn(),
+  getDropResult: vi.fn(),
+  getHandlerId: vi.fn(),
+  getInitialClientOffset: vi.fn(),
+  getInitialSourceClientOffset: vi.fn(),
+  getItem: vi.fn(),
+  getItemType: vi.fn(),
+  getSourceClientOffset: vi.fn(),
   isOver,
-  receiveHandlerId: jest.fn(),
-  subscribeToStateChange: jest.fn(),
+  receiveHandlerId: vi.fn(),
+  subscribeToStateChange: vi.fn(),
 };
 const parent1Id = 'parent1';
 const parent2Id = 'parent2';

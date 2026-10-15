@@ -75,7 +75,6 @@ internal sealed class InternalizedServiceTypeDetector
         ),
         ["NullInstantiationProcessor"] = new("Altinn.App.Core.Features.DataProcessing", "IInstantiationProcessor"),
         ["NullInstantiationValidator"] = new("Altinn.App.Core.Features.Validation", "IInstantiationValidator"),
-        ["NullPdfFormatter"] = new("Altinn.App.Core.Features.Pdf", "IPdfFormatter"),
         ["NullTypeProcessTask"] = new("Altinn.App.Core.Internal.Process.ProcessTasks", "IProcessTask"),
         ["PdfService"] = new("Altinn.App.Core.Internal.Pdf", "IPdfService"),
         ["PersonClient"] = new("Altinn.App.Core.Infrastructure.Clients.Register", "IPersonClient"),

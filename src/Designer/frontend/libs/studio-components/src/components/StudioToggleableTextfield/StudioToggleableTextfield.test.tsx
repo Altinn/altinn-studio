@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import {
@@ -15,8 +15,6 @@ const onBlur = vi.fn();
 const onChange = vi.fn();
 
 describe('StudioToggleableTextfield', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders the view mode by default', () => {
     renderStudioToggleableTextfield();
     expect(screen.getByRole('button', { name: label })).toBeInTheDocument();

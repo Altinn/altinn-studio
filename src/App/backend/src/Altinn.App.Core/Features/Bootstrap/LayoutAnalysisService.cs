@@ -41,12 +41,12 @@ internal sealed class LayoutAnalysisService
 
         if (layoutsJson is string jsonString)
         {
-            return JsonDocument.Parse(jsonString).RootElement;
+            return JsonElement.Parse(jsonString);
         }
 
         // Fallback: serialize and re-parse
         var serialized = JsonSerializer.Serialize(layoutsJson);
-        return JsonDocument.Parse(serialized).RootElement;
+        return JsonElement.Parse(serialized);
     }
 
     private static void TraverseForDataTypes(JsonElement element, HashSet<string> dataTypes)

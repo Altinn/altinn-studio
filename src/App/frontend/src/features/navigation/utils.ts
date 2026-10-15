@@ -132,7 +132,6 @@ export function useGetNavigationIsPrevented() {
   const getDerivedValidationState = useGetDerivedValidationState();
 
   return (targetPageKey: string): boolean => {
-    const derived = getDerivedValidationState();
     const currentIndex = order.indexOf(currentPageId);
     const targetIndex = order.indexOf(targetPageKey);
 
@@ -140,6 +139,7 @@ export function useGetNavigationIsPrevented() {
       return false;
     }
 
+    let derived: ReturnType<typeof getDerivedValidationState> | undefined;
     return order.slice(currentIndex + 1, targetIndex).some((pageId) => {
       const validationOnNavigation =
         layoutCollection[pageId]?.data?.validationOnNavigation ?? globalValidationOnNavigation;
@@ -148,9 +148,10 @@ export function useGetNavigationIsPrevented() {
         return false;
       }
 
+      const snapshot = (derived ??= getDerivedValidationState());
       const mask = getVisibilityMask(validationOnNavigation.show);
-      return (derived.nodeIdsByPage.get(pageId) ?? []).some((nodeId) => {
-        const validations = getValidationsForNode(derived, nodeId, mask, 'error');
+      return (snapshot.nodeIdsByPage.get(pageId) ?? []).some((nodeId) => {
+        const validations = getValidationsForNode(snapshot, nodeId, mask, 'error');
         return validations.length > 0;
       });
     });

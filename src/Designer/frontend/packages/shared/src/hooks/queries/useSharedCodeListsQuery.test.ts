@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import type { RenderHookResult } from '@testing-library/react';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
@@ -20,7 +21,7 @@ const getSharedResourcesResponse: SharedResourcesResponse = {
   ],
   commitSha: '38c90d8e9dbe63e69ce071532efc01bc0e3ed81a',
 };
-const getSharedResources = jest.fn().mockResolvedValue(getSharedResourcesResponse);
+const getSharedResources = vi.fn().mockResolvedValue(getSharedResourcesResponse);
 
 describe('useSharedCodeListsQuery', () => {
   afterEach(getSharedResources.mockClear);

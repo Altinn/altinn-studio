@@ -4,7 +4,6 @@ import {
   IDataModelBindingsSimple,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -12,9 +11,13 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CompDatepickerExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, LabeledComponentProps {
   type: 'Datepicker';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   autocomplete?: 'bday';
@@ -68,4 +71,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: DatepickerSummaryOverridesWithRef;
 };
 
-// Source hash: 92490f5d42ac9a658807bcbf25092710cfc6f754093d0f01f7ddc99f0f3dd72e
+// Source hash: 1ab7410d2919d34f40dc4031ca09af7cddd54d115f8ab74f4a4c5a2ea4d8b9c7

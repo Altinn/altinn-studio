@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../test/renderWithProviders';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -23,7 +24,7 @@ const existingDataTypes = [
 ];
 
 const defaultSelectDataTypeProps: SelectUniqueFromSignaturesInDataTypesProps = {
-  onClose: jest.fn(),
+  onClose: vi.fn(),
 };
 
 const signingTasks = [
@@ -74,11 +75,11 @@ const signingTasks = [
   },
 ];
 
-jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
+vi.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(function () {
+    StudioModeler: vi.fn().mockImplementation(function () {
       return {
-        getElementsByType: jest.fn().mockReturnValue(signingTasks),
+        getElementsByType: vi.fn().mockReturnValue(signingTasks),
       };
     }),
   };
@@ -100,8 +101,6 @@ describe('SelectUniqueFromSignaturesInDataTypes', () => {
     element.businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes =
       { dataTypes: [] };
   });
-
-  afterEach(jest.clearAllMocks);
 
   it.each([
     { dataType: 'dataType2', label: /Name 2/ },

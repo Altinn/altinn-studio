@@ -12,19 +12,6 @@ The component also supports the [common component properties](../common-properti
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Identifies which component type this configuration represents.</div></div>
 </details>
 
-<details class="card adocs-expand adocs-expand-small component-property" id="readonly">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="readOnly">readOnly</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Optional</span>
-      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/></div></div>
-</details>
-
 <details class="card adocs-expand adocs-expand-small component-property" id="required">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
@@ -48,32 +35,6 @@ The component also supports the [common component properties](../common-properti
     </span>
   </summary>
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">List of validation types to show</div></div>
-</details>
-
-<details class="card adocs-expand adocs-expand-small component-property" id="renderassummary">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="renderAsSummary">renderAsSummary</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Optional</span>
-      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolean value indicating if the component should be rendered as a summary. Defaults to false.</div></div>
-</details>
-
-<details class="card adocs-expand adocs-expand-small component-property" id="forceshowinsummary">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="forceShowInSummary">forceShowInSummary</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Optional</span>
-      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="labelsettings">
@@ -211,6 +172,32 @@ The component also supports the [common component properties](../common-properti
     </div>
 
   </div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="renderassummary">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="renderAsSummary">renderAsSummary</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolean value indicating if the component should be rendered as a summary. Defaults to false.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="forceshowinsummary">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="forceShowInSummary">forceShowInSummary</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="removewhenhidden">

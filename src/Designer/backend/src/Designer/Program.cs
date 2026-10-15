@@ -34,6 +34,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -226,7 +227,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddFeatureManagement();
     services.RegisterSynchronizationServices(configuration);
 
-    var signalRBuilder = services.AddSignalR();
+    var signalRBuilder = services.AddSignalR(options => options.AddFilter<HubTelemetryFilter>());
     var redisSettings = configuration.GetSection(nameof(RedisCacheSettings)).Get<RedisCacheSettings>();
     if (redisSettings.UseRedisCache)
     {
@@ -273,7 +274,17 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 void Configure(IConfiguration configuration)
 {
     logger.LogInformation("// Program.cs // Configure // Attempting to configure env");
-    app.UseExceptionHandler(new ExceptionHandlerOptions { SuppressDiagnosticsCallback = _ => false });
+    app.ExcludeHubConnectionsFromRequestMetrics();
+    app.UseTelemetryRouteHeader();
+    // Exceptions that become an expected (4xx) response aren't logged as errors. GlobalExceptionHandler records them
+    // on the request's span instead.
+    app.UseExceptionHandler(
+        new ExceptionHandlerOptions
+        {
+            SuppressDiagnosticsCallback = context =>
+                context.HttpContext.Response.StatusCode < StatusCodes.Status500InternalServerError,
+        }
+    );
 
     app.UseDefaultFiles();
     app.UseStaticFiles(
@@ -303,9 +314,9 @@ void Configure(IConfiguration configuration)
     app.UseResponseCompression();
     app.UseRequestLocalization();
 
-    app.MapControllers();
+    app.MapControllers().WithTelemetryRoute();
 
-    app.MapHealthChecks("/health");
+    app.MapHealthChecks("/health").DisableHttpMetrics();
     app.MapHubs();
 
     app.UseMiddleware<RequestSynchronizationMiddleware>();

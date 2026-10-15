@@ -1,21 +1,18 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { SubformMissingContentWarning } from './SubformMissingContentWarning';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const mockNavigate = jest.fn();
+const mockNavigate = vi.fn();
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockNavigate,
 }));
 
 describe('SubformMissingContentWarning', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('renders without crashing', () => {
     renderWithProviders(<SubformMissingContentWarning subformLayoutSetName='' />);
     expect(

@@ -92,13 +92,6 @@ vertexes
 axe
 Axe
 
-# Imported role-catalog data contains Norwegian labels and role-code/URN
-# values. Preserve the API spellings in this file.
-@paths src/Designer/frontend/resourceadm/pages/Altinn2ResourcePoliciesPage/AllRoles.ts
-delt
-mor
-partiets
-
 # --------------------------------------------------- codes and slugs ---
 
 # Altinn service-owner org slugs (als, staf) used as config/test values and
@@ -283,9 +276,6 @@ litres
 selv
 
 # "det ser rart ut" is a Norwegian request quoted from gates_confidence.jsonl
-@paths src/AI/agents/agents/prompts/intent_security.md
+@paths src/AI/assistant/agents/prompts/intent_security.md
 ser
 
-# didi is the dependency-injection package bpmn-js pulls in (see yarn.lock)
-@paths src/Designer/frontend/jest.config.js
-didi

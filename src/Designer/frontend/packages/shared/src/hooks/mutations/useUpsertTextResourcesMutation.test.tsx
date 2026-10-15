@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
   UpsertTextResourcesMutationArgs,
   UseUpsertTextResourceMutationResult,
@@ -49,10 +50,10 @@ const oldData: ITextResources = {
 };
 
 // Mocks:
-const upsertTextResources = jest
+const upsertTextResources = vi
   .fn()
   .mockImplementation((_org, _app, lang) => Promise.resolve(emptyTextResourceListMock(lang)));
-jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
+vi.mock('react-router-dom', async () => await vi.importActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 describe('useUpsertTextResourcesMutation', () => {
   beforeEach(upsertTextResources.mockClear);
@@ -70,7 +71,7 @@ describe('useUpsertTextResourcesMutation', () => {
 
   it('Updates the cache optimistically', async () => {
     const queryClient = createQueryClientWithData();
-    const setQueryDataSpy = jest.spyOn<QueryClient, 'setQueryData'>(queryClient, 'setQueryData');
+    const setQueryDataSpy = vi.spyOn<QueryClient, 'setQueryData'>(queryClient, 'setQueryData');
     const { result } = renderUpsertTextResourcesMutation(queryClient);
     const newValue = 'Ny verdi';
     const payload: ITextResource[] = [{ id: text1Id, value: newValue }];
@@ -111,7 +112,7 @@ describe('useUpsertTextResourcesMutation', () => {
 
   it('Invalidates the query on error', async () => {
     const queryClient = createQueryClientWithData();
-    const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
     const { result } = renderUpsertTextResourcesMutation(queryClient);
     upsertTextResources.mockRejectedValueOnce(new Error('Test error'));
     const args: UpsertTextResourcesMutationArgs = { language: language1, textResources: [] };

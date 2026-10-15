@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { CustomReceipt } from './CustomReceipt';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -32,8 +33,6 @@ const defaultBpmnApiContextProps: BpmnApiContextProps = {
 };
 
 describe('CustomReceipt', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('hides the receipt name field', () => {
     renderCustomReceipt();
     expect(screen.queryByRole('button', { name: nameFieldLabel })).not.toBeInTheDocument();
@@ -41,7 +40,7 @@ describe('CustomReceipt', () => {
 
   it('calls "deleteLayoutSet" when clicking the delete button', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     renderCustomReceipt();
 
     const deleteButton = screen.getByRole('button', {
