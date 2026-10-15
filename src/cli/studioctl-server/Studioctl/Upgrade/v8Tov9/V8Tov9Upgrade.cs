@@ -283,7 +283,7 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await WarnHiddenDataRemoval(projectFolder, projectFile));
+        returnCode = CombineExitCodes(returnCode, await MigrateRemoveHiddenDataSetting(projectFolder, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateFiksArkivSettings(projectFolder));
@@ -1896,26 +1896,26 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Warns that v9 removes data in hidden fields at task end when the app has not chosen
-    /// AppSettings:RemoveHiddenData and its layouts can hide bound data. Advisory only; runs after
-    /// every step that converts, moves or removes layouts, so it names the files v9 reads.
+    /// Sets AppSettings:RemoveHiddenData to false when the app has not chosen a value and its layouts can
+    /// hide bound data, keeping the v8 behavior. Runs after every step that converts, moves or removes
+    /// layouts, so it judges and names the files v9 reads.
     /// </summary>
-    static async Task<int> WarnHiddenDataRemoval(string projectFolder, string projectFile)
+    static async Task<int> MigrateRemoveHiddenDataSetting(string projectFolder, string projectFile)
     {
         UpgradeConsole.BeginStep("Hidden data removal");
         try
         {
             var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
-            var result = await new HiddenDataRemovalAdvisor(projectFolder, appFolder).Analyze();
+            var result = await RemoveHiddenDataSettingMigration.Migrate(projectFolder, appFolder);
             return ReportMigrationResult(
                 result,
-                cleanText: "No data in hidden layout fields that v9 would start removing",
+                cleanText: "No hidden fields hold data, or RemoveHiddenData is already set",
                 cleanStatus: UpgradeMessageStatus.Skip
             );
         }
         catch (Exception ex)
         {
-            return Fail("Error checking layouts for hidden data removal", ex);
+            return Fail("Error setting RemoveHiddenData", ex);
         }
     }
 

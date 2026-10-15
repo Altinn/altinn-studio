@@ -4,11 +4,19 @@ using Altinn.Studio.Cli.Upgrade.v8Tov9;
 namespace Studioctl.Tests.Upgrade.v8Tov9;
 
 /// <summary>
-/// Confirms the upgrade runs <see cref="HiddenDataRemovalAdvisor"/>, after the layout migration has turned
+/// Confirms the upgrade runs <see cref="RemoveHiddenDataSettingMigration"/>, after the layout migration has turned
 /// RuleConfiguration.json conditional rendering into hidden expressions.
 /// </summary>
-public sealed class V8Tov9UpgradeHiddenDataRemovalWiringTests : IDisposable
+public sealed class V8Tov9UpgradeRemoveHiddenDataSettingWiringTests : IDisposable
 {
+    private const string AppSettings = """
+        {
+          "AppSettings": {
+            "AppOidcProvider": "altinn"
+          }
+        }
+        """;
+
     private readonly TempAppFolder _app = new();
 
     public void Dispose() => _app.Dispose();
@@ -50,12 +58,12 @@ public sealed class V8Tov9UpgradeHiddenDataRemovalWiringTests : IDisposable
         [
             .. Assert
                 .Single(report.Steps, step => step.Name == "Hidden data removal")
-                .Messages.Where(message => message.Status == UpgradeMessageStatus.Warning)
+                .Messages.Where(message => message.Status != UpgradeMessageStatus.Skip)
                 .Select(message => message.Text),
         ];
 
     [Fact]
-    public async Task Upgrade_WarnsAboutAComponentHiddenByAConvertedRule()
+    public async Task Upgrade_KeepsV8BehaviorForAComponentHiddenByAConvertedRule()
     {
         _app.Write(
             "ui/form/layouts/Page1.json",
@@ -95,10 +103,23 @@ public sealed class V8Tov9UpgradeHiddenDataRemovalWiringTests : IDisposable
             """{ "sets": [ { "id": "form", "dataType": "Main", "tasks": ["Task_1"] } ] }"""
         );
 
-        var warning = Assert.Single(StepMessages(await RunUpgrade()));
+        _app.Write("appsettings.json", AppSettings);
+
+        var notice = Assert.Single(StepMessages(await RunUpgrade()));
 
         // The rule became a hidden expression, and the layout set moved to the task's UI folder first.
-        Assert.Contains($"{Path.Combine("App", "ui", "Task_1", "layouts", "Page1.json")}: target", warning);
+        Assert.Contains($"{Path.Combine("App", "ui", "Task_1", "layouts", "Page1.json")}: target", notice);
+        Assert.Equal(
+            """
+            {
+              "AppSettings": {
+                "RemoveHiddenData": false,
+                "AppOidcProvider": "altinn"
+              }
+            }
+            """,
+            _app.Read("appsettings.json")
+        );
     }
 
     [Fact]
@@ -113,6 +134,9 @@ public sealed class V8Tov9UpgradeHiddenDataRemovalWiringTests : IDisposable
             """
         );
 
+        _app.Write("appsettings.json", AppSettings);
+
         Assert.Empty(StepMessages(await RunUpgrade()));
+        Assert.Equal(AppSettings, _app.Read("appsettings.json"));
     }
 }
