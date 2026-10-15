@@ -2,7 +2,7 @@ import React from 'react';
 
 import { useIsMobile } from '@app/form-component';
 import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Table, ValidationMessage } from '@digdir/designsystemet-react';
+import { Table } from '@digdir/designsystemet-react';
 import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import type { GridCell, GridRows, ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
@@ -16,6 +16,7 @@ import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
+import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
 import repeatingGroupClasses from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import classes from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary.module.css';
 import tableClasses from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary.module.css';
@@ -109,19 +110,12 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
           {renderExtraRows(config.rowsAfter, 'after', showEditColumn)}
         </Table.Body>
       </Table>
-      {errors?.map(({ message }) => (
-        <ValidationMessage
-          key={message.key}
-          data-size='sm'
-          className={classes.errorMessage}
-        >
-          <ExclamationmarkTriangleIcon fontSize='1.5rem' />
-          <Lang
-            id={message.key}
-            params={message.params}
-          />
-        </ValidationMessage>
-      ))}
+      <ValidationMessageList
+        validations={errors}
+        size='sm'
+        className={classes.errorMessage}
+        icon={<ExclamationmarkTriangleIcon fontSize='1.5rem' />}
+      />
     </div>
   );
 };
@@ -298,18 +292,11 @@ function DataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
       >
         {displayData}
       </span>
-      {errors.map((validation, index) => (
-        <ValidationMessage
-          key={`${baseComponentId}-${validation.message.key}-${index}`}
-          data-size='sm'
-          className={cn(classes.errorMessage, tableClasses.cellValidationMessage)}
-        >
-          <Lang
-            id={validation.message.key}
-            params={validation.message.params}
-          />
-        </ValidationMessage>
-      ))}
+      <ValidationMessageList
+        validations={errors}
+        size='sm'
+        className={cn(classes.errorMessage, tableClasses.cellValidationMessage)}
+      />
     </Table.Cell>
   );
 }

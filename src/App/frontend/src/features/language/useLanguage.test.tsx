@@ -4,7 +4,7 @@ import { screen } from '@testing-library/react';
 
 import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
 import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { staticUseLanguageForTests, useLanguage } from 'src/features/language/useLanguage';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
 import { renderWithMinimalProviders, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 
@@ -235,5 +235,41 @@ describe('useLanguage', () => {
     expect(screen.getByTestId('as-element')).toHaveTextContent(
       'Teksten "Dette er en veldig lang tekst" er for lang (29 bokstaver), det kan maksimalt være 10 bokstaver.',
     );
+  });
+});
+
+describe('fallback', () => {
+  // Keys that are not in the language package, held in variables so the language-key lint rule accepts them
+  const appKey = 'app.text';
+  const unknownKey = 'backend.unknown';
+  const paramOnly = '{0}';
+  const langTools = staticUseLanguageForTests({
+    textResources: {
+      'app.text': { value: 'From the app {0}', variables: [{ key: 'name', dataSource: 'customTextParameters' }] },
+      'Literal text': { value: 'Looked up' },
+    },
+    language: { 'actions.sign': 'From the language package' },
+  });
+
+  it('uses the text resource when the app has the key', () => {
+    expect(langTools.langAsString(appKey, undefined, false, { name: 'x' }, 'Fallback')).toBe('From the app x');
+  });
+
+  it('uses the language package when it has the key', () => {
+    expect(langTools.langAsString('actions.sign', undefined, false, undefined, 'Fallback')).toBe(
+      'From the language package',
+    );
+  });
+
+  it('uses the fallback when the key is not found', () => {
+    expect(langTools.langAsString(unknownKey, undefined, false, undefined, 'Fallback')).toBe('Fallback');
+  });
+
+  it('does not look up the fallback as a key', () => {
+    expect(langTools.langAsString(undefined, undefined, false, undefined, 'Literal text')).toBe('Literal text');
+  });
+
+  it('translates text references with a fallback in params', () => {
+    expect(langTools.langAsString(paramOnly, [{ key: unknownKey, fallback: 'Fallback' }])).toBe('Fallback');
   });
 });
