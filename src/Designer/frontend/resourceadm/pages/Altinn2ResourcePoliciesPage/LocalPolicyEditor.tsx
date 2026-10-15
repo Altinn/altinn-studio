@@ -9,6 +9,7 @@ import {
 import {
   StudioAlert,
   StudioButton,
+  StudioCheckbox,
   StudioDialog,
   StudioHeading,
   StudioSpinner,
@@ -25,6 +26,7 @@ import { getResourceSubjects } from '../../utils/resourceUtils';
 import classes from './Altinn2ResourcePoliciesPage.module.css';
 import { getDeprecatedAltinn2Subjects } from './altinn2ResourcePolicyUtils';
 import type { EnvId, ResourcePolicyData, TableRowData } from './altinn2ResourcePolicyUtils';
+import { useResourcePolicyPublishStatusQuery } from '../../hooks/queries';
 
 export const LocalPolicyEditor = ({
   tableData,
@@ -40,8 +42,15 @@ export const LocalPolicyEditor = ({
   const { t } = useTranslation();
   const { org, app } = useUrlParams();
   const [updatedPolicy, setUpdatedPolicy] = useState<Policy>(tableData.policy);
+  const [isPublishToOtherEnvChecked, setIsPublishToOtherEnvChecked] = useState<boolean>(false);
+  const [publishError, setPublishError] = useState<{
+    failedEnv: string;
+    skippedEnv?: string;
+  } | null>(null);
 
   // Get the data
+  const { data: publishStatusData, isPending: isPublishStatusPending } =
+    useResourcePolicyPublishStatusQuery(org, app, tableData.identifier);
   const { data: actionData, isPending: isActionPending } = useResourcePolicyActionsQuery(org, app);
 
   const { data: subjectData, isPending: isLoadingSubjects } = useResourcePolicySubjectsQuery(
@@ -51,26 +60,32 @@ export const LocalPolicyEditor = ({
   const { data: accessPackages, isPending: isLoadingAccessPackages } =
     useResourceAccessPackagesQuery(org, app);
 
-  const {
-    mutate: updatePolicyMutation,
-    isError: isUpdatePolicyError,
-    isPending: isUpdatingPolicy,
-  } = usePublishResourcePolicyMutation(org, app, tableData.identifier);
+  const { mutateAsync: updatePolicyMutation, isPending: isUpdatingPolicy } =
+    usePublishResourcePolicyMutation(org, app, tableData.identifier);
 
-  const publishNewPolicy = () => {
-    updatePolicyMutation(
-      { env: env, payload: updatedPolicy },
-      {
-        onSuccess: () => {
-          onPolicyUpdated({
-            identifier: tableData.identifier,
-            policy: updatedPolicy,
-            resourceType: tableData.resourceType,
-            existsInGitea: false,
-          });
-        },
-      },
-    );
+  const publishToEnv = async (publishEnv: string, skippedEnv?: string): Promise<boolean> => {
+    try {
+      await updatePolicyMutation({ env: publishEnv, payload: updatedPolicy });
+      return true;
+    } catch {
+      setPublishError({ failedEnv: publishEnv, skippedEnv });
+      return false;
+    }
+  };
+
+  const publishNewPolicy = async () => {
+    setPublishError(null);
+    const isPublished =
+      (await publishToEnv(env, isPublishToOtherEnvChecked ? otherEnv : undefined)) &&
+      (!isPublishToOtherEnvChecked || (await publishToEnv(otherEnv)));
+    if (isPublished) {
+      onPolicyUpdated({
+        identifier: tableData.identifier,
+        policy: updatedPolicy,
+        resourceType: tableData.resourceType,
+        existsInGitea: false,
+      });
+    }
   };
 
   const mergedActions = mergeActionsFromPolicyWithActionOptions(
@@ -84,6 +99,10 @@ export const LocalPolicyEditor = ({
     tableData.resourceType as ResourceTypeOption,
   );
   const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(updatedPolicy.rules, subjects);
+  const otherEnv = env === 'prod' ? 'tt02' : 'prod';
+  const isPublishedInOtherEnv = publishStatusData?.publishedVersions.some(
+    (version) => version.environment === otherEnv && version.version,
+  );
 
   const heading = (
     <StudioDialog.Block className={classes.dialogHeading}>
@@ -93,7 +112,7 @@ export const LocalPolicyEditor = ({
     </StudioDialog.Block>
   );
 
-  if (isActionPending || isLoadingSubjects || isLoadingAccessPackages) {
+  if (isActionPending || isLoadingSubjects || isLoadingAccessPackages || isPublishStatusPending) {
     return (
       <>
         {heading}
@@ -119,24 +138,43 @@ export const LocalPolicyEditor = ({
           usageType='resource'
         />
       </StudioDialog.Block>
-      <StudioDialog.Block className={classes.buttonRow}>
-        <StudioButton onClick={publishNewPolicy} loading={isUpdatingPolicy}>
-          {t('resourceadm.altinn2policy_publish')}
-        </StudioButton>
-        <StudioButton variant='tertiary' onClick={onClose}>
-          {t('resourceadm.altinn2policy_cancel')}
-        </StudioButton>
-        {isUpdatePolicyError && (
+      <StudioDialog.Block className={classes.buttonRowWrapper}>
+        <div>
+          <StudioCheckbox
+            checked={isPublishToOtherEnvChecked}
+            onChange={(e) => setIsPublishToOtherEnvChecked(e.target.checked)}
+            disabled={!isPublishedInOtherEnv}
+            label={t('resourceadm.altinn2policy_publish_to_other_env', {
+              env: t(`resourceadm.altinn2policy_env_${otherEnv}`),
+            })}
+          />
+          <div className={classes.buttonRow}>
+            <StudioButton onClick={publishNewPolicy} loading={isUpdatingPolicy}>
+              {t('resourceadm.altinn2policy_publish')}
+            </StudioButton>
+            <StudioButton variant='tertiary' onClick={onClose}>
+              {t('resourceadm.altinn2policy_cancel')}
+            </StudioButton>
+            <StudioAlert
+              data-color={numberOfAltinn2Roles === 0 ? 'success' : 'warning'}
+              className={classes.altinn2RolesAlert}
+            >
+              {t('resourceadm.altinn2policy_number_of_roles', { count: numberOfAltinn2Roles })}
+            </StudioAlert>
+          </div>
+        </div>
+        {publishError && (
           <StudioAlert data-color='danger'>
-            {t('resourceadm.altinn2policy_publish_error')}
+            {publishError.skippedEnv
+              ? t('resourceadm.altinn2policy_publish_error_other_env_skipped', {
+                  env: t(`resourceadm.altinn2policy_env_${publishError.failedEnv}`),
+                  skippedEnv: t(`resourceadm.altinn2policy_env_${publishError.skippedEnv}`),
+                })
+              : t('resourceadm.altinn2policy_publish_error', {
+                  env: t(`resourceadm.altinn2policy_env_${publishError.failedEnv}`),
+                })}
           </StudioAlert>
         )}
-        <StudioAlert
-          data-color={numberOfAltinn2Roles === 0 ? 'success' : 'warning'}
-          className={classes.altinn2RolesAlert}
-        >
-          {t('resourceadm.altinn2policy_number_of_roles', { count: numberOfAltinn2Roles })}
-        </StudioAlert>
       </StudioDialog.Block>
     </>
   );
