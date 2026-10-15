@@ -81,6 +81,9 @@ public enum NotificationTemplate
 
     /// <summary>Altinn's standard text about a new message.</summary>
     GenericAltinnMessage,
+
+    /// <summary>The standard text Altinn 2 used about a new message.</summary>
+    Altinn2Message,
 }
 
 /// <summary>How a notification reaches the recipient.</summary>

@@ -24,17 +24,24 @@ signee receives and the receipt with the signed documents. `studioctl` points
 the app libraries send and read; a field the app client marks `required` must be in every response.
 
 - `POST correspondence/api/v1/correspondence` creates one correspondence per recipient and publishes it at once.
-  It rejects what the real API rejects: no recipients, duplicate or empty recipients, a missing resource ID,
-  senders reference, language, title or body, and confirmation without a due date.
   `GET …/correspondence/{id}/details` returns it with its attachments and notifications.
+- **Validation mirrors the real API's, with its error codes.** `CorrespondenceRequestValidator` makes the checks
+  that need only the request (recipient format, content, dates, notification texts, custom recipients,
+  attachment names and types), with the messages and `errorCode`s from the Correspondence API's error catalog.
+  Recipients are looked up among the test data's parties (`1029`). Where a real check can't be repeated exactly,
+  such as markdown in a title, the local one is more lenient: Localtest must never refuse what a deployed
+  environment accepts, so add a case to the accepted-requests test whenever you tighten a rule.
+- **Not checked locally:** the resource registry, access to the resource, the service owner agreement, the
+  contact reservation register (KRR), confidentiality and Dialogporten. Test those in TT02.
 - **`idempotentKey` is load-bearing:** a reused key answers 409 Conflict, which apps treat as "already sent"
   when they retry. Duplicate detection runs under a lock, so concurrent sends with one key create one message.
 - Attachments go through `POST …/attachment`, `POST …/attachment/{id}/upload` and `GET …/attachment/{id}`, as
   the app client sends them. An upload is published at once (no malware scan), and a correspondence may only
   reference published attachments.
 - **Notifications are worked out, not sent.** `CorrespondenceNotificationBuilder` applies the requested channel
-  and template to the recipient's contact information in the test data (or the custom recipients), and orders a
-  reminder a week later when asked. The result is stored with the correspondence.
+  and template to the recipient's contact information in the test data and the custom recipients (only those,
+  with `overrideRegisteredContactInformation`), and orders a reminder a week later when asked. The result is
+  stored with the correspondence. A generic template's text is a stand-in for the real API's wording.
 - Each correspondence is stored as `{correspondenceId}.json` in the `correspondence` folder under the storage
   path, with the request body the app sent, so you can see exactly what went out. Attachments are stored in
   its `attachments` subfolder, as `{attachmentId}.json` with their data in `{attachmentId}.bin`.

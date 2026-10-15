@@ -36,7 +36,8 @@ public sealed class CorrespondenceTests : IDisposable
         );
         _controller = new CorrespondenceController(
             _repository,
-            new CorrespondenceNotificationBuilder(_contacts, _contacts)
+            new CorrespondenceNotificationBuilder(_contacts, _contacts),
+            _contacts
         );
     }
 
@@ -108,7 +109,9 @@ public sealed class CorrespondenceTests : IDisposable
         );
 
         Assert.Equal(StatusCodes.Status409Conflict, problem.Status);
-        Assert.Equal("A correspondence with the same idempotent key already exists", problem.Title);
+        Assert.Equal("Conflict", problem.Title);
+        Assert.Equal("A correspondence with the same idempotent key already exists", problem.Detail);
+        Assert.Equal(1034, problem.Extensions["errorCode"]);
         Assert.Single(await _repository.Read());
     }
 
@@ -226,7 +229,7 @@ public sealed class CorrespondenceTests : IDisposable
         );
 
         Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
-        Assert.Contains("multiple recipients", problem.Detail);
+        Assert.Equal(1047, problem.Extensions["errorCode"]);
         Assert.Empty(await _repository.Read());
     }
 
@@ -425,6 +428,7 @@ public sealed class CorrespondenceTests : IDisposable
         var notification = Notification("Email");
         notification["sendReminder"] = true;
         notification["reminderEmailSubject"] = "Reminder: sign the document";
+        notification["reminderEmailBody"] = "You still have a document to sign in Altinn.";
 
         await Initialize(Request([OrganizationRecipient], null, notification: notification));
 
@@ -517,6 +521,277 @@ public sealed class CorrespondenceTests : IDisposable
         Assert.Empty(await _repository.Read());
     }
 
+    /// <summary>Requests the real Correspondence API refuses, by case, with the error code it answers.</summary>
+    private static readonly Dictionary<string, (Action<Dictionary<string, object?>> Configure, int ErrorCode)> _refused =
+        new()
+        {
+            ["title with HTML"] = (c => Content(c)["messageTitle"] = "<b>Sign</b> the document", 1002),
+            ["title with a link"] = (c => Content(c)["messageTitle"] = "[Sign](https://example.com)", 1002),
+            ["title with emphasis"] = (c => Content(c)["messageTitle"] = "Sign **now**", 1002),
+            ["title too long"] = (c => Content(c)["messageTitle"] = new string('a', 256), 1037),
+            ["summary too long"] = (c => Content(c)["messageSummary"] = new string('a', 256), 1042),
+            ["empty body"] = (c => Content(c)["messageBody"] = "", 1021),
+            ["body too long"] = (c => Content(c)["messageBody"] = new string('a', 30001), 1022),
+            ["unsupported language"] = (c => Content(c)["language"] = "sv", 1023),
+            ["sender with HTML"] = (c => c["messageSender"] = "<i>Testdepartementet</i>", 1039),
+            ["due date passed"] = (c => c["dueDateTime"] = DateTimeOffset.UtcNow.AddDays(-1), 1008),
+            ["due date before publishing"] = (
+                c =>
+                {
+                    c["requestedPublishTime"] = DateTimeOffset.UtcNow.AddDays(10);
+                    c["dueDateTime"] = DateTimeOffset.UtcNow.AddDays(5);
+                },
+                1009
+            ),
+            ["confirmation without due date"] = (c => c["isConfirmationNeeded"] = true, 1016),
+            ["custom email without body"] = (
+                c => c["notification"] = CustomNotification("Email", ("emailSubject", "Sign")),
+                3002
+            ),
+            ["custom SMS reminder without text"] = (
+                c =>
+                {
+                    var notification = CustomNotification("Sms", ("smsBody", "Sign"));
+                    notification["sendReminder"] = true;
+                    c["notification"] = notification;
+                },
+                3005
+            ),
+            ["preferred channel without SMS text"] = (
+                c => c["notification"] = CustomNotification("EmailPreferred", ("emailSubject", "Sign"), ("emailBody", "Sign")),
+                3006
+            ),
+            ["override without custom recipients"] = (
+                c =>
+                {
+                    var notification = Notification("Email");
+                    notification["overrideRegisteredContactInformation"] = true;
+                    c["notification"] = notification;
+                },
+                3022
+            ),
+            ["custom recipient with two identifiers"] = (
+                c => c["notification"] = WithCustomRecipient(new() { ["emailAddress"] = "a@example.com", ["mobileNumber"] = "+4799999999" }),
+                3018
+            ),
+            ["custom recipient without identifier"] = (c => c["notification"] = WithCustomRecipient(new()), 3019),
+            ["custom recipient with invalid email"] = (
+                c => c["notification"] = WithCustomRecipient(new() { ["emailAddress"] = "not-an-email" }),
+                3011
+            ),
+            ["custom recipient with invalid mobile number"] = (
+                c => c["notification"] = WithCustomRecipient(new() { ["mobileNumber"] = "call me" }),
+                3012
+            ),
+            ["recipient name with custom email"] = (
+                c =>
+                {
+                    var notification = WithCustomRecipient(new() { ["emailAddress"] = "a@example.com" });
+                    notification["emailBody"] = "Hello $recipientName$";
+                    c["notification"] = notification;
+                },
+                3015
+            ),
+        };
+
+    public static TheoryData<string> RefusedRequests => [.. _refused.Keys];
+
+    [Theory]
+    [MemberData(nameof(RefusedRequests))]
+    public async Task Initialize_RequestTheRealApiRefuses_AnswersItsError(string refused)
+    {
+        var (configure, errorCode) = _refused[refused];
+
+        var problem = await InitializeProblem(Request([PersonRecipient], null, configure: configure));
+
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
+        Assert.Equal("Bad Request", problem.Title);
+        Assert.Equal(errorCode, problem.Extensions["errorCode"]);
+        Assert.Empty(await _repository.Read());
+    }
+
+    /// <summary>
+    /// Requests the real Correspondence API accepts, by case. Localtest must not be stricter than a deployed
+    /// environment.
+    /// </summary>
+    private static readonly Dictionary<string, Action<Dictionary<string, object?>>> _accepted = new()
+    {
+        ["title with plain punctuation"] = c => Content(c)["messageTitle"] = "Oppgave - signer 2 * 3 dokumenter (file_name_v2)",
+        ["body with an HTML line break"] = c =>
+            Content(c)["messageBody"] = "The signed documents are attached. <br /><br />Contact us with any questions.",
+        ["summary with markdown"] = c => Content(c)["messageSummary"] = "Sign **now**",
+        ["upper case language"] = c => Content(c)["language"] = "NB",
+        ["generic template without texts"] = c =>
+            c["notification"] = new Dictionary<string, object?>
+            {
+                ["notificationTemplate"] = "GenericAltinnMessage",
+                ["notificationChannel"] = "EmailPreferred",
+                ["sendReminder"] = true,
+            },
+        ["due date after publishing"] = c =>
+        {
+            c["isConfirmationNeeded"] = true;
+            c["dueDateTime"] = DateTimeOffset.UtcNow.AddDays(14);
+        },
+        ["custom recipients overriding the registered ones"] = c =>
+            c["notification"] = WithCustomRecipient(new() { ["mobileNumber"] = "+4799999999" }),
+    };
+
+    public static TheoryData<string> AcceptedRequests => [.. _accepted.Keys];
+
+    [Theory]
+    [MemberData(nameof(AcceptedRequests))]
+    public async Task Initialize_RequestTheRealApiAccepts_CreatesIt(string accepted)
+    {
+        var response = await Initialize(Request([PersonRecipient], null, configure: _accepted[accepted]));
+
+        Assert.Single(response.Correspondences);
+    }
+
+    [Fact]
+    public async Task Initialize_CustomRecipientWithMultipleRecipients_ReturnsBadRequest()
+    {
+        var problem = await InitializeProblem(
+            Request(
+                [OrganizationRecipient, PersonRecipient],
+                null,
+                configure: c => c["notification"] = WithCustomRecipient(new() { ["emailAddress"] = "a@example.com" })
+            )
+        );
+
+        Assert.Equal(3017, problem.Extensions["errorCode"]);
+    }
+
+    [Fact]
+    public async Task Initialize_RecipientTheRegisterDoesNotKnow_ReturnsLookupFailure()
+    {
+        _contacts.UnknownParties.Add(PersonNumber);
+
+        var problem = await InitializeProblem(Request([OrganizationRecipient, PersonRecipient], null));
+
+        Assert.Equal(1029, problem.Extensions["errorCode"]);
+        Assert.Equal($"Could not find partyId for the following recipients: {PersonNumber}", problem.Detail);
+        Assert.Empty(await _repository.Read());
+    }
+
+    [Theory]
+    [InlineData("991825827")]
+    [InlineData("urn:altinn:organization:identifier-no:99182582")]
+    [InlineData("urn:altinn:person:identifier-no:0103901234")]
+    [InlineData("someone@example.com")]
+    public async Task Initialize_RecipientInAnUnknownFormat_ReturnsBadRequest(string recipient)
+    {
+        var problem = await InitializeProblem(Request([recipient], null));
+
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
+        Assert.StartsWith("Recipient should be an organization number", problem.Detail);
+    }
+
+    [Theory]
+    [InlineData("0192:991825827")]
+    [InlineData("01039012345")]
+    [InlineData("urn:altinn:person:idporten-email:someone@example.com")]
+    [InlineData("urn:altinn:person:legacy-selfidentified:someone")]
+    public async Task Initialize_RecipientInAnotherAcceptedFormat_CreatesIt(string recipient)
+    {
+        var response = await Initialize(Request([recipient], null));
+
+        Assert.Equal(recipient, Assert.Single(response.Correspondences).Recipient);
+    }
+
+    [Fact]
+    public async Task Initialize_UnknownOrTooManyExistingAttachments_ReturnsBadRequest()
+    {
+        var unknown = await InitializeProblem(Request([PersonRecipient], null, [Guid.NewGuid()]));
+        var tooMany = await InitializeProblem(
+            Request([PersonRecipient], null, [.. Enumerable.Range(0, 101).Select(_ => Guid.NewGuid())])
+        );
+
+        Assert.Equal(1007, unknown.Extensions["errorCode"]);
+        Assert.Equal(1038, tooMany.Extensions["errorCode"]);
+    }
+
+    [Theory]
+    [InlineData(null, 2010)]
+    [InlineData("program.exe", 2013)]
+    [InlineData("signed:document.pdf", 2012)]
+    [InlineData("CON.pdf", 2021)]
+    public async Task InitializeAttachment_FileNameTheRealApiRefuses_AnswersItsError(string? fileName, int errorCode)
+    {
+        var result = await _controller.InitializeAttachment(
+            new InitializeAttachmentRequestDto
+            {
+                ResourceId = ResourceId,
+                FileName = fileName,
+                SendersReference = "senders-reference",
+            }
+        );
+
+        var problem = Assert.IsType<ProblemDetails>(Assert.IsType<ObjectResult>(result).Value);
+        Assert.Equal(errorCode, problem.Extensions["errorCode"]);
+    }
+
+    [Fact]
+    public async Task Notification_CustomRecipientWithoutOverride_IsNotifiedAlongsideTheRegisteredAddress()
+    {
+        _contacts.Users[PersonNumber] = new UserContactPoints
+        {
+            NationalIdentityNumber = PersonNumber,
+            Email = "registered@example.com",
+        };
+        var notification = WithCustomRecipient(new() { ["emailAddress"] = "custom@example.com" });
+        notification["overrideRegisteredContactInformation"] = false;
+
+        await Initialize(Request([PersonRecipient], null, notification: notification));
+
+        var emails = Assert.Single((await _repository.Read())[0].Notifications).Emails;
+        Assert.Equal(
+            ["custom@example.com", "registered@example.com"],
+            emails.Select(email => email.Recipient.EmailAddress).Order()
+        );
+    }
+
+    [Fact]
+    public async Task Notification_CustomRecipientByUrn_UsesTheirRegisteredAddress()
+    {
+        _contacts.Users[PersonNumber] = new UserContactPoints
+        {
+            NationalIdentityNumber = PersonNumber,
+            Email = "signee@example.com",
+        };
+        var notification = WithCustomRecipient(new() { ["nationalIdentityNumber"] = PersonRecipient });
+
+        await Initialize(Request([OrganizationRecipient], null, notification: notification));
+
+        var email = Assert.Single(Assert.Single((await _repository.Read())[0].Notifications).Emails);
+        Assert.Equal("signee@example.com", email.Recipient.EmailAddress);
+    }
+
+    private static Dictionary<string, object?> Content(Dictionary<string, object?> correspondence) =>
+        (Dictionary<string, object?>)correspondence["content"]!;
+
+    private static Dictionary<string, object?> CustomNotification(string channel, params (string Key, string Value)[] texts)
+    {
+        var notification = new Dictionary<string, object?>
+        {
+            ["notificationTemplate"] = "CustomMessage",
+            ["notificationChannel"] = channel,
+        };
+        foreach (var (key, value) in texts)
+        {
+            notification[key] = value;
+        }
+        return notification;
+    }
+
+    private static Dictionary<string, object?> WithCustomRecipient(Dictionary<string, object?> customRecipient)
+    {
+        var notification = Notification("EmailAndSms");
+        notification["customRecipients"] = new[] { customRecipient };
+        notification["overrideRegisteredContactInformation"] = true;
+        return notification;
+    }
+
     private static Dictionary<string, object?> Notification(string channel) =>
         new()
         {
@@ -527,10 +802,16 @@ public sealed class CorrespondenceTests : IDisposable
             ["notificationChannel"] = channel,
         };
 
-    private sealed class FakeContacts : IProfileClient, IRegisterClient
+    private sealed class FakeContacts : IProfileClient, IRegisterClient, ICorrespondenceRecipientRegister
     {
         public Dictionary<string, UserContactPoints> Users { get; } = [];
         public Dictionary<string, OrganizationContactPoints> Organizations { get; } = [];
+
+        /// <summary>Numbers the register does not know. Every other party exists.</summary>
+        public HashSet<string> UnknownParties { get; } = [];
+
+        public Task<bool> Exists(CorrespondenceRecipient recipient) =>
+            Task.FromResult(!UnknownParties.Contains(recipient.Number!));
 
         public Task<List<UserContactPoints>> GetUserContactPoints(List<string> nationalIdentityNumbers) =>
             Task.FromResult(nationalIdentityNumbers.Where(Users.ContainsKey).Select(nin => Users[nin]).ToList());
@@ -600,7 +881,8 @@ public sealed class CorrespondenceTests : IDisposable
         IReadOnlyList<Guid>? attachments = null,
         Dictionary<string, object?>? notification = null,
         string? resourceId = ResourceId,
-        string? messageTitle = "Task_1 is ready for signing"
+        string? messageTitle = "Task_1 is ready for signing",
+        Action<Dictionary<string, object?>>? configure = null
     )
     {
         var body = new Dictionary<string, object?>
@@ -629,6 +911,7 @@ public sealed class CorrespondenceTests : IDisposable
         {
             body["idempotentKey"] = idempotentKey;
         }
+        configure?.Invoke((Dictionary<string, object?>)body["correspondence"]!);
 
         return JsonDocument.Parse(JsonSerializer.Serialize(body)).RootElement;
     }

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using LocalTest.Services.Correspondence;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace Altinn.Correspondence.Controllers;
 
@@ -10,14 +11,18 @@ namespace Altinn.Correspondence.Controllers;
 /// Emulates the Altinn Correspondence API an app calls to send messages, such as the signing call to action and
 /// the receipt a signee gets. Apps reach it through <c>PlatformSettings__ApiCorrespondenceEndpoint</c>, which
 /// studioctl points at <c>http://local.altinn.cloud:8000/correspondence/api/v1/</c>. A correspondence is
-/// published as soon as it is created, and its notifications are worked out but not sent. Like the other
-/// emulated platform services here, it performs no authentication or authorization.
+/// published as soon as it is created, and its notifications are worked out but not sent. It refuses what the
+/// real API refuses based on the request alone, with the same error codes, and looks the recipients up in the
+/// Localtest test data. It does not check the resource registry, access to the resource, the service owner
+/// agreement or the contact reservation register, and like the other emulated platform services here, it
+/// performs no authentication or authorization.
 /// </summary>
 [ApiController]
 [Route("correspondence/api")]
 public class CorrespondenceController(
     LocalCorrespondenceRepository repository,
-    CorrespondenceNotificationBuilder notificationBuilder
+    CorrespondenceNotificationBuilder notificationBuilder,
+    ICorrespondenceRecipientRegister recipientRegister
 ) : ControllerBase
 {
     /// <summary>
@@ -47,6 +52,7 @@ public class CorrespondenceController(
 
     private readonly LocalCorrespondenceRepository _repository = repository;
     private readonly CorrespondenceNotificationBuilder _notificationBuilder = notificationBuilder;
+    private readonly ICorrespondenceRecipientRegister _recipientRegister = recipientRegister;
 
     /// <summary>
     /// Creates and publishes one correspondence per recipient, with the notifications it orders.
@@ -67,27 +73,45 @@ public class CorrespondenceController(
         }
         catch (JsonException e)
         {
-            return InvalidRequest(e.Message);
+            return ErrorResult(CorrespondenceErrors.Invalid(e.Message));
         }
 
         if (request is null)
         {
-            return InvalidRequest("The request body is empty.");
+            return ErrorResult(CorrespondenceErrors.Invalid("The request body is empty."));
         }
-        if (Validate(request) is { } problem)
+        if (CorrespondenceRequestValidator.Validate(request, DateTimeOffset.UtcNow) is { } invalid)
         {
-            return InvalidRequest(problem);
+            return ErrorResult(invalid);
         }
 
         IReadOnlyList<string> recipients = request.Recipients!;
         CorrespondenceRequestDto correspondence = request.Correspondence!;
 
+        var unknownRecipients = new List<string>();
+        foreach (var recipient in recipients)
+        {
+            var parsed = CorrespondenceRecipient.TryParse(recipient)!;
+            if (parsed.IsRegisteredParty && !await _recipientRegister.Exists(parsed))
+            {
+                unknownRecipients.Add(parsed.Number!);
+            }
+        }
+        if (unknownRecipients.Count > 0)
+        {
+            return ErrorResult(CorrespondenceErrors.RecipientLookupFailed(unknownRecipients));
+        }
+
         foreach (var attachmentId in request.ExistingAttachments ?? [])
         {
             var attachment = await _repository.FindAttachment(attachmentId);
-            if (attachment?.Status != AttachmentStatus.Published)
+            if (attachment is null)
             {
-                return InvalidRequest($"Attachment {attachmentId} does not exist or has not been uploaded.");
+                return ErrorResult(CorrespondenceErrors.ExistingAttachmentNotFound);
+            }
+            if (attachment.Status != AttachmentStatus.Published)
+            {
+                return ErrorResult(CorrespondenceErrors.AttachmentsNotPublished);
             }
         }
 
@@ -116,11 +140,7 @@ public class CorrespondenceController(
 
         if (!await _repository.TryCreate(request.IdempotentKey, stored))
         {
-            return ProblemResult(
-                StatusCodes.Status409Conflict,
-                "A correspondence with the same idempotent key already exists",
-                $"A correspondence with idempotent key {request.IdempotentKey} has already been created."
-            );
+            return ErrorResult(CorrespondenceErrors.DuplicateInitCorrespondenceRequest);
         }
 
         return Ok(
@@ -162,11 +182,7 @@ public class CorrespondenceController(
         var correspondence = await _repository.Find(correspondenceId);
         if (correspondence is null)
         {
-            return ProblemResult(
-                StatusCodes.Status404NotFound,
-                "Correspondence not found",
-                $"No correspondence with id {correspondenceId} exists."
-            );
+            return ErrorResult(CorrespondenceErrors.CorrespondenceNotFound);
         }
 
         var details = StoredRequest(correspondence);
@@ -247,42 +263,6 @@ public class CorrespondenceController(
         }
     }
 
-    /// <summary>
-    /// What the Correspondence API refuses before creating anything. Returns the reason, or <c>null</c> when the
-    /// request is valid.
-    /// </summary>
-    private static string? Validate(InitializeCorrespondencesRequestDto request)
-    {
-        if (request.Recipients is not { Count: > 0 } recipients)
-            return "The correspondence must have at least one recipient.";
-        if (recipients.Any(string.IsNullOrWhiteSpace))
-            return "A correspondence recipient cannot be empty.";
-        if (recipients.Distinct(StringComparer.OrdinalIgnoreCase).Count() != recipients.Count)
-            return "The recipients must be distinct.";
-        if (request.IdempotentKey == Guid.Empty)
-            return "The idempotent key cannot be an empty GUID.";
-        if (request.IdempotentKey is not null && recipients.Count > 1)
-            return "An idempotent key cannot be used when sending to multiple recipients.";
-
-        if (request.Correspondence is not { } correspondence)
-            return "The correspondence is missing.";
-        if (string.IsNullOrWhiteSpace(correspondence.ResourceId))
-            return "The correspondence must have a resource ID.";
-        if (string.IsNullOrWhiteSpace(correspondence.SendersReference))
-            return "The correspondence must have a senders reference.";
-        if (
-            correspondence.Content is not { } content
-            || string.IsNullOrWhiteSpace(content.Language)
-            || string.IsNullOrWhiteSpace(content.MessageTitle)
-            || string.IsNullOrWhiteSpace(content.MessageBody)
-        )
-            return "The correspondence content must have a language, a message title and a message body.";
-        if (correspondence.IsConfirmationNeeded && correspondence.DueDateTime is null)
-            return "A correspondence that needs confirmation must have a due date.";
-
-        return null;
-    }
-
     private static NotificationOrderDto NotificationOrder(
         StoredNotification notification,
         StoredCorrespondence correspondence,
@@ -349,9 +329,6 @@ public class CorrespondenceController(
             DataType = attachment.DataType,
         };
 
-    private ActionResult InvalidRequest(string detail) =>
-        ProblemResult(StatusCodes.Status400BadRequest, "Invalid request", detail);
-
     /// <summary>
     /// Initializes an attachment, which the app then uploads the data for and references from a correspondence.
     /// </summary>
@@ -363,13 +340,9 @@ public class CorrespondenceController(
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> InitializeAttachment([FromBody] InitializeAttachmentRequestDto request)
     {
-        if (string.IsNullOrWhiteSpace(request.ResourceId) || string.IsNullOrWhiteSpace(request.SendersReference))
+        if (CorrespondenceRequestValidator.ValidateAttachment(request) is { } invalid)
         {
-            return ProblemResult(
-                StatusCodes.Status400BadRequest,
-                "Invalid request",
-                "An attachment must have a resource ID and a senders reference."
-            );
+            return ErrorResult(invalid);
         }
 
         var attachment = await _repository.CreateAttachment(request);
@@ -400,11 +373,9 @@ public class CorrespondenceController(
         );
         return outcome switch
         {
-            AttachmentUploadOutcome.NotFound => AttachmentNotFound(attachmentId),
-            AttachmentUploadOutcome.AlreadyUploaded => ProblemResult(
-                StatusCodes.Status400BadRequest,
-                "Invalid request",
-                $"The data for attachment {attachmentId} has already been uploaded."
+            AttachmentUploadOutcome.NotFound => ErrorResult(CorrespondenceErrors.AttachmentNotFound),
+            AttachmentUploadOutcome.AlreadyUploaded => ErrorResult(
+                CorrespondenceErrors.Invalid($"The data for attachment {attachmentId} has already been uploaded.")
             ),
             _ => Ok(Overview(attachment!)),
         };
@@ -421,7 +392,7 @@ public class CorrespondenceController(
     public async Task<ActionResult> GetAttachmentOverview([FromRoute] Guid attachmentId)
     {
         var attachment = await _repository.FindAttachment(attachmentId);
-        return attachment is null ? AttachmentNotFound(attachmentId) : Ok(Overview(attachment));
+        return attachment is null ? ErrorResult(CorrespondenceErrors.AttachmentNotFound) : Ok(Overview(attachment));
     }
 
     private static AttachmentOverviewDto Overview(StoredAttachment attachment) =>
@@ -441,21 +412,22 @@ public class CorrespondenceController(
             ExpirationInDays = attachment.Request.ExpirationInDays,
         };
 
-    private ActionResult AttachmentNotFound(Guid attachmentId) =>
-        ProblemResult(
-            StatusCodes.Status404NotFound,
-            "Attachment not found",
-            $"No attachment with id {attachmentId} exists."
-        );
-
-    private ActionResult ProblemResult(int statusCode, string title, string detail) =>
-        StatusCode(
-            statusCode,
-            new ProblemDetails
-            {
-                Status = statusCode,
-                Title = title,
-                Detail = detail,
-            }
-        );
+    /// <summary>
+    /// The error as the Correspondence API answers it: problem details titled by the status, with the message as
+    /// the detail and the error code, when there is one, as <c>errorCode</c>.
+    /// </summary>
+    private ObjectResult ErrorResult(CorrespondenceError error)
+    {
+        var problem = new ProblemDetails
+        {
+            Status = error.StatusCode,
+            Title = ReasonPhrases.GetReasonPhrase(error.StatusCode),
+            Detail = error.Message,
+        };
+        if (error.ErrorCode is { } code)
+        {
+            problem.Extensions["errorCode"] = code;
+        }
+        return StatusCode(error.StatusCode, problem);
+    }
 }

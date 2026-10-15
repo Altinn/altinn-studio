@@ -6,7 +6,8 @@ namespace LocalTest.Services.Correspondence;
 /// <summary>
 /// Works out the notifications a correspondence orders, the way the Notifications service would: who gets an email
 /// or an SMS, at which address, with which text. The addresses come from the recipient's contact information in
-/// the Localtest test data, unless the correspondence names its own recipients. Nothing is sent.
+/// the Localtest test data and from the custom recipients the correspondence names. Nothing is sent. The text of a
+/// generic notification is a stand-in: the real wording comes from the Correspondence API's templates.
 /// </summary>
 public sealed class CorrespondenceNotificationBuilder(IProfileClient profileClient, IRegisterClient registerClient)
 {
@@ -18,9 +19,6 @@ public sealed class CorrespondenceNotificationBuilder(IProfileClient profileClie
         "Du har mottatt en ny melding i innboksen din i Altinn. Logg inn på altinn.no for å lese den.";
     internal const string GenericSmsBody =
         "Du har mottatt en ny melding i Altinn. Logg inn på altinn.no for å lese den.";
-
-    private const string OrganizationUrnPrefix = "urn:altinn:organization:identifier-no:";
-    private const string PersonUrnPrefix = "urn:altinn:person:identifier-no:";
 
     /// <summary>
     /// The notification orders for one recipient's correspondence: the first notification, and a reminder when
@@ -85,7 +83,7 @@ public sealed class CorrespondenceNotificationBuilder(IProfileClient profileClie
         DateTimeOffset sendTime
     )
     {
-        bool generic = request.NotificationTemplate == NotificationTemplate.GenericAltinnMessage;
+        bool generic = request.NotificationTemplate != NotificationTemplate.CustomMessage;
         var emails = new List<SentEmail>();
         var smses = new List<SentSms>();
 
@@ -148,42 +146,41 @@ public sealed class CorrespondenceNotificationBuilder(IProfileClient profileClie
     }
 
     /// <summary>
-    /// The addresses to notify: the correspondence's own recipients when it names any, otherwise every registered
-    /// email address and mobile number of the correspondence's recipient.
+    /// The addresses to notify: every registered email address and mobile number of the correspondence's recipient,
+    /// and the custom recipients the correspondence names. Only the custom recipients when it overrides the
+    /// registered contact information.
     /// </summary>
     private async Task<IReadOnlyList<ContactPoint>> ResolveContacts(NotificationRequestDto request, string recipient)
     {
-        if (request.CustomRecipients is { Count: > 0 } customRecipients)
+        var contacts = new List<ContactPoint>();
+        IReadOnlyList<NotificationRecipientDto> customRecipients = request.CustomRecipients ?? [];
+        if (!request.OverrideRegisteredContactInformation || customRecipients.Count == 0)
         {
-            var contacts = new List<ContactPoint>();
-            foreach (NotificationRecipientDto custom in customRecipients)
-            {
-                bool hasAddress =
-                    !string.IsNullOrWhiteSpace(custom.EmailAddress) || !string.IsNullOrWhiteSpace(custom.MobileNumber);
-                if (hasAddress)
-                {
-                    contacts.Add(
-                        new ContactPoint(
-                            custom.OrganizationNumber,
-                            custom.NationalIdentityNumber,
-                            custom.EmailAddress,
-                            custom.MobileNumber,
-                            custom.IsReserved
-                        )
-                    );
-                }
-                else
-                {
-                    contacts.AddRange(
-                        await RegisteredContacts(custom.OrganizationNumber, custom.NationalIdentityNumber)
-                    );
-                }
-            }
-            return contacts;
+            var registered = CorrespondenceRecipient.TryParse(recipient);
+            contacts.AddRange(
+                await RegisteredContacts(registered?.OrganizationNumber, registered?.NationalIdentityNumber)
+            );
         }
 
-        (string? organizationNumber, string? nationalIdentityNumber) = ParseRecipient(recipient);
-        return await RegisteredContacts(organizationNumber, nationalIdentityNumber);
+        foreach (NotificationRecipientDto custom in customRecipients)
+        {
+            bool hasAddress =
+                !string.IsNullOrWhiteSpace(custom.EmailAddress) || !string.IsNullOrWhiteSpace(custom.MobileNumber);
+            if (hasAddress)
+            {
+                contacts.Add(new ContactPoint(null, null, custom.EmailAddress, custom.MobileNumber, custom.IsReserved));
+            }
+            else
+            {
+                contacts.AddRange(
+                    await RegisteredContacts(
+                        CorrespondenceRecipient.WithoutPrefix(custom.OrganizationNumber),
+                        CorrespondenceRecipient.WithoutPrefix(custom.NationalIdentityNumber)
+                    )
+                );
+            }
+        }
+        return contacts;
     }
 
     private async Task<IReadOnlyList<ContactPoint>> RegisteredContacts(
@@ -228,23 +225,6 @@ public sealed class CorrespondenceNotificationBuilder(IProfileClient profileClie
         }
 
         return [];
-    }
-
-    /// <summary>
-    /// The organization or national identity number in a recipient, which is a URN or, as the API also accepts,
-    /// the bare number.
-    /// </summary>
-    internal static (string? OrganizationNumber, string? NationalIdentityNumber) ParseRecipient(string recipient)
-    {
-        if (recipient.StartsWith(OrganizationUrnPrefix, StringComparison.OrdinalIgnoreCase))
-        {
-            return (recipient[OrganizationUrnPrefix.Length..], null);
-        }
-        if (recipient.StartsWith(PersonUrnPrefix, StringComparison.OrdinalIgnoreCase))
-        {
-            return (null, recipient[PersonUrnPrefix.Length..]);
-        }
-        return recipient.Length == 11 ? (null, recipient) : (recipient, null);
     }
 
     private sealed record ContactPoint(
