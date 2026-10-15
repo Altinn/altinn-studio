@@ -1887,26 +1887,27 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Job 11: warn about feedback tasks sitting behind service tasks - a v8 waiting pattern the v9
-    /// implicit waiting step makes redundant. Advisory only (never rewrites the process); runs after
+    /// Job 11: warn about feedback tasks: those behind service tasks are a v8 waiting pattern the v9
+    /// implicit waiting step makes redundant, and instances waiting in any of them at the first v9
+    /// deploy may not move on by themselves. Advisory only (never rewrites the process); runs after
     /// the PDF/eFormidling migrations so service tasks they insert are included in the analysis.
     /// </summary>
     static async Task<int> WarnFeedbackTasksBehindServiceTasks(string projectFolder)
     {
-        UpgradeConsole.BeginStep("Feedback tasks behind service tasks");
+        UpgradeConsole.BeginStep("Feedback tasks");
         try
         {
             var advisor = new ProcessAdvisories.FeedbackAfterServiceTaskAdvisor(projectFolder);
             var result = advisor.Analyze();
             return ReportMigrationResult(
                 result,
-                cleanText: "No feedback tasks behind service tasks found",
+                cleanText: "No feedback tasks found",
                 cleanStatus: UpgradeMessageStatus.Skip
             );
         }
         catch (Exception ex)
         {
-            return Fail("Error checking for feedback tasks behind service tasks", ex);
+            return Fail("Error checking feedback tasks", ex);
         }
     }
 

@@ -159,7 +159,7 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
             _app.Read("config/process/process.bpmn"),
             StringComparison.Ordinal
         );
-        var step = Assert.Single(report.Steps, step => step.Name == "Feedback tasks behind service tasks");
+        var step = Assert.Single(report.Steps, step => step.Name == "Feedback tasks");
         var message = Assert.Single(step.Messages);
         Assert.Equal(UpgradeMessageStatus.Todo, message.Status);
         Assert.StartsWith(
