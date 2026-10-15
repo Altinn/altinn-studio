@@ -14,7 +14,8 @@ import {
   StudioHeading,
   StudioSpinner,
 } from '@studio/components';
-import type { ResourceTypeOption } from 'app-shared/types/ResourceAdm';
+import type { ResourceError, ResourceTypeOption } from 'app-shared/types/ResourceAdm';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import {
   useResourceAccessPackagesQuery,
   useResourcePolicyActionsQuery,
@@ -46,6 +47,7 @@ export const LocalPolicyEditor = ({
   const [publishError, setPublishError] = useState<{
     failedEnv: string;
     skippedEnv?: string;
+    status?: number;
   } | null>(null);
 
   // Get the data
@@ -67,8 +69,12 @@ export const LocalPolicyEditor = ({
     try {
       await updatePolicyMutation({ env: publishEnv, payload: updatedPolicy });
       return true;
-    } catch {
-      setPublishError({ failedEnv: publishEnv, skippedEnv });
+    } catch (error) {
+      setPublishError({
+        failedEnv: publishEnv,
+        skippedEnv,
+        status: (error as ResourceError).response?.status,
+      });
       return false;
     }
   };
@@ -100,6 +106,18 @@ export const LocalPolicyEditor = ({
   );
   const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(updatedPolicy.rules, subjects);
   const otherEnv = env === 'prod' ? 'tt02' : 'prod';
+
+  const getPublishErrorReason = (status: number | undefined, failedEnv: string): string | null => {
+    const envName = t(`resourceadm.altinn2policy_env_${failedEnv}`);
+    switch (status) {
+      case ServerCodes.Forbidden:
+        return t('resourceadm.resource_publish_no_access', { envName });
+      case ServerCodes.NotFound:
+        return t('resourceadm.altinn2policy_publish_error_not_found', { env: envName });
+      default:
+        return null;
+    }
+  };
   const isPublishedInOtherEnv = publishStatusData?.publishedVersions.some(
     (version) => version.environment === otherEnv && version.version,
   );
@@ -172,7 +190,8 @@ export const LocalPolicyEditor = ({
                 })
               : t('resourceadm.altinn2policy_publish_error', {
                   env: t(`resourceadm.altinn2policy_env_${publishError.failedEnv}`),
-                })}
+                })}{' '}
+            {getPublishErrorReason(publishError.status, publishError.failedEnv)}
           </StudioAlert>
         )}
       </StudioDialog.Block>
