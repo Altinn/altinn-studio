@@ -1,15 +1,20 @@
 import React from 'react';
 
-import { ConditionalWrapper, Flex } from '@app/form-component';
+import { Flex } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { HeadingProps } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
-import { useIsExcludedFromPdf } from 'src/features/pdf/useIsExcludedFromPdf';
 import classes from 'src/layout/Group/GroupSummary.module.css';
-import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { EmptyChildrenBoundary, useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
+import {
+  ComponentSummary,
+  SummaryContains,
+  SummaryFlexForContainer,
+  useIsHiddenInSummary,
+} from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
@@ -45,16 +50,25 @@ function ChildComponent({ id, hierarchyLevel }: ChildComponentProps) {
 
   if (child.type === 'Group') {
     return (
-      <Flex item>
-        <GroupSummary
-          targetBaseComponentId={id}
-          hierarchyLevel={hierarchyLevel ? hierarchyLevel + 1 : 1}
-        />
-      </Flex>
+      <NestedGroupSummary
+        targetBaseComponentId={id}
+        hierarchyLevel={hierarchyLevel ? hierarchyLevel + 1 : 1}
+      />
     );
   }
 
   return <ComponentSummary targetBaseComponentId={id} />;
+}
+
+function NestedGroupSummary(props: GroupComponentSummaryProps) {
+  const hidden = useIsHiddenInSummary(props.targetBaseComponentId);
+  useReportSummaryRender(hidden ? SummaryContains.EmptyValueNotRequired : undefined);
+
+  return (
+    <EmptyChildrenBoundary reportSelf={!hidden}>
+      <GroupSummary {...props} />
+    </EmptyChildrenBoundary>
+  );
 }
 
 export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: GroupComponentSummaryProps) => {
@@ -73,21 +87,10 @@ export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: Grou
   const isNestedGroup = hierarchyLevel > 0;
   const dataTestId = hierarchyLevel > 0 ? `summary-group-component-${hierarchyLevel}` : 'summary-group-component';
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
-  const excludedFromPdf = useIsExcludedFromPdf(targetBaseComponentId);
-  if (excludedFromPdf) {
-    return null;
-  }
   return (
-    <ConditionalWrapper
-      condition={hierarchyLevel === 0}
-      wrapper={(children) => (
-        <SummaryFlexForContainer
-          hideWhen={hideEmptyFields}
-          targetBaseId={targetBaseComponentId}
-        >
-          {children}
-        </SummaryFlexForContainer>
-      )}
+    <SummaryFlexForContainer
+      hideWhen={hideEmptyFields}
+      targetBaseId={targetBaseComponentId}
     >
       <section
         className={cn(classes.groupContainer, { [classes.nested]: isNestedGroup })}
@@ -115,6 +118,6 @@ export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: Grou
           ))}
         </Flex>
       </section>
-    </ConditionalWrapper>
+    </SummaryFlexForContainer>
   );
 };
