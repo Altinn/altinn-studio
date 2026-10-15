@@ -14,6 +14,7 @@ internal sealed class AppUpgradeService : IDisposable
     private const string DefaultAppSettingsFolder = "App";
     private const string DefaultBackendTargetFramework = "net8.0";
     private const string DefaultV9TargetFramework = "net11.0";
+    internal const string MinimumV9SdkVersion = "11.0.100-rc.2";
     private const int DefaultV9TargetMajorVersion = 9;
     private const string DefaultFrontendTargetVersion = "4";
     private const string DefaultBackendTargetVersion = "8.7.0";
@@ -25,6 +26,15 @@ internal sealed class AppUpgradeService : IDisposable
     private const string DefaultReceiptLayoutSetName = "receipt";
 
     private readonly SemaphoreSlim _upgradeLock = new(1, 1);
+    private readonly Func<string, string, CancellationToken, Task<string?>> _findSdkProblem;
+
+    public AppUpgradeService()
+        : this(V9SdkRequirement.FindProblem) { }
+
+    internal AppUpgradeService(Func<string, string, CancellationToken, Task<string?>> findSdkProblem)
+    {
+        _findSdkProblem = findSdkProblem;
+    }
 
     public async Task<AppUpgradeResult> RunAsync(AppUpgradeRequest request, CancellationToken cancellationToken)
     {
@@ -57,6 +67,18 @@ internal sealed class AppUpgradeService : IDisposable
                             ? "The git repository has local changes. Commit or stash them before upgrading or run with --allow-dirty to ignore the check."
                             : $"Could not determine whether the git repository has local changes: {gitError}. Fix the repository before upgrading."
                     );
+
+                if (request.Kind == UpgradeKinds.V9 && File.Exists(Path.Combine(projectFolder, DefaultProjectFile)))
+                {
+                    // Upgrade tools run from the repository root; studioctl run builds from the project directory.
+                    // Each directory can select a different SDK through its nearest global.json.
+                    var appProjectFolder = Path.Combine(projectFolder, Path.GetDirectoryName(DefaultProjectFile) ?? "");
+                    foreach (var directory in new[] { projectFolder, appProjectFolder })
+                    {
+                        if (await _findSdkProblem(directory, MinimumV9SdkVersion, cancellationToken) is { } sdkProblem)
+                            return AppUpgradeResult.Invalid(sdkProblem);
+                    }
+                }
 
                 var exitCode = await RunUpgradeAsync(
                     request with

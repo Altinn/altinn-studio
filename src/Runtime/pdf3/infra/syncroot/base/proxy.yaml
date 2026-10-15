@@ -167,9 +167,6 @@ spec:
             value: "k8s.pod.uid=$(POD_UID),k8s.pod.name=$(POD_NAME),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=pdf3-proxy"
           - name: OTEL_SERVICE_NAME
             value: "pdf3-proxy"
-          # The collector isn't deployed yet. Until it is, exports fail in the background and
-          # the SDK logs the errors; requests are served as usual. Unset, the SDK would still
-          # export, to localhost:4317, as pdf3 exports all signals outside localtest.
           - name: OTEL_EXPORTER_OTLP_ENDPOINT
             value: "http://pdf3-collector.product-studio-pdf3.svc.cluster.local:4317"
           - name: OTEL_METRIC_EXPORT_INTERVAL

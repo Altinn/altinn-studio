@@ -1,8 +1,14 @@
 # The environment's name, as the platform names it (at22, tt02, prod, ...). Set per environment;
-# the pdf3 proxy and workers read it as PDF3_ENVIRONMENT.
+# the pdf3 proxy and workers read it as PDF3_ENVIRONMENT and the collector stamps it on all
+# telemetry as deployment.environment.name.
+#
+# cluster is the AKS cluster's name, which the collector stamps on all telemetry as
+# k8s.cluster.name: the value the runtime's resource_detection/aks reads from Azure, without
+# the collector needing to reach Azure's instance metadata.
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: pdf3-environment
 data:
   environment: set-per-environment
+  cluster: set-per-environment
