@@ -72,7 +72,7 @@ export function useSummarySoftHidden(hidden: boolean | undefined) {
   };
 }
 
-function useIsHiddenInSummary(baseComponentId: string) {
+export function useIsHiddenInSummary(baseComponentId: string) {
   const hiddenInOverride = useSummaryOverrides(baseComponentId)?.hidden;
 
   // We say that we're not respecting DevTools here, but that's just because Summary2 implements that support

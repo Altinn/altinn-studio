@@ -8,8 +8,13 @@ import type { HeadingProps } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
-import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
-import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { EmptyChildrenBoundary, useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
+import {
+  ComponentSummary,
+  SummaryContains,
+  SummaryFlexForContainer,
+  useIsHiddenInSummary,
+} from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
@@ -45,16 +50,25 @@ function ChildComponent({ id, hierarchyLevel }: ChildComponentProps) {
 
   if (child.type === 'Group') {
     return (
-      <EmptyChildrenBoundary>
-        <GroupSummary
-          targetBaseComponentId={id}
-          hierarchyLevel={hierarchyLevel ? hierarchyLevel + 1 : 1}
-        />
-      </EmptyChildrenBoundary>
+      <NestedGroupSummary
+        targetBaseComponentId={id}
+        hierarchyLevel={hierarchyLevel ? hierarchyLevel + 1 : 1}
+      />
     );
   }
 
   return <ComponentSummary targetBaseComponentId={id} />;
+}
+
+function NestedGroupSummary(props: GroupComponentSummaryProps) {
+  const hidden = useIsHiddenInSummary(props.targetBaseComponentId);
+  useReportSummaryRender(hidden ? SummaryContains.EmptyValueNotRequired : undefined);
+
+  return (
+    <EmptyChildrenBoundary reportSelf={!hidden}>
+      <GroupSummary {...props} />
+    </EmptyChildrenBoundary>
+  );
 }
 
 export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: GroupComponentSummaryProps) => {
