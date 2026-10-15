@@ -1,0 +1,214 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdf3-relay-pdb
+spec:
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: pdf3-relay
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pdf3-relay-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pdf3-relay
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pdf3-relay
+  labels:
+    app: pdf3-relay
+    component: pdf3
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 5032
+    protocol: TCP
+    appProtocol: http
+    name: http
+  selector:
+    app: pdf3-relay
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pdf3-relay-sa
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pdf3-relay-allow-ingress-from-apps
+spec:
+  # The same callers as the proxy's: apps, and the Azure Monitor Agent
+  podSelector:
+    matchLabels:
+      app: pdf3-relay
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: default
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system # Azure Monitor Agent (envs)
+---
+# Forwards apps' PDF requests to the shared pdf3 in DIS Core, see the pdf3 README. It runs the
+# proxy image's relay binary. The environment overlays set PDF3_UPSTREAM_URL.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdf3-relay
+  annotations:
+    altinn.studio/image: runtime-pdf3-proxy:latest
+    altinn.studio/image-tag: latest
+spec:
+  minReadySeconds: 3
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 60
+  # No replicas, so Flux doesn't override the HPA
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: pdf3-relay
+  template:
+    metadata:
+      labels:
+        app: pdf3-relay
+        component: pdf3
+      annotations:
+        linkerd.io/inject: enabled
+        # As for the proxy: Kubernetes stops the Linkerd proxy only after the relay has exited.
+        config.beta.linkerd.io/proxy-enable-native-sidecar: "true"
+        config.linkerd.io/shutdown-grace-period: "5s"
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: pdf3-relay
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: pdf3-relay
+      serviceAccountName: pdf3-relay-sa
+      automountServiceAccountToken: false
+      # The relay's own shutdown, runtime.Host's drain and shutdown periods, plus 5s for the
+      # Linkerd proxy's drain after it has exited.
+      terminationGracePeriodSeconds: 65
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        # Mounted as a directory, not with subPath, so a rotated key reaches the running relay.
+        # The operator syncs the Secret from the environment's Key Vault. Until it exists, the
+        # pod waits in ContainerCreating.
+        - name: upstream-api-key
+          secret:
+            secretName: pdf3-upstream-api-key
+      containers:
+        - name: pdf3-relay
+          image: ""
+          imagePullPolicy: IfNotPresent
+          command: ["./relay"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 5032
+              protocol: TCP
+          env:
+          - name: POD_UID
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.uid
+          - name: OTEL_RESOURCE_ATTRIBUTES
+            value: "k8s.pod.uid=$(POD_UID)"
+          # The otel router sends pdf3- services to the service owner's Application Insights.
+          - name: OTEL_SERVICE_NAME
+            value: "pdf3-relay"
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "http://otel-router.runtime-obs.svc.cluster.local:4317"
+          - name: OTEL_METRIC_EXPORT_INTERVAL
+            value: "15000"
+          - name: PDF3_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                name: runtime-environment
+                key: environment
+          - name: PDF3_SERVICEOWNER
+            valueFrom:
+              configMapKeyRef:
+                name: runtime-environment
+                key: serviceowner
+          - name: PDF3_UPSTREAM_API_KEY_FILE
+            value: /var/run/pdf3-upstream-api-key/key
+          volumeMounts:
+            - name: upstream-api-key
+              mountPath: /var/run/pdf3-upstream-api-key
+              readOnly: true
+          # The probes only reflect the relay itself, not whether DIS Core is reachable.
+          startupProbe:
+            httpGet:
+              path: /health/startup
+              port: 5032
+            failureThreshold: 30
+            periodSeconds: 2
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 5032
+            periodSeconds: 3
+            failureThreshold: 3
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 5032
+            initialDelaySeconds: 10
+            periodSeconds: 3
+            failureThreshold: 5
+            timeoutSeconds: 2
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi

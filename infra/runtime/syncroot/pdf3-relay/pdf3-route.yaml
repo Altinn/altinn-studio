@@ -1,0 +1,37 @@
+# The environment's weights for the route in pdf3's artifact (infra/kustomize/route). An
+# environment overlay can patch them, and a ConfigMap pdf3-route-<service owner> overrides them
+# for one cluster.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pdf3-route
+  namespace: runtime-pdf3
+data:
+  PDF3_PROXY_WEIGHT: "100"
+  PDF3_RELAY_WEIGHT: "0"
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: pdf3-route
+  namespace: runtime-pdf3
+spec:
+  interval: 5m
+  retryInterval: 5m
+  timeout: 1m
+  prune: true
+  force: false
+  wait: true
+  path: ./route
+  sourceRef:
+    kind: OCIRepository
+    name: pdf3-app-repo
+    namespace: runtime-pdf3
+  postBuild:
+    # A later entry overrides an earlier one.
+    substituteFrom:
+    - kind: ConfigMap
+      name: pdf3-route
+    - kind: ConfigMap
+      name: pdf3-route-${SERVICEOWNER_ID}
+      optional: true

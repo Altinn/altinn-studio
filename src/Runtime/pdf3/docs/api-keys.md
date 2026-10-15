@@ -30,6 +30,17 @@ The Secret follows a write at the ExternalSecret's next refresh, or later after 
 kubectl -n product-studio-pdf3 annotate externalsecret pdf3-api-keys force-sync="$(date +%s)" --overwrite
 ```
 
+## Keys in runtime clusters
+
+In runtime clusters, the relay's key file is the Secret `pdf3-upstream-api-key`, which the operator writes from the
+secret `Pdf3--Upstream--ApiKey` in the environment's Key Vault `mpo-<env>-kv`. The
+[`azurekeyvaultsync`](../../operator/internal/controller/azurekeyvaultsync/controller.go) controller defines the
+mapping and polls the Key Vault. All runtime clusters in an environment send the same key, which the environment's
+DIS Core proxy must accept. The secret is written by hand.
+
+Write the secret before the relay is deployed to an environment. Until the Secret exists, the relay's pods wait for it
+and the Flux Kustomization `pdf3-app` in the runtime clusters is not ready.
+
 ## Rotate a key
 
 Every proxy must accept the new key before any relay sends it. For each file update, wait for the affected pods to
@@ -39,7 +50,7 @@ and verify that it starts with the updated file.
 Rotate the key in this order:
 
 1. Add the new key to every proxy's key file, keeping the old key.
-2. Make the new key the first key in every relay's key file.
+2. Make the new key the first key in every relay's key file, `Pdf3--Upstream--ApiKey` in each environment's Key Vault.
 3. Remove the old key from every proxy's key file.
 
 ## Revoke a key

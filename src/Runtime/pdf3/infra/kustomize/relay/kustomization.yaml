@@ -1,0 +1,16 @@
+# The relay, for the environments with a DIS Core. Each of their overlays sets PDF3_UPSTREAM_URL.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - relay.yaml
+replacements:
+- source:
+    kind: Deployment
+    name: pdf3-relay
+    fieldPath: metadata.annotations.[altinn.studio/image]
+  targets:
+  - select:
+      kind: Deployment
+      name: pdf3-relay
+    fieldPaths:
+      - spec.template.spec.containers.[name=pdf3-relay].image

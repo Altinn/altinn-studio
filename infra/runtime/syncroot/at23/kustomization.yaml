@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - ../base
   - workflow-engine-app.yaml
+  - ../pdf3-relay
