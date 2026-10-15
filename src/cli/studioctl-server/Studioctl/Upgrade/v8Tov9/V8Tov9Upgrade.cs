@@ -230,6 +230,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveGeneralSettingsHostName(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveJsonObjectInDataResponseFlag(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckAppFileNameCase(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -1280,6 +1283,29 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error removing GeneralSettings:HostName from the appsettings files", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes the FeatureManagement:JsonObjectInDataResponse flag from the appsettings files: v9 always returns
+    /// validation issues from the data API as JSON.
+    /// </summary>
+    static async Task<int> RemoveJsonObjectInDataResponseFlag(string projectFile)
+    {
+        UpgradeConsole.BeginStep("JsonObjectInDataResponse feature flag");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = await JsonObjectInDataResponseMigration.Migrate(appFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No JsonObjectInDataResponse feature flag in the appsettings files",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing the JsonObjectInDataResponse feature flag from the appsettings files", ex);
         }
     }
 
