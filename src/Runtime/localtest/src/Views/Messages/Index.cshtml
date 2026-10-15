@@ -11,6 +11,11 @@
     What apps have sent through Localtest. Nothing leaves your machine: emails and SMS messages are shown here
     instead of being sent.
 </p>
+<p class="text-muted small">
+    Localtest refuses what the Correspondence API refuses based on the request itself, and looks recipients up in
+    the test data. It does not check the resource registry, access to the resource, the service owner agreement
+    or reservation against digital post (KRR). Test those in TT02.
+</p>
 
 <h2 class="h4 mt-4">Correspondence</h2>
 @if (Model.Correspondences.Count == 0)
