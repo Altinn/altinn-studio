@@ -7,6 +7,12 @@ on:
         required: false
         default: "null"
         type: string
+      # The key in inputs that holds the environments, for a workflow that also takes other
+      # environments in its own "environments" input.
+      inputs-key:
+        required: false
+        default: "environments"
+        type: string
       allow-empty:
         required: false
         default: false
@@ -33,10 +39,12 @@ jobs:
         id: construct-environments
         env:
           INPUTS: ${{ inputs.inputs }}
+          INPUTS_KEY: ${{ inputs['inputs-key'] }}
           ALLOW_EMPTY: ${{ inputs['allow-empty'] }}
         run: |
           result="$(node .github/scripts/construct-environments.mjs \
             --mode dis-core \
             --inputs "$INPUTS" \
+            --inputs-key "$INPUTS_KEY" \
             --allow-empty "$ALLOW_EMPTY")"
           echo "result=${result}" >> "$GITHUB_OUTPUT"

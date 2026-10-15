@@ -353,3 +353,88 @@ test("dis-core: ignores the runtime and studio default overrides in push context
     delete process.env.OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS;
   }
 });
+
+test("dis-core: resolves environments from the input named by inputsKey", () => {
+  const result = constructResult({
+    mode: "dis-core",
+    inputs: '{"environments":"at_ring1","dis-core-environments":"at22,at23"}',
+    inputsKey: "dis-core-environments",
+    allowEmpty: false,
+  });
+
+  assert.deepEqual(result, [
+    { environment: "dis_core_at22", tag: "at22" },
+    { environment: "dis_core_at23", tag: "at23" },
+  ]);
+});
+
+test("dis-core: inputsKey empty with allow-empty true returns []", () => {
+  const result = constructResult({
+    mode: "dis-core",
+    inputs: '{"environments":"at_ring1","dis-core-environments":""}',
+    inputsKey: "dis-core-environments",
+    allowEmpty: true,
+  });
+
+  assert.deepEqual(result, []);
+});
+
+test("dis-core: inputsKey uses every DIS Core environment when inputs context is null", () => {
+  const result = constructResult({
+    mode: "dis-core",
+    inputs: "null",
+    inputsKey: "dis-core-environments",
+    allowEmpty: true,
+  });
+
+  assert.equal(result.length, 5);
+});
+
+test("dis-core: inputsKey rejects a non-string value and names the key", () => {
+  assert.throws(
+    () =>
+      constructResult({
+        mode: "dis-core",
+        inputs: '{"dis-core-environments":["at22"]}',
+        inputsKey: "dis-core-environments",
+        allowEmpty: false,
+      }),
+    /input 'dis-core-environments' must be a string/
+  );
+});
+
+test("dis-core: inputsKey does not fall back to the environments input", () => {
+  assert.throws(
+    () =>
+      constructResult({
+        mode: "dis-core",
+        inputs: '{"environments":"at22"}',
+        inputsKey: "dis-core-environments",
+        allowEmpty: false,
+      }),
+    /cannot be empty/
+  );
+});
+
+test("runtime: reads environments, not other inputs, without inputsKey", () => {
+  const result = constructResult({
+    mode: "runtime",
+    inputs: '{"environments":"at_ring1","dis-core-environments":"at22"}',
+    allowEmpty: false,
+  });
+
+  assert.deepEqual(result, [{ ring: "at_ring1", environment: "runtime_at_ring1" }]);
+});
+
+test("rejects an empty inputsKey", () => {
+  assert.throws(
+    () =>
+      constructResult({
+        mode: "dis-core",
+        inputs: '{"environments":"at22"}',
+        inputsKey: "",
+        allowEmpty: false,
+      }),
+    /inputs-key cannot be empty/
+  );
+});

@@ -118,7 +118,6 @@ const ADMIN_WORKFLOWS = [
 const RUNTIME_SERVICE_DEFS = [
   ['deploy-runtime-gateway.yaml', RUNTIME_ENVS],
   ['deploy-runtime-operator.yaml', RUNTIME_ENVS],
-  ['deploy-runtime-pdf3.yaml', RUNTIME_ENVS],
   ['deploy-runtime-observability.yaml', RUNTIME_ENVS],
   ['deploy-runtime-flux-config.yaml', RUNTIME_ENVS],
   ['deploy-runtime-grafana-manifests.yaml', RUNTIME_ENVS.slice(2)],
@@ -133,7 +132,11 @@ const SERVICES = [
     ['studio', STUDIO_ENVS],
   ]),
   ...RUNTIME_SERVICE_DEFS.map(([workflow, envs]) => service(workflow, [['runtime', envs]])),
-  service('deploy-dis-pdf3-syncroot.yaml', [['dis-core', DIS_CORE_ENVS]]),
+  // Tags the tenant artifact per ring and DIS Core's syncroot per Core environment.
+  service('deploy-runtime-pdf3.yaml', [
+    ['runtime', RUNTIME_ENVS],
+    ['dis-core', DIS_CORE_ENVS],
+  ]),
   ...ADMIN_WORKFLOWS.map((workflow) => service(workflow, [['admin', ADMIN_ENVS]])),
   ...STUDIO_PROD_WORKFLOWS.map((workflow) => service(workflow, [['studio', STUDIO_ENVS.slice(2)]])),
   service('deploy-studio-syncroot.yaml', [['studio', STUDIO_ENVS]]),

@@ -24,7 +24,7 @@ const ALLOWED_VALUES_BY_MODE = {
 
 /**
  * Construct parsed output for studio, runtime or DIS Core environment inputs.
- * @param {{mode: string, inputs?: string, allowEmpty?: boolean|string}} input
+ * @param {{mode: string, inputs?: string, inputsKey?: string, allowEmpty?: boolean|string}} input
  * @returns {Array<{environment: string, ring?: string, tag?: string}>}
  */
 export function constructResult(input) {
@@ -35,11 +35,15 @@ export function constructResult(input) {
 
   const allowEmpty = parseBool(input.allowEmpty);
   const inputs = input.inputs ?? "null";
+  const inputsKey = input.inputsKey ?? "environments";
+  if (inputsKey === "") {
+    throw new Error("inputs-key cannot be empty.");
+  }
   const parsedInputs = parseInputs(inputs);
   let raw = "";
 
   if (raw === "" && parsedInputs !== null) {
-    raw = getEnvironmentsFromInputs(parsedInputs);
+    raw = getEnvironmentsFromInputs(parsedInputs, inputsKey);
   }
 
   // No workflow_dispatch inputs context (e.g. push) with no explicit value/input:
@@ -102,19 +106,20 @@ function parseInputs(inputs) {
 
 /**
  * @param {Record<string, unknown>} parsedInputs
+ * @param {string} key
  * @returns {string}
  */
-function getEnvironmentsFromInputs(parsedInputs) {
-  if (!("environments" in parsedInputs)) {
+function getEnvironmentsFromInputs(parsedInputs, key) {
+  if (!Object.hasOwn(parsedInputs, key)) {
     return "";
   }
 
-  const value = parsedInputs.environments;
+  const value = parsedInputs[key];
   if (value === null || value === undefined) {
     return "";
   }
   if (typeof value !== "string") {
-    throw new Error("input 'environments' must be a string.");
+    throw new Error(`input '${key}' must be a string.`);
   }
   return value;
 }
@@ -169,12 +174,13 @@ function getDefaultOverrideValue(mode) {
 
 /**
  * @param {string[]} argv
- * @returns {{mode: string, inputs: string, allowEmpty: string}}
+ * @returns {{mode: string, inputs: string, inputsKey: string, allowEmpty: string}}
  */
 function parseArgs(argv) {
   const args = {
     mode: "",
     inputs: "null",
+    inputsKey: "environments",
     allowEmpty: "false",
   };
 
@@ -195,6 +201,9 @@ function parseArgs(argv) {
       case "--inputs":
         args.inputs = next;
         break;
+      case "--inputs-key":
+        args.inputsKey = next;
+        break;
       case "--allow-empty":
         args.allowEmpty = next;
         break;
@@ -213,6 +222,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     const result = constructResult({
       mode: args.mode,
       inputs: args.inputs,
+      inputsKey: args.inputsKey,
       allowEmpty: args.allowEmpty,
     });
     process.stdout.write(`${JSON.stringify(result)}\n`);
