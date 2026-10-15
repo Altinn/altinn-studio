@@ -23,6 +23,9 @@ patches:
       - op: replace
         path: /data/environment
         value: at23
+      - op: replace
+        path: /data/cluster
+        value: dis-core-at23-aks
   - target:
       kind: HTTPRoute
       group: gateway.networking.k8s.io

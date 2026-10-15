@@ -23,6 +23,9 @@ for the runtime clusters.
 The workers' [network policy](infra/syncroot/base/network-policies.yaml) allows DNS only through CoreDNS. It is not
 confirmed that DIS Core's pods use CoreDNS rather than AKS LocalDNS. If they do not, the workers cannot resolve names.
 
+The proxy and workers send telemetry to pdf3's own [collector](infra/syncroot/base/collector-config.yaml). It exports
+to Studio's observability backend with the token in the Key Vault secret `observability-ingest-token`.
+
 ## Development
 
 The [Makefile](Makefile) defines the build and test commands. Tests require Docker or Podman.

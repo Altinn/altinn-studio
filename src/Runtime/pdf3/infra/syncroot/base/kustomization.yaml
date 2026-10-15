@@ -10,9 +10,16 @@ resources:
   - secrets.yaml
   - proxy.yaml
   - worker.yaml
+  - collector.yaml
   - httproute.yaml
   - linkerd-policies.yaml
   - network-policies.yaml
+
+# A hash in the name rolls the collector when its configuration changes.
+configMapGenerator:
+  - name: pdf3-collector-config
+    files:
+      - config.yaml=collector-config.yaml
 
 # The images come from the annotations, which deploy-runtime-pdf3.yaml sets to the build it
 # publishes this artifact with, as in the tenant manifests (infra/kustomize/base).

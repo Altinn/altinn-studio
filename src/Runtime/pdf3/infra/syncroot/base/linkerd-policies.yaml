@@ -1,6 +1,6 @@
-# Linkerd inbound authorization for the meshed pods, the proxy. DIS Core denies inbound traffic
-# to meshed pods by default, so Traefik's identity is allowed explicitly. The workers are not
-# meshed (worker.yaml), so network-policies.yaml alone decides who reaches them.
+# Linkerd inbound authorization for the meshed pods, the proxy and the collector. DIS Core denies
+# inbound traffic to meshed pods by default, so their callers are allowed explicitly. The workers
+# are not meshed (worker.yaml), so network-policies.yaml alone decides who reaches them.
 #
 # Traefik's HTTPRoute (httproute.yaml) only routes POST /pdf here, so there are no per-path
 # routes. The kubelet's probes need nothing: Linkerd 2.12 and later authorize a pod's probe
@@ -39,3 +39,41 @@ spec:
     - group: policy.linkerd.io
       kind: MeshTLSAuthentication
       name: pdf3-traefik
+---
+# OTLP from the proxy and the workers. The workers are not meshed, so the collector allows the pod
+# subnet; network-policies.yaml decides which pods in it get through. That also covers the proxy,
+# whose meshed connections come from its pod IP. The pod subnet is assumed to be the platform
+# default, 10.240.0.0/16; the collector's Service is IPv4 only. The health_check port has no
+# Server, and its probes are authorized like the proxy's.
+apiVersion: policy.linkerd.io/v1beta3
+kind: Server
+metadata:
+  name: pdf3-collector-otlp
+spec:
+  podSelector:
+    matchLabels:
+      app: pdf3-collector
+  port: 4317
+  proxyProtocol: gRPC
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: NetworkAuthentication
+metadata:
+  name: pdf3-pods
+spec:
+  networks:
+    - cidr: 10.240.0.0/16
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: AuthorizationPolicy
+metadata:
+  name: pdf3-collector-allow-pods
+spec:
+  targetRef:
+    group: policy.linkerd.io
+    kind: Server
+    name: pdf3-collector-otlp
+  requiredAuthenticationRefs:
+    - group: policy.linkerd.io
+      kind: NetworkAuthentication
+      name: pdf3-pods
