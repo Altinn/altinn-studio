@@ -295,6 +295,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await WarnHiddenDataRemoval(projectFolder, projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateFiksArkivSettings(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -1967,6 +1970,30 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error checking for feedback tasks behind service tasks", ex);
+        }
+    }
+
+    /// <summary>
+    /// Warns that v9 removes data in hidden fields at task end when the app has not chosen
+    /// AppSettings:RemoveHiddenData and its layouts can hide bound data. Advisory only; runs after
+    /// every step that converts, moves or removes layouts, so it names the files v9 reads.
+    /// </summary>
+    static async Task<int> WarnHiddenDataRemoval(string projectFolder, string projectFile)
+    {
+        UpgradeConsole.BeginStep("Hidden data removal");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = await new HiddenDataRemovalAdvisor(projectFolder, appFolder).Analyze();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No data in hidden layout fields that v9 would start removing",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error checking layouts for hidden data removal", ex);
         }
     }
 
