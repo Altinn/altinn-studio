@@ -32,14 +32,6 @@ function isRecognizedAltinnHost(host: string): boolean {
   return extractAltinnHost(host) !== undefined;
 }
 
-export const returnBaseUrlToAltinn = (host: string): string | undefined => {
-  const altinnHost = extractAltinnHost(host);
-  if (!altinnHost) {
-    return undefined;
-  }
-  return `https://${altinnHost}/`;
-};
-
 function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?: string): string | undefined {
   if (isLocalEnvironment(host)) {
     return `http://${host}/`;
@@ -94,16 +86,35 @@ export const returnUrlToProfile = (host: string, _partyId?: number | undefined):
 };
 
 export const returnUrlToAllForms = (host: string): string | undefined => {
-  if (host.match(localRegex)) {
+  if (isLocalEnvironment(host)) {
     return `http://${host}/`;
   }
-
-  const baseUrl = returnBaseUrlToAltinn(host);
-  if (!baseUrl) {
-    return;
+  if (!isRecognizedAltinnHost(host)) {
+    return undefined;
   }
-  return `${baseUrl}skjemaoversikt`;
+
+  return GlobalData.platformFrontendSettings.allFormsUrl;
 };
+
+/** Links from texts on the instantiation pages, which localtest has no equivalent of beyond its front page. */
+function instantiationHelpUrl(host: string, url: string | undefined): string | undefined {
+  if (isLocalEnvironment(host)) {
+    return `http://${host}/`;
+  }
+  if (!isRecognizedAltinnHost(host)) {
+    return undefined;
+  }
+  return url;
+}
+
+export const returnUrlToAccessManagement = (host: string): string | undefined =>
+  instantiationHelpUrl(host, GlobalData.platformFrontendSettings.accessManagementUrl);
+
+export const returnUrlToRolesAndRightsHelp = (host: string): string | undefined =>
+  instantiationHelpUrl(host, GlobalData.platformFrontendSettings.rolesAndRightsHelpUrl);
+
+export const returnUrlToPartiesSettings = (host: string): string | undefined =>
+  instantiationHelpUrl(host, GlobalData.platformFrontendSettings.arbeidsflatePartiesUrl);
 
 export function logoutUrlAltinn(host: string): string | undefined {
   if (isLocalEnvironment(host)) {

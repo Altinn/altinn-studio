@@ -281,12 +281,9 @@ internal sealed class ProcessNextRequestFactory
             CreateProcessNextLabels(processStateChange) ?? new Dictionary<string, string>(StringComparer.Ordinal);
         labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
 
-        // The Main workflow's step sequence: everything through the CommitProcessState
-        // commit, then - when the transition has side effects - the EnqueueSideEffectsWorkflow
-        // step that schedules them, then the critical post-commit commands. Enqueueing at the
-        // commit boundary makes the side effects exist if and only if the transition committed,
-        // and lets them run promptly without waiting for e.g. a service task.
-        List<StepRequest> mainSteps = commands.ThroughCommit;
+        // One EnqueueSideEffectsWorkflow step after the CommitProcessState commit schedules the
+        // transition's side effects, so they exist if and only if the transition committed.
+        List<StepRequest> sideEffects = [];
         if (commands.SideEffects.Count > 0)
         {
             var sideEffectsEnqueueRequest = new WorkflowEnqueueRequest
@@ -315,16 +312,22 @@ internal sealed class ProcessNextRequestFactory
                     })
                     .ToList(),
             };
-            mainSteps.Add(CreateEnqueueSideEffectsWorkflowCommand(sideEffectsEnqueueRequest));
+            sideEffects.Add(CreateEnqueueSideEffectsWorkflowCommand(sideEffectsEnqueueRequest));
         }
-        mainSteps.AddRange(commands.CriticalPostCommit);
+
+        // Side effects announce a transition once it is complete. A task transition is complete at
+        // the commit, so they go before slow post-commit work such as a service task. A process end
+        // is complete only after its post-commit steps release the instance, so they wait for those.
+        List<StepRequest> steps = commands.EndsProcess
+            ? [.. commands.ThroughCommit, .. commands.CriticalPostCommit, .. sideEffects]
+            : [.. commands.ThroughCommit, .. sideEffects, .. commands.CriticalPostCommit];
 
         List<WorkflowRequest> workflows =
         [
             new WorkflowRequest
             {
                 OperationId = $"{MainOperationIdPrefix} {fromTaskId} -> {toTaskId}",
-                Steps = mainSteps,
+                Steps = steps,
                 State = state,
                 DependsOn = dependsOn,
             },
@@ -391,7 +394,8 @@ internal sealed class ProcessNextRequestFactory
     private readonly record struct AssembledCommands(
         List<StepRequest> ThroughCommit,
         List<StepRequest> CriticalPostCommit,
-        List<StepRequest> SideEffects
+        List<StepRequest> SideEffects,
+        bool EndsProcess
     );
 
     private AssembledCommands AssembleCommandSequence(
@@ -406,6 +410,7 @@ internal sealed class ProcessNextRequestFactory
         var taskStartSteps = new List<StepRequest>();
         var criticalPostCommitSteps = new List<StepRequest>();
         var sideEffectSteps = new List<StepRequest>();
+        bool endsProcess = false;
         bool serviceTaskFollowsCommit = false;
 
         bool isInitialTaskStart = processStateChange.OldProcessState?.CurrentTask is null;
@@ -414,6 +419,11 @@ internal sealed class ProcessNextRequestFactory
         {
             if (!Enum.TryParse(instanceEvent.EventType, true, out InstanceEventType instanceEventType))
                 continue;
+
+            if (instanceEventType is InstanceEventType.process_EndEvent)
+            {
+                endsProcess = true;
+            }
 
             string? altinnTaskType = instanceEvent.ProcessInfo?.CurrentTask?.AltinnTaskType;
             string? serviceTaskType = GetServiceTaskType(altinnTaskType);
@@ -429,7 +439,10 @@ internal sealed class ProcessNextRequestFactory
             );
             if (workflowCommands != null)
             {
-                serviceTaskFollowsCommit |= workflowCommands.ServiceTaskFollowsCommit;
+                if (workflowCommands.ServiceTaskFollowsCommit)
+                {
+                    serviceTaskFollowsCommit = true;
+                }
 
                 // The task this event's commands run against (start hooks/service task read the entering
                 // task; end/abandon hooks read the leaving task). This is the same id each hook feeds into
@@ -490,9 +503,16 @@ internal sealed class ProcessNextRequestFactory
             commands.Add(CreateMutateProcessStateCommand(processStateChange));
         }
         commands.AddRange(taskStartSteps);
-        commands.Add(CreateCommitProcessStateCommand(processStateChange, serviceTaskFollowsCommit));
+        commands.Add(CreateCommitProcessStateCommand(processStateChange));
 
-        return new AssembledCommands(commands, criticalPostCommitSteps, sideEffectSteps);
+        // The last step releases the instance, unless a service task follows: its continuation workflow
+        // carries on the transition and releases when it finishes.
+        if (!serviceTaskFollowsCommit)
+        {
+            criticalPostCommitSteps.Add(CreateCommand(ReleaseProcessingStatus.Key));
+        }
+
+        return new AssembledCommands(commands, criticalPostCommitSteps, sideEffectSteps, endsProcess);
     }
 
     private WorkflowCommandSet? GetWorkflowStepsForInstanceEvent(
@@ -623,9 +643,9 @@ internal sealed class ProcessNextRequestFactory
         return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
     }
 
-    private StepRequest CreateCommitProcessStateCommand(ProcessStateChange processStateChange, bool serviceTaskFollows)
+    private StepRequest CreateCommitProcessStateCommand(ProcessStateChange processStateChange)
     {
-        var payload = new ProcessStateChangePayload(processStateChange, serviceTaskFollows);
+        var payload = new ProcessStateChangePayload(processStateChange);
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
         var step = new StepRequest
         {

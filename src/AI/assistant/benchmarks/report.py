@@ -466,14 +466,14 @@ def readable(payload: str | None, *, unwrap: bool = False) -> str | None:
         return None
     try:
         value = json.loads(payload)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return payload[:_READABLE_MAX_CHARS]
     if unwrap:
         value = _unwrap(value)
     if isinstance(value, str):
         try:
             value = json.loads(value)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return value[:_READABLE_MAX_CHARS]
     text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, indent=1, sort_keys=True)
     return text[:_READABLE_MAX_CHARS]
@@ -560,7 +560,7 @@ def _flat_scalars(payload: str | None) -> dict[str, str]:
         return {}
     try:
         value = json.loads(payload)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return {}
     if not isinstance(value, dict):
         return {}

@@ -2,7 +2,6 @@
 import { execFile, spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { mkdirSync, renameSync, writeFileSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
@@ -135,36 +134,51 @@ async function nativeBrowserStacks(processes) {
   };
   const testProcesses = descendants([child?.pid]);
   const cypress = rows.filter((row) => testProcesses.has(row.pid) && row.name === 'Cypress');
+  const cypressMain = new Set(
+    cypress
+      .filter((row) => !cypress.some((parent) => parent.pid === row.parent))
+      .map((row) => row.pid),
+  );
   // Percy has its own Chrome. Limit capture to descendants of Cypress itself.
   const browserProcesses = descendants(cypress.map((row) => row.pid));
   const targets = [];
+  const processRoles = [];
   const discoveryErrors = [];
   for (const row of rows) {
     if (!browserProcesses.has(row.pid) || !/^(Cypress|chrome|chromium)$/.test(row.name)) continue;
+    // The owned Cypress root is identified by ancestry. Reading its arguments
+    // is unnecessary and can fail even while the browser is still alive.
+    if (cypressMain.has(row.pid)) {
+      targets.push({ pid: row.pid, age: row.age, role: 'cypress' });
+      processRoles.push({ pid: row.pid, parent: row.parent, role: 'cypress' });
+      continue;
+    }
     try {
       // Inspect only the process type; never retain command arguments or tokens.
-      let commandLine;
-      try {
-        commandLine = await readFile(`/proc/${row.pid}/cmdline`, 'utf8');
-      } catch (error) {
-        if (!['EACCES', 'EPERM'].includes(error.code)) throw error;
-        ({ stdout: commandLine } = await execFileAsync(
-          'sudo',
-          ['-n', 'cat', `/proc/${row.pid}/cmdline`],
-          { timeout: 2000, maxBuffer: 32768 },
-        ));
-      }
-      const argv = commandLine.split('\0');
-      const type = argv.find((arg) => arg.startsWith('--type='))?.split('=')[1];
+      // Read sandbox processes with the same privileges as gdb.
+      const { stdout: commandLine } = await execFileAsync(
+        'sudo',
+        ['-n', 'cat', `/proc/${row.pid}/cmdline`],
+        { timeout: 2000, maxBuffer: 32768 },
+      );
+      // Chromium rewrites child argv into one space-separated process title.
+      // Accept both that title and the original null-separated arguments.
+      const type = commandLine.match(/(?:^|[\0 ])--type=([a-z-]+)(?=[\0 ]|$)/)?.[1];
       const role =
-        row.name === 'Cypress'
-          ? !type && 'cypress'
-          : type === 'renderer'
-            ? 'renderer'
-            : !type && 'browser';
+        type === 'renderer'
+          ? 'renderer'
+          : !type && commandLine.length > 0 && cypressMain.has(row.parent)
+            ? 'browser'
+            : null;
+      processRoles.push({
+        pid: row.pid,
+        parent: row.parent,
+        role: role || (['gpu-process', 'zygote', 'utility'].includes(type) ? type : 'unknown'),
+        commandLineEmpty: commandLine.length === 0,
+      });
       if (role) targets.push({ pid: row.pid, age: row.age, role });
     } catch (error) {
-      discoveryErrors.push({ pid: row.pid, code: error.code });
+      discoveryErrors.push({ pid: row.pid, code: error.code, signal: error.signal });
     }
   }
   const selected = [
@@ -205,6 +219,8 @@ async function nativeBrowserStacks(processes) {
           '-ex',
           `python assert gdb.selected_inferior().pid == ${target.pid}`,
           '-ex',
+          "python executable = gdb.current_progspace().filename; objfile = next((objfile for objfile in gdb.objfiles() if objfile.filename == executable), None); print('Executable:', executable); print('Build ID:', objfile.build_id if objfile else None)",
+          '-ex',
           'info proc mappings',
           '-ex',
           'thread apply all bt 30',
@@ -227,7 +243,11 @@ async function nativeBrowserStacks(processes) {
   }
   return {
     stacks,
+    processRoles,
     discoveryErrors,
+    missingRoles: ['renderer', 'browser', 'cypress'].filter(
+      (role) => !selected.some((target) => target.role === role),
+    ),
     browser: state.browserLaunch,
     ...(selected.length === 0 && { error: 'No Cypress browser processes found' }),
   };

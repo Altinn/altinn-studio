@@ -19,6 +19,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 
+	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/telemetry/attr"
 	"altinn.studio/pdf3/internal/types"
 )
@@ -68,7 +69,11 @@ func TestGeneratePdfHandler_ErrorType(t *testing.T) {
 			spans := tracetest.NewSpanRecorder()
 			var logs bytes.Buffer
 			handler := otelhttp.NewHandler(
-				generatePdfHandler(slog.New(slog.NewTextHandler(&logs, nil)), stubGenerator{err: tt.err}),
+				generatePdfHandler(
+					slog.New(slog.NewTextHandler(&logs, nil)),
+					stubGenerator{err: tt.err},
+					&config.Config{},
+				),
 				"POST /generate",
 				otelhttp.WithMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))),
 				otelhttp.WithTracerProvider(sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(spans))),

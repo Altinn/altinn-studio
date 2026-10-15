@@ -20,6 +20,7 @@ const EXACT_SOURCE_FILES = [
   'global.json',
   'Chart.yaml',
   'pyproject.toml',
+  '.python-version',
   'requirements.txt',
   'requirements-dev.txt',
   'uv.lock',

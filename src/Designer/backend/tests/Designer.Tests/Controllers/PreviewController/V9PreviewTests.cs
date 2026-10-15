@@ -63,9 +63,25 @@ public class V9PreviewTests : PreviewControllerTestsBase<V9PreviewTests>, IClass
         Assert.Contains($"window.org = \"{Org}\";", body);
         Assert.Contains($"window.app = \"{AppV9}\";", body);
         Assert.Contains("window.altinnAppGlobalData = ", body);
-        Assert.Contains("/altinn-app-frontend/altinn-app-frontend.js", body);
-        Assert.Contains("/altinn-app-frontend/altinn-app-frontend.css", body);
         Assert.Contains("\"onEntry\":{\"show\":\"new-instance\"}", body);
+    }
+
+    [Fact]
+    public async Task AppFrontendSpecificPreview_ForV9App_LoadsAppFrontendMatchingAppLibVersion()
+    {
+        _appVersionServiceMock
+            .Setup(s => s.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
+            .Returns(NuGet.Versioning.NuGetVersion.Parse("9.2.1-preview.3"));
+
+        string url = $"/app-specific-preview/{Org}/{AppV9}";
+        using HttpRequestMessage request = new(HttpMethod.Get, url);
+
+        using HttpResponseMessage response = await HttpClient.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        string body = await response.Content.ReadAsStringAsync();
+        Assert.Contains("src=\"/designer/app-dist/9.2.1-preview.3/altinn-app-frontend.js\"", body);
+        Assert.Contains("href=\"/designer/app-dist/9.2.1-preview.3/altinn-app-frontend.css\"", body);
     }
 
     [Fact]

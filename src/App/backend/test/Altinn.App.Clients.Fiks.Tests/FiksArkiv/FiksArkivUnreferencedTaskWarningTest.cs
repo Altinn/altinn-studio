@@ -35,6 +35,7 @@ public class FiksArkivUnreferencedTaskWarningTest
         var logger = new FakeLogger<ProcessTaskConfigurationValidationService>();
         var service = new ProcessTaskConfigurationValidationService(
             provider.GetRequiredService<IServiceScopeFactory>(),
+            services,
             logger
         );
 
