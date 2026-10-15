@@ -26,7 +26,7 @@ Each fact has one home. Other files link to it instead of repeating it.
 | Decisions and reasoning                              | `docs/adr/`                                                                |
 | Documentation rules                                  | `docs/development/documentation.md`                                        |
 | Agent direction needed in every session              | `AGENTS.md`                                                                |
-| Agent knowledge and procedures for particular tasks  | Skills in `agents/skills/`                                                 |
+| Agent knowledge and procedures for particular tasks  | Skills in `agents/_skills/`                                                |
 | Agent image behavior                                 | `agents/`                                                                  |
 
 - Documentation describes the current system. ADRs record decisions at a point in time.
@@ -78,10 +78,10 @@ harness's memory.
 
 ## Skills
 
-Each skill we maintain has one directory under `agents/skills/`. Harness directories, agent images, and products
-get copies from there, so edit a skill only in `agents/skills/`. Repository-level skill directories, such as
-`.claude/skills/` and `.agents/skills/`, are ignored by Git, and root `AGENTS.md` explains how to read or install a
-skill that is missing.
+Skills are developed and maintained in `agents/_skills/`, one directory per skill. Harness directories, agent
+images, and products get copies from there, so edit a skill only in `agents/_skills/`. Repository-level skill
+directories, such as `.claude/skills/` and `.agents/skills/`, are ignored by Git, and root `AGENTS.md` explains how
+to read or install a skill that is missing.
 
 Skills use the standard Agent Skills format and do not depend on one harness's tools or runtime. Runtime-specific
 guidance lives with that runtime.
