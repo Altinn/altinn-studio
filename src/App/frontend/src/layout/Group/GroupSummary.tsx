@@ -7,6 +7,7 @@ import cn from 'classnames';
 import type { HeadingProps } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
+import { useIsExcludedFromPdf } from 'src/features/pdf/useIsExcludedFromPdf';
 import classes from 'src/layout/Group/GroupSummary.module.css';
 import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
@@ -72,6 +73,10 @@ export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: Grou
   const isNestedGroup = hierarchyLevel > 0;
   const dataTestId = hierarchyLevel > 0 ? `summary-group-component-${hierarchyLevel}` : 'summary-group-component';
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
+  const excludedFromPdf = useIsExcludedFromPdf(targetBaseComponentId);
+  if (excludedFromPdf) {
+    return null;
+  }
   return (
     <ConditionalWrapper
       condition={hierarchyLevel === 0}

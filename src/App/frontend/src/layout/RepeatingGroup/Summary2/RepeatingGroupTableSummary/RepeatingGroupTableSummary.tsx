@@ -13,6 +13,7 @@ import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
+import { useExcludedPdfComponentIds } from 'src/features/pdf/useIsExcludedFromPdf';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
@@ -55,12 +56,16 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
   const title = summaryTitle || resolvedTitle;
   const tableIds = useTableComponentIds(baseComponentId);
   const hiddenColumns = useHiddenColumns(config.tableColumns);
+  const excludedFromPdf = useExcludedPdfComponentIds();
   const columnSettings = Object.fromEntries(
     Object.entries(config.tableColumns ?? {}).map(([id, column]) => [
       id,
       { ...column, hidden: hiddenColumns.includes(id) },
     ]),
   );
+  for (const id of excludedFromPdf) {
+    columnSettings[id] = { ...columnSettings[id], hidden: true };
+  }
   const showEditColumn = !pdfModeActive && !isSmall;
   return (
     <div
