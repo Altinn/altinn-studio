@@ -1,6 +1,6 @@
 # Prompt and skills
 
-Code: `src/AI/assistant/agents/core/context.py`, `src/AI/assistant/agents/core/skills.py`, `src/AI/assistant/agents/skills/`, `src/AI/assistant/agents/prompts/`, `src/AI/assistant/scripts/sync_prompts.py`
+Code: `src/AI/assistant/agents/core/context.py`, `src/AI/assistant/agents/core/skills.py`, `agents/skills/altinn-*/`, `src/AI/assistant/agents/prompts/`, `src/AI/assistant/scripts/sync_prompts.py`
 
 ## The loop system prompt
 
@@ -18,7 +18,7 @@ _The parts of the loop system prompt. The final answer rules are different for c
 
 ## Skills
 
-Skills use progressive disclosure. The prompt has only the name and a short description of each skill. The model calls the `skill` tool to get the full text. If the app is v9, a `v9.md` file adds version-specific text. Each folder in `src/AI/assistant/agents/skills/` is one skill.
+Skills use progressive disclosure. The prompt has only the name and a short description of each skill. The model calls the `skill` tool to get the full text. If the app is v9, a `v9.md` file adds version-specific text. Each `altinn-*` folder in `agents/skills/` is one skill. To add or change a skill, refer to [Assistant skills](../skills.md).
 
 ```mermaid
 sequenceDiagram

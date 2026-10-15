@@ -1,6 +1,8 @@
 """Skill discovery and loading for the agentic loop.
 
-A skill is a directory containing a `SKILL.md` file:
+A skill is a directory containing a `SKILL.md` file.  The repository keeps
+every skill in `agents/skills/`; the assistant's skills are the ones named
+`altinn-*`:
 
     agents/skills/
       altinn-policy/
@@ -28,16 +30,18 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from shared.config.base_config import get_config
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
 SKILL_FILENAME = "SKILL.md"
+SKILL_NAME_PREFIX = "altinn-"
 # Keep listing lines short — the full body loads on invocation, so a
 # verbose description only wastes tokens on every request.
 MAX_LISTING_DESCRIPTION_CHARS = 250
 
-_DEFAULT_SKILLS_DIR = Path(__file__).parent.parent / "skills"
+_DEFAULT_SKILLS_DIR = get_config().SKILLS_DIR
 
 _FRONTMATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 
@@ -131,16 +135,16 @@ def _parse_frontmatter(raw: str) -> dict[str, str]:
 def discover_skills(skills_dir: Path | None = None) -> list[Skill]:
     """Scan the skills directory and return all valid skills, sorted by name.
 
-    A valid skill is a subdirectory containing SKILL.md with a non-empty
-    `description` in its frontmatter.  Invalid entries are logged and
-    skipped — a broken skill must not take down the loop.
+    A valid skill is a subdirectory named `altinn-*` containing SKILL.md with
+    a non-empty `description` in its frontmatter.  Invalid entries are logged
+    and skipped — a broken skill must not take down the loop.
     """
     root = skills_dir or _DEFAULT_SKILLS_DIR
     if not root.is_dir():
         return []
 
     skills: list[Skill] = []
-    for entry in sorted(root.iterdir()):
+    for entry in sorted(root.glob(f"{SKILL_NAME_PREFIX}*")):
         if not entry.is_dir():
             continue
         skill_file = entry / SKILL_FILENAME

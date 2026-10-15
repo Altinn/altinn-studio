@@ -1,8 +1,9 @@
-# The agents image builds from the repo root so it can bundle the v9 layout schemas from src/common.
-# Ignore everything, then include only what the image needs.
+# The agents image builds from the repo root so it can bundle the assistant's skills and the v9
+# layout schemas from src/common. Ignore everything, then include only what the image needs.
 *
 
 !src/AI/assistant
+!agents/skills/altinn-*
 !src/common/ts/layout-contract/schemas/json/layout
 
 # Heavy or irrelevant paths inside the included dirs.

@@ -67,6 +67,7 @@ class BaseConfig:
     LAYOUT_SCHEMA_V9_DIR = (
         PROJECT_ROOT.parent.parent / "common" / "ts" / "layout-contract" / "schemas" / "json" / "layout"
     )
+    SKILLS_DIR = PROJECT_ROOT.parent.parent.parent / "agents" / "skills"
 
     LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
     LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")

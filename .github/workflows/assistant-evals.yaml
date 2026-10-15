@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/AI/assistant/**'
+      - 'agents/skills/altinn-*/**'
       - '.github/workflows/assistant-evals.yaml'
       - '!**/AGENTS.md'
       - '!**/README.md'
