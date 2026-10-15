@@ -12,6 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+- `studioctl app upgrade v9` removes the `JsonObjectInDataResponse` feature flag from the appsettings files, and points out when it was off, since clients of the data API then get validation issues as JSON instead of text. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
 
 ### Changed
 
@@ -31,11 +32,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - The OpenTelemetry collector in `studioctl env up --monitoring` also accepts OTLP over HTTP, on port 4318. ([#21114](https://github.com/Altinn/altinn-studio/pull/21114))
-- `studioctl app upgrade v9` removes the `JsonObjectInDataResponse` feature flag from the appsettings files, and points out when it was off, since clients of the data API then get validation issues as JSON instead of text. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
-- `studioctl app upgrade v9` points out `IPdfFormatter` implementations and their registrations, which no longer compile in v9, and suggests `excludeFromPdf` or, for conditional logic, a PDF service task with a custom layout instead. ([#19785](https://github.com/Altinn/altinn-studio/issues/19785))
-- `studioctl app upgrade v9` deletes `IPdfFormatter` implementations that do not change the PDF, with their registrations, so only the ones with logic are left to port. ([#19785](https://github.com/Altinn/altinn-studio/issues/19785))
-- `studioctl app upgrade v9` removes the `Async` suffix from app code that implements or calls the renamed app library methods, such as `GetAppOptionsAsync` and `FilterAsync`, and lists the calls it cannot verify for you to check. ([#19774](https://github.com/Altinn/altinn-studio/issues/19774))
-- `studioctl app upgrade v9` moves `IProcessExclusiveGateway` implementations off the removed three-parameter `FilterAsync`: it adds the `dataAccessor` parameter, or deletes the method where the app already implements the four-parameter one. ([#19782](https://github.com/Altinn/altinn-studio/issues/19782))
 - `studioctl app upgrade v9` ports more app code to v9:
     - deletes `IPdfFormatter` implementations that leave the PDF unchanged and points out the rest ([#19785](https://github.com/Altinn/altinn-studio/issues/19785))
     - removes the `Async` suffix from app code that implements or calls renamed app library methods, such as `GetAppOptionsAsync`, and lists calls it cannot verify ([#19774](https://github.com/Altinn/altinn-studio/issues/19774))
