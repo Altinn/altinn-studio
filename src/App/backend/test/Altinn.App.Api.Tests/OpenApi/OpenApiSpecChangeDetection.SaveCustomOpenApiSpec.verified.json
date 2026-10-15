@@ -3861,6 +3861,13 @@
           "missing-from-xsd": {
             "type": "string",
             "nullable": true
+          },
+          "hiddenRange": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number",
+            "format": "double",
+            "nullable": true
           }
         },
         "additionalProperties": false

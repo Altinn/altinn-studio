@@ -1,0 +1,122 @@
+﻿{
+  IncrementalIssues: [
+    {
+      Source: Required
+    },
+    {
+      Source: DataAnnotations,
+      Issues: [
+        {
+          Severity: Error,
+          DataElementId: Guid_1,
+          Field: HiddenRange,
+          Code: The field HiddenRange must be between 0 and 100.,
+          Description: The field HiddenRange must be between 0 and 100.,
+          Source: DataAnnotations,
+          NoIncrementalUpdates: false
+        },
+        {
+          Severity: Error,
+          DataElementId: Guid_1,
+          Field: VisibleRange,
+          Code: The field VisibleRange must be between 0 and 100.,
+          Description: The field VisibleRange must be between 0 and 100.,
+          Source: DataAnnotations,
+          NoIncrementalUpdates: false
+        },
+        {
+          Severity: Error,
+          DataElementId: Guid_1,
+          Field: HiddenRangeKeep,
+          Code: The field HiddenRangeKeep must be between 0 and 100.,
+          Description: The field HiddenRangeKeep must be between 0 and 100.,
+          Source: DataAnnotations,
+          NoIncrementalUpdates: false
+        },
+        {
+          Severity: Error,
+          DataElementId: Guid_1,
+          Field: HiddenNonNullableRange,
+          Code: The field HiddenNonNullableRange must be between 1 and 100.,
+          Description: The field HiddenNonNullableRange must be between 1 and 100.,
+          Source: DataAnnotations,
+          NoIncrementalUpdates: false
+        },
+        {
+          Severity: Error,
+          DataElementId: Guid_1,
+          Field: Group[0].RowRange,
+          Code: The field RowRange must be between 0 and 100.,
+          Description: The field RowRange must be between 0 and 100.,
+          Source: DataAnnotations,
+          NoIncrementalUpdates: false
+        },
+        {
+          Severity: Error,
+          DataElementId: Guid_1,
+          Field: Group[1].RowRange,
+          Code: The field RowRange must be between 0 and 100.,
+          Description: The field RowRange must be between 0 and 100.,
+          Source: DataAnnotations,
+          NoIncrementalUpdates: false
+        }
+      ]
+    }
+  ],
+  FullIssues: [
+    {
+      Severity: Error,
+      DataElementId: Guid_1,
+      Field: HiddenRange,
+      Code: The field HiddenRange must be between 0 and 100.,
+      Description: The field HiddenRange must be between 0 and 100.,
+      Source: DataAnnotations,
+      NoIncrementalUpdates: false
+    },
+    {
+      Severity: Error,
+      DataElementId: Guid_1,
+      Field: VisibleRange,
+      Code: The field VisibleRange must be between 0 and 100.,
+      Description: The field VisibleRange must be between 0 and 100.,
+      Source: DataAnnotations,
+      NoIncrementalUpdates: false
+    },
+    {
+      Severity: Error,
+      DataElementId: Guid_1,
+      Field: HiddenRangeKeep,
+      Code: The field HiddenRangeKeep must be between 0 and 100.,
+      Description: The field HiddenRangeKeep must be between 0 and 100.,
+      Source: DataAnnotations,
+      NoIncrementalUpdates: false
+    },
+    {
+      Severity: Error,
+      DataElementId: Guid_1,
+      Field: HiddenNonNullableRange,
+      Code: The field HiddenNonNullableRange must be between 1 and 100.,
+      Description: The field HiddenNonNullableRange must be between 1 and 100.,
+      Source: DataAnnotations,
+      NoIncrementalUpdates: false
+    },
+    {
+      Severity: Error,
+      DataElementId: Guid_1,
+      Field: Group[0].RowRange,
+      Code: The field RowRange must be between 0 and 100.,
+      Description: The field RowRange must be between 0 and 100.,
+      Source: DataAnnotations,
+      NoIncrementalUpdates: false
+    },
+    {
+      Severity: Error,
+      DataElementId: Guid_1,
+      Field: Group[1].RowRange,
+      Code: The field RowRange must be between 0 and 100.,
+      Description: The field RowRange must be between 0 and 100.,
+      Source: DataAnnotations,
+      NoIncrementalUpdates: false
+    }
+  ]
+}

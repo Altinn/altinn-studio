@@ -343,6 +343,7 @@ public sealed class SubFormTests : IClassFixture<DataAnnotationsTestFixture>, ID
         _services.AddSingleton(_hostEnvironmentMock.Object);
         _services.AddSingleton(fixture.App.Services.GetRequiredService<IObjectModelValidator>());
         _services.AddSingleton(_generalSettings);
+        _services.AddSingleton(Options.Create(new AppSettings()));
         _services.AddTransient<IValidationService, ValidationService>();
         _services.AddTransient<IValidatorFactory, ValidatorFactory>();
         _services.AddTransient<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();

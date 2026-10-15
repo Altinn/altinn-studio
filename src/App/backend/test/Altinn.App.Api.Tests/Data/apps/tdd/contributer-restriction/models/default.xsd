@@ -28,6 +28,7 @@
       <xs:element name="hiddenNotRemove" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="hiddenPage" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="hiddenPageNotRemove" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="hiddenRange" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
 
