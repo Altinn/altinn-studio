@@ -15,6 +15,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` removes the `JsonObjectInDataResponse` feature flag from the appsettings files, and points out when it was off, since clients of the data API then get validation issues as JSON instead of text. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
 - `studioctl app upgrade v9` warns when the app's layouts can hide fields that hold data, since v9 deletes that data when a task ends. To keep it, set `AppSettings:RemoveHiddenData` to `false` or `removeWhenHidden` to `false` on the component. (PRLINK)
 - `studioctl app upgrade v9` warns when the app's layouts can hide fields that hold data, since v9 deletes that data when a task ends. To keep it, set `AppSettings:RemoveHiddenData` to `false` or `removeWhenHidden` to `false` on the component. ([#21251](https://github.com/Altinn/altinn-studio/pull/21251))
+- `studioctl app upgrade v9` sets `AppSettings:RemoveHiddenData` to `false` for apps whose layouts can hide fields that hold data, so hidden data is kept as in v8 instead of being deleted when a task ends. Remove the setting to use the v9 default. ([#21251](https://github.com/Altinn/altinn-studio/pull/21251))
 
 ### Changed
 
