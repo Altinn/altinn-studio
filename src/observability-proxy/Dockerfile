@@ -21,7 +21,7 @@ RUN dotnet publish src/Altinn.Studio.Observability.Proxy/Altinn.Studio.Observabi
     --no-restore \
     /p:CSharpier_Bypass=true
 
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:9cae0b131d058693c8d7496fed4a188380f05f27f34c98dd9a516b4d0331b0c4 AS final
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:8d23bb82cd8345ee51738b36c6da8e2f89ded7a547bc25fa52d5cc60e37f6d7a AS final
 WORKDIR /app
 
 # 8080 serves traffic and 9090 only /metrics: ObservabilityProxy:Port and
