@@ -36,11 +36,19 @@ Fix open Dependabot alerts and report back to the user with a table of fixed and
 4. Make sure that the lockfile has each package at the patched version or a later version.
 5. Run the tests of the workspace that owns the manifest. For a build-tool dependency, also run a production build.
    For a package without tests, do a smoke check. If a check fails because of an update, revert that update and skip
-   the alert.
-6. Give the user a table of the fixed and skipped alerts, with the highest severity first. Give a reason for each
-   skipped alert. List the alerts with a deleted manifest separately, so that the user can dismiss them in the
-   Dependabot UI.
-7. Ask the user if they want a pull request.
+   the alert. Keep the failure output for step 6.
+6. For each skipped alert with a manifest, find the change that fixes the alert. Do not make this change.
+   - If the fix needs a new major version of the package or of a parent package, or if a check failed, read the
+     release notes or the migration guide. Find the breaking changes that affect our code, and give the files and
+     the changes.
+   - If the fix is only in a package with a different name, give that package and the code that must change.
+   - If there is no patched version, find if a parent update removes the package. If not, say that the alert must
+     wait for a patch.
+7. Give the user a table of the fixed and skipped alerts, with the highest severity first. For each skipped alert,
+   give the reason and the change from step 6. Alerts with the same change can share a row. List the alerts with a
+   deleted manifest separately, so that the user can dismiss them in the Dependabot UI.
+8. Ask the user if they want a pull request for the fixed alerts. Also ask which changes from step 6 to make, each in
+   a separate pull request.
 
 ## Pull request
 
