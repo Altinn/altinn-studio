@@ -1125,9 +1125,6 @@
           "$ref": "#/components/parameters/instanceGuid"
         },
         {
-          "$ref": "#/components/parameters/dataGuid"
-        },
-        {
           "$ref": "#/components/parameters/language"
         }
       ]
@@ -1199,9 +1196,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         }
       ]
     },
@@ -1272,9 +1266,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         }
       ]
     },
@@ -1347,9 +1338,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         }
       ]
     },
@@ -1514,9 +1502,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         },
         {
           "$ref": "#/components/parameters/language"
@@ -1686,9 +1671,6 @@
           "$ref": "#/components/parameters/instanceGuid"
         },
         {
-          "$ref": "#/components/parameters/dataGuid"
-        },
-        {
           "$ref": "#/components/parameters/language"
         }
       ]
@@ -1854,9 +1836,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         },
         {
           "$ref": "#/components/parameters/language"
@@ -2026,9 +2005,6 @@
           "$ref": "#/components/parameters/instanceGuid"
         },
         {
-          "$ref": "#/components/parameters/dataGuid"
-        },
-        {
           "$ref": "#/components/parameters/language"
         }
       ]
@@ -2196,9 +2172,6 @@
           "$ref": "#/components/parameters/instanceGuid"
         },
         {
-          "$ref": "#/components/parameters/dataGuid"
-        },
-        {
           "$ref": "#/components/parameters/language"
         }
       ]
@@ -2270,9 +2243,6 @@
         },
         {
           "$ref": "#/components/parameters/instanceGuid"
-        },
-        {
-          "$ref": "#/components/parameters/dataGuid"
         }
       ]
     }

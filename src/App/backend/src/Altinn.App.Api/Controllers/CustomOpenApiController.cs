@@ -1179,7 +1179,6 @@ public class CustomOpenApiController : Controller
                 [
                     Snippets.InstanceOwnerPartyIdParameterReference,
                     Snippets.InstanceGuidParameterReference,
-                    Snippets.DataGuidParameterReference,
                     Snippets.LanguageParameterReference,
                 ],
             }
@@ -1266,12 +1265,7 @@ public class CustomOpenApiController : Controller
                         Responses = new() { ["201"] = new OpenApiResponse() { Description = "Attachment created" } },
                     },
                 },
-                Parameters =
-                [
-                    Snippets.InstanceOwnerPartyIdParameterReference,
-                    Snippets.InstanceGuidParameterReference,
-                    Snippets.DataGuidParameterReference,
-                ],
+                Parameters = [Snippets.InstanceOwnerPartyIdParameterReference, Snippets.InstanceGuidParameterReference],
             }
         );
     }
