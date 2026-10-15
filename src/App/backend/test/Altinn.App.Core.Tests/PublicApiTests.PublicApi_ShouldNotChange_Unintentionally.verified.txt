@@ -4503,7 +4503,7 @@ namespace Altinn.App.Core.Models.Expressions
         public System.Threading.Tasks.Task<bool> IsHidden(bool evaluateRemoveWhenHidden) { }
         public System.Threading.Tasks.Task<bool> IsRequired() { }
     }
-    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Expressions.ExpressionConverter?))]
+    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Expressions.ExpressionConverter))]
     public readonly struct Expression : System.IEquatable<Altinn.App.Core.Models.Expressions.Expression>
     {
         public Expression(Altinn.App.Core.Internal.Expressions.ExpressionValue value) { }
@@ -4514,15 +4514,11 @@ namespace Altinn.App.Core.Models.Expressions
         [System.Obsolete("Use the constructor with Expression[] instead")]
         public Expression(Altinn.App.Core.Models.Expressions.ExpressionFunction function, System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.Expression> args) { }
         public Expression(Altinn.App.Core.Models.Expressions.ExpressionFunction function, Altinn.App.Core.Models.Expressions.Expression arg1, Altinn.App.Core.Models.Expressions.Expression arg2) { }
-        public Altinn.App.Core.Models.Expressions.Expression[]? Args { get; }
+        public System.Collections.Immutable.ImmutableArray<Altinn.App.Core.Models.Expressions.Expression> Args { get; }
         public Altinn.App.Core.Models.Expressions.ExpressionFunction Function { get; }
-        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, "Args")]
         [System.Obsolete("Use !IsLiteralValue instead")]
-        [get: System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, "Args")]
         public bool IsFunctionExpression { get; }
         public bool IsLiteralString { get; }
-        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(false, "Args")]
-        [get: System.Diagnostics.CodeAnalysis.MemberNotNullWhen(false, "Args")]
         public bool IsLiteralValue { get; }
         [System.Obsolete("Use ValueUnion instead")]
         public object? Value { get; }
@@ -4603,7 +4599,6 @@ namespace Altinn.App.Core.Models.Layout.Components.Base
 {
     public abstract class BaseComponent
     {
-        protected BaseComponent() { }
         public required System.Collections.Generic.IReadOnlyDictionary<string, Altinn.App.Core.Models.Layout.ModelBinding> DataModelBindings { get; init; }
         public required Altinn.App.Core.Models.Expressions.Expression Hidden { get; init; }
         public required string Id { get; init; }
@@ -4618,21 +4613,9 @@ namespace Altinn.App.Core.Models.Layout.Components.Base
         public virtual System.Threading.Tasks.Task<bool> IsHidden(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
         public virtual System.Threading.Tasks.Task<bool> IsRequired(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
         public virtual System.Threading.Tasks.Task<bool> ShouldRemoveWhenHidden(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
-        protected static System.Collections.Generic.List<string> ParseChildReferences(System.Text.Json.JsonElement componentElement, string layoutId, string pageId) { }
-        protected static System.Collections.Generic.IReadOnlyDictionary<string, Altinn.App.Core.Models.Layout.ModelBinding> ParseDataModelBindings(System.Text.Json.JsonElement element) { }
-        protected static Altinn.App.Core.Models.Expressions.Expression ParseExpression(System.Text.Json.JsonElement componentElement, string property, Altinn.App.Core.Internal.Expressions.ExpressionValue defaultValue) { }
-        protected static Altinn.App.Core.Models.Expressions.Expression ParseHiddenExpression(System.Text.Json.JsonElement componentElement) { }
-        protected static string ParseId(System.Text.Json.JsonElement componentElement) { }
-        protected static Altinn.App.Core.Models.Expressions.Expression ParseReadOnlyExpression(System.Text.Json.JsonElement componentElement) { }
-        protected static Altinn.App.Core.Models.Expressions.Expression ParseRemoveWhenHiddenExpression(System.Text.Json.JsonElement componentElement) { }
-        protected static Altinn.App.Core.Models.Expressions.Expression ParseRequiredExpression(System.Text.Json.JsonElement componentElement) { }
-        protected static System.Collections.Generic.Dictionary<string, Altinn.App.Core.Models.Expressions.Expression> ParseTextResourceBindings(System.Text.Json.JsonElement element) { }
-        protected static string ParseType(System.Text.Json.JsonElement componentElement) { }
     }
     public abstract class BaseLayoutComponent : Altinn.App.Core.Models.Layout.Components.Base.BaseComponent
     {
-        protected BaseLayoutComponent() { }
-        public abstract void ClaimChildren(System.Collections.Generic.Dictionary<string, Altinn.App.Core.Models.Layout.Components.Base.BaseLayoutComponent> unclaimedComponents, System.Collections.Generic.Dictionary<string, string> claimedComponents);
         public abstract System.Threading.Tasks.Task<Altinn.App.Core.Models.Expressions.ComponentContext> GetContext(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.DataElementIdentifier defaultDataElementIdentifier, int[]? rowIndexes, System.Collections.Generic.Dictionary<string, Altinn.App.Core.Models.Layout.UiFolderComponent> layoutsLookup);
         [System.Obsolete("Use the overload that takes an IInstanceDataAccessor instead as LayoutEvaluatorSt" +
             "ate is being phased out", true)]
@@ -4640,15 +4623,11 @@ namespace Altinn.App.Core.Models.Layout.Components.Base
     }
     public abstract class NoReferenceComponent : Altinn.App.Core.Models.Layout.Components.Base.BaseLayoutComponent
     {
-        protected NoReferenceComponent() { }
-        public override void ClaimChildren(System.Collections.Generic.Dictionary<string, Altinn.App.Core.Models.Layout.Components.Base.BaseLayoutComponent> unclaimedComponents, System.Collections.Generic.Dictionary<string, string> claimedComponents) { }
         public override System.Threading.Tasks.Task<Altinn.App.Core.Models.Expressions.ComponentContext> GetContext(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.DataElementIdentifier defaultDataElementIdentifier, int[]? rowIndexes, System.Collections.Generic.Dictionary<string, Altinn.App.Core.Models.Layout.UiFolderComponent> layoutsLookup) { }
     }
     public abstract class ReferenceComponent : Altinn.App.Core.Models.Layout.Components.Base.BaseLayoutComponent
     {
-        protected ReferenceComponent() { }
-        public required System.Collections.Generic.IReadOnlyCollection<string> ChildReferences { get; init; }
-        public override void ClaimChildren(System.Collections.Generic.Dictionary<string, Altinn.App.Core.Models.Layout.Components.Base.BaseLayoutComponent> unclaimedComponents, System.Collections.Generic.Dictionary<string, string> claimedComponents) { }
+        public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Layout.Components.Base.BaseLayoutComponent> Children { get; init; }
         public override System.Threading.Tasks.Task<Altinn.App.Core.Models.Expressions.ComponentContext> GetContext(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.DataElementIdentifier defaultDataElementIdentifier, int[]? rowIndexes, System.Collections.Generic.Dictionary<string, Altinn.App.Core.Models.Layout.UiFolderComponent> layoutsLookup) { }
     }
 }
@@ -4657,31 +4636,31 @@ namespace Altinn.App.Core.Models.Layout.Components
     public sealed class CardsComponent : Altinn.App.Core.Models.Layout.Components.Base.ReferenceComponent
     {
         public CardsComponent() { }
-        public required System.Collections.Generic.IReadOnlyCollection<Altinn.App.Core.Models.Layout.Components.CardsConfig> Cards { get; init; }
-        public static Altinn.App.Core.Models.Layout.Components.CardsComponent Parse(System.Text.Json.JsonElement componentElement, string pageId, string layoutId) { }
+        public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Layout.Components.CardsConfig> Cards { get; init; }
     }
     public sealed class CardsConfig
     {
-        public CardsConfig() { }
+        [System.Text.Json.Serialization.JsonConstructor]
+        public CardsConfig(System.Collections.Immutable.ImmutableArray<string> children) { }
         [System.Text.Json.Serialization.JsonPropertyName("children")]
-        public System.Collections.Generic.List<string>? Children { get; init; }
+        public System.Collections.Immutable.ImmutableArray<string> Children { get; }
     }
     public sealed class GridComponent : Altinn.App.Core.Models.Layout.Components.Base.ReferenceComponent
     {
         public GridComponent() { }
-        public required System.Collections.Generic.List<Altinn.App.Core.Models.Layout.Components.GridComponent.GridRowConfig> Rows { get; init; }
-        public static Altinn.App.Core.Models.Layout.Components.GridComponent Parse(System.Text.Json.JsonElement componentElement, string pageId, string layoutId) { }
-        public class GridCellConfig
+        public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Layout.Components.GridComponent.GridRowConfig> Rows { get; init; }
+        public sealed class GridCellConfig
         {
             public GridCellConfig() { }
             [System.Text.Json.Serialization.JsonPropertyName("component")]
-            public string? ComponentId { get; set; }
+            public string? ComponentId { get; init; }
         }
-        public class GridRowConfig
+        public sealed class GridRowConfig
         {
-            public GridRowConfig() { }
+            [System.Text.Json.Serialization.JsonConstructor]
+            public GridRowConfig(System.Collections.Immutable.ImmutableArray<Altinn.App.Core.Models.Layout.Components.GridComponent.GridCellConfig?> cells) { }
             [System.Text.Json.Serialization.JsonPropertyName("cells")]
-            public required System.Collections.Generic.List<Altinn.App.Core.Models.Layout.Components.GridComponent.GridCellConfig?> Cells { get; set; }
+            public System.Collections.Immutable.ImmutableArray<Altinn.App.Core.Models.Layout.Components.GridComponent.GridCellConfig?> Cells { get; }
         }
     }
     public sealed class LikertComponent : Altinn.App.Core.Models.Layout.Components.Base.NoReferenceComponent
@@ -4693,12 +4672,11 @@ namespace Altinn.App.Core.Models.Layout.Components
     public sealed class NonRepeatingGroupComponent : Altinn.App.Core.Models.Layout.Components.Base.ReferenceComponent
     {
         public NonRepeatingGroupComponent() { }
-        public static Altinn.App.Core.Models.Layout.Components.NonRepeatingGroupComponent Parse(System.Text.Json.JsonElement componentElement, string pageId, string layoutId) { }
     }
     public sealed class OptionsComponent : Altinn.App.Core.Models.Layout.Components.Base.NoReferenceComponent
     {
         public OptionsComponent() { }
-        public required System.Collections.Generic.List<Altinn.App.Core.Models.AppOption>? Options { get; init; }
+        public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.AppOption>? Options { get; init; }
         public required string? OptionsId { get; init; }
         public required Altinn.App.Core.Models.Layout.Components.OptionsSource? OptionsSource { get; init; }
         public required bool Secure { get; init; }
@@ -4706,7 +4684,7 @@ namespace Altinn.App.Core.Models.Layout.Components
         public override System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.Layout.DataReference>> GetDataReferencesToRemoveWhenHidden(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
         public static Altinn.App.Core.Models.Layout.Components.OptionsComponent Parse(System.Text.Json.JsonElement componentElement, string pageId, string layoutId) { }
     }
-    public class OptionsRowComponent : Altinn.App.Core.Models.Layout.Components.Base.BaseComponent
+    public sealed class OptionsRowComponent : Altinn.App.Core.Models.Layout.Components.Base.BaseComponent
     {
         public OptionsRowComponent() { }
         public static Altinn.App.Core.Models.Layout.Components.OptionsRowComponent FromOptionsComponent(Altinn.App.Core.Models.Layout.Components.OptionsComponent parent) { }
@@ -4728,43 +4706,41 @@ namespace Altinn.App.Core.Models.Layout.Components
     public sealed class RepeatingGroupComponent : Altinn.App.Core.Models.Layout.Components.Base.ReferenceComponent
     {
         public RepeatingGroupComponent() { }
-        public required System.Collections.Generic.IReadOnlyList<string> AfterChildReferences { get; init; }
-        public required System.Collections.Generic.IReadOnlyList<string> BeforeChildReferences { get; init; }
+        public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Layout.Components.Base.BaseLayoutComponent> AfterChildren { get; init; }
+        public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Layout.Components.Base.BaseLayoutComponent> BeforeChildren { get; init; }
         public required Altinn.App.Core.Models.Layout.ModelBinding GroupModelBinding { get; init; }
         public required Altinn.App.Core.Models.Expressions.Expression HiddenRow { get; init; }
         public required int MaxCount { get; init; }
-        public required System.Collections.Generic.IReadOnlyList<string> RepeatingChildReferences { get; init; }
+        public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Layout.Components.Base.BaseLayoutComponent> RepeatingChildren { get; init; }
+        public required Altinn.App.Core.Models.Layout.Components.RepeatingGroupRowComponent RowComponent { get; init; }
         public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Layout.Components.GridComponent.GridRowConfig> RowsAfter { get; init; }
         public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Layout.Components.GridComponent.GridRowConfig> RowsBefore { get; init; }
         public override System.Threading.Tasks.Task<Altinn.App.Core.Models.Expressions.ComponentContext> GetContext(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.DataElementIdentifier defaultDataElementIdentifier, int[]? rowIndexes, System.Collections.Generic.Dictionary<string, Altinn.App.Core.Models.Layout.UiFolderComponent> layoutsLookup) { }
-        public static Altinn.App.Core.Models.Layout.Components.RepeatingGroupComponent Parse(System.Text.Json.JsonElement componentElement, string pageId, string layoutId, int maxCount) { }
     }
-    public class RepeatingGroupRowComponent : Altinn.App.Core.Models.Layout.Components.Base.BaseComponent
+    public sealed class RepeatingGroupRowComponent : Altinn.App.Core.Models.Layout.Components.Base.BaseComponent
     {
         public RepeatingGroupRowComponent() { }
         public required Altinn.App.Core.Models.Layout.ModelBinding GroupModelBinding { get; init; }
         public override System.Threading.Tasks.Task<bool> IsHidden(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
-        public static Altinn.App.Core.Models.Layout.Components.RepeatingGroupRowComponent FromGroup(Altinn.App.Core.Models.Layout.Components.RepeatingGroupComponent repeatingGroupComponent) { }
     }
     public sealed class SubFormComponent : Altinn.App.Core.Models.Layout.Components.Base.BaseLayoutComponent
     {
         public SubFormComponent() { }
         public required string LayoutSetId { get; init; }
-        public override void ClaimChildren(System.Collections.Generic.Dictionary<string, Altinn.App.Core.Models.Layout.Components.Base.BaseLayoutComponent> unclaimedComponents, System.Collections.Generic.Dictionary<string, string> claimedComponents) { }
         public override System.Threading.Tasks.Task<Altinn.App.Core.Models.Expressions.ComponentContext> GetContext(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.DataElementIdentifier defaultDataElementIdentifier, int[]? rowIndexes, System.Collections.Generic.Dictionary<string, Altinn.App.Core.Models.Layout.UiFolderComponent> layoutsLookup) { }
         public static Altinn.App.Core.Models.Layout.Components.SubFormComponent Parse(System.Text.Json.JsonElement componentElement, string pageId, string layoutId) { }
     }
     public sealed class TabsComponent : Altinn.App.Core.Models.Layout.Components.Base.ReferenceComponent
     {
         public TabsComponent() { }
-        public required System.Collections.Generic.IReadOnlyCollection<Altinn.App.Core.Models.Layout.Components.TabsConfig> Tabs { get; init; }
-        public static Altinn.App.Core.Models.Layout.Components.TabsComponent Parse(System.Text.Json.JsonElement componentElement, string pageId, string layoutId) { }
+        public required System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Layout.Components.TabsConfig> Tabs { get; init; }
     }
     public sealed class TabsConfig
     {
-        public TabsConfig() { }
+        [System.Text.Json.Serialization.JsonConstructor]
+        public TabsConfig(System.Collections.Immutable.ImmutableArray<string> children) { }
         [System.Text.Json.Serialization.JsonPropertyName("children")]
-        public System.Collections.Generic.List<string>? Children { get; init; }
+        public System.Collections.Immutable.ImmutableArray<string> Children { get; }
     }
 }
 namespace Altinn.App.Core.Models.Layout
