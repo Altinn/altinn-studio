@@ -262,7 +262,7 @@ public class FullTests(ITestOutputHelper output)
                 generatedCode,
                 new CodeFormatterOptions() { IncludeGenerated = true, Width = 110 }
             );
-            Assert.Empty(formattedCode.CompilationErrors);
+            Assert.Empty(formattedCode.ErrorDiagnostics);
             Assert.Equal(formattedCode.Code, generatedCode);
         }
 
