@@ -13,7 +13,7 @@ The service is one Python process. It uses `asyncio`, so many runs can share the
 | `src/AI/assistant/agents/services/`   | Event bus, permission broker, git, LLM gates and client, repo scan, preview render check.                                                       |
 | `src/AI/assistant/agents/workflows/`  | The intake and spec pipelines. Each is one model call.                                                                                          |
 | `src/AI/assistant/agents/altinn/`     | Altinn domain library: app version profiles, layout schema validation, text resource validation, data model conversion.                         |
-| `src/AI/assistant/agents/skills/`     | Markdown skills with Altinn knowledge. The model loads them when it needs them.                                                                 |
+| `agents/_skills/`                     | Markdown skills with Altinn knowledge. The model loads them when it needs them.                                                                 |
 | `src/AI/assistant/agents/prompts/`    | Prompts for the gates, intake and spec. Langfuse can override them.                                                                             |
 | `src/AI/assistant/services/`          | Token usage per service owner, and deletion of old traces. Both read Langfuse.                                                                  |
 | `src/AI/assistant/shared/`            | Configuration, attachment models, Langfuse helpers, spotlight delimiters.                                                                       |
@@ -59,7 +59,7 @@ _Prompts for the steps before the loop._
 flowchart LR
   V["agents/altinn/app_version"] --> X["core/context.py"]
   X -->|system prompt| L["Agentic loop"]
-  K["agents/skills"] -->|skill tool| L
+  K["agents/_skills"] -->|skill tool| L
 ```
 
 _Knowledge for the loop. Code builds this prompt, not Langfuse._

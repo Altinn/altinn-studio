@@ -1,6 +1,10 @@
-# Agent skills
+# Assistant skills
 
-Each subdirectory is one skill. A skill has a `SKILL.md` file with two parts:
+Skills are developed and maintained in [`agents/_skills/`](../../../../agents/_skills). The assistant loads the
+ones listed in `SKILLS` in [`base_config.py`](../shared/config/base_config.py). The other skills in that folder are
+for agents that work on this repository.
+
+A skill has a `SKILL.md` file with two parts:
 
 - a frontmatter with a `description` of one line
 - a markdown body with curated domain knowledge.
@@ -8,13 +12,10 @@ Each subdirectory is one skill. A skill has a `SKILL.md` file with two parts:
 The system prompt of the loop lists only the descriptions. The body loads when the
 model calls the `skill` tool.
 
-The loader is in `agents/core/skills.py`. The tool is in
-`agents/core/tools/skill_tool.py`.
+The loader is in `src/AI/assistant/agents/core/skills.py`. The tool is in
+`src/AI/assistant/agents/core/tools/skill_tool.py`.
 
-## These files are the canonical source
-
-The skills are the single source of truth for Altinn domain knowledge. Edit them
-directly.
+## Skills
 
 | Skill              | Contents                                                              |
 | ------------------ | --------------------------------------------------------------------- |
@@ -28,7 +29,7 @@ directly.
 
 ## Add a skill
 
-1. Make the directory: `mkdir agents/skills/<kebab-name>`.
+1. Make the directory `agents/_skills/altinn-<kebab-name>` at the repository root, and add its name to `SKILLS`.
 2. Write `SKILL.md`:
 
    ```markdown
@@ -47,7 +48,7 @@ directly.
    descriptions. The body can have the length that is necessary. It costs tokens
    only when the model loads it.
 
-The agent finds the skills automatically when the session starts.
+The agent loads the listed skills when the session starts.
 
 `description` is the only necessary field. The optional fields are:
 
@@ -66,9 +67,7 @@ Put text for one app version only in a file `v8.md` or `v9.md` in the same
 directory. The loader adds the file for the version of the app immediately after the
 body. The included files come after it.
 
-## External installation
+## Other agents
 
-You can use these skills outside the agent. Users of Claude Code, Cursor or Windsurf
-can install them from this public repository. They can clone the repository and
-make a symbolic link in their skills directory, or they can use the skills CLI. For
-this reason, do not write frontmatter descriptions for one client only.
+Agents outside the assistant can also use these skills. For this reason, do not write frontmatter descriptions for
+one client only.
