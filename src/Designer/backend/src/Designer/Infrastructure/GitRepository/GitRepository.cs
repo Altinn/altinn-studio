@@ -15,6 +15,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository;
 /// <summary>
 /// Base class for handling files in a Git Repository.
 /// </summary>
+/// <remarks>
+/// CodeQL reports <c>cs/path-injection</c> on each file call here that takes a path checked by
+/// <c>Guard.AssertFilePathWithinParentDirectory</c>. Rewriting that file IO moves the existing alerts, so a pull
+/// request shows them as new.
+/// </remarks>
 public class GitRepository
 {
     /// <summary>
