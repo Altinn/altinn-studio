@@ -73,7 +73,7 @@ export function useSummarySoftHidden(hidden: boolean | undefined) {
   };
 }
 
-function useIsHiddenInSummary(baseComponentId: string) {
+export function useIsHiddenInSummary(baseComponentId: string) {
   const hiddenInOverride = useSummaryOverrides(baseComponentId)?.hidden;
   const excludedFromPdf = useIsExcludedFromPdf(baseComponentId);
 
