@@ -47,8 +47,8 @@ Fix open Dependabot alerts and report back to the user with a table of fixed and
 7. Give the user a table of the fixed and skipped alerts, with the highest severity first. For each skipped alert,
    give the reason and the change from step 6. Alerts with the same change can share a row. List the alerts with a
    deleted manifest separately, so that the user can dismiss them in the Dependabot UI.
-8. Ask the user if they want a pull request for the fixed alerts. Also ask which changes from step 6 to make, each in
-   a separate pull request.
+8. Ask the user if they want a pull request for the fixed alerts. Also ask which changes from step 6 to make, and if
+   they want them in separate pull requests.
 
 ## Pull request
 
