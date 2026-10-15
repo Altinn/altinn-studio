@@ -23,7 +23,7 @@ describe('List component', () => {
       }
     });
     cy.get(source).findByRole('cell', { name: 'Kari' }).should('be.visible');
-    cy.get(summary).should('not.exist');
+    cy.get(summary, { timeout: 0 }).should('not.exist');
   });
 
   it('Adds and removes data properly when using group and soft deletion', () => {
