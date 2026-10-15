@@ -13,6 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `IOnProcessEndedHandler` runs your code after the ended process is saved, before data marked `autoDeleteOnProcessEnd` is deleted and the instance is released. Like the other process hooks, it can read and change instance data. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+- A service task stage can pass small values, such as the reference an external system returned, to the stages after it with `ServiceTaskContext.Values`, without storing them in instance data. ([#21264](https://github.com/Altinn/altinn-studio/issues/21264))
 
 ### Changed
 

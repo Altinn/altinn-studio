@@ -2214,6 +2214,16 @@ namespace Altinn.App.Core.Features.Process
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public required string TaskId { get; init; }
     }
+    public sealed class PipelineValues
+    {
+        public const int MaxCount = 32;
+        public const int MaxNameLength = 100;
+        public const int MaxValueLength = 4000;
+        public PipelineValues() { }
+        public string? Get(string name) { }
+        public void Remove(string name) { }
+        public void Set(string name, string value) { }
+    }
     public enum ProcessStepBackoffType
     {
         Constant = 0,
@@ -2262,6 +2272,7 @@ namespace Altinn.App.Core.Features.Process
         public System.DateTimeOffset ExecutionReferenceTime { get; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public required System.Guid StepId { get; init; }
+        public Altinn.App.Core.Features.Process.PipelineValues Values { get; init; }
         public Altinn.App.Core.Features.Process.ServiceTaskWait Wait { get; init; }
         public required System.Guid WorkflowId { get; init; }
     }

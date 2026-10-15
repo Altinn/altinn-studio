@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Features.Process;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 
@@ -41,12 +42,19 @@ internal sealed record StepRequest
     internal string? CommandKey { get; init; }
 
     /// <summary>
-    /// For a service-task pipeline step: the index of the pipeline item the step runs — a stage, a reply
-    /// handler or the conclusion — carried so the per-step options resolution (see
-    /// <c>ProcessStepOptionsResolver</c>) can find that one item. Internal and never serialized — the engine
-    /// sees the index only inside the command payload. Set on every <c>ExecuteServiceTask</c> step and on
-    /// nothing else: a <c>MintMailbox</c> step deliberately leaves it null, so the mint does not inherit the
-    /// options of the stage it precedes.
+    /// For a pipeline step: the index of the pipeline item the step runs — a stage, a reply handler or the
+    /// conclusion — carried so the per-step options resolution (see <c>ProcessStepOptionsResolver</c>) can
+    /// find that one item. Internal and never serialized — the engine sees the index only inside the command
+    /// payload. Set on every <c>ExecuteServiceTask</c> and <c>ExecuteSideEffect</c> step and on nothing else:
+    /// a <c>MintMailbox</c> step deliberately leaves it null, so the mint does not inherit the options of the
+    /// stage it precedes.
     /// </summary>
-    internal int? ServiceTaskItemIndex { get; init; }
+    internal int? PipelineItemIndex { get; init; }
+
+    /// <summary>
+    /// For an <c>ExecuteSideEffect</c> step: the options the pipeline item it runs declares, read when the side
+    /// effect is planned. The options resolution uses them in place of looking the side effect up. Internal and
+    /// never serialized, like <see cref="PipelineItemIndex"/>.
+    /// </summary>
+    internal ProcessStepOptions? PipelineItemStepOptions { get; init; }
 }

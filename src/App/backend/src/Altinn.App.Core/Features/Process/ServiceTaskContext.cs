@@ -68,4 +68,20 @@ public sealed record ServiceTaskContext
     /// of these unchanged.
     /// </remarks>
     public ServiceTaskWait Wait { get; init; } = new();
+
+    /// <summary>
+    /// Small named values this pipeline's stages hand to the stages after them, such as the reference an
+    /// external system returned for a request an earlier stage sent.
+    /// </summary>
+    /// <remarks>
+    /// Kept only when this step completes. A deferring attempt must not record anything: like data changes,
+    /// values recorded before a deferral are rejected. See <see cref="PipelineValues"/>.
+    /// </remarks>
+    public PipelineValues Values { get; init; } = new();
+
+    /// <summary>
+    /// The input a built-in side effect was enqueued with, serialized, or <c>null</c> when it has none. Always
+    /// <c>null</c> for a service task.
+    /// </summary>
+    internal string? Arguments { get; init; }
 }

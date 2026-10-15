@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.SideEffects;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -68,8 +69,9 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, ExecuteServiceTask>();
         services.AddTransient<IWorkflowEngineCommand, MintMailbox>();
 
-        // Process engine callback handlers - Notifications
-        services.AddTransient<IWorkflowEngineCommand, NotifyInstanceOwnerOnInstantiation>();
+        // Process engine callback handlers - side-effect pipelines, and the built-in side effects they run
+        services.AddTransient<IWorkflowEngineCommand, ExecuteSideEffect>();
+        services.AddTransient<ISideEffectPipeline, NotifyInstanceOwnerOnInstantiation>();
 
         // Process engine callback handlers - ProcessEnd
         services.AddTransient<IWorkflowEngineCommand, OnProcessEndedHook>();

@@ -43,16 +43,21 @@ internal sealed class ProcessStepOptionsResolver
     /// <param name="commandKey">The step's command key, used to select the tier-2 default and the tier-3 handler.</param>
     /// <param name="taskId">The task the step runs against, used to select the matching lifecycle hook (tier 3).</param>
     /// <param name="serviceTaskType">The service task type, used to select the matching service task (tier 3).</param>
-    /// <param name="serviceTaskItemIndex">
-    /// For a service-task pipeline step: the index of the item the step runs — a stage, a reply handler or the
-    /// conclusion. Tier 3 is then that one item's own options over the task's, field-wise. Null on every other
-    /// step, including the mailbox mint, which must not inherit the declaring stage's options.
+    /// <param name="pipelineItemIndex">
+    /// For a pipeline step: the index of the item the step runs — a stage, a reply handler or the conclusion.
+    /// Tier 3 is then that one item's own options over the task's, field-wise. Null on every other step,
+    /// including the mailbox mint, which must not inherit the declaring stage's options.
+    /// </param>
+    /// <param name="sideEffectItemStepOptions">
+    /// For a side-effect pipeline step: the options its item declares, read when the side effect was planned.
+    /// They are tier 3 for that step.
     /// </param>
     public ProcessStepOptions? Resolve(
         string commandKey,
         string? taskId,
         string? serviceTaskType,
-        int? serviceTaskItemIndex = null
+        int? pipelineItemIndex = null,
+        ProcessStepOptions? sideEffectItemStepOptions = null
     )
     {
         ProcessStepOptions? commandDefault = _commandDefaults.GetValueOrDefault(commandKey);
@@ -60,7 +65,8 @@ internal sealed class ProcessStepOptionsResolver
             commandKey,
             taskId,
             serviceTaskType,
-            serviceTaskItemIndex
+            pipelineItemIndex,
+            sideEffectItemStepOptions
         );
 
         TimeSpan? maxExecutionTime = implementationOverride?.MaxExecutionTime ?? commandDefault?.MaxExecutionTime;
@@ -97,9 +103,16 @@ internal sealed class ProcessStepOptionsResolver
         string commandKey,
         string? taskId,
         string? serviceTaskType,
-        int? serviceTaskItemIndex
+        int? pipelineItemIndex,
+        ProcessStepOptions? sideEffectItemStepOptions
     )
     {
+        // A side effect declares no options of its own beyond its items', so there is no fallback to merge.
+        if (commandKey == ExecuteSideEffect.Key)
+        {
+            return sideEffectItemStepOptions;
+        }
+
         if (commandKey == ExecuteServiceTask.Key && serviceTaskType is not null)
         {
             IPipelineServiceTask? serviceTask = _appImplementationFactory.FindServiceTask(serviceTaskType);
@@ -111,7 +124,7 @@ internal sealed class ProcessStepOptionsResolver
             // Options declared for one step win field-wise over the task's own, mirroring how the merged
             // result then wins over the command default in Resolve.
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
-            ProcessStepOptions? stepOptions = serviceTaskItemIndex is { } itemIndex
+            ProcessStepOptions? stepOptions = pipelineItemIndex is { } itemIndex
                 ? pipeline.Items.ElementAtOrDefault(itemIndex)?.StepOptions
                 : null;
             ProcessStepOptions? taskOptions = serviceTask.StepOptions;

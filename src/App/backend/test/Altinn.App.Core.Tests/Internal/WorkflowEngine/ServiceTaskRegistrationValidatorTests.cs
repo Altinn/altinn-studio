@@ -218,4 +218,80 @@ public class ServiceTaskRegistrationValidatorTests
         Assert.Contains("would never run", exception.Message);
         Assert.Contains(nameof(IPipelineServiceTask), exception.Message);
     }
+
+    // ── Side effects ─────────────────────────────────────────────────────────────────────────
+
+    private sealed class DelegateSideEffect(string name, Func<ServiceTaskPipelineBuilder, ServiceTaskPipeline> define)
+        : ISideEffectPipeline
+    {
+        public string Name => name;
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) => define(pipeline);
+    }
+
+    [Fact]
+    public async Task SideEffect_WithStagesAndAFinally_PassesValidation()
+    {
+        var exception = await Validate(s =>
+            s.AddSingleton<ISideEffectPipeline>(
+                new DelegateSideEffect("notify", pipeline => pipeline.Stage(NoopStage).Finally(NoopFinally))
+            )
+        );
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task SideEffect_ThatOpensAMailbox_FailsValidation()
+    {
+        var exception = await Validate(s =>
+            s.AddSingleton<ISideEffectPipeline>(
+                new DelegateSideEffect(
+                    "notify",
+                    pipeline =>
+                        pipeline
+                            .Stage(
+                                NoopSend,
+                                new MailboxOptions { Timeout = TimeSpan.FromDays(1) },
+                                out MailboxHandle handle
+                            )
+                            .ConcludeOnReplies(handle, NoopMessage, NoopClosed)
+                )
+            )
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains("side effect 'notify' cannot run", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("opens a mailbox", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task SideEffects_SharingAName_FailValidation()
+    {
+        var exception = await Validate(s =>
+        {
+            s.AddSingleton<ISideEffectPipeline>(
+                new DelegateSideEffect("notify", pipeline => pipeline.Finally(NoopFinally))
+            );
+            s.AddSingleton<ISideEffectPipeline>(
+                new DelegateSideEffect("notify", pipeline => pipeline.Finally(NoopFinally))
+            );
+        });
+
+        Assert.NotNull(exception);
+        Assert.Contains("already named 'notify'", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task SideEffect_WhoseDefineThrows_FailsValidation()
+    {
+        var exception = await Validate(s =>
+            s.AddSingleton<ISideEffectPipeline>(
+                new DelegateSideEffect("notify", _ => throw new InvalidOperationException("Broken composition"))
+            )
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains("Broken composition", exception.Message, StringComparison.Ordinal);
+    }
 }

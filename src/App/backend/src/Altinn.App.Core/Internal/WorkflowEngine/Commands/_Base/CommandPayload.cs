@@ -15,10 +15,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 [JsonDerivedType(typeof(ProcessStateChangePayload), typeDiscriminator: "processStateChange")]
 [JsonDerivedType(typeof(CommonTaskInitializationPayload), typeDiscriminator: "commonTaskInitialization")]
 [JsonDerivedType(typeof(TaskDataLockPayload), typeDiscriminator: "taskDataLock")]
-[JsonDerivedType(
-    typeof(NotifyInstanceOwnerOnInstantiationPayload),
-    typeDiscriminator: "notifyInstanceOwnerOnInstantiation"
-)]
+[JsonDerivedType(typeof(ExecuteSideEffectPayload), typeDiscriminator: "executeSideEffect")]
 [JsonDerivedType(typeof(EnqueueSideEffectsWorkflowPayload), typeDiscriminator: "enqueueSideEffectsWorkflow")]
 [JsonDerivedType(typeof(MintMailboxPayload), typeDiscriminator: "mintMailbox")]
 internal abstract record CommandRequestPayload;
@@ -36,7 +33,7 @@ internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayloa
 [JsonSerializable(typeof(ProcessStateChangePayload))]
 [JsonSerializable(typeof(CommonTaskInitializationPayload))]
 [JsonSerializable(typeof(TaskDataLockPayload))]
-[JsonSerializable(typeof(NotifyInstanceOwnerOnInstantiationPayload))]
+[JsonSerializable(typeof(ExecuteSideEffectPayload))]
 [JsonSerializable(typeof(EnqueueSideEffectsWorkflowPayload))]
 [JsonSerializable(typeof(MintMailboxPayload))]
 [JsonSerializable(typeof(InstantiationNotification))]

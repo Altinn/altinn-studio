@@ -1,5 +1,4 @@
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Models.Notifications.Future;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
@@ -10,6 +9,16 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// <param name="Type">The service task type identifier, as the BPMN task declares it.</param>
 /// <param name="Pipeline">The task's composed pipeline.</param>
 internal sealed record ResolvedServiceTask(string Type, ServiceTaskPipeline Pipeline);
+
+/// <summary>
+/// A side effect the transition schedules, together with the pipeline its <c>Define</c> composed and the input
+/// every step of it is enqueued with. Read at enqueue time, which fixes the pipeline's shape for the side
+/// effect's workflow.
+/// </summary>
+/// <param name="Name">The side effect's name (<see cref="ISideEffectPipeline.Name"/>).</param>
+/// <param name="Pipeline">The side effect's composed pipeline.</param>
+/// <param name="Arguments">The side effect's input, serialized, or <c>null</c>.</param>
+internal sealed record SideEffectInvocation(string Name, ServiceTaskPipeline Pipeline, string? Arguments);
 
 /// <summary>
 /// Context for building the task start command sequence.
@@ -43,9 +52,10 @@ internal sealed record TaskStartContext
     public Dictionary<string, string>? Prefill { get; init; }
 
     /// <summary>
-    /// Notification to send to instance owner on instantiation. Only relevant when <see cref="IsInitialTaskStart"/> is true.
+    /// The side effect that notifies the instance owner on instantiation, when the instantiation asked for a
+    /// notification. Only relevant when <see cref="IsInstantiation"/> is true.
     /// </summary>
-    public InstantiationNotification? Notification { get; init; }
+    public SideEffectInvocation? NotifyInstanceOwner { get; init; }
 
     /// <summary>
     /// Whether to register events with the events component.

@@ -3,7 +3,8 @@ using Altinn.App.Core.Internal.Process.ProcessTasks;
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// Finds registered service tasks by exact task type. Uses the last matching registration.
+/// Finds registered service tasks by exact task type, and side effects by exact name. Uses the last matching
+/// registration.
 /// </summary>
 internal static class ServiceTaskLookupExtensions
 {
@@ -58,5 +59,26 @@ internal static class ServiceTaskLookupExtensions
             );
 
         return pipeline;
+    }
+
+    /// <summary>
+    /// Returns the last side effect registered with the exact <paramref name="name"/>, or <c>null</c>.
+    /// </summary>
+    public static ISideEffectPipeline? FindSideEffect(this IEnumerable<ISideEffectPipeline> sideEffects, string name) =>
+        sideEffects.LastOrDefault(sideEffect => sideEffect.Name == name);
+
+    /// <summary>
+    /// The side effect's composed pipeline. Throws when <c>Define</c> returns null, like
+    /// <see cref="ResolvePipeline(IPipelineServiceTask)"/>.
+    /// </summary>
+    public static ServiceTaskPipeline ResolvePipeline(this ISideEffectPipeline sideEffect)
+    {
+        var builder = new ServiceTaskPipelineBuilder();
+
+        return sideEffect.Define(builder)
+            ?? throw new InvalidOperationException(
+                $"{sideEffect.GetType().Name}.{nameof(ISideEffectPipeline.Define)} returned null — a side effect must "
+                    + "return the pipeline composed from the supplied builder."
+            );
     }
 }

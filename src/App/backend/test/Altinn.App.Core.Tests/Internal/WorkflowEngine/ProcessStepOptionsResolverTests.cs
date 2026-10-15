@@ -30,6 +30,7 @@ public class ProcessStepOptionsResolverTests
             [
                 // Only its DefaultStepOptions are read here; nothing executes.
                 new ExecuteServiceTask(appImplFactory, TestMailboxDeliveryEnvelope.Create()),
+                new ExecuteSideEffect([]),
             ],
             appImplFactory
         );
@@ -103,6 +104,40 @@ public class ProcessStepOptionsResolverTests
         var result = resolver.Resolve("StartTask", taskId: "Task_1", serviceTaskType: null);
 
         Assert.Null(result);
+    }
+
+    /// <summary>
+    /// A side-effect step resolves without looking the side effect up: the options its item declares were read
+    /// when the side effect was planned, and win field-wise over the command's default.
+    /// </summary>
+    [Fact]
+    public void Resolve_SideEffect_ItemOptionsWinOverTheCommandDefault()
+    {
+        var resolver = CreateResolver();
+
+        var result = resolver.Resolve(
+            ExecuteSideEffect.Key,
+            taskId: "Task_1",
+            serviceTaskType: null,
+            pipelineItemIndex: 1,
+            sideEffectItemStepOptions: new ProcessStepOptions { WaitBudget = TimeSpan.FromDays(3) }
+        );
+
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromDays(3), result.WaitBudget);
+        Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, result.MaxExecutionTime);
+    }
+
+    [Fact]
+    public void Resolve_SideEffect_WithoutItemOptions_UsesTheCommandDefault()
+    {
+        var resolver = CreateResolver();
+
+        var result = resolver.Resolve(ExecuteSideEffect.Key, taskId: null, serviceTaskType: null, pipelineItemIndex: 0);
+
+        Assert.NotNull(result);
+        Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, result.MaxExecutionTime);
+        Assert.Null(result.WaitBudget);
     }
 
     [Fact]
@@ -488,7 +523,7 @@ public class ProcessStepOptionsResolverTests
             ExecuteServiceTask.Key,
             taskId: null,
             serviceTaskType: "exchanges",
-            serviceTaskItemIndex: 1
+            pipelineItemIndex: 1
         );
 
         Assert.NotNull(result);
@@ -507,7 +542,7 @@ public class ProcessStepOptionsResolverTests
             ExecuteServiceTask.Key,
             taskId: null,
             serviceTaskType: "exchanges",
-            serviceTaskItemIndex: 3
+            pipelineItemIndex: 3
         );
 
         Assert.NotNull(result);
@@ -567,19 +602,19 @@ public class ProcessStepOptionsResolverTests
     [Theory]
     [InlineData(0)]
     [InlineData(null)]
-    public void ApplyStepOptions_StepWithADisplayOperationId_StillFindsTheCommandsOwnDefault(int? serviceTaskItemIndex)
+    public void ApplyStepOptions_StepWithADisplayOperationId_StillFindsTheCommandsOwnDefault(int? pipelineItemIndex)
     {
         ProcessStepOptionsResolver resolver = CreateResolver(_ => { });
 
         StepRequest resolved = new StepRequest
         {
-            OperationId = $"{ExecuteServiceTask.Key}: {serviceTaskItemIndex?.ToString() ?? "Anything"}",
+            OperationId = $"{ExecuteServiceTask.Key}: {pipelineItemIndex?.ToString() ?? "Anything"}",
             Command = CommandDefinition.Create(
                 "app",
                 new AppCommandData { CommandKey = ExecuteServiceTask.Key, Payload = null }
             ),
             CommandKey = ExecuteServiceTask.Key,
-            ServiceTaskItemIndex = serviceTaskItemIndex,
+            PipelineItemIndex = pipelineItemIndex,
         }.ApplyStepOptions(resolver, taskId: null, serviceTaskType: null);
 
         Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, resolved.Command.MaxExecutionTime);

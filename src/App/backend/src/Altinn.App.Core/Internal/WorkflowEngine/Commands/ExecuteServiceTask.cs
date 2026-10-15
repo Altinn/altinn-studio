@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.Platform.Storage.Interface.Models;
@@ -76,6 +77,9 @@ internal sealed class ExecuteServiceTask(
 
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
 
+            string valuesKey = WorkflowCallbackStateCarry.ServiceTaskValuesKey(serviceTaskType);
+            PipelineValues values = PipelineValuesCarry.Restore(context.StateCarry, valuesKey, itemIndex);
+
             ServiceTaskContext serviceTaskContext = new()
             {
                 InstanceDataMutator = instanceDataMutator,
@@ -95,6 +99,7 @@ internal sealed class ExecuteServiceTask(
                     Deadline = context.Payload.WaitDeadline,
                     IsFinalCheck = context.Payload.IsFinalWaitCheck,
                 },
+                Values = values,
             };
 
             AppCallbackMailbox? rendezvous = context.Payload.Mailbox;
@@ -149,7 +154,15 @@ internal sealed class ExecuteServiceTask(
                 { } item => throw new UnreachableException($"Unknown pipeline item type: {item.GetType().Name}"),
             };
 
-            return result;
+            // A result that continues the process is the task's conclusion, whichever item answered it.
+            return PipelineValuesCarry.Publish(
+                result,
+                values,
+                context.StateCarry,
+                valuesKey,
+                concludes: result is SuccessfulProcessEngineCommandResult { ProcessNextContinuation: not null },
+                owner: $"Service task '{serviceTaskType}'"
+            );
         }
         catch (Exception ex)
         {

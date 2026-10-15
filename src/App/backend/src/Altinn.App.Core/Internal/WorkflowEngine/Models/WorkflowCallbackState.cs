@@ -40,6 +40,14 @@ internal sealed record WorkflowCallbackState
     /// </remarks>
     [JsonPropertyName("mailboxes")]
     public IReadOnlyDictionary<string, CarriedMailbox>? Mailboxes { get; init; }
+
+    /// <summary>
+    /// The values pipeline stages recorded for the stages after them (see
+    /// <see cref="Features.Process.PipelineValues"/>), keyed by the pipeline that recorded them and then by
+    /// name. <c>null</c> when no pipeline holds any, and absent from blobs written before values existed.
+    /// </summary>
+    [JsonPropertyName("values")]
+    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? Values { get; init; }
 }
 
 /// <summary>

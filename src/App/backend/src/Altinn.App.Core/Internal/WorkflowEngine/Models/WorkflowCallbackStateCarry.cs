@@ -16,15 +16,32 @@ internal sealed class WorkflowCallbackStateCarry
     /// </summary>
     private readonly Dictionary<int, CarriedMailbox> _mailboxes = new();
 
-    /// <summary>The shape of every workflow that has opened no mailbox.</summary>
+    /// <summary>
+    /// The values each pipeline's stages recorded, keyed by <see cref="ServiceTaskValuesKey"/> or
+    /// <see cref="SideEffectValuesKey"/>. A pipeline with no values has no entry.
+    /// </summary>
+    private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _values = new(StringComparer.Ordinal);
+
+    /// <summary>The shape of every workflow that has opened no mailbox and recorded no values.</summary>
     public WorkflowCallbackStateCarry() { }
 
     /// <summary>
-    /// Restores the carry from an incoming blob. Keys must be canonical renderings of an item index — two
-    /// spellings of one index would collapse into one entry and let the blob's last writer win.
+    /// Restores the carry from an incoming blob. Mailbox keys must be canonical renderings of an item index —
+    /// two spellings of one index would collapse into one entry and let the blob's last writer win.
     /// </summary>
     public WorkflowCallbackStateCarry(WorkflowCallbackState state)
     {
+        if (state.Values is { } values)
+        {
+            foreach ((string pipeline, IReadOnlyDictionary<string, string> pipelineValues) in values)
+            {
+                if (pipelineValues.Count > 0)
+                {
+                    _values[pipeline] = pipelineValues;
+                }
+            }
+        }
+
         if (state.Mailboxes is not { } carried)
         {
             return;
@@ -103,4 +120,44 @@ internal sealed class WorkflowCallbackStateCarry
     /// same index, which <see cref="RecordMailbox"/> would refuse over a stale entry.
     /// </summary>
     public void RecordMailboxConcluded(int stageIndex) => _mailboxes.Remove(stageIndex);
+
+    /// <summary>
+    /// Every pipeline's values in their blob shape, or <c>null</c> when no pipeline holds any — not an empty
+    /// map, so the blob of a workflow that records none keeps the shape it always had.
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? Values =>
+        _values.Count == 0
+            ? null
+            : new Dictionary<string, IReadOnlyDictionary<string, string>>(_values, StringComparer.Ordinal);
+
+    /// <summary>The values the pipeline named by <paramref name="pipelineKey"/> holds, or <c>null</c> when none.</summary>
+    public IReadOnlyDictionary<string, string>? FindValues(string pipelineKey) =>
+        _values.TryGetValue(pipelineKey, out IReadOnlyDictionary<string, string>? values) ? values : null;
+
+    /// <summary>
+    /// Replaces the values the pipeline named by <paramref name="pipelineKey"/> holds. An empty set drops the
+    /// pipeline's entry.
+    /// </summary>
+    public void RecordValues(string pipelineKey, IReadOnlyDictionary<string, string> values)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(pipelineKey);
+        if (values.Count == 0)
+        {
+            _values.Remove(pipelineKey);
+            return;
+        }
+
+        _values[pipelineKey] = values;
+    }
+
+    /// <summary>
+    /// Drops the values of a pipeline that has concluded, so they stop traveling with the workflows after it.
+    /// </summary>
+    public void RecordValuesConcluded(string pipelineKey) => _values.Remove(pipelineKey);
+
+    /// <summary>The key a service task's pipeline records its values under.</summary>
+    public static string ServiceTaskValuesKey(string serviceTaskType) => $"serviceTask:{serviceTaskType}";
+
+    /// <summary>The key a side effect's pipeline records its values under.</summary>
+    public static string SideEffectValuesKey(string sideEffectName) => $"sideEffect:{sideEffectName}";
 }

@@ -3,9 +3,11 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Features.Notifications;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -17,6 +19,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
+using Altinn.App.Core.Internal.WorkflowEngine.SideEffects;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
@@ -91,7 +94,8 @@ public class ProcessNextRequestFactoryTests
             TestAppIdentifier,
             appSettings,
             callbackTokenGenerator ?? callbackTokenGeneratorMock.Object,
-            stepOptionsResolver
+            stepOptionsResolver,
+            [new NotifyInstanceOwnerOnInstantiation(Mock.Of<INotificationService>(), Mock.Of<IAltinnPartyClient>())]
         );
     }
 
@@ -1085,7 +1089,7 @@ public class ProcessNextRequestFactoryTests
         // Assert
         var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain(InstanceCreatedAltinnEvent.Key, keys);
-        Assert.DoesNotContain(NotifyInstanceOwnerOnInstantiation.Key, keys);
+        Assert.DoesNotContain(ExecuteSideEffect.Key, keys);
     }
 
     [Fact]
@@ -1926,7 +1930,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_RegisterEventsDisabled_InstantiationWithNotification_IncludesNotificationCommand()
+    public async Task Create_RegisterEventsDisabled_InstantiationWithNotification_IncludesNotificationSideEffect()
     {
         // Arrange
         var factory = CreateFactory(registerEvents: false);
@@ -1947,7 +1951,50 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
         Assert.DoesNotContain(InstanceCreatedAltinnEvent.Key, keys);
-        Assert.Contains(NotifyInstanceOwnerOnInstantiation.Key, keys);
+        WorkflowRequest notify = Assert.Single(ExtractSideEffectsWorkflows(bundle));
+        Assert.EndsWith(
+            $"· {NotifyInstanceOwnerOnInstantiation.SideEffectName}",
+            notify.OperationId,
+            StringComparison.Ordinal
+        );
+        Assert.Equal([ExecuteSideEffect.Key], ExtractCommandKeys(notify));
+    }
+
+    /// <summary>
+    /// The notification is a side-effect pipeline: its workflow runs one step per item, and every step carries
+    /// the notification the instantiation asked for, since nothing else in the workflow state holds it.
+    /// </summary>
+    [Fact]
+    public async Task Create_InstantiationWithNotification_CarriesTheNotificationOnEveryStep()
+    {
+        var factory = CreateFactory(registerEvents: false);
+        var notification = new InstantiationNotification
+        {
+            NotificationChannel = NotificationChannel.Sms,
+            Language = "nn",
+        };
+
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            CreateInitialTaskStart(),
+            "test-process-next-idempotency-key",
+            SignedTestState,
+            isInstantiation: true,
+            notification: notification
+        );
+
+        StepRequest step = Assert.Single(Assert.Single(ExtractSideEffectsWorkflows(bundle)).Steps);
+        Assert.Equal($"{ExecuteSideEffect.Key}: 0", step.OperationId);
+        var payload = CommandPayloadSerializer.Deserialize<ExecuteSideEffectPayload>(
+            JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!.Payload
+        );
+        Assert.NotNull(payload);
+        Assert.Equal(NotifyInstanceOwnerOnInstantiation.SideEffectName, payload.SideEffect);
+        Assert.Equal(0, payload.ItemIndex);
+        InstantiationNotification? carried = JsonSerializer.Deserialize<InstantiationNotification>(payload.Arguments!);
+        Assert.NotNull(carried);
+        Assert.Equal(NotificationChannel.Sms, carried.NotificationChannel);
+        Assert.Equal("nn", carried.Language);
     }
 
     [Fact]
@@ -2096,7 +2143,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_InstantiationWithNotification_EmitsOneSingleStepSiblingPerSideEffect()
+    public async Task Create_InstantiationWithNotification_EmitsOneSiblingPerSideEffect()
     {
         // Arrange
         var factory = CreateFactory();
@@ -2118,8 +2165,13 @@ public class ProcessNextRequestFactoryTests
         Assert.Single(bundle.Request.Workflows);
         List<WorkflowRequest> siblings = ExtractSideEffectsWorkflows(bundle);
         Assert.Equal(
-            [MovedToAltinnEvent.Key, InstanceCreatedAltinnEvent.Key, NotifyInstanceOwnerOnInstantiation.Key],
+            [MovedToAltinnEvent.Key, InstanceCreatedAltinnEvent.Key, ExecuteSideEffect.Key],
             siblings.SelectMany(ExtractCommandKeys).ToList()
+        );
+        Assert.EndsWith(
+            $"· {NotifyInstanceOwnerOnInstantiation.SideEffectName}",
+            siblings[2].OperationId,
+            StringComparison.Ordinal
         );
         Assert.All(
             siblings,

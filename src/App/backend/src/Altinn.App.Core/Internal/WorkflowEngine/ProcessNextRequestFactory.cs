@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
+using Altinn.App.Core.Internal.WorkflowEngine.SideEffects;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
@@ -113,6 +114,7 @@ internal sealed class ProcessNextRequestFactory
     private readonly AppSettings _appSettings;
     private readonly IWorkflowCallbackTokenGenerator _callbackTokenGenerator;
     private readonly ProcessStepOptionsResolver _stepOptionsResolver;
+    private readonly IEnumerable<ISideEffectPipeline> _sideEffects;
 
     public ProcessNextRequestFactory(
         AppImplementationFactory appImplementationFactory,
@@ -120,7 +122,8 @@ internal sealed class ProcessNextRequestFactory
         AppIdentifier appIdentifier,
         IOptions<AppSettings> appSettings,
         IWorkflowCallbackTokenGenerator callbackTokenGenerator,
-        ProcessStepOptionsResolver stepOptionsResolver
+        ProcessStepOptionsResolver stepOptionsResolver,
+        IEnumerable<ISideEffectPipeline> sideEffects
     )
     {
         _appImplementationFactory = appImplementationFactory;
@@ -129,6 +132,7 @@ internal sealed class ProcessNextRequestFactory
         _appSettings = appSettings.Value;
         _callbackTokenGenerator = callbackTokenGenerator;
         _stepOptionsResolver = stepOptionsResolver;
+        _sideEffects = sideEffects;
     }
 
     /// <summary>
@@ -298,10 +302,10 @@ internal sealed class ProcessNextRequestFactory
                 // relative to another, express it explicitly via DependsOn rather than as an
                 // accident of step-list position.
                 Workflows = commands
-                    .SideEffects.Select(step => new WorkflowRequest
+                    .SideEffects.Select(sideEffect => new WorkflowRequest
                     {
-                        OperationId = $"{SideEffectsOperationIdPrefix} {fromTaskId} -> {toTaskId} · {step.OperationId}",
-                        Steps = [step],
+                        OperationId = $"{SideEffectsOperationIdPrefix} {fromTaskId} -> {toTaskId} · {sideEffect.Name}",
+                        Steps = sideEffect.Steps,
                         // The command injects State (this step's commit-time state blob) and
                         // Links (the Main workflow id) when it executes.
                         // Invisible to the collection heads frontier and started immediately:
@@ -394,7 +398,7 @@ internal sealed class ProcessNextRequestFactory
     private readonly record struct AssembledCommands(
         List<StepRequest> ThroughCommit,
         List<StepRequest> CriticalPostCommit,
-        List<StepRequest> SideEffects,
+        List<SideEffectPlan> SideEffects,
         bool EndsProcess
     );
 
@@ -409,7 +413,7 @@ internal sealed class ProcessNextRequestFactory
         var taskEndSteps = new List<StepRequest>();
         var taskStartSteps = new List<StepRequest>();
         var criticalPostCommitSteps = new List<StepRequest>();
-        var sideEffectSteps = new List<StepRequest>();
+        var sideEffects = new List<SideEffectPlan>();
         bool endsProcess = false;
         bool serviceTaskFollowsCommit = false;
 
@@ -482,11 +486,14 @@ internal sealed class ProcessNextRequestFactory
                         serviceTaskType
                     )
                 );
-                sideEffectSteps.AddRange(
-                    workflowCommands.SideEffectCommands.ApplyStepOptions(
-                        _stepOptionsResolver,
-                        eventTaskId,
-                        serviceTaskType
+                sideEffects.AddRange(
+                    workflowCommands.SideEffects.Select(sideEffect =>
+                        sideEffect with
+                        {
+                            Steps = sideEffect
+                                .Steps.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                                .ToList(),
+                        }
                     )
                 );
             }
@@ -512,7 +519,7 @@ internal sealed class ProcessNextRequestFactory
             criticalPostCommitSteps.Add(CreateCommand(ReleaseProcessingStatus.Key));
         }
 
-        return new AssembledCommands(commands, criticalPostCommitSteps, sideEffectSteps, endsProcess);
+        return new AssembledCommands(commands, criticalPostCommitSteps, sideEffects, endsProcess);
     }
 
     private WorkflowCommandSet? GetWorkflowStepsForInstanceEvent(
@@ -539,7 +546,8 @@ internal sealed class ProcessNextRequestFactory
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
                         Prefill = isInitialTaskStart ? prefill : null,
-                        Notification = isInitialTaskStart ? notification : null,
+                        NotifyInstanceOwner =
+                            isInitialTaskStart && isInstantiation ? ResolveNotifyInstanceOwner(notification) : null,
                         RegisterEvents = _appSettings.RegisterEventsWithEventsComponent,
                     }
                 );
@@ -576,6 +584,31 @@ internal sealed class ProcessNextRequestFactory
         && _appImplementationFactory.FindServiceTask(serviceTaskType)?.ResolvePipeline() is { } pipeline
             ? new ResolvedServiceTask(serviceTaskType, pipeline)
             : null;
+
+    /// <summary>
+    /// The side effect that notifies the instance owner, with the notification the instantiation asked for as
+    /// its input, or null when it asked for none.
+    /// </summary>
+    private SideEffectInvocation? ResolveNotifyInstanceOwner(InstantiationNotification? notification)
+    {
+        if (notification is null)
+        {
+            return null;
+        }
+
+        ISideEffectPipeline sideEffect =
+            _sideEffects.FindSideEffect(NotifyInstanceOwnerOnInstantiation.SideEffectName)
+            ?? throw new InvalidOperationException(
+                $"The side effect '{NotifyInstanceOwnerOnInstantiation.SideEffectName}' is not registered, so the "
+                    + "instance owner cannot be notified."
+            );
+
+        return new SideEffectInvocation(
+            sideEffect.Name,
+            sideEffect.ResolvePipeline(),
+            NotifyInstanceOwnerOnInstantiation.SerializeArguments(notification)
+        );
+    }
 
     private static string GetRequiredEventTaskId(InstanceEvent instanceEvent, InstanceEventType eventType) =>
         instanceEvent.ProcessInfo?.CurrentTask?.ElementId

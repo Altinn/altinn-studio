@@ -1,5 +1,6 @@
 using System.Reflection;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -7,8 +8,9 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Validates service task pipelines and the sealed forwarding implementation of <see cref="IServiceTask"/>.
-/// <see cref="Process.ProcessTaskConfigurationValidationService"/> validates BPMN task configuration.
+/// Validates service task pipelines, the sealed forwarding implementation of <see cref="IServiceTask"/>, and
+/// side-effect pipelines. <see cref="Process.ProcessTaskConfigurationValidationService"/> validates BPMN task
+/// configuration.
 /// </summary>
 internal sealed class ServiceTaskRegistrationValidator : IHostedService
 {
@@ -32,6 +34,7 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
         // Resolve tasks in this scope so they can use scoped dependencies.
         List<IServiceTask> simpleTasks = Resolve<IServiceTask>(sp);
         List<IPipelineServiceTask> pipelineTasks = Resolve<IPipelineServiceTask>(sp);
+        List<ISideEffectPipeline> sideEffects = Resolve<ISideEffectPipeline>(sp);
 
         var errors = new List<string>();
 
@@ -46,10 +49,12 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
             ValidatePipeline(task, errors);
         }
 
+        ValidateSideEffects(sideEffects, errors);
+
         if (errors.Count > 0)
         {
             throw new InvalidOperationException(
-                "One or more service task pipelines are invalid:"
+                "One or more service task or side-effect pipelines are invalid:"
                     + Environment.NewLine
                     + string.Join(Environment.NewLine, errors)
             );
@@ -74,6 +79,41 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
         catch (Exception ex)
         {
             errors.Add($"  - {taskName}: defining the pipeline failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Every side effect must have a unique, non-blank name, compose its pipeline without throwing, and compose
+    /// only items a side effect can run.
+    /// </summary>
+    private static void ValidateSideEffects(List<ISideEffectPipeline> sideEffects, List<string> errors)
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        foreach (ISideEffectPipeline sideEffect in sideEffects)
+        {
+            string typeName = sideEffect.GetType().FullName ?? sideEffect.GetType().Name;
+            if (string.IsNullOrWhiteSpace(sideEffect.Name))
+            {
+                errors.Add($"  - {typeName}: a side effect needs a name.");
+                continue;
+            }
+
+            if (!names.Add(sideEffect.Name))
+            {
+                errors.Add($"  - {typeName}: another side effect is already named '{sideEffect.Name}'.");
+            }
+
+            try
+            {
+                if (ExecuteSideEffect.FindUnsupportedItem(sideEffect.ResolvePipeline()) is { } reason)
+                {
+                    errors.Add($"  - {typeName}: side effect '{sideEffect.Name}' cannot run: {reason}.");
+                }
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"  - {typeName}: defining the pipeline failed: {ex.Message}");
+            }
         }
     }
 

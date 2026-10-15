@@ -9,7 +9,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
-using Altinn.App.Core.Models.Notifications.Future;
+using Altinn.App.Core.Internal.WorkflowEngine.SideEffects;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
@@ -17,6 +17,9 @@ public class WorkflowCommandSetTests
 {
     private static List<string> Keys(IReadOnlyList<StepRequest> steps) =>
         steps.Select(s => JsonSerializer.Deserialize<AppCommandData>(s.Command.Data!.Value)!.CommandKey).ToList();
+
+    private static List<string> Names(IReadOnlyList<SideEffectPlan> sideEffects) =>
+        sideEffects.Select(sideEffect => sideEffect.Name).ToList();
 
     /// <summary>The pipeline a simple service task forwards to: the conclusion and nothing else.</summary>
     private static ServiceTaskPipeline ConclusionOnlyPipeline() =>
@@ -32,7 +35,11 @@ public class WorkflowCommandSetTests
                 ServiceTask = new ResolvedServiceTask("pdf", ConclusionOnlyPipeline()),
                 IsInitialTaskStart = true,
                 IsInstantiation = true,
-                Notification = new InstantiationNotification(),
+                NotifyInstanceOwner = new SideEffectInvocation(
+                    NotifyInstanceOwnerOnInstantiation.SideEffectName,
+                    ConclusionOnlyPipeline(),
+                    Arguments: "{}"
+                ),
                 RegisterEvents = true,
             }
         );
@@ -51,11 +58,82 @@ public class WorkflowCommandSetTests
         // ExecuteServiceTask is critical - the next transition must wait on it.
         Assert.Equal([ExecuteServiceTask.Key], Keys(commandSet.CriticalPostCommitCommands));
 
-        // Outbound events and notifications are fire-and-forget side effects.
+        // Outbound events and notifications are side effects, each in a workflow of its own.
         Assert.Equal(
-            [MovedToAltinnEvent.Key, InstanceCreatedAltinnEvent.Key, NotifyInstanceOwnerOnInstantiation.Key],
-            Keys(commandSet.SideEffectCommands)
+            [MovedToAltinnEvent.Key, InstanceCreatedAltinnEvent.Key, NotifyInstanceOwnerOnInstantiation.SideEffectName],
+            Names(commandSet.SideEffects)
         );
+        Assert.Equal([ExecuteSideEffect.Key], Keys(commandSet.SideEffects[2].Steps));
+    }
+
+    /// <summary>
+    /// A side-effect pipeline becomes one <c>ExecuteSideEffect</c> step per item, in one workflow: a completed
+    /// stage never runs again, and the conclusion gets a wait budget of its own. Every step carries the item it
+    /// runs and the side effect's input, and the options its item declares.
+    /// </summary>
+    [Fact]
+    public void GetTaskStartSteps_SideEffectPipeline_RunsOneStepPerItemInAWorkflowOfItsOwn()
+    {
+        var checkOptions = new ProcessStepOptions { WaitBudget = TimeSpan.FromDays(3) };
+        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+            .Stage(PlainStage)
+            .Finally(FinalWork, checkOptions);
+
+        var commandSet = WorkflowCommandSet.GetTaskStartSteps(
+            new TaskStartContext
+            {
+                TaskId = "Task_1",
+                ServiceTask = null,
+                IsInitialTaskStart = true,
+                IsInstantiation = true,
+                NotifyInstanceOwner = new SideEffectInvocation("notify", pipeline, Arguments: "{\"a\":1}"),
+            }
+        );
+
+        SideEffectPlan sideEffect = Assert.Single(commandSet.SideEffects);
+        Assert.Equal("notify", sideEffect.Name);
+        Assert.Equal(
+            [$"{ExecuteSideEffect.Key}: 0", $"{ExecuteSideEffect.Key}: 1"],
+            sideEffect.Steps.Select(step => step.OperationId).ToList()
+        );
+        Assert.Equal(
+            [
+                new ExecuteSideEffectPayload("notify", ItemIndex: 0, Arguments: "{\"a\":1}"),
+                new ExecuteSideEffectPayload("notify", ItemIndex: 1, Arguments: "{\"a\":1}"),
+            ],
+            sideEffect
+                .Steps.Select(step =>
+                    CommandPayloadSerializer.Deserialize<ExecuteSideEffectPayload>(
+                        JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!.Payload
+                    )!
+                )
+                .ToList()
+        );
+        Assert.Equal([0, 1], sideEffect.Steps.Select(step => step.PipelineItemIndex ?? -1).ToList());
+        Assert.Null(sideEffect.Steps[0].PipelineItemStepOptions);
+        Assert.Same(checkOptions, sideEffect.Steps[1].PipelineItemStepOptions);
+    }
+
+    [Fact]
+    public void GetTaskStartSteps_SideEffectPipelineThatOpensAMailbox_Throws()
+    {
+        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+            .Stage(SendStage, _threeDays, out MailboxHandle archive)
+            .ConcludeOnReplies(archive, OnMessage, OnClosed);
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            WorkflowCommandSet.GetTaskStartSteps(
+                new TaskStartContext
+                {
+                    TaskId = "Task_1",
+                    ServiceTask = null,
+                    IsInitialTaskStart = true,
+                    IsInstantiation = true,
+                    NotifyInstanceOwner = new SideEffectInvocation("notify", pipeline, Arguments: null),
+                }
+            )
+        );
+        Assert.Contains("opens a mailbox", exception.Message);
     }
 
     [Fact]
@@ -72,7 +150,7 @@ public class WorkflowCommandSetTests
         );
 
         Assert.Empty(commandSet.CriticalPostCommitCommands);
-        Assert.Empty(commandSet.SideEffectCommands);
+        Assert.Empty(commandSet.SideEffects);
     }
 
     [Fact]
@@ -82,7 +160,7 @@ public class WorkflowCommandSetTests
 
         Assert.Empty(commandSet.Commands);
         Assert.Equal([OnProcessEndedHook.Key, DeleteDataOnProcessEnd.Key], Keys(commandSet.CriticalPostCommitCommands));
-        Assert.Equal([CompletedAltinnEvent.Key], Keys(commandSet.SideEffectCommands));
+        Assert.Equal([CompletedAltinnEvent.Key], Names(commandSet.SideEffects));
     }
 
     [Fact]
@@ -95,7 +173,7 @@ public class WorkflowCommandSetTests
             Keys(commandSet.Commands)
         );
         Assert.Empty(commandSet.CriticalPostCommitCommands);
-        Assert.Empty(commandSet.SideEffectCommands);
+        Assert.Empty(commandSet.SideEffects);
     }
 
     [Fact]
@@ -105,7 +183,7 @@ public class WorkflowCommandSetTests
 
         Assert.Equal([AbandonTask.Key, OnTaskAbandonHook.Key], Keys(commandSet.Commands));
         Assert.Empty(commandSet.CriticalPostCommitCommands);
-        Assert.Empty(commandSet.SideEffectCommands);
+        Assert.Empty(commandSet.SideEffects);
     }
 
     // ---------------------------------------------------------------------------------------------

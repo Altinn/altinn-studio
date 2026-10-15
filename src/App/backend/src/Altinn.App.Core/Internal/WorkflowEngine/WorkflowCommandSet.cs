@@ -29,13 +29,21 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 internal sealed record ServiceTaskSegmentPlan(IReadOnlyList<StepRequest> Steps, int? ReceiveOpeningIndex);
 
 /// <summary>
+/// One side effect a transition schedules, as the workflow of its own it runs in: a single command step, or one
+/// <c>ExecuteSideEffect</c> step per item of a side-effect pipeline.
+/// </summary>
+/// <param name="Name">What the side effect is called: the command key, or the side-effect pipeline's name.</param>
+/// <param name="Steps">The workflow's steps, in execution order.</param>
+internal sealed record SideEffectPlan(string Name, IReadOnlyList<StepRequest> Steps);
+
+/// <summary>
 /// Defines a group of commands that should be executed for a process event.
 /// </summary>
 internal sealed class WorkflowCommandSet
 {
     private readonly List<StepRequest> _commands = [];
     private readonly List<StepRequest> _criticalPostCommitCommands = [];
-    private readonly List<StepRequest> _sideEffectCommands = [];
+    private readonly List<SideEffectPlan> _sideEffects = [];
 
     /// <summary>
     /// Gets the main commands for this event. CommitProcessState will be added after these.
@@ -49,10 +57,10 @@ internal sealed class WorkflowCommandSet
     public IReadOnlyList<StepRequest> CriticalPostCommitCommands => _criticalPostCommitCommands;
 
     /// <summary>
-    /// Gets the non-critical, fire-and-forget post-commit commands (e.g., MovedToAltinnEvent).
-    /// These run in a separate side-effects workflow that never gates the next transition.
+    /// Gets the non-critical post-commit side effects (e.g., MovedToAltinnEvent). Each runs in a side-effects
+    /// workflow of its own that never gates the next transition.
     /// </summary>
-    public IReadOnlyList<StepRequest> SideEffectCommands => _sideEffectCommands;
+    public IReadOnlyList<SideEffectPlan> SideEffects => _sideEffects;
 
     /// <summary>
     /// Whether this command set schedules a service-task command after CommitProcessState. The service task's
@@ -96,12 +104,9 @@ internal sealed class WorkflowCommandSet
             group.AddSideEffectCommand(InstanceCreatedAltinnEvent.Key);
         }
 
-        if (context.IsInstantiation && context.Notification is not null)
+        if (context.IsInstantiation && context.NotifyInstanceOwner is { } notifyInstanceOwner)
         {
-            group.AddSideEffectCommand(
-                NotifyInstanceOwnerOnInstantiation.Key,
-                new NotifyInstanceOwnerOnInstantiationPayload(context.Notification)
-            );
+            group.AddSideEffectPipeline(notifyInstanceOwner);
         }
 
         return group;
@@ -172,11 +177,43 @@ internal sealed class WorkflowCommandSet
     }
 
     /// <summary>
-    /// Adds a non-critical post-commit command that runs in the fire-and-forget side-effects workflow.
+    /// Adds a non-critical post-commit command that runs alone in a side-effects workflow of its own.
     /// </summary>
     private WorkflowCommandSet AddSideEffectCommand(string commandKey, CommandRequestPayload? payload = null)
     {
-        _sideEffectCommands.Add(CreateCommand(commandKey, payload));
+        _sideEffects.Add(new SideEffectPlan(commandKey, [CreateCommand(commandKey, payload)]));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a side-effect pipeline: one <c>ExecuteSideEffect</c> step per item, in composition order, in a
+    /// side-effects workflow of its own. Every step carries the side effect's input.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// The pipeline composes an item a side effect cannot run. Startup validation reports it first.
+    /// </exception>
+    private WorkflowCommandSet AddSideEffectPipeline(SideEffectInvocation sideEffect)
+    {
+        if (ExecuteSideEffect.FindUnsupportedItem(sideEffect.Pipeline) is { } reason)
+        {
+            throw new InvalidOperationException($"Side effect '{sideEffect.Name}' cannot run: {reason}.");
+        }
+
+        var steps = new List<StepRequest>(sideEffect.Pipeline.Items.Count);
+        for (int index = 0; index < sideEffect.Pipeline.Items.Count; index++)
+        {
+            steps.Add(
+                CreateCommand(
+                    ExecuteSideEffect.Key,
+                    new ExecuteSideEffectPayload(sideEffect.Name, index, sideEffect.Arguments),
+                    operationId: ExecuteSideEffect.OperationId(index),
+                    pipelineItemIndex: index,
+                    pipelineItemStepOptions: sideEffect.Pipeline.Items[index].StepOptions
+                )
+            );
+        }
+
+        _sideEffects.Add(new SideEffectPlan(sideEffect.Name, steps));
         return this;
     }
 
@@ -275,7 +312,7 @@ internal sealed class WorkflowCommandSet
     /// <summary>
     /// One pipeline item's engine step — a stage's, a reply handler's or the conclusion's alike. The item's
     /// index is the step's whole identity, and it travels three ways, deliberately: in the payload (dispatch
-    /// reads it), in <see cref="StepRequest.ServiceTaskItemIndex"/> (the enqueueing hop resolves options by
+    /// reads it), in <see cref="StepRequest.PipelineItemIndex"/> (the enqueueing hop resolves options by
     /// it), and in the OperationId (the engine's own record, distinct per item for its dashboards). Nothing
     /// about what follows the item rides here — a step's payload says what it runs, never what runs after it.
     /// </summary>
@@ -284,14 +321,15 @@ internal sealed class WorkflowCommandSet
             ExecuteServiceTask.Key,
             new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: itemIndex),
             operationId: $"{ExecuteServiceTask.Key}: {itemIndex.ToString(CultureInfo.InvariantCulture)}",
-            serviceTaskItemIndex: itemIndex
+            pipelineItemIndex: itemIndex
         );
 
     private static StepRequest CreateCommand(
         string commandKey,
         CommandRequestPayload? payload = null,
         string? operationId = null,
-        int? serviceTaskItemIndex = null
+        int? pipelineItemIndex = null,
+        ProcessStepOptions? pipelineItemStepOptions = null
     )
     {
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
@@ -303,7 +341,8 @@ internal sealed class WorkflowCommandSet
                 new AppCommandData { CommandKey = commandKey, Payload = serializedPayload }
             ),
             CommandKey = commandKey,
-            ServiceTaskItemIndex = serviceTaskItemIndex,
+            PipelineItemIndex = pipelineItemIndex,
+            PipelineItemStepOptions = pipelineItemStepOptions,
         };
     }
 }

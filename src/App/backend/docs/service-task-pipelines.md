@@ -73,10 +73,39 @@ is the durable guard for send-then-poll and send-then-receive work: give the sen
   is stable across retries of the same step and covers the crash window between sending and completing.
 - **Never** branch on anything under `ServiceTaskContext.Attempt` or `ServiceTaskContext.Wait` to guard a
   side effect: an attempt that sends and then crashes re-runs with all of those unchanged.
-- Stages share state through `ServiceTaskContext.InstanceDataMutator` and nothing else: a completed
-  stage's data changes are saved into the workflow state and visible to every stage after it.
+- Stages share state through `ServiceTaskContext.InstanceDataMutator` and `ServiceTaskContext.Values`: a
+  completed stage's data changes are saved into the workflow state and visible to every stage after it, and so
+  are the values it recorded.
 - A failed attempt saves nothing — the retry starts from exactly the state the attempt received. A handler
   that must _record_ something records it and returns success.
+
+### Values
+
+`ServiceTaskContext.Values` holds small named strings a stage hands to the stages after it, such as the
+reference an external system returned for the request the stage sent. Use it for what the pipeline itself needs
+and nobody else reads; keep anything that belongs to the instance in instance data.
+
+```csharp
+private async Task<ServiceTaskStageResult> Send(ServiceTaskContext context)
+{
+    string messageId = await _client.Send(..., idempotencyKey: context.StepId);
+    context.Values.Set("messageId", messageId);
+    return ServiceTaskStageResult.Completed();
+}
+
+private async Task<ServiceTaskResult> AwaitReceipt(ServiceTaskContext context)
+{
+    string messageId = context.Values.Get("messageId") ?? throw new InvalidOperationException("No message id.");
+    ...
+}
+```
+
+- Values travel in the workflow state and need no save. They are kept when the step completes, like data
+  changes, and a step that records a value and then defers fails permanently: a deferral is stateless.
+- Each task sees only its own values, and the pipeline's first item starts with none, so nothing from an
+  earlier visit to the task reaches a new one. The values stop traveling when the task concludes.
+- A task holds at most `PipelineValues.MaxCount` values, each at most `PipelineValues.MaxValueLength`
+  characters.
 
 ### Stage results
 

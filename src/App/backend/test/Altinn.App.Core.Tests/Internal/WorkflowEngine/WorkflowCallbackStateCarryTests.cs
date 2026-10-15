@@ -201,6 +201,84 @@ public class WorkflowCallbackStateCarryTests
     }
 
     [Fact]
+    public async Task Capture_ThenRestore_CarriesEachPipelinesValuesApart()
+    {
+        WorkflowCallbackStateService service = CreateService();
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordValues(
+            WorkflowCallbackStateCarry.ServiceTaskValuesKey("archiving"),
+            new Dictionary<string, string> { ["messageId"] = "m-1" }
+        );
+        carry.RecordValues(
+            WorkflowCallbackStateCarry.SideEffectValuesKey("notify"),
+            new Dictionary<string, string> { ["shipmentId"] = "s-1" }
+        );
+        InstanceDataUnitOfWork unitOfWork = await CreateUnitOfWork();
+
+        string captured = await service.CaptureState(unitOfWork, carry);
+
+        (_, WorkflowCallbackStateCarry restored) = await service.RestoreState(_instanceId, captured, "nb");
+        Assert.Equal("m-1", restored.FindValues("serviceTask:archiving")?["messageId"]);
+        Assert.Equal("s-1", restored.FindValues("sideEffect:notify")?["shipmentId"]);
+    }
+
+    /// <summary>
+    /// Like the mailbox map, the values map is read back by whatever code runs the workflow's next step, so its
+    /// field name and key shape are pinned literally.
+    /// </summary>
+    [Fact]
+    public async Task Capture_NamesTheValuesMapOnTheWire()
+    {
+        WorkflowStateSigner signer = CreateSigner();
+        WorkflowCallbackStateService service = CreateService(signer);
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordValues(
+            WorkflowCallbackStateCarry.SideEffectValuesKey("notify"),
+            new Dictionary<string, string> { ["shipmentId"] = "s-1" }
+        );
+        InstanceDataUnitOfWork unitOfWork = await CreateUnitOfWork();
+
+        string captured = await service.CaptureState(unitOfWork, carry);
+
+        string payload = signer.Verify(captured, SigningDomain.CallbackState);
+        Assert.Contains(
+            "\"values\":{\"sideEffect:notify\":{\"shipmentId\":\"s-1\"}}",
+            payload,
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public async Task Capture_WithNoValues_LeavesTheValuesMapOut()
+    {
+        WorkflowStateSigner signer = CreateSigner();
+        WorkflowCallbackStateService service = CreateService(signer);
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordValues(WorkflowCallbackStateCarry.SideEffectValuesKey("notify"), new Dictionary<string, string>());
+        InstanceDataUnitOfWork unitOfWork = await CreateUnitOfWork();
+
+        string captured = await service.CaptureState(unitOfWork, carry);
+
+        string payload = signer.Verify(captured, SigningDomain.CallbackState);
+        Assert.Contains("\"values\":null", payload, StringComparison.Ordinal);
+        (_, WorkflowCallbackStateCarry restored) = await service.RestoreState(_instanceId, captured, "nb");
+        Assert.Null(restored.Values);
+    }
+
+    [Fact]
+    public void RecordValuesConcluded_DropsOnlyThatPipelinesValues()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordValues("serviceTask:a", new Dictionary<string, string> { ["x"] = "1" });
+        carry.RecordValues("serviceTask:b", new Dictionary<string, string> { ["y"] = "2" });
+
+        carry.RecordValuesConcluded("serviceTask:a");
+
+        Assert.Null(carry.FindValues("serviceTask:a"));
+        Assert.Equal("2", carry.FindValues("serviceTask:b")?["y"]);
+    }
+
+    [Fact]
     public async Task Restore_OfABlobWrittenBeforeMailboxesExisted_CarriesNothing()
     {
         // Blobs already in flight have no mailbox field at all; they must restore, not fail.
