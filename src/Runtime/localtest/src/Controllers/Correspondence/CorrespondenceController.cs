@@ -32,6 +32,14 @@ public class CorrespondenceController(
     /// <summary>How long an attachment is kept when the sender does not say.</summary>
     private const int DefaultAttachmentExpirationInDays = 365;
 
+    /// <summary>The statuses a correspondence passes through on its way to the recipient, in order.</summary>
+    private static readonly CorrespondenceStatus[] _publishingStatuses =
+    [
+        CorrespondenceStatus.Initialized,
+        CorrespondenceStatus.ReadyForPublish,
+        CorrespondenceStatus.Published,
+    ];
+
     private static readonly JsonSerializerOptions _options = new(JsonSerializerDefaults.Web)
     {
         Converters = { new JsonStringEnumConverter() },
@@ -96,7 +104,6 @@ public class CorrespondenceController(
                     ResourceId = correspondence.ResourceId!,
                     SendersReference = correspondence.SendersReference!,
                     MessageSender = correspondence.MessageSender,
-                    Sender = SenderOrganizationNumber,
                     Status = CorrespondenceStatus.Published,
                     Created = created,
                     Published = created,
@@ -162,7 +169,7 @@ public class CorrespondenceController(
             );
         }
 
-        var details = correspondence.Request.Deserialize<InitializeCorrespondencesRequestDto>(_options)?.Correspondence;
+        var details = StoredRequest(correspondence);
         var attachments = new List<CorrespondenceAttachmentDto>();
         foreach (var attachmentId in correspondence.AttachmentIds)
         {
@@ -179,7 +186,7 @@ public class CorrespondenceController(
                 CorrespondenceId = correspondence.CorrespondenceId,
                 Recipient = correspondence.Recipient,
                 ResourceId = correspondence.ResourceId,
-                Sender = $"0192:{correspondence.Sender}",
+                Sender = $"0192:{SenderOrganizationNumber}",
                 SendersReference = correspondence.SendersReference,
                 MessageSender = correspondence.MessageSender,
                 Status = correspondence.Status,
@@ -189,17 +196,14 @@ public class CorrespondenceController(
                 Published = correspondence.Published,
                 StatusHistory =
                 [
-                    .. new[]
-                    {
-                        CorrespondenceStatus.Initialized,
-                        CorrespondenceStatus.ReadyForPublish,
-                        CorrespondenceStatus.Published,
-                    }.Select(status => new CorrespondenceStatusEventDto
-                    {
-                        Status = status,
-                        StatusText = status.ToString(),
-                        StatusChanged = correspondence.Created,
-                    }),
+                    .. _publishingStatuses
+                        .Where(status => status <= correspondence.Status)
+                        .Select(status => new CorrespondenceStatusEventDto
+                        {
+                            Status = status,
+                            StatusText = status.ToString(),
+                            StatusChanged = correspondence.Created,
+                        }),
                 ],
                 Content = new CorrespondenceContentResponseDto
                 {
@@ -223,6 +227,24 @@ public class CorrespondenceController(
                 IsConfidential = details?.IsConfidential ?? false,
             }
         );
+    }
+
+    /// <summary>
+    /// The correspondence part of the request a record was created from, or <c>null</c> when the stored request is
+    /// in a shape this version of Localtest does not know, such as one an older Localtest stored.
+    /// </summary>
+    private static CorrespondenceRequestDto? StoredRequest(StoredCorrespondence correspondence)
+    {
+        try
+        {
+            return correspondence
+                .Request.Deserialize<InitializeCorrespondencesRequestDto>(_options)
+                ?.Correspondence;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     /// <summary>

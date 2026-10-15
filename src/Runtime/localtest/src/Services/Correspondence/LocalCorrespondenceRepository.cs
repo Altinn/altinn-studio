@@ -10,7 +10,9 @@ namespace LocalTest.Services.Correspondence;
 /// <summary>
 /// Stores the correspondences the local Correspondence API has created, one JSON file per correspondence
 /// under <see cref="LocalPlatformSettings.CorrespondenceDataFolder"/>, so a developer can inspect exactly
-/// what an app sent. Attachments are stored in its <c>attachments</c> subfolder.
+/// what an app sent. Attachments are stored in its <c>attachments</c> subfolder. The folder outlives Localtest
+/// versions, so a file it cannot read, such as one an older Localtest wrote, is skipped rather than failing the
+/// request that reads it.
 /// </summary>
 public sealed class LocalCorrespondenceRepository : IDisposable
 {
@@ -21,11 +23,16 @@ public sealed class LocalCorrespondenceRepository : IDisposable
     };
 
     private readonly LocalPlatformSettings _settings;
+    private readonly ILogger<LocalCorrespondenceRepository> _logger;
     private readonly AsyncLock _mutationLock = new();
 
-    public LocalCorrespondenceRepository(IOptions<LocalPlatformSettings> settings)
+    public LocalCorrespondenceRepository(
+        IOptions<LocalPlatformSettings> settings,
+        ILogger<LocalCorrespondenceRepository> logger
+    )
     {
         _settings = settings.Value;
+        _logger = logger;
     }
 
     private DirectoryInfo Storage()
@@ -48,7 +55,7 @@ public sealed class LocalCorrespondenceRepository : IDisposable
         var result = new List<StoredCorrespondence>();
         foreach (var file in Storage().GetFiles("*.json"))
         {
-            var correspondence = await ReadFile<StoredCorrespondence>(file.FullName);
+            var correspondence = await TryReadFile<StoredCorrespondence>(file.FullName);
             if (correspondence is not null)
             {
                 result.Add(correspondence);
@@ -64,7 +71,7 @@ public sealed class LocalCorrespondenceRepository : IDisposable
     public async Task<StoredCorrespondence?> Find(Guid correspondenceId)
     {
         var fileName = FileName(Storage(), correspondenceId);
-        return File.Exists(fileName) ? await ReadFile<StoredCorrespondence>(fileName) : null;
+        return File.Exists(fileName) ? await TryReadFile<StoredCorrespondence>(fileName) : null;
     }
 
     /// <summary>
@@ -114,7 +121,7 @@ public sealed class LocalCorrespondenceRepository : IDisposable
     public async Task<StoredAttachment?> FindAttachment(Guid attachmentId)
     {
         var fileName = AttachmentFileName(attachmentId);
-        return File.Exists(fileName) ? await ReadFile<StoredAttachment>(fileName) : null;
+        return File.Exists(fileName) ? await TryReadFile<StoredAttachment>(fileName) : null;
     }
 
     /// <summary>
@@ -174,7 +181,7 @@ public sealed class LocalCorrespondenceRepository : IDisposable
     {
         foreach (var file in Storage().GetFiles("*.json"))
         {
-            var correspondence = await ReadFile<StoredCorrespondence>(file.FullName);
+            var correspondence = await TryReadFile<StoredCorrespondence>(file.FullName);
             if (correspondence?.IdempotentKey == idempotentKey)
             {
                 return true;
@@ -187,10 +194,23 @@ public sealed class LocalCorrespondenceRepository : IDisposable
     private static string FileName(DirectoryInfo directory, Guid correspondenceId) =>
         Path.Join(directory.FullName, $"{correspondenceId}.json");
 
-    private static async Task<T?> ReadFile<T>(string fileName)
+    private async Task<T?> TryReadFile<T>(string fileName)
+        where T : class
     {
-        await using var stream = File.OpenRead(fileName);
-        return await JsonSerializer.DeserializeAsync<T>(stream, _options);
+        try
+        {
+            await using var stream = File.OpenRead(fileName);
+            return await JsonSerializer.DeserializeAsync<T>(stream, _options);
+        }
+        catch (JsonException e)
+        {
+            _logger.LogWarning(
+                e,
+                "Skipping {FileName}, which this version of Localtest cannot read",
+                fileName
+            );
+            return null;
+        }
     }
 
     private static async Task Write<T>(string fileName, T record)

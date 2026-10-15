@@ -6,6 +6,7 @@ using LocalTest.Configuration;
 using LocalTest.Services.Correspondence;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
 
@@ -30,7 +31,8 @@ public sealed class CorrespondenceTests : IDisposable
     public CorrespondenceTests()
     {
         _repository = new LocalCorrespondenceRepository(
-            Options.Create(new LocalPlatformSettings { LocalTestingStorageBasePath = _storagePath })
+            Options.Create(new LocalPlatformSettings { LocalTestingStorageBasePath = _storagePath }),
+            NullLogger<LocalCorrespondenceRepository>.Instance
         );
         _controller = new CorrespondenceController(
             _repository,
@@ -127,6 +129,93 @@ public sealed class CorrespondenceTests : IDisposable
 
         Assert.Single(results.OfType<OkObjectResult>());
         Assert.Single(await _repository.Read());
+    }
+
+    [Fact]
+    public async Task Initialize_RecordFromAnOlderLocaltestInStorage_StillHonorsItsIdempotentKey()
+    {
+        var oldCorrespondenceId = Guid.NewGuid();
+        var oldIdempotentKey = Guid.NewGuid();
+        Directory.CreateDirectory(Path.Join(_storagePath, "correspondence"));
+        await File.WriteAllTextAsync(
+            Path.Join(_storagePath, "correspondence", $"{oldCorrespondenceId}.json"),
+            $$"""
+            {
+              "correspondenceId": "{{oldCorrespondenceId}}",
+              "idempotentKey": "{{oldIdempotentKey}}",
+              "recipient": "{{PersonRecipient}}",
+              "resourceId": "{{ResourceId}}",
+              "sendersReference": "501337/old",
+              "messageSender": null,
+              "status": "Initialized",
+              "created": "2026-09-11T08:11:15.5997297+00:00",
+              "request": { "correspondence": { "content": { "messageTitle": "Old" } } }
+            }
+            """
+        );
+
+        var conflict = await InitializeProblem(
+            Request(PersonRecipient, idempotentKey: oldIdempotentKey)
+        );
+        await Initialize(Request(PersonRecipient, idempotentKey: Guid.NewGuid()));
+
+        Assert.Equal(StatusCodes.Status409Conflict, conflict.Status);
+        Assert.Equal(2, (await _repository.Read()).Count);
+        var details = Assert.IsType<CorrespondenceDetailsResponseDto>(
+            Assert.IsType<OkObjectResult>(
+                await _controller.GetCorrespondenceDetails(oldCorrespondenceId)
+            ).Value
+        );
+        Assert.Equal("Old", details.Content?.MessageTitle);
+        Assert.Equal(
+            [CorrespondenceStatus.Initialized],
+            details.StatusHistory.Select(status => status.Status)
+        );
+    }
+
+    [Fact]
+    public async Task GetDetails_StoredRequestInAnUnknownShape_ReturnsTheRecordWithoutItsContent()
+    {
+        var correspondenceId = Guid.NewGuid();
+        Directory.CreateDirectory(Path.Join(_storagePath, "correspondence"));
+        await File.WriteAllTextAsync(
+            Path.Join(_storagePath, "correspondence", $"{correspondenceId}.json"),
+            $$"""
+            {
+              "correspondenceId": "{{correspondenceId}}",
+              "recipient": "{{PersonRecipient}}",
+              "resourceId": "{{ResourceId}}",
+              "sendersReference": "501337/old",
+              "status": "Published",
+              "created": "2026-09-11T08:11:15.5997297+00:00",
+              "request": { "correspondence": { "content": "not an object" } }
+            }
+            """
+        );
+
+        var details = Assert.IsType<CorrespondenceDetailsResponseDto>(
+            Assert.IsType<OkObjectResult>(
+                await _controller.GetCorrespondenceDetails(correspondenceId)
+            ).Value
+        );
+
+        Assert.Equal(PersonRecipient, details.Recipient);
+        Assert.Equal(string.Empty, details.Content?.MessageTitle);
+    }
+
+    [Fact]
+    public async Task Initialize_UnreadableFileInStorage_IsSkipped()
+    {
+        Directory.CreateDirectory(Path.Join(_storagePath, "correspondence"));
+        await File.WriteAllTextAsync(
+            Path.Join(_storagePath, "correspondence", $"{Guid.NewGuid()}.json"),
+            "not json"
+        );
+
+        var response = await Initialize(Request(PersonRecipient, idempotentKey: Guid.NewGuid()));
+
+        var stored = Assert.Single(await _repository.Read());
+        Assert.Equal(Assert.Single(response.Correspondences).CorrespondenceId, stored.CorrespondenceId);
     }
 
     [Fact]

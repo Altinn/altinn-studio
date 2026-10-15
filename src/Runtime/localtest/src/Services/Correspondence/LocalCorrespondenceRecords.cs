@@ -30,10 +30,6 @@ public sealed class StoredCorrespondence
     [JsonPropertyName("messageSender")]
     public string? MessageSender { get; set; }
 
-    /// <summary>The organization that sent the correspondence, as an organization number.</summary>
-    [JsonPropertyName("sender")]
-    public required string Sender { get; set; }
-
     [JsonPropertyName("status")]
     public CorrespondenceStatus Status { get; set; }
 
