@@ -95,6 +95,10 @@ type KindContainerRuntimeOptions struct {
 	// empty too, the repository is cloned into the cache directory.
 	DashboardsRepository string
 
+	// MonitoringProfile selects how much of the observability stack IncludeMonitoring deploys:
+	// light (the default) or full, which needs the standard variant.
+	MonitoringProfile MonitoringProfile
+
 	// IncludeMonitoring controls whether the platform observability stack is deployed.
 	// When true, the runtime collectors, the observability-proxy and a Victoria backend
 	// are deployed from infra/observability, with their operators, so the runtime
@@ -422,6 +426,9 @@ func New(
 	if err != nil {
 		return nil, err
 	}
+	if err = validateMonitoringOptions(variant, options); err != nil {
+		return nil, err
+	}
 	r.options = options
 	err = newInternal(r, clusters, variant, cachePath, false)
 	if err != nil {
@@ -439,6 +446,9 @@ func Load(
 ) (*KindContainerRuntime, error) {
 	r, clusters, err := initialize(cachePath, true)
 	if err != nil {
+		return nil, err
+	}
+	if err = validateMonitoringOptions(variant, options); err != nil {
 		return nil, err
 	}
 	r.options = options
@@ -681,17 +691,25 @@ func (r *KindContainerRuntime) addMonitoring(graph *resource.Graph, baseInfra *r
 	if err != nil {
 		return fmt.Errorf("find repository root for monitoring: %w", err)
 	}
-	if err = addMonitoringResources(graph, root, r.ClusterRef(), r.RegistryRef(), baseInfra); err != nil {
+	profile := r.options.MonitoringProfile
+	if err = addMonitoringResources(graph, root, profile, r.ClusterRef(), r.RegistryRef(), baseInfra); err != nil {
 		return err
 	}
 	dashboards, err := resolveDashboardsRepository(r.options.DashboardsRepository, r.cachePath)
 	if err != nil {
 		return err
 	}
-	content, err := loadGrafanaContent(dashboards)
+	content, err := renderGrafanaContent(dashboards, profile.isFull())
 	if err != nil {
 		return err
 	}
-	stack := resource.RefID(resource.KubernetesObjectSetID(monitoringStackName))
-	return addGrafanaResources(graph, content, r.ClusterRef(), stack)
+	return addGrafanaResources(graph, grafanaInputs{
+		content:   content,
+		cachePath: r.cachePath,
+		full:      profile.isFull(),
+		cluster:   r.ClusterRef(),
+		registry:  r.RegistryRef(),
+		baseInfra: resource.Ref(baseInfra),
+		stack:     resource.RefID(resource.KubernetesObjectSetID(monitoringStackName)),
+	})
 }

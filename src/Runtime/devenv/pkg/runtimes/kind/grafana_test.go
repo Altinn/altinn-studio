@@ -1,155 +1,148 @@
 package kind
 
 import (
+	"encoding/base64"
+	"errors"
+	"io"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"testing"
 
-	"sigs.k8s.io/yaml"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 )
 
 const testDashboardsRepository = "testdata/dashboards"
 
-func TestLoadGrafanaContent(t *testing.T) {
-	content, err := loadGrafanaContent(testDashboardsRepository)
-	if err != nil {
-		t.Fatalf("loadGrafanaContent() error = %v", err)
-	}
+func TestRenderGrafanaContent_Light(t *testing.T) {
+	objects := renderTestContent(t, testDashboardsRepository, false)
 
-	var datasources struct {
-		Datasources []map[string]any `json:"datasources"`
-	}
-	if err := yaml.Unmarshal([]byte(content.Datasources), &datasources); err != nil {
-		t.Fatalf("parse datasources: %v", err)
-	}
-	if len(datasources.Datasources) != 1 {
-		t.Fatalf("datasources = %v, want the one GrafanaDatasource", datasources.Datasources)
-	}
-	metrics := datasources.Datasources[0]
-	want := map[string]any{
-		"uid":  "altinn-studio-metrics",
-		"name": "altinn-studio-metrics",
-		"type": "prometheus",
-		"url":  "http://observability-proxy.observability.svc.cluster.local/internal/observability/metrics",
-	}
-	for key, value := range want {
-		if metrics[key] != value {
-			t.Errorf("datasource %s = %v, want %v", key, metrics[key], value)
+	for _, name := range []string{
+		"GrafanaFolder/external-grafana-studio",
+		"GrafanaFolder/external-grafana-studio-observability",
+		"GrafanaDashboard/sample",
+		"ConfigMap/dashboard-sample",
+		"GrafanaDatasource/altinn-studio-metrics",
+		"Secret/altinn-studio-metrics-auth",
+	} {
+		if objects[name] == nil {
+			t.Errorf("content lacks %s", name)
 		}
 	}
-	secure, ok := metrics["secureJsonData"].(map[string]any)
-	if !ok {
-		t.Fatalf("secureJsonData = %v", metrics["secureJsonData"])
-	}
-	if got := secure["httpHeaderValue1"]; got != "Bearer "+localQueryToken {
-		t.Errorf("Authorization header = %v, want the local query token", got)
+	for _, name := range []string{
+		"ExternalSecret/altinn-studio-metrics-auth",
+		"GrafanaContactPoint/studio-slack-critical",
+		"Secret/grafana-slack-webhooks",
+	} {
+		if objects[name] != nil {
+			t.Errorf("light content includes %s", name)
+		}
 	}
 
-	var providers struct {
-		Providers []map[string]any `json:"providers"`
+	folder := objects["GrafanaFolder/external-grafana-studio-observability"]
+	if parent := testNestedString(folder.Object, "spec", "parentFolderRef"); parent != "external-grafana-studio" {
+		t.Errorf("nested folder's parent = %q, want it unchanged", parent)
 	}
-	if err := yaml.Unmarshal([]byte(content.DashboardProviders), &providers); err != nil {
-		t.Fatalf("parse dashboard providers: %v", err)
+	datasource := objects["GrafanaDatasource/altinn-studio-metrics"]
+	url := testNestedString(datasource.Object, "spec", "datasource", "url")
+	if url != localObservabilityURL+"metrics" {
+		t.Errorf("datasource URL = %q, want the local proxy's", url)
 	}
-	if got := providers.Providers[0]["folder"]; got != "Altinn Studio" {
-		t.Errorf("dashboard folder = %v, want the GrafanaFolder's title", got)
+	header := testNestedString(datasource.Object, "spec", "datasource", "secureJsonData", "httpHeaderValue1")
+	if header != "${authorization}" {
+		t.Errorf("Authorization header = %q, want the placeholder grafana-operator fills in", header)
 	}
-	if _, ok := content.Dashboards["sample.json"]; !ok || len(content.Dashboards) != 1 {
-		t.Errorf("dashboards = %v, want sample.json", content.Dashboards)
-	}
-	if content.Digest == "" {
-		t.Error("digest is empty")
+	if got := secretValue(
+		t,
+		objects["Secret/altinn-studio-metrics-auth"],
+		"authorization",
+	); got != "Bearer "+localQueryToken {
+		t.Errorf("datasource Secret = %q, want the local query token", got)
 	}
 }
 
-func TestLocalDatasource_EscapesTemplateVariables(t *testing.T) {
-	entry, err := localDatasource(map[string]any{
-		"uid": "altinn-studio-traces",
-		"datasource": map[string]any{
-			"url": publicObservabilityURL + "traces",
-			"jsonData": map[string]any{
-				"tracesToLogsV2": map[string]any{"query": `trace_id:="${__span.traceId}"`},
-				"tags":           []any{map[string]any{"value": "$__tags"}},
-			},
-			"secureJsonData": map[string]any{"httpHeaderValue1": authorizationValue},
-		},
-	})
-	if err != nil {
-		t.Fatalf("localDatasource() error = %v", err)
+func TestRenderGrafanaContent_FullHasAlerting(t *testing.T) {
+	objects := renderTestContent(t, testDashboardsRepository, true)
+
+	if objects["GrafanaContactPoint/studio-slack-critical"] == nil {
+		t.Fatal("full content lacks the contact point")
 	}
-	want := map[string]any{
-		"uid":   "altinn-studio-traces",
-		"orgId": 1,
-		"url":   localObservabilityURL + "traces",
-		"jsonData": map[string]any{
-			"tracesToLogsV2": map[string]any{"query": `trace_id:="$${__span.traceId}"`},
-			"tags":           []any{map[string]any{"value": "$$__tags"}},
-		},
-		"secureJsonData": map[string]any{"httpHeaderValue1": "Bearer " + localQueryToken},
-	}
-	if !reflect.DeepEqual(entry, want) {
-		t.Errorf("localDatasource() = %#v, want template variables escaped and the local query token: %#v", entry, want)
+	want := "http://alert-recorder.grafana.svc.cluster.local/grafana-slack-webhooks/studio-critical"
+	if got := secretValue(t, objects["Secret/grafana-slack-webhooks"], "studio-critical"); got != want {
+		t.Errorf("webhook = %q, want %q", got, want)
 	}
 }
 
-func TestLoadGrafanaContent_SkipsDatasourceOutsideProxy(t *testing.T) {
+func TestRenderGrafanaContent_SkipsDatasourceOutsideProxy(t *testing.T) {
 	repository := t.TempDir()
 	dir := filepath.Join(repository, "products", dashboardsProduct, "datasources")
 	if err := os.MkdirAll(dir, 0o750); err != nil {
 		t.Fatal(err)
 	}
-	datasource := []byte(`apiVersion: grafana.integreatly.org/v1beta1
+	files := map[string]string{
+		"kustomization.yaml": "resources:\n  - other.yaml\n",
+		"other.yaml": `apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDatasource
+metadata:
+  name: other
 spec:
-  uid: other
   datasource:
     type: prometheus
     url: https://example.invalid/prometheus
-`)
-	if err := os.WriteFile(filepath.Join(dir, "other.yaml"), datasource, 0o600); err != nil {
-		t.Fatal(err)
+`,
 	}
-	content, err := loadGrafanaContent(repository)
-	if err != nil {
-		t.Fatalf("loadGrafanaContent() error = %v", err)
+	for name, content := range files {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o600); err != nil {
+			t.Fatal(err)
+		}
 	}
-	if strings.Contains(content.Datasources, "example.invalid") {
-		t.Errorf("datasources include one outside the proxy:\n%s", content.Datasources)
+	if objects := renderTestContent(t, repository, true); len(objects) != 0 {
+		t.Errorf("content = %v, want nothing", objects)
 	}
 }
 
-func TestReadGrafanaResourceFile_MultipleDocuments(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "resources.yaml")
-	resources := []byte(`---
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaFolder
-spec:
-  title: Altinn Studio
----
----
-# A document with only a comment.
----
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaDatasource
-spec:
-  uid: altinn-studio-metrics
-  datasource:
-    type: prometheus
-    url: https://altinn.studio/internal/observability/metrics
-`)
-	if err := os.WriteFile(path, resources, 0o600); err != nil {
-		t.Fatal(err)
-	}
-	datasources, folder, err := readGrafanaResourceFile(path)
+func renderTestContent(t *testing.T, repository string, alerting bool) map[string]*unstructured.Unstructured {
+	t.Helper()
+	manifest, err := renderGrafanaContent(repository, alerting)
 	if err != nil {
-		t.Fatalf("readGrafanaResourceFile() error = %v", err)
+		t.Fatalf("renderGrafanaContent() error = %v", err)
 	}
-	if folder != "Altinn Studio" {
-		t.Errorf("folder = %q, want the GrafanaFolder's title", folder)
+	objects := map[string]*unstructured.Unstructured{}
+	decoder := utilyaml.NewYAMLOrJSONDecoder(strings.NewReader(manifest), len(manifest)+1)
+	for {
+		var object unstructured.Unstructured
+		err := decoder.Decode(&object.Object)
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			t.Fatalf("decode content: %v", err)
+		}
+		if len(object.Object) > 0 {
+			objects[object.GetKind()+"/"+object.GetName()] = &object
+		}
 	}
-	if len(datasources) != 1 || datasources[0]["uid"] != "altinn-studio-metrics" {
-		t.Errorf("datasources = %v, want the one GrafanaDatasource", datasources)
+	return objects
+}
+
+func secretValue(t *testing.T, secret *unstructured.Unstructured, key string) string {
+	t.Helper()
+	if secret == nil {
+		t.Fatal("no Secret")
 	}
+	encoded := testNestedString(secret.Object, "data", key)
+	decoded, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		t.Fatalf("decode Secret key %s: %v", key, err)
+	}
+	return string(decoded)
+}
+
+func testNestedString(object map[string]any, fields ...string) string {
+	value, _, err := unstructured.NestedString(object, fields...)
+	if err != nil {
+		return ""
+	}
+	return value
 }

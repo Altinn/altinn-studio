@@ -1,0 +1,10 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: sample
+  namespace: grafana
+spec:
+  folderRef: external-grafana-studio-observability
+  configMapRef:
+    name: dashboard-sample
+    key: sample.json
