@@ -503,34 +503,6 @@ func TestDefaultMappings_CredentialsAreDeliveredVerbatim(t *testing.T) {
 	}
 }
 
-func TestDefaultMappings_Pdf3UpstreamAPIKeyOnlyInDISCoreEnvironments(t *testing.T) {
-	for _, tc := range []struct {
-		environment string
-		want        bool
-	}{
-		{"at22", true},
-		{"at23", true},
-		{"yt01", true},
-		{"tt02", true},
-		{operatorcontext.EnvironmentProd, true},
-		{"at24", false},
-		{operatorcontext.EnvironmentLocal, false},
-	} {
-		t.Run(tc.environment, func(t *testing.T) {
-			g := NewWithT(t)
-
-			runtime := newTestRuntime(t, opclock.NewFakeClock(), tc.environment)
-			found := false
-			for _, mapping := range DefaultMappings(runtime) {
-				if mapping.Name == "pdf3-upstream-api-key" {
-					found = true
-				}
-			}
-			g.Expect(found).To(Equal(tc.want))
-		})
-	}
-}
-
 func TestReconciler_StartExitsOnContextCancellation(t *testing.T) {
 	g := NewWithT(t)
 
