@@ -23,7 +23,7 @@ def format_json_like_studio(rel_path: str, text: str) -> str:
         return text
     try:
         json.loads(text, parse_constant=_reject_json_constant)
-    except (ValueError, RecursionError):
+    except ValueError, RecursionError:
         return text
     return _indent_json_tokens(_JSON_TOKEN.findall(text))
 

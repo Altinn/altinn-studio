@@ -271,7 +271,7 @@ def report(
 
 
 def current_digests() -> dict[str, str | None]:
-    """The digests of this checkout. They import the agent code, so they need requirements.txt."""
+    """The digests of this checkout. They import the agent code, so they need its dependencies."""
     from benchmarks import provenance
 
     return provenance.digests(on_failure=print_digest_failure)
@@ -361,7 +361,7 @@ def _code_without_docstrings(source: str) -> str | None:
 def read_working_tree(path: str) -> str | None:
     try:
         return (ASSISTANT_ROOT / path).read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError):
+    except OSError, UnicodeDecodeError:
         return None
 
 
@@ -384,7 +384,7 @@ def _git(*args: str, strip: bool = True) -> str | None:
 
 
 def _main() -> int:
-    """The CI entry point. The digests import the agent code, so CI installs requirements.txt."""
+    """The CI entry point. The digests import the agent code, so CI installs the dependencies from uv.lock."""
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)

@@ -69,7 +69,7 @@ def load_app(root: Path) -> AppModel:
     for settings_path in sorted((root / "App" / "ui").rglob("Settings.json")):
         try:
             settings = json.loads(settings_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
+        except OSError, json.JSONDecodeError:
             continue
         order = (settings.get("pages") or {}).get("order")
         if isinstance(order, list) and len(order) > len(best_order):
@@ -81,7 +81,7 @@ def load_app(root: Path) -> AppModel:
         for layout_path in sorted(best_layouts_dir.glob("*.json")):
             try:
                 parsed = json.loads(layout_path.read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError):
+            except OSError, json.JSONDecodeError:
                 continue
             components = ((parsed.get("data") or {}).get("layout")) or []
             if isinstance(components, list):
@@ -93,7 +93,7 @@ def load_app(root: Path) -> AppModel:
         for entry in resource.get("resources") or []:
             if isinstance(entry, dict) and isinstance(entry.get("id"), str):
                 model.resources[entry["id"]] = str(entry.get("value", ""))
-    except (OSError, json.JSONDecodeError):
+    except OSError, json.JSONDecodeError:
         pass
 
     return model
