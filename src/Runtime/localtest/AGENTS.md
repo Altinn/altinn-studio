@@ -48,6 +48,8 @@ the app libraries send and read; a field the app client marks `required` must be
   the channel chooses once per registered person or organization, not per address, and an email address or mobile
   number given as a custom recipient is notified whatever the channel. The result is
   stored with the correspondence. A generic template's text is a stand-in for the real API's wording.
+- The **Messages** page (`/Messages`, `MessagesController`) shows the stored correspondence with its attachments
+  and notifications, and the orders apps placed directly with the Notifications API.
 - Each correspondence is stored as `{correspondenceId}.json` in the `correspondence` folder under the storage
   path, with the request body the app sent, so you can see exactly what went out. Attachments are stored in
   its `attachments` subfolder, as `{attachmentId}.json` with their data in `{attachmentId}.bin`.
