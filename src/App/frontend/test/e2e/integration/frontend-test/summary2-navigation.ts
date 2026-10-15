@@ -22,6 +22,9 @@ describe('Summary2 navigation', () => {
     });
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('Anne');
+    cy.findByRole('tab', { name: /nytt etternavn/i }).click();
+    cy.get(appFrontend.changeOfName.newLastName).type('Ola');
+    cy.get(appFrontend.changeOfName.dateOfEffect).type('01/01/2026');
     cy.findByRole('checkbox', { name: /ja, jeg bekrefter/i }).check();
     cy.findByRole('radio', { name: /adoptivforelders/i }).check();
     cy.gotoNavPage('summary');
