@@ -17,8 +17,8 @@ Each fact has one home. Other files link to it instead of repeating it.
 | Architecture, environments, deployment, and DIS | `docs/architecture/` and `docs/infrastructure/` |
 | Vocabulary | `docs/glossary.md` |
 | Related repositories | `docs/repositories.md` |
-| Component purpose, relationships, and how it runs | Component `README.md`, with longer material in adjacent `docs/` |
-| Diagrams | `docs/diagrams/` for shared diagrams, otherwise the component's `docs/` |
+| Service, library, or tool: purpose, relationships, and how it runs | Its `README.md`, with longer material in adjacent `docs/` |
+| Diagrams | `docs/diagrams/` for shared diagrams, otherwise an adjacent `docs/` folder |
 | Decisions and reasoning | `docs/adr/` |
 | Documentation rules | `docs/development/documentation.md` |
 | Agent direction needed in every session | `AGENTS.md` |
@@ -31,16 +31,16 @@ Keep development documentation in this repository, not in the GitHub wiki. Priva
 
 ## README files and docs
 
-A component README explains what the component is for, how it fits with the rest, and how it is built, run,
-and deployed. Put longer material in a `docs/` folder next to it. Root `docs/` covers topics that no single
-component owns.
+Each service, library, or tool has a README that explains its purpose, how it fits with the rest, and how it is
+built, run, and deployed where applicable. Put longer material in a `docs/` folder next to it. Root `docs/`
+covers shared topics, such as architecture, environments, and development practices.
 
 Keep this documentation high level:
 
 - Link to code and configuration instead of restating it, such as a file, type, workflow, or Makefile target.
 - Explain connections that are hard to find from the code, and link to where they are defined.
-- Explain constraints and pitfalls that have no single home in the code, such as those that span components
-  or depend on infrastructure or another service.
+- Explain constraints and pitfalls that have no single home in the code, such as those shared by services, libraries, or tools
+  or depend on infrastructure.
 - Leave out folder trees, package and class lists, method signatures, field-by-field configuration descriptions,
   and dependency versions.
 - Generate useful structure summaries, such as the repository map, from their source and check their freshness in CI.
@@ -53,7 +53,7 @@ when the change affects service owners or app developers.
 A comment explains the code next to it to someone already reading that code. Review and change it with the code.
 
 - Explain reasons and constraints that the code cannot show.
-- Do not narrate the code or describe the rest of the component or architecture.
+- Do not narrate the code or describe the surrounding system or architecture.
 - Enforce rules through types, validation, or tests when possible.
 - Link to a README, docs, or an ADR when the explanation extends beyond the code next to the comment.
 

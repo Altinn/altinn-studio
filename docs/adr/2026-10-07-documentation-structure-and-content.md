@@ -20,8 +20,8 @@ instead of repeating it. Each skill we maintain has one source of truth in `agen
 | Architecture, environments and clusters, deployment, DIS                           | `docs/architecture/` and `docs/infrastructure/`                                      |
 | Vocabulary                                                                         | `docs/glossary.md`                                                                   |
 | Related repositories and what lives where                                          | `docs/repositories.md`                                                               |
-| A component: what it is, how it fits with the rest, where and how it runs          | The component's `README.md`, with longer material in a `docs/` folder next to it     |
-| Diagrams                                                                           | `docs/diagrams/` when they span components, otherwise the component's `docs/` folder |
+| A service, library, or tool: what it is, how it fits with the rest, where and how it runs          | Its `README.md`, with longer material in a `docs/` folder next to it     |
+| Diagrams                                                                           | `docs/diagrams/` for shared diagrams, otherwise an adjacent `docs/` folder |
 | Decisions and their reasoning                                                      | `docs/adr/`                                                                          |
 | How we write documentation: the rules this ADR decides                             | `docs/development/documentation.md`                                                  |
 | Direction for agents in every session                                              | `AGENTS.md`                                                                          |
@@ -80,16 +80,15 @@ A code comment explains the code next to it, to someone who is already reading t
 changed together with the code.
 
 - Explain why the code is the way it is, and constraints on it that the code cannot show.
-- Do not describe what the code does, the rest of the component or the architecture.
+- Do not describe what the code does, the surrounding system or the architecture.
 - When the code can enforce a rule, through types, validation or tests, enforce it instead of describing it.
 - Link to a README, `docs/` or an ADR when the reason is bigger than the code next to it.
 
 #### README files and `docs/`
 
-A component's `README.md` is for someone who arrives at the component: what it is for, how it fits with the
-rest, and how it is built, run and deployed. Longer material about the component goes in a `docs/` folder next
-to it. The root `docs/` covers what no single component owns, such as architecture, environments and clusters,
-and how we work.
+Each service, library, or tool has a `README.md` for someone arriving at its code: what it is for, how it fits
+with the rest, and how it is built, run and deployed where applicable. Longer material goes in a `docs/` folder
+next to it. The root `docs/` covers shared topics, such as architecture, environments and clusters, and how we work.
 
 All of them are kept high level and refer to where the truth is:
 
@@ -97,8 +96,8 @@ All of them are kept high level and refer to where the truth is:
   example, link the kustomization that lists the services on a cluster, or the type that defines a CRD's fields.
 - Write down connections that are hard to find from the code, and link to where they are defined. For example,
   apps are deployed by `src/App/azure-pipelines/deploy-app.yaml` with the Helm chart in `altinn-studio-charts`.
-- Write down constraints and pitfalls that have no single place in the code, such as those that span components
-  or are enforced by infrastructure, a pipeline or another service.
+- Write down constraints and pitfalls that have no single place in the code, such as those shared by services, libraries, or tools
+  or are enforced by infrastructure or a pipeline.
 - Leave out what the reader can easily get from the code: folder trees, lists of packages, classes or files,
   method signatures, configuration field by field, and dependency or framework versions.
 - When a description of structure is worth having, such as the repository map, generate it from the source and
@@ -114,7 +113,7 @@ An `AGENTS.md` adds only direction that is specific to agents: rules for how an 
 to the people on the team. Anything a person working on the code would also need goes in a README, in `docs/`,
 in `CONTRIBUTING.md` or in the code, where everyone reads and reviews it. Examples of agent-specific direction:
 
-- what to read before a change: the README of the component it changes, and `CONTRIBUTING.md` before opening a
+- what to read before a change: the README for the code it changes, and `CONTRIBUTING.md` before opening a
   pull request. Unlike a person on the team, an agent starts every session without knowing this.
 - where skills live, and how to install a skill that is missing
 - what an agent asks about before it acts, such as before pushing a branch or posting on GitHub
