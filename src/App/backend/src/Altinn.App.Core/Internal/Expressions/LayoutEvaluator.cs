@@ -26,7 +26,7 @@ public static class LayoutEvaluator
         bool evaluateRemoveWhenHidden
     )
     {
-        // A task without layouts, such as a service task, has no components that can be hidden
+        // Without layouts for the task there are no components, so nothing can be hidden
         if (!state.HasComponentModel)
         {
             return [];
