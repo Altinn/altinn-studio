@@ -94,5 +94,4 @@ Development and Docker environments the engine serves them from disk, and the pa
 
 - [Technical guide](docs/technical-guide.md)
 - [Architectural overview](docs/architecture.md)
-- [Batch enqueue & dependency graphs](docs/batch-enqueue.md)
 - [Notes on db connections during dev cycle](docs/db-connections-notes.md)

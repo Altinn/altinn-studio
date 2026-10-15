@@ -45,6 +45,3 @@ Start a new ADR from [the template](adr/yyyy-mm-dd-template.md).
 - [new-pdf.excalidraw.svg](diagrams/new-pdf.excalidraw.svg)
 - [proxy-architecture.excalidraw.svg](diagrams/proxy-architecture.excalidraw.svg)
 - [studioctl.excalidraw.svg](diagrams/studioctl.excalidraw.svg)
-- [studio-assistant/agent-flow.md](diagrams/studio-assistant/agent-flow.md)
-- [studio-assistant/agent-service-flow.svg](diagrams/studio-assistant/agent-service-flow.svg)
-- [studio-assistant/assistant-sequence.png](diagrams/studio-assistant/assistant-sequence.png)

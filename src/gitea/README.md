@@ -22,9 +22,9 @@ Ensure that our custom templates are up to date by comparing them with the templ
 
 The files located in [./files/locale/base](./files/locale/base) are the original translations from Gitea. They must be updated when upgrading Gitea to a newer version.
 
-- Update [locale_en-US.ini](./files/locale/base/locale_en-US.ini) using https://github.com/go-gitea/gitea/tree/v{VERSION}/options/locale/locale_en-US.ini.
+- The [Dockerfile](Dockerfile) extracts the English locale from the Gitea image at build time.
 
-- Update [locale_nb-NO.ini](./files/locale/base/locale_nb-NO.ini) using [Crowdin](https://crowdin.com/project/gitea/no). Crowdin only contains the latest version, so you must ensure that the keys match the version your are upgrading to.
+- Update [locale_nb-NO.json](./files/locale/base/locale_nb-NO.json) using [Crowdin](https://crowdin.com/project/gitea/no). Crowdin only contains the latest version, so you must ensure that the keys match the version your are upgrading to.
 
 > :warning:
 > Do not make custom changes to these files, as they will be overwritten during future upgrades. If you need to make changes, you can either :

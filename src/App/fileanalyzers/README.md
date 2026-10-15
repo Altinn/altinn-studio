@@ -5,7 +5,7 @@
 
 This library contains code for doing deep file analysis based the actual binary data of files uploaded to an instance in Altinn 3. The implementation is two folded, one part that analyses and another part that validates against the analysis results. The reasoning for this split is to be able to use only the analyzer and extract metadata without validating. In addition it will be simpler to configure validators against a standardized result set rather than embed that into the analysis code.
 
-The [Getting started](#getting-started) section describes the basic steps required in order to use this package within an Altinn 3 application. For a more comprehensive description of file analyzers in Altinn 3 please see https://docs.altinn.studio/app/development/logic/validation/files/.
+The [Getting started](#getting-started-using-the-package) section describes the basic steps required in order to use this package within an Altinn 3 application. For a more comprehensive description of file analyzers in Altinn 3 please see https://docs.altinn.studio/app/development/logic/validation/files/.
 <hr>
 <br/>  
 

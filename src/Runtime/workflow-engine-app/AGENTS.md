@@ -1,6 +1,6 @@
 # Workflow Engine App
 
-@../workflow-engine/AGENTS.md
+Read [the workflow engine's AGENTS.md](../workflow-engine/AGENTS.md) first; this host follows its conventions.
 
 Runtime host for the workflow engine, targeting the Altinn App platform. This is the deployable executable that composes `WorkflowEngine.Core` and its supporting libraries into a running web application.
 
