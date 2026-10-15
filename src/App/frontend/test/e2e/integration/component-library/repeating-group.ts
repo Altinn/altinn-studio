@@ -26,6 +26,14 @@ describe('Group summary test', () => {
       .within(() => {
         cy.contains('span', inputValue).should('exist');
       });
+    cy.get('[data-componentid="RepeatingGroup-Summary"]')
+      .contains('span', inputValue)
+      .should(($value) => {
+        const edit = $value.closest('[data-testid="summary-group-component"]').find('button')[0];
+        expect($value[0].compareDocumentPosition(edit) & Node.DOCUMENT_POSITION_FOLLOWING).to.equal(
+          Node.DOCUMENT_POSITION_FOLLOWING,
+        );
+      });
   });
 
   it('Should hide column when tableColumns hidden is set on a field', () => {
