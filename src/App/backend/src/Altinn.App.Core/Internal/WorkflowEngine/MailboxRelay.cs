@@ -659,33 +659,13 @@ internal sealed class MailboxRelay
             "A hop that starts a successor workflow must carry the state the step it ran published."
         );
 
-    /// <summary>
-    /// The transition labels every workflow the relay enqueues must carry, re-derived from the committed
-    /// instance: <c>ResolveWorkflowTaskStatus</c> reads the target task to identify the successor's
-    /// destination.
-    /// <c>processNextSourceId</c> is unrecoverable here and deliberately omitted.
-    /// </summary>
-    private static Dictionary<string, string> CreateSuccessorLabels(MailboxRelayRequest request)
-    {
-        var labels = new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            [ProcessNextRequestFactory.ProcessNextInstanceGuidLabel] = request.InstanceId.InstanceGuid.ToString(
-                "N",
-                CultureInfo.InvariantCulture
-            ),
-        };
-
-        if (request.DataAccessor.Instance.Process?.CurrentTask is { ElementId.Length: > 0 } currentTask)
-        {
-            labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel] = ProcessNextRequestFactory.CreateProcessNextId(
-                currentTask.ElementId,
-                currentTask.Flow ?? 0
-            );
-            labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = currentTask.ElementId;
-        }
-
-        return labels;
-    }
+    // Target labels let workflow status reads identify the successor's destination.
+    private static Dictionary<string, string> CreateSuccessorLabels(MailboxRelayRequest request) =>
+        ProcessNextRequestFactory.CreateProcessNextLabels(
+            request.InstanceId,
+            sourceTask: null,
+            request.DataAccessor.Instance.Process?.CurrentTask?.ElementId
+        );
 
     private Task EnqueueAfterWorkflow(MailboxRelayRequest request, CancellationToken cancellationToken) =>
         _processEngine.EnqueueProcessNext(

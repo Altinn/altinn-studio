@@ -206,13 +206,16 @@ public class WorkflowEngineServiceTests
     [InlineData("wrong-dependency")]
     [InlineData("wrong-collection")]
     [InlineData("wrong-namespace")]
-    [InlineData("wrong-source")]
+    [InlineData("wrong-source-task")]
+    [InlineData("wrong-source-flow")]
+    [InlineData("missing-source-flow")]
     [InlineData("side-effect")]
     [InlineData("abandoned")]
     [InlineData("ambiguous")]
     [InlineData("missing")]
     [InlineData("detail-missing")]
     [InlineData("detail-abandoned")]
+    [InlineData("detail-source-flow-changed")]
     public async Task EnqueueDependentProcessNext_ConflictRecoversOnlyItsUnambiguousAcceptedContinuation(
         string scenario
     )
@@ -232,7 +235,11 @@ public class WorkflowEngineServiceTests
             CreatedAt = DateTimeOffset.UtcNow,
             OverallStatus = PersistentItemStatus.Enqueued,
             Dependencies = new Dictionary<Guid, PersistentItemStatus> { [parentId] = PersistentItemStatus.Processing },
-            Labels = ProcessNextRequestFactory.CreateProcessNextLabels(change),
+            Labels = ProcessNextRequestFactory.CreateProcessNextLabels(
+                new InstanceIdentifier(instance),
+                change.OldProcessState?.CurrentTask,
+                change.NewProcessState?.CurrentTask?.ElementId
+            ),
             Steps = [],
         };
         var candidate = scenario switch
@@ -247,9 +254,20 @@ public class WorkflowEngineServiceTests
             },
             "wrong-collection" => accepted with { CollectionKey = "another-collection" },
             "wrong-namespace" => accepted with { Namespace = "another/app" },
-            "wrong-source" => accepted with
+            "wrong-source-task" => accepted with
             {
-                Labels = new() { [ProcessNextRequestFactory.ProcessNextSourceIdLabel] = "other-task:1" },
+                Labels = new(accepted.Labels ?? [])
+                {
+                    [ProcessNextRequestFactory.ProcessNextSourceTaskLabel] = "other-task",
+                },
+            },
+            "wrong-source-flow" => accepted with
+            {
+                Labels = new(accepted.Labels ?? []) { [ProcessNextRequestFactory.ProcessNextSourceFlowLabel] = "99" },
+            },
+            "missing-source-flow" => accepted with
+            {
+                Labels = new() { [ProcessNextRequestFactory.ProcessNextSourceTaskLabel] = "Task_1" },
             },
             "side-effect" => accepted with { IsHead = false },
             "abandoned" => accepted with { OverallStatus = PersistentItemStatus.Abandoned },
@@ -295,6 +313,13 @@ public class WorkflowEngineServiceTests
                 {
                     "detail-missing" => null,
                     "detail-abandoned" => candidate with { OverallStatus = PersistentItemStatus.Abandoned },
+                    "detail-source-flow-changed" => candidate with
+                    {
+                        Labels = new(candidate.Labels ?? [])
+                        {
+                            [ProcessNextRequestFactory.ProcessNextSourceFlowLabel] = "99",
+                        },
+                    },
                     _ => candidate,
                 }
             );
@@ -1392,7 +1417,6 @@ public class WorkflowEngineServiceTests
                             Status = PersistentItemStatus.Enqueued,
                             Labels = new Dictionary<string, string>(StringComparer.Ordinal)
                             {
-                                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
                                 [ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = "Task_2",
                             },
                             StepsCompleted = 4,
@@ -1457,7 +1481,6 @@ public class WorkflowEngineServiceTests
                             Status = PersistentItemStatus.Requeued,
                             Labels = new Dictionary<string, string>(StringComparer.Ordinal)
                             {
-                                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
                                 [ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = "Task_2",
                             },
                             StepsCompleted = 7,
@@ -1522,7 +1545,6 @@ public class WorkflowEngineServiceTests
                             Status = PersistentItemStatus.Waiting,
                             Labels = new Dictionary<string, string>(StringComparer.Ordinal)
                             {
-                                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
                                 [ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = "Task_2",
                             },
                             StepsCompleted = 4,
@@ -1581,7 +1603,6 @@ public class WorkflowEngineServiceTests
                             Status = PersistentItemStatus.Held,
                             Labels = new Dictionary<string, string>(StringComparer.Ordinal)
                             {
-                                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
                                 [ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = "Task_2",
                             },
                         },
@@ -1802,7 +1823,6 @@ public class WorkflowEngineServiceTests
             collectionKey: collectionKey,
             labels: new Dictionary<string, string>(StringComparer.Ordinal)
             {
-                [ProcessNextRequestFactory.ProcessNextTargetIdLabel] = "Task_2:3",
                 [ProcessNextRequestFactory.ProcessNextTargetTaskLabel] = "Task_2",
             },
             steps:

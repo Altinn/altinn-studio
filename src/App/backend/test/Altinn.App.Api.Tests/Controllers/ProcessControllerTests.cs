@@ -228,7 +228,6 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         );
         var continuation = Assert.Single(workflows, w => w.Steps.Any(s => s.OperationId == CommitProcessState.Key));
         Assert.NotNull(acquireWorkflow.Labels);
-        Assert.False(acquireWorkflow.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetIdLabel));
         Assert.False(acquireWorkflow.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
         Assert.Equal(PersistentItemStatus.Completed, acquireWorkflow.OverallStatus);
         Assert.Equal(PersistentItemStatus.Completed, continuation.OverallStatus);

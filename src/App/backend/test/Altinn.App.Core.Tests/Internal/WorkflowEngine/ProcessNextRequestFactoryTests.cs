@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
@@ -542,9 +543,17 @@ public class ProcessNextRequestFactoryTests
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
             "dependent-key"
         );
-        Assert.Equal("Task_1:0", acquire.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
-        Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetIdLabel));
-        Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
+        Assert.Equal("Task_1", acquire.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceTaskLabel]);
+        Assert.Equal("0", acquire.Request.Labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
+        if (toProcessEnd)
+        {
+            Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
+        }
+        else
+        {
+            // The same target as the workflow that enters the task, so status reads name it from the start.
+            Assert.Equal("Task_2", acquire.Request.Labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
+        }
         Assert.DoesNotContain(ProcessingStatusAcquirer.Key, ExtractCommandKeys(dependent));
     }
 
@@ -985,8 +994,9 @@ public class ProcessNextRequestFactoryTests
 
         var workflow = bundle.Request.Workflows.Single();
         Assert.Equal("Process next: Task_SubformPdf -> Task_SubformPdf", workflow.OperationId);
-        Assert.Equal("Task_SubformPdf:4", bundle.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
-        Assert.Equal("Task_SubformPdf:5", bundle.Request.Labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
+        Assert.Equal("Task_SubformPdf", bundle.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceTaskLabel]);
+        Assert.Equal("4", bundle.Request.Labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
+        Assert.Equal("Task_SubformPdf", bundle.Request.Labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
     }
 
     [Fact]
@@ -1703,52 +1713,68 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public void CreateProcessNextLabels_TaskToTask_LabelsSourceAndTarget()
+    public void CreateProcessNextLabels_TaskToTask_LabelsSourceTargetAndInstance()
     {
-        // Arrange
-        var stateChange = new ProcessStateChange
-        {
-            OldProcessState = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
-            },
-            NewProcessState = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo { ElementId = "Task_2", Flow = 3 },
-            },
-        };
-
         // Act
-        Dictionary<string, string>? labels = ProcessNextRequestFactory.CreateProcessNextLabels(stateChange);
+        Dictionary<string, string> labels = ProcessNextRequestFactory.CreateProcessNextLabels(
+            new InstanceIdentifier(TestInstance),
+            new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
+            "Task_2"
+        );
 
         // Assert
-        Assert.NotNull(labels);
-        Assert.Equal(3, labels.Count);
-        Assert.Equal("Task_1:2", labels[ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
-        Assert.Equal("Task_2:3", labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
+        Assert.Equal(4, labels.Count);
+        Assert.Equal("Task_1", labels[ProcessNextRequestFactory.ProcessNextSourceTaskLabel]);
+        Assert.Equal("2", labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
         Assert.Equal("Task_2", labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
+        Assert.Equal(
+            new InstanceIdentifier(TestInstance).InstanceGuid.ToString("N"),
+            labels[ProcessNextRequestFactory.ProcessNextInstanceGuidLabel]
+        );
     }
 
     [Fact]
-    public void CreateProcessNextLabels_TaskToEnd_LabelsSourceOnly()
+    public void CreateProcessNextLabels_TaskToEnd_LabelsSourceAndInstanceOnly()
     {
-        // Arrange
-        var stateChange = new ProcessStateChange
-        {
-            OldProcessState = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
-            },
-            NewProcessState = new ProcessState { CurrentTask = null, EndEvent = "EndEvent_1" },
-        };
-
         // Act
-        Dictionary<string, string>? labels = ProcessNextRequestFactory.CreateProcessNextLabels(stateChange);
+        Dictionary<string, string> labels = ProcessNextRequestFactory.CreateProcessNextLabels(
+            new InstanceIdentifier(TestInstance),
+            new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
+            targetTaskId: null
+        );
 
         // Assert
-        Assert.NotNull(labels);
-        Assert.Single(labels);
-        Assert.Equal("Task_1:2", labels[ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
+        Assert.Equal(3, labels.Count);
+        Assert.Equal("Task_1", labels[ProcessNextRequestFactory.ProcessNextSourceTaskLabel]);
+        Assert.Equal("2", labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
+        Assert.True(labels.ContainsKey(ProcessNextRequestFactory.ProcessNextInstanceGuidLabel));
+    }
+
+    [Theory]
+    [InlineData(null, "0")]
+    [InlineData(0, "0")]
+    [InlineData(12, "12")]
+    [InlineData(-12, "-12")]
+    public void CreateProcessNextLabels_SourceFlow_IsInvariantAndDefaultsToZero(int? flow, string expected)
+    {
+        CultureInfo originalCulture = CultureInfo.CurrentCulture;
+        var culture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
+        culture.NumberFormat.NegativeSign = "minus";
+        try
+        {
+            CultureInfo.CurrentCulture = culture;
+            var labels = ProcessNextRequestFactory.CreateProcessNextLabels(
+                new InstanceIdentifier(TestInstance),
+                new ProcessElementInfo { ElementId = "Task_1", Flow = flow },
+                targetTaskId: null
+            );
+
+            Assert.Equal(expected, labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
     }
 
     [Fact]

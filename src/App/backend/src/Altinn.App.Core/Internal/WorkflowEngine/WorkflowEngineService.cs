@@ -251,7 +251,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     {
         var idle = new WorkflowTaskStatus(WorkflowActivityStatus.Idle, TargetTask: null, Failure: null);
 
-        if (ProcessNextRequestFactory.CreateProcessNextId(instance.Process?.CurrentTask) is null)
+        if (instance.Process?.CurrentTask?.ElementId is not { Length: > 0 })
         {
             // Not started, or ended: there is no current task to annotate, so don't query the
             // engine. Known gap: the final (task -> end) transition's post-commit steps still run
@@ -396,8 +396,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 collectionKey,
                 cancellationToken: cancellationToken
             );
-            string? sourceId = bundle.Request.Labels?.GetValueOrDefault(
-                ProcessNextRequestFactory.ProcessNextSourceIdLabel
+            string? sourceTask = bundle.Request.Labels?.GetValueOrDefault(
+                ProcessNextRequestFactory.ProcessNextSourceTaskLabel
+            );
+            string? sourceFlow = bundle.Request.Labels?.GetValueOrDefault(
+                ProcessNextRequestFactory.ProcessNextSourceFlowLabel
             );
             bool MatchesContinuation(WorkflowStatusResponse workflow) =>
                 workflow.Namespace == bundle.Namespace
@@ -405,7 +408,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 && workflow.IdempotencyKey == bundle.IdempotencyKey
                 && workflow.OverallStatus != PersistentItemStatus.Abandoned
                 && workflow.IsHead is not false
-                && workflow.Labels?.GetValueOrDefault(ProcessNextRequestFactory.ProcessNextSourceIdLabel) == sourceId;
+                && workflow.Labels?.GetValueOrDefault(ProcessNextRequestFactory.ProcessNextSourceTaskLabel)
+                    == sourceTask
+                && workflow.Labels?.GetValueOrDefault(ProcessNextRequestFactory.ProcessNextSourceFlowLabel)
+                    == sourceFlow;
 
             var candidates = workflows.Where(MatchesContinuation).ToArray();
             if (candidates.Length == 1)
