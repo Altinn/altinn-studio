@@ -6,8 +6,7 @@
 !.yarnrc.yml
 !.yarn/releases/**
 !.yarn/patches/**
-!src/App/frontend
-!src/App/frontend/**
+!src/App/frontend/package.json
 !src/App/template/v8/src
 !src/App/template/v8/src/**
 !src/App/template/v9/src
