@@ -130,88 +130,14 @@ func TestPDFAConversionConfigEnabledFor(t *testing.T) {
 	}
 }
 
-func TestConfigShouldConvertToPDFA(t *testing.T) {
-	tests := []struct {
-		name         string
-		environment  string
-		serviceOwner string
-		pdfa         PDFAConversionConfig
-		want         bool
-	}{
-		{
-			name:         "matches ikta in tt02",
-			environment:  "tt02",
-			serviceOwner: "ikta",
-			pdfa:         defaultPDFAConversionConfig,
-			want:         true,
-		},
-		{
-			name:         "wrong service owner disabled",
-			environment:  "tt02",
-			serviceOwner: "ttd",
-			pdfa:         defaultPDFAConversionConfig,
-			want:         false,
-		},
-		{
-			name:         "wrong environment disabled",
-			environment:  "proda",
-			serviceOwner: "ikta",
-			pdfa:         defaultPDFAConversionConfig,
-			want:         false,
-		},
-		{
-			name:         "combo target is applied",
-			environment:  "tt02",
-			serviceOwner: "ikta",
-			pdfa: PDFAConversionConfig{
-				Targets: []PDFATarget{
-					{Environment: "tt02", ServiceOwner: "ikta"},
-				},
-			},
-			want: true,
-		},
-		{
-			name:         "combo target rejects wrong service owner",
-			environment:  "tt02",
-			serviceOwner: "ttd",
-			pdfa: PDFAConversionConfig{
-				Targets: []PDFATarget{
-					{Environment: "tt02", ServiceOwner: "ikta"},
-				},
-			},
-			want: false,
-		},
-		{
-			name:        "empty disabled",
-			environment: "prod",
-			pdfa:        PDFAConversionConfig{},
-			want:        false,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			cfg := &Config{
-				Environment:  tc.environment,
-				ServiceOwner: tc.serviceOwner,
-				PDFA:         tc.pdfa,
-			}
-			got := cfg.ShouldConvertToPDFA()
-			if got != tc.want {
-				t.Fatalf("ShouldConvertToPDFA() = %v, want %v", got, tc.want)
-			}
-		})
-	}
-}
-
 func TestReadConfigIncludesPDFAConfig(t *testing.T) {
 	t.Run("combo target", func(t *testing.T) {
 		t.Setenv("PDF3_ENVIRONMENT", "tt02")
 		t.Setenv(ServiceOwnerEnv, "ikta")
 
 		cfg := ReadConfig()
-		if !cfg.ShouldConvertToPDFA() {
-			t.Fatalf("ReadConfig().ShouldConvertToPDFA() = false, want true")
+		if !cfg.PDFA.EnabledFor(cfg.Environment, cfg.ServiceOwner) {
+			t.Fatalf("PDFA.EnabledFor(%q, %q) = false, want true", cfg.Environment, cfg.ServiceOwner)
 		}
 	})
 
@@ -220,8 +146,8 @@ func TestReadConfigIncludesPDFAConfig(t *testing.T) {
 		t.Setenv(ServiceOwnerEnv, "ttd")
 
 		cfg := ReadConfig()
-		if cfg.ShouldConvertToPDFA() {
-			t.Fatalf("ReadConfig().ShouldConvertToPDFA() = true, want false")
+		if cfg.PDFA.EnabledFor(cfg.Environment, cfg.ServiceOwner) {
+			t.Fatalf("PDFA.EnabledFor(%q, %q) = true, want false", cfg.Environment, cfg.ServiceOwner)
 		}
 	})
 }
@@ -245,5 +171,16 @@ func TestReadConfigAppHostname(t *testing.T) {
 				t.Fatalf("AppHostname = %q, want %q", got, want)
 			}
 		})
+	}
+}
+
+func TestReadConfigAPIKeysFile(t *testing.T) {
+	t.Setenv("PDF3_ENVIRONMENT", "tt02")
+	if got := ReadConfig().APIKeysFile; got != "" {
+		t.Fatalf("APIKeysFile = %q without %s, want empty", got, APIKeysFileEnv)
+	}
+	t.Setenv(APIKeysFileEnv, "/mnt/api-keys/keys")
+	if got := ReadConfig().APIKeysFile; got != "/mnt/api-keys/keys" {
+		t.Fatalf("APIKeysFile = %q, want /mnt/api-keys/keys", got)
 	}
 }

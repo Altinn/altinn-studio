@@ -31,7 +31,7 @@ public class JoinedAppOptionsTests
         _serviceCollection.AddAppImplementationFactory();
         _countryAppOptionsMock.Setup(p => p.Id).Returns("country-no-sentinel");
         _countryAppOptionsMock
-            .Setup(p => p.GetAppOptionsAsync(_language, It.IsAny<Dictionary<string, string>>()))
+            .Setup(p => p.GetAppOptions(_language, It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(
                 (string language, Dictionary<string, string> keyValuePairs) =>
                     new AppOptions() { Options = _appOptionsCountries, Parameters = keyValuePairs.ToDictionary()! }
@@ -40,7 +40,7 @@ public class JoinedAppOptionsTests
 
         _sentinelOptionsProviderMock.Setup(p => p.Id).Returns("sentinel");
         _sentinelOptionsProviderMock
-            .Setup(p => p.GetAppOptionsAsync(_language, It.IsAny<Dictionary<string, string>>()))
+            .Setup(p => p.GetAppOptions(_language, It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(
                 (string language, Dictionary<string, string> keyValuePairs) =>
                     new AppOptions() { Options = _appOptionsSentinel, Parameters = keyValuePairs.ToDictionary()! }
@@ -72,7 +72,7 @@ public class JoinedAppOptionsTests
 
         optionsProvider.Should().BeOfType<JoinedAppOptionsProvider>();
         optionsProvider.Id.Should().Be("country");
-        var appOptions = await optionsProvider.GetAppOptionsAsync(_language, new Dictionary<string, string>());
+        var appOptions = await optionsProvider.GetAppOptions(_language, new Dictionary<string, string>());
         appOptions.Options.Should().HaveCount(3);
         appOptions.Options.Should().BeEquivalentTo(_appOptionsCountries.Concat(_appOptionsSentinel));
 
@@ -89,7 +89,7 @@ public class JoinedAppOptionsTests
         using var sp = _serviceCollection.BuildStrictServiceProvider();
         var appOptionsService = sp.GetRequiredService<AppOptionsService>();
 
-        var options = await appOptionsService.GetOptionsAsync("country", _language, new());
+        var options = await appOptionsService.GetOptions("country", _language, new());
 
         options.Options.Should().BeEquivalentTo(_appOptionsCountries.Concat(_appOptionsSentinel));
 
@@ -108,11 +108,11 @@ public class JoinedAppOptionsTests
         var appOptionsService = sp.GetRequiredService<AppOptionsService>();
 
         // Fetch the country options (now without sentinel)
-        var options = await appOptionsService.GetOptionsAsync("country", _language, new());
+        var options = await appOptionsService.GetOptions("country", _language, new());
         options.Options.Should().BeEquivalentTo(_appOptionsCountries);
 
         // Fetch sentinel options to make verifications work
-        var sentinelOptions = await appOptionsService.GetOptionsAsync("sentinel", _language, new());
+        var sentinelOptions = await appOptionsService.GetOptions("sentinel", _language, new());
         sentinelOptions.Options.Should().BeEquivalentTo(_appOptionsSentinel);
 
         _neverUsedOptionsProviderMock.VerifyAll();
@@ -131,7 +131,7 @@ public class JoinedAppOptionsTests
 
         var parameters = new Dictionary<string, string> { { "key", "value" } };
 
-        var options = await appOptionsService.GetOptionsAsync("country", _language, parameters);
+        var options = await appOptionsService.GetOptions("country", _language, parameters);
 
         options
             .Parameters.Should()
@@ -147,13 +147,13 @@ public class JoinedAppOptionsTests
     [Fact]
     public async Task JoinWithMissingProvider_ThrowsExceptionToWarnAboutMissconfiguration()
     {
-        _fileHandlerMock.Setup(p => p.ReadOptionsFromFileAsync("missing")).ReturnsAsync((List<AppOption>)null!);
+        _fileHandlerMock.Setup(p => p.ReadOptionsFromFile("missing")).ReturnsAsync((List<AppOption>)null!);
         _serviceCollection.AddJoinedAppOptions("country", "country-no-sentinel", "missing");
 
         using var sp = _serviceCollection.BuildStrictServiceProvider();
         var appOptionsService = sp.GetRequiredService<AppOptionsService>();
 
-        var action = new Func<Task>(async () => await appOptionsService.GetOptionsAsync("country", _language, new()));
+        var action = new Func<Task>(async () => await appOptionsService.GetOptions("country", _language, new()));
         var exception = await action.Should().ThrowAsync<KeyNotFoundException>();
         exception.WithMessage("missing is not registered as an app option");
 

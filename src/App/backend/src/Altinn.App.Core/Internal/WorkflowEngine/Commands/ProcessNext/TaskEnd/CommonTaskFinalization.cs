@@ -108,7 +108,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
                 gatewayAction: null,
                 language
             );
-            await LayoutEvaluator.RemoveHiddenDataAsync(
+            await LayoutEvaluator.RemoveHiddenData(
                 evaluationState,
                 RowRemovalOption.DeleteRow,
                 evaluateRemoveWhenHidden: true

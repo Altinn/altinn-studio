@@ -51,39 +51,13 @@ class WebFetchTool(Tool[WebFetchArgs]):
     is_concurrency_safe = True
 
     async def run(self, args: WebFetchArgs, ctx: LoopContext) -> ToolResult:
-        parsed = urlparse(args.url)
-        if parsed.scheme != "https":
-            return ToolResult(content="Only https:// URLs are allowed.", is_error=True)
-        host = (parsed.hostname or "").lower()
-        if host not in ALLOWED_HOSTS:
-            return ToolResult(
-                content=(f"Host {host!r} is not allowed. Allowed hosts: " + ", ".join(sorted(ALLOWED_HOSTS))),
-                is_error=True,
-            )
-
-        try:
-            async with httpx.AsyncClient(follow_redirects=True, timeout=FETCH_TIMEOUT_SECONDS) as client:
-                response = await client.get(args.url)
-                response.raise_for_status()
-        except httpx.HTTPStatusError as exc:
-            status = exc.response.status_code
-            hint = ""
-            if status == 404:
-                hint = "  Do not guess URLs — load `skill(altinn-docs)` and use a URL verbatim from its index."
-            return ToolResult(
-                content=f"HTTP {status} fetching {args.url}.{hint}",
-                is_error=True,
-            )
-        except httpx.HTTPError as exc:
-            return ToolResult(content=f"Fetch failed: {exc}", is_error=True)
-
-        content_type = response.headers.get("content-type", "")
-        text = response.text
-        title = _page_title(text) if "html" in content_type else None
-        if "html" in content_type:
-            text = _html_to_text(text)
-        if len(text) > MAX_RESPONSE_CHARS:
-            text = text[:MAX_RESPONSE_CHARS] + "\n…[truncated]"
+        refusal = _check_url(args.url)
+        if refusal is not None:
+            return refusal
+        response = await _fetch(args.url)
+        if isinstance(response, ToolResult):
+            return response
+        text, title = _extract_page(response)
         return ToolResult(
             content=text,
             metadata={
@@ -98,6 +72,50 @@ class WebFetchTool(Tool[WebFetchArgs]):
                 },
             },
         )
+
+
+def _check_url(url: str) -> ToolResult | None:
+    parsed = urlparse(url)
+    if parsed.scheme != "https":
+        return ToolResult(content="Only https:// URLs are allowed.", is_error=True)
+    host = (parsed.hostname or "").lower()
+    if host not in ALLOWED_HOSTS:
+        return ToolResult(
+            content=(f"Host {host!r} is not allowed. Allowed hosts: " + ", ".join(sorted(ALLOWED_HOSTS))),
+            is_error=True,
+        )
+    return None
+
+
+async def _fetch(url: str) -> httpx.Response | ToolResult:
+    try:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=FETCH_TIMEOUT_SECONDS) as client:
+            response = await client.get(url)
+            response.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        status = exc.response.status_code
+        hint = ""
+        if status == 404:
+            hint = "  Do not guess URLs — load `skill(altinn-docs)` and use a URL verbatim from its index."
+        return ToolResult(
+            content=f"HTTP {status} fetching {url}.{hint}",
+            is_error=True,
+        )
+    except httpx.HTTPError as exc:
+        return ToolResult(content=f"Fetch failed: {exc}", is_error=True)
+    return response
+
+
+def _extract_page(response: httpx.Response) -> tuple[str, str | None]:
+    """Return the readable text of the page and its title."""
+    text = response.text
+    title = None
+    if "html" in response.headers.get("content-type", ""):
+        title = _page_title(text)
+        text = _html_to_text(text)
+    if len(text) > MAX_RESPONSE_CHARS:
+        text = text[:MAX_RESPONSE_CHARS] + "\n…[truncated]"
+    return text, title
 
 
 def _page_title(html: str) -> str | None:

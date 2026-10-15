@@ -9,14 +9,23 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [9.0.0-preview.8] - 2026-10-14
+
+### Changed
+
+- Breaking: the app libraries target .NET 11 RC2. ([#21108](https://github.com/Altinn/altinn-studio/pull/21108))
+- Breaking: app library methods no longer end in `Async`, for example `IAppOptionsProvider.GetAppOptions`, `IDataListProvider.GetDataList`, `IProcessExclusiveGateway.Filter` and `ISecretsClient.GetSecret`. Rename your implementations and calls; `studioctl app upgrade v9` does this for you. ([#19774](https://github.com/Altinn/altinn-studio/issues/19774))
+
 ### Fixed
 
-- A service task that gives up when `Wait.IsFinalCheck` is `true` can no longer fail with the generic error for an exhausted wait budget instead of its own. In unit tests, set `IsFinalCheck` directly: a past `Deadline` no longer implies it.
+- A service task that gives up when `Wait.IsFinalCheck` is `true` can no longer fail with the generic error for an exhausted wait budget instead of its own. In unit tests, set `IsFinalCheck` directly: a past `Deadline` no longer implies it. ([#20999](https://github.com/Altinn/altinn-studio/pull/20999))
 - Pages and components listed in `excludeFromPdf` in a task's `Settings.json` are now left out of the PDF that a PDF service task creates for that task through `autoPdfTaskIds`. ([#21107](https://github.com/Altinn/altinn-studio/issues/21107))
 
 ### Removed
 
 - Breaking: `IPdfFormatter` and the `pdf/format` endpoint. Leave pages or components out of the PDF with `excludeFromPdf` in the task's `Settings.json`, or, for conditional logic, use a PDF service task with a custom layout. `studioctl app upgrade v9` points out the implementations it finds. ([#19785](https://github.com/Altinn/altinn-studio/issues/19785))
+- Breaking: the obsolete two-parameter `LayoutEvaluator.RemoveHiddenDataAsync` and its blocking synchronous twin `LayoutEvaluator.RemoveHiddenData`. Await `LayoutEvaluator.RemoveHiddenData(state, rowRemovalOption, evaluateRemoveWhenHidden: false)` instead; `studioctl app upgrade v9` rewrites the asynchronous calls for you. ([#19774](https://github.com/Altinn/altinn-studio/issues/19774))
+- Breaking: the obsolete three-parameter `IProcessExclusiveGateway.FilterAsync`. Implement `Filter(outgoingFlows, instance, dataAccessor, processGatewayInformation)`, which no longer has a default; `studioctl app upgrade v9` adds the `dataAccessor` parameter for you. ([#19782](https://github.com/Altinn/altinn-studio/issues/19782))
 
 ## [9.0.0-preview.7] - 2026-10-07
 

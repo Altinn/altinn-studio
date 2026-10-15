@@ -1,0 +1,82 @@
+# Cilium policies for pdf3's pods. A pod a policy selects for a direction only gets the traffic
+# some policy allows in that direction. Traffic from the pod's own node, the kubelet's probes,
+# is allowed by Cilium regardless.
+#
+# Linkerd's proxy is reached on the application port, or on 4143 when the client's Linkerd
+# proxy uses its transport port, so both are allowed where a meshed client calls a meshed pod.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: pdf3-proxy
+spec:
+  endpointSelector:
+    matchLabels:
+      app: pdf3-proxy
+  ingress:
+    # Traefik, which DIS Edge reaches. Linkerd only lets Traefik's identity through.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "5030"
+              protocol: TCP
+            - port: "4143"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: pdf3-worker
+spec:
+  endpointSelector:
+    matchLabels:
+      app: pdf3-worker
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app: pdf3-proxy
+      toPorts:
+        - ports:
+            - port: "5031"
+              protocol: TCP
+  # Chrome loads whatever page a request names, so the workers may only reach DNS and the public
+  # internet. A CIDR rule never matches pods or nodes in the cluster, so the allow rule below
+  # doesn't reach the cluster's pods, Services or nodes. It allows every address; the private and
+  # link-local ranges are excluded once, in egressDeny, which wins over this and every other allow.
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    - toCIDR:
+        - 0.0.0.0/0
+        - ::/0
+  # Denied even if another policy, such as one for the whole cluster, allows it. Deny rules win
+  # over allow rules. Private and link-local addresses outside the cluster: the virtual
+  # network, its peers and private endpoints, the instance metadata service (169.254.169.254)
+  # and Azure's platform address (168.63.129.16). Pods and Services in DIS Core are in 10.0.0.0/8
+  # and fc00::/7 as well, assumed to be the platform defaults 10.240.0.0/16 and 10.250.0.0/24.
+  # Loopback is listed for completeness: traffic within the pod never reaches Cilium.
+  egressDeny:
+    - toCIDRSet:
+        - cidr: 10.0.0.0/8
+        - cidr: 172.16.0.0/12
+        - cidr: 192.168.0.0/16
+        - cidr: 100.64.0.0/10
+        - cidr: 169.254.0.0/16
+        - cidr: 127.0.0.0/8
+        - cidr: 168.63.129.16/32
+        - cidr: fc00::/7
+        - cidr: fe80::/10
+        - cidr: ::1/128
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
