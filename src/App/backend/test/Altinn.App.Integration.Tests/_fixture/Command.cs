@@ -50,10 +50,15 @@ internal sealed record Command(
                 var stdout = new StringBuilder();
                 var stderr = new StringBuilder();
                 var allOutput = new StringBuilder();
+                var stdoutClosed = new TaskCompletionSource();
+                var stderrClosed = new TaskCompletionSource();
                 proc.OutputDataReceived += (_, args) =>
                 {
                     if (args.Data is null)
+                    {
+                        stdoutClosed.TrySetResult();
                         return;
+                    }
 
                     Logger?.LogInformation("'{Command}' stdout: {Line}", cmd, args.Data);
                     lock (@lock)
@@ -65,7 +70,10 @@ internal sealed record Command(
                 proc.ErrorDataReceived += (_, args) =>
                 {
                     if (args.Data is null)
+                    {
+                        stderrClosed.TrySetResult();
                         return;
+                    }
 
                     Logger?.LogError("'{Command}' stderr: {Line}", cmd, args.Data);
                     lock (@lock)
@@ -87,20 +95,12 @@ internal sealed record Command(
                         exited = proc.WaitForExit(TimeSpan.FromSeconds(0.5));
                     } while (!exited);
 
-                    // The process has exited, but the async output handlers may not have seen all output yet.
-                    // Only the parameterless WaitForExit() drains the redirected streams to EOF, and it can hang
-                    // indefinitely while draining output from dotnet pack, so bound it with a grace period.
-                    var drainThread = new Thread(() =>
-                    {
-                        try
-                        {
-                            proc.WaitForExit();
-                        }
-                        catch { }
-                    });
-                    drainThread.IsBackground = true;
-                    drainThread.Start();
-                    drainThread.Join(TimeSpan.FromSeconds(5));
+                    // WaitForExit(timeout) returns when the process exits, before the output handlers have received
+                    // the rest of the output. WaitForExit() waits for that, but hangs indefinitely when a descendant
+                    // (e.g. MSBuild nodes or build servers started by dotnet pack) keeps the redirected pipes open.
+                    // So wait for the end of both streams with a bounded timeout.
+                    if (!Task.WaitAll([stdoutClosed.Task, stderrClosed.Task], TimeSpan.FromSeconds(5)))
+                        Logger?.LogWarning("'{Command}' output did not close within 5 seconds of exit", cmd);
 
                     if (proc.ExitCode != 0)
                     {
