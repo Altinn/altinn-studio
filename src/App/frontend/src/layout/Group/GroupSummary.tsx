@@ -4,7 +4,7 @@ import { Flex } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
-import type { HeadingProps } from '@digdir/designsystemet-react';
+import type { HeadingLevel } from '@app/layout-contract/generated/common.generated';
 
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
@@ -19,18 +19,12 @@ interface GroupComponentSummaryProps extends Summary2Props {
   hierarchyLevel?: number;
 }
 
-type HeadingLevel = HeadingProps['level'];
+const headingSizes = { 2: 'sm', 3: 'xs', 4: '2xs', 5: '2xs', 6: '2xs' } as const;
 
 function getHeadingLevel(hierarchyLevel: number): HeadingLevel {
   const minimumHeadingLevel = 3;
   const maximumHeadingLevel = 6;
-  const computedHeadingLevel = minimumHeadingLevel + hierarchyLevel;
-  if (computedHeadingLevel <= maximumHeadingLevel) {
-    return computedHeadingLevel as HeadingLevel;
-  }
-  if (computedHeadingLevel > maximumHeadingLevel) {
-    return maximumHeadingLevel;
-  }
+  return Math.min(minimumHeadingLevel + hierarchyLevel, maximumHeadingLevel) as HeadingLevel;
 }
 
 interface ChildComponentProps extends Pick<GroupComponentSummaryProps, 'hierarchyLevel'> {
@@ -69,7 +63,7 @@ export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: Grou
   );
 
   const title = summaryTitle || resolvedTitle;
-  const headingLevel = getHeadingLevel(hierarchyLevel);
+  const headingLevel = config.headingLevel ?? getHeadingLevel(hierarchyLevel);
   const isNestedGroup = hierarchyLevel > 0;
   const dataTestId = hierarchyLevel > 0 ? `summary-group-component-${hierarchyLevel}` : 'summary-group-component';
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
@@ -84,7 +78,7 @@ export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: Grou
       >
         {(summaryTitle || title) && (
           <Heading
-            data-size={isNestedGroup ? 'xs' : 'sm'}
+            data-size={config.headingLevel ? headingSizes[config.headingLevel] : isNestedGroup ? 'xs' : 'sm'}
             level={headingLevel}
           >
             <Lang id={summaryTitle ?? title} />
