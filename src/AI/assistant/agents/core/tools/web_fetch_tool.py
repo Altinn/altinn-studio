@@ -8,6 +8,9 @@ scan the index, pick the relevant page, fetch it.  Deliberately narrow:
     also keeps prompt-injection surface small: pages fetched are
     first-party Altinn documentation.
   * GET only, response capped, HTML reduced to readable text.
+  * Redirects are followed, because the docs site sends each URL without
+    a final slash to the URL with the slash.  Each redirect must pass the
+    same allowlist check as the first URL.
 """
 
 from __future__ import annotations
@@ -23,6 +26,7 @@ from agents.core.tool import LoopContext, Tool, ToolResult
 ALLOWED_HOSTS = {"docs.altinn.studio", "altinncdn.no", "www.altinn.studio", "altinn.studio"}
 MAX_RESPONSE_CHARS = 60_000
 FETCH_TIMEOUT_SECONDS = 20.0
+MAX_REDIRECTS = 3
 
 _TAG_STRIP_RE = re.compile(r"<(script|style|nav|header|footer)[^>]*>.*?</\1>", re.DOTALL | re.IGNORECASE)
 _HTML_TAG_RE = re.compile(r"<[^>]+>")
@@ -58,16 +62,17 @@ class WebFetchTool(Tool[WebFetchArgs]):
         if isinstance(response, ToolResult):
             return response
         text, title = _extract_page(response)
+        url = str(response.url)
         return ToolResult(
             content=text,
             metadata={
-                "url": args.url,
+                "url": url,
                 "chars": len(text),
                 # Consulted-source record, collected by the loop and shown
                 # in the chat UI.  Ground truth: this page WAS fetched.
                 "source": {
-                    "title": title or _title_from_url(args.url),
-                    "url": args.url,
+                    "title": title or _title_from_url(url),
+                    "url": url,
                     "kind": "docs",
                 },
             },
@@ -75,13 +80,15 @@ class WebFetchTool(Tool[WebFetchArgs]):
 
 
 def _check_url(url: str) -> ToolResult | None:
-    parsed = urlparse(url)
+    try:
+        parsed = httpx.URL(url)
+    except httpx.InvalidURL as exc:
+        return ToolResult(content=f"Invalid URL: {exc}", is_error=True)
     if parsed.scheme != "https":
         return ToolResult(content="Only https:// URLs are allowed.", is_error=True)
-    host = (parsed.hostname or "").lower()
-    if host not in ALLOWED_HOSTS:
+    if parsed.host not in ALLOWED_HOSTS:
         return ToolResult(
-            content=(f"Host {host!r} is not allowed. Allowed hosts: " + ", ".join(sorted(ALLOWED_HOSTS))),
+            content=(f"Host {parsed.host!r} is not allowed. Allowed hosts: " + ", ".join(sorted(ALLOWED_HOSTS))),
             is_error=True,
         )
     return None
@@ -89,7 +96,12 @@ def _check_url(url: str) -> ToolResult | None:
 
 async def _fetch(url: str) -> httpx.Response | ToolResult:
     try:
-        async with httpx.AsyncClient(follow_redirects=True, timeout=FETCH_TIMEOUT_SECONDS) as client:
+        async with httpx.AsyncClient(
+            follow_redirects=True,
+            max_redirects=MAX_REDIRECTS,
+            timeout=FETCH_TIMEOUT_SECONDS,
+            event_hooks={"request": [_check_redirect]},
+        ) as client:
             response = await client.get(url)
             response.raise_for_status()
     except httpx.HTTPStatusError as exc:
@@ -98,12 +110,23 @@ async def _fetch(url: str) -> httpx.Response | ToolResult:
         if status == 404:
             hint = "  Do not guess URLs — load `skill(altinn-docs)` and use a URL verbatim from its index."
         return ToolResult(
-            content=f"HTTP {status} fetching {url}.{hint}",
+            content=f"HTTP {status} fetching {exc.response.url}.{hint}",
             is_error=True,
         )
     except httpx.HTTPError as exc:
         return ToolResult(content=f"Fetch failed: {exc}", is_error=True)
     return response
+
+
+class _RefusedRedirectError(httpx.RequestError):
+    """A redirect goes to a URL that `_check_url` refuses."""
+
+
+async def _check_redirect(request: httpx.Request) -> None:
+    """httpx calls this before each request, so also before each redirect."""
+    refusal = _check_url(str(request.url))
+    if refusal is not None:
+        raise _RefusedRedirectError(f"Redirect to {request.url} refused. {refusal.content}", request=request)
 
 
 def _extract_page(response: httpx.Response) -> tuple[str, str | None]:
