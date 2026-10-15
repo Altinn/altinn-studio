@@ -88,20 +88,20 @@ public sealed class GridComponent : ReferenceComponent
         /// Create a grid row
         /// </summary>
         [JsonConstructor]
-        public GridRowConfig(ImmutableArray<GridCellConfig?> cells)
+        public GridRowConfig(IReadOnlyList<GridCellConfig?>? cells)
         {
-            if (cells.IsDefault)
+            if (cells is null)
             {
                 throw new JsonException("Each grid row must have a \"cells\" array.");
             }
-            Cells = cells;
+            Cells = cells.ToImmutableArray();
         }
 
         /// <summary>
         /// List of cells in the grid row, each cell can optionally refer to a component ID (or static headers we don't care about in backend)
         /// </summary>
         [JsonPropertyName("cells")]
-        public ImmutableArray<GridCellConfig?> Cells { get; }
+        public IReadOnlyList<GridCellConfig?> Cells { get; }
     }
 
     /// <summary>

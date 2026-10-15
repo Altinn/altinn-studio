@@ -108,10 +108,11 @@ public static partial class ExpressionEvaluator
         }
 
         ValidateExpressionArgs(expr);
-        var args = new ExpressionValue[expr.Args.Length];
+        var exprArgs = expr.Args;
+        var args = new ExpressionValue[exprArgs.Length];
         for (var i = 0; i < args.Length; i++)
         {
-            args[i] = await EvaluateExpression_internal(state, expr.Args[i], context, positionalArguments);
+            args[i] = await EvaluateExpression_internal(state, exprArgs[i], context, positionalArguments);
         }
 
         ExpressionValue ret = expr.Function switch

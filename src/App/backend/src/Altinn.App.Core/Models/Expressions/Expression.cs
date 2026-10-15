@@ -14,6 +14,8 @@ namespace Altinn.App.Core.Models.Expressions;
 [JsonConverter(typeof(ExpressionConverter))]
 public readonly struct Expression : IEquatable<Expression>
 {
+    private readonly ImmutableArray<Expression> _args;
+
     /// <summary>
     ///     Construct a value expression with the given literal value
     /// </summary>
@@ -21,34 +23,14 @@ public readonly struct Expression : IEquatable<Expression>
     public Expression(ExpressionValue value)
     {
         Function = ExpressionFunction.LITERAL_VALUE;
-        Args = default;
+        _args = default;
         ValueUnion = value;
     }
 
     /// <summary>
     /// Construct a function expression with the given function and arguments
     /// </summary>
-    public Expression(ExpressionFunction function, Expression[] args)
-    {
-        if (function == ExpressionFunction.LITERAL_VALUE)
-        {
-            throw new ArgumentException("Function LITERAL_VALUE cannot have arguments", nameof(function));
-        }
-        if (args == null)
-        {
-            throw new ArgumentNullException(
-                nameof(args),
-                "Args cannot be null when constructing a function expression"
-            );
-        }
-        Function = function;
-        Args = ImmutableArray.Create(args);
-    }
-
-    /// <summary>
-    /// Construct a function expression without copying the arguments
-    /// </summary>
-    internal Expression(ExpressionFunction function, ImmutableArray<Expression> args)
+    public Expression(ExpressionFunction function, ImmutableArray<Expression> args)
     {
         if (function == ExpressionFunction.LITERAL_VALUE)
         {
@@ -62,15 +44,8 @@ public readonly struct Expression : IEquatable<Expression>
             );
         }
         Function = function;
-        Args = args;
+        _args = args;
     }
-
-    /// <summary>
-    /// Construct a function expression with the given function and arguments
-    /// </summary>
-    [Obsolete("Use the constructor with Expression[] instead")]
-    public Expression(ExpressionFunction function, List<Expression> args)
-        : this(function, args.ToArray()) { }
 
     /// <summary>
     ///     Construct a value expression with the given value
@@ -84,13 +59,13 @@ public readonly struct Expression : IEquatable<Expression>
     /// Construct a function expression with the given function and arguments
     /// </summary>
     public Expression(ExpressionFunction function, Expression arg1)
-        : this(function, new[] { arg1 }) { }
+        : this(function, [arg1]) { }
 
     /// <summary>
     /// Construct a function expression with the given function and arguments
     /// </summary>
     public Expression(ExpressionFunction function, Expression arg1, Expression arg2)
-        : this(function, new[] { arg1, arg2 }) { }
+        : this(function, [arg1, arg2]) { }
 
     /// <summary>
     /// Test function to see if this is representing a function with args.
@@ -101,7 +76,7 @@ public readonly struct Expression : IEquatable<Expression>
     /// <summary>
     /// Test to see if this expression must be evaluated or is just a literal value.
     /// </summary>
-    public bool IsLiteralValue => Args.IsDefault;
+    public bool IsLiteralValue => _args.IsDefault;
 
     /// <summary>
     /// Name of the function. Must be one those actually implemented in <see cref="ExpressionEvaluator" />
@@ -111,10 +86,13 @@ public readonly struct Expression : IEquatable<Expression>
     /// <summary>
     /// List of arguments to the function. These expressions will be evaluated before passed to the function.
     /// </summary>
-    /// <remarks>
-    /// Default (<see cref="ImmutableArray{T}.IsDefault"/>) for a literal value, see <see cref="IsLiteralValue"/>.
-    /// </remarks>
-    public ImmutableArray<Expression> Args { get; }
+    /// <exception cref="InvalidOperationException">The expression is a literal value (<see cref="IsLiteralValue"/>)</exception>
+    public ImmutableArray<Expression> Args =>
+        _args.IsDefault
+            ? throw new InvalidOperationException(
+                "A literal value expression has no arguments. Check IsLiteralValue before reading Args."
+            )
+            : _args;
 
     /// <summary>
     /// Get the object value for backwards compatibility

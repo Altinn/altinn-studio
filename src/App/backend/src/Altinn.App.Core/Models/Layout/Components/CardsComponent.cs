@@ -75,14 +75,14 @@ public sealed class CardsConfig
     /// Create the configuration for a card
     /// </summary>
     [JsonConstructor]
-    public CardsConfig(ImmutableArray<string> children)
+    public CardsConfig(IReadOnlyList<string>? children)
     {
-        Children = children.IsDefault ? [] : children;
+        Children = children?.ToImmutableArray() ?? [];
     }
 
     /// <summary>
     /// List of child component IDs that belong to this card.
     /// </summary>
     [JsonPropertyName("children")]
-    public ImmutableArray<string> Children { get; }
+    public IReadOnlyList<string> Children { get; }
 }

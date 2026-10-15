@@ -238,7 +238,7 @@ public sealed class ComponentContext
 
             public ExpressionFunction Function => _expression.Function;
             public IEnumerable<DebuggerEvaluatedExpression>? Args =>
-                _expression.Args.IsDefault
+                _expression.IsLiteralValue
                     ? null
                     : _expression.Args.Select(e => new DebuggerEvaluatedExpression(e, _context));
             public Task<ExpressionValue> EvaluationResult =>

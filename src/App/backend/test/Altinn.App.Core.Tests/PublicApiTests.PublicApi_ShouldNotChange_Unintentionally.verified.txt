@@ -4510,9 +4510,7 @@ namespace Altinn.App.Core.Models.Expressions
         [System.Obsolete("Use the constructor with ExpressionValue instead")]
         public Expression(object? value) { }
         public Expression(Altinn.App.Core.Models.Expressions.ExpressionFunction function, Altinn.App.Core.Models.Expressions.Expression arg1) { }
-        public Expression(Altinn.App.Core.Models.Expressions.ExpressionFunction function, Altinn.App.Core.Models.Expressions.Expression[] args) { }
-        [System.Obsolete("Use the constructor with Expression[] instead")]
-        public Expression(Altinn.App.Core.Models.Expressions.ExpressionFunction function, System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.Expression> args) { }
+        public Expression(Altinn.App.Core.Models.Expressions.ExpressionFunction function, System.Collections.Immutable.ImmutableArray<Altinn.App.Core.Models.Expressions.Expression> args) { }
         public Expression(Altinn.App.Core.Models.Expressions.ExpressionFunction function, Altinn.App.Core.Models.Expressions.Expression arg1, Altinn.App.Core.Models.Expressions.Expression arg2) { }
         public System.Collections.Immutable.ImmutableArray<Altinn.App.Core.Models.Expressions.Expression> Args { get; }
         public Altinn.App.Core.Models.Expressions.ExpressionFunction Function { get; }
@@ -4613,6 +4611,16 @@ namespace Altinn.App.Core.Models.Layout.Components.Base
         public virtual System.Threading.Tasks.Task<bool> IsHidden(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
         public virtual System.Threading.Tasks.Task<bool> IsRequired(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
         public virtual System.Threading.Tasks.Task<bool> ShouldRemoveWhenHidden(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
+        protected static System.Collections.Immutable.ImmutableArray<string> ParseChildReferences(System.Text.Json.JsonElement componentElement) { }
+        protected static System.Collections.Generic.IReadOnlyDictionary<string, Altinn.App.Core.Models.Layout.ModelBinding> ParseDataModelBindings(System.Text.Json.JsonElement element) { }
+        protected static Altinn.App.Core.Models.Expressions.Expression ParseExpression(System.Text.Json.JsonElement componentElement, string property, Altinn.App.Core.Internal.Expressions.ExpressionValue defaultValue) { }
+        protected static Altinn.App.Core.Models.Expressions.Expression ParseHiddenExpression(System.Text.Json.JsonElement componentElement) { }
+        protected static string ParseId(System.Text.Json.JsonElement componentElement) { }
+        protected static Altinn.App.Core.Models.Expressions.Expression ParseReadOnlyExpression(System.Text.Json.JsonElement componentElement) { }
+        protected static Altinn.App.Core.Models.Expressions.Expression ParseRemoveWhenHiddenExpression(System.Text.Json.JsonElement componentElement) { }
+        protected static Altinn.App.Core.Models.Expressions.Expression ParseRequiredExpression(System.Text.Json.JsonElement componentElement) { }
+        protected static System.Collections.Generic.IReadOnlyDictionary<string, Altinn.App.Core.Models.Expressions.Expression> ParseTextResourceBindings(System.Text.Json.JsonElement element) { }
+        protected static string ParseType(System.Text.Json.JsonElement componentElement) { }
     }
     public abstract class BaseLayoutComponent : Altinn.App.Core.Models.Layout.Components.Base.BaseComponent
     {
@@ -4641,9 +4649,9 @@ namespace Altinn.App.Core.Models.Layout.Components
     public sealed class CardsConfig
     {
         [System.Text.Json.Serialization.JsonConstructor]
-        public CardsConfig(System.Collections.Immutable.ImmutableArray<string> children) { }
+        public CardsConfig(System.Collections.Generic.IReadOnlyList<string>? children) { }
         [System.Text.Json.Serialization.JsonPropertyName("children")]
-        public System.Collections.Immutable.ImmutableArray<string> Children { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Children { get; }
     }
     public sealed class GridComponent : Altinn.App.Core.Models.Layout.Components.Base.ReferenceComponent
     {
@@ -4658,9 +4666,9 @@ namespace Altinn.App.Core.Models.Layout.Components
         public sealed class GridRowConfig
         {
             [System.Text.Json.Serialization.JsonConstructor]
-            public GridRowConfig(System.Collections.Immutable.ImmutableArray<Altinn.App.Core.Models.Layout.Components.GridComponent.GridCellConfig?> cells) { }
+            public GridRowConfig(System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Layout.Components.GridComponent.GridCellConfig?>? cells) { }
             [System.Text.Json.Serialization.JsonPropertyName("cells")]
-            public System.Collections.Immutable.ImmutableArray<Altinn.App.Core.Models.Layout.Components.GridComponent.GridCellConfig?> Cells { get; }
+            public System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Models.Layout.Components.GridComponent.GridCellConfig?> Cells { get; }
         }
     }
     public sealed class LikertComponent : Altinn.App.Core.Models.Layout.Components.Base.NoReferenceComponent
@@ -4738,9 +4746,9 @@ namespace Altinn.App.Core.Models.Layout.Components
     public sealed class TabsConfig
     {
         [System.Text.Json.Serialization.JsonConstructor]
-        public TabsConfig(System.Collections.Immutable.ImmutableArray<string> children) { }
+        public TabsConfig(System.Collections.Generic.IReadOnlyList<string>? children) { }
         [System.Text.Json.Serialization.JsonPropertyName("children")]
-        public System.Collections.Immutable.ImmutableArray<string> Children { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Children { get; }
     }
 }
 namespace Altinn.App.Core.Models.Layout

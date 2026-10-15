@@ -41,7 +41,7 @@ public class TestInvalid
             LayoutModel? componentModel = null;
             if (test.Layouts is not null)
             {
-                var layout = new UiFolderComponent(test.Layouts, "layout", dataType.Id);
+                var layout = UiFolderParser.Parse(test.Layouts, "layout", dataType.Id);
                 componentModel = new LayoutModel([layout], null);
             }
 

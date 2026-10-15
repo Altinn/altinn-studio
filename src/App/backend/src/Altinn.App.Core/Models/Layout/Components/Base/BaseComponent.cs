@@ -123,7 +123,7 @@ public abstract class BaseComponent
     /// <summary>
     /// Parse the Id property from a JsonElement
     /// </summary>
-    private protected static string ParseId(JsonElement componentElement)
+    protected static string ParseId(JsonElement componentElement)
     {
         if (
             !componentElement.TryGetProperty("id", out JsonElement idElement)
@@ -139,7 +139,7 @@ public abstract class BaseComponent
     /// <summary>
     /// Parse the Type property from a JsonElement
     /// </summary>
-    private protected static string ParseType(JsonElement componentElement)
+    protected static string ParseType(JsonElement componentElement)
     {
         if (
             !componentElement.TryGetProperty("type", out JsonElement typeElement)
@@ -155,7 +155,7 @@ public abstract class BaseComponent
     /// <summary>
     /// Helper method to parse an expression from a JSON element.
     /// </summary>
-    private protected static Expression ParseExpression(
+    protected static Expression ParseExpression(
         JsonElement componentElement,
         string property,
         ExpressionValue defaultValue
@@ -172,31 +172,31 @@ public abstract class BaseComponent
     /// <summary>
     /// Parses the 'required' expression from a JSON element.
     /// </summary>
-    private protected static Expression ParseRequiredExpression(JsonElement componentElement) =>
+    protected static Expression ParseRequiredExpression(JsonElement componentElement) =>
         ParseExpression(componentElement, "required", ExpressionValue.False);
 
     /// <summary>
     /// Parses the 'readOnly' expression from a JSON element.
     /// </summary>
-    private protected static Expression ParseReadOnlyExpression(JsonElement componentElement) =>
+    protected static Expression ParseReadOnlyExpression(JsonElement componentElement) =>
         ParseExpression(componentElement, "readOnly", ExpressionValue.False);
 
     /// <summary>
     /// Parses the 'hidden' expression from a JSON element.
     /// </summary>
-    private protected static Expression ParseHiddenExpression(JsonElement componentElement) =>
+    protected static Expression ParseHiddenExpression(JsonElement componentElement) =>
         ParseExpression(componentElement, "hidden", ExpressionValue.False);
 
     /// <summary>
     /// Parses the 'removeWhenHidden' expression from a JSON element.
     /// </summary>
-    private protected static Expression ParseRemoveWhenHiddenExpression(JsonElement componentElement) =>
+    protected static Expression ParseRemoveWhenHiddenExpression(JsonElement componentElement) =>
         ParseExpression(componentElement, "removeWhenHidden", ExpressionValue.True);
 
     /// <summary>
     /// Parses the data model bindings from a JSON element.
     /// </summary>
-    private protected static IReadOnlyDictionary<string, ModelBinding> ParseDataModelBindings(JsonElement element)
+    protected static IReadOnlyDictionary<string, ModelBinding> ParseDataModelBindings(JsonElement element)
     {
         if (
             !element.TryGetProperty("dataModelBindings", out JsonElement dataModelBindingsElement)
@@ -235,7 +235,7 @@ public abstract class BaseComponent
     /// <summary>
     /// Parses the text resource bindings from a JSON element.
     /// </summary>
-    private protected static IReadOnlyDictionary<string, Expression> ParseTextResourceBindings(JsonElement element)
+    protected static IReadOnlyDictionary<string, Expression> ParseTextResourceBindings(JsonElement element)
     {
         if (
             !element.TryGetProperty("textResourceBindings", out JsonElement textResourceBindingsElement)
@@ -259,7 +259,7 @@ public abstract class BaseComponent
     /// Parses the child references from a JSON element.
     /// Extracts the child component IDs from a JSON element, stripping any multipage group index.
     /// </summary>
-    private protected static ImmutableArray<string> ParseChildReferences(JsonElement componentElement)
+    protected static ImmutableArray<string> ParseChildReferences(JsonElement componentElement)
     {
         if (
             !componentElement.TryGetProperty("children", out JsonElement childrenElement)

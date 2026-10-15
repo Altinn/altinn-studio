@@ -1,6 +1,5 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
-using System.Text.Json;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -29,17 +28,6 @@ public sealed class UiFolderComponent
         Name = id;
         DefaultDataTypeId = defaultDataTypeId;
     }
-
-    internal UiFolderComponent(
-        IReadOnlyDictionary<string, JsonElement> layouts,
-        string folderName,
-        string defaultDataTypeId
-    )
-        : this(
-            layouts.Select(kvp => PageComponent.Parse(kvp.Value, kvp.Key, folderName)),
-            folderName,
-            defaultDataTypeId
-        ) { }
 
     /// <summary>
     /// Name of the folder

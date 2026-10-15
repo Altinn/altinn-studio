@@ -75,14 +75,14 @@ public sealed class TabsConfig
     /// Create the configuration for a tab
     /// </summary>
     [JsonConstructor]
-    public TabsConfig(ImmutableArray<string> children)
+    public TabsConfig(IReadOnlyList<string>? children)
     {
-        Children = children.IsDefault ? [] : children;
+        Children = children?.ToImmutableArray() ?? [];
     }
 
     /// <summary>
     /// List of child component IDs that belong to this tab.
     /// </summary>
     [JsonPropertyName("children")]
-    public ImmutableArray<string> Children { get; }
+    public IReadOnlyList<string> Children { get; }
 }

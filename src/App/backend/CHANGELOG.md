@@ -40,7 +40,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Removed
 
-- Breaking: remove `RepeatingGroupRowComponent.FromGroup` and the public `Parse` and `ClaimChildren` methods on layout components, such as `GridComponent.Parse`. Use `RepeatingGroupComponent.RowComponent` instead, and `PageComponent.Parse` to parse a page. ([#PR](https://github.com/Altinn/altinn-studio/pull/PR))
+- Breaking: remove `RepeatingGroupRowComponent.FromGroup`, the public `Parse` and `ClaimChildren` methods on layout components, such as `GridComponent.Parse`, and the `Expression` constructors taking `Expression[]` or `List<Expression>`. Use `RepeatingGroupComponent.RowComponent`, `PageComponent.Parse` to parse a page, and arguments such as `[arg1, arg2]`. ([#PR](https://github.com/Altinn/altinn-studio/pull/PR))
 - Breaking: remove `IOnProcessEndingHandler`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. Logic that must stop the process from ending belongs in the last task's `IOnTaskEndingHandler`, or its `IOnTaskAbandonHandler` when a rejection ends the process. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Breaking: remove `IProcessEnd`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. `studioctl app upgrade v9` lists the classes and registrations to port. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 

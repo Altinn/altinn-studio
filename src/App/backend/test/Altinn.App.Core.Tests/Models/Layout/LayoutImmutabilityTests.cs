@@ -170,6 +170,17 @@ public class LayoutImmutabilityTests
     }
 
     [Fact]
+    public void LiteralExpression_ArgsThrows()
+    {
+        Assert.True(Expression.False.IsLiteralValue);
+        Assert.Throws<InvalidOperationException>(() => Expression.False.Args);
+
+        var function = new Expression(ExpressionFunction.not, Expression.False);
+        Assert.False(function.IsLiteralValue);
+        Assert.Single(function.Args);
+    }
+
+    [Fact]
     public void UiFolder_KeepsItsOwnCopyOfThePages()
     {
         var pages = new List<PageComponent> { ParsePage() };
