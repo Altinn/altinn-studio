@@ -8,7 +8,7 @@ const labels = [
   { id: 'reference-group', title: 'Oppsummerte referanser' },
 ];
 
-describe('Summary2 labels', () => {
+describe('Summary2 labels', { retries: 0 }, () => {
   for (const isCompact of [false, true]) {
     it(`shows descriptions and help with ${isCompact ? 'compact' : 'regular'} labels`, () => {
       cy.interceptLayout(
