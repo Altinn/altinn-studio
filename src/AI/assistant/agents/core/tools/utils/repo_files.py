@@ -2,7 +2,7 @@
 
 Read-before-write is enforced: the model cannot edit or overwrite an
 existing file it hasn't read.  This forces a "stabilize state, then
-modify" rhythm that CC uses to prevent blind retries.
+modify" rhythm to prevent blind retries.
 """
 
 from __future__ import annotations
