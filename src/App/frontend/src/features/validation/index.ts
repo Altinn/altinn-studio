@@ -70,6 +70,7 @@ export type NodeVisibility = 'visible' | 'showAll' | number;
 export type ValidationSliceState = {
   state: ValidationState;
   otherDataElementBackendValidations: DataModelValidations;
+  otherDataElementComponentValidations: Record<string, BackendComponentValidation[]>;
   formMask: number;
   pageMasks: Record<string, number>;
   rowMasks: Record<string, number>;

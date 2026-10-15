@@ -54,14 +54,19 @@ export function createValidationSlice(
   bootstrap: FormBootstrapContextValue,
   set: FormStoreSet,
 ): FormStoreState['validation'] {
+  const { componentValidations, otherDataElementComponentValidations } = partitionComponentValidations(
+    mapBackendIssuesToComponentValidations(bootstrap.allInitialValidations),
+    getMountedDataElementIds(bootstrap.dataModels),
+  );
   return {
     // =======
     // Publicly exposed state
     state: {
       task: mapBackendIssuesToTaskValidations(bootstrap.validationIssues ?? []),
-      component: mapBackendIssuesToComponentValidations(bootstrap.allInitialValidations),
+      component: componentValidations,
     },
     otherDataElementBackendValidations: {},
+    otherDataElementComponentValidations,
     formMask: 0,
     pageMasks: {},
     rowMasks: {},
@@ -110,7 +115,7 @@ export function createValidationSlice(
       }),
     setOtherDataElementBackendValidations: (dataElementId, validationIssues) =>
       set((state) => {
-        if (!getMountedDataElementIds(state).has(dataElementId)) {
+        if (!getMountedDataElementIds(state.data.models).has(dataElementId)) {
           const validations = mapValidatorGroupsToDataModelValidations(
             mapBackendValidationsToValidatorGroups(validationIssues),
           )[dataElementId];
@@ -119,6 +124,14 @@ export function createValidationSlice(
             state.validation.otherDataElementBackendValidations[dataElementId] = validations;
           } else {
             delete state.validation.otherDataElementBackendValidations[dataElementId];
+          }
+          const componentValidations = mapBackendIssuesToComponentValidations(validationIssues).filter(
+            (validation) => validation.dataElementId === dataElementId,
+          );
+          if (componentValidations.length) {
+            state.validation.otherDataElementComponentValidations[dataElementId] = componentValidations;
+          } else {
+            delete state.validation.otherDataElementComponentValidations[dataElementId];
           }
         }
       }),
@@ -142,7 +155,19 @@ export function updateBackendValidations(
       state.validation.state.task = taskValidations;
     }
     if (componentValidations) {
-      state.validation.state.component = componentValidations;
+      const partitioned = partitionComponentValidations(
+        componentValidations,
+        getMountedDataElementIds(state.data.models),
+      );
+      state.validation.state.component = partitioned.componentValidations;
+      if (processedLast?.initial) {
+        state.validation.otherDataElementComponentValidations = partitioned.otherDataElementComponentValidations;
+      } else {
+        Object.assign(
+          state.validation.otherDataElementComponentValidations,
+          partitioned.otherDataElementComponentValidations,
+        );
+      }
     }
     if (backendValidations) {
       for (const [dataType, model] of Object.entries(state.data.models)) {
@@ -151,7 +176,7 @@ export function updateBackendValidations(
       }
 
       if (!state.parent) {
-        const mountedDataElementIds = getMountedDataElementIds(state);
+        const mountedDataElementIds = getMountedDataElementIds(state.data.models);
         const isFullSnapshotUpdate = Boolean(processedLast?.initial);
         if (isFullSnapshotUpdate) {
           state.validation.otherDataElementBackendValidations = {};
@@ -166,12 +191,25 @@ export function updateBackendValidations(
   };
 }
 
-function getMountedDataElementIds(state: Pick<FormStoreState, 'data'>): Set<string> {
+function getMountedDataElementIds(models: Record<string, { dataElementId?: string | null }>): Set<string> {
   const mountedDataElementIds = new Set<string>();
-  for (const [dataType, model] of Object.entries(state.data.models)) {
+  for (const [dataType, model] of Object.entries(models)) {
     mountedDataElementIds.add(model.dataElementId ?? dataType);
   }
   return mountedDataElementIds;
+}
+
+function partitionComponentValidations(validations: BackendComponentValidation[], mountedDataElementIds: Set<string>) {
+  const componentValidations: BackendComponentValidation[] = [];
+  const otherDataElementComponentValidations: Record<string, BackendComponentValidation[]> = {};
+  for (const validation of validations) {
+    if (!validation.dataElementId || mountedDataElementIds.has(validation.dataElementId)) {
+      componentValidations.push(validation);
+    } else {
+      (otherDataElementComponentValidations[validation.dataElementId] ??= []).push(validation);
+    }
+  }
+  return { componentValidations, otherDataElementComponentValidations };
 }
 
 export function ValidationEffects() {
