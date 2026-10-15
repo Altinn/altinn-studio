@@ -22,13 +22,18 @@ sent to an in-cluster recorder (`alert-recorder` in `grafana`) instead of Slack.
 
 ```bash
 make test-alerts-check   # every rule's queries and message template, healthy state (a few minutes)
-make test-alerts         # fire and resolve rules with real faults (about 15 minutes)
+make test-alerts         # fire and resolve every rule with a scenario, with real faults (hours)
+make test-alerts-quiet   # no rule fires while the proxy, scraper and agents restart (about 20 minutes)
 ```
 
+One scenario runs with `go run ./cmd/alerttest run --scenario <name>`; `go run ./cmd/alerttest`
+lists them. Each takes the rule's pending period plus a few minutes, so `copy-down` (30 minutes)
+is the longest.
+
 Both start or update the fixture first (`--skip-fixture` skips that) and save their evidence in
-`.cache/alert-evidence/<time>-<command>/`: `timeline.log`, the raw notifications in
-`notifications.json`, a readable preview of them in `notifications.html`, and the rule's state at
-each step. They read the rules from the running Grafana, so set `DEVENV_DASHBOARDS_REPOSITORY`
+`.cache/alert-evidence/<time>-<command>/`: `timeline.log`, and per scenario the raw notifications
+in `notifications.json`, a readable preview of them in `notifications.html`, and the rule's state
+at each step. They read the rules from the running Grafana, so set `DEVENV_DASHBOARDS_REPOSITORY`
 to test rules from your own checkout. A run cleans up after itself; if it was interrupted,
 `go run ./cmd/alerttest cleanup` removes what it left.
 
@@ -40,7 +45,19 @@ the Observability dashboard's panel and the rule, the destination then accepts a
 drains, and after the rule's five-minute window the resolved notification arrives. While it runs,
 Flux reconciliation of `observability-victoria` is suspended and the agent's queue is cut to
 vmagent's minimum (512MiB), its blocks to 1MiB, and the dummy metric kept out of copy a; all of
-that is restored afterwards. To test another rule, add a `Scenario` in `pkg/alerttest`.
+that is restored afterwards. `queue-half-full` uses the same fault but stops the telemetry once
+the queue is 70% full.
+
+The other scenarios change the stack's own objects, saving each changed field's original value in
+an annotation on the object and suspending the owning Flux Kustomization until cleanup restores
+it: `heartbeat` scales `vmagent-self` to zero and `datasource-error` the proxy, Grafana's path to
+the metrics, both firing the heartbeat rule, `copy-down` scales metrics copy b to zero,
+`signal-unavailable` both logs copies, `read-only` restarts metrics copy b with a free-space floor
+above its disk, and `proxy-degraded` scales the proxy to one replica. `forwarding-errors`,
+`unauthenticated` and `rate-limited` send an empty OTLP log export to the proxy every second, and
+respectively scale the logs agent to zero, use a token the proxy rejects, or cut `runtime-local`'s
+rate limit to one request a minute. To test another rule, add a `Scenario` in `pkg/alerttest`;
+most fit a `FaultScenario`.
 
 See the recorder's preview and Grafana with:
 

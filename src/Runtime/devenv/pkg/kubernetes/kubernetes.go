@@ -1016,6 +1016,15 @@ func (c *KubernetesClient) ServiceProxy(ctx context.Context, req ServiceProxyReq
 	return status, body, nil
 }
 
+// ListPods returns the pods that match a label selector.
+func (c *KubernetesClient) ListPods(ctx context.Context, namespace, labelSelector string) ([]corev1.Pod, error) {
+	pods, err := c.clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{LabelSelector: labelSelector})
+	if err != nil {
+		return nil, fmt.Errorf("list pods %s in %s: %w", labelSelector, namespace, err)
+	}
+	return pods.Items, nil
+}
+
 // PodLogs returns the logs of every container of the pods matching labelSelector, each
 // prefixed with its pod name, without following them.
 func (c *KubernetesClient) PodLogs(ctx context.Context, namespace, labelSelector string) (string, error) {

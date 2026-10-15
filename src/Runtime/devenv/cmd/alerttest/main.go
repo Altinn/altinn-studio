@@ -21,7 +21,13 @@ import (
 
 const (
 	checkTimeout = 25 * time.Minute
-	runTimeout   = 60 * time.Minute
+	// runTimeout is per scenario; the longest waits half an hour before its rule fires.
+	runTimeout = 60 * time.Minute
+)
+
+const (
+	commandCheck = "check"
+	commandQuiet = "quiet"
 )
 
 var (
@@ -65,11 +71,12 @@ func usage() {
 	fmt.Fprintln(os.Stderr, "Commands:")
 	fmt.Fprintln(os.Stderr, "  check     Check every alert rule's queries and notification template (fires nothing)")
 	fmt.Fprintln(os.Stderr, "  run       Fire and resolve rules with real faults, checking the notifications")
+	fmt.Fprintln(os.Stderr, "  quiet     Check that no rule fires while the proxy, scraper and agents restart")
 	fmt.Fprintln(os.Stderr, "  cleanup   Remove what an interrupted run left behind")
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Scenarios:")
 	for _, s := range alerttest.Scenarios() {
-		fmt.Fprintf(os.Stderr, "  %-10s %s (%s)\n", s.Name(), s.Description(), s.RuleUID())
+		fmt.Fprintf(os.Stderr, "  %-19s %s (%s)\n", s.Name(), s.Description(), s.RuleUID())
 	}
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Environment:")
@@ -79,9 +86,9 @@ func usage() {
 func run(ctx context.Context, command, cacheDir, evidenceDir, scenarioName string, skipFixture bool) error {
 	var timeout time.Duration
 	switch command {
-	case "check":
+	case commandCheck:
 		timeout = checkTimeout
-	case "run", "cleanup":
+	case "run", "cleanup", commandQuiet:
 		timeout = runTimeout
 	default:
 		usage()
@@ -90,6 +97,9 @@ func run(ctx context.Context, command, cacheDir, evidenceDir, scenarioName strin
 	scenarios, err := selectScenarios(scenarioName)
 	if err != nil {
 		return err
+	}
+	if command == "run" {
+		timeout *= time.Duration(len(scenarios))
 	}
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -116,11 +126,19 @@ func run(ctx context.Context, command, cacheDir, evidenceDir, scenarioName strin
 		return err
 	}
 	evidence.Logf("evidence is saved in %s", evidenceDir)
+	return execute(ctx, command, env, scenarios)
+}
 
+func execute(ctx context.Context, command string, env *alerttest.Env, scenarios []alerttest.Scenario) error {
 	switch command {
-	case "check":
+	case commandCheck:
 		if err := alerttest.Check(ctx, env); err != nil {
 			return fmt.Errorf("check: %w", err)
+		}
+		return nil
+	case commandQuiet:
+		if err := alerttest.CheckQuiet(ctx, env); err != nil {
+			return fmt.Errorf("quiet: %w", err)
 		}
 		return nil
 	case "cleanup":
@@ -133,7 +151,7 @@ func run(ctx context.Context, command, cacheDir, evidenceDir, scenarioName strin
 		var errs []error
 		for _, scenario := range scenarios {
 			if err := alerttest.RunScenario(ctx, env, scenario, alerttest.DefaultTiming()); err != nil {
-				evidence.Logf("FAIL %s: %v", scenario.Name(), err)
+				env.Evidence.Logf("FAIL %s: %v", scenario.Name(), err)
 				errs = append(errs, fmt.Errorf("%s: %w", scenario.Name(), err))
 			}
 		}

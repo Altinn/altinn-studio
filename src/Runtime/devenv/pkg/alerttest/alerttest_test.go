@@ -81,3 +81,69 @@ func TestPreviewPlaceholderMatchesThePage(t *testing.T) {
 		t.Error("the recorder's preview page has no placeholder for embedded messages")
 	}
 }
+
+func TestLookupPointer(t *testing.T) {
+	object := map[string]any{"spec": map[string]any{
+		"replicaCount": 2,
+		"template":     map[string]any{"containers": []any{map[string]any{"name": "proxy"}}},
+	}}
+	if value, present, err := lookupPointer(object, "/spec/replicaCount"); err != nil || !present || value != 2 {
+		t.Errorf("replicaCount = %v, %v, %v", value, present, err)
+	}
+	if _, present, err := lookupPointer(object, "/spec/extraArgs"); err != nil || present {
+		t.Errorf("absent last field: present %v, err %v", present, err)
+	}
+	if value, _, err := lookupPointer(object, "/spec/template/containers/0/name"); err != nil || value != "proxy" {
+		t.Errorf("list index = %v, %v", value, err)
+	}
+	if _, _, err := lookupPointer(object, "/spec/missing/field"); !errors.Is(err, errBadPointer) {
+		t.Errorf("missing parent: err %v", err)
+	}
+}
+
+func TestOverrideValues(t *testing.T) {
+	env, err := withEnv("LIMIT", "1")([]any{
+		map[string]any{"name": "PORT", "value": "8080"},
+		map[string]any{"name": "LIMIT", "value": "100"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	list, ok := env.([]any)
+	if !ok || len(list) != 2 {
+		t.Fatalf("withEnv() = %v", env)
+	}
+	if last, ok := list[1].(map[string]any); !ok || last["value"] != "1" {
+		t.Errorf("withEnv() = %v, want LIMIT replaced", list)
+	}
+	args, err := withExtraArg("flag", "x")(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m, ok := args.(map[string]any); !ok || m["flag"] != "x" {
+		t.Errorf("withExtraArg() on no args = %v", args)
+	}
+}
+
+func TestScenarioNamesAreUnique(t *testing.T) {
+	seen := map[string]bool{}
+	for _, scenario := range Scenarios() {
+		if seen[scenario.Name()] {
+			t.Errorf("scenario %q listed twice", scenario.Name())
+		}
+		seen[scenario.Name()] = true
+	}
+}
+
+func TestIsNormal(t *testing.T) {
+	for state, want := range map[string]bool{
+		"Normal": true, "Normal (NoData)": true, "Pending": false, "Alerting": false, "Alerting (Error)": false,
+	} {
+		if got := isNormal(state); got != want {
+			t.Errorf("isNormal(%q) = %v, want %v", state, got, want)
+		}
+	}
+	if !hasState("Alerting (NoData)", stateAlerting) || hasState("AlertingX", stateAlerting) {
+		t.Error("hasState() does not take a reason only")
+	}
+}

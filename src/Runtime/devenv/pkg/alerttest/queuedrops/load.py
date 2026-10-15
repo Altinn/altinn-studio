@@ -1,11 +1,12 @@
-"""Dummy telemetry for the queue-drops alert test: series with random, incompressible label
-values, written to one vmagent replica until its queue for the refusing destination drops a
-block, or a byte cap is reached.
+"""Dummy telemetry for the queue alert tests: series with random, incompressible label values,
+written to one vmagent replica until its queue for the refusing destination drops a block, or,
+with FILL_BYTES set, holds that many bytes; or until a byte cap is reached.
 
 The load is paced at RATE bytes a second, so the agent buffers it within its memory limit.
 
 Environment: TARGET (the replica's base URL), QUEUE (a path fragment naming the queue, such as
-"/2_"), METRIC (the dummy metric's name), MAX_BYTES (the cap), RATE (bytes a second).
+"/2_"), METRIC (the dummy metric's name), MAX_BYTES (the cap), RATE (bytes a second), and
+optionally FILL_BYTES (the queue size to stop at instead of a drop).
 """
 
 import base64
@@ -20,15 +21,21 @@ QUEUE = os.environ["QUEUE"]
 METRIC = os.environ["METRIC"]
 MAX_BYTES = int(os.environ["MAX_BYTES"])
 RATE = int(os.environ["RATE"])
+FILL_BYTES = int(os.environ.get("FILL_BYTES", "0"))
 LINES = 100
 MAX_FAILURES = 10
 DROPPED = re.compile(r'^vm_persistentqueue_blocks_dropped_total\{([^}]*)\} (\S+)$', re.M)
+PENDING = re.compile(r'^vm_persistentqueue_bytes_pending\{([^}]*)\} (\S+)$', re.M)
+
+
+def queue_metric(pattern):
+    with urllib.request.urlopen(TARGET + "/metrics", timeout=10) as response:
+        text = response.read().decode()
+    return sum(float(value) for labels, value in pattern.findall(text) if QUEUE in labels)
 
 
 def dropped():
-    with urllib.request.urlopen(TARGET + "/metrics", timeout=10) as response:
-        text = response.read().decode()
-    return sum(float(value) for labels, value in DROPPED.findall(text) if QUEUE in labels)
+    return queue_metric(DROPPED)
 
 
 def send(payload):
@@ -67,5 +74,10 @@ while sent < MAX_BYTES:
         if now > start:
             print(f"queue {QUEUE} dropped {now - start:.0f} blocks; stopping the load", flush=True)
             sys.exit(0)
-print(f"reached the {MAX_BYTES >> 20} MiB cap without a drop", flush=True)
+    if FILL_BYTES and sent // (8 << 20) != (sent - len(payload)) // (8 << 20):
+        pending = queue_metric(PENDING)
+        if pending >= FILL_BYTES:
+            print(f"queue {QUEUE} holds {pending / (1 << 20):.0f} MiB; stopping the load", flush=True)
+            sys.exit(0)
+print(f"reached the {MAX_BYTES >> 20} MiB cap first", flush=True)
 sys.exit(1)

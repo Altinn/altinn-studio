@@ -67,6 +67,8 @@ const (
 	// blockTestLimit keeps vmagent's in-memory blocks small while it buffers the dummy
 	// telemetry, whose 3 KiB labels would otherwise fill its 512Mi memory limit.
 	blockTestLimit = 1 << 20
+	// queueHalfFullBytes is 70% of queueTestLimit.
+	queueHalfFullBytes = 375809728
 	// loadByteCap bounds the dummy telemetry, about three times the queue.
 	loadByteCap = 1536 << 20
 	// loadRate paces the dummy telemetry so the agent buffers it within its memory limit; at
@@ -80,6 +82,8 @@ const (
 	dropObservedWait   = 12 * time.Minute
 	queueDrainWait     = 6 * time.Minute
 	scenarioCPURequest = "50m"
+	queueHalf          = 0.5
+	percent            = 100
 )
 
 var (
@@ -97,11 +101,12 @@ var (
 	deploymentGVR    = appsv1.SchemeGroupVersion.WithResource("deployments")
 	serviceGVR       = corev1.SchemeGroupVersion.WithResource("services")
 	configMapGVR     = corev1.SchemeGroupVersion.WithResource("configmaps")
+	podGVR           = corev1.SchemeGroupVersion.WithResource("pods")
 	jobGVR           = batchv1.SchemeGroupVersion.WithResource("jobs")
 	networkPolicyGVR = networkingv1.SchemeGroupVersion.WithResource("networkpolicies")
 
 	errAgentShape = errors.New("unexpected VMAgent remote-write configuration")
-	errLoadFailed = errors.New("the dummy telemetry did not overflow the queue")
+	errLoadFailed = errors.New("the dummy telemetry did not fill the queue")
 )
 
 // QueueDropsScenario fires studio-obs-agent-queue-drops-prod with a genuine queue overflow:
@@ -112,23 +117,45 @@ var (
 // clears. The production query, threshold and window are untouched; the test overrides are
 // the queue's size, the destination and a relabeling that keeps the dummy telemetry out of
 // copy a, each restored afterwards.
-type QueueDropsScenario struct{}
+//
+// With fillBytes set, the same fault fires studio-obs-agent-queue-half-full-prod instead: the
+// dummy telemetry stops once the queue holds that much, and the queue stays that full until
+// recovery.
+type QueueDropsScenario struct {
+	name        string
+	description string
+	ruleUID     string
+	fillBytes   int
+}
 
 // NewQueueDropsScenario returns the queue-drops scenario.
 func NewQueueDropsScenario() *QueueDropsScenario {
-	return &QueueDropsScenario{}
+	return &QueueDropsScenario{
+		name:        testName,
+		description: "vmagent's destination for storage copy b refuses writes until its real queue overflows",
+		ruleUID:     "studio-obs-agent-queue-drops-prod",
+	}
+}
+
+// NewQueueHalfFullScenario returns the scenario that fills copy b's queue past half, without
+// overflowing it.
+func NewQueueHalfFullScenario() *QueueDropsScenario {
+	return &QueueDropsScenario{
+		name:        "queue-half-full",
+		description: "vmagent's destination for storage copy b refuses writes while its real queue fills to 70%",
+		ruleUID:     "studio-obs-agent-queue-half-full-prod",
+		fillBytes:   queueHalfFullBytes,
+	}
 }
 
 // Name identifies the scenario on the command line.
-func (s *QueueDropsScenario) Name() string { return testName }
+func (s *QueueDropsScenario) Name() string { return s.name }
 
 // Description says what fault the scenario causes.
-func (s *QueueDropsScenario) Description() string {
-	return "vmagent's destination for storage copy b refuses writes until its real queue overflows"
-}
+func (s *QueueDropsScenario) Description() string { return s.description }
 
 // RuleUID is the rule the scenario fires.
-func (s *QueueDropsScenario) RuleUID() string { return "studio-obs-agent-queue-drops-prod" }
+func (s *QueueDropsScenario) RuleUID() string { return s.ruleUID }
 
 // ExpectedLabels are the labels of the alert instance the fault fires: vmagent's queue for copy b.
 func (s *QueueDropsScenario) ExpectedLabels() map[string]string {
@@ -147,7 +174,7 @@ func (s *QueueDropsScenario) Inject(ctx context.Context, env *Env) error {
 	}
 	ev.Logf("refusing destination %s is up, answering writes with 503", refuserName)
 
-	if err := suspendFlux(ctx, env.Kube); err != nil {
+	if err := suspendKustomization(ctx, env.Kube, victoriaKustomization); err != nil {
 		return err
 	}
 	ev.Logf("suspended Flux Kustomization %s/%s so it does not undo the test overrides",
@@ -166,11 +193,14 @@ func (s *QueueDropsScenario) Inject(ctx context.Context, env *Env) error {
 	if err != nil {
 		ev.Logf("no drop counter for copy b yet (%v); counting from 0", err)
 	}
-	if _, err = env.Kube.ApplyObjects(ctx, loadJob()); err != nil {
+	if _, err = env.Kube.ApplyObjects(ctx, loadJob(s.fillBytes)); err != nil {
 		return fmt.Errorf("start dummy telemetry: %w", err)
 	}
 	ev.Logf("dummy telemetry started against %s (random 3 KiB labels, %d MiB/s, capped at %d MiB)",
 		loadedReplica, loadRate>>mebibyteShift, loadByteCap>>mebibyteShift)
+	if s.fillBytes > 0 {
+		return s.waitFilled(ctx, env)
+	}
 
 	var drops float64
 	err = poll(ctx, dropObservedWait, scenarioPoll, func() (bool, error) {
@@ -251,7 +281,7 @@ func (s *QueueDropsScenario) Cleanup(ctx context.Context, env *Env) error {
 	if err != nil {
 		errs = append(errs, err)
 	}
-	resumed, err := resumeFlux(ctx, env.Kube)
+	resumed, err := resumeKustomization(ctx, env.Kube, victoriaKustomization)
 	if err != nil {
 		errs = append(errs, err)
 	}
@@ -266,6 +296,32 @@ func (s *QueueDropsScenario) Cleanup(ctx context.Context, env *Env) error {
 		env.Evidence.Logf("Flux Kustomization %s/%s resumed", fluxNamespace, victoriaKustomization)
 	}
 	return errors.Join(errs...)
+}
+
+// waitFilled waits until copy b's queue is past half full in the metrics storage, by the same
+// measure as the rule.
+func (s *QueueDropsScenario) waitFilled(ctx context.Context, env *Env) error {
+	var fill float64
+	err := poll(ctx, dropObservedWait, scenarioPoll, func() (bool, error) {
+		if failed, jobErr := jobFailed(ctx, env.Kube); jobErr == nil && failed {
+			return false, permanent(errLoadFailed)
+		}
+		value, queryErr := env.Grafana.QueryValue(ctx, `max(
+  vm_persistentqueue_bytes_pending{job="vmagent", path=~".*/2_[^/]*"}
+  / (vm_persistentqueue_bytes_pending{job="vmagent", path=~".*/2_[^/]*"}
+     + vm_persistentqueue_free_disk_space_bytes{job="vmagent", path=~".*/2_[^/]*"})
+)`)
+		if queryErr != nil {
+			return false, queryErr
+		}
+		fill = value
+		return value > queueHalf, nil
+	})
+	if err != nil {
+		return fmt.Errorf("waiting for copy b's queue to pass half full: %w", err)
+	}
+	env.Evidence.Logf("vmagent's queue for copy b is %.0f%% full in the metrics storage", fill*percent)
+	return nil
 }
 
 // saveLoadLogs keeps the dummy telemetry's output, while its pod still exists.
@@ -400,31 +456,77 @@ func restoreAgent(ctx context.Context, kube *kubernetes.KubernetesClient) (bool,
 	return err == nil, err
 }
 
-func suspendFlux(ctx context.Context, kube *kubernetes.KubernetesClient) error {
-	kustomization, err := kube.GetResource(ctx, kustomizationGVR, fluxNamespace, victoriaKustomization)
+// suspendKustomization suspends a Flux Kustomization, marking it so resumeKustomization only
+// resumes what a test suspended.
+func suspendKustomization(ctx context.Context, kube *kubernetes.KubernetesClient, name string) error {
+	kustomization, err := kube.GetResource(ctx, kustomizationGVR, fluxNamespace, name)
 	if err != nil {
 		return fmt.Errorf("read Flux Kustomization: %w", err)
 	}
-	if suspended, ok := nested(kustomization.Object, "spec", "suspend").(bool); ok && suspended {
-		return nil
+	if suspended, ok := nested(kustomization.Object, "spec", "suspend").(bool); !ok || !suspended {
+		if err := patchJSON(ctx, kube, kustomizationGVR, fluxNamespace, name, types.MergePatchType,
+			map[string]any{
+				"metadata": map[string]any{"annotations": map[string]string{suspendedByTest: "true"}},
+				"spec":     map[string]any{"suspend": true},
+			}); err != nil {
+			return err
+		}
 	}
-	return patchJSON(ctx, kube, kustomizationGVR, fluxNamespace, victoriaKustomization, types.MergePatchType,
-		map[string]any{
-			"metadata": map[string]any{"annotations": map[string]string{suspendedByTest: "true"}},
-			"spec":     map[string]any{"suspend": true},
-		})
+	return waitKustomizationIdle(ctx, kube, name)
 }
 
-// resumeFlux resumes the Kustomization if the test suspended it, and asks Flux to reconcile now.
-func resumeFlux(ctx context.Context, kube *kubernetes.KubernetesClient) (bool, error) {
-	kustomization, err := kube.GetResource(ctx, kustomizationGVR, fluxNamespace, victoriaKustomization)
+// reconciling reports whether a Flux object's conditions say it is reconciling.
+func reconciling(object map[string]any) bool {
+	conditions, isList := nested(object, "status", "conditions").([]any)
+	if !isList {
+		return false
+	}
+	for _, item := range conditions {
+		condition, isMap := item.(map[string]any)
+		if !isMap {
+			continue
+		}
+		if (condition["type"] == "Reconciling" && condition["status"] == "True") ||
+			(condition["type"] == "Ready" && condition["status"] == "Unknown") {
+			return true
+		}
+	}
+	return false
+}
+
+// waitKustomizationIdle waits for a reconciliation already under way to finish, since one that
+// started before the suspension, such as the one an earlier scenario's cleanup requested, still
+// applies and would undo an override made meanwhile.
+func waitKustomizationIdle(ctx context.Context, kube *kubernetes.KubernetesClient, name string) error {
+	err := poll(ctx, agentRolloutWait, scenarioPoll, func() (bool, error) {
+		kustomization, err := kube.GetResource(ctx, kustomizationGVR, fluxNamespace, name)
+		if err != nil {
+			return false, fmt.Errorf("read Flux Kustomization: %w", err)
+		}
+		requested := kustomization.GetAnnotations()["reconcile.fluxcd.io/requestedAt"]
+		handled, isString := nested(kustomization.Object, "status", "lastHandledReconcileAt").(string)
+		if requested != "" && (!isString || requested != handled) {
+			return false, nil
+		}
+		return !reconciling(kustomization.Object), nil
+	})
+	if err != nil {
+		return fmt.Errorf("waiting for Flux Kustomization %s to finish reconciling: %w", name, err)
+	}
+	return nil
+}
+
+// resumeKustomization resumes the Kustomization if a test suspended it, and asks Flux to
+// reconcile now.
+func resumeKustomization(ctx context.Context, kube *kubernetes.KubernetesClient, name string) (bool, error) {
+	kustomization, err := kube.GetResource(ctx, kustomizationGVR, fluxNamespace, name)
 	if err != nil {
 		return false, fmt.Errorf("read Flux Kustomization: %w", err)
 	}
 	if _, ok := kustomization.GetAnnotations()[suspendedByTest]; !ok {
 		return false, nil
 	}
-	err = patchJSON(ctx, kube, kustomizationGVR, fluxNamespace, victoriaKustomization, types.MergePatchType,
+	err = patchJSON(ctx, kube, kustomizationGVR, fluxNamespace, name, types.MergePatchType,
 		map[string]any{
 			"metadata": map[string]any{"annotations": map[string]any{
 				suspendedByTest:                   nil,
@@ -544,7 +646,7 @@ func refuserDeployment() *appsv1.Deployment {
 	}
 }
 
-func loadJob() *batchv1.Job {
+func loadJob(fillBytes int) *batchv1.Job {
 	backoff := int32(0)
 	deadline := int64(loadDeadline.Seconds())
 	return &batchv1.Job{
@@ -563,6 +665,7 @@ func loadJob() *batchv1.Job {
 						{Name: "METRIC", Value: dummyMetricName},
 						{Name: "MAX_BYTES", Value: strconv.Itoa(loadByteCap)},
 						{Name: "RATE", Value: strconv.Itoa(loadRate)},
+						{Name: "FILL_BYTES", Value: strconv.Itoa(fillBytes)},
 					}, nil)},
 					Volumes: []corev1.Volume{scriptsVolume()},
 				},

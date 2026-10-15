@@ -48,11 +48,13 @@ type Scenario interface {
 
 // Scenarios lists the fault scenarios the run command knows.
 func Scenarios() []Scenario {
-	return []Scenario{NewQueueDropsScenario()}
+	return append([]Scenario{NewQueueDropsScenario(), NewQueueHalfFullScenario()}, FaultScenarios()...)
 }
 
 // Timing bounds each wait. The rules evaluate every minute and Grafana waits group_wait (30s)
-// before notifying, so firing is a few minutes; resolution waits for the rule's own window.
+// before notifying, so firing is a few minutes past the rule's pending period, which is added to
+// Fire; resolution waits for the rule's own window, up to ten minutes, and a resolved
+// notification for the group_interval (5m) after the firing one.
 type Timing struct {
 	Poll     time.Duration
 	Baseline time.Duration
@@ -66,8 +68,8 @@ const (
 	defaultPoll     = 10 * time.Second
 	defaultBaseline = 5 * time.Minute
 	defaultFire     = 6 * time.Minute
-	defaultNotify   = 4 * time.Minute
-	defaultResolve  = 12 * time.Minute
+	defaultNotify   = 7 * time.Minute
+	defaultResolve  = 16 * time.Minute
 	defaultCleanup  = 6 * time.Minute
 )
 
@@ -92,7 +94,17 @@ var (
 
 // RunScenario runs one scenario end to end and returns the first failed check. Cleanup runs
 // whatever happens, with a context of its own so a timeout does not skip it.
-func RunScenario(ctx context.Context, env *Env, scenario Scenario, timing Timing) (runErr error) {
+func RunScenario(ctx context.Context, parent *Env, scenario Scenario, timing Timing) (runErr error) {
+	ev, err := parent.Evidence.Child(scenario.Name())
+	if err != nil {
+		return err
+	}
+	env := *parent
+	env.Evidence = ev
+	return runScenario(ctx, &env, scenario, timing)
+}
+
+func runScenario(ctx context.Context, env *Env, scenario Scenario, timing Timing) (runErr error) {
 	ev := env.Evidence
 	ev.Logf("scenario %s: %s", scenario.Name(), scenario.Description())
 	defer func() {
@@ -105,6 +117,7 @@ func RunScenario(ctx context.Context, env *Env, scenario Scenario, timing Timing
 		} else {
 			ev.Logf("cleanup done")
 		}
+		noteOtherNotifications(context.WithoutCancel(ctx), env, scenario)
 		if err := saveNotifications(context.WithoutCancel(ctx), env); err != nil {
 			runErr = errors.Join(runErr, err)
 		}
@@ -122,6 +135,10 @@ func RunScenario(ctx context.Context, env *Env, scenario Scenario, timing Timing
 	}
 	ev.Logf("rule %q (%s) loaded from the dashboards repository; evaluates %s, for %s",
 		rule.Title, rule.UID, rule.RuleGroup, rule.For)
+	pending, err := time.ParseDuration(rule.For)
+	if err != nil {
+		return fmt.Errorf("rule %s: for %q: %w", rule.UID, rule.For, err)
+	}
 
 	if err = waitBaseline(ctx, env, scenario, rule, timing); err != nil {
 		return err
@@ -134,17 +151,7 @@ func RunScenario(ctx context.Context, env *Env, scenario Scenario, timing Timing
 	if err = scenario.Inject(ctx, env); err != nil {
 		return fmt.Errorf("inject: %w", err)
 	}
-	firing, err := waitForInstance(ctx, env, scenario, timing.Fire, "Alerting")
-	if err != nil {
-		return err
-	}
-	ev.Logf("rule Alerting: instance %s", formatLabels(firing.Labels, scenario.ExpectedLabels()))
-	firingMessage, err := waitForNotification(ctx, env, rule, "firing", timing)
-	if err != nil {
-		return err
-	}
-	ev.Logf("firing notification received at %s: %q", firingMessage.ReceivedAt, firstLine(firingMessage))
-	if err = checkLinks(ctx, env, rule, firingMessage); err != nil {
+	if err = waitForFiring(ctx, env, scenario, rule, timing, timing.Fire+pending); err != nil {
 		return err
 	}
 
@@ -164,6 +171,29 @@ func RunScenario(ctx context.Context, env *Env, scenario Scenario, timing Timing
 	return nil
 }
 
+// waitForFiring waits for the alert instance, its firing notification, and checks the
+// notification's links.
+func waitForFiring(
+	ctx context.Context,
+	env *Env,
+	scenario Scenario,
+	rule Rule,
+	timing Timing,
+	timeout time.Duration,
+) error {
+	firing, err := waitForInstance(ctx, env, scenario, timeout, stateAlerting)
+	if err != nil {
+		return err
+	}
+	env.Evidence.Logf("rule Alerting: instance %s", formatLabels(firing.Labels, scenario.ExpectedLabels()))
+	message, err := waitForNotification(ctx, env, rule, "firing", timing)
+	if err != nil {
+		return err
+	}
+	env.Evidence.Logf("firing notification received at %s: %q", message.ReceivedAt, firstLine(message))
+	return checkLinks(ctx, env, rule, message)
+}
+
 func waitBaseline(ctx context.Context, env *Env, scenario Scenario, rule Rule, timing Timing) error {
 	ev := env.Evidence
 	ev.Logf("baseline: waiting for the rule to evaluate healthy with no %s instance",
@@ -179,7 +209,7 @@ func waitBaseline(ctx context.Context, env *Env, scenario Scenario, rule Rule, t
 			return false, nil
 		}
 		for _, alert := range state.Rule.Alerts {
-			if matches(alert.Labels, scenario.ExpectedLabels()) && alert.State != "Normal" {
+			if matches(alert.Labels, scenario.ExpectedLabels()) && !isNormal(alert.State) {
 				return false, nil
 			}
 		}
@@ -211,7 +241,7 @@ func waitForInstance(
 		}
 		last = state
 		for _, alert := range state.Rule.Alerts {
-			if matches(alert.Labels, scenario.ExpectedLabels()) && alert.State == want {
+			if matches(alert.Labels, scenario.ExpectedLabels()) && hasState(alert.State, want) {
 				found = alert
 				return true, nil
 			}
@@ -239,7 +269,7 @@ func waitForNormal(ctx context.Context, env *Env, scenario Scenario, timeout tim
 		}
 		last = state
 		for _, alert := range state.Rule.Alerts {
-			if matches(alert.Labels, scenario.ExpectedLabels()) && alert.State != "Normal" {
+			if matches(alert.Labels, scenario.ExpectedLabels()) && !isNormal(alert.State) {
 				return false, nil
 			}
 		}
@@ -337,6 +367,24 @@ func findLink(links map[string]string, match func(*url.URL) bool) (string, bool)
 	return "", false
 }
 
+// noteOtherNotifications names any notification for another rule than the scenario's, which
+// the fault did not set out to fire.
+func noteOtherNotifications(ctx context.Context, env *Env, scenario Scenario) {
+	rule, err := env.Grafana.Rule(ctx, scenario.RuleUID())
+	if err != nil {
+		return
+	}
+	messages, err := env.Recorder.Messages(ctx)
+	if err != nil {
+		return
+	}
+	for _, message := range messages {
+		if !strings.Contains(message.Text(), rule.Title) {
+			env.Evidence.Logf("note: the recorder also received %q", firstLine(message))
+		}
+	}
+}
+
 func saveNotifications(ctx context.Context, env *Env) error {
 	messages, err := env.Recorder.Messages(ctx)
 	if err != nil {
@@ -389,6 +437,21 @@ func firstLine(message Message) string {
 }
 
 var errTimeout = errors.New("timed out")
+
+// stateAlerting is a firing alert instance's state.
+const stateAlerting = "Alerting"
+
+// isNormal reports whether an alert instance's state is Normal, with or without a reason such
+// as "Normal (NoData)".
+func isNormal(state string) bool {
+	return hasState(state, "Normal")
+}
+
+// hasState reports whether an alert instance's state is want, with or without a reason such as
+// "Alerting (NoData)".
+func hasState(state, want string) bool {
+	return state == want || strings.HasPrefix(state, want+" (")
+}
 
 // permanentError stops a poll at once instead of retrying until the timeout.
 type permanentError struct{ err error }

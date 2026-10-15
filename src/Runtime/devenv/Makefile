@@ -1,5 +1,5 @@
 .PHONY: help build test test-e2e test-verbose test-coverage test-race clean tidy fmt lint lint-fix lint-config check
-.PHONY: run run-monitoring run-monitoring-full test-alerts test-alerts-check stop diagnostics golangci-lint
+.PHONY: run run-monitoring run-monitoring-full test-alerts test-alerts-check test-alerts-quiet stop diagnostics golangci-lint
 .DEFAULT_GOAL := help
 
 CACHE_DIR := .cache
@@ -88,6 +88,9 @@ test-alerts-check: ## Check every Studio alert rule's query and notification tem
 
 test-alerts: ## Fire and resolve Studio alert rules on the full monitoring fixture, saving evidence
 	@go run ./cmd/alerttest run --cache-dir $(CACHE_DIR)
+
+test-alerts-quiet: ## Check that no Studio alert rule fires through routine restarts on the full monitoring fixture
+	@go run ./cmd/alerttest quiet --cache-dir $(CACHE_DIR)
 
 stop: ## Stop the standard variant of the container runtime fixture
 	@go run ./cmd/fixture --action stop --variant standard --cache-dir $(CACHE_DIR)
