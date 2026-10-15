@@ -33,7 +33,6 @@ export function NavigationButtonsComponent({ baseComponentId }: Props) {
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const origin = summaryBaseComponentId ? layoutLookups.getComponent(summaryBaseComponentId) : undefined;
 
-  // TODO: Support returning to Summary2
   if (origin && origin.type === 'Summary') {
     return (
       <WithSummary
@@ -112,7 +111,7 @@ function NavigationButtonsComponentInner({
   const isAnyProcessing = useIsAnyProcessing();
 
   const showBackToSummaryButton = returnToView !== undefined;
-  const showNextButton = showBackToSummaryButton ? showNextButtonSummary : hasNext;
+  const showNextButton = showBackToSummaryButton ? (returnToView.showNextButton ?? showNextButtonSummary) : hasNext;
 
   const onPageNavigationValidation = useOnPageNavigationValidation();
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
@@ -177,7 +176,7 @@ function NavigationButtonsComponentInner({
   const onClickBackToSummary = () =>
     performProcess('backToSummary', async () => {
       await maybeSaveOnPageChange();
-      await navigateToPage(returnToView, { skipAutoSave: true });
+      await navigateToPage(returnToView?.pageId, { skipAutoSave: true });
     });
 
   const onClickBackToPage = () =>

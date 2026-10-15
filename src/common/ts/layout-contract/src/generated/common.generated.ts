@@ -554,6 +554,7 @@ export interface ISelectionComponentFull extends ISelectionComponent {
 export interface ISummaryOverridesCommon {
   hidden?: boolean;
   emptyFieldText?: string;
+  showNextButton?: boolean;
 }
 
 export interface ITableColumnFormatting {
@@ -656,4 +657,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 11d787113e78ee8f761e8924db5702b89c932d510ed052f1e6038f920d34e59d
+// Source hash: 71aa400af820ca8746e423f8e5b8c4395e5b453e20f4f82b155f88cb7ecc8fee
