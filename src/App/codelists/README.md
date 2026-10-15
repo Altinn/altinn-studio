@@ -5,7 +5,7 @@
 
 This library contains common code lists for use in Altinn 3 based applications. 
 
-The [Getting started](#getting-started) section describes the basic steps required in order to use this package within an Altinn 3 application. For a more comprehensive description of code lists in Altinn 3 please see https://docs.altinn.studio/app/development/data/options/.
+The [Getting started](#getting-started-using-the-package) section describes the basic steps required in order to use this package within an Altinn 3 application. For a more comprehensive description of code lists in Altinn 3 please see https://docs.altinn.studio/app/development/data/options/.
 <hr>
 <br/>  
 
@@ -132,7 +132,7 @@ License: https://www.kartverket.no/api-og-data/vilkar-for-bruk
 Doc: https://www.bring.no/tjenester/adressetjenester/postnummer/postnummertabeller-veiledning
 
 ## Contributing
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](../../../CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 ## Authors
 Altinn Apps development team - If you want to get in touch, just create a new issue.
 See also the list of [contributors](https://github.com/Altinn/codelists-lib-dotnet/graphs/contributors) who participated in this project.

@@ -75,4 +75,3 @@ least one studioctl release, and change studioctl in the same pull request.
 
 - [Workflow Engine README](../workflow-engine/README.md) — core engine documentation
 - [Technical guide](../workflow-engine/docs/technical-guide.md) — architecture, API reference, configuration
-- [Batch enqueue & dependency graphs](../workflow-engine/docs/batch-enqueue.md)

@@ -14,7 +14,7 @@ The workflow-engine-app must be running locally on `http://localhost:8080` (Dock
 
 ## Scripts
 
-All scripts share the same interface and environment variables as the core engine scripts — see [`workflow-engine/.k6/README.md`](../workflow-engine/.k6/README.md) for full documentation.
+All scripts share the same interface and environment variables as the core engine scripts — see [`workflow-engine/.k6/README.md`](../../workflow-engine/.k6/README.md) for full documentation.
 
 ### stress-test.js
 

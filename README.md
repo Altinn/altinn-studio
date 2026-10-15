@@ -56,11 +56,11 @@ ensure that the setup is up to date. As we add more features this script will be
 yarn && yarn setup
 ```
 
-More about that script and development in general, [can be found here](development/README.md).
+More about that script and development in general, [can be found here](src/Designer/development/README.md).
 
 #### Docker Compose
 
-The development environment consist of several services defined in [compose.yaml](compose.yaml).
+The development environment consist of several services defined in [compose.yaml](src/Designer/compose.yaml).
 
 - `studio-loadbalancer` which is a simple nginx-container using `nginx:alpine` directly, just used for development.
 - `studio-designer` which is the actual build artifact with the .NET backend and the react-apps.
@@ -149,7 +149,7 @@ yarn run build
 Some React projects also have various other predefined scripts, which can be viewed in the `package.json` file
 which is located in the root folder of each react project, example `frontend/dashboard`.
 
-More about developing frontend [can be found here](frontend/README.md).
+More about developing frontend [can be found here](src/Designer/frontend/README.md).
 
 ## End-to-end tests
 
