@@ -5,6 +5,7 @@ using LocalTest.Controllers;
 using LocalTest.Models;
 using LocalTest.Services.Correspondence;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
 
@@ -21,7 +22,7 @@ public sealed class MessagesControllerTests : IDisposable
         var settings = Options.Create(
             new LocalPlatformSettings { LocalTestingStorageBasePath = _storagePath + Path.DirectorySeparatorChar }
         );
-        _repository = new LocalCorrespondenceRepository(settings);
+        _repository = new LocalCorrespondenceRepository(settings, NullLogger<LocalCorrespondenceRepository>.Instance);
         _controller = new MessagesController(_repository, settings);
     }
 
@@ -78,6 +79,54 @@ public sealed class MessagesControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task IndexAndDetails_RecordFromAnOlderLocaltest_StillShow()
+    {
+        var id = Guid.NewGuid();
+        Directory.CreateDirectory(Path.Join(_storagePath, "correspondence"));
+        await File.WriteAllTextAsync(
+            Path.Join(_storagePath, "correspondence", $"{id}.json"),
+            $$"""
+            {
+              "correspondenceId": "{{id}}",
+              "recipient": "urn:altinn:person:identifier-no:01899699552",
+              "resourceId": "resource",
+              "sendersReference": "reference",
+              "status": "Initialized",
+              "created": "2026-09-11T08:11:15.5997297+00:00",
+              "request": { "correspondence": { "content": "not an object" } }
+            }
+            """
+        );
+
+        var index = Assert.IsType<MessagesViewModel>(Assert.IsType<ViewResult>(await _controller.Index()).Model);
+        var details = Assert.IsType<CorrespondenceViewModel>(
+            Assert.IsType<ViewResult>(await _controller.Details(id)).Model
+        );
+
+        Assert.Equal("(no title)", MessagesDisplay.Title(Assert.Single(index.Correspondences)));
+        Assert.Null(details.Request);
+        Assert.Contains("not an object", details.RawRequest);
+    }
+
+    [Fact]
+    public async Task Index_NotificationOrderInAnUnexpectedShape_StillLists()
+    {
+        var orders = Path.Join(_storagePath, "notifications", "orders");
+        Directory.CreateDirectory(orders);
+        await File.WriteAllTextAsync(Path.Join(orders, "array.json"), "[1, 2]");
+        await File.WriteAllTextAsync(
+            Path.Join(orders, "odd.json"),
+            """{ "recipients": ["not an object"], "templates": [42] }"""
+        );
+        await File.WriteAllTextAsync(Path.Join(orders, "broken.json"), "not json");
+
+        var model = Assert.IsType<MessagesViewModel>(Assert.IsType<ViewResult>(await _controller.Index()).Model);
+
+        var order = Assert.Single(model.NotificationOrders);
+        Assert.Equal("Unknown", order.Channel);
+    }
+
+    [Fact]
     public async Task Details_UnknownCorrespondence_IsNotFound()
     {
         Assert.IsType<NotFoundResult>(await _controller.Details(Guid.NewGuid()));
@@ -120,7 +169,6 @@ public sealed class MessagesControllerTests : IDisposable
             Recipient = "urn:altinn:person:identifier-no:01899699552",
             ResourceId = "resource",
             SendersReference = "reference",
-            Sender = "991825827",
             Status = CorrespondenceStatus.Published,
             Created = created,
             Published = created,
