@@ -12,6 +12,7 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { PdfOptionsError } from 'src/features/pdf/PdfOptionsError';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useExcludedPdfComponentIds } from 'src/features/pdf/useIsExcludedFromPdf';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
@@ -291,6 +292,7 @@ function DataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
       data-header-title={headerTitle}
       className={tableClasses.dataCell}
     >
+      <PdfOptionsError baseComponentId={baseComponentId} />
       <span
         className={cn(repeatingGroupClasses.contentFormatting, tableClasses.cellValue)}
         style={style}

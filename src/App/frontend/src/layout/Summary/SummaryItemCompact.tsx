@@ -4,6 +4,7 @@ import { CommonExpressions } from '@app/layout-contract/generated/expressions.ge
 
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { PdfOptionsError } from 'src/features/pdf/PdfOptionsError';
 import classes from 'src/layout/Summary/SummaryItemCompact.module.css';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
@@ -20,6 +21,7 @@ export function SummaryItemCompact({ targetBaseComponentId, displayData }: IComp
 
   return (
     <div data-testid='summary-item-compact'>
+      <PdfOptionsError baseComponentId={targetBaseComponentId} />
       {/* FIXME: is data-testid actually necessary? Can we get it in tests in other ways? */}
       <SummaryTitle title={summaryTitle ?? title} />
       <DisplayData displayData={displayData} />
