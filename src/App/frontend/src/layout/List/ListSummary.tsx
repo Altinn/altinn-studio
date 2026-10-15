@@ -13,6 +13,7 @@ import { validationsOfSeverity } from 'src/features/validation/utils';
 import classes from 'src/layout/List/ListComponent.module.css';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { SummaryLabel } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -67,12 +68,17 @@ export const ListSummary = ({ targetBaseComponentId }: Summary2Props) => {
           <Table>
             {title && (
               <caption className={classes.tableCaption}>
-                <Heading
-                  data-size='xs'
-                  level={4}
+                <SummaryLabel
+                  baseComponentId={targetBaseComponentId}
+                  title={<Lang id={title} />}
                 >
-                  <Lang id={title} />
-                </Heading>
+                  <Heading
+                    data-size='xs'
+                    level={4}
+                  >
+                    <Lang id={title} />
+                  </Heading>
+                </SummaryLabel>
               </caption>
             )}
             <Table.Head>

@@ -30,6 +30,7 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Grid/GridSummary.module.css';
 import { useIsGridRowHidden } from 'src/layout/Grid/tools';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
+import { SummaryLabel, useSummaryLabelText } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import {
   EmptyChildrenBoundary,
   useHasOnlyEmptyChildren,
@@ -151,12 +152,17 @@ export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
       >
         {title && (
           <caption className={classes.tableCaption}>
-            <Heading
-              data-size='xs'
-              level={4}
+            <SummaryLabel
+              baseComponentId={targetBaseComponentId}
+              title={<Lang id={title} />}
             >
-              <Lang id={title} />
-            </Heading>
+              <Heading
+                data-size='xs'
+                level={4}
+              >
+                <Lang id={title} />
+              </Heading>
+            </SummaryLabel>
           </caption>
         )}
         {tableSections}
@@ -504,6 +510,7 @@ function SummaryCellWithLabel({
   isSmall,
 }: CellWithLabelProps) {
   const config = useComponentConfig(cell.labelFrom);
+  const { description, help } = useSummaryLabelText(cell.labelFrom);
   const title2 = useEvalExpression(
     config.textResourceBindings && 'title' in config.textResourceBindings
       ? config.textResourceBindings.title
@@ -527,6 +534,8 @@ function SummaryCellWithLabel({
       <LabelContent
         id={useIndexedId(cell.labelFrom)}
         label={title2}
+        description={description}
+        help={help}
         required={required}
         readOnly={readOnly}
         labelSettings={labelSettings}

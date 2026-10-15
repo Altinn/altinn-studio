@@ -7,6 +7,7 @@ import { Lang } from 'src/features/language/Lang';
 import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import classes from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary.module.css';
+import { SummaryLabel } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import type { BaseValidation } from 'src/features/validation';
 
 type SingleValueSummaryProps = {
@@ -18,6 +19,7 @@ type SingleValueSummaryProps = {
   multiline?: boolean;
   isCompact: boolean | undefined;
   emptyFieldText: string | undefined;
+  showLabelMetadata?: boolean;
 };
 
 export const SingleValueSummary = ({
@@ -29,46 +31,67 @@ export const SingleValueSummary = ({
   multiline,
   isCompact,
   emptyFieldText,
-}: SingleValueSummaryProps) => (
-  <div
-    className={classes.summaryItemWrapper}
-    data-testid='summary-single-value-component'
-  >
-    <div className={classes.summaryItem}>
-      <div className={cn(classes.labelValueWrapper, isCompact && classes.compact)}>
-        <Label weight='regular'>
-          {title}
-          {!!title?.toString()?.length && isCompact && ':'}
-        </Label>
-        <Paragraph
-          asChild
-          className={cn(
-            {
-              [classes.error]: errors && errors?.length > 0,
-              [classes.emptyValue]: !displayData,
-              [classes.formValue]: displayData,
-              [classes.multiline]: multiline,
-            },
-            classes.summaryValue,
+  showLabelMetadata = true,
+}: SingleValueSummaryProps) => {
+  const label = (
+    <Label
+      asChild
+      weight='regular'
+    >
+      <span>
+        {title}
+        {!!title?.toString()?.length && isCompact && ':'}
+      </span>
+    </Label>
+  );
+  return (
+    <div
+      className={classes.summaryItemWrapper}
+      data-testid='summary-single-value-component'
+    >
+      <div className={classes.summaryItem}>
+        <div className={cn(classes.labelValueWrapper, isCompact && classes.compact)}>
+          {showLabelMetadata ? (
+            <SummaryLabel
+              baseComponentId={targetBaseComponentId}
+              title={title}
+              isCompact={isCompact}
+            >
+              {label}
+            </SummaryLabel>
+          ) : (
+            label
           )}
-        >
-          <span>
-            {!displayData && <Lang id={emptyFieldText ?? 'general.empty_summary'} />}
-            {displayData}
-          </span>
-        </Paragraph>
+          <Paragraph
+            asChild
+            className={cn(
+              {
+                [classes.error]: errors && errors?.length > 0,
+                [classes.emptyValue]: !displayData,
+                [classes.formValue]: displayData,
+                [classes.multiline]: multiline,
+              },
+              classes.summaryValue,
+            )}
+          >
+            <span>
+              {!displayData && <Lang id={emptyFieldText ?? 'general.empty_summary'} />}
+              {displayData}
+            </span>
+          </Paragraph>
+        </div>
+        {!hideEditButton && (
+          <EditButton
+            className={classes.editButton}
+            targetBaseComponentId={targetBaseComponentId}
+          />
+        )}
       </div>
-      {!hideEditButton && (
-        <EditButton
-          className={classes.editButton}
-          targetBaseComponentId={targetBaseComponentId}
-        />
-      )}
-    </div>
 
-    <ValidationMessageList
-      validations={errors}
-      size='sm'
-    />
-  </div>
-);
+      <ValidationMessageList
+        validations={errors}
+        size='sm'
+      />
+    </div>
+  );
+};

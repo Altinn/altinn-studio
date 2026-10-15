@@ -1,0 +1,32 @@
+.label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  min-width: 0;
+}
+
+.titleAndHelp {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ds-size-1);
+}
+
+.titleAndHelp > :nth-child(2) {
+  flex-shrink: 0;
+}
+
+.description {
+  font-weight: normal;
+}
+
+.compact {
+  display: contents;
+}
+
+.compact .titleAndHelp {
+  grid-area: 1 / 1;
+}
+
+.compact .description {
+  grid-area: 2 / 1 / auto / -1;
+}

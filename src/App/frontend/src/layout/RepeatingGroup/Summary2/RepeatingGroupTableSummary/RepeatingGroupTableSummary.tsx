@@ -7,7 +7,6 @@ import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import type { GridCell, GridRows, ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
 
-import { Caption } from 'src/components/form/caption/Caption';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
@@ -25,6 +24,7 @@ import { useHiddenColumns } from 'src/layout/RepeatingGroup/useHiddenColumns';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { EditButtonFirstVisibleAndEditable } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
+import { SummaryCaption, SummaryLabel } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import { useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { ComponentSummary, SummaryContains } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import utilClasses from 'src/styles/utils.module.css';
@@ -69,7 +69,10 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
       data-testid='summary-repeating-group-component'
     >
       <Table className={cn({ [tableClasses.mobileTable]: isSmall })}>
-        <Caption title={<Lang id={title} />} />
+        <SummaryCaption
+          baseComponentId={baseComponentId}
+          title={<Lang id={title} />}
+        />
         <Table.Body>
           {renderExtraRows(config.rowsBefore, 'before', showEditColumn)}
           <Table.Row>
@@ -168,6 +171,7 @@ function HeaderCell({
   columnSettings: ITableColumnFormatting;
 }) {
   const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
+  const title = useTableTitle(baseComponentId);
 
   const isHidden = columnSettings[baseComponentId]?.hidden === true;
   if (isHidden) {
@@ -176,10 +180,15 @@ function HeaderCell({
 
   return (
     <Table.HeaderCell style={style}>
-      <RepeatingGroupTableTitle
+      <SummaryLabel
         baseComponentId={baseComponentId}
-        columnSettings={columnSettings}
-      />
+        title={<Lang id={title} />}
+      >
+        <RepeatingGroupTableTitle
+          baseComponentId={baseComponentId}
+          columnSettings={columnSettings}
+        />
+      </SummaryLabel>
     </Table.HeaderCell>
   );
 }
