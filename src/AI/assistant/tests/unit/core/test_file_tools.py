@@ -205,11 +205,11 @@ class TestWriteFile:
         ctx = _ctx(tmp_path)
         tool = WriteFileTool()
         result = await tool.run(
-            tool.input_schema.model_validate({"path": "App/new.json", "content": '{"k": 1}'}),
+            tool.input_schema.model_validate({"path": "App/new.json", "content": '{\n  "k": 1\n}'}),
             ctx,
         )
         assert not result.is_error
-        assert (tmp_path / "App" / "new.json").read_text() == '{"k": 1}'
+        assert (tmp_path / "App" / "new.json").read_text() == '{\n  "k": 1\n}'
         assert "App/new.json" in ctx.extras["changed_files"]
         # After write the file counts as "read" — subsequent edits are OK.
         assert "App/new.json" in ctx.extras["read_set"]
@@ -236,6 +236,104 @@ class TestWriteFile:
         )
         assert not result.is_error
         assert (tmp_path / "f.txt").read_text() == "new"
+
+
+LAYOUT_ON_ONE_LINE = (
+    '{"data":{"layout":[{"id":"navn","type":"Input","textResourceBindings":{"title":"Navn på søker"}}]}}'
+)
+
+# The text that Studio writes for LAYOUT_ON_ONE_LINE.
+LAYOUT_AS_STUDIO_WRITES_IT = """{
+  "data": {
+    "layout": [
+      {
+        "id": "navn",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Navn på søker"
+        }
+      }
+    ]
+  }
+}"""
+
+VALUES_ON_ONE_LINE = (
+    r'{"maximum":999999999999999.99,"big":1e999,"label":"S\u00F8ker","text":"a, b: {c} \"d\"",'
+    r'"codes":[],"extra":{},"id":"a","id":"b"}'
+)
+
+VALUES_INDENTED = r"""{
+  "maximum": 999999999999999.99,
+  "big": 1e999,
+  "label": "S\u00F8ker",
+  "text": "a, b: {c} \"d\"",
+  "codes": [],
+  "extra": {},
+  "id": "a",
+  "id": "b"
+}"""
+
+
+class TestJsonIsFormattedLikeStudio:
+    """Studio writes JSON indented.  A file on one line is hard to read, and the next save from
+    Studio makes a large diff."""
+
+    async def _write(self, tmp_path: Path, path: str, content: str):
+        tool = WriteFileTool()
+        return await tool.run(tool.input_schema.model_validate({"path": path, "content": content}), _ctx(tmp_path))
+
+    async def test_a_layout_written_on_one_line_is_saved_as_studio_writes_it(self, tmp_path: Path):
+        result = await self._write(tmp_path, "App/ui/form/layouts/Side1.json", LAYOUT_ON_ONE_LINE)
+
+        assert not result.is_error
+        assert (tmp_path / "App/ui/form/layouts/Side1.json").read_text(encoding="utf-8") == LAYOUT_AS_STUDIO_WRITES_IT
+        assert "formatted as Studio formats it" in result.content
+
+    async def test_an_edit_that_adds_json_on_one_line_is_saved_as_studio_writes_it(self, tmp_path: Path):
+        layout = tmp_path / "Side1.json"
+        layout.write_text('{\n  "data": {\n    "layout": []\n  }\n}', encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "Side1.json"}), ctx)
+        tool = EditFileTool()
+        result = await tool.run(
+            tool.input_schema.model_validate(
+                {
+                    "path": "Side1.json",
+                    "old_string": '"layout": []',
+                    "new_string": '"layout":[{"id":"navn","type":"Input","textResourceBindings":{"title":"Navn på søker"}}]',
+                }
+            ),
+            ctx,
+        )
+
+        assert not result.is_error
+        assert layout.read_text(encoding="utf-8") == LAYOUT_AS_STUDIO_WRITES_IT
+        assert "formatted as Studio formats it" in result.content
+
+    async def test_only_the_whitespace_changes(self, tmp_path: Path):
+        """Numbers, escapes and duplicate keys keep the text of the model, so lines it did not change stay the same."""
+        result = await self._write(tmp_path, "model.schema.json", VALUES_ON_ONE_LINE)
+
+        assert not result.is_error
+        assert (tmp_path / "model.schema.json").read_text(encoding="utf-8") == VALUES_INDENTED
+
+    @pytest.mark.parametrize(
+        "content",
+        ['{"a": 1,}', '{"a": NaN}', "[" * 100_000 + "]" * 100_000],
+        ids=["trailing comma", "NaN", "too deep for the parser"],
+    )
+    async def test_text_that_is_not_strict_json_is_saved_as_written(self, tmp_path: Path, content: str):
+        """A parse error stays at the place the model wrote it."""
+        result = await self._write(tmp_path, "broken.json", content)
+
+        assert not result.is_error
+        assert (tmp_path / "broken.json").read_text() == content
+        assert "formatted" not in result.content
+
+    async def test_a_file_that_is_not_json_is_saved_as_written(self, tmp_path: Path):
+        await self._write(tmp_path, "App/notes.txt", '{"a":1}')
+
+        assert (tmp_path / "App/notes.txt").read_text() == '{"a":1}'
 
 
 # ---------------------------------------------------------------------------
@@ -317,13 +415,18 @@ class TestEditFileToleratesReformattedWhitespace:
         assert "showLanguageSelector" in (tmp_path / "Settings.json").read_text()
 
     async def test_the_result_says_the_region_took_the_new_formatting(self, tmp_path: Path):
-        result = await self._edit(
-            tmp_path,
-            '"pages": {"order": ["Side1"]}',
-            '"pages": {"order": ["Side1"], "showLanguageSelector": true}',
+        """Only JSON is formatted after the edit, so in other files the region keeps the spacing of the model."""
+        (tmp_path / "f.ts").write_text("call(a, b);", encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        await ReadFileTool().run(ReadFileTool().input_schema.model_validate({"path": "f.ts"}), ctx)
+        tool = EditFileTool()
+        result = await tool.run(
+            tool.input_schema.model_validate({"path": "f.ts", "old_string": "call(a,b)", "new_string": "call(a,b,c)"}),
+            ctx,
         )
 
         assert "ignoring whitespace" in result.content
+        assert (tmp_path / "f.ts").read_text() == "call(a,b,c);"
 
     async def test_an_exact_match_is_not_reported_as_a_whitespace_match(self, tmp_path: Path):
         result = await self._edit(tmp_path, '"order": ["Side1"]', '"order": ["Side1", "Side2"]')

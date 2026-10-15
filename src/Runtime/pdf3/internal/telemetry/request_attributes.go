@@ -99,6 +99,30 @@ func (d *RequestAttributes) SetPdfRequest(req types.PdfRequest) {
 	}
 }
 
+// SetServiceOwner records the service owner the request is for. It records nothing for "", an
+// unknown service owner.
+func (d *RequestAttributes) SetServiceOwner(serviceOwner string) {
+	if d == nil || serviceOwner == "" {
+		return
+	}
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	d.setKVLocked(attribute.String(attr.ServiceOwner, serviceOwner))
+}
+
+// SetApp records the app whose page the request renders. It records nothing for "", an unknown
+// app.
+func (d *RequestAttributes) SetApp(app string) {
+	if d == nil || app == "" {
+		return
+	}
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	d.setKVLocked(attribute.String(attr.App, app))
+}
+
 func (d *RequestAttributes) SetQueueStats(depth, capacity int) {
 	if d == nil {
 		return
