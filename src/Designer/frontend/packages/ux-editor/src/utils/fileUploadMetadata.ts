@@ -8,18 +8,29 @@ type AttachmentMetadataProperties = Pick<
 
 export function getFileUploadMetadataProperties(
   component: FormFileUploaderComponent,
+  existingMetadata?: Pick<ApplicationAttachmentMetadata, 'maxCount' | 'minCount'>,
 ): AttachmentMetadataProperties {
   return {
     fileType: Array.isArray(component.validFileEndings)
       ? component.validFileEndings.join(', ')
       : component.validFileEndings,
-    maxCount: requireStaticNumber(component.maxNumberOfAttachments, 'maxNumberOfAttachments'),
-    minCount: requireStaticNumber(component.minNumberOfAttachments, 'minNumberOfAttachments'),
+    maxCount: getStaticCount(
+      component.maxNumberOfAttachments,
+      'maxNumberOfAttachments',
+      existingMetadata?.maxCount,
+    ),
+    minCount: getStaticCount(
+      component.minNumberOfAttachments,
+      'minNumberOfAttachments',
+      existingMetadata?.minCount,
+    ),
     maxSize: component.maxFileSizeInMB,
   };
 }
 
-function requireStaticNumber(value: unknown, property: string): number {
+function getStaticCount(value: unknown, property: string, existingCount?: number): number {
   if (typeof value === 'number') return value;
+  // Layout expressions cannot be evaluated as static, application-wide limits.
+  if (Array.isArray(value) && typeof existingCount === 'number') return existingCount;
   throw new Error(`${property} must be a static number when synchronizing attachment metadata.`);
 }
