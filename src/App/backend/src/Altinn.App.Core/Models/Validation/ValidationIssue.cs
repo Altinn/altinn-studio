@@ -39,6 +39,27 @@ public class ValidationIssue
     public string? Field { get; set; }
 
     /// <summary>
+    /// The id of the component the issue should be displayed beside in the frontend, without row indexes.
+    /// </summary>
+    /// <remarks>
+    /// When it is not set, the frontend shows the issue on the components bound to <see cref="Field"/>.
+    /// Also set <see cref="DataElementId"/>, since component ids are only unique within one layout set,
+    /// and a subform may use the same id as a component in the main form.
+    /// </remarks>
+    [JsonProperty(PropertyName = "componentId", NullValueHandling = NullValueHandling.Ignore)]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("componentId")]
+    public string? ComponentId { get; set; }
+
+    /// <summary>
+    /// The repeating group row indexes of the component in <see cref="ComponentId"/>, outermost group first.
+    /// </summary>
+    [JsonProperty(PropertyName = "rowIndexes", NullValueHandling = NullValueHandling.Ignore)]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("rowIndexes")]
+    public IReadOnlyList<int>? RowIndexes { get; set; }
+
+    /// <summary>
     /// A system readable identification of the type of issue.
     /// Eg:
     /// </summary>

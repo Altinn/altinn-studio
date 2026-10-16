@@ -12158,6 +12158,18 @@
             "type": "string",
             "nullable": true
           },
+          "componentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "rowIndexes": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          },
           "code": {
             "type": "string",
             "nullable": true
