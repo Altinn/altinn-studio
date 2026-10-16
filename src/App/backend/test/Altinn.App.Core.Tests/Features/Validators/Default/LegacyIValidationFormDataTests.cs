@@ -104,7 +104,7 @@ public class LegacyIValidationFormDataTests
                             "field": "ddd",
                             "code": "test",
                             "description": "test",
-                            "customTextKey": null
+                            "customTextKey": "test"
                         },
                         {
                             "severity": 1,
@@ -113,7 +113,7 @@ public class LegacyIValidationFormDataTests
                             "field": "test",
                             "code": "test",
                             "description": "test",
-                            "customTextKey": null
+                            "customTextKey": "test"
                         }
                     ]
                     """

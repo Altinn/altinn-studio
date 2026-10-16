@@ -143,6 +143,9 @@ jobs:
           yq -i '.metadata.annotations["altinn.studio/image"] = env(WORKER_IMAGE)' worker.yaml
           yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' proxy.yaml
           yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' worker.yaml
+          # The relay runs the proxy image
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(PROXY_IMAGE)' ../relay/relay.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' ../relay/relay.yaml
 
       - name: push artifact
         working-directory: src/Runtime/pdf3/infra/kustomize

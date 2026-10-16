@@ -50,7 +50,7 @@ internal sealed class ExpressionValidator : IValidator
     public string TaskId => "*";
 
     /// <summary>
-    /// Only run for tasks that has layouts
+    /// Only run for tasks that have a data type with a validation configuration
     /// </summary>
     public bool ShouldRunForTask(string taskId) =>
         _appMetadata.ApplicationMetadata.DataTypes.Exists(dt =>

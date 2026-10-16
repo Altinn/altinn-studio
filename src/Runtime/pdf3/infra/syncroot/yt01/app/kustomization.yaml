@@ -23,6 +23,9 @@ patches:
       - op: replace
         path: /data/environment
         value: yt01
+      - op: replace
+        path: /data/cluster
+        value: dis-core-yt01-aks
   - target:
       kind: HTTPRoute
       group: gateway.networking.k8s.io

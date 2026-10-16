@@ -96,5 +96,10 @@ public static class AltinnXacmlConstants
         /// The minimum authentication level for organization category
         /// </summary>
         public const string MinimumAuthenticationLevelOrg = "urn:altinn:minimum-authenticationlevel-org";
+
+        /// <summary>
+        /// The minimum authentication level for system user category
+        /// </summary>
+        public const string MinimumAuthenticationLevelSystemUser = "urn:altinn:minimum-authenticationlevel-systemuser";
     }
 }

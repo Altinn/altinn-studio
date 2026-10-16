@@ -16,6 +16,7 @@ ansattporten
 bankid
 buypass
 commfides
+dialogporten
 dibk
 digdir
 eformidling

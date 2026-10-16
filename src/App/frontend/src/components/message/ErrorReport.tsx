@@ -9,7 +9,7 @@ import {
   InstantiationValidation,
   isInstantiationValidationResult,
 } from 'src/features/instantiate/InstantiationValidation';
-import { Lang } from 'src/features/language/Lang';
+import { Lang, LangReference } from 'src/features/language/Lang';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import { isAxiosError } from 'src/utils/isAxiosError';
@@ -89,11 +89,7 @@ export function ErrorReportList({ formErrors, taskErrors }: ErrorReportListProps
     <>
       {taskErrors.map((error) => (
         <ErrorReportListItem key={getUniqueKeyFromObject(error)}>
-          <Lang
-            id={error.message.key}
-            customTextParameters={error.message.customTextParameters}
-            params={error.message.params}
-          />
+          <LangReference reference={error.message} />
         </ErrorReportListItem>
       ))}
       {formErrors.map((error) => (
@@ -167,11 +163,7 @@ function ErrorWithLink({ error }: { error: NodeRefValidation }) {
         data-target-node={error.nodeId}
       >
         <DataModelLocationProviderFromNode nodeId={error.nodeId}>
-          <Lang
-            id={error.message.key}
-            params={error.message.params}
-            customTextParameters={error.message.customTextParameters}
-          />
+          <LangReference reference={error.message} />
         </DataModelLocationProviderFromNode>
       </button>
     </ErrorReportListItem>
