@@ -60,8 +60,7 @@ Each area below links to its own `AGENTS.md` where one exists.
 ### AI — [`src/AI`](src/AI/AGENTS.md)
 
 R&D projects from the AI lab (to be handed off to the Studio team): `assistant` (Studio Assistant natural-language
-app builder), [`assistant-runner`](src/AI/assistant-runner/AGENTS.md) (sandboxed service that runs app code for the
-assistant) and `augmenter-agent` (document/PDF augmentation microservice).
+app builder) and `augmenter-agent` (document/PDF augmentation microservice).
 
 ### Continuous integration — [`src/ci`](src/ci/AGENTS.md)
 

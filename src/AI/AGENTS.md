@@ -2,13 +2,12 @@
 
 ## Context
 
-The `/AI` folder contains three projects:
+The `/AI` folder contains two projects:
 
-| Project          | Description                                                                    | Path                 |
-| ---------------- | ------------------------------------------------------------------------------ | -------------------- |
-| Studio Assistant | Agent service that enables users to develop apps with natural language         | `./assistant`        |
-| Assistant runner | Runs the v9 upgrade and `dotnet build` of apps for the assistant, in a sandbox | `./assistant-runner` |
-| Augmenter agent  | Augments caseworker workflow with LLM support                                  | `./augmenter-agent`  |
+| Project          | Description                                                            | Path                |
+| ---------------- | ---------------------------------------------------------------------- | ------------------- |
+| Studio Assistant | Agent service that enables users to develop apps with natural language | `./assistant`       |
+| Augmenter agent  | Augments caseworker workflow with LLM support                          | `./augmenter-agent` |
 
 `./assistant` has an architecture guide in [assistant/docs](assistant/docs/README.md). Before you open a PR with changes in `./assistant`, check if the docs need an update too.
 

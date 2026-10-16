@@ -63,7 +63,7 @@ const GROUPS = [
   {
     title: 'AI',
     owner: '@ErlingHauan',
-    roots: ['src/AI/assistant', 'src/AI/assistant-runner', 'src/AI/augmenter-agent'],
+    roots: ['src/AI/assistant', 'src/AI/augmenter-agent'],
   },
   {
     title: 'Squad Kjøring',
