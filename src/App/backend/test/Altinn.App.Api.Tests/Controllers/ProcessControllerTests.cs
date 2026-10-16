@@ -600,6 +600,123 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         _dataProcessorMock.Verify();
     }
 
+    /// <summary>
+    /// Regression test for https://github.com/Altinn/app-lib-dotnet/issues/1865:
+    /// an invalid value in a field that is hidden by an expression must not block process/next
+    /// when RemoveHiddenData is enabled, because the value is removed on task completion anyway.
+    /// </summary>
+    [Theory]
+    [InlineData(false, HttpStatusCode.Conflict)]
+    [InlineData(true, HttpStatusCode.OK)]
+    public async Task RunProcessNext_DataAnnotationsOnHiddenField_RespectsRemoveHiddenData(
+        bool removeHiddenData,
+        HttpStatusCode expectedStatus
+    )
+    {
+        OverrideAppSetting("AppSettings:RemoveHiddenData", removeHiddenData ? "true" : "false");
+
+        // Mock pdf generation so that the test does not fail due to pof service not running.
+        var pdfMock = SetupPdfGeneratorMock();
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddSingleton(pdfMock.Object);
+        };
+        _dataProcessorMock
+            .Setup(dp =>
+                dp.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    _dataGuid,
+                    It.IsAny<Skjema>(),
+                    It.IsAny<Skjema>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Once);
+
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+        var dataPath = TestData.GetDataBlobPath(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid);
+
+        // Enter an out-of-range value and hide the field (the "hiddenRange" component is hidden when toggle is true)
+        var serializedPatch = JsonSerializer.Serialize(
+            new DataPatchRequest()
+            {
+                Patch = new JsonPatch(
+                    PatchOperation.Replace(JsonPointer.Create("melding", "toggle"), JsonNode.Parse("true")),
+                    PatchOperation.Add(JsonPointer.Create("melding", "hiddenRange"), JsonNode.Parse("999"))
+                ),
+                IgnoredValidators = [],
+            },
+            _jsonSerializerOptions
+        );
+        using var updateDataElementContent = new StringContent(serializedPatch, Encoding.UTF8, "application/json");
+        using var patchResponse = await client.PatchAsync(
+            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{_instanceGuid}/data/{_dataGuid}",
+            updateDataElementContent
+        );
+        var patchResponseContent = await patchResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(patchResponseContent);
+        patchResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+
+        // Incremental validation reports the hidden field only when hidden data is not removed before validation
+        var patchResponseModel = JsonSerializer.Deserialize<DataPatchResponse>(
+            patchResponseContent,
+            _jsonSerializerOptions
+        );
+        Assert.NotNull(patchResponseModel);
+        var incrementalIssues = patchResponseModel.ValidationIssues.GetValueOrDefault(
+            ValidationIssueSources.DataAnnotations,
+            []
+        );
+        if (removeHiddenData)
+        {
+            Assert.DoesNotContain(incrementalIssues, i => i.Field == "melding.hiddenRange");
+        }
+        else
+        {
+            Assert.Contains(incrementalIssues, i => i.Field == "melding.hiddenRange");
+        }
+
+        // The invalid value is stored, it is only hidden
+        var dataString = await File.ReadAllTextAsync(dataPath);
+        OutputHelper.WriteLine("Data before process next:");
+        OutputHelper.WriteLine(dataString);
+        dataString.Should().Contain("<hiddenRange>999</hiddenRange>");
+
+        using var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
+        var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(nextResponseContent);
+        nextResponse.Should().HaveStatusCode(expectedStatus);
+
+        var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
+        dataString = await File.ReadAllTextAsync(dataPath);
+        OutputHelper.WriteLine("Data after process next:");
+        OutputHelper.WriteLine(dataString);
+        if (removeHiddenData)
+        {
+            // The process completed and the hidden value was removed by the finalizer
+            instance.Process.CurrentTask.Should().BeNull();
+            instance.Process.EndEvent.Should().Be("EndEvent_1");
+            dataString.Should().NotContain("<hiddenRange>");
+        }
+        else
+        {
+            using var document = JsonDocument.Parse(nextResponseContent);
+            var issues = document.RootElement.GetProperty("validationIssues").EnumerateArray().ToList();
+            issues
+                .Should()
+                .ContainSingle(p =>
+                    p.GetProperty("source").GetString() == ValidationIssueSources.DataAnnotations
+                    && p.GetProperty("field").GetString() == "melding.hiddenRange"
+                );
+            instance.Process.CurrentTask.Should().NotBeNull();
+            instance.Process.CurrentTask!.ElementId.Should().Be("Task_1");
+            dataString.Should().Contain("<hiddenRange>999</hiddenRange>");
+        }
+
+        _dataProcessorMock.Verify();
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("copyDataType")]

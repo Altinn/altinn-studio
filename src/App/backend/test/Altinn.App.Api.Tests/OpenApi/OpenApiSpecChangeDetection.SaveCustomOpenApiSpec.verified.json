@@ -3654,6 +3654,23 @@
           },
           "includeAttachments": {
             "type": "boolean"
+          },
+          "includeDueBefore": {
+            "type": "boolean"
+          },
+          "includedDataValues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "includedPresentationTexts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -4128,6 +4145,13 @@
           },
           "missing-from-xsd": {
             "type": "string",
+            "nullable": true
+          },
+          "hiddenRange": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number",
+            "format": "double",
             "nullable": true
           }
         },

@@ -84,6 +84,10 @@ namespace Altinn.App.Core.Constants
         public const string POLICY_INSTANCE_READ = "InstanceRead";
         public const string POLICY_INSTANCE_WRITE = "InstanceWrite";
     }
+    public static class DataValueKeys
+    {
+        public const string CopySourceInstanceId = "copy.sourceInstanceId";
+    }
     public static class General
     {
         public const string AppTokenName = "AltinnToken";
@@ -4689,6 +4693,24 @@ namespace Altinn.App.Core.Models.Layout.Components
         public LikertComponent() { }
         public override System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.Layout.DataReference>> GetDataReferencesToRemoveWhenHidden(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
         public static Altinn.App.Core.Models.Layout.Components.LikertComponent Parse(System.Text.Json.JsonElement componentElement, string pageId, string layoutId) { }
+    }
+    public sealed class MapComponent : Altinn.App.Core.Models.Layout.Components.Base.NoReferenceComponent
+    {
+        public MapComponent() { }
+        public required Altinn.App.Core.Models.Layout.Components.MapGeometriesBinding? GeometriesBinding { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding? SimpleBinding { get; init; }
+        public override System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.Layout.DataReference>> GetDataReferencesToRemoveWhenHidden(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
+        public static Altinn.App.Core.Models.Layout.Components.MapComponent Parse(System.Text.Json.JsonElement componentElement, string pageId, string layoutId) { }
+    }
+    public sealed class MapGeometriesBinding : System.IEquatable<Altinn.App.Core.Models.Layout.Components.MapGeometriesBinding>
+    {
+        public MapGeometriesBinding() { }
+        public required Altinn.App.Core.Models.Layout.ModelBinding Data { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding Geometries { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding IsEditable { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding IsHidden { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding Label { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding Style { get; init; }
     }
     public sealed class NonRepeatingGroupComponent : Altinn.App.Core.Models.Layout.Components.Base.ReferenceComponent
     {

@@ -21,6 +21,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Files;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Profile;
@@ -43,6 +44,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
 
@@ -773,12 +775,53 @@ public class InstancesController : ControllerBase
             );
         }
 
+        InstanceWithStorageMetadata? fetchedSource = null;
+        Instance? source = null;
+
+        if (isCopyRequest)
+        {
+            string[] sourceSplit =
+                instantiationInstance.SourceInstanceId?.Split("/")
+                ?? throw new ArgumentException("SourceInstanceId is null or not in the correct format");
+            Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
+
+            try
+            {
+                fetchedSource = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                    app,
+                    org,
+                    party.PartyId,
+                    sourceInstanceGuid,
+                    authenticationMethod: null,
+                    CancellationToken.None
+                );
+                source = fetchedSource.Instance;
+            }
+            catch (PlatformHttpException exception)
+            {
+                return StatusCode(
+                    500,
+                    $"Retrieving source instance failed with status code {exception.Response.StatusCode}"
+                );
+            }
+
+            if (source.Status?.IsArchived is not true)
+            {
+                return BadRequest("It is not possible to copy an instance that isn't archived.");
+            }
+        }
+
         Instance instanceTemplate = new()
         {
             InstanceOwner = instantiationInstance.InstanceOwner,
             VisibleAfter = instantiationInstance.VisibleAfter,
-            DueBefore = instantiationInstance.DueBefore,
+            DueBefore = instantiationInstance.DueBefore ?? GetDueBeforeFromSource(application, source),
             Org = application.Org,
+            DataValues = source is null ? null : SelectCopiedDataValues(application, source),
+            PresentationTexts = SelectIncludedValues(
+                application.CopyInstanceSettings?.IncludedPresentationTexts,
+                source?.PresentationTexts
+            ),
         };
 
         ConditionallySetReadStatus(instanceTemplate);
@@ -804,41 +847,8 @@ public class InstancesController : ControllerBase
         {
             instanceTemplate.Process = null;
 
-            Instance? source = null;
-
-            if (isCopyRequest)
+            if (fetchedSource is not null)
             {
-                string[] sourceSplit =
-                    instantiationInstance.SourceInstanceId?.Split("/")
-                    ?? throw new ArgumentException("SourceInstanceId is null or not in the correct format");
-                Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
-                InstanceWithStorageMetadata fetchedSource;
-
-                try
-                {
-                    fetchedSource = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
-                        app,
-                        org,
-                        party.PartyId,
-                        sourceInstanceGuid,
-                        authenticationMethod: null,
-                        CancellationToken.None
-                    );
-                    source = fetchedSource.Instance;
-                }
-                catch (PlatformHttpException exception)
-                {
-                    return StatusCode(
-                        500,
-                        $"Retrieving source instance failed with status code {exception.Response.StatusCode}"
-                    );
-                }
-
-                if (source.Status?.IsArchived is not true)
-                {
-                    return BadRequest("It is not possible to copy an instance that isn't archived.");
-                }
-
                 var copyInstanceValidator = _appImplementationFactory.Get<ICopyInstanceValidator>();
                 if (copyInstanceValidator is not null)
                 {
@@ -887,7 +897,7 @@ public class InstancesController : ControllerBase
                 CancellationToken.None
             );
 
-            if (isCopyRequest && source is not null)
+            if (source is not null)
             {
                 await CopyDataFromSourceInstance(application, instance, source);
             }
@@ -1060,6 +1070,12 @@ public class InstancesController : ControllerBase
         {
             InstanceOwner = sourceInstance.InstanceOwner,
             VisibleAfter = sourceInstance.VisibleAfter,
+            DueBefore = GetDueBeforeFromSource(application, sourceInstance),
+            DataValues = SelectCopiedDataValues(application, sourceInstance),
+            PresentationTexts = SelectIncludedValues(
+                application.CopyInstanceSettings?.IncludedPresentationTexts,
+                sourceInstance.PresentationTexts
+            ),
             Status = new() { ReadStatus = ReadStatus.Read },
         };
 
@@ -1073,7 +1089,7 @@ public class InstancesController : ControllerBase
                 validationResult
             );
             await TranslateValidationResult(validationResult, language);
-            return StatusCode(StatusCodes.Status403Forbidden, validationResult);
+            return ValidationFailedResult(validationResult, application, language);
         }
 
         var copyInstanceValidator = _appImplementationFactory.Get<ICopyInstanceValidator>();
@@ -1094,7 +1110,7 @@ public class InstancesController : ControllerBase
                     validationResult
                 );
                 await TranslateValidationResult(validationResult, language);
-                return StatusCode(StatusCodes.Status403Forbidden, validationResult);
+                return ValidationFailedResult(validationResult, application, language);
             }
         }
 
@@ -1624,7 +1640,7 @@ public class InstancesController : ControllerBase
                     CancellationToken.None
                 );
 
-                await _dataClient.InsertBinaryData(
+                DataElement newDataElement = await _dataClient.InsertBinaryData(
                     targetInstance.Id,
                     de.DataType,
                     de.ContentType,
@@ -1634,8 +1650,79 @@ public class InstancesController : ControllerBase
                     authenticationMethod: null,
                     CancellationToken.None
                 );
+
+                // Tags (e.g. the file type chosen in FileUploadWithTag) can't be set on insert
+                if (de.Tags is { Count: > 0 })
+                {
+                    newDataElement.Tags = [.. de.Tags];
+                    await _dataClient.Update(
+                        targetInstance,
+                        newDataElement,
+                        authenticationMethod: null,
+                        CancellationToken.None
+                    );
+                }
             }
         }
+    }
+
+    private static DateTime? GetDueBeforeFromSource(ApplicationMetadata application, Instance? sourceInstance)
+    {
+        if (sourceInstance is null || application.CopyInstanceSettings?.IncludeDueBefore is not true)
+        {
+            return null;
+        }
+
+        return sourceInstance.DueBefore;
+    }
+
+    /// <summary>
+    /// Selects the data values to copy from <paramref name="sourceInstance"/> and adds
+    /// <see cref="DataValueKeys.CopySourceInstanceId"/>. If that key is included and set on the source, the copied
+    /// value is kept so that a copy of a copy references the first instance in the chain.
+    /// </summary>
+    private static Dictionary<string, string> SelectCopiedDataValues(
+        ApplicationMetadata application,
+        Instance sourceInstance
+    )
+    {
+        Dictionary<string, string> dataValues =
+            SelectIncludedValues(application.CopyInstanceSettings?.IncludedDataValues, sourceInstance.DataValues)
+            ?? new Dictionary<string, string>(1);
+
+        // Order matters: the included values are selected first, and TryAdd only sets the key when they do not
+        // already contain it. If the app lists the key in IncludedDataValues and the source already has it, the
+        // source is itself a copy, and the value copied from it points to the first instance in the chain. Setting
+        // the id of the source here would make the value point one step back in the chain instead.
+        dataValues.TryAdd(DataValueKeys.CopySourceInstanceId, sourceInstance.Id);
+        return dataValues;
+    }
+
+    /// <summary>
+    /// Picks the entries from <paramref name="sourceValues"/> whose keys are listed in <paramref name="includedKeys"/>.
+    /// Returns null when there is nothing to copy.
+    /// </summary>
+    private static Dictionary<string, string>? SelectIncludedValues(
+        List<string>? includedKeys,
+        Dictionary<string, string>? sourceValues
+    )
+    {
+        if (includedKeys is null || includedKeys.Count == 0 || sourceValues is null || sourceValues.Count == 0)
+        {
+            return null;
+        }
+
+        Dictionary<string, string>? selected = null;
+        foreach (string key in includedKeys)
+        {
+            if (sourceValues.TryGetValue(key, out string? value) && value is not null)
+            {
+                selected ??= new Dictionary<string, string>(includedKeys.Count);
+                selected[key] = value;
+            }
+        }
+
+        return selected;
     }
 
     private ActionResult ExceptionResponse(Exception exception, string message)
@@ -2173,6 +2260,101 @@ public class InstancesController : ControllerBase
                 CancellationToken.None
             );
         }
+    }
+
+    /// <summary>
+    /// The copy endpoint is navigated to directly from the browser, so a JSON body is not useful for end users.
+    /// Returns a minimal HTML page when the client prefers html over json, otherwise the usual JSON response.
+    /// </summary>
+    private ActionResult ValidationFailedResult(
+        InstantiationValidationResult validationResult,
+        ApplicationMetadata application,
+        string? language
+    )
+    {
+        if (!RequestPrefersHtml())
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, validationResult);
+        }
+
+        language ??= LanguageConst.Nb;
+        string title =
+            application.Title?.GetValueOrDefault(language)
+            ?? application.Title?.GetValueOrDefault(LanguageConst.Nb)
+            ?? application.Id;
+        string encodedTitle = HtmlEncoder.Default.Encode(title);
+        string encodedMessage = HtmlEncoder.Default.Encode(validationResult.Message ?? string.Empty);
+
+        string html = $$"""
+            <!DOCTYPE html>
+            <html lang="{{HtmlEncoder.Default.Encode(language)}}">
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>{{encodedTitle}}</title>
+                <style>
+                    body { font-family: system-ui, sans-serif; margin: 0; padding: 2rem 1rem; background: #f4f5f6; color: #1e2b3c; }
+                    main { max-width: 40rem; margin: 0 auto; background: #fff; padding: 2rem; border-radius: 0.5rem; }
+                    h1 { font-size: 1.5rem; margin-top: 0; }
+                </style>
+            </head>
+            <body>
+                <main>
+                    <h1>{{encodedTitle}}</h1>
+                    <p>{{encodedMessage}}</p>
+                </main>
+            </body>
+            </html>
+            """;
+
+        return new ContentResult
+        {
+            StatusCode = StatusCodes.Status403Forbidden,
+            ContentType = "text/html; charset=utf-8",
+            Content = html,
+        };
+    }
+
+    private static readonly MediaTypeHeaderValue _htmlMediaType = MediaTypeHeaderValue.Parse("text/html");
+    private static readonly MediaTypeHeaderValue _jsonMediaType = MediaTypeHeaderValue.Parse("application/json");
+
+    private bool RequestPrefersHtml()
+    {
+        if (!MediaTypeHeaderValue.TryParseList(Request.Headers.Accept, out var accept))
+        {
+            return false;
+        }
+
+        return AcceptQuality(accept, _htmlMediaType) > AcceptQuality(accept, _jsonMediaType);
+    }
+
+    /// <summary>
+    /// Finds the quality the Accept header assigns to <paramref name="mediaType"/>, using the most specific
+    /// matching media range (exact type, then type wildcard, then */*) as described in RFC 7231 section 5.3.2.
+    /// </summary>
+    private static double AcceptQuality(IList<MediaTypeHeaderValue> accept, MediaTypeHeaderValue mediaType)
+    {
+        double quality = 0;
+        int bestSpecificity = -1;
+        foreach (var range in accept)
+        {
+            if (!mediaType.IsSubsetOf(range))
+            {
+                continue;
+            }
+
+            int specificity =
+                range.MatchesAllTypes ? 0
+                : range.MatchesAllSubTypes ? 1
+                : 2;
+            if (specificity > bestSpecificity)
+            {
+                bestSpecificity = specificity;
+                quality = range.Quality ?? 1;
+            }
+        }
+
+        return quality;
     }
 
     private async Task TranslateValidationResult(InstantiationValidationResult validationResult, string? language)

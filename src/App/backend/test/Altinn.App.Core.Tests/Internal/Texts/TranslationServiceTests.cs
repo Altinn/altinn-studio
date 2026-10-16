@@ -254,9 +254,9 @@ public class TranslationServiceTests
     )]
     [InlineData(
         "validation_errors.xsd",
-        "message",
-        "Ugyldig dato",
-        "Et felt bryter reglene satt av XSD. Melding: Ugyldig dato"
+        "path",
+        "/Skjema/dato",
+        "Feltet /Skjema/dato bryter reglene satt av XSD. Melding: "
     )]
     public async Task TranslateTextKey_BackendValidationFallback_WithParameter(
         string key,
