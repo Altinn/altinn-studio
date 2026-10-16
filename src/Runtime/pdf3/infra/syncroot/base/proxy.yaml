@@ -1,0 +1,216 @@
+# The pdf3 proxy, which DIS Edge reaches through Traefik (httproute.yaml). Adapted from the tenant
+# manifests in infra/kustomize/base rather than reusing them: Flux only gets this folder, so a
+# kustomization here can't refer to ../kustomize, and the tenant manifests are released with the
+# rings and go away once every tenant cluster relays to DIS Core.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdf3-proxy
+spec:
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  # At most one zone (hopefully, depending on skew) is disrupted at a time, e.g. while nodes
+  # are drained.
+  maxUnavailable: '30%'
+  selector:
+    matchLabels:
+      app: pdf3-proxy
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pdf3-proxy
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pdf3-proxy
+  minReplicas: 3
+  maxReplicas: 12
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pdf3-proxy
+  labels:
+    app: pdf3-proxy
+    component: pdf3
+  annotations:
+    # Linkerd in Traefik's pods routes to proxies in the same zone, as Azure bills cross-zone
+    # traffic. See https://linkerd.io/2-edge/tasks/enabling-topology-aware-routing/
+    service.kubernetes.io/topology-mode: Auto
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 5030
+    protocol: TCP
+    appProtocol: http
+    name: http
+  selector:
+    app: pdf3-proxy
+---
+# Linkerd's identity for the proxy is this ServiceAccount (linkerd-policies.yaml). The proxy
+# needs no Azure access, so it doesn't use the ApplicationIdentity's ServiceAccount.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pdf3-proxy
+automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdf3-proxy
+  annotations:
+    altinn.studio/image: runtime-pdf3-proxy:latest
+    altinn.studio/image-tag: latest
+spec:
+  minReadySeconds: 3
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 60
+  # No replicas, so Flux doesn't override the HPA.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # Never below the desired replicas during a rollout, at the cost of surge capacity.
+      maxUnavailable: 0
+      maxSurge: '20%'
+  selector:
+    matchLabels:
+      app: pdf3-proxy
+  template:
+    metadata:
+      labels:
+        app: pdf3-proxy
+        component: pdf3
+      annotations:
+        linkerd.io/inject: enabled
+        # Graceful shutdown relies on Kubernetes stopping the proxy only after pdf3-proxy has
+        # exited, so it runs as a native sidecar, with no wait before exit, and gets 5s to drain.
+        config.beta.linkerd.io/proxy-enable-native-sidecar: "true"
+        config.linkerd.io/shutdown-grace-period: "5s"
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: pdf3-proxy
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: pdf3-proxy
+      serviceAccountName: pdf3-proxy
+      automountServiceAccountToken: false
+      # 60s to drain requests, which take up to about 50s with the proxy's retries, plus 5s for
+      # the Linkerd proxy's drain after it has exited. Keep in line with runtime.Host.
+      terminationGracePeriodSeconds: 65
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        # A directory rather than a subPath mount, which the kubelet never updates, so a rotated
+        # key reaches the proxy.
+        - name: api-keys
+          secret:
+            secretName: pdf3-api-keys
+      containers:
+        - name: pdf3-proxy
+          image: ""
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 5030
+              protocol: TCP
+          env:
+          - name: POD_UID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          # The collector has no k8sattributes processor, which needs a ClusterRole, so the pod
+          # describes itself.
+          - name: OTEL_RESOURCE_ATTRIBUTES
+            value: "k8s.pod.uid=$(POD_UID),k8s.pod.name=$(POD_NAME),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=pdf3-proxy"
+          - name: OTEL_SERVICE_NAME
+            value: "pdf3-proxy"
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "http://pdf3-collector.product-studio-pdf3.svc.cluster.local:4317"
+          - name: OTEL_METRIC_EXPORT_INTERVAL
+            value: "15000"
+          - name: PDF3_WORKER_HTTP_ADDR
+            value: http://pdf3-worker:80
+          - name: PDF3_ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                name: pdf3-environment
+                key: environment
+          # PDF3_SERVICEOWNER is deliberately unset: DIS Core serves every service owner, and
+          # the workers take it from the X-Altinn-Service-Owner header the relays send.
+          - name: PDF3_API_KEYS_FILE
+            value: /var/run/pdf3-api-keys/keys
+          volumeMounts:
+            - name: api-keys
+              mountPath: /var/run/pdf3-api-keys
+              readOnly: true
+          # Up to 60s (30 * 2s) to start before the liveness probe takes over.
+          startupProbe:
+            httpGet:
+              path: /health/startup
+              port: 5030
+            failureThreshold: 30
+            periodSeconds: 2
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 5030
+            periodSeconds: 3
+            failureThreshold: 3
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 5030
+            initialDelaySeconds: 10
+            periodSeconds: 3
+            # 15s of consecutive failures before a restart.
+            failureThreshold: 5
+            timeoutSeconds: 2
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi

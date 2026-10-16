@@ -108,9 +108,6 @@ public class ApplicationInformationService : IApplicationInformationService
             "PublishAltinnAppServiceResource",
             ActivityKind.Internal
         );
-        activity?.SetTag("org", org);
-        activity?.SetTag("app", app);
-        activity?.SetTag("env", envName);
 
         try
         {
@@ -161,32 +158,27 @@ public class ApplicationInformationService : IApplicationInformationService
                     "; ",
                     validationProblemDetails.Errors.SelectMany(e => e.Value.Select(v => $"{e.Key}: {v}"))
                 );
-                activity?.SetTag("publish.result", "validation_error");
+                activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishResult, "validation_error");
                 activity?.SetStatus(ActivityStatusCode.Error, "Validation errors from Resource Registry");
-                activity?.AddEvent(
-                    new ActivityEvent(
-                        "validation_problems",
-                        tags: new ActivityTagsCollection { { "validation.errors", errors } }
-                    )
-                );
+                activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishValidationErrors, errors);
                 return new ResourceRegistryPublishResult(false, $"Validation errors: {errors}");
             }
 
             if (publishResponse is StatusCodeResult { StatusCode: 200 or 201 })
             {
-                activity?.SetTag("publish.result", "success");
+                activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishResult, "success");
                 return new ResourceRegistryPublishResult(true);
             }
 
             int? statusCode = (publishResponse as IStatusCodeActionResult)?.StatusCode;
-            activity?.SetTag("publish.result", "unexpected_response");
-            activity?.SetTag("publish.status_code", statusCode);
+            activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishResult, "unexpected_response");
+            activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishStatusCode, statusCode);
             activity?.SetStatus(ActivityStatusCode.Error, $"Unexpected response status: {statusCode}");
             return new ResourceRegistryPublishResult(false, $"Unexpected response status: {statusCode}");
         }
         catch (Exception ex)
         {
-            activity?.SetTag("publish.result", "exception");
+            activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishResult, "exception");
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             activity?.AddException(ex);
             return new ResourceRegistryPublishResult(false, ex.Message);

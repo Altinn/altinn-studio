@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text.Json;
+using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.FileAnalysis;
@@ -11,6 +13,8 @@ using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -144,9 +148,12 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
         // Cleanup testdata
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var responseContent = await response.Content.ReadAsStringAsync();
-        Assert.Equal("Invalid data provided. Error: The file is zero bytes.", responseContent);
+        var issues = await VerifyStatusAndDeserialize<List<ValidationIssueWithSource>>(
+            response,
+            HttpStatusCode.BadRequest
+        );
+        var issue = Assert.Single(issues);
+        Assert.Equal("Invalid data provided. Error: The file is zero bytes.", issue.Description);
     }
 
     [Fact]
@@ -181,6 +188,80 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PutBinaryData_ContentTooLarge_ReturnsDataPostErrorResponse()
+    {
+        string org = "tdd";
+        string app = "contributer-restriction";
+        Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+        HttpClient client = CreateClient(org, app, guid);
+        string dataGuid = await CreateAttachment(client, org, app, guid);
+
+        using var content = new ByteArrayContent(new byte[1024 * 1024 + 1]); // Over the 1 mb limit
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+        content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+        {
+            FileName = "example.pdf",
+        };
+        var response = await client.PutAsync($"/{org}/{app}/instances/1337/{guid}/data/{dataGuid}", content);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
+
+        // DataPostErrorResponse has no constructor for deserialization, so the issues are read on their own.
+        var error = await VerifyStatusAndDeserialize<JsonElement>(response, HttpStatusCode.BadRequest);
+        var issues = error
+            .GetProperty("uploadValidationIssues")
+            .Deserialize<List<ValidationIssueWithSource>>(JsonSerializerOptions);
+        var issue = Assert.Single(issues!);
+        Assert.Equal("DataElementTooLarge", issue.Code);
+        Assert.Equal("DataRestrictionValidation", issue.Source);
+    }
+
+    [Fact]
+    public async Task PutDataElement_DataTypeMismatch_ReturnsProblemDetails()
+    {
+        string org = "tdd";
+        string app = "contributer-restriction";
+        Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+        HttpClient client = CreateClient(org, app, guid);
+        string dataGuid = await CreateAttachment(client, org, app, guid);
+
+        using ByteArrayContent fileContent = await CreateBinaryContent(org, app, "example.pdf", "application/pdf");
+        var response = await client.PutAsync(
+            $"/{org}/{app}/instances/1337/{guid}/data/{dataGuid}/type/default",
+            fileContent
+        );
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
+
+        var problem = await VerifyStatusAndDeserialize<ProblemDetails>(response, HttpStatusCode.BadRequest);
+        Assert.Equal("Data type mismatch", problem.Title);
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
+    }
+
+    private HttpClient CreateClient(string org, string app, Guid guid)
+    {
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerSuccessStub>();
+            services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
+        };
+        HttpClient client = GetRootedClient(org, app);
+        TestData.PrepareInstance(org, app, 1337, guid);
+        string token = TestAuthentication.GetServiceOwnerToken("405003309", org: "nav");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+        return client;
+    }
+
+    private async Task<string> CreateAttachment(HttpClient client, string org, string app, Guid guid)
+    {
+        using ByteArrayContent fileContent = await CreateBinaryContent(org, app, "example.pdf", "application/pdf");
+        var response = await client.PostAsync(
+            $"/{org}/{app}/instances/1337/{guid}/data/type/specificFileType",
+            fileContent
+        );
+        var created = await VerifyStatusAndDeserialize<DataPostResponse>(response, HttpStatusCode.OK);
+        return created.NewDataElementId.ToString();
     }
 
     [Fact]
@@ -355,7 +436,9 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
             $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}"
         );
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var problem = await VerifyStatusAndDeserialize<ProblemDetails>(response, HttpStatusCode.NotFound);
+        Assert.Equal(StatusCodes.Status404NotFound, problem.Status);
+        Assert.Contains(dataGuid.ToString(), problem.Detail);
     }
 
     private static async Task<ByteArrayContent> CreateBinaryContent(

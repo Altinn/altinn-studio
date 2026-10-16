@@ -8,6 +8,7 @@ import (
 
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/log"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 )
 
 var logger = log.NewComponent("config")
@@ -17,9 +18,24 @@ const (
 	EnvironmentLocaltest = "localtest"
 	// LocaltestPublicBaseURLEnv provides the canonical public base URL used for localtest URL rewriting.
 	LocaltestPublicBaseURLEnv = "PDF3_LOCALTEST_PUBLIC_BASE_URL"
-	// ServiceOwnerEnv provides the service owner for the current runtime cluster.
+	// ServiceOwnerEnv provides the service owner for the current runtime cluster. It is unset in a
+	// cluster shared by all service owners, see the serviceowner package.
 	ServiceOwnerEnv = "PDF3_SERVICEOWNER"
+	// APIKeysFileEnv points to a file with the API keys callers of the proxy must present, one per
+	// line. When it is unset, the proxy requires no API key.
+	APIKeysFileEnv = "PDF3_API_KEYS_FILE" //nolint:gosec // The name of an environment variable, not a credential.
 )
+
+// appHostnames maps environments to the hostname in app URLs, https://{org}.apps.{hostname}/{org}/{app}/,
+// as GeneralSettings__HostName in infra/runtime/apps-config sets it for apps.
+var appHostnames = map[string]string{
+	"at22": "at22.altinn.cloud",
+	"at23": "at23.altinn.cloud",
+	"at24": "at24.altinn.cloud",
+	"yt01": "yt01.altinn.cloud",
+	"tt02": "tt02.altinn.no",
+	"prod": "altinn.no",
+}
 
 var defaultPDFAConversionConfig = PDFAConversionConfig{
 	Targets: []PDFATarget{
@@ -38,12 +54,16 @@ type PDFAConversionConfig struct {
 }
 
 type Config struct {
-	Environment            string
+	Environment string
+	// AppHostname is the hostname in this environment's app URLs, e.g. "tt02.altinn.no", or empty
+	// where it is not known, as in localtest.
+	AppHostname            string
 	LocaltestPublicBaseURL string
 	ServiceOwner           string
-	PDFA                   PDFAConversionConfig
-	QueueSize              int
-	BrowserRestartInterval time.Duration
+	// APIKeysFile is the file of API keys the proxy requires, or empty if it requires none.
+	APIKeysFile string
+	PDFA        PDFAConversionConfig
+	QueueSize   int
 }
 
 func ReadConfig() *Config {
@@ -61,40 +81,22 @@ func ReadConfig() *Config {
 		} else {
 			logger.Warn(
 				"Failed to parse PDF3_QUEUE_SIZE, using default",
-				"value", queueSizeStr,
-				"default", queueSize,
-				"error", err,
-			)
-		}
-	}
-
-	browserRestartIntervalStr := os.Getenv("PDF3_BROWSER_RESTART_INTERVAL")
-	browserRestartInterval := 30 * time.Minute // default value
-	if browserRestartIntervalStr != "" {
-		if parsed, err := time.ParseDuration(browserRestartIntervalStr); err == nil {
-			browserRestartInterval = parsed
-		} else {
-			logger.Warn(
-				"Failed to parse PDF3_BROWSER_RESTART_INTERVAL, using default",
-				"value", browserRestartIntervalStr,
-				"default", browserRestartInterval,
-				"error", err,
+				attr.ConfigValue, queueSizeStr,
+				attr.ConfigDefault, queueSize,
+				attr.Error, err,
 			)
 		}
 	}
 
 	return &Config{
 		Environment:            environment,
+		AppHostname:            appHostnames[environment],
 		QueueSize:              queueSize,
-		BrowserRestartInterval: browserRestartInterval,
 		LocaltestPublicBaseURL: os.Getenv(LocaltestPublicBaseURLEnv),
 		ServiceOwner:           os.Getenv(ServiceOwnerEnv),
+		APIKeysFile:            os.Getenv(APIKeysFileEnv),
 		PDFA:                   defaultPDFAConversionConfig,
 	}
-}
-
-func (c *Config) ShouldConvertToPDFA() bool {
-	return c.PDFA.EnabledFor(c.Environment, c.ServiceOwner)
 }
 
 func (c PDFAConversionConfig) EnabledFor(environment string, serviceOwner string) bool {

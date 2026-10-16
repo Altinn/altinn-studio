@@ -112,6 +112,7 @@ public class EFormidlingServiceTaskConfigurationTests
         );
         var validationService = new ProcessTaskConfigurationValidationService(
             provider.GetRequiredService<IServiceScopeFactory>(),
+            services,
             NullLogger<ProcessTaskConfigurationValidationService>.Instance
         );
 

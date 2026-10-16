@@ -137,7 +137,7 @@ Do these steps one time. If one is missing, the run fails quickly, and the error
 | 3   | A `.env` file is in this directory              | see below                                                                |
 | 4   | You have a Designer API key                     | `python -m benchmarks.bootstrap_api_key --write-env`                     |
 | 5   | The score configs are in Langfuse               | `python -m benchmarks.runner ensure-configs`                             |
-| 6   | Playwright and Chromium (render check only)     | `pip install -e '.[preview]' && playwright install chromium`             |
+| 6   | Chromium for Playwright (render check only)     | `playwright install chromium`                                            |
 
 Check **2** is important. If `/health` does not give `models`, `--include-e2e` stops
 immediately. The reason: the runner cannot connect the scores to a model. If `models` is missing,
@@ -241,7 +241,6 @@ the check. It writes a log line and sends no render scores.
 Setup (one time):
 
 ```bash
-pip install -e '.[preview]'        # or: pip install playwright
 playwright install chromium
 ```
 

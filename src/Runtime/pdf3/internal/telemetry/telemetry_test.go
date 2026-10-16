@@ -10,32 +10,21 @@ import (
 func TestNewResource(t *testing.T) {
 	t.Setenv("OTEL_RESOURCE_ATTRIBUTES", "k8s.pod.uid=pod")
 
-	res, err := newResource(t.Context(), "tt02")
-	if err != nil {
-		t.Fatalf("newResource() error = %v", err)
-	}
-	for key, want := range map[attribute.Key]string{
-		semconv.ServiceVersionKey:            serviceVersion,
-		semconv.DeploymentEnvironmentNameKey: "tt02",
-		semconv.K8SPodUIDKey:                 "pod",
-	} {
-		if got, _ := res.Set().Value(key); got.AsString() != want {
-			t.Errorf("%s = %q, want %q", key, got.AsString(), want)
-		}
-	}
-}
-
-func TestDeploymentEnvironmentName(t *testing.T) {
-	for environment, want := range map[string]string{
-		"prod":      "production",
-		"tt02":      "tt02",
-		"at22":      "at22",
-		"yt01":      "yt01",
-		"local":     "local",
-		"localtest": "localtest",
-	} {
-		if got := deploymentEnvironmentName(environment); got != want {
-			t.Errorf("deploymentEnvironmentName(%q) = %q, want %q", environment, got, want)
-		}
+	for _, environment := range []string{"prod", "tt02", "at22", "yt01", "local", "localtest"} {
+		t.Run(environment, func(t *testing.T) {
+			res, err := newResource(t.Context(), environment)
+			if err != nil {
+				t.Fatalf("newResource() error = %v", err)
+			}
+			for key, want := range map[attribute.Key]string{
+				semconv.ServiceVersionKey:            serviceVersion,
+				semconv.DeploymentEnvironmentNameKey: environment,
+				semconv.K8SPodUIDKey:                 "pod",
+			} {
+				if got, _ := res.Set().Value(key); got.AsString() != want {
+					t.Errorf("%s = %q, want %q", key, got.AsString(), want)
+				}
+			}
+		})
 	}
 }

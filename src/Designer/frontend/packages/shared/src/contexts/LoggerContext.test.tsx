@@ -61,6 +61,20 @@ describe('LoggerContextProvider', () => {
     });
   });
 
+  test('does not send trace context with requests', async () => {
+    mockEnvironmentConfig({ aiConnectionString: mockConnectionString });
+
+    renderLoggerContext({ config: { disableCorrelationHeaders: false } });
+
+    await waitFor(() => {
+      expect(ApplicationInsights).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: expect.objectContaining({ disableCorrelationHeaders: true }),
+        }),
+      );
+    });
+  });
+
   test('does not crash when ApplicationInsights constructor throws', async () => {
     await expectGracefulFailureWhenSdkThrows(function () {
       throw new Error('SDK initialization failed');

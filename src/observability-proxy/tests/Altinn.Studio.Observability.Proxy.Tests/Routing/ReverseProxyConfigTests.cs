@@ -7,14 +7,21 @@ namespace Altinn.Studio.Observability.Proxy.Tests.Routing;
 public sealed class ReverseProxyConfigTests
 {
     [Fact]
-    public void CreateRoutes_GivesEachSignalItsOwnWriteAndReadRoute()
+    public void CreateRoutes_GivesEachSignalAWriteRouteAndEachReadApiARoute()
     {
         var routes = ObservabilityReverseProxyConfig.CreateRoutes(new ObservabilityProxyOptions());
 
         Assert.Equal(
-            ["logs", "metrics", "otlp-logs", "otlp-metrics", "otlp-traces", "traces"],
+            ["logs", "metrics", "otlp-logs", "otlp-metrics", "otlp-traces", "traces", "traces-logsql"],
             routes.Select(route => route.RouteId).Order()
         );
+    }
+
+    [Fact]
+    public void ReadRouteGroups_AreUniqueAndApartFromTheWriteRouteGroup()
+    {
+        Assert.Equal(ObservabilitySignal.ReadRouteGroups.Distinct(), ObservabilitySignal.ReadRouteGroups);
+        Assert.DoesNotContain(ObservabilityPaths.OtlpRouteGroup, ObservabilitySignal.ReadRouteGroups);
     }
 
     [Theory]
@@ -47,15 +54,20 @@ public sealed class ReverseProxyConfigTests
     }
 
     [Theory]
-    [InlineData("metrics")]
-    [InlineData("logs")]
-    public void OtherReadRoutes_OnlyStripThePublicPrefix(string routeId)
+    [InlineData("metrics", "metrics")]
+    [InlineData("logs", "logs")]
+    [InlineData("traces-logsql", "traces")]
+    public void OtherReadRoutes_OnlyStripThePublicPrefix(string routeId, string clusterId)
     {
         var routes = ObservabilityReverseProxyConfig.CreateRoutes(new ObservabilityProxyOptions());
 
         var route = Assert.Single(routes, candidate => candidate.RouteId == routeId);
+        Assert.Equal($"/internal/observability/{routeId}/{{**readPath}}", route.Match.Path);
+        Assert.Equal(clusterId, route.ClusterId);
         Assert.NotNull(route.Transforms);
         Assert.Equal($"/internal/observability/{routeId}", Assert.Single(route.Transforms)["PathRemovePrefix"]);
+        Assert.NotNull(route.Metadata);
+        Assert.Equal(routeId, route.Metadata["ObservabilityRouteGroup"]);
     }
 
     [Fact]
@@ -73,12 +85,13 @@ public sealed class ReverseProxyConfigTests
         Assert.Equal("FirstAlphabetical", cluster.LoadBalancingPolicy);
         Assert.True(ObservabilityReverseProxyConfig.IsStoragePair(cluster));
         Assert.NotNull(cluster.Destinations);
-        Assert.Equal(["instance-0", "instance-1"], cluster.Destinations.Keys.Order());
-        Assert.Equal("http://traces-a:10428/", cluster.Destinations["instance-0"].Address);
-        Assert.Equal("http://traces-b:10428/", cluster.Destinations["instance-1"].Address);
+        // Named after the copies, in configuration order; logs and metrics use these names.
+        Assert.Equal(["a", "b"], cluster.Destinations.Keys.Order());
+        Assert.Equal("http://traces-a:10428/", cluster.Destinations["a"].Address);
+        Assert.Equal("http://traces-b:10428/", cluster.Destinations["b"].Address);
 
         // Probed at the root, not through the Tempo path the route prepends.
-        Assert.Equal("http://traces-a:10428/", cluster.Destinations["instance-0"].Health);
+        Assert.Equal("http://traces-a:10428/", cluster.Destinations["a"].Health);
         var activeHealthCheck = cluster.HealthCheck?.Active;
         Assert.NotNull(activeHealthCheck);
         Assert.True(activeHealthCheck.Enabled);

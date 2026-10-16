@@ -1,8 +1,10 @@
 # Security controls
 
-Code: `src/AI/assistant/agents/prompts/intent_security.md`, `src/AI/assistant/agents/core/tools/`, `src/AI/assistant/shared/utils/spotlight.py`, `src/AI/assistant/agents/services/llm/llm_client.py`, `src/AI/assistant/agents/core/context.py`
+Code: `src/AI/assistant/agents/prompts/intent_security.md`, `src/AI/assistant/agents/core/tools/`, `src/AI/assistant/shared/utils/spotlight.py`, `src/AI/assistant/agents/services/llm/llm_client.py`, `src/AI/assistant/agents/core/context.py`, `src/AI/assistant/infra/kustomize/networkpolicy.yaml`
 
-The security model has three layers. Each layer covers a risk that the other layers do not cover.
+The security model has four layers. Each layer covers a risk that the other layers do not cover.
+
+**Network access.** A NetworkPolicy blocks connections from pods other than the Designer pods.
 
 **Intent gate.** This layer runs in workflow mode only. It examines the goal text for abuse before the graph starts. It sees the names of the attachments, but not their content. The reason: a large PDF is expensive to examine, and it gives little signal.
 
@@ -10,7 +12,7 @@ The security model has three layers. Each layer covers a risk that the other lay
 
 - In chat mode, the loop refuses the write tools until the user gives permission.
 - The file tools stay in the app repository.
-- `web_fetch` can only get pages from an allowlist of Altinn hosts.
+- `web_fetch` can only get pages from an allowlist of Altinn hosts. This also applies to each redirect.
 - Each change goes to a session branch. A person examines the branch before the merge.
 - The prompts that Langfuse serves are published by CI after the merge to main, so each served prompt has a reviewed commit.
 

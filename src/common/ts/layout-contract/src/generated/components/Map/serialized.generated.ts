@@ -3,7 +3,6 @@ import {
   FormComponentProps,
   IRawDataModelBinding,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -63,6 +62,8 @@ export interface Toolbar {
 export type CompMapSerialized = {
   type: 'Map';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -74,7 +75,6 @@ export type CompMapSerialized = {
   toolbar?: Toolbar;
 } & ComponentBase &
   FormComponentProps &
-  SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: d84990394fd6a072d15086ea04100fe41869a8187256b6ea4eb2c9afd939183d
+// Source hash: 791ac8fd6270a4c67e3c07c5f890add3eebe5b207f71b07ac0cf36b1e862d21b

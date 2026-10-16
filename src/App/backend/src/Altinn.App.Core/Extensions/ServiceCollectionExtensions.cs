@@ -373,7 +373,13 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IPipelineServiceTask, EFormidlingServiceTask>();
         services.AddTransient<IServiceTask, SubformPdfServiceTask>();
 
-        services.AddHostedService<Internal.Process.ProcessTaskConfigurationValidationService>();
+        // The validation reads the hook registrations themselves, which the service provider does not expose.
+        services.AddHostedService(provider =>
+            ActivatorUtilities.CreateInstance<Internal.Process.ProcessTaskConfigurationValidationService>(
+                provider,
+                services
+            )
+        );
     }
 
     private static void AddActionServices(IServiceCollection services)

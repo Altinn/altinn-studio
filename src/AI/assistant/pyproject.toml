@@ -2,7 +2,7 @@
 name = "altinity-agents"
 version = "0.1.0"
 description = "Agent service that enables users to develop Altinn apps with natural language"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
     # Web framework
     "fastapi>=0.135.2",
@@ -26,7 +26,7 @@ dependencies = [
     "anthropic>=0.86.0",
 
     # Observability
-    "langfuse>=3.0.0",
+    "langfuse>=3.0.0,<5",
 
     # JSON repair for malformed LLM outputs
     "json-repair>=0.58.7",
@@ -41,6 +41,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+preview = [
+    "playwright>=1.49.0",
+]
+
+[dependency-groups]
 dev = [
     "pytest>=9.0.0",
     "pytest-cov>=6.0.0",
@@ -48,9 +53,6 @@ dev = [
     "ruff>=0.16.8",
     "pyright[nodejs]>=1.1.414",
     # Pyright reads the playwright types. The tests do not start a browser.
-    "playwright>=1.49.0",
-]
-preview = [
     "playwright>=1.49.0",
 ]
 
@@ -72,14 +74,17 @@ addopts = [
 asyncio_mode = "auto"
 
 [tool.pyright]
-# CI uses Python 3.12, the oldest version that requires-python allows.
-pythonVersion = "3.12"
+# Pyright does not read requires-python. Keep this equal to the minor version in .python-version.
+pythonVersion = "3.14"
 typeCheckingMode = "basic"
 include = ["agents", "api", "benchmarks", "scripts", "services", "shared", "tests"]
 
 [tool.ruff]
-target-version = "py312"
 line-length = 120
+
+[tool.ruff.format]
+# Markdown formatting is optional and should not gate code changes in CI.
+exclude = ["*.md"]
 
 [tool.ruff.lint]
 select = [
@@ -88,7 +93,7 @@ select = [
     "F",     # Pyflakes: unused imports and variables, undefined names
     "I",     # isort: import order and import groups
     "B",     # flake8-bugbear: likely bugs, for example mutable default arguments
-    "UP",    # pyupgrade: old syntax that Python 3.12 can replace
+    "UP",    # pyupgrade: old syntax that the target Python version can replace
     "SIM",   # flake8-simplify: code that you can make simpler
     "C4",    # flake8-comprehensions: unnecessary calls and comprehensions
     "PIE",   # flake8-pie: unnecessary statements and duplicate class fields
