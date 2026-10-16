@@ -17,28 +17,16 @@ public class PropertyAccessMatcher : IExpressionMatcher
         if (expression is not MemberExpression memberExpr)
             return null;
 
-        // Check if this is accessing the object parameter
-        if (
-            memberExpr.Object is Identifier identifier
-            && identifier.Name == context.ObjectParameterName
-            && memberExpr.Property is Identifier propIdentifier
-        )
+        if (context.TryGetInputName(memberExpr, out var propertyName))
         {
-            var propertyName = propIdentifier.Name;
-
-            // Map to data model path using inputParams
             if (context.InputParams.TryGetValue(propertyName, out var dataModelPath))
-            {
                 return new object[] { "dataModel", dataModelPath };
-            }
-
-            debugInfo.Add($"❌ Property '{propertyName}' not found in inputParams");
-            return null;
+            debugInfo.Add($"Unconfigured input '{propertyName}' is undefined in the legacy object");
+            return new object?[] { null };
         }
 
         var propertyPath = ExtractPropertyPath(memberExpr);
-        debugInfo.Add($"❌ Could not resolve property access: {propertyPath}");
-        return null;
+        return context.Reject($"❌ Could not resolve property access: {propertyPath}", debugInfo);
     }
 
     private string ExtractPropertyPath(MemberExpression memberExpr)

@@ -13,7 +13,7 @@ public class LengthCheckMatcher : IExpressionMatcher
             return false;
 
         // Check if accessing .length property
-        return memberExpr.Property is Identifier { Name: "length" };
+        return !memberExpr.Computed && memberExpr.Property is Identifier { Name: "length" };
     }
 
     public object? Match(Expression expression, ConversionContext context, List<string> debugInfo)
@@ -21,12 +21,25 @@ public class LengthCheckMatcher : IExpressionMatcher
         if (expression is not MemberExpression memberExpr)
             return null;
 
+        if (context.TryGetInputName(memberExpr, out _))
+            return new PropertyAccessMatcher().Match(expression, context, debugInfo);
+        if (context.GetValueType(memberExpr.Object) != "string")
+        {
+            return context.Reject("Only string length has a matching expression operation", debugInfo);
+        }
+        if (!context.HasSafeStringDomain(memberExpr.Object))
+        {
+            return context.Reject(
+                "String length requires a bounded domain because reserved text values are normalized",
+                debugInfo
+            );
+        }
+
         // Convert the object being accessed (e.g., obj.value in obj.value.length)
         var targetObject = context.ConvertExpression(memberExpr.Object, debugInfo);
         if (targetObject == null)
         {
-            debugInfo.Add("❌ Failed to convert target of .length access");
-            return null;
+            return context.Reject("❌ Failed to convert target of .length access", debugInfo);
         }
 
         return new object[] { "stringLength", targetObject };
