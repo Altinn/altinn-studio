@@ -21,12 +21,19 @@ internal abstract record MailboxContinuation
     /// <summary>Enqueue the receiver for the next message; nothing is closed or started.</summary>
     internal sealed record AwaitNextMessage : MailboxContinuation
     {
-        public AwaitNextMessage(Guid mailboxId, string serviceTaskType, int handlerItemIndex, long position)
+        public AwaitNextMessage(
+            Guid mailboxId,
+            string serviceTaskType,
+            int handlerItemIndex,
+            long position,
+            IReadOnlyDictionary<string, string>? handlerStepLabels = null
+        )
         {
             MailboxId = mailboxId;
             ServiceTaskType = serviceTaskType;
             HandlerItemIndex = handlerItemIndex;
             Position = position;
+            HandlerStepLabels = handlerStepLabels;
         }
 
         /// <summary>The mailbox the exchange runs on, read from the rendezvous.</summary>
@@ -44,6 +51,12 @@ internal abstract record MailboxContinuation
 
         /// <summary>The position the handler just answered — names the successor for operators.</summary>
         public long Position { get; }
+
+        /// <summary>
+        /// The labels naming the handler's step for people following the task, so the successor's step reads
+        /// the same as this one. Worked out where the pipeline was resolved, since nothing is resolved here.
+        /// </summary>
+        public IReadOnlyDictionary<string, string>? HandlerStepLabels { get; }
     }
 
     /// <summary>

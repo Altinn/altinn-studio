@@ -115,6 +115,23 @@ conclusion's from the terminal — win field-wise over the task's `StepOptions`,
 every step. The three sources are alternatives, never a chain: what one step leaves unset falls back to
 the task's options, never to another step's.
 
+### Step names
+
+Each step is shown by name wherever people follow the task's progress, such as Studio's admin panel. Pass
+`name` to `Stage`, `HandleReplies`, `Finally` or `ConcludeOnReplies` to say what the step does, in the
+language the service owner reads:
+
+```csharp
+pipeline
+    .Stage(RequestApproval, mailbox, out MailboxHandle approval, name: "Be om godkjenning")
+    .ConcludeOnReplies(approval, OnDecision, OnClosed, name: "Behandle svar");
+```
+
+A step without a name goes by the method you passed, written out as words (`SendToArchive` reads "Send to
+archive"). A lambda gives no name. A reply handler without a name is shown as answering the stage that
+opened its mailbox. Names are for display only: renaming a step changes nothing about how it runs, in-flight
+workflows included.
+
 ## Mailboxes: work answered by a message
 
 A pipeline answered by a message rather than by polling opens a **mailbox** from the stage that sends:

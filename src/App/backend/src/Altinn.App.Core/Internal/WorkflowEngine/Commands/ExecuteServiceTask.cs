@@ -131,7 +131,8 @@ internal sealed class ExecuteServiceTask(
                         terminalReceipt,
                         itemIndex,
                         serviceTaskType,
-                        serviceTaskContext
+                        serviceTaskContext,
+                        pipeline
                     ),
 
                 // Stated rather than left to arm order, exactly as the sibling mismatch arms state theirs: a
@@ -295,7 +296,8 @@ internal sealed class ExecuteServiceTask(
         AppCallbackMailbox receipt,
         int handlerItemIndex,
         string serviceTaskType,
-        ServiceTaskContext serviceTaskContext
+        ServiceTaskContext serviceTaskContext,
+        ServiceTaskPipeline pipeline
     )
     {
         return ExecuteReply(
@@ -313,7 +315,8 @@ internal sealed class ExecuteServiceTask(
                 receipt,
                 context.StateCarry,
                 handlerItemIndex,
-                exchange.OpeningIndex
+                exchange.OpeningIndex,
+                WorkflowCommandSet.ItemStepLabels(pipeline, handlerItemIndex)
             );
     }
 

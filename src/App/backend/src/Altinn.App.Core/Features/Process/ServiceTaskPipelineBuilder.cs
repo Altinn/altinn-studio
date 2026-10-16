@@ -2,7 +2,7 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// Composes a service task's pipeline inside <see cref="IPipelineServiceTask.Define"/>: zero or more
-/// <see cref="Stage(Func{ServiceTaskContext, Task{ServiceTaskStageResult}}, ProcessStepOptions?)"/>
+/// <see cref="Stage(Func{ServiceTaskContext, Task{ServiceTaskStageResult}}, ProcessStepOptions?, string?)"/>
 /// calls and <see cref="HandleReplies"/> handlers, in any order, ended by exactly one terminal —
 /// <see cref="Finally"/> or <see cref="ConcludeOnReplies"/>, the only sources of the
 /// <see cref="ServiceTaskPipeline"/> that <c>Define</c> must return. Composition mistakes throw from the
@@ -37,14 +37,22 @@ public sealed class ServiceTaskPipelineBuilder
     /// Optional per-stage execution options, winning field-wise over the task's own
     /// <see cref="IProcessStepConfigurable.StepOptions"/>.
     /// </param>
+    /// <param name="name">
+    /// What the stage is called where people follow the task's progress, such as Studio's admin panel, in
+    /// the language they read. Display only: renaming a stage changes nothing about how it runs. Without a
+    /// name, a stage composed from a named method goes by that method's name, written out as words.
+    /// </param>
+    /// <exception cref="ArgumentException"><paramref name="name"/> is blank or longer than 100 characters.</exception>
     public ServiceTaskPipelineBuilder Stage(
         Func<ServiceTaskContext, Task<ServiceTaskStageResult>> work,
-        ProcessStepOptions? options = null
+        ProcessStepOptions? options = null,
+        string? name = null
     )
     {
         ArgumentNullException.ThrowIfNull(work);
         options?.Validate();
-        _items.Add(new ServiceTaskStage.Plain(work, options));
+        string? displayName = PipelineStepNames.Resolve(name, work, nameof(name));
+        _items.Add(new ServiceTaskStage.Plain(work, options) { DisplayName = displayName });
         return this;
     }
 
@@ -63,19 +71,30 @@ public sealed class ServiceTaskPipelineBuilder
     /// exactly once.
     /// </param>
     /// <param name="options">Optional per-stage execution options, as above.</param>
+    /// <param name="name">
+    /// What the stage is called where people follow the task's progress, as on
+    /// <see cref="Stage(Func{ServiceTaskContext, Task{ServiceTaskStageResult}}, ProcessStepOptions?, string?)"/>.
+    /// </param>
+    /// <remarks>
+    /// The steps that open the mailbox and answer it are named after this stage too, unless the handler that
+    /// answers it has a name of its own.
+    /// </remarks>
+    /// <exception cref="ArgumentException"><paramref name="name"/> is blank or longer than 100 characters.</exception>
     public ServiceTaskPipelineBuilder Stage(
         Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> work,
         MailboxOptions mailbox,
         out MailboxHandle handle,
-        ProcessStepOptions? options = null
+        ProcessStepOptions? options = null,
+        string? name = null
     )
     {
         ArgumentNullException.ThrowIfNull(work);
         ArgumentNullException.ThrowIfNull(mailbox);
         mailbox.Validate();
         options?.Validate();
+        string? displayName = PipelineStepNames.Resolve(name, work, nameof(name));
         int openingIndex = _items.Count;
-        _items.Add(new ServiceTaskStage.MailboxOpening(work, mailbox, options));
+        _items.Add(new ServiceTaskStage.MailboxOpening(work, mailbox, options) { DisplayName = displayName });
 
         handle = new MailboxHandle(this, openingIndex);
         _mailboxes.Add(new IssuedMailbox(handle));
@@ -99,22 +118,31 @@ public sealed class ServiceTaskPipelineBuilder
     /// live without (<see cref="ServiceTaskStageResult.Completed"/>).
     /// </param>
     /// <param name="options">Optional execution options for the step each execution of these handlers runs as.</param>
-    /// <exception cref="ArgumentException"><paramref name="handle"/> belongs to another pipeline.</exception>
+    /// <param name="name">
+    /// What the steps answering the messages are called where people follow the task's progress, as on
+    /// <see cref="Stage(Func{ServiceTaskContext, Task{ServiceTaskStageResult}}, ProcessStepOptions?, string?)"/>.
+    /// </param>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="handle"/> belongs to another pipeline, or <paramref name="name"/> is blank or longer
+    /// than 100 characters.
+    /// </exception>
     /// <exception cref="InvalidOperationException"><paramref name="handle"/> is already answered.</exception>
     public ServiceTaskPipelineBuilder HandleReplies(
         MailboxHandle handle,
         Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskStageExchangeResult>> onMessage,
         Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskStageResult>> onClosed,
-        ProcessStepOptions? options = null
+        ProcessStepOptions? options = null,
+        string? name = null
     )
     {
         ArgumentNullException.ThrowIfNull(handle);
         ArgumentNullException.ThrowIfNull(onMessage);
         ArgumentNullException.ThrowIfNull(onClosed);
         options?.Validate();
+        string? displayName = PipelineStepNames.Resolve(name, onMessage, nameof(name));
 
         ClaimMailbox(handle, MailboxAnswer.Segment);
-        _items.Add(new ReplySegment(handle.OpeningIndex, onMessage, onClosed, options));
+        _items.Add(new ReplySegment(handle.OpeningIndex, onMessage, onClosed, options) { DisplayName = displayName });
         return this;
     }
 
@@ -125,27 +153,37 @@ public sealed class ServiceTaskPipelineBuilder
     /// </summary>
     /// <param name="work">
     /// The concluding work. The idempotency rules of
-    /// <see cref="Stage(Func{ServiceTaskContext, Task{ServiceTaskStageResult}}, ProcessStepOptions?)"/>
+    /// <see cref="Stage(Func{ServiceTaskContext, Task{ServiceTaskStageResult}}, ProcessStepOptions?, string?)"/>
     /// apply here too.
     /// </param>
     /// <param name="options">
     /// Optional execution options for the concluding step alone. Declare a polling pipeline's
     /// <see cref="ProcessStepOptions.WaitBudget"/> here rather than on the task.
     /// </param>
+    /// <param name="name">
+    /// What the concluding step is called where people follow the task's progress, as on
+    /// <see cref="Stage(Func{ServiceTaskContext, Task{ServiceTaskStageResult}}, ProcessStepOptions?, string?)"/>.
+    /// </param>
+    /// <exception cref="ArgumentException"><paramref name="name"/> is blank or longer than 100 characters.</exception>
     /// <exception cref="InvalidOperationException">
     /// A mailbox this pipeline opens is left unanswered.
     /// </exception>
     public ServiceTaskPipeline Finally(
         Func<ServiceTaskContext, Task<ServiceTaskResult>> work,
-        ProcessStepOptions? options = null
+        ProcessStepOptions? options = null,
+        string? name = null
     )
     {
         ArgumentNullException.ThrowIfNull(work);
         options?.Validate();
+        string? displayName = PipelineStepNames.Resolve(name, work, nameof(name));
 
         RequireEveryMailboxAnswered(nameof(Finally), answeredHere: null);
 
-        return new ServiceTaskPipeline(_items, new PipelineConclusion.FinalStep(work, options));
+        return new ServiceTaskPipeline(
+            _items,
+            new PipelineConclusion.FinalStep(work, options) { DisplayName = displayName }
+        );
     }
 
     /// <summary>
@@ -164,7 +202,14 @@ public sealed class ServiceTaskPipelineBuilder
     /// <see cref="ProcessStepOptions.WaitBudget"/> here bounds the handler's own deferrals per message — not
     /// the wait for a message, which is <see cref="MailboxOptions.Timeout"/>.
     /// </param>
-    /// <exception cref="ArgumentException"><paramref name="handle"/> belongs to another pipeline.</exception>
+    /// <param name="name">
+    /// What the steps answering the messages are called where people follow the task's progress, as on
+    /// <see cref="Stage(Func{ServiceTaskContext, Task{ServiceTaskStageResult}}, ProcessStepOptions?, string?)"/>.
+    /// </param>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="handle"/> belongs to another pipeline, or <paramref name="name"/> is blank or longer
+    /// than 100 characters.
+    /// </exception>
     /// <exception cref="InvalidOperationException">
     /// <paramref name="handle"/> is already answered, or another mailbox this pipeline opens is left
     /// unanswered.
@@ -173,13 +218,15 @@ public sealed class ServiceTaskPipelineBuilder
         MailboxHandle handle,
         Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> onMessage,
         Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskResult>> onClosed,
-        ProcessStepOptions? options = null
+        ProcessStepOptions? options = null,
+        string? name = null
     )
     {
         ArgumentNullException.ThrowIfNull(handle);
         ArgumentNullException.ThrowIfNull(onMessage);
         ArgumentNullException.ThrowIfNull(onClosed);
         options?.Validate();
+        string? displayName = PipelineStepNames.Resolve(name, onMessage, nameof(name));
 
         ClaimMailbox(handle, MailboxAnswer.Terminal);
         RequireEveryMailboxAnswered(nameof(ConcludeOnReplies), answeredHere: handle);
@@ -187,6 +234,9 @@ public sealed class ServiceTaskPipelineBuilder
         return new ServiceTaskPipeline(
             _items,
             new PipelineConclusion.ReplyExchange(handle.OpeningIndex, onMessage, onClosed, options)
+            {
+                DisplayName = displayName,
+            }
         );
     }
 
