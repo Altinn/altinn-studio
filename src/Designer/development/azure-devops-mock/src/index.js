@@ -56,6 +56,13 @@ app.get(
   '/apps/:org/:env/runtime/gateway/api/v1/deploy/apps/:app/:origin',
   runtimeGatewayDeploymentDetailsRoute,
 );
+// The admin app's metrics come from the cluster's monitoring, which a local stack has none of: every
+// series is empty rather than an error the page has to show.
+const emptyMetricsRoute = (req, res) => res.json([]);
+app.get('/apps/:org/:env/runtime/gateway/api/v1/metrics/errors', emptyMetricsRoute);
+app.get('/apps/:org/:env/runtime/gateway/api/v1/metrics/app', emptyMetricsRoute);
+app.get('/apps/:org/:env/runtime/gateway/api/v1/metrics/app/errors', emptyMetricsRoute);
+app.get('/apps/:org/:env/runtime/gateway/api/v1/metrics/app/health', emptyMetricsRoute);
 app.get('/storage/api/v1/applications/:org/:app', storageApplicationMetadataRoute);
 app.get('/storage/api/v1/applications/:org/:app/texts/:lang', storageTextsRoute);
 // The admin app's app and instance views: canned and random data by default, or what the studioctl
