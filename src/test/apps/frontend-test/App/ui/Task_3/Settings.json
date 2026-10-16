@@ -9,6 +9,7 @@
       "repeating3",
       "option-comp",
       "hide",
+      "calculations",
       "summary"
     ],
     "excludeFromPdf": ["summary"],

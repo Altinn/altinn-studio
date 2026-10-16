@@ -1,0 +1,183 @@
+{
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "nav-calculations",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "enable-annual-work",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Calculate annual work?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "CalculateAnnualWork"
+        },
+        "options": [
+          {
+            "label": "Yes, calculate annual work",
+            "value": "true"
+          },
+          {
+            "label": "No",
+            "value": "false"
+          }
+        ]
+      },
+      {
+        "id": "persons",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Number of persons"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Persons"
+        },
+        "formatting": {
+          "number": {
+            "allowNegative": false,
+            "decimalScale": 2
+          }
+        }
+      },
+      {
+        "id": "annual-work",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Annual work"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "AnnualWork"
+        },
+        "formatting": {
+          "number": {
+            "allowNegative": false,
+            "decimalScale": 2
+          }
+        }
+      },
+      {
+        "id": "calculated-annual-work",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Calculated annual work"
+        },
+        "value": [
+          "dataModel",
+          "CalculatedAnnualWork"
+        ],
+        "hidden": [
+          "equals",
+          [
+            "dataModel",
+            "CalculatedAnnualWork"
+          ],
+          null
+        ]
+      },
+      {
+        "id": "empty-annual-work",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Enter positive persons and annual work to calculate a result."
+        },
+        "hidden": [
+          "notEquals",
+          [
+            "dataModel",
+            "CalculatedAnnualWork"
+          ],
+          null
+        ]
+      },
+      {
+        "id": "allocation-categories",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Allocation categories"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "AllocationCategories"
+        },
+        "options": [
+          {
+            "label": "Feed",
+            "value": "Feed"
+          },
+          {
+            "label": "Compost",
+            "value": "Compost"
+          }
+        ]
+      },
+      {
+        "id": "feed-allocation",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Feed allocation"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "FeedAllocation"
+        },
+        "formatting": {
+          "number": {
+            "allowNegative": false,
+            "decimalScale": 2
+          }
+        }
+      },
+      {
+        "id": "compost-allocation",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Compost allocation"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "CompostAllocation"
+        },
+        "formatting": {
+          "number": {
+            "allowNegative": false,
+            "decimalScale": 2
+          }
+        }
+      },
+      {
+        "id": "remaining-allocation",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Remaining allocation"
+        },
+        "value": [
+          "dataModel",
+          "RemainingAllocation"
+        ]
+      },
+      {
+        "id": "allocation-warning",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "The completed allocation must add up to 100 percent."
+        },
+        "hidden": [
+          "not",
+          [
+            "dataModel",
+            "IncompleteAllocation"
+          ]
+        ]
+      },
+      {
+        "id": "nav-buttons-calculations",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "back": "Forrige",
+          "next": "Neste"
+        },
+        "showBackButton": true
+      }
+    ]
+  }
+}
