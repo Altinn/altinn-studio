@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useTransition } from 'react';
 
-import { useIsFetching } from '@tanstack/react-query';
-
+import { useIsFetchingData } from 'src/core/queries/useIsFetchingData';
 import { waitForAnimationFrames } from 'src/utils/waitForAnimationFrames';
 
 export const loadingAttribute = 'data-loading';
@@ -23,7 +22,7 @@ export function ReadyForPrint({ type }: { type: ReadyType }) {
   const [isPending] = useTransition();
   const [assetsLoaded, setAssetsLoaded] = React.useState(false);
 
-  const isFetching = useIsFetching() > 0;
+  const isFetching = useIsFetchingData();
 
   const hasLoaders = useHasElementsByAttribute(loadingAttribute);
   const hasErrors = useHasElementsByAttribute(errorAttribute);

@@ -2,9 +2,9 @@ import React from 'react';
 
 import { AltinnContentLoader } from '@app/form-component';
 
+import { useInstanceDataQuery } from 'src/core/queries/instance';
 import { useAppName } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useInstanceOwnerParty, usePartiesAllowedToInstantiate } from 'src/features/party/PartiesProvider';
 import { ConfirmPage } from 'src/features/process/confirm/containers/ConfirmPage';
 

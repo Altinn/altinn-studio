@@ -1,13 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import type { Draft } from 'immer';
 
-import { hasPendingAttachments, waitForAttachments } from 'src/core/queries/attachments/attachmentState';
+import { useAttachmentActivity } from 'src/core/queries/attachments';
 import { useGetCachedInitialValidations, useRefetchInitialValidations } from 'src/core/queries/backendValidation';
+import { useInstanceDataQuery, useSelectFromInstanceData } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';
-import { useInstanceDataQuery, useSelectFromInstanceData } from 'src/features/instance/InstanceContext';
 import {
   type BackendComponentValidation,
   type BackendValidationIssue,
@@ -226,7 +225,6 @@ export function useWaitForValidation() {
   const waitForSave = FormStore.data.useWaitForSave();
   const store = FormStore.raw.useStore();
   const waitForState = useWaitForState<undefined, FormStoreState>(store);
-  const queryClient = useQueryClient();
   const selectFromInstance = useSelectFromInstanceData();
 
   const hasWritableDataTypes = !!FormStore.bootstrap.useWritableDataTypes()?.length;
@@ -235,9 +233,9 @@ export function useWaitForValidation() {
     () => selectFromInstance((instance) => instance.data) ?? [],
     [selectFromInstance],
   );
-  const waitForActiveAttachments = useCallback(
-    () => waitForAttachments(store, queryClient, getInstanceData),
-    [getInstanceData, queryClient, store],
+  const { hasPending: hasPendingAttachments, wait: waitForActiveAttachments } = useAttachmentActivity(
+    store,
+    getInstanceData,
   );
   const initialBackendValidationsAreProcessed = useCallback(
     () => (state: FormStoreState) => {
@@ -262,14 +260,12 @@ export function useWaitForValidation() {
       do {
         await waitForActiveAttachments();
         await waitForSaveAndBackendValidations();
-      } while (hasPendingAttachments(store.getState(), queryClient, getInstanceData()));
+      } while (hasPendingAttachments());
     },
     [
-      getInstanceData,
       hasWritableDataTypes,
       initialBackendValidationsAreProcessed,
-      queryClient,
-      store,
+      hasPendingAttachments,
       waitForActiveAttachments,
       waitForSave,
       waitForState,

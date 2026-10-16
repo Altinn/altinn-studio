@@ -68,7 +68,7 @@ export interface UseBackendValidationQueryResult {
   validations: BackendValidationIssue[] | undefined;
   isLoading: boolean;
   error: Error | null;
-  refetch: () => Promise<unknown>;
+  refetch: () => Promise<void>;
 }
 
 export interface UseBackendValidationQueryOptions {
@@ -90,7 +90,11 @@ export function useBackendValidationQuery(
     query.error && window.logError('Fetching initial validations failed:\n', query.error);
   }, [query.error]);
 
-  return { validations: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
+  const { refetch: refresh } = query;
+  const refetch = useCallback(async () => {
+    await refresh();
+  }, [refresh]);
+  return { validations: query.data, isLoading: query.isLoading, error: query.error, refetch };
 }
 
 export function useRefetchInitialValidations(onlyIncrementalValidators = true) {
@@ -100,5 +104,8 @@ export function useRefetchInitialValidations(onlyIncrementalValidators = true) {
     enabled: false,
     throwOnError: false,
   });
-  return query.refetch;
+  const { refetch } = query;
+  return useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 }

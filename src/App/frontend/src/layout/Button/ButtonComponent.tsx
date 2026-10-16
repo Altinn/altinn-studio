@@ -4,7 +4,7 @@ import { ButtonLayout } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import type { ValidLanguageKey } from '@app/language';
 
-import { useProcessNext } from 'src/core/queries/process/useProcessNext';
+import { useProcessNext } from 'src/core/queries/process';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { FormStore } from 'src/features/form/FormContext';
 import { getUiConfig } from 'src/features/form/ui';

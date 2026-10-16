@@ -1,8 +1,6 @@
 import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
-import type { QueryClient } from '@tanstack/react-query';
-
 import { parseInstanceId, prefetchActiveInstances } from 'src/core/queries/instance';
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { GlobalData } from 'src/GlobalData';
@@ -12,6 +10,7 @@ import { isStateless } from 'src/routes/index/isStateless';
 import { buildInstanceUrl, buildPartySelectionUrl } from 'src/routesBuilder';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import type { InstanceApi } from 'src/core/api-client/instance.api';
+import type { AppQueryClient } from 'src/core/queries/queryClient';
 import type { InstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 
 export type IndexLoaderError =
@@ -50,7 +49,7 @@ export async function clientLoader({ context }: LoaderFunctionArgs): Promise<Ind
   throw new Error(`Unexpected entry type: ${entryType}`);
 }
 
-async function handleSelectInstance(queryClient: QueryClient, instanceApi: InstanceApi): Promise<Response> {
+async function handleSelectInstance(queryClient: AppQueryClient, instanceApi: InstanceApi): Promise<Response> {
   const activeInstances = await prefetchActiveInstances(
     queryClient,
     String(GlobalData.getSelectedParty()!.partyId),

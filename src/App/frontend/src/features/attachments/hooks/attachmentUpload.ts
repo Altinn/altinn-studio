@@ -1,19 +1,16 @@
 import { useCallback } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
 import { v4 as uuidv4 } from 'uuid';
 import type { IDataModelBindingsList, IDataModelBindingsSimple } from '@app/layout-contract/generated/common.generated';
 
-import { AttachmentMutations } from 'src/core/queries/attachments/index';
-import { attachmentMutationKeys } from 'src/features/attachments/tools';
+import { AttachmentMutations, useGetUploadedDataElementId } from 'src/core/queries/attachments';
+import { useSelectFromInstanceData } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';
 import { dataModelPairsToObject } from 'src/features/formData/types';
-import { useSelectFromInstanceData } from 'src/features/instance/InstanceContext';
 import { backendValidationIssueGroupListToObject } from 'src/features/validation';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
-import type { AttachmentUploadVariables } from 'src/core/queries/attachments/index';
-import type { DataPostResponse, IFailedAttachment, TemporaryAttachment } from 'src/features/attachments';
+import type { IFailedAttachment, TemporaryAttachment } from 'src/features/attachments';
 import type { AttachmentActionUpload, AttachmentUploadResult } from 'src/features/attachments/AttachmentsStore';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { FDActionResult } from 'src/features/formData/FormDataWriteStateMachine';
@@ -82,7 +79,7 @@ export const AttachmentUpload = {
 
   useAttachmentsAwaiter() {
     const store = FormStore.raw.useStore();
-    const queryClient = useQueryClient();
+    const getUploadedDataElementId = useGetUploadedDataElementId();
     const selectFromInstance = useSelectFromInstanceData();
     const waitFor = useWaitForState<IData | false, FormStoreState>(store);
 
@@ -97,14 +94,7 @@ export const AttachmentUpload = {
             return true;
           }
 
-          const upload = queryClient
-            .getMutationCache()
-            .findAll({ mutationKey: attachmentMutationKeys.upload(), status: 'success' })
-            .find((mutation) => {
-              const variables = mutation.state.variables as AttachmentUploadVariables;
-              return variables.nodeId === nodeId && variables.temporaryId === attachment.data.temporaryId;
-            });
-          const dataElementId = (upload?.state.data as DataPostResponse | undefined)?.newDataElementId;
+          const dataElementId = getUploadedDataElementId(nodeId, attachment.data.temporaryId);
           const uploaded = dataElementId
             ? selectFromInstance((instance) => instance.data.find((data) => data.id === dataElementId))
             : undefined;
@@ -115,7 +105,7 @@ export const AttachmentUpload = {
 
           throw new Error('Given attachment not found after upload finished');
         }),
-      [queryClient, selectFromInstance, waitFor],
+      [getUploadedDataElementId, selectFromInstance, waitFor],
     );
   },
 

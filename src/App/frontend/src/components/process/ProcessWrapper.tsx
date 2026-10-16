@@ -12,12 +12,10 @@ import {
   WorkflowProcessing,
 } from 'src/components/process/WorkflowEngine';
 import { Loader } from 'src/core/loading/Loader';
-import { getTargetTaskFromProcess } from 'src/core/queries/process/useProcessNext';
-import { useIsMutating, useQueryClient } from 'src/core/queries/reactQuery';
+import { getTargetTaskFromProcess, useIsProcessNextPending, useIsRunningProcessNext } from 'src/core/queries/process';
 import { useWaitForQueries } from 'src/core/queries/useWaitForQueries';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { getProcessNextMutationKey } from 'src/features/instance/processNextMutationKey';
 import { useGetTaskTypeById, useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -32,7 +30,6 @@ import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { ELEMENT_TYPE } from 'src/types/shared';
 import { getPageTitle } from 'src/utils/getPageTitle';
-import type { QueryClient } from 'src/core/queries/reactQuery';
 
 interface NavigationErrorProps {
   label: string;
@@ -344,36 +341,6 @@ function UnsupportedTaskType({ taskId }: { taskId: string | undefined }) {
       </Flex>
     </>
   );
-}
-
-function isRunningProcessNext(queryClient: QueryClient) {
-  return queryClient.isMutating({ mutationKey: getProcessNextMutationKey() }) > 0;
-}
-
-function useIsProcessNextPending() {
-  return useIsMutating({ mutationKey: getProcessNextMutationKey(), status: 'pending' }) > 0;
-}
-
-function useIsRunningProcessNext() {
-  const queryClient = useQueryClient();
-  const [isMutating, setIsMutating] = useState<boolean | null>(null);
-
-  // Intentionally wrapped in a useEffect() and saved as a state. If this happens, we'll seemingly be locked out
-  // with a <Loader /> forever, but when this happens, we also know we'll be re-rendered soon. This is only meant to
-  // block rendering when we're calling process/next.
-  //
-  // Deliberately sampled once (not subscribed via useIsMutating): the mutation's pre-request phase
-  // (beforeProcessNext -> onFormSubmitValidation -> useWaitForValidation) only resolves while the
-  // form/validation providers stay mounted. Subscribing here swaps the task tree for the <Loader />
-  // as soon as the mutation starts, unmounting those providers and deadlocking the mutation - it
-  // never reaches process/next and never settles, so the Loader stays forever. This check only
-  // exists to cover mounting mid-mutation; while mounted, blocking is driven by the server-side
-  // workflow annotation instead.
-  useEffect(() => {
-    setIsMutating(isRunningProcessNext(queryClient));
-  }, [queryClient]);
-
-  return isMutating;
 }
 
 function useIsWrongTask(taskId: string | undefined) {

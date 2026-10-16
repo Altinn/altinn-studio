@@ -3,7 +3,7 @@ import React from 'react';
 import { CheckmarkIcon, XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { useProcessingMutation } from 'src/core/queries/processing/index';
+import { useProcessingMutation } from 'src/core/queries/processing';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/navigation/components/Page.module.css';
 import { SubformsForPage } from 'src/features/navigation/components/SubformsForPage';

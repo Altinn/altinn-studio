@@ -1,8 +1,6 @@
 import React from 'react';
 import { createBrowserRouter, Navigate, RouterContextProvider } from 'react-router';
 
-import type { QueryClient } from '@tanstack/react-query';
-
 import { GlobalData } from 'src/GlobalData';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
@@ -22,8 +20,9 @@ import * as taskRoute from 'src/routes/task/task.route';
 import * as taskIndexRoute from 'src/routes/task/task-index.route';
 import { buildPartySelectionUrl, routes, TaskKeys } from 'src/routesBuilder';
 import type { ApiClients } from 'src/core/api-client/ApiClients';
+import type { AppQueryClient } from 'src/core/queries/queryClient';
 
-export function createRouter({ queryClient, apiClients }: { queryClient: QueryClient; apiClients: ApiClients }) {
+export function createRouter({ queryClient, apiClients }: { queryClient: AppQueryClient; apiClients: ApiClients }) {
   return createBrowserRouter(
     [
       {

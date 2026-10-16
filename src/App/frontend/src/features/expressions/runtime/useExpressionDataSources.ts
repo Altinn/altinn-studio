@@ -453,7 +453,7 @@ function readDependencyValue(inputs: SnapshotInputs, dependency: ExpressionDepen
     case 'displayValue':
       return dependency.componentId;
     case 'externalApi':
-      return inputs.externalApiQueries.getState(inputs.instanceId, dependency.externalApiId);
+      return inputs.externalApiQueries.getSnapshot(inputs.instanceId, dependency.externalApiId);
     case 'formData':
       return readFormDataFromStore(inputs.store, dependency.reference);
     case 'instanceDataElementCount':

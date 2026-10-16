@@ -6,7 +6,7 @@ import { Heading, Link } from '@digdir/designsystemet-react';
 import { DownloadIcon } from '@navikt/aksel-icons';
 
 import captionClasses from 'src/components/form/caption/Caption.module.css';
-import { useDocumentList } from 'src/core/queries/signingDocuments/index';
+import { useDocumentList } from 'src/core/queries/signingDocuments';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getFileEnding, removeFileEnding } from 'src/layout/FileUpload/utils/fileEndings';

@@ -4,7 +4,7 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 import { ChevronDownIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { useIsAnyProcessing } from 'src/core/queries/processing/index';
+import { useIsAnyProcessing } from 'src/core/queries/processing';
 import { FormStore } from 'src/features/form/FormContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';

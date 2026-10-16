@@ -5,9 +5,8 @@ import { InstantiationButton as InstantiationButtonLayout } from '@app/form-comp
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
-import { parseInstanceId } from 'src/core/queries/instance';
-import { useInstantiation } from 'src/core/queries/instance/useInstantiation';
-import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/core/queries/processing/index';
+import { parseInstanceId, useInstantiation } from 'src/core/queries/instance';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/core/queries/processing';
 import { useResolvedQueryParameters } from 'src/features/options/evalQueryParameters';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { buildInstanceUrl } from 'src/routesBuilder';

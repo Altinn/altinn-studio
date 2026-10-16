@@ -1,10 +1,8 @@
 import axios from 'axios';
 import type { IRawOption } from '@app/layout-contract/generated/common.generated';
-import type { QueryClient } from '@tanstack/react-query';
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
-import { signingQueries } from 'src/core/queries/signeeList/index';
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { GlobalData } from 'src/GlobalData';
 import { getFileContentType } from 'src/utils/attachmentsUtils';
@@ -106,7 +104,6 @@ export const doPerformAction = async (
   instanceGuid: string,
   actionRequest: UserActionRequest,
   language: string,
-  queryClient: QueryClient,
 ): Promise<ActionResult> => {
   const response = await httpPost<ActionResult>(
     getActionsUrl(partyId, instanceGuid, language),
@@ -117,9 +114,6 @@ export const doPerformAction = async (
     throw new Error('Failed to perform action');
   }
 
-  if (actionRequest.action === 'sign') {
-    queryClient.invalidateQueries({ queryKey: signingQueries.all });
-  }
   return response.data;
 };
 

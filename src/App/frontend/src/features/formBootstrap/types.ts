@@ -1,6 +1,6 @@
 import type { JSONSchema7 } from 'json-schema';
 
-import type { FormBootstrapQueryResponse } from 'src/core/queries/formBootstrap/index';
+import type { FormBootstrapQueryResponse } from 'src/core/queries/formBootstrap';
 import type { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { CalculationConfig } from 'src/features/formData/calculations';

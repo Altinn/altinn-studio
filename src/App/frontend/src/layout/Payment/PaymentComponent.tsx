@@ -4,11 +4,11 @@ import { Button } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Alert } from '@digdir/designsystemet-react';
 
-import { usePaymentInformation } from 'src/core/queries/payment/PaymentInformationProvider';
-import { useProcessNext } from 'src/core/queries/process/useProcessNext';
-import { useIsAnyProcessing } from 'src/core/queries/processing/index';
+import { useInstanceDataQuery } from 'src/core/queries/instance';
+import { usePaymentInformation } from 'src/core/queries/payment';
+import { useProcessNext } from 'src/core/queries/process';
+import { useIsAnyProcessing } from 'src/core/queries/processing';
 import { usePollingWithBackoff } from 'src/core/queries/usePollingWithBackoff';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

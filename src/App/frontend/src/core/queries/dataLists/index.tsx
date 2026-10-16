@@ -1,13 +1,11 @@
 import type { AriaAttributes } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
-import type { UseQueryResult } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/queries/QueryProvider';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getDataListsUrl } from 'src/utils/urls/appUrlHelper';
-import type { IDataList } from 'src/features/dataLists/index';
 
 type SortDirection = 'asc' | 'desc' | 'notSortable' | 'notActive';
 
@@ -23,7 +21,7 @@ export const useDataListQuery = (
   dataListId: string,
   secure?: boolean,
   queryParameters?: Record<string, string>,
-): UseQueryResult<IDataList> => {
+) => {
   const { fetchDataList } = useAppQueries();
   const selectedLanguage = useCurrentLanguage();
   const instanceId = useLaxInstanceId();
@@ -41,10 +39,11 @@ export const useDataListQuery = (
     sortDirection: ariaSortToSortDirection(sortDirection),
   });
 
-  return useQuery({
+  const { data, error, isLoading, isFetching } = useQuery({
     queryKey: ['fetchDataList', url],
     queryFn: () => fetchDataList(url),
   });
+  return { data, error, isLoading, isFetching };
 };
 
 function ariaSortToSortDirection(ariaSort: AriaAttributes['aria-sort']): SortDirection {

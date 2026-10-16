@@ -1,5 +1,5 @@
 import { createContext } from 'react-router';
 
-import type { QueryClient } from '@tanstack/react-query';
+import type { AppQueryClient } from 'src/core/queries/queryClient';
 
-export const queryClientContext = createContext<QueryClient>();
+export const queryClientContext = createContext<AppQueryClient>();

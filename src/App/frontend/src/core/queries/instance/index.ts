@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import type { QueryClient } from '@tanstack/react-query';
 
 import { useInstanceApi } from 'src/core/contexts/ApiProvider';
+import { useActiveInstancesQuery } from 'src/core/queries/instance/activeInstances';
 import {
   activeInstancesQuery,
   instanceDataQuery,
@@ -9,7 +9,17 @@ import {
   useCreateInstance as useCreateInstanceInternal,
   useGetCachedInstanceData,
 } from 'src/core/queries/instance/instance.queries';
-import type { InstanceApi } from 'src/core/api-client/instance.api';
+import {
+  useInstanceDataQuery,
+  useInstanceDataQueryArgs,
+  useInstancePollFailureCount,
+  useInvalidateInstanceDataCache,
+  useSelectFromInstanceData,
+} from 'src/core/queries/instance/instanceHooks';
+import { useInstantiation } from 'src/core/queries/instance/useInstantiation';
+import { getQueryClient } from 'src/core/queries/queryClient.queries';
+import type { InstanceApi, Instantiation } from 'src/core/api-client/instance.api';
+import type { AppQueryClient } from 'src/core/queries/queryClient';
 import type { BaseQueryResult } from 'src/core/queries/types';
 import type { ISimpleInstance } from 'src/types';
 import type { IInstance } from 'src/types/shared';
@@ -36,60 +46,49 @@ export interface CachedInstanceQueries {
   getCachedInstance: (instanceId: string | undefined) => IInstance | undefined;
 }
 
-export function createCachedInstanceQueries(queryClient: QueryClient): CachedInstanceQueries {
-  return {
-    countDataElements: (instanceId, dataType) => {
-      const data = getCachedInstance(queryClient, instanceId)?.data;
-      return data ? data.filter((element) => element.dataType === dataType).length : 0;
-    },
-    getCachedInstance: (instanceId) => getCachedInstance(queryClient, instanceId),
-  };
-}
-
-function getCachedInstance(queryClient: QueryClient, instanceId: string | undefined): IInstance | undefined {
-  if (!instanceId) {
-    return undefined;
-  }
-  const [instanceOwnerPartyId, instanceGuid] = instanceId.split('/');
-  return queryClient.getQueryData<IInstance>(instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }));
-}
-
 export function useCreateInstance(language: string) {
   const mutation = useCreateInstanceInternal(language);
+  const createInstance: (args: number | Instantiation) => void = mutation.mutate;
+  const createInstanceAsync: (args: number | Instantiation) => Promise<IInstance> = mutation.mutateAsync;
   return {
-    createInstance: mutation.mutate,
-    createInstanceAsync: mutation.mutateAsync,
+    createInstance,
+    createInstanceAsync,
     isPending: mutation.isPending,
     error: mutation.error,
   };
 }
 
-export function prefetchActiveInstances(queryClient: QueryClient, partyId: string, instanceApi: InstanceApi) {
+export function prefetchActiveInstances(client: AppQueryClient, partyId: string, instanceApi: InstanceApi) {
+  const queryClient = getQueryClient(client);
   return queryClient.ensureQueryData(activeInstancesQuery({ partyId, instanceApi }));
 }
 
 export function prefetchInstanceData(
-  queryClient: QueryClient,
+  client: AppQueryClient,
   params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
 ) {
+  const queryClient = getQueryClient(client);
   return queryClient.prefetchQuery(instanceDataQuery(params));
 }
 
 export function ensureInstanceData(
-  queryClient: QueryClient,
+  client: AppQueryClient,
   params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
 ) {
+  const queryClient = getQueryClient(client);
   return queryClient.ensureQueryData(instanceDataQuery(params));
 }
 
 export function fetchFreshInstanceData(
-  queryClient: QueryClient,
+  client: AppQueryClient,
   params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
 ) {
+  const queryClient = getQueryClient(client);
   return queryClient.fetchQuery({ ...instanceDataQuery(params), staleTime: 0 });
 }
 
-export function invalidateInstanceData(queryClient: QueryClient) {
+export function invalidateInstanceData(client: AppQueryClient) {
+  const queryClient = getQueryClient(client);
   return queryClient.invalidateQueries({ queryKey: instanceQueryKeys.all() });
 }
 
@@ -124,4 +123,13 @@ function isInstanceId(instanceId: string): instanceId is `${string}/${string}` {
   return instanceId.includes('/');
 }
 
-export { instanceDataQuery, activeInstancesQuery, useGetCachedInstanceData, instanceQueryKeys };
+export {
+  useGetCachedInstanceData,
+  useInstanceDataQuery,
+  useInstanceDataQueryArgs,
+  useInstancePollFailureCount,
+  useInvalidateInstanceDataCache,
+  useSelectFromInstanceData,
+  useInstantiation,
+  useActiveInstancesQuery,
+};

@@ -1,27 +1,23 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useNavigation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 
-import { useInstanceApi } from 'src/core/contexts/ApiProvider';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import {
-  instanceDataQuery,
-  instanceQueryKeys,
-  invalidateInstanceData,
+  useInstanceDataQuery,
+  useInstancePollFailureCount,
+  useInstantiation,
   useOptimisticallyUpdateInstance,
 } from 'src/core/queries/instance';
-import { useInstantiation } from 'src/core/queries/instance/useInstantiation';
-import { skipToken, useIsMutating, useQuery, useQueryClient } from 'src/core/queries/reactQuery';
+import { useIsProcessNextPending, useIsProcessResumePending } from 'src/core/queries/process';
 import { usePollingWithBackoff } from 'src/core/queries/usePollingWithBackoff';
 import { FileScanResults } from 'src/features/attachments/types';
-import { getProcessNextMutationKey, PROCESS_RESUME_MUTATION_KEY } from 'src/features/instance/processNextMutationKey';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
-import type { UseQueryOptions } from 'src/core/queries/reactQuery';
 import type { IData, IInstance, IInstanceDataSources, WorkflowActivityStatus } from 'src/types/shared';
 
 const emptyArray: never[] = [];
@@ -37,24 +33,6 @@ const InstanceContext = React.createContext<IInstance | null>(null);
  */
 const INSTANCE_POLL_FAILURE_ESCALATION_CYCLES = 3;
 
-/**
- * Number of consecutive failed instance refetch cycles since the last successful fetch.
- * 0 whenever the latest fetch succeeded (or nothing has failed since mount).
- */
-function useInstancePollFailureCount(): number {
-  const { isError, errorUpdateCount, dataUpdatedAt } = useInstanceDataQuery();
-
-  // Baseline the (monotonic) error count at the moment of the last successful fetch, so the
-  // difference counts consecutive failures only. Any successful data write — a poll tick, a
-  // mutation refetch, an optimistic setQueryData — bumps dataUpdatedAt and resets the baseline.
-  const [baseline, setBaseline] = useState({ dataUpdatedAt, errorUpdateCount });
-  if (baseline.dataUpdatedAt !== dataUpdatedAt) {
-    setBaseline({ dataUpdatedAt, errorUpdateCount });
-  }
-
-  return isError ? errorUpdateCount - baseline.errorUpdateCount : 0;
-}
-
 export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
@@ -63,8 +41,8 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
 
   const hasPendingScans = useHasPendingScans();
   const workflowStatus = useWorkflowStatus();
-  const isProcessNextPending = useIsMutating({ mutationKey: getProcessNextMutationKey(), status: 'pending' }) > 0;
-  const isProcessResumePending = useIsMutating({ mutationKey: PROCESS_RESUME_MUTATION_KEY, status: 'pending' }) > 0;
+  const isProcessNextPending = useIsProcessNextPending();
+  const isProcessResumePending = useIsProcessResumePending();
   const shouldPollProcess = isProcessNextPending || isProcessResumePending || workflowStatus === 'processing';
   const pollFailureCount = useInstancePollFailureCount();
   const {
@@ -74,8 +52,8 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   } = useInstanceDataQuery({
     // Process transitions use the shared fast-first backoff below. Pending scans retain their
     // simpler fixed cadence when no transition poll is already refreshing the same query.
-    refetchInterval: !shouldPollProcess && hasPendingScans ? 5000 : false,
-    refetchOnWindowFocus: shouldPollProcess || hasPendingScans,
+    pollIntervalMs: !shouldPollProcess && hasPendingScans ? 5000 : false,
+    refreshWhenFocused: shouldPollProcess || hasPendingScans,
   });
   const pollInstance = useCallback(async () => {
     await refetch();
@@ -153,33 +131,6 @@ export const useStrictInstanceId = () => {
 
 export type ChangeInstanceData = (callback: (instance: IInstance | undefined) => IInstance | undefined) => void;
 
-export function useInstanceDataQueryArgs() {
-  const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
-  const instanceGuid = useNavigationParam('instanceGuid');
-
-  return { instanceOwnerPartyId, instanceGuid };
-}
-
-export function useInstanceDataQuery<R = IInstance>(
-  queryOptions: Omit<UseQueryOptions<IInstance, Error, R>, 'queryKey' | 'queryFn'> = {},
-) {
-  const instanceApi = useInstanceApi();
-  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
-  const hasParams = !!instanceOwnerPartyId && !!instanceGuid;
-
-  return useQuery<IInstance, Error, R>({
-    ...(hasParams
-      ? instanceDataQuery({ instanceOwnerPartyId, instanceGuid, instanceApi })
-      : {
-          queryKey: [...instanceQueryKeys.all(), { instanceOwnerPartyId, instanceGuid }] as const,
-          queryFn: skipToken,
-        }),
-    refetchOnWindowFocus: !!queryOptions.refetchInterval,
-    select: queryOptions.select, // FIXME: somehow TS complains if this is not here
-    ...queryOptions,
-  });
-}
-
 export function useInstanceDataSources(): IInstanceDataSources | null {
   const instanceOwnerParty = useInstanceOwnerParty();
   return (
@@ -219,12 +170,6 @@ export function useHasPendingScans(): boolean {
   }
 
   return dataElements.some((dataElement) => dataElement.fileScanResult === FileScanResults.Pending);
-}
-
-export function useInvalidateInstanceDataCache() {
-  const queryClient = useQueryClient();
-
-  return () => invalidateInstanceData(queryClient);
 }
 
 /*********************
@@ -273,23 +218,3 @@ export const useOptimisticallyUpdateCachedInstance = (): ChangeInstanceData => {
 };
 
 export type InstanceDataSelector = <T>(selector: (instance: IInstance) => T) => T | undefined;
-
-export const useSelectFromInstanceData = (): InstanceDataSelector => {
-  const queryClient = useQueryClient();
-  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
-  const instanceQueryKey = useMemo(
-    () =>
-      instanceOwnerPartyId && instanceGuid
-        ? instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid })
-        : undefined,
-    [instanceOwnerPartyId, instanceGuid],
-  );
-
-  return useCallback(
-    <T,>(selector: (instance: IInstance) => T): T | undefined => {
-      const instance = instanceQueryKey ? queryClient.getQueryData<IInstance>(instanceQueryKey) : undefined;
-      return instance ? selector(instance) : undefined;
-    },
-    [instanceQueryKey, queryClient],
-  );
-};

@@ -1,6 +1,7 @@
+import { useQuery } from '@tanstack/react-query';
+
 import { usePartyApi } from 'src/core/contexts/ApiProvider';
-import { partiesAllowedToInstantiateQuery } from 'src/core/queries/party';
-import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
+import { partiesAllowedToInstantiateQuery } from 'src/core/queries/party/party.queries';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 
 /**
@@ -8,6 +9,9 @@ import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
  */
 export function PartyPrefetcher() {
   const allowAnonymous = useAllowAnonymous();
-  usePrefetchQuery(partiesAllowedToInstantiateQuery(usePartyApi(), { enabled: !allowAnonymous }));
+  useQuery({
+    ...partiesAllowedToInstantiateQuery(usePartyApi(), { enabled: !allowAnonymous }),
+    notifyOnChangeProps: [],
+  });
   return null;
 }

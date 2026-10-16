@@ -15,7 +15,7 @@ export type ValidateFunc = ReturnType<typeof makeValidateFunc>;
 
 export function useLayoutSchemaValidator(enabled = shouldValidateLayoutConfiguration()) {
   const { fetchLayoutSchema } = useAppQueries();
-  return useQuery({
+  const { data, error, isPending } = useQuery({
     enabled,
     queryKey: ['fetchLayoutSchema'],
     queryFn: async () => {
@@ -26,6 +26,7 @@ export function useLayoutSchemaValidator(enabled = shouldValidateLayoutConfigura
       return makeValidateFunc(createLayoutValidator(schema));
     },
   });
+  return { data, error, isPending };
 }
 
 export function shouldValidateLayoutConfiguration() {

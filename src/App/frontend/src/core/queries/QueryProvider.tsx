@@ -1,13 +1,14 @@
 import React, { useEffect } from 'react';
 
 import { QueryClientProvider } from '@tanstack/react-query';
-import type { QueryClient } from '@tanstack/react-query';
 
 import { createContext } from 'src/core/contexts/context';
+import { getQueryClient } from 'src/core/queries/queryClient.queries';
 import type { AppMutations, AppQueries, AppQueriesContext } from 'src/core/queries/legacyTypes';
+import type { AppQueryClient } from 'src/core/queries/queryClient';
 
 export interface AppQueriesProps extends AppQueriesContext {
-  queryClient: QueryClient;
+  queryClient: AppQueryClient;
 }
 
 interface ContextData {
@@ -22,6 +23,7 @@ export const AppQueriesProvider = ({
   queryClient,
   ...allQueries
 }: React.PropsWithChildren<AppQueriesProps>) => {
+  const client = getQueryClient(queryClient);
   const queries = Object.fromEntries(
     Object.entries(allQueries).filter(([key]) => key.startsWith('fetch')),
   ) as AppQueries;
@@ -32,11 +34,11 @@ export const AppQueriesProvider = ({
   // Lets us access the query client from the console, and inject data into the cache (for example for use in
   // Cypress tests)
   useEffect(() => {
-    window.queryClient = queryClient;
-  }, [queryClient]);
+    window.queryClient = client;
+  }, [client]);
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={client}>
       <Provider value={{ queries, mutations }}>{children}</Provider>
     </QueryClientProvider>
   );

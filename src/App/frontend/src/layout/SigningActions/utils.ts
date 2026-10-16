@@ -1,4 +1,4 @@
-import { type SigneeState } from 'src/core/queries/signeeList/index';
+import { type SigneeState } from 'src/core/queries/signeeList';
 
 export type CurrentUserStatus = 'awaitingSignature' | 'signed' | 'notSigning';
 

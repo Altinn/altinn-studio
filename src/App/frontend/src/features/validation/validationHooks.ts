@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
-import { useGetCachedInstanceData } from 'src/core/queries/instance';
+import { useGetCachedInstanceData, useInstanceDataQuery } from 'src/core/queries/instance';
 import { useExpressionDataSourcesBaseForStoreSelector } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { FormStore } from 'src/features/form/FormContext';
 import {
@@ -10,7 +10,6 @@ import {
   useRawPageOrder,
 } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { getUiFolderSettings } from 'src/features/form/ui';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { ValidationMask } from 'src/features/validation';
 import { createValidationStateDeriver } from 'src/features/validation/createValidationStateDeriver';

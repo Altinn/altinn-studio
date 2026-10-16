@@ -1,13 +1,15 @@
-import { useIsMutating } from '@tanstack/react-query';
-
-import { hasPendingAttachmentScans, hasTemporaryAttachments } from 'src/core/queries/attachments/attachmentState';
-import { AttachmentMutations } from 'src/core/queries/attachments/index';
+import {
+  AttachmentMutations,
+  hasPendingAttachmentScans,
+  hasTemporaryAttachments,
+  useHasActiveAttachmentMutations,
+} from 'src/core/queries/attachments';
+import { useInstanceDataQuery } from 'src/core/queries/instance';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { sortAttachmentsByName } from 'src/features/attachments/sortAttachments';
-import { attachmentMutationKeys, type AttachmentNode, attachmentSelector } from 'src/features/attachments/tools';
+import { type AttachmentNode, attachmentSelector } from 'src/features/attachments/tools';
 import { FileScanResults } from 'src/features/attachments/types';
 import { FormStore } from 'src/features/form/FormContext';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { getComponentBehaviors } from 'src/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -86,7 +88,7 @@ export const AttachmentReadModel = {
 
   useHasPendingAttachments(): boolean {
     const hasTemporary = FormStore.raw.useLaxSelector(hasTemporaryAttachments);
-    const hasActiveMutations = useIsMutating({ mutationKey: attachmentMutationKeys.all, status: 'pending' }) > 0;
+    const hasActiveMutations = useHasActiveAttachmentMutations();
     const instanceData = useInstanceDataQuery({ select: (instance) => instance.data }).data ?? emptyArray;
     return hasTemporary === true || hasActiveMutations || hasPendingAttachmentScans(instanceData);
   },

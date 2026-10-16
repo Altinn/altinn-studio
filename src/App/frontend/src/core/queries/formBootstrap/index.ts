@@ -41,7 +41,7 @@ export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
 
   const enabled = options.enabled && options.uiFolder && (isStateless || !!instanceId);
 
-  return useQuery<FormBootstrapQueryResponse>({
+  const { data, error } = useQuery<FormBootstrapQueryResponse>({
     queryKey: ['formBootstrap', options, isStateless ? 'stateless' : 'instance', instanceId, isPdf, language],
     queryFn: enabled
       ? async () => {
@@ -69,6 +69,7 @@ export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
     staleTime: 0,
     gcTime: 0,
   });
+  return { data, error };
 }
 
 function processDataModels(

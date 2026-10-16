@@ -4,13 +4,13 @@ import type { PropsWithChildren } from 'react';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { Loader } from 'src/core/loading/Loader';
-import { shouldValidateLayoutConfiguration, useLayoutSchemaValidator } from 'src/core/queries/layoutSchema/index';
+import { shouldValidateLayoutConfiguration, useLayoutSchemaValidator } from 'src/core/queries/layoutSchema';
 import { formatLayoutSchemaValidationError } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { FormStore } from 'src/features/form/FormContext';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { getComponentDef, implementsDataModelBindingValidation, isExternallyConfigurableComponent } from 'src/layout';
 import { duplicateStringFilter } from 'src/utils/stringHelper';
-import type { LayoutValidationResult, ValidateFunc } from 'src/core/queries/layoutSchema/index';
+import type { LayoutValidationResult, ValidateFunc } from 'src/core/queries/layoutSchema';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
 import type { CompExternal, CompTypes } from 'src/layout/layout';

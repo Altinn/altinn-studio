@@ -1,8 +1,8 @@
 import React from 'react';
 
 import { Tabs } from '@digdir/designsystemet-react';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
+import { QueryDevtools } from 'src/core/queries/QueryDevtools';
 import { DevHiddenFunctionality } from 'src/features/devtools/components/DevHiddenFunctionality/DevHiddenFunctionality';
 import { DevLanguageSelector } from 'src/features/devtools/components/DevLanguageSelector/DevLanguageSelector';
 import { DevNavigationButtons } from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons';
@@ -60,7 +60,7 @@ export const DevToolsControls = () => {
           <PermissionsEditor />
           <DevLanguageSelector />
           <DownloadXMLButton />
-          <ReactQueryDevtools initialIsOpen={false} />
+          <QueryDevtools />
         </div>
       </Tabs.Panel>
       <Tabs.Panel

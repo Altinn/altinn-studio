@@ -1,22 +1,18 @@
 import React, { useEffect } from 'react';
-import { useParams } from 'react-router';
 import { toast } from 'react-toastify';
 
 import { CustomButton } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import type { PageValidation } from '@app/layout-contract/generated/common.generated';
 import type * as CBTypes from '@app/layout-contract/generated/components/CustomButton/config.generated';
 
-import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/core/queries/processing/index';
-import { useAppMutations } from 'src/core/queries/QueryProvider';
+import { useServerActionMutation } from 'src/core/queries/actions';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/core/queries/processing';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { FormStore } from 'src/features/form/FormContext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useGetNavigationIsPrevented } from 'src/features/navigation/utils';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
@@ -56,7 +52,7 @@ export type ActionResult = {
   redirectUrl: string;
 };
 
-type UseHandleClientActions = {
+export type UseHandleClientActions = {
   handleClientActions: (actions: CBTypes.ClientAction[]) => Promise<void>;
   handleDataModelUpdate: (currentLock: FormDataLock, result: ActionResult) => Promise<void>;
 };
@@ -134,48 +130,6 @@ function useHandleClientActions(): UseHandleClientActions {
   return { handleClientActions, handleDataModelUpdate };
 }
 
-type PerformActionMutationProps = {
-  action: CBTypes.CustomAction;
-  buttonId: string;
-};
-
-function useHandleServerActionMutationFn(acquireLock: FormDataLocking) {
-  const { instanceOwnerPartyId, instanceGuid } = useParams();
-  const selectedLanguage = useCurrentLanguage();
-  const queryClient = useQueryClient();
-  const { doPerformAction } = useAppMutations();
-  const { handleClientActions, handleDataModelUpdate } = useHandleClientActions();
-
-  return async ({ action, buttonId }: PerformActionMutationProps) => {
-    const lock = await acquireLock();
-    if (!instanceGuid || !instanceOwnerPartyId) {
-      throw Error('Cannot perform action without partyId and instanceGuid');
-    }
-
-    try {
-      const result = await doPerformAction(
-        instanceOwnerPartyId,
-        instanceGuid,
-        { action: action.id, buttonId },
-        selectedLanguage,
-        queryClient,
-      );
-
-      await handleDataModelUpdate(lock, result);
-      if (result.clientActions) {
-        await handleClientActions(result.clientActions);
-      }
-
-      return result;
-    } catch (error) {
-      if (lock.isLocked()) {
-        lock.unlock();
-      }
-      throw error;
-    }
-  };
-}
-
 export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'CustomButton'>) => {
   const config = useComponentConfig(baseComponentId, 'CustomButton');
   const componentId = useIndexedId(baseComponentId);
@@ -186,10 +140,9 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
 
   const acquireLock = FormStore.data.useLocking(componentId);
   const isAuthorized = useIsAuthorized();
-  const { handleClientActions } = useHandleClientActions();
-  const { mutateAsync: handleServerAction, error } = useMutation({
-    mutationFn: useHandleServerActionMutationFn(acquireLock),
-  });
+  const clientActions = useHandleClientActions();
+  const { handleClientActions } = clientActions;
+  const { mutateAsync: handleServerAction, error } = useServerActionMutation(acquireLock, clientActions);
   const onPageNavigationValidation = useOnPageNavigationValidation();
   const performProcess = useProcessingMutation('custom-action');
   const isThisProcessing = useIsThisProcessing('custom-action');

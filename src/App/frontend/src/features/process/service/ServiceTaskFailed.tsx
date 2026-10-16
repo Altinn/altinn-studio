@@ -2,12 +2,10 @@ import React from 'react';
 
 import { Button } from '@app/form-component';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
-import { useIsMutating } from '@tanstack/react-query';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { useProcessResume } from 'src/core/queries/process/useProcessNext';
+import { useIsProcessResumePending, useProcessResume } from 'src/core/queries/process';
 import { useAppOwner } from 'src/core/texts/appTexts';
-import { PROCESS_RESUME_MUTATION_KEY } from 'src/features/instance/processNextMutationKey';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -72,7 +70,7 @@ const RetryButton = () => {
   // The transition loader replaces this view while a resume is processing, so the button can
   // remount mid-resume; read the pending state from the mutation cache, not this observer.
   const { mutate: processResume } = useProcessResume();
-  const isResuming = useIsMutating({ mutationKey: PROCESS_RESUME_MUTATION_KEY, status: 'pending' }) > 0;
+  const isResuming = useIsProcessResumePending();
 
   return (
     <Button

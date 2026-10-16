@@ -1,6 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
+import { mutationResult } from 'src/core/queries/mutationResult';
+import {
+  OrderDetailsProvider,
+  useOrderDetails,
+  useRefetchOrderDetails,
+} from 'src/core/queries/payment/OrderDetailsProvider';
+import { PaymentInformationProvider, usePaymentInformation } from 'src/core/queries/payment/PaymentInformationProvider';
 import { useAppMutations } from 'src/core/queries/QueryProvider';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 
@@ -8,11 +15,11 @@ export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: str
   const queryClient = useQueryClient();
   const { doPerformAction } = useAppMutations();
   const selectedLanguage = useCurrentLanguage();
-  return useMutation({
+  const mutation = useMutation({
     mutationKey: ['performPayAction', partyId, instanceGuid],
     mutationFn: async () => {
       if (partyId && instanceGuid) {
-        return await doPerformAction(partyId, instanceGuid, { action: 'pay' }, selectedLanguage, queryClient);
+        return await doPerformAction(partyId, instanceGuid, { action: 'pay' }, selectedLanguage);
       }
     },
     onError: (error: AxiosError) => {
@@ -30,4 +37,13 @@ export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: str
       }
     },
   });
+  return mutationResult(mutation);
+};
+
+export {
+  PaymentInformationProvider,
+  usePaymentInformation,
+  OrderDetailsProvider,
+  useOrderDetails,
+  useRefetchOrderDetails,
 };

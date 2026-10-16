@@ -4,7 +4,7 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 import dot from 'dot-object';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
-import { useFormDataQuery } from 'src/core/queries/formData/index';
+import { useFormDataQuery } from 'src/core/queries/formData';
 import { evalExpr } from 'src/features/expressions';
 import {
   type ExpressionDataSources,

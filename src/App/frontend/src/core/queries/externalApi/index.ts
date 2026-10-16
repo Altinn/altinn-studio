@@ -1,24 +1,9 @@
-import { skipToken, useQueries } from '@tanstack/react-query';
-import type { QueryState, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
+import { useQueries } from '@tanstack/react-query';
 
-import { fetchExternalApi } from 'src/core/api-client/legacy.api';
+import { getExternalApiQueryDef } from 'src/core/queries/externalApi/externalApi.queries';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 
 export type ExternalApisResult = { data: Record<string, unknown>; errors: Record<string, Error> };
-
-function getExternalApiQueryDef({
-  externalApiId,
-  instanceId,
-}: {
-  externalApiId: string;
-  instanceId: string | undefined;
-}): UseQueryOptions<unknown, Error> {
-  return {
-    queryKey: ['fetchExternalApi', instanceId, externalApiId],
-    queryFn: instanceId ? async () => fetchExternalApi({ instanceId, externalApiId }) : skipToken,
-    staleTime: 1000 * 60 * 10,
-  };
-}
 
 /**
  * Narrow cache and fetch API for external-api queries.
@@ -27,45 +12,8 @@ function getExternalApiQueryDef({
 export interface ExternalApiQueries {
   ensureLoaded: (instanceId: string | undefined, externalApiIds: string[]) => void;
   getCached: (instanceId: string | undefined, externalApiIds: string[]) => ExternalApisResult;
-  getState: (instanceId: string | undefined, externalApiId: string) => QueryState<unknown, Error> | undefined;
-}
-
-export function createExternalApiQueries(queryClient: ReturnType<typeof useQueryClient>): ExternalApiQueries {
-  return {
-    ensureLoaded: (instanceId, externalApiIds) => {
-      if (!instanceId) {
-        return;
-      }
-
-      for (const externalApiId of externalApiIds) {
-        const queryDef = getExternalApiQueryDef({ externalApiId, instanceId });
-        if (queryClient.getQueryState(queryDef.queryKey)?.fetchStatus === 'fetching') {
-          continue;
-        }
-        if (queryClient.getQueryData(queryDef.queryKey) !== undefined) {
-          continue;
-        }
-        void queryClient.ensureQueryData(queryDef);
-      }
-    },
-    getCached: (instanceId, externalApiIds) => {
-      const data: Record<string, unknown> = {};
-      const errors: Record<string, Error> = {};
-
-      for (const externalApiId of externalApiIds) {
-        const queryDef = getExternalApiQueryDef({ externalApiId, instanceId });
-        const queryState = queryClient.getQueryState(queryDef.queryKey);
-        data[externalApiId] = queryClient.getQueryData(queryDef.queryKey);
-        if (queryState?.error instanceof Error) {
-          errors[externalApiId] = queryState.error;
-        }
-      }
-
-      return { data, errors };
-    },
-    getState: (instanceId, externalApiId) =>
-      queryClient.getQueryState(getExternalApiQueryDef({ externalApiId, instanceId }).queryKey),
-  };
+  /** Opaque identity that changes when cached data or fetch state changes. */
+  getSnapshot: (instanceId: string | undefined, externalApiId: string) => object | undefined;
 }
 
 export function useExternalApis(ids: string[]): ExternalApisResult {

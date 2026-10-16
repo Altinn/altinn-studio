@@ -4,10 +4,10 @@ import type { ChangeEvent } from 'react';
 import { Fieldset, LiveValidationMessage, RequiredIndicator } from '@app/form-component';
 
 import { RadioButton } from 'src/components/form/RadioButton';
-import { type SigneeState } from 'src/core/queries/signeeList/index';
+import { type SigneeState } from 'src/core/queries/signeeList';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import type { AuthorizedOrganizationDetails } from 'src/core/queries/signing/index';
+import type { AuthorizedOrganizationDetails } from 'src/core/queries/signing';
 
 interface OnBehalfOfChooserProps {
   currentUserSignee: SigneeState | undefined;

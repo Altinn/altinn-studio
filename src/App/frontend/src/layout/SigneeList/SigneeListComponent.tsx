@@ -6,7 +6,7 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 import { Heading } from '@digdir/designsystemet-react';
 
 import captionClasses from 'src/components/form/caption/Caption.module.css';
-import { useSigneeList } from 'src/core/queries/signeeList/index';
+import { useSigneeList } from 'src/core/queries/signeeList';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/SigneeList/SigneeListComponent.module.css';

@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
-import type { UseQueryResult } from '@tanstack/react-query';
 
 import { DataTypeReference } from 'src/utils/attachmentsUtils';
 import { httpGet } from 'src/utils/network/sharedNetworking';
@@ -30,11 +29,8 @@ const signingDocumentSchema = z
 
 export type SigningDocument = z.infer<typeof signingDocumentSchema>;
 
-export function useDocumentList(
-  instanceOwnerPartyId: string | undefined,
-  instanceGuid: string | undefined,
-): UseQueryResult<SigningDocument[]> {
-  return useQuery({
+export function useDocumentList(instanceOwnerPartyId: string | undefined, instanceGuid: string | undefined) {
+  const { data, error, isLoading, isFetching } = useQuery({
     queryKey: ['signingDocumentList', instanceOwnerPartyId, instanceGuid],
     queryFn: async () => {
       const url = `${appPath}/instances/${instanceOwnerPartyId}/${instanceGuid}/signing/data-elements`;
@@ -44,4 +40,5 @@ export function useDocumentList(
     staleTime: 1000 * 60 * 30, // 30 minutes
     refetchOnMount: 'always',
   });
+  return { data, error, isLoading, isFetching };
 }

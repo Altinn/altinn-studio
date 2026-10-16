@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import { nb } from 'date-fns/locale/nb';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
-import { type SigneeState, useSigneeList } from 'src/core/queries/signeeList/index';
+import { type SigneeState, useSigneeList } from 'src/core/queries/signeeList';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/SigneeList/SigneeListSummary.module.css';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';

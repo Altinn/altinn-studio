@@ -1,7 +1,5 @@
 import { skipToken, useQuery } from '@tanstack/react-query';
 import type { IQueryParameters } from '@app/layout-contract/generated/common.generated';
-import type { UseQueryResult } from '@tanstack/react-query';
-import type { AxiosResponse } from 'axios';
 
 import { useAppQueries } from 'src/core/queries/QueryProvider';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
@@ -9,13 +7,10 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { useResolvedQueryParameters } from 'src/features/options/evalQueryParameters';
 import { getOptionsUrl } from 'src/utils/urls/appUrlHelper';
-import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 
-export const useGetOptionsQuery = (
-  url: string,
-): UseQueryResult<{ data: IOptionInternal[]; headers: AxiosResponse['headers'] } | null> => {
+export const useGetOptionsQuery = (url: string) => {
   const { fetchOptions } = useAppQueries();
-  return useQuery({
+  const { data, error, isLoading, isFetching } = useQuery({
     queryKey: ['fetchOptions', url],
     queryFn: url
       ? async () => {
@@ -32,6 +27,7 @@ export const useGetOptionsQuery = (
       : skipToken,
     enabled: !!url,
   });
+  return { data, error, isLoading, isFetching };
 };
 
 export const useGetOptionsUrl = (

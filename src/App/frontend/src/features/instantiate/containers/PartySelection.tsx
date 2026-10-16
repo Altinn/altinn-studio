@@ -7,7 +7,7 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { AltinnParty } from 'src/components/altinnParty';
-import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/core/queries/processing/index';
+import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/core/queries/processing';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';

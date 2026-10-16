@@ -6,11 +6,7 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 import { Checkbox, Heading } from '@digdir/designsystemet-react';
 
 import { useRequestFocus } from 'src/core/contexts/ElementFocusProvider';
-import {
-  useAuthorizedOrganizationDetails,
-  useSigningMutation,
-  useUserSigneeParties,
-} from 'src/core/queries/signing/index';
+import { useAuthorizedOrganizationDetails, useSigningMutation, useUserSigneeParties } from 'src/core/queries/signing';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { Lang } from 'src/features/language/Lang';
@@ -100,14 +96,12 @@ export function AwaitingCurrentUserSignaturePanel({
     const isValid = validate();
 
     if (isValid) {
-      signingMutation(onBehalfOf, {
-        onSuccess: () => {
-          setConfirmReadDocuments(false);
-          setOnBehalfOf(null);
-          // Move focus to the heading of the panel shown after signing, so screen readers announce
-          // the new state.
-          requestPanelFocus();
-        },
+      signingMutation(onBehalfOf, () => {
+        setConfirmReadDocuments(false);
+        setOnBehalfOf(null);
+        // Move focus to the heading of the panel shown after signing, so screen readers announce
+        // the new state.
+        requestPanelFocus();
       });
     }
   }

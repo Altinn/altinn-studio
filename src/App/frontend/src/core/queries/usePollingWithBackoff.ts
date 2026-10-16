@@ -1,6 +1,6 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 
-import { queryFocusManager } from 'src/core/queries/focusManager';
+import { focusManager } from '@tanstack/react-query';
 const DEFAULT_INITIAL_INTERVAL_MS = 1000;
 const DEFAULT_INITIAL_ATTEMPTS = 10;
 const INTERVAL_INCREMENT_MS = 1000;
@@ -40,8 +40,8 @@ export function usePollingWithBackoff(
   const attemptsRef = useRef(0);
   const wasPausedRef = useRef(false);
   const isFocused = useSyncExternalStore(
-    (onStoreChange) => queryFocusManager.subscribe(onStoreChange),
-    () => queryFocusManager.isFocused(),
+    (onStoreChange) => focusManager.subscribe(onStoreChange),
+    () => focusManager.isFocused(),
     () => true,
   );
 

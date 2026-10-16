@@ -4,8 +4,8 @@ import { useParams } from 'react-router';
 import { FatalError, FullWidthWrapper, Panel, Spinner } from '@app/form-component';
 
 import { ElementFocusProvider } from 'src/core/contexts/ElementFocusProvider';
-import { useSigneeList } from 'src/core/queries/signeeList/index';
-import { useSignaturesValidation, useUserSigneeParties } from 'src/core/queries/signing/index';
+import { useSigneeList } from 'src/core/queries/signeeList';
+import { useSignaturesValidation, useUserSigneeParties } from 'src/core/queries/signing';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

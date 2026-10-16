@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { useQuery } from '@tanstack/react-query';
 import cn from 'classnames';
 
 import classes from 'src/components/logo/AltinnLogo.module.css';
-import { useAppQueries } from 'src/core/queries/QueryProvider';
+import { useLogoSvg } from 'src/core/queries/logo';
 
 /** @see altinnAppTheme.tsx */
 export enum LogoColor {
@@ -15,14 +14,6 @@ export enum LogoColor {
 export interface IAltinnLogoProps {
   color: LogoColor;
   className?: string;
-}
-
-function useLogoSvg() {
-  const { fetchLogo } = useAppQueries();
-  return useQuery({
-    queryKey: ['logoSvg'],
-    queryFn: fetchLogo,
-  });
 }
 
 function reColorSvg(svg: string, color: string) {

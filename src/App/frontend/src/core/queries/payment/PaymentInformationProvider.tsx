@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import { skipToken, useQuery } from '@tanstack/react-query';
+import type { UseQueryOptions } from '@tanstack/react-query';
 
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
@@ -9,13 +10,9 @@ import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIsPayment } from 'src/features/payment/utils';
-import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { PaymentResponsePayload } from 'src/features/payment/types';
 
-export function usePaymentInformationQueryDef(
-  enabled: boolean,
-  instanceId?: string,
-): QueryDefinition<PaymentResponsePayload> {
+function usePaymentInformationQueryDef(enabled: boolean, instanceId?: string): UseQueryOptions<PaymentResponsePayload> {
   const { fetchPaymentInformationForTask } = useAppQueries();
   const { data: process } = useProcessQuery();
   const taskId = process?.currentTask?.elementId;
@@ -42,7 +39,9 @@ const usePaymentInformationQuery = () => {
   }, [result.error]);
 
   return {
-    ...result,
+    data: result.data,
+    isPending: result.isPending,
+    error: result.error,
     enabled,
   };
 };

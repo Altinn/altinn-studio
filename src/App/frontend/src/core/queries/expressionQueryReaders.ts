@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 
-import { createExternalApiQueries } from 'src/core/queries/externalApi';
-import { createCachedInstanceQueries } from 'src/core/queries/instance';
-import { createTextResourcesQueries } from 'src/core/queries/textResources';
+import { createQueryCacheObserver } from 'src/core/queries/expressionQueryReaders.queries';
+import { createExternalApiQueries } from 'src/core/queries/externalApi/externalApi.queries';
+import { createCachedInstanceQueries } from 'src/core/queries/instance/instance.queries';
+import { createTextResourcesQueries } from 'src/core/queries/textResources/textResources.queries';
 
 export type ExpressionQueryReaders = ReturnType<typeof createExpressionQueryReaders>;
 
@@ -36,29 +37,4 @@ function createExpressionQueryReaders(queryClient: QueryClient) {
  */
 export interface QueryCacheObserver {
   subscribe: (onChange: () => void) => () => void;
-}
-
-export function createQueryCacheObserver(queryClient: QueryClient): QueryCacheObserver {
-  const listeners = new Set<() => void>();
-  let unsubscribeCache: (() => void) | undefined;
-
-  return {
-    subscribe: (onChange) => {
-      listeners.add(onChange);
-      unsubscribeCache ??= queryClient.getQueryCache().subscribe((event) => {
-        if (event.type !== 'added' && event.type !== 'updated' && event.type !== 'removed') {
-          return;
-        }
-        listeners.forEach((listener) => listener());
-      });
-
-      return () => {
-        listeners.delete(onChange);
-        if (listeners.size === 0) {
-          unsubscribeCache?.();
-          unsubscribeCache = undefined;
-        }
-      };
-    },
-  };
 }

@@ -4,7 +4,7 @@ import { AddressLayout } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import type { AddressFieldKey } from '@app/form-component';
 
-import { usePostPlace } from 'src/core/queries/postalCodes/index';
+import { usePostPlace } from 'src/core/queries/postalCodes';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 
 import type { IDataModelBindingsOptionsSimple } from '@app/layout-contract/generated/common.generated';
 
-import { useGetOptionsQuery, useGetOptionsUrl } from 'src/core/queries/options/index';
+import { useGetOptionsQuery, useGetOptionsUrl } from 'src/core/queries/options';
 import { evalExpr } from 'src/features/expressions';
 import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';

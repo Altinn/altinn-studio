@@ -3,9 +3,10 @@ import { toast } from 'react-toastify';
 import { useMutation } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 
+import { useInvalidateInstanceDataCache } from 'src/core/queries/instance';
+import { mutationResult } from 'src/core/queries/mutationResult';
 import { useAppMutations } from 'src/core/queries/QueryProvider';
 import {
-  useInvalidateInstanceDataCache,
   useOptimisticallyAppendDataElements,
   useOptimisticallyRemoveDataElement,
   useStrictInstanceId,
@@ -19,7 +20,7 @@ export const useAddEntryMutation = (dataType: string) => {
   const invalidateInstanceData = useInvalidateInstanceDataCache();
   const optimisticallyAppendDataElements = useOptimisticallyAppendDataElements();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationKey: ['addSubform', dataType],
     mutationFn: async (data: unknown) => await doSubformEntryAdd(instanceId, dataType, data),
     onSuccess: (data) => {
@@ -36,6 +37,7 @@ export const useAddEntryMutation = (dataType: string) => {
       }
     },
   });
+  return mutationResult(mutation);
 };
 
 export const useDeleteEntryMutation = () => {
@@ -45,7 +47,7 @@ export const useDeleteEntryMutation = () => {
   const invalidateInstanceDataCache = useInvalidateInstanceDataCache();
   const optimisticallyRemoveDataElement = useOptimisticallyRemoveDataElement();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationKey: ['deleteSubform'],
     mutationFn: async (id: string) => {
       await doSubformEntryDelete(instanceId, id);
@@ -60,4 +62,5 @@ export const useDeleteEntryMutation = () => {
       toast(langAsString('form_filler.error_delete_subform'), { type: 'error' });
     },
   });
+  return mutationResult(mutation);
 };

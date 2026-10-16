@@ -5,7 +5,7 @@ import dot from 'dot-object';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
-import { useFormDataQuery } from 'src/core/queries/formData/index';
+import { useFormDataQuery } from 'src/core/queries/formData';
 import { useAvailableDataModels } from 'src/features/datamodel/useAvailableDataModels';
 import { useDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';

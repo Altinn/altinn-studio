@@ -1,15 +1,29 @@
-import { useMutation, useMutationState } from '@tanstack/react-query';
+import { useCallback } from 'react';
+
+import { useIsMutating, useMutation, useMutationState, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
+import type { StoreApi } from 'zustand';
 
 import { doUpdateAttachmentTags } from 'src/core/api-client/legacy.api';
+import { attachmentMutationKeys } from 'src/core/queries/attachments/attachment.queries';
+import {
+  hasPendingAttachments,
+  hasPendingAttachmentScans,
+  hasTemporaryAttachments,
+  waitForAttachments,
+} from 'src/core/queries/attachments/attachmentState';
+import { mutationResult } from 'src/core/queries/mutationResult';
 import { useAppMutations } from 'src/core/queries/QueryProvider';
 import { isDataPostError } from 'src/features/attachments/isDataPostError';
-import { attachmentMutationKeys, type PendingAttachmentMutation } from 'src/features/attachments/tools';
+import { type PendingAttachmentMutation } from 'src/features/attachments/tools';
 import { useLaxInstanceId, useOptimisticallyRemoveDataElement } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { backendValidationIssueGroupListToObject } from 'src/features/validation';
 import { useUpdateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
 import type { SetTagsRequest } from 'src/core/api-client/legacy.api';
+import type { DataPostResponse } from 'src/features/attachments';
+import type { FormStoreState } from 'src/features/form/FormContext';
+import type { IData } from 'src/types/shared';
 
 export interface AttachmentUploadVariables {
   dataTypeId: string;
@@ -52,7 +66,7 @@ export const AttachmentMutations = {
     const instanceId = useLaxInstanceId();
     const language = useCurrentLanguage();
 
-    return useMutation({
+    const mutation = useMutation({
       mutationKey: attachmentMutationKeys.upload(),
       mutationFn: ({ dataTypeId, file }: AttachmentUploadVariables) => {
         if (!instanceId) {
@@ -66,6 +80,7 @@ export const AttachmentMutations = {
         }
       },
     });
+    return mutationResult(mutation);
   },
 
   useAttachmentsRemoveMutation() {
@@ -74,7 +89,7 @@ export const AttachmentMutations = {
     const language = useCurrentLanguage();
     const optimisticallyRemoveDataElement = useOptimisticallyRemoveDataElement();
 
-    return useMutation({
+    const mutation = useMutation({
       mutationKey: attachmentMutationKeys.remove(),
       mutationFn: ({ dataElementId }: AttachmentRemoveVariables) => {
         if (!instanceId) {
@@ -85,13 +100,14 @@ export const AttachmentMutations = {
       onError: (error: AxiosError) => window.logError('Failed to delete attachment:\n', error),
       onSuccess: (_data, { dataElementId }) => optimisticallyRemoveDataElement(dataElementId),
     });
+    return mutationResult(mutation);
   },
 
   useAttachmentUpdateTagsMutation() {
     const instanceId = useLaxInstanceId();
     const updateIncrementalValidations = useUpdateIncrementalValidations();
 
-    return useMutation({
+    const mutation = useMutation({
       mutationKey: attachmentMutationKeys.update(),
       mutationFn: ({ dataElementId, setTagsRequest }: AttachmentUpdateVariables) => {
         if (!instanceId) {
@@ -106,5 +122,42 @@ export const AttachmentMutations = {
         }
       },
     });
+    return mutationResult(mutation);
   },
 };
+
+export function useHasActiveAttachmentMutations() {
+  return useIsMutating({ mutationKey: attachmentMutationKeys.all, status: 'pending' }) > 0;
+}
+
+export function useAttachmentActivity(store: StoreApi<FormStoreState>, getInstanceData: () => IData[]) {
+  const queryClient = useQueryClient();
+  const hasPending = useCallback(
+    () => hasPendingAttachments(store.getState(), queryClient, getInstanceData()),
+    [store, queryClient, getInstanceData],
+  );
+  const wait = useCallback(
+    () => waitForAttachments(store, queryClient, getInstanceData),
+    [store, queryClient, getInstanceData],
+  );
+  return { hasPending, wait };
+}
+
+export function useGetUploadedDataElementId() {
+  const queryClient = useQueryClient();
+  return useCallback(
+    (nodeId: string, temporaryId: string): string | undefined => {
+      const upload = queryClient
+        .getMutationCache()
+        .findAll({ mutationKey: attachmentMutationKeys.upload(), status: 'success' })
+        .find((mutation) => {
+          const variables = mutation.state.variables as AttachmentUploadVariables;
+          return variables.nodeId === nodeId && variables.temporaryId === temporaryId;
+        });
+      return (upload?.state.data as DataPostResponse | undefined)?.newDataElementId;
+    },
+    [queryClient],
+  );
+}
+
+export { hasTemporaryAttachments, hasPendingAttachmentScans };

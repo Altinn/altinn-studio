@@ -1,19 +1,17 @@
 import React from 'react';
 import { toast } from 'react-toastify';
 
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
 import { doProcessNext, doProcessResume } from 'src/core/api-client/legacy.api';
 import { useUpdateInitialValidations } from 'src/core/queries/backendValidation';
-import { invalidateFormDataQueries } from 'src/core/queries/formData/index';
-import { instanceQueryKeys, useCurrentInstance } from 'src/core/queries/instance';
-import { useMutation, useQueryClient } from 'src/core/queries/reactQuery';
+import { invalidateFormDataQueries } from 'src/core/queries/formData/formData.queries';
+import { useCurrentInstance, useInstanceDataQuery, useInstanceDataQueryArgs } from 'src/core/queries/instance';
+import { instanceQueryKeys } from 'src/core/queries/instance/instance.queries';
+import { mutationResult } from 'src/core/queries/mutationResult';
+import { getProcessNextMutationKey, PROCESS_RESUME_MUTATION_KEY } from 'src/core/queries/process/process.queries';
 import { FormStore } from 'src/features/form/FormContext';
-import {
-  useHasPendingScans,
-  useInstanceDataQuery,
-  useInstanceDataQueryArgs,
-  useLaxInstanceId,
-} from 'src/features/instance/InstanceContext';
-import { getProcessNextMutationKey, PROCESS_RESUME_MUTATION_KEY } from 'src/features/instance/processNextMutationKey';
+import { useHasPendingScans, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
@@ -50,7 +48,7 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
   const hasPendingScans = useHasPendingScans();
   const isPdfMode = usePdfModeActive();
 
-  return useMutation({
+  const mutation = useMutation({
     scope: { id: 'process/next' },
     mutationKey: getProcessNextMutationKey(action),
     mutationFn: async () => {
@@ -90,7 +88,7 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
           const workflowFailure = error.response?.data?.workflowFailure;
           if (processNextState === 'retrying' || processNextState === 'resumeRequired' || workflowFailure) {
             const refetchResult = await reFetchInstanceData();
-            if (refetchResult.isError) {
+            if (refetchResult.error) {
               throw refetchResult.error;
             }
             return [null, null] as const;
@@ -156,6 +154,7 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
       });
     },
   });
+  return mutationResult(mutation);
 }
 
 export function useProcessNext({ action }: ProcessNextProps = {}) {
@@ -200,7 +199,7 @@ export function useProcessResume() {
   const queryClient = useQueryClient();
   const isPdfMode = usePdfModeActive();
 
-  return useMutation({
+  const mutation = useMutation({
     scope: { id: 'process/next' },
     mutationKey: PROCESS_RESUME_MUTATION_KEY,
     mutationFn: async () => {
@@ -218,7 +217,7 @@ export function useProcessResume() {
           const workflowFailure = error.response?.data?.workflowFailure;
           if (processNextState === 'retrying' || processNextState === 'resumeRequired' || workflowFailure) {
             const refetchResult = await reFetchInstanceData();
-            if (refetchResult.isError) {
+            if (refetchResult.error) {
               throw refetchResult.error;
             }
             return false;
@@ -265,6 +264,7 @@ export function useProcessResume() {
       });
     },
   });
+  return mutationResult(mutation);
 }
 
 function isRenderedByWorkflowStateMachine(instance: IInstance | undefined) {

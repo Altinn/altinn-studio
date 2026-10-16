@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useParams } from 'react-router';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -5,7 +6,9 @@ import { z } from 'zod';
 
 import { doPerformAction } from 'src/core/api-client/legacy.api';
 import { useBackendValidationQuery } from 'src/core/queries/backendValidation';
-import { signingQueries, useSigneeList } from 'src/core/queries/signeeList/index';
+import { mutationResult } from 'src/core/queries/mutationResult';
+import { useSigneeList } from 'src/core/queries/signeeList';
+import { signingQueryKeys } from 'src/core/queries/signeeList/signing.queries';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useProfile } from 'src/features/profile/ProfileProvider';
 import { httpGet } from 'src/utils/network/sharedNetworking';
@@ -34,7 +37,8 @@ const authorizedOrganizationDetailsQuery = (partyId: string, instanceGuid: strin
 });
 
 export function useAuthorizedOrganizationDetails(partyId: string | undefined, instanceGuid: string | undefined) {
-  return useQuery(authorizedOrganizationDetailsQuery(partyId!, instanceGuid!));
+  const { data, error, isLoading, isFetching } = useQuery(authorizedOrganizationDetailsQuery(partyId!, instanceGuid!));
+  return { data, error, isLoading, isFetching };
 }
 
 export const MissingSignaturesErrorCode = 'MissingSignatures' as const;
@@ -84,7 +88,7 @@ export function useSigningMutation() {
   const selectedLanguage = useCurrentLanguage();
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async (onBehalfOf: string | null) => {
       if (instanceOwnerPartyId && instanceGuid) {
         return doPerformAction(
@@ -92,13 +96,18 @@ export function useSigningMutation() {
           instanceGuid,
           { action: 'sign', ...(onBehalfOf ? { onBehalfOf } : {}) },
           selectedLanguage,
-          queryClient,
         );
       }
     },
     onSuccess: () => {
       // Refetch all queries related to signing to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: signingQueries.all });
+      queryClient.invalidateQueries({ queryKey: signingQueryKeys.all });
     },
   });
+  const { mutate } = mutation;
+  const sign = useCallback(
+    (onBehalfOf: string | null, onSigned?: () => void) => mutate(onBehalfOf, { onSuccess: onSigned }),
+    [mutate],
+  );
+  return { ...mutationResult(mutation), mutate: sign };
 }

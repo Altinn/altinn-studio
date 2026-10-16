@@ -1,5 +1,3 @@
-import type { QueryClient } from '@tanstack/react-query';
-
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IAttachmentsMap } from 'src/features/attachments';
 import type { IFooterLayout } from 'src/features/footer/types';
@@ -38,13 +36,6 @@ declare global {
     org: string;
     featureToggles: IFeatureTogglesOptionalMap;
     altinnAppGlobalData: AltinnAppGlobalData;
-
-    // Exposes our global query client, which is used to cache data from API calls. This is exposed so that Cypress
-    // can inject data into the cache, and so that we can access the cache in tests. It is also used by Studio
-    // to invalidate/inject layout data the (Studio) user makes a change to the layout and wants to see the result
-    // in the app preview. We cannot simply remove/rename this without making sure the Studio team has a plan to
-    // replace that functionality with something else.
-    queryClient: QueryClient;
 
     // This can be used to override the current layouts. In the future this is what will be used by Studio as well.
     changeLayouts: (mutator: (existingLayouts: ILayoutCollection) => ILayoutCollection) => void;

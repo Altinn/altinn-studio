@@ -4,8 +4,7 @@ import type { ReactNode } from 'react';
 import type { AxiosError } from 'axios';
 
 import { Loader } from 'src/core/loading/Loader';
-import { usePerformPayActionMutation } from 'src/core/queries/payment/index';
-import { usePaymentInformation } from 'src/core/queries/payment/PaymentInformationProvider';
+import { usePaymentInformation, usePerformPayActionMutation } from 'src/core/queries/payment';
 import { PaymentStatus } from 'src/features/payment/types';
 import { useIsPayment } from 'src/features/payment/utils';
 import { useNavigationParam } from 'src/hooks/navigation';

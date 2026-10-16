@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 
 import type { IDataModelBindingsList, IDataModelBindingsSimple } from '@app/layout-contract/generated/common.generated';
 
-import { AttachmentMutations } from 'src/core/queries/attachments/index';
+import { AttachmentMutations } from 'src/core/queries/attachments';
 import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import type { UploadedAttachment } from 'src/features/attachments';

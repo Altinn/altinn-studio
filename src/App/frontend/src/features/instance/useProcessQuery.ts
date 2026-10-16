@@ -1,7 +1,6 @@
-import { useOptimisticallyUpdateInstance } from 'src/core/queries/instance';
+import { useInstanceDataQuery, useOptimisticallyUpdateInstance } from 'src/core/queries/instance';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { getUiConfig } from 'src/features/form/ui';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { TaskKeys } from 'src/routesBuilder';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';
 import { ELEMENT_TYPE } from 'src/types/shared';

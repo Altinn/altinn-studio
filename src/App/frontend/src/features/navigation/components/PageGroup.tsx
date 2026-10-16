@@ -9,7 +9,7 @@ import type {
 } from '@app/layout-contract/generated/common.generated';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useProcessingMutation } from 'src/core/queries/processing/index';
+import { useProcessingMutation } from 'src/core/queries/processing';
 import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { Lang } from 'src/features/language/Lang';

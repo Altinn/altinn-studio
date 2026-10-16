@@ -1,6 +1,9 @@
-import { queryOptions, skipToken, useQuery } from '@tanstack/react-query';
+import { useCallback } from 'react';
+
+import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
+import { signingQueryKeys } from 'src/core/queries/signeeList/signing.queries';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 import { capitalizeName } from 'src/utils/stringHelper';
 import { appPath } from 'src/utils/urls/appUrlHelper';
@@ -31,8 +34,8 @@ const signeeStateSchema = z
 
 export type SigneeState = z.infer<typeof signeeStateSchema>;
 
-export const signingQueries = {
-  all: ['signing'] as const,
+const signingQueries = {
+  all: signingQueryKeys.all,
   signeeList: (partyId: string | undefined, instanceGuid: string | undefined, taskId: string | undefined) =>
     queryOptions({
       queryKey: [...signingQueries.all, 'signeeList', partyId, instanceGuid, taskId],
@@ -60,5 +63,13 @@ export function useSigneeList(
   instanceGuid: string | undefined,
   taskId: string | undefined,
 ) {
-  return useQuery(signingQueries.signeeList(partyId, instanceGuid, taskId));
+  const { data, error, isLoading, isFetching } = useQuery(signingQueries.signeeList(partyId, instanceGuid, taskId));
+  return { data, error, isLoading, isFetching };
+}
+
+export function useInvalidateSigningQueries() {
+  const queryClient = useQueryClient();
+  return useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: signingQueries.all });
+  }, [queryClient]);
 }

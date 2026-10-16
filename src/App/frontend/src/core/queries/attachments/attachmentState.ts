@@ -1,7 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query';
 import type { StoreApi } from 'zustand';
 
-import { attachmentMutationKeys } from 'src/features/attachments/tools';
+import { attachmentMutationKeys } from 'src/core/queries/attachments/attachment.queries';
 import { FileScanResults } from 'src/features/attachments/types';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { IData } from 'src/types/shared';
