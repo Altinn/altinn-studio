@@ -29,6 +29,8 @@ public sealed class LegacyRuleConversionTests
     [InlineData("return parseFloat(obj.a.toFixed(2));", "{\"a\":2.675}", "2.67")]
     [InlineData("return parseFloat(obj.a.toFixed(2));", "{\"a\":0.125}", "0.13")]
     [InlineData("return Math.round(obj.a);", "{\"a\":0.49999999999999994}", "0")]
+    [InlineData("return Math.round(obj.a);", "{\"a\":-2.5}", "-2")]
+    [InlineData("return Math.round(obj.a);", "{\"a\":2.5}", "3")]
     [InlineData("return obj.a == 1 ? 10 : 20;", "{\"a\":\"1\"}", "10")]
     [InlineData("var $sum = obj.a + obj.b; return $sum;", "{\"a\":1,\"b\":2}", "3")]
     [InlineData("return obj.a < obj.b ? 1 : 0;", "{\"a\":\"10\",\"b\":\"2\"}", "1")]
@@ -44,6 +46,45 @@ public sealed class LegacyRuleConversionTests
     [InlineData("return obj.a + 'x';", "{\"a\":null}", "\"nullx\"")]
     [InlineData("return obj.missing;", "{\"a\":1}", "null")]
     [InlineData("var value; return value < 1 ? 1 : 0;", "{\"a\":1}", "0")]
+    [InlineData("return obj.a === obj.b ? 1 : 0;", "{\"a\":2,\"b\":\"2\"}", "0")]
+    [InlineData("return obj.a?.toString() ?? 'empty';", "{\"a\":null}", "\"empty\"")]
+    [InlineData("return obj.a?.toString() ?? 'empty';", "{\"a\":2.5}", "\"2.5\"")]
+    [InlineData("return obj.a?.length ?? 7;", "{\"a\":null}", "7")]
+    [InlineData("return obj.a?.length ?? 7;", "{\"a\":\"abc\"}", "3")]
+    [InlineData("return obj.a ?? 7;", "{\"a\":0}", "0")]
+    [InlineData("var x = obj.a; x += 3; x *= 2; return x;", "{\"a\":4}", "14")]
+    [InlineData(
+        "var total = 0; obj.a.split(',').forEach(v => { total += Number(v); }); return total;",
+        "{\"a\":\"1,2,3\"}",
+        "6"
+    )]
+    [InlineData("return `${obj.a}|${obj.b}`;", "{\"a\":0,\"b\":false}", "\"0|false\"")]
+    [InlineData("return obj.a.toFixed(undefined);", "{\"a\":2.5}", "\"3\"")]
+    [InlineData("return obj.a.toFixed(-0.5);", "{\"a\":2.5}", "\"3\"")]
+    [InlineData("return parseInt(obj.a);", "{\"a\":\"0x10tail\"}", "16")]
+    [InlineData("return Number(obj.a);", "{\"a\":\"0b110\"}", "6")]
+    [InlineData("return /^\\d+$/.test(obj.a) ? obj.a + ',-' : obj.a;", "{\"a\":\"123\"}", "\"123,-\"")]
+    [InlineData("return /^\\d+$/.test(obj.a) ? obj.a + ',-' : obj.a;", "{\"a\":\"123\\n\"}", "\"123\\n\"")]
+    [InlineData("if (true) { return obj.a; } return 0;", "{\"a\":3}", "3")]
+    [InlineData("if (false) return 0; else return obj.a;", "{\"a\":3}", "3")]
+    [InlineData("return obj.a > obj.b * 1.4 ? 1 : 0;", "{\"a\":7002.8,\"b\":5002}", "1")]
+    [InlineData("return obj.a > obj.b * 24000 ? 1 : 0;", "{\"a\":3360,\"b\":0.14}", "0")]
+    [InlineData("return obj.a + obj.b === 0.3 ? 1 : 0;", "{\"a\":0.1,\"b\":0.2}", "0")]
+    [InlineData("if (obj.a) { const value = Number(obj.a); return value + 1; } return 0;", "{\"a\":2}", "3")]
+    [InlineData("return Number.isFinite(obj.a) ? 1 : 0;", "{\"a\":\"12\"}", "0")]
+    [InlineData("return Number.isFinite(obj.a) ? 1 : 0;", "{\"a\":12}", "1")]
+    [InlineData("return obj.b ? (obj.a / obj.b < 0.4 ? 1 : 0) : 0;", "{\"a\":0.04,\"b\":0.1}", "1")]
+    [InlineData("return (obj.a + obj.b).toString();", "{\"a\":0.1,\"b\":0.2}", "\"0.30000000000000004\"")]
+    [InlineData(
+        "const toNumber = val => { const num = Number(val); return isNaN(num) ? 0 : num; }; return String(toNumber(obj.a) + toNumber(obj.b));",
+        "{\"a\":0.1,\"b\":0.2}",
+        "\"0.30000000000000004\""
+    )]
+    [InlineData(
+        "const selected = obj.a.split(','); let sum = 0; selected.forEach(id => { sum += +obj[`val${id}`]; }); return `${100 - sum}|${sum !== 100 && selected.every(id => obj[`val${id}`] != null)}`;",
+        "{\"a\":\"0,1\",\"val0\":20.1,\"val1\":79.8}",
+        "\"0.09999999999999432|true\""
+    )]
     public async Task GeneratedProcessor_CompilesAndPreservesPrimitiveSemantics(
         string body,
         string inputs,
@@ -60,6 +101,8 @@ public sealed class LegacyRuleConversionTests
                 {
                     JsonValueKind.Null => null,
                     JsonValueKind.String => (object?)pair.Value.GetString(),
+                    JsonValueKind.True => true,
+                    JsonValueKind.False => false,
                     _ => pair.Value.GetDouble(),
                 }
         );
@@ -128,14 +171,14 @@ public sealed class LegacyRuleConversionTests
     }
 
     [Fact]
-    public async Task NonNumericModelValues_AreTruthyAndDoNotThrowOnNumericCoercion()
+    public async Task NonScalarModelValues_AreNormalizedToNullByTheLegacyBinding()
     {
         // These are raw model values, not JavaScript Date instances created by rule code.
         foreach (var value in new object[] { DateTime.UnixEpoch, Guid.Empty, new object() })
         {
-            Assert.Equal(1d, await Execute("return obj.a ? 1 : 0;", new() { ["a"] = value }));
+            Assert.Equal(0d, await Execute("return obj.a ? 1 : 0;", new() { ["a"] = value }));
             var number = Assert.IsType<double>(await Execute("return +obj.a;", new() { ["a"] = value }));
-            Assert.True(double.IsNaN(number));
+            Assert.Equal(0d, number);
         }
     }
 
@@ -191,20 +234,43 @@ public sealed class LegacyRuleConversionTests
     }
 
     [Fact]
-    public async Task OmittedPropertyInSharedSum_RemainsNaNRatherThanZero()
+    public async Task UnconfiguredPropertyProducesNaN_AndClearsThePreviousModelValue()
     {
         var value = await Execute("return obj.a + obj.missing;", new() { ["a"] = 1d }, shared: true);
-        Assert.True(double.IsNaN(Assert.IsType<double>(value)));
+        Assert.Null(value);
     }
 
     [Fact]
-    public void BareParameterAssignment_IsRejectedByPrimitiveConverter()
+    public async Task Rules_ReadTheSameSnapshotBeforeAnyOfTheirWrites()
+    {
+        var actual = await Execute("return obj.a + 1;", new() { ["a"] = 1d }, secondBody: "return obj.a + 1;");
+        Assert.Equal(20d, actual); // The previous result is 19, rather than the first rule's new result of 2.
+    }
+
+    [Fact]
+    public async Task UnsupportedRule_DoesNotBlockAnIndependentConvertedRule()
+    {
+        Assert.Equal(4d, await Execute("return obj.a + 1;", new() { ["a"] = 3d }, unsupported: true));
+    }
+
+    [Theory]
+    [InlineData("obj = obj.a; return obj;")]
+    [InlineData("return helper(obj.a); const helper = value => value;")]
+    [InlineData("const extra = obj.b; const helper = value => value + extra; return helper(obj.a);")]
+    [InlineData("const Number = value => 7; const helper = value => Number(value); return helper(obj.a);")]
+    [InlineData("const helper = value => value; helper = 7; return helper(obj.a);")]
+    [InlineData("return obj.a.split(',').every(Number => Number('1'));")]
+    [InlineData("if (obj.a) { const value = 1; } return value;")]
+    [InlineData("return value; let value = 1;")]
+    [InlineData("value = 1; let value;")]
+    [InlineData("const value = 1; value = 2; return value;")]
+    public void UnsupportedAssignmentsAndHelperScopes_AreRejectedByPrimitiveConverter(string body)
     {
         using var app = new TempAppFolder();
         var parser = new RuleHandlerParser(
             app.Write(
                 "ui/form/RuleHandler.js",
-                "var ruleHandlerObject = { calculate: function(obj) { obj = obj.a; return obj; } };"
+                "var ruleHandlerObject = { calculate: function(obj) { " + body + " } };"
             )
         );
         parser.Parse();
@@ -213,12 +279,22 @@ public sealed class LegacyRuleConversionTests
         Assert.Throws<NotSupportedException>(() => new PrimitiveRuleConverter("obj").Convert(ast));
     }
 
-    private static async Task<object?> Execute(string body, Dictionary<string, object?> inputs, bool shared = false)
+    private static async Task<object?> Execute(
+        string body,
+        Dictionary<string, object?> inputs,
+        bool shared = false,
+        string? secondBody = null,
+        bool unsupported = false
+    )
     {
         using var app = new TempAppFolder();
         var path = app.Write(
             "ui/form/RuleHandler.js",
-            "var ruleHandlerObject = { calculate: function(obj) { " + body + " } };"
+            "var ruleHandlerObject = { calculate: function(obj) { "
+                + body
+                + " }, second: function(obj) { "
+                + (secondBody ?? body)
+                + " }, bad: function(obj) { while (obj.a) {} return obj.a; } };"
         );
         var parser = new RuleHandlerParser(path);
         parser.Parse();
@@ -228,9 +304,30 @@ public sealed class LegacyRuleConversionTests
             InputParams = inputs.Keys.ToDictionary(key => key, key => key),
             OutParams = new() { ["outParam0"] = "result" },
         };
-        var rules = new Dictionary<string, DataProcessingRule> { ["first"] = rule };
+        var rules = new Dictionary<string, DataProcessingRule>();
+        if (unsupported)
+            rules.Add(
+                "bad",
+                new()
+                {
+                    SelectedFunction = "bad",
+                    InputParams = rule.InputParams,
+                    OutParams = rule.OutParams,
+                }
+            );
+        rules.Add("first", rule);
         if (shared)
             rules.Add("second", rule);
+        if (secondBody != null)
+            rules.Add(
+                "second",
+                new()
+                {
+                    SelectedFunction = "second",
+                    InputParams = new() { ["a"] = "result" },
+                    OutParams = new() { ["outParam0"] = "result" },
+                }
+            );
         var generated = new CSharpCodeGenerator(
             "form",
             new DataModelInfo
@@ -244,8 +341,8 @@ public sealed class LegacyRuleConversionTests
             parser
         ).Generate();
         Assert.True(generated.Success, string.Join("\n", generated.Errors));
-        Assert.Equal(rules.Count, generated.SuccessfulConversions);
-        Assert.Equal(0, generated.FailedConversions);
+        Assert.Equal(rules.Count - (unsupported ? 1 : 0), generated.SuccessfulConversions);
+        Assert.Equal(unsupported ? 1 : 0, generated.FailedConversions);
         var source = Assert.IsType<string>(generated.GeneratedCode);
         Assert.Contains("JsNumber", source);
         Assert.DoesNotContain("NotImplementedException", source);
@@ -300,7 +397,7 @@ public sealed class LegacyRuleConversionTests
             public interface IDataWriteProcessor { }
         }
         namespace Altinn.App.Core.Internal.Data {
-            public interface IFormDataWrapper { object? Get(ReadOnlySpan<char> path); bool Set(ReadOnlySpan<char> path, ExpressionValue value); }
+            public interface IFormDataWrapper { object? Get(ReadOnlySpan<char> path); bool Set(ReadOnlySpan<char> path, ExpressionValue value); IFormDataWrapper Copy(); }
         }
         namespace Altinn.App.Core.Models {
             public class Change { public object CurrentFormData { get; } = new TestModels.Root();
@@ -308,9 +405,10 @@ public sealed class LegacyRuleConversionTests
             public class DataElementChanges { public List<Change> FormDataChanges { get; } = new(); }
         }
         public class Store(Dictionary<string, object?> inputs) : Altinn.App.Core.Internal.Data.IFormDataWrapper {
-            public object? Result;
-            public object? Get(ReadOnlySpan<char> path) => inputs.GetValueOrDefault(path.ToString());
+            public object? Result = 19d;
+            public object? Get(ReadOnlySpan<char> path) => path.ToString() == "result" ? Result : inputs.GetValueOrDefault(path.ToString());
             public bool Set(ReadOnlySpan<char> path, ExpressionValue value) { Result = value.Value; return true; }
+            public Altinn.App.Core.Internal.Data.IFormDataWrapper Copy() => new Store(new(inputs)) { Result = Result };
         }
         public static class Entry {
             public static async Task<object?> Run(Dictionary<string, object?> inputs) {
