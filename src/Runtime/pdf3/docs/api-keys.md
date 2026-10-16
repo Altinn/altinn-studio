@@ -39,7 +39,8 @@ and verify that it starts with the updated file.
 Rotate the key in this order:
 
 1. Add the new key to every proxy's key file, keeping the old key.
-2. Make the new key the first key in every relay's key file.
+2. Make the new key the first key in every relay's key file: the secret `Pdf3--Upstream--ApiKey` in the environment's
+   `mpo-<env>-kv`, which the operator syncs to the runtime clusters.
 3. Remove the old key from every proxy's key file.
 
 ## Revoke a key

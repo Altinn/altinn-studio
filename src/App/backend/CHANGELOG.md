@@ -22,6 +22,18 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - End users with `write` can now retry a failed service task that your app registers itself, such as your own `IServiceTask`. They previously needed an action named after the task type, which your policy no longer needs to grant. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 - Build check `ALTINNAPP0800` no longer asks you to grant the app owner task-specific actions in `config/authorization/policy.xml`, such as `confirm`, `reject` or an action named after a custom task type. The app owner still needs `read` and `write`. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 - An app no longer starts when more than one `IOnTaskStartingHandler`, `IOnTaskEndingHandler` or `IOnTaskAbandonHandler` runs for the same task, or more than one `IOnProcessEndedHandler` is registered. Combine them into one. ([#21069](https://github.com/Altinn/altinn-studio/pull/21069))
+- Breaking: built-in validation messages, such as a file that is too large, are now in the user's language and use `validation_errors.*` text keys; built-in PDF texts use `pdf.*`. `studioctl app upgrade v9` renames your texts under old keys, such as `DataElementTooLarge`, `backend.xsd_validation` and `pdfPreviewText`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- Breaking: for clients calling the API directly, `description` on built-in validation issues is now translated text instead of the issue code or an English message. Use `code` to tell issues apart. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- Breaking: the form shows a validation issue's `Description` as text and no longer looks it up as a text key. To show a text from your app's text resources, set `CustomTextKey` instead; `studioctl app upgrade v9` moves the text keys it finds. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- Breaking: the data API returns its errors as JSON, and the `JsonObjectInDataResponse` feature flag is removed. `studioctl app upgrade v9` removes the flag from the app. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
+  - the obsolete `POST .../data?dataType=` returns a list of validation issues
+  - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
+
+### Fixed
+
+- Validation messages with texts from the app backend, such as XSD errors, now show as text in the form instead of a raw key like `backend.xsd_validation`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- File validation errors during upload are now in the user's language. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- The OpenAPI description of the data API lists its error responses, and shows that creating data returns 200, not 201.
 
 ### Removed
 
