@@ -5,7 +5,6 @@ using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
-using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Features.Validation.Default;
@@ -127,34 +126,30 @@ internal sealed class XsdValidator : IValidator
                     (sender, e) =>
                     {
                         var node = (e.Exception as XmlSchemaValidationException)?.SourceObject as XmlNode;
-                        validationIssues.Add(CreateIssue(dataElement, dataType, e.Message, XmlNodePath.Get(node)));
+                        validationIssues.Add(
+                            BuiltInValidationIssues.XsdValidation(
+                                dataElementId: dataElement.Id,
+                                schema: dataType.Id,
+                                message: e.Message,
+                                path: XmlNodePath.Get(node)
+                            )
+                        );
                     }
                 );
             }
             catch (XmlException ex)
             {
-                validationIssues.Add(CreateIssue(dataElement, dataType, ex.Message, path: null));
+                validationIssues.Add(
+                    BuiltInValidationIssues.XsdValidation(
+                        dataElementId: dataElement.Id,
+                        schema: dataType.Id,
+                        message: ex.Message,
+                        path: null
+                    )
+                );
             }
         }
 
         return validationIssues;
-    }
-
-    private static ValidationIssue CreateIssue(DataElement dataElement, DataType dataType, string message, string? path)
-    {
-        return new ValidationIssue()
-        {
-            Code = "Xsd",
-            CustomTextKey = "backend.xsd_validation",
-            DataElementId = dataElement.Id,
-            Severity = ValidationIssueSeverity.Error,
-            CustomTextParameters = new Dictionary<string, string>()
-            {
-                { "schema", dataType.Id },
-                { "message", message },
-                // Fall back to the document itself when the offending node is unknown (e.g. malformed xml)
-                { "path", path ?? "/" },
-            },
-        };
     }
 }

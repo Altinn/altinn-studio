@@ -23,6 +23,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - With `RemoveHiddenData` enabled, as it is by default, data annotation validation no longer reports errors in hidden fields, whose data is removed when the task ends anyway. ([Altinn/app-lib-dotnet#1865](https://github.com/Altinn/app-lib-dotnet/issues/1865))
 - XSD validation errors point to the field that failed, such as `/Skjema/melding/gruppe[2]/felt`. ([Altinn/app-lib-dotnet#1859](https://github.com/Altinn/app-lib-dotnet/pull/1859))
 - When a copy validator rejects copying an instance from the inbox, the user sees a page with the message instead of JSON. ([Altinn/app-lib-dotnet#1869](https://github.com/Altinn/app-lib-dotnet/pull/1869))
+- Breaking: built-in validation messages, such as a file that is too large, are now in the user's language and use `validation_errors.*` text keys; built-in PDF texts use `pdf.*`. `studioctl app upgrade v9` renames your texts under old keys, such as `DataElementTooLarge`, `backend.xsd_validation` and `pdfPreviewText`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- Breaking: for clients calling the API directly, `description` on built-in validation issues is now translated text instead of the issue code or an English message. Use `code` to tell issues apart. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- Breaking: the form shows a validation issue's `Description` as text and no longer looks it up as a text key. To show a text from your app's text resources, set `CustomTextKey` instead; `studioctl app upgrade v9` moves the text keys it finds. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- Breaking: the data API returns its errors as JSON, and the `JsonObjectInDataResponse` feature flag is removed. `studioctl app upgrade v9` removes the flag from the app. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
+  - the obsolete `POST .../data?dataType=` returns a list of validation issues
+  - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
 
 ### Fixed
 
@@ -31,6 +37,9 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Submitting no longer fails when a hidden Map component has drawn geometries and `RemoveHiddenData` is enabled. ([Altinn/app-lib-dotnet#1862](https://github.com/Altinn/app-lib-dotnet/issues/1862))
 - Copying an instance keeps the tags on its attachments. ([Altinn/app-lib-dotnet#1888](https://github.com/Altinn/app-lib-dotnet/pull/1888))
 - The OpenAPI document no longer lists a `dataGuid` path parameter on endpoints that create data. ([Altinn/app-lib-dotnet#1871](https://github.com/Altinn/app-lib-dotnet/pull/1871))
+- Validation messages with texts from the app backend, such as XSD errors, now show as text in the form instead of a raw key like `backend.xsd_validation`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- File validation errors during upload are now in the user's language. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+- The OpenAPI description of the data API lists its error responses, and shows that creating data returns 200, not 201.
 
 ### Removed
 

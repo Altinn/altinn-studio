@@ -13,7 +13,8 @@
           Code: The field HiddenRange must be between 0 and 100.,
           Description: The field HiddenRange must be between 0 and 100.,
           Source: DataAnnotations,
-          NoIncrementalUpdates: false
+          NoIncrementalUpdates: false,
+          CustomTextKey: The field HiddenRange must be between 0 and 100.
         },
         {
           Severity: Error,
@@ -22,7 +23,8 @@
           Code: The field VisibleRange must be between 0 and 100.,
           Description: The field VisibleRange must be between 0 and 100.,
           Source: DataAnnotations,
-          NoIncrementalUpdates: false
+          NoIncrementalUpdates: false,
+          CustomTextKey: The field VisibleRange must be between 0 and 100.
         },
         {
           Severity: Error,
@@ -31,7 +33,8 @@
           Code: The field HiddenRangeKeep must be between 0 and 100.,
           Description: The field HiddenRangeKeep must be between 0 and 100.,
           Source: DataAnnotations,
-          NoIncrementalUpdates: false
+          NoIncrementalUpdates: false,
+          CustomTextKey: The field HiddenRangeKeep must be between 0 and 100.
         },
         {
           Severity: Error,
@@ -40,7 +43,8 @@
           Code: The field HiddenNonNullableRange must be between 1 and 100.,
           Description: The field HiddenNonNullableRange must be between 1 and 100.,
           Source: DataAnnotations,
-          NoIncrementalUpdates: false
+          NoIncrementalUpdates: false,
+          CustomTextKey: The field HiddenNonNullableRange must be between 1 and 100.
         },
         {
           Severity: Error,
@@ -49,7 +53,8 @@
           Code: The field RowRange must be between 0 and 100.,
           Description: The field RowRange must be between 0 and 100.,
           Source: DataAnnotations,
-          NoIncrementalUpdates: false
+          NoIncrementalUpdates: false,
+          CustomTextKey: The field RowRange must be between 0 and 100.
         },
         {
           Severity: Error,
@@ -58,7 +63,8 @@
           Code: The field RowRange must be between 0 and 100.,
           Description: The field RowRange must be between 0 and 100.,
           Source: DataAnnotations,
-          NoIncrementalUpdates: false
+          NoIncrementalUpdates: false,
+          CustomTextKey: The field RowRange must be between 0 and 100.
         }
       ]
     }
@@ -71,7 +77,8 @@
       Code: The field HiddenRange must be between 0 and 100.,
       Description: The field HiddenRange must be between 0 and 100.,
       Source: DataAnnotations,
-      NoIncrementalUpdates: false
+      NoIncrementalUpdates: false,
+      CustomTextKey: The field HiddenRange must be between 0 and 100.
     },
     {
       Severity: Error,
@@ -80,7 +87,8 @@
       Code: The field VisibleRange must be between 0 and 100.,
       Description: The field VisibleRange must be between 0 and 100.,
       Source: DataAnnotations,
-      NoIncrementalUpdates: false
+      NoIncrementalUpdates: false,
+      CustomTextKey: The field VisibleRange must be between 0 and 100.
     },
     {
       Severity: Error,
@@ -89,7 +97,8 @@
       Code: The field HiddenRangeKeep must be between 0 and 100.,
       Description: The field HiddenRangeKeep must be between 0 and 100.,
       Source: DataAnnotations,
-      NoIncrementalUpdates: false
+      NoIncrementalUpdates: false,
+      CustomTextKey: The field HiddenRangeKeep must be between 0 and 100.
     },
     {
       Severity: Error,
@@ -98,7 +107,8 @@
       Code: The field HiddenNonNullableRange must be between 1 and 100.,
       Description: The field HiddenNonNullableRange must be between 1 and 100.,
       Source: DataAnnotations,
-      NoIncrementalUpdates: false
+      NoIncrementalUpdates: false,
+      CustomTextKey: The field HiddenNonNullableRange must be between 1 and 100.
     },
     {
       Severity: Error,
@@ -107,7 +117,8 @@
       Code: The field RowRange must be between 0 and 100.,
       Description: The field RowRange must be between 0 and 100.,
       Source: DataAnnotations,
-      NoIncrementalUpdates: false
+      NoIncrementalUpdates: false,
+      CustomTextKey: The field RowRange must be between 0 and 100.
     },
     {
       Severity: Error,
@@ -116,7 +127,8 @@
       Code: The field RowRange must be between 0 and 100.,
       Description: The field RowRange must be between 0 and 100.,
       Source: DataAnnotations,
-      NoIncrementalUpdates: false
+      NoIncrementalUpdates: false,
+      CustomTextKey: The field RowRange must be between 0 and 100.
     }
   ]
 }

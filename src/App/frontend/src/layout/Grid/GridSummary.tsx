@@ -4,7 +4,7 @@ import type { JSX, PropsWithChildren } from 'react';
 import { useIsMobile } from '@app/form-component';
 import { CompCategory } from '@app/layout-contract';
 import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Heading, Table, ValidationMessage } from '@digdir/designsystemet-react';
+import { Heading, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type {
   GridCell,
@@ -24,6 +24,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
+import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
 import { getComponentDef, implementsDisplayData } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Grid/GridSummary.module.css';
@@ -461,18 +462,10 @@ function SummaryCellWithComponent({
         )}
       </div>
       <div className={cn({ [classes.errorMessage]: errors.length > 0 })} />
-      {errors.length > 0 &&
-        errors.map(({ message }) => (
-          <ValidationMessage
-            key={message.key}
-            data-size='sm'
-          >
-            <Lang
-              id={message.key}
-              params={message.params}
-            />
-          </ValidationMessage>
-        ))}
+      <ValidationMessageList
+        validations={errors}
+        size='sm'
+      />
     </CellComponent>
   );
 }

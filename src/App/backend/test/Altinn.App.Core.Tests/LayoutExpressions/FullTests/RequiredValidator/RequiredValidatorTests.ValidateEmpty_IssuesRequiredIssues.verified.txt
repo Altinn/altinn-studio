@@ -11,7 +11,7 @@
           Description: VisibleRequired is required in component with id subLayout.subPage.sub-input-visible-required for binding simpleBinding,
           Source: Required,
           NoIncrementalUpdates: false,
-          CustomTextKey: backend.validation_errors.required,
+          CustomTextKey: validation_errors.required,
           CustomTextParameters: {
             bindingName: simpleBinding,
             componentId: sub-input-visible-required,
@@ -29,7 +29,7 @@
           Description: VisibleRequired is required in component with id mainLayout.page1.input-visible-required for binding simpleBinding,
           Source: Required,
           NoIncrementalUpdates: false,
-          CustomTextKey: backend.validation_errors.required,
+          CustomTextKey: validation_errors.required,
           CustomTextParameters: {
             bindingName: simpleBinding,
             componentId: input-visible-required,
@@ -54,7 +54,7 @@
       Description: VisibleRequired is required in component with id subLayout.subPage.sub-input-visible-required for binding simpleBinding,
       Source: Required,
       NoIncrementalUpdates: false,
-      CustomTextKey: backend.validation_errors.required,
+      CustomTextKey: validation_errors.required,
       CustomTextParameters: {
         bindingName: simpleBinding,
         componentId: sub-input-visible-required,
@@ -72,7 +72,7 @@
       Description: VisibleRequired is required in component with id mainLayout.page1.input-visible-required for binding simpleBinding,
       Source: Required,
       NoIncrementalUpdates: false,
-      CustomTextKey: backend.validation_errors.required,
+      CustomTextKey: validation_errors.required,
       CustomTextParameters: {
         bindingName: simpleBinding,
         componentId: input-visible-required,
