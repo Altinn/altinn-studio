@@ -228,6 +228,7 @@
 
 .operationKind {
   margin-left: var(--ds-size-1);
+  white-space: nowrap;
   font-size: var(--ds-font-size-2);
   color: var(--ds-color-neutral-text-subtle);
 }

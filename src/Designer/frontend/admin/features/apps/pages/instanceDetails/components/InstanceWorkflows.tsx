@@ -273,12 +273,15 @@ const SideChainRow = ({ context, workflow }: SideChainItemProps) => {
   );
 };
 
+/** The kind of workflow nearly every row is, now that a transition's workflows share one row. */
+const PROCESS_NEXT_KIND = 'Process next';
+
 /**
- * A workflow's operation id, all of it, in two weights: what sets this workflow apart — the part
- * after the colon, a transition's arrow drawn as an arrow — first and in full, and the kind of
- * workflow the rows share — `Process next`, `Mailbox receive` — after it, quiet. Down a list the
- * eye then reads the transitions, not the same two words on every row. A transition's tasks go by
- * their names in the app's process. The id as it came is in the tooltip.
+ * A workflow's operation id in two weights: what sets this workflow apart — the part after the
+ * colon, a transition's arrow drawn as an arrow — first and in full, and any kind of workflow other
+ * than a plain transition after it, quiet. Down a list the eye then reads the transitions, not the
+ * same two words on every row. A transition's tasks go by their names in the app's process. The id
+ * as it came is in the tooltip.
  */
 const OperationName = ({ operationId }: { operationId: string }) => {
   const taskNameOf = useTaskNameOf();
@@ -294,8 +297,13 @@ const OperationName = ({ operationId }: { operationId: string }) => {
     .join(' → ');
   return (
     <span className={classes.summaryOperation} title={operationId}>
-      <span className={classes.operationSubject}>{subject}</span>{' '}
-      <span className={classes.operationKind}>{kind}</span>
+      <span className={classes.operationSubject}>{subject}</span>
+      {kind !== PROCESS_NEXT_KIND && (
+        <>
+          {' '}
+          <span className={classes.operationKind}>{kind}</span>
+        </>
+      )}
     </span>
   );
 };
@@ -323,15 +331,13 @@ const WorkflowSummary = ({ group }: { group: WorkflowGroup }) => {
   // How long it took, once it is done; while it runs, the live note speaks for it.
   const elapsed = isActive ? undefined : groupElapsed(group);
   const elapsedText = elapsed === undefined ? undefined : formatElapsed(elapsed, t);
-  // Where the step's name would be once the chain is done: how many side chains it spawned, and
-  // whether any of them failed — the one thing about them worth a word before anyone opens the row.
+  // Where the step's name would be once the chain is done: whether any of its side chains failed —
+  // the one thing about them worth a word before anyone opens the row.
   const failedSideChains = sideChains.filter(isFailedWorkflow).length;
   const sideChainNote =
-    sideChains.length === 0
-      ? undefined
-      : failedSideChains > 0
-        ? t('admin.workflows.row.side_chains_failed', { count: failedSideChains })
-        : t('admin.workflows.row.side_chains', { count: sideChains.length });
+    failedSideChains > 0
+      ? t('admin.workflows.row.side_chains_failed', { count: failedSideChains })
+      : undefined;
 
   // Named while the chain is unfinished; a finished one needs no word beside its dots.
   const currentStep = focusStepOf(focus);
