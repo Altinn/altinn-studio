@@ -1126,6 +1126,88 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         TestData.DeleteInstanceAndData(org, app, copiedInstance.Id);
     }
 
+    [Fact]
+    public async Task CopyInstance_SimplifiedEndpoint_UpdatesAttachmentIdsInFormData()
+    {
+        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
+        using var pdfReturnStream = new MemoryStream();
+        pdfMock
+            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pdfReturnStream);
+
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddSingleton(pdfMock.Object);
+            services.AddSingleton(
+                new AppMetadataMutationHook(app => app.CopyInstanceSettings.IncludeAttachments = true)
+            );
+        };
+        HttpClient client = GetRootedClient(org, app);
+        string orgToken = TestAuthentication.GetServiceOwnerToken("405003309", org: "tdd");
+        string userToken = TestAuthentication.GetUserToken(1337, instanceOwnerPartyId);
+
+        // Create source instance
+        var (sourceInstance, _) = await InstancesControllerFixture.CreateInstanceSimplified(
+            org,
+            app,
+            instanceOwnerPartyId,
+            client,
+            userToken,
+            prefill: new() { ["melding.name"] = "Ola Olsen" }
+        );
+
+        // Add an attachment (customElement only allows the service owner as contributor)
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            AuthorizationSchemes.Bearer,
+            orgToken
+        );
+        using var attachmentContent = new ByteArrayContent(Encoding.UTF8.GetBytes("attachment"));
+        attachmentContent.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+        attachmentContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+        {
+            FileName = "attachment.pdf",
+        };
+        using var attachmentResponse = await client.PostAsync(
+            $"{org}/{app}/instances/{sourceInstance.Id}/data?dataType=customElement",
+            attachmentContent
+        );
+        Assert.Equal(HttpStatusCode.Created, attachmentResponse.StatusCode);
+        var sourceAttachment = await attachmentResponse.Content.ReadFromJsonAsync<DataElement>(JsonSerializerOptions);
+        Assert.NotNull(sourceAttachment);
+
+        // Reference the attachment from a list row, like a FileUpload in a repeating group
+        string formDataGuid = sourceInstance.Data.Single(d => d.DataType == "default").Id;
+        var patch = new JsonPatch(
+            PatchOperation.Add(
+                JsonPointer.Create("melding", "nested_list"),
+                JsonNode.Parse($$"""[{"key": "{{sourceAttachment.Id}}"}]""")
+            )
+        );
+        await UpdateInstanceData(org, app, client, userToken, sourceInstance.Id, formDataGuid, patch);
+
+        await CompleteInstance(org, app, client, userToken, sourceInstance.Id);
+
+        // Copy instance
+        InstanceResponse copiedInstance = await CopyInstanceSimplified(org, app, client, userToken, sourceInstance.Id);
+        DataElement copiedAttachment = Assert.Single(copiedInstance.Data, d => d.DataType == "customElement");
+        DataElement copiedFormData = Assert.Single(copiedInstance.Data, d => d.DataType == "default");
+
+        using var copiedFormDataResponse = await client.GetAsync(
+            $"{org}/{app}/instances/{copiedInstance.Id}/data/{copiedFormData.Id}"
+        );
+        Assert.Equal(HttpStatusCode.OK, copiedFormDataResponse.StatusCode);
+        var copiedSkjema = await copiedFormDataResponse.Content.ReadFromJsonAsync<Skjema>(JsonSerializerOptions);
+        Assert.NotNull(copiedSkjema?.Melding?.NestedList);
+        Nested copiedRow = Assert.Single(copiedSkjema.Melding.NestedList);
+        Assert.Equal(copiedAttachment.Id, copiedRow.Key);
+
+        TestData.DeleteInstanceAndData(org, app, sourceInstance.Id);
+        TestData.DeleteInstanceAndData(org, app, copiedInstance.Id);
+    }
+
     private async Task<InstanceResponse> CopyInstanceSimplified(
         string org,
         string app,
