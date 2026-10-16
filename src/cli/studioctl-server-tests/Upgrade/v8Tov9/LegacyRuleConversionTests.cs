@@ -265,19 +265,22 @@ public sealed class LegacyRuleConversionTests
         namespace Altinn.App.Core.Features {
             public interface IInstanceDataMutator { }
             public interface IDataWriteProcessor { }
+            public interface IDataProcessor {
+                Task ProcessDataRead(Altinn.Platform.Storage.Interface.Models.Instance instance, Guid? dataId, object data, string? language);
+                Task ProcessDataWrite(Altinn.Platform.Storage.Interface.Models.Instance instance, Guid? dataId, object data, object? previousData, string? language);
+            }
         }
+        namespace Altinn.Platform.Storage.Interface.Models { public class Instance { } }
         namespace Altinn.App.Core.Models {
-            public class Change { public object CurrentFormData { get; set; } = null!; }
+            public enum ChangeType { Created, Updated }
+            public class Change { public object CurrentFormData { get; set; } = null!; public ChangeType Type { get; set; } }
             public class DataElementChanges { public List<Change> FormDataChanges { get; } = new(); }
         }
         public static class Entry {
-            public static Task Run(object model) {
-                var changes = new Altinn.App.Core.Models.DataElementChanges();
-                changes.FormDataChanges.Add(new() { CurrentFormData = model });
-                return new Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor(
+            public static Task Run(object model) =>
+                new Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor(
                     Microsoft.Extensions.Logging.Abstractions.NullLogger<Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor>.Instance
-                ).ProcessDataWrite(null!, "task", changes, null);
-            }
+                ).ProcessDataWrite(new(), null, model, null, null);
         }
         """;
 }

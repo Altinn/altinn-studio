@@ -1028,7 +1028,7 @@ public sealed class CalculationExpressionMigrationTests
         var processor = app.Read("logic/ConvertedLegacyRules/FormDataProcessor.cs");
         Assert.Contains("model.other = ", processor);
         Assert.DoesNotContain("model.result = ", processor);
-        Assert.Contains("AddTransient<IDataWriteProcessor, FormDataProcessor>", app.Read("Program.cs"));
+        Assert.Contains("AddTransient<IDataProcessor, FormDataProcessor>", app.Read("Program.cs"));
         Assert.Empty(
             Directory.GetFiles(Path.Combine(app.Root, "App/ui"), "RuleHandler.js", SearchOption.AllDirectories)
         );
@@ -1077,7 +1077,7 @@ public sealed class CalculationExpressionMigrationTests
         await RunUpgrade(app);
         Assert.Equal(5d, Evaluate(Calculations(app)["result"]?["expression"], new() { ["a"] = 2, ["b"] = 3 }));
         Assert.False(Directory.Exists(Path.Combine(app.Root, "App/logic/ConvertedLegacyRules")));
-        Assert.DoesNotContain("IDataWriteProcessor", app.Read("Program.cs"));
+        Assert.DoesNotContain("FormDataProcessor", app.Read("Program.cs"));
         Assert.Empty(
             Directory.GetFiles(Path.Combine(app.Root, "App/ui"), "RuleConfiguration.json", SearchOption.AllDirectories)
         );
