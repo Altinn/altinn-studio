@@ -18,6 +18,7 @@ import testingLibrary from 'eslint-plugin-testing-library';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 
+import { noTanStackReexports } from './eslint-rules/no-tanstack-reexports.mjs';
 import { langKey } from './src/language/eslint.js';
 
 export default defineConfig([
@@ -44,6 +45,7 @@ export default defineConfig([
       local: {
         rules: {
           'language-key': langKey,
+          'no-tanstack-reexports': noTanStackReexports,
         },
       },
     },
@@ -76,6 +78,7 @@ export default defineConfig([
     },
     rules: {
       'local/language-key': ['error'],
+      'local/no-tanstack-reexports': 'error',
       curly: ['error', 'all'],
       'object-shorthand': ['error', 'always'],
       'arrow-body-style': ['error', 'as-needed'],
@@ -216,30 +219,6 @@ export default defineConfig([
     },
   },
   {
-    files: ['src/**/*.{ts,tsx}'],
-    ignores: [
-      'src/core/**',
-      'src/routes/**',
-      'src/test/**',
-      'src/queries/**',
-      'src/routerContexts/**',
-      'src/appQueryClient.ts',
-    ],
-    rules: {
-      '@typescript-eslint/no-restricted-imports': [
-        'warn',
-        {
-          paths: [
-            {
-              name: '@tanstack/react-query',
-              message: 'Import hooks from src/core/queries/ instead of using React Query directly.',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
     // Route modules must default-export their component - that is React Router's Route Module API.
     files: ['src/routes/**/*.route.tsx'],
     rules: {
@@ -247,33 +226,23 @@ export default defineConfig([
     },
   },
   {
-    files: ['src/routes/**/*.{ts,tsx}', 'src/router.tsx'],
-    ignores: ['src/routes/**/*.test.ts'],
+    files: ['**/*.{js,cjs,mjs,jsx,ts,tsx}'],
+    ignores: ['src/core/queries/**'],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
-        'warn',
-        {
-          paths: [
-            {
-              name: '@tanstack/react-query',
-              message: 'Import hooks from src/core/queries/ instead of using React Query directly.',
-              allowTypeImports: true,
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/core/**'],
-    rules: {
-      'no-restricted-imports': [
-        'warn',
+        'error',
         {
           patterns: [
             {
-              regex: 'src/core/queries/[^/]+/(?!index$)',
+              regex: '^@tanstack/(react-query(?:-devtools)?|query-core)(/|$)',
+              message: 'Import domain hooks from src/core/queries/ instead of using TanStack Query directly.',
+            },
+            {
+              group: ['src/core/queries/mutationResult', 'src/core/queries/*.queries*'],
+              message: 'Keep generic query adapters inside src/core/queries/. Use domain operations instead.',
+            },
+            {
+              regex: 'src/core/queries/[^/]+/(?!index(?:\\.[cm]?[jt]sx?)?$)',
               message:
                 'Only import from the index.ts of each src/core/queries/ module. Do not import internal files directly.',
             },
