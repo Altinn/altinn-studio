@@ -6,7 +6,8 @@ COPY --from=ghcr.io/astral-sh/uv:0.13.0@sha256:cdc6093146eb3ff6a40107b38f008b789
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y ca-certificates git && rm -rf /var/lib/apt/lists/*
+# The assistant reaches the VMs of the assistant runner with ssh and rsync.
+RUN apt-get update && apt-get install -y ca-certificates git openssh-client rsync && rm -rf /var/lib/apt/lists/*
 
 RUN git config --system user.name "Altinity Agent" && \
     git config --system user.email "agent@altinn.studio"
