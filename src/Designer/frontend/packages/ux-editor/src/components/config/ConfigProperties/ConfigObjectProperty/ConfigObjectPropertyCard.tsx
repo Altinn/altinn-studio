@@ -76,7 +76,7 @@ export const ConfigObjectPropertyCard = ({
               ? properties[objectPropertyKey].properties
               : {}
           }
-          component={currentValues || {}}
+          component={(currentValues || {}) as FormComponent}
           handleComponentUpdate={(updatedComponent: FormComponent) =>
             setCurrentValues(updatedComponent)
           }
