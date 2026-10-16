@@ -28,16 +28,20 @@ describe('Summary keyboard focus', () => {
       const first = type === 'Summary' ? '[data-testid="summary-focus-first"]' : '[data-summary-target="newFirstName"]';
       const second =
         type === 'Summary' ? '[data-testid="summary-focus-second"]' : '[data-summary-target="newMiddleName"]';
-      cy.get(first).find('button').focus();
+      cy.get(first)
+        .findByRole('button', { name: /^Endre/ })
+        .focus();
       cy.get(second)
-        .find('button')
+        .findByRole('button', { name: /^Endre/ })
         .then(($button) => {
           cy.window().then((win) => {
             win.scrollTo(0, win.scrollY + $button[0].getBoundingClientRect().bottom - win.innerHeight + 2);
           });
         });
       cy.press('Tab');
-      cy.get(second).find('button').should('be.focused');
+      cy.get(second)
+        .findByRole('button', { name: /^Endre/ })
+        .should('be.focused');
       cy.get(second).should(($summary) => {
         const rect = $summary[0].getBoundingClientRect();
         const win = $summary[0].ownerDocument.defaultView!;
@@ -46,16 +50,18 @@ describe('Summary keyboard focus', () => {
         expect(rect.right, 'the Edit button stays inside the viewport').to.be.at.most(win.innerWidth);
       });
 
-      cy.get(second).find('button').blur();
       cy.get(second)
-        .find('button')
+        .findByRole('button', { name: /^Endre/ })
+        .blur();
+      cy.get(second)
+        .findByRole('button', { name: /^Endre/ })
         .then(($button) => {
           const button = $button[0];
           const win = button.ownerDocument.defaultView!;
           win.scrollTo(0, win.scrollY + button.getBoundingClientRect().bottom - win.innerHeight + 2);
         });
       cy.get(second)
-        .find('button')
+        .findByRole('button', { name: /^Endre/ })
         .then(async ($button) => {
           // Native pointer events catch focus scrolling that moves the button before pointer-up.
           const button = $button[0];
