@@ -110,6 +110,14 @@ export interface FDNewValue extends FDChange {
   newValue: FDLeafValue;
 }
 
+export interface FDSetLeafValueInList extends FDChange {
+  reference: IDataModelReference;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  findRow: (row: any) => boolean;
+  field: string;
+  newValue: FDLeafValue;
+}
+
 export interface FDNewValues extends FDChange {
   changes: FDNewValue[];
 }
@@ -193,6 +201,7 @@ export interface FormDataMethods {
   // Methods used for updating the data model. These methods will update the currentData model, and after
   // the debounce() method is called, the debouncedCurrentData model will be updated as well.
   setLeafValue: (change: FDNewValue) => void;
+  setLeafValueInList: (change: FDSetLeafValueInList) => void;
   setMultiLeafValues: (changes: FDNewValues) => void;
   appendToListUnique: (change: FDAppendToListUnique) => void;
   appendToList: (change: FDAppendToList) => void;
@@ -374,6 +383,23 @@ function makeActions(
     }
   }
 
+  function setLeafValueInState(state: FormDataContext, { reference, newValue, callback, ...rest }: FDNewValue) {
+    if (state.dataModels[reference.dataType].readonly) {
+      window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
+      callback?.(FDSetValueReadOnly);
+      return;
+    }
+    const existingValue = dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
+    if (existingValue === newValue) {
+      callback?.(FDSetValueEqual);
+      return;
+    }
+
+    setDebounceTimeout(state, rest);
+    const result = setValue({ newValue, reference, state });
+    callback?.(result);
+  }
+
   return {
     debounce: (reason: DebounceReason) =>
       set((state) => {
@@ -388,22 +414,22 @@ function makeActions(
       set((state) => {
         processChanges(state, props);
       }),
-    setLeafValue: ({ reference, newValue, callback, ...rest }) =>
+    setLeafValue: (change) =>
       set((state) => {
-        if (state.dataModels[reference.dataType].readonly) {
-          window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
-          callback?.(FDSetValueReadOnly);
-          return;
-        }
-        const existingValue = dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
-        if (existingValue === newValue) {
-          callback?.(FDSetValueEqual);
+        setLeafValueInState(state, change);
+      }),
+    setLeafValueInList: ({ reference, findRow, field, ...rest }) =>
+      set((state) => {
+        const list = dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
+        const index = Array.isArray(list) ? list.findIndex(findRow) : -1;
+        if (index === -1) {
           return;
         }
 
-        setDebounceTimeout(state, rest);
-        const result = setValue({ newValue, reference, state });
-        callback?.(result);
+        setLeafValueInState(state, {
+          ...rest,
+          reference: { ...reference, field: `${reference.field}[${index}].${field}` },
+        });
       }),
 
     // All the list methods perform their work immediately, without debouncing, so that UI updates for new/removed

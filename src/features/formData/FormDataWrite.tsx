@@ -1020,6 +1020,12 @@ export const FD = {
   useSetLeafValue: () => useStaticSelector((s) => s.setLeafValue),
 
   /**
+   * Returns a function to set a value in a row in a list, by use of a callback that lets you find the correct row.
+   * The value is set in the first row where the callback returns true. If no row matches, nothing happens.
+   */
+  useSetLeafValueInList: () => useStaticSelector((s) => s.setLeafValueInList),
+
+  /**
    * This returns the raw method for setting multiple leaf values in the form data at once. This is
    * useful if you want to many values at the same time, atomically. This is probably too low-level
    * for what you really want to do, so consider using something like useDataModelBindings() instead.

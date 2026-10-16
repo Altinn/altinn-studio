@@ -202,6 +202,7 @@ export const makeFormDataMethodProxies = (
     cancelSave: makeProxy('cancelSave', ref),
     saveFinished: makeProxy('saveFinished', ref),
     setLeafValue: makeProxy('setLeafValue', ref),
+    setLeafValueInList: makeProxy('setLeafValueInList', ref),
     setMultiLeafValues: makeProxy('setMultiLeafValues', ref),
     removeValueFromList: makeProxy('removeValueFromList', ref),
     removeIndexFromList: makeProxy('removeIndexFromList', ref),
