@@ -1,6 +1,7 @@
 package simple
 
 import (
+	"strings"
 	"testing"
 
 	"altinn.studio/pdf3/internal/types"
@@ -312,4 +313,30 @@ func Test_WaitForHiddenViaClassAddition(t *testing.T) {
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
+}
+
+// A ready marker can disappear when a failed options query renders a fatal error.
+// Finding it before the animation frame must not allow the request to print.
+func Test_WaitForRemovedBeforePrint(t *testing.T) {
+	for _, selector := range []string{"#readyForPrint", "body > #readyForPrint"} {
+		for _, timing := range []string{"initial", "added"} {
+			t.Run(selector+"/"+timing, func(t *testing.T) {
+				req := harness.GetDefaultPdfRequest(t)
+				req.URL = harness.TestServerURL + "/app/?transientready=" + timing
+				timeout := int32(2000)
+				req.WaitFor = types.NewWaitForOptions(types.WaitForOptions{
+					Selector: selector,
+					Timeout:  &timeout,
+				})
+
+				resp, err := harness.RequestNewPDF(t, req)
+				if err == nil {
+					t.Fatalf("Generated a PDF after readiness was withdrawn: %d bytes", len(resp.Data))
+				}
+				if !strings.Contains(err.Error(), "element_not_ready") {
+					t.Fatalf("Expected element_not_ready, got %v", err)
+				}
+			})
+		}
+	}
 }
