@@ -306,19 +306,29 @@ internal sealed class WorkflowCommandSet
     /// </summary>
     internal const string StepKindLabel = "serviceTaskStepKind";
 
-    /// <summary>A stage, named by its own name.</summary>
+    /// <summary>
+    /// A stage, named by its own name.
+    /// </summary>
     internal const string StageStepKind = "stage";
 
-    /// <summary>A pipeline's concluding step, named by its own name.</summary>
+    /// <summary>
+    /// A pipeline's concluding step, named by its own name.
+    /// </summary>
     internal const string ConclusionStepKind = "conclusion";
 
-    /// <summary>A reply handler's step, named by the handler's own name.</summary>
+    /// <summary>
+    /// A reply handler's step, named by the handler's own name.
+    /// </summary>
     internal const string RepliesStepKind = "replies";
 
-    /// <summary>A reply handler's step with no name of its own, named by the stage whose mailbox it answers.</summary>
+    /// <summary>
+    /// A reply handler's step with no name of its own, named by the stage whose mailbox it answers.
+    /// </summary>
     internal const string ReplyToStepKind = "replyTo";
 
-    /// <summary>The step opening a mailbox, named by the stage that sends from it.</summary>
+    /// <summary>
+    /// The step opening a mailbox, named by the stage that sends from it.
+    /// </summary>
     internal const string MintMailboxStepKind = "mintMailbox";
 
     /// <summary>

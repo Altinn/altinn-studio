@@ -8,7 +8,9 @@ namespace Altinn.App.Core.Features.Process;
 /// </summary>
 internal static partial class PipelineStepNames
 {
-    /// <summary>The longest name an app may give a pipeline item.</summary>
+    /// <summary>
+    /// The longest name an app may give a pipeline item.
+    /// </summary>
     internal const int MaxNameLength = 100;
 
     /// <summary>
@@ -78,7 +80,9 @@ internal static partial class PipelineStepNames
         return string.Join(' ', [char.ToUpperInvariant(words[0][0]) + words[0][1..], .. rest]);
     }
 
-    /// <summary>The compiler's name for a local function: <c>&lt;Define&gt;g__SendIt|0_0</c>.</summary>
+    /// <summary>
+    /// The compiler's name for a local function: <c>&lt;Define&gt;g__SendIt|0_0</c>.
+    /// </summary>
     [GeneratedRegex(@"g__(?<name>[^|]+)\|")]
     private static partial Regex LocalFunctionName();
 
