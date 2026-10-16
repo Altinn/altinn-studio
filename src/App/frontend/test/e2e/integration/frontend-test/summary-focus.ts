@@ -4,7 +4,7 @@ const appFrontend = new AppFrontend();
 
 describe('Summary keyboard focus', () => {
   for (const type of ['Summary', 'Summary2'] as const) {
-    it(`keeps the ${type} value and Edit button visible when tabbing near the viewport edge`, () => {
+    it(`keeps the ${type} value visible for keyboard focus without disrupting pointer editing`, () => {
       cy.interceptLayout('Task_2', undefined, (layouts) => {
         layouts.summary!.data.layout = [
           { id: 'nav-summary', type: 'NavigationBar' },
@@ -45,6 +45,41 @@ describe('Summary keyboard focus', () => {
         expect(rect.bottom, 'the value remains in the viewport').to.be.at.most(win.innerHeight);
         expect(rect.right, 'the Edit button stays inside the viewport').to.be.at.most(win.innerWidth);
       });
+
+      cy.get(second).find('button').blur();
+      cy.get(second)
+        .find('button')
+        .then(($button) => {
+          const button = $button[0];
+          const win = button.ownerDocument.defaultView!;
+          win.scrollTo(0, win.scrollY + button.getBoundingClientRect().bottom - win.innerHeight + 2);
+        });
+      cy.get(second)
+        .find('button')
+        .then(async ($button) => {
+          // Native pointer events catch focus scrolling that moves the button before pointer-up.
+          const button = $button[0];
+          const win = button.ownerDocument.defaultView!;
+          const bounds = button.getBoundingClientRect();
+          const frame = window.top!.document.querySelector('iframe.aut-iframe')!.getBoundingClientRect();
+          const scale = frame.width / win.innerWidth;
+          const params = {
+            x: frame.left + (bounds.left + bounds.width / 2) * scale,
+            y: frame.top + (bounds.bottom - 2) * scale,
+            button: 'left',
+            clickCount: 1,
+          };
+          for (const type of ['mousePressed', 'mouseReleased']) {
+            await Cypress.automation('remote:debugger:protocol', {
+              command: 'Input.dispatchMouseEvent',
+              params: { type, ...params },
+            });
+            if (type === 'mousePressed') {
+              expect(button, 'the pointer focuses the Edit button').to.equal(button.ownerDocument.activeElement);
+            }
+          }
+        });
+      cy.get(appFrontend.changeOfName.newMiddleName).should('be.focused');
     });
   }
 });
