@@ -34,19 +34,21 @@ export const WorkflowHealthHeaderCell = (): ReactElement => {
     <span className={classes.header}>
       {t('admin.workflows.health')}
       <StudioHelpText aria-label={t('admin.workflows.health.legend')} placement='left'>
-        <StudioParagraph data-size='sm'>{t('admin.workflows.health.legend')}</StudioParagraph>
-        <dl className={classes.legend}>
-          {LEGEND_ORDER.map((health) => (
-            <div key={health} className={classes.legendRow}>
-              <dt>
-                <WorkflowHealthTag health={health} />
-              </dt>
-              <dd className={classes.legendDescription}>
-                {t(WORKFLOW_HEALTH_PRESENTATION[health].descriptionKey)}
-              </dd>
-            </div>
-          ))}
-        </dl>
+        <div className={classes.legendContent}>
+          <StudioParagraph data-size='sm'>{t('admin.workflows.health.legend')}</StudioParagraph>
+          <dl className={classes.legend}>
+            {LEGEND_ORDER.map((health) => (
+              <div key={health} className={classes.legendRow}>
+                <dt>
+                  <WorkflowHealthTag health={health} />
+                </dt>
+                <dd className={classes.legendDescription}>
+                  {t(WORKFLOW_HEALTH_PRESENTATION[health].descriptionKey)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       </StudioHelpText>
     </span>
   );
