@@ -1,4 +1,5 @@
 # Terminologi
+
 - Bruk «innboks», ikke «meldingsboks» eller «melding»
 - Bruk «representere», ikke «opptre på vegne av»
 - Bruk «logg inn», ikke «logg på» eller «sign in»
@@ -14,4 +15,4 @@
 - Bruk «inndata» ikke «input» om det brukeren fyller ut i et tekstfelt.
 - Bruk «navigasjonsfelt» om «navigation bar» ikke «navigasjonsbar»
 - Bruk «stort tekstfelt» ikke «tekstområde» om «text area» når det er et komponentnavn.
-- Bruk «tjeneste» ikke «service» 
+- Bruk «tjeneste» ikke «service»
