@@ -80,6 +80,50 @@ describe('ConfigObjectProperties', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('preserves multiple edits to existing sibling properties until the object is saved', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdate = vi.fn();
+    renderConfigObjectProperty({
+      props: {
+        component: {
+          ...componentMocks.Input,
+          [somePropertyName]: { readOnly: false, required: false },
+        },
+        properties: {
+          [somePropertyName]: {
+            type: 'object',
+            properties: {
+              readOnly: { type: 'boolean', required: false },
+              required: { type: 'boolean', required: false },
+            },
+            additionalProperties: false,
+            required: false,
+          },
+        },
+        handleComponentUpdate,
+      },
+    });
+    await openCard();
+
+    await user.click(
+      screen.getByRole('switch', {
+        name: textMock('ux_editor.component_properties.readOnly'),
+      }),
+    );
+    await user.click(
+      screen.getByRole('switch', {
+        name: textMock('ux_editor.component_properties.required'),
+      }),
+    );
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
+
+    expect(handleComponentUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        [somePropertyName]: { readOnly: true, required: true },
+      }),
+    );
+  });
+
   it('should delete object property and close card when delete button is clicked', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     const user = userEvent.setup();
