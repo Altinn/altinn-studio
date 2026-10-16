@@ -92,7 +92,7 @@ export const slides: SlideDef[] = [
     component: Bakgrunn,
     steps: 3,
     notes:
-      'Under panseret kan prosessmotoren mer enn appene bruker i dag: arbeid i bakgrunnen kan vente på annet arbeid i bakgrunnen. Første klikk: når instansen opprettes, starter appen en jobb som oppretter dialogen i Dialogporten, og Kari fyller ut skjemaet imens. Andre klikk: Kari sender inn og er ferdig. Hendelsen om innsendingen venter til dialogen finnes. Tredje klikk: dialogen er klar, og hendelsen sendes av seg selv. Kari ble aldri holdt igjen, og rekkefølgen holdt likevel. Fotnoten sier det samme som du kan si høyt: hendelser sendes allerede slik i dag, mens Dialogporten-jobben viser hvordan vi ser for oss integrasjonen fremover.',
+      'Under panseret kan prosessmotoren mer enn appene bruker i dag: arbeid i bakgrunnen kan vente på annet arbeid i bakgrunnen. Når Kari starter skjemaet, legges jobben som oppretter dialogen i Dialogporten i kø med en gang, men den venter til instansen finnes. Første klikk: instansen er opprettet, dialogen opprettes i bakgrunnen, og Kari fyller ut skjemaet imens. Andre klikk: Kari sender inn og er ferdig. Innsendingen starter to jobber: én som oppdaterer dialogen, og én som sender hendelsen om innsendingen. Begge venter til dialogen finnes, for ingen av dem gir mening før den gjør det. Tredje klikk: dialogen er klar, og begge jobbene kjører av seg selv. Kari ble aldri holdt igjen, og rekkefølgen holdt likevel. Fotnoten sier det samme som du kan si høyt: hendelser sendes allerede slik i dag, mens Dialogporten-jobben viser hvordan vi ser for oss integrasjonen fremover.',
   },
   {
     id: 'dashbord',

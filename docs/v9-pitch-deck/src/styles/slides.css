@@ -490,6 +490,15 @@
   border-style: dashed;
 }
 
+.s-dag__system {
+  margin-bottom: -6px;
+  font-size: 18px;
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-500);
+}
+
 .s-dag__title {
   font-size: 32px;
   font-weight: var(--fw-bold);
@@ -507,7 +516,7 @@
 .s-dag__caption {
   position: absolute;
   left: 230px;
-  top: 510px;
+  top: 520px;
   font-size: 34px;
   font-weight: var(--fw-semibold);
   color: var(--text-200);
@@ -517,7 +526,7 @@
 .s-dag__footnote {
   position: absolute;
   left: 230px;
-  top: 580px;
+  top: 590px;
   font-size: 21px;
   font-style: italic;
   color: var(--text-500);

@@ -244,7 +244,7 @@ kom i gang — in norsk bokmål. Speaker notes live in the `notes` field of each
 | 7  | `infra-nytt-i-v9`          | Nytt med v9, and a banner for what v8 apps already have      | 0     |
 | 8  | `prosessmotor`             | En motor for prosessene — app, engine, saved steps           | 0     |
 | 9  | `for-utviklere`            | Nye muligheter for utviklere — what service tasks can do now | 0     |
-| 10 | `bakgrunn`                 | Arbeid i bakgrunnen — an event waits for a Dialogporten job   | 3     |
+| 10 | `bakgrunn`                 | Arbeid i bakgrunnen — submit waits for a Dialogporten job     | 3     |
 | 11 | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard               | 3     |
 | 12 | `ett-klikk`                | Ett klikk, ti ting — then every one of them saved            | 2     |
 | 13 | `scenario-feil`            | Tilbake til Kari — the first example, v9 side catches up     | 7     |

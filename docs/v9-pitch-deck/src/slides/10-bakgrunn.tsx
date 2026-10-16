@@ -5,10 +5,9 @@ import { ArrowDefs, Dot, Wire } from './_kit';
 
 /**
  * Side work that keeps its own order without holding the user up. Creating the
- * instance starts a Dialogporten job in the background; submitting sends an
- * Altinn Event, which waits until the dialog exists. Events already run as
- * background work today; Dialogporten as an engine side effect is
- * illustrative. The mechanism is the engine's own: a workflow declares
+ * instance starts a Dialogporten job in the background; submitting updates the
+ * dialog and sends an Altinn Event, and both wait until the dialog exists. Events already run as background work today; Dialogporten
+ * as an engine side effect is illustrative. The mechanism is the engine's own: a workflow declares
  * `dependsOn` on one enqueued earlier and runs once that one is done.
  */
 
@@ -16,6 +15,8 @@ type Tone = 'ok' | 'run' | 'wait' | 'idle';
 type States = [Tone, Tone, Tone, Tone];
 
 interface Box {
+  /** The system the job talks to, shown above the title. */
+  system?: string;
   title: string;
   x: number;
   y: number;
@@ -30,7 +31,10 @@ interface Box {
 
 const BOX_H = 120;
 const TOP_Y = 50;
-const JOB_Y = 330;
+const JOB_Y = 300;
+const JOB_H = 130;
+/** Height of the dependency line that runs under «Oppdater dialogen». */
+const UNDER_Y = 475;
 
 const PROCESS: Box[] = [
   { title: 'Opprett instans', x: 230, y: TOP_Y, w: 360, states: ['run', 'ok', 'ok', 'ok'], running: 'Kjører' },
@@ -39,20 +43,34 @@ const PROCESS: Box[] = [
 ];
 
 const DIALOG: Box = {
-  title: 'Opprett dialog i Dialogporten',
+  system: 'Dialogporten',
+  title: 'Opprett dialog',
   x: 230,
   y: JOB_Y,
-  w: 600,
-  states: ['idle', 'run', 'run', 'ok'],
+  w: 360,
+  states: ['wait', 'run', 'run', 'ok'],
   running: 'Kjører',
-  from: 1,
+  waiting: 'Venter på instansen',
+};
+
+const SUBMITTED: Box = {
+  system: 'Dialogporten',
+  title: 'Oppdater dialogen',
+  x: 670,
+  y: JOB_Y,
+  w: 400,
+  states: ['idle', 'idle', 'wait', 'ok'],
+  running: 'Kjører',
+  waiting: 'Venter på dialogen',
+  from: 2,
 };
 
 const EVENT: Box = {
-  title: 'Send Altinn-hendelse',
-  x: 1050,
+  system: 'Altinn Events',
+  title: 'Send hendelse',
+  x: 1150,
   y: JOB_Y,
-  w: 480,
+  w: 380,
   states: ['idle', 'idle', 'wait', 'ok'],
   running: 'Kjører',
   waiting: 'Venter på dialogen',
@@ -60,10 +78,10 @@ const EVENT: Box = {
 };
 
 const CAPTIONS = [
-  'Kari starter et skjema.',
+  'Kari starter et skjema. Dialogen opprettes så snart instansen finnes.',
   'Appen oppretter dialogen i bakgrunnen, og Kari fyller ut skjemaet imens.',
-  'Kari sender inn og er ferdig. Hendelsen venter til dialogen finnes.',
-  'Dialogen er klar, og hendelsen sendes av seg selv.',
+  'Kari sender inn og er ferdig. Resten venter til dialogen finnes.',
+  'Dialogen er klar. Nå oppdateres den, og hendelsen går ut av seg selv.',
 ];
 
 function label(box: Box, tone: Tone): string {
@@ -78,11 +96,12 @@ function BoxView({ box, at }: { box: Box; at: number }) {
   return (
     <motion.div
       className={`s-dag__box is-${tone}-box`}
-      style={{ left: box.x, top: box.y, width: box.w, height: BOX_H }}
+      style={{ left: box.x, top: box.y, width: box.w, height: box.y === JOB_Y ? JOB_H : BOX_H }}
       initial={false}
       animate={{ opacity: shown ? 1 : 0, y: shown ? 0 : 10 }}
       transition={{ duration: 0.35, delay: shown && box.from ? 0.25 : 0 }}
     >
+      {box.system && <span className="s-dag__system">{box.system}</span>}
       <span className="s-dag__title">{box.title}</span>
       <span className={`s-dag__state is-${tone}`}>
         <Dot tone={tone} />
@@ -92,15 +111,21 @@ function BoxView({ box, at }: { box: Box; at: number }) {
   );
 }
 
-/** A straight drop from the bottom of a process box into the top of its job. */
-function drop(box: Box) {
-  const x = box.x + box.w / 2;
-  return `M${x} ${TOP_Y + BOX_H + 4} V ${JOB_Y - 8}`;
+const centre = (box: Box) => box.x + box.w / 2;
+
+/** A drop from the bottom of a process box into the top of a job it starts. */
+function drop(from: Box, to: Box) {
+  const fork = (TOP_Y + BOX_H + JOB_Y) / 2;
+  return `M${centre(from)} ${TOP_Y + BOX_H + 4} V ${fork} H ${centre(to)} V ${JOB_Y - 8}`;
 }
 
 export default function BakgrunnSlide({ step }: SlideProps) {
   const at = Math.min(Math.max(step, 0), 3);
-  const dependency = `M${DIALOG.x + DIALOG.w + 4} ${JOB_Y + BOX_H / 2} H ${EVENT.x - 8}`;
+  const dialogDrop = `M${centre(DIALOG)} ${TOP_Y + BOX_H + 4} V ${JOB_Y - 8}`;
+  const dependencies = [
+    `M${DIALOG.x + DIALOG.w + 4} ${JOB_Y + JOB_H / 2} H ${SUBMITTED.x - 8}`,
+    `M${centre(DIALOG)} ${JOB_Y + JOB_H + 4} V ${UNDER_Y} H ${centre(EVENT)} V ${JOB_Y + JOB_H + 8}`,
+  ];
 
   return (
     <Slide
@@ -113,16 +138,10 @@ export default function BakgrunnSlide({ step }: SlideProps) {
         <span className="s-dag__lane" style={{ top: TOP_Y + BOX_H / 2 - 18 }}>
           Prosessen
         </span>
-        <motion.span
-          className="s-dag__lane"
-          style={{ top: JOB_Y + BOX_H / 2 - 40 }}
-          initial={false}
-          animate={{ opacity: at >= 1 ? 1 : 0 }}
-          transition={{ duration: 0.3 }}
-        >
+        <span className="s-dag__lane" style={{ top: JOB_Y + JOB_H / 2 - 40 }}>
           I bakgrunnen
           <span className="s-dag__lane-sub">Av seg selv, og prøves igjen ved feil</span>
-        </motion.span>
+        </span>
 
         {/* Kari's part ends at «Send inn»; everything after it is the platform's. */}
         <motion.span
@@ -145,18 +164,24 @@ export default function BakgrunnSlide({ step }: SlideProps) {
               tone="grey"
             />
           ))}
-          {/* Each side job starts from the process step that sets it off. */}
-          <Wire d={drop(PROCESS[0])} tone="blue" show={at >= 1} />
-          <Wire d={drop(PROCESS[2])} tone="blue" show={at >= 2} />
-          {/* The event depends on the dialog: amber while it waits, green once it may run. */}
-          <Wire d={dependency} tone="amber" show={at === 2} />
-          <Wire d={dependency} tone="teal" show={at === 3} />
+          {/* Every dependency is amber while it waits and grey once it is met. */}
+          <Wire d={dialogDrop} tone="amber" show={at === 0} />
+          <Wire d={dialogDrop} tone="grey" show={at >= 1} />
+          <Wire d={drop(PROCESS[2], SUBMITTED)} tone="grey" show={at >= 2} />
+          <Wire d={drop(PROCESS[2], EVENT)} tone="grey" show={at >= 2} />
+          {dependencies.map((d) => (
+            <g key={d}>
+              <Wire d={d} tone="amber" show={at === 2} />
+              <Wire d={d} tone="grey" show={at === 3} />
+            </g>
+          ))}
         </svg>
 
         {PROCESS.map((box) => (
           <BoxView key={box.title} box={box} at={at} />
         ))}
         <BoxView box={DIALOG} at={at} />
+        <BoxView box={SUBMITTED} at={at} />
         <BoxView box={EVENT} at={at} />
 
         <motion.p
