@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 
 // Validates the AGENTS.md hierarchy (see /AGENTS.md "Conventions across the repo"):
 //   1. Single instruction file — AGENTS.md is the only agent-guidance file, read directly by
-//      every agent, so a CLAUDE.md anywhere in the repository is a regression.
+//      every agent. The app query boundary also has an explicitly requested CLAUDE.md pointer.
 //   2. Links — every relative markdown link inside an AGENTS.md resolves to a real path.
 //   3. Coverage — every tracked top-level directory and every tracked directory directly
 //      under src/ is mentioned in the root AGENTS.md repository map.
@@ -38,6 +38,14 @@ const agentsFiles = gitListFiles('AGENTS.md', '**/AGENTS.md');
 const claudeFiles = gitListFiles('CLAUDE.md', '**/CLAUDE.md');
 
 for (const file of claudeFiles) {
+  // Keep the requested compatibility pointer without duplicating the architectural guidance.
+  if (
+    file === 'src/App/frontend/src/core/queries/CLAUDE.md' &&
+    fs.readFileSync(file, 'utf8').trim() ===
+      'Read [AGENTS.md](AGENTS.md) for the query boundary and its rationale.'
+  ) {
+    continue;
+  }
   errors.push(
     `${file}: CLAUDE.md is no longer used — put the guidance in ${path.join(path.dirname(file), 'AGENTS.md')}, which every agent reads directly`,
   );

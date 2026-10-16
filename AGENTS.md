@@ -159,8 +159,9 @@ stack (see `README.md`).
   `typos` does **not** look inside path-shaped string literals, so after renaming a directory you
   must also `git grep` the old segment.
 
-- **Docs:** `AGENTS.md` is the only agent-guidance file in a directory; never add a `CLAUDE.md`.
-  These invariants (no `CLAUDE.md`, resolvable links, root-map coverage of tracked directories)
+- **Docs:** Keep agent guidance in `AGENTS.md`. The app query boundary has a `CLAUDE.md`
+  compatibility pointer to its `AGENTS.md`; this is the only exception.
+  These invariants (a single guidance source, resolvable links, root-map coverage of tracked directories)
   are enforced by `yarn docs:validate` in CI.
 - **Languages/stacks vary by project:** .NET (C#), React/TypeScript, Go, and Python all appear here.
   Framework versions differ per project and are documented at the leaf, not here — check the project's

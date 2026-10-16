@@ -122,8 +122,9 @@ There are many usages of `any` or type casting (`as type`) in the codebase. This
 
 #### TanStack Query best practices
 
-Use objects for managing query keys and functions and `queryOptions` for sharing these across the system and central management.
-Please see [TkDodo's blog](https://tkdodo.eu/blog/all) for more best practices, insights and tips and tricks.
+When adding queries or mutations, changing caching, or moving query code, follow
+[src/core/queries/AGENTS.md](src/core/queries/AGENTS.md). Only that folder imports TanStack Query;
+callers use domain hooks and plain application interfaces.
 
 #### Component Configuration
 
