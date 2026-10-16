@@ -5,8 +5,8 @@ import { screen } from '@testing-library/dom';
 import { render as renderRtl, RenderOptions } from '@testing-library/react';
 const randomUUID = () => '00000000-0000-4000-8000-000000000000';
 
-import { NotificationStatus, SigneeState, useSigneeList } from 'src/core/queries/signeeList/index';
-import { useSignaturesValidation, useUserSigneeParties } from 'src/core/queries/signing/index';
+import { NotificationStatus, SigneeState, useSigneeList } from 'src/core/queries/signeeList';
+import { useSignaturesValidation, useUserSigneeParties } from 'src/core/queries/signing';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -21,16 +21,15 @@ import { CurrentUserStatus, getCurrentUserStatus } from 'src/layout/SigningActio
 
 vi.mock('src/utils/layout/useFormData');
 vi.mock('react-router');
-vi.mock('src/core/queries/process/useProcessNext.tsx');
+vi.mock('src/core/queries/process');
 vi.mock('src/core/queries/QueryProvider');
 vi.mock('src/features/profile/ProfileProvider');
 vi.mock('src/features/language/useLanguage');
 vi.mock('src/features/language/Lang');
 vi.mock('src/features/instance/useProcessQuery');
-vi.mock('src/core/queries/signeeList/index');
-vi.mock('src/core/queries/signing/index');
+vi.mock('src/core/queries/signeeList');
+vi.mock('src/core/queries/signing');
 vi.mock('src/layout/SigningActions/utils');
-vi.mock('@tanstack/react-query');
 
 vi.mock('src/layout/SigningActions/PanelNoActionRequired');
 vi.mock('src/layout/SigningActions/PanelAwaitingOtherSignatures');

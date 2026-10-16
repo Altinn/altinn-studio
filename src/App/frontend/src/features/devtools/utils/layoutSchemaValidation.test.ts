@@ -10,7 +10,7 @@ import {
   LAYOUT_SCHEMA_NAME,
 } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { getComponentDef } from 'src/layout';
-import type { ValidateFunc } from 'src/core/queries/layoutSchema/index';
+import type { ValidateFunc } from 'src/core/queries/layoutSchema';
 import type { CompExternalExact } from 'src/layout/layout';
 
 const schema = layoutSchema as unknown as JSONSchema7;

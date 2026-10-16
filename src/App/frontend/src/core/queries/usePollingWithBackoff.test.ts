@@ -1,6 +1,6 @@
+import { focusManager } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react';
 
-import { queryFocusManager } from 'src/core/queries/focusManager';
 import { getPollingInterval, usePollingWithBackoff } from 'src/core/queries/usePollingWithBackoff';
 
 describe('usePollingWithBackoff()', () => {
@@ -9,7 +9,7 @@ describe('usePollingWithBackoff()', () => {
   });
 
   afterEach(() => {
-    queryFocusManager.setFocused(undefined);
+    focusManager.setFocused(undefined);
     vi.useRealTimers();
   });
 
@@ -169,14 +169,14 @@ describe('usePollingWithBackoff()', () => {
     await advance(1000);
     expect(callback).toHaveBeenCalledTimes(1);
 
-    act(() => queryFocusManager.setFocused(false));
-    act(() => queryFocusManager.setFocused(true));
+    act(() => focusManager.setFocused(false));
+    act(() => focusManager.setFocused(true));
     await advance(60_000);
     expect(callback).toHaveBeenCalledTimes(1);
 
     // Another blur/focus cycle must cancel the previous resume attempt too.
-    act(() => queryFocusManager.setFocused(false));
-    act(() => queryFocusManager.setFocused(true));
+    act(() => focusManager.setFocused(false));
+    act(() => focusManager.setFocused(true));
     await advance(0);
     expect(callback).toHaveBeenCalledTimes(1);
 
@@ -194,11 +194,11 @@ describe('usePollingWithBackoff()', () => {
     await advance(1000);
     expect(callback).toHaveBeenCalledTimes(1);
 
-    act(() => queryFocusManager.setFocused(false));
+    act(() => focusManager.setFocused(false));
     await advance(60_000);
     expect(callback).toHaveBeenCalledTimes(1);
 
-    act(() => queryFocusManager.setFocused(true));
+    act(() => focusManager.setFocused(true));
     await advance(0);
     expect(callback).toHaveBeenCalledTimes(2);
 

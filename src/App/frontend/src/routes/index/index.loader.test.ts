@@ -1,13 +1,12 @@
 import { type LoaderFunctionArgs, redirect, RouterContextProvider } from 'react-router';
 
-import { QueryClient } from '@tanstack/react-query';
-
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { backendValidationApi } from 'src/core/api-client/backendValidation.api';
 import { instanceApi } from 'src/core/api-client/instance.api';
 import { partyApi } from 'src/core/api-client/party.api';
 import { textResourcesApi } from 'src/core/api-client/textResources.api';
+import { createTestQueryClient } from 'src/core/queries/queryClient';
 import { GlobalData } from 'src/GlobalData';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
@@ -22,9 +21,7 @@ vi.mock('react-router', async () => ({
 vi.mock('src/core/api-client/instance.api');
 
 function createLoaderArgs(): LoaderFunctionArgs {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
+  const queryClient = createTestQueryClient();
   const context = new RouterContextProvider();
   context.set(queryClientContext, queryClient);
   context.set(apiClientsContext, { backendValidationApi, instanceApi, partyApi, textResourcesApi });

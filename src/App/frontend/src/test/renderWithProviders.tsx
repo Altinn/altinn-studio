@@ -2,7 +2,6 @@ import React from 'react';
 import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes, useLocation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { QueryClient } from '@tanstack/react-query';
 import { act, render as rtlRender, waitFor } from '@testing-library/react';
 import dotenv from 'dotenv';
 import { vi } from 'vitest';
@@ -21,6 +20,7 @@ import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
 import { fetchFormBootstrapForInstance } from 'src/core/api-client/legacy.api';
 import { ApiProvider } from 'src/core/contexts/ApiProvider';
+import { createTestQueryClient } from 'src/core/queries/queryClient';
 import { AppQueriesProvider } from 'src/core/queries/QueryProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { FormProvider } from 'src/features/form/FormProvider';
@@ -315,7 +315,7 @@ export function StatelessRouter({
 interface ProvidersProps extends PropsWithChildren {
   queries: AppQueriesContext;
   apis: Omit<ApiClients, 'textResourcesApi'>;
-  queryClient: QueryClient;
+  queryClient: ReturnType<typeof createTestQueryClient>;
   Router?: (props: PropsWithChildren) => React.ReactNode;
 }
 
@@ -391,12 +391,7 @@ interface SetupFakeAppProps {
  * needed to render a component in something that looks like an app.
  */
 export function setupFakeApp({ queries, mutations, apis }: SetupFakeAppProps = {}) {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      mutations: { retry: false },
-      queries: { retry: false, staleTime: Infinity },
-    },
-  });
+  const queryClient = createTestQueryClient();
 
   const finalQueries: AppQueries = {
     ...defaultQueryMocks,

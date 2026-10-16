@@ -27,7 +27,7 @@ vi.mock('src/features/form/layoutSettings/processLayoutSettings', () => ({
 vi.mock('src/features/expressions/runtime/useExpressionDataSources', () => ({
   useExpressionDataSourcesBaseForStoreSelector: () => expressionDataSources,
 }));
-vi.mock('src/features/instance/InstanceContext', () => ({
+vi.mock('src/core/queries/instance', () => ({
   useInstanceDataQuery: () => ({ data: instanceData }),
 }));
 vi.mock('src/features/instance/useProcessTaskId', () => ({

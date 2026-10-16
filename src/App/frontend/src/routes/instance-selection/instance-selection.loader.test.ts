@@ -1,13 +1,12 @@
 import { LoaderFunctionArgs, redirect, RouterContextProvider } from 'react-router';
 
-import { QueryClient } from '@tanstack/react-query';
-
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { ApiClients } from 'src/core/api-client/ApiClients';
 import { instanceApi } from 'src/core/api-client/instance.api';
 import { partyApi } from 'src/core/api-client/party.api';
+import { createTestQueryClient } from 'src/core/queries/queryClient';
 import { GlobalData } from 'src/GlobalData';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
@@ -36,9 +35,7 @@ const mockInstance = {
 };
 
 function createLoaderArgs(): LoaderFunctionArgs {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
+  const queryClient = createTestQueryClient();
   const context = new RouterContextProvider();
   context.set(queryClientContext, queryClient);
   context.set(apiClientsContext, {

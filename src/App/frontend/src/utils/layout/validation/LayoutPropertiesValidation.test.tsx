@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { validateLayoutProperties } from 'src/utils/layout/validation/LayoutPropertiesValidation';
-import type { ValidateFunc } from 'src/core/queries/layoutSchema/index';
+import type { ValidateFunc } from 'src/core/queries/layoutSchema';
 import type { FormBootstrapContextValue } from 'src/features/formBootstrap/types';
 
 describe('validateLayoutProperties', () => {

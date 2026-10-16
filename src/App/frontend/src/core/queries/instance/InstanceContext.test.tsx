@@ -3,7 +3,8 @@ import React from 'react';
 import { act, screen } from '@testing-library/react';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
-import { InstanceProvider, useInstanceDataQuery } from 'src/features/instance/InstanceContext';
+import { useInstanceQueryInternal } from 'src/core/queries/instance/instanceHooks';
+import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { InstanceRouter, renderWithDefaultProviders } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 
@@ -11,7 +12,7 @@ import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 vi.unmock('axios');
 
 function InstanceProbe() {
-  const { dataUpdatedAt, errorUpdateCount } = useInstanceDataQuery();
+  const { dataUpdatedAt, errorUpdateCount } = useInstanceQueryInternal();
   return (
     <div
       data-testid='instance-probe'
