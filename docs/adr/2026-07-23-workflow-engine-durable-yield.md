@@ -16,7 +16,7 @@
 
 Some integrations are "start now, confirm eventually" — eFormidling shipments are the canonical
 example. Today eFormidling has no poll loop of its own — after sending, the app publishes
-a CloudEvent _to itself_ through Altinn Events and abuses the Events retry machinery as its timer: the
+a CloudEvent *to itself* through Altinn Events and abuses the Events retry machinery as its timer: the
 `EventsReceiverController` returns HTTP 425 to mean "remind me later" and Events' exponential backoff
 becomes the (uncontrollable) poll cadence. Expiry means the platform team manually drains a dead-letter
 queue. The loop is untestable in localtest (which doesn't emulate Events delivery), the secret-code
@@ -145,11 +145,11 @@ Four details are load-bearing, and all four are easy to "simplify" back into bug
 
 - **The wait budget clamps rather than rejects.** A deferral overshooting the remaining budget schedules
   to the deadline. Rejecting it would forfeit the unspent remainder and make `Defer(24h)` under a 24h
-  budget fail without ever having waited. Expiry is therefore triggered by a deferral _at or past_ the
+  budget fail without ever having waited. Expiry is therefore triggered by a deferral *at or past* the
   deadline, so every step gets one final execution.
 - **Two anchors, not one.** `FirstDeferredAt` bounds the budget; `LastDeferredAt` anchors the retry
   deadline for errors after a deferral. The retry anchor cannot be `UpdatedAt` — the obvious-looking way
-  to reach "the last deferral's write-back" — because that column advances on _every_ write-back, so each
+  to reach "the last deferral's write-back" — because that column advances on *every* write-back, so each
   failed attempt slides the deadline forward and `MaxDuration` stops binding. Under the shipped default
   (no `MaxRetries`) a deferred step whose command starts failing would retry forever.
 - **`StateIn` prefers a step's own `StateOut`.** The engine hands a re-executing deferred step the

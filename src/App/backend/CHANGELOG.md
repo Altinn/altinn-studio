@@ -25,8 +25,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: for clients calling the API directly, `description` on built-in validation issues is now translated text instead of the issue code or an English message. Use `code` to tell issues apart. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - Breaking: the form shows a validation issue's `Description` as text and no longer looks it up as a text key. To show a text from your app's text resources, set `CustomTextKey` instead; `studioctl app upgrade v9` moves the text keys it finds. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - Breaking: the data API returns its errors as JSON, and the `JsonObjectInDataResponse` feature flag is removed. `studioctl app upgrade v9` removes the flag from the app. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
-    - the obsolete `POST .../data?dataType=` returns a list of validation issues
-    - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
+  - the obsolete `POST .../data?dataType=` returns a list of validation issues
+  - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
 
 ### Fixed
 
