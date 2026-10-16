@@ -31,6 +31,8 @@ flowchart LR
 
 _Support services. Langfuse is optional. Without it, the service records no traces and uses local prompt files._
 
+The v9 upgrade and `dotnet build` run code from the app, so the service sends the app to the assistant runner (`src/AI/assistant-runner`), which runs them in a microVM without secrets.
+
 ## Connect and register a thread
 
 Designer opens one WebSocket to the assistant service for each developer. This socket stays open when the user reloads the page. Thus a run continues to send events after a page reload.

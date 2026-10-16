@@ -18,8 +18,11 @@ Each tool is a class with a name, a description, a Pydantic input schema and a `
 | `altinn_layout_props`   | Get the allowed properties of a component type   | Yes      | No               |
 | `altinn_datamodel_sync` | Make XSD and C# from a JSON Schema model         | No       | Yes              |
 | `web_fetch`             | Get a page from the Altinn docs hosts only       | Yes      | No               |
+| `upgrade_app_to_v9`     | Upgrade the app from v8 to v9 in the runner      | No       | Yes              |
 
 There is no automatic rollback. The model undoes a change with `discard_file_changes`, one file at a time. The file tools refuse absolute paths and `..`, so the model cannot leave the repository. `edit_file` and `write_file` refuse to change an existing file that the model did not read first. They save a valid `.json` file in the format that Studio uses, with two-space indentation. `preview_render_check` is off by default (`PREVIEW_CHECK_ENABLED=false`) and works only with the local Designer stack.
+
+`upgrade_app_to_v9` applies the patch from the assistant runner, but refuses symbolic links, submodules, CI workflow folders and git attribute files. When a C# or project file changed, `verify_changes` also builds the app in the assistant runner, with the changes that are not committed. Without a runner, for example in local development, it does not build, and the other checks decide.
 
 ```mermaid
 flowchart LR
@@ -47,6 +50,7 @@ flowchart LR
   F["Changed file"] --> L["Layout JSON: schema check"]
   F --> T["Text resource: resource rules"]
   F --> J["Other JSON: parse check"]
+  F --> B["C# and project files: build in the runner"]
   F --> O["Other files: no check"]
 ```
 
