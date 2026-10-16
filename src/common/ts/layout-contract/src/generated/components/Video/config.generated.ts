@@ -1,5 +1,8 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
-import { ComponentBase } from '@app/layout-contract/generated/common.generated';
+import {
+  ComponentBase,
+  ISummaryOverridesCommon,
+} from '@app/layout-contract/generated/common.generated';
 
 export interface CompVideoExternal extends ComponentBase {
   type: 'Video';
@@ -19,6 +22,10 @@ export interface VideoSrc {
   [key: string]: string | undefined;
 }
 
+export type VideoSummaryOverridesWithRef =
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Video' } & ISummaryOverridesCommon);
+
 export const componentConfig = {
   category: CompCategory.Presentation,
   availability: 'configurable',
@@ -32,7 +39,7 @@ export const componentConfig = {
     renderInTabs: true,
   },
   behaviors: {
-    isSummarizable: false,
+    isSummarizable: true,
     canHaveLabel: false,
     canHaveOptions: false,
     canHaveAttachments: false,
@@ -43,8 +50,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompVideoExternal;
-  summaryOverrides: undefined;
-  summaryOverridesWithRef: undefined;
+  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverridesWithRef: VideoSummaryOverridesWithRef;
 };
 
-// Source hash: ae3d80901ae68ee398c8d39f9baca73f262075c36eb407fde7216848ef3e17ff
+// Source hash: 02cf0ae4b80c24501a78f732085ce3eb9307cca77874a2193f145cdc9d77eef8

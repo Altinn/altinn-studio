@@ -1,3 +1,4 @@
+import { describe, expect, it, test, vi } from 'vitest';
 import { usePublishCodeList } from './usePublishCodeList';
 import { renderHookWithProviders } from '../../../testing/mocks';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
@@ -18,7 +19,7 @@ const payload: PublishCodeListPayload = {
 
 describe('usePublishCodeList', () => {
   it('Returns a function that publishes a given code list', async () => {
-    const publishCodeList = jest.fn();
+    const publishCodeList = vi.fn();
     const { result } = renderHookWithProviders(() => usePublishCodeList(orgName), {
       queries: { publishCodeList },
     });
@@ -31,8 +32,8 @@ describe('usePublishCodeList', () => {
   });
 
   test('isPublishing returns the current publishing state of the code list with the given name', async () => {
-    const publishCodeList = jest.fn();
-    const resolvePublish = jest.fn();
+    const publishCodeList = vi.fn();
+    const resolvePublish = vi.fn();
     const { result } = renderHookWithProviders(() => usePublishCodeList(orgName), {
       queries: { publishCodeList },
     });
@@ -49,8 +50,8 @@ describe('usePublishCodeList', () => {
   });
 
   test('isPublishing returns false when called during publishing, but with the name of another code list', async () => {
-    const publishCodeList = jest.fn();
-    const resolvePublish = jest.fn();
+    const publishCodeList = vi.fn();
+    const resolvePublish = vi.fn();
     const { result } = renderHookWithProviders(() => usePublishCodeList(orgName), {
       queries: { publishCodeList },
     });

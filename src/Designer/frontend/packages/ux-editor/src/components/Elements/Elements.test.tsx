@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { Elements } from './Elements';
 import { renderWithProviders } from '../../testing/mocks';
@@ -29,10 +30,6 @@ const seedLayoutSets = (layoutSets: UiFolderLayoutSetModel[]): QueryClient => {
 };
 
 describe('Elements', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should render', () => {
     expect(renderElements()).toBeTruthy();
   });
@@ -104,7 +101,7 @@ describe('Elements', () => {
   });
 });
 
-const collapseToggle = jest.fn();
+const collapseToggle = vi.fn();
 const renderElements = (
   appContextProps?: Partial<AppContextProps>,
   queries?: Partial<ServicesContextProps>,
@@ -113,7 +110,7 @@ const renderElements = (
   uxEditorParams?: UxEditorParams,
 ) => {
   return renderWithProviders(
-    <StudioDragAndDropTree.Provider rootId='test' onAdd={jest.fn()} onMove={jest.fn()}>
+    <StudioDragAndDropTree.Provider rootId='test' onAdd={vi.fn()} onMove={vi.fn()}>
       <Elements collapsed={false} onCollapseToggle={collapseToggle} />
     </StudioDragAndDropTree.Provider>,
     {

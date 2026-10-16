@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import {
   getComponentHelperTextByComponentType,
   getTextResource,
@@ -11,6 +12,8 @@ import type { PropertyDefinition } from '@app/layout-contract';
 import nbTranslations from '../../../../language/src/nb.json';
 import enTranslations from '../../../../language/src/en.json';
 import i18next from 'i18next';
+
+vi.mock('i18next', () => ({ default: { language: 'nb' } }));
 
 describe('Designer > utils/language', () => {
   describe('getComponentHelperTextByComponentType', () => {

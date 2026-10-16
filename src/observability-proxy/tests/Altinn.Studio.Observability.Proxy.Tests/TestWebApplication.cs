@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Globalization;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Altinn.Studio.Observability.Proxy.Hosting;
@@ -17,15 +19,24 @@ internal sealed class TestWebApplication : IAsyncDisposable
 {
     private readonly WebApplication _app;
 
-    private TestWebApplication(WebApplication app, string address, ConcurrentQueue<string> receivedPaths)
+    private TestWebApplication(
+        WebApplication app,
+        string address,
+        string? metricsAddress,
+        ConcurrentQueue<string> receivedPaths
+    )
     {
         _app = app;
         Address = address;
         ReceivedPaths = receivedPaths;
         Client = new HttpClient { BaseAddress = new Uri(address) };
+        MetricsClient = metricsAddress is null ? null : new HttpClient { BaseAddress = new Uri(metricsAddress) };
     }
 
     public string Address { get; }
+
+    /// <summary>A client of the proxy's metrics port, as the scraper is; <c>null</c> for a downstream.</summary>
+    public HttpClient? MetricsClient { get; }
 
     public HttpClient Client { get; }
 
@@ -35,15 +46,66 @@ internal sealed class TestWebApplication : IAsyncDisposable
     /// </summary>
     public ConcurrentQueue<string> ReceivedPaths { get; }
 
+    /// <summary>
+    /// The proxy as it runs in the cluster, with traffic and metrics on ports of their own. Both are
+    /// port 0, so the system picks free ones as it binds them, and the ports in use are read back
+    /// from the proxy once it has started.
+    /// </summary>
     public static async Task<TestWebApplication> StartProxyAsync(IReadOnlyDictionary<string, string?> configuration)
     {
-        var builder = CreateBuilder();
+        var builder = CreateBuilder(listenOnUrl: false);
+        builder.Configuration.AddInMemoryCollection(
+            new Dictionary<string, string?>
+            {
+                ["ObservabilityProxy:Port"] = "0",
+                ["ObservabilityProxy:MetricsPort"] = "0",
+            }
+        );
         builder.Configuration.AddInMemoryCollection(configuration);
         builder.AddObservabilityProxy();
 
         var app = builder.Build();
         app.UseObservabilityProxy();
-        return await StartAsync(app, new ConcurrentQueue<string>());
+        await app.StartAsync();
+
+        var listeners = app.Services.GetRequiredService<ProxyListeners>();
+        return new TestWebApplication(
+            app,
+            $"http://127.0.0.1:{listeners.TrafficPort}",
+            $"http://127.0.0.1:{listeners.MetricsPort}",
+            new ConcurrentQueue<string>()
+        );
+    }
+
+    /// <summary>What the proxy's metrics port serves at <c>/metrics</c>.</summary>
+    public async Task<ScrapedMetrics> ScrapeAsync()
+    {
+        var metricsClient = MetricsClient ?? throw new InvalidOperationException("Only the proxy serves metrics.");
+        var body = await metricsClient.GetStringAsync(
+            new Uri("/metrics", UriKind.Relative),
+            TestContext.Current.CancellationToken
+        );
+        return ScrapedMetrics.Parse(body);
+    }
+
+    /// <summary>
+    /// Scrapes until <paramref name="condition"/> holds. A request is recorded once its response
+    /// has been sent, so a client can see the response before the request is counted, and the
+    /// exporter caches a scrape for a short while.
+    /// </summary>
+    public async Task<ScrapedMetrics> ScrapeUntilAsync(Func<ScrapedMetrics, bool> condition)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(15);
+        while (true)
+        {
+            var metrics = await ScrapeAsync();
+            if (condition(metrics) || DateTime.UtcNow > deadline)
+            {
+                return metrics;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken);
+        }
     }
 
     /// <summary>
@@ -68,6 +130,14 @@ internal sealed class TestWebApplication : IAsyncDisposable
                 return context.Response.WriteAsync(name, context.RequestAborted);
             }
         );
+        return await StartAsync(app, new ConcurrentQueue<string>());
+    }
+
+    /// <summary>A downstream that answers every request, health probes included, with <paramref name="handler"/>.</summary>
+    public static async Task<TestWebApplication> StartDownstreamAsync(RequestDelegate handler)
+    {
+        var app = CreateBuilder().Build();
+        app.Map("/{**path}", handler);
         return await StartAsync(app, new ConcurrentQueue<string>());
     }
 
@@ -173,10 +243,11 @@ internal sealed class TestWebApplication : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         Client.Dispose();
+        MetricsClient?.Dispose();
         await _app.DisposeAsync();
     }
 
-    private static WebApplicationBuilder CreateBuilder()
+    private static WebApplicationBuilder CreateBuilder(bool listenOnUrl = true)
     {
         var builder = WebApplication.CreateSlimBuilder(
             new WebApplicationOptions
@@ -186,7 +257,11 @@ internal sealed class TestWebApplication : IAsyncDisposable
             }
         );
 
-        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        if (listenOnUrl)
+        {
+            builder.WebHost.UseUrls("http://127.0.0.1:0");
+        }
+
         return builder;
     }
 
@@ -204,6 +279,6 @@ internal sealed class TestWebApplication : IAsyncDisposable
             throw new InvalidOperationException("Unable to determine test application address.");
         }
 
-        return new TestWebApplication(app, address, receivedPaths);
+        return new TestWebApplication(app, address, metricsAddress: null, receivedPaths);
     }
 }

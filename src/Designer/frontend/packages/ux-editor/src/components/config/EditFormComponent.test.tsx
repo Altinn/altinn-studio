@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, test, vi } from 'vitest';
 import type { IEditFormComponentProps } from './EditFormComponent';
 import { EditFormComponent } from './EditFormComponent';
 import { screen } from '@testing-library/react';
@@ -7,13 +8,13 @@ import { componentMocks } from '../../testing/componentMocks';
 
 // Mocks:
 const mapSpecificContentId = 'map-specific-content';
-jest.mock('./componentSpecificContent/Map/MapComponent', () => ({
+vi.mock('./componentSpecificContent/Map/MapComponent', () => ({
   MapComponent: () => <div data-testid={mapSpecificContentId} />,
 }));
 
 describe('EditFormComponent', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('renders the registered component-specific content', async () => {
@@ -33,7 +34,7 @@ describe('EditFormComponent', () => {
 const defaultProps: IEditFormComponentProps = {
   editFormId: componentMocks[ComponentType.Input].id,
   component: componentMocks[ComponentType.Input],
-  handleComponentUpdate: jest.fn(),
+  handleComponentUpdate: vi.fn(),
 };
 
 const render = async (props: Partial<IEditFormComponentProps> = {}) => {

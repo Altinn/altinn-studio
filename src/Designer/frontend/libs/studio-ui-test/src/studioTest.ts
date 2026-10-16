@@ -1,6 +1,7 @@
+import { vi } from 'vitest';
 import { act } from '@testing-library/react';
 
-export type StudioTest = typeof jest & {
+export type StudioTest = typeof vi & {
   areTimersFake(): boolean;
   restoreTimers(): void;
   runWithFakeTimers<T>(fun: () => T): T;
@@ -9,7 +10,7 @@ export type StudioTest = typeof jest & {
 };
 
 export const studioTest: StudioTest = {
-  ...jest,
+  ...vi,
   runWithFakeTimers<T>(fun: () => T): T {
     const isUsingRealTimers = !this.areTimersFake();
     this.useFakeTimers();
@@ -19,7 +20,7 @@ export const studioTest: StudioTest = {
       if (isUsingRealTimers) this.restoreTimers();
     }
   },
-  areTimersFake: () => global.Date.isFake === true, // Workaround for a missing feature. See https://github.com/jestjs/jest/issues/10555.
+  areTimersFake: () => vi.isFakeTimers(),
   restoreTimers() {
     act(() => this.runOnlyPendingTimers());
     this.useRealTimers();

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../test/mocks';
 import { usePrefillMutation } from './usePrefillMutation';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -13,7 +14,7 @@ const prefillConfig: PrefillConfig = { ER: { OrgNumber: 'orgNumberField' } };
 
 describe('usePrefillMutation', () => {
   it('Returns correct state and calls saveDataModelPrefill with the correct parameters', async () => {
-    const saveDataModelPrefill = jest.fn();
+    const saveDataModelPrefill = vi.fn();
     const {
       renderHookResult: { result },
     } = render({ saveDataModelPrefill });

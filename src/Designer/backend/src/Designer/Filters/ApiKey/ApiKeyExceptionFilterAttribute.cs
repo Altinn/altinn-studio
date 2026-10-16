@@ -6,12 +6,10 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Altinn.Studio.Designer.Filters.ApiKey;
 
-public class ApiKeyExceptionFilterAttribute : ExceptionFilterAttribute
+public class ApiKeyExceptionFilterAttribute : HandledExceptionFilterAttribute
 {
-    public override void OnException(ExceptionContext context)
+    protected override void HandleException(ExceptionContext context)
     {
-        base.OnException(context);
-
         if (context.ActionDescriptor is not ControllerActionDescriptor)
         {
             return;

@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, screen } from '@testing-library/react';
 import { PropertiesHeader, type PropertiesHeaderProps } from './PropertiesHeader';
 import userEvent from '@testing-library/user-event';
@@ -13,7 +14,7 @@ import { app, org } from '@studio/testing/testids';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 
-const mockHandleComponentUpdate = jest.fn();
+const mockHandleComponentUpdate = vi.fn();
 
 const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
@@ -27,7 +28,6 @@ const defaultProps: PropertiesHeaderProps = {
 
 describe('PropertiesHeader', () => {
   afterEach(() => {
-    jest.clearAllMocks();
     queryClientMock.clear();
   });
 

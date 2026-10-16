@@ -17,16 +17,19 @@ template-generated app still builds.
 
 One complete, independently buildable template per selectable version, in `<id>/src`. The scaffolds are
 full copies on purpose — they will keep diverging, and each must build and be validated on its own. Do
-not factor shared *scaffold* parts out into a base/overlay.
+not factor shared _scaffold_ parts out into a base/overlay.
 
 Build tooling (`Directory.Build.props`, CSharpier config, `.config`, `.vscode`) is shared at this level
 instead. MSBuild and CSharpier search upwards, and none of it is inside `src/`, so it never reaches a
 generated app. Move a file into `<id>/` only when the versions genuinely need different tooling.
 
-| Folder | Altinn.App | TFM       |
-| ------ | ---------- | --------- |
-| `v8`   | 8.x        | `net8.0`  |
-| `v9`   | 9.x        | `net10.0` |
+| Folder | Altinn.App | TFM       | SDK  |
+| ------ | ---------- | --------- | ---- |
+| `v8`   | 8.x        | `net8.0`  | 8.0  |
+| `v9`   | 9.x        | `net11.0` | 11.0 |
+
+Each `<id>/global.json` pins the SDK that version's Dockerfile builds with, so CI and local builds match
+the app image rather than the newest SDK installed. Building `v8` therefore needs a .NET 8 SDK.
 
 The folder name is the template id. Each folder carries an `src/apptemplate.json` naming it for the
 dashboard picker:
@@ -39,14 +42,15 @@ dashboard picker:
 `studioctl app upgrade v9 -p src/App/template/v9/src`. From there it is maintained on its own — changes
 to `v8` are not carried over.
 
-**Adding a version is a folder drop.** Copy a folder, edit its manifest and `App.csproj`, add the id to
-the CI matrices, the Renovate rules, and the release-rsync stages in `src/Designer/Dockerfile` — without
-the last one the template is missing from the image. No backend change — the Designer discovers them.
+**Adding a version is a folder drop.** Copy a folder, edit its manifest, `App.csproj` and `global.json`,
+add the id to the CI matrices, the Renovate rules, and the release-rsync stages in
+`src/Designer/Dockerfile` — without the last one the template is missing from the image. No backend
+change — the Designer discovers them.
 
 Users pick the template when creating an application (`appTemplate` on the create-app request, listed by
 `GET designer/api/apptemplates`, behind the `appTemplates` feature flag). Without a choice the Designer
 uses `GeneralSettings.DefaultAppTemplate`. `GeneralSettings.TemplateLocation` points at the folder
-*holding* the templates and per-template paths are derived from it.
+_holding_ the templates and per-template paths are derived from it.
 
 `src/Designer/Dockerfile` runs one release-rsync stage per folder into `Templates/AspNet/<id>/src`. The
 `<id>/src` shape makes the image mirror this folder exactly, so a locally run Designer can point straight
@@ -64,7 +68,7 @@ data model wiring, and the Dockerfile used to build the app image. Optional feat
 
 ## Build & validate
 
-A template *is* a runnable app skeleton (`<id>/src/App.sln`), so building it is the validation:
+A template _is_ a runnable app skeleton (`<id>/src/App.sln`), so building it is the validation:
 
 ```bash
 dotnet build src/App.sln     # from src/App/template/v8 or /v9 — must succeed on main
@@ -80,4 +84,4 @@ both run a `template: [v8, v9]` matrix.
 - Keep the templates minimal and generic — they are a starting point, not a showcase.
 - A change that should apply to every version must be made in each folder. There is no shared layer.
 - Changes that bump the referenced Altinn.App library version or alter the build must be validated
-  end-to-end (build the solution *and* the image) before landing on `main`.
+  end-to-end (build the solution _and_ the image) before landing on `main`.

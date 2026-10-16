@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ResourceNarrowingListProps } from './ResourceNarrowingList';
@@ -25,8 +25,6 @@ const defaultProps: ResourceNarrowingListProps = {
 };
 
 describe('ResourceNarrowingList', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders the list of resources', async () => {
     renderResourceNarrowingList();
 

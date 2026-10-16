@@ -8,6 +8,7 @@ on:
       - 'src/App/frontend/package.json'
       - 'src/test/apps/**/App/ui/**/*.json'
       - 'src/common/ts/layout-contract/**'
+      - 'src/common/expression-tests/**'
       - 'src/common/ts/form-component/src/**'
       - 'src/common/ts/form-component/package.json'
       - 'src/common/ts/form-engine/src/**'
@@ -16,6 +17,14 @@ on:
       - 'src/common/ts/language/package.json'
       - '.github/workflows/app-frontend-unit-tests.yml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
+      # Generated documentation is verified by yarn gen:check.
+      - 'src/common/ts/layout-contract/docs/components/**'
   workflow_dispatch:
 
 concurrency:

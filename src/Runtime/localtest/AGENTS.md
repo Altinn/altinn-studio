@@ -25,8 +25,7 @@ dotnet build LocalTest.sln    # from src/Runtime/localtest
 ```
 
 Normally you don't run it by hand — `studioctl env up` starts it (Docker/Podman) alongside the other
-local services. The `Makefile` here only holds helpers (`podman-selinux-bind-hack`, `sync-dashboards`),
-not build/test targets.
+local services. The `Makefile` here only holds the `podman-selinux-bind-hack` helper, not build/test targets.
 
 ## Working here
 

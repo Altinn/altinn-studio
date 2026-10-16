@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import {
   NewApplicationForm,
@@ -15,7 +16,7 @@ import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 import type { AppTemplate } from 'app-shared/types/AppTemplate';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
-const mockOnSubmit = jest.fn();
+const mockOnSubmit = vi.fn();
 
 const mockUser: User = {
   id: 1,
@@ -34,7 +35,7 @@ const mockOrg: Organization = {
 };
 const mockOrganizations: Organization[] = [mockOrg];
 
-const mockOnClickCancelButton = jest.fn();
+const mockOnClickCancelButton = vi.fn();
 const mockCancelComponentButton: ActionableElement = {
   onClick: mockOnClickCancelButton,
   type: 'button',
@@ -43,8 +44,6 @@ const mockCancelComponentButton: ActionableElement = {
 const mockSubmitbuttonText: string = 'Submit';
 
 describe('NewApplicationForm', () => {
-  afterEach(jest.clearAllMocks);
-
   it('calls onSubmit when form is submitted with valid data', async () => {
     const user = userEvent.setup();
     renderNewApplicationForm();
@@ -333,7 +332,7 @@ function renderNewApplicationForm(
       org: '',
       repoName: '',
     },
-    setFormError: jest.fn(),
+    setFormError: vi.fn(),
     actionableElement: mockCancelComponentButton,
   };
   const defaultProviderData: ProviderData = {

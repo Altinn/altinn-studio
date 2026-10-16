@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../testing/mocks';
 import {
   ConfigBooleanProperties,
@@ -78,7 +79,7 @@ describe('ConfigBooleanProperties', () => {
 
   it('should call handleComponentUpdate when a boolean value is toggled', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
+    const handleComponentUpdateMock = vi.fn();
     renderConfigBooleanProperties({
       props: {
         booleanPropertyKeys: ['readOnly', 'required', 'hidden'],
@@ -115,7 +116,7 @@ describe('ConfigBooleanProperties', () => {
       booleanPropertyKeys: booleanPropertiesKeys,
       properties: componentCatalog.Input.properties,
       component: inputComponent,
-      handleComponentUpdate: jest.fn(),
+      handleComponentUpdate: vi.fn(),
     };
     return renderWithProviders(<ConfigBooleanProperties {...defaultProps} {...props} />, {
       queries,

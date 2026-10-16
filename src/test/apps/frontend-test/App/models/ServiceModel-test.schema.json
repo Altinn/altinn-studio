@@ -511,6 +511,10 @@
         "neverValidatedInput": {
           "type": "string"
         },
+        "CustomSimple": { "type": "string" },
+        "CustomNamed": { "type": "string" },
+        "CustomSecondary": { "type": "string" },
+        "CustomMode": { "type": "string" },
         "ChooseExtraPages": {
           "type": "string"
         },

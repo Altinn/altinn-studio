@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
 import { DesignView } from './DesignView';
 import { screen } from '@testing-library/react';
@@ -31,10 +32,6 @@ const mockPageName1: string = layout1NameMock;
 const mockPageName2: string = layout2NameMock;
 
 describe('DesignView', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('displays the correct number of accordions', () => {
     renderDesignView({});
 
@@ -133,7 +130,7 @@ describe('DesignView', () => {
 
   it('Renders the page accordion as a pdfAccordion when pdfLayoutName is set', () => {
     const pdfLayoutName = 'pdfLayoutName';
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     renderDesignView({
       layoutSettings: { ...formLayoutSettingsMock, pages: { order: [], pdfLayoutName } },
       externalLayout: { [pdfLayoutName]: layout1Mock },
@@ -205,11 +202,11 @@ const renderDesignView = ({
 
   const appContextWithGroupsMock = {
     ...appContextMock,
-    setSelectedGroupName: jest.fn(),
+    setSelectedGroupName: vi.fn(),
   };
 
   return renderWithProviders(
-    <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
+    <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={vi.fn()} onAdd={vi.fn()}>
       <FormItemContextProvider>
         <AppContext.Provider value={appContextWithGroupsMock}>
           <DesignView />

@@ -1,14 +1,15 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PdfLayoutBasedSection } from './PdfLayoutBasedSection';
 import { createPdfBpmnDetails, renderWithProviders } from '../testUtils';
 
-jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+vi.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: () => ({ org: 'test-org', app: 'test-app' }),
 }));
 
-jest.mock('app-shared/hooks/useValidateLayoutSetName', () => ({
+vi.mock('app-shared/hooks/useValidateLayoutSetName', () => ({
   useValidateLayoutSetName: () => ({
     validateLayoutSetName: (name: string) => {
       if (name === 'invalid-name') return 'Name is invalid';
@@ -17,9 +18,9 @@ jest.mock('app-shared/hooks/useValidateLayoutSetName', () => ({
   }),
 }));
 
-const mockNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockNavigate,
 }));
 
@@ -27,10 +28,6 @@ const getDataModelSuggestion = (): HTMLElement =>
   screen.getByLabelText(textMock('process_editor.configuration_panel_pdf_select_data_model_label'));
 
 describe('PdfLayoutBasedSection', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('when layout set exists', () => {
     it('should show edit PDF button when layout set exists for current task', () => {
       const pdfBpmnDetails = createPdfBpmnDetails({});
@@ -280,7 +277,7 @@ describe('PdfLayoutBasedSection', () => {
     it('should call addLayoutSet when clicking create button with valid inputs', async () => {
       const user = userEvent.setup();
       const pdfBpmnDetails = createPdfBpmnDetails({});
-      const addLayoutSetMock = jest.fn();
+      const addLayoutSetMock = vi.fn();
 
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
@@ -320,7 +317,7 @@ describe('PdfLayoutBasedSection', () => {
     it('should not call addLayoutSet if validation fails when clicking create button', async () => {
       const user = userEvent.setup();
       const pdfBpmnDetails = createPdfBpmnDetails({});
-      const addLayoutSetMock = jest.fn();
+      const addLayoutSetMock = vi.fn();
 
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },

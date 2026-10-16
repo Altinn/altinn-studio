@@ -27,12 +27,11 @@ src/Designer/frontend/**/package.json                                     @altin
 src/Designer/frontend/resourceadm/**/package.json                         @altinn/team-access-info
 
 # AI
-src/AI/agents/**/docker-compose.yaml                                      @ErlingHauan
-src/AI/agents/**/dockerfile*                                              @ErlingHauan
-src/AI/agents/**/pyproject.toml                                           @ErlingHauan
-src/AI/agents/**/requirements-dev.txt                                     @ErlingHauan
-src/AI/agents/**/requirements.txt                                         @ErlingHauan
-src/AI/agents/**/uv.lock                                                  @ErlingHauan
+src/AI/assistant/**/.python-version                                       @ErlingHauan
+src/AI/assistant/**/docker-compose.yaml                                   @ErlingHauan
+src/AI/assistant/**/dockerfile*                                           @ErlingHauan
+src/AI/assistant/**/pyproject.toml                                        @ErlingHauan
+src/AI/assistant/**/uv.lock                                               @ErlingHauan
 src/AI/augmenter-agent/**/*.csproj                                        @ErlingHauan
 src/AI/augmenter-agent/**/docker-compose.yaml                             @ErlingHauan
 src/AI/augmenter-agent/**/dockerfile*                                     @ErlingHauan
@@ -62,6 +61,7 @@ src/AI/augmenter-agent/**/dockerfile*                                     @Erlin
 .github/workflows/deployer-check.yaml                                     @altinn/team-altinn-studio-kjoring
 .github/workflows/gitea-check-texts-file.yml                              @altinn/team-altinn-studio-kjoring
 .github/workflows/gitea-runner-test.yml                                   @altinn/team-altinn-studio-kjoring
+.github/workflows/github-runner-image-build.yaml                          @altinn/team-altinn-studio-kjoring
 .github/workflows/observability-proxy-build-test.yaml                     @altinn/team-altinn-studio-kjoring
 .github/workflows/release-studioctl.yaml                                  @altinn/team-altinn-studio-kjoring
 .github/workflows/releaser-build-test.yml                                 @altinn/team-altinn-studio-kjoring
@@ -146,6 +146,7 @@ src/tools/releaser/**/go.mod                                              @altin
 src/Runtime/workflow-engine-app/**/*.csproj                               @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine-app/**/Directory.Packages.props               @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine-app/**/Dockerfile*                            @altinn/team-altinn-studio-flyt
+src/Runtime/workflow-engine-app/**/global.json                            @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine/**/*.csproj                                   @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine/**/Directory.Packages.props                   @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine/**/docker-compose.yaml                        @altinn/team-altinn-studio-flyt

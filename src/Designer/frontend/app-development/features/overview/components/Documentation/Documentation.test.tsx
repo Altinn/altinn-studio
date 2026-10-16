@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import { Documentation } from './Documentation';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';

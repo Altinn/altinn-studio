@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { EditNumberValue } from './EditNumberValue';
 import { renderHookWithProviders, renderWithProviders } from '../../../testing/mocks';
@@ -11,7 +12,7 @@ import type { PropertyDefinition } from '@app/layout-contract';
 const renderEditNumberValue = async ({
   enumValues = null,
   maxLength = undefined,
-  handleComponentChange = jest.fn(),
+  handleComponentChange = vi.fn(),
   componentOverrides = {},
   definition = undefined as PropertyDefinition | undefined,
 } = {}) => {
@@ -51,7 +52,7 @@ describe('EditNumberValue', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('should render component as input field, when not given enum prop', async () => {
@@ -74,7 +75,7 @@ describe('EditNumberValue', () => {
 
   it('should call onChange when typing in input field', async () => {
     const user = userEvent.setup();
-    const mockHandleComponentChange = jest.fn((componentProperties, _) => componentProperties);
+    const mockHandleComponentChange = vi.fn((componentProperties, _) => componentProperties);
     await renderEditNumberValue({
       handleComponentChange: mockHandleComponentChange,
     });
@@ -94,7 +95,7 @@ describe('EditNumberValue', () => {
 
   it('should call onChange when choosing option from select', async () => {
     const user = userEvent.setup();
-    const mockHandleComponentChange = jest.fn((componentProperties, _) => componentProperties);
+    const mockHandleComponentChange = vi.fn((componentProperties, _) => componentProperties);
     await renderEditNumberValue({
       handleComponentChange: mockHandleComponentChange,
       enumValues: [1, 2, 3],
@@ -120,7 +121,7 @@ describe('EditNumberValue', () => {
         mutationFn: () => Promise.resolve(),
       }),
     ).result;
-    const mockHandleComponentChange = jest
+    const mockHandleComponentChange = vi
       .fn()
       .mockImplementation(async (mutationArgs, mutateOptions) => {
         await handleSaveMutation.current.mutateAsync(mutationArgs, mutateOptions);
@@ -143,7 +144,7 @@ describe('EditNumberValue', () => {
 
   it('should update the number value', async () => {
     const user = userEvent.setup();
-    const mockHandleComponentChange = jest.fn((componentProperties, _) => componentProperties);
+    const mockHandleComponentChange = vi.fn((componentProperties, _) => componentProperties);
     await renderEditNumberValue({
       handleComponentChange: mockHandleComponentChange,
     });

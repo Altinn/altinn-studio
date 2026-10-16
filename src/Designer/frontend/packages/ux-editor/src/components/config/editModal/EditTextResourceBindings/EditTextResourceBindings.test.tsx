@@ -1,3 +1,4 @@
+import { describe, expect, test, vi } from 'vitest';
 import type { EditTextResourceBindingsProps } from './EditTextResourceBindings';
 import { EditTextResourceBindings } from './EditTextResourceBindings';
 import { screen, waitFor } from '@testing-library/react';
@@ -87,7 +88,7 @@ describe('EditTextResourceBindings component', () => {
   const waitForData = async () => {
     const result = renderHookWithProviders(() => useTextResourcesQuery(org, app), {
       queries: {
-        getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
+        getTextLanguages: vi.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
         getTextResources: (_o, _a, lang) =>
           Promise.resolve<ITextResourcesWithLanguage>({
             language: lang,
