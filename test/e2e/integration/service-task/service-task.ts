@@ -1,11 +1,69 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 import { SearchParams } from 'src/core/routing/types';
+import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { ILayoutSets } from 'src/layout/common.generated';
 
 const appFrontend = new AppFrontend();
 
 describe('Service task', () => {
+  it('refreshes text resource variables after repeated service task failures', () => {
+    cy.intercept('GET', '**/texts/nb', (req) => {
+      req.on('response', (res) => {
+        const texts: ITextResourceResult = typeof res.body === 'string' ? JSON.parse(res.body) : res.body;
+        texts.resources.push({
+          id: 'service-task-result',
+          value: 'Service task input: {0}',
+          variables: [{ key: 'property1', dataSource: 'dataModel.Model2' }],
+        });
+        res.send(texts);
+      });
+    });
+    cy.interceptLayout(
+      'Fail',
+      undefined,
+      (layouts) => {
+        layouts.Side1.data.layout.push({
+          id: 'service-task-result',
+          type: 'Paragraph',
+          textResourceBindings: { title: 'service-task-result' },
+        });
+      },
+      {},
+    );
+
+    startAppAndFillToFailure();
+    cy.findByText('Service task input: Himling med øyne og skuldertrekk fra Task_Utfylling2').should('be.visible');
+    assertAndDismissNotification('Service task fail returned a failed result!');
+
+    for (const value of ['Second failure', 'Third failure']) {
+      cy.findByRole('button', { name: 'Gå tilbake' }).click();
+      cy.findByRole('textbox', { name: 'En tekst i Task_Utfylling2' }).should('be.visible');
+      cy.waitUntilSaved();
+      // Change the persisted model without updating the frontend's form store,
+      // as a custom service task would, using the existing app's data API.
+      cy.window().then((win) => {
+        const [appRoot, instancePath] = win.location.href.replace('#', '').split('/instance/');
+        const instanceId = instancePath.split('/').slice(0, 2).join('/');
+        const dataElementId = win.CypressState?.dataElementIds?.Model2;
+        expect(dataElementId).to.be.a('string');
+        cy.getCookie('XSRF-TOKEN').then((token) => {
+          cy.request({
+            method: 'PATCH',
+            url: `${appRoot}/instances/${instanceId}/data/${dataElementId}`,
+            headers: { 'X-XSRF-TOKEN': token?.value },
+            body: { patch: [{ op: 'replace', path: '/property1', value }] },
+          })
+            .its('status')
+            .should('eq', 200);
+        });
+      });
+      cy.findByRole('button', { name: 'Neste' }).click();
+      cy.findByText(`Service task input: ${value}`).should('be.visible');
+      assertAndDismissNotification('Service task fail returned a failed result!');
+    }
+  });
+
   it('should display the default service task layout when failing', { retries: 0 }, () => {
     startAppAndFillToFailure();
 

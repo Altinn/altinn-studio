@@ -46,6 +46,9 @@ export function getFormDataQueryKey(url: string | undefined) {
 }
 
 export async function invalidateFormDataQueries(queryClient: QueryClient) {
+  // Inactive queries can still contain data cached by a previous form save. A new
+  // reader must not initialize from that snapshot after backend task processing.
+  queryClient.removeQueries({ queryKey: formDataQueryKeys.all, type: 'inactive' });
   await queryClient.invalidateQueries({ queryKey: formDataQueryKeys.all });
 }
 
