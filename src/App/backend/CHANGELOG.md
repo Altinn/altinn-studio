@@ -31,6 +31,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Validation messages with texts from the app backend, such as XSD errors, now show as text in the form instead of a raw key like `backend.xsd_validation`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - File validation errors during upload are now in the user's language. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - The OpenAPI description of the data API lists its error responses, and shows that creating data returns 200, not 201.
+- Apps whose `presentationFields` or `dataFields` in `applicationmetadata.json` point at empty form fields no longer save the instance to Storage on every process step when nothing changed. `DataHelper.GetUpdatedDataValues` no longer returns empty values for keys the instance does not have. ([#21285](https://github.com/Altinn/altinn-studio/pull/21285))
 
 ### Removed
 

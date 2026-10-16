@@ -1980,6 +1980,60 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
+    public async Task SaveWorkflowOwnedAggregate_WhenDerivedFieldsAreEmptyAndAbsentFromInstance_ReturnsNothingToSave()
+    {
+        // Storage removes derived keys set to null or empty, so an empty form field leaves its key absent.
+        // Reporting it as an update anyway gave every callback that read the form a save that changed nothing.
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            """{"status":"created"}"""u8.ToArray(),
+            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
+            seedStorageVersions: true,
+            blobVersionId: BlobVersion(1)
+        );
+        DataElement formDataElement = AddPersistedPaymentForm(
+            setup,
+            new PaymentForm { Status = null, CustomerName = "" },
+            blobVersionId: BlobVersion(1)
+        );
+        setup.Services.AppMetadata.DataFields =
+        [
+            new DataField
+            {
+                Id = "paymentStatus",
+                DataTypeId = formDataElement.DataType,
+                Path = nameof(PaymentForm.Status),
+            },
+        ];
+        setup.Services.AppMetadata.PresentationFields =
+        [
+            new DataField
+            {
+                Id = "customerName",
+                DataTypeId = formDataElement.DataType,
+                Path = nameof(PaymentForm.CustomerName),
+            },
+        ];
+        setup.DataMutator.Instance.DataValues = [];
+        setup.DataMutator.Instance.PresentationTexts = null;
+
+        _ = await setup.DataMutator.GetFormData(formDataElement);
+        DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+
+        WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
+            changes,
+            "unchanged-callback-key",
+            CancellationToken.None
+        );
+
+        Assert.Empty(changes.AllChanges);
+        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, outcome);
+        Assert.DoesNotContain(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+    }
+
+    [Fact]
     public async Task SaveWorkflowOwnedAggregate_CommitsStagedProcessStateAndLockStatus()
     {
         const int instanceOwnerPartyId = 1337;
