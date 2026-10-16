@@ -21,18 +21,20 @@ internal static partial class PipelineStepNames
     {
         if (name is not null)
         {
-            if (string.IsNullOrWhiteSpace(name))
+            // Checked as displayed: the limit is on the trimmed name.
+            string trimmed = name.Trim();
+            if (trimmed.Length == 0)
             {
                 throw new ArgumentException("A pipeline item's name must not be blank.", parameterName);
             }
-            if (name.Length > MaxNameLength)
+            if (trimmed.Length > MaxNameLength)
             {
                 throw new ArgumentException(
                     $"A pipeline item's name must be at most {MaxNameLength} characters.",
                     parameterName
                 );
             }
-            return name.Trim();
+            return trimmed;
         }
 
         return FromMethod(work);
@@ -88,8 +90,9 @@ internal static partial class PipelineStepNames
 
     /// <summary>
     /// Between a lower-case letter or digit and an upper-case one, and before the last capital of an acronym
-    /// followed by a lower-case letter, so <c>PDFReceipt</c> splits as <c>PDF</c>, <c>Receipt</c>.
+    /// followed by a lower-case letter, so <c>PDFReceipt</c> splits as <c>PDF</c>, <c>Receipt</c>. Any letter
+    /// counts, not only ASCII, so <c>SendTilÅrsmøte</c> splits before <c>Å</c>.
     /// </summary>
-    [GeneratedRegex(@"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|_+")]
+    [GeneratedRegex(@"(?<=[\p{Ll}\d])(?=\p{Lu})|(?<=\p{Lu})(?=\p{Lu}\p{Ll})|_+")]
     private static partial Regex WordBoundary();
 }

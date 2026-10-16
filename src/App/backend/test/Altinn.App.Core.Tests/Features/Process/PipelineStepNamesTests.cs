@@ -26,6 +26,12 @@ public class PipelineStepNamesTests
     private static Task<ServiceTaskStageResult> GeneratePDFReceipt(ServiceTaskContext context) =>
         Task.FromResult(ServiceTaskStageResult.Completed());
 
+    private static Task<ServiceTaskStageResult> SendTilÅrsmøte(ServiceTaskContext context) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
+
+    private static Task<ServiceTaskStageResult> LagreØkonomiRapport(ServiceTaskContext context) =>
+        Task.FromResult(ServiceTaskStageResult.Completed());
+
     [Fact]
     public void Resolve_ExplicitName_IsTrimmedAndWinsOverTheMethodName()
     {
@@ -47,6 +53,8 @@ public class PipelineStepNamesTests
         string longest = new('a', PipelineStepNames.MaxNameLength);
 
         Assert.Equal(longest, PipelineStepNames.Resolve(longest, SendToArchive, "name"));
+        // The limit is on the name as displayed, after trimming.
+        Assert.Equal(longest, PipelineStepNames.Resolve($" {longest} ", SendToArchive, "name"));
         Assert.Throws<ArgumentException>(() => PipelineStepNames.Resolve(longest + "a", SendToArchive, "name"));
     }
 
@@ -55,6 +63,14 @@ public class PipelineStepNamesTests
     {
         Assert.Equal("Send to archive", PipelineStepNames.Resolve(null, SendToArchive, "name"));
         Assert.Equal("Generate PDF receipt", PipelineStepNames.Resolve(null, GeneratePDFReceipt, "name"));
+    }
+
+    /// <summary>A capital outside ASCII starts a word too, so Norwegian method names keep their spacing.</summary>
+    [Fact]
+    public void Resolve_MethodGroupWithNorwegianLetters_SplitsAtEveryCapital()
+    {
+        Assert.Equal("Send til årsmøte", PipelineStepNames.Resolve(null, SendTilÅrsmøte, "name"));
+        Assert.Equal("Lagre økonomi rapport", PipelineStepNames.Resolve(null, LagreØkonomiRapport, "name"));
     }
 
     [Fact]
