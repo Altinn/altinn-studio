@@ -78,7 +78,7 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
           // Refetched workflow status drives the same recovery screens as polling.
           const processNextState = error.response?.data?.processNextState;
           const workflowFailure = error.response?.data?.workflowFailure;
-          if (processNextState === 'resumeRequired' || workflowFailure) {
+          if (processNextState === 'retrying' || processNextState === 'resumeRequired' || workflowFailure) {
             const refetchResult = await refreshProcess();
             if (refetchResult.isError) {
               throw refetchResult.error;

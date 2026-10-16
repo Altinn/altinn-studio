@@ -126,6 +126,24 @@ describe('useProcessNext workflow error convergence', () => {
     expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
   });
 
+  it('a 409 while the task is still processing converges on the processing screen without an error', async () => {
+    const user = userEvent.setup();
+    await renderFailingProcessNext(
+      {
+        title: 'Task is still being processed.',
+        detail: 'The current task is still being processed by the workflow engine.',
+        processNextState: 'retrying',
+      },
+      409,
+      { status: 'processing', targetTask: 'Task_2' },
+    );
+
+    await user.click(screen.getByRole('button', { name: 'submit-probe' }));
+
+    await waitFor(() => expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'workflow-processing'));
+    expect(toast).not.toHaveBeenCalled();
+  });
+
   it('a server error shows the localized retry message instead of its detail', async () => {
     vi.spyOn(window, 'logError').mockImplementation(() => {});
     const user = userEvent.setup();
