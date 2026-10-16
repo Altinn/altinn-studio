@@ -1504,7 +1504,7 @@ internal static class V8Tov9Upgrade
                     layoutSetsToKeep.Add(layoutSetName);
                     messages.Todo(
                         $"Layout set '{layoutSetName}': register {generationResult.ClassName} as an "
-                            + "IDataWriteProcessor in Program.cs."
+                            + "IDataProcessor before the app's existing data processors in Program.cs."
                     );
                 }
 

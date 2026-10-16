@@ -95,30 +95,33 @@ internal sealed class CSharpCodeGenerator(
             methods.Add((id, rule, function, body, reason));
         }
         var code = new IndentedStringBuilder();
-        code.AppendLine("using Altinn.App.Core.Models;");
+        code.AppendLine("using Altinn.Platform.Storage.Interface.Models;");
         code.AppendLine("using Altinn.App.Core.Internal.Data;");
         code.AppendLine("using Altinn.App.Core.Internal.Expressions;");
         code.AppendLine("#nullable enable");
         code.AppendLine("namespace Altinn.App.Logic.ConvertedLegacyRules;");
-        code.AppendLine($"public class {className} : IDataWriteProcessor");
+        code.AppendLine($"public class {className} : IDataProcessor");
         code.OpenBrace();
         code.AppendLine(
-            "public async Task ProcessDataWrite(IInstanceDataMutator instanceDataMutator, string taskId, DataElementChanges changes, string? language)"
+            "public Task ProcessDataRead(Instance instance, Guid? dataId, object data, string? language) => Task.CompletedTask;"
+        );
+        code.AppendLine(
+            "public async Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object? previousData, string? language)"
         );
         code.OpenBrace();
         code.AppendLine("// Generated from legacy JavaScript. Review the retained source and test the upgraded app.");
-        // A write can contain changes to more than one instance of the same model.
-        code.AppendLine(
-            $"foreach (var change in changes.FormDataChanges.Where(c => c.CurrentFormData is global::{dataModelInfo.FullClassRef}))"
-        );
-        code.OpenBrace();
+        code.AppendLine($"if (data is not global::{dataModelInfo.FullClassRef}) return;");
         // The legacy frontend collected every rule result before applying any model writes.
         if (result.SuccessfulConversions > 0)
-            code.AppendLine("var inputs = change.CurrentFormDataWrapper.Copy();");
+        {
+            code.AppendLine(
+                $"var wrapper = FormDataWrapperFactory.Create(data, new DataType {{ Id = {PrimitiveRuleConverter.Quote(dataModelInfo.DataType)} }}, dataElement: null);"
+            );
+            code.AppendLine("var inputs = wrapper.Copy();");
+        }
         for (var index = 0; index < methods.Count; index++)
             if (methods[index].Body != null)
-                code.AppendLine($"await Rule_{index}(change.CurrentFormDataWrapper, inputs);");
-        code.CloseBrace();
+                code.AppendLine($"await Rule_{index}(wrapper, inputs);");
         // Keep this method valid when all rules require manual work, without throwing on every save.
         code.AppendLine("await Task.CompletedTask;");
         code.CloseBrace();
