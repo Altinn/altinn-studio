@@ -19,11 +19,9 @@ patches:
             containers:
               - name: pdf3-relay
                 env:
-                  # DIS Core directly until DIS Edge's studio.platform.at22.altinn.cloud is ready; at22's
-                  # Core host is reachable publicly. Then back to
-                  # https://studio.platform.at22.altinn.cloud/pdf/v3/generate
+                  # DIS Edge, which forwards to the environment's DIS Core
                   - name: PDF3_UPSTREAM_URL
-                    value: https://pdf3.at22.dis-core.altinn.cloud/pdf/v3/generate
+                    value: https://studio.platform.at22.altinn.cloud/pdf/v3/generate
   # Test: 10% of at22's PDF requests through the relay to DIS Core.
   - target:
       group: gateway.networking.k8s.io
