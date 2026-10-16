@@ -2,8 +2,9 @@ use std::{cell::Cell, io, net::SocketAddr, process::ExitCode, rc::Rc};
 
 use assistant_runner::{
     http,
+    job::SandboxJobs,
     policy::AllowlistPolicy,
-    routes::Routes,
+    routes::{MAX_ARCHIVE_BYTES, Routes},
     slot::Slot,
     vm::{VmArguments, Vms},
 };
@@ -60,7 +61,8 @@ async fn serve(provider: &ProviderArguments, vm: VmArguments, listen_address: So
     let vms = Vms::new(service, vm)?;
     let slot = Slot::default();
     let stopping = Rc::new(Cell::new(false));
-    let routes = Rc::new(Routes::new(vms, slot.clone(), stopping.clone()));
+    let jobs = Rc::new(SandboxJobs::new(vms));
+    let routes = Rc::new(Routes::new(jobs, slot.clone(), stopping.clone(), MAX_ARCHIVE_BYTES));
     let listener = TcpListener::bind(listen_address).await?;
     let mut terminate = signal(SignalKind::terminate())?;
     tracing::info!(%listen_address, "the runner is ready");

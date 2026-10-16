@@ -27,6 +27,48 @@ It cannot get:
 The Sandbox network layer intercepts TLS. The guest agent adds its CA to the trust store of the guest when the VM
 starts.
 
+## API
+
+| Route                      | Command in the job                                                                         | Timeout    |
+| -------------------------- | ------------------------------------------------------------------------------------------ | ---------- |
+| `POST /api/v1/upgrades/v9` | `studioctl app upgrade v9 -p . --json`, then `git add -A` and `git diff --cached --binary` | 11 minutes |
+| `POST /api/v1/builds`      | `dotnet build App/App.csproj -nologo -v:q --disable-build-servers`                         | 5 minutes  |
+| `GET /health`              |                                                                                            |            |
+
+The request body is an `application/gzip` tar of the app, without `.git`, at most 50 MiB. The assistant puts the
+files that git tracks and the new files that git does not ignore in it, as they are on disk.
+
+The answer:
+
+```json
+{ "exitCode": 0, "timedOut": false, "stdout": "...", "stderr": "...", "patch": "base64 or null" }
+```
+
+- `exitCode` is `null` when the command timed out. The timeout starts with the request.
+- `patch` is the output of `git diff --cached --binary` as base64, because a patch can have content that is not
+  UTF-8. Only an upgrade that did not time out has a patch. App code made the patch, so check it before you apply it.
+- The runner cuts `stdout` and `stderr` at 1 MiB, and the upgrade report in `stdout` at 8 MiB. A patch above 20 MiB
+  fails the job.
+
+Other answers:
+
+| Status | Reason                                                                              |
+| ------ | ----------------------------------------------------------------------------------- |
+| 400    | The archive does not extract. `detail` has the error.                               |
+| 413    | The body is larger than 50 MiB.                                                     |
+| 415    | The content type is not `application/gzip`.                                         |
+| 500    | The VM did not start, or the runner could not make the patch.                       |
+| 503    | The pod has a job, or it stops. Try again with a new connection. It does not queue. |
+
+## How a job runs
+
+1. The runner starts a VM from the guest image.
+2. It writes the archive to `/job/app.tar.gz`, extracts it into `/job/app`, and commits it as the base of the patch.
+3. It runs the command in `/job/app` as `app-build`.
+4. For an upgrade, it writes the patch to `/job/changes.patch` and reads it.
+5. It deletes the VM, also after an error, a timeout, or when the client goes away. If the delete fails, the runner
+   stops, and the restart empties the Provider home of the pod.
+
 ## Guest image
 
 [`Dockerfile.guest`](Dockerfile.guest) has:

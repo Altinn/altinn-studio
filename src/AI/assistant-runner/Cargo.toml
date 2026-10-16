@@ -8,6 +8,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
+base64.workspace = true
 bytes.workspace = true
 clap = { workspace = true, features = ["env"] }
 futures-util.workspace = true
