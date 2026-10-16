@@ -207,8 +207,7 @@ internal sealed class WorkflowCommandSet
                     ExecuteSideEffect.Key,
                     new ExecuteSideEffectPayload(sideEffect.Name, index, sideEffect.Arguments),
                     operationId: ExecuteSideEffect.OperationId(index),
-                    pipelineItemIndex: index,
-                    pipelineItemStepOptions: sideEffect.Pipeline.Items[index].StepOptions
+                    stageOptions: sideEffect.Pipeline.Items[index].StepOptions
                 )
             );
         }
@@ -312,7 +311,7 @@ internal sealed class WorkflowCommandSet
     /// <summary>
     /// One pipeline item's engine step — a stage's, a reply handler's or the conclusion's alike. The item's
     /// index is the step's whole identity, and it travels three ways, deliberately: in the payload (dispatch
-    /// reads it), in <see cref="StepRequest.PipelineItemIndex"/> (the enqueueing hop resolves options by
+    /// reads it), in <see cref="StepRequest.ServiceTaskItemIndex"/> (the enqueueing hop resolves options by
     /// it), and in the OperationId (the engine's own record, distinct per item for its dashboards). Nothing
     /// about what follows the item rides here — a step's payload says what it runs, never what runs after it.
     /// </summary>
@@ -321,15 +320,15 @@ internal sealed class WorkflowCommandSet
             ExecuteServiceTask.Key,
             new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: itemIndex),
             operationId: $"{ExecuteServiceTask.Key}: {itemIndex.ToString(CultureInfo.InvariantCulture)}",
-            pipelineItemIndex: itemIndex
+            serviceTaskItemIndex: itemIndex
         );
 
     private static StepRequest CreateCommand(
         string commandKey,
         CommandRequestPayload? payload = null,
         string? operationId = null,
-        int? pipelineItemIndex = null,
-        ProcessStepOptions? pipelineItemStepOptions = null
+        int? serviceTaskItemIndex = null,
+        ProcessStepOptions? stageOptions = null
     )
     {
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
@@ -341,8 +340,8 @@ internal sealed class WorkflowCommandSet
                 new AppCommandData { CommandKey = commandKey, Payload = serializedPayload }
             ),
             CommandKey = commandKey,
-            PipelineItemIndex = pipelineItemIndex,
-            PipelineItemStepOptions = pipelineItemStepOptions,
+            ServiceTaskItemIndex = serviceTaskItemIndex,
+            StageOptions = stageOptions,
         };
     }
 }

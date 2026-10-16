@@ -194,10 +194,9 @@ internal sealed class ExecuteSideEffect(IEnumerable<ISideEffectPipeline> sideEff
         );
 
     /// <summary>
-    /// The one engine step a side effect's pipeline item becomes. The item's index is the step's identity, as
-    /// for a service task's steps: in the payload (dispatch reads it), in
-    /// <see cref="Models.Engine.StepRequest.PipelineItemIndex"/> (options are resolved by it) and in the
-    /// OperationId.
+    /// The OperationId of the one engine step a side effect's pipeline item becomes, distinct per item for the
+    /// engine's dashboards. Dispatch reads the index from the payload, and the item's options travel on
+    /// <see cref="Models.Engine.StepRequest.StageOptions"/>.
     /// </summary>
     internal static string OperationId(int itemIndex) =>
         $"{Key}: {itemIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}";

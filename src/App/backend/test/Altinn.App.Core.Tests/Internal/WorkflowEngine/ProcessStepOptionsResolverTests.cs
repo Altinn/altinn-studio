@@ -119,8 +119,8 @@ public class ProcessStepOptionsResolverTests
             ExecuteSideEffect.Key,
             taskId: "Task_1",
             serviceTaskType: null,
-            pipelineItemIndex: 1,
-            sideEffectItemStepOptions: new ProcessStepOptions { WaitBudget = TimeSpan.FromDays(3) }
+            serviceTaskItemIndex: 1,
+            stageOptions: new ProcessStepOptions { WaitBudget = TimeSpan.FromDays(3) }
         );
 
         Assert.NotNull(result);
@@ -133,7 +133,12 @@ public class ProcessStepOptionsResolverTests
     {
         var resolver = CreateResolver();
 
-        var result = resolver.Resolve(ExecuteSideEffect.Key, taskId: null, serviceTaskType: null, pipelineItemIndex: 0);
+        var result = resolver.Resolve(
+            ExecuteSideEffect.Key,
+            taskId: null,
+            serviceTaskType: null,
+            serviceTaskItemIndex: 0
+        );
 
         Assert.NotNull(result);
         Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, result.MaxExecutionTime);
@@ -523,7 +528,7 @@ public class ProcessStepOptionsResolverTests
             ExecuteServiceTask.Key,
             taskId: null,
             serviceTaskType: "exchanges",
-            pipelineItemIndex: 1
+            serviceTaskItemIndex: 1
         );
 
         Assert.NotNull(result);
@@ -542,7 +547,7 @@ public class ProcessStepOptionsResolverTests
             ExecuteServiceTask.Key,
             taskId: null,
             serviceTaskType: "exchanges",
-            pipelineItemIndex: 3
+            serviceTaskItemIndex: 3
         );
 
         Assert.NotNull(result);
@@ -602,19 +607,19 @@ public class ProcessStepOptionsResolverTests
     [Theory]
     [InlineData(0)]
     [InlineData(null)]
-    public void ApplyStepOptions_StepWithADisplayOperationId_StillFindsTheCommandsOwnDefault(int? pipelineItemIndex)
+    public void ApplyStepOptions_StepWithADisplayOperationId_StillFindsTheCommandsOwnDefault(int? serviceTaskItemIndex)
     {
         ProcessStepOptionsResolver resolver = CreateResolver(_ => { });
 
         StepRequest resolved = new StepRequest
         {
-            OperationId = $"{ExecuteServiceTask.Key}: {pipelineItemIndex?.ToString() ?? "Anything"}",
+            OperationId = $"{ExecuteServiceTask.Key}: {serviceTaskItemIndex?.ToString() ?? "Anything"}",
             Command = CommandDefinition.Create(
                 "app",
                 new AppCommandData { CommandKey = ExecuteServiceTask.Key, Payload = null }
             ),
             CommandKey = ExecuteServiceTask.Key,
-            PipelineItemIndex = pipelineItemIndex,
+            ServiceTaskItemIndex = serviceTaskItemIndex,
         }.ApplyStepOptions(resolver, taskId: null, serviceTaskType: null);
 
         Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, resolved.Command.MaxExecutionTime);

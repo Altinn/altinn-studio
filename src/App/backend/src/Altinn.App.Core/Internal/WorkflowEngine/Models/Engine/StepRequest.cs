@@ -42,19 +42,18 @@ internal sealed record StepRequest
     internal string? CommandKey { get; init; }
 
     /// <summary>
-    /// For a pipeline step: the index of the pipeline item the step runs — a stage, a reply handler or the
-    /// conclusion — carried so the per-step options resolution (see <c>ProcessStepOptionsResolver</c>) can
-    /// find that one item. Internal and never serialized — the engine sees the index only inside the command
-    /// payload. Set on every <c>ExecuteServiceTask</c> and <c>ExecuteSideEffect</c> step and on nothing else:
-    /// a <c>MintMailbox</c> step deliberately leaves it null, so the mint does not inherit the options of the
-    /// stage it precedes.
+    /// For a service-task pipeline step: the index of the pipeline item the step runs — a stage, a reply
+    /// handler or the conclusion — carried so the per-step options resolution (see
+    /// <c>ProcessStepOptionsResolver</c>) can find that one item. Internal and never serialized — the engine
+    /// sees the index only inside the command payload. Set on every <c>ExecuteServiceTask</c> step and on
+    /// nothing else: a <c>MintMailbox</c> step deliberately leaves it null, so the mint does not inherit the
+    /// options of the stage it precedes.
     /// </summary>
-    internal int? PipelineItemIndex { get; init; }
+    internal int? ServiceTaskItemIndex { get; init; }
 
     /// <summary>
-    /// For an <c>ExecuteSideEffect</c> step: the options the pipeline item it runs declares, read when the side
-    /// effect is planned. The options resolution uses them in place of looking the side effect up. Internal and
-    /// never serialized, like <see cref="PipelineItemIndex"/>.
+    /// Options a process task's lifecycle stage or a side effect's pipeline item declared for this step, winning
+    /// over the command's defaults. Read when the step is planned, so the options resolution needs no lookup.
     /// </summary>
-    internal ProcessStepOptions? PipelineItemStepOptions { get; init; }
+    internal ProcessStepOptions? StageOptions { get; init; }
 }

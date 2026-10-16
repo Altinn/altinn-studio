@@ -700,7 +700,7 @@ public class MailboxRelayTests
         var payload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
         Assert.Equal(ServiceTaskType, payload.ServiceTaskType);
         Assert.Equal(ArchivingReplyIndex, payload.ItemIndex);
-        Assert.Equal(ArchivingReplyIndex, step.PipelineItemIndex);
+        Assert.Equal(ArchivingReplyIndex, step.ServiceTaskItemIndex);
     }
 
     [Fact]
@@ -803,7 +803,7 @@ public class MailboxRelayTests
 
         StepRequest step = Assert.Single(Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows).Steps);
         Assert.Equal(TimeSpan.FromMinutes(3), step.Command.MaxExecutionTime);
-        Assert.Equal(JournalTerminalIndex, step.PipelineItemIndex);
+        Assert.Equal(JournalTerminalIndex, step.ServiceTaskItemIndex);
     }
 
     [Fact]

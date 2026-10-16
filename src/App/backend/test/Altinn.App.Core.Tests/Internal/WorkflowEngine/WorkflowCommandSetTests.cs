@@ -109,9 +109,10 @@ public class WorkflowCommandSetTests
                 )
                 .ToList()
         );
-        Assert.Equal([0, 1], sideEffect.Steps.Select(step => step.PipelineItemIndex ?? -1).ToList());
-        Assert.Null(sideEffect.Steps[0].PipelineItemStepOptions);
-        Assert.Same(checkOptions, sideEffect.Steps[1].PipelineItemStepOptions);
+        // The service-task item index stays a service-task fact: a side effect's options ride StageOptions.
+        Assert.All(sideEffect.Steps, step => Assert.Null(step.ServiceTaskItemIndex));
+        Assert.Null(sideEffect.Steps[0].StageOptions);
+        Assert.Same(checkOptions, sideEffect.Steps[1].StageOptions);
     }
 
     [Fact]
