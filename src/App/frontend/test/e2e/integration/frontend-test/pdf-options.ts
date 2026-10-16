@@ -6,9 +6,9 @@ import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 const appFrontend = new AppFrontend();
 
 describe('PDF options failures', () => {
-  for (const mode of ['generated', 'legacy', 'grid', 'excluded', 'unused'] as const) {
-    it(`${mode === 'excluded' || mode === 'unused' ? 'allows' : 'blocks'} PDF generation for ${mode} options`, () => {
-      const shouldBlock = mode !== 'excluded' && mode !== 'unused';
+  for (const mode of ['generated', 'legacy', 'grid', 'empty-grid', 'excluded', 'unused'] as const) {
+    it(`${mode === 'excluded' || mode === 'unused' || mode === 'empty-grid' ? 'allows' : 'blocks'} PDF generation for ${mode} options`, () => {
+      const shouldBlock = mode !== 'excluded' && mode !== 'unused' && mode !== 'empty-grid';
       cy.ignoreConsoleMessages([/Failed to fetch options for node reference/, /Request failed with status code 500/]);
       if (shouldBlock) {
         cy.allowFailureOnEnd();
@@ -17,17 +17,17 @@ describe('PDF options failures', () => {
         if (mode === 'excluded') {
           data.ui.folders.Task_2.components = { excludeFromPdf: ['reference'] };
         }
-        if (mode === 'legacy' || mode === 'grid' || mode === 'unused') {
+        if (mode === 'legacy' || mode === 'grid' || mode === 'empty-grid' || mode === 'unused') {
           data.ui.folders.Task_2.pages.pdfLayoutName = 'summary';
           data.ui.folders.Task_2.pages.excludeFromPdf = [];
         }
       });
-      if (mode === 'legacy' || mode === 'grid' || mode === 'unused') {
+      if (mode === 'legacy' || mode === 'grid' || mode === 'empty-grid' || mode === 'unused') {
         cy.interceptLayout(
           'Task_2',
           undefined,
           (layouts) => {
-            if (mode === 'grid') {
+            if (mode === 'grid' || mode === 'empty-grid') {
               const group = layouts.form!.data.layout.find((component) => component.id === 'reference-group');
               if (group?.type === 'Group') {
                 group.children = group.children.filter((id) => id !== 'reference');
@@ -44,7 +44,10 @@ describe('PDF options failures', () => {
                 : {
                     id: 'options-summary',
                     type: 'Summary2',
-                    target: { type: 'component', id: mode === 'grid' ? 'options-grid' : 'newFirstName' },
+                    target: {
+                      type: 'component',
+                      id: mode === 'grid' || mode === 'empty-grid' ? 'options-grid' : 'newFirstName',
+                    },
                   },
             ];
           },
@@ -52,7 +55,11 @@ describe('PDF options failures', () => {
         );
       }
       cy.goto('changename');
-      cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
+      if (mode !== 'empty-grid') {
+        cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
+      } else {
+        cy.get(appFrontend.changeOfName.reference).should('have.value', '');
+      }
       cy.waitUntilSaved();
 
       cy.intercept('GET', '**/api/options/references*', { statusCode: 500 }).as('failedOptions');
