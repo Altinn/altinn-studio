@@ -83,14 +83,16 @@ describe('ConfigObjectProperties', () => {
   it('preserves multiple edits to existing sibling properties until the object is saved', async () => {
     const user = userEvent.setup();
     const handleComponentUpdate = vi.fn();
+    const objectPropertyKey = 'customProperties';
     renderConfigObjectProperty({
       props: {
+        objectPropertyKey,
         component: {
           ...componentMocks.Input,
-          [somePropertyName]: { readOnly: false, required: false },
+          [objectPropertyKey]: { readOnly: false, required: false },
         },
         properties: {
-          [somePropertyName]: {
+          [objectPropertyKey]: {
             type: 'object',
             properties: {
               readOnly: { type: 'boolean', required: false },
@@ -103,7 +105,7 @@ describe('ConfigObjectProperties', () => {
         handleComponentUpdate,
       },
     });
-    await openCard();
+    await openCard(objectPropertyKey);
 
     await user.click(
       screen.getByRole('switch', {
@@ -119,7 +121,7 @@ describe('ConfigObjectProperties', () => {
 
     expect(handleComponentUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
-        [somePropertyName]: { readOnly: true, required: true },
+        [objectPropertyKey]: { readOnly: true, required: true },
       }),
     );
   });
@@ -179,10 +181,10 @@ const defaultObjectProperties: Record<string, PropertyDefinition> = {
   },
 };
 
-const openCard = async () => {
+const openCard = async (propertyName = somePropertyName) => {
   const user = userEvent.setup();
   const openButton = await screen.findByRole('button', {
-    name: textMock(`ux_editor.component_properties.${somePropertyName}`),
+    name: textMock(`ux_editor.component_properties.${propertyName}`),
   });
   await user.click(openButton);
   expect(screen.getByRole('button', { name: textMock('general.cancel') })).toBeInTheDocument();
