@@ -166,6 +166,13 @@ describe('Subform test', () => {
     cy.reloadAndWait();
     cy.findByRole('heading', { name: 'Mopedregistrering' }).should('be.visible');
     cy.get('#label-subform-mopeder', { timeout: 0 }).should('not.exist');
+    cy.findByRole('button', { name: 'Tilbake' }).clickAndGone();
+    cy.get('#form-content-subform-mopeder')
+      .findByRole('table')
+      .within(() => {
+        cy.findByRole('cell', { name: regno }).should('be.visible');
+        cy.get('caption', { timeout: 0 }).should('not.exist');
+      });
   });
 
   it('subform validation', () => {
