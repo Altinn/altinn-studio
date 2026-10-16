@@ -5,6 +5,15 @@ resources:
   - ../../base
 
 patches:
+  # Each worker renders one PDF at a time and scales on CPU, which a render waiting for the app's
+  # page hardly uses, so keep enough workers for all of the environment's service owners' bursts.
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: pdf3-worker
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 10
   # The object ID of the Entra group DIS AKS Admin Prod STUDIO.
   - target:
       kind: Vault
