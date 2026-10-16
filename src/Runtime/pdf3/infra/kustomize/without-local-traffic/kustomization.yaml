@@ -1,0 +1,24 @@
+# For environments whose route pdf/pdf3 sends every request to the relay: scales the idle local proxy
+# and worker to zero. Remove it in the same change that gives the local proxy weight again.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+patches:
+  - patch: |-
+      $patch: delete
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: pdf3-proxy-hpa
+  - patch: |-
+      $patch: delete
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: pdf3-worker-hpa
+  - target:
+      kind: Deployment
+      name: pdf3-(proxy|worker)
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 0
