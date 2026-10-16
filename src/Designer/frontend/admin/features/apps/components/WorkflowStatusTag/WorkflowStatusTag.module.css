@@ -19,3 +19,9 @@
 .statusIcon[data-tone='neutral'] {
   color: var(--ds-color-neutral-base-default);
 }
+
+.markWithSpinner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-1);
+}
