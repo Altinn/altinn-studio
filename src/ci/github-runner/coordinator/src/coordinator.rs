@@ -18,10 +18,11 @@ use sandbox::{
 };
 use tokio::signal::unix::{Signal, SignalKind, signal};
 
+use sandbox_host::{native_linux_platform, validate_immutable_image_reference};
+
 use crate::{
     AnyError,
     github::{GithubClient, GithubConfig},
-    provider::native_linux_platform,
 };
 
 const DEFAULT_RUNNER_HOME: &str = "/home/runner";
@@ -272,22 +273,6 @@ fn runner_target(arguments: &CoordinatorArguments) -> Result<RunnerTarget, io::E
         }
         RunnerScope::Org => Ok(RunnerTarget::Org { owner }),
     }
-}
-
-fn validate_immutable_image_reference(reference: &str) -> Result<(), io::Error> {
-    let Some((repository, digest)) = reference.rsplit_once("@sha256:") else {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "SANDBOX_IMAGE must be pinned by sha256 digest",
-        ));
-    };
-    if repository.is_empty() || digest.len() != 64 || !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "SANDBOX_IMAGE must contain a repository and a 64-character sha256 digest",
-        ));
-    }
-    Ok(())
 }
 
 fn require_nonempty(name: &str, value: &str) -> Result<(), io::Error> {
@@ -625,7 +610,7 @@ fn exit_code(code: i32) -> ExitCode {
 
 #[cfg(test)]
 mod tests {
-    use super::{ProgressLog, RunnerTarget, exit_code, github_config, runner_url, validate_immutable_image_reference};
+    use super::{ProgressLog, RunnerTarget, exit_code, github_config, runner_url};
     use sandbox::{Outcome, ProgressEvent, SandboxPhase, StepId};
     use std::{num::NonZeroU64, process::ExitCode, time::Duration};
 
@@ -665,24 +650,6 @@ mod tests {
                 "completed: Resolve Sandbox Image; outcome=Completed; elapsed_ms=50",
             ]
         );
-    }
-
-    #[test]
-    fn accepts_digest_pinned_image() {
-        let reference = format!("registry.example/runner@sha256:{}", "a".repeat(64));
-        assert!(validate_immutable_image_reference(&reference).is_ok());
-    }
-
-    #[test]
-    fn rejects_tagged_or_malformed_image() {
-        for reference in [
-            "registry.example/runner:latest",
-            "registry.example/runner@sha256:abc",
-            "@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "registry.example/runner@sha256:gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
-        ] {
-            assert!(validate_immutable_image_reference(reference).is_err());
-        }
     }
 
     #[test]
