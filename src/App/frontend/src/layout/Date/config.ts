@@ -19,11 +19,10 @@ export const Config = new CG.component({
     renderInCards: true,
     renderInCardsMedia: false,
   },
-  functionality: {
-    customExpressions: true,
-  },
 })
   .makeSummarizable()
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
   .addSummaryOverrides()
   .extendTextResources(CG.common('TRBLabel'))
   .addProperty(
@@ -40,6 +39,7 @@ export const Config = new CG.component({
     new CG.prop(
       'value',
       new CG.expr(ExprVal.String)
+        .setFallback('')
         .setTitle('Date value', 'Datoverdi')
         .setDescription('The date value to display.', 'Datoverdien som skal vises.'),
     ),

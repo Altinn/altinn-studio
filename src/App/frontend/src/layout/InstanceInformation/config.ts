@@ -18,10 +18,9 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: false,
-  },
 })
+  .makeSummarizable()
+  .addSummaryOverrides()
   .addProperty(
     new CG.prop(
       'elements',

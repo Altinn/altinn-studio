@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { Lang } from 'src/features/language/Lang';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
 import { useImageFile } from 'src/layout/ImageUpload/hooks/useImageFile';
@@ -7,16 +9,27 @@ import classes from 'src/layout/ImageUpload/ImageUploadSummary2/ImageUploadSumma
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function ImageUploadSummary2({ targetBaseComponentId }: Summary2Props) {
   const attachment = useUploaderSummaryData(targetBaseComponentId);
-  const { required, textResourceBindings } = useItemWhenType(targetBaseComponentId, 'ImageUpload');
+  const config = useComponentConfig(targetBaseComponentId, 'ImageUpload');
+  const required = useEvalExpression(config.required, Expressions.ImageUpload.required);
+  const summaryTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.ImageUpload.textResourceBindings.summaryTitle,
+  );
+  const resolvedTitle = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.ImageUpload.textResourceBindings.title,
+  );
+
   const isCompact = useSummaryProp('isCompact');
   const { storedImage } = useImageFile(targetBaseComponentId);
   const isEmpty = attachment.length === 0;
-  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
+  const title = summaryTitle || resolvedTitle;
   const emptyValueText = required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired;
   const contentLogic = isEmpty ? emptyValueText : SummaryContains.SomeUserContent;
   const imageElement = storedImage ? <ImageToDisplay targetBaseComponentId={targetBaseComponentId} /> : undefined;

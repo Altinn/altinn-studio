@@ -6,7 +6,8 @@
     Code: The field Address must be a string or array type with a minimum length of '44'.,
     Description: The field Address must be a string or array type with a minimum length of '44'.,
     Source: DataAnnotations,
-    NoIncrementalUpdates: false
+    NoIncrementalUpdates: false,
+    CustomTextKey: The field Address must be a string or array type with a minimum length of '44'.
   },
   {
     Severity: Error,
@@ -24,7 +25,7 @@
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
-    CustomTextKey: backend.validation_errors.required,
+    CustomTextKey: validation_errors.required,
     CustomTextParameters: {
       bindingName: simpleBinding,
       componentId: Address,
@@ -41,7 +42,7 @@
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
-    CustomTextKey: backend.validation_errors.required,
+    CustomTextKey: validation_errors.required,
     CustomTextParameters: {
       bindingName: simpleBinding,
       componentId: Name,
@@ -58,7 +59,8 @@
     Code: The Name field is required.,
     Description: The Name field is required.,
     Source: DataAnnotations,
-    NoIncrementalUpdates: false
+    NoIncrementalUpdates: false,
+    CustomTextKey: The Name field is required.
   },
   {
     Severity: Error,
@@ -67,7 +69,7 @@
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
-    CustomTextKey: backend.validation_errors.required,
+    CustomTextKey: validation_errors.required,
     CustomTextParameters: {
       bindingName: simpleBinding,
       componentId: Phone,
@@ -84,7 +86,7 @@
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
-    CustomTextKey: backend.validation_errors.required,
+    CustomTextKey: validation_errors.required,
     CustomTextParameters: {
       bindingName: simpleBinding,
       componentId: Email,
@@ -110,7 +112,8 @@
     Code: The field Phone must match the regular expression '^\+47\d+'.,
     Description: The field Phone must match the regular expression '^\+47\d+'.,
     Source: DataAnnotations,
-    NoIncrementalUpdates: false
+    NoIncrementalUpdates: false,
+    CustomTextKey: The field Phone must match the regular expression '^\+47\d+'.
   },
   {
     Severity: Error,
@@ -119,7 +122,7 @@
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
-    CustomTextKey: backend.validation_errors.required,
+    CustomTextKey: validation_errors.required,
     CustomTextParameters: {
       bindingName: simpleBinding,
       componentId: Address,
@@ -136,7 +139,7 @@
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
-    CustomTextKey: backend.validation_errors.required,
+    CustomTextKey: validation_errors.required,
     CustomTextParameters: {
       bindingName: simpleBinding,
       componentId: Name,
@@ -153,7 +156,8 @@
     Code: The Name field is required.,
     Description: The Name field is required.,
     Source: DataAnnotations,
-    NoIncrementalUpdates: false
+    NoIncrementalUpdates: false,
+    CustomTextKey: The Name field is required.
   },
   {
     Severity: Error,
@@ -162,7 +166,7 @@
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
-    CustomTextKey: backend.validation_errors.required,
+    CustomTextKey: validation_errors.required,
     CustomTextParameters: {
       bindingName: simpleBinding,
       componentId: Phone,

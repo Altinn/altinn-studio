@@ -22,12 +22,16 @@ export const Config = asOptionsComponent(
       renderInCardsMedia: false,
       renderInTabs: false,
     },
-    functionality: {
-      customExpressions: false,
-    },
   }),
   { supportsPreselection: true },
 )
+  .makeSummarizable()
+  .addSummaryOverrides()
+  .addProperty(CG.common('renderAsSummary'))
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
+  .addProperty(CG.common('required'))
+  .addProperty(CG.common('readOnly'))
   .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple'))
   .addTextResource(
     new CG.trb({
@@ -69,4 +73,5 @@ export const Config = asOptionsComponent(
     ),
   )
   .extends(CG.common('ILikertColumnProperties'))
+  .extends(CG.common('LabeledComponentProps'))
   .addProperty(new CG.prop('layout', CG.common('LayoutStyle').optional()));

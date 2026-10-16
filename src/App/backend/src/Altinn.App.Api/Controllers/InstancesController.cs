@@ -162,7 +162,8 @@ public class InstancesController : ControllerBase
             app,
             instanceOwnerPartyId,
             instanceGuid,
-            "read"
+            "read",
+            cancellationToken
         );
 
         if (!enforcementResult.Authorized)
@@ -245,7 +246,8 @@ public class InstancesController : ControllerBase
             app,
             instanceOwnerPartyId,
             instanceGuid,
-            "read"
+            "read",
+            cancellationToken
         );
 
         if (!enforcementResult.Authorized)
@@ -314,6 +316,7 @@ public class InstancesController : ControllerBase
     /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="language">The currently active user language</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>the created instance</returns>
     [HttpPost]
     [DisableFormValueModelBinding]
@@ -327,7 +330,8 @@ public class InstancesController : ControllerBase
         [FromRoute] string org,
         [FromRoute] string app,
         [FromQuery] int? instanceOwnerPartyId,
-        [FromQuery] string? language = null
+        [FromQuery] string? language = null,
+        CancellationToken cancellationToken = default
     )
     {
         if (string.IsNullOrEmpty(org))
@@ -418,7 +422,9 @@ public class InstancesController : ControllerBase
         Party party;
         try
         {
-            party = await LookupParty(instanceTemplate.InstanceOwner) ?? throw new Exception("Unknown party");
+            party =
+                await LookupParty(instanceTemplate.InstanceOwner, cancellationToken)
+                ?? throw new Exception("Unknown party");
             instanceTemplate.InstanceOwner = await InstantiationHelper.PartyToInstanceOwner(
                 party,
                 _authenticationContext
@@ -437,7 +443,14 @@ public class InstancesController : ControllerBase
             return NotFound($"Cannot lookup party: {partyLookupException.Message}");
         }
 
-        EnforcementResult enforcementResult = await AuthorizeAction(org, app, party.PartyId, null, "instantiate");
+        EnforcementResult enforcementResult = await AuthorizeAction(
+            org,
+            app,
+            party.PartyId,
+            null,
+            "instantiate",
+            cancellationToken
+        );
         if (!enforcementResult.Authorized)
         {
             return Forbidden(enforcementResult);
@@ -471,7 +484,12 @@ public class InstancesController : ControllerBase
         try
         {
             // start process and goto next task
-            ProcessStartRequest processStartRequest = new() { Instance = instanceTemplate, User = User };
+            ProcessStartRequest processStartRequest = new()
+            {
+                Instance = instanceTemplate,
+                User = User,
+                Language = language,
+            };
 
             ProcessChangeResult result = await _processEngine.CreateInitialProcessState(processStartRequest);
             if (!result.Success)
@@ -535,7 +553,9 @@ public class InstancesController : ControllerBase
                 versions,
                 processStateChange,
                 isInstantiation: true,
-                notification: notification
+                notification: notification,
+                language: language,
+                cancellationToken: CancellationToken.None
             );
         }
         catch (InstanceStateConflictException)
@@ -610,6 +630,7 @@ public class InstancesController : ControllerBase
     /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instantiationInstance">instantiation information</param>
     /// <param name="language">The currently active user language</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>The new instance</returns>
     [HttpPost("create")]
     [DisableFormValueModelBinding]
@@ -623,7 +644,8 @@ public class InstancesController : ControllerBase
         [FromRoute] string org,
         [FromRoute] string app,
         [FromBody] InstantiationInstance instantiationInstance,
-        [FromQuery] string? language = null
+        [FromQuery] string? language = null,
+        CancellationToken cancellationToken = default
     )
     {
         if (string.IsNullOrEmpty(org))
@@ -672,7 +694,9 @@ public class InstancesController : ControllerBase
         Party party;
         try
         {
-            party = await LookupParty(instantiationInstance.InstanceOwner) ?? throw new Exception("Unknown party");
+            party =
+                await LookupParty(instantiationInstance.InstanceOwner, cancellationToken)
+                ?? throw new Exception("Unknown party");
 
             instantiationInstance.InstanceOwner = await InstantiationHelper.PartyToInstanceOwner(
                 party,
@@ -705,7 +729,14 @@ public class InstancesController : ControllerBase
             return BadRequest("It is not possible to copy instances between instance owners.");
         }
 
-        EnforcementResult enforcementResult = await AuthorizeAction(org, app, party.PartyId, null, "instantiate");
+        EnforcementResult enforcementResult = await AuthorizeAction(
+            org,
+            app,
+            party.PartyId,
+            null,
+            "instantiate",
+            cancellationToken
+        );
 
         _logger.LogInformation(
             "Authorization details for party {PartyId}: Authorized={Authorized}, FailedObligations={FailedObligations}",
@@ -837,6 +868,7 @@ public class InstancesController : ControllerBase
                 Instance = instanceTemplate,
                 User = User,
                 Prefill = instantiationInstance.Prefill,
+                Language = language,
             };
 
             ProcessChangeResult processResult = await _processEngine.CreateInitialProcessState(startRequest);
@@ -860,7 +892,10 @@ public class InstancesController : ControllerBase
                 await CopyDataFromSourceInstance(application, instance, source);
             }
 
-            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(instance);
+            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                instance,
+                cancellationToken: CancellationToken.None
+            );
             instance = fetchedInstance.Instance;
 
             // An instance must never exist without a process to enqueue in the workflow engine.
@@ -878,7 +913,9 @@ public class InstancesController : ControllerBase
                 processStateChange,
                 isInstantiation: true,
                 prefill: instantiationInstance.Prefill,
-                notification: instantiationInstance.Notification
+                notification: instantiationInstance.Notification,
+                language: language,
+                cancellationToken: CancellationToken.None
             );
         }
         catch (InstanceStateConflictException)
@@ -932,6 +969,7 @@ public class InstancesController : ControllerBase
     /// <param name="instanceOwnerPartyId">Unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">Unique id to identify the instance</param>
     /// <param name="language">The currently active user language</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
     /// <remarks>
     /// The endpoint will return a redirect to the new instance if the copy operation was successful.
@@ -953,7 +991,8 @@ public class InstancesController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
-        [FromQuery] string? language = null
+        [FromQuery] string? language = null,
+        CancellationToken cancellationToken = default
     )
     {
         // This endpoint should be used exclusively by end users. Ideally from a browser as a request after clicking
@@ -973,7 +1012,14 @@ public class InstancesController : ControllerBase
             );
         }
 
-        EnforcementResult readAccess = await AuthorizeAction(org, app, instanceOwnerPartyId, instanceGuid, "read");
+        EnforcementResult readAccess = await AuthorizeAction(
+            org,
+            app,
+            instanceOwnerPartyId,
+            instanceGuid,
+            "read",
+            cancellationToken
+        );
 
         if (!readAccess.Authorized)
         {
@@ -1000,7 +1046,8 @@ public class InstancesController : ControllerBase
             app,
             instanceOwnerPartyId,
             null,
-            "instantiate"
+            "instantiate",
+            cancellationToken
         );
 
         if (!instantiateAccess.Authorized)
@@ -1052,7 +1099,12 @@ public class InstancesController : ControllerBase
         }
 
         // Calculate initial process state in memory before creating the instance with process state
-        ProcessStartRequest processStartRequest = new() { Instance = targetInstance, User = User };
+        ProcessStartRequest processStartRequest = new()
+        {
+            Instance = targetInstance,
+            User = User,
+            Language = language,
+        };
         ProcessChangeResult startResult = await _processEngine.CreateInitialProcessState(processStartRequest);
         if (!startResult.Success)
         {
@@ -1086,7 +1138,9 @@ public class InstancesController : ControllerBase
                     targetInstance,
                     fetchedTargetInstance.Metadata,
                     startResult.ProcessStateChange,
-                    isInstantiation: true
+                    isInstantiation: true,
+                    language: language,
+                    cancellationToken: CancellationToken.None
                 );
             }
 
@@ -1649,7 +1703,6 @@ public class InstancesController : ControllerBase
 
         return WorkflowInitializationProblem.Create(
             _logger,
-            WorkflowInitializationFlow.Instantiation,
             exception,
             message,
             state,
@@ -1674,7 +1727,6 @@ public class InstancesController : ControllerBase
         {
             return WorkflowInitializationProblem.Create(
                 _logger,
-                WorkflowInitializationFlow.Instantiation,
                 exception,
                 message,
                 state: WorkflowInitializationState.WorkflowFailed,
@@ -1689,7 +1741,6 @@ public class InstancesController : ControllerBase
 
         return WorkflowInitializationProblem.Create(
             _logger,
-            WorkflowInitializationFlow.Instantiation,
             exception,
             message,
             state: WorkflowInitializationState.WorkflowFailed,
@@ -1733,7 +1784,8 @@ public class InstancesController : ControllerBase
         string app,
         int partyId,
         Guid? instanceGuid,
-        string action
+        string action,
+        CancellationToken cancellationToken
     )
     {
         EnforcementResult enforcementResult = new EnforcementResult();
@@ -1745,7 +1797,7 @@ public class InstancesController : ControllerBase
             partyId,
             instanceGuid
         );
-        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request, cancellationToken);
 
         if (response?.Response == null)
         {
@@ -1764,10 +1816,10 @@ public class InstancesController : ControllerBase
 
     /// <summary>
     /// Resolves the instance owner party before an instance is created. These lookups are tied to the request
-    /// through <see cref="HttpContext.RequestAborted"/>; the creation writes that follow deliberately are not,
+    /// through the request's cancellation token; the creation writes that follow deliberately are not,
     /// so a client that disconnects mid-way cannot leave a half-created instance behind.
     /// </summary>
-    private async Task<Party?> LookupParty(InstanceOwner instanceOwner)
+    private async Task<Party?> LookupParty(InstanceOwner instanceOwner, CancellationToken cancellationToken)
     {
         if (instanceOwner.PartyId != null)
         {
@@ -1775,10 +1827,10 @@ public class InstancesController : ControllerBase
             {
                 return await _registerClient.GetPartyUnchecked(
                     int.Parse(instanceOwner.PartyId, CultureInfo.InvariantCulture),
-                    cancellationToken: this.HttpContext.RequestAborted
+                    cancellationToken: cancellationToken
                 );
             }
-            catch (OperationCanceledException) when (this.HttpContext.RequestAborted.IsCancellationRequested)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 throw;
             }
@@ -1802,7 +1854,7 @@ public class InstancesController : ControllerBase
                 {
                     var partyId = await _altinnPartyClient.GetPartyIdByUrn(
                         instanceOwner.ExternalIdentifier,
-                        this.HttpContext.RequestAborted
+                        cancellationToken
                     );
                     if (partyId == null)
                     {
@@ -1811,17 +1863,14 @@ public class InstancesController : ControllerBase
                             $"Failed to lookup party by external identifier: {instanceOwner.ExternalIdentifier}. No partyId found for the provided external identifier."
                         );
                     }
-                    return await _registerClient.GetPartyUnchecked(
-                        partyId.Value,
-                        cancellationToken: this.HttpContext.RequestAborted
-                    );
+                    return await _registerClient.GetPartyUnchecked(partyId.Value, cancellationToken: cancellationToken);
                 }
                 if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
                 {
                     lookupNumber = "personNumber";
                     return await _altinnPartyClient.LookupParty(
                         new PartyLookup { Ssn = instanceOwner.PersonNumber },
-                        cancellationToken: this.HttpContext.RequestAborted
+                        cancellationToken: cancellationToken
                     );
                 }
                 else if (!string.IsNullOrEmpty(instanceOwner.OrganisationNumber))
@@ -1829,7 +1878,7 @@ public class InstancesController : ControllerBase
                     lookupNumber = "organisationNumber";
                     return await _altinnPartyClient.LookupParty(
                         new PartyLookup { OrgNo = instanceOwner.OrganisationNumber },
-                        cancellationToken: this.HttpContext.RequestAborted
+                        cancellationToken: cancellationToken
                     );
                 }
                 else if (!string.IsNullOrEmpty(instanceOwner.Username))
@@ -1838,7 +1887,7 @@ public class InstancesController : ControllerBase
                         ? instanceOwner.Username[6..]
                         : instanceOwner.Username;
                     var urn = $"{AltinnUrns.SelfIdentifiedEmail}:{UrlEncoder.Default.Encode(email)}";
-                    var partyId = await _altinnPartyClient.GetPartyIdByUrn(urn, this.HttpContext.RequestAborted);
+                    var partyId = await _altinnPartyClient.GetPartyIdByUrn(urn, cancellationToken);
                     if (partyId == null)
                     {
                         throw new ServiceException(
@@ -1846,10 +1895,7 @@ public class InstancesController : ControllerBase
                             $"Failed to lookup party by username: {instanceOwner.Username}. No partyId found for the provided idporten self identified email address."
                         );
                     }
-                    return await _registerClient.GetPartyUnchecked(
-                        partyId.Value,
-                        cancellationToken: this.HttpContext.RequestAborted
-                    );
+                    return await _registerClient.GetPartyUnchecked(partyId.Value, cancellationToken: cancellationToken);
                 }
                 else
                 {
@@ -1859,7 +1905,7 @@ public class InstancesController : ControllerBase
                     );
                 }
             }
-            catch (OperationCanceledException) when (this.HttpContext.RequestAborted.IsCancellationRequested)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 throw;
             }
@@ -1955,7 +2001,8 @@ public class InstancesController : ControllerBase
                 var fileValidationIssues = await _fileService.RunFileAnalysisAndValidation(
                     dataType,
                     part.Bytes,
-                    part.FileName
+                    part.FileName,
+                    language
                 );
 
                 if (fileValidationIssues is not null)

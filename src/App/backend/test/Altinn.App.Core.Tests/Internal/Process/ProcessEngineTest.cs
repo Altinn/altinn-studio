@@ -33,6 +33,7 @@ using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
+using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Constants;
@@ -659,7 +660,7 @@ public sealed class ProcessEngineTest
             },
         };
 
-        await using var fixture = Fixture.Create(services, registerProcessEnd: false);
+        await using var fixture = Fixture.Create(services);
         fixture
             .Mock<IAppMetadata>()
             .Setup(x => x.ApplicationMetadata)
@@ -740,9 +741,6 @@ public sealed class ProcessEngineTest
                 "LockTaskData",
                 // Advance in-memory process state to NEW
                 "MutateProcessState",
-                // ProcessEnd commands (see NEW state)
-                "OnProcessEndingHook",
-                "EndProcessLegacyHook",
                 // Persist to Storage
                 "CommitProcessState",
                 // Enqueues the side-effects workflow at the commit boundary
@@ -1186,11 +1184,12 @@ public sealed class ProcessEngineTest
                     It.IsAny<StorageVersionMetadata>(),
                     It.IsAny<string>(),
                     "sign",
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, StorageVersionMetadata, string, string?, CancellationToken>(
-                (instance, versions, state, _, _) =>
+            .Callback<Instance, StorageVersionMetadata, string, string?, string?, CancellationToken>(
+                (instance, versions, state, _, _, _) =>
                 {
                     enqueuedInstance = instance;
                     enqueuedVersions = versions;
@@ -1908,10 +1907,9 @@ public sealed class ProcessEngineTest
     }
 
     [Theory]
-    [InlineData(true, true)]
-    [InlineData(false, false)]
-    [InlineData(false, true)]
-    public async Task Next_moves_instance_to_end_event_and_ends_process(bool registerProcessEnd, bool useTelemetry)
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Next_moves_instance_to_end_event_and_ends_process(bool useTelemetry)
     {
         var expectedInstance = new Instance()
         {
@@ -1926,19 +1924,11 @@ public sealed class ProcessEngineTest
                 EndEvent = "EndEvent_1",
             },
         };
-        await using var fixture = Fixture.Create(registerProcessEnd: registerProcessEnd, withTelemetry: useTelemetry);
+        await using var fixture = Fixture.Create(withTelemetry: useTelemetry);
         fixture
             .Mock<IAppMetadata>()
             .Setup(x => x.ApplicationMetadata)
             .Returns(new ApplicationMetadata("org/app") { DataTypes = [] });
-
-        if (registerProcessEnd)
-        {
-            fixture
-                .Mock<IProcessEnd>()
-                .Setup(x => x.End(It.IsAny<Instance>(), It.IsAny<List<InstanceEvent>>()))
-                .Verifiable(Times.Once);
-        }
 
         LegacyProcessEngine processEngine = fixture.ProcessEngine;
         InstanceOwner instanceOwner = new() { PartyId = _instanceOwnerPartyId.ToString() };
@@ -1996,13 +1986,10 @@ public sealed class ProcessEngineTest
 
         // Note: Removed obsolete verifications for IProcessEventHandlerDelegator and IProcessEventDispatcher
         // These interfaces no longer exist in the new process engine architecture.
-        // Note: IProcessEnd.End is no longer called directly by ProcessEngine in the new architecture.
-        // Process end logic is now handled via HTTP process engine commands.
 
         if (useTelemetry)
         {
-            var snapshotFilename =
-                $"ProcessEngineTest.Telemetry.IProcessEnd_{(registerProcessEnd ? "registered" : "not_registered")}.json";
+            var snapshotFilename = "ProcessEngineTest.Telemetry.ProcessEnd.json";
             await Verify(fixture.TelemetrySink.GetSnapshot()).UseFileName(snapshotFilename);
         }
 
@@ -2658,6 +2645,7 @@ public sealed class ProcessEngineTest
                     true,
                     null,
                     null,
+                    null,
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -3144,7 +3132,7 @@ public sealed class ProcessEngineTest
         Assert.NotNull(initial.ProcessStateChange.Events);
         var requestUser = initial.ProcessStateChange.Events[0].User;
         var factory = fixture.ServiceProvider.GetRequiredService<ProcessNextRequestFactory>();
-        var acquire = await factory.CreateAcquire(instance, null, "state", "acquire-key");
+        var acquire = await factory.CreateAcquire(instance, null, "state", "acquire-key", language: null);
         var actor = System
             .Text.Json.JsonSerializer.Deserialize<AppWorkflowContext>(acquire.Request.Context!.Value)!
             .Actor;
@@ -3184,6 +3172,104 @@ public sealed class ProcessEngineTest
         Assert.All(change.Events, e => Assert.Equivalent(requestUser, e.User));
     }
 
+    [Theory]
+    [InlineData("en", "en")]
+    [InlineData(null, "nn")]
+    public async Task Next_TransitionCallbacksGetTheLanguageTheUserChose_OrTheirProfileLanguage(
+        string? language,
+        string expected
+    )
+    {
+        Authenticated authentication = TestAuthentication.GetUserAuthentication(
+            profileSettingPreference: new ProfileSettingPreference { Language = "nn" }
+        );
+        var services = new ServiceCollection();
+        services.AddSingleton(Mock.Of<IAuthenticationContext>(a => a.Current == authentication));
+        await using var fixture = Fixture.Create(services);
+        fixture
+            .Mock<IValidationService>()
+            .Setup(v =>
+                v.ValidateInstanceAtTask(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    "Task_1",
+                    It.IsAny<List<string>>(),
+                    null,
+                    language
+                )
+            )
+            .ReturnsAsync([]);
+
+        ProcessChangeResult result = await fixture.ProcessEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = CreateTask1Instance(),
+                InstanceVersions = _storageVersions,
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = language,
+            }
+        );
+        Assert.True(result.Success);
+        WorkflowEnqueueRequest acquire = Assert.Single(GetEnqueuedRequests(fixture));
+        await ContinueAcquiredTransition(fixture, acquire, Guid.NewGuid());
+
+        // Each callback restores its data mutator with the language of the actor the engine echoes from the context.
+        List<WorkflowEnqueueRequest> enqueued = GetEnqueuedRequests(fixture);
+        Assert.Equal(2, enqueued.Count);
+        Assert.All(
+            enqueued,
+            request =>
+                Assert.Equal(
+                    expected,
+                    System
+                        .Text.Json.JsonSerializer.Deserialize<AppWorkflowContext>(request.Context!.Value)!
+                        .Actor.Language
+                )
+        );
+    }
+
+    [Theory]
+    [InlineData("en", "en")]
+    [InlineData(null, "nn")]
+    public async Task CreateInitialProcessState_StartGatewayGetsTheLanguageTheUserChose_OrTheirProfileLanguage(
+        string? language,
+        string expected
+    )
+    {
+        Authenticated authentication = TestAuthentication.GetUserAuthentication(
+            profileSettingPreference: new ProfileSettingPreference { Language = "nn" }
+        );
+        var services = new ServiceCollection();
+        services.AddSingleton(Mock.Of<IAuthenticationContext>(a => a.Current == authentication));
+        await using var fixture = Fixture.Create(services);
+        Instance instance = CreateTask1Instance();
+        instance.Process = null;
+
+        ProcessChangeResult result = await fixture.ProcessEngine.CreateInitialProcessState(
+            new ProcessStartRequest
+            {
+                Instance = instance,
+                User = CreateUserClaimsPrincipal(),
+                Language = language,
+            }
+        );
+
+        Assert.True(result.Success);
+        // The navigator evaluates the gateways after the start event with this accessor.
+        IInvocation navigation = Assert.Single(
+            fixture.Mock<IProcessNavigator>().Invocations,
+            invocation => invocation.Method.Name == nameof(IProcessNavigator.GetNextTask)
+        );
+        Assert.Equal(expected, ((IInstanceDataAccessor)navigation.Arguments[0]).Language);
+    }
+
+    private static List<WorkflowEnqueueRequest> GetEnqueuedRequests(Fixture fixture) =>
+        fixture
+            .Mock<IWorkflowEngineClient>()
+            .Invocations.Where(invocation => invocation.Method.Name == nameof(IWorkflowEngineClient.EnqueueWorkflows))
+            .Select(invocation => (WorkflowEnqueueRequest)invocation.Arguments[3])
+            .ToList();
+
     [Fact]
     public async Task Next_DoesNotMutateTheInstanceBeforeEnqueue()
     {
@@ -3201,11 +3287,12 @@ public sealed class ProcessEngineTest
                     _storageVersions,
                     It.IsAny<string>(),
                     It.IsAny<string?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, StorageVersionMetadata, string, string?, CancellationToken>(
-                (_, _, _, _, _) =>
+            .Callback<Instance, StorageVersionMetadata, string, string?, string?, CancellationToken>(
+                (_, _, _, _, _, _) =>
                 {
                     Assert.Same(process, instance.Process);
                     Assert.Equal("Task_1", instance.Process!.CurrentTask.ElementId);
@@ -3435,8 +3522,7 @@ public sealed class ProcessEngineTest
             ServiceCollection? services = null,
             IEnumerable<IUserAction>? userActions = null,
             bool withTelemetry = false,
-            TestJwtToken? token = null,
-            bool registerProcessEnd = false
+            TestJwtToken? token = null
         )
         {
             services ??= new ServiceCollection();
@@ -3677,9 +3763,6 @@ public sealed class ProcessEngineTest
             services.TryAddSingleton<ProcessStepOptionsResolver>();
             services.TryAddTransient<WorkflowStateSigner>();
             services.TryAddTransient<WorkflowCallbackStateService>();
-
-            if (registerProcessEnd)
-                services.AddSingleton<IProcessEnd>(_ => new Mock<IProcessEnd>().Object);
 
             services.TryAddTransient<ModelSerializationService>();
 

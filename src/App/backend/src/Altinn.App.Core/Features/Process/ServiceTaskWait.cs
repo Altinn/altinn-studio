@@ -36,6 +36,9 @@ public sealed record ServiceTaskWait
     /// How much of the wait allowance is left before <see cref="Deadline"/>, floored at zero — or
     /// <c>null</c> before the first deferral, when the whole allowance is still ahead.
     /// </summary>
+    /// <remarks>
+    /// For pacing only. Decide whether to give up with <see cref="IsFinalCheck"/>.
+    /// </remarks>
     public TimeSpan? Remaining =>
         Deadline is { } deadline
             ? deadline - DateTimeOffset.UtcNow is { Ticks: > 0 } remaining
@@ -49,5 +52,9 @@ public sealed record ServiceTaskWait
     /// your own terms — <see cref="ServiceTaskResult.FailedPermanent"/> with a message that names what
     /// never arrived reads better than a generic expiry.
     /// </summary>
-    public bool IsFinalCheck => Deadline is { } deadline && DateTimeOffset.UtcNow >= deadline;
+    /// <remarks>
+    /// While it is <c>false</c>, a <see cref="ServiceTaskResult.Defer"/> always gets another run. Decide
+    /// to give up with this rather than by comparing <see cref="Deadline"/> with the current time.
+    /// </remarks>
+    public bool IsFinalCheck { get; init; }
 }

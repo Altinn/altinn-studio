@@ -11,16 +11,83 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+- `studioctl app upgrade v9` removes the `JsonObjectInDataResponse` feature flag from the appsettings files, and points out when it was off, since clients of the data API then get validation issues as JSON instead of text. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
+
+### Changed
+
+- `studioctl app upgrade v9` no longer asks you to grant the app owner task-specific actions in `policy.xml`, such as `confirm`, `reject` or an action named after a custom task type. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
+- `studioctl app upgrade v9` now verifies that the app can use .NET SDK 11.0.100-rc.2 or newer before changing any files. ([#21229](https://github.com/Altinn/altinn-studio/pull/21229))
+- `studioctl app upgrade v9` keeps your validation message texts showing: ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
+  - renames your texts for built-in validation messages and PDF texts to their v9 keys, such as `DataElementTooLarge` to `validation_errors.file_too_large` and `pdfPreviewText` to `pdf.preview_text`
+  - moves a text key your code sets as a validation issue's `Description` to `CustomTextKey`, and removes a description that repeats the text key, also in `CreateValidationIssue` calls
+
+### Fixed
+
+- `studioctl app upgrade v9` moves app implementations of `IEFormidlingMetadata` and `IEFormidlingReceivers` to the v9 signatures, which take `IInstanceDataAccessor` instead of `Instance`. Before, the app did not build until they were changed by hand. The method reads the instance from the accessor, so the rest of its body is unchanged. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
+- `studioctl app upgrade v9` also reports implementations of and calls to `SendEFormidlingShipment(Instance, ValidAltinnEFormidlingConfiguration)`, which v9 removed as well. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
+
+## [0.1.0-preview.29] - 2026-10-14
+
+### Added
+
+- The OpenTelemetry collector in `studioctl env up --monitoring` also accepts OTLP over HTTP, on port 4318. ([#21114](https://github.com/Altinn/altinn-studio/pull/21114))
+- `studioctl app upgrade v9` ports more app code to v9:
+    - deletes `IPdfFormatter` implementations that leave the PDF unchanged and points out the rest ([#19785](https://github.com/Altinn/altinn-studio/issues/19785))
+    - removes the `Async` suffix from app code that implements or calls renamed app library methods, such as `GetAppOptionsAsync`, and lists calls it cannot verify ([#19774](https://github.com/Altinn/altinn-studio/issues/19774))
+    - moves `IProcessExclusiveGateway` implementations off the removed three-parameter `FilterAsync` ([#19782](https://github.com/Altinn/altinn-studio/issues/19782))
+
+### Changed
+
+- `studioctl app upgrade v9` moves apps and Docker images to .NET 11, including older v9 previews, and updates packages to `9.0.0-preview.8` or later while preserving newer versions. Automatic framework migration requires a single, explicit, unconditional `TargetFramework` in the app’s project file. Inherited and other unsupported framework configurations require manual changes. ([#21167](https://github.com/Altinn/altinn-studio/pull/21167))
+- `studioctl app upgrade v9` removes unsupported summary flags and summary title bindings from component layouts, while keeping supported settings such as Payment receipt rendering. ([#21141](https://github.com/Altinn/altinn-studio/pull/21141))
+- `studioctl app upgrade v9` removes unsupported `required` and `readOnly` properties from known components. It preserves `minNumberOfAttachments` and `minCount`; conflicts with `required` produce a TODO asking you to verify the minimum. ([#16618](https://github.com/Altinn/altinn-studio/issues/16618))
+- `studioctl env up --monitoring` now runs VictoriaMetrics, VictoriaTraces and VictoriaLogs, with Grafana 12.4: ([#20578](https://github.com/Altinn/altinn-studio/pull/20578))
+    - metrics keep their OpenTelemetry names, such as `http.server.request.duration`
+    - `STUDIOCTL_IMAGE_VICTORIA_METRICS`, `_TRACES` and `_LOGS` replace the Tempo, Mimir and Loki variables
+    - dashboards built locally work in the shared Altinn Studio Grafana, with `deployment.environment.name` set to `local` ([#21114](https://github.com/Altinn/altinn-studio/pull/21114))
+    - traces link to their logs and to request metrics
+    - starting needs network access
+
+### Fixed
+
+- `studioctl app upgrade` no longer adds a byte order mark to the project files it rewrites, and removes an existing one. ([#21167](https://github.com/Altinn/altinn-studio/pull/21167))
+- The App dashboard in `studioctl env up --monitoring`: ([#20578](https://github.com/Altinn/altinn-studio/pull/20578))
+    - _Feil_ shows one total of server errors instead of one value per endpoint with an "SMS" unit
+    - panels show "No data" instead of 0 when the app does not report the metric
+- The _App_ and _ASP.NET Core_ dashboards in `studioctl env up --monitoring`: ([#21194](https://github.com/Altinn/altinn-studio/pull/21194))
+    - count an app's first forms, errors and requests, such as a single 500 or one completed form, which showed as 0 or "No data"
+    - _Errors Rate_ counts each request once, so fast errors are no longer overstated
+    - _Feil_ shows 0 when the app has no server errors
+- `studioctl app upgrade v9` renames every call to an app's own `Analyse` method on an `IFileAnalyser` implementation, even when the call is in a different file from the class. Some were left unchanged, and the app then failed to build. ([#21047](https://github.com/Altinn/altinn-studio/pull/21047))
+
+## [0.1.0-preview.28] - 2026-10-07
+
+### Added
+
 - `studioctl app upgrade v9` enables implicit usings in the project file and adds `Altinn.App.Core.Features` as a global using, so app code no longer needs `using` directives for the most common namespaces. The `using` directives this makes redundant are removed from the app's C# files, except the generated data models under `models/`, which Studio regenerates. Converted legacy rules are generated without them.
 - `studioctl app upgrade v9` renames the model argument of the `IAppResources` methods `GetModelJsonSchema`, `GetXsdSchema` and `GetPrefillJson` where a call passes it by name, since v9 names the parameter `dataTypeId`.
 - `studioctl app upgrade v9` reports references to the app library's service classes that are internal in v9, such as `AppResourcesSI`, `AppMetadata`, `DataClient` and `PdfService`, and names the interface to inject instead of each one.
 - `studioctl app upgrade v9` rewrites awaited `IAppMetadata` reads to the v9 properties: `GetApplicationMetadata()` to `ApplicationMetadata`, `GetApplicationXACMLPolicy()` to `XacmlPolicy` and `GetApplicationBPMNProcess()` to `ProcessDefinition`.
 - `studioctl app upgrade v9` reports code that injects `IFeatureManager` or calls `AddFeatureManagement()`, which the v9 app libraries no longer register, reads of the removed `AppSettings.AppBasePath` and folder settings, and references to the `FrontendFeatures` and `Altinn.App.Core.Internal.Language.ApplicationLanguage` classes, which are internal in v9 as well, with what to use instead.
 - `studioctl app upgrade v9` points out `AppSettings` keys in the appsettings files that v9 no longer reads, and app files and folders whose names differ only in case from the names v9 reads, since v9 matches names case-sensitively on every operating system.
+- `studioctl app upgrade v9` removes `GeneralSettings:HostName` from the appsettings files, such as the old localtest host `altinn3local.no`. The platform sets the host name for a deployed app, and studioctl for a local run. ([#16308](https://github.com/Altinn/altinn-studio/issues/16308))
+- `studioctl app upgrade v9` renames the misspelled `allowedContributers` to `allowedContributors` on data types in `config/applicationmetadata.json`. ([#20846](https://github.com/Altinn/altinn-studio/pull/20846))
+- `studioctl app upgrade v9` points `$schema` in the app's JSON files at the schemas on `https://altinn.studio/designer/app-dist`, at the same version as the Altinn.App packages.
+
+### Changed
+
+- `studioctl app upgrade v9` prepares apps for the new "Må fylles ut" and "Valgfritt" field markers: it removes `form_filler.required_label` overrides that only repeated the old `*`, removes the retired `form_filler.required_description` text, and drops `labelSettings.optionalIndicator: true` from layouts, since it is now the default. A custom required label is kept and reported. ([#16612](https://github.com/Altinn/altinn-studio/issues/16612))
+- The PDF and eFormidling service tasks that `studioctl app upgrade v9` adds to the process are named "Lag PDF" and "Send med eFormidling", the names Studio gives new tasks of those types.
 
 ### Fixed
 
+- Canceling a request to a locally running app no longer breaks the shared connection and causes other requests to fail with HTTP 502. ([#20970](https://github.com/Altinn/altinn-studio/pull/20970))
+- `studioctl app upgrade v9` moves projects that reference the app, such as a test project, to .NET 10 too, so the solution no longer fails to build with `NU1201`. Run the upgrade again to fix an app already upgraded. ([#19421](https://github.com/Altinn/altinn-studio/issues/19421))
+- `studioctl app upgrade v9` no longer stops with a folder collision when a subform's layout set also lists a task in `layout-sets.json`. Sets used by a Subform component or marked `"type": "subform"` keep their own folder, since v9 does not bind subforms to tasks. A task that only such a set lists gets a TODO.
 - `studioctl app upgrade v9` and `studioctl app upgrade frontend-v4` now convert `saveWhileTyping` values set to `true` or `false`, which the frontend has ignored since v4. `true` is removed, and `false` becomes 4000 milliseconds, with a warning.
+- `studioctl app upgrade v9` keeps custom PDF layouts (`pdfLayoutName`) when it replaces `enablePdfCreation` with a PDF service task. The PDF service task gets its own layout set with the PDF layout, and legacy `Summary` components become `Summary2`. When this cannot be done automatically, the upgrade reports a TODO and keeps `enablePdfCreation` until it is run again.
+- Apps whose data types leave out `enablePdfCreation`, which v8 treats as `true`, keep generating their PDF after `studioctl app upgrade v9`, which now adds a PDF service task for them too. ([#20973](https://github.com/Altinn/altinn-studio/pull/20973))
 
 ## [0.1.0-preview.27] - 2026-09-23
 

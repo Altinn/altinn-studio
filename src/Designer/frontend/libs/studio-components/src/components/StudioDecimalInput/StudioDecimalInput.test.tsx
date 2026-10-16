@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ForwardedRef } from 'react';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 import { render, screen } from '@testing-library/react';
@@ -17,8 +18,6 @@ const defaultProps: StudioDecimalInputProps = {
 };
 
 describe('StudioDecimalInput', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should render description and input field', () => {
     renderDecimalInput();
     expect(screen.getByText(description)).toBeInTheDocument();
@@ -95,7 +94,7 @@ describe('StudioDecimalInput', () => {
 
   it('should call onChangeNumber with correct value when input is valid', async () => {
     const user = userEvent.setup();
-    const onChangeNumber = jest.fn();
+    const onChangeNumber = vi.fn();
     const props: StudioDecimalInputProps = { ...defaultProps, onChangeNumber };
     renderDecimalInput(props);
     const inputElement = screen.getByRole('textbox');
@@ -105,7 +104,7 @@ describe('StudioDecimalInput', () => {
 
   it(' should call onChangeNumber with correct number value when the user changes it', async () => {
     const user = userEvent.setup();
-    const onChangeNumber = jest.fn();
+    const onChangeNumber = vi.fn();
     const props: StudioDecimalInputProps = { ...defaultProps, onChangeNumber };
     renderDecimalInput(props);
     const inputElement = screen.getByRole('textbox');
@@ -115,7 +114,7 @@ describe('StudioDecimalInput', () => {
 
   it('should not call onChangeNumber when value is invalid', async () => {
     const user = userEvent.setup();
-    const onChangeNumber = jest.fn();
+    const onChangeNumber = vi.fn();
     const props: StudioDecimalInputProps = { ...defaultProps, onChangeNumber };
     renderDecimalInput(props);
     const inputElement = screen.getByRole('textbox');
@@ -125,7 +124,7 @@ describe('StudioDecimalInput', () => {
 
   it('should call onBlurNumber with correct value when input is valid', async () => {
     const user = userEvent.setup();
-    const onBlurNumber = jest.fn();
+    const onBlurNumber = vi.fn();
     const props: StudioDecimalInputProps = { ...defaultProps, onBlurNumber };
     renderDecimalInput(props);
     const inputElement = screen.getByRole('textbox');

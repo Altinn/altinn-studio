@@ -1,33 +1,15 @@
-import type {
-  ComponentBase,
-  FormComponentProps,
-  SummarizableComponentProps,
-} from '@app/layout-contract/generated/common.generated';
+import type { JSX } from 'react';
 
 import { FormComponent } from 'src/layout/LayoutComponent';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class SubformDef extends FormComponent<'Subform'> {
   protected readonly type = 'Subform';
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'Subform'>) {
-    return {
-      ...(props.item as Omit<
-        typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
-      >),
-      ...props.evalBase(),
-      ...props.evalFormProps(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'Subform'>) {
-    return this.evalDefaultExpressions(props);
-  }
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 }
 
-// Source hash: 894d95802edde432bc3f2636b1ae871d7d27fbfb659dd47c60983da4aa1a2069
+// Source hash: 2f97f16eb94ab175c239ef401cf67780e5971a5d76f63535ed826995e5a42480

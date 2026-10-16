@@ -1,20 +1,20 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { LeftContent, type LeftContentProps, SubHeader, type SubHeaderProps } from './SubHeader';
 import { renderWithProviders } from '../../../test/mocks';
 import { PreviewContext } from 'app-shared/contexts/PreviewContext';
 import { pageHeaderContextMock, previewContextMock } from '../../../test/headerMocks';
 import { PageHeaderContext } from '../../../contexts/PageHeaderContext';
-import { app, org } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { PageHeaderContextProps } from '../../../contexts/PageHeaderContext';
 import { RepositoryType } from 'app-shared/types/global';
 import userEvent from '@testing-library/user-event';
 import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
-const mockNavigate = jest.fn();
+const mockNavigate = vi.fn();
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockNavigate,
 }));
 
@@ -23,8 +23,6 @@ const defaultProps: SubHeaderProps = {
 };
 
 describe('SubHeader', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should render the GiteaHeader with left content if repository type is not DataModels', () => {
     renderSubHeader();
 
@@ -34,13 +32,6 @@ describe('SubHeader', () => {
   });
 
   it('should render the left content if repository type is not DataModels', () => {
-    jest.mock('react-router-dom', () => ({
-      ...jest.requireActual('react-router-dom'),
-      useParams: () => ({
-        org,
-        app,
-      }),
-    }));
     renderSubHeader();
 
     expect(screen.getByRole('link', { name: textMock('top_menu.preview') })).toBeInTheDocument();
@@ -59,10 +50,6 @@ describe('SubHeader', () => {
 });
 
 describe('LeftContent', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should render the returnTo button if returnTo is set', () => {
     renderLeftContent({
       pageHeaderContextProps: {

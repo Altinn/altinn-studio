@@ -22,10 +22,9 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: false,
-  },
 })
+  .makeSummarizable()
+  .addSummaryOverrides()
   .addTextResource(
     new CG.trb({
       name: 'title',

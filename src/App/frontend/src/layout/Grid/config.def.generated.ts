@@ -1,25 +1,15 @@
-import type { ComponentBase, SummarizableComponentProps } from '@app/layout-contract/generated/common.generated';
+import type { JSX } from 'react';
 
 import { ContainerComponent } from 'src/layout/LayoutComponent';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class GridDef extends ContainerComponent<'Grid'> {
   protected readonly type = 'Grid';
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'Grid'>) {
-    return {
-      ...(props.item as Omit<typeof props.item, keyof ComponentBase | keyof SummarizableComponentProps | 'hidden'>),
-      ...props.evalBase(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'Grid'>) {
-    return this.evalDefaultExpressions(props);
-  }
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 }
 
-// Source hash: 960ab2aa1712ebcf730fef26ffb3acf43526fdaf3ab34365990b4459d84177f6
+// Source hash: dd634c4b9cca9496c972fe9d6e566aecc9eb0ea31ff4e8a4cedeec061a236487

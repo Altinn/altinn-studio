@@ -1,0 +1,25 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-gateway
+spec:
+  volumes:
+    # Optional, so a missing Secret disables only the Victoria export. Mounted as a
+    # directory: a subPath mount is never updated by the kubelet, and a rotated token
+    # would not reach the Collector.
+    - name: observability-ingest-token
+      secret:
+        secretName: observability-ingest-token
+        optional: true
+    # The Victoria exporter's persistent queue. It survives a container restart, not a
+    # new pod. The limit is well above the queue's size in gateway-config.yaml, because
+    # exceeding it evicts the whole gateway, Application Insights export included.
+    - name: victoria-queue
+      emptyDir:
+        sizeLimit: 1Gi
+  volumeMounts:
+    - name: observability-ingest-token
+      mountPath: /var/run/observability-ingest-token
+      readOnly: true
+    - name: victoria-queue
+      mountPath: /var/lib/otelcol/victoria-queue

@@ -5,13 +5,13 @@ import { EyeSlashIcon } from '@navikt/aksel-icons';
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import classes from 'src/features/devtools/components/NodeInspector/ValidationInspector.module.css';
-import { Lang } from 'src/features/language/Lang';
+import { LangReference } from 'src/features/language/Lang';
 import { ValidationMask } from 'src/features/validation';
 import { isValidationVisible } from 'src/features/validation/utils';
 import { useRawValidations, useValidationVisibilityBreakdown } from 'src/features/validation/validationHooks';
 import { getComponentDef, implementsAnyValidation } from 'src/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { AttachmentValidation, NodeRefValidation, ValidationSeverity } from 'src/features/validation';
 import type { ValidationVisibilityBreakdown } from 'src/features/validation/validationHooks';
 
@@ -34,7 +34,7 @@ export const ValidationInspector = ({ baseComponentId }: ValidationInspectorProp
   const rawVisibility = useValidationVisibilityBreakdown(baseComponentId, indexedId);
   const nodeVisibility = rawVisibility.effective;
   const dataModelBindings = useDataModelBindingsFor(baseComponentId);
-  const type = useExternalItem(baseComponentId).type;
+  const type = useComponentConfig(baseComponentId).type;
   const attachments = AttachmentReadModel.useAttachmentsFor(baseComponentId);
 
   const def = getComponentDef(type);
@@ -155,7 +155,7 @@ const ValidationItems = ({ grouping, validations, visibility }: ValidationItemsP
       <ul style={{ padding: 0 }}>
         {validations.map((validation) => (
           <ValidationItem
-            key={`${validation.nodeId}-${validation.source}-${validation.message.key}-${validation.severity}`}
+            key={`${validation.nodeId}-${validation.source}-${validation.message.key ?? validation.message.fallback}-${validation.severity}`}
             validation={validation}
             visibility={visibility}
           />
@@ -189,11 +189,7 @@ const ValidationItem = ({ validation, visibility }: ValidationItemProps) => {
             title='Denne valideringen er skjult'
           />
         )}
-        <Lang
-          id={validation.message.key}
-          params={validation.message.params}
-          customTextParameters={validation.message.customTextParameters}
-        />
+        <LangReference reference={validation.message} />
       </div>
       {category && (
         <span

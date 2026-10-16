@@ -1,25 +1,15 @@
-import type { ComponentBase, SummarizableComponentProps } from '@app/layout-contract/generated/common.generated';
+import type { JSX } from 'react';
 
 import { PresentationComponent } from 'src/layout/LayoutComponent';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class ParagraphDef extends PresentationComponent<'Paragraph'> {
   protected readonly type = 'Paragraph';
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'Paragraph'>) {
-    return {
-      ...(props.item as Omit<typeof props.item, keyof ComponentBase | keyof SummarizableComponentProps | 'hidden'>),
-      ...props.evalBase(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'Paragraph'>) {
-    return this.evalDefaultExpressions(props);
-  }
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 }
 
-// Source hash: 32ce1c088f7507d82c11717bb011f6fd9ba40edbc34fc9e54da6abcfdb7c8068
+// Source hash: 481dd45313cb11fc1dd166b03aa7f7bfce2e508ad511bcc03f017c4a17d1f7f7

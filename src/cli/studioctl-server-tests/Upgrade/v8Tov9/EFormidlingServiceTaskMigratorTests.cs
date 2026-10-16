@@ -103,6 +103,7 @@ public sealed class EFormidlingServiceTaskMigratorTests : IDisposable
         var task = ElementById(process, "EFormidlingTask_Task_1");
         Assert.NotNull(task);
         Assert.Equal("serviceTask", task.Name.LocalName);
+        Assert.Equal("Send med eFormidling", task.Attribute("name")?.Value);
         Assert.Equal("eFormidling", task.Descendants().Single(e => e.Name.LocalName == "taskType").Value);
         Assert.Equal("EFormidlingTask_Task_1", ElementById(process, "Flow_end")?.Attribute("targetRef")?.Value);
 

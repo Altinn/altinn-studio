@@ -20,11 +20,13 @@ export const Config = asAttachmentUploader(
       renderInCards: true,
       renderInCardsMedia: false,
     },
-    functionality: {
-      customExpressions: true,
-    },
   }),
 )
+  .makeSummarizable()
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
+  .addProperty(CG.common('required'))
+  .addProperty(CG.common('readOnly'))
   .extendTextResources(CG.common('TRBLabel'))
   .addProperty(
     new CG.prop(

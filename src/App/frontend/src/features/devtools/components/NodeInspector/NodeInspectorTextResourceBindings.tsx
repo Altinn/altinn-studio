@@ -1,13 +1,16 @@
 import React from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
 import { Value } from 'src/features/devtools/components/NodeInspector/NodeInspectorDataField';
 import { canBeExpression } from 'src/features/expressions/validation';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
-import { useExternalItem } from 'src/utils/layout/hooks';
-import { useItemIfType } from 'src/utils/layout/useNodeItem';
+import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpressionMap } from 'src/utils/layout/useEvalExpression';
 import type { ITextResourceBindings } from 'src/layout/layout';
 import type { GroupExpressions } from 'src/layout/RepeatingGroup/types';
 
@@ -17,7 +20,7 @@ interface Props {
 }
 
 export function NodeInspectorTextResourceBindings(props: Props) {
-  const component = useExternalItem(props.baseComponentId);
+  const component = useComponentConfig(props.baseComponentId);
   if (component.type === 'RepeatingGroup') {
     return <NodeNodeInspectorTextResourceBindingsForFirstRow {...props} />;
   }
@@ -26,11 +29,42 @@ export function NodeInspectorTextResourceBindings(props: Props) {
 }
 
 function NodeNodeInspectorTextResourceBindingsForFirstRow(props: Props) {
-  const firstRowExpr = RepGroupHooks.useRowWithExpressions(props.baseComponentId, 'first');
+  const row = RepGroupHooks.useAllBaseRows(props.baseComponentId)[0];
+  const groupBinding = useDataModelBindingsFor(props.baseComponentId, 'RepeatingGroup').group;
+  if (!row) {
+    return <NodeInspectorTextResourceBindingsInner {...props} />;
+  }
+  return (
+    <DataModelLocationProvider
+      groupBinding={groupBinding}
+      rowIndex={row.index}
+    >
+      <NodeInspectorRowTexts {...props} />
+    </DataModelLocationProvider>
+  );
+}
+
+function NodeInspectorRowTexts(props: Props) {
+  const config = useComponentConfig(props.baseComponentId, 'RepeatingGroup');
+  const definitions = Expressions.RepeatingGroup.textResourceBindings;
+  const firstRowTexts = useEvalExpressionMap(
+    {
+      editButtonClose: config.textResourceBindings?.editButtonClose,
+      editButtonOpen: config.textResourceBindings?.editButtonOpen,
+      saveAndNextButton: config.textResourceBindings?.saveAndNextButton,
+      saveButton: config.textResourceBindings?.saveButton,
+    },
+    {
+      editButtonClose: definitions.editButtonClose,
+      editButtonOpen: definitions.editButtonOpen,
+      saveAndNextButton: definitions.saveAndNextButton,
+      saveButton: definitions.saveButton,
+    },
+  );
   return (
     <NodeInspectorTextResourceBindingsInner
       {...props}
-      firstRowExpr={firstRowExpr}
+      firstRowExpr={{ textResourceBindings: firstRowTexts }}
     />
   );
 }
@@ -42,7 +76,8 @@ function NodeInspectorTextResourceBindingsInner({
 }: Props & { firstRowExpr?: GroupExpressions }) {
   const textResources = useTextResources();
   const { langAsString } = useLanguage();
-  const item = useItemIfType(baseComponentId, 'RepeatingGroup');
+  const config = useComponentConfig(baseComponentId);
+  const item = config.type === 'RepeatingGroup' ? config : undefined;
 
   let actualTextResourceBindings = textResourceBindings || {};
   let isRepGroup = false;

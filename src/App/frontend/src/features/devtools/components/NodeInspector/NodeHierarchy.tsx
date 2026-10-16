@@ -2,6 +2,7 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import React, { useEffect, useRef } from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { EyeSlashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import type { GridRows } from '@app/layout-contract/generated/common.generated';
@@ -13,8 +14,8 @@ import { baseIdsFromGridRow } from 'src/layout/Grid/tools';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useExternalItem } from 'src/utils/layout/hooks';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 
 interface Common {
   selected: string | undefined;
@@ -60,7 +61,7 @@ const GridRowList = ({ rows, onClick, text, selected }: IGridRowsRenderer) => (
 );
 
 const NodeHierarchyItem = ({ baseId, onClick, selected }: INodeHierarchyItemProps) => {
-  const component = useExternalItem(baseId);
+  const component = useComponentConfig(baseId);
   const nodeId = useIndexedId(baseId);
   const { onMouseEnter, onMouseLeave } = useComponentHighlighter(nodeId, false);
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
@@ -117,8 +118,9 @@ const NodeHierarchyItem = ({ baseId, onClick, selected }: INodeHierarchyItemProp
 };
 
 function RepeatingGroupExtensions({ baseId, selected, onClick }: INodeHierarchyItemProps) {
-  const nodeItem = useItemWhenType(baseId, 'RepeatingGroup');
-  const rows = RepGroupHooks.useAllRowsWithHidden(baseId);
+  const nodeItem = useComponentConfig(baseId, 'RepeatingGroup');
+  const dataModelBindings = useDataModelBindingsFor(baseId, 'RepeatingGroup');
+  const rows = RepGroupHooks.useAllBaseRows(baseId);
   const childIds = RepGroupHooks.useChildIds(baseId);
 
   return (
@@ -132,24 +134,19 @@ function RepeatingGroupExtensions({ baseId, selected, onClick }: INodeHierarchyI
         />
       )}
       {rows.map((row) => (
-        <li
-          className={classes.repGroupRow}
-          key={row?.index}
+        <DataModelLocationProvider
+          key={row.uuid}
+          groupBinding={dataModelBindings.group}
+          rowIndex={row.index}
         >
-          <span className={classes.componentMetadata}>
-            Rad {row?.index} {row.hidden ? '(skjult)' : ''}
-          </span>
-          <DataModelLocationProvider
-            groupBinding={nodeItem.dataModelBindings.group}
+          <RepeatingGroupHierarchyRow
+            baseId={baseId}
             rowIndex={row.index}
-          >
-            <NodeHierarchy
-              baseIds={childIds}
-              selected={selected}
-              onClick={onClick}
-            />
-          </DataModelLocationProvider>
-        </li>
+            childIds={childIds}
+            selected={selected}
+            onClick={onClick}
+          />
+        </DataModelLocationProvider>
       ))}
       {nodeItem.rowsAfter && (
         <GridRowList
@@ -160,6 +157,29 @@ function RepeatingGroupExtensions({ baseId, selected, onClick }: INodeHierarchyI
         />
       )}
     </>
+  );
+}
+
+function RepeatingGroupHierarchyRow({
+  baseId,
+  rowIndex,
+  childIds,
+  selected,
+  onClick,
+}: INodeHierarchyItemProps & { rowIndex: number; childIds: string[] }) {
+  const config = useComponentConfig(baseId, 'RepeatingGroup');
+  const hidden = useEvalExpression(config.hiddenRow, Expressions.RepeatingGroup.hiddenRow);
+  return (
+    <li className={classes.repGroupRow}>
+      <span className={classes.componentMetadata}>
+        Rad {rowIndex} {hidden ? '(skjult)' : ''}
+      </span>
+      <NodeHierarchy
+        baseIds={childIds}
+        selected={selected}
+        onClick={onClick}
+      />
+    </li>
   );
 }
 

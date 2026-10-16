@@ -1,25 +1,15 @@
-import type { ComponentBase, SummarizableComponentProps } from '@app/layout-contract/generated/common.generated';
+import type { JSX } from 'react';
 
 import { ContainerComponent } from 'src/layout/LayoutComponent';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class AccordionDef extends ContainerComponent<'Accordion'> {
   protected readonly type = 'Accordion';
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'Accordion'>) {
-    return {
-      ...(props.item as Omit<typeof props.item, keyof ComponentBase | keyof SummarizableComponentProps | 'hidden'>),
-      ...props.evalBase(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'Accordion'>) {
-    return this.evalDefaultExpressions(props);
-  }
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 }
 
-// Source hash: 14f04f4a0bf28866399a54da2a0d679da0cbba95b8501de4bf0a4225dec63c46
+// Source hash: fd5eed378779618f9b60e34ddb8197995056a9b2012187e15277bc40d9a8ca09

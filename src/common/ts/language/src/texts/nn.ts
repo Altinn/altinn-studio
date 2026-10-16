@@ -4,8 +4,6 @@ export function nn() {
   return {
     'dateTime.am': 'a.m.',
     'dateTime.pm': 'p.m.',
-    'altinn.standard_validation.file_content_type_not_allowed':
-      'Det ser ut som du prøver å lasta opp ein filtype som ikkje er tillaten. Sjekk at fila faktisk er av den typen han gir seg ut for å vera.',
     'actions.sign': 'Signer',
     'actions.confirm': 'Bekreft',
     'actions.reject': 'Avslå',
@@ -68,6 +66,18 @@ export function nn() {
     'form_filler.alert_confirm': 'Bekreft',
     'form_filler.checkbox_alert': 'Er du sikker på at du vil fjerne avkryssinga?',
     'form_filler.multi_select_alert': 'Er du sikker på at du vil slette <b>{0}</b>?',
+    'form_filler.suggestion_added': 'La til',
+    'form_filler.suggestion_clear': 'Fjern tekst',
+    'form_filler.suggestion_empty': 'Ingen valde',
+    'form_filler.suggestion_found': 'Naviger til venstre for å finne %d valde',
+    'form_filler.suggestion_invalid': 'Ugyldig val',
+    'form_filler.suggestion_items': 'Valde',
+    'form_filler.suggestion_of': 'av',
+    'form_filler.suggestion_plural': '%d forslag',
+    'form_filler.suggestion_remove': 'Trykk for å fjerne',
+    'form_filler.suggestion_removed': 'Fjerna',
+    'form_filler.suggestion_singular': '%d forslag',
+    'form_filler.suggestion_toggle': 'Forslag',
     'form_filler.dropdown_alert': 'Er du sikker på at du vil endre til <b>{0}</b>?',
     'form_filler.back_to_summary': 'Attende til samandrag',
     'form_filler.back_to_page': 'Attende til {0}',
@@ -95,6 +105,7 @@ export function nn() {
     'form_filler.file_uploader_list_header_delete_sr': 'Slett',
     'form_filler.file_uploader_max_size_mb': 'Maks filstorleik {0} MB',
     'form_filler.file_uploader_upload': 'Last opp fil',
+    'form_filler.file_uploader_read_only': 'Vedlegga kan ikkje endrast.',
     'form_filler.file_uploader_number_of_files': 'Tal på filer {0}.',
     'form_filler.file_uploader_show_more_errors': 'Vis {0} fleire',
     'form_filler.file_uploader_show_fewer_errors': 'Vis færre',
@@ -120,8 +131,7 @@ export function nn() {
     'form_filler.placeholder_receipt_header': 'Skjemaet er no fullført og sendt inn.',
     'form_filler.placeholder_user': 'OLA PRIVATPERSON',
     'form_filler.radiobutton_alert_label': 'Er du sikker på at du vil endre frå {0}?',
-    'form_filler.required_description': 'Obligatoriske felt er markerte med *',
-    'form_filler.required_label': '*',
+    'form_filler.required_label': 'Må fyllast ut',
     'form_filler.summary_item_change': 'Endre',
     'form_filler.summary_go_to_correct_page': 'Gå til riktig side i skjema',
     'form_filler.address': 'Gateadresse',
@@ -176,7 +186,7 @@ export function nn() {
     'general.customer_service_slack': 'https://digdir-samarbeid.slack.com',
     'general.customer_service_email': 'servicedesk@altinn.no',
     'general.customer_service_error_message':
-      'Om du treng hjelp kan du nå Altinn på:<br/><br/>Telefon: <a href="tel:{0}">{0}</a><br/>E-post: {1}<br/>Slack: {2}',
+      'Om du treng hjelp kan du nå Altinn på:<br/><br/><ul><li>Telefon: <a href="tel:{0}">{0}</a></li><li>E-post: {1}</li><li>Slack: {2}</li></ul>',
     'general.delete': 'Slett',
     'general.download': 'Nedlasting {0}',
     'general.disabled': 'Deaktivert',
@@ -197,7 +207,7 @@ export function nn() {
     'general.log_out': 'Logg ut',
     'general.next': 'Neste',
     'general.no_options': 'Ingen alternativ tilgjengeleg',
-    'general.optional': 'Valfri',
+    'general.optional': 'Valfritt',
     'general.page_number': 'Side {0}',
     'general.print_button_text': 'Print / Lagre PDF',
     'general.progress': 'Side {0} av {1}',
@@ -221,6 +231,9 @@ export function nn() {
     'general.part_of_form_completed':
       'Denne delen av skjemaet er ikkje tilgjengeleg. Du kan ikkje gjere endringar her no',
     'general.invalid_task_id': 'Denne delen av skjemaet finst ikkje.',
+    'general.unsupported_task_type': 'Denne delen av skjemaet kan ikkje visast.',
+    'general.unsupported_task_type_details':
+      'Steget {0} i prosessen har typen {1}, som appen ikkje kan vise.',
     'general.navigate_to_current_process': 'Gå til rett prosesstrinn',
     'group.row_error':
       'Ei av radene er ikkje fylt ut riktig. Dette må bli retta før skjema kan sendast inn.',
@@ -278,9 +291,9 @@ export function nn() {
     'instantiate.authorization_error_ask':
       'Om du representerer ein person, er det den du representerer som kan gi deg dei naudsynte rettane til å starte tenesta. Representerer du ein organisasjon er det personar som har rolla tilgangsstyring internt i organisasjonen som kan gi deg dei naudsynte rettane.',
     'instantiate.authorization_error_check_rights':
-      '<a href="https://am.ui.{0}/accessmanagement/ui" target="_blank">Sjå kven som har rolla tilgangsstyring under "Andre med rettar til verksemda"</a>.',
+      '<a href="{0}" target="_blank">Sjå kven som har rolla tilgangsstyring under "Andre med rettar til verksemda"</a>.',
     'instantiate.authorization_error_info_rights':
-      '<a href="https://{0}/hjelp/profil/enkelttjenester-og-roller/" target="_blank">Her finn du meir informasjon om roller og rettar</a>.',
+      '<a href="{0}" target="_blank">Her finn du meir informasjon om roller og rettar</a>.',
     'instantiate.authorization_error_info_customer_service':
       'Du kan også kontakte oss på brukarservice {0}.',
     'instantiate.authorization_error_instantiate_validation_info_customer_service':
@@ -321,7 +334,7 @@ export function nn() {
     'party_selection.show_sub_unit': 'Vis undereiningar',
     'party_selection.why_seeing_this': 'Kvifor ser eg dette?',
     'party_selection.seeing_this_preference':
-      'Du kan endra [profilinnstillingane](https://af.{0}/profile/parties) dine for å ikkje bli spurt om aktør kvar gong du startar utfylling av eit nytt skjema. Du finn denne innstillinga under **Profil** > **Aktørar**.',
+      'Du kan endra [profilinnstillingane]({0}) dine for å ikkje bli spurt om aktør kvar gong du startar utfylling av eit nytt skjema. Du finn denne innstillinga under **Profil** > **Aktørar**.',
     'party_selection.seeing_this_override': 'Denne appen er sett opp til å alltid spørja om aktør.',
     'payment.pay': 'Betal',
     'payment.summary': 'Oppsummering',
@@ -487,7 +500,7 @@ export function nn() {
     'process_workflow.failure_kind.timeout': 'Handsaminga tok for lang tid',
     'process_workflow.failure_kind.unknown': 'Ukjend årsak',
     'process_workflow.having_trouble':
-      'Vi får ikkje handsama skjemaet ditt akkurat no, men vi prøver igjen automatisk. Opplysningane dine er lagra. Du kan trygt lukke sida og kome tilbake seinare. Du kan opne skjema du allereie har starta på, frå innboksen eller frå Utkast-mappa.',
+      'Vi kan ikkje behandle skjemaet ditt akkurat no, men vi prøver igjen automatisk. Opplysningane dine er lagra. Du kan trygt lukke sida og kome tilbake seinare. Du kan opne skjema du allereie har starta på, frå innboksen eller frå Utkast-mappa.',
     'process_workflow.still_working':
       'Dette tek uvanleg lang tid. Opplysningane dine er lagra, og arbeidet held fram automatisk. Du kan trygt lukke sida og kome tilbake seinare. Du kan opne skjema du allereie har starta på, frå innboksen eller frå Utkast-mappa.',
     'pdfPreview.error': 'Kunne ikkje førehandsvise PDF',

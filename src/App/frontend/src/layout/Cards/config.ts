@@ -18,10 +18,11 @@ export const Config = new CG.component({
     renderInCards: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: false,
-  },
 })
+  .makeSummarizable()
+  .addProperty(CG.common('renderAsSummary'))
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
   .addProperty(
     new CG.prop(
       'mediaPosition',

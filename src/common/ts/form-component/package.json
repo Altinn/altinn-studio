@@ -5,7 +5,7 @@
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./styles/breakpoints.module.css": "./src/app-components/Flex/breakpoints.module.css",
+    "./styles/breakpoints.module.css": "./src/app-components/breakpoints/breakpoints.module.css",
     "./styles/combobox.module.css": "./src/styles/combobox.module.css",
     "./styles/global.css": "./src/styles/global.css",
     "./test/popoverPolyfill": "./src/test/popoverPolyfill.ts"
@@ -23,7 +23,7 @@
   "dependencies": {
     "classnames": "2.5.1",
     "date-fns": "4.4.0",
-    "dompurify": "3.4.15",
+    "dompurify": "3.4.16",
     "html-react-parser": "6.1.8",
     "marked": "17.0.6",
     "marked-mangle": "1.1.14",

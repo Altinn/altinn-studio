@@ -21,16 +21,19 @@ export const Config = asOptionsComponent(
       renderInCardsMedia: false,
       renderInTabs: true,
     },
-    functionality: {
-      customExpressions: true,
-      displayData: false,
-    },
   }),
   { supportsPreselection: false },
 )
   // Auto-generated LikertItem inside here is a form component, so this is a little bit of both a
   // container and a form component
   .extends(CG.common('FormComponentProps'))
+  .makeSummarizable()
+  .addProperty(CG.common('renderAsSummary'))
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
+  .addProperty(CG.common('required'))
+  .addProperty(CG.common('readOnly'))
+  .extends(CG.common('LabeledComponentProps'))
   .addTextResource(
     new CG.trb({
       name: 'title',

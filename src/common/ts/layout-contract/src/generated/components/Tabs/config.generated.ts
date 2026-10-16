@@ -1,13 +1,14 @@
+import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
   ISummaryOverridesCommon,
-  SummarizableComponentProps,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
-import { CompCategory } from '@app/layout-contract';
 
-export interface CompTabsExternal extends ComponentBase, SummarizableComponentProps {
+export interface CompTabsExternal extends ComponentBase {
   type: 'Tabs';
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: TRBSummarizable;
   size?: 'small' | 'medium' | 'large';
   defaultTab?: string;
@@ -54,4 +55,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: TabsSummaryOverridesWithRef;
 };
 
-// Source hash: 6952e037193f9c3ebe743fabd2cf77c460363b2ffa45a86e84fa94ba32769a0d
+// Source hash: a7b46e5903e19f89d1d26d74374044e9ff343b396d9054af32e5e182b3344590

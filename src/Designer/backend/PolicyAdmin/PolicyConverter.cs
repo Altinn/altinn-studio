@@ -285,6 +285,11 @@ public static class PolicyConverter
             foreach (string res in resource)
             {
                 int splitLocation = res.LastIndexOf(":");
+                if (res.StartsWith($"{AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute}:a1-"))
+                {
+                    // Migrated Altinn 1 app values contain colons (e.g. "a1-1269-5942:1"), so split after urn:altinn:app
+                    splitLocation = AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute.Length;
+                }
                 string attributeDesignator = res.Substring(0, splitLocation);
                 string attributeValue = res.Substring(splitLocation + 1);
 

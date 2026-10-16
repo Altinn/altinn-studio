@@ -19,10 +19,13 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: true,
-  },
 })
+  .makeSummarizable()
+  .addProperty(CG.common('renderAsSummary'))
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
+  .addProperty(CG.common('required'))
+  .addProperty(CG.common('readOnly'))
   .addDataModelBinding(
     new CG.obj(
       new CG.prop('simpleBinding', new CG.dataModelBinding().optional()),
@@ -213,8 +216,8 @@ export const Config = new CG.component({
     new CG.prop(
       'centerLocation',
       new CG.obj(
-        new CG.prop('latitude', new CG.expr(ExprVal.Number)),
-        new CG.prop('longitude', new CG.expr(ExprVal.Number)),
+        new CG.prop('latitude', new CG.expr(ExprVal.Number).setFallback(0)),
+        new CG.prop('longitude', new CG.expr(ExprVal.Number).setFallback(0)),
       )
         .optional()
         .exportAs('Location')

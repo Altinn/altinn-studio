@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigation } from 'react-router';
 
 import { Button, FatalError, Flex, Spinner } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, PlusIcon, TrashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
@@ -25,28 +26,32 @@ import classes from 'src/layout/Subform/SubformComponent.module.css';
 import { evalSubformString, useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
 import utilClasses from 'src/styles/utils.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useExternalItem } from 'src/utils/layout/hooks';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IData } from 'src/types/shared';
 
 export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<'Subform'>): React.JSX.Element | null {
-  const {
-    id,
-    layoutSet,
-    textResourceBindings,
-    tableColumns = [],
-    showAddButton = true,
-    showDeleteButton = true,
-  } = useItemWhenType(baseComponentId, 'Subform');
+  const config = useComponentConfig(baseComponentId, 'Subform');
+  const componentId = useIndexedId(baseComponentId);
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Subform.textResourceBindings.title);
+  const description = useEvalOptionalText(
+    config.textResourceBindings?.description,
+    Expressions.Subform.textResourceBindings.description,
+  );
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Subform.textResourceBindings.help);
+  const addButton = useEvalOptionalText(
+    config.textResourceBindings?.addButton,
+    Expressions.Subform.textResourceBindings.addButton,
+  );
 
   const isSubformPage = useIsSubformPage();
-  const dataType = getDefaultDataTypeFromUiFolder(layoutSet);
+  const dataType = getDefaultDataTypeFromUiFolder(config.layoutSet);
   const navigation = useNavigation();
 
   if (!dataType) {
-    window.logErrorOnce(`Unable to find data type for subform with id ${id}`);
-    throw new Error(`Unable to find data type for subform with id ${id}`);
+    window.logErrorOnce(`Unable to find data type for subform with id ${componentId}`);
+    throw new Error(`Unable to find data type for subform with id ${componentId}`);
   }
 
   const { langAsString } = useLanguage();
@@ -54,7 +59,7 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
   const subformEntries = useInstanceDataElements(dataType);
 
   const enterSubform = useEnterSubform();
-  const lock = FormStore.data.useLocking(id);
+  const lock = FormStore.data.useLocking(componentId);
   const performProcess = useProcessingMutation('add-subform');
   const isAdding = useIsThisProcessing('add-subform');
   const isAddingDisabled = useIsAnyProcessing();
@@ -88,34 +93,37 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <Flex
-        id={id}
+        id={componentId}
         container
         item
-        data-componentid={id}
+        data-componentid={componentId}
         data-componentbaseid={baseComponentId}
       >
         <Table
-          id={`subform-${id}-table`}
+          id={`subform-${componentId}-table`}
           className={classes.subformTable}
         >
-          {textResourceBindings?.title && (
+          {title && (
             <Caption
-              id={`subform-${id}-caption`}
-              title={<Lang id={textResourceBindings.title} />}
-              description={textResourceBindings.description && <Lang id={textResourceBindings.description} />}
+              id={`subform-${componentId}-caption`}
+              title={<Lang id={title} />}
+              description={description && <Lang id={description} />}
               helpText={
-                textResourceBindings.help
-                  ? { text: <Lang id={textResourceBindings.help} />, accessibleTitle: textResourceBindings.title }
+                help
+                  ? {
+                      text: <Lang id={help} />,
+                      accessibleTitle: title,
+                    }
                   : undefined
               }
             />
           )}
           {subformEntries.length > 0 && (
             <>
-              <Table.Head id={`subform-${id}-table-body`}>
+              <Table.Head id={`subform-${componentId}-table-body`}>
                 <Table.Row>
-                  {tableColumns.length ? (
-                    tableColumns.map((entry, index) => (
+                  {(config.tableColumns ?? []).length ? (
+                    (config.tableColumns ?? []).map((entry, index) => (
                       <Table.HeaderCell
                         className={classes.tableCellFormatting}
                         key={index}
@@ -133,7 +141,7 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
                       <Lang id='general.edit' />
                     </span>
                   </Table.HeaderCell>
-                  {showDeleteButton && (
+                  {(config.showDeleteButton ?? true) && (
                     <Table.HeaderCell>
                       <span className={utilClasses.visuallyHidden}>
                         <Lang id='general.delete' />
@@ -150,7 +158,7 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
                     baseComponentId={baseComponentId}
                     hasErrors={Boolean(subformIdsWithError?.includes(dataElement.id))}
                     rowNumber={index}
-                    showDeleteButton={showDeleteButton}
+                    showDeleteButton={config.showDeleteButton ?? true}
                   />
                 ))}
               </Table.Body>
@@ -158,10 +166,10 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
           )}
         </Table>
 
-        {showAddButton && (
+        {(config.showAddButton ?? true) && (
           <div className={classes.addButton}>
             <Button
-              id={`subform-${id}-add-button`}
+              id={`subform-${componentId}-add-button`}
               size='md'
               disabled={isAddingDisabled}
               isLoading={isAdding}
@@ -182,7 +190,7 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
                   aria-hidden='true'
                 />
               )}
-              {langAsString(textResourceBindings?.addButton)}
+              {langAsString(addButton)}
             </Button>
           </div>
         )}
@@ -205,9 +213,9 @@ function SubformTableRow({
   showDeleteButton: boolean;
 }) {
   const id = dataElement.id;
-  const { tableColumns = [] } = useItemWhenType(baseComponentId, 'Subform');
+  const config = useComponentConfig(baseComponentId, 'Subform');
 
-  const component = useExternalItem(baseComponentId, 'Subform');
+  const component = useComponentConfig(baseComponentId, 'Subform');
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
 
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
@@ -220,13 +228,11 @@ function SubformTableRow({
   const deleteButtonText = langAsString('general.delete');
 
   const editButtonText = component?.textResourceBindings?.tableEditButton
-    ? langAsString(
-        evalSubformString(component.textResourceBindings.tableEditButton, editButtonDataSource, 'general.edit'),
-      )
+    ? langAsString(evalSubformString(component.textResourceBindings.tableEditButton, editButtonDataSource))
     : langAsString('general.edit');
   const nodeId = useIndexedId(baseComponentId);
 
-  const numColumns = tableColumns.length;
+  const numColumns = (config.tableColumns ?? []).length;
   const actualColumns = showDeleteButton ? numColumns + 1 : numColumns;
 
   if (isSubformDataFetching) {
@@ -255,8 +261,8 @@ function SubformTableRow({
       data-row-num={rowNumber}
       className={cn({ [classes.disabledRow]: isDeleting, [classes.tableRowError]: hasErrors })}
     >
-      {tableColumns.length ? (
-        tableColumns.map((entry, index) => (
+      {(config.tableColumns ?? []).length ? (
+        (config.tableColumns ?? []).map((entry, index) => (
           <Table.Cell key={`subform-cell-${id}-${index}`}>
             <SubformCellContent
               cellContent={entry.cellContent}

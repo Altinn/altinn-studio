@@ -1,36 +1,18 @@
-import type {
-  ComponentBase,
-  FormComponentProps,
-  SummarizableComponentProps,
-} from '@app/layout-contract/generated/common.generated';
+import type { JSX } from 'react';
 
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class AddressDef extends FormComponent<'Address'> implements DisplayData {
   protected readonly type = 'Address';
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'Address'>) {
-    return {
-      ...(props.item as Omit<
-        typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
-      >),
-      ...props.evalBase(),
-      ...props.evalFormProps(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'Address'>) {
-    return this.evalDefaultExpressions(props);
-  }
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -43,4 +25,4 @@ export abstract class AddressDef extends FormComponent<'Address'> implements Dis
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 837622d6dc091afe50005dd0b37d4fa38af10f5e8e5f2da202f54160d9f46ae2
+// Source hash: 3759623ecec2ac42fcbdc7061ff81adc9f3b96eaaeef3030d5d3864bdf599952

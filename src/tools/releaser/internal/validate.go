@@ -33,12 +33,9 @@ const MaxEntryWords = 60
 // entryExcerptWords is how many words of a too-long entry the error quotes.
 const entryExcerptWords = 8
 
-var (
-	// pullRequestLinkPattern matches a pull request reference such as [#1234](https://...).
-	pullRequestLinkPattern = regexp.MustCompile(`\[#\d+\]\([^)\s]*\)`)
-	// linkTargetPattern matches the target of a Markdown link, the (https://...) after its text.
-	linkTargetPattern = regexp.MustCompile(`\]\([^)\s]*\)`)
-)
+// linkPattern matches a Markdown link with its text, such as [#1234](https://...)
+// or [the migration guide](https://...).
+var linkPattern = regexp.MustCompile(`\[[^\[\]\n]*\]\([^)\s]*\)`)
 
 // ValidationRequest describes inputs for changelog validation.
 type ValidationRequest struct {
@@ -276,11 +273,10 @@ func loadChangelogAt(ctx context.Context, git *GitCLI, revision, changelogPath s
 	return loadBaseChangelog(ctx, git, revision, changelogPath)
 }
 
-// entryWords returns the words of an entry as a reader counts them: pull request
-// links, link targets, list markers and punctuation on their own are left out.
+// entryWords returns the words of an entry as a reader counts them: links, list
+// markers and punctuation on their own are left out.
 func entryWords(text string) []string {
-	text = pullRequestLinkPattern.ReplaceAllString(text, "")
-	text = linkTargetPattern.ReplaceAllString(text, "]")
+	text = linkPattern.ReplaceAllString(text, "")
 	var words []string
 	for field := range strings.FieldsSeq(text) {
 		if strings.IndexFunc(field, func(r rune) bool { return unicode.IsLetter(r) || unicode.IsDigit(r) }) >= 0 {

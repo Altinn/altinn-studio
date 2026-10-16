@@ -527,7 +527,7 @@ public class TestFunctions
         // This is just a way to ensure that all folders have test methods associcated.
         var jsonTestFolders = Directory
             .GetDirectories(TestAttributeHelper.CommonExpressionTestsPath("evaluation", "functions"))
-            .Where(d => Directory.GetFiles(d).Length > 0)
+            .Where(d => Directory.GetFiles(d).Any(file => !FileNamesInFolderDataAttribute.IsDisabledInBackend(file)))
             .Select(d => Path.GetFileName(d))
             .OrderBy(s => s)
             .ToArray();

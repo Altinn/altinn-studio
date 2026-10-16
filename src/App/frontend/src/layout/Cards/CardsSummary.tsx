@@ -5,7 +5,7 @@ import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildren
 import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { typedBoolean } from 'src/utils/typing';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -31,7 +31,7 @@ function Child({ baseId, overrides }: { baseId: string | undefined } & Pick<Prop
 }
 
 export function CardsSummary({ targetBaseComponentId, overrides }: Props) {
-  const children = useExternalItem(targetBaseComponentId, 'Cards')
+  const children = useComponentConfig(targetBaseComponentId, 'Cards')
     .cards.map((card) => card.children)
     .flat();
 
@@ -50,7 +50,7 @@ export function CardsSummary({ targetBaseComponentId, overrides }: Props) {
 
 export function CardsSummary2({ targetBaseComponentId }: Summary2Props) {
   const canRender = useHasCapability('renderInCards');
-  const children = useExternalItem(targetBaseComponentId, 'Cards')
+  const children = useComponentConfig(targetBaseComponentId, 'Cards')
     .cards.map((c) => c.children)
     .flat()
     .filter(canRender)

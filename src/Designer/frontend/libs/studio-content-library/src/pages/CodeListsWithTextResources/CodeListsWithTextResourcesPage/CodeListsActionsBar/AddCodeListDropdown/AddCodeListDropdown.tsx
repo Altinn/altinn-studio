@@ -73,31 +73,33 @@ export function AddCodeListDropdown({
         icon={<PlusIcon />}
         className={classes.dropdown}
       >
-        <StudioDropdown.Item>
-          <StudioDropdown.Button onClick={handleOpenAddCodeListDialog} icon={<PlusCircleIcon />}>
-            {t('app_content_library.code_lists_with_text_resources.create_new_code_list')}
-          </StudioDropdown.Button>
-        </StudioDropdown.Item>
-        <StudioDropdown.Item>
-          <StudioDropdown.FileUploaderButton
-            icon={<UploadIcon />}
-            onFileUpload={onSubmit}
-            fileInputProps={{ accept: '.json' }}
-            uploadButtonText={t(
-              'app_content_library.code_lists_with_text_resources.upload_code_list',
-            )}
-          />
-        </StudioDropdown.Item>
-        {hasExternalResources && (
+        <StudioDropdown.List>
           <StudioDropdown.Item>
-            <StudioDropdown.Button
-              onClick={handleOpenImportCodeListDialog}
-              icon={<FileImportIcon />}
-            >
-              {t('app_content_library.code_lists_with_text_resources.import_from_org_library')}
+            <StudioDropdown.Button onClick={handleOpenAddCodeListDialog} icon={<PlusCircleIcon />}>
+              {t('app_content_library.code_lists_with_text_resources.create_new_code_list')}
             </StudioDropdown.Button>
           </StudioDropdown.Item>
-        )}
+          <StudioDropdown.Item>
+            <StudioDropdown.FileUploaderButton
+              icon={<UploadIcon />}
+              onFileUpload={onSubmit}
+              fileInputProps={{ accept: '.json' }}
+              uploadButtonText={t(
+                'app_content_library.code_lists_with_text_resources.upload_code_list',
+              )}
+            />
+          </StudioDropdown.Item>
+          {hasExternalResources && (
+            <StudioDropdown.Item>
+              <StudioDropdown.Button
+                onClick={handleOpenImportCodeListDialog}
+                icon={<FileImportIcon />}
+              >
+                {t('app_content_library.code_lists_with_text_resources.import_from_org_library')}
+              </StudioDropdown.Button>
+            </StudioDropdown.Item>
+          )}
+        </StudioDropdown.List>
       </StudioDropdown>
       <CreateNewCodeListDialog
         codeListNames={codeListNames}

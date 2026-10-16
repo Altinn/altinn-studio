@@ -6,11 +6,11 @@ import classes from 'src/layout/AccordionGroup/AccordionGroup.module.css';
 import { AccordionGroupProvider } from 'src/layout/AccordionGroup/AccordionGroupContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const AccordionGroup = ({ baseComponentId }: PropsFromGenericComponent<'AccordionGroup'>) => {
-  const children = useExternalItem(baseComponentId, 'AccordionGroup')?.children;
+  const children = useComponentConfig(baseComponentId, 'AccordionGroup')?.children;
 
   return (
     <AccordionGroupProvider>

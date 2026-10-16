@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import { TasksTableBody, type TasksTableBodyProps } from './TasksTableBody';
 import { StudioTable } from '@studio/components';

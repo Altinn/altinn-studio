@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Hubs.Preview;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -12,13 +11,11 @@ namespace Designer.Tests.Hubs;
 
 public class PreviewHubTests
 {
-    private readonly Mock<ILogger<PreviewHub>> _logger;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessor;
     private const string TestUser = "testUser";
 
     public PreviewHubTests()
     {
-        _logger = new Mock<ILogger<PreviewHub>>();
         _httpContextAccessor = new Mock<IHttpContextAccessor>();
         _httpContextAccessor.Setup(req => req.HttpContext).Returns(GetHttpContextForTestUser(TestUser));
     }
@@ -32,7 +29,7 @@ public class PreviewHubTests
 
         mockClients.Setup(clients => clients.Group(TestUser)).Returns(mockClientProxy.Object);
 
-        PreviewHub previewHubMock = new(_logger.Object, _httpContextAccessor.Object) { Clients = mockClients.Object };
+        PreviewHub previewHubMock = new(_httpContextAccessor.Object) { Clients = mockClients.Object };
 
         // act
         await previewHubMock.SendMessage("testMessage");
@@ -50,7 +47,7 @@ public class PreviewHubTests
 
         mockClients.Setup(clients => clients.Group(TestUser)).Returns(mockClientProxy.Object);
 
-        PreviewHub previewHubMock = new(_logger.Object, _httpContextAccessor.Object) { Clients = mockClients.Object };
+        PreviewHub previewHubMock = new(_httpContextAccessor.Object) { Clients = mockClients.Object };
 
         // act
         await previewHubMock.SendMessage("testMessage");

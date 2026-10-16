@@ -1,24 +1,15 @@
-import type { ComponentBase } from '@app/layout-contract/generated/common.generated';
+import type { JSX } from 'react';
 
 import { PresentationComponent } from 'src/layout/LayoutComponent';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class SigningDocumentListDef extends PresentationComponent<'SigningDocumentList'> {
   protected readonly type = 'SigningDocumentList';
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'SigningDocumentList'>) {
-    return {
-      ...(props.item as Omit<typeof props.item, keyof ComponentBase | 'hidden'>),
-      ...props.evalBase(),
-      ...props.evalTrb(),
-    };
-  }
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'SigningDocumentList'>) {
-    return this.evalDefaultExpressions(props);
-  }
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 }
 
-// Source hash: 7622c82f9bce0b44c167d1ab2cb76f48c00c92bea93916d209abebda41dddb6b
+// Source hash: e7b6ab80169c567602db4e049868f5f4d0bf284269c03078714ca86211dfe592

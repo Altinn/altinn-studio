@@ -59,12 +59,8 @@ Each area below links to its own `AGENTS.md` where one exists.
 
 ### AI — [`src/AI`](src/AI/AGENTS.md)
 
-R&D projects from the AI lab (to be handed off to the Studio team): `agents` (Altinity natural-language
+R&D projects from the AI lab (to be handed off to the Studio team): `assistant` (Studio Assistant natural-language
 app builder) and `augmenter-agent` (document/PDF augmentation microservice).
-
-### Experimental — [`src/experimental`](src/experimental/AGENTS.md)
-
-Early agent-platform architecture with a reusable sandbox SDK and a separate agent automation layer.
 
 ### Continuous integration — [`src/ci`](src/ci/AGENTS.md)
 
@@ -89,6 +85,8 @@ Small build/ops images and configs, documented here rather than individually:
 - `gitea-proxy` — nginx+njs proxy restricting Gitea API-key/basic-auth to git + REST API only.
 - `lhci-server` — Lighthouse CI server (Node + Postgres) tracking frontend performance.
 - `load-balancer` — nginx edge proxy (with OpenTelemetry) fronting Studio services; local + k8s configs.
+- `observability-proxy` — .NET/YARP edge proxy terminating auth and rate limiting for the Studio
+  observability backend, routing OTLP ingest and Grafana read traffic to the Victoria stack.
 
 Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (ADRs, diagrams),
 `scripts/`, [`.github/`](.github/AGENTS.md) (workflows + composite actions, incl. the CI caching
@@ -97,16 +95,18 @@ stack (see `README.md`).
 
 ## Conventions across the repo
 
-- **Changelogs:** Changelog entries are release notes for product users. Describe only user-facing
-  functionality in clear language, and omit implementation details that do not affect product use.
-  Technical language is appropriate when it helps users understand or adopt the change.
+- **Changelogs:** Changelog entries are release notes for product users. Write and edit them with
+  the `changelog` skill.
 - **Spelling and language:** Code is **US English** — identifiers, comments, doc comments, log and
   exception messages, docs, and translation _keys_ (a key is a code contract). Text a user reads in
-  the product is **British English** for the English values and checked **Norwegian** (bokmål and
-  nynorsk, via hunspell + Norsk Ordbank) for the `nb`/`nn` values. Run `yarn spell:quick` for fast
-  feedback on your changed files, `yarn spell:check` for everything, and `yarn spell:fix` to apply
-  unambiguous corrections — note that the fix mode also edits misspelled _identifiers_, which is a
-  semantic change, so always review the diff. CI runs the same checks in
+  the product is **British English** for the English values (checked by `typos` and by a hunspell
+  en_GB dictionary pass, which catches misspellings `typos` has no entry for) and checked
+  **Norwegian** (bokmål and nynorsk, via hunspell + Norsk Ordbank) for the `nb`/`nn` values. Run `yarn spell:quick` for fast
+  feedback on everything your branch changed, `yarn spell:check` for everything, and `yarn spell:fix`
+  to apply unambiguous corrections — note that the fix mode also edits misspelled _identifiers_, which
+  is a semantic change, so always review the diff. It cannot tell prose from a wire literal (a route,
+  JSON key, enum value or migration constant), a CSS module class name used from TSX, or a Norwegian
+  word in a comment, and those are what a sweep has broken before. CI runs the same checks in
   `.github/workflows/spellcheck.yaml`; the pre-commit hook runs `spell:quick` on staged files. The
   check is deliberately **not** wired into `dotnet build`/`tsc` — a spelling finding should never
   slow or break a compile, and CI is the gate.
@@ -141,8 +141,9 @@ stack (see `README.md`).
 
   When a check flags something, prefer fixing the spelling. If a Norwegian domain term is genuinely
   correct, add it to `scripts/spellcheck/glossary.nb.txt` / `glossary.nn.txt` (the dictionary is
-  full-form, so inflections need their own lines); language-neutral tokens — names, quoted
-  identifiers, formats — go in `glossary.shared.txt`, which both languages accept. A glossary
+  full-form, so inflections need their own lines); a correct English word the en_GB dictionary
+  lacks goes in `glossary.en.txt`; language-neutral tokens — names, quoted identifiers, formats —
+  go in `glossary.shared.txt`, which all three languages accept. A glossary
   entry that no longer rescues any flagged word is reported as stale. If an English spelling
   genuinely cannot change
   (a wire contract, someone else's API), add a scoped entry to `suppressions.txt`. Deliberate
@@ -165,5 +166,20 @@ stack (see `README.md`).
   Framework versions differ per project and are documented at the leaf, not here — check the project's
   own `AGENTS.md`, `global.json`, `go.mod`, or `pyproject.toml` before assuming a version.
 - **Formatting/linting is enforced at build time** in most projects (CSharpier for .NET, ESLint/Prettier
-  for TS, golangci-lint for Go). Follow the commands in the project's `AGENTS.md`/`Makefile`.
+  for TS, golangci-lint for Go). Follow the commands in the project's `AGENTS.md`/`Makefile`. Prettier
+  takes its indentation from `.editorconfig`, so check a file in place: a copy outside the tree is
+  formatted against different rules.
+- **.NET warnings are errors only in CI.** Most areas' `Directory.Build.props` set
+  `TreatWarningsAsErrors` only when `CI=true`, and an incremental build does not repeat the warnings of
+  a project it skips. Reproduce CI with `CI=true dotnet build <solution> --no-incremental`. A bare
+  `-warnaserror` is not the same: it also fails on the NuGet audit advisories (`NU1901`–`NU1904`) that
+  CI exempts.
+- **Stacked pull requests** use GitHub's native stacks through the `gh stack` extension
+  (`gh extension install github/gh-stack`; `gh stack --help`). `gh stack sync` fetches, rebases each
+  branch onto its updated parent and pushes the stack. If a squash-merged parent's commits still
+  replay into a child, `git rebase --onto origin/main <parent's last pre-merge commit>` (from
+  `gh pr view <parent> --json commits`) drops them. A stacked PR's
+  mergeability is computed against `main`, not its base branch, so a child can show conflicts that
+  only `git merge-tree --write-tree origin/main <head>` reproduces. A PR's base cannot be edited while
+  it is in a stack (`gh stack unstack` first).
 - **Prefer the guidance closest to the code.** More-specific `AGENTS.md` files override this one.

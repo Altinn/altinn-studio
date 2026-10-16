@@ -3,7 +3,8 @@ name: CLI - Changelog entry
 # Requires PRs that change studioctl code or its shared dependencies to add an entry to src/cli/CHANGELOG.md
 # under [Unreleased], via the releaser's `validate-changelog` command. Apply the
 # 'skip-changelog' label to PRs with no user-visible change (refactors, test-only
-# or CI-only work); the labeled/unlabeled triggers re-evaluate the check when the
+# or CI-only work) or a change an [Unreleased] entry already describes with its
+# issue linked; the labeled/unlabeled triggers re-evaluate the check when the
 # label is toggled. Markdown-only changes under src/cli do not trigger the check.
 
 on:

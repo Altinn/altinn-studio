@@ -142,20 +142,23 @@ export class GiteaPage extends BasePage {
   }
 
   public async verifyThatTheNewTaskIsVisible(id: string, task: BpmnTaskType): Promise<void> {
-    const text = this.page.getByText(`<bpmn:task id="${id}" name="Altinn ${task} task">`);
+    const text = this.page.getByText(
+      `<bpmn:task id="${id}" name="${this.getDefaultTaskName(task)}">`,
+    );
     await expect(text).toBeVisible();
   }
 
   public async verifyThatTheNewTaskIsHidden(id: string, task: BpmnTaskType): Promise<void> {
-    await this.page.getByText(`<bpmn:task id="${id}" name="Altinn ${task} task">`).isHidden();
+    await this.page
+      .getByText(`<bpmn:task id="${id}" name="${this.getDefaultTaskName(task)}">`)
+      .isHidden();
   }
 
   public async verifySequenceFlowDirection(fromId: string, toId: string): Promise<void> {
-    const firstPartOfText = this.page.getByText('<bpmn:sequenceFlow id="Flow_');
-    await expect(firstPartOfText).toBeVisible();
-
-    const secondPartOfText = this.page.getByText(`" sourceRef="${fromId}" targetRef="${toId}" />`);
-    await expect(secondPartOfText).toBeVisible();
+    const sequenceFlow = this.page.getByText(
+      new RegExp(`<bpmn:sequenceFlow id="Flow_[^"]+" sourceRef="${fromId}" targetRef="${toId}" />`),
+    );
+    await expect(sequenceFlow).toBeVisible();
   }
 
   public async clickOnApplicationMetadataFile(): Promise<void> {

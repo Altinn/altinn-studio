@@ -5,7 +5,7 @@ import { MissingRowIdException } from 'src/features/formData/MissingRowIdExcepti
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { deriveNodes } from 'src/features/validation/deriveNodes';
 import { deriveRuntimeNodeRefs } from 'src/utils/layout/deriveRuntimeNodeRefs';
-import { getRuntimeIntermediateItem } from 'src/utils/layout/rowContext';
+import { getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { ILayoutCollection } from 'src/layout/layout';
@@ -69,6 +69,38 @@ describe('deriveNodes', () => {
     });
 
     expect(nodes.map((node) => node.id)).toEqual(['input-1']);
+
+    const unordered = deriveNodes(state, {
+      pageOrder: ['Form'],
+      includedNodeIds: ['input-1', 'missing', 'input-0', 'input-1'],
+      pdfLayoutName: undefined,
+      hiddenDataSources: {} as ExpressionDataSources,
+    });
+    expect(unordered.map((node) => node.id)).toEqual(['input-0', 'input-1']);
+    expect(unordered.map((node) => node.rowIds)).toEqual([['row-0'], ['row-1']]);
+    const scopedInputs = {
+      pageOrder: ['Form'],
+      descendantScope: { nodeId: 'group', restriction: 1, includeSelf: false },
+      pdfLayoutName: undefined,
+      hiddenDataSources: {} as ExpressionDataSources,
+    };
+    expect(deriveNodes(state, scopedInputs).map((node) => node.id)).toEqual(['input-1']);
+    expect(deriveNodes(state, { ...scopedInputs, includedNodeIds: ['input-0', 'unrelated'] })).toEqual([]);
+    expect(
+      deriveNodes(state, {
+        ...scopedInputs,
+        descendantScope: { ...scopedInputs.descendantScope, includeSelf: true },
+      }).map((node) => node.id),
+    ).toEqual(['group', 'input-1']);
+    expect(
+      deriveNodes(state, {
+        pageOrder: ['Form'],
+        includedPageKeys: ['AnotherPage'],
+        includedNodeIds: ['input-0'],
+        pdfLayoutName: undefined,
+        hiddenDataSources: {} as ExpressionDataSources,
+      }),
+    ).toEqual([]);
   });
 
   it('throws when a repeating row is missing its row ID', () => {
@@ -172,23 +204,19 @@ describe('deriveNodes', () => {
     const samePrefixNode = nodes.find((node) => node.id === 'same-prefix-0');
     const insideGroup =
       insideGroupNode &&
-      getRuntimeIntermediateItem(
-        state.bootstrap.layoutLookups.getComponent(insideGroupNode.baseId),
+      getIndexedDataModelBindings<'Input'>(
+        state.bootstrap.layoutLookups.getComponent(insideGroupNode.baseId, 'Input').dataModelBindings,
         insideGroupNode.rowContexts,
       );
     const samePrefix =
       samePrefixNode &&
-      getRuntimeIntermediateItem(
-        state.bootstrap.layoutLookups.getComponent(samePrefixNode.baseId),
+      getIndexedDataModelBindings<'Input'>(
+        state.bootstrap.layoutLookups.getComponent(samePrefixNode.baseId, 'Input').dataModelBindings,
         samePrefixNode.rowContexts,
       );
 
-    if (insideGroup?.type !== 'Input' || samePrefix?.type !== 'Input') {
-      throw new Error('Expected derived nodes to be Input components');
-    }
-
-    expect(insideGroup.dataModelBindings.simpleBinding.field).toBe('person[0].name');
-    expect(samePrefix.dataModelBindings.simpleBinding.field).toBe('personName');
+    expect(insideGroup?.simpleBinding.field).toBe('person[0].name');
+    expect(samePrefix?.simpleBinding.field).toBe('personName');
   });
 
   it('transposes nested repeating group bindings from row contexts', () => {
@@ -249,19 +277,88 @@ describe('deriveNodes', () => {
     const streetNode = nodes.find((node) => node.id === 'street-0-0');
     const addresses =
       addressesNode &&
-      getRuntimeIntermediateItem(
-        state.bootstrap.layoutLookups.getComponent(addressesNode.baseId),
+      getIndexedDataModelBindings<'RepeatingGroup'>(
+        state.bootstrap.layoutLookups.getComponent(addressesNode.baseId, 'RepeatingGroup').dataModelBindings,
         addressesNode.rowContexts,
       );
     const street =
       streetNode &&
-      getRuntimeIntermediateItem(state.bootstrap.layoutLookups.getComponent(streetNode.baseId), streetNode.rowContexts);
+      getIndexedDataModelBindings<'Input'>(
+        state.bootstrap.layoutLookups.getComponent(streetNode.baseId, 'Input').dataModelBindings,
+        streetNode.rowContexts,
+      );
 
-    if (addresses?.type !== 'RepeatingGroup' || street?.type !== 'Input') {
-      throw new Error('Expected nested repeating group and input nodes');
+    if (!addresses || !street) {
+      throw new Error('Expected nested repeating group and input bindings');
     }
 
-    expect(addresses.dataModelBindings.group.field).toBe('people[0].addresses');
-    expect(street.dataModelBindings.simpleBinding.field).toBe('people[0].addresses[0].street');
+    expect(addresses.group.field).toBe('people[0].addresses');
+    expect(street.simpleBinding.field).toBe('people[0].addresses[0].street');
   });
+});
+
+it('evaluates shared hidden expressions once per row context and refreshes them on the next derivation', () => {
+  const layouts = {
+    First: {
+      data: {
+        layout: [
+          {
+            id: 'group',
+            type: 'RepeatingGroup',
+            children: ['first', 'second'],
+            dataModelBindings: { group: { dataType: defaultDataTypeMock, field: 'Group' } },
+            hidden: ['equals', ['dataModel', 'Shared'], 'hide'],
+            hiddenRow: ['equals', ['dataModel', 'Group.Hide'], 'yes'],
+          },
+          {
+            id: 'first',
+            type: 'Input',
+            dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.First' } },
+          },
+          {
+            id: 'second',
+            type: 'Input',
+            dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.Second' } },
+          },
+        ],
+      },
+    },
+  } satisfies ILayoutCollection;
+  const state = {
+    bootstrap: { layoutLookups: makeLayoutLookups(processLayouts(layouts, defaultDataTypeMock), layouts) },
+    data: {
+      models: {
+        [defaultDataTypeMock]: {
+          debouncedCurrentData: {
+            Group: [{ [ALTINN_ROW_ID]: 'row-0' }, { [ALTINN_ROW_ID]: 'row-1' }],
+          },
+        },
+      },
+    },
+  } as unknown as FormStoreState;
+  const values: Record<string, string> = { Shared: 'show', 'Group[0].Hide': 'no', 'Group[1].Hide': 'yes' };
+  const read = vi.fn((reference: { field: string }) => values[reference.field]);
+  const dataSources = {
+    context: { assertDataSourceSupported: () => undefined },
+    markExpressionEvaluated: () => undefined,
+    formData: { defaultDataType: () => defaultDataTypeMock, hasDataType: () => true, read },
+  } as unknown as ExpressionDataSources;
+  const inputs = { pageOrder: ['First'], pdfLayoutName: undefined, hiddenDataSources: dataSources };
+
+  const nodes = deriveNodes(state, inputs);
+  expect(nodes.map(({ id, hidden }) => ({ id, hidden }))).toEqual([
+    { id: 'group', hidden: false },
+    { id: 'first-0', hidden: false },
+    { id: 'second-0', hidden: false },
+    { id: 'first-1', hidden: true },
+    { id: 'second-1', hidden: true },
+  ]);
+  expect(read.mock.calls.filter(([reference]) => reference.field === 'Shared')).toHaveLength(3);
+  expect(read.mock.calls.filter(([reference]) => reference.field === 'Group[0].Hide')).toHaveLength(1);
+  expect(read.mock.calls.filter(([reference]) => reference.field === 'Group[1].Hide')).toHaveLength(1);
+
+  values.Shared = 'hide';
+  read.mockClear();
+  expect(deriveNodes(state, inputs).every((node) => node.hidden)).toBe(true);
+  expect(read.mock.calls.filter(([reference]) => reference.field === 'Shared')).toHaveLength(3);
 });

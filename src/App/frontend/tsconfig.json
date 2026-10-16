@@ -25,7 +25,6 @@
       "@app/language/*": ["./../../common/ts/language/src/*"],
       "src/*": ["./src/*"],
       "test/*": ["./test/*"],
-      "schemas/*": ["./schemas/*"],
       "scripts/*": ["./scripts/*"]
     },
     "allowSyntheticDefaultImports": true,

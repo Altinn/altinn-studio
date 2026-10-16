@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 
 import { renderWithMockStore, renderHookWithMockStore } from '../../testing/mocks';
@@ -61,7 +62,7 @@ const waitForData = async () => {
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
 };
 
-const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
+const render = async ({ dataModelBindings = {}, handleComponentChange = vi.fn() } = {}) => {
   const appData: IAppDataState = {
     ...appDataMock,
     textResources: {

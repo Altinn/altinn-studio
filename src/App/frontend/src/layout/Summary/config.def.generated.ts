@@ -1,7 +1,4 @@
-import type { ComponentBase } from '@app/layout-contract/generated/common.generated';
-
 import { PresentationComponent } from 'src/layout/LayoutComponent';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 export abstract class SummaryDef extends PresentationComponent<'Summary'> {
   protected readonly type = 'Summary';
@@ -10,19 +7,9 @@ export abstract class SummaryDef extends PresentationComponent<'Summary'> {
     return true;
   }
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'Summary'>) {
-    return {
-      ...(props.item as Omit<typeof props.item, keyof ComponentBase | 'hidden'>),
-      ...props.evalBase(),
-      ...props.evalTrb(),
-    };
-  }
+  declare renderSummary?: never;
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'Summary'>) {
-    return this.evalDefaultExpressions(props);
-  }
+  declare renderSummary2?: never;
 }
 
-// Source hash: 15bbed937cebdf18186c157a513e8782d51087cd7061f34c355227b01483c61a
+// Source hash: 0fd6d25669b9cee8050ce63a052089d65fcf460aa3c83e1126769c0265c85ef6

@@ -14,7 +14,7 @@ import { CheckboxesSummary } from 'src/layout/Checkboxes/CheckboxesSummary';
 import { CheckboxesDef } from 'src/layout/Checkboxes/config.def.generated';
 import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSummary';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import type { ComponentValidation } from 'src/features/validation';
 import type {
   ComponentValidationContext,
@@ -22,7 +22,7 @@ import type {
   PropsFromGenericComponent,
 } from 'src/layout';
 import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 type Row = Record<string, string | number | boolean>;
@@ -64,13 +64,6 @@ export class Checkboxes extends CheckboxesDef {
       : getCommaSeparatedOptionsToText(formData?.simpleBinding, options, langAsString);
 
     return Object.values(data).join(', ');
-  }
-
-  evalExpressions(props: ExprResolver<'Checkboxes'>) {
-    return {
-      ...this.evalDefaultExpressions(props),
-      alertOnChange: props.evalBool(props.item.alertOnChange, false),
-    };
   }
 
   renderSummary(props: SummaryRendererProps): JSX.Element | null {

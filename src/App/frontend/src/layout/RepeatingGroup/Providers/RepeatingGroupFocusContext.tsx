@@ -8,9 +8,8 @@ import { useFocusComponentRequest } from 'src/layout/focusComponent';
 import {
   RepGroupContext,
   useRepeatingGroupComponentId,
-  useRepeatingGroupRowState,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
-import { useIntermediateItem } from 'src/utils/layout/hooks';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { getBaseComponentId, splitDashedKey } from 'src/utils/splitDashedKey';
 import type { ParentRef } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseRow } from 'src/utils/layout/types';
@@ -175,10 +174,11 @@ export function getRowToFocusAfterDeletion(visibleRows: BaseRow[], deletedUuid: 
 export function useDeleteRowAndFocus() {
   const deleteRow = RepGroupContext.useDeleteRow();
   const { triggerFocus, focusAddButton } = useRepeatingGroupsFocusContext();
-  const { visibleRows } = useRepeatingGroupRowState();
+  const getVisibleRows = RepGroupContext.useGetVisibleRows();
 
   return async (row: BaseRow): Promise<boolean> => {
-    const focusTarget = getRowToFocusAfterDeletion(visibleRows, row.uuid);
+    // Read once when deleting. Each row's button otherwise filters the whole group on mount.
+    const focusTarget = getRowToFocusAfterDeletion(getVisibleRows(), row.uuid);
     const successful = await deleteRow(row);
     if (successful) {
       // Wait for the row to be removed and the remaining rows to re-render before moving focus
@@ -218,7 +218,8 @@ function useNavigateToRepeatingGroupPageAndFocusRow() {
   const baseComponentId = useRepeatingGroupComponentId();
   const openForEditing = RepGroupContext.useOpenForEditing();
   const changePageToRow = RepGroupContext.useChangePageToRow();
-  const { dataModelBindings, pagination, tableColumns, edit } = useIntermediateItem(baseComponentId, 'RepeatingGroup');
+  const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup');
   const rowsSelector = FormStore.data.useDebouncedRowsSelector();
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const focusRequest = useFocusComponentRequest();
@@ -258,18 +259,18 @@ function useNavigateToRepeatingGroupPageAndFocusRow() {
     const { depth } = splitDashedKey(targetIndexedId);
     const row = rows.find((r) => r.index === depth.at(negativeRowIndex));
 
-    if (pagination && row) {
+    if (config.pagination && row) {
       changePageToRow(row);
       openForEditing(row);
       return;
     }
-    if (edit?.mode === 'showAll' || edit?.mode === 'onlyTable') {
+    if (config.edit?.mode === 'showAll' || config.edit?.mode === 'onlyTable') {
       // We're already showing all nodes, so nothing further to do
       return;
     }
 
     // Check if we need to open the row containing targetChild for editing.
-    const tableColSetup = (tableColumns && tableColumns[targetChild]) || {};
+    const tableColSetup = (config.tableColumns && config.tableColumns[targetChild]) || {};
 
     if (tableColSetup.editInTable || tableColSetup.showInExpandedEdit === false) {
       // No need to open rows or set editIndex for components that are rendered
@@ -285,13 +286,13 @@ function useNavigateToRepeatingGroupPageAndFocusRow() {
     baseComponentId,
     changePageToRow,
     dataModelBindings.group,
-    edit?.mode,
+    config.edit?.mode,
     layoutLookups.allComponents,
     layoutLookups.componentToParent,
     openForEditing,
-    pagination,
+    config.pagination,
     rowsSelector,
     focusRequest,
-    tableColumns,
+    config.tableColumns,
   ]);
 }

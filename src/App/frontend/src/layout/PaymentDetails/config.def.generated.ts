@@ -1,24 +1,15 @@
-import type { ComponentBase } from '@app/layout-contract/generated/common.generated';
+import type { JSX } from 'react';
 
 import { PresentationComponent } from 'src/layout/LayoutComponent';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class PaymentDetailsDef extends PresentationComponent<'PaymentDetails'> {
   protected readonly type = 'PaymentDetails';
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'PaymentDetails'>) {
-    return {
-      ...(props.item as Omit<typeof props.item, keyof ComponentBase | 'hidden'>),
-      ...props.evalBase(),
-      ...props.evalTrb(),
-    };
-  }
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'PaymentDetails'>) {
-    return this.evalDefaultExpressions(props);
-  }
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 }
 
-// Source hash: b6bda5ce5899dc5adea3c9693b12df9ec1a7ecb8ad2e2faee88254f630a31183
+// Source hash: 3070cd053805e8a6ce4c7d85bc9ea9d83f5303bd675d0f3fd5de800906e70137

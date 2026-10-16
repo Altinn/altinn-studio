@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { useCurrentRowContexts } from 'src/utils/layout/DataModelLocation';
-import { getIndexedDataModelBindings, getRuntimeIntermediateItem } from 'src/utils/layout/rowContext';
-import type { CompIntermediate, CompTypes, IDataModelBindings } from 'src/layout/layout';
+import { getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
+import type { CompTypes, IDataModelBindings } from 'src/layout/layout';
 
 /**
  * Given a base component id (one without indexes), and potentially a type, this will give you the layout configuration
@@ -12,7 +12,7 @@ import type { CompIntermediate, CompTypes, IDataModelBindings } from 'src/layout
  *  - The `id` property will be the same as `baseComponentId`. It will never be indexed.
  *  - The `dataModelBindings` property will never have any indexes for which row in a repeating group it is in.
  */
-export function useExternalItem<T extends CompTypes = CompTypes>(
+export function useComponentConfig<T extends CompTypes = CompTypes>(
   baseComponentId: string,
   type?: T | ((type: CompTypes) => boolean),
 ) {
@@ -20,29 +20,11 @@ export function useExternalItem<T extends CompTypes = CompTypes>(
   return lookups.getComponent(baseComponentId, type);
 }
 
-/**
- * Given a base component id (one without indexes), this will give you the 'intermediate' item. That is, the
- * configuration for the component, with data model bindings resolved to properly indexed paths matching
- * the current path inside the data model.
- */
-export function useIntermediateItem<T extends CompTypes = CompTypes>(
-  baseComponentId: string,
-  type?: T,
-): CompIntermediate<T> {
-  const component = useExternalItem(baseComponentId, type);
-  const rowContexts = useCurrentRowContexts();
-
-  return useMemo(
-    () => getRuntimeIntermediateItem(component, rowContexts) as unknown as CompIntermediate<T>,
-    [component, rowContexts],
-  );
-}
-
 export function useDataModelBindingsFor<T extends CompTypes = CompTypes>(
   baseComponentId: string,
   type?: T | ((type: CompTypes) => boolean),
 ): IDataModelBindings<T> {
-  const component = useExternalItem<T>(baseComponentId, type);
+  const component = useComponentConfig<T>(baseComponentId, type);
   const rowContexts = useCurrentRowContexts();
   return useMemo(
     () =>

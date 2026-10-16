@@ -7,7 +7,7 @@ import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import classes from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent.module.css';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
 import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { CompTypes } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
@@ -20,7 +20,7 @@ function isValidType(type: CompTypes): boolean {
 export function AttachmentSummaryComponent({ targetBaseComponentId }: SummaryRendererProps) {
   const attachments = useUploaderSummaryData(targetBaseComponentId);
   const { langAsString } = useLanguage();
-  const component = useItemWhenType<ValidTypes>(targetBaseComponentId, isValidType);
+  const component = useComponentConfig<ValidTypes>(targetBaseComponentId, isValidType);
   const hasTag = fileUploadHasTag(component);
 
   const { options: allOptions } = useOptionsFor(targetBaseComponentId, 'single');

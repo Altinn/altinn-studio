@@ -1,8 +1,9 @@
+import { expect, test, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ObjectRestrictions } from './ObjectRestrictions';
 
 test('ObjectRestrictions should redner correctly', async () => {
-  const onChangeRestrictionValue = jest.fn();
+  const onChangeRestrictionValue = vi.fn();
   const path = '#/properties/xxsfds';
   render(
     <ObjectRestrictions

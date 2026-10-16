@@ -276,7 +276,74 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     return children;
   }
 
-  throw new Error(`Unknown task type: ${taskType}`);
+  return (
+    <PresentationComponent>
+      <UnsupportedTaskType taskId={taskId} />
+    </PresentationComponent>
+  );
+}
+
+/**
+ * Shown in place of a task that ProcessWrapper has no view for, such as a custom service task declared as
+ * a bpmn:task element, or a signing or payment task without a layout. Names the task and its type for the app
+ * developer, and keeps the app shell instead of taking the whole app down.
+ */
+function UnsupportedTaskType({ taskId }: { taskId: string | undefined }) {
+  const { data: process } = useProcessQuery();
+  const fromList = process?.processTasks?.find((t) => t.elementId === taskId);
+  const fromCurrent = process?.currentTask?.elementId === taskId ? process?.currentTask : undefined;
+  const altinnTaskType = fromList?.altinnTaskType ?? fromCurrent?.altinnTaskType ?? '';
+  const elementType = fromList?.elementType ?? fromCurrent?.elementType ?? '';
+
+  const appName = useAppName();
+  const appOwner = useAppOwner();
+  const { langAsString } = useLanguage();
+
+  useEffect(() => {
+    window.logErrorOnce(
+      `Task '${taskId}' has task type '${altinnTaskType}' and element type '${elementType}', which the app frontend cannot display`,
+    );
+  }, [taskId, altinnTaskType, elementType]);
+
+  return (
+    <>
+      <title>{`${getPageTitle(appName, langAsString('general.unsupported_task_type'), appOwner)}`}</title>
+      <Flex
+        item
+        size={{ xs: 12 }}
+        aria-live='polite'
+      >
+        <div>
+          <Lang id='general.unsupported_task_type' />
+        </div>
+        <div className={classes.failedDescription}>
+          <Lang
+            id='general.unsupported_task_type_details'
+            params={[taskId ?? '', altinnTaskType]}
+          />
+        </div>
+        <div className={classes.failedDescription}>
+          <Lang
+            id='general.customer_service_error_message'
+            params={[
+              <Lang
+                key={0}
+                id='general.customer_service_phone_number'
+              />,
+              <Lang
+                key={1}
+                id='general.customer_service_email'
+              />,
+              <Lang
+                key={2}
+                id='general.customer_service_slack'
+              />,
+            ]}
+          />
+        </div>
+      </Flex>
+    </>
+  );
 }
 
 function isRunningProcessNext(queryClient: QueryClient) {

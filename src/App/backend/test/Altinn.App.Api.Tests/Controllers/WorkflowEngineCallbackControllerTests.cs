@@ -14,20 +14,25 @@ using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.Elements.Base;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
+using Altinn.App.Tests.Common.Auth;
 using Altinn.App.Tests.Common.Fixtures;
 using Altinn.App.Tests.Common.Mocks;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -36,6 +41,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using NewtonsoftJson = Newtonsoft.Json.JsonConvert;
 
@@ -380,6 +386,121 @@ public class WorkflowEngineCallbackControllerTests
         Assert.NotNull(response.State);
         Assert.True(command.Executed);
         Assert.Empty(GetMutationRequests(setup.Services));
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_RestoresTheDataMutatorInTheActorsLanguage()
+    {
+        var command = new TrackingNoOpCommand();
+        await using ControllerSetup setup = CreateSetup(command);
+
+        IActionResult result = await setup.Execute(
+            command.GetKey(),
+            stepId: Guid.NewGuid(),
+            actor: new Actor { UserId = 42, Language = "en" }
+        );
+
+        Assert.IsType<OkObjectResult>(result);
+        Assert.Equal("en", command.Language);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_PdfServiceTask_RendersThePdfInTheActorsLanguage()
+    {
+        // A callback is a request of its own: no language query, and the caller is not the user (here a service owner,
+        // whose language is nb). The PDF can only get the language the user chose from the actor.
+        Uri? pdfUri = null;
+        var pdfGenerator = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
+        pdfGenerator
+            .Setup(g =>
+                g.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Uri, string?, StorageAuthenticationMethod?, CancellationToken>((uri, _, _, _) => pdfUri = uri)
+            .ReturnsAsync(() => new MemoryStream("%PDF"u8.ToArray()));
+        var processReader = new Mock<IProcessReader>();
+        processReader
+            .Setup(r => r.GetAltinnTaskExtension("PdfTask_1"))
+            .Returns(
+                new AltinnTaskExtension
+                {
+                    PdfConfiguration = new AltinnPdfConfiguration { AutoPdfTaskIds = ["Task_1"] },
+                }
+            );
+        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        processEngine
+            .Setup(engine =>
+                engine.EnqueueProcessNext(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Actor>(),
+                    It.IsAny<Guid>(),
+                    "pdf-chain",
+                    It.IsAny<string>(),
+                    It.IsAny<DateTimeOffset>(),
+                    null,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                services.AddDataType(
+                    new DataType
+                    {
+                        Id = PdfService.PdfElementType,
+                        AllowedContentTypes = ["application/pdf"],
+                        MaxCount = 0,
+                    }
+                );
+                services
+                    .Mock<IAppResources>()
+                    .Setup(r => r.GetLayoutSettingsForFolder("PdfTask_1"))
+                    .Returns(null as LayoutSettings);
+                services.Services.AddSingleton(pdfGenerator.Object);
+                services.Services.AddSingleton(processReader.Object);
+                services.Services.AddSingleton(Options.Create(new PdfGeneratorSettings()));
+                services.Services.AddSingleton<IHttpContextAccessor>(
+                    new HttpContextAccessor { HttpContext = new DefaultHttpContext() }
+                );
+                Authenticated serviceOwner = TestAuthentication.GetServiceOwnerAuthentication();
+                services.Services.AddSingleton(Mock.Of<IAuthenticationContext>(a => a.Current == serviceOwner));
+                services.Services.AddSingleton<IPdfService, PdfService>();
+                services.Services.AddSingleton<IServiceTask, PdfServiceTask>();
+                services.Services.AddSingleton(processEngine.Object);
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
+                    serviceProvider.GetRequiredService<AppImplementationFactory>(),
+                    new MailboxDeliveryEnvelope(serviceProvider.GetRequiredService<WorkflowStateSigner>())
+                ));
+            },
+            (_, instance) =>
+            {
+                instance.Process!.Status = ProcessStatus.Processing;
+                instance.Process.CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "PdfTask_1",
+                    AltinnTaskType = "pdf",
+                };
+            }
+        );
+
+        IActionResult result = await setup.Execute(
+            ExecuteServiceTask.Key,
+            Guid.NewGuid(),
+            CommandPayloadSerializer.Serialize(new ExecuteServiceTaskPayload("pdf", ItemIndex: 0)),
+            collectionKey: "pdf-chain",
+            actor: new Actor { UserId = 42, Language = "en" }
+        );
+
+        Assert.IsType<OkObjectResult>(result);
+        Assert.NotNull(pdfUri);
+        Assert.Matches("[?&]lang=en(&|$)", pdfUri.AbsoluteUri);
+        processEngine.VerifyAll();
     }
 
     [Fact]
@@ -885,64 +1006,30 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_ProcessEnd_CommitsLockedCleanupClearAndHardDeleteAtomically()
+    public async Task ExecuteCommand_ReleaseProcessingStatus_OnEndedProcess_CommitsReleaseAndHardDeleteAtomically()
     {
-        Guid lockedDataElementId = Guid.NewGuid();
         var ended = new DateTime(2026, 7, 24, 8, 30, 0, DateTimeKind.Utc);
         await using ControllerSetup setup = CreateSetup(
             services =>
             {
                 services.AppMetadata.AutoDeleteOnProcessEnd = true;
-                DataType dataType = services.AppMetadata.DataTypes.Single(dataType => dataType.Id == DataTypeId);
-                dataType.AppLogic = new ApplicationLogic { AutoDeleteOnProcessEnd = true };
-                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new CommitProcessState(
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ReleaseProcessingStatus(
                     serviceProvider.GetRequiredService<IAppMetadata>()
                 ));
             },
             (services, instance) =>
             {
-                instance.Process!.Status = ProcessStatus.Processing;
-                instance.Data.Add(
-                    new DataElement
-                    {
-                        Id = lockedDataElementId.ToString(),
-                        InstanceGuid = GetInstanceGuid(instance).ToString(),
-                        DataType = DataTypeId,
-                        ContentType = ContentType,
-                        Filename = "locked.json",
-                        Locked = true,
-                        BlobVersionId = StorageClientInterceptor.CreateBlobVersionId(1),
-                    }
-                );
-                services.Storage.AddDataRaw(
-                    lockedDataElementId,
-                    """{"locked":true}"""u8.ToArray(),
-                    StorageClientInterceptor.CreateBlobVersionId(1)
-                );
+                instance.Process = new ProcessState
+                {
+                    Status = ProcessStatus.Processing,
+                    Ended = ended,
+                    EndEvent = "EndEvent_1",
+                };
             }
         );
-        string commandPayload = CommandPayloadSerializer.Serialize(
-            new ProcessStateChangePayload(
-                new ProcessStateChange
-                {
-                    OldProcessState = new ProcessState
-                    {
-                        Status = ProcessStatus.Processing,
-                        CurrentTask = new ProcessElementInfo { ElementId = "Task_1" },
-                    },
-                    NewProcessState = new ProcessState
-                    {
-                        Ended = ended,
-                        EndEvent = "EndEvent_1",
-                        CurrentTask = null,
-                    },
-                    Events = [new InstanceEvent { EventType = "process_EndEvent" }],
-                }
-            )
-        )!;
         Guid stepId = Guid.NewGuid();
 
-        IActionResult result = await setup.Execute(CommitProcessState.Key, stepId, commandPayload);
+        IActionResult result = await setup.Execute(ReleaseProcessingStatus.Key, stepId);
 
         var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
         WorkflowCallbackState callbackState = setup.DeserializeState(response.State!);
@@ -955,10 +1042,8 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(ended, mutation.ProcessState?.State?.Ended);
         Assert.Equal("EndEvent_1", mutation.ProcessState?.State?.EndEvent);
         Assert.Null(mutation.ProcessState?.State?.CurrentTask);
-        Assert.Equal("process_EndEvent", Assert.Single(mutation.ProcessState!.Events!).EventType);
-        var delete = Assert.Single(mutation.DeleteDataElements);
-        Assert.Equal(lockedDataElementId, delete.DataElementId);
-        Assert.True(delete.IgnoreLock);
+        Assert.Empty(mutation.ProcessState!.Events!);
+        Assert.Empty(mutation.DeleteDataElements);
         Assert.True(mutation.DeleteInstance?.Hard);
         Assert.Empty(mutation.CreateDataElements);
         Assert.Empty(mutation.UpdateDataElements);
@@ -980,7 +1065,6 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(ProcessStatus.Idle, callbackState.Instance.Process?.Status);
         Assert.Equal(ended, callbackState.Instance.Process?.Ended);
         Assert.True(callbackState.Instance.Status.IsHardDeleted);
-        Assert.Empty(callbackState.Instance.Data);
         Assert.Equal(2, callbackState.InstanceVersion);
         Assert.Equal(2, callbackState.ProcessStateVersion);
         var (storedInstance, storedData) = setup.Services.Storage.GetInstanceAndData(
@@ -990,6 +1074,96 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(ProcessStatus.Idle, storedInstance.Process?.Status);
         Assert.Equal(ended, storedInstance.Process?.Ended);
         Assert.True(storedInstance.Status.IsHardDeleted);
+        Assert.Empty(storedInstance.Data);
+        Assert.Empty(storedData);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_DeleteDataOnProcessEnd_DeletesLockedDataAndKeepsProcessing()
+    {
+        Guid lockedDataElementId = Guid.NewGuid();
+        var ended = new DateTime(2026, 7, 24, 8, 30, 0, DateTimeKind.Utc);
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                DataType dataType = services.AppMetadata.DataTypes.Single(dataType => dataType.Id == DataTypeId);
+                dataType.AppLogic = new ApplicationLogic { AutoDeleteOnProcessEnd = true };
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new DeleteDataOnProcessEnd(
+                    serviceProvider.GetRequiredService<IAppMetadata>()
+                ));
+            },
+            (services, instance) =>
+            {
+                instance.Process = new ProcessState
+                {
+                    Status = ProcessStatus.Processing,
+                    Ended = ended,
+                    EndEvent = "EndEvent_1",
+                };
+                instance.Data.Add(
+                    new DataElement
+                    {
+                        Id = lockedDataElementId.ToString(),
+                        InstanceGuid = GetInstanceGuid(instance).ToString(),
+                        DataType = DataTypeId,
+                        ContentType = ContentType,
+                        Filename = "locked.json",
+                        Locked = true,
+                        BlobVersionId = StorageClientInterceptor.CreateBlobVersionId(1),
+                    }
+                );
+                services.Storage.AddDataRaw(
+                    lockedDataElementId,
+                    """{"locked":true}"""u8.ToArray(),
+                    StorageClientInterceptor.CreateBlobVersionId(1)
+                );
+            }
+        );
+        Guid stepId = Guid.NewGuid();
+
+        IActionResult result = await setup.Execute(DeleteDataOnProcessEnd.Key, stepId);
+
+        var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
+        WorkflowCallbackState callbackState = setup.DeserializeState(response.State!);
+        StorageClientInterceptor.RequestResponse request = Assert.Single(GetMutationRequests(setup.Services));
+        StorageInstanceMutationRequest mutation = NewtonsoftJson.DeserializeObject<StorageInstanceMutationRequest>(
+            request.RequestBody!
+        )!;
+        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+        Assert.Null(mutation.ProcessState);
+        var delete = Assert.Single(mutation.DeleteDataElements);
+        Assert.Equal(lockedDataElementId, delete.DataElementId);
+        Assert.True(delete.IgnoreLock);
+        Assert.Null(mutation.DeleteInstance);
+        Assert.Empty(mutation.CreateDataElements);
+        Assert.Empty(mutation.UpdateDataElements);
+        Assert.Empty(mutation.DataValues);
+        Assert.Empty(mutation.PresentationTexts);
+        Assert.Equal(
+            stepId.ToString(),
+            request.RequestHeaders.GetValues(StoragePreconditionHeaders.IdempotencyKeyHeaderName).Single()
+        );
+        Assert.Equal(
+            "1",
+            request.RequestHeaders.GetValues(StoragePreconditionHeaders.IfInstanceVersionMatchHeaderName).Single()
+        );
+        Assert.Equal(
+            "1",
+            request.RequestHeaders.GetValues(StoragePreconditionHeaders.IfProcessStateVersionMatchHeaderName).Single()
+        );
+
+        Assert.Equal(ProcessStatus.Processing, callbackState.Instance.Process?.Status);
+        Assert.False(callbackState.Instance.Status?.IsHardDeleted == true);
+        Assert.Empty(callbackState.Instance.Data);
+        Assert.Equal(2, callbackState.InstanceVersion);
+        // A save without process state leaves the process state version alone.
+        Assert.Equal(1, callbackState.ProcessStateVersion);
+        var (storedInstance, storedData) = setup.Services.Storage.GetInstanceAndData(
+            InstanceOwnerPartyId,
+            setup.InstanceGuid
+        );
+        Assert.Equal(ProcessStatus.Processing, storedInstance.Process?.Status);
+        Assert.False(storedInstance.Status?.IsHardDeleted == true);
         Assert.Empty(storedInstance.Data);
         Assert.Empty(storedData);
     }
@@ -1147,11 +1321,14 @@ public class WorkflowEngineCallbackControllerTests
     {
         public bool Executed { get; private set; }
 
+        public string? Language { get; private set; }
+
         public string GetKey() => "NoOpForCallbackTest";
 
         public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
         {
             Executed = true;
+            Language = context.InstanceDataMutator.Language;
             return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
         }
     }
@@ -1293,15 +1470,17 @@ public class WorkflowEngineCallbackControllerTests
             string commandKey,
             Guid stepId,
             string? commandPayload = null,
-            string? collectionKey = null
-        ) => Execute(commandKey, stepId, commandPayload, FixtureExecutionReferenceTime, collectionKey);
+            string? collectionKey = null,
+            Actor? actor = null
+        ) => Execute(commandKey, stepId, commandPayload, FixtureExecutionReferenceTime, collectionKey, actor);
 
         public async Task<IActionResult> Execute(
             string commandKey,
             Guid stepId,
             string? commandPayload,
             DateTimeOffset executionReferenceTime,
-            string? collectionKey = null
+            string? collectionKey = null,
+            Actor? actor = null
         )
         {
             Controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
@@ -1314,7 +1493,7 @@ public class WorkflowEngineCallbackControllerTests
             {
                 CommandKey = commandKey,
                 Payload = commandPayload,
-                Actor = new Actor { UserId = 42, Language = "nb" },
+                Actor = actor ?? new Actor { UserId = 42, Language = "nb" },
                 WorkflowId = WorkflowId,
                 StepId = stepId,
                 ExecutionReferenceTime = executionReferenceTime,

@@ -46,7 +46,8 @@ func TestRunStructureValidation(t *testing.T) {
 	t.Run("ignores a long entry that is unchanged since the merge base", testStructureLongExistingEntryPasses)
 	t.Run("ignores a long entry that reached base after head diverged", testStructureLongBaseOnlyEntryPasses)
 	t.Run("skips the word limit when no range given", testStructureLongEntryWithoutRangePasses)
-	t.Run("does not count pull request links or link targets", testStructureLinksNotCounted)
+	t.Run("does not count links", testStructureLinksNotCounted)
+	t.Run("counts the words around links", testStructureWordsAroundLinksCounted)
 }
 
 func changelogWithEntry(entry string) string {
@@ -135,14 +136,29 @@ func testStructureLongBaseOnlyEntryPasses(t *testing.T) {
 func testStructureLinksNotCounted(t *testing.T) {
 	repo := createStudioctlWorkflowRepo(t, validStructureChangelog)
 	base := revParseHead(t, repo)
-	pr := "[#1234](https://github.com/Altinn/altinn-studio/pull/1234)"
-	entry := words(internal.MaxEntryWords-2) + " [the guide](https://docs.altinn.studio/some/page)\n" +
-		"  - (" + pr + ", " + pr + ", " + pr + ")"
+	issue := "[#1234](https://github.com/Altinn/altinn-studio/issues/1234)"
+	otherRepoIssue := "[Altinn/app-frontend-react#123](https://github.com/Altinn/app-frontend-react/issues/123)"
+	pr := "[#1235](https://github.com/Altinn/altinn-studio/pull/1235)"
+	entry := words(internal.MaxEntryWords) + "\n" +
+		"  - ([the migration guide](https://docs.altinn.studio/some/page), " + issue + ", " + otherRepoIssue + ", " + pr + ")"
 	head := commitValidationFile(t, repo, "src/cli/CHANGELOG.md", changelogWithEntry(entry), "linked entry")
 
 	if err := runStructureValidation(t, repo, base, head); err != nil {
 		t.Fatalf("RunStructureValidation() error = %v, want links left out of the word count", err)
 	}
+}
+
+func testStructureWordsAroundLinksCounted(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, validStructureChangelog)
+	base := revParseHead(t, repo)
+	issue := "[#1234](https://github.com/Altinn/altinn-studio/issues/1234)"
+	// The unclosed bracket in the inline code must not start a link that runs to the issue.
+	entry := "`list[int` " + words(internal.MaxEntryWords-2) + " " + issue + " word\n" +
+		"  - word (" + issue + ")"
+	head := commitValidationFile(t, repo, "src/cli/CHANGELOG.md", changelogWithEntry(entry), "long linked entry")
+
+	err := runStructureValidation(t, repo, base, head)
+	assertValidationError(t, err, internal.ErrEntryTooLong)
 }
 
 func testStructureLongEntryWithoutRangePasses(t *testing.T) {

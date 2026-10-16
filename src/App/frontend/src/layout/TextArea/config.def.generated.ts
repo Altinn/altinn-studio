@@ -1,36 +1,18 @@
-import type {
-  ComponentBase,
-  FormComponentProps,
-  SummarizableComponentProps,
-} from '@app/layout-contract/generated/common.generated';
+import type { JSX } from 'react';
 
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class TextAreaDef extends FormComponent<'TextArea'> implements DisplayData {
   protected readonly type = 'TextArea';
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'TextArea'>) {
-    return {
-      ...(props.item as Omit<
-        typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
-      >),
-      ...props.evalBase(),
-      ...props.evalFormProps(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'TextArea'>) {
-    return this.evalDefaultExpressions(props);
-  }
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -43,4 +25,4 @@ export abstract class TextAreaDef extends FormComponent<'TextArea'> implements D
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 7445cdb1431e8065c62c7ff6d0d14efa755d52f7ccb3e2cfb9235394a270f8f8
+// Source hash: 51e38bc6b42596835f78d7a19a699f2df86efab683d0a957256f0e53249e0b6a

@@ -21,6 +21,7 @@ export type ExpressionFunctionNameByReturn = {
   __string__:
     | 'concat'
     | 'instanceContext'
+    | 'gatewayAction'
     | 'externalApi'
     | 'displayValue'
     | 'optionLabel'
@@ -54,4 +55,4 @@ export type ExpressionFunctionNameByReturn = {
   __any__: 'argv' | 'value' | 'if' | 'frontendSettings' | 'component' | 'dataModel' | 'jmespath';
 };
 
-// Source hash: 90bd2a7df3c10cd937b28a6164af3db766955585a6469cca7d8d67f888f0a7f8
+// Source hash: c50cb121be9fab841eff1f7ba55f52e044d8909b2f3897ffdd1307a5ced3f55d

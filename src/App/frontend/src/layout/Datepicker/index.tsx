@@ -11,8 +11,8 @@ import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
 import { DatepickerSummary } from 'src/layout/Datepicker/DatepickerSummary';
 import { validateDatepicker } from 'src/layout/Datepicker/useDatepickerValidation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { useExternalItem } from 'src/utils/layout/hooks';
-import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
@@ -25,7 +25,7 @@ import type {
   ValidationFilterFunction,
 } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Datepicker extends DatepickerDef implements ValidateComponent<'Datepicker'>, ValidationFilter {
@@ -38,7 +38,7 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
   useDisplayData(baseComponentId: string): string {
     const formData = useNodeFormDataWhenType(baseComponentId, 'Datepicker');
     const currentLanguage = useCurrentLanguage();
-    const component = useExternalItem(baseComponentId, 'Datepicker');
+    const component = useComponentConfig(baseComponentId, 'Datepicker');
     const format = component?.format;
     const data = formData?.simpleBinding ?? '';
     if (!data) {
@@ -140,13 +140,5 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
     }
 
     return errors;
-  }
-
-  evalExpressions(props: ExprResolver<'Datepicker'>) {
-    return {
-      ...this.evalDefaultExpressions(props),
-      minDate: props.evalStr(props.item.minDate, ''),
-      maxDate: props.evalStr(props.item.maxDate, ''),
-    };
   }
 }

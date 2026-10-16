@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { parsableLogicalExpression } from '../../../testing/expressionMocks';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -22,8 +23,8 @@ const dataModelName = undefined;
 const heading = 'Test';
 const defaultProps: ExpressionContentProps = {
   expression: null,
-  onChange: jest.fn(),
-  onDelete: jest.fn(),
+  onChange: vi.fn(),
+  onDelete: vi.fn(),
   heading,
 };
 
@@ -40,7 +41,7 @@ describe('ExpressionContent', () => {
 
   it('Calls the onChange function with the updated expression when the user changes something in the expression', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderExpressionContent({ expression: parsableLogicalExpression, onChange });
     const orButtonName = textMock('expression.logicalTupleOperator.or');
     const orButton = screen.getByRole('radio', { name: orButtonName });
@@ -54,8 +55,8 @@ describe('ExpressionContent', () => {
 
   it('Calls the onDelete function when the user clicks the delete button and confirms', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
-    const onDelete = jest.fn();
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
+    const onDelete = vi.fn();
     renderExpressionContent({ onDelete, expression: parsableLogicalExpression });
     const deleteButtonName = textMock('right_menu.expression_delete');
     const deleteButton = screen.getByRole('button', { name: deleteButtonName });
@@ -68,11 +69,11 @@ describe('ExpressionContent', () => {
     screen.getByRole('button', { name: textMock('right_menu.expression_delete') });
   });
 
-  it('Do not show delete button if there is no expression', async () => {
+  it('Disables the delete button if there is no expression', async () => {
     renderExpressionContent();
     expect(
-      screen.queryByRole('button', { name: textMock('right_menu.expression_delete') }),
-    ).not.toBeInTheDocument();
+      screen.getByRole('button', { name: textMock('right_menu.expression_delete') }),
+    ).toBeDisabled();
   });
 });
 

@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import BpmnModdle from 'bpmn-moddle';
 import { SupportedPaletteProvider } from './SupportedPaletteProvider';
 import { altinnCustomTasks } from '../extensions/altinnCustomTasks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-jest.mock('app-shared/utils/generateRandomId', () => {
+vi.mock('app-shared/utils/generateRandomId', () => {
   let counter = 0;
   return { generateRandomId: () => String(++counter) };
 });
@@ -61,6 +62,9 @@ describe('SupportedPaletteProvider', () => {
         const [receivedEvent, shape] = start.mock.lastCall;
         expect(receivedEvent).toBe(event);
         expect(shape.type).toBe(type);
+        expect(shape.businessObject.name).toBe(
+          textMock(`process_editor.default_task_name.${id.replaceAll('-', '_')}`, { lng: 'nb' }),
+        );
         const extension = shape.businessObject.extensionElements.values[0];
         expect(extension.taskType).toBe(taskType);
         const { xml } = await moddle.toXML(shape.businessObject);
@@ -117,8 +121,8 @@ describe('SupportedPaletteProvider', () => {
 
 function createProvider() {
   const moddle = new BpmnModdle({ altinn: altinnCustomTasks });
-  const start = jest.fn();
-  const palette = { registerProvider: jest.fn() };
+  const start = vi.fn();
+  const palette = { registerProvider: vi.fn() };
   const provider = new SupportedPaletteProvider(
     moddle,
     { start },

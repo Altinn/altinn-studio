@@ -58,7 +58,8 @@ public class ExecuteServiceTaskTests
         int retryCount = 0,
         DateTimeOffset? executionDeadline = null,
         Guid stepId = default,
-        DateTimeOffset? firstDeferredAt = null
+        DateTimeOffset? firstDeferredAt = null,
+        bool isFinalWaitCheck = false
     )
     {
         if (mutator is null)
@@ -92,6 +93,7 @@ public class ExecuteServiceTaskTests
                 DeferCount = deferCount,
                 WaitDeadline = waitDeadline,
                 FirstDeferredAt = firstDeferredAt,
+                IsFinalWaitCheck = isFinalWaitCheck,
                 RetryCount = retryCount,
                 ExecutionDeadline = executionDeadline,
             },
@@ -333,6 +335,34 @@ public class ExecuteServiceTaskTests
         Assert.NotNull(serviceTask.Observed);
         Assert.Equal(4, serviceTask.Observed.Wait.DeferCount);
         Assert.Equal(waitDeadline, serviceTask.Observed.Wait.Deadline);
+    }
+
+    [Theory]
+    [InlineData(true, 60)]
+    [InlineData(false, -60)]
+    public async Task Execute_ForwardsTheEnginesFinalCheckVerdict_RatherThanReadingTheClock(
+        bool isFinalWaitCheck,
+        int deadlineOffsetMinutes
+    )
+    {
+        // Arrange — the deadline is on the opposite side of the clock from the flag, so only forwarding
+        // the flag passes.
+        var serviceTask = Succeeding();
+        var command = CreateCommand(serviceTask);
+        var context = CreateContext(
+            CreateInstance(),
+            "myServiceTask",
+            waitDeadline: DateTimeOffset.UtcNow.AddMinutes(deadlineOffsetMinutes),
+            firstDeferredAt: DateTimeOffset.UtcNow.AddHours(-1),
+            isFinalWaitCheck: isFinalWaitCheck
+        );
+
+        // Act
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask", ItemIndex: 0));
+
+        // Assert
+        Assert.NotNull(serviceTask.Observed);
+        Assert.Equal(isFinalWaitCheck, serviceTask.Observed.Wait.IsFinalCheck);
     }
 
     [Fact]

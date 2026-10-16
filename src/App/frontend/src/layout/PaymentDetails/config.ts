@@ -18,11 +18,11 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: false,
-  },
+
   directRendering: false,
 })
+  .makeSummarizable()
+  .addSummaryOverrides()
   .addTextResource(
     new CG.trb({
       name: 'title',

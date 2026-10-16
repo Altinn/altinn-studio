@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useGetSelectedScopesQuery } from 'app-development/hooks/queries/useGetSelectedScopesQuery';
 import { NoScopesAlert } from './NoScopesAlert';
 import { NoOrgAccessAlert } from './NoOrgAccessAlert';
+import { NoOrgMembershipAlert } from './NoOrgMembershipAlert';
 import { ScopeList } from './ScopeList';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
@@ -21,7 +22,11 @@ export function ScopeListContainer(): ReactElement {
     isPending: isPendingMaskinportenScopes,
     error: maskinportenScopesError,
   } = useGetScopesQuery();
-  const { data: selectedScopes, isPending: isPendingAppScopes } = useGetSelectedScopesQuery();
+  const {
+    data: selectedScopes,
+    isPending: isPendingAppScopes,
+    error: selectedScopesError,
+  } = useGetSelectedScopesQuery();
   const { data: appVersion, isPending: isPendingAppVersion } = useAppVersionQuery(org, app);
 
   const hasScopes: boolean =
@@ -35,6 +40,11 @@ export function ScopeListContainer(): ReactElement {
 
   if (hasPendingScopeQueries) {
     return <StudioSpinner aria-hidden spinnerTitle={t('general.loading')} />;
+  }
+
+  // Without the app's current selection, saving would overwrite it, so nothing can be managed.
+  if (selectedScopesError) {
+    return isForbiddenError(selectedScopesError) ? <NoOrgMembershipAlert /> : null;
   }
 
   const hasOrgAccess: boolean = !isForbiddenError(maskinportenScopesError);

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SecurityLevelSelectProps } from './SecurityLevelSelect';
@@ -11,11 +12,9 @@ const mockSystemUserCheckboxLabel: string = textMock(
   'policy_editor.system_user_auth_level_checkbox_label',
 );
 
-const mockOnSave = jest.fn();
+const mockOnSave = vi.fn();
 
 describe('SelectAuthLevel', () => {
-  afterEach(jest.clearAllMocks);
-
   const defaultProps: SecurityLevelSelectProps = {
     requiredAuthenticationLevelEndUser: mockInitialAuthLevelValue,
     onSave: mockOnSave,

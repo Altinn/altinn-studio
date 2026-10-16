@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Label, List, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
+import { Label, List, Paragraph } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import dot from 'dot-object';
 
@@ -10,10 +10,11 @@ import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSep
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
+import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import classes from 'src/layout/Summary2/CommonSummaryComponents/MultipleValueSummary.module.css';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useFormDataFor } from 'src/utils/layout/useNodeItem';
+import { useFormDataFor } from 'src/utils/layout/useFormData';
 import type { CompTypes } from 'src/layout/layout';
 
 type ValidTypes = 'MultipleSelect' | 'Checkboxes';
@@ -125,18 +126,10 @@ export const MultipleValueSummary = ({
             </Paragraph>
           )}
         </div>
-        {errors.length > 0 &&
-          errors.map(({ message }) => (
-            <ValidationMessage
-              key={message.key}
-              data-size='sm'
-            >
-              <Lang
-                id={message.key}
-                params={message.params}
-              />
-            </ValidationMessage>
-          ))}
+        <ValidationMessageList
+          validations={errors}
+          size='sm'
+        />
       </div>
       <EditButton
         className={classes.editButton}

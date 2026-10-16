@@ -756,6 +756,7 @@ interface Step {
     executionStartedAt: string | null;
     updatedAt: string | null;
     stateChanged: boolean;
+    labels?: Record<string, string>;
 }
 
 interface WorkflowRelation {
@@ -852,26 +853,30 @@ Stored in localStorage:
 
 ---
 
-## BPMN Task Phase Grouping
+## BPMN Element Grouping
 
-Steps on a card are grouped into BPMN task phases using two mechanisms:
+Consecutive steps that run for the same BPMN element are drawn under one bracket labeled with that element. `stepGroup(step, tx)` decides the grouping, returning `{ key, label }` — a key to group consecutive steps by, and the name drawn over the group — or `null` for a step that belongs to no element, which ends the group before it. `pipeline.js` groups by `key` and renders each group's `label` at its center.
+
+### `stepGroup` prefers the step's own label
+
+The Altinn app library stamps each process-next lifecycle step with a **`processNextElement`** label naming the element it runs for: the task being left on a task-end/abandon step, the task being entered on a task-start step, and the end event on a process-end step. When it is present the dashboard uses it verbatim, so a step is attributed by what the app said rather than by what the command is called, and a command this dashboard has never heard of is grouped correctly on its first run. A process end also gets its real end event id this way, where the fallback below can only say "End Event".
+
+Only the pre-commit lifecycle steps carry it. The transition's own steps (`AcquireProcessingStatus`, `MutateProcessState`, `CommitProcessState`, `EnqueueSideEffectsWorkflow`) belong to neither element, and the post-commit and side-effect steps are deliberately left unlabeled: labeling them would draw the entering element's name a second time, after the commit, around work the first bracket already named.
+
+### `stepPhase(commandDetail)` is the fallback
+
+Without a label, `stepGroup` falls back to a map from command name to one end of the transition, which `parseTransition` resolves against the operationId:
+
+- **`end`** → the transition's `from`: EndTask, CommonTaskFinalization, OnTaskEndingHook, LockTaskData, AbandonTask, OnTaskAbandonHook
+- **`start`** → the transition's `to`: UnlockTaskData, CleanupGeneratedFromTask, StartTask, OnTaskStartingHook, CommonTaskInitialization
+- **`process-end`** → the literal "End Event": OnProcessEndingHook, EndProcessLegacyHook
+- **`null`**: everything else (service tasks, webhooks)
+
+This covers workflows enqueued before the label existed and apps still on an older Altinn.App version. The engine serves many apps at once, so it is a standing fallback rather than a migration window. A command missing from it has no group, which ends the bracket before it and starts a new one after it, drawing the element name twice around an ungrouped step. Keys from the two sources are deliberately distinct strings, so a labeled and an unlabeled step never merge into one bracket on the strength of a coincidence.
 
 ### `parseTransition(workflow)`
 
-Extracts the BPMN transition from `workflow.operationId`. Expected format: `"Process next: TaskA → TaskB"` (or `"Process next: TaskA -> TaskB"`). Returns `{ from: "TaskA", to: "TaskB" }` or `null` if no transition found. Empty from/to default to "Start Event"/"End Event".
-
-### `stepPhase(commandDetail)`
-
-Maps step command names to phases:
-
-- **`end`**: EndTask, CommonTaskFinalization, OnTaskEndingHook, LockTaskData, AbandonTask, OnTaskAbandonHook
-- **`start`**: UnlockTaskData, CleanupGeneratedFromTask, StartTask, OnTaskStartingHook, CommonTaskInitialization
-- **`process-end`**: OnProcessEndingHook, EndProcessLegacyHook
-- **`null`**: Everything else (service tasks, webhooks)
-
-The sets mirror the app library's `WorkflowCommandSet` (the app's `Internal/WorkflowEngine/AGENTS.md`, "How to Add a New Command"). A task-phase command missing here maps to `null`, which ends the bracket before it and starts a new one after it — the task name is then drawn twice around an untagged step.
-
-Phases drive the bracket lines and task name labels shown on the pipeline. The `pipeline.js` renderer groups consecutive steps with the same phase and renders labels at the center of each group.
+Extracts the BPMN transition from `workflow.operationId`. Expected format: `"Process next: TaskA → TaskB"` (or `"Process next: TaskA -> TaskB"`). Returns `{ from: "TaskA", to: "TaskB" }` or `null` if no transition found. Empty from/to default to "Start Event"/"End Event". Only the fallback needs it; a labeled step names its element outright.
 
 ---
 
@@ -880,6 +885,7 @@ Phases drive the bracket lines and task name labels shown on the pipeline. The `
 The C# `DashboardMapper` transforms domain models into dashboard DTOs. Key mappings:
 
 - **`commandDetail`** — Set to `step.OperationId` (not a separate field; the operation ID doubles as the display label for the step).
+- **`labels`** — The step's own labels, passed through verbatim from what the caller enqueued. Omitted from the JSON when the step has none. This is what carries `processNextElement` (see BPMN Element Grouping); the dashboard reads that one key and ignores the rest, so a caller may put anything else here without the UI reacting to it.
 - **`deferCount` / `firstDeferredAt` / `lastDeferReason`** — Passed through from the step's defer anchors (`Step.DeferCount`, `Step.FirstDeferredAt`, `Step.LastDeferReason`) so a card can say what a `Waiting` step is waiting for. Null anchors are omitted from the JSON.
 - **`executionStartedAt`** — On the workflow and on each step: the start of the **most recent attempt** (`Workflow.ExecutionStartedAt` / `Step.ExecutionStartedAt`), stamped by the worker and persisted by that attempt's write-backs, so it survives a round trip through the database. Null while the workflow is `Enqueued` (before the first attempt; again after resume, stale reclaim or dependency recovery), and overwritten by every new attempt. Settled card and chain durations fall back to `createdAt` only for a workflow with no attempt to show; on a settled step, `updatedAt − executionStartedAt` is the last attempt's duration, and the step modal's Processing counter counts up from it. The **live** counter falls back to `updatedAt` before `createdAt`, because a live workflow with no stamp is `Enqueued` or `Held` and for those `updatedAt` is when it entered the queue — the enqueue leaves it null, every later path back into the queue sets it — so a workflow the operator has just resumed counts from the resume instead of showing its whole age until a worker claims it. A settled workflow must never take that fallback: there `updatedAt` is when it finished. The persisted value trails the worker by at most one write-back — the `step.started` write-back is fire-and-forget and dropped under buffer pressure — so a `Processing` step's counter is indicative until the step settles.
 - **`stateChanged`** — For each step (in processing order), compares `step.StateOut` against the previous step's `StateOut` (or `workflow.InitialState` for the first step). `true` if `StateOut` is non-null and differs from the previous state.

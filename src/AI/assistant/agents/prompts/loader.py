@@ -1,0 +1,139 @@
+"""Prompt loader utility for managing system prompts"""
+
+import re
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+from shared.utils.langfuse_utils import get_raw_langfuse_prompt
+from shared.utils.logging_utils import get_logger
+
+log = get_logger(__name__)
+
+PROMPTS_DIR = Path(__file__).parent
+
+
+def _prompt_file(prompt_name: str) -> Path:
+    """The file for a prompt name. Judges and templates live in subdirectories."""
+    found = sorted(PROMPTS_DIR.rglob(f"{prompt_name}.md"))
+    if len(found) == 1:
+        return found[0]
+    if not found:
+        raise FileNotFoundError(f"Prompt file not found: {PROMPTS_DIR / f'{prompt_name}.md'}")
+    listed = ", ".join(path.relative_to(PROMPTS_DIR).as_posix() for path in found)
+    raise FileNotFoundError(f"Prompt name {prompt_name!r} is ambiguous: {listed}")
+
+
+def load_prompt(prompt_name: str) -> dict[str, Any]:
+    """Load a prompt from a markdown file with YAML frontmatter."""
+    prompt_file = _prompt_file(prompt_name)
+
+    content = prompt_file.read_text(encoding="utf-8")
+
+    # Parse YAML frontmatter
+    if content.startswith("---"):
+        parts = content.split("---", 2)
+        if len(parts) >= 3:
+            frontmatter_text = parts[1].strip()
+            prompt_content = parts[2].strip()
+
+            try:
+                metadata = yaml.safe_load(frontmatter_text) or {}
+            except yaml.YAMLError as e:
+                log.warning(f"Failed to parse YAML frontmatter in {prompt_name}.md: {e}")
+                metadata = {}
+        else:
+            # No proper frontmatter, treat entire content as prompt
+            metadata = {}
+            prompt_content = content
+    else:
+        # No frontmatter at all
+        metadata = {}
+        prompt_content = content
+
+    return {
+        "content": prompt_content,
+        "role": metadata.get("role", "assistant"),
+        "version": metadata.get("version", "1.0"),
+        "name": metadata.get("name", prompt_name),
+    }
+
+
+def compiled_system_message(compiled: Any) -> str | None:
+    """The system half of a compiled prompt."""
+    if isinstance(compiled, str):
+        return compiled or None
+    if isinstance(compiled, list):
+        for message in compiled:
+            if isinstance(message, dict) and message.get("role") == "system":
+                content = message.get("content")
+                if isinstance(content, str) and content:
+                    return content
+    return None
+
+
+def get_prompt_with_langfuse(prompt_name: str, local_path: str | None = None) -> tuple[str, object]:
+    """Return ``(compiled_content, raw_langfuse_prompt)`` for use with LLM calls.
+
+    ``local_path`` names the fallback ``.md`` when it differs from ``prompt_name``.
+    """
+    lf_prompt = get_raw_langfuse_prompt(prompt_name)
+    if lf_prompt is not None:
+        try:
+            content = compiled_system_message(lf_prompt.compile())
+            if content:
+                return content, lf_prompt
+            log.warning(f"Langfuse prompt '{prompt_name}' has no system message; using local file")
+        except Exception as e:
+            log.warning(f"Failed to compile Langfuse prompt '{prompt_name}': {e}")
+            # Fall through to local prompt
+    return load_prompt(local_path or prompt_name)["content"], None
+
+
+_IDENTIFIER_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
+
+
+def _compile_template(content: str, variables: dict) -> str:
+    """Substitute ``{{variable}}`` placeholders, matching Langfuse's compile() behavior."""
+
+    def _replace_match(match: re.Match) -> str:
+        inner = match.group(1).strip()
+        if _IDENTIFIER_RE.match(inner):
+            if inner in variables:
+                return str(variables[inner]) if variables[inner] is not None else ""
+            raise ValueError(f"Missing required template variable: '{inner}'")
+        # Not an identifier — treat as escaped literal braces: {{ X }} → { X }
+        return "{" + match.group(1) + "}"
+
+    return re.sub(r"\{\{(.+?)\}\}", _replace_match, content)
+
+
+def render_template(template_name: str, **variables) -> str:
+    """Load and render a template with variable substitution."""
+    # Try Langfuse, but guard against silent variable drops
+    lf_prompt = get_raw_langfuse_prompt(template_name)
+    if lf_prompt is not None:
+        try:
+            raw_text = lf_prompt.prompt if hasattr(lf_prompt, "prompt") else ""
+            lf_placeholders = set(re.findall(r"\{\{(.+?)\}\}", raw_text))
+            dropped = set(variables.keys()) - lf_placeholders
+            if dropped:
+                log.info(
+                    f"Langfuse template '{template_name}' missing placeholders "
+                    f"{dropped} — falling back to local template"
+                )
+            else:
+                compiled = lf_prompt.compile(**variables)
+                log.info(f"Loaded prompt '{template_name}' from Langfuse")
+                return compiled
+        except Exception as e:
+            log.info(f"Langfuse prompt '{template_name}' compile failed, using local file: {e}")
+
+    template_file = PROMPTS_DIR / "templates" / f"{template_name}.md"
+
+    if not template_file.exists():
+        raise FileNotFoundError(f"Template file not found: {template_file}")
+
+    template_content = template_file.read_text(encoding="utf-8")
+    return _compile_template(template_content, variables)

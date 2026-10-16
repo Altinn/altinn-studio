@@ -1,3 +1,4 @@
+import { describe } from 'vitest';
 import { uiSchemaMock } from './uiSchemaMock';
 import { testSchemaNodes } from './validateTestUiSchema';
 

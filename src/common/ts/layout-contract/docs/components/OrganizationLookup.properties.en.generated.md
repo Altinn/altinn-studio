@@ -50,30 +50,29 @@ The component also supports the [common component properties](../common-properti
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">List of validation types to show</div></div>
 </details>
 
-<details class="card adocs-expand adocs-expand-small component-property" id="renderassummary">
+<details class="card adocs-expand adocs-expand-small component-property" id="labelsettings">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="renderAsSummary">renderAsSummary</span>
+    <span class="component-property-name" title="labelSettings">labelSettings</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Optional</span>
-      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Controls how the component label is displayed.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="labelsettings.optionalindicator">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="labelSettings.optionalIndicator">labelSettings.optionalIndicator</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-default">Default: <span class="component-property-value">true</span></span>
       <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolean value indicating if the component should be rendered as a summary. Defaults to false.</div></div>
-</details>
-
-<details class="card adocs-expand adocs-expand-small component-property" id="forceshowinsummary">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="forceShowInSummary">forceShowInSummary</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Optional</span>
-      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the optional indicator on the label of non-required fields. Enabled by default.</div></div>
 </details>
 
 <details class="component-property-group" id="textresourcebindings">
@@ -188,12 +187,26 @@ The component also supports the [common component properties](../common-properti
   </div>
 </details>
 
+<details class="card adocs-expand adocs-expand-small component-property" id="forceshowinsummary">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="forceShowInSummary">forceShowInSummary</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.</div></div>
+</details>
+
 <details class="card adocs-expand adocs-expand-small component-property" id="removewhenhidden">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
     <span class="component-property-name" title="removeWhenHidden">removeWhenHidden</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Optional</span>
+      <span class="component-property-default">Default: <span class="component-property-value">true</span></span>
       <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
     </span>
   </summary>

@@ -1,24 +1,11 @@
-import type { ComponentBase } from '@app/layout-contract/generated/common.generated';
-
 import { ActionComponent } from 'src/layout/LayoutComponent';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 export abstract class InstantiationButtonDef extends ActionComponent<'InstantiationButton'> {
   protected readonly type = 'InstantiationButton';
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'InstantiationButton'>) {
-    return {
-      ...(props.item as Omit<typeof props.item, keyof ComponentBase | 'hidden'>),
-      ...props.evalBase(),
-      ...props.evalTrb(),
-    };
-  }
+  declare renderSummary?: never;
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'InstantiationButton'>) {
-    return this.evalDefaultExpressions(props);
-  }
+  declare renderSummary2?: never;
 }
 
-// Source hash: fdd89157ecf2653a789e64389df285acf28d141f4921524e6d8d34bb31faa153
+// Source hash: 3f79a32df13f1c868be77e68f643538c6876423bed639f354e72b772ba168a41

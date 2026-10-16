@@ -5,6 +5,7 @@ import { ParagraphDef } from 'src/layout/Paragraph/config.def.generated';
 import { ParagraphComponent } from 'src/layout/Paragraph/ParagraphComponent';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Paragraph extends ParagraphDef {
@@ -14,16 +15,17 @@ export class Paragraph extends ParagraphDef {
     },
   );
 
+  renderSummary({ targetBaseComponentId }: SummaryRendererProps): JSX.Element | null {
+    return <ParagraphComponent baseComponentId={targetBaseComponentId} />;
+  }
+
   renderSummary2(props: Summary2Props): JSX.Element | null {
     return (
       <SummaryFlex
         targetBaseId={props.targetBaseComponentId}
         content={SummaryContains.Presentational}
       >
-        <ParagraphComponent
-          baseComponentId={props.targetBaseComponentId}
-          containerDivRef={React.createRef()}
-        />
+        <ParagraphComponent baseComponentId={props.targetBaseComponentId} />
       </SummaryFlex>
     );
   }

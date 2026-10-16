@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import {
   internalLayoutWithMultiPageGroup,
   component1Id,
@@ -68,6 +69,16 @@ describe('internalLayoutToExternal', () => {
   it('should return component id when component reference is invalid', () => {
     const result = getComponentIdWithPageIndex(layoutMock, 'unknownComponentId');
     expect(result).toBe('unknownComponentId');
+  });
+
+  it('Keeps the $schema of the layout', () => {
+    const v9SchemaUrl =
+      'https://altinn.studio/designer/app-dist/9.0.0/schemas/json/layout/layout.schema.v1.json';
+    const external = internalLayoutToExternal({
+      ...internalLayoutWithMultiPageGroup,
+      $schema: v9SchemaUrl,
+    });
+    expect(external.$schema).toBe(v9SchemaUrl);
   });
 
   it('Includes custom root properties', () => {

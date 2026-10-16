@@ -120,7 +120,7 @@ public class WorkflowEngineServiceTests
         service.WorkflowPollingTimeoutMs = 500;
         // Fails instead of hanging if a poll delay ever bypasses the clock, since the budget would never run out.
         var result = await service
-            .EnqueueAndWaitForProcessNext(instance, versions, "state", action: null)
+            .EnqueueAndWaitForProcessNext(instance, versions, "state", action: null, language: null)
             .WaitAsync(TimeSpan.FromSeconds(10));
         Assert.True(result.ProcessStateChanged);
         Assert.True(polls >= 2);

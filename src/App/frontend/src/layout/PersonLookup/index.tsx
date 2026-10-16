@@ -5,7 +5,7 @@ import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeVa
 import { PersonLookupDef } from 'src/layout/PersonLookup/config.def.generated';
 import { PersonLookupComponent } from 'src/layout/PersonLookup/PersonLookupComponent';
 import { PersonLookupSummary } from 'src/layout/PersonLookup/PersonLookupSummary';
-import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
 import type {
@@ -64,10 +64,6 @@ export class PersonLookup extends PersonLookupDef {
 
   renderSummary2(props: Summary2Props): JSX.Element | null {
     return <PersonLookupSummary {...props} />;
-  }
-
-  renderDefaultValidations(): boolean {
-    return false;
   }
 
   validateEmptyField(ctx: ComponentValidationContext<'PersonLookup'>): ComponentValidation[] {

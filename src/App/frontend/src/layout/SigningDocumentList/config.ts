@@ -18,10 +18,8 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: false,
-  },
 })
+  .makeSummarizable()
   .addTextResource(
     new CG.trb({
       name: 'title',
@@ -48,5 +46,5 @@ export const Config = new CG.component({
       name: 'summaryTitle',
       title: { en: 'Summary title', nb: 'Tittel i oppsummering' },
       description: { en: 'Header/title of the summary', nb: 'Overskriften eller ledeteksten til oppsummeringen.' },
-    }),
+    }).requireBehaviors('isSummarizable'),
   );

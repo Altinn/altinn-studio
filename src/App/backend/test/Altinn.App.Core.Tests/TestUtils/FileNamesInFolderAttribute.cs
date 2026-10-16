@@ -29,7 +29,7 @@ public class FileNamesInFolderDataAttribute(string folderName) : DataAttribute
             );
     }
 
-    private static bool IsDisabledInBackend(string fullPath)
+    internal static bool IsDisabledInBackend(string fullPath)
     {
         if (Path.GetExtension(fullPath) != ".json")
         {

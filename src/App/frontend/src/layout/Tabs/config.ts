@@ -18,10 +18,11 @@ export const Config = new CG.component({
     renderInCards: false,
     renderInCardsMedia: false,
   },
-  functionality: {
-    customExpressions: false,
-  },
 })
+  .makeSummarizable()
+  .addProperty(CG.common('renderAsSummary'))
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
   .addProperty(new CG.prop('size', new CG.enum('small', 'medium', 'large').optional({ default: 'medium' })))
   .addProperty(new CG.prop('defaultTab', new CG.str().optional()))
   .addProperty(

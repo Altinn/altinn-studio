@@ -1,3 +1,4 @@
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { typedLocalStorage } from '@studio/pure-functions';
 import {
   addFeatureFlagToLocalStorage,
@@ -93,6 +94,6 @@ describe('studio-feature-flags utils', () => {
 });
 
 function expectArrayInAnyOrder<T>(result: T[], expectedItems: T[]): void {
-  expect(result).toEqual(expect.arrayContaining(expectedItems));
+  expect(result).toEqual(expect.arrayContaining<unknown>(expectedItems));
   expect(result).toHaveLength(expectedItems.length);
 }

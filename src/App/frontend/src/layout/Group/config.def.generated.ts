@@ -1,7 +1,8 @@
-import type { ComponentBase, SummarizableComponentProps } from '@app/layout-contract/generated/common.generated';
+import type { JSX } from 'react';
 
 import { ContainerComponent } from 'src/layout/LayoutComponent';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class GroupDef extends ContainerComponent<'Group'> {
   protected readonly type = 'Group';
@@ -10,20 +11,9 @@ export abstract class GroupDef extends ContainerComponent<'Group'> {
     return true;
   }
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'Group'>) {
-    return {
-      ...(props.item as Omit<typeof props.item, keyof ComponentBase | keyof SummarizableComponentProps | 'hidden'>),
-      ...props.evalBase(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'Group'>) {
-    return this.evalDefaultExpressions(props);
-  }
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 }
 
-// Source hash: f3860d9681a8c2dbcc865bc9befdbf10b2d19744ec4b47588d2b9919e84d0ada
+// Source hash: fc7af4e3913fe6b5270509291cab50453c9bd685f4bad557393e4783a3804c37

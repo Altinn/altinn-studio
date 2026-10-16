@@ -10,7 +10,8 @@ namespace Altinn.App.Core.Features.Process;
 public interface IOnTaskAbandonHandler : IProcessStepConfigurable
 {
     /// <summary>
-    /// Determines whether the hook should run for the given task ID.
+    /// Determines whether the hook should run for the given task ID. At most one implementation may run for a
+    /// task; if more than one returns true for a task in the process definition, the app does not start.
     /// </summary>
     /// <param name="taskId">The task ID to check.</param>
     /// <returns>True if the hook should run for this task; otherwise, false.</returns>

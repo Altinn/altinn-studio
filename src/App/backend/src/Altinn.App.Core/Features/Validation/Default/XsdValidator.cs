@@ -77,11 +77,12 @@ internal sealed class XsdValidator : IValidator
             {
                 continue;
             }
-            var modelId = classRef.Split('.').Last(); // ModelId is the last part of the class ref, which is the part that is used in the XSD schema file name
-            var schema = _appResourceService.GetXsdSchema(modelId);
+
+            var schema = _appResourceService.GetXsdSchema(dataType.Id);
+
             if (schema is null)
             {
-                _logger.LogInformation(
+                _logger.LogWarning(
                     "No XSD schema found for data type {DataTypeId}, skipping XSD validation",
                     dataType.Id
                 );
@@ -114,18 +115,11 @@ internal sealed class XsdValidator : IValidator
             settings.ValidationEventHandler += (sender, e) =>
             {
                 validationIssues.Add(
-                    new ValidationIssue()
-                    {
-                        Code = "Xsd",
-                        CustomTextKey = "backend.xsd_validation",
-                        DataElementId = dataElement.Id,
-                        Severity = ValidationIssueSeverity.Error,
-                        CustomTextParameters = new Dictionary<string, string>()
-                        {
-                            { "schema", dataType.Id },
-                            { "message", e.Message },
-                        },
-                    }
+                    BuiltInValidationIssues.XsdValidation(
+                        dataElementId: dataElement.Id,
+                        schema: dataType.Id,
+                        message: e.Message
+                    )
                 );
             };
 
@@ -138,18 +132,11 @@ internal sealed class XsdValidator : IValidator
             catch (XmlException ex)
             {
                 validationIssues.Add(
-                    new ValidationIssue()
-                    {
-                        Code = "Xsd",
-                        CustomTextKey = "backend.xsd_validation",
-                        DataElementId = dataElement.Id,
-                        Severity = ValidationIssueSeverity.Error,
-                        CustomTextParameters = new Dictionary<string, string>()
-                        {
-                            { "schema", dataType.Id },
-                            { "message", ex.Message },
-                        },
-                    }
+                    BuiltInValidationIssues.XsdValidation(
+                        dataElementId: dataElement.Id,
+                        schema: dataType.Id,
+                        message: ex.Message
+                    )
                 );
             }
         }

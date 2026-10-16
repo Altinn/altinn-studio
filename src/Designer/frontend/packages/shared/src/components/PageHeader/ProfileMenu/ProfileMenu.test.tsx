@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
@@ -6,14 +7,14 @@ import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
 import { ProfileMenu } from './ProfileMenu';
 
-const mockOnOrgSelect = jest.fn();
-const mockOnUserSelect = jest.fn();
+const mockOnOrgSelect = vi.fn();
+const mockOnUserSelect = vi.fn();
 
-const mockUseUserQuery = jest.fn();
-const mockUseOrganizationsQuery = jest.fn();
+const mockUseUserQuery = vi.fn();
+const mockUseOrganizationsQuery = vi.fn();
 
-jest.mock('app-shared/hooks/queries', () => ({
-  ...jest.requireActual('app-shared/hooks/queries'),
+vi.mock('app-shared/hooks/queries', async () => ({
+  ...(await vi.importActual('app-shared/hooks/queries')),
   useUserQuery: () => mockUseUserQuery(),
   useOrganizationsQuery: () => mockUseOrganizationsQuery(),
 }));
@@ -79,10 +80,6 @@ const getTriggerButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name: name ?? textMock('top_menu.menu') });
 
 describe('ProfileMenu', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('renders nothing when user data is not loaded', () => {
     renderProfileMenu({ user: null });
     expect(screen.queryByRole('button')).not.toBeInTheDocument();

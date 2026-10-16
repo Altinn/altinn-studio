@@ -15,6 +15,8 @@ export default defineConfig({
       { find: /^react-dom$/, replacement: path.join(repoNodeModules, 'react-dom') },
       { find: /^react\/jsx-runtime$/, replacement: path.join(repoNodeModules, 'react/jsx-runtime.js') },
       { find: /^react\/jsx-dev-runtime$/, replacement: path.join(repoNodeModules, 'react/jsx-dev-runtime.js') },
+      // The CommonJS bundle embeds its own Leaflet context. Use the ESM entry to share MapContainer's context.
+      { find: /^react-leaflet-draw$/, replacement: path.join(repoNodeModules, 'react-leaflet-draw/dist/esm/index.js') },
     ],
   },
   test: {

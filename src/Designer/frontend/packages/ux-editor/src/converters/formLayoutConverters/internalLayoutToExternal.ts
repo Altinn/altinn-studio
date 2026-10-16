@@ -1,6 +1,5 @@
 import type { IInternalLayout } from '../../types/global';
 import type { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api';
-import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 import type { ExternalContainerComponent } from '../../types/ExternalContainerComponent';
 import { internalContainerComponentToExternal } from '../containerComponentConverters';
 import type { FormContainer } from '../../types/FormContainer';
@@ -11,7 +10,7 @@ import type { CompareFunction } from 'app-shared/utils/compareFunctions';
 import type { FormComponent } from '../../types/FormComponent';
 
 export const internalLayoutToExternal = (internalLayout: IInternalLayout): ExternalFormLayout => ({
-  $schema: layoutSchemaUrl(),
+  $schema: internalLayout.$schema,
   data: {
     hidden: internalLayout.hidden,
     layout: generateExternalComponents(internalLayout),

@@ -198,6 +198,14 @@ public class InstanceMutationsController(
             return completeConfirmationAuthorizationError;
         }
 
+        if (
+            mutationRequest.ProcessState?.State is { } nextProcessState
+            && !await _processAuthorizer.AuthorizeProcessNext(instance, nextProcessState, cancellationToken)
+        )
+        {
+            return Forbid();
+        }
+
         Application application = await _applicationRepository.FindOne(
             instance.AppId,
             instance.Org,
@@ -316,7 +324,7 @@ public class InstanceMutationsController(
                     return dataTypeError;
                 }
 
-                if (await dataType.CanWrite(_authorizationService, instance) is not true)
+                if (await dataType.CanWrite(_authorizationService, instance, cancellationToken) is not true)
                 {
                     await CleanupStagedBlobs();
                     return Forbid();
@@ -418,7 +426,7 @@ public class InstanceMutationsController(
                     return dataTypeError;
                 }
 
-                if (await dataType.CanWrite(_authorizationService, instance) is not true)
+                if (await dataType.CanWrite(_authorizationService, instance, cancellationToken) is not true)
                 {
                     await CleanupStagedBlobs();
                     return Forbid();
@@ -568,7 +576,7 @@ public class InstanceMutationsController(
                     return dataTypeError;
                 }
 
-                if (await dataType.CanWrite(_authorizationService, instance) is not true)
+                if (await dataType.CanWrite(_authorizationService, instance, cancellationToken) is not true)
                 {
                     await CleanupStagedBlobs();
                     return Forbid();
@@ -584,7 +592,7 @@ public class InstanceMutationsController(
 
             if (mutationRequest.PresentationTexts?.Count > 0)
             {
-                if (!await _processAuthorizer.AuthorizePresentationTextsUpdate(instance))
+                if (!await _processAuthorizer.AuthorizePresentationTextsUpdate(instance, cancellationToken))
                 {
                     await CleanupStagedBlobs();
                     return Forbid();
@@ -593,7 +601,7 @@ public class InstanceMutationsController(
 
             if (mutationRequest.DataValues?.Count > 0)
             {
-                if (!await _processAuthorizer.AuthorizeDataValuesUpdate(instance))
+                if (!await _processAuthorizer.AuthorizeDataValuesUpdate(instance, cancellationToken))
                 {
                     await CleanupStagedBlobs();
                     return Forbid();
@@ -727,7 +735,9 @@ public class InstanceMutationsController(
                 instanceUpdates,
                 instanceUpdateProperties,
                 preconditions.InstanceVersion,
-                preconditions.ProcessStateVersion,
+                // As in Storage, the process state the request was authorized against must still be
+                // current when it commits, whether or not the caller sent a precondition.
+                preconditions.ProcessStateVersion ?? currentVersions.ProcessStateVersion,
                 processState,
                 mutationInstanceEvents,
                 idempotencyKey,

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { ForwardedRef } from 'react';
 import type { StudioFieldsetProps } from './';
 import { StudioFieldset } from './';

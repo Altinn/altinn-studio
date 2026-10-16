@@ -18,13 +18,13 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: false,
-    displayData: false,
-  },
+  displayData: false,
 })
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'))
+  .makeSummarizable()
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
   .addProperty(new CG.prop('title', new CG.str()))
   .addDataModelBinding(
     new CG.obj(

@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import { DateUtils } from './DateUtils';
 
 test('that formatTimeHHmm works', () => {

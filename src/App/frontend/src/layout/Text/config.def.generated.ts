@@ -1,20 +1,15 @@
-import type { ComponentBase, SummarizableComponentProps } from '@app/layout-contract/generated/common.generated';
+import type { JSX } from 'react';
 
 import { PresentationComponent } from 'src/layout/LayoutComponent';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class TextDef extends PresentationComponent<'Text'> {
   protected readonly type = 'Text';
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'Text'>) {
-    return {
-      ...(props.item as Omit<typeof props.item, keyof ComponentBase | keyof SummarizableComponentProps | 'hidden'>),
-      ...props.evalBase(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
+
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 }
 
-// Source hash: e237cc699864f4528ab13b4f7414732aa7b2eec3fd941e93b515a6d2d3f92fe9
+// Source hash: 916b2ff2c4c06ef1343977ed560764519758e01656ccc8ad6e8b3a1e55cda91c

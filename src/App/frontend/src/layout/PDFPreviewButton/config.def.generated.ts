@@ -1,24 +1,11 @@
-import type { ComponentBase } from '@app/layout-contract/generated/common.generated';
-
 import { ActionComponent } from 'src/layout/LayoutComponent';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 export abstract class PDFPreviewButtonDef extends ActionComponent<'PDFPreviewButton'> {
   protected readonly type = 'PDFPreviewButton';
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'PDFPreviewButton'>) {
-    return {
-      ...(props.item as Omit<typeof props.item, keyof ComponentBase | 'hidden'>),
-      ...props.evalBase(),
-      ...props.evalTrb(),
-    };
-  }
+  declare renderSummary?: never;
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'PDFPreviewButton'>) {
-    return this.evalDefaultExpressions(props);
-  }
+  declare renderSummary2?: never;
 }
 
-// Source hash: 3b683ee1fe60e8618d25786fcb89ba9616902b25c9812240f12cdef939747879
+// Source hash: c8866930f93a95096ffc3d5eb017170ea32d58c50cf7ac4ca1d80c7e92c501e7

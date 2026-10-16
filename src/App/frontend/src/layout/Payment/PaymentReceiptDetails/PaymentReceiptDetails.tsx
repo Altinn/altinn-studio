@@ -50,13 +50,15 @@ type PaymentInfoTableProps = {
 const PaymentInfoTable = ({ titleId, rows }: PaymentInfoTableProps) => (
   <table>
     <Caption title={<Lang id={titleId} />} />
-    {rows.map(({ labelId, value }, index) => (
-      <PaymentInfoTableRow
-        key={`${labelId}-${index}`}
-        labelId={labelId}
-        value={value}
-      />
-    ))}
+    <tbody>
+      {rows.map(({ labelId, value }, index) => (
+        <PaymentInfoTableRow
+          key={`${labelId}-${index}`}
+          labelId={labelId}
+          value={value}
+        />
+      ))}
+    </tbody>
   </table>
 );
 

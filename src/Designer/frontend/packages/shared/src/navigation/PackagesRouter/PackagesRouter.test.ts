@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { PackagesRouter } from './PackagesRouter';
 import { app, org } from '@studio/testing/testids';
 
@@ -16,7 +17,7 @@ describe('PackagesRouter', () => {
       const expectedUrl = `/editor/${org}/${app}/overview`;
 
       // Mock the window.location.assign method
-      const assignMock = jest.fn();
+      const assignMock = vi.fn();
       Object.defineProperty(window, 'location', {
         value: { assign: assignMock },
         writable: true,
@@ -33,7 +34,7 @@ describe('PackagesRouter', () => {
       const mockQueryParams = '?layout=123';
       const expectedUrl = `/editor/${org}/${app}/ui-editor${mockQueryParams}`;
 
-      const assignMock = jest.fn();
+      const assignMock = vi.fn();
       Object.defineProperty(window, 'location', {
         value: { assign: assignMock },
         writable: true,

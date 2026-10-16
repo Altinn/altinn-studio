@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -24,7 +25,7 @@ describe('StudioInlineTextField', () => {
 
   it('should call onChange and close edit mode when Save is clicked', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     renderStudioInlineTextField({
       label,
       value,
@@ -44,7 +45,7 @@ describe('StudioInlineTextField', () => {
 
   it('should call onUnsavedValueChange(true) when the value changes', async () => {
     const user = userEvent.setup();
-    const onUnsavedValueChange = jest.fn();
+    const onUnsavedValueChange = vi.fn();
     renderStudioInlineTextField({
       label,
       value,
@@ -60,7 +61,7 @@ describe('StudioInlineTextField', () => {
 
   it('should call onUnsavedValueChange(false) when Save and Cancel are clicked', async () => {
     const user = userEvent.setup();
-    const onUnsavedValueChange = jest.fn();
+    const onUnsavedValueChange = vi.fn();
     renderStudioInlineTextField({
       label,
       value,

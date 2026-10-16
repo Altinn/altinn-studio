@@ -68,6 +68,7 @@ spec:
   - port: 80
     targetPort: 5030
     protocol: TCP
+    appProtocol: http
     name: http
   selector:
     app: pdf3-proxy
@@ -205,6 +206,8 @@ spec:
             value: "pdf3-proxy"
           - name: OTEL_EXPORTER_OTLP_ENDPOINT
             value: "http://otel-router.runtime-obs.svc.cluster.local:4317"
+          - name: OTEL_METRIC_EXPORT_INTERVAL
+            value: "15000"
           - name: PDF3_WORKER_HTTP_ADDR
             value: http://pdf3-worker:80
           - name: PDF3_UPGRADE_CHANNEL

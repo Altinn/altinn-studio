@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
@@ -6,10 +7,8 @@ import { PolicyEditorDropdownMenu } from './PolicyEditorDropdownMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('PolicyEditorDropdownMenu', () => {
-  afterEach(jest.clearAllMocks);
-
-  const mockHandleClone = jest.fn();
-  const mockHandleDelete = jest.fn();
+  const mockHandleClone = vi.fn();
+  const mockHandleDelete = vi.fn();
 
   const defaultProps: PolicyEditorDropdownMenuProps = {
     handleClone: mockHandleClone,

@@ -5,19 +5,6 @@ on:
     branches: [main]
     paths:
       - 'src/Designer/frontend/**'
-      - 'src/Designer/frontend/testing/cypress/**'
-      - '!src/Designer/frontend/stats/**'
-      - 'src/Designer/testdata/**'
-      - '.github/actions/codeql-config/**'
-      - '.github/codeql/**'
-      - '.github/workflows/designer-frontend-codeql.yml'
-      - 'package.json'
-      - 'yarn.lock'
-  pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
-    paths:
-      - 'src/Designer/frontend/**'
-      - 'src/Designer/frontend/testing/cypress/**'
       - '!src/Designer/frontend/stats/**'
       - 'src/Designer/testdata/**'
       - '.github/actions/codeql-config/**'
@@ -26,6 +13,30 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'src/Designer/frontend/**'
+      - '!src/Designer/frontend/stats/**'
+      - 'src/Designer/testdata/**'
+      - '.github/actions/codeql-config/**'
+      - '.github/codeql/**'
+      - '.github/workflows/designer-frontend-codeql.yml'
+      - 'package.json'
+      - 'yarn.lock'
+      - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   workflow_dispatch:
   schedule:
     - cron: '55 1 * * 0'

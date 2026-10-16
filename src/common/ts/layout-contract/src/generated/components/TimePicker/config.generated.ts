@@ -4,7 +4,6 @@ import {
   IDataModelBindingsSimple,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -12,9 +11,13 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CompTimePickerExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, LabeledComponentProps {
   type: 'TimePicker';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   autocomplete?: 'time';
@@ -55,4 +58,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: TimePickerSummaryOverridesWithRef;
 };
 
-// Source hash: fd6ac34bde24c41261da7f180a373aad54af401ceaea05b304de66d6e7379d4c
+// Source hash: 71c5d1e68bde42d62ed4c0955a3bbfdab210218a184b5f2b118d5a07810f0783

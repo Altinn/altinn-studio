@@ -1,24 +1,15 @@
-import type { ComponentBase } from '@app/layout-contract/generated/common.generated';
+import type { JSX } from 'react';
 
 import { PresentationComponent } from 'src/layout/LayoutComponent';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class IFrameDef extends PresentationComponent<'IFrame'> {
   protected readonly type = 'IFrame';
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'IFrame'>) {
-    return {
-      ...(props.item as Omit<typeof props.item, keyof ComponentBase | 'hidden'>),
-      ...props.evalBase(),
-      ...props.evalTrb(),
-    };
-  }
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'IFrame'>) {
-    return this.evalDefaultExpressions(props);
-  }
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 }
 
-// Source hash: 7c259a7a3157d13e292b6590e7b6600003ab6fd2adabe326acee1fef6f9440b3
+// Source hash: 318c130c900f487dba115dda986cf3b96592d8be7e87ac2a7f2ce1774ab00c00

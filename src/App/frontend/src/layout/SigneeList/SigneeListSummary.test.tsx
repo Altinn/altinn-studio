@@ -8,15 +8,21 @@ import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { FormStore } from 'src/features/form/FormContext';
 import { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { Lang } from 'src/features/language/Lang';
-import { CompInternal } from 'src/layout/layout';
+import { CompExternal } from 'src/layout/layout';
 import { NotificationStatus, SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
 import { SigneeListSummary } from 'src/layout/SigneeList/SigneeListSummary';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import type { ExprResolved } from 'src/features/expressions/types';
 
 vi.mock('src/layout/SigneeList/api');
 vi.mock('react-router');
-vi.mock('src/utils/layout/useNodeItem');
+vi.mock('src/utils/layout/hooks');
+vi.mock('src/utils/layout/useEvalExpression', () => ({
+  useEvalExpression: (value: unknown, descriptor: { defaultValue: unknown }) => value ?? descriptor.defaultValue,
+  useEvalOptionalText: (value: unknown, descriptor: { defaultValue: unknown }) =>
+    value === undefined ? undefined : (value ?? descriptor.defaultValue),
+}));
 vi.mock('src/features/language/Lang');
 vi.mock('src/features/formBootstrap/FormBootstrap');
 vi.mock('src/utils/layout/hidden');
@@ -26,10 +32,10 @@ describe('SigneeListSummary', () => {
   const mockedUseSigneeList = vi.mocked(useSigneeList);
   const mockedUseLayoutLookups = vi.mocked(FormStore.bootstrap.useLayoutLookups);
   const mockedUseTaskOverrides = vi.mocked(useTaskOverrides);
-  const mockedUseItemWhenType = vi.mocked(useItemWhenType);
-  const mockedUseItemFor = vi.mocked(useItemFor);
+  const mockedUseConfig = vi.mocked(useComponentConfig);
+  const mockedUseConfigFor = vi.mocked(useComponentConfig);
   const mockedUseIsHidden = vi.mocked(useIsHidden);
-  const mockedItem: CompInternal<'SigneeList'> = {
+  const mockedItem: ExprResolved<CompExternal<'SigneeList'>> = {
     id: 'mock-id',
     type: 'SigneeList',
     textResourceBindings: {
@@ -37,7 +43,7 @@ describe('SigneeListSummary', () => {
     },
   };
 
-  function mockNodeItem(extras: Partial<CompInternal<'SigneeList'>> = {}) {
+  function mockNodeItem(extras: Partial<ExprResolved<CompExternal<'SigneeList'>>> = {}) {
     mockedUseLayoutLookups.mockImplementation(
       () =>
         ({
@@ -49,20 +55,20 @@ describe('SigneeListSummary', () => {
           },
         }) as LayoutLookups,
     );
-    mockedUseItemWhenType.mockImplementation(
+    mockedUseConfig.mockImplementation(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (baseComponentId, type): any => {
-        if (baseComponentId !== mockedItem.id || type !== mockedItem.type) {
-          throw new Error('Component id in useItemWhenType() is not the mocked one');
+        if (baseComponentId !== mockedItem.id || (type && type !== mockedItem.type)) {
+          throw new Error('Component id in useComponentConfig() is not the mocked one');
         }
         return { ...mockedItem, ...extras };
       },
     );
-    mockedUseItemFor.mockImplementation(
+    mockedUseConfigFor.mockImplementation(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (baseComponentId): any => {
         if (baseComponentId !== mockedItem.id) {
-          throw new Error('Component id in useItemWhenType() is not the mocked one');
+          throw new Error('Component id in useComponentConfig() is not the mocked one');
         }
         return { ...mockedItem, ...extras };
       },

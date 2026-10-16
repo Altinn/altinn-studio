@@ -338,6 +338,53 @@ public class WorkflowExecutorTests
         Assert.Null(capture.ObservedWaitDeadline);
     }
 
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(1, true)]
+    [InlineData(-1, false)]
+    public async Task Execute_ReportsFinalWaitCheck_FromWhenTheAttemptStarted(
+        int startedSecondsFromDeadline,
+        bool expectedFinal
+    )
+    {
+        // Judged by when the attempt started: the same stamp the handler's deferral decision reads.
+        var capture = new StateCapturingCommand();
+        using var fixture = WorkflowEngineTestFixture.Create(services =>
+        {
+            services.AddSingleton<ICommand>(capture);
+        });
+        var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
+
+        var firstDeferredAt = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        var step = CaptureStep(order: 0, waitBudget: TimeSpan.FromHours(6));
+        step.FirstDeferredAt = firstDeferredAt;
+        step.ExecutionStartedAt = firstDeferredAt.AddHours(6).AddSeconds(startedSecondsFromDeadline);
+        var workflow = WorkflowWith(step);
+
+        await executor.Execute(workflow, step, TestContext.Current.CancellationToken);
+
+        Assert.Equal(expectedFinal, capture.ObservedIsFinalWaitCheck);
+    }
+
+    [Fact]
+    public async Task Execute_StepThatNeverDeferred_IsNotAFinalWaitCheck()
+    {
+        var capture = new StateCapturingCommand();
+        using var fixture = WorkflowEngineTestFixture.Create(services =>
+        {
+            services.AddSingleton<ICommand>(capture);
+        });
+        var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
+
+        var step = CaptureStep(order: 0);
+        step.ExecutionStartedAt = DateTimeOffset.UtcNow;
+        var workflow = WorkflowWith(step);
+
+        await executor.Execute(workflow, step, TestContext.Current.CancellationToken);
+
+        Assert.False(capture.ObservedIsFinalWaitCheck);
+    }
+
     [Fact]
     public async Task Execute_Delegate_Throws_ReturnsRetryableError()
     {
@@ -381,6 +428,8 @@ internal sealed class StateCapturingCommand : ICommand
 
     public DateTimeOffset? ObservedWaitDeadline { get; private set; }
 
+    public bool? ObservedIsFinalWaitCheck { get; private set; }
+
     public CommandValidationResult Validate(object? commandData, object? workflowContext) =>
         new CommandValidationResult.Valid();
 
@@ -389,6 +438,7 @@ internal sealed class StateCapturingCommand : ICommand
         ObservedStateIn = context.StateIn;
         ObservedExecutionDeadline = context.ExecutionDeadline;
         ObservedWaitDeadline = context.WaitDeadline;
+        ObservedIsFinalWaitCheck = context.IsFinalWaitCheck;
         return Task.FromResult(ExecutionResult.Success());
     }
 }
