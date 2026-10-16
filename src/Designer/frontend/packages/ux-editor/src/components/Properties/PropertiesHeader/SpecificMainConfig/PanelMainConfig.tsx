@@ -1,12 +1,10 @@
-import { useComponentSchemaQuery } from '../../../../hooks/queries/useComponentSchemaQuery';
+import { getComponentDefinition } from '../../../../data/componentCatalog';
 import type { FormItem } from '../../../../types/FormItem';
-import type { ComponentType } from '../../../../../../shared/src/types/ComponentType';
-import type { properties } from '../../../../testing/schemas/json/component/Panel.schema.v1.json';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import React from 'react';
 import { ConfigStringProperties } from '../../../config/ConfigProperties';
 
-type PanelMainProperties = (keyof typeof properties)[];
-export const panelMainProperties: PanelMainProperties = ['variant'];
+export const panelMainProperties = ['variant'];
 
 type PanelMainConfigProps = {
   component: FormItem<ComponentType.Panel>;
@@ -19,12 +17,12 @@ export const PanelMainConfig = ({
   className,
   handleComponentChange,
 }: PanelMainConfigProps): React.ReactElement => {
-  const { data: schema } = useComponentSchemaQuery(component.type);
+  const properties = getComponentDefinition(component.type)?.properties ?? {};
 
   return (
     <ConfigStringProperties
       stringPropertyKeys={panelMainProperties}
-      schema={schema}
+      properties={properties}
       component={component}
       handleComponentUpdate={handleComponentChange}
       className={className}

@@ -278,4 +278,3 @@ selv
 # "det ser rart ut" is a Norwegian request quoted from gates_confidence.jsonl
 @paths src/AI/assistant/agents/prompts/intent_security.md
 ser
-
