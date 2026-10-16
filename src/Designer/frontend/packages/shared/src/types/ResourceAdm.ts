@@ -74,7 +74,6 @@ export interface ResourceListItem {
 
 export interface ResourceVersionStatus {
   policyVersion?: string;
-  resourceVersion?: string;
   publishedVersions: Version[];
 }
 
