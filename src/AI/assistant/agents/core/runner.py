@@ -16,6 +16,8 @@ from typing import Protocol
 
 import httpx
 
+from shared.config.base_config import get_config
+
 # The app folder in the VM.  Paths in the output of a job start with it.
 JOB_APP_FOLDER = "/job/app/"
 
@@ -61,7 +63,10 @@ class Runner(Protocol):
 
 def create_runner() -> Runner | None:
     """Returns None when this deployment has no runner, for example in local development."""
-    return None
+    from agents.core.runner_http import HttpRunner
+
+    runner_url = get_config().ASSISTANT_RUNNER_URL
+    return HttpRunner(runner_url) if runner_url else None
 
 
 def list_app_files(repo_path: str) -> list[str]:
