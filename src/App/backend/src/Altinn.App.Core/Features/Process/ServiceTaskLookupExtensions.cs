@@ -3,7 +3,8 @@ using Altinn.App.Core.Internal.Process.ProcessTasks;
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// Finds registered service tasks by exact task type. Uses the last matching registration.
+/// Finds registered service tasks by exact task type, and side effects by exact name. Uses the last matching
+/// registration.
 /// </summary>
 internal static class ServiceTaskLookupExtensions
 {
@@ -58,5 +59,44 @@ internal static class ServiceTaskLookupExtensions
             );
 
         return pipeline;
+    }
+
+    /// <summary>
+    /// Returns the last side effect registered with the exact <paramref name="name"/>, or <c>null</c>.
+    /// </summary>
+    public static ISideEffect? FindSideEffect(this AppImplementationFactory factory, string name) =>
+        factory.GetAll<ISideEffect>().LastOrDefault(sideEffect => sideEffect.Name == name);
+
+    /// <summary>
+    /// The pipeline <paramref name="host"/> names, composed fresh, or <c>null</c> when nothing is registered for it.
+    /// </summary>
+    internal static ServiceTaskPipeline? ResolvePipeline(
+        this AppImplementationFactory factory,
+        Internal.WorkflowEngine.PipelineHost host
+    ) =>
+        host switch
+        {
+            Internal.WorkflowEngine.PipelineHost.ServiceTask task => factory
+                .FindServiceTask(task.Type)
+                ?.ResolvePipeline(),
+            Internal.WorkflowEngine.PipelineHost.SideEffect sideEffect => factory
+                .FindSideEffect(sideEffect.Name)
+                ?.ResolvePipeline(),
+            _ => throw new System.Diagnostics.UnreachableException(),
+        };
+
+    /// <summary>
+    /// The side effect's composed pipeline. Throws when <c>Define</c> returns null, like
+    /// <see cref="ResolvePipeline(IPipelineServiceTask)"/>.
+    /// </summary>
+    public static ServiceTaskPipeline ResolvePipeline(this ISideEffect sideEffect)
+    {
+        var builder = new ServiceTaskPipelineBuilder();
+
+        return sideEffect.Define(builder)
+            ?? throw new InvalidOperationException(
+                $"{sideEffect.GetType().Name}.{nameof(ISideEffect.Define)} returned null — a side effect must "
+                    + "return the pipeline composed from the supplied builder."
+            );
     }
 }

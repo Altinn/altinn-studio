@@ -13,9 +13,11 @@ public interface IServiceTaskReplyForwarder
 {
     /// <summary>Forwards a message to the mailbox waiting for it.</summary>
     /// <param name="mailboxId">The value the external system echoed back — the published reply address.</param>
-    /// <param name="serviceTaskType">
-    /// The <c>IServiceTask.Type</c> whose reply handler reads this message. Name it directly: it is bound into
-    /// the integrity envelope, which is what stops another mailbox-declaring task from reading the message.
+    /// <param name="owner">
+    /// The pipeline whose reply handler reads this message: <see cref="MailboxOwner.ServiceTask"/> or
+    /// <see cref="MailboxOwner.SideEffect"/>, or the <see cref="ServiceTaskMailbox.Owner"/> the opening stage was
+    /// handed. Name it directly: it is bound into the integrity envelope, which is what stops another pipeline
+    /// that opens mailboxes from reading the message.
     /// </param>
     /// <param name="payload">The message body, as the reply handler expects to read it.</param>
     /// <param name="idempotencyKey">
@@ -29,7 +31,7 @@ public interface IServiceTaskReplyForwarder
     /// </exception>
     Task ForwardReply(
         Guid mailboxId,
-        string serviceTaskType,
+        MailboxOwner owner,
         string payload,
         string idempotencyKey,
         CancellationToken cancellationToken = default

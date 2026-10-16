@@ -6,6 +6,7 @@ using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Expressions;
@@ -51,15 +52,15 @@ public class FiksArkivReplyAddressRoundTripTest
             .Setup(x =>
                 x.ForwardReply(
                     It.IsAny<Guid>(),
-                    It.IsAny<string>(),
+                    It.IsAny<MailboxOwner>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
             )
             .Callback(
-                (Guid mailboxId, string serviceTaskType, string payload, string idempotencyKey, CancellationToken _) =>
-                    forwarded.Add((mailboxId, serviceTaskType, payload, idempotencyKey))
+                (Guid mailboxId, MailboxOwner owner, string payload, string idempotencyKey, CancellationToken _) =>
+                    forwarded.Add((mailboxId, owner.ToString(), payload, idempotencyKey))
             )
             .Returns(Task.CompletedTask);
 
@@ -95,7 +96,12 @@ public class FiksArkivReplyAddressRoundTripTest
         var sendStage = Assert.IsType<ServiceTaskStage.MailboxOpening>(fixture.FiksArkivPipeline.Items[0]);
         ServiceTaskOpeningStageResult sendResult = await sendStage.Work(
             CreateSendContext(dataMutator.Object),
-            new ServiceTaskMailbox { Id = _mailboxId, Deadline = _executionReferenceTime + TimeSpan.FromDays(7) }
+            new ServiceTaskMailbox
+            {
+                Id = _mailboxId,
+                Deadline = _executionReferenceTime + TimeSpan.FromDays(7),
+                Owner = MailboxOwner.ServiceTask(AltinnTaskTypes.FiksArkiv),
+            }
         );
 
         Assert.IsType<CompletedServiceTaskOpeningStageResult>(sendResult);

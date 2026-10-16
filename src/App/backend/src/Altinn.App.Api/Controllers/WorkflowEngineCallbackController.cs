@@ -190,76 +190,106 @@ public class WorkflowEngineCallbackController : ControllerBase
                     );
                 }
 
-                try
+                // A side effect runs on the state the transition saved while the process moves on: saving for it
+                // would be refused as stale or race the process's own next save. Its data changes are refused by
+                // the command itself, and the derived instance fields every save recomputes are not its to write.
+                if (!command.RunsAsSideEffect)
                 {
-                    DataElementChanges changes = instanceDataUnitOfWork.GetDataElementChanges(false);
-                    // The engine's step id is stable across every attempt of this step, so a retried
-                    // callback presents Storage the same key and cannot apply the mutation twice.
-                    WorkflowAggregateSaveOutcome saveOutcome = await instanceDataUnitOfWork.SaveWorkflowOwnedAggregate(
-                        changes,
-                        payload.StepId.ToString(),
-                        cancellationToken
-                    );
-                    if (saveOutcome == WorkflowAggregateSaveOutcome.NothingToSave)
+                    try
                     {
-                        _logger.LogDebug(
-                            "Workflow callback had no Storage mutation to save. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                        DataElementChanges changes = instanceDataUnitOfWork.GetDataElementChanges(false);
+                        // The engine's step id is stable across every attempt of this step, so a retried
+                        // callback presents Storage the same key and cannot apply the mutation twice.
+                        WorkflowAggregateSaveOutcome saveOutcome =
+                            await instanceDataUnitOfWork.SaveWorkflowOwnedAggregate(
+                                changes,
+                                payload.StepId.ToString(),
+                                cancellationToken
+                            );
+                        if (saveOutcome == WorkflowAggregateSaveOutcome.NothingToSave)
+                        {
+                            _logger.LogDebug(
+                                "Workflow callback had no Storage mutation to save. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                                commandKey,
+                                instanceId,
+                                currentTaskId
+                            );
+                        }
+                    }
+                    catch (InstanceMutationReplayedException ex)
+                    {
+                        _logger.LogInformation(
+                            ex,
+                            "Storage replayed workflow callback mutation. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
                             commandKey,
                             instanceId,
                             currentTaskId
                         );
                     }
+                    catch (Exception ex)
+                        when (commandKey == AcquireProcessingStatus.Key
+                            && ex is StorageProcessStatusConflictException or InstanceDataStaleException
+                        )
+                    {
+                        _logger.LogWarning(
+                            ex,
+                            "Storage rejected workflow process-status acquisition. Instance: {InstanceId}, Task: {TaskId}.",
+                            instanceId,
+                            currentTaskId
+                        );
+                        activity?.SetStatus(ActivityStatusCode.Error, "Workflow acquire conflict");
+                        return NonRetryableProblem(
+                            "WorkflowAcquireConflict",
+                            "The instance changed before the process transition could start. Refresh the instance and try again.",
+                            StatusCodes.Status409Conflict,
+                            AcquireProcessingStatus.ConcurrencyFailureCode
+                        );
+                    }
+                    catch (InstanceDataStaleException ex)
+                    {
+                        _logger.LogError(
+                            ex,
+                            "Storage rejected workflow callback save with 412 Precondition Failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                            commandKey,
+                            instanceId,
+                            currentTaskId
+                        );
+                        activity?.SetStatus(ActivityStatusCode.Error, "Stale callback state");
+                        return NonRetryableProblem(
+                            "StoragePreconditionFailedException",
+                            "Storage rejected workflow callback save with 412 Precondition Failed. The workflow callback state is stale.",
+                            StatusCodes.Status422UnprocessableEntity
+                        );
+                    }
                 }
-                catch (InstanceMutationReplayedException ex)
-                {
-                    _logger.LogInformation(
-                        ex,
-                        "Storage replayed workflow callback mutation. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
-                        commandKey,
-                        instanceId,
-                        currentTaskId
-                    );
-                }
-                catch (Exception ex)
-                    when (commandKey == AcquireProcessingStatus.Key
-                        && ex is StorageProcessStatusConflictException or InstanceDataStaleException
-                    )
-                {
-                    _logger.LogWarning(
-                        ex,
-                        "Storage rejected workflow process-status acquisition. Instance: {InstanceId}, Task: {TaskId}.",
-                        instanceId,
-                        currentTaskId
-                    );
-                    activity?.SetStatus(ActivityStatusCode.Error, "Workflow acquire conflict");
-                    return NonRetryableProblem(
-                        "WorkflowAcquireConflict",
-                        "The instance changed before the process transition could start. Refresh the instance and try again.",
-                        StatusCodes.Status409Conflict,
-                        AcquireProcessingStatus.ConcurrencyFailureCode
-                    );
-                }
-                catch (InstanceDataStaleException ex)
-                {
-                    _logger.LogError(
-                        ex,
-                        "Storage rejected workflow callback save with 412 Precondition Failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
-                        commandKey,
-                        instanceId,
-                        currentTaskId
-                    );
-                    activity?.SetStatus(ActivityStatusCode.Error, "Stale callback state");
-                    return NonRetryableProblem(
-                        "StoragePreconditionFailedException",
-                        "Storage rejected workflow callback save with 412 Precondition Failed. The workflow callback state is stale.",
-                        StatusCodes.Status422UnprocessableEntity
-                    );
-                }
+
+                // Side effects the steps before the commit started wait in the carry until the commit is saved;
+                // a step after it starts its own once its save is done. Drained before the capture, so the blob
+                // this callback publishes no longer carries them and no later step enqueues them again.
+                IReadOnlyList<PendingSideEffect> startedSideEffects = command.EnqueuesStartedSideEffects
+                    ? stateCarry.DrainPendingSideEffects()
+                    : [];
 
                 string updatedState = await _workflowCallbackStateService.CaptureState(
                     instanceDataUnitOfWork,
                     stateCarry
                 );
+
+                // Keyed on the step, so a retried callback enqueues nothing twice.
+                if (startedSideEffects.Count > 0)
+                {
+                    await _serviceProvider
+                        .GetRequiredService<SideEffectEnqueuer>()
+                        .Enqueue(
+                            startedSideEffects,
+                            appId,
+                            instanceId,
+                            payload,
+                            instanceDataUnitOfWork.Instance,
+                            updatedState,
+                            cancellationToken
+                        );
+                }
 
                 // The relay runs here, not in the command: whatever it starts must begin on the state the
                 // handler *published* — saved, re-captured, re-signed above.

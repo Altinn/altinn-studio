@@ -24,13 +24,13 @@ internal sealed class ServiceTaskReplyForwarder(
     /// <inheritdoc />
     public async Task ForwardReply(
         Guid mailboxId,
-        string serviceTaskType,
+        MailboxOwner owner,
         string payload,
         string idempotencyKey,
         CancellationToken cancellationToken = default
     )
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(serviceTaskType);
+        ArgumentNullException.ThrowIfNull(owner);
         ArgumentNullException.ThrowIfNull(payload);
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
 
@@ -41,7 +41,7 @@ internal sealed class ServiceTaskReplyForwarder(
         {
             // Sealing reads the callback code, absent during a mounting/rotation gap — an ordinary outcome, so
             // inside the try.
-            string sealedPayload = envelope.Wrap(payload, mailboxId, serviceTaskType, idempotencyKey);
+            string sealedPayload = envelope.Wrap(payload, mailboxId, owner.Key, idempotencyKey);
 
             var request = new MailboxDeliveryRequest { IdempotencyKey = idempotencyKey, Payload = sealedPayload };
 

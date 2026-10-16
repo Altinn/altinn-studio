@@ -261,7 +261,7 @@ internal sealed class FiksArkivSubscriber : BackgroundService
         // task type is named, not derived, so an envelope can never be sealed against the wrong handler.
         await forwarder.ForwardReply(
             mailboxId,
-            AltinnTaskTypes.FiksArkiv,
+            MailboxOwner.ServiceTask(AltinnTaskTypes.FiksArkiv),
             JsonSerializer.Serialize(storedMessage),
             idempotencyKey: storedMessage.MessageId.ToString()
         );

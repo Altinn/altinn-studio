@@ -6,13 +6,27 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
-using Altinn.App.Core.Models.Notifications.Future;
+using Altinn.App.Core.Internal.WorkflowEngine.SideEffects;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.DependencyInjection;
 
 public class WorkflowEngineCommandRegistrationTests
 {
+    [Fact]
+    public void AddWorkflowEngineIntegration_RegistersTheBuiltInSideEffects()
+    {
+        var services = new ServiceCollection();
+        services.AddWorkflowEngineIntegration();
+
+        Assert.Contains(
+            services,
+            descriptor =>
+                descriptor.ServiceType == typeof(ISideEffect)
+                && descriptor.ImplementationType == typeof(NotifyInstanceOwnerOnInstantiation)
+        );
+    }
+
     [Fact]
     public void AddWorkflowEngineIntegration_RegistersEveryCommandAPlanCanName()
     {
@@ -69,7 +83,7 @@ public class WorkflowEngineCommandRegistrationTests
                     ServiceTask = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
-                    Notification = new InstantiationNotification(),
+                    NotifyInstanceOwner = new SideEffectInvocation("notify", CreatePipeline(), Input: null),
                     RegisterEvents = false,
                 }
             ),
@@ -137,7 +151,7 @@ public class WorkflowEngineCommandRegistrationTests
     {
         IEnumerable<StepRequest> steps = commandSet
             .Commands.Concat(commandSet.CriticalPostCommitCommands)
-            .Concat(commandSet.SideEffectCommands);
+            .Concat(commandSet.SideEffects.SelectMany(sideEffect => sideEffect.Steps));
         foreach (StepRequest step in steps)
         {
             if (step.Command.Type == "app" && step.Command.Data is { } data)

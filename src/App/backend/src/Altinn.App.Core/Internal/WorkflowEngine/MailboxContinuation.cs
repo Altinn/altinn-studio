@@ -1,4 +1,5 @@
 using System.Globalization;
+using Altinn.App.Core.Features.Process;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
@@ -21,10 +22,17 @@ internal abstract record MailboxContinuation
     /// <summary>Enqueue the receiver for the next message; nothing is closed or started.</summary>
     internal sealed record AwaitNextMessage : MailboxContinuation
     {
-        public AwaitNextMessage(Guid mailboxId, string serviceTaskType, int handlerItemIndex, long position)
+        public AwaitNextMessage(
+            Guid mailboxId,
+            PipelineHost host,
+            int handlerItemIndex,
+            long position,
+            ProcessStepOptions? handlerOptions = null
+        )
         {
             MailboxId = mailboxId;
-            ServiceTaskType = serviceTaskType;
+            Host = host;
+            HandlerOptions = handlerOptions;
             HandlerItemIndex = handlerItemIndex;
             Position = position;
         }
@@ -32,8 +40,14 @@ internal abstract record MailboxContinuation
         /// <summary>The mailbox the exchange runs on, read from the rendezvous.</summary>
         public Guid MailboxId { get; }
 
-        /// <summary>The service task whose pipeline composes the reply handler.</summary>
-        public string ServiceTaskType { get; }
+        /// <summary>The service task or side effect whose pipeline composes the reply handler.</summary>
+        public PipelineHost Host { get; }
+
+        /// <summary>
+        /// The handler's own options. A side effect's successor step carries them; a service task's step is
+        /// resolved by its index instead.
+        /// </summary>
+        public ProcessStepOptions? HandlerOptions { get; }
 
         /// <summary>
         /// The handler's own position in the pipeline — what the successor's step names. Sourced from the
@@ -56,14 +70,14 @@ internal abstract record MailboxContinuation
     /// </summary>
     internal sealed record ContinueAfterStage : MailboxContinuation
     {
-        public ContinueAfterStage(string serviceTaskType, MailboxHandover handover)
+        public ContinueAfterStage(PipelineHost host, MailboxHandover handover)
         {
-            ServiceTaskType = serviceTaskType;
+            Host = host;
             Handover = handover;
         }
 
-        /// <summary>The service task whose pipeline the hand-over belongs to.</summary>
-        public string ServiceTaskType { get; }
+        /// <summary>The service task or side effect whose pipeline the hand-over belongs to.</summary>
+        public PipelineHost Host { get; }
 
         /// <summary>What the pipeline runs next, decided and planned at the verdict this came from.</summary>
         public MailboxHandover Handover { get; }
@@ -93,18 +107,18 @@ internal abstract record MailboxContinuation
     /// </summary>
     internal sealed record ConcludeAndContinue : MailboxContinuation
     {
-        public ConcludeAndContinue(Guid mailboxId, string serviceTaskType, MailboxHandover handover)
+        public ConcludeAndContinue(Guid mailboxId, PipelineHost host, MailboxHandover handover)
         {
             MailboxId = mailboxId;
-            ServiceTaskType = serviceTaskType;
+            Host = host;
             Handover = handover;
         }
 
         /// <summary>The concluded exchange's mailbox — the only one that closes here.</summary>
         public Guid MailboxId { get; }
 
-        /// <summary>The service task whose pipeline the hand-over belongs to.</summary>
-        public string ServiceTaskType { get; }
+        /// <summary>The service task or side effect whose pipeline the hand-over belongs to.</summary>
+        public PipelineHost Host { get; }
 
         /// <summary>
         /// What the pipeline runs once this exchange's mailbox is closed, decided and planned at the verdict

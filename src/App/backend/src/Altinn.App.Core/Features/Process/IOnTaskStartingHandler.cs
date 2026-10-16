@@ -48,4 +48,9 @@ public sealed class OnTaskStartingContext
     /// Cancellation token for the hook execution.
     /// </summary>
     public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
+
+    /// <summary>
+    /// Side effects to start once the task start is saved, such as sending something to an external system and waiting for the outcome without holding up the process. See <see cref="SideEffectStarter"/>.
+    /// </summary>
+    public SideEffectStarter SideEffects { get; init; } = new();
 }

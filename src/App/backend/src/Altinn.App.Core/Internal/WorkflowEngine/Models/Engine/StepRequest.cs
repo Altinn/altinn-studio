@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Features.Process;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 
@@ -49,4 +50,10 @@ internal sealed record StepRequest
     /// options of the stage it precedes.
     /// </summary>
     internal int? ServiceTaskItemIndex { get; init; }
+
+    /// <summary>
+    /// Options a process task's lifecycle stage or a side effect's pipeline item declared for this step, winning
+    /// over the command's defaults. Read when the step is planned, so the options resolution needs no lookup.
+    /// </summary>
+    internal ProcessStepOptions? StageOptions { get; init; }
 }

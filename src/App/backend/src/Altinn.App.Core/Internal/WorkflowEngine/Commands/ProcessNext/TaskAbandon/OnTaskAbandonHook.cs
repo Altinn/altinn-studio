@@ -52,7 +52,15 @@ internal sealed class OnTaskAbandonHook : IWorkflowEngineCommand
 
             return result switch
             {
-                SuccessfulHookResult => new SuccessfulProcessEngineCommandResult(),
+                // What the hook started waits for the transition, or for this hook's own save, to be enqueued.
+                SuccessfulHookResult => (ProcessEngineCommandResult?)
+                    SideEffectStarts.Record(
+                        hookParameters.SideEffects,
+                        _appImplementationFactory,
+                        parameters.StateCarry,
+                        taskId
+                    )
+                    ?? new SuccessfulProcessEngineCommandResult(),
                 FailedHookResult failed => failed.Kind == FailureKind.Permanent
                     ? FailedProcessEngineCommandResult.Permanent(failed.ErrorMessage)
                     : FailedProcessEngineCommandResult.Retryable(failed.ErrorMessage),

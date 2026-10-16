@@ -30,6 +30,7 @@ public class ProcessStepOptionsResolverTests
             [
                 // Only its DefaultStepOptions are read here; nothing executes.
                 new ExecuteServiceTask(appImplFactory, TestMailboxDeliveryEnvelope.Create()),
+                new ExecuteSideEffect(appImplFactory, TestMailboxDeliveryEnvelope.Create()),
             ],
             appImplFactory
         );
@@ -103,6 +104,45 @@ public class ProcessStepOptionsResolverTests
         var result = resolver.Resolve("StartTask", taskId: "Task_1", serviceTaskType: null);
 
         Assert.Null(result);
+    }
+
+    /// <summary>
+    /// A side-effect step resolves without looking the side effect up: the options its item declares were read
+    /// when the side effect was planned, and win field-wise over the command's default.
+    /// </summary>
+    [Fact]
+    public void Resolve_SideEffect_ItemOptionsWinOverTheCommandDefault()
+    {
+        var resolver = CreateResolver();
+
+        var result = resolver.Resolve(
+            ExecuteSideEffect.Key,
+            taskId: "Task_1",
+            serviceTaskType: null,
+            serviceTaskItemIndex: 1,
+            stageOptions: new ProcessStepOptions { WaitBudget = TimeSpan.FromDays(3) }
+        );
+
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromDays(3), result.WaitBudget);
+        Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, result.MaxExecutionTime);
+    }
+
+    [Fact]
+    public void Resolve_SideEffect_WithoutItemOptions_UsesTheCommandDefault()
+    {
+        var resolver = CreateResolver();
+
+        var result = resolver.Resolve(
+            ExecuteSideEffect.Key,
+            taskId: null,
+            serviceTaskType: null,
+            serviceTaskItemIndex: 0
+        );
+
+        Assert.NotNull(result);
+        Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, result.MaxExecutionTime);
+        Assert.Null(result.WaitBudget);
     }
 
     [Fact]
@@ -538,8 +578,8 @@ public class ProcessStepOptionsResolverTests
     {
         ProcessStepOptionsResolver resolver = CreateResolverWithTwoExchanges();
 
-        StepRequest resolved = WorkflowCommandSet
-            .CreateItemStep("exchanges", itemIndex: 1)
+        StepRequest resolved = new PipelineHost.ServiceTask("exchanges")
+            .CreateItemStep(itemIndex: 1, itemOptions: null)
             .ApplyStepOptions(resolver, taskId: null, serviceTaskType: "exchanges");
 
         Assert.Equal(TimeSpan.FromHours(2), resolved.Command.MaxExecutionTime);

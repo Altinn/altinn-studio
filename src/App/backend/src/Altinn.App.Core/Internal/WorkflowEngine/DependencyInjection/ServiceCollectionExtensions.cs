@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.SideEffects;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -27,6 +28,7 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<MailboxDeliveryEnvelope>();
         services.AddTransient<IWorkflowEngineService, WorkflowEngineService>();
         services.AddTransient<MailboxRelay>();
+        services.AddTransient<SideEffectEnqueuer>();
 
         // The inbound half of a mailbox exchange: whatever channel receives an external system's answer
         // hands it here, and it reaches the waiting service task's reply handler through the engine.
@@ -68,8 +70,9 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, ExecuteServiceTask>();
         services.AddTransient<IWorkflowEngineCommand, MintMailbox>();
 
-        // Process engine callback handlers - Notifications
-        services.AddTransient<IWorkflowEngineCommand, NotifyInstanceOwnerOnInstantiation>();
+        // Process engine callback handlers - side-effect pipelines, and the built-in side effects they run
+        services.AddTransient<IWorkflowEngineCommand, ExecuteSideEffect>();
+        services.AddTransient<ISideEffect, NotifyInstanceOwnerOnInstantiation>();
 
         // Process engine callback handlers - ProcessEnd
         services.AddTransient<IWorkflowEngineCommand, OnProcessEndedHook>();

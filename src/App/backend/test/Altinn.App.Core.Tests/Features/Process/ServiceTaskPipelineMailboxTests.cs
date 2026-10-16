@@ -113,7 +113,12 @@ public class ServiceTaskPipelineMailboxTests
             )
             .ConcludeOnReplies(handle, Handle, Closed);
 
-        var mailbox = new ServiceTaskMailbox { Id = Guid.NewGuid(), Deadline = DateTimeOffset.UtcNow.AddDays(3) };
+        var mailbox = new ServiceTaskMailbox
+        {
+            Id = Guid.NewGuid(),
+            Deadline = DateTimeOffset.UtcNow.AddDays(3),
+            Owner = MailboxOwner.ServiceTask("archiving"),
+        };
         var opening = Assert.IsType<ServiceTaskStage.MailboxOpening>(pipeline.Items[0]);
         await opening.Work(TestContext(), mailbox);
 

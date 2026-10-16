@@ -10,10 +10,12 @@ internal sealed class EndTask : IWorkflowEngineCommand
     public string GetKey() => Key;
 
     private readonly ProcessTaskResolver _processTaskResolver;
+    private readonly AppImplementationFactory _appImplementationFactory;
 
-    public EndTask(ProcessTaskResolver processTaskResolver)
+    public EndTask(ProcessTaskResolver processTaskResolver, AppImplementationFactory appImplementationFactory)
     {
         _processTaskResolver = processTaskResolver;
+        _appImplementationFactory = appImplementationFactory;
     }
 
     public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
@@ -24,14 +26,22 @@ internal sealed class EndTask : IWorkflowEngineCommand
         try
         {
             IProcessTask processTask = _processTaskResolver.GetProcessTaskInstance(altinnTaskType);
-            await processTask.End(
-                new ProcessTaskContext
-                {
-                    InstanceDataMutator = dataMutator,
-                    CancellationToken = parameters.CancellationToken,
-                }
-            );
-            return new SuccessfulProcessEngineCommandResult();
+            var taskContext = new ProcessTaskContext
+            {
+                InstanceDataMutator = dataMutator,
+                CancellationToken = parameters.CancellationToken,
+            };
+            await processTask.End(taskContext);
+
+            // What the task started waits for the transition to be saved, which this command runs before.
+            return (ProcessEngineCommandResult?)
+                    SideEffectStarts.Record(
+                        taskContext.SideEffects,
+                        _appImplementationFactory,
+                        parameters.StateCarry,
+                        dataMutator.Instance.Process?.CurrentTask?.ElementId
+                    )
+                ?? new SuccessfulProcessEngineCommandResult();
         }
         catch (Exception ex)
         {

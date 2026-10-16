@@ -37,6 +37,8 @@ public class MailboxRelayFrontierTests
     private const string Namespace = "ttd/test-app";
     private const string ServiceTaskType = "archiving";
 
+    private static readonly PipelineHost Host = new PipelineHost.ServiceTask(ServiceTaskType);
+
     /// <summary>The item index of the stage that opens the exchange.</summary>
     private const int OpeningStageIndex = 0;
     private const string TaskId = "Task_2";
@@ -296,7 +298,7 @@ public class MailboxRelayFrontierTests
     /// pass an item the plan after which is an ordinary continuation, so no target rides along.
     /// </summary>
     private static MailboxHandover Handover(ServiceTaskPipeline pipeline, int afterItemIndex) =>
-        new(afterItemIndex, WorkflowCommandSet.PlanSegment(ServiceTaskType, pipeline, afterItemIndex), target: null);
+        new(afterItemIndex, WorkflowCommandSet.PlanSegment(Host, pipeline, afterItemIndex), target: null);
 
     private static Instance CreateInstance() =>
         new()
@@ -431,7 +433,7 @@ public class MailboxRelayFrontierTests
             // The relay's enqueue happens inside the callback — the receiver is still unsettled.
             int headsBefore = collection.EnqueuedByTheRelay.Count;
             await relay.Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStageIndex, hop),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, Host, OpeningStageIndex, hop),
                 CreateRequest(receiver, Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -474,7 +476,7 @@ public class MailboxRelayFrontierTests
         Guid receiver = collection.Seed("Mailbox receive: Task_1 -> Task_2", PersistentItemStatus.Processing);
 
         await relay.Continue(
-            new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStageIndex, 0),
+            new MailboxContinuation.AwaitNextMessage(_mailboxId, Host, OpeningStageIndex, 0),
             CreateRequest(receiver, Guid.NewGuid()),
             CancellationToken.None
         );
@@ -505,7 +507,7 @@ public class MailboxRelayFrontierTests
         await relay.Continue(
             new MailboxContinuation.ConcludeAndContinue(
                 _mailboxId,
-                ServiceTaskType,
+                Host,
                 // ArchiveThenJournalTask answers exchange A with the handler at item index 1, and the hop
                 // that concludes it carries the segment it planned.
                 Handover(new ArchiveThenJournalTask().ResolvePipeline(), afterItemIndex: 1)
@@ -542,7 +544,7 @@ public class MailboxRelayFrontierTests
         int headsBefore = collection.EnqueuedByTheRelay.Count;
         await relay.Continue(
             new MailboxContinuation.ContinueAfterStage(
-                ServiceTaskType,
+                Host,
                 Handover(new UpFrontSendsTask().ResolvePipeline(), OpeningStageIndex)
             ),
             CreateRequest(main, Guid.NewGuid()),

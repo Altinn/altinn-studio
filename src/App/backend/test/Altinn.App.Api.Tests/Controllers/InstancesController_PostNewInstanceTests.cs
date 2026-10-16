@@ -11,12 +11,14 @@ using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.FileAnalysis;
+using Altinn.App.Core.Features.Notifications;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -30,6 +32,7 @@ using Altinn.App.Core.Models.Validation;
 using Altinn.App.Tests.Common.Mocks;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
@@ -367,6 +370,62 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         Assert.NotNull(readDataElementResponseParsed.Melding);
         Assert.Equal("TestName", readDataElementResponseParsed.Melding.Name);
         TestData.DeleteInstanceAndData(org, app, instanceId);
+    }
+
+    /// <summary>
+    /// The notification the instantiation asks for is sent by a side effect that runs in a workflow of its own,
+    /// after the instance is committed: end to end through the workflow engine, with the notification as its input.
+    /// </summary>
+    [Fact]
+    public async Task PostNewInstance_Simplified_WithNotification_NotifiesTheInstanceOwner()
+    {
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        var notificationService = new Mock<INotificationService>();
+        InstantiationNotification? sent = null;
+        notificationService
+            .Setup(x =>
+                x.NotifyInstanceOwnerOnInstantiation(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Party>(),
+                    It.IsAny<InstantiationNotification>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Instance, Party, InstantiationNotification, CancellationToken>(
+                (_, _, notification, _) => sent = notification
+            )
+            .Returns(Task.CompletedTask);
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddSingleton(notificationService.Object);
+            // The side effect looks the owner up as the service owner, which the test host cannot authenticate.
+            services.AddSingleton<IAltinnPartyClient, AltinnPartyClientMock>();
+        };
+        HttpClient client = GetRootedClient(org, app);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            AuthorizationSchemes.Bearer,
+            TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId)
+        );
+
+        string body = $$"""
+            {
+                "instanceOwner": { "partyId": "{{instanceOwnerPartyId}}" },
+                "notification": { "language": "nn", "allowSendingAfterWorkHours": true }
+            }
+            """;
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+        using HttpResponseMessage response = await client.PostAsync($"{org}/{app}/instances/create", content);
+        string responseContent = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(HttpStatusCode.Created, responseContent);
+
+        Assert.NotNull(sent);
+        Assert.Equal("nn", sent.Language);
+        Assert.True(sent.AllowSendingAfterWorkHours);
+
+        var created = JsonSerializer.Deserialize<InstanceResponse>(responseContent, JsonSerializerOptions);
+        TestData.DeleteInstanceAndData(org, app, created!.Id);
     }
 
     [Theory]

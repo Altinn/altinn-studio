@@ -22,6 +22,8 @@ public class ServiceTaskReplyForwarderTests
 {
     private const string Body = """{"status":"mottatt"}""";
     private const string TaskType = "archive";
+
+    private static readonly MailboxOwner Owner = MailboxOwner.ServiceTask(TaskType);
     private const string Key = "fiks-message-42";
 
     private readonly Mock<IWorkflowEngineClient> _client = new(MockBehavior.Strict);
@@ -85,7 +87,7 @@ public class ServiceTaskReplyForwarderTests
             }
         );
 
-        await CreateSut().ForwardReply(mailboxId, TaskType, Body, Key);
+        await CreateSut().ForwardReply(mailboxId, Owner, Body, Key);
 
         Assert.Equal("ttd/test-app", observedNamespace);
         Assert.Equal(mailboxId, observedMailboxId);
@@ -99,7 +101,7 @@ public class ServiceTaskReplyForwarderTests
         MailboxDeliveryRequest? observedRequest = null;
         SetupDelivery(HttpStatusCode.Accepted, (_, _, request) => observedRequest = request);
 
-        await CreateSut().ForwardReply(mailboxId, TaskType, Body, Key);
+        await CreateSut().ForwardReply(mailboxId, Owner, Body, Key);
 
         Assert.Equal(Key, observedRequest!.IdempotencyKey);
     }
@@ -111,7 +113,7 @@ public class ServiceTaskReplyForwarderTests
         MailboxDeliveryRequest? observedRequest = null;
         SetupDelivery(HttpStatusCode.Accepted, (_, _, request) => observedRequest = request);
 
-        await CreateSut().ForwardReply(mailboxId, TaskType, Body, Key);
+        await CreateSut().ForwardReply(mailboxId, Owner, Body, Key);
 
         string sealedPayload = observedRequest!.Payload;
         Assert.NotEqual(Body, sealedPayload);
@@ -136,7 +138,7 @@ public class ServiceTaskReplyForwarderTests
     {
         SetupDelivery(status);
 
-        await CreateSut().ForwardReply(Guid.CreateVersion7(), TaskType, Body, Key);
+        await CreateSut().ForwardReply(Guid.CreateVersion7(), Owner, Body, Key);
     }
 
     [Fact]
@@ -147,7 +149,7 @@ public class ServiceTaskReplyForwarderTests
         SetupDelivery(HttpStatusCode.OK);
         var mailboxId = Guid.CreateVersion7();
 
-        await CreateSut().ForwardReply(mailboxId, TaskType, Body, Key);
+        await CreateSut().ForwardReply(mailboxId, Owner, Body, Key);
 
         _client.Verify(
             x =>
@@ -190,7 +192,7 @@ public class ServiceTaskReplyForwarderTests
         SetupDelivery(status);
 
         var exception = await Assert.ThrowsAsync<ServiceTaskReplyForwardException>(() =>
-            CreateSut().ForwardReply(mailboxId, TaskType, Body, Key)
+            CreateSut().ForwardReply(mailboxId, Owner, Body, Key)
         );
 
         Assert.Equal(expectedOutcome, exception.Outcome);
@@ -217,7 +219,7 @@ public class ServiceTaskReplyForwarderTests
             .ReturnsAsync(new MailboxDeliveryResult(HttpStatusCode.Conflict, Body: null, ErrorDetail: detail));
 
         var exception = await Assert.ThrowsAsync<ServiceTaskReplyForwardException>(() =>
-            CreateSut().ForwardReply(Guid.CreateVersion7(), TaskType, Body, Key)
+            CreateSut().ForwardReply(Guid.CreateVersion7(), Owner, Body, Key)
         );
 
         Assert.Equal(ServiceTaskReplyForwardOutcome.Late, exception.Outcome);
@@ -242,7 +244,7 @@ public class ServiceTaskReplyForwarderTests
             .ThrowsAsync(new HttpRequestException("connection refused"));
 
         var exception = await Assert.ThrowsAsync<ServiceTaskReplyForwardException>(() =>
-            CreateSut().ForwardReply(mailboxId, TaskType, Body, Key)
+            CreateSut().ForwardReply(mailboxId, Owner, Body, Key)
         );
 
         Assert.Equal(ServiceTaskReplyForwardOutcome.EngineUnavailable, exception.Outcome);
@@ -256,7 +258,7 @@ public class ServiceTaskReplyForwarderTests
         var mailboxId = Guid.CreateVersion7();
 
         var exception = await Assert.ThrowsAsync<ServiceTaskReplyForwardException>(() =>
-            CreateSut(TestMailboxDeliveryEnvelope.CreateWithoutSecret()).ForwardReply(mailboxId, TaskType, Body, Key)
+            CreateSut(TestMailboxDeliveryEnvelope.CreateWithoutSecret()).ForwardReply(mailboxId, Owner, Body, Key)
         );
 
         Assert.Equal(ServiceTaskReplyForwardOutcome.SigningUnavailable, exception.Outcome);
@@ -279,7 +281,7 @@ public class ServiceTaskReplyForwarderTests
             )
             .ReturnsAsync(new MailboxDeliveryResult(HttpStatusCode.Accepted, Body: null, ErrorDetail: null));
 
-        await CreateSut().ForwardReply(Guid.CreateVersion7(), TaskType, Body, Key);
+        await CreateSut().ForwardReply(Guid.CreateVersion7(), Owner, Body, Key);
     }
 
     [Fact]
@@ -299,7 +301,7 @@ public class ServiceTaskReplyForwarderTests
             .ThrowsAsync(new OperationCanceledException());
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            CreateSut().ForwardReply(Guid.CreateVersion7(), TaskType, Body, Key, cancellationToken: cts.Token)
+            CreateSut().ForwardReply(Guid.CreateVersion7(), Owner, Body, Key, cancellationToken: cts.Token)
         );
     }
 
@@ -322,7 +324,7 @@ public class ServiceTaskReplyForwarderTests
             .ThrowsAsync(new HttpRequestException("connection refused"));
 
         var exception = await Assert.ThrowsAsync<ServiceTaskReplyForwardException>(() =>
-            CreateSut().ForwardReply(Guid.CreateVersion7(), TaskType, Body, Key, cancellationToken: cts.Token)
+            CreateSut().ForwardReply(Guid.CreateVersion7(), Owner, Body, Key, cancellationToken: cts.Token)
         );
 
         Assert.Equal(ServiceTaskReplyForwardOutcome.EngineUnavailable, exception.Outcome);
@@ -335,26 +337,64 @@ public class ServiceTaskReplyForwarderTests
     public async Task ForwardReply_WithoutAnIdempotencyKey_IsACallerError(string? idempotencyKey)
     {
         await Assert.ThrowsAnyAsync<ArgumentException>(() =>
-            CreateSut().ForwardReply(Guid.CreateVersion7(), TaskType, Body, idempotencyKey!)
+            CreateSut().ForwardReply(Guid.CreateVersion7(), Owner, Body, idempotencyKey!)
+        );
+    }
+
+    [Fact]
+    public async Task ForwardReply_WithoutSayingWhichPipelineAnswersIt_IsACallerError()
+    {
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            CreateSut().ForwardReply(Guid.CreateVersion7(), null!, Body, Key)
         );
     }
 
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task ForwardReply_WithoutSayingWhichTaskAnswersIt_IsACallerError(string? serviceTaskType)
+    public void MailboxOwner_WithABlankName_IsACallerError(string name)
     {
-        await Assert.ThrowsAnyAsync<ArgumentException>(() =>
-            CreateSut().ForwardReply(Guid.CreateVersion7(), serviceTaskType!, Body, Key)
+        Assert.ThrowsAny<ArgumentException>(() => MailboxOwner.ServiceTask(name));
+        Assert.ThrowsAny<ArgumentException>(() => MailboxOwner.SideEffect(name));
+    }
+
+    /// <summary>
+    /// A side effect's owner is bound under its own key, so a message forwarded for it cannot be read as one
+    /// forwarded for a service task of the same name, and the other way round.
+    /// </summary>
+    [Fact]
+    public async Task ForwardReply_ForASideEffect_IsSealedForThatSideEffectOnly()
+    {
+        MailboxDeliveryRequest? observedRequest = null;
+        SetupDelivery(HttpStatusCode.Accepted, (_, _, request) => observedRequest = request);
+        var mailboxId = Guid.CreateVersion7();
+        MailboxOwner sideEffect = MailboxOwner.SideEffect(TaskType);
+
+        await CreateSut().ForwardReply(mailboxId, sideEffect, Body, Key);
+
+        string sealedPayload = observedRequest!.Payload;
+        Assert.Equal(Body, _envelope.Unwrap(sealedPayload, mailboxId, sideEffect.Key, Key));
+        Assert.Throws<MailboxDeliveryEnvelopeException>(() =>
+            _envelope.Unwrap(sealedPayload, mailboxId, Owner.Key, Key)
         );
+    }
+
+    [Theory]
+    [InlineData("archive")]
+    [InlineData("sideEffect:notify")]
+    public void MailboxOwner_ToStringThenParse_IsTheSameOwner(string text)
+    {
+        MailboxOwner owner = MailboxOwner.Parse(text);
+
+        Assert.Equal(text, owner.ToString());
+        Assert.Equal(owner, MailboxOwner.Parse(owner.ToString()));
     }
 
     [Fact]
     public async Task ForwardReply_WithoutABody_IsACallerError()
     {
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            CreateSut().ForwardReply(Guid.CreateVersion7(), TaskType, null!, Key)
+            CreateSut().ForwardReply(Guid.CreateVersion7(), Owner, null!, Key)
         );
     }
 
@@ -365,7 +405,7 @@ public class ServiceTaskReplyForwarderTests
         SetupDelivery(HttpStatusCode.Accepted, (_, _, request) => observedRequest = request);
         var mailboxId = Guid.CreateVersion7();
 
-        await CreateSut().ForwardReply(mailboxId, TaskType, string.Empty, Key);
+        await CreateSut().ForwardReply(mailboxId, Owner, string.Empty, Key);
 
         Assert.Equal(string.Empty, _envelope.Unwrap(observedRequest!.Payload, mailboxId, TaskType, Key));
     }

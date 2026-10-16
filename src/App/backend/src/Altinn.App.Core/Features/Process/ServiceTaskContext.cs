@@ -68,4 +68,37 @@ public sealed record ServiceTaskContext
     /// of these unchanged.
     /// </remarks>
     public ServiceTaskWait Wait { get; init; } = new();
+
+    /// <summary>
+    /// Small named values this pipeline's stages hand to the stages after them, such as the reference an
+    /// external system returned for a request an earlier stage sent.
+    /// </summary>
+    /// <remarks>
+    /// Kept only when this step completes. A deferring attempt must not record anything: like data changes,
+    /// values recorded before a deferral are rejected. See <see cref="PipelineValues"/>.
+    /// </remarks>
+    public PipelineValues Values { get; init; } = new();
+
+    /// <summary>
+    /// Side effects to start once this step's work is saved, such as a follow-up that should not hold up the task.
+    /// A deferring attempt must not start anything. See <see cref="SideEffectStarter"/>.
+    /// </summary>
+    public SideEffectStarter SideEffects { get; init; } = new();
+
+    /// <summary>
+    /// The input a side effect was started with, serialized, or <c>null</c> when it has none. Always <c>null</c>
+    /// for a service task.
+    /// </summary>
+    internal string? Input { get; init; }
+
+    /// <summary>
+    /// The input a side effect was started with (<c>context.SideEffects.Start&lt;TSideEffect&gt;(input)</c>), read
+    /// as <typeparamref name="T"/>, or <c>default</c> when it was started without one. A service task has no
+    /// input.
+    /// </summary>
+    /// <remarks>
+    /// The input travels as JSON with the web defaults of <c>System.Text.Json</c> (camelCase names), so read it as
+    /// the type it was started with, or as one with the same shape.
+    /// </remarks>
+    public T? GetInput<T>() => SideEffectInput.Deserialize<T>(Input);
 }

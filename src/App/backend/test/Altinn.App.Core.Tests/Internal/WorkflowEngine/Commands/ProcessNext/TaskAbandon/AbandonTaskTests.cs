@@ -57,7 +57,7 @@ public class AbandonTaskTests
         services.AddSingleton(processTask);
         var sp = services.BuildServiceProvider();
         var resolver = new ProcessTaskResolver(sp.GetRequiredService<AppImplementationFactory>());
-        return new AbandonTask(resolver);
+        return new AbandonTask(resolver, sp.GetRequiredService<AppImplementationFactory>());
     }
 
     [Fact]

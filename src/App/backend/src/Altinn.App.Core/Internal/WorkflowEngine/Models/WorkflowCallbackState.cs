@@ -40,6 +40,37 @@ internal sealed record WorkflowCallbackState
     /// </remarks>
     [JsonPropertyName("mailboxes")]
     public IReadOnlyDictionary<string, CarriedMailbox>? Mailboxes { get; init; }
+
+    /// <summary>
+    /// The values pipeline stages recorded for the stages after them (see
+    /// <see cref="Features.Process.PipelineValues"/>), keyed by the pipeline that recorded them and then by
+    /// name. <c>null</c> when no pipeline holds any, and absent from blobs written before values existed.
+    /// </summary>
+    [JsonPropertyName("values")]
+    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? Values { get; init; }
+
+    /// <summary>
+    /// Side effects a step before the commit started, waiting for the commit to enqueue them. <c>null</c> when
+    /// none is waiting, and absent from blobs written before side effects could be started.
+    /// </summary>
+    [JsonPropertyName("pendingSideEffects")]
+    public IReadOnlyList<PendingSideEffect>? PendingSideEffects { get; init; }
+}
+
+/// <summary>
+/// A side effect a step started, resolved to what enqueueing it needs: its registered name, its input as it
+/// travels, and the BPMN element current when it was started.
+/// </summary>
+internal sealed record PendingSideEffect
+{
+    [JsonPropertyName("name")]
+    public required string Name { get; init; }
+
+    [JsonPropertyName("input")]
+    public string? Input { get; init; }
+
+    [JsonPropertyName("startedFrom")]
+    public string? StartedFrom { get; init; }
 }
 
 /// <summary>

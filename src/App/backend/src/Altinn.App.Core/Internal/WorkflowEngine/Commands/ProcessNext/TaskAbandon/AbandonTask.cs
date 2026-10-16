@@ -10,10 +10,12 @@ internal sealed class AbandonTask : IWorkflowEngineCommand
     public string GetKey() => Key;
 
     private readonly ProcessTaskResolver _processTaskResolver;
+    private readonly AppImplementationFactory _appImplementationFactory;
 
-    public AbandonTask(ProcessTaskResolver processTaskResolver)
+    public AbandonTask(ProcessTaskResolver processTaskResolver, AppImplementationFactory appImplementationFactory)
     {
         _processTaskResolver = processTaskResolver;
+        _appImplementationFactory = appImplementationFactory;
     }
 
     public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
@@ -24,14 +26,22 @@ internal sealed class AbandonTask : IWorkflowEngineCommand
         try
         {
             IProcessTask processTask = _processTaskResolver.GetProcessTaskInstance(altinnTaskType);
-            await processTask.Abandon(
-                new ProcessTaskContext
-                {
-                    InstanceDataMutator = dataMutator,
-                    CancellationToken = parameters.CancellationToken,
-                }
-            );
-            return new SuccessfulProcessEngineCommandResult();
+            var taskContext = new ProcessTaskContext
+            {
+                InstanceDataMutator = dataMutator,
+                CancellationToken = parameters.CancellationToken,
+            };
+            await processTask.Abandon(taskContext);
+
+            // What the task started waits for the transition to be saved, which this command runs before.
+            return (ProcessEngineCommandResult?)
+                    SideEffectStarts.Record(
+                        taskContext.SideEffects,
+                        _appImplementationFactory,
+                        parameters.StateCarry,
+                        dataMutator.Instance.Process?.CurrentTask?.ElementId
+                    )
+                ?? new SuccessfulProcessEngineCommandResult();
         }
         catch (Exception ex)
         {

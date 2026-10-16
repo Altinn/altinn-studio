@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Globalization;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.AltinnEvents;
@@ -29,13 +28,21 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 internal sealed record ServiceTaskSegmentPlan(IReadOnlyList<StepRequest> Steps, int? ReceiveOpeningIndex);
 
 /// <summary>
+/// One side effect a transition schedules, as the workflow of its own it runs in: a single command step, or one
+/// <c>ExecuteSideEffect</c> step per item of a side-effect pipeline.
+/// </summary>
+/// <param name="Name">What the side effect is called: the command key, or the side-effect pipeline's name.</param>
+/// <param name="Steps">The workflow's steps, in execution order.</param>
+internal sealed record SideEffectPlan(string Name, IReadOnlyList<StepRequest> Steps);
+
+/// <summary>
 /// Defines a group of commands that should be executed for a process event.
 /// </summary>
 internal sealed class WorkflowCommandSet
 {
     private readonly List<StepRequest> _commands = [];
     private readonly List<StepRequest> _criticalPostCommitCommands = [];
-    private readonly List<StepRequest> _sideEffectCommands = [];
+    private readonly List<SideEffectPlan> _sideEffects = [];
 
     /// <summary>
     /// Gets the main commands for this event. CommitProcessState will be added after these.
@@ -49,10 +56,10 @@ internal sealed class WorkflowCommandSet
     public IReadOnlyList<StepRequest> CriticalPostCommitCommands => _criticalPostCommitCommands;
 
     /// <summary>
-    /// Gets the non-critical, fire-and-forget post-commit commands (e.g., MovedToAltinnEvent).
-    /// These run in a separate side-effects workflow that never gates the next transition.
+    /// Gets the non-critical post-commit side effects (e.g., MovedToAltinnEvent). Each runs in a side-effects
+    /// workflow of its own that never gates the next transition.
     /// </summary>
-    public IReadOnlyList<StepRequest> SideEffectCommands => _sideEffectCommands;
+    public IReadOnlyList<SideEffectPlan> SideEffects => _sideEffects;
 
     /// <summary>
     /// Whether this command set schedules a service-task command after CommitProcessState. The service task's
@@ -87,7 +94,10 @@ internal sealed class WorkflowCommandSet
             // Segment 0 always has at least one step (a handler can only answer an already-composed stage, so
             // item 0 is never one), and Main therefore always ends on a step of its own: the stage whose
             // completion starts the rest of the pipeline, or the pipeline's conclusion.
-            ServiceTaskSegmentPlan segment = PlanSegment(serviceTask.Type, serviceTask.Pipeline);
+            ServiceTaskSegmentPlan segment = PlanSegment(
+                new PipelineHost.ServiceTask(serviceTask.Type),
+                serviceTask.Pipeline
+            );
             group.AddCriticalPostCommitSteps(segment.Steps);
         }
 
@@ -96,12 +106,9 @@ internal sealed class WorkflowCommandSet
             group.AddSideEffectCommand(InstanceCreatedAltinnEvent.Key);
         }
 
-        if (context.IsInstantiation && context.Notification is not null)
+        if (context.IsInstantiation && context.NotifyInstanceOwner is { } notifyInstanceOwner)
         {
-            group.AddSideEffectCommand(
-                NotifyInstanceOwnerOnInstantiation.Key,
-                new NotifyInstanceOwnerOnInstantiationPayload(context.Notification)
-            );
+            group.AddSideEffectPipeline(notifyInstanceOwner);
         }
 
         return group;
@@ -172,11 +179,25 @@ internal sealed class WorkflowCommandSet
     }
 
     /// <summary>
-    /// Adds a non-critical post-commit command that runs in the fire-and-forget side-effects workflow.
+    /// Adds a non-critical post-commit command that runs alone in a side-effects workflow of its own.
     /// </summary>
     private WorkflowCommandSet AddSideEffectCommand(string commandKey, CommandRequestPayload? payload = null)
     {
-        _sideEffectCommands.Add(CreateCommand(commandKey, payload));
+        _sideEffects.Add(new SideEffectPlan(commandKey, [CreateCommand(commandKey, payload)]));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a side-effect pipeline as a side-effects workflow of its own, carrying the pipeline's first segment
+    /// planned exactly as a service task's: one <c>ExecuteSideEffect</c> step per stage, a mint step before a
+    /// stage that opens a mailbox, which ends the segment. The steps after it ride the workflows its last step
+    /// enqueues. Every step carries the side effect's input.
+    /// </summary>
+    private WorkflowCommandSet AddSideEffectPipeline(SideEffectInvocation sideEffect)
+    {
+        var host = new PipelineHost.SideEffect(sideEffect.Name, sideEffect.Input);
+        ServiceTaskSegmentPlan segment = PlanSegment(host, sideEffect.Pipeline);
+        _sideEffects.Add(new SideEffectPlan(sideEffect.Name, segment.Steps));
         return this;
     }
 
@@ -200,7 +221,7 @@ internal sealed class WorkflowCommandSet
     /// deciding hop refuses an empty plan rather than enqueue a workflow with no steps.
     /// </returns>
     internal static ServiceTaskSegmentPlan PlanSegment(
-        string serviceTaskType,
+        PipelineHost host,
         ServiceTaskPipeline pipeline,
         int? afterItemIndex = null
     )
@@ -223,30 +244,23 @@ internal sealed class WorkflowCommandSet
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case IReplyHandlerItem handler:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(host.CreateItemStep(index, pipeline.Items[index].StepOptions));
                     return new ServiceTaskSegmentPlan(steps, handler.OpeningIndex);
 
                 case PipelineConclusion.FinalStep:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(host.CreateItemStep(index, pipeline.Items[index].StepOptions));
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case ServiceTaskStage.MailboxOpening:
                     // The mint hugs the stage that sends, on both sides: the deadline clock starts here, and
                     // the stage must never send without an address. No stage index on the step — the mint must
                     // not inherit the stage's options.
-                    steps.Add(
-                        CreateCommand(
-                            MintMailbox.Key,
-                            new MintMailboxPayload(serviceTaskType, index),
-                            operationId: $"{MintMailbox.Key}: {index.ToString(CultureInfo.InvariantCulture)}"
-                        )
-                    );
-
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(host.CreateMintStep(index));
+                    steps.Add(host.CreateItemStep(index, pipeline.Items[index].StepOptions));
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case ServiceTaskStage:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(host.CreateItemStep(index, pipeline.Items[index].StepOptions));
                     break;
 
                 default:
@@ -272,26 +286,10 @@ internal sealed class WorkflowCommandSet
     internal static bool ItemStartsItsOwnWorkflow(ServiceTaskPipeline pipeline, int itemIndex) =>
         pipeline.Items.ElementAtOrDefault(itemIndex) is IReplyHandlerItem;
 
-    /// <summary>
-    /// One pipeline item's engine step — a stage's, a reply handler's or the conclusion's alike. The item's
-    /// index is the step's whole identity, and it travels three ways, deliberately: in the payload (dispatch
-    /// reads it), in <see cref="StepRequest.ServiceTaskItemIndex"/> (the enqueueing hop resolves options by
-    /// it), and in the OperationId (the engine's own record, distinct per item for its dashboards). Nothing
-    /// about what follows the item rides here — a step's payload says what it runs, never what runs after it.
-    /// </summary>
-    internal static StepRequest CreateItemStep(string serviceTaskType, int itemIndex) =>
-        CreateCommand(
-            ExecuteServiceTask.Key,
-            new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: itemIndex),
-            operationId: $"{ExecuteServiceTask.Key}: {itemIndex.ToString(CultureInfo.InvariantCulture)}",
-            serviceTaskItemIndex: itemIndex
-        );
-
     private static StepRequest CreateCommand(
         string commandKey,
         CommandRequestPayload? payload = null,
-        string? operationId = null,
-        int? serviceTaskItemIndex = null
+        string? operationId = null
     )
     {
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
@@ -303,7 +301,6 @@ internal sealed class WorkflowCommandSet
                 new AppCommandData { CommandKey = commandKey, Payload = serializedPayload }
             ),
             CommandKey = commandKey,
-            ServiceTaskItemIndex = serviceTaskItemIndex,
         };
     }
 }

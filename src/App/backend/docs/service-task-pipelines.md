@@ -1,7 +1,8 @@
 # Service task pipelines and mailboxes
 
 Authoring guide for service tasks built on `IPipelineServiceTask` — durable multi-step tasks, waiting,
-and message-answered (mailbox) exchanges. This is the app-developer companion to the runtime's internal
+and message-answered (mailbox) exchanges — and for side effects (`ISideEffect`), which compose the same
+pipelines but run beside the process instead of holding it up. This is the app-developer companion to the runtime's internal
 spec in `src/Altinn.App.Core/Internal/WorkflowEngine/AGENTS.md`; until it lands on docs.altinn.studio,
 this file is the reference the API docs point to.
 
@@ -73,10 +74,39 @@ is the durable guard for send-then-poll and send-then-receive work: give the sen
   is stable across retries of the same step and covers the crash window between sending and completing.
 - **Never** branch on anything under `ServiceTaskContext.Attempt` or `ServiceTaskContext.Wait` to guard a
   side effect: an attempt that sends and then crashes re-runs with all of those unchanged.
-- Stages share state through `ServiceTaskContext.InstanceDataMutator` and nothing else: a completed
-  stage's data changes are saved into the workflow state and visible to every stage after it.
+- Stages share state through `ServiceTaskContext.InstanceDataMutator` and `ServiceTaskContext.Values`: a
+  completed stage's data changes are saved into the workflow state and visible to every stage after it, and so
+  are the values it recorded.
 - A failed attempt saves nothing — the retry starts from exactly the state the attempt received. A handler
   that must _record_ something records it and returns success.
+
+### Values
+
+`ServiceTaskContext.Values` holds small named strings a stage hands to the stages after it, such as the
+reference an external system returned for the request the stage sent. Use it for what the pipeline itself needs
+and nobody else reads; keep anything that belongs to the instance in instance data.
+
+```csharp
+private async Task<ServiceTaskStageResult> Send(ServiceTaskContext context)
+{
+    string messageId = await _client.Send(..., idempotencyKey: context.StepId);
+    context.Values.Set("messageId", messageId);
+    return ServiceTaskStageResult.Completed();
+}
+
+private async Task<ServiceTaskResult> AwaitReceipt(ServiceTaskContext context)
+{
+    string messageId = context.Values.Get("messageId") ?? throw new InvalidOperationException("No message id.");
+    ...
+}
+```
+
+- Values travel in the workflow state and need no save. They are kept when the step completes, like data
+  changes, and a step that records a value and then defers fails permanently: a deferral is stateless.
+- Each task sees only its own values, and the pipeline's first item starts with none, so nothing from an
+  earlier visit to the task reaches a new one. The values stop traveling when the task concludes.
+- A task holds at most `PipelineValues.MaxCount` values, each at most `PipelineValues.MaxValueLength`
+  characters.
 
 ### Stage results
 
@@ -124,7 +154,7 @@ pipeline.Stage(SendIt, new MailboxOptions { Timeout = ... }, out MailboxHandle h
 ```
 
 The stage's work is handed a `ServiceTaskMailbox`: `Id` is the reply address, `Deadline` is when the
-mailbox stops accepting answers. For an answer to be routable, the stage must publish `Id` in whatever
+mailbox stops accepting answers, and `Owner` is the pipeline that answers it. For an answer to be routable, the stage must publish `Id` in whatever
 field the receiving system echoes back — the id _is_ the address; nothing else routes a reply. A retried
 or deferred attempt of the stage is handed the same mailbox: the mint is its own durable step immediately
 before the stage, so it never runs twice.
@@ -217,12 +247,14 @@ reads A's exchange to the end before B's begins.
 ## Forwarding a received message
 
 `IServiceTaskReplyForwarder` is how the answer reaches the mailbox: the channel that receives it (a queue
-subscriber, a webhook endpoint) reads the echoed mailbox id and calls `ForwardReply(mailboxId,
-serviceTaskType, payload, idempotencyKey)`, doing no work of its own beyond decoding enough to forward.
+subscriber, a webhook endpoint) reads the echoed mailbox id and calls `ForwardReply(mailboxId, owner,
+payload, idempotencyKey)`, doing no work of its own beyond decoding enough to forward.
 
-- **Name the service task type directly** — it is bound into the integrity envelope, which is what stops
-  another task's handler from reading the message. Deriving it can be wrong at signing time and sign its
-  own mistake.
+- **Name the owner directly** — `MailboxOwner.ServiceTask(type)` or `MailboxOwner.SideEffect(name)`. It is
+  bound into the integrity envelope, which is what stops another pipeline's handler from reading the
+  message. Deriving it can be wrong at signing time and sign its own mistake. A forwarder that serves more
+  than one pipeline can have the opening stage publish `mailbox.Owner.ToString()` with the reply address and
+  read it back with `MailboxOwner.Parse`.
 - Pass the **source's own message id** as `idempotencyKey` (at most 200 characters): channels and retries
   both deliver at least once, and the handler reads the same value back as `ServiceTaskReply.IdempotencyKey`
   — the natural key for side effects it must not repeat.
@@ -243,6 +275,72 @@ serviceTaskType, payload, idempotencyKey)`, doing no work of its own beyond deco
 The worked example in-tree is Fiks Arkiv (`Altinn.App.Clients.Fiks`): `FiksArkivServiceTask` publishes the
 mailbox id as the outbound message's `klientKorrelasjonsId`, and `FiksArkivSubscriber.IncomingMessageListener`
 reads the echo, decrypts, and forwards.
+
+## Side effects: work that should not hold up the process
+
+A service task holds the process up until its pipeline concludes. When the process should move on while the
+work waits for an outcome — a notification whose delivery should be confirmed, a copy sent to an archive that
+answers later — make it a **side effect** instead:
+
+```csharp
+public sealed class SendToArchive(IArchiveClient archive) : ISideEffect
+{
+    public string Name => "send-to-archive";
+
+    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        pipeline
+            .Stage(Send)
+            .Finally(AwaitReceipt, new ProcessStepOptions { WaitBudget = TimeSpan.FromDays(2) });
+
+    private async Task<ServiceTaskStageResult> Send(ServiceTaskContext context)
+    {
+        ArchiveRequest request = context.GetInput<ArchiveRequest>()!;
+        string receiptId = await archive.Send(request, idempotencyKey: context.StepId);
+        context.Values.Set("receiptId", receiptId);
+        return ServiceTaskStageResult.Completed();
+    }
+
+    private async Task<ServiceTaskResult> AwaitReceipt(ServiceTaskContext context) => ...;
+}
+
+services.AddTransient<ISideEffect, SendToArchive>();
+```
+
+A side effect composes the same pipeline as a service task — stages, `Defer` with a wait budget, mailboxes
+and reply handlers, values, step options — and runs in workflows of its own. Two rules differ:
+
+- **It cannot change instance data.** It runs on the state the transition saved while the process moves on,
+  so a save would race the process. Hand values to later stages with `context.Values`; a step that changes
+  data fails permanently.
+- **Its conclusion ends the side effect, nothing else.** `ServiceTaskResult.Success()` cannot name a process
+  action.
+
+A failed side effect fails its own workflow and nothing else: operators see it in the workflow engine and
+the admin panel, and can resume it.
+
+### Starting a side effect
+
+Start a side effect from the code a step runs — a hook (`IOnTaskStartingHandler`, `IOnTaskEndingHandler`,
+`IOnTaskAbandonHandler`, `IOnProcessEndedHandler`), a process task (`IProcessTask.Start`, `End`, `Abandon`), a
+service task stage or another side effect — through the context's `SideEffects`:
+
+```csharp
+public Task<HookResult> Execute(OnTaskEndingContext context)
+{
+    context.SideEffects.Start<SendToArchive>(new ArchiveRequest(caseId));
+    return Task.FromResult<HookResult>(HookResult.Success());
+}
+```
+
+- A started side effect runs **only if the step's work is saved**: code that runs before the transition is
+  saved starts its side effects right after the transition is saved, and code that runs after it starts them
+  right after its own save. A step that fails, or a transition that never saves, starts nothing.
+- Starting is idempotent per step. A step that runs again must start the same side effects with the same
+  input; a step that **defers** must not start anything, and fails permanently if it does.
+- The input travels as JSON (`System.Text.Json` web defaults). Read it with `context.GetInput<T>()`, and keep
+  it small: it rides every step of the side effect.
+- Hooks and process tasks run before the transition is saved and cannot wait. If the process must wait for
+  the outcome, use a service task; if it must not, start a side effect.
 
 ## Redeploys and in-flight workflows
 
