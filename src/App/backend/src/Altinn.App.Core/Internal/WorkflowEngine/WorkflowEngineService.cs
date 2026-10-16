@@ -27,11 +27,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private const int WorkflowPollingTightWindowMs = 2_000;
     private const int WorkflowPollingBackoffPercent = 50;
     private const int MaxWorkflowPollingDelayMs = 2_000;
-    private const int AcceptanceProbeAttempts = 3;
-
-    // Not the polling delay above: this grace lets the engine's write buffer make the collection
-    // visible before an unknown enqueue is concluded "not accepted".
-    private const int AcceptanceProbeDelayMs = 100;
 
     // Mutable so tests can shrink the windows; production always runs the defaults.
     internal int WorkflowPollingTimeoutMs = 100_000;
@@ -182,31 +177,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         }
         catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
         {
-            WorkflowCollectionLookupResult lookupResult = await ProbeWorkflowCollection(
-                collectionKey,
-                cancellationToken
-            );
-            if (lookupResult == WorkflowCollectionLookupResult.Found)
-            {
-                // The enqueue response was lost, so the new workflow id is unknown - wait unscoped.
-                return await WaitForWorkflowCollectionAndRefetchInstance(
-                    instance,
-                    collectionKey,
-                    sinceWorkflowId: null,
-                    cancellationToken
-                );
-            }
-
-            if (lookupResult == WorkflowCollectionLookupResult.NotFound)
-            {
-                throw WorkflowSubmissionFailedException.NotAccepted(
-                    "Workflow engine did not accept the process-next workflow.",
-                    GetStatusCode(exception),
-                    collectionKey,
-                    exception
-                );
-            }
-
+            // Without an answer the workflow may or may not exist, and waiting cannot tell which. A retry on the
+            // same instance version reuses the idempotency key, so it joins the workflow if it was accepted.
             throw WorkflowSubmissionFailedException.Unknown(
                 "Workflow engine submission failed, and Runtime could not confirm whether the workflow was accepted.",
                 GetStatusCode(exception),
@@ -500,43 +472,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             .FirstOrDefault();
     }
 
-    private async Task<WorkflowCollectionLookupResult> ProbeWorkflowCollection(
-        string collectionKey,
-        CancellationToken cancellationToken
-    )
-    {
-        for (int attempt = 0; attempt < AcceptanceProbeAttempts; attempt++)
-        {
-            try
-            {
-                WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
-                    GetNamespace(),
-                    collectionKey,
-                    cancellationToken
-                );
-                if (collection is not null)
-                {
-                    return WorkflowCollectionLookupResult.Found;
-                }
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch
-            {
-                return WorkflowCollectionLookupResult.Unknown;
-            }
-
-            if (attempt < AcceptanceProbeAttempts - 1)
-            {
-                await Task.Delay(AcceptanceProbeDelayMs, cancellationToken);
-            }
-        }
-
-        return WorkflowCollectionLookupResult.NotFound;
-    }
-
     /// <summary>
     /// Polls the workflow collection until the anchored chain settles, then refetches the instance and
     /// classifies the outcome. Two early exits shortcut the full wait: a <em>parked</em> chain — every
@@ -549,7 +484,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private async Task<ProcessNextWorkflowResult> WaitForWorkflowCollectionAndRefetchInstance(
         Instance instance,
         string collectionKey,
-        Guid? sinceWorkflowId,
+        Guid sinceWorkflowId,
         CancellationToken cancellationToken
     )
     {
@@ -584,18 +519,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                         sinceWorkflowId
                     );
 
-                    // The engine buffers enqueues, so the workflow we just submitted may not be
-                    // visible yet - and a lingering terminal head from a previous transition makes the
-                    // heads look inactive before our workflow has even started. When we know which
-                    // workflow we submitted, keep polling until it is visible and its chain has settled.
-                    bool anchoredChainSettled =
-                        sinceWorkflowId is null
-                        || (
-                            currentChain.Any(workflow => workflow.DatabaseId == sinceWorkflowId)
-                            && !currentChain.Any(IsActiveWorkflowStatus)
-                        );
-
-                    if (anchoredChainSettled)
+                    if (!currentChain.Any(IsActiveWorkflowStatus))
                     {
                         InstanceWithStorageMetadata freshInstance =
                             await _instanceClient.GetInstanceWithStorageMetadata(
@@ -630,12 +554,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
                     List<WorkflowStatusResponse> activeWorkflows = currentChain.Where(IsActiveWorkflowStatus).ToList();
                     bool anchoredChainParked =
-                        (
-                            sinceWorkflowId is null
-                            || currentChain.Any(workflow => workflow.DatabaseId == sinceWorkflowId)
-                        )
-                        && activeWorkflows.Count > 0
-                        && activeWorkflows.TrueForAll(IsParkedWorkflowStatus);
+                        activeWorkflows.Count > 0 && activeWorkflows.TrueForAll(IsParkedWorkflowStatus);
 
                     // The committed-state guard is defensive: should a pre-commit step ever learn to
                     // defer, fall through to the ordinary wait (and its timeout) rather than returning a
@@ -671,7 +590,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private async Task<ProcessNextWorkflowResult> CreatePollingTimeoutResult(
         Instance instance,
         string collectionKey,
-        Guid? sinceWorkflowId,
+        Guid sinceWorkflowId,
         CancellationToken cancellationToken
     )
     {
@@ -968,11 +887,4 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
     private static HttpStatusCode? GetStatusCode(Exception exception) =>
         exception is HttpRequestException httpRequestException ? httpRequestException.StatusCode : null;
-
-    private enum WorkflowCollectionLookupResult
-    {
-        Found,
-        NotFound,
-        Unknown,
-    }
 }

@@ -741,27 +741,34 @@ public class WorkflowEngineServiceTests
             )
             .ReturnsAsync(new InstanceWithStorageMetadata(refreshedInstance, refreshedVersions));
         WorkflowEngineService service = CreateService(client, instanceClient.Object);
+        Task<ProcessNextWorkflowResult> Submit() =>
+            service.EnqueueAndWaitForInitialProcessState(
+                instance,
+                versions,
+                transition,
+                state: "same-signed-state",
+                isInstantiation: isInstantiation
+            );
 
-        ProcessNextWorkflowResult first = await service.EnqueueAndWaitForInitialProcessState(
-            instance,
-            versions,
-            transition,
-            state: "same-signed-state",
-            isInstantiation: isInstantiation
-        );
-        ProcessNextWorkflowResult retry = await service.EnqueueAndWaitForInitialProcessState(
-            instance,
-            versions,
-            transition,
-            state: "same-signed-state",
-            isInstantiation: isInstantiation
-        );
+        if (loseAcknowledgment)
+        {
+            // Without an answer the call cannot tell whether the workflow exists; the retry joins it if it does.
+            WorkflowSubmissionFailedException exception = await Assert.ThrowsAsync<WorkflowSubmissionFailedException>(
+                Submit
+            );
+            Assert.Equal(WorkflowSubmissionFailureKind.Unknown, exception.Kind);
+        }
+        else
+        {
+            ProcessNextWorkflowResult first = await Submit();
+            Assert.Null(first.WorkflowFailure);
+            Assert.Same(refreshedInstance, first.Instance);
+            Assert.Equal(refreshedVersions, first.InstanceVersions);
+        }
+        ProcessNextWorkflowResult retry = await Submit();
 
-        Assert.Null(first.WorkflowFailure);
         Assert.Null(retry.WorkflowFailure);
-        Assert.Same(refreshedInstance, first.Instance);
         Assert.Same(refreshedInstance, retry.Instance);
-        Assert.Equal(refreshedVersions, first.InstanceVersions);
         Assert.Equal(refreshedVersions, retry.InstanceVersions);
         Assert.Equal(2, keys.Count);
         Assert.Single(keys.Distinct(StringComparer.Ordinal));
