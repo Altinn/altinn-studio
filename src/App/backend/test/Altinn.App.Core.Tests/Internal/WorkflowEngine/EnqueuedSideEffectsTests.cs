@@ -13,10 +13,10 @@ using Moq;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
 /// <summary>
-/// Starting side effects from app code (<see cref="SideEffectStarter"/>): what a step starts is resolved to the
-/// registered side effect and waits in the workflow state until the controller enqueues it.
+/// Enqueuing side effects from app code (<see cref="SideEffectQueue"/>): what a step enqueues is resolved to the
+/// registered side effect and waits in the workflow state until the controller starts it.
 /// </summary>
-public class SideEffectStartsTests
+public class EnqueuedSideEffectsTests
 {
     private sealed record ArchiveRequest(string CaseId);
 
@@ -48,37 +48,37 @@ public class SideEffectStartsTests
     [Fact]
     public void Record_ResolvesTheRegisteredNameAndSerializesTheInput()
     {
-        var starter = new SideEffectStarter();
-        starter.Start<ArchiveSideEffect>(new ArchiveRequest("case-42"));
+        var queue = new SideEffectQueue();
+        queue.Enqueue<ArchiveSideEffect>(new ArchiveRequest("case-42"));
         var carry = new WorkflowCallbackStateCarry();
 
-        FailedProcessEngineCommandResult? refused = SideEffectStarts.Record(starter, Factory(), carry, "Task_1");
+        FailedProcessEngineCommandResult? refused = EnqueuedSideEffects.Record(queue, Factory(), carry, "Task_1");
 
         Assert.Null(refused);
         PendingSideEffect pending = Assert.Single(carry.PendingSideEffects!);
         Assert.Equal("archive", pending.Name);
-        Assert.Equal("Task_1", pending.StartedFrom);
+        Assert.Equal("Task_1", pending.EnqueuedFrom);
         Assert.Equal("""{"caseId":"case-42"}""", pending.Input);
     }
 
     [Fact]
-    public void Record_WithNothingStarted_RecordsNothing()
+    public void Record_WithNothingEnqueued_RecordsNothing()
     {
         var carry = new WorkflowCallbackStateCarry();
 
-        Assert.Null(SideEffectStarts.Record(new SideEffectStarter(), Factory(), carry, "Task_1"));
+        Assert.Null(EnqueuedSideEffects.Record(new SideEffectQueue(), Factory(), carry, "Task_1"));
         Assert.Null(carry.PendingSideEffects);
     }
 
     [Fact]
     public void Record_AnUnregisteredSideEffect_FailsPermanentlyAndRecordsNothing()
     {
-        var starter = new SideEffectStarter();
-        starter.Start<ArchiveSideEffect>();
-        starter.Start<UnregisteredSideEffect>();
+        var queue = new SideEffectQueue();
+        queue.Enqueue<ArchiveSideEffect>();
+        queue.Enqueue<UnregisteredSideEffect>();
         var carry = new WorkflowCallbackStateCarry();
 
-        FailedProcessEngineCommandResult? refused = SideEffectStarts.Record(starter, Factory(), carry, "Task_1");
+        FailedProcessEngineCommandResult? refused = EnqueuedSideEffects.Record(queue, Factory(), carry, "Task_1");
 
         Assert.NotNull(refused);
         Assert.True(refused.NonRetryable);
@@ -91,7 +91,7 @@ public class SideEffectStartsTests
     public void Drain_TakesEveryPendingSideEffectOnce()
     {
         var carry = new WorkflowCallbackStateCarry();
-        carry.RecordStartedSideEffects([new PendingSideEffect { Name = "archive" }]);
+        carry.RecordPendingSideEffects([new PendingSideEffect { Name = "archive" }]);
 
         Assert.Single(carry.DrainPendingSideEffects());
         Assert.Empty(carry.DrainPendingSideEffects());
@@ -99,14 +99,14 @@ public class SideEffectStartsTests
     }
 
     /// <summary>
-    /// A hook that runs before the commit starts its side effects into the carry, not straight into the engine:
+    /// A hook that runs before the commit enqueues its side effects into the carry, not straight into the engine:
     /// they wait for the transition to be saved.
     /// </summary>
     [Fact]
-    public async Task OnTaskEndingHook_RecordsWhatTheHookStarted()
+    public async Task OnTaskEndingHook_RecordsWhatTheHookEnqueued()
     {
         AppImplementationFactory factory = Factory(services =>
-            services.AddSingleton<IOnTaskEndingHandler>(new StartingEndingHandler())
+            services.AddSingleton<IOnTaskEndingHandler>(new EnqueuingEndingHandler())
         );
         var services = new ServiceCollection();
         services.AddSingleton(factory);
@@ -118,27 +118,27 @@ public class SideEffectStartsTests
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         PendingSideEffect pending = Assert.Single(carry.PendingSideEffects!);
         Assert.Equal("archive", pending.Name);
-        Assert.Equal("Task_1", pending.StartedFrom);
-        Assert.False(((IWorkflowEngineCommand)command).EnqueuesStartedSideEffects);
+        Assert.Equal("Task_1", pending.EnqueuedFrom);
+        Assert.False(((IWorkflowEngineCommand)command).EnqueuesPendingSideEffects);
     }
 
-    private sealed class StartingEndingHandler : IOnTaskEndingHandler
+    private sealed class EnqueuingEndingHandler : IOnTaskEndingHandler
     {
         public bool ShouldRunForTask(string taskId) => true;
 
         public Task<HookResult> Execute(OnTaskEndingContext context)
         {
-            context.SideEffects.Start<ArchiveSideEffect>(new ArchiveRequest("case-7"));
+            context.SideEffects.Enqueue<ArchiveSideEffect>(new ArchiveRequest("case-7"));
             return Task.FromResult<HookResult>(HookResult.Success());
         }
     }
 
     [Fact]
-    public async Task ServiceTaskStage_ThatStartsAndDefers_FailsPermanently()
+    public async Task ServiceTaskStage_ThatEnqueuesAndDefers_FailsPermanently()
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
-        services.AddSingleton<IPipelineServiceTask>(new StartAndDeferTask());
+        services.AddSingleton<IPipelineServiceTask>(new EnqueueAndDeferTask());
         var command = new ExecuteServiceTask(
             services.BuildServiceProvider().GetRequiredService<AppImplementationFactory>(),
             TestMailboxDeliveryEnvelope.Create()
@@ -152,18 +152,18 @@ public class SideEffectStartsTests
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("SideEffectsStartedOnDeferral", failed.ExceptionType);
+        Assert.Equal("SideEffectsEnqueuedOnDeferral", failed.ExceptionType);
         Assert.Null(carry.PendingSideEffects);
     }
 
-    private sealed class StartAndDeferTask : IPipelineServiceTask
+    private sealed class EnqueueAndDeferTask : IPipelineServiceTask
     {
         public string Type => "deferring";
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline.Finally(context =>
             {
-                context.SideEffects.Start<ArchiveSideEffect>();
+                context.SideEffects.Enqueue<ArchiveSideEffect>();
                 return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Defer(TimeSpan.FromMinutes(1)));
             });
     }

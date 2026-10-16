@@ -318,29 +318,30 @@ and reply handlers, values, step options — and runs in workflows of its own. T
 A failed side effect fails its own workflow and nothing else: operators see it in the workflow engine and
 the admin panel, and can resume it.
 
-### Starting a side effect
+### Enqueuing a side effect
 
-Start a side effect from the code a step runs — a hook (`IOnTaskStartingHandler`, `IOnTaskEndingHandler`,
+Enqueue a side effect from the code a step runs — a hook (`IOnTaskStartingHandler`, `IOnTaskEndingHandler`,
 `IOnTaskAbandonHandler`, `IOnProcessEndedHandler`), a process task (`IProcessTask.Start`, `End`, `Abandon`), a
 service task stage or another side effect — through the context's `SideEffects`:
 
 ```csharp
 public Task<HookResult> Execute(OnTaskEndingContext context)
 {
-    context.SideEffects.Start<SendToArchive>(new ArchiveRequest(caseId));
+    context.SideEffects.Enqueue<SendToArchive>(new ArchiveRequest(caseId));
     return Task.FromResult<HookResult>(HookResult.Success());
 }
 ```
 
-- A started side effect runs **only if the step's work is saved**: code that runs before the transition is
-  saved starts its side effects right after the transition is saved, and code that runs after it starts them
-  right after its own save. A step that fails, or a transition that never saves, starts nothing.
-- Starting is idempotent per step. A step that runs again must start the same side effects with the same
-  input; a step that **defers** must not start anything, and fails permanently if it does.
+- Enqueuing runs nothing yet. An enqueued side effect runs **only if the step's work is saved**: what code
+  running before the transition is saved enqueues starts right after the transition is saved, and what code
+  running after it enqueues starts right after its own save. A step that fails, or a transition that never
+  saves, starts nothing.
+- Enqueuing is idempotent per step. A step that runs again must enqueue the same side effects with the same
+  input; a step that **defers** must not enqueue anything, and fails permanently if it does.
 - The input travels as JSON (`System.Text.Json` web defaults). Read it with `context.GetInput<T>()`, and keep
   it small: it rides every step of the side effect.
 - Hooks and process tasks run before the transition is saved and cannot wait. If the process must wait for
-  the outcome, use a service task; if it must not, start a side effect.
+  the outcome, use a service task; if it must not, enqueue a side effect.
 
 ## Redeploys and in-flight workflows
 

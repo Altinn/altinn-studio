@@ -69,8 +69,8 @@ WorkflowEngine/
 │                          MailboxContinuation.cs — the mailbox saga in two files), and the two
 │                          exceptions (callback-state → 422, submission-failed), PipelineHost (what a
 │                          pipeline runs for: service task or side effect), PipelineValuesCarry (a pipeline's
-│                          values between the carry and its steps), and SideEffectStarts + SideEffectEnqueuer
-│                          (side effects app code started, from the carry to the engine)
+│                          values between the carry and its steps), and EnqueuedSideEffects + SideEffectEnqueuer
+│                          (side effects app code enqueued, from the carry to the engine)
 ├── Authentication/      - Callback JWT subsystem: scheme constant, token generator/validator,
 │                          rotation-aware secret provider, startup AppCodes validation
 ├── Commands/            - One class per command; grouped as _Base/ (interface, typed-payload base,
@@ -308,15 +308,15 @@ the process never waits on any of it.
   registrations) is never saved for by the controller. It runs on the commit-time state while the process keeps
   saving, so a save would be refused as stale or race the process's own next save — and a save happens more often
   than it looks: the derived `dataValues`/`presentationTexts` updates can make an otherwise empty callback save.
-- **Starting from app code.** Hooks, process tasks, service task stages and side effects start side effects with
-  `context.SideEffects.Start<T>(input)` (`SideEffectStarter`). On success the producing command resolves them to the
-  registered name (`SideEffectStarts.Record`, permanent `SideEffectNotRegistered` otherwise) and records them as
+- **Enqueuing from app code.** Hooks, process tasks, service task stages and side effects enqueue side effects with
+  `context.SideEffects.Enqueue<T>(input)` (`SideEffectQueue`). On success the producing command resolves them to the
+  registered name (`EnqueuedSideEffects.Record`, permanent `SideEffectNotRegistered` otherwise) and records them as
   `pendingSideEffects` in the carry. The controller drains and enqueues them after the save of a command that
-  `EnqueuesStartedSideEffects` — `CommitProcessState` for everything started before the commit, and the post-commit
+  `EnqueuesPendingSideEffects` — `CommitProcessState` for everything enqueued before the commit, and the post-commit
   producers (`ExecuteServiceTask`, `ExecuteSideEffect`, `OnProcessEndedHook`) for their own — through
-  `SideEffectEnqueuer`, idempotent on `{stepId}:started-side-effects`. Pre-commit producers never drain, so what they
-  start exists if and only if the transition is saved. A step that starts something and then defers fails
-  (`SideEffectsStartedOnDeferral`), as for values.
+  `SideEffectEnqueuer`, idempotent on `{stepId}:enqueued-side-effects`. Pre-commit producers never drain, so what they
+  enqueue starts if and only if the transition is saved. A step that enqueues something and then defers fails
+  (`SideEffectsEnqueuedOnDeferral`), as for values.
 - **Options** come from the item (`Stage`/`Finally`/`HandleReplies` options) on `StepRequest.StageOptions`, the same
   channel a process task's lifecycle stages use; `ProcessStepOptionsResolver` (a singleton) takes them as tier 3. A
   successor receiver's handler options travel on `MailboxContinuation.AwaitNextMessage.HandlerOptions`.

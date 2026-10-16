@@ -13,10 +13,10 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Enqueues the side effects steps started (<see cref="SideEffectStarter"/>), once the work that started them is
+/// Starts the side effects steps enqueued (<see cref="SideEffectQueue"/>), once the work that enqueued them is
 /// saved: one side-effects workflow per side effect, carrying the first segment of its pipeline, exactly like the
 /// side effects a transition schedules itself. Called by the callback controller after the save of a command that
-/// <see cref="Commands.IWorkflowEngineCommand.EnqueuesStartedSideEffects"/>.
+/// <see cref="Commands.IWorkflowEngineCommand.EnqueuesPendingSideEffects"/>.
 /// </summary>
 internal sealed class SideEffectEnqueuer(
     AppImplementationFactory appImplementationFactory,
@@ -54,7 +54,7 @@ internal sealed class SideEffectEnqueuer(
             ISideEffect registered =
                 appImplementationFactory.FindSideEffect(sideEffect.Name)
                 ?? throw new InvalidOperationException(
-                    $"The side effect '{sideEffect.Name}' was started, but none is registered with that name."
+                    $"The side effect '{sideEffect.Name}' was enqueued, but none is registered with that name."
                 );
 
             var host = new PipelineHost.SideEffect(sideEffect.Name, sideEffect.Input);
@@ -65,7 +65,7 @@ internal sealed class SideEffectEnqueuer(
                 {
                     OperationId =
                         $"{ProcessNextRequestFactory.SideEffectsOperationIdPrefix} "
-                        + $"{sideEffect.StartedFrom ?? currentElement} -> {currentElement} · {sideEffect.Name}",
+                        + $"{sideEffect.EnqueuedFrom ?? currentElement} -> {currentElement} · {sideEffect.Name}",
                     Steps = [.. plan.Steps.ApplyStepOptions(stepOptionsResolver, currentTask, serviceTaskType: null)],
                     State = state,
                     IsHead = false,
@@ -100,7 +100,7 @@ internal sealed class SideEffectEnqueuer(
     }
 
     /// <summary>Deterministic per step, and distinct from every other key the step's callback enqueues under.</summary>
-    internal static string CreateIdempotencyKey(Guid stepId) => $"{stepId}:started-side-effects";
+    internal static string CreateIdempotencyKey(Guid stepId) => $"{stepId}:enqueued-side-effects";
 
     /// <summary>
     /// The labels every side-effects workflow carries: the instance, and the task the process is in, which status

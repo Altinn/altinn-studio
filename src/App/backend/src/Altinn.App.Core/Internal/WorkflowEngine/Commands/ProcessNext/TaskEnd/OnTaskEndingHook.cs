@@ -54,7 +54,7 @@ internal sealed class OnTaskEndingHook : IWorkflowEngineCommand
             {
                 // What the hook started waits for the transition, or for this hook's own save, to be enqueued.
                 SuccessfulHookResult => (ProcessEngineCommandResult?)
-                    SideEffectStarts.Record(
+                    EnqueuedSideEffects.Record(
                         hookParameters.SideEffects,
                         _appImplementationFactory,
                         parameters.StateCarry,

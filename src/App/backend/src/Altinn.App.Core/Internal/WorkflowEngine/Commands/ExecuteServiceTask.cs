@@ -48,7 +48,7 @@ internal sealed class ExecuteServiceTask(
     /// <summary>
     /// A service task runs after the commit, so what its steps start can start once their own work is saved.
     /// </summary>
-    public override bool EnqueuesStartedSideEffects => true;
+    public override bool EnqueuesPendingSideEffects => true;
 
     public override ProcessStepOptions? DefaultStepOptions { get; } =
         new() { MaxExecutionTime = DefaultServiceTaskTimeout };
@@ -98,7 +98,7 @@ internal sealed class ExecuteServiceTask(
             );
 
             if (
-                StartedSideEffects(
+                RecordEnqueuedSideEffects(
                     result,
                     serviceTaskContext.SideEffects,
                     context,
@@ -129,23 +129,22 @@ internal sealed class ExecuteServiceTask(
     }
 
     /// <summary>
-    /// Records what a step that succeeded started, to be enqueued once its work is saved, and refuses a step that
-    /// started something and then deferred.
+    /// Records what a step that succeeded enqueued, to be started once its work is saved, and refuses a step that
+    /// enqueued something and then deferred.
     /// </summary>
-    private FailedProcessEngineCommandResult? StartedSideEffects(
+    private FailedProcessEngineCommandResult? RecordEnqueuedSideEffects(
         ProcessEngineCommandResult result,
-        SideEffectStarter started,
+        SideEffectQueue enqueued,
         ProcessEngineCommandContext context,
         PipelineHost host,
         string? currentTask
     ) =>
         result switch
         {
-            DeferredProcessEngineCommandResult when started.Started.Count > 0 => SideEffectStarts.StartedThenDeferred(
-                host.Description
-            ),
-            SuccessfulProcessEngineCommandResult => SideEffectStarts.Record(
-                started,
+            DeferredProcessEngineCommandResult when enqueued.Enqueued.Count > 0 =>
+                EnqueuedSideEffects.EnqueuedThenDeferred(host.Description),
+            SuccessfulProcessEngineCommandResult => EnqueuedSideEffects.Record(
+                enqueued,
                 appImplementationFactory,
                 context.StateCarry,
                 currentTask

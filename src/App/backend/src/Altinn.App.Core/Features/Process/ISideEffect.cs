@@ -9,8 +9,8 @@ namespace Altinn.App.Core.Features.Process;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Start a side effect from a hook, a process task or a service task with
-/// <c>context.SideEffects.Start&lt;TSideEffect&gt;(input)</c>. Register it with
+/// Enqueue a side effect from a hook, a process task or a service task with
+/// <c>context.SideEffects.Enqueue&lt;TSideEffect&gt;(input)</c>. Register it with
 /// <c>services.AddTransient&lt;ISideEffect, MySideEffect&gt;()</c>.
 /// </para>
 /// <para>
@@ -28,7 +28,7 @@ namespace Altinn.App.Core.Features.Process;
 /// </item>
 /// </list>
 /// <para>
-/// Read the input the side effect was started with through <see cref="ServiceTaskContext.GetInput{T}"/>.
+/// Read the input the side effect was enqueued with through <see cref="ServiceTaskContext.GetInput{T}"/>.
 /// Authoring guidance: <c>docs/service-task-pipelines.md</c> in the app-lib repository.
 /// </para>
 /// </remarks>

@@ -38,9 +38,9 @@ internal sealed class ExecuteSideEffect(
     public override string GetKey() => Key;
 
     /// <summary>
-    /// A side effect runs after the commit, so what its steps start can start once their own work is saved.
+    /// A side effect runs after the commit, so what its steps enqueue can start once their own work is saved.
     /// </summary>
-    public override bool EnqueuesStartedSideEffects => true;
+    public override bool EnqueuesPendingSideEffects => true;
 
     /// <summary>A side effect runs beside the process, so nothing is saved for it.</summary>
     public override bool RunsAsSideEffect => true;
@@ -96,14 +96,14 @@ internal sealed class ExecuteSideEffect(
                 );
             }
 
-            if (result is DeferredProcessEngineCommandResult && sideEffectContext.SideEffects.Started.Count > 0)
+            if (result is DeferredProcessEngineCommandResult && sideEffectContext.SideEffects.Enqueued.Count > 0)
             {
-                return SideEffectStarts.StartedThenDeferred(host.Description);
+                return EnqueuedSideEffects.EnqueuedThenDeferred(host.Description);
             }
 
             if (
                 result is SuccessfulProcessEngineCommandResult
-                && SideEffectStarts.Record(
+                && EnqueuedSideEffects.Record(
                     sideEffectContext.SideEffects,
                     appImplementationFactory,
                     context.StateCarry,

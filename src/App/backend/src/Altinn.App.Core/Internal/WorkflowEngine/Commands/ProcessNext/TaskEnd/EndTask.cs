@@ -35,7 +35,7 @@ internal sealed class EndTask : IWorkflowEngineCommand
 
             // What the task started waits for the transition to be saved, which this command runs before.
             return (ProcessEngineCommandResult?)
-                    SideEffectStarts.Record(
+                    EnqueuedSideEffects.Record(
                         taskContext.SideEffects,
                         _appImplementationFactory,
                         parameters.StateCarry,

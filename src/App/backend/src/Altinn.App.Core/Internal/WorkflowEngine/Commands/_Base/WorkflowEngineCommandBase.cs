@@ -22,10 +22,10 @@ internal abstract class WorkflowEngineCommandBase<TRequestPayload> : IWorkflowEn
     public virtual ProcessStepOptions? DefaultStepOptions => null;
 
     /// <summary>
-    /// Surfaces <see cref="IWorkflowEngineCommand.EnqueuesStartedSideEffects"/> as a virtual, like
+    /// Surfaces <see cref="IWorkflowEngineCommand.EnqueuesPendingSideEffects"/> as a virtual, like
     /// <see cref="DefaultStepOptions"/>.
     /// </summary>
-    public virtual bool EnqueuesStartedSideEffects => false;
+    public virtual bool EnqueuesPendingSideEffects => false;
 
     /// <summary>
     /// Surfaces <see cref="IWorkflowEngineCommand.RunsAsSideEffect"/> as a virtual, like

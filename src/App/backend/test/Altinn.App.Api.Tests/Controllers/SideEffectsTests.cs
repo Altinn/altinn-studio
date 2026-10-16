@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 namespace Altinn.App.Api.Tests.Controllers;
 
 /// <summary>
-/// Side effects an app starts from its own code, end to end through the workflow engine: a hook starts one, it
+/// Side effects an app enqueues from its own code, end to end through the workflow engine: a hook enqueues one, it
 /// runs in a workflow of its own once the transition is saved, its stages hand values on, and its conclusion
 /// polls until the outcome is in.
 /// </summary>
@@ -38,13 +38,13 @@ public class SideEffectsTests : ApiTestBase, IClassFixture<WebApplicationFactory
         public List<string> Events { get; } = [];
     }
 
-    private sealed class StartArchivingOnTaskStart : IOnTaskStartingHandler
+    private sealed class EnqueueArchivingOnTaskStart : IOnTaskStartingHandler
     {
         public bool ShouldRunForTask(string taskId) => taskId == "Task_1";
 
         public Task<HookResult> Execute(OnTaskStartingContext context)
         {
-            context.SideEffects.Start<ArchiveSideEffect>(new ArchiveRequest("case-42"));
+            context.SideEffects.Enqueue<ArchiveSideEffect>(new ArchiveRequest("case-42"));
             return Task.FromResult<HookResult>(HookResult.Success());
         }
     }
@@ -81,13 +81,13 @@ public class SideEffectsTests : ApiTestBase, IClassFixture<WebApplicationFactory
     }
 
     [Fact]
-    public async Task AHookStartsASideEffect_ThatRunsOnItsOwnAfterTheTransitionIsSaved()
+    public async Task AHookEnqueuesASideEffect_ThatRunsOnItsOwnAfterTheTransitionIsSaved()
     {
         var observations = new Observations();
         OverrideServicesForThisTest = services =>
         {
             services.AddSingleton(observations);
-            services.AddSingleton<IOnTaskStartingHandler, StartArchivingOnTaskStart>();
+            services.AddSingleton<IOnTaskStartingHandler, EnqueueArchivingOnTaskStart>();
             services.AddTransient<ISideEffect, ArchiveSideEffect>();
         };
         HttpClient client = GetRootedClient(Org, App);

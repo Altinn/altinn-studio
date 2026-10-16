@@ -13,7 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `IOnProcessEndedHandler` runs your code after the ended process is saved, before data marked `autoDeleteOnProcessEnd` is deleted and the instance is released. Like the other process hooks, it can read and change instance data. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
-- `ISideEffect` runs work after a process transition without holding up the process, and can wait for an external system's answer by polling or on a mailbox. Start one from a hook, process task or service task with `context.SideEffects.Start<T>(input)`. ([#21264](https://github.com/Altinn/altinn-studio/issues/21264))
+- `ISideEffect` runs work after a process transition without holding up the process, and can wait for an external system's answer by polling or on a mailbox. Enqueue one from a hook, process task or service task with `context.SideEffects.Enqueue<T>(input)`; it starts once the step is saved. ([#21264](https://github.com/Altinn/altinn-studio/issues/21264))
 - A service task stage can pass small values, such as the reference an external system returned, to the stages after it with `ServiceTaskContext.Values`, without storing them in instance data. ([#21264](https://github.com/Altinn/altinn-studio/issues/21264))
 
 ### Changed

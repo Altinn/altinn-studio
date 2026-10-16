@@ -22,9 +22,9 @@ internal sealed class CommitProcessState : WorkflowEngineCommandBase<ProcessStat
     public override string GetKey() => Key;
 
     /// <summary>
-    /// The commit saves the transition, so the side effects the steps before it started can start now.
+    /// The commit saves the transition, so the side effects the steps before it enqueued can start now.
     /// </summary>
-    public override bool EnqueuesStartedSideEffects => true;
+    public override bool EnqueuesPendingSideEffects => true;
 
     protected override ProcessStateChangePayload? ResolvePayload(ProcessEngineCommandContext context)
     {

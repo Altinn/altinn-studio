@@ -24,11 +24,11 @@ internal interface IWorkflowEngineCommand
 
     /// <summary>
     /// Whether the callback controller enqueues the side effects waiting in the workflow state once this command's
-    /// work is saved. True for <c>CommitProcessState</c>, which saves the transition the steps before it started
+    /// work is saved. True for <c>CommitProcessState</c>, which saves the transition the steps before it enqueued
     /// side effects in, and for the commands that run app code after it. False (the default) for every command
-    /// that runs before the commit: what a step there starts must wait for the transition to be saved.
+    /// that runs before the commit: what a step there enqueues must wait for the transition to be saved.
     /// </summary>
-    bool EnqueuesStartedSideEffects => false;
+    bool EnqueuesPendingSideEffects => false;
 
     /// <summary>
     /// Whether the command runs in a side-effects workflow, beside the process, on the state the transition saved.

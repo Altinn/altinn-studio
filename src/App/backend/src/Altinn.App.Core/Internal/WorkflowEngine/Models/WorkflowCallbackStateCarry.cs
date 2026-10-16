@@ -22,7 +22,7 @@ internal sealed class WorkflowCallbackStateCarry
     /// </summary>
     private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _values = new(StringComparer.Ordinal);
 
-    /// <summary>Side effects started before the commit, in the order they were started.</summary>
+    /// <summary>Side effects enqueued before the commit, in the order they were enqueued.</summary>
     private readonly List<PendingSideEffect> _pendingSideEffects = [];
 
     /// <summary>The shape of every workflow that has opened no mailbox and recorded no values.</summary>
@@ -170,9 +170,9 @@ internal sealed class WorkflowCallbackStateCarry
     public IReadOnlyList<PendingSideEffect>? PendingSideEffects =>
         _pendingSideEffects.Count == 0 ? null : [.. _pendingSideEffects];
 
-    /// <summary>Records side effects a step started, to be enqueued once the transition is saved.</summary>
-    public void RecordStartedSideEffects(IEnumerable<PendingSideEffect> started) =>
-        _pendingSideEffects.AddRange(started);
+    /// <summary>Records side effects a step enqueued, to be started once the transition is saved.</summary>
+    public void RecordPendingSideEffects(IEnumerable<PendingSideEffect> enqueued) =>
+        _pendingSideEffects.AddRange(enqueued);
 
     /// <summary>
     /// Takes every side effect waiting to be enqueued, leaving none: the callback that enqueues them publishes a

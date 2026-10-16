@@ -50,7 +50,7 @@ public sealed class OnTaskEndingContext
     public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
 
     /// <summary>
-    /// Side effects to start once the transition is saved, such as sending something to an external system and waiting for the outcome without holding up the process. See <see cref="SideEffectStarter"/>.
+    /// Enqueues side effects, which start once the transition is saved, such as sending something to an external system and waiting for the outcome without holding up the process. See <see cref="SideEffectQueue"/>.
     /// </summary>
-    public SideEffectStarter SideEffects { get; init; } = new();
+    public SideEffectQueue SideEffects { get; init; } = new();
 }

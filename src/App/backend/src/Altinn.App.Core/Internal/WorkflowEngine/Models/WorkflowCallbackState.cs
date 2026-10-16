@@ -50,15 +50,15 @@ internal sealed record WorkflowCallbackState
     public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? Values { get; init; }
 
     /// <summary>
-    /// Side effects a step before the commit started, waiting for the commit to enqueue them. <c>null</c> when
-    /// none is waiting, and absent from blobs written before side effects could be started.
+    /// Side effects a step before the commit enqueued, waiting for the commit's save to start them. <c>null</c>
+    /// when none is waiting, and absent from blobs written before side effects could be enqueued.
     /// </summary>
     [JsonPropertyName("pendingSideEffects")]
     public IReadOnlyList<PendingSideEffect>? PendingSideEffects { get; init; }
 }
 
 /// <summary>
-/// A side effect a step started, resolved to what enqueueing it needs: its registered name, its input as it
+/// A side effect a step enqueued, resolved to what starting it needs: its registered name, its input as it
 /// travels, and the BPMN element current when it was started.
 /// </summary>
 internal sealed record PendingSideEffect
@@ -69,8 +69,8 @@ internal sealed record PendingSideEffect
     [JsonPropertyName("input")]
     public string? Input { get; init; }
 
-    [JsonPropertyName("startedFrom")]
-    public string? StartedFrom { get; init; }
+    [JsonPropertyName("enqueuedFrom")]
+    public string? EnqueuedFrom { get; init; }
 }
 
 /// <summary>

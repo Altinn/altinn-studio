@@ -263,10 +263,10 @@ public class WorkflowEngineCallbackController : ControllerBase
                     }
                 }
 
-                // Side effects the steps before the commit started wait in the carry until the commit is saved;
+                // Side effects the steps before the commit enqueued wait in the carry until the commit is saved;
                 // a step after it starts its own once its save is done. Drained before the capture, so the blob
                 // this callback publishes no longer carries them and no later step enqueues them again.
-                IReadOnlyList<PendingSideEffect> startedSideEffects = command.EnqueuesStartedSideEffects
+                IReadOnlyList<PendingSideEffect> pendingSideEffects = command.EnqueuesPendingSideEffects
                     ? stateCarry.DrainPendingSideEffects()
                     : [];
 
@@ -276,12 +276,12 @@ public class WorkflowEngineCallbackController : ControllerBase
                 );
 
                 // Keyed on the step, so a retried callback enqueues nothing twice.
-                if (startedSideEffects.Count > 0)
+                if (pendingSideEffects.Count > 0)
                 {
                     await _serviceProvider
                         .GetRequiredService<SideEffectEnqueuer>()
                         .Enqueue(
-                            startedSideEffects,
+                            pendingSideEffects,
                             appId,
                             instanceId,
                             payload,
