@@ -4,6 +4,7 @@ resources:
   - ../base
 components:
   - ../relay
+  - ../without-local-traffic
 # A change to the route pdf/pdf3's weights is a patch here: literal integers, never both 0 (see
 # ../relay/httproute.yaml).
 patches:
