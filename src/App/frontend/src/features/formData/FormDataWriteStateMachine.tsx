@@ -211,13 +211,7 @@ export interface FormDataMethods {
 
 function makeActions(
   set: FormStoreSet,
-  {
-    selectFromInstance,
-    dataModels,
-    changeInstance,
-    getCachedInitialValidations,
-    getCalculationDataSources,
-  }: FormDataSliceProps,
+  { selectFromInstance, dataModels, changeInstance, getCalculationDataSources }: FormDataSliceProps,
 ): FormDataMethods {
   const debounceOnBlur = getFeature('saveOnBlur').value;
   let calculationsInitialized = false;
@@ -288,11 +282,7 @@ function makeActions(
     state.data.manualSaveRequested = false;
 
     if (validationIssues) {
-      updateIncrementalValidations(
-        validationIssues,
-        getCachedInitialValidations().cachedInitialValidations,
-        updateBackendValidations(state),
-      );
+      updateIncrementalValidations(validationIssues, state.validation.backendIssues, updateBackendValidations(state));
     }
 
     if (instance) {
