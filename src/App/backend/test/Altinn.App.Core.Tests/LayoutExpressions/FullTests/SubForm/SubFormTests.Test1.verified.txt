@@ -22,6 +22,7 @@
     Severity: Error,
     DataElementId: SubForm1_Guid,
     Field: Address,
+    ComponentId: Address,
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
@@ -30,23 +31,6 @@
       bindingName: simpleBinding,
       componentId: Address,
       field: Address,
-      layoutId: subFormLayout,
-      pageId: SubPage,
-      pageName: SubPage
-    }
-  },
-  {
-    Severity: Error,
-    DataElementId: SubForm1_Guid,
-    Field: Name,
-    Code: required,
-    Source: Required,
-    NoIncrementalUpdates: false,
-    CustomTextKey: validation_errors.required,
-    CustomTextParameters: {
-      bindingName: simpleBinding,
-      componentId: Name,
-      field: Name,
       layoutId: subFormLayout,
       pageId: SubPage,
       pageName: SubPage
@@ -65,7 +49,26 @@
   {
     Severity: Error,
     DataElementId: SubForm1_Guid,
+    Field: Name,
+    ComponentId: Name,
+    Code: required,
+    Source: Required,
+    NoIncrementalUpdates: false,
+    CustomTextKey: validation_errors.required,
+    CustomTextParameters: {
+      bindingName: simpleBinding,
+      componentId: Name,
+      field: Name,
+      layoutId: subFormLayout,
+      pageId: SubPage,
+      pageName: SubPage
+    }
+  },
+  {
+    Severity: Error,
+    DataElementId: SubForm1_Guid,
     Field: Phone,
+    ComponentId: Phone,
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
@@ -83,6 +86,7 @@
     Severity: Error,
     DataElementId: SubForm2_Guid,
     Field: Email,
+    ComponentId: Email,
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
@@ -119,6 +123,7 @@
     Severity: Error,
     DataElementId: SubForm3_Guid,
     Field: Address,
+    ComponentId: Address,
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,
@@ -127,23 +132,6 @@
       bindingName: simpleBinding,
       componentId: Address,
       field: Address,
-      layoutId: subFormLayout,
-      pageId: SubPage,
-      pageName: SubPage
-    }
-  },
-  {
-    Severity: Error,
-    DataElementId: SubForm3_Guid,
-    Field: Name,
-    Code: required,
-    Source: Required,
-    NoIncrementalUpdates: false,
-    CustomTextKey: validation_errors.required,
-    CustomTextParameters: {
-      bindingName: simpleBinding,
-      componentId: Name,
-      field: Name,
       layoutId: subFormLayout,
       pageId: SubPage,
       pageName: SubPage
@@ -162,7 +150,26 @@
   {
     Severity: Error,
     DataElementId: SubForm3_Guid,
+    Field: Name,
+    ComponentId: Name,
+    Code: required,
+    Source: Required,
+    NoIncrementalUpdates: false,
+    CustomTextKey: validation_errors.required,
+    CustomTextParameters: {
+      bindingName: simpleBinding,
+      componentId: Name,
+      field: Name,
+      layoutId: subFormLayout,
+      pageId: SubPage,
+      pageName: SubPage
+    }
+  },
+  {
+    Severity: Error,
+    DataElementId: SubForm3_Guid,
     Field: Phone,
+    ComponentId: Phone,
     Code: required,
     Source: Required,
     NoIncrementalUpdates: false,

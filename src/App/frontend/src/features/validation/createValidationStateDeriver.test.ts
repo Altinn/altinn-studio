@@ -54,6 +54,7 @@ function fixture(layout?: ILayoutCollection) {
     },
     data: { models: { [defaultDataTypeMock]: model }, autoSaving: true, debounceTimeout: 400 },
     validation: {
+      state: { task: [], component: [] },
       formMask: ValidationMask.Required,
       pageMasks: {},
       rowMasks: {},
