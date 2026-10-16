@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.26.5-trixie@sha256:f1a132429b98724a904e9b3bdbaed399d8f923203c3e5170e6def66d0a7cc04c AS builder
+FROM golang:1.27.2-trixie@sha256:47667934874913a449b96faa7ef4777fa285d9ec29126ee80ed61c45b7cccf0e AS builder
 ARG TARGETOS
 ARG TARGETARCH
 
