@@ -333,8 +333,8 @@ func Test_WaitForRemovedBeforePrint(t *testing.T) {
 				if err == nil {
 					t.Fatalf("Generated a PDF after readiness was withdrawn: %d bytes", len(resp.Data))
 				}
-				if !strings.Contains(err.Error(), "element_not_ready") {
-					t.Fatalf("Expected element_not_ready, got %v", err)
+				if !strings.Contains(err.Error(), types.ErrElementNotReady.Error()) {
+					t.Fatalf("Expected a readiness error, got %v", err)
 				}
 			})
 		}
