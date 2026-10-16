@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - ../base
   - ../base/sandbox-node.yaml
+  - ../base/altinn-assistant-runner.yaml

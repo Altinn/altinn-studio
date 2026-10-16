@@ -9,4 +9,5 @@ Host setup for Sandbox SDK workloads on the Altinn sandbox nodes:
 - The `sandbox-image` binary exports a prepared image when an image is built, and imports it in the init container
   of a pod, so that the pod gets no registry credentials.
 
-The GitHub runner coordinator in [`src/ci/github-runner`](../../../ci/github-runner/AGENTS.md) uses this crate.
+The GitHub runner coordinator in [`src/ci/github-runner`](../../../ci/github-runner/AGENTS.md) and the
+[assistant runner](../../../AI/assistant-runner/README.md) use this crate.
