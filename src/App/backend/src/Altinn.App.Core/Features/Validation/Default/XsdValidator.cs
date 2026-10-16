@@ -115,18 +115,11 @@ internal sealed class XsdValidator : IValidator
             settings.ValidationEventHandler += (sender, e) =>
             {
                 validationIssues.Add(
-                    new ValidationIssue()
-                    {
-                        Code = "Xsd",
-                        CustomTextKey = "backend.xsd_validation",
-                        DataElementId = dataElement.Id,
-                        Severity = ValidationIssueSeverity.Error,
-                        CustomTextParameters = new Dictionary<string, string>()
-                        {
-                            { "schema", dataType.Id },
-                            { "message", e.Message },
-                        },
-                    }
+                    BuiltInValidationIssues.XsdValidation(
+                        dataElementId: dataElement.Id,
+                        schema: dataType.Id,
+                        message: e.Message
+                    )
                 );
             };
 
@@ -139,18 +132,11 @@ internal sealed class XsdValidator : IValidator
             catch (XmlException ex)
             {
                 validationIssues.Add(
-                    new ValidationIssue()
-                    {
-                        Code = "Xsd",
-                        CustomTextKey = "backend.xsd_validation",
-                        DataElementId = dataElement.Id,
-                        Severity = ValidationIssueSeverity.Error,
-                        CustomTextParameters = new Dictionary<string, string>()
-                        {
-                            { "schema", dataType.Id },
-                            { "message", ex.Message },
-                        },
-                    }
+                    BuiltInValidationIssues.XsdValidation(
+                        dataElementId: dataElement.Id,
+                        schema: dataType.Id,
+                        message: ex.Message
+                    )
                 );
             }
         }

@@ -60,8 +60,6 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
 
 COPY . .
 RUN cd src/Designer/frontend && yarn build
-# Build the Altinn app frontend so Designer can serve it locally for v9 app previews (no CDN dependency)
-RUN cd src/App/frontend && yarn build
 
 # Building the backend
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:d8ee39817ca03a3757288e83c37ed73cc969a286c603b827c7cbe33add1c2d1c AS generate-studio-backend
@@ -98,8 +96,10 @@ RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-tem
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:27b6b84beeede74fd16886177d360799c8e4299ceadfbd64eef57bafead7878a AS final
 EXPOSE 80
 WORKDIR /app
+ARG DESIGNER_VERSION=''
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
-  DOTNET_RUNNING_IN_CONTAINER=true
+  DOTNET_RUNNING_IN_CONTAINER=true \
+  DESIGNER_VERSION=${DESIGNER_VERSION}
 RUN apk add --no-cache icu-libs krb5-libs libgcc libintl openssl libstdc++ zlib curl tzdata
 
 COPY --from=generate-studio-backend /app_output .
@@ -111,9 +111,6 @@ COPY --from=generate-studio-frontend /build/src/Designer/frontend/studio-root/di
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/app-preview/dist ./wwwroot/preview/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/resourceadm/dist ./wwwroot/resourceadm/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/settings/dist ./wwwroot/settings/
-
-# Altinn app frontend bundle, served by Designer for v9 app previews at /altinn-app-frontend/
-COPY --from=generate-studio-frontend /build/src/App/frontend/dist ./wwwroot/altinn-app-frontend/
 
 COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
 

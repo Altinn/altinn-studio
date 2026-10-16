@@ -8,12 +8,6 @@ namespace Altinn.App.Core.Features;
 public static class FeatureFlags
 {
     /// <summary>
-    /// By enabling this feature calling the POST on the /data endpoints will
-    /// return validation errors in the response body instead of a string.
-    /// </summary>
-    public const string JsonObjectInDataResponse = "JsonObjectInDataResponse";
-
-    /// <summary>
     /// Enables adding instance identifier to layout requests.
     /// </summary>
     public const string AddInstanceIdentifierToLayoutRequests = "addInstanceIdentifierToLayoutRequests";

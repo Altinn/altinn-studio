@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { BackendValidationSeverity, BuiltInValidationIssueSources, ValidationMask } from 'src/features/validation';
-import { validationTexts } from 'src/features/validation/backendValidation/validationTexts';
 import type { TextReference } from 'src/features/language/useLanguage';
 import type {
   BackendComponentValidation,
@@ -172,31 +171,18 @@ export function mapBackendValidationsToValidatorGroups(
 }
 
 /**
- * Gets standard validation messages for backend validation issues.
+ * Gets the message to show for a backend validation issue. The text key is translated here when the app or the
+ * language package has it. Otherwise the description, which the backend translates, is shown as it is.
  */
 export function getValidationIssueMessage(issue: BackendValidationIssue): TextReference {
-  if (issue.customTextKey) {
-    return { key: issue.customTextKey, customTextParameters: issue.customTextParameters };
+  const { customTextKey, customTextParameters, description, code } = issue;
+  const fallback = description || code || customTextKey;
+
+  if (customTextKey) {
+    return { key: customTextKey, customTextParameters, fallback };
   }
 
-  if (issue.source && issue.code) {
-    const resource = validationTexts[issue.source]?.[issue.code];
-    if (resource) {
-      return { key: resource };
-    }
-  }
-
-  // Fallback to old behavior if source not set.
-  const legacyText = issue.code;
-  if (legacyText !== issue.code) {
-    return { key: legacyText };
-  }
-
-  if (issue.description) {
-    return { key: issue.description };
-  }
-
-  return { key: issue.source ? `${issue.source}.${issue.code}` : issue.code };
+  return { key: undefined, fallback };
 }
 
 export function mapValidatorGroupsToDataModelValidations(

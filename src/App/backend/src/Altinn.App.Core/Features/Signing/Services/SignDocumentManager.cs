@@ -63,7 +63,7 @@ internal sealed class SignDocumentManager(
         {
             SignDocument[] signDocuments = await Task.WhenAll(
                 signatureDataElements.Select(signatureDataElement =>
-                    DownloadSignDocumentAsync(instanceDataAccessor, signatureDataElement)
+                    DownloadSignDocument(instanceDataAccessor, signatureDataElement)
                 )
             );
 
@@ -146,7 +146,7 @@ internal sealed class SignDocumentManager(
         return [.. result, .. signeeContextsForUnmatchedDocuments];
     }
 
-    private async Task<SignDocument> DownloadSignDocumentAsync(
+    private async Task<SignDocument> DownloadSignDocument(
         IInstanceDataAccessor instanceDataAccessor,
         DataElement signatureDataElement
     )

@@ -9,6 +9,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
+	"altinn.studio/pdf3/internal/telemetry/attr"
 	"altinn.studio/pdf3/internal/types"
 )
 
@@ -55,7 +56,7 @@ func (d *RequestAttributes) SetPdfRequest(req types.PdfRequest) {
 	d.setURLLocked(req.URL)
 	d.setWaitForLocked(req.WaitFor)
 
-	d.setKVLocked(attribute.Int("pdf.request.cookies.count", len(req.Cookies)))
+	d.setKVLocked(attribute.Int(attr.RequestCookiesCount, len(req.Cookies)))
 	if len(req.Cookies) > 0 {
 		names := make([]string, 0, len(req.Cookies))
 		lengths := make([]int64, 0, len(req.Cookies))
@@ -63,39 +64,63 @@ func (d *RequestAttributes) SetPdfRequest(req types.PdfRequest) {
 			names = append(names, cookie.Name)
 			lengths = append(lengths, int64(len(cookie.Value)))
 		}
-		d.setKVLocked(attribute.StringSlice("pdf.request.cookies.names", names))
-		d.setKVLocked(attribute.Int64Slice("pdf.request.cookies.value_lengths", lengths))
+		d.setKVLocked(attribute.StringSlice(attr.RequestCookiesNames, names))
+		d.setKVLocked(attribute.Int64Slice(attr.RequestCookiesValueLengths, lengths))
 	}
 
-	d.setKVLocked(attribute.Bool("pdf.request.set_javascript_enabled", req.SetJavaScriptEnabled))
+	d.setKVLocked(attribute.Bool(attr.RequestSetJavaScriptEnabled, req.SetJavaScriptEnabled))
 
 	if req.Options.Format != "" {
-		d.setKVLocked(attribute.String("pdf.request.options.format", req.Options.Format))
+		d.setKVLocked(attribute.String(attr.RequestOptionsFormat, req.Options.Format))
 	}
 	if req.Options.PrintBackground {
-		d.setKVLocked(attribute.Bool("pdf.request.options.print_background", true))
+		d.setKVLocked(attribute.Bool(attr.RequestOptionsPrintBackground, true))
 	}
 	if req.Options.DisplayHeaderFooter {
-		d.setKVLocked(attribute.Bool("pdf.request.options.display_header_footer", true))
+		d.setKVLocked(attribute.Bool(attr.RequestOptionsDisplayHeaderFooter, true))
 	}
 	if req.Options.HeaderTemplate != "" {
-		d.setKVLocked(attribute.Int("pdf.request.options.header_template_len", len(req.Options.HeaderTemplate)))
+		d.setKVLocked(attribute.Int(attr.RequestOptionsHeaderTemplateLen, len(req.Options.HeaderTemplate)))
 	}
 	if req.Options.FooterTemplate != "" {
-		d.setKVLocked(attribute.Int("pdf.request.options.footer_template_len", len(req.Options.FooterTemplate)))
+		d.setKVLocked(attribute.Int(attr.RequestOptionsFooterTemplateLen, len(req.Options.FooterTemplate)))
 	}
 	if req.Options.Margin.Top != "" {
-		d.setKVLocked(attribute.String("pdf.request.options.margin_top", req.Options.Margin.Top))
+		d.setKVLocked(attribute.String(attr.RequestOptionsMarginTop, req.Options.Margin.Top))
 	}
 	if req.Options.Margin.Right != "" {
-		d.setKVLocked(attribute.String("pdf.request.options.margin_right", req.Options.Margin.Right))
+		d.setKVLocked(attribute.String(attr.RequestOptionsMarginRight, req.Options.Margin.Right))
 	}
 	if req.Options.Margin.Bottom != "" {
-		d.setKVLocked(attribute.String("pdf.request.options.margin_bottom", req.Options.Margin.Bottom))
+		d.setKVLocked(attribute.String(attr.RequestOptionsMarginBottom, req.Options.Margin.Bottom))
 	}
 	if req.Options.Margin.Left != "" {
-		d.setKVLocked(attribute.String("pdf.request.options.margin_left", req.Options.Margin.Left))
+		d.setKVLocked(attribute.String(attr.RequestOptionsMarginLeft, req.Options.Margin.Left))
 	}
+}
+
+// SetServiceOwner records the service owner the request is for. It records nothing for "", an
+// unknown service owner.
+func (d *RequestAttributes) SetServiceOwner(serviceOwner string) {
+	if d == nil || serviceOwner == "" {
+		return
+	}
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	d.setKVLocked(attribute.String(attr.ServiceOwner, serviceOwner))
+}
+
+// SetApp records the app whose page the request renders. It records nothing for "", an unknown
+// app.
+func (d *RequestAttributes) SetApp(app string) {
+	if d == nil || app == "" {
+		return
+	}
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	d.setKVLocked(attribute.String(attr.App, app))
 }
 
 func (d *RequestAttributes) SetQueueStats(depth, capacity int) {
@@ -105,8 +130,8 @@ func (d *RequestAttributes) SetQueueStats(depth, capacity int) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	d.setKVLocked(attribute.Int("pdf.process.queue_depth", depth))
-	d.setKVLocked(attribute.Int("pdf.process.queue_capacity", capacity))
+	d.setKVLocked(attribute.Int(attr.QueueDepth, depth))
+	d.setKVLocked(attribute.Int(attr.QueueCapacity, capacity))
 }
 
 func (d *RequestAttributes) SetSessionID(id int) {
@@ -116,7 +141,7 @@ func (d *RequestAttributes) SetSessionID(id int) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	d.setKVLocked(attribute.Int("pdf.session.id", id))
+	d.setKVLocked(attribute.Int(attr.SessionID, id))
 }
 
 func (d *RequestAttributes) SetConsoleErrors(count int) {
@@ -126,7 +151,7 @@ func (d *RequestAttributes) SetConsoleErrors(count int) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	d.setKVLocked(attribute.Int("pdf.process.console_errors", count))
+	d.setKVLocked(attribute.Int(attr.PageConsoleErrors, count))
 }
 
 func (d *RequestAttributes) SetBrowserErrors(count int) {
@@ -136,7 +161,7 @@ func (d *RequestAttributes) SetBrowserErrors(count int) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	d.setKVLocked(attribute.Int("pdf.process.browser_errors", count))
+	d.setKVLocked(attribute.Int(attr.PageBrowserErrors, count))
 }
 
 func (d *RequestAttributes) SetJSExceptions(count int) {
@@ -146,7 +171,7 @@ func (d *RequestAttributes) SetJSExceptions(count int) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	d.setKVLocked(attribute.Int("pdf.process.js_exceptions", count))
+	d.setKVLocked(attribute.Int(attr.PageJSExceptions, count))
 }
 
 func (d *RequestAttributes) SetRejection(reason string) {
@@ -156,7 +181,7 @@ func (d *RequestAttributes) SetRejection(reason string) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	d.setKVIfAbsentLocked(attribute.String("pdf.response.rejection_reason", reason))
+	d.setKVIfAbsentLocked(attribute.String(attr.ResponseRejectionReason, reason))
 }
 
 // SetPDFAConversion records whether and how the PDF was converted to PDF/A.
@@ -167,12 +192,12 @@ func (d *RequestAttributes) SetPDFAConversion(enabled bool, status string, input
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	d.setKVLocked(attribute.Bool("pdf.convert_to_pdfa.enabled", enabled))
-	d.setKVLocked(attribute.Bool("pdf.convert_to_pdfa.applied", status == "success"))
-	d.setKVLocked(attribute.String("pdf.convert_to_pdfa.status", status))
-	d.setKVLocked(attribute.Int("pdf.convert_to_pdfa.input_size_bytes", inputSize))
+	d.setKVLocked(attribute.Bool(attr.ConvertToPDFAEnabled, enabled))
+	d.setKVLocked(attribute.Bool(attr.ConvertToPDFAApplied, status == "success"))
+	d.setKVLocked(attribute.String(attr.ConvertToPDFAStatus, status))
+	d.setKVLocked(attribute.Int(attr.ConvertToPDFAInputSizeBytes, inputSize))
 	if outputSize > 0 {
-		d.setKVLocked(attribute.Int("pdf.convert_to_pdfa.output_size_bytes", outputSize))
+		d.setKVLocked(attribute.Int(attr.ConvertToPDFAOutputSizeBytes, outputSize))
 	}
 }
 
@@ -208,12 +233,12 @@ func (d *RequestAttributes) setKVIfAbsentLocked(kv attribute.KeyValue) {
 func (d *RequestAttributes) setURLLocked(raw string) {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
-		d.setKVLocked(attribute.Bool("pdf.request.url.invalid", true))
+		d.setKVLocked(attribute.Bool(attr.RequestURLInvalid, true))
 		return
 	}
 	u, err := url.Parse(raw)
 	if err != nil || u.Scheme == "" || u.Host == "" {
-		d.setKVLocked(attribute.Bool("pdf.request.url.invalid", true))
+		d.setKVLocked(attribute.Bool(attr.RequestURLInvalid, true))
 		return
 	}
 
@@ -221,40 +246,40 @@ func (d *RequestAttributes) setURLLocked(raw string) {
 	if path == "" {
 		path = "/"
 	}
-	d.setKVLocked(attribute.String("pdf.request.url.scheme", u.Scheme))
-	d.setKVLocked(attribute.String("pdf.request.url.host", u.Host))
-	d.setKVLocked(attribute.String("pdf.request.url.path", path))
+	d.setKVLocked(attribute.String(attr.RequestURLScheme, u.Scheme))
+	d.setKVLocked(attribute.String(attr.RequestURLHost, u.Host))
+	d.setKVLocked(attribute.String(attr.RequestURLPath, path))
 }
 
 func (d *RequestAttributes) setWaitForLocked(waitFor *types.WaitFor) {
 	if waitFor == nil {
-		d.setKVLocked(attribute.String("pdf.request.wait_for.type", "load_event"))
+		d.setKVLocked(attribute.String(attr.RequestWaitForType, "load_event"))
 		return
 	}
 	if _, ok := waitFor.AsString(); ok {
-		d.setKVLocked(attribute.String("pdf.request.wait_for.type", "selector"))
-		d.setKVLocked(attribute.Bool("pdf.request.wait_for.selector_present", true))
+		d.setKVLocked(attribute.String(attr.RequestWaitForType, "selector"))
+		d.setKVLocked(attribute.Bool(attr.RequestWaitForSelectorPresent, true))
 		return
 	}
 	if timeout, ok := waitFor.AsTimeout(); ok {
-		d.setKVLocked(attribute.String("pdf.request.wait_for.type", "timeout"))
-		d.setKVLocked(attribute.Int64("pdf.request.wait_for.timeout_ms", int64(timeout)))
+		d.setKVLocked(attribute.String(attr.RequestWaitForType, "timeout"))
+		d.setKVLocked(attribute.Int64(attr.RequestWaitForTimeoutMs, int64(timeout)))
 		return
 	}
 	if opts, ok := waitFor.AsOptions(); ok {
-		d.setKVLocked(attribute.String("pdf.request.wait_for.type", "options"))
-		d.setKVLocked(attribute.Bool("pdf.request.wait_for.selector_present", opts.Selector != ""))
+		d.setKVLocked(attribute.String(attr.RequestWaitForType, "options"))
+		d.setKVLocked(attribute.Bool(attr.RequestWaitForSelectorPresent, opts.Selector != ""))
 		if opts.Timeout != nil {
-			d.setKVLocked(attribute.Int64("pdf.request.wait_for.timeout_ms", int64(*opts.Timeout)))
+			d.setKVLocked(attribute.Int64(attr.RequestWaitForTimeoutMs, int64(*opts.Timeout)))
 		}
 		if opts.Visible != nil {
-			d.setKVLocked(attribute.Bool("pdf.request.wait_for.visible", *opts.Visible))
+			d.setKVLocked(attribute.Bool(attr.RequestWaitForVisible, *opts.Visible))
 		}
 		if opts.Hidden != nil {
-			d.setKVLocked(attribute.Bool("pdf.request.wait_for.hidden", *opts.Hidden))
+			d.setKVLocked(attribute.Bool(attr.RequestWaitForHidden, *opts.Hidden))
 		}
 		return
 	}
 
-	d.setKVLocked(attribute.String("pdf.request.wait_for.type", "unknown"))
+	d.setKVLocked(attribute.String(attr.RequestWaitForType, "unknown"))
 }

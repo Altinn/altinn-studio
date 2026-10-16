@@ -63,8 +63,8 @@ public partial class OptionsController : ControllerBase
         try
         {
             appOptions = libRefMatch.Success is false
-                ? await _appOptionsService.GetOptionsAsync(optionsIdOrLibraryRef, language, queryParams)
-                : await _altinn3LibraryCodeListService.GetAppOptionsAsync(
+                ? await _appOptionsService.GetOptions(optionsIdOrLibraryRef, language, queryParams)
+                : await _altinn3LibraryCodeListService.GetAppOptions(
                     libRefMatch.Groups["org"].Value,
                     libRefMatch.Groups["codeListId"].Value,
                     libRefMatch.Groups["version"].Value,
@@ -140,7 +140,7 @@ public partial class OptionsController : ControllerBase
         AppOptions? appOptions;
         try
         {
-            appOptions = await _appOptionsService.GetOptionsAsync(
+            appOptions = await _appOptionsService.GetOptions(
                 instanceIdentifier,
                 optionsIdOrLibraryRef,
                 language,
@@ -152,8 +152,8 @@ public partial class OptionsController : ControllerBase
             {
                 var libRefMatch = LibraryRefRegex().Match(optionsIdOrLibraryRef);
                 appOptions = libRefMatch.Success is false
-                    ? await _appOptionsService.GetOptionsAsync(optionsIdOrLibraryRef, language, queryParams)
-                    : await _altinn3LibraryCodeListService.GetAppOptionsAsync(
+                    ? await _appOptionsService.GetOptions(optionsIdOrLibraryRef, language, queryParams)
+                    : await _altinn3LibraryCodeListService.GetAppOptions(
                         libRefMatch.Groups["org"].Value,
                         libRefMatch.Groups["codeListId"].Value,
                         libRefMatch.Groups["version"].Value,

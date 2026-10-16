@@ -1,6 +1,7 @@
 import { BackendValidationSeverity } from 'src/features/validation';
 import {
   getIndexedComponentId,
+  getValidationIssueMessage,
   mapBackendIssuesToComponentValidations,
   mapBackendIssuesToFieldValidations,
   mapBackendIssuesToTaskValidations,
@@ -90,7 +91,10 @@ describe('updateIncrementalValidations', () => {
     expect(update).toHaveBeenCalledTimes(1);
     const backendValidations = update.mock.calls[0][0];
     expect(backendValidations['data-element']['group[1].name']).toEqual([
-      expect.objectContaining({ componentId: 'name-1', message: { key: 'kept', customTextParameters: undefined } }),
+      expect.objectContaining({
+        componentId: 'name-1',
+        message: { key: 'kept', customTextParameters: undefined, fallback: 'kept' },
+      }),
     ]);
     expect(backendValidations['data-element'].other).toEqual([
       expect.not.objectContaining({ componentId: expect.anything() }),
@@ -118,3 +122,48 @@ describe('updateIncrementalValidations', () => {
     ]);
   });
 });
+
+describe('getValidationIssueMessage', () => {
+  it('uses the custom text key with its parameters, and the description as fallback', () => {
+    expect(
+      getValidationIssueMessage(
+        messageIssue({ customTextKey: 'my.text', customTextParameters: { a: 'b' }, description: 'Translated' }),
+      ),
+    ).toEqual({ key: 'my.text', customTextParameters: { a: 'b' }, fallback: 'Translated' });
+  });
+
+  it('uses the custom text key for backend texts too', () => {
+    expect(
+      getValidationIssueMessage(
+        messageIssue({ customTextKey: 'validation_errors.xsd', description: 'Et felt bryter reglene satt av XSD.' }),
+      ),
+    ).toEqual({
+      key: 'validation_errors.xsd',
+      customTextParameters: undefined,
+      fallback: 'Et felt bryter reglene satt av XSD.',
+    });
+  });
+
+  it('shows the description as it is when there is no key', () => {
+    expect(getValidationIssueMessage(messageIssue({ description: 'Some message', code: 'SomeCode' }))).toEqual({
+      key: undefined,
+      fallback: 'Some message',
+    });
+  });
+
+  it('falls back to the code', () => {
+    expect(getValidationIssueMessage(messageIssue({ code: 'SomeCode' }))).toEqual({
+      key: undefined,
+      fallback: 'SomeCode',
+    });
+  });
+});
+
+function messageIssue(overrides: Partial<BackendValidationIssue>): BackendValidationIssue {
+  return {
+    dataElementId: 'data-element',
+    severity: BackendValidationSeverity.Error,
+    source: 'Custom',
+    ...overrides,
+  };
+}

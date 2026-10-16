@@ -9,6 +9,7 @@ namespace Altinn.Studio.Gateway.Api.Application;
 internal static class HandleMetrics
 {
     private const int DefaultActivityWindowDays = 7;
+    private const int DefaultActivitySignalsWindowDays = 2;
     private const int MaxActivityWindowDays = 30;
 
     internal static async Task<IResult> GetErrorMetrics(
@@ -283,6 +284,56 @@ internal static class HandleMetrics
                     : new Dictionary<string, double>(),
             WindowDays = effectiveWindowDays,
             GeneratedAt = timeProvider.GetUtcNow(),
+        };
+
+        return TypedResults.Ok(response);
+    }
+
+    internal static async Task<IResult> GetAppActivitySignals(
+        IServiceProvider serviceProvider,
+        IOptionsMonitor<MetricsClientSettings> metricsClientSettings,
+        TimeProvider timeProvider,
+        int? windowDays,
+        CancellationToken cancellationToken
+    )
+    {
+        var effectiveWindowDays = windowDays ?? DefaultActivitySignalsWindowDays;
+        if (effectiveWindowDays < 1 || effectiveWindowDays > MaxActivityWindowDays)
+        {
+            return TypedResults.BadRequest($"windowDays must be between 1 and {MaxActivityWindowDays}.");
+        }
+
+        IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
+            metricsClientSettings.CurrentValue.Provider
+        );
+
+        var signalsResult = await metricsClient.GetAppActivitySignals(effectiveWindowDays, cancellationToken);
+        var apps =
+            signalsResult.Status == ActivityStatus.Ok
+                ? signalsResult
+                    .Signals.GroupBy(signal => signal.App, StringComparer.Ordinal)
+                    .OrderBy(group => group.Key, StringComparer.Ordinal)
+                    .Select(group => new AppActivitySignalsApp
+                    {
+                        App = group.Key,
+                        Signals = group
+                            .Select(signal => new AppActivitySignal
+                            {
+                                Category = signal.Category,
+                                Count = signal.Count,
+                                LastSeenAt = signal.LastSeenAt,
+                            })
+                            .ToList(),
+                    })
+                    .ToList()
+                : [];
+
+        var response = new AppActivitySignalsResponse
+        {
+            Status = MapActivityStatus(signalsResult.Status),
+            WindowDays = effectiveWindowDays,
+            GeneratedAt = timeProvider.GetUtcNow(),
+            Apps = apps,
         };
 
         return TypedResults.Ok(response);

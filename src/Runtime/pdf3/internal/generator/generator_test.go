@@ -7,12 +7,18 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync/atomic"
 	"testing"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
+	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/pdfa"
+	"altinn.studio/pdf3/internal/serviceowner"
+	"altinn.studio/pdf3/internal/telemetry"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 	"altinn.studio/pdf3/internal/types"
 )
 
@@ -20,7 +26,6 @@ func TestPostProcessPDFConvertsWhenPDFAIsEnabled(t *testing.T) {
 	input := loadPDFAFixture(t)
 
 	g := &Custom{
-		convertToPDFA: true,
 		pdfaConverter: pdfa.NewConverter(),
 		tracer:        otel.Tracer("test"),
 	}
@@ -37,41 +42,49 @@ func TestPostProcessPDFConvertsWhenPDFAIsEnabled(t *testing.T) {
 	}
 }
 
-func TestGenerateAppliesPDFAByGate(t *testing.T) {
+func TestGenerateAppliesPDFAByServiceOwner(t *testing.T) {
 	input := loadPDFAFixture(t)
 
 	tests := []struct {
-		name          string
-		convertToPDFA bool
-		wantEqual     bool
+		name         string
+		environment  string
+		serviceOwner string
+		wantPDFA     bool
 	}{
+		{name: "configured service owner converts pdf", environment: "tt02", serviceOwner: "ikta", wantPDFA: true},
+		{name: "other service owner returns raw pdf", environment: "tt02", serviceOwner: "ttd"},
 		{
-			name:          "disabled returns raw pdf",
-			convertToPDFA: false,
-			wantEqual:     true,
+			name:         "configured service owner in another environment returns raw pdf",
+			environment:  "at22",
+			serviceOwner: "ikta",
 		},
-		{
-			name:          "enabled converts pdf",
-			convertToPDFA: true,
-			wantEqual:     false,
-		},
+		{name: "unknown service owner returns raw pdf", environment: "tt02"},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			g := newTestGenerator(tc.convertToPDFA, input)
+			g := newTestGenerator(tc.environment, input)
+			data := telemetry.NewRequestAttributes()
+			ctx := telemetry.WithRequestAttributes(context.Background(), data)
+			if tc.serviceOwner != "" {
+				ctx = serviceowner.WithContext(ctx, tc.serviceOwner)
+			}
 
-			result, pdfErr := g.Generate(context.Background(), types.PdfRequest{URL: "https://example.com"})
+			result, pdfErr := g.Generate(ctx, types.PdfRequest{URL: "https://example.com"})
 			if pdfErr != nil {
 				t.Fatalf("Generate() error = %v", pdfErr)
 			}
 
-			gotEqual := string(result.Data) == string(input)
-			if gotEqual != tc.wantEqual {
-				t.Fatalf("Generate() raw equality = %v, want %v", gotEqual, tc.wantEqual)
+			converted := string(result.Data) != string(input)
+			if converted != tc.wantPDFA {
+				t.Fatalf("Generate() converted = %v, want %v", converted, tc.wantPDFA)
 			}
-			if tc.convertToPDFA && !strings.Contains(string(result.Data), "pdfaid:part") {
+			if tc.wantPDFA && !strings.Contains(string(result.Data), "pdfaid:part") {
 				t.Fatalf("Generate() output does not contain PDF/A metadata")
+			}
+			span := recordAttributes(t, data)
+			if got := span[attribute.Key(attr.ConvertToPDFAEnabled)].AsBool(); got != tc.wantPDFA {
+				t.Errorf("%s = %v, want %v", attr.ConvertToPDFAEnabled, got, tc.wantPDFA)
 			}
 		})
 	}
@@ -79,15 +92,30 @@ func TestGenerateAppliesPDFAByGate(t *testing.T) {
 
 func TestGenerateFallsBackToOriginalPDFWhenPDFAConversionFails(t *testing.T) {
 	input := []byte("not-a-pdf")
-	g := newTestGenerator(true, input)
+	g := newTestGenerator("tt02", input)
 
-	result, pdfErr := g.Generate(context.Background(), types.PdfRequest{URL: "https://example.com"})
+	ctx := serviceowner.WithContext(context.Background(), "ikta")
+	result, pdfErr := g.Generate(ctx, types.PdfRequest{URL: "https://example.com"})
 	if pdfErr != nil {
 		t.Fatalf("Generate() error = %v", pdfErr)
 	}
 	if string(result.Data) != string(input) {
 		t.Fatalf("Generate() did not fall back to the original payload")
 	}
+}
+
+// recordAttributes returns the request attributes as they end up on the request's entry span.
+func recordAttributes(t *testing.T, data *telemetry.RequestAttributes) map[attribute.Key]attribute.Value {
+	t.Helper()
+	spans := tracetest.NewSpanRecorder()
+	_, span := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(spans)).Tracer("test").Start(t.Context(), "entry")
+	telemetry.SetOnSpan(span, data)
+	span.End()
+	got := map[attribute.Key]attribute.Value{}
+	for _, kv := range spans.Ended()[0].Attributes() {
+		got[kv.Key] = kv.Value
+	}
+	return got
 }
 
 func loadPDFAFixture(t *testing.T) []byte {
@@ -101,19 +129,20 @@ func loadPDFAFixture(t *testing.T) []byte {
 	return input
 }
 
-func newTestGenerator(convertToPDFA bool, responseData []byte) *Custom {
+// newTestGenerator returns a generator in environment that converts ikta's PDFs to PDF/A in tt02.
+func newTestGenerator(environment string, responseData []byte) *Custom {
 	g := &Custom{
 		logger:        slog.New(slog.DiscardHandler),
-		convertToPDFA: convertToPDFA,
 		tracer:        otel.Tracer("test"),
-	}
-	if convertToPDFA {
-		g.pdfaConverter = pdfa.NewConverter()
+		pdfaConverter: pdfa.NewConverter(),
+		environment:   environment,
+		pdfa: config.PDFAConversionConfig{
+			Targets: []config.PDFATarget{{Environment: "tt02", ServiceOwner: "ikta"}},
+		},
 	}
 
 	session := &browserSession{queue: make(chan workerRequest, 1)}
-	g.activeSession = atomic.Pointer[browserSession]{}
-	g.activeSession.Store(session)
+	g.session.Store(session)
 
 	go func() {
 		req := <-session.queue

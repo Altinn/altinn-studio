@@ -1038,7 +1038,7 @@ internal class ProcessEngine : IProcessEngine
     /// an action also uses it, but only to check whether the result is <c>reject</c>.
     /// </summary>
     /// <remarks>
-    /// This is deliberately not the table in <see cref="ProcessEngineAuthorizer.GetActionsThatAllowProcessNextForTaskType"/>.
+    /// This is deliberately not the table in <c>ProcessEngineAuthorizer.GetActionsThatAllowProcessNext</c>.
     /// That table lists the actions that authorize a transition; this one picks the action that is performed, which
     /// reaches user action handlers, gateway filters, the workflow engine and telemetry. A type without an entry,
     /// including <c>payment</c> and <c>subformPdf</c>, is performed as its own name: mapping <c>payment</c> to

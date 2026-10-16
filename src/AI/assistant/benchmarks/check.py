@@ -163,7 +163,7 @@ def _output_text(output: object) -> str | None:
 
     try:
         return json.dumps(output, sort_keys=True, default=fallback)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return str(output)
 
 
@@ -258,7 +258,7 @@ def _as_text(value: object) -> str:
 
     try:
         return json.dumps(value, ensure_ascii=False, sort_keys=True)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return str(value)
 
 

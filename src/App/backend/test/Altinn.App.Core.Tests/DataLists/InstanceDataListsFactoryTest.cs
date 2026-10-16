@@ -45,7 +45,7 @@ public class InstanceDataListsFactoryTest
     {
         public string Id { get; set; } = "country";
 
-        public Task<DataList> GetInstanceDataListAsync(
+        public Task<DataList> GetInstanceDataList(
             InstanceIdentifier instanceId,
             string? language,
             Dictionary<string, string> keyValuePairs

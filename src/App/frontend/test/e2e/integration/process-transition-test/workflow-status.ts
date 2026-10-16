@@ -560,8 +560,7 @@ describe('Live workflow status (real engine)', () => {
 
     // Committed currentTask is already Task_Service (not idle/receipt), yet the post-commit step is
     // still in flight -> the loader shows on the committed service task and no form UI leaks
-    // through. This is exactly what a legacy IProcessEnd (which runs on the process-END transition)
-    // could NOT surface.
+    // through.
     workflowLoader().should('be.visible');
     cy.findByRole('button', { name: task2SubmitButton }).should('not.exist');
 
