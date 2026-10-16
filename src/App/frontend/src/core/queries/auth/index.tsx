@@ -3,8 +3,8 @@ import type { PropsWithChildren } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { createContext } from 'src/core/contexts/context';
+import { useAppQueries } from 'src/core/queries/QueryProvider';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { useIsPdf } from 'src/hooks/useIsPdf';

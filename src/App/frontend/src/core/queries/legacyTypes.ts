@@ -1,4 +1,4 @@
-import type * as queries from 'src/queries/queries';
+import type * as queries from 'src/core/api-client/legacy.api';
 
 type IgnoredQueriesAndMutations = keyof Pick<
   typeof queries,

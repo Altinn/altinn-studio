@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 
 import { queryFocusManager } from 'src/core/queries/focusManager';
-import { getPollingInterval, usePollingWithBackoff } from 'src/hooks/usePollingWithBackoff';
+import { getPollingInterval, usePollingWithBackoff } from 'src/core/queries/usePollingWithBackoff';
 
 describe('usePollingWithBackoff()', () => {
   beforeEach(() => {

@@ -1,4 +1,4 @@
-import { NotificationStatus, SigneeState } from 'src/layout/SigneeList/api';
+import { NotificationStatus, SigneeState } from 'src/core/queries/signeeList/index';
 import { type CurrentUserStatus, getCurrentUserStatus } from 'src/layout/SigningActions/utils';
 
 describe('getCurrentUserStatus', () => {

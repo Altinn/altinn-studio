@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 
 import type { IDataModelBindingsOptionsSimple } from '@app/layout-contract/generated/common.generated';
 
+import { useGetOptionsQuery, useGetOptionsUrl } from 'src/core/queries/options/index';
 import { evalExpr } from 'src/features/expressions';
 import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
@@ -11,7 +12,6 @@ import { useSaveDataModelBindings } from 'src/features/formData/useDataModelBind
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
-import { useGetOptionsQuery, useGetOptionsUrl } from 'src/features/options/useGetOptionsQuery';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useSourceOptions } from 'src/features/options/useSourceOptions';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';

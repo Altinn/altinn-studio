@@ -15,12 +15,12 @@ import 'src/features/logging';
 import 'src/features/styleInjection';
 import 'src/features/toggles';
 
-import { createAppQueryClient } from 'src/appQueryClient';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { backendValidationApi, instanceApi, partyApi, textResourcesApi } from 'src/core/api-client';
-import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
+import * as queries from 'src/core/api-client/legacy.api';
+import { createAppQueryClient } from 'src/core/queries/queryClient';
+import { AppQueriesProvider } from 'src/core/queries/QueryProvider';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
-import * as queries from 'src/queries/queries';
 import { createRouter } from 'src/router';
 import type { ApiClients } from 'src/core/api-client/ApiClients';
 

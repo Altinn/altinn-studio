@@ -4,6 +4,11 @@ import { useSearchParams } from 'react-router';
 import { NavigationButtons } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
+import {
+  useCurrentProcessKey,
+  useIsAnyProcessing,
+  useProcessingMutationWithKey,
+} from 'src/core/queries/processing/index';
 import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
@@ -12,17 +17,12 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useNavigatePage, useNextPageKey, usePreviousPageKey } from 'src/hooks/useNavigatePage';
 import { usePageValidation } from 'src/hooks/usePageValidation';
-import {
-  useCurrentProcessKey,
-  useIsAnyProcessing,
-  useProcessingMutationWithKey,
-} from 'src/hooks/useProcessingMutation';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
-import type { NavigatePageProcessKey } from 'src/hooks/useProcessingMutation';
+import type { NavigatePageProcessKey } from 'src/core/queries/processing/index';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type Props = Pick<PropsFromGenericComponent<'NavigationButtons'>, 'baseComponentId'>;

@@ -1,11 +1,11 @@
 import { useIsMutating } from '@tanstack/react-query';
 
+import { hasPendingAttachmentScans, hasTemporaryAttachments } from 'src/core/queries/attachments/attachmentState';
+import { AttachmentMutations } from 'src/core/queries/attachments/index';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { AttachmentMutations } from 'src/features/attachments/hooks/attachmentMutations';
 import { sortAttachmentsByName } from 'src/features/attachments/sortAttachments';
 import { attachmentMutationKeys, type AttachmentNode, attachmentSelector } from 'src/features/attachments/tools';
 import { FileScanResults } from 'src/features/attachments/types';
-import { hasPendingAttachmentScans, hasTemporaryAttachments } from 'src/features/attachments/utils';
 import { FormStore } from 'src/features/form/FormContext';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';

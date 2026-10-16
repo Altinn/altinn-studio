@@ -12,11 +12,12 @@ import {
   WorkflowProcessing,
 } from 'src/components/process/WorkflowEngine';
 import { Loader } from 'src/core/loading/Loader';
+import { getTargetTaskFromProcess } from 'src/core/queries/process/useProcessNext';
 import { useIsMutating, useQueryClient } from 'src/core/queries/reactQuery';
+import { useWaitForQueries } from 'src/core/queries/useWaitForQueries';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getProcessNextMutationKey } from 'src/features/instance/processNextMutationKey';
-import { getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import { useGetTaskTypeById, useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -27,7 +28,6 @@ import { ServiceTaskFailed } from 'src/features/process/service/ServiceTaskFaile
 import { useFollowProcess } from 'src/features/process/useFollowProcess';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useIsValidTaskId, useNavigateToTask } from 'src/hooks/useNavigatePage';
-import { useWaitForQueries } from 'src/hooks/useWaitForQueries';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { ELEMENT_TYPE } from 'src/types/shared';

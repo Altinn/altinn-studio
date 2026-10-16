@@ -13,13 +13,13 @@ import {
   invalidateInstanceData,
   useOptimisticallyUpdateInstance,
 } from 'src/core/queries/instance';
+import { useInstantiation } from 'src/core/queries/instance/useInstantiation';
 import { skipToken, useIsMutating, useQuery, useQueryClient } from 'src/core/queries/reactQuery';
+import { usePollingWithBackoff } from 'src/core/queries/usePollingWithBackoff';
 import { FileScanResults } from 'src/features/attachments/types';
 import { getProcessNextMutationKey, PROCESS_RESUME_MUTATION_KEY } from 'src/features/instance/processNextMutationKey';
-import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { usePollingWithBackoff } from 'src/hooks/usePollingWithBackoff';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import type { UseQueryOptions } from 'src/core/queries/reactQuery';
 import type { IData, IInstance, IInstanceDataSources, WorkflowActivityStatus } from 'src/types/shared';

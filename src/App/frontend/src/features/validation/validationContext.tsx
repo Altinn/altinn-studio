@@ -4,8 +4,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import type { Draft } from 'immer';
 
+import { hasPendingAttachments, waitForAttachments } from 'src/core/queries/attachments/attachmentState';
 import { useGetCachedInitialValidations, useRefetchInitialValidations } from 'src/core/queries/backendValidation';
-import { hasPendingAttachments, waitForAttachments } from 'src/features/attachments/utils';
 import { FormStore } from 'src/features/form/FormContext';
 import { useInstanceDataQuery, useSelectFromInstanceData } from 'src/features/instance/InstanceContext';
 import {

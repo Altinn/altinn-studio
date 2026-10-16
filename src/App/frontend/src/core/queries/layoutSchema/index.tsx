@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import type Ajv from 'ajv';
 import type { ErrorObject } from 'ajv';
 
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { useAppQueries } from 'src/core/queries/QueryProvider';
 import {
   createLayoutValidator,
   EMPTY_SCHEMA_NAME,

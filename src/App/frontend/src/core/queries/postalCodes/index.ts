@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { useAppQueries } from 'src/core/queries/QueryProvider';
 import type { PostalCodesRegistry } from 'src/types/shared';
 
 const __default__ = '';

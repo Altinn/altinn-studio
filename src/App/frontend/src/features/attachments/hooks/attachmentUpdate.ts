@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { toast } from 'react-toastify';
 
-import { AttachmentMutations } from 'src/features/attachments/hooks/attachmentMutations';
+import { AttachmentMutations } from 'src/core/queries/attachments/index';
 import { useOptimisticallyUpdateDataElement } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import type { UploadedAttachment } from 'src/features/attachments';

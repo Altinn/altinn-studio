@@ -5,9 +5,9 @@ import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { useIsMutating } from '@tanstack/react-query';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { useProcessResume } from 'src/core/queries/process/useProcessNext';
 import { useAppOwner } from 'src/core/texts/appTexts';
 import { PROCESS_RESUME_MUTATION_KEY } from 'src/features/instance/processNextMutationKey';
-import { useProcessResume } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

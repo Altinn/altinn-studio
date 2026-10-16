@@ -2,6 +2,7 @@ import React from 'react';
 
 import { NavigationBar, useIsMobile } from '@app/form-component';
 
+import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/core/queries/processing/index';
 import { FormStore } from 'src/features/form/FormContext';
 import { useGetNavigationIsPrevented } from 'src/features/navigation/utils';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
@@ -9,10 +10,9 @@ import { useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { usePageValidation } from 'src/hooks/usePageValidation';
-import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/hooks/useProcessingMutation';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import type { NavigatePageProcessKey } from 'src/hooks/useProcessingMutation';
+import type { NavigatePageProcessKey } from 'src/core/queries/processing/index';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function NavigationBarComponent({ baseComponentId }: PropsFromGenericComponent<'NavigationBar'>) {

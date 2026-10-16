@@ -4,7 +4,7 @@ import { Tag } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/SigneeList/SigningStateTag.module.css';
-import type { SigneeState } from 'src/layout/SigneeList/api';
+import type { SigneeState } from 'src/core/queries/signeeList/index';
 
 export const SIGNEE_STATUS = {
   signed: 'signee_list.signee_status_signed',

@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 
+import { usePollingWithBackoff } from 'src/core/queries/usePollingWithBackoff';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useNavigateToTask } from 'src/hooks/useNavigatePage';
-import { usePollingWithBackoff } from 'src/hooks/usePollingWithBackoff';
 import { TaskKeys } from 'src/routesBuilder';
 
 /**

@@ -1,6 +1,6 @@
 import { skipToken, useQuery } from '@tanstack/react-query';
 
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { useAppQueries } from 'src/core/queries/QueryProvider';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { resolveExpressionValidationConfig } from 'src/features/customValidation/customValidationUtils';
 import { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';

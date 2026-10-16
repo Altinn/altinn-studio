@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
 import { vi } from 'vitest';
 
-import { type SigningDocument, useDocumentList } from 'src/layout/SigningDocumentList/api';
+import { type SigningDocument, useDocumentList } from 'src/core/queries/signingDocuments/index';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 
 vi.mock('@tanstack/react-query', () => ({

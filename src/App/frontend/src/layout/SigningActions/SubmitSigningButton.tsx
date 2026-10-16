@@ -4,10 +4,10 @@ import { Button } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { useProcessNext } from 'src/features/instance/useProcessNext';
+import { useProcessNext } from 'src/core/queries/process/useProcessNext';
+import { signingQueries } from 'src/core/queries/signeeList/index';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { signingQueries } from 'src/layout/SigneeList/api';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 

@@ -4,8 +4,8 @@ import { Button } from '@app/form-component';
 
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { useProcessNextOutsideFormProvider } from 'src/core/queries/process/useProcessNext';
 import { useAppOwner } from 'src/core/texts/appTexts';
-import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

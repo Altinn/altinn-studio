@@ -4,8 +4,8 @@ import { screen } from '@testing-library/dom';
 import { render as renderRtl } from '@testing-library/react';
 const randomUUID = () => '00000000-0000-4000-8000-000000000000';
 
+import { type SigningDocument, useDocumentList } from 'src/core/queries/signingDocuments/index';
 import { ITextResourceBindings } from 'src/layout/layout';
-import { type SigningDocument, useDocumentList } from 'src/layout/SigningDocumentList/api';
 import { SigningDocumentListComponent } from 'src/layout/SigningDocumentList/SigningDocumentListComponent';
 import { ProcessTaskType } from 'src/types';
 
@@ -57,7 +57,7 @@ vi.mock('src/features/instance/useProcessQuery', () => ({
   useTaskTypeFromBackend: vi.fn(() => ProcessTaskType.Signing),
 }));
 
-vi.mock('src/layout/SigningDocumentList/api');
+vi.mock('src/core/queries/signingDocuments/index');
 
 vi.mock('src/layout/SigningDocumentList/SigningDocumentListError', () => ({
   SigningDocumentListError: vi.fn(({ error }: { error: Error }) => error.message),

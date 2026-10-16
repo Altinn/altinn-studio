@@ -5,6 +5,7 @@ import { ArrowLeftIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import classes from 'src/components/presentation/BackNavigationButton.module.css';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/core/queries/processing/index';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { MessageBoxConfigEvaluator } from 'src/features/applicationMetadata/messageBoxConfig';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
@@ -13,7 +14,6 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
 import { useExitSubform } from 'src/hooks/useNavigatePage';
-import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { getDialogIdFromDataValues, getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 
 export function BackNavigationButton(props: { className?: string }) {

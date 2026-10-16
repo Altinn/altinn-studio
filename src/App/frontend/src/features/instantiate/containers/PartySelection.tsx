@@ -7,6 +7,7 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { AltinnParty } from 'src/components/altinnParty';
+import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/core/queries/processing/index';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
@@ -19,7 +20,6 @@ import {
   useSetHasSelectedParty,
   useSetSelectedParty,
 } from 'src/features/party/PartiesProvider';
-import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/hooks/useProcessingMutation';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { getPageTitle } from 'src/utils/getPageTitle';

@@ -10,7 +10,8 @@ import { isAxiosError } from 'axios';
 import type { PageValidation } from '@app/layout-contract/generated/common.generated';
 import type * as CBTypes from '@app/layout-contract/generated/components/CustomButton/config.generated';
 
-import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/core/queries/processing/index';
+import { useAppMutations } from 'src/core/queries/QueryProvider';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { FormStore } from 'src/features/form/FormContext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
@@ -21,7 +22,6 @@ import { useOnPageNavigationValidation } from 'src/features/validation/callbacks
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { usePageValidation } from 'src/hooks/usePageValidation';
-import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';

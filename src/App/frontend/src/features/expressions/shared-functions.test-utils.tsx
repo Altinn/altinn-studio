@@ -7,13 +7,13 @@ import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/g
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
+import { fetchExternalApi } from 'src/core/api-client/legacy.api';
 import { getSharedTests } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { getRepeatingBinding, isRepeatingComponent } from 'src/features/form/layout/utils/repeating';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
-import { fetchExternalApi } from 'src/queries/queries';
 import {
   renderWithInstanceAndLayout,
   renderWithoutInstanceAndLayout,
@@ -21,17 +21,17 @@ import {
 } from 'src/test/renderWithProviders';
 import { NestedDataModelLocationProviders } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import type * as QueriesModule from 'src/core/api-client/legacy.api';
+import type { AppQueries } from 'src/core/queries/legacyTypes';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { FunctionTest, FunctionTestBase, SharedTestFunctionContext } from 'src/features/expressions/shared';
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { RepeatingComponents } from 'src/features/form/layout/utils/repeating';
 import type { IDataModelBindings, ILayoutCollection } from 'src/layout/layout';
-import type * as QueriesModule from 'src/queries/queries';
-import type { AppQueries } from 'src/queries/types';
 import type { IData, IDataType, IInstance, IProcess, IProfile } from 'src/types/shared';
 
-vi.mock('src/queries/queries', async () => {
-  const actual = await vi.importActual<typeof QueriesModule>('src/queries/queries');
+vi.mock('src/core/api-client/legacy.api', async () => {
+  const actual = await vi.importActual<typeof QueriesModule>('src/core/api-client/legacy.api');
   return {
     ...actual,
     fetchExternalApi: vi.fn(),

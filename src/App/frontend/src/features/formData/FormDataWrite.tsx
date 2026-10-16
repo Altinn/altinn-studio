@@ -6,12 +6,13 @@ import { useStore } from 'zustand';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { AxiosRequestConfig } from 'axios';
 
-import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import {
   type useGetCachedInitialValidations,
   useIsUpdatingInitialValidations,
 } from 'src/core/queries/backendValidation';
+import { getFormDataQueryKey } from 'src/core/queries/formData/index';
+import { useAppMutations } from 'src/core/queries/QueryProvider';
 import { useIsMutating, useMutation, useQueryClient } from 'src/core/queries/reactQuery';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
@@ -19,7 +20,6 @@ import { FormStore, getRootFormStore } from 'src/features/form/FormContext';
 import { createBatchedFormDataSetter } from 'src/features/formData/FormDataWriteBatch';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
-import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
@@ -32,9 +32,9 @@ import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
+import type { FormBootstrapQueryResponse } from 'src/core/queries/formBootstrap/index';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreApi, FormStoreState } from 'src/features/form/FormContext';
-import type { FormBootstrapQueryResponse } from 'src/features/formBootstrap/useFormBootstrapQuery';
 import type { FDBatchedValue } from 'src/features/formData/FormDataWriteBatch';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import type { FDActionResult, FDSaveFinished, UpdatedDataModel } from 'src/features/formData/FormDataWriteStateMachine';

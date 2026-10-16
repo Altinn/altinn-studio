@@ -4,9 +4,9 @@ import { useParams } from 'react-router';
 import { screen } from '@testing-library/dom';
 import { render as renderRtl, RenderOptions } from '@testing-library/react';
 
+import { type fetchSigneeList, NotificationStatus, useSigneeList } from 'src/core/queries/signeeList/index';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { type fetchSigneeList, NotificationStatus, useSigneeList } from 'src/layout/SigneeList/api';
 import { SigneeListComponent } from 'src/layout/SigneeList/SigneeListComponent';
 import { SigneeListError } from 'src/layout/SigneeList/SigneeListError';
 import { useComponentConfig } from 'src/utils/layout/hooks';
@@ -23,7 +23,7 @@ vi.mock('src/utils/layout/DataModelLocation', () => ({
 vi.mock('react-router');
 vi.mock('src/features/language/useLanguage');
 vi.mock('src/features/language/Lang');
-vi.mock('src/layout/SigneeList/api');
+vi.mock('src/core/queries/signeeList/index');
 vi.mock('src/layout/SigneeList/SigneeListError');
 
 const mockSigneeStates: Awaited<ReturnType<typeof fetchSigneeList>> = [

@@ -4,7 +4,7 @@ import { skipToken, useQuery } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 import type { AxiosRequestConfig } from 'axios';
 
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { useAppQueries } from 'src/core/queries/QueryProvider';
 import { type QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';

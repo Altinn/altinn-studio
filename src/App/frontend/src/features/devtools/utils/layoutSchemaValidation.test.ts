@@ -10,8 +10,8 @@ import {
   LAYOUT_SCHEMA_NAME,
 } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { getComponentDef } from 'src/layout';
+import type { ValidateFunc } from 'src/core/queries/layoutSchema/index';
 import type { CompExternalExact } from 'src/layout/layout';
-import type { ValidateFunc } from 'src/utils/layout/validation/LayoutValidationContext';
 
 const schema = layoutSchema as unknown as JSONSchema7;
 const componentPointer = '#/definitions/AnyComponent';

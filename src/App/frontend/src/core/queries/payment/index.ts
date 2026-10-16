@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
-import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
+import { useAppMutations } from 'src/core/queries/QueryProvider';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 
 export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: string) => {

@@ -1,11 +1,12 @@
 import React from 'react';
 import { toast } from 'react-toastify';
 
+import { doProcessNext, doProcessResume } from 'src/core/api-client/legacy.api';
 import { useUpdateInitialValidations } from 'src/core/queries/backendValidation';
+import { invalidateFormDataQueries } from 'src/core/queries/formData/index';
 import { instanceQueryKeys, useCurrentInstance } from 'src/core/queries/instance';
 import { useMutation, useQueryClient } from 'src/core/queries/reactQuery';
 import { FormStore } from 'src/features/form/FormContext';
-import { invalidateFormDataQueries } from 'src/features/formData/useFormDataQuery';
 import {
   useHasPendingScans,
   useInstanceDataQuery,
@@ -18,7 +19,6 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useNavigateToTask } from 'src/hooks/useNavigatePage';
-import { doProcessNext, doProcessResume } from 'src/queries/queries';
 import { TaskKeys } from 'src/routesBuilder';
 import type { BackendValidationIssue } from 'src/features/validation';
 import type { IActionType, IInstance, IProcess, IProcessWorkflowFailure, ProblemDetails } from 'src/types/shared';

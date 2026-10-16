@@ -4,14 +4,14 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
+import { doProcessNext, doProcessResume } from 'src/core/api-client/legacy.api';
 import { ServiceTaskFailed } from 'src/features/process/service/ServiceTaskFailed';
-import { doProcessNext, doProcessResume } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { IProcessWorkflow } from 'src/types/shared';
 
-vi.mock('src/queries/queries', async () => ({
-  ...(await vi.importActual<typeof import('src/queries/queries')>('src/queries/queries')),
+vi.mock('src/core/api-client/legacy.api', async () => ({
+  ...(await vi.importActual<typeof import('src/core/api-client/legacy.api')>('src/core/api-client/legacy.api')),
   doProcessNext: vi.fn(),
   doProcessResume: vi.fn(),
 }));

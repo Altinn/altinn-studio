@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import { useMutation } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 
-import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
+import { useAppMutations } from 'src/core/queries/QueryProvider';
 import {
   useInvalidateInstanceDataCache,
   useOptimisticallyAppendDataElements,

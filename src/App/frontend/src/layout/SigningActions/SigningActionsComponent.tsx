@@ -4,12 +4,12 @@ import { useParams } from 'react-router';
 import { FatalError, FullWidthWrapper, Panel, Spinner } from '@app/form-component';
 
 import { ElementFocusProvider } from 'src/core/contexts/ElementFocusProvider';
+import { useSigneeList } from 'src/core/queries/signeeList/index';
+import { useSignaturesValidation, useUserSigneeParties } from 'src/core/queries/signing/index';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useProfile } from 'src/features/profile/ProfileProvider';
-import { useSigneeList } from 'src/layout/SigneeList/api';
-import { useSignaturesValidation, useUserSigneeParties } from 'src/layout/SigningActions/api';
 import { AwaitingCurrentUserSignaturePanel } from 'src/layout/SigningActions/PanelAwaitingCurrentUserSignature';
 import { AwaitingOtherSignaturesPanel } from 'src/layout/SigningActions/PanelAwaitingOtherSignatures';
 import { NoActionRequiredPanel } from 'src/layout/SigningActions/PanelNoActionRequired';

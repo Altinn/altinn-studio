@@ -5,17 +5,17 @@ import { screen } from '@testing-library/dom';
 import { render } from '@testing-library/react';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
+import { NotificationStatus, SigneeState, useSigneeList } from 'src/core/queries/signeeList/index';
 import { FormStore } from 'src/features/form/FormContext';
 import { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { Lang } from 'src/features/language/Lang';
 import { CompExternal } from 'src/layout/layout';
-import { NotificationStatus, SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
 import { SigneeListSummary } from 'src/layout/SigneeList/SigneeListSummary';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { ExprResolved } from 'src/features/expressions/types';
 
-vi.mock('src/layout/SigneeList/api');
+vi.mock('src/core/queries/signeeList/index');
 vi.mock('react-router');
 vi.mock('src/utils/layout/hooks');
 vi.mock('src/utils/layout/useEvalExpression', () => ({

@@ -10,7 +10,7 @@ import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepG
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { AppQueries } from 'src/queries/types';
+import type { AppQueries } from 'src/core/queries/legacyTypes';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const threeOptions: IRawOption[] = [

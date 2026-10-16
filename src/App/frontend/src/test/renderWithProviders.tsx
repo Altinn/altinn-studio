@@ -19,8 +19,9 @@ import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloa
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
+import { fetchFormBootstrapForInstance } from 'src/core/api-client/legacy.api';
 import { ApiProvider } from 'src/core/contexts/ApiProvider';
-import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
+import { AppQueriesProvider } from 'src/core/queries/QueryProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { UiPreferencesProvider } from 'src/features/form/layout/UiPreferencesContext';
@@ -32,17 +33,16 @@ import { CurrentLanguageProvider } from 'src/features/language/LanguageProvider'
 import { NavigationFocusStateProvider } from 'src/features/navigation/NavigationFocusStateContext';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
-import { fetchFormBootstrapForInstance } from 'src/queries/queries';
 import { PageNavigationRouter } from 'src/test/routerUtils';
 import type { ApiClients } from 'src/core/api-client/ApiClients';
 import type { BackendValidationApi } from 'src/core/api-client/backendValidation.api';
 import type { InstanceApi } from 'src/core/api-client/instance.api';
 import type { PartyApi } from 'src/core/api-client/party.api';
+import type { AppMutations, AppQueries, AppQueriesContext } from 'src/core/queries/legacyTypes';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
 import type { CompExternal, CompExternalExact, CompTypes } from 'src/layout/layout';
-import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 
 type ApiOverrides = Partial<{
   backendValidationApi: Partial<BackendValidationApi>;

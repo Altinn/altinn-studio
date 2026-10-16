@@ -2,7 +2,7 @@ import React from 'react';
 
 import { waitFor } from '@testing-library/react';
 
-import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
+import { KeepAliveProvider } from 'src/core/queries/auth/index';
 import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
 
 describe('KeepAliveProvider', () => {

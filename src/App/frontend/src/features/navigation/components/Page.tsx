@@ -3,13 +3,13 @@ import React from 'react';
 import { CheckmarkIcon, XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { useProcessingMutation } from 'src/core/queries/processing/index';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/navigation/components/Page.module.css';
 import { SubformsForPage } from 'src/features/navigation/components/SubformsForPage';
 import { useNavigateToPageWithValidation } from 'src/features/navigation/useNavigateToPageWithValidation';
 import { useGetNavigationIsPrevented } from 'src/features/navigation/utils';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { useProcessingMutation } from 'src/hooks/useProcessingMutation';
 
 export function Page({
   page,

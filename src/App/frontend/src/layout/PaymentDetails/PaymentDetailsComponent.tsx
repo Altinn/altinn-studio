@@ -3,11 +3,11 @@ import React, { useEffect, useRef } from 'react';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import deepEqual from 'fast-deep-equal';
 
+import { useOrderDetails, useRefetchOrderDetails } from 'src/core/queries/payment/OrderDetailsProvider';
 import { evalExpr } from 'src/features/expressions';
 import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import { FormStore } from 'src/features/form/FormContext';
-import { useOrderDetails, useRefetchOrderDetails } from 'src/features/payment/OrderDetailsProvider';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';

@@ -4,6 +4,7 @@ import { AddressLayout } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import type { AddressFieldKey } from '@app/form-component';
 
+import { usePostPlace } from 'src/core/queries/postalCodes/index';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
@@ -11,7 +12,6 @@ import { useBindingValidationsFor } from 'src/features/validation/selectors/bind
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
-import { usePostPlace } from 'src/layout/Address/usePostPlace';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';

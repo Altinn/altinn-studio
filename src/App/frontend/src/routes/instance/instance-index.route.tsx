@@ -3,8 +3,8 @@ import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
 import { fetchFreshInstanceData } from 'src/core/queries/instance';
+import { getTargetTaskFromProcess } from 'src/core/queries/process/useProcessNext';
 import { getUiConfig } from 'src/features/form/ui';
-import { getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import { getTaskTypeById } from 'src/features/instance/useProcessQuery';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';

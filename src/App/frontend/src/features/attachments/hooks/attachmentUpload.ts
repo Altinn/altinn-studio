@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { v4 as uuidv4 } from 'uuid';
 import type { IDataModelBindingsList, IDataModelBindingsSimple } from '@app/layout-contract/generated/common.generated';
 
-import { AttachmentMutations } from 'src/features/attachments/hooks/attachmentMutations';
+import { AttachmentMutations } from 'src/core/queries/attachments/index';
 import { attachmentMutationKeys } from 'src/features/attachments/tools';
 import { FormStore } from 'src/features/form/FormContext';
 import { dataModelPairsToObject } from 'src/features/formData/types';
@@ -12,9 +12,9 @@ import { useSelectFromInstanceData } from 'src/features/instance/InstanceContext
 import { backendValidationIssueGroupListToObject } from 'src/features/validation';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
+import type { AttachmentUploadVariables } from 'src/core/queries/attachments/index';
 import type { DataPostResponse, IFailedAttachment, TemporaryAttachment } from 'src/features/attachments';
 import type { AttachmentActionUpload, AttachmentUploadResult } from 'src/features/attachments/AttachmentsStore';
-import type { AttachmentUploadVariables } from 'src/features/attachments/hooks/attachmentMutations';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { FDActionResult } from 'src/features/formData/FormDataWriteStateMachine';
 import type { RejectedFileError } from 'src/layout/FileUpload/RejectedFileError';

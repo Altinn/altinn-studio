@@ -1,15 +1,15 @@
 import { useMutation, useMutationState } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
-import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
+import { doUpdateAttachmentTags } from 'src/core/api-client/legacy.api';
+import { useAppMutations } from 'src/core/queries/QueryProvider';
 import { isDataPostError } from 'src/features/attachments/isDataPostError';
 import { attachmentMutationKeys, type PendingAttachmentMutation } from 'src/features/attachments/tools';
 import { useLaxInstanceId, useOptimisticallyRemoveDataElement } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { backendValidationIssueGroupListToObject } from 'src/features/validation';
 import { useUpdateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
-import { doUpdateAttachmentTags } from 'src/queries/queries';
-import type { SetTagsRequest } from 'src/queries/queries';
+import type { SetTagsRequest } from 'src/core/api-client/legacy.api';
 
 export interface AttachmentUploadVariables {
   dataTypeId: string;

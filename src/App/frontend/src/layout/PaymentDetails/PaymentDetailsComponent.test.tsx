@@ -9,8 +9,8 @@ import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const refetchOrderDetails = vi.hoisted(() => vi.fn());
-vi.mock('src/features/payment/OrderDetailsProvider', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('src/features/payment/OrderDetailsProvider')>()),
+vi.mock('src/core/queries/payment/OrderDetailsProvider', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('src/core/queries/payment/OrderDetailsProvider')>()),
   useRefetchOrderDetails: () => refetchOrderDetails,
 }));
 

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import cn from 'classnames';
 
 import classes from 'src/components/logo/AltinnLogo.module.css';
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { useAppQueries } from 'src/core/queries/QueryProvider';
 
 /** @see altinnAppTheme.tsx */
 export enum LogoColor {

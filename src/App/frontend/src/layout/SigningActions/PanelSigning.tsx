@@ -7,7 +7,7 @@ import { Dialog, Heading, Paragraph } from '@digdir/designsystemet-react';
 import type { PanelProps } from '@app/form-component';
 
 import { useFocusOnRequest } from 'src/core/contexts/ElementFocusProvider';
-import { useProcessNext } from 'src/features/instance/useProcessNext';
+import { useProcessNext } from 'src/core/queries/process/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

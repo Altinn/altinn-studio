@@ -4,9 +4,9 @@ import type { ReactNode } from 'react';
 import type { AxiosError } from 'axios';
 
 import { Loader } from 'src/core/loading/Loader';
-import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';
+import { usePerformPayActionMutation } from 'src/core/queries/payment/index';
+import { usePaymentInformation } from 'src/core/queries/payment/PaymentInformationProvider';
 import { PaymentStatus } from 'src/features/payment/types';
-import { usePerformPayActionMutation } from 'src/features/payment/usePerformPaymentMutation';
 import { useIsPayment } from 'src/features/payment/utils';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useIsPdf } from 'src/hooks/useIsPdf';

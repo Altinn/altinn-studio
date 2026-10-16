@@ -2,9 +2,9 @@ import { useCallback, useEffect } from 'react';
 
 import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
+import { useAppQueries } from 'src/core/queries/QueryProvider';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useHasPayment } from 'src/features/payment/utils';

@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/dom';
 import { render } from '@testing-library/react';
 
-import { NotificationStatus } from 'src/layout/SigneeList/api';
+import { NotificationStatus } from 'src/core/queries/signeeList/index';
 import { SIGNEE_STATUS, SigneeStateTag } from 'src/layout/SigneeList/SigneeStateTag';
 
 vi.mock('src/features/language/Lang', () => ({ Lang: ({ id }: { id: string }) => id }));

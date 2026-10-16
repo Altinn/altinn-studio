@@ -4,6 +4,7 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 import { ChevronDownIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { useIsAnyProcessing } from 'src/core/queries/processing/index';
 import { FormStore } from 'src/features/form/FormContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
@@ -13,7 +14,6 @@ import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useEnterSubform } from 'src/hooks/useNavigatePage';
-import { useIsAnyProcessing } from 'src/hooks/useProcessingMutation';
 import {
   getSubformEntryDisplayName,
   useExpressionDataSourcesForSubform,
