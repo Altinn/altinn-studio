@@ -1548,8 +1548,13 @@ public class InstancesController : ControllerBase
     {
         int instanceOwnerPartyId = int.Parse(targetInstance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
 
-        string[] sourceSplit = sourceInstance.Id.Split("/");
-        Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
+        // Attachments are copied first, so references to them in the form data can be updated to the new ids
+        Dictionary<string, string> copiedAttachmentIds = await CopyAttachmentsFromSourceInstance(
+            application,
+            targetInstance,
+            sourceInstance,
+            instanceOwnerPartyId
+        );
 
         List<DataType> dts = application
             .DataTypes.Where(dt => dt.AppLogic?.ClassRef != null)
@@ -1583,6 +1588,12 @@ public class InstancesController : ControllerBase
                     DataHelper.ResetDataFields(application.CopyInstanceSettings.ExcludedDataFields, data);
                 }
 
+                // Ensure that any reference to attachments in the data models gets updated on the copy
+                if (copiedAttachmentIds.Count > 0)
+                {
+                    ObjectUtils.ReplaceStringValues(data, copiedAttachmentIds);
+                }
+
                 await _prefillService.PrefillDataModel(
                     instanceOwnerPartyId.ToString(CultureInfo.InvariantCulture),
                     dt.Id,
@@ -1606,15 +1617,29 @@ public class InstancesController : ControllerBase
                 await UpdateDataValuesOnInstance(application.DataFields, targetInstance, dt.Id, data);
             }
         }
+    }
 
+    /// <summary>
+    /// Copies the attachments of <paramref name="sourceInstance"/> when enabled in the copy instance settings.
+    /// Returns a map from the id of each copied attachment to the id of its copy.
+    /// </summary>
+    private async Task<Dictionary<string, string>> CopyAttachmentsFromSourceInstance(
+        ApplicationMetadata application,
+        Instance targetInstance,
+        Instance sourceInstance,
+        int instanceOwnerPartyId
+    )
+    {
+        Dictionary<string, string> copiedAttachmentIds = [];
         if (application.CopyInstanceSettings?.IncludeAttachments != true)
         {
-            return;
+            return copiedAttachmentIds;
         }
 
-        // Copy binary data elements (files/attachments)
-        // Error handling strategy: Continue processing other attachments even if individual ones fail
-        // This ensures partial success rather than complete failure when some attachments cannot be copied
+        string[] sourceSplit = sourceInstance.Id.Split("/");
+        Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
+        List<string> excludedDataTypes = application.CopyInstanceSettings.ExcludedDataTypes;
+
         List<DataType> binaryDataTypes = application
             .DataTypes.Where(dt => dt.AppLogic?.ClassRef == null)
             .Where(dt =>
@@ -1662,8 +1687,12 @@ public class InstancesController : ControllerBase
                         CancellationToken.None
                     );
                 }
+
+                copiedAttachmentIds[de.Id] = newDataElement.Id;
             }
         }
+
+        return copiedAttachmentIds;
     }
 
     private static DateTime? GetDueBeforeFromSource(ApplicationMetadata application, Instance? sourceInstance)

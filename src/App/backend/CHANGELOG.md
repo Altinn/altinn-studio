@@ -43,7 +43,9 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Scheduled instantiation notifications are no longer sent for deleted instances. ([Altinn/app-lib-dotnet#1864](https://github.com/Altinn/app-lib-dotnet/issues/1864))
 - An app that exports telemetry directly to Application Insights sends every trace and all logs instead of a sample of 5 traces per second. ([Altinn/app-lib-dotnet#1889](https://github.com/Altinn/app-lib-dotnet/pull/1889))
 - Submitting no longer fails when a hidden Map component has drawn geometries and `RemoveHiddenData` is enabled. ([Altinn/app-lib-dotnet#1862](https://github.com/Altinn/app-lib-dotnet/issues/1862))
-- Copying an instance keeps the tags on its attachments. ([Altinn/app-lib-dotnet#1888](https://github.com/Altinn/app-lib-dotnet/pull/1888))
+- Copying an instance with `copyInstanceSettings.includeAttachments`:
+  - keeps the tags on its attachments ([Altinn/app-lib-dotnet#1888](https://github.com/Altinn/app-lib-dotnet/pull/1888))
+  - shows the attachments of a `FileUpload` in a repeating group in the copy ([Altinn/app-lib-dotnet#1894](https://github.com/Altinn/app-lib-dotnet/pull/1894))
 - The OpenAPI document no longer lists a `dataGuid` path parameter on endpoints that create data. ([Altinn/app-lib-dotnet#1871](https://github.com/Altinn/app-lib-dotnet/pull/1871))
 - Validation messages with texts from the app backend, such as XSD errors, now show as text in the form instead of a raw key like `backend.xsd_validation`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - File validation errors during upload are now in the user's language. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
