@@ -16,19 +16,6 @@ public sealed class ComponentContext
     /// <summary>
     /// Constructor for ComponentContext
     /// </summary>
-    [Obsolete("Use the overload with dataAccessor instead")]
-    public ComponentContext(
-        LayoutEvaluatorState state,
-        BaseComponent? component,
-        int[]? rowIndices,
-        DataElementIdentifier? dataElementIdentifier,
-        List<ComponentContext>? childContexts = null
-    )
-        : this(state.DataAccessor, component, rowIndices, dataElementIdentifier, childContexts) { }
-
-    /// <summary>
-    /// Constructor for ComponentContext
-    /// </summary>
     public ComponentContext(
         IInstanceDataAccessor dataAccessor,
         BaseComponent? component,
@@ -238,7 +225,9 @@ public sealed class ComponentContext
 
             public ExpressionFunction Function => _expression.Function;
             public IEnumerable<DebuggerEvaluatedExpression>? Args =>
-                _expression.Args?.Select(e => new DebuggerEvaluatedExpression(e, _context));
+                _expression.IsLiteralValue
+                    ? null
+                    : _expression.Args.Select(e => new DebuggerEvaluatedExpression(e, _context));
             public Task<ExpressionValue> EvaluationResult =>
                 _expression.IsLiteralValue
                     ? Task.FromResult(_expression.ValueUnion)

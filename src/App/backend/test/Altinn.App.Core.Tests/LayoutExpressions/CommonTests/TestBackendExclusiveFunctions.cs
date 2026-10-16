@@ -66,7 +66,7 @@ public class TestBackendExclusiveFunctions
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
         var dataType = new DataType() { Id = "default" };
-        var layout = new UiFolderComponent(test.Layouts!, "layout", dataType);
+        var layout = UiFolderParser.Parse(test.Layouts!, "layout", dataType.Id);
         var componentModel = new LayoutModel([layout], null);
         var translationService = new Mock<ITranslationService>(MockBehavior.Strict);
         var dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(

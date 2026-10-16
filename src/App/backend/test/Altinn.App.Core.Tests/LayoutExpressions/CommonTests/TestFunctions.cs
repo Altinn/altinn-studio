@@ -342,7 +342,7 @@ public class TestFunctions
         LayoutModel? componentModel = null;
         if (test.Layouts is not null)
         {
-            var layout = new UiFolderComponent(test.Layouts, "layout", dataTypes[0]);
+            var layout = UiFolderParser.Parse(test.Layouts, "layout", dataTypes[0].Id);
             componentModel = new LayoutModel([layout], null);
         }
         else if (test.Layouts is null && dataTypes.Count > 0)
@@ -369,7 +369,7 @@ public class TestFunctions
             var layout = new UiFolderComponent(
                 [PageComponent.Parse(document.RootElement, pageId, layoutId)],
                 layoutId,
-                dataTypes[0]
+                dataTypes[0].Id
             );
             componentModel = new LayoutModel([layout], null);
         }

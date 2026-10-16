@@ -196,7 +196,7 @@ public class CommonTaskFinalizationTests
         appResourcesMock.Setup(x => x.GetLayoutSettingsForFolder("Task_1")).Returns(new LayoutSettings());
         appResourcesMock
             .Setup(x => x.GetLayoutModelForFolder("Task_1"))
-            .Returns(new LayoutModel([new UiFolderComponent([], "Task_1", dataType)], null));
+            .Returns(new LayoutModel([new UiFolderComponent([], "Task_1", dataType.Id)], null));
 
         var command = CreateCommand(appMetadata, removeHiddenData: true, appResources: appResourcesMock.Object);
         var (context, mutatorMock) = CreateContextWithMutator(instance);

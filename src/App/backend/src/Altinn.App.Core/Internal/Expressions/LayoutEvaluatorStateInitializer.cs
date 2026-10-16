@@ -163,7 +163,7 @@ internal sealed class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateIni
     {
         var layouts = _appResources.GetLayoutModelForFolder(uiFolder);
         Debug.Assert(layouts is not null);
-        var dataElement = instance.Data.Find(d => d.DataType == layouts.DefaultDataType.Id);
+        var dataElement = instance.Data.Find(d => d.DataType == layouts.DefaultDataTypeId);
         Debug.Assert(dataElement is not null);
         var appMetadata = _appMetadata.ApplicationMetadata;
         var dataAccessor = new SingleDataElementAccessor(

@@ -283,8 +283,8 @@ internal sealed class TranslationService : ITranslationService
         var cleanPath = _cleanPathRegex.Replace(path, "");
 
         // Resolve "default" to the actual data type from the layout-set.
-        // If there's no layout-set (e.g., some service tasks), GetDefaultDataType() returns null.
-        string? resolvedDataType = dataModelName == "default" ? state.GetDefaultDataType()?.Id : dataModelName;
+        // If there's no layout-set (e.g., some service tasks), GetDefaultDataTypeId() returns null.
+        string? resolvedDataType = dataModelName == "default" ? state.GetDefaultDataTypeId() : dataModelName;
 
         if (resolvedDataType is null)
         {

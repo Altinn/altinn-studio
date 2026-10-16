@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.Expressions;
@@ -69,7 +70,7 @@ public class ExpressionConverter : JsonConverter<Expression>
         {
             throw new JsonException("Function name in expression must be string");
         }
-        var args = new List<Expression>();
+        var args = ImmutableArray.CreateBuilder<Expression>();
         var functionString = enumerator.Current.GetString();
 
         var functionEnum = ExpressionFunction(functionString);
@@ -83,7 +84,7 @@ public class ExpressionConverter : JsonConverter<Expression>
             args.Add(ReadStatic(enumerator.Current));
         }
 
-        return new Expression(functionEnum, args.ToArray());
+        return new Expression(functionEnum, args.ToImmutable());
     }
 
     private static Expression ReadArray(ref Utf8JsonReader reader, JsonSerializerOptions options)
@@ -98,7 +99,7 @@ public class ExpressionConverter : JsonConverter<Expression>
         {
             throw new JsonException("Function name in expression should be string");
         }
-        var args = new List<Expression>();
+        var args = ImmutableArray.CreateBuilder<Expression>();
 
         var functionString = reader.GetString();
         var functionEnum = ExpressionFunction(functionString);
@@ -113,7 +114,7 @@ public class ExpressionConverter : JsonConverter<Expression>
             args.Add(ReadStatic(ref reader, options));
         }
 
-        return new Expression(functionEnum, args.ToArray());
+        return new Expression(functionEnum, args.ToImmutable());
     }
 
     private static ExpressionFunction ExpressionFunction(string? stringFunction)

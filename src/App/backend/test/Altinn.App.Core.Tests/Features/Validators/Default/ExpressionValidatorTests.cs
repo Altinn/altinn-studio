@@ -84,7 +84,7 @@ public class ExpressionValidatorTests
         var dataType = new DataType() { Id = "default" };
         var appMedatada = new ApplicationMetadata("org/app") { DataTypes = [dataType] };
 
-        var layout = new UiFolderComponent(testCase.Layouts, "layout", dataType);
+        var layout = UiFolderParser.Parse(testCase.Layouts, "layout", dataType.Id);
         var componentModel = new LayoutModel([layout], null);
         var translationService = new TranslationService(
             new AppIdentifier("org", "app"),

@@ -260,7 +260,7 @@ public sealed class MockedServiceCollection
             var layoutComponent = new UiFolderComponent(
                 pages: grouping.ToList(),
                 id: layoutSet.Id,
-                defaultDataType: dataType
+                defaultDataTypeId: dataType.Id
             );
 
             _uiFolderComponents.Add(layoutComponent);
@@ -400,32 +400,7 @@ public sealed class WrappedServiceProvider : IKeyedServiceProvider, IDisposable,
         var layoutSetName = defaultDataType.TaskId!;
         var pages = components
             .GroupBy(c => c.PageId)
-            .Select(group =>
-            {
-                var componentList = group.ToList();
-                var pageComponentLookup = componentList.ToDictionary(c => c.Id, StringComparer.Ordinal);
-                Dictionary<string, string> claimedComponentIds = [];
-                foreach (var component in componentList)
-                {
-                    component.ClaimChildren(pageComponentLookup, claimedComponentIds);
-                }
-                var childComponents = componentList.Where(c => !claimedComponentIds.ContainsKey(c.Id)).ToList();
-                return new PageComponent
-                {
-                    Id = group.Key,
-                    PageId = group.Key,
-                    LayoutId = layoutSetName,
-                    Type = "page",
-                    ChildComponents = childComponents,
-                    AllComponents = componentList,
-                    Hidden = default,
-                    RemoveWhenHidden = default,
-                    Required = default,
-                    ReadOnly = default,
-                    DataModelBindings = ImmutableDictionary<string, ModelBinding>.Empty,
-                    TextResourceBindings = ImmutableDictionary<string, Expression>.Empty,
-                };
-            });
+            .Select(group => PageComponent.Create(group.Key, layoutSetName, default, group.ToList()));
 
         _serviceCollection.AddLayoutSet(defaultDataType, pages);
 

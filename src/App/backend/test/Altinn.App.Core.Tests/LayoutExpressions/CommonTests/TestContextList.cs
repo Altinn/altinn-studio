@@ -73,7 +73,7 @@ public class TestContextList
 
         var instance = new Instance() { Data = [] };
         var dataType = new DataType() { Id = "default" };
-        var layout = new UiFolderComponent(test.Layouts, "layout", dataType);
+        var layout = UiFolderParser.Parse(test.Layouts, "layout", dataType.Id);
         var translationServiceMock = new Mock<ITranslationService>(MockBehavior.Strict);
 
         var componentModel = new LayoutModel([layout], null);

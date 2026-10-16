@@ -882,7 +882,7 @@ public class PdfServiceTests
         // Setup LayoutEvaluatorState for variable substitution
         if (appResources != null)
         {
-            var uiFolderComponent = new UiFolderComponent(new List<PageComponent>(), "layout", modelDataType);
+            var uiFolderComponent = new UiFolderComponent(new List<PageComponent>(), "layout", modelDataType.Id);
             var layoutModel = new LayoutModel([uiFolderComponent], null);
             appResources.Setup(x => x.GetLayoutModelForFolder(It.IsAny<string>())).Returns(layoutModel);
 
@@ -1238,7 +1238,7 @@ public class PdfServiceTests
         var applicationMetadata = new ApplicationMetadata("digdir/not-really-an-app") { DataTypes = [dataType] };
         mockAppMetadata.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
-        var uiFolderComponent = new UiFolderComponent(new List<PageComponent>(), "layout", dataType);
+        var uiFolderComponent = new UiFolderComponent(new List<PageComponent>(), "layout", dataType.Id);
         var layoutModel = new LayoutModel([uiFolderComponent], null);
         var appResourcesForInitializer = appResources ?? _appResources;
         appResourcesForInitializer.Setup(x => x.GetLayoutModelForFolder(It.IsAny<string>())).Returns(layoutModel);

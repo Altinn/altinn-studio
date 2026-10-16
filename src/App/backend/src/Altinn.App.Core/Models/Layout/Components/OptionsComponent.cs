@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Data;
@@ -18,7 +19,7 @@ public sealed class OptionsComponent : Base.NoReferenceComponent
     /// <summary>
     /// Alternative to <see cref="OptionsId" /> where the options are listed inline instead of referencing an external generator
     /// </summary>
-    public required List<AppOption>? Options { get; init; }
+    public required IReadOnlyList<AppOption>? Options { get; init; }
 
     /// <summary>
     /// Alternative to <see cref="OptionsId" /> where the options are sourced from a repeating group in the datamodel
@@ -37,7 +38,9 @@ public sealed class OptionsComponent : Base.NoReferenceComponent
     {
         var optionsId = ParseStringOrNull(componentElement, "optionsId");
 
-        var options = ParseOrNull<List<AppOption>>(componentElement, "options");
+        IReadOnlyList<AppOption>? options = ParseOrNull<List<AppOption>>(componentElement, "options") is { } optionList
+            ? optionList.ToImmutableArray()
+            : null;
         var optionsSource = ParseOrNull<OptionsSource>(componentElement, "source");
         var secure = ParseBoolOrNull(componentElement, "secure") ?? false;
 
@@ -110,7 +113,7 @@ public sealed class OptionsComponent : Base.NoReferenceComponent
         IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, UiFolderComponent> layoutsLookup
+        IReadOnlyDictionary<string, UiFolderComponent> layoutsLookup
     )
     {
         // Context works normally when we don't have a group binding
@@ -185,7 +188,7 @@ public record OptionsSource
 /// <summary>
 /// Component for each row of an <see cref="OptionsComponent" /> to use in the generation of contexts.
 /// </summary>
-public class OptionsRowComponent : Base.BaseComponent
+public sealed class OptionsRowComponent : Base.BaseComponent
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="OptionsRowComponent"/> class from the

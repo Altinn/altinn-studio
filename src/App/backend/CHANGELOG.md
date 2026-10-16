@@ -25,6 +25,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: the data API returns its errors as JSON, and the `JsonObjectInDataResponse` feature flag is removed. `studioctl app upgrade v9` removes the flag from the app. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
   - the obsolete `POST .../data?dataType=` returns a list of validation issues
   - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
+- Breaking: parsed layouts cannot be changed, and layout components such as `GridComponent` cannot be subclassed in your app: ([#21278](https://github.com/Altinn/altinn-studio/pull/21278))
+  - containers list child components: use `Children` instead of `ChildReferences`, and `RepeatingChildren` instead of `RepeatingChildReferences`
+  - collections such as `GridComponent.Rows` and `Expression.Args` are read-only; check `IsLiteralValue` instead of `Args == null`
+  - `LayoutModel` and `UiFolderComponent` have `DefaultDataTypeId` instead of `DefaultDataType`
+- Breaking: a layout where a component contains itself, directly or through other containers, now fails to load with an error. Such components were previously left out of expressions and validation. Remove the loop from the layout. ([#21278](https://github.com/Altinn/altinn-studio/pull/21278))
+- Layout errors name the component id, its position, such as `$.data.layout[3]`, the page and the layout folder. ([#21278](https://github.com/Altinn/altinn-studio/pull/21278))
 
 ### Fixed
 
@@ -34,6 +40,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Removed
 
+- Breaking: remove obsolete layout and expression APIs, such as `IAppResources.GetLayoutModelForTask`, `GetLayoutSettingsForSet` and `GetLayoutSetForTask`, `ExpressionEvaluator.EvaluateBooleanExpression`, `Expression.Value` and the `ComponentContext` constructor taking a `LayoutEvaluatorState`. Use what their obsolete messages pointed to, such as `GetLayoutModelForFolder`, `GetLayoutSettingsForFolder` and `ValueUnion`. ([#21278](https://github.com/Altinn/altinn-studio/pull/21278))
+- Breaking: remove `RepeatingGroupRowComponent.FromGroup`, the public `Parse` and `ClaimChildren` methods on layout components, such as `GridComponent.Parse`, and the `Expression` constructors taking `Expression[]` or `List<Expression>`. Use `RepeatingGroupComponent.RowComponent`, `PageComponent.Parse` to parse a page, and arguments such as `[arg1, arg2]`. ([#21278](https://github.com/Altinn/altinn-studio/pull/21278))
 - Breaking: remove `IOnProcessEndingHandler`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. Logic that must stop the process from ending belongs in the last task's `IOnTaskEndingHandler`, or its `IOnTaskAbandonHandler` when a rejection ends the process. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Breaking: remove `IProcessEnd`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. `studioctl app upgrade v9` lists the classes and registrations to port. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 

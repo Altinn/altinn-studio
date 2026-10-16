@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.Expressions;
@@ -14,6 +14,8 @@ namespace Altinn.App.Core.Models.Expressions;
 [JsonConverter(typeof(ExpressionConverter))]
 public readonly struct Expression : IEquatable<Expression>
 {
+    private readonly ImmutableArray<Expression> _args;
+
     /// <summary>
     ///     Construct a value expression with the given literal value
     /// </summary>
@@ -21,69 +23,46 @@ public readonly struct Expression : IEquatable<Expression>
     public Expression(ExpressionValue value)
     {
         Function = ExpressionFunction.LITERAL_VALUE;
-        Args = null;
+        _args = default;
         ValueUnion = value;
     }
 
     /// <summary>
     /// Construct a function expression with the given function and arguments
     /// </summary>
-    public Expression(ExpressionFunction function, Expression[] args)
+    public Expression(ExpressionFunction function, ImmutableArray<Expression> args)
     {
         if (function == ExpressionFunction.LITERAL_VALUE)
         {
             throw new ArgumentException("Function LITERAL_VALUE cannot have arguments", nameof(function));
         }
-        if (args == null)
+        if (args.IsDefault)
         {
             throw new ArgumentNullException(
                 nameof(args),
-                "Args cannot be null when constructing a function expression"
+                "Args cannot be default when constructing a function expression"
             );
         }
         Function = function;
-        Args = args;
+        _args = args;
     }
 
     /// <summary>
     /// Construct a function expression with the given function and arguments
     /// </summary>
-    [Obsolete("Use the constructor with Expression[] instead")]
-    public Expression(ExpressionFunction function, List<Expression> args)
-        : this(function, args.ToArray()) { }
-
-    /// <summary>
-    ///     Construct a value expression with the given value
-    /// </summary>
-    /// <param name="value"></param>
-    [Obsolete("Use the constructor with ExpressionValue instead")]
-    public Expression(object? value)
-        : this(ExpressionValue.FromObject(value)) { }
-
-    /// <summary>
-    /// Construct a function expression with the given function and arguments
-    /// </summary>
     public Expression(ExpressionFunction function, Expression arg1)
-        : this(function, new[] { arg1 }) { }
+        : this(function, [arg1]) { }
 
     /// <summary>
     /// Construct a function expression with the given function and arguments
     /// </summary>
     public Expression(ExpressionFunction function, Expression arg1, Expression arg2)
-        : this(function, new[] { arg1, arg2 }) { }
-
-    /// <summary>
-    /// Test function to see if this is representing a function with args.
-    /// </summary>
-    [MemberNotNullWhen(true, nameof(Args))]
-    [Obsolete("Use !IsLiteralValue instead")]
-    public bool IsFunctionExpression => !IsLiteralValue;
+        : this(function, [arg1, arg2]) { }
 
     /// <summary>
     /// Test to see if this expression must be evaluated or is just a literal value.
     /// </summary>
-    [MemberNotNullWhen(false, nameof(Args))]
-    public bool IsLiteralValue => Args == null;
+    public bool IsLiteralValue => _args.IsDefault;
 
     /// <summary>
     /// Name of the function. Must be one those actually implemented in <see cref="ExpressionEvaluator" />
@@ -93,22 +72,13 @@ public readonly struct Expression : IEquatable<Expression>
     /// <summary>
     /// List of arguments to the function. These expressions will be evaluated before passed to the function.
     /// </summary>
-    public Expression[]? Args { get; }
-
-    /// <summary>
-    /// Get the object value for backwards compatibility
-    /// </summary>
-    [Obsolete("Use ValueUnion instead")]
-    public object? Value =>
-        ValueUnion.ValueKind switch
-        {
-            JsonValueKind.Null => null,
-            JsonValueKind.True => true,
-            JsonValueKind.False => false,
-            JsonValueKind.String => ValueUnion.String,
-            JsonValueKind.Number => ValueUnion.Number,
-            _ => throw new InvalidOperationException("Invalid value kind"),
-        };
+    /// <exception cref="InvalidOperationException">The expression is a literal value (<see cref="IsLiteralValue"/>)</exception>
+    public ImmutableArray<Expression> Args =>
+        _args.IsDefault
+            ? throw new InvalidOperationException(
+                "A literal value expression has no arguments. Check IsLiteralValue before reading Args."
+            )
+            : _args;
 
     /// <summary>
     /// Some expressions are just literal values that evaluate to the same value.

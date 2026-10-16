@@ -124,72 +124,6 @@ internal sealed class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    [Obsolete(
-        "There is no mapping between task and layout folder anymore, all folders are named the same as the task ID.",
-        error: true
-    )]
-    public string? GetLayoutSetsString()
-    {
-        throw new NotImplementedException(
-            "Obsolete. There is no mapping between task and layout folder anymore, all folders are named the same as the task ID."
-        );
-    }
-
-    /// <inheritdoc />
-    [Obsolete(
-        "There is no mapping between task and layout folder anymore, all folders are named the same as the task ID.",
-        error: true
-    )]
-    public object? GetLayoutSets()
-    {
-        throw new NotImplementedException(
-            "Obsolete. There is no mapping between task and layout folder anymore, all folders are named the same as the task ID."
-        );
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use GetLayoutsInFolder or GetLayoutSettingsForFolder instead", error: true)]
-    public LayoutSet? GetLayoutSetForTask(string taskId)
-    {
-        throw new NotImplementedException("Obsolete. Use GetLayoutsInFolder or GetLayoutSettingsForFolder instead.");
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use GetLayoutsInFolder instead", error: true)]
-    public string GetLayoutsForSet(string layoutSetId)
-    {
-        throw new NotImplementedException("Obsolete. Use GetLayoutsInFolder instead.");
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use GetLayoutModelForFolder instead", error: true)]
-    public LayoutModel GetLayoutModel(string? layoutSetId = null)
-    {
-        throw new NotImplementedException("Obsolete. Use GetLayoutModelForFolder instead.");
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use GetLayoutModelForFolder instead", error: true)]
-    public LayoutModel? GetLayoutModelForTask(string taskId)
-    {
-        throw new NotImplementedException("Obsolete. Use GetLayoutModelForFolder instead.");
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use GetLayoutSettingsForFolder instead", error: true)]
-    public string? GetLayoutSettingsStringForSet(string layoutSetId)
-    {
-        throw new NotImplementedException("Obsolete. Use GetLayoutSettingsForFolder instead.");
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use GetLayoutSettingsForFolder instead", error: true)]
-    public LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId)
-    {
-        throw new NotImplementedException("Obsolete. Use GetLayoutSettingsForFolder instead.");
-    }
-
-    /// <inheritdoc />
     public string GetLayoutsInFolder(string folderId)
     {
         Dictionary<string, object> layouts = new Dictionary<string, object>();
@@ -301,7 +235,7 @@ internal sealed class AppResourcesSI : IAppResources
                 $"Layout folder {folderId} default data type missing, or does not exist in applicationmetadata.json"
             );
 
-        return new UiFolderComponent(pages, folderId, dataType);
+        return new UiFolderComponent(pages, folderId, dataType.Id);
     }
 
     /// <inheritdoc />

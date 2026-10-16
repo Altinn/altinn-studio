@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models.Layout.Components.Base;
@@ -10,28 +11,26 @@ namespace Altinn.App.Core.Models.Layout.Components;
 public sealed class CardsComponent : ReferenceComponent
 {
     /// <summary>
-    /// Parser for CardsComponent from a JsonElement
+    /// The ids of the components this component claims as children.
     /// </summary>
-    public static CardsComponent Parse(JsonElement componentElement, string pageId, string layoutId)
+    internal static IEnumerable<string> ClaimChildren(JsonElement componentElement) =>
+        ParseCards(componentElement).SelectMany(t => t.Children);
+
+    /// <summary>
+    /// Parser for CardsComponent
+    /// </summary>
+    internal static CardsComponent Parse(
+        JsonElement componentElement,
+        string pageId,
+        string layoutId,
+        IReadOnlyList<BaseLayoutComponent> children
+    )
     {
-        var id = ParseId(componentElement);
-        var type = ParseType(componentElement);
-        if (!componentElement.TryGetProperty("cards", out JsonElement cardsElement))
-        {
-            throw new JsonException(
-                $"Component {layoutId}.{pageId}.{id} of type {type} component must have a \"cards\" property."
-            );
-        }
-
-        var cards =
-            cardsElement.Deserialize<List<CardsConfig>>()
-            ?? throw new JsonException("Failed to deserialize cards in CardsComponent.");
-
         return new CardsComponent()
         {
             // BaseComponent properties
-            Id = id,
-            Type = type,
+            Id = ParseId(componentElement),
+            Type = ParseType(componentElement),
             PageId = pageId,
             LayoutId = layoutId,
             Required = ParseRequiredExpression(componentElement),
@@ -41,25 +40,49 @@ public sealed class CardsComponent : ReferenceComponent
             DataModelBindings = ParseDataModelBindings(componentElement),
             TextResourceBindings = ParseTextResourceBindings(componentElement),
             // CardsComponent properties
-            Cards = cards,
-            ChildReferences = cards.SelectMany(t => t.Children ?? []).ToList(),
+            Cards = ParseCards(componentElement),
+            Children = children,
         };
+    }
+
+    private static ImmutableArray<CardsConfig> ParseCards(JsonElement componentElement)
+    {
+        if (
+            !componentElement.TryGetProperty("cards", out JsonElement cardsElement)
+            || cardsElement.ValueKind != JsonValueKind.Array
+        )
+        {
+            throw new JsonException(
+                $"{ParseType(componentElement)} component must have a \"cards\" property of type array."
+            );
+        }
+
+        return cardsElement.Deserialize<ImmutableArray<CardsConfig>>();
     }
 
     /// <summary>
     /// Configuration for the cards in the CardsComponent.
     /// </summary>
-    public required IReadOnlyCollection<CardsConfig> Cards { get; init; }
+    public required IReadOnlyList<CardsConfig> Cards { get; init; }
 }
 
 /// <summary>
-/// Configuration for a single tab in a CardsComponent.
+/// Configuration for a single card in a CardsComponent.
 /// </summary>
 public sealed class CardsConfig
 {
     /// <summary>
-    /// List of child component IDs that belong to this tab.
+    /// Create the configuration for a card
+    /// </summary>
+    [JsonConstructor]
+    public CardsConfig(IReadOnlyList<string>? children)
+    {
+        Children = children?.ToImmutableArray() ?? [];
+    }
+
+    /// <summary>
+    /// List of child component IDs that belong to this card.
     /// </summary>
     [JsonPropertyName("children")]
-    public List<string>? Children { get; init; }
+    public IReadOnlyList<string> Children { get; }
 }

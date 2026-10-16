@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Expressions;
 
@@ -9,77 +10,42 @@ namespace Altinn.App.Core.Models.Layout.Components.Base;
 public abstract class ReferenceComponent : BaseLayoutComponent
 {
     /// <summary>
-    /// Collection of IDs for children that should be claimed.
+    /// Only components in this assembly can derive from <see cref="ReferenceComponent"/>.
     /// </summary>
-    public required IReadOnlyCollection<string> ChildReferences { get; init; }
-
-    private Dictionary<string, BaseLayoutComponent>? _claimedChildrenLookup;
-
-    // used for some tests to ensure hierarchy is correct
-    internal IEnumerable<BaseComponent>? AllChildren => _claimedChildrenLookup?.Values;
-
-    /// <inheritdoc />
-    public override void ClaimChildren(
-        Dictionary<string, BaseLayoutComponent> unclaimedComponents,
-        Dictionary<string, string> claimedComponents
-    )
-    {
-        var components = new Dictionary<string, BaseLayoutComponent>();
-        foreach (var componentId in ChildReferences)
-        {
-            if (unclaimedComponents.Remove(componentId, out var component))
-            {
-                claimedComponents[componentId] = Id;
-            }
-            else
-            {
-                // Invalid reference. Throw the appropriate exception.
-                if (claimedComponents.TryGetValue(componentId, out var claimedComponent))
-                {
-                    throw new ArgumentException(
-                        $"""Attempted to claim child with id "{componentId}" to component "{Id}", but it has already been claimed by "{claimedComponent}"."""
-                    );
-                }
-                throw new ArgumentException(
-                    $"""Attempted to claim child with id "{componentId}" to component "{Id}", but the componentId does not exist"""
-                );
-            }
-
-            if (!components.TryAdd(component.Id, component))
-            {
-                throw new ArgumentException($"Component with id {component.Id} is claimed twice by {Id}.");
-            }
-        }
-
-        _claimedChildrenLookup = components;
-    }
+    private protected ReferenceComponent() { }
 
     /// <summary>
-    /// Gets the collection of child components that have been claimed as children by this component.
-    ///
-    /// Will be populated after the <see cref="ClaimChildren"/> method is called.
+    /// The components this component contains, in the order they are referenced in the layout.
     /// </summary>
-    private protected async Task<ComponentContext> GetClaimedChildComponentContext(
-        string componentId,
-        IInstanceDataAccessor dataAccessor,
-        DataElementIdentifier defaultDataElementIdentifier,
-        int[]? rowIndexes,
-        Dictionary<string, UiFolderComponent> layoutsLookup
+    public required IReadOnlyList<BaseLayoutComponent> Children { get; init; }
+
+    /// <summary>
+    /// Find children by id in the children passed to a component's parser.
+    /// </summary>
+    private protected static ImmutableArray<BaseLayoutComponent> FindChildren(
+        IReadOnlyList<BaseLayoutComponent> children,
+        ImmutableArray<string> ids
     )
     {
-        if (_claimedChildrenLookup is null)
+        var result = ImmutableArray.CreateBuilder<BaseLayoutComponent>(ids.Length);
+        foreach (var id in ids)
         {
-            throw new InvalidOperationException(
-                $"{GetType().Name} inherits from {nameof(ReferenceComponent)} and must have {nameof(ClaimChildren)} called before generating contexts."
-            );
+            result.Add(FindChild(children, id));
+        }
+        return result.MoveToImmutable();
+    }
+
+    private static BaseLayoutComponent FindChild(IReadOnlyList<BaseLayoutComponent> children, string id)
+    {
+        foreach (var child in children)
+        {
+            if (child.Id == id)
+            {
+                return child;
+            }
         }
 
-        if (!_claimedChildrenLookup.TryGetValue(componentId, out var component))
-        {
-            throw new ArgumentException($"Child component with ID '{componentId}' is not claimed.");
-        }
-
-        return await component.GetContext(dataAccessor, defaultDataElementIdentifier, rowIndexes, layoutsLookup);
+        throw new ArgumentException($"Child component with id \"{id}\" was not claimed.");
     }
 
     /// <inheritdoc />
@@ -87,27 +53,14 @@ public abstract class ReferenceComponent : BaseLayoutComponent
         IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, UiFolderComponent> layoutsLookup
+        IReadOnlyDictionary<string, UiFolderComponent> layoutsLookup
     )
     {
-        if (ChildReferences is null)
-        {
-            throw new InvalidOperationException(
-                $"{GetType().Name} inherits from {nameof(ReferenceComponent)} and must initialize {nameof(ChildReferences)} in its constructor."
-            );
-        }
-
-        List<ComponentContext> childContexts = [];
-        foreach (var childId in ChildReferences)
+        List<ComponentContext> childContexts = new(Children.Count);
+        foreach (var child in Children)
         {
             childContexts.Add(
-                await GetClaimedChildComponentContext(
-                    childId,
-                    dataAccessor,
-                    defaultDataElementIdentifier,
-                    rowIndexes,
-                    layoutsLookup
-                )
+                await child.GetContext(dataAccessor, defaultDataElementIdentifier, rowIndexes, layoutsLookup)
             );
         }
 

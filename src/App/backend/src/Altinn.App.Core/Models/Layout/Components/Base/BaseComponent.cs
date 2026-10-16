@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text.Json;
 using Altinn.App.Core.Internal.Expressions;
@@ -12,6 +13,11 @@ namespace Altinn.App.Core.Models.Layout.Components.Base;
 /// </summary>
 public abstract class BaseComponent
 {
+    /// <summary>
+    /// Only components in this assembly can derive from <see cref="BaseComponent"/>.
+    /// </summary>
+    private protected BaseComponent() { }
+
     /// <summary>
     /// ID of the component (or pageName for pages)
     /// </summary>
@@ -198,7 +204,7 @@ public abstract class BaseComponent
         )
         {
             // If the property is not present or is null, return an empty dictionary
-            return ImmutableDictionary<string, ModelBinding>.Empty;
+            return ReadOnlyDictionary<string, ModelBinding>.Empty;
         }
 
         var modelBindings = new Dictionary<string, ModelBinding>();
@@ -222,20 +228,21 @@ public abstract class BaseComponent
             };
         }
 
-        return modelBindings;
+        // Keeps declaration order, which decides the order of required validation issues
+        return modelBindings.AsReadOnly();
     }
 
     /// <summary>
     /// Parses the text resource bindings from a JSON element.
     /// </summary>
-    protected static Dictionary<string, Expression> ParseTextResourceBindings(JsonElement element)
+    protected static IReadOnlyDictionary<string, Expression> ParseTextResourceBindings(JsonElement element)
     {
         if (
             !element.TryGetProperty("textResourceBindings", out JsonElement textResourceBindingsElement)
             || textResourceBindingsElement.ValueKind == JsonValueKind.Null
         )
         {
-            return [];
+            return ReadOnlyDictionary<string, Expression>.Empty;
         }
         if (textResourceBindingsElement.ValueKind != JsonValueKind.Object)
         {
@@ -244,30 +251,31 @@ public abstract class BaseComponent
             );
         }
 
-        return textResourceBindingsElement.Deserialize<Dictionary<string, Expression>>() ?? [];
+        return textResourceBindingsElement.Deserialize<Dictionary<string, Expression>>()?.AsReadOnly()
+            ?? ReadOnlyDictionary<string, Expression>.Empty;
     }
 
     /// <summary>
     /// Parses the child references from a JSON element.
     /// Extracts the child component IDs from a JSON element, stripping any multipage group index.
     /// </summary>
-    protected static List<string> ParseChildReferences(JsonElement componentElement, string layoutId, string pageId)
+    protected static ImmutableArray<string> ParseChildReferences(JsonElement componentElement)
     {
         if (
             !componentElement.TryGetProperty("children", out JsonElement childrenElement)
             || childrenElement.ValueKind != JsonValueKind.Array
         )
         {
-            throw new JsonException($"Component {layoutId}.{pageId} must have a \"children\" property of type array.");
+            throw new JsonException("Component must have a \"children\" property of type array.");
         }
 
-        var childReferences = new List<string>();
+        var childReferences = ImmutableArray.CreateBuilder<string>(childrenElement.GetArrayLength());
         foreach (var child in childrenElement.EnumerateArray())
         {
             childReferences.Add(StripPageIndexForGroupChild(child));
         }
 
-        return childReferences;
+        return childReferences.MoveToImmutable();
     }
 
     /// <summary>
