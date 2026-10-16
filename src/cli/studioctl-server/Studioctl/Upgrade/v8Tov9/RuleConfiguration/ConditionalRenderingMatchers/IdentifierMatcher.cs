@@ -19,6 +19,8 @@ public class IdentifierMatcher : IExpressionMatcher
             return null;
 
         var varName = identifier.Name;
+        if (varName == context.ObjectParameterName)
+            return true;
 
         // First, check if this identifier is a global constant
         if (context.GlobalConstants.TryGetValue(varName, out var constantValue))
@@ -35,6 +37,7 @@ public class IdentifierMatcher : IExpressionMatcher
                 float f => f,
                 string s => s,
                 bool b => b,
+                null => new object?[] { null },
                 _ => constantValue,
             };
         }
