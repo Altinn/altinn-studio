@@ -413,10 +413,15 @@ public class WorkflowEngineServiceTests
         );
     }
 
-    [Fact]
-    public async Task EnqueueAndWaitForInitialProcessState_EngineIdempotencyConflictIsDefinitiveNotAccepted()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task EnqueueAndWait_EngineIdempotencyConflictIsDefinitiveNotAccepted(bool processNext)
     {
+        // Another call on the same instance version already submitted a different body. The strict client fails the
+        // test if the call looks for that workflow or waits on it instead of refusing.
         var instance = CreateInstance(Guid.NewGuid());
+        var versions = new StorageVersionMetadata(InstanceVersion: 9, ProcessStateVersion: 4);
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         client
             .Setup(c =>
@@ -432,154 +437,19 @@ public class WorkflowEngineServiceTests
         var service = CreateService(client, Mock.Of<IInstanceClientWithStorageMetadata>());
 
         WorkflowSubmissionFailedException exception = await Assert.ThrowsAsync<WorkflowSubmissionFailedException>(() =>
-            service.EnqueueAndWaitForInitialProcessState(
-                instance,
-                new StorageVersionMetadata(InstanceVersion: 9, ProcessStateVersion: 4),
-                CreateProcessStateChange(instance)
-            )
-        );
-
-        Assert.Equal(WorkflowSubmissionFailureKind.NotAccepted, exception.Kind);
-        Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
-        client.Verify(
-            c => c.GetCollection(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
-    }
-
-    [Fact]
-    public async Task EnqueueAndWaitForProcessNext_EngineIdempotencyConflictWaitsOnTheWorkflowHoldingTheKey()
-    {
-        // Another process/next on the same instance version, with another body, already enqueued the one acquire
-        // that version can have. Its outcome answers this call too. A workflow written off under the same key has
-        // released it and is not the one to wait on.
-        var instance = CreateInstance(Guid.NewGuid());
-        var versions = new StorageVersionMetadata(InstanceVersion: 3, ProcessStateVersion: 2);
-        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
-        string? idempotencyKey = null;
-        Guid existingAcquireId = Guid.NewGuid();
-        Guid continuationId = Guid.NewGuid();
-        DateTimeOffset createdAt = DateTimeOffset.UtcNow;
-        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
-        client
-            .Setup(c =>
-                c.EnqueueWorkflows(
-                    Namespace,
-                    It.IsAny<string>(),
-                    collectionKey,
-                    It.IsAny<WorkflowEnqueueRequest>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .Callback<string, string, string?, WorkflowEnqueueRequest, CancellationToken>(
-                (_, key, _, _, _) => idempotencyKey = key
-            )
-            .ThrowsAsync(new HttpRequestException("idempotency conflict", null, HttpStatusCode.Conflict));
-        client
-            .Setup(c =>
-                c.ListWorkflows(
-                    Namespace,
-                    collectionKey,
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(() =>
-                [
-                    CreateWorkflowStatus(createdAt.AddMinutes(-1), PersistentItemStatus.Abandoned) with
-                    {
-                        IdempotencyKey = idempotencyKey!,
-                    },
-                    CreateWorkflowStatus(
-                        createdAt,
-                        databaseId: existingAcquireId,
-                        steps: [CreateStep(ProcessingStatusAcquirer.Key, PersistentItemStatus.Completed)]
-                    ) with
-                    {
-                        IdempotencyKey = idempotencyKey!,
-                    },
-                    CreateWorkflowStatus(
-                        createdAt.AddMilliseconds(1),
-                        databaseId: continuationId,
-                        steps: [CreateStep(CommitProcessState.Key, PersistentItemStatus.Completed)]
-                    ),
-                ]
-            );
-        client
-            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateCollection(collectionKey, continuationId, PersistentItemStatus.Completed));
-        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
-        instanceClient
-            .Setup(c =>
-                c.GetInstanceWithStorageMetadata(
+            processNext
+                ? service.EnqueueAndWaitForProcessNext(
                     instance,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
+                    versions,
+                    "state",
+                    CreateProcessStateChange(instance),
+                    language: null
                 )
-            )
-            .ReturnsAsync(new InstanceWithStorageMetadata(instance, versions));
-        var service = CreateService(client, instanceClient.Object);
-
-        ProcessNextWorkflowResult result = await service.EnqueueAndWaitForProcessNext(
-            instance,
-            versions,
-            "state",
-            CreateProcessStateChange(instance),
-            language: null
-        );
-
-        Assert.Null(result.WorkflowFailure);
-        Assert.True(result.ProcessStateCommitted);
-        Assert.Equal($"process-next-operation-{new InstanceIdentifier(instance).InstanceGuid:N}-3", idempotencyKey);
-    }
-
-    [Fact]
-    public async Task EnqueueAndWaitForProcessNext_EngineIdempotencyConflictWithoutAWorkflowHoldingTheKeyIsNotAccepted()
-    {
-        var instance = CreateInstance(Guid.NewGuid());
-        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
-        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
-        client
-            .Setup(c =>
-                c.EnqueueWorkflows(
-                    Namespace,
-                    It.IsAny<string>(),
-                    collectionKey,
-                    It.IsAny<WorkflowEnqueueRequest>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ThrowsAsync(new HttpRequestException("idempotency conflict", null, HttpStatusCode.Conflict));
-        client
-            .Setup(c =>
-                c.ListWorkflows(
-                    Namespace,
-                    collectionKey,
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([CreateWorkflowStatus(DateTimeOffset.UtcNow)]);
-        var service = CreateService(client, Mock.Of<IInstanceClientWithStorageMetadata>());
-
-        WorkflowSubmissionFailedException exception = await Assert.ThrowsAsync<WorkflowSubmissionFailedException>(() =>
-            service.EnqueueAndWaitForProcessNext(
-                instance,
-                new StorageVersionMetadata(InstanceVersion: 3, ProcessStateVersion: 2),
-                "state",
-                CreateProcessStateChange(instance),
-                language: null
-            )
+                : service.EnqueueAndWaitForInitialProcessState(instance, versions, CreateProcessStateChange(instance))
         );
 
         Assert.Equal(WorkflowSubmissionFailureKind.NotAccepted, exception.Kind);
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
-        client.Verify(
-            c => c.GetCollection(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
     }
 
     [Fact]

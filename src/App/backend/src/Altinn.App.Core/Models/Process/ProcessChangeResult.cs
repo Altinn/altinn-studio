@@ -140,6 +140,12 @@ public enum ProcessNextState
     /// Refresh the instance and try again.
     /// </summary>
     InstanceChanged,
+
+    /// <summary>
+    /// Another call on the same instance version had already submitted a different transition, so this call did
+    /// nothing. Refresh the instance and try again.
+    /// </summary>
+    ConcurrentTransition,
 }
 
 /// <summary>

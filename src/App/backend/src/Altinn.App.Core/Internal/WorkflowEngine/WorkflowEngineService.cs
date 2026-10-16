@@ -85,7 +85,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     notification,
                     language
                 ),
-            joinExistingOnDuplicate: false,
             cancellationToken
         );
 
@@ -107,23 +106,15 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     CreateProcessNextIdempotencyKey(instance, instanceVersions),
                     language
                 ),
-            joinExistingOnDuplicate: true,
             cancellationToken
         );
 
     /// <param name="instance">The instance the workflow is enqueued for.</param>
     /// <param name="createEnvelope">Builds the enqueue request.</param>
-    /// <param name="joinExistingOnDuplicate">
-    /// Whether a workflow already accepted under the same idempotency key with a different body answers this call
-    /// too. True for process/next: the key is the instance version, so another call made on the same version (another
-    /// action, or another caller's snapshot) already started the one acquire that version can have, and its outcome
-    /// is this call's outcome.
-    /// </param>
     /// <param name="cancellationToken">Cancels the enqueue and the wait.</param>
     private async Task<ProcessNextWorkflowResult> EnqueueAndWaitForWorkflow(
         Instance instance,
         Func<Task<WorkflowEnqueueEnvelope>> createEnvelope,
-        bool joinExistingOnDuplicate,
         CancellationToken cancellationToken
     )
     {
@@ -153,21 +144,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         }
         catch (Exception exception) when (IsDefinitiveNotAccepted(exception, out HttpStatusCode? statusCode))
         {
-            if (
-                joinExistingOnDuplicate
-                && statusCode == HttpStatusCode.Conflict
-                && await FindWorkflowByIdempotencyKey(bundle, collectionKey, cancellationToken)
-                    is { } existingWorkflowId
-            )
-            {
-                return await WaitForWorkflowCollectionAndRefetchInstance(
-                    instance,
-                    collectionKey,
-                    sinceWorkflowId: existingWorkflowId,
-                    cancellationToken
-                );
-            }
-
+            // A 409 means another call on the same instance version already submitted a different transition.
             throw WorkflowSubmissionFailedException.NotAccepted(
                 "Workflow engine rejected the process-next workflow before accepting it.",
                 statusCode,
@@ -444,32 +421,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
 
         return (response.Workflows[0].DatabaseId, effectiveCollectionKey);
-    }
-
-    /// <summary>
-    /// Finds the workflow the engine holds under the envelope's idempotency key. An abandoned workflow has released its
-    /// key, so only one that has not been written off counts.
-    /// </summary>
-    private async Task<Guid?> FindWorkflowByIdempotencyKey(
-        WorkflowEnqueueEnvelope bundle,
-        string collectionKey,
-        CancellationToken cancellationToken
-    )
-    {
-        IReadOnlyList<WorkflowStatusResponse> workflows = await _workflowEngineClient.ListWorkflows(
-            bundle.Namespace,
-            collectionKey: collectionKey,
-            cancellationToken: cancellationToken
-        );
-
-        return workflows
-            .Where(workflow =>
-                workflow.IdempotencyKey == bundle.IdempotencyKey
-                && workflow.OverallStatus != PersistentItemStatus.Abandoned
-            )
-            .OrderByDescending(workflow => workflow.CreatedAt)
-            .Select(workflow => (Guid?)workflow.DatabaseId)
-            .FirstOrDefault();
     }
 
     /// <summary>

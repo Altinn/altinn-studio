@@ -5189,6 +5189,7 @@ namespace Altinn.App.Core.Models.Process
         Retrying = 0,
         ResumeRequired = 1,
         InstanceChanged = 2,
+        ConcurrentTransition = 3,
     }
     public class ProcessStartRequest
     {

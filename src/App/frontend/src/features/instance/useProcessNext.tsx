@@ -27,7 +27,7 @@ import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 type ProcessNextProblemDetails = ProblemDetails & {
   validationIssues?: BackendValidationIssue[] | null;
-  processNextState?: 'retrying' | 'resumeRequired' | 'instanceChanged';
+  processNextState?: 'retrying' | 'resumeRequired' | 'instanceChanged' | 'concurrentTransition';
   workflowFailure?: IProcessWorkflowFailure;
 };
 
@@ -243,6 +243,10 @@ function useRefreshProcess() {
 
 // Server error details are for logs; users receive a localized retry message.
 function getProcessErrorTextId(error: HttpClientError<ProcessNextProblemDetails | undefined>) {
+  if (error.response?.data?.processNextState === 'concurrentTransition') {
+    return 'process_error.concurrent_transition';
+  }
+
   if ((error.response?.status ?? 0) >= 500) {
     return 'process_error.submit_error_please_retry';
   }

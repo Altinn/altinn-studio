@@ -149,6 +149,29 @@ describe('useProcessNext workflow error convergence', () => {
     expect(screen.getByRole('button', { name: 'submit-probe' })).toBeInTheDocument();
   });
 
+  it('a 409 for a concurrent transition shows its localized message instead of its detail', async () => {
+    vi.spyOn(window, 'logError').mockImplementation(() => {});
+    const user = userEvent.setup();
+    await renderFailingProcessNext(
+      {
+        title: 'Concurrent process transition attempt.',
+        detail: 'Another process transition was submitted from the same instance version.',
+        processNextState: 'concurrentTransition',
+      },
+      409,
+      { status: 'idle' },
+    );
+
+    await user.click(screen.getByRole('button', { name: 'submit-probe' }));
+
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({ props: { id: 'process_error.concurrent_transition' } }),
+        expect.objectContaining({ type: 'error' }),
+      ),
+    );
+  });
+
   it('a bodiless timeout uses the refetched processing state instead of showing a toast', async () => {
     vi.spyOn(window, 'logError').mockImplementation(() => {});
     const user = userEvent.setup();

@@ -1475,6 +1475,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         using JsonDocument document = JsonDocument.Parse(responseContent);
         document.RootElement.GetProperty("title").GetString().Should().Be("Concurrent process transition attempt.");
         document.RootElement.GetProperty("detail").GetString().Should().Contain("Refresh");
+        document.RootElement.GetProperty("processNextState").GetString().Should().Be("concurrentTransition");
     }
 
     private HttpClient GetClientWithProcessEngine(

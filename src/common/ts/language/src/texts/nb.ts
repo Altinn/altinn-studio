@@ -489,6 +489,8 @@ export function nb() {
       'Noe gikk galt under innsendingen, prøv igjen om noen minutter.',
     'process_error.instance_changed':
       'Skjemaet ble endret mens du sendte det inn, så det ble ikke sendt. Se over skjemaet og prøv igjen.',
+    'process_error.concurrent_transition':
+      'Skjemaet ble sendt inn fra et annet sted samtidig, så innsendingen din ble ikke sendt. Se over skjemaet og prøv igjen.',
     'process_workflow.failed_heading': 'Noe gikk galt',
     'process_workflow.failed_description':
       'Vi klarte ikke å fullføre behandlingen av skjemaet ditt, og feilen retter seg ikke av seg selv. Du må ta kontakt for å få hjelp til å komme videre.',

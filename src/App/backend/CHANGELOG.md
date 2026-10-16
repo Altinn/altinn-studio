@@ -25,9 +25,9 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: the data API returns its errors as JSON, and the `JsonObjectInDataResponse` feature flag is removed. `studioctl app upgrade v9` removes the flag from the app. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
   - the obsolete `POST .../data?dataType=` returns a list of validation issues
   - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
-- `PUT .../process/next` with concurrent changes to the instance:
-    - when the instance changed after the call read it, the call answers `409 Conflict` with `processNextState: "instanceChanged"` and does nothing; try again
-    - a call made while an earlier one has not started yet, or on the same instance version as an earlier one, waits for it instead of being refused
+- `PUT .../process/next` with concurrent changes to the instance: ([#21043](https://github.com/Altinn/altinn-studio/pull/21043))
+    - answers `409 Conflict` and does nothing if the instance changed after the call read it (`processNextState: "instanceChanged"`) or another call chose differently on the same version (`"concurrentTransition"`); try again
+    - waits for an earlier call that has not started yet, or that made the same choice on the same version
 - Breaking: a direct `IDataClient` call in an `IProcessExclusiveGateway` now acts as the user calling `PUT .../process/next`, not as the app. Read data through the `IInstanceDataAccessor` that `Filter` gets instead, which reads as the app.
 
 
