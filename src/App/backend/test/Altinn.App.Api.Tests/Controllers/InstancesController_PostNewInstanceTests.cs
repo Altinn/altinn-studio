@@ -1622,7 +1622,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         {
             services.AddSingleton(pdfMock.Object);
             services.AddSingleton(
-                new AppMetadataMutationHook(app => app.CopyInstanceSettings.IncludeAttachments = true)
+                AppFilesMutationHook.ApplicationMetadata(app => app.CopyInstanceSettings.IncludeAttachments = true)
             );
         };
         HttpClient client = GetRootedClient(org, app);
