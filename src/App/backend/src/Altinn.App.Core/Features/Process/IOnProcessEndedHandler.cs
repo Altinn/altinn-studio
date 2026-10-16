@@ -43,4 +43,9 @@ public sealed class OnProcessEndedContext
     /// Cancellation token for the hook execution.
     /// </summary>
     public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
+
+    /// <summary>
+    /// Side effects to start once this hook's work is saved, such as sending something to an external system and waiting for the outcome. See <see cref="SideEffectStarter"/>.
+    /// </summary>
+    public SideEffectStarter SideEffects { get; init; } = new();
 }

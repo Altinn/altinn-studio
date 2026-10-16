@@ -30,7 +30,7 @@ public class ProcessStepOptionsResolverTests
             [
                 // Only its DefaultStepOptions are read here; nothing executes.
                 new ExecuteServiceTask(appImplFactory, TestMailboxDeliveryEnvelope.Create()),
-                new ExecuteSideEffect([]),
+                new ExecuteSideEffect(appImplFactory, TestMailboxDeliveryEnvelope.Create()),
             ],
             appImplFactory
         );
@@ -578,8 +578,8 @@ public class ProcessStepOptionsResolverTests
     {
         ProcessStepOptionsResolver resolver = CreateResolverWithTwoExchanges();
 
-        StepRequest resolved = WorkflowCommandSet
-            .CreateItemStep("exchanges", itemIndex: 1)
+        StepRequest resolved = new PipelineHost.ServiceTask("exchanges")
+            .CreateItemStep(itemIndex: 1, itemOptions: null)
             .ApplyStepOptions(resolver, taskId: null, serviceTaskType: "exchanges");
 
         Assert.Equal(TimeSpan.FromHours(2), resolved.Command.MaxExecutionTime);

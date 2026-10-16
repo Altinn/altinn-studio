@@ -67,19 +67,22 @@ WorkflowEngine/
 │                          IServiceTaskReplyForwarder implementation), MailboxRelay
 │                          (with MailboxContinuation, MailboxHandover and MailboxTarget together in
 │                          MailboxContinuation.cs — the mailbox saga in two files), and the two
-│                          exceptions (callback-state → 422, submission-failed), and PipelineValuesCarry
-│                          (moves a pipeline's values between the carry and the step that runs an item)
+│                          exceptions (callback-state → 422, submission-failed), PipelineHost (what a
+│                          pipeline runs for: service task or side effect), PipelineValuesCarry (a pipeline's
+│                          values between the carry and its steps), and SideEffectStarts + SideEffectEnqueuer
+│                          (side effects app code started, from the carry to the engine)
 ├── Authentication/      - Callback JWT subsystem: scheme constant, token generator/validator,
 │                          rotation-aware secret provider, startup AppCodes validation
 ├── Commands/            - One class per command; grouped as _Base/ (interface, typed-payload base,
 │                          context/result types, CommandPayload polymorphic serialization,
 │                          ProcessTaskResolver), ProcessNext/{TaskStart,TaskEnd,TaskAbandon,ProcessEnd}/,
 │                          AltinnEvents/, plus root-level ExecuteServiceTask,
-│                          ExecuteSideEffect, AcquireProcessingStatus, MutateProcessState,
+│                          ExecuteSideEffect, PipelineItemRunner (the dispatch both share),
+│                          AcquireProcessingStatus, MutateProcessState,
 │                          CommitProcessState, EnqueueSideEffectsWorkflow, MintMailbox
 ├── DependencyInjection/ - AddWorkflowEngineIntegration() + startup check that every key in
 │                          WorkflowCommandSet is registered
-├── SideEffects/         - Built-in side-effect pipelines (ISideEffectPipeline), such as
+├── SideEffects/         - Built-in side-effect pipelines (ISideEffect), such as
 │                          NotifyInstanceOwnerOnInstantiation
 ├── Http/                - IWorkflowEngineClient + typed-HttpClient impl (paginates ListWorkflows,
 │                          mints, closes and delivers into mailboxes), MailboxMintResult,
@@ -280,28 +283,45 @@ subscribers never learn of the transition — so this class must be monitored ex
 
 ### Side-effect pipelines
 
-A side effect that sends a request and then waits for the outcome is an `ISideEffectPipeline` (internal for now,
-registered in `AddWorkflowEngineIntegration`; built-ins live in `SideEffects/`). It composes the same
-`ServiceTaskPipelineBuilder` a service task does, and `WorkflowCommandSet.AddSideEffectPipeline` expands it into
-**one side-effects workflow with one `ExecuteSideEffect` step per item** (OperationId `ExecuteSideEffect: {index}`;
-the workflow's OperationId ends with the side effect's name). So a completed stage never runs again, the
-conclusion can `Defer` against a wait budget of its own (the engine's wait clock is per step), and the transition
-never waits on any of it.
+A side effect that sends a request and then waits for the outcome is an `ISideEffect` (public,
+`[ImplementableByApps]`, registered `AddTransient<ISideEffect, …>`; built-ins live in `SideEffects/`). It composes
+the same `ServiceTaskPipelineBuilder` a service task does and runs the same way: the pipeline's first segment rides
+a side-effects workflow of its own (`WorkflowCommandSet.PlanSegment` with a `PipelineHost.SideEffect`), each item
+is an `ExecuteSideEffect` step (OperationId `ExecuteSideEffect: {index}`; the workflow's OperationId ends with the
+side effect's name), and a mailbox-opening stage hands its later segments to `MailboxRelay` exactly as a service
+task's does. The conclusion can `Defer` against a wait budget of its own (the engine's wait clock is per step), and
+the process never waits on any of it.
 
-- **Input** rides every step's payload (`ExecuteSideEffectPayload.Arguments`, read through the internal
-  `ServiceTaskContext.Arguments`): nothing else in the commit-time state holds what the transition was asked
-  for, such as the instantiation notification.
-- **Rules** `ExecuteSideEffect` enforces: no instance data changes (the workflow runs on the commit-time state
-  while the process moves on, so a save would race it — hand values on with `ServiceTaskContext.Values`
-  instead), `Success` without a process action, and only plain stages and a `Finally` — no mailbox yet.
-  `ServiceTaskRegistrationValidator` checks names and shapes at startup, and the expansion refuses a mailbox
-  item.
-- **Options** are read from the pipeline item when the side effect is planned and travel on
-  `StepRequest.StageOptions`, the same channel a process task's lifecycle stages use;
-  `ProcessStepOptionsResolver` (a singleton) uses them as tier 3 rather than resolving the side effect. `ISideEffectPipeline` is not app-implementable, so it is injected as
-  `IEnumerable<ISideEffectPipeline>` rather than looked up through `AppImplementationFactory` (`ALTINNINT0004`).
-- **Failures** are a side-effects workflow failure like any other (see the section above): retried per the
-  step's strategy, then terminal and visible to ops.
+- **One dispatch, two hosts.** `PipelineHost` (`ServiceTask(type)` / `SideEffect(name, input)`) is the only place the
+  two differ: how steps are created (`ExecuteServiceTask` resolved by index vs `ExecuteSideEffect` carrying its
+  item's options on `StepRequest.StageOptions`), the mint payload (`MintMailboxPayload.SideEffect`), the mailbox owner
+  bound into deliveries, failure wording and reason codes, and whether successor workflows hold up the process. A
+  service task's receivers and continuations are heads depending on the current head; a side effect's are
+  independent roots (`IsHead = false`, `DependsOnHeads = false`) linked to the workflow that enqueued them. A service
+  task's conclusion moves the process on; a side effect's only closes its mailboxes (`MailboxRelay.Concluded`), and a
+  conclusion naming a process action is refused (`SideEffectActionUnsupported`). `PipelineItemRunner` holds the
+  dispatch both commands share.
+- **Input** rides every step's payload (`ExecuteSideEffectPayload.Input`), serialized by `SideEffectInput` (System.Text.Json
+  web defaults) and read with `ServiceTaskContext.GetInput<T>()`.
+- **No saves.** `ExecuteSideEffect` refuses data changes (`SideEffectChangedInstanceData`), and every command that
+  runs as a side effect (`IWorkflowEngineCommand.RunsAsSideEffect`: `ExecuteSideEffect` and the three event
+  registrations) is never saved for by the controller. It runs on the commit-time state while the process keeps
+  saving, so a save would be refused as stale or race the process's own next save — and a save happens more often
+  than it looks: the derived `dataValues`/`presentationTexts` updates can make an otherwise empty callback save.
+- **Starting from app code.** Hooks, process tasks, service task stages and side effects start side effects with
+  `context.SideEffects.Start<T>(input)` (`SideEffectStarter`). On success the producing command resolves them to the
+  registered name (`SideEffectStarts.Record`, permanent `SideEffectNotRegistered` otherwise) and records them as
+  `pendingSideEffects` in the carry. The controller drains and enqueues them after the save of a command that
+  `EnqueuesStartedSideEffects` — `CommitProcessState` for everything started before the commit, and the post-commit
+  producers (`ExecuteServiceTask`, `ExecuteSideEffect`, `OnProcessEndedHook`) for their own — through
+  `SideEffectEnqueuer`, idempotent on `{stepId}:started-side-effects`. Pre-commit producers never drain, so what they
+  start exists if and only if the transition is saved. A step that starts something and then defers fails
+  (`SideEffectsStartedOnDeferral`), as for values.
+- **Options** come from the item (`Stage`/`Finally`/`HandleReplies` options) on `StepRequest.StageOptions`, the same
+  channel a process task's lifecycle stages use; `ProcessStepOptionsResolver` (a singleton) takes them as tier 3. A
+  successor receiver's handler options travel on `MailboxContinuation.AwaitNextMessage.HandlerOptions`.
+- **Failures** are a side-effects workflow failure like any other (see the section above): retried per the step's
+  strategy, then terminal and visible to ops.
 
 ### Task-Start Cleanup Ordering
 
@@ -431,7 +451,7 @@ Each callback needs the app's workflow callback state (`instance` + storage vers
 
 ### Forwarding a received message
 
-`IServiceTaskReplyForwarder` (public; `ServiceTaskReplyForwarder` behind it, registered transient — the xmldoc tells subscribers to resolve it per message from a scope) is how an external system's answer reaches the mailbox waiting for it. It takes the **mailbox id** the system echoed back, the **service task type** whose handler reads the message, the body, and the source's **own message id**; it seals the body into a `MailboxDeliveryEnvelope` and `POST`s the delivery with that message id as the engine's `idempotencyKey` — the same value the handler reads back as `ServiceTaskReply.IdempotencyKey`, so the platform's deduplication and the handler's are about one string. **There is no lookup and no round trip:** the receive workflow's shape (its handler, its step options) was declared by the app-lib at receiver-enqueue time, so a delivery is an address, a key and a body — and the service task type is _supplied by the caller_ rather than derived, because a derivation can be wrong at signing time and then sign its own mistake, producing an envelope that verifies perfectly against the wrong handler (a defect recorded against an earlier design of this feature). **The envelope's domain (`SigningPurpose.MailboxDeliveryV1`) binds the mailbox id, the service task type and the idempotency key**, each closing one move available to a holder of engine API credentials: re-delivering a captured message into another mailbox, enqueueing a receiver against _this_ mailbox that names another task's handler, and re-delivering the same envelope under a fresh key. The tag is **length-prefixed** (counting `String.Length`, the unit it is written in) so two free-form fields cannot be re-split; the state-blob domain stays **underived** so in-flight blobs survive. `ExecuteServiceTask` unwraps at the receiving end using the three values the _delivered_ callback carries — a payload that does not open is a permanent `MailboxDeliveryEnvelopeInvalid` and the handler never runs, because the bytes at that position never change. **The status mapping lives in the forwarder and nowhere else**: `202`/`200` are both success (the source redelivering, and a retry of the forwarding call itself), `404` is `Unroutable`, `409` is `Late` — _always_ too late, never too early, since deliveries precede receivers happily and the engine has no "too early" answer — `413` is `PayloadTooLarge`, `429` is `MailboxFull`, any other 4xx is `Rejected`, and anything else is `EngineUnavailable`. Only `EngineUnavailable` and `SigningUnavailable` are `IsTransient`: a mailbox's log length never goes back down, and a closed mailbox never reopens. The forwarder **never pre-checks the mailbox's status**, because the engine looks up the idempotency key before its closed check — so a message it already holds replays as `200` even after closure, and a pre-check would dead-letter a message still waiting for its receiver. **The worked example in-tree is Fiks Arkiv** (`Altinn.App.Clients.Fiks`), the feature's first consumer: `FiksArkivServiceTask` opens the mailbox from its `SendToArchive` stage and publishes its id as the outbound message's `klientKorrelasjonsId` — the one Fiks IO field a reply echoes back — and `FiksArkivSubscriber.IncomingMessageListener` reads that echo, decrypts the payloads and forwards them, doing nothing else with the message. Two shapes there are worth copying: the subscriber decides Fiks IO redelivery from `Outcome` per case rather than from `IsTransient` alone, so every verdict is stated rather than defaulted; and its reply-address round trip is pinned by taking the wire value off the _real_ outbound request and echoing that back, because a test that builds its own echo passes whichever field the send wrote it to
+`IServiceTaskReplyForwarder` (public; `ServiceTaskReplyForwarder` behind it, registered transient — the xmldoc tells subscribers to resolve it per message from a scope) is how an external system's answer reaches the mailbox waiting for it. It takes the **mailbox id** the system echoed back, the **owner** whose handler reads the message (`MailboxOwner`: a service task's type, or a side effect's name — the opening stage is handed it on `ServiceTaskMailbox.Owner`), the body, and the source's **own message id**; it seals the body into a `MailboxDeliveryEnvelope` and `POST`s the delivery with that message id as the engine's `idempotencyKey` — the same value the handler reads back as `ServiceTaskReply.IdempotencyKey`, so the platform's deduplication and the handler's are about one string. **There is no lookup and no round trip:** the receive workflow's shape (its handler, its step options) was declared by the app-lib at receiver-enqueue time, so a delivery is an address, a key and a body — and the owner is _supplied by the caller_ rather than derived, because a derivation can be wrong at signing time and then sign its own mistake, producing an envelope that verifies perfectly against the wrong handler (a defect recorded against an earlier design of this feature). **The envelope's domain (`SigningPurpose.MailboxDeliveryV1`) binds the mailbox id, the owner key (a service task's bare type, so its envelopes are byte-identical to before side effects could own a mailbox; `sideEffect:{name}` for a side effect) and the idempotency key**, each closing one move available to a holder of engine API credentials: re-delivering a captured message into another mailbox, enqueueing a receiver against _this_ mailbox that names another task's handler, and re-delivering the same envelope under a fresh key. The tag is **length-prefixed** (counting `String.Length`, the unit it is written in) so two free-form fields cannot be re-split; the state-blob domain stays **underived** so in-flight blobs survive. `ExecuteServiceTask` unwraps at the receiving end using the three values the _delivered_ callback carries — a payload that does not open is a permanent `MailboxDeliveryEnvelopeInvalid` and the handler never runs, because the bytes at that position never change. **The status mapping lives in the forwarder and nowhere else**: `202`/`200` are both success (the source redelivering, and a retry of the forwarding call itself), `404` is `Unroutable`, `409` is `Late` — _always_ too late, never too early, since deliveries precede receivers happily and the engine has no "too early" answer — `413` is `PayloadTooLarge`, `429` is `MailboxFull`, any other 4xx is `Rejected`, and anything else is `EngineUnavailable`. Only `EngineUnavailable` and `SigningUnavailable` are `IsTransient`: a mailbox's log length never goes back down, and a closed mailbox never reopens. The forwarder **never pre-checks the mailbox's status**, because the engine looks up the idempotency key before its closed check — so a message it already holds replays as `200` even after closure, and a pre-check would dead-letter a message still waiting for its receiver. **The worked example in-tree is Fiks Arkiv** (`Altinn.App.Clients.Fiks`), the feature's first consumer: `FiksArkivServiceTask` opens the mailbox from its `SendToArchive` stage and publishes its id as the outbound message's `klientKorrelasjonsId` — the one Fiks IO field a reply echoes back — and `FiksArkivSubscriber.IncomingMessageListener` reads that echo, decrypts the payloads and forwards them, doing nothing else with the message. Two shapes there are worth copying: the subscriber decides Fiks IO redelivery from `Outcome` per case rather than from `IsTransient` alone, so every verdict is stated rather than defaulted; and its reply-address round trip is pinned by taking the wire value off the _real_ outbound request and echoing that back, because a test that builds its own echo passes whichever field the send wrote it to
 
 ## Interaction with Workflow Engine Service
 

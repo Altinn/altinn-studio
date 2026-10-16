@@ -63,6 +63,9 @@ public class ProcessNextRequestFactoryTests
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
+        services.AddSingleton<ISideEffect>(
+            new NotifyInstanceOwnerOnInstantiation(Mock.Of<INotificationService>(), Mock.Of<IAltinnPartyClient>())
+        );
         foreach (IPipelineServiceTask st in serviceTasks)
         {
             services.AddSingleton(st);
@@ -94,8 +97,7 @@ public class ProcessNextRequestFactoryTests
             TestAppIdentifier,
             appSettings,
             callbackTokenGenerator ?? callbackTokenGeneratorMock.Object,
-            stepOptionsResolver,
-            [new NotifyInstanceOwnerOnInstantiation(Mock.Of<INotificationService>(), Mock.Of<IAltinnPartyClient>())]
+            stepOptionsResolver
         );
     }
 
@@ -1991,7 +1993,10 @@ public class ProcessNextRequestFactoryTests
         Assert.NotNull(payload);
         Assert.Equal(NotifyInstanceOwnerOnInstantiation.SideEffectName, payload.SideEffect);
         Assert.Equal(0, payload.ItemIndex);
-        InstantiationNotification? carried = JsonSerializer.Deserialize<InstantiationNotification>(payload.Arguments!);
+        InstantiationNotification? carried = JsonSerializer.Deserialize<InstantiationNotification>(
+            payload.Input!,
+            JsonSerializerOptions.Web
+        );
         Assert.NotNull(carried);
         Assert.Equal(NotificationChannel.Sms, carried.NotificationChannel);
         Assert.Equal("nn", carried.Language);

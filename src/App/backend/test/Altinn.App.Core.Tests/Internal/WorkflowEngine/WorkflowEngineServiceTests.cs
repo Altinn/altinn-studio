@@ -2334,8 +2334,7 @@ public class WorkflowEngineServiceTests
             new AppIdentifier(Org, App),
             Options.Create(new AppSettings()),
             callbackTokenGenerator.Object,
-            new ProcessStepOptionsResolver([], appImplementationFactory),
-            []
+            new ProcessStepOptionsResolver([], appImplementationFactory)
         );
     }
 

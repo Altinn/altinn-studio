@@ -57,7 +57,7 @@ public class EndTaskTests
         services.AddSingleton(processTask);
         var sp = services.BuildServiceProvider();
         var resolver = new ProcessTaskResolver(sp.GetRequiredService<AppImplementationFactory>());
-        return new EndTask(resolver);
+        return new EndTask(resolver, sp.GetRequiredService<AppImplementationFactory>());
     }
 
     [Fact]

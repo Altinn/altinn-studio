@@ -20,4 +20,11 @@ public sealed record ServiceTaskMailbox
     /// <see cref="MailboxOptions.Timeout"/></em>. Absolute: it never moves, and no message resets it.
     /// </summary>
     public required DateTimeOffset Deadline { get; init; }
+
+    /// <summary>
+    /// The pipeline that answers this mailbox. Forward replies to it with
+    /// <see cref="IServiceTaskReplyForwarder.ForwardReply"/>; a forwarder that serves more than one pipeline can
+    /// publish it with the reply address.
+    /// </summary>
+    public required MailboxOwner Owner { get; init; }
 }

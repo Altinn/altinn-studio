@@ -80,8 +80,25 @@ public sealed record ServiceTaskContext
     public PipelineValues Values { get; init; } = new();
 
     /// <summary>
-    /// The input a built-in side effect was enqueued with, serialized, or <c>null</c> when it has none. Always
-    /// <c>null</c> for a service task.
+    /// Side effects to start once this step's work is saved, such as a follow-up that should not hold up the task.
+    /// A deferring attempt must not start anything. See <see cref="SideEffectStarter"/>.
     /// </summary>
-    internal string? Arguments { get; init; }
+    public SideEffectStarter SideEffects { get; init; } = new();
+
+    /// <summary>
+    /// The input a side effect was started with, serialized, or <c>null</c> when it has none. Always <c>null</c>
+    /// for a service task.
+    /// </summary>
+    internal string? Input { get; init; }
+
+    /// <summary>
+    /// The input a side effect was started with (<c>context.SideEffects.Start&lt;TSideEffect&gt;(input)</c>), read
+    /// as <typeparamref name="T"/>, or <c>default</c> when it was started without one. A service task has no
+    /// input.
+    /// </summary>
+    /// <remarks>
+    /// The input travels as JSON with the web defaults of <c>System.Text.Json</c> (camelCase names), so read it as
+    /// the type it was started with, or as one with the same shape.
+    /// </remarks>
+    public T? GetInput<T>() => SideEffectInput.Deserialize<T>(Input);
 }

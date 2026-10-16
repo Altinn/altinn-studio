@@ -448,7 +448,7 @@ public class ExecuteServiceTaskReplyTests
             new AppIdentifier("ttd", "test-app"),
             NullLogger<ServiceTaskReplyForwarder>.Instance
         );
-        await forwarder.ForwardReply(mailboxId, "archiving", forwardedBody, sourceMessageId);
+        await forwarder.ForwardReply(mailboxId, MailboxOwner.ServiceTask("archiving"), forwardedBody, sourceMessageId);
 
         var task = new ArchivingTask();
         AppCallbackMailbox receipt = new()
@@ -586,7 +586,7 @@ public class ExecuteServiceTaskReplyTests
             success.MailboxContinuation
         );
         Assert.Equal(_mailboxId, awaiting.MailboxId);
-        Assert.Equal("archiving", awaiting.ServiceTaskType);
+        Assert.Equal(new PipelineHost.ServiceTask("archiving"), awaiting.Host);
         Assert.Equal(ArchivingReplyIndex, awaiting.HandlerItemIndex);
     }
 
@@ -681,7 +681,7 @@ public class ExecuteServiceTaskReplyTests
             success.MailboxContinuation
         );
         Assert.Equal(_mailboxId, continuing.MailboxId);
-        Assert.Equal("archiving", continuing.ServiceTaskType);
+        Assert.Equal(new PipelineHost.ServiceTask("archiving"), continuing.Host);
         // The hand-over is the segment this handler's decide planned, named for the handler it follows.
         Assert.Equal(ContinuingSegmentIndex, continuing.Handover.AfterItemIndex);
         Assert.NotEmpty(continuing.Handover.Plan.Steps);

@@ -56,16 +56,17 @@ internal readonly record struct SigningDomain
     public static SigningDomain CallbackState => new(SigningPurpose.CallbackState, binding: null);
 
     /// <summary>
-    /// Bound to the reply address (no replay into another exchange), the handler's service task (no other task
-    /// of the same app can read and conclude this exchange), and the source's message id (authenticated, and no
-    /// re-delivery under a fresh key).
+    /// Bound to the reply address (no replay into another exchange), the mailbox's owner — the handler's service
+    /// task or side effect, so no other pipeline of the same app can read and conclude this exchange — and the
+    /// source's message id (authenticated, and no re-delivery under a fresh key). A service task's owner key is
+    /// its bare type, so its messages are bound exactly as they were before side effects could own a mailbox.
     /// </summary>
-    public static SigningDomain MailboxDelivery(Guid mailboxId, string serviceTaskType, string idempotencyKey) =>
-        new(SigningPurpose.MailboxDeliveryV1, new DeliveryBinding(mailboxId, serviceTaskType, idempotencyKey));
+    public static SigningDomain MailboxDelivery(Guid mailboxId, string ownerKey, string idempotencyKey) =>
+        new(SigningPurpose.MailboxDeliveryV1, new DeliveryBinding(mailboxId, ownerKey, idempotencyKey));
 
     /// <summary>The key-derivation tag; <see langword="null"/> for a domain signing under the app-code directly.</summary>
     /// <remarks>
-    /// Length-prefixed, load-bearing: the task type and message id are free-form, so raw concatenation would
+    /// Length-prefixed, load-bearing: the owner key and message id are free-form, so raw concatenation would
     /// let <c>type "a", id "b:c"</c> and <c>type "a:b", id "c"</c> derive the same key. The prefix counts
     /// <see cref="string.Length"/> — UTF-16 code units, the unit the value is written in.
     /// </remarks>
@@ -85,12 +86,12 @@ internal readonly record struct SigningDomain
     private static string DeliveryTag(DeliveryBinding binding) =>
         string.Create(
             CultureInfo.InvariantCulture,
-            $"altinn:workflow-engine:mailbox-delivery:v1:{binding.MailboxId:N}:{binding.ServiceTaskType.Length}:{binding.ServiceTaskType}:{binding.IdempotencyKey.Length}:{binding.IdempotencyKey}"
+            $"altinn:workflow-engine:mailbox-delivery:v1:{binding.MailboxId:N}:{binding.OwnerKey.Length}:{binding.OwnerKey}:{binding.IdempotencyKey.Length}:{binding.IdempotencyKey}"
         );
 
     /// <summary>
     /// Everything a delivered message asserts that the app acts on. The position is deliberately absent: the
     /// engine assigns it at ingestion, and nothing acts on it.
     /// </summary>
-    internal sealed record DeliveryBinding(Guid MailboxId, string ServiceTaskType, string IdempotencyKey);
+    internal sealed record DeliveryBinding(Guid MailboxId, string OwnerKey, string IdempotencyKey);
 }

@@ -22,6 +22,9 @@ internal sealed class WorkflowCallbackStateCarry
     /// </summary>
     private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _values = new(StringComparer.Ordinal);
 
+    /// <summary>Side effects started before the commit, in the order they were started.</summary>
+    private readonly List<PendingSideEffect> _pendingSideEffects = [];
+
     /// <summary>The shape of every workflow that has opened no mailbox and recorded no values.</summary>
     public WorkflowCallbackStateCarry() { }
 
@@ -31,6 +34,11 @@ internal sealed class WorkflowCallbackStateCarry
     /// </summary>
     public WorkflowCallbackStateCarry(WorkflowCallbackState state)
     {
+        if (state.PendingSideEffects is { } pending)
+        {
+            _pendingSideEffects.AddRange(pending);
+        }
+
         if (state.Values is { } values)
         {
             foreach ((string pipeline, IReadOnlyDictionary<string, string> pipelineValues) in values)
@@ -154,6 +162,28 @@ internal sealed class WorkflowCallbackStateCarry
     /// Drops the values of a pipeline that has concluded, so they stop traveling with the workflows after it.
     /// </summary>
     public void RecordValuesConcluded(string pipelineKey) => _values.Remove(pipelineKey);
+
+    /// <summary>
+    /// The side effects waiting to be enqueued, in their blob shape, or <c>null</c> when none is — not an empty
+    /// list, so the blob of a workflow that starts none keeps the shape it always had.
+    /// </summary>
+    public IReadOnlyList<PendingSideEffect>? PendingSideEffects =>
+        _pendingSideEffects.Count == 0 ? null : [.. _pendingSideEffects];
+
+    /// <summary>Records side effects a step started, to be enqueued once the transition is saved.</summary>
+    public void RecordStartedSideEffects(IEnumerable<PendingSideEffect> started) =>
+        _pendingSideEffects.AddRange(started);
+
+    /// <summary>
+    /// Takes every side effect waiting to be enqueued, leaving none: the callback that enqueues them publishes a
+    /// blob that no longer carries them, so no later step enqueues them again.
+    /// </summary>
+    public IReadOnlyList<PendingSideEffect> DrainPendingSideEffects()
+    {
+        List<PendingSideEffect> drained = [.. _pendingSideEffects];
+        _pendingSideEffects.Clear();
+        return drained;
+    }
 
     /// <summary>The key a service task's pipeline records its values under.</summary>
     public static string ServiceTaskValuesKey(string serviceTaskType) => $"serviceTask:{serviceTaskType}";

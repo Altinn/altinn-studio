@@ -21,6 +21,22 @@ internal interface IWorkflowEngineCommand
     /// the command has no opinion and the engine's global defaults apply.
     /// </summary>
     ProcessStepOptions? DefaultStepOptions => null;
+
+    /// <summary>
+    /// Whether the callback controller enqueues the side effects waiting in the workflow state once this command's
+    /// work is saved. True for <c>CommitProcessState</c>, which saves the transition the steps before it started
+    /// side effects in, and for the commands that run app code after it. False (the default) for every command
+    /// that runs before the commit: what a step there starts must wait for the transition to be saved.
+    /// </summary>
+    bool EnqueuesStartedSideEffects => false;
+
+    /// <summary>
+    /// Whether the command runs in a side-effects workflow, beside the process, on the state the transition saved.
+    /// The callback controller never saves for such a command: the process may have saved since, so a save would
+    /// either be refused as stale or, worse, race the process's own next save. True for the event registrations
+    /// and <c>ExecuteSideEffect</c>.
+    /// </summary>
+    bool RunsAsSideEffect => false;
 }
 
 /// <summary>

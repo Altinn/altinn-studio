@@ -7,11 +7,13 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -27,7 +29,7 @@ public class ExecuteSideEffectTests
     private const string Name = "shipping";
 
     /// <summary>A send→check side effect whose behaviour each test scripts: the send at 0, the check at 1.</summary>
-    private sealed class ShippingSideEffect : ISideEffectPipeline
+    private sealed class ShippingSideEffect : ISideEffect
     {
         public string Name => ExecuteSideEffectTests.Name;
 
@@ -41,25 +43,70 @@ public class ExecuteSideEffectTests
             pipeline.Stage(ctx => OnSend(ctx)).Finally(ctx => OnCheck(ctx));
     }
 
-    private sealed class MailboxSideEffect : ISideEffectPipeline
+    /// <summary>A send→receive side effect: the stage at 0 opens a mailbox, the terminal at 1 answers it.</summary>
+    private sealed class MailboxSideEffect : ISideEffect
     {
         public string Name => ExecuteSideEffectTests.Name;
+
+        public ServiceTaskMailbox? Opened { get; private set; }
+
+        public Func<ServiceTaskReply, ServiceTaskExchangeResult> OnMessage { get; init; } =
+            _ => ServiceTaskResult.Success();
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
                 .Stage(
-                    (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
+                    (_, mailbox) =>
+                    {
+                        Opened = mailbox;
+                        return Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+                    },
                     new MailboxOptions { Timeout = TimeSpan.FromDays(1) },
                     out MailboxHandle handle
                 )
                 .ConcludeOnReplies(
                     handle,
-                    (_, _) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success()),
+                    (_, reply) => Task.FromResult(OnMessage(reply)),
                     (_, _) => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())
                 );
     }
 
-    private static ExecuteSideEffect CreateCommand(params ISideEffectPipeline[] sideEffects) => new(sideEffects);
+    private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
+
+    private static readonly MailboxDeliveryEnvelope _envelope = TestMailboxDeliveryEnvelope.Create();
+
+    private static AppCallbackMailbox Delivered(string ownerKey) =>
+        new()
+        {
+            Id = _mailboxId,
+            Seq = 0,
+            Delivery = new AppCallbackMailboxDelivery
+            {
+                IdempotencyKey = "receipt-1",
+                Payload = _envelope.Wrap("<receipt>ok</receipt>", _mailboxId, ownerKey, "receipt-1"),
+                AcceptedAt = new DateTimeOffset(2026, 8, 19, 9, 30, 0, TimeSpan.Zero),
+            },
+        };
+
+    private static ProcessEngineCommandContext WithMailbox(
+        ProcessEngineCommandContext context,
+        AppCallbackMailbox mailbox
+    ) => context with { Payload = context.Payload with { Mailbox = mailbox } };
+
+    private static ExecuteSideEffect CreateCommand(params ISideEffect[] sideEffects)
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<AppImplementationFactory>();
+        foreach (ISideEffect sideEffect in sideEffects)
+        {
+            services.AddSingleton(sideEffect);
+        }
+
+        return new ExecuteSideEffect(
+            services.BuildServiceProvider().GetRequiredService<AppImplementationFactory>(),
+            _envelope
+        );
+    }
 
     private static Instance CreateInstance() =>
         new()
@@ -105,8 +152,8 @@ public class ExecuteSideEffectTests
         };
     }
 
-    private static ExecuteSideEffectPayload Payload(int? itemIndex, string? arguments = null) =>
-        new(Name, itemIndex, arguments);
+    private static ExecuteSideEffectPayload Payload(int? itemIndex, string? input = null) =>
+        new(Name, itemIndex, input);
 
     private static string ValuesKey => WorkflowCallbackStateCarry.SideEffectValuesKey(Name);
 
@@ -218,22 +265,25 @@ public class ExecuteSideEffectTests
         Assert.Equal(nameof(HttpRequestException), failed.ExceptionType);
     }
 
+    private sealed record Recipient(string To, int Attempt);
+
     [Fact]
-    public async Task Execute_ArgumentsReachTheWork()
+    public async Task Execute_TheInputItWasStartedWith_IsReadBack()
     {
-        string? seen = null;
+        Recipient? seen = null;
         var sideEffect = new ShippingSideEffect
         {
             OnSend = context =>
             {
-                seen = context.Arguments;
+                seen = context.GetInput<Recipient>();
                 return Task.FromResult(ServiceTaskStageResult.Completed());
             },
         };
 
-        await CreateCommand(sideEffect).Execute(CreateContext(), Payload(0, arguments: "{\"to\":\"owner\"}"));
+        await CreateCommand(sideEffect)
+            .Execute(CreateContext(), Payload(0, input: SideEffectInput.Serialize(new Recipient("owner", 2))));
 
-        Assert.Equal("{\"to\":\"owner\"}", seen);
+        Assert.Equal(new Recipient("owner", 2), seen);
     }
 
     [Fact]
@@ -335,15 +385,71 @@ public class ExecuteSideEffectTests
         Assert.Equal("SideEffectChangedInstanceData", failed.ExceptionType);
     }
 
+    /// <summary>
+    /// A side effect opens a mailbox the way a service task does: the stage is handed the minted mailbox, owned
+    /// by the side effect, and completing it hands the receive leg to the relay, for the side effect.
+    /// </summary>
     [Fact]
-    public async Task Execute_MailboxItem_FailsPermanently()
+    public async Task MailboxOpeningStage_IsHandedItsMailbox_AndHandsTheReceiveLegToTheRelay()
     {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(0, _mailboxId, new DateTimeOffset(2026, 8, 20, 9, 0, 0, TimeSpan.Zero));
+        var sideEffect = new MailboxSideEffect();
+
+        ProcessEngineCommandResult result = await CreateCommand(sideEffect)
+            .Execute(CreateContext(carry), Payload(0, input: "{}"));
+
+        Assert.Equal(_mailboxId, sideEffect.Opened?.Id);
+        Assert.Equal(MailboxOwner.SideEffect(Name), sideEffect.Opened?.Owner);
+        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.Null(success.ProcessNextContinuation);
+        var continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(success.MailboxContinuation);
+        Assert.Equal(new PipelineHost.SideEffect(Name, "{}"), continuing.Host);
+        Assert.Equal(_mailboxId, continuing.Handover.Target?.MailboxId);
+        Assert.Equal([$"{ExecuteSideEffect.Key}: 1"], continuing.Handover.Plan.Steps.Select(s => s.OperationId));
+    }
+
+    [Fact]
+    public async Task Reply_ThatConcludes_ClosesTheMailboxWithoutMovingTheProcess()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(0, _mailboxId, new DateTimeOffset(2026, 8, 20, 9, 0, 0, TimeSpan.Zero));
+
         ProcessEngineCommandResult result = await CreateCommand(new MailboxSideEffect())
-            .Execute(CreateContext(), Payload(0));
+            .Execute(WithMailbox(CreateContext(carry), Delivered(MailboxOwner.SideEffect(Name).Key)), Payload(1));
+
+        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.Null(success.ProcessNextContinuation);
+        var conclude = Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation);
+        Assert.Equal([_mailboxId], conclude.MailboxIds);
+        Assert.Null(carry.FindMailbox(0));
+    }
+
+    [Fact]
+    public async Task Reply_ThatConcludesWithAnAction_IsRefused_AndStillClosesTheMailbox()
+    {
+        var sideEffect = new MailboxSideEffect { OnMessage = _ => ServiceTaskResult.Success("reject") };
+
+        ProcessEngineCommandResult result = await CreateCommand(sideEffect)
+            .Execute(WithMailbox(CreateContext(), Delivered(MailboxOwner.SideEffect(Name).Key)), Payload(1));
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("SideEffectItemUnsupported", failed.ExceptionType);
+        Assert.Equal("SideEffectActionUnsupported", failed.ExceptionType);
+        var conclude = Assert.IsType<MailboxContinuation.Conclude>(failed.MailboxContinuation);
+        Assert.Equal([_mailboxId], conclude.MailboxIds);
+    }
+
+    /// <summary>A message forwarded for a service task of the same name is not one the side effect can read.</summary>
+    [Fact]
+    public async Task Reply_ForwardedForAServiceTask_IsRefused()
+    {
+        ProcessEngineCommandResult result = await CreateCommand(new MailboxSideEffect())
+            .Execute(WithMailbox(CreateContext(), Delivered(MailboxOwner.ServiceTask(Name).Key)), Payload(1));
+
+        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("MailboxDeliveryEnvelopeInvalid", failed.ExceptionType);
     }
 
     [Fact]
@@ -377,19 +483,6 @@ public class ExecuteSideEffectTests
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
         Assert.Contains($"'{Name}'", failed.ErrorMessage, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void FindUnsupportedItem_AcceptsStagesAndAFinally_AndNamesAMailbox()
-    {
-        Assert.Null(
-            ExecuteSideEffect.FindUnsupportedItem(new ShippingSideEffect().Define(new ServiceTaskPipelineBuilder()))
-        );
-        Assert.Contains(
-            "opens a mailbox",
-            ExecuteSideEffect.FindUnsupportedItem(new MailboxSideEffect().Define(new ServiceTaskPipelineBuilder())),
-            StringComparison.Ordinal
-        );
     }
 
     private static InstanceDataUnitOfWork CreateUnitOfWork(Instance instance)

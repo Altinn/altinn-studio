@@ -228,7 +228,7 @@ public class FiksArkivSubscriberTest
             .Setup(x =>
                 x.ForwardReply(
                     It.IsAny<Guid>(),
-                    It.IsAny<string>(),
+                    It.IsAny<MailboxOwner>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -308,15 +308,15 @@ public class FiksArkivSubscriberTest
             .Setup(x =>
                 x.ForwardReply(
                     It.IsAny<Guid>(),
-                    It.IsAny<string>(),
+                    It.IsAny<MailboxOwner>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
             )
             .Callback(
-                (Guid mailboxId, string serviceTaskType, string payload, string idempotencyKey, CancellationToken _) =>
-                    recorded.Add((mailboxId, serviceTaskType, payload, idempotencyKey))
+                (Guid mailboxId, MailboxOwner owner, string payload, string idempotencyKey, CancellationToken _) =>
+                    recorded.Add((mailboxId, owner.ToString(), payload, idempotencyKey))
             )
             .Returns(Task.CompletedTask);
         return forwarder;

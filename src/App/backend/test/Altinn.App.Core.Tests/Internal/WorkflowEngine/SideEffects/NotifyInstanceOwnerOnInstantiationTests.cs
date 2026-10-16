@@ -1,6 +1,7 @@
 using System.Net;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Notifications;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -10,6 +11,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.SideEffects;
@@ -55,17 +57,20 @@ public class NotifyInstanceOwnerOnInstantiationTests
             },
         };
 
-        var sideEffect = new NotifyInstanceOwnerOnInstantiation(_notificationService.Object, _partyClient.Object);
-        return new ExecuteSideEffect([sideEffect]).Execute(
+        var services = new ServiceCollection();
+        services.AddSingleton<AppImplementationFactory>();
+        services.AddSingleton<ISideEffect>(
+            new NotifyInstanceOwnerOnInstantiation(_notificationService.Object, _partyClient.Object)
+        );
+        var factory = services.BuildServiceProvider().GetRequiredService<AppImplementationFactory>();
+        return new ExecuteSideEffect(factory, TestMailboxDeliveryEnvelope.Create()).Execute(
             context,
             new ExecuteSideEffectPayload(NotifyInstanceOwnerOnInstantiation.SideEffectName, 0, arguments)
         );
     }
 
-    private static string Arguments(InstantiationNotification? notification = null) =>
-        NotifyInstanceOwnerOnInstantiation.SerializeArguments(
-            notification ?? new InstantiationNotification { Language = "nn" }
-        );
+    private static string? Arguments(InstantiationNotification? notification = null) =>
+        SideEffectInput.Serialize(notification ?? new InstantiationNotification { Language = "nn" });
 
     private void PartyExists() =>
         _partyClient

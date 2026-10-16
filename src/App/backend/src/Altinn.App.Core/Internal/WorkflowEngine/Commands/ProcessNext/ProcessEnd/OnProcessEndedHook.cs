@@ -10,6 +10,11 @@ internal sealed class OnProcessEndedHook : IWorkflowEngineCommand
 
     public string GetKey() => Key;
 
+    /// <summary>
+    /// The hook runs after the ended process is saved, so what it starts can start once its own work is saved.
+    /// </summary>
+    public bool EnqueuesStartedSideEffects => true;
+
     private readonly AppImplementationFactory _appImplementationFactory;
 
     public OnProcessEndedHook(IServiceProvider serviceProvider)
@@ -49,7 +54,15 @@ internal sealed class OnProcessEndedHook : IWorkflowEngineCommand
 
             return result switch
             {
-                SuccessfulHookResult => new SuccessfulProcessEngineCommandResult(),
+                // What the hook started waits for the transition, or for this hook's own save, to be enqueued.
+                SuccessfulHookResult => (ProcessEngineCommandResult?)
+                    SideEffectStarts.Record(
+                        hookParameters.SideEffects,
+                        _appImplementationFactory,
+                        parameters.StateCarry,
+                        parameters.InstanceDataMutator.Instance.Process?.EndEvent
+                    )
+                    ?? new SuccessfulProcessEngineCommandResult(),
                 FailedHookResult failed => failed.Kind == FailureKind.Permanent
                     ? FailedProcessEngineCommandResult.Permanent(failed.ErrorMessage)
                     : FailedProcessEngineCommandResult.Retryable(failed.ErrorMessage),

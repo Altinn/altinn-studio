@@ -60,21 +60,21 @@ internal sealed class MailboxRelay
     /// earlier one's.
     /// </summary>
     internal static ProcessEngineCommandResult DecideStageEnd(
-        string serviceTaskType,
+        PipelineHost host,
         Guid stepId,
         WorkflowCallbackStateCarry carry,
         int stageIndex,
         ServiceTaskPipeline pipeline
     )
     {
-        if (StepIdMissing(stepId, serviceTaskType, "start what the pipeline composes after this stage") is { } noKey)
+        if (StepIdMissing(stepId, host, "start what the pipeline composes after this stage") is { } noKey)
         {
             return noKey;
         }
 
         if (
             !TryPlanHandover(
-                serviceTaskType,
+                host,
                 carry,
                 afterItemIndex: stageIndex,
                 pipeline,
@@ -88,7 +88,7 @@ internal sealed class MailboxRelay
 
         return new SuccessfulProcessEngineCommandResult
         {
-            MailboxContinuation = new MailboxContinuation.ContinueAfterStage(serviceTaskType, handover),
+            MailboxContinuation = new MailboxContinuation.ContinueAfterStage(host, handover),
         };
     }
 
@@ -101,7 +101,7 @@ internal sealed class MailboxRelay
     /// </summary>
     /// <returns>True with <paramref name="handover"/>; false with the permanent <paramref name="refusal"/>.</returns>
     private static bool TryPlanHandover(
-        string serviceTaskType,
+        PipelineHost host,
         WorkflowCallbackStateCarry carry,
         int afterItemIndex,
         ServiceTaskPipeline pipeline,
@@ -110,7 +110,7 @@ internal sealed class MailboxRelay
     )
     {
         handover = null;
-        ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment(serviceTaskType, pipeline, afterItemIndex);
+        ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment(host, pipeline, afterItemIndex);
 
         // A pipeline's items always end with its conclusion, and a conclusion starts nothing, so no
         // well-formed composition can leave a hop that reached this point with nothing to plan. Refused rather
@@ -120,7 +120,7 @@ internal sealed class MailboxRelay
         if (plan.Steps.Count == 0)
         {
             refusal = FailedProcessEngineCommandResult.Permanent(
-                $"Service task '{serviceTaskType}' composes nothing after the item at index {afterItemIndex}, so "
+                $"{host.Description} composes nothing after the item at index {afterItemIndex}, so "
                     + "completing that item starts nothing and the rest of the task would be dropped silently. "
                     + "A pipeline always ends with its conclusion, so the composition resolved here ends on the "
                     + "very item this step ran. Resume the workflow on the code that enqueued it, or abandon it "
@@ -165,7 +165,7 @@ internal sealed class MailboxRelay
     /// </summary>
     internal static ProcessEngineCommandResult DecideOpeningStageConclusion(
         ServiceTaskResult result,
-        string serviceTaskType,
+        PipelineHost host,
         Guid stepId,
         WorkflowCallbackStateCarry carry
     )
@@ -175,28 +175,32 @@ internal sealed class MailboxRelay
             case ServiceTaskFailedResult { Kind: FailureKind.Permanent } failed:
                 // A failing callback publishes no blob, so there is nothing for the carry to un-say.
                 return FailedProcessEngineCommandResult.Permanent(
-                    ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
-                    ExecuteServiceTask.FailedReasonCode,
+                    host.FailedMessage(failed.ErrorMessage),
+                    host.FailedReasonCode,
                     new MailboxContinuation.Conclude([.. carry.FindAllMailboxes().Select(m => m.Mailbox.Id)])
                 );
 
             case ServiceTaskFailedResult failed:
                 // The saga has not started; the next attempt re-runs the stage.
                 return FailedProcessEngineCommandResult.Retryable(
-                    ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
-                    ExecuteServiceTask.FailedReasonCode
+                    host.FailedMessage(failed.ErrorMessage),
+                    host.FailedReasonCode
                 );
 
             case ServiceTaskDeferredResult deferred:
                 return new DeferredProcessEngineCommandResult { Delay = deferred.Delay, Reason = deferred.Reason };
 
             case ServiceTaskSuccessResult
-                when StepIdMissing(stepId, serviceTaskType, "start the workflow that follows the conclusion")
-                    is { } noAfterKey:
+                when StepIdMissing(stepId, host, "start the workflow that follows the conclusion") is { } noAfterKey:
                 return noAfterKey;
 
             case ServiceTaskSuccessResult success:
                 IReadOnlyList<(int StageIndex, CarriedMailbox Mailbox)> carried = carry.FindAllMailboxes();
+                if (ActionRefused(host, success, [.. carried.Select(m => m.Mailbox.Id)]) is { } refused)
+                {
+                    return refused;
+                }
+
                 // Dropped from the carry here, before the state is captured, so the blob this callback
                 // publishes carries no exchange the conclusion just closed.
                 foreach ((int stageIndex, _) in carried)
@@ -204,16 +208,12 @@ internal sealed class MailboxRelay
                     carry.RecordMailboxConcluded(stageIndex);
                 }
 
-                return new SuccessfulProcessEngineCommandResult
-                {
-                    ProcessNextContinuation = new(success.Action),
-                    MailboxContinuation = new MailboxContinuation.Conclude([.. carried.Select(m => m.Mailbox.Id)]),
-                };
+                return Concluded(host, success, [.. carried.Select(m => m.Mailbox.Id)]);
 
             // Reached by the route Decide's last arm documents; answered the same way.
             default:
                 return FailedProcessEngineCommandResult.Permanent(
-                    $"Service task '{serviceTaskType}' concluded from its mailbox-opening stage with a result "
+                    $"{host.Description} concluded from its mailbox-opening stage with a result "
                         + $"of type '{result.GetType().Name}', which this version of the app-lib cannot act "
                         + "on. A conclusion must carry one of the results the factory methods produce — "
                         + $"{nameof(ServiceTaskResult.Success)}, "
@@ -236,18 +236,19 @@ internal sealed class MailboxRelay
     /// </summary>
     internal static ProcessEngineCommandResult Decide(
         ServiceTaskExchangeResult result,
-        string serviceTaskType,
+        PipelineHost host,
         Guid stepId,
         AppCallbackMailbox mailbox,
         WorkflowCallbackStateCarry carry,
         int handlerItemIndex,
-        int openingStageIndex
+        int openingStageIndex,
+        ProcessStepOptions? handlerOptions = null
     )
     {
         switch (result)
         {
             case ServiceTaskAwaitNextReplyResult:
-                if (StepIdMissing(stepId, serviceTaskType, "enqueue the exchange's next receiver") is { } noKey)
+                if (StepIdMissing(stepId, host, "enqueue the exchange's next receiver") is { } noKey)
                 {
                     return noKey;
                 }
@@ -256,42 +257,43 @@ internal sealed class MailboxRelay
                 {
                     MailboxContinuation = new MailboxContinuation.AwaitNextMessage(
                         mailbox.Id,
-                        serviceTaskType,
+                        host,
                         handlerItemIndex,
-                        mailbox.Seq
+                        mailbox.Seq,
+                        handlerOptions
                     ),
                 };
 
             case ServiceTaskFailedResult { Kind: FailureKind.Permanent } failed:
                 // A failing callback publishes no blob, so there is nothing for the carry to un-say.
                 return FailedProcessEngineCommandResult.Permanent(
-                    ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
-                    ExecuteServiceTask.FailedReasonCode,
+                    host.FailedMessage(failed.ErrorMessage),
+                    host.FailedReasonCode,
                     new MailboxContinuation.Conclude([mailbox.Id])
                 );
 
             case ServiceTaskFailedResult failed:
                 // The saga has not started; the next attempt gets the same message.
                 return FailedProcessEngineCommandResult.Retryable(
-                    ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
-                    ExecuteServiceTask.FailedReasonCode
+                    host.FailedMessage(failed.ErrorMessage),
+                    host.FailedReasonCode
                 );
 
             case ServiceTaskDeferredResult deferred:
                 return new DeferredProcessEngineCommandResult { Delay = deferred.Delay, Reason = deferred.Reason };
 
             case ServiceTaskSuccessResult
-                when StepIdMissing(stepId, serviceTaskType, "start the workflow that follows the exchange")
-                    is { } noAfterKey:
+                when StepIdMissing(stepId, host, "start the workflow that follows the exchange") is { } noAfterKey:
                 return noAfterKey;
 
             case ServiceTaskSuccessResult success:
-                carry.RecordMailboxConcluded(openingStageIndex);
-                return new SuccessfulProcessEngineCommandResult
+                if (ActionRefused(host, success, [mailbox.Id]) is { } refused)
                 {
-                    ProcessNextContinuation = new(success.Action),
-                    MailboxContinuation = new MailboxContinuation.Conclude([mailbox.Id]),
-                };
+                    return refused;
+                }
+
+                carry.RecordMailboxConcluded(openingStageIndex);
+                return Concluded(host, success, [mailbox.Id]);
 
             // Reachable from app code: the result roots declare no callable constructor, but they are records,
             // and C# forbids narrowing a record's synthesized copy constructor, so chaining it still compiles.
@@ -300,7 +302,7 @@ internal sealed class MailboxRelay
             // most destructive of the readings it could have meant.
             default:
                 return FailedProcessEngineCommandResult.Permanent(
-                    $"Service task '{serviceTaskType}' answered a message with a result of type "
+                    $"{host.Description} answered a message with a result of type "
                         + $"'{result.GetType().Name}', which this version of the app-lib cannot act on. A reply "
                         + "handler must return one of the results the factory methods produce — "
                         + $"{nameof(ServiceTaskResult.Success)}, "
@@ -323,7 +325,7 @@ internal sealed class MailboxRelay
     /// </summary>
     internal static ProcessEngineCommandResult DecideSegment(
         ServiceTaskStageExchangeResult result,
-        string serviceTaskType,
+        PipelineHost host,
         Guid stepId,
         AppCallbackMailbox mailbox,
         WorkflowCallbackStateCarry carry,
@@ -335,7 +337,7 @@ internal sealed class MailboxRelay
         switch (result)
         {
             case ServiceTaskStageAwaitNextReplyResult:
-                if (StepIdMissing(stepId, serviceTaskType, "enqueue the exchange's next receiver") is { } noKey)
+                if (StepIdMissing(stepId, host, "enqueue the exchange's next receiver") is { } noKey)
                 {
                     return noKey;
                 }
@@ -344,20 +346,21 @@ internal sealed class MailboxRelay
                 {
                     MailboxContinuation = new MailboxContinuation.AwaitNextMessage(
                         mailbox.Id,
-                        serviceTaskType,
+                        host,
                         handlerItemIndex,
-                        mailbox.Seq
+                        mailbox.Seq,
+                        pipeline.Items.ElementAtOrDefault(handlerItemIndex)?.StepOptions
                     ),
                 };
 
             case CompletedServiceTaskStageResult
-                when StepIdMissing(stepId, serviceTaskType, "start the pipeline's next segment") is { } noContinueKey:
+                when StepIdMissing(stepId, host, "start the pipeline's next segment") is { } noContinueKey:
                 return noContinueKey;
 
             case CompletedServiceTaskStageResult:
                 if (
                     !TryPlanHandover(
-                        serviceTaskType,
+                        host,
                         carry,
                         afterItemIndex: handlerItemIndex,
                         pipeline,
@@ -376,27 +379,23 @@ internal sealed class MailboxRelay
                 carry.RecordMailboxConcluded(openingStageIndex);
                 return new SuccessfulProcessEngineCommandResult
                 {
-                    MailboxContinuation = new MailboxContinuation.ConcludeAndContinue(
-                        mailbox.Id,
-                        serviceTaskType,
-                        handover
-                    ),
+                    MailboxContinuation = new MailboxContinuation.ConcludeAndContinue(mailbox.Id, host, handover),
                 };
 
             case FailedServiceTaskStageResult { Kind: FailureKind.Permanent } failed:
                 // Later mailboxes already open are left alone: closing them would sabotage a resume, which
                 // replays this handler and may then carry the chain on.
                 return FailedProcessEngineCommandResult.Permanent(
-                    ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
-                    ExecuteServiceTask.FailedReasonCode,
+                    host.FailedMessage(failed.ErrorMessage),
+                    host.FailedReasonCode,
                     new MailboxContinuation.Conclude([mailbox.Id])
                 );
 
             case FailedServiceTaskStageResult failed:
                 // The saga has not started; the next attempt gets the same message.
                 return FailedProcessEngineCommandResult.Retryable(
-                    ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
-                    ExecuteServiceTask.FailedReasonCode
+                    host.FailedMessage(failed.ErrorMessage),
+                    host.FailedReasonCode
                 );
 
             case DeferredServiceTaskStageResult deferred:
@@ -405,7 +404,7 @@ internal sealed class MailboxRelay
             // Reached by the route Decide's last arm documents; answered the same way.
             default:
                 return FailedProcessEngineCommandResult.Permanent(
-                    $"Service task '{serviceTaskType}' answered a message with a result of type "
+                    $"{host.Description} answered a message with a result of type "
                         + $"'{result.GetType().Name}', which this version of the app-lib cannot act on. A reply "
                         + "handler that continues the pipeline must return one of the results the factory "
                         + $"methods produce — {nameof(ServiceTaskStageResult.Completed)}, "
@@ -419,12 +418,45 @@ internal sealed class MailboxRelay
     }
 
     /// <summary>
+    /// What a conclusion starts: a service task's moves the process on with the result's action once its
+    /// mailboxes close; a side effect's only closes them, because a side effect ends alone.
+    /// </summary>
+    private static SuccessfulProcessEngineCommandResult Concluded(
+        PipelineHost host,
+        ServiceTaskSuccessResult success,
+        IReadOnlyList<Guid> closing
+    ) =>
+        new()
+        {
+            ProcessNextContinuation = host.HoldsUpProcess ? new(success.Action) : null,
+            MailboxContinuation = new MailboxContinuation.Conclude(closing),
+        };
+
+    /// <summary>
+    /// A side effect that concludes with a process action asks for something it cannot do: refused permanently,
+    /// closing the mailboxes the conclusion would have closed, since the exchange is over either way.
+    /// </summary>
+    private static FailedProcessEngineCommandResult? ActionRefused(
+        PipelineHost host,
+        ServiceTaskSuccessResult success,
+        IReadOnlyList<Guid> closing
+    ) =>
+        host is PipelineHost.SideEffect && success.Action is { } action
+            ? FailedProcessEngineCommandResult.Permanent(
+                $"{host.Description} concluded with the process action '{action}', but a side effect cannot move the "
+                    + "process. Return Success() without an action.",
+                "SideEffectActionUnsupported",
+                new MailboxContinuation.Conclude(closing)
+            )
+            : null;
+
+    /// <summary>
     /// <c>MailboxStepIdMissing</c>, for the keyed verdicts only: the bare step id is the whole idempotency
     /// key, engine idempotency is scoped to <c>(namespace, key)</c>, and an empty id is a constant — so
     /// every exchange in the application would collapse onto one enqueued workflow. Verdicts that make no
     /// keyed call are not refused.
     /// </summary>
-    private static FailedProcessEngineCommandResult? StepIdMissing(Guid stepId, string serviceTaskType, string wouldDo)
+    private static FailedProcessEngineCommandResult? StepIdMissing(Guid stepId, PipelineHost host, string wouldDo)
     {
         if (stepId != Guid.Empty)
         {
@@ -432,7 +464,7 @@ internal sealed class MailboxRelay
         }
 
         return FailedProcessEngineCommandResult.Permanent(
-            $"Service task '{serviceTaskType}' must {wouldDo}, but the workflow engine supplied no step id to key "
+            $"{host.Description} must {wouldDo}, but the workflow engine supplied no step id to key "
                 + "that on. An enqueue keyed on an empty id would be shared by every mailbox exchange in this "
                 + "application. Upgrade the workflow engine to a version that sends stepId.",
             "MailboxStepIdMissing"
@@ -450,8 +482,8 @@ internal sealed class MailboxRelay
             case MailboxContinuation.AwaitNextMessage awaitNext:
                 await EnqueueReceiver(
                     awaitNext.MailboxId,
-                    awaitNext.ServiceTaskType,
-                    [WorkflowCommandSet.CreateItemStep(awaitNext.ServiceTaskType, awaitNext.HandlerItemIndex)],
+                    awaitNext.Host,
+                    [awaitNext.Host.CreateItemStep(awaitNext.HandlerItemIndex, awaitNext.HandlerOptions)],
                     operationIdSuffix: "after message " + awaitNext.Position.ToString(CultureInfo.InvariantCulture),
                     request,
                     cancellationToken
@@ -459,7 +491,7 @@ internal sealed class MailboxRelay
                 return;
 
             case MailboxContinuation.ContinueAfterStage afterStage:
-                await HandOver(afterStage.Handover, afterStage.ServiceTaskType, request, cancellationToken);
+                await HandOver(afterStage.Handover, afterStage.Host, request, cancellationToken);
                 return;
 
             case MailboxContinuation.Conclude conclude:
@@ -487,7 +519,7 @@ internal sealed class MailboxRelay
                     continuing.MailboxId,
                     cancellationToken
                 );
-                await HandOver(continuing.Handover, continuing.ServiceTaskType, request, cancellationToken);
+                await HandOver(continuing.Handover, continuing.Host, request, cancellationToken);
                 return;
 
             default:
@@ -503,20 +535,20 @@ internal sealed class MailboxRelay
     /// </summary>
     private Task HandOver(
         MailboxHandover handover,
-        string serviceTaskType,
+        PipelineHost host,
         MailboxRelayRequest request,
         CancellationToken cancellationToken
     ) =>
         handover.Target is { } target
             ? EnqueueReceiver(
                 target.MailboxId,
-                serviceTaskType,
+                host,
                 handover.Plan.Steps,
                 operationIdSuffix: target.OpeningStageIndex.ToString(CultureInfo.InvariantCulture),
                 request,
                 cancellationToken
             )
-            : EnqueueContinuation(serviceTaskType, handover, request, cancellationToken);
+            : EnqueueContinuation(host, handover, request, cancellationToken);
 
     /// <summary>
     /// One receive workflow, first receiver and successors alike: a single step naming the handler by its
@@ -527,7 +559,7 @@ internal sealed class MailboxRelay
     /// </summary>
     private async Task EnqueueReceiver(
         Guid mailboxId,
-        string serviceTaskType,
+        PipelineHost host,
         IReadOnlyList<StepRequest> steps,
         string operationIdSuffix,
         MailboxRelayRequest request,
@@ -536,16 +568,21 @@ internal sealed class MailboxRelay
     {
         string? taskId = request.DataAccessor.Instance.Process?.CurrentTask?.ElementId;
 
-        List<StepRequest> receiveSteps = [.. steps.ApplyStepOptions(_stepOptionsResolver, taskId, serviceTaskType)];
+        List<StepRequest> receiveSteps =
+        [
+            .. steps.ApplyStepOptions(_stepOptionsResolver, taskId, ServiceTaskTypeOf(host)),
+        ];
 
         var receiveWorkflow = new WorkflowRequest
         {
-            OperationId = $"{ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix} {taskId} · {operationIdSuffix}",
+            OperationId =
+                $"{ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix} {ScopeOf(host, taskId)} · {operationIdSuffix}",
             Steps = receiveSteps,
             Mailbox = new MailboxReference { Id = mailboxId },
             State = PublishedState(request),
-            IsHead = true,
-            DependsOnHeads = true,
+            IsHead = host.HoldsUpProcess,
+            DependsOnHeads = host.HoldsUpProcess,
+            Links = LinksOf(host, request),
         };
 
         // Token minted at this hop; with the re-signed blob this binds each hop to current app code.
@@ -588,7 +625,7 @@ internal sealed class MailboxRelay
     /// each step's options, which the resolver does from the step's own identity.
     /// </summary>
     private async Task EnqueueContinuation(
-        string serviceTaskType,
+        PipelineHost host,
         MailboxHandover handover,
         MailboxRelayRequest request,
         CancellationToken cancellationToken
@@ -598,7 +635,7 @@ internal sealed class MailboxRelay
 
         List<StepRequest> steps =
         [
-            .. handover.Plan.Steps.ApplyStepOptions(_stepOptionsResolver, taskId, serviceTaskType),
+            .. handover.Plan.Steps.ApplyStepOptions(_stepOptionsResolver, taskId, ServiceTaskTypeOf(host)),
         ];
 
         var continuationWorkflow = new WorkflowRequest
@@ -606,12 +643,13 @@ internal sealed class MailboxRelay
             // Named for the item it follows: with an opening stage ending a run too, an exchange's
             // opening index no longer tells two continuations apart.
             OperationId =
-                $"{ProcessNextRequestFactory.MailboxContinueOperationIdPrefix} {taskId} · after "
+                $"{ProcessNextRequestFactory.MailboxContinueOperationIdPrefix} {ScopeOf(host, taskId)} · after "
                 + handover.AfterItemIndex.ToString(CultureInfo.InvariantCulture),
             Steps = steps,
             State = PublishedState(request),
-            IsHead = true,
-            DependsOnHeads = true,
+            IsHead = host.HoldsUpProcess,
+            DependsOnHeads = host.HoldsUpProcess,
+            Links = LinksOf(host, request),
         };
 
         // Minted at this hop, exactly as a successor receiver's is.
@@ -704,6 +742,23 @@ internal sealed class MailboxRelay
         );
 
     private static string GetNamespace(AppIdentifier appId) => $"{appId.Org}/{appId.App}";
+
+    /// <summary>The service task type options are resolved for, or null for a side effect, whose steps carry them.</summary>
+    private static string? ServiceTaskTypeOf(PipelineHost host) => (host as PipelineHost.ServiceTask)?.Type;
+
+    /// <summary>
+    /// What a successor's operation id names: the task the process waits in for a service task, the side effect
+    /// itself for a side effect, which waits for nothing in the process.
+    /// </summary>
+    private static string? ScopeOf(PipelineHost host, string? taskId) =>
+        host.HoldsUpProcess ? taskId : host.DisplayName;
+
+    /// <summary>
+    /// A service task's successors depend on the current head, which is the link; a side effect's are independent
+    /// roots, so they are linked to the workflow that started them to keep the chain traceable.
+    /// </summary>
+    private static IEnumerable<WorkflowRef>? LinksOf(PipelineHost host, MailboxRelayRequest request) =>
+        host.HoldsUpProcess ? null : [WorkflowRef.FromDatabaseId(request.Payload.WorkflowId)];
 }
 
 internal readonly record struct MailboxRelayRequest

@@ -417,7 +417,7 @@ public class ExecuteServiceTaskMailboxTests
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
-        Assert.Equal("archiving", continuing.ServiceTaskType);
+        Assert.Equal(new PipelineHost.ServiceTask("archiving"), continuing.Host);
         Assert.Equal(SendStageIndex, continuing.Handover.AfterItemIndex);
         Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], OperationIds(continuing.Handover));
 
@@ -508,7 +508,7 @@ public class ExecuteServiceTaskMailboxTests
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
-        Assert.Equal("archiving", continuing.ServiceTaskType);
+        Assert.Equal(new PipelineHost.ServiceTask("archiving"), continuing.Host);
         // The plan rides the verdict: the stage composed after the send, and nothing more.
         Assert.Equal(SendStageIndex, continuing.Handover.AfterItemIndex);
         Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], OperationIds(continuing.Handover));

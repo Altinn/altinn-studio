@@ -114,7 +114,6 @@ internal sealed class ProcessNextRequestFactory
     private readonly AppSettings _appSettings;
     private readonly IWorkflowCallbackTokenGenerator _callbackTokenGenerator;
     private readonly ProcessStepOptionsResolver _stepOptionsResolver;
-    private readonly IEnumerable<ISideEffectPipeline> _sideEffects;
 
     public ProcessNextRequestFactory(
         AppImplementationFactory appImplementationFactory,
@@ -122,8 +121,7 @@ internal sealed class ProcessNextRequestFactory
         AppIdentifier appIdentifier,
         IOptions<AppSettings> appSettings,
         IWorkflowCallbackTokenGenerator callbackTokenGenerator,
-        ProcessStepOptionsResolver stepOptionsResolver,
-        IEnumerable<ISideEffectPipeline> sideEffects
+        ProcessStepOptionsResolver stepOptionsResolver
     )
     {
         _appImplementationFactory = appImplementationFactory;
@@ -132,7 +130,6 @@ internal sealed class ProcessNextRequestFactory
         _appSettings = appSettings.Value;
         _callbackTokenGenerator = callbackTokenGenerator;
         _stepOptionsResolver = stepOptionsResolver;
-        _sideEffects = sideEffects;
     }
 
     /// <summary>
@@ -596,8 +593,8 @@ internal sealed class ProcessNextRequestFactory
             return null;
         }
 
-        ISideEffectPipeline sideEffect =
-            _sideEffects.FindSideEffect(NotifyInstanceOwnerOnInstantiation.SideEffectName)
+        ISideEffect sideEffect =
+            _appImplementationFactory.FindSideEffect(NotifyInstanceOwnerOnInstantiation.SideEffectName)
             ?? throw new InvalidOperationException(
                 $"The side effect '{NotifyInstanceOwnerOnInstantiation.SideEffectName}' is not registered, so the "
                     + "instance owner cannot be notified."
@@ -606,7 +603,7 @@ internal sealed class ProcessNextRequestFactory
         return new SideEffectInvocation(
             sideEffect.Name,
             sideEffect.ResolvePipeline(),
-            NotifyInstanceOwnerOnInstantiation.SerializeArguments(notification)
+            SideEffectInput.Serialize(notification)
         );
     }
 

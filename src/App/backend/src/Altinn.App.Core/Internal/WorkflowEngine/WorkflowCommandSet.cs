@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Globalization;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.AltinnEvents;
@@ -95,7 +94,10 @@ internal sealed class WorkflowCommandSet
             // Segment 0 always has at least one step (a handler can only answer an already-composed stage, so
             // item 0 is never one), and Main therefore always ends on a step of its own: the stage whose
             // completion starts the rest of the pipeline, or the pipeline's conclusion.
-            ServiceTaskSegmentPlan segment = PlanSegment(serviceTask.Type, serviceTask.Pipeline);
+            ServiceTaskSegmentPlan segment = PlanSegment(
+                new PipelineHost.ServiceTask(serviceTask.Type),
+                serviceTask.Pipeline
+            );
             group.AddCriticalPostCommitSteps(segment.Steps);
         }
 
@@ -186,33 +188,16 @@ internal sealed class WorkflowCommandSet
     }
 
     /// <summary>
-    /// Adds a side-effect pipeline: one <c>ExecuteSideEffect</c> step per item, in composition order, in a
-    /// side-effects workflow of its own. Every step carries the side effect's input.
+    /// Adds a side-effect pipeline as a side-effects workflow of its own, carrying the pipeline's first segment
+    /// planned exactly as a service task's: one <c>ExecuteSideEffect</c> step per stage, a mint step before a
+    /// stage that opens a mailbox, which ends the segment. The steps after it ride the workflows its last step
+    /// enqueues. Every step carries the side effect's input.
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// The pipeline composes an item a side effect cannot run. Startup validation reports it first.
-    /// </exception>
     private WorkflowCommandSet AddSideEffectPipeline(SideEffectInvocation sideEffect)
     {
-        if (ExecuteSideEffect.FindUnsupportedItem(sideEffect.Pipeline) is { } reason)
-        {
-            throw new InvalidOperationException($"Side effect '{sideEffect.Name}' cannot run: {reason}.");
-        }
-
-        var steps = new List<StepRequest>(sideEffect.Pipeline.Items.Count);
-        for (int index = 0; index < sideEffect.Pipeline.Items.Count; index++)
-        {
-            steps.Add(
-                CreateCommand(
-                    ExecuteSideEffect.Key,
-                    new ExecuteSideEffectPayload(sideEffect.Name, index, sideEffect.Arguments),
-                    operationId: ExecuteSideEffect.OperationId(index),
-                    stageOptions: sideEffect.Pipeline.Items[index].StepOptions
-                )
-            );
-        }
-
-        _sideEffects.Add(new SideEffectPlan(sideEffect.Name, steps));
+        var host = new PipelineHost.SideEffect(sideEffect.Name, sideEffect.Input);
+        ServiceTaskSegmentPlan segment = PlanSegment(host, sideEffect.Pipeline);
+        _sideEffects.Add(new SideEffectPlan(sideEffect.Name, segment.Steps));
         return this;
     }
 
@@ -236,7 +221,7 @@ internal sealed class WorkflowCommandSet
     /// deciding hop refuses an empty plan rather than enqueue a workflow with no steps.
     /// </returns>
     internal static ServiceTaskSegmentPlan PlanSegment(
-        string serviceTaskType,
+        PipelineHost host,
         ServiceTaskPipeline pipeline,
         int? afterItemIndex = null
     )
@@ -259,30 +244,23 @@ internal sealed class WorkflowCommandSet
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case IReplyHandlerItem handler:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(host.CreateItemStep(index, pipeline.Items[index].StepOptions));
                     return new ServiceTaskSegmentPlan(steps, handler.OpeningIndex);
 
                 case PipelineConclusion.FinalStep:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(host.CreateItemStep(index, pipeline.Items[index].StepOptions));
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case ServiceTaskStage.MailboxOpening:
                     // The mint hugs the stage that sends, on both sides: the deadline clock starts here, and
                     // the stage must never send without an address. No stage index on the step — the mint must
                     // not inherit the stage's options.
-                    steps.Add(
-                        CreateCommand(
-                            MintMailbox.Key,
-                            new MintMailboxPayload(serviceTaskType, index),
-                            operationId: $"{MintMailbox.Key}: {index.ToString(CultureInfo.InvariantCulture)}"
-                        )
-                    );
-
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(host.CreateMintStep(index));
+                    steps.Add(host.CreateItemStep(index, pipeline.Items[index].StepOptions));
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case ServiceTaskStage:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(host.CreateItemStep(index, pipeline.Items[index].StepOptions));
                     break;
 
                 default:
@@ -308,27 +286,10 @@ internal sealed class WorkflowCommandSet
     internal static bool ItemStartsItsOwnWorkflow(ServiceTaskPipeline pipeline, int itemIndex) =>
         pipeline.Items.ElementAtOrDefault(itemIndex) is IReplyHandlerItem;
 
-    /// <summary>
-    /// One pipeline item's engine step — a stage's, a reply handler's or the conclusion's alike. The item's
-    /// index is the step's whole identity, and it travels three ways, deliberately: in the payload (dispatch
-    /// reads it), in <see cref="StepRequest.ServiceTaskItemIndex"/> (the enqueueing hop resolves options by
-    /// it), and in the OperationId (the engine's own record, distinct per item for its dashboards). Nothing
-    /// about what follows the item rides here — a step's payload says what it runs, never what runs after it.
-    /// </summary>
-    internal static StepRequest CreateItemStep(string serviceTaskType, int itemIndex) =>
-        CreateCommand(
-            ExecuteServiceTask.Key,
-            new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: itemIndex),
-            operationId: $"{ExecuteServiceTask.Key}: {itemIndex.ToString(CultureInfo.InvariantCulture)}",
-            serviceTaskItemIndex: itemIndex
-        );
-
     private static StepRequest CreateCommand(
         string commandKey,
         CommandRequestPayload? payload = null,
-        string? operationId = null,
-        int? serviceTaskItemIndex = null,
-        ProcessStepOptions? stageOptions = null
+        string? operationId = null
     )
     {
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
@@ -340,8 +301,6 @@ internal sealed class WorkflowCommandSet
                 new AppCommandData { CommandKey = commandKey, Payload = serializedPayload }
             ),
             CommandKey = commandKey,
-            ServiceTaskItemIndex = serviceTaskItemIndex,
-            StageOptions = stageOptions,
         };
     }
 }

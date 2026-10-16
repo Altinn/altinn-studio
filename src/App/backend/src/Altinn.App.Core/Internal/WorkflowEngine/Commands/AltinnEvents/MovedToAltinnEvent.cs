@@ -10,6 +10,9 @@ internal sealed class MovedToAltinnEvent : IWorkflowEngineCommand
 
     public string GetKey() => Key;
 
+    /// <summary>An event registration runs beside the process, so nothing is saved for it.</summary>
+    public bool RunsAsSideEffect => true;
+
     private readonly IEventsClient _eventsClient;
     private readonly Telemetry? _telemetry;
 

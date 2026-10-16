@@ -71,4 +71,9 @@ public sealed class ProcessTaskContext
     /// Cancellation token for the task lifecycle operation.
     /// </summary>
     public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
+
+    /// <summary>
+    /// Side effects to start once the transition is saved, such as sending something to an external system and waiting for the outcome without holding up the process. See <see cref="SideEffectStarter"/>.
+    /// </summary>
+    public SideEffectStarter SideEffects { get; init; } = new();
 }

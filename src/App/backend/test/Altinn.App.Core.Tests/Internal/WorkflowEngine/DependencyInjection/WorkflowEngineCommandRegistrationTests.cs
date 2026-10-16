@@ -22,7 +22,7 @@ public class WorkflowEngineCommandRegistrationTests
         Assert.Contains(
             services,
             descriptor =>
-                descriptor.ServiceType == typeof(ISideEffectPipeline)
+                descriptor.ServiceType == typeof(ISideEffect)
                 && descriptor.ImplementationType == typeof(NotifyInstanceOwnerOnInstantiation)
         );
     }
@@ -83,7 +83,7 @@ public class WorkflowEngineCommandRegistrationTests
                     ServiceTask = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
-                    NotifyInstanceOwner = new SideEffectInvocation("notify", CreatePipeline(), Arguments: null),
+                    NotifyInstanceOwner = new SideEffectInvocation("notify", CreatePipeline(), Input: null),
                     RegisterEvents = false,
                 }
             ),

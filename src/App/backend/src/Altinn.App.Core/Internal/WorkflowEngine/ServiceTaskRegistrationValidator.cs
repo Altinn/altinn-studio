@@ -1,6 +1,5 @@
 using System.Reflection;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -34,7 +33,7 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
         // Resolve tasks in this scope so they can use scoped dependencies.
         List<IServiceTask> simpleTasks = Resolve<IServiceTask>(sp);
         List<IPipelineServiceTask> pipelineTasks = Resolve<IPipelineServiceTask>(sp);
-        List<ISideEffectPipeline> sideEffects = Resolve<ISideEffectPipeline>(sp);
+        List<ISideEffect> sideEffects = Resolve<ISideEffect>(sp);
 
         var errors = new List<string>();
 
@@ -83,13 +82,12 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
     }
 
     /// <summary>
-    /// Every side effect must have a unique, non-blank name, compose its pipeline without throwing, and compose
-    /// only items a side effect can run.
+    /// Every side effect must have a non-blank name and compose its pipeline without throwing. Like service tasks,
+    /// a later registration with the same name replaces an earlier one.
     /// </summary>
-    private static void ValidateSideEffects(List<ISideEffectPipeline> sideEffects, List<string> errors)
+    private static void ValidateSideEffects(List<ISideEffect> sideEffects, List<string> errors)
     {
-        var names = new HashSet<string>(StringComparer.Ordinal);
-        foreach (ISideEffectPipeline sideEffect in sideEffects)
+        foreach (ISideEffect sideEffect in sideEffects)
         {
             string typeName = sideEffect.GetType().FullName ?? sideEffect.GetType().Name;
             if (string.IsNullOrWhiteSpace(sideEffect.Name))
@@ -98,17 +96,9 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
                 continue;
             }
 
-            if (!names.Add(sideEffect.Name))
-            {
-                errors.Add($"  - {typeName}: another side effect is already named '{sideEffect.Name}'.");
-            }
-
             try
             {
-                if (ExecuteSideEffect.FindUnsupportedItem(sideEffect.ResolvePipeline()) is { } reason)
-                {
-                    errors.Add($"  - {typeName}: side effect '{sideEffect.Name}' cannot run: {reason}.");
-                }
+                _ = sideEffect.ResolvePipeline();
             }
             catch (Exception ex)
             {

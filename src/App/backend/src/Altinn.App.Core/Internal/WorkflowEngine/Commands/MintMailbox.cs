@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
@@ -8,10 +9,25 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// Request payload for the MintMailbox command: the service task type and the item index of the stage whose
-/// mailbox this step opens — the exchange's identity, fixed at enqueue time and never re-derived.
+/// Request payload for the MintMailbox command: the pipeline — a service task's type, or a side effect's name —
+/// and the item index of the stage whose mailbox this step opens, the exchange's identity, fixed at enqueue time
+/// and never re-derived. Exactly one of the two pipeline fields is set.
 /// </summary>
-internal sealed record MintMailboxPayload(string ServiceTaskType, int StageIndex) : CommandRequestPayload;
+internal sealed record MintMailboxPayload(
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ServiceTaskType,
+    int StageIndex,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? SideEffect = null
+) : CommandRequestPayload
+{
+    /// <summary>The pipeline the payload names. A side effect's mint needs no input, so none is carried.</summary>
+    public PipelineHost? ToHost() =>
+        (ServiceTaskType, SideEffect) switch
+        {
+            ({ Length: > 0 } type, null) => new PipelineHost.ServiceTask(type),
+            (null, { Length: > 0 } name) => new PipelineHost.SideEffect(name, Input: null),
+            _ => null,
+        };
+}
 
 /// <summary>
 /// Opens the mailbox a service-task stage sends its reply address in, as its own engine step immediately
@@ -34,18 +50,24 @@ internal sealed class MintMailbox(
         MintMailboxPayload payload
     )
     {
+        if (payload.ToHost() is not { } host)
+        {
+            return FailedProcessEngineCommandResult.Permanent(
+                $"{Key} payload must name exactly one pipeline: a service task type or a side effect name.",
+                "InvalidPayloadException"
+            );
+        }
+
         try
         {
-            IPipelineServiceTask serviceTask =
-                appImplementationFactory.FindServiceTask(payload.ServiceTaskType)
-                ?? throw new ProcessException($"No service task found for type {payload.ServiceTaskType}");
-
-            ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
+            ServiceTaskPipeline pipeline =
+                appImplementationFactory.ResolvePipeline(host)
+                ?? throw new ProcessException($"{host.Description} is not registered.");
 
             if (pipeline.Items.ElementAtOrDefault(payload.StageIndex) is not ServiceTaskStage.MailboxOpening declaring)
             {
                 return FailedProcessEngineCommandResult.Permanent(
-                    $"Service task '{payload.ServiceTaskType}' opened a mailbox from the stage at index "
+                    $"{host.Description} opened a mailbox from the stage at index "
                         + $"{payload.StageIndex} when this workflow was enqueued, but its pipeline now composes no "
                         + "mailbox-opening stage at that index — stages were inserted, reordered or removed since "
                         + "it was enqueued. Resume the workflow on the code that enqueued it, or abandon it "

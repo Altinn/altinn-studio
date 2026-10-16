@@ -57,7 +57,7 @@ public class StartTaskTests
         services.AddSingleton(processTask);
         var sp = services.BuildServiceProvider();
         var resolver = new ProcessTaskResolver(sp.GetRequiredService<AppImplementationFactory>());
-        return new StartTask(resolver);
+        return new StartTask(resolver, sp.GetRequiredService<AppImplementationFactory>());
     }
 
     [Fact]

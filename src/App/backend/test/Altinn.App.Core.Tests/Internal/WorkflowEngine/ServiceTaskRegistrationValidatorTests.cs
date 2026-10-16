@@ -222,7 +222,7 @@ public class ServiceTaskRegistrationValidatorTests
     // ── Side effects ─────────────────────────────────────────────────────────────────────────
 
     private sealed class DelegateSideEffect(string name, Func<ServiceTaskPipelineBuilder, ServiceTaskPipeline> define)
-        : ISideEffectPipeline
+        : ISideEffect
     {
         public string Name => name;
 
@@ -233,7 +233,7 @@ public class ServiceTaskRegistrationValidatorTests
     public async Task SideEffect_WithStagesAndAFinally_PassesValidation()
     {
         var exception = await Validate(s =>
-            s.AddSingleton<ISideEffectPipeline>(
+            s.AddSingleton<ISideEffect>(
                 new DelegateSideEffect("notify", pipeline => pipeline.Stage(NoopStage).Finally(NoopFinally))
             )
         );
@@ -242,10 +242,10 @@ public class ServiceTaskRegistrationValidatorTests
     }
 
     [Fact]
-    public async Task SideEffect_ThatOpensAMailbox_FailsValidation()
+    public async Task SideEffect_ThatOpensAMailbox_PassesValidation()
     {
         var exception = await Validate(s =>
-            s.AddSingleton<ISideEffectPipeline>(
+            s.AddSingleton<ISideEffect>(
                 new DelegateSideEffect(
                     "notify",
                     pipeline =>
@@ -260,33 +260,38 @@ public class ServiceTaskRegistrationValidatorTests
             )
         );
 
-        Assert.NotNull(exception);
-        Assert.Contains("side effect 'notify' cannot run", exception.Message, StringComparison.Ordinal);
-        Assert.Contains("opens a mailbox", exception.Message, StringComparison.Ordinal);
+        Assert.Null(exception);
     }
 
+    /// <summary>As for service tasks, a later registration with the same name replaces the earlier one.</summary>
     [Fact]
-    public async Task SideEffects_SharingAName_FailValidation()
+    public async Task SideEffects_SharingAName_PassValidation()
     {
         var exception = await Validate(s =>
         {
-            s.AddSingleton<ISideEffectPipeline>(
-                new DelegateSideEffect("notify", pipeline => pipeline.Finally(NoopFinally))
-            );
-            s.AddSingleton<ISideEffectPipeline>(
-                new DelegateSideEffect("notify", pipeline => pipeline.Finally(NoopFinally))
-            );
+            s.AddSingleton<ISideEffect>(new DelegateSideEffect("notify", pipeline => pipeline.Finally(NoopFinally)));
+            s.AddSingleton<ISideEffect>(new DelegateSideEffect("notify", pipeline => pipeline.Finally(NoopFinally)));
         });
 
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task SideEffect_WithoutAName_FailsValidation()
+    {
+        var exception = await Validate(s =>
+            s.AddSingleton<ISideEffect>(new DelegateSideEffect(" ", pipeline => pipeline.Finally(NoopFinally)))
+        );
+
         Assert.NotNull(exception);
-        Assert.Contains("already named 'notify'", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("a side effect needs a name", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
     public async Task SideEffect_WhoseDefineThrows_FailsValidation()
     {
         var exception = await Validate(s =>
-            s.AddSingleton<ISideEffectPipeline>(
+            s.AddSingleton<ISideEffect>(
                 new DelegateSideEffect("notify", _ => throw new InvalidOperationException("Broken composition"))
             )
         );

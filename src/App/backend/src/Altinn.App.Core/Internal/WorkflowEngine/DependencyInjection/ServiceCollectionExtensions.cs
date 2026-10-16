@@ -28,6 +28,7 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<MailboxDeliveryEnvelope>();
         services.AddTransient<IWorkflowEngineService, WorkflowEngineService>();
         services.AddTransient<MailboxRelay>();
+        services.AddTransient<SideEffectEnqueuer>();
 
         // The inbound half of a mailbox exchange: whatever channel receives an external system's answer
         // hands it here, and it reaches the waiting service task's reply handler through the engine.
@@ -71,7 +72,7 @@ internal static class ServiceCollectionExtensions
 
         // Process engine callback handlers - side-effect pipelines, and the built-in side effects they run
         services.AddTransient<IWorkflowEngineCommand, ExecuteSideEffect>();
-        services.AddTransient<ISideEffectPipeline, NotifyInstanceOwnerOnInstantiation>();
+        services.AddTransient<ISideEffect, NotifyInstanceOwnerOnInstantiation>();
 
         // Process engine callback handlers - ProcessEnd
         services.AddTransient<IWorkflowEngineCommand, OnProcessEndedHook>();

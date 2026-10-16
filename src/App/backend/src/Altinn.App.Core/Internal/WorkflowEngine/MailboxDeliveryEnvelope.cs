@@ -13,8 +13,8 @@ internal sealed class MailboxDeliveryEnvelope(WorkflowStateSigner signer)
     /// <exception cref="Authentication.WorkflowCallbackSecretNotFoundException">
     /// The app has no usable <c>WorkflowEngineCallback</c> code to sign with.
     /// </exception>
-    public string Wrap(string payload, Guid mailboxId, string serviceTaskType, string idempotencyKey) =>
-        signer.Sign(payload, SigningDomain.MailboxDelivery(mailboxId, serviceTaskType, idempotencyKey));
+    public string Wrap(string payload, Guid mailboxId, string ownerKey, string idempotencyKey) =>
+        signer.Sign(payload, SigningDomain.MailboxDelivery(mailboxId, ownerKey, idempotencyKey));
 
     /// <summary>
     /// Every argument is read from the <em>delivered</em> callback and covered by the signature, so verification
@@ -24,11 +24,11 @@ internal sealed class MailboxDeliveryEnvelope(WorkflowStateSigner signer)
     /// Not an envelope this app signed for exactly this message — never wrapped, altered, another app's,
     /// another mailbox's or handler's, a different key, or a code that has since expired.
     /// </exception>
-    public string Unwrap(string payload, Guid mailboxId, string serviceTaskType, string idempotencyKey)
+    public string Unwrap(string payload, Guid mailboxId, string ownerKey, string idempotencyKey)
     {
         try
         {
-            return signer.Verify(payload, SigningDomain.MailboxDelivery(mailboxId, serviceTaskType, idempotencyKey));
+            return signer.Verify(payload, SigningDomain.MailboxDelivery(mailboxId, ownerKey, idempotencyKey));
         }
         catch (WorkflowCallbackStateException ex)
         {

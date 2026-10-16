@@ -34,6 +34,8 @@ public class MailboxRelayTests
     private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
     private const string ServiceTaskType = "archiving";
 
+    private static readonly PipelineHost Host = new PipelineHost.ServiceTask(ServiceTaskType);
+
     /// <summary>The item index of the stage that opens the tested exchanges' mailbox.</summary>
     private const int OpeningStageIndex = 0;
 
@@ -507,7 +509,7 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 0),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, Host, ArchivingReplyIndex, position: 0),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -529,7 +531,7 @@ public class MailboxRelayTests
         var awaiting = new RelayRecorder();
         await CreateRelay(awaiting)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 1),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, Host, ArchivingReplyIndex, position: 1),
                 CreateRequest(stepId),
                 CancellationToken.None
             );
@@ -544,7 +546,7 @@ public class MailboxRelayTests
         var otherStep = new RelayRecorder();
         await CreateRelay(otherStep)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 1),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, Host, ArchivingReplyIndex, position: 1),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -561,12 +563,7 @@ public class MailboxRelayTests
         var recorder = new RelayRecorder();
         MailboxRelay relay = CreateRelay(recorder);
 
-        var continuation = new MailboxContinuation.AwaitNextMessage(
-            _mailboxId,
-            ServiceTaskType,
-            ArchivingReplyIndex,
-            position: 0
-        );
+        var continuation = new MailboxContinuation.AwaitNextMessage(_mailboxId, Host, ArchivingReplyIndex, position: 0);
         await relay.Continue(continuation, CreateRequest(stepId), CancellationToken.None);
         await relay.Continue(continuation, CreateRequest(stepId), CancellationToken.None);
 
@@ -586,7 +583,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.Decide(
             awaitNext ? ServiceTaskExchangeResult.AwaitNextReply() : ServiceTaskResult.Success(),
-            ServiceTaskType,
+            Host,
             Guid.Empty,
             Delivered(),
             carry,
@@ -608,7 +605,7 @@ public class MailboxRelayTests
         FailedProcessEngineCommandResult permanent = Assert.IsType<FailedProcessEngineCommandResult>(
             MailboxRelay.Decide(
                 ServiceTaskResult.FailedPermanent("the archive never confirmed"),
-                ServiceTaskType,
+                Host,
                 Guid.Empty,
                 Closed(),
                 new WorkflowCallbackStateCarry(),
@@ -621,7 +618,7 @@ public class MailboxRelayTests
         FailedProcessEngineCommandResult retryable = Assert.IsType<FailedProcessEngineCommandResult>(
             MailboxRelay.Decide(
                 ServiceTaskResult.FailedRetryable("the archive is down"),
-                ServiceTaskType,
+                Host,
                 Guid.Empty,
                 Delivered(),
                 new WorkflowCallbackStateCarry(),
@@ -634,7 +631,7 @@ public class MailboxRelayTests
         Assert.IsType<DeferredProcessEngineCommandResult>(
             MailboxRelay.Decide(
                 ServiceTaskResult.Defer(TimeSpan.FromMinutes(1)),
-                ServiceTaskType,
+                Host,
                 Guid.Empty,
                 Delivered(),
                 new WorkflowCallbackStateCarry(),
@@ -651,7 +648,7 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 2),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, Host, ArchivingReplyIndex, position: 2),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -688,7 +685,7 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 4),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, Host, ArchivingReplyIndex, position: 4),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -710,7 +707,7 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder)
             .Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 0),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, Host, ArchivingReplyIndex, position: 0),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -735,13 +732,117 @@ public class MailboxRelayTests
         int openingStageIndex = OpeningStageIndex
     ) =>
         new(
-            ServiceTaskType,
+            Host,
             new MailboxHandover(
                 openingStageIndex,
-                WorkflowCommandSet.PlanSegment(ServiceTaskType, pipeline ?? _archivingPipeline, openingStageIndex),
+                WorkflowCommandSet.PlanSegment(Host, pipeline ?? _archivingPipeline, openingStageIndex),
                 new MailboxTarget(_mailboxId, openingStageIndex)
             )
         );
+
+    private static readonly PipelineHost _sideEffectHost = new PipelineHost.SideEffect("archive-receipt", "{}");
+
+    /// <summary>
+    /// A side effect's receive leg is a workflow of its own, invisible to the process: no head, no dependency on
+    /// the heads, linked to the workflow that started it. Its step runs the side effect's handler, not a service
+    /// task's.
+    /// </summary>
+    [Fact]
+    public async Task FirstReceiver_ForASideEffect_IsAnIndependentWorkflowLinkedToItsStarter()
+    {
+        var workflowId = new Guid("018f4e00-0000-7000-8000-00000000beef");
+        var recorder = new RelayRecorder();
+        var handover = new MailboxContinuation.ContinueAfterStage(
+            _sideEffectHost,
+            new MailboxHandover(
+                OpeningStageIndex,
+                WorkflowCommandSet.PlanSegment(_sideEffectHost, _archivingPipeline, OpeningStageIndex),
+                new MailboxTarget(_mailboxId, OpeningStageIndex)
+            )
+        );
+
+        await CreateRelay(recorder).Continue(handover, CreateRequest(_stepId, workflowId), CancellationToken.None);
+
+        WorkflowRequest receiver = Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows);
+        Assert.Equal(_mailboxId, receiver.Mailbox?.Id);
+        Assert.False(receiver.IsHead);
+        Assert.False(receiver.DependsOnHeads);
+        Assert.Null(receiver.DependsOn);
+        Assert.Equal([WorkflowRef.FromDatabaseId(workflowId)], receiver.Links);
+        Assert.Equal(
+            $"{ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix} archive-receipt · 0",
+            receiver.OperationId
+        );
+        StepRequest step = Assert.Single(receiver.Steps);
+        Assert.Equal($"{ExecuteSideEffect.Key}: 1", step.OperationId);
+    }
+
+    /// <summary>A side effect's conclusion closes its mailbox and starts nothing: the process is not its to move.</summary>
+    [Fact]
+    public async Task Conclusion_ForASideEffect_ClosesTheMailboxAndStartsNothing()
+    {
+        var recorder = new RelayRecorder();
+
+        await CreateRelay(recorder)
+            .Continue(
+                new MailboxContinuation.Conclude([_mailboxId]),
+                CreateRequest(_stepId, autoAdvance: false),
+                CancellationToken.None
+            );
+
+        Assert.Equal(["close-mailbox"], recorder.Calls);
+        Assert.Empty(recorder.AfterWorkflows);
+    }
+
+    [Fact]
+    public void Decide_SideEffectSuccess_ConcludesWithoutMovingTheProcess()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
+
+        ProcessEngineCommandResult result = MailboxRelay.Decide(
+            ServiceTaskResult.Success(),
+            _sideEffectHost,
+            _stepId,
+            Delivered(),
+            carry,
+            ArchivingReplyIndex,
+            OpeningStageIndex
+        );
+
+        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.Null(success.ProcessNextContinuation);
+        Assert.Equal([_mailboxId], Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation).MailboxIds);
+    }
+
+    /// <summary>
+    /// The next receiver of a side effect's exchange carries the handler's own options: a side effect's steps are
+    /// not resolved by index, so the options must travel with the verdict.
+    /// </summary>
+    [Fact]
+    public async Task AwaitNextMessage_ForASideEffect_CarriesTheHandlersOptionsToItsNextReceiver()
+    {
+        var recorder = new RelayRecorder();
+        var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
+
+        ProcessEngineCommandResult result = MailboxRelay.Decide(
+            ServiceTaskExchangeResult.AwaitNextReply(),
+            _sideEffectHost,
+            _stepId,
+            Delivered(),
+            new WorkflowCallbackStateCarry(),
+            ArchivingReplyIndex,
+            OpeningStageIndex,
+            options
+        );
+        var awaiting = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
+            Assert.IsType<SuccessfulProcessEngineCommandResult>(result).MailboxContinuation
+        );
+        await CreateRelay(recorder).Continue(awaiting, CreateRequest(_stepId), CancellationToken.None);
+
+        StepRequest step = Assert.Single(Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows).Steps);
+        Assert.Equal(TimeSpan.FromMinutes(3), step.Command.MaxExecutionTime);
+    }
 
     [Fact]
     public async Task FirstReceiver_IsAHeadThatDependsOnHeads_ParkedOnTheExchangesMailbox()
@@ -867,7 +968,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.Decide(
             new RogueVerdict(ServiceTaskResult.Success()),
-            ServiceTaskType,
+            Host,
             _stepId,
             Delivered(),
             carry,
@@ -890,7 +991,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.Decide(
             ServiceTaskResult.Success("confirm"),
-            ServiceTaskType,
+            Host,
             _stepId,
             Delivered(),
             carry,
@@ -913,7 +1014,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.Decide(
             ServiceTaskExchangeResult.AwaitNextReply(),
-            ServiceTaskType,
+            Host,
             _stepId,
             Delivered(seq: 4),
             carry,
@@ -927,7 +1028,7 @@ public class MailboxRelayTests
             success.MailboxContinuation
         );
         Assert.Equal(_mailboxId, awaiting.MailboxId);
-        Assert.Equal(ServiceTaskType, awaiting.ServiceTaskType);
+        Assert.Equal(Host, awaiting.Host);
         Assert.Equal(ArchivingReplyIndex, awaiting.HandlerItemIndex);
         Assert.Equal(4, awaiting.Position);
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
@@ -941,7 +1042,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.Decide(
             ServiceTaskResult.FailedPermanent("the archive never confirmed"),
-            ServiceTaskType,
+            Host,
             _stepId,
             Closed(MailboxDisposedReason.Deadline),
             carry,
@@ -964,7 +1065,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.Decide(
             ServiceTaskResult.FailedRetryable("the archive is down"),
-            ServiceTaskType,
+            Host,
             _stepId,
             Delivered(),
             carry,
@@ -986,7 +1087,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.Decide(
             ServiceTaskResult.Defer(TimeSpan.FromMinutes(5), "waiting for the archive to settle"),
-            ServiceTaskType,
+            Host,
             _stepId,
             Delivered(),
             carry,
@@ -1027,7 +1128,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
             new RogueStageVerdict(ServiceTaskStageResult.Completed()),
-            ServiceTaskType,
+            Host,
             _stepId,
             Delivered(),
             carry,
@@ -1052,7 +1153,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
             ServiceTaskStageResult.Completed(),
-            ServiceTaskType,
+            Host,
             _stepId,
             Delivered(),
             carry,
@@ -1069,7 +1170,7 @@ public class MailboxRelayTests
             success.MailboxContinuation
         );
         Assert.Equal(_mailboxId, continuing.MailboxId);
-        Assert.Equal(ServiceTaskType, continuing.ServiceTaskType);
+        Assert.Equal(Host, continuing.Host);
         // The next segment has steps of its own, so it receives nothing: what starts the journal's receive
         // leg is that segment's own last step, not this hop.
         Assert.Equal(SegmentHandlerIndex, continuing.Handover.AfterItemIndex);
@@ -1094,7 +1195,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
             ServiceTaskStageExchangeResult.AwaitNextReply(),
-            ServiceTaskType,
+            Host,
             _stepId,
             Delivered(seq: 6),
             carry,
@@ -1108,7 +1209,7 @@ public class MailboxRelayTests
             success.MailboxContinuation
         );
         Assert.Equal(_mailboxId, awaiting.MailboxId);
-        Assert.Equal(ServiceTaskType, awaiting.ServiceTaskType);
+        Assert.Equal(Host, awaiting.Host);
         Assert.Equal(SegmentHandlerIndex, awaiting.HandlerItemIndex);
         Assert.Equal(6, awaiting.Position);
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
@@ -1127,7 +1228,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
             ServiceTaskStageResult.FailedPermanent("the archive never confirmed"),
-            ServiceTaskType,
+            Host,
             _stepId,
             Closed(),
             carry,
@@ -1152,7 +1253,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
             ServiceTaskStageResult.FailedRetryable("the archive is down"),
-            ServiceTaskType,
+            Host,
             _stepId,
             Delivered(),
             carry,
@@ -1175,7 +1276,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
             ServiceTaskStageResult.Defer(TimeSpan.FromMinutes(5), "waiting for the archive to settle"),
-            ServiceTaskType,
+            Host,
             _stepId,
             Delivered(),
             carry,
@@ -1202,7 +1303,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
             awaitNext ? ServiceTaskStageExchangeResult.AwaitNextReply() : ServiceTaskStageResult.Completed(),
-            ServiceTaskType,
+            Host,
             Guid.Empty,
             Delivered(),
             carry,
@@ -1225,7 +1326,7 @@ public class MailboxRelayTests
         FailedProcessEngineCommandResult permanent = Assert.IsType<FailedProcessEngineCommandResult>(
             MailboxRelay.DecideSegment(
                 ServiceTaskStageResult.FailedPermanent("the archive never confirmed"),
-                ServiceTaskType,
+                Host,
                 Guid.Empty,
                 Closed(),
                 new WorkflowCallbackStateCarry(),
@@ -1239,7 +1340,7 @@ public class MailboxRelayTests
         Assert.IsType<DeferredProcessEngineCommandResult>(
             MailboxRelay.DecideSegment(
                 ServiceTaskStageResult.Defer(TimeSpan.FromMinutes(1)),
-                ServiceTaskType,
+                Host,
                 Guid.Empty,
                 Delivered(),
                 new WorkflowCallbackStateCarry(),
@@ -1265,11 +1366,11 @@ public class MailboxRelayTests
     ) =>
         new(
             _mailboxId,
-            ServiceTaskType,
+            Host,
             new MailboxHandover(
                 handlerItemIndex,
                 WorkflowCommandSet.PlanSegment(
-                    ServiceTaskType,
+                    Host,
                     pipeline ?? _archiveThenJournalPipeline,
                     afterItemIndex: handlerItemIndex
                 ),
@@ -1288,11 +1389,11 @@ public class MailboxRelayTests
     ) =>
         new(
             _mailboxId,
-            ServiceTaskType,
+            Host,
             new MailboxHandover(
                 handlerItemIndex - 1,
                 new ServiceTaskSegmentPlan(
-                    [WorkflowCommandSet.CreateItemStep(ServiceTaskType, handlerItemIndex)],
+                    [Host.CreateItemStep(handlerItemIndex, itemOptions: null)],
                     ReceiveOpeningIndex: openingStageIndex
                 ),
                 new MailboxTarget(mailboxId, openingStageIndex)
@@ -1305,10 +1406,10 @@ public class MailboxRelayTests
         int openingStageIndex = OpeningStageIndex
     ) =>
         new(
-            ServiceTaskType,
+            Host,
             new MailboxHandover(
                 openingStageIndex,
-                WorkflowCommandSet.PlanSegment(ServiceTaskType, pipeline, afterItemIndex: openingStageIndex),
+                WorkflowCommandSet.PlanSegment(Host, pipeline, afterItemIndex: openingStageIndex),
                 target: null
             )
         );
@@ -1336,7 +1437,7 @@ public class MailboxRelayTests
     public void MailboxHandover_WhosePlanAndTargetDisagree_IsRefusedAtConstruction(bool planReceives)
     {
         var plan = new ServiceTaskSegmentPlan(
-            [WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex)],
+            [Host.CreateItemStep(ArchivingReplyIndex, itemOptions: null)],
             planReceives ? OpeningStageIndex : null
         );
         MailboxTarget? target = planReceives ? null : new MailboxTarget(_mailboxId, OpeningStageIndex);
@@ -1351,8 +1452,8 @@ public class MailboxRelayTests
     {
         var plan = new ServiceTaskSegmentPlan(
             [
-                WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex),
-                WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex + 1),
+                Host.CreateItemStep(ArchivingReplyIndex, itemOptions: null),
+                Host.CreateItemStep(ArchivingReplyIndex + 1, itemOptions: null),
             ],
             OpeningStageIndex
         );
@@ -1564,7 +1665,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
             ServiceTaskStageResult.Completed(),
-            ServiceTaskType,
+            Host,
             _stepId,
             Delivered(),
             carry,
@@ -1598,7 +1699,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
             ServiceTaskStageResult.Completed(),
-            ServiceTaskType,
+            Host,
             _stepId,
             Delivered(),
             carry,
@@ -1726,7 +1827,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.DecideStageEnd(
-            ServiceTaskType,
+            Host,
             _stepId,
             carry,
             OpeningStageIndex,
@@ -1738,7 +1839,7 @@ public class MailboxRelayTests
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
-        Assert.Equal(ServiceTaskType, continuing.ServiceTaskType);
+        Assert.Equal(Host, continuing.Host);
         Assert.Equal(OpeningStageIndex, continuing.Handover.AfterItemIndex);
         Assert.Equal([$"{ExecuteServiceTask.Key}: {ArchivingReplyIndex}"], StepOperationIds(continuing.Handover));
 
@@ -1764,7 +1865,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(1, journalMailboxId, _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.DecideStageEnd(
-            ServiceTaskType,
+            Host,
             _stepId,
             carry,
             stageIndex: 1,
@@ -1800,7 +1901,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(1, Guid.NewGuid(), _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.DecideStageEnd(
-            ServiceTaskType,
+            Host,
             _stepId,
             carry,
             OpeningStageIndex,
@@ -1822,7 +1923,7 @@ public class MailboxRelayTests
     {
         // The journal's send at item index 3, whose terminal answers it at 4.
         ProcessEngineCommandResult result = MailboxRelay.DecideStageEnd(
-            ServiceTaskType,
+            Host,
             _stepId,
             new WorkflowCallbackStateCarry(),
             JournalIndex,
@@ -1843,7 +1944,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.DecideStageEnd(
-            ServiceTaskType,
+            Host,
             Guid.Empty,
             carry,
             OpeningStageIndex,
@@ -1868,7 +1969,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.DecideStageEnd(
-            ServiceTaskType,
+            Host,
             _stepId,
             carry,
             OpeningStageIndex,
@@ -1880,7 +1981,7 @@ public class MailboxRelayTests
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
-        Assert.Equal(ServiceTaskType, continuing.ServiceTaskType);
+        Assert.Equal(Host, continuing.Host);
         // The plan the decide made travels on the verdict: the second send and its mint.
         Assert.Equal(OpeningStageIndex, continuing.Handover.AfterItemIndex);
         Assert.Equal([$"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"], StepOperationIds(continuing.Handover));
@@ -1903,7 +2004,7 @@ public class MailboxRelayTests
         int lastIndex = _archivingPipeline.Items.Count - 1;
 
         ProcessEngineCommandResult result = MailboxRelay.DecideStageEnd(
-            ServiceTaskType,
+            Host,
             _stepId,
             carry,
             lastIndex,
@@ -1933,7 +2034,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
             ServiceTaskResult.Success("reject"),
-            ServiceTaskType,
+            Host,
             _stepId,
             carry
         );
@@ -1962,7 +2063,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
             ServiceTaskResult.FailedPermanent("the recipient account does not exist"),
-            ServiceTaskType,
+            Host,
             _stepId,
             carry
         );
@@ -1987,7 +2088,7 @@ public class MailboxRelayTests
         FailedProcessEngineCommandResult retryable = Assert.IsType<FailedProcessEngineCommandResult>(
             MailboxRelay.DecideOpeningStageConclusion(
                 ServiceTaskResult.FailedRetryable("the archive is down"),
-                ServiceTaskType,
+                Host,
                 _stepId,
                 carry
             )
@@ -1999,7 +2100,7 @@ public class MailboxRelayTests
         DeferredProcessEngineCommandResult deferred = Assert.IsType<DeferredProcessEngineCommandResult>(
             MailboxRelay.DecideOpeningStageConclusion(
                 ServiceTaskResult.Defer(TimeSpan.FromMinutes(5), "waiting"),
-                ServiceTaskType,
+                Host,
                 _stepId,
                 carry
             )
@@ -2016,7 +2117,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
             ServiceTaskResult.Success(),
-            ServiceTaskType,
+            Host,
             Guid.Empty,
             carry
         );
@@ -2047,7 +2148,7 @@ public class MailboxRelayTests
 
         ProcessEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
             new RogueConclusion(ServiceTaskResult.Success()),
-            ServiceTaskType,
+            Host,
             _stepId,
             carry
         );

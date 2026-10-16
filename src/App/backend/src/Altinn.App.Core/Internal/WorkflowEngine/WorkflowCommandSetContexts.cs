@@ -15,10 +15,10 @@ internal sealed record ResolvedServiceTask(string Type, ServiceTaskPipeline Pipe
 /// every step of it is enqueued with. Read at enqueue time, which fixes the pipeline's shape for the side
 /// effect's workflow.
 /// </summary>
-/// <param name="Name">The side effect's name (<see cref="ISideEffectPipeline.Name"/>).</param>
+/// <param name="Name">The side effect's name (<see cref="ISideEffect.Name"/>).</param>
 /// <param name="Pipeline">The side effect's composed pipeline.</param>
-/// <param name="Arguments">The side effect's input, serialized, or <c>null</c>.</param>
-internal sealed record SideEffectInvocation(string Name, ServiceTaskPipeline Pipeline, string? Arguments);
+/// <param name="Input">The side effect's input, serialized, or <c>null</c>.</param>
+internal sealed record SideEffectInvocation(string Name, ServiceTaskPipeline Pipeline, string? Input);
 
 /// <summary>
 /// Context for building the task start command sequence.
