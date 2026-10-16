@@ -92,23 +92,27 @@ internal sealed class CSharpCodeGenerator(
         }
         var code = new IndentedStringBuilder();
         code.AppendLine("using System.Globalization;");
+        code.AppendLine("using Altinn.Platform.Storage.Interface.Models;");
         if (!string.IsNullOrEmpty(dataModelInfo.Namespace))
             code.AppendLine($"using {dataModelInfo.Namespace};");
         code.AppendLine("using Altinn.App.Core.Models;");
         code.AppendLine("using Microsoft.Extensions.Logging;");
         code.AppendLine("#nullable enable");
         code.AppendLine("namespace Altinn.App.Logic.ConvertedLegacyRules;");
-        code.AppendLine($"public class {className}(ILogger<{className}> logger) : IDataWriteProcessor");
+        // IDataProcessor runs before the app's own processors, which may use the calculated values.
+        code.AppendLine($"public class {className}(ILogger<{className}> logger) : IDataProcessor");
         code.OpenBrace();
         code.AppendLine(
-            "public Task ProcessDataWrite(IInstanceDataMutator instanceDataMutator, string taskId, DataElementChanges changes, string? language)"
+            "public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object? previousData, string? language)"
         );
         code.OpenBrace();
-        code.AppendLine("foreach (var change in changes.FormDataChanges)");
-        code.AppendLine($"    if (change.CurrentFormData is {model} model)");
-        code.AppendLine("        Calculate(model);");
+        code.AppendLine($"if (data is {model} model)");
+        code.AppendLine("    Calculate(model);");
         code.AppendLine("return Task.CompletedTask;");
         code.CloseBrace();
+        code.AppendLine(
+            "public Task ProcessDataRead(Instance instance, Guid? dataId, object data, string? language) => Task.CompletedTask;"
+        );
         AppendRules(code, model, methods, usesToNumber);
         code.CloseBrace();
         result.GeneratedCode = code.ToString();

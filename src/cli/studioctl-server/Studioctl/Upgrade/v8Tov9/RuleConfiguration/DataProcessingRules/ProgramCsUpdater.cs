@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.DataProcessingRules;
 
 /// <summary>
-/// Updates Program.cs to register IDataWriteProcessor implementations
+/// Updates Program.cs to register IDataProcessor implementations
 /// </summary>
 internal sealed class ProgramCsUpdater
 {
@@ -49,9 +49,7 @@ internal sealed class ProgramCsUpdater
         if (!rewriter.RegistrationAdded)
         {
             UpgradeConsole.WriteLine($"Warning: Could not find RegisterCustomAppServices method in {programCsPath}");
-            UpgradeConsole.WriteLine(
-                $"Please manually add: services.AddTransient<IDataWriteProcessor, {className}>();"
-            );
+            UpgradeConsole.WriteLine($"Please manually add: services.AddTransient<IDataProcessor, {className}>();");
             return false;
         }
 
