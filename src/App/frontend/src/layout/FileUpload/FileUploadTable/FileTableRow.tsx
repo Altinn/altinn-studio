@@ -100,7 +100,7 @@ export function FileTableRow({
         />
       )}
 
-      {!isSummary && (
+      {!isSummary && !readOnly && (
         <ButtonCellContent
           baseComponentId={baseComponentId}
           attachment={attachment}

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { AddItemContent, type AddItemContentProps } from './AddItemContent';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
@@ -7,10 +8,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../testing/mocks';
 
 describe('AddItemContent', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   const MockIcon = () => <span>Icon</span>;
 
   const mockAvailableComponents: KeyValuePairs<IToolbarElement[]> = {
@@ -44,12 +41,12 @@ describe('AddItemContent', () => {
 
   const defaultProps: AddItemContentProps = {
     item: null,
-    setItem: jest.fn(),
-    onAddItem: jest.fn(),
-    onCancel: jest.fn(),
+    setItem: vi.fn(),
+    onAddItem: vi.fn(),
+    onCancel: vi.fn(),
     availableComponents: mockAvailableComponents,
-    isFavorite: jest.fn(),
-    toggleFavorite: jest.fn(),
+    isFavorite: vi.fn(),
+    toggleFavorite: vi.fn(),
   };
 
   const renderAddItemContent = (props: Partial<AddItemContentProps> = {}) => {

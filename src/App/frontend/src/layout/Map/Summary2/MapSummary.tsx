@@ -1,13 +1,14 @@
 import React from 'react';
 
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { Label } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
+import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
 import { Map } from 'src/layout/Map/Map';
 import classes from 'src/layout/Map/Summary2/MapSummary.module.css';
 import { isLocationValid, parseLocation } from 'src/layout/Map/utils';
@@ -101,14 +102,7 @@ export function MapSummary({ targetBaseComponentId }: Summary2Props) {
             />
           </Paragraph>
         )}
-        {errors?.map(({ message }) => (
-          <ValidationMessage key={message.key}>
-            <Lang
-              id={message.key}
-              params={message.params}
-            />
-          </ValidationMessage>
-        ))}
+        <ValidationMessageList validations={errors} />
       </div>
     </SummaryFlex>
   );

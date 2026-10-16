@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { createRef } from 'react';
 import { Preview } from './Preview';
 import { screen } from '@testing-library/react';

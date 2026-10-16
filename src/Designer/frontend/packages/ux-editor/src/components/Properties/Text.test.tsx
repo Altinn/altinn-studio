@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { Text } from './Text';
 import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -49,8 +50,6 @@ const textResourceBindingsPropertiesForComponentType = (componentType: string) =
 };
 
 describe('TextTab', () => {
-  afterEach(jest.clearAllMocks);
-
   describe('when editing a container', () => {
     const props = {
       formItemId: container1IdMock,

@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import type { RenderHookResult } from '@testing-library/react';
 import { waitFor } from '@testing-library/react';
@@ -19,7 +20,7 @@ const textResources = textResourcesMock;
 const key: TanstackQueryKey = [QueryKey.OrgTextResources, orgName, language];
 
 // Mocks:
-const getOrgTextResources = jest.fn(() => Promise.resolve(textResources));
+const getOrgTextResources = vi.fn(() => Promise.resolve(textResources));
 
 describe('useOrgTextResourcesQuery', () => {
   beforeEach(getOrgTextResources.mockClear);

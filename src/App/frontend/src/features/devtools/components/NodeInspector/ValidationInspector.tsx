@@ -5,7 +5,7 @@ import { EyeSlashIcon } from '@navikt/aksel-icons';
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import classes from 'src/features/devtools/components/NodeInspector/ValidationInspector.module.css';
-import { Lang } from 'src/features/language/Lang';
+import { LangReference } from 'src/features/language/Lang';
 import { ValidationMask } from 'src/features/validation';
 import { isValidationVisible } from 'src/features/validation/utils';
 import { useRawValidations, useValidationVisibilityBreakdown } from 'src/features/validation/validationHooks';
@@ -155,7 +155,7 @@ const ValidationItems = ({ grouping, validations, visibility }: ValidationItemsP
       <ul style={{ padding: 0 }}>
         {validations.map((validation) => (
           <ValidationItem
-            key={`${validation.nodeId}-${validation.source}-${validation.message.key}-${validation.severity}`}
+            key={`${validation.nodeId}-${validation.source}-${validation.message.key ?? validation.message.fallback}-${validation.severity}`}
             validation={validation}
             visibility={visibility}
           />
@@ -189,11 +189,7 @@ const ValidationItem = ({ validation, visibility }: ValidationItemProps) => {
             title='Denne valideringen er skjult'
           />
         )}
-        <Lang
-          id={validation.message.key}
-          params={validation.message.params}
-          customTextParameters={validation.message.customTextParameters}
-        />
+        <LangReference reference={validation.message} />
       </div>
       {category && (
         <span

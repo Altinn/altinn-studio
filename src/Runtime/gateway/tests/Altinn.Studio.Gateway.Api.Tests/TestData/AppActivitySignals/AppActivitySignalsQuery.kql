@@ -1,0 +1,6 @@
+AppRequests
+| where TimeGenerated > ago(2d)
+| extend Method = toupper(tostring(split(Name, ' ')[0]))
+| extend IsClientError = coalesce(toint(ResultCode) between (400 .. 499), false)
+| extend Category = iff(Method in ('POST', 'PUT', 'PATCH', 'DELETE') and not(IsClientError), 'write', 'read')
+| summarize Count = todouble(sum(ItemCount)), LastSeenAt = max(TimeGenerated) by AppRoleName, Category

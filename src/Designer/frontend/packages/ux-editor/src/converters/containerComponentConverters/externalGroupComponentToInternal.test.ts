@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { SerializedContainerComponent } from '../../types/SerializedComponent';
 import { externalContainerComponentToInternal } from './externalContainerComponentToInternal';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';

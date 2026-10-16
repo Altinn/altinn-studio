@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigNumberProperties, type ConfigNumberPropertiesProps } from './ConfigNumberProperties';
 import { componentMocks } from '../../../testing/componentMocks';
@@ -40,7 +41,7 @@ describe('ConfigNumberProperties', () => {
 
   it('should call handleComponentUpdate when saving a new value', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdate = jest.fn();
+    const handleComponentUpdate = vi.fn();
     renderConfigNumberProperties({
       handleComponentUpdate,
       properties: {
@@ -64,7 +65,7 @@ describe('ConfigNumberProperties', () => {
     numberPropertyKeys: [defaultProperty],
     properties,
     component: componentMocks.Input,
-    handleComponentUpdate: jest.fn(),
+    handleComponentUpdate: vi.fn(),
   };
   const renderConfigNumberProperties = (props: Partial<ConfigNumberPropertiesProps> = {}) => {
     return renderWithProviders(<ConfigNumberProperties {...defaultProps} {...props} />, {});

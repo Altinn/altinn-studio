@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import DeployPage from './DeployPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -16,7 +17,7 @@ describe('DeployPage', () => {
 
   it('renders an error message if an error occurs while loading data', async () => {
     render({
-      getOrgList: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
+      getOrgList: vi.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
     });
     await waitForElementToBeRemoved(() =>
       screen.queryByLabelText(textMock('app_deployment.loading')),
@@ -27,12 +28,12 @@ describe('DeployPage', () => {
 
   it('renders no environments message if no org environments', async () => {
     render({
-      getOrgList: jest
+      getOrgList: vi
         .fn()
         .mockImplementation(() =>
           Promise.resolve({ orgs: { [org]: { name: { nb: org }, environments: [] } } }),
         ),
-      getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve([])),
+      getDeployPermissions: vi.fn().mockImplementation(() => Promise.resolve([])),
     });
     await waitForElementToBeRemoved(() =>
       screen.queryByLabelText(textMock('app_deployment.loading')),
@@ -46,12 +47,12 @@ describe('DeployPage', () => {
   it('renders no team message if no permissions', async () => {
     const envName = 'tt02';
     render({
-      getOrgList: jest
+      getOrgList: vi
         .fn()
         .mockImplementation(() =>
           Promise.resolve({ orgs: { [org]: { name: { nb: org }, environments: [envName] } } }),
         ),
-      getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve([])),
+      getDeployPermissions: vi.fn().mockImplementation(() => Promise.resolve([])),
     });
     await waitForElementToBeRemoved(() =>
       screen.queryByLabelText(textMock('app_deployment.loading')),
@@ -64,12 +65,12 @@ describe('DeployPage', () => {
   it('renders deploy page', async () => {
     const envName = 'tt02';
     render({
-      getOrgList: jest
+      getOrgList: vi
         .fn()
         .mockImplementation(() =>
           Promise.resolve({ orgs: { [org]: { name: { nb: org }, environments: [envName] } } }),
         ),
-      getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve([envName])),
+      getDeployPermissions: vi.fn().mockImplementation(() => Promise.resolve([envName])),
     });
     await waitForElementToBeRemoved(() =>
       screen.queryByLabelText(textMock('app_deployment.loading')),

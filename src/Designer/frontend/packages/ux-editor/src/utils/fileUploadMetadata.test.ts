@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormFileUploaderComponent } from '../types/FormComponent';
 import { getFileUploadMetadataProperties } from './fileUploadMetadata';

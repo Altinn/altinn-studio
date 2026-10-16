@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import { containerComponentTypes, isContainerComponentType } from '../data/containerComponentTypes';

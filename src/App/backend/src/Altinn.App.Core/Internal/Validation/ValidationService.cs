@@ -82,7 +82,7 @@ internal sealed class ValidationService : IValidationService
                 var accessor = v.ShouldRunAfterRemovingHiddenData ? cleanAccessor : dataAccessor;
                 var issues = await v.Validate(accessor, taskId, language);
                 validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorIssueCount, issues.Count);
-                await TranslateValidationIssues(issues, language);
+                await _translationService.TranslateValidationIssues(issues, language);
                 return KeyValuePair.Create(
                     v.ValidationSource,
                     issues.Select(issue =>
@@ -161,7 +161,7 @@ internal sealed class ValidationService : IValidationService
                 {
                     var issues = await validator.Validate(localAccessor, taskId, language);
                     validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorIssueCount, issues.Count);
-                    await TranslateValidationIssues(issues, language);
+                    await _translationService.TranslateValidationIssues(issues, language);
                     var issuesWithSource = issues
                         .Select(i =>
                             ValidationIssueWithSource.FromIssue(
@@ -233,24 +233,5 @@ internal sealed class ValidationService : IValidationService
         }
 
         return new DataElementChanges(cleanedChangeList);
-    }
-
-    private async Task TranslateValidationIssues(IEnumerable<ValidationIssue> issues, string? language)
-    {
-        foreach (var issue in issues)
-        {
-            if (string.IsNullOrEmpty(issue.Description) && !string.IsNullOrEmpty(issue.CustomTextKey))
-            {
-                var translated = await _translationService.TranslateTextKey(
-                    issue.CustomTextKey,
-                    language,
-                    issue.CustomTextParameters
-                );
-                if (translated is not null)
-                {
-                    issue.Description = translated;
-                }
-            }
-        }
     }
 }

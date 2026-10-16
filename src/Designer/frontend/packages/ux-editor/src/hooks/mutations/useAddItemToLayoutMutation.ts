@@ -9,6 +9,12 @@ import { addItemOfType } from '../../utils/formLayoutUtils';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { getFileUploadMetadataProperties } from '../../utils/fileUploadMetadata';
 
+export const imageUploadDefaultDataType = {
+  maxCount: 1,
+  minCount: 0,
+  maxSize: 10,
+};
+
 export interface AddFormItemMutationArgs {
   componentType: ComponentType | ComponentPreset;
   newId: string;
@@ -42,9 +48,7 @@ export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetNa
           appAttachmentMetadataMutation.mutate({
             id: newId,
             taskId: taskId,
-            maxCount: 1,
-            minCount: 0,
-            maxSize: 10,
+            ...imageUploadDefaultDataType,
           });
         }
         return newId; // Returns created id

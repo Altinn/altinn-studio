@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { CreateRelease } from './CreateRelease';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -71,7 +72,7 @@ describe('CreateRelease', () => {
   });
 
   it('does not show Maskinporten scopes notice for app backend version 8.3 when default scopes are missing', async () => {
-    const getSelectedMaskinportenScopes = jest
+    const getSelectedMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ scopes: [] }));
 
@@ -88,7 +89,7 @@ describe('CreateRelease', () => {
   });
 
   it('does not show Maskinporten scopes notice when default scopes are already selected', async () => {
-    const getSelectedMaskinportenScopes = jest.fn().mockImplementation(() =>
+    const getSelectedMaskinportenScopes = vi.fn().mockImplementation(() =>
       Promise.resolve({
         scopes: [
           {
@@ -120,7 +121,7 @@ describe('CreateRelease', () => {
   });
 
   it('does not fetch selected Maskinporten scopes or show the notice for personal apps', async () => {
-    const getSelectedMaskinportenScopes = jest
+    const getSelectedMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ scopes: [] }));
 
@@ -156,10 +157,10 @@ describe('CreateRelease', () => {
     const newVersionNumber = 'v1';
     const newVersionDescription = 'test version';
     const mockCommitId = '123';
-    const mockGetBranchStatus = jest
+    const mockGetBranchStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ commit: { id: mockCommitId } }));
-    const mockCreateRelease = jest.fn();
+    const mockCreateRelease = vi.fn();
 
     renderCreateRelease({ getBranchStatus: mockGetBranchStatus, createRelease: mockCreateRelease });
 
@@ -207,7 +208,7 @@ describe('CreateRelease', () => {
   it('shows validation error for existing tag name', async () => {
     const user = userEvent.setup();
     const existingTagName = 'v1';
-    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+    const mockGetAppReleases = vi.fn().mockImplementation(() =>
       Promise.resolve({
         results: [{ tagName: existingTagName, build: { result: BuildResult.succeeded } }],
       }),

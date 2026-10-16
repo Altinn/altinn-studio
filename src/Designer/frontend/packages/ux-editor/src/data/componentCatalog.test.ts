@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { PropertyDefinition } from '@app/layout-contract';
 import {
   getAllowedValues,

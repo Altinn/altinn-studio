@@ -218,8 +218,7 @@
           "description": "CV.vedlegg-cv.description",
           "tagTitle": "CV.vedlegg-cv.tagTitle"
         },
-        "validFileEndings": ".pdf, .png, .jpg",
-        "required": false
+        "validFileEndings": ".pdf, .png, .jpg"
       },
       {
         "id": "arbeidserfaring",
@@ -365,8 +364,7 @@
           "description": "CV.Vedlegg.description",
           "tagTitle": "CV.Vedlegg.tagTitle"
         },
-        "validFileEndings": ".pdf, .png, .jpg",
-        "required": false
+        "validFileEndings": ".pdf, .png, .jpg"
       },
       {
         "id": "prosjekter",

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { fruitsFile } from '../test-data/codeLists';
 import { CodeListDataEditor } from './CodeListDataEditor';
 import type { CodeListDataEditorProps } from './CodeListDataEditor';
@@ -31,8 +31,6 @@ const defaultProps: CodeListDataEditorProps = {
 };
 
 describe('CodeListDataEditor', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('Renders the code list editor with given content', () => {
     renderCodeListDataEditor();
     const expectedNumberOfRowsIncludingHeaders = extractCodeList(currentFile).length + 1;

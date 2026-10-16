@@ -6,12 +6,15 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
 
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 type roundTripFunc func(*http.Request) (*http.Response, error)
@@ -279,6 +282,26 @@ func TestPrepareStudioctlServerSocketForStart_RejectsDirectory(t *testing.T) {
 	err := prepareStudioctlServerSocketForStart(context.Background(), cfg)
 	if err == nil || !strings.Contains(err.Error(), "socket path is a directory") {
 		t.Fatalf("prepareStudioctlServerSocketForStart() error = %v, want directory error", err)
+	}
+}
+
+func TestStudioctlServerCommand_OpensStandardStreams(t *testing.T) {
+	t.Parallel()
+	if runtime.GOOS == osutil.OSWindows {
+		t.Skip("probes POSIX file descriptors")
+	}
+
+	cmd := studioctlServerCommand(context.Background(), testConfig(t), startConfig{})
+	cmd.Path = "/bin/sh"
+	cmd.Args = []string{"/bin/sh", "-c", `for fd in 0 1 2; do [ -e /dev/fd/$fd ] || exit $((10 + fd)); done`}
+
+	err := cmd.Run()
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) {
+		t.Fatalf("studioctl-server starts with fd %d closed", exitErr.ExitCode()-10)
+	}
+	if err != nil {
+		t.Fatalf("run fd probe: %v", err)
 	}
 }
 

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithProviders } from '../../testing/mocks';
@@ -42,8 +43,6 @@ const newLayout: IInternalLayout = {
 };
 
 describe('useFormLayoutMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Calls saveFormLayout with correct arguments and payload', async () => {
     await renderAndMutate(newLayout);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);

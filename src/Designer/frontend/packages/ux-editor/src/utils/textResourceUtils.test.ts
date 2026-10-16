@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { getTextResourceId } from './textResourceUtils';
 
 describe('getTextResourceId', () => {

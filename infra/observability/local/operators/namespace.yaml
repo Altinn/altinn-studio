@@ -1,0 +1,6 @@
+# The VictoriaMetrics operator is installed into the namespace of the backend it
+# manages, which a real cluster gets from the observability syncroot entry.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: observability

@@ -2,8 +2,6 @@ export function en() {
   return {
     'dateTime.am': 'AM',
     'dateTime.pm': 'PM',
-    'altinn.standard_validation.file_content_type_not_allowed':
-      'It looks like you are trying to upload a file type that is not allowed. Please make sure that the file is actually the type it claims to be.',
     'actions.sign': 'Sign',
     'actions.confirm': 'Confirm',
     'actions.reject': 'Reject',
@@ -68,6 +66,18 @@ export function en() {
     'form_filler.alert_confirm': 'Confirm',
     'form_filler.checkbox_alert': 'Are you sure you want to uncheck?',
     'form_filler.multi_select_alert': 'Are you sure you want to delete <b>{0}</b>?',
+    'form_filler.suggestion_added': 'Added',
+    'form_filler.suggestion_clear': 'Clear text',
+    'form_filler.suggestion_empty': 'None selected',
+    'form_filler.suggestion_found': 'Navigate left to find %d selected',
+    'form_filler.suggestion_invalid': 'Invalid selection',
+    'form_filler.suggestion_items': 'Selected',
+    'form_filler.suggestion_of': 'of',
+    'form_filler.suggestion_plural': '%d suggestions',
+    'form_filler.suggestion_remove': 'Press to remove',
+    'form_filler.suggestion_removed': 'Removed',
+    'form_filler.suggestion_singular': '%d suggestion',
+    'form_filler.suggestion_toggle': 'Suggestions',
     'form_filler.dropdown_alert': 'Are you sure you want to change to <b>{0}</b>?',
     'form_filler.back_to_summary': 'Return to summary',
     'form_filler.back_to_page': 'Back to {0}',
@@ -95,6 +105,7 @@ export function en() {
     'form_filler.file_uploader_remove_infected_files': 'Remove infected files before submission.',
     'form_filler.file_uploader_max_size_mb': 'Maximum file size {0} MB',
     'form_filler.file_uploader_upload': 'Upload file',
+    'form_filler.file_uploader_read_only': 'Attachments cannot be changed.',
     'form_filler.file_uploader_number_of_files': 'Number of files {0}.',
     'form_filler.file_uploader_show_more_errors': 'Show {0} more',
     'form_filler.file_uploader_show_fewer_errors': 'Show fewer',
@@ -114,7 +125,7 @@ export function en() {
     'form_filler.file_uploader_validation_error_upload':
       'Something went wrong trying to upload the file, please try again.',
     'form_filler.file_uploader_validation_error_update':
-      'Something went wrong trying to update the filetag, please try again.',
+      'Something went wrong trying to update the file tag, please try again.',
     'form_filler.file_uploader_validation_error_no_chosen_tag': 'You have to choose one {0}',
     'form_filler.placeholder_receipt_header': 'The form has been submitted',
     'form_filler.placeholder_user': 'OLA PRIVATPERSON',
@@ -259,7 +270,7 @@ export function en() {
     'instantiate.inbox': 'inbox',
     'instantiate.profile': 'profile',
     'instantiate.unknown_error_title': 'Unknown error',
-    'instantiate.unknown_error_text': 'An unknown error occcurred, please try again later.',
+    'instantiate.unknown_error_text': 'An unknown error occurred, please try again later.',
     'instantiate.unknown_error_status': 'Unknown error',
     'instantiate.unknown_error_customer_support':
       'If the problem persists, contact us at customer service at {0}.',
@@ -278,9 +289,9 @@ export function en() {
     'instantiate.authorization_error_ask':
       'If you are representing a person, it is the one you are representing that can give you the required rights to start this service. If you are representing an organisation, you have to ask for the required rights from persons with access delegation rights within your organisation.',
     'instantiate.authorization_error_check_rights':
-      '<a href="https://am.ui.{0}/accessmanagement/ui" target="_blank">See who has rights to delegate access under "Others with rights within the organisation"</a>.',
+      '<a href="{0}" target="_blank">See who has rights to delegate access under "Others with rights within the organisation"</a>.',
     'instantiate.authorization_error_info_rights':
-      '<a href="https://{0}/hjelp/profil/enkelttjenester-og-roller/" target="_blank">Learn more about roles and rights</a>.',
+      '<a href="{0}" target="_blank">Learn more about roles and rights</a>.',
     'instantiate.authorization_error_info_customer_service':
       'You can also contact customer service at {0}.',
     'instantiate.authorization_error_instantiate_validation_info_customer_service':
@@ -321,7 +332,7 @@ export function en() {
     'party_selection.show_sub_unit': 'Show sub units',
     'party_selection.why_seeing_this': 'Why am I seeing this?',
     'party_selection.seeing_this_preference':
-      'You can change your [profile settings](https://af.{0}/profile/parties) to not get prompted for party selection each time you start a new instance. You can find this setting under **Profile** > **Parties**.',
+      'You can change your [profile settings]({0}) to not get prompted for party selection each time you start a new instance. You can find this setting under **Profile** > **Parties**.',
     'party_selection.seeing_this_override':
       'This app has been configured to always prompt you for party selection.',
     'payment.pay': 'Pay',
@@ -337,7 +348,7 @@ export function en() {
     'payment.receipt.payer': 'Payer',
     'payment.receipt.name': 'Name',
     'payment.receipt.company_name': 'Company name',
-    'payment.receipt.org_number': 'Organisasjonsnummer',
+    'payment.receipt.org_number': 'Organisation number',
     'payment.receipt.contact_person': 'Contact person',
     'payment.receipt.contact_phone': 'Contact phone',
     'payment.receipt.contact_email': 'Contact email',
@@ -384,7 +395,7 @@ export function en() {
       'An error occurred. Please try again later.',
     'person_lookup.unknown_error': 'An unknown error occurred. Please try again later.',
     'helptext.button_title': 'Help',
-    'helptext.button_title_prefix': 'Helptext for',
+    'helptext.button_title_prefix': 'Help text for',
     'receipt.attachments': 'Attachments',
     'receipt.body':
       'A mechanical check has been completed while filling in, but we reserve the right to detect errors during the processing of the case and that other documentation may be necessary. Please provide the reference number in case of any inquiries to the agency.',
@@ -468,7 +479,7 @@ export function en() {
     'version_error.min_backend_version': 'Minimum backend version is {0}',
     'missing_row_id_error.title': 'Missing row-ID',
     'missing_row_id_error.message':
-      'When data was loaded, a row-ID was missing. This is an error in the configuration of the form, and must be corrected using the migration tools. Sjekk loggene i utviklerverktøyene for mer informasjon.',
+      'When data was loaded, a row-ID was missing. This is an error in the configuration of the form, and must be corrected using the migration tools. Check the logs in the developer tools for more information.',
     'missing_row_id_error.full_message':
       'The data model is missing the property {0} in the path {1}. This should be automatically added to the data model if you are using the correct version of the NuGet packages and have run the migration tools. Read more about the tools in the documentation: https://docs.altinn.studio/community/changelog/app-nuget/v8/migrating-from-v7/',
     'likert.left_column_default_header_text': 'Question',
@@ -489,7 +500,7 @@ export function en() {
     'process_workflow.failure_kind.timeout': 'Processing took too long',
     'process_workflow.failure_kind.unknown': 'Unknown cause',
     'process_workflow.having_trouble':
-      'We’re having trouble processing your form right now, but we keep trying automatically. Your information has been saved. You can safely close the page and come back later. You can open forms you’ve already started from your inbox or from the Drafts folder.',
+      'We are having trouble processing your form right now, but we will keep trying automatically. Your information has been saved. You can safely close the page and come back later. You can open forms you have already started from your inbox or from the Drafts folder.',
     'process_workflow.still_working':
       'This is taking longer than usual. Your information has been saved, and the work continues automatically. You can safely close the page and come back later. You can open forms you’ve already started from your inbox or from the Drafts folder.',
     'pdfPreview.error': 'Could not show PDF preview',

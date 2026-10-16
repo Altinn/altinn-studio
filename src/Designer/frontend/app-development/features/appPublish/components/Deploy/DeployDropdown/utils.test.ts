@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { filterSucceededReleases, mapAppReleasesToImageOptions } from './utils'; // Adjust the import paths as needed
 import { BuildResult } from 'app-shared/types/Build';
 import type { AppRelease } from 'app-shared/types/AppRelease';

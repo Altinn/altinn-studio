@@ -469,26 +469,38 @@ func defaultMapping(t *testing.T, name string) KeyVaultSecretMapping {
 	return KeyVaultSecretMapping{}
 }
 
-func TestDefaultMappings_ObservabilityIngestTokenIsDeliveredVerbatim(t *testing.T) {
-	g := NewWithT(t)
+// The files these mappings write are sent as credentials, the ingest token by the gateway as a
+// bearer token and the pdf3 key by the relay, so any JSON encoding would be sent along with them.
+func TestDefaultMappings_CredentialsAreDeliveredVerbatim(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		namespace string
+		fileName  string
+		kvSecret  string
+	}{
+		{"observability-ingest-token", "runtime-obs", "token", "Observability--Ingest--Token"},
+		{"pdf3-upstream-api-key", "runtime-pdf3", "key", "Pdf3--Upstream--ApiKey"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
 
-	mapping := defaultMapping(t, "observability-ingest-token")
-	g.Expect(mapping.Namespace).To(Equal("runtime-obs"))
-	g.Expect(mapping.FileName).To(Equal("token"))
-	g.Expect(mapping.Secrets).To(Equal([]string{"Observability--Ingest--Token"}))
+			mapping := defaultMapping(t, tc.name)
+			g.Expect(mapping.Namespace).To(Equal(tc.namespace))
+			g.Expect(mapping.FileName).To(Equal(tc.fileName))
+			g.Expect(mapping.Secrets).To(Equal([]string{tc.kvSecret}))
 
-	h := newTestHarness(t, []KeyVaultSecretMapping{mapping})
-	h.kvClient.SetSecret(mapping.Secrets[0], "gkQ2nT8pLxR4wZ6vB1sJ")
+			h := newTestHarness(t, []KeyVaultSecretMapping{mapping})
+			h.kvClient.SetSecret(mapping.Secrets[0], "gkQ2nT8pLxR4wZ6vB1sJ")
 
-	err := h.reconciler.SyncAll(h.ctx())
-	g.Expect(err).NotTo(HaveOccurred())
+			err := h.reconciler.SyncAll(h.ctx())
+			g.Expect(err).NotTo(HaveOccurred())
 
-	secret := &corev1.Secret{}
-	err = h.k8sClient.Get(h.ctx(), mapping.objectKey(), secret)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	// The gateway sends this file as a bearer token, so any JSON encoding would be sent along with it.
-	g.Expect(string(mapping.fileData(secret))).To(Equal("gkQ2nT8pLxR4wZ6vB1sJ"))
+			secret := &corev1.Secret{}
+			err = h.k8sClient.Get(h.ctx(), mapping.objectKey(), secret)
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(string(mapping.fileData(secret))).To(Equal("gkQ2nT8pLxR4wZ6vB1sJ"))
+		})
+	}
 }
 
 func TestReconciler_StartExitsOnContextCancellation(t *testing.T) {

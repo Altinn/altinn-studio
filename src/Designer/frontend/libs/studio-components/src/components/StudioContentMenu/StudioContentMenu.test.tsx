@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -25,8 +25,6 @@ const tab2: StudioContentMenuButtonTabProps<StudioMenuTabName> = {
 };
 
 describe('StudioContentMenu', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders first tab as selected if selectedTab is not provided', () => {
     renderStudioContentMenu({
       buttonTabs: [tab1, tab2],

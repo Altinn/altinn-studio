@@ -4,12 +4,129 @@ import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { FormStore } from 'src/features/form/FormContext';
+import { BackendValidationSeverity, ValidationMask } from 'src/features/validation';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 describe('InputComponent', () => {
+  it.each([
+    { severity: BackendValidationSeverity.Error, hasError: true },
+    { severity: BackendValidationSeverity.Warning, hasError: false },
+    { severity: BackendValidationSeverity.Informational, hasError: false },
+  ])(
+    'uses visible backend severity $severity for accessibility and the error state',
+    async ({ severity, hasError }) => {
+      await render({
+        component: {
+          textResourceBindings: { title: 'Input label' },
+        },
+        queries: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].initialData = { some: { field: 'value' } };
+              obj.dataModels[defaultDataTypeMock].initialValidationIssues = [
+                {
+                  customTextKey: 'Backend validation message',
+                  field: 'some.field',
+                  dataElementId: defaultMockDataElementId,
+                  severity,
+                  source: 'Custom',
+                },
+              ];
+            }),
+        },
+      });
+
+      const input = screen.getByRole('textbox');
+      expect(screen.getByText('Backend validation message')).toBeInTheDocument();
+      expect(input).toHaveAttribute('aria-describedby', expect.stringContaining('mock-id-validations'));
+      if (hasError) {
+        expect(input).toHaveAttribute('aria-invalid', 'true');
+      } else {
+        expect(input).not.toHaveAttribute('aria-invalid', 'true');
+      }
+    },
+  );
+
+  it('updates the error state and accessibility when required validations become visible', async () => {
+    function ShowRequiredValidations() {
+      const setFormMask = FormStore.raw.useSelector((state) => state.validation.setFormMask);
+      return <button onClick={() => setFormMask(ValidationMask.Required)}>Show required validations</button>;
+    }
+
+    await render({
+      component: {
+        required: true,
+        showValidations: [],
+        textResourceBindings: { title: 'Input label' },
+      },
+      renderer: (props) => (
+        <>
+          <InputComponent {...props} />
+          <ShowRequiredValidations />
+        </>
+      ),
+    });
+
+    const input = screen.getByRole('textbox');
+    expect(input).not.toHaveAttribute('aria-invalid', 'true');
+    expect(input).not.toHaveAttribute('aria-describedby');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Show required validations' }));
+
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAttribute('aria-describedby', expect.stringContaining('mock-id-validations'));
+  });
+
+  it('updates the error state when masked backend validations are shown', async () => {
+    function ShowBackendValidations() {
+      const showAll = FormStore.raw.useSelector((state) => state.validation.setShowAllUnboundValidations);
+      return <button onClick={() => showAll(true)}>Show backend validations</button>;
+    }
+
+    await render({
+      component: {
+        showValidations: ['Schema'],
+        textResourceBindings: { title: 'Input label' },
+      },
+      renderer: (props) => (
+        <>
+          <InputComponent {...props} />
+          <ShowBackendValidations />
+        </>
+      ),
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues = [
+              {
+                customTextKey: 'Backend validation message',
+                field: 'some.field',
+                dataElementId: defaultMockDataElementId,
+                severity: BackendValidationSeverity.Error,
+                source: 'Custom',
+              },
+            ];
+          }),
+      },
+    });
+
+    const input = screen.getByRole('textbox');
+    expect(input).not.toHaveAttribute('aria-invalid', 'true');
+    expect(input).not.toHaveAttribute('aria-describedby');
+    expect(screen.queryByText('Backend validation message')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Show backend validations' }));
+
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAttribute('aria-describedby', expect.stringContaining('mock-id-validations'));
+    expect(screen.getByText('Backend validation message')).toBeInTheDocument();
+  });
+
   it('should correct value with no form data provided', async () => {
     await render();
     const inputComponent = screen.getByRole('textbox');

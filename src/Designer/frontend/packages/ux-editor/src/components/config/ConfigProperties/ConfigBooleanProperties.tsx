@@ -25,8 +25,13 @@ export const ConfigBooleanProperties = ({
 }: ConfigBooleanPropertiesProps) => {
   const t = useText();
   const [showAll, setShowAll] = useState(false);
-  const defaultDisplayedKeys = booleanPropertyKeys.slice(0, defaultDisplayCount);
-  const additionalKeys = booleanPropertyKeys.slice(defaultDisplayCount);
+  const primaryPropertyKeys = ['readOnly', 'required', 'hidden'];
+  const orderedPropertyKeys = [
+    ...primaryPropertyKeys.filter((key) => booleanPropertyKeys.includes(key)),
+    ...booleanPropertyKeys.filter((key) => !primaryPropertyKeys.includes(key)),
+  ];
+  const defaultDisplayedKeys = orderedPropertyKeys.slice(0, defaultDisplayCount);
+  const additionalKeys = orderedPropertyKeys.slice(defaultDisplayCount);
 
   const renderIcon = showAll ? (
     <ChevronUpIcon className={classes.upIcon} />

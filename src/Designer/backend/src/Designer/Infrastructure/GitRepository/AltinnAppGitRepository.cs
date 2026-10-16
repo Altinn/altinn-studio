@@ -1210,6 +1210,13 @@ public class AltinnAppGitRepository : AltinnGitRepository
     public bool LayoutSetFolderExistsByExactName(string layoutSetName) =>
         GetLayoutSetFolderNames().Contains(layoutSetName, StringComparer.Ordinal);
 
+    /// <summary>
+    /// Determines whether the layout set holds a layout file of exactly this name. Matching by exact name
+    /// makes a case-insensitive file system behave like Linux.
+    /// </summary>
+    public bool LayoutFileExistsByExactName(string layoutSetName, string layoutName) =>
+        GetLayoutFileNames(layoutSetName).Contains(layoutName, StringComparer.Ordinal);
+
     private string[] GetLayoutSetFolderNames() =>
         DirectoryExistsByRelativePath(LayoutsFolderName) ? GetDirectoriesByRelativeDirectory(LayoutsFolderName) : [];
 

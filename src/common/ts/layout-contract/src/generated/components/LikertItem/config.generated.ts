@@ -5,9 +5,9 @@ import {
   IDataModelBindingsOptionsSimple,
   ILikertColumnProperties,
   ISelectionComponentFull,
+  ISummaryOverridesCommon,
   LabeledComponentProps,
   LayoutStyle,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
@@ -16,7 +16,6 @@ export interface CompLikertItemExternal
   extends
     ComponentBase,
     FormComponentProps,
-    SummarizableComponentProps,
     ISelectionComponentFull,
     ILikertColumnProperties,
     LabeledComponentProps {
@@ -27,11 +26,19 @@ export interface CompLikertItemExternal
     help?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsOptionsSimple;
   showLabelsInTable?: boolean;
   layout?: LayoutStyle;
 }
+
+export type LikertItemSummaryOverridesWithRef =
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'LikertItem' } & ISummaryOverridesCommon);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -57,8 +64,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompLikertItemExternal;
-  summaryOverrides: undefined;
-  summaryOverridesWithRef: undefined;
+  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverridesWithRef: LikertItemSummaryOverridesWithRef;
 };
 
-// Source hash: a62b8db2b07b0cebea3cba954ae1ecc3ae27a0aee5382595cd7a99c5ebe7a133
+// Source hash: 486dc8c5a2c39ed41c3e3d0552f19c74818ef2de564f71a17a8930e725e29c2e

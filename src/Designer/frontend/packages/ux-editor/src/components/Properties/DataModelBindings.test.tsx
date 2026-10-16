@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DataModelBindings } from './DataModelBindings';
@@ -44,8 +45,6 @@ const dataModelMetadata: DataModelMetadataResponse = {
 const getDataModelMetadata = () => Promise.resolve(dataModelMetadata);
 
 describe('DataModelBindings', () => {
-  afterEach(jest.clearAllMocks);
-
   it('renders EditDataModelBindings component when schema is present', () => {
     render();
 
@@ -215,7 +214,7 @@ describe('DataModelBindings', () => {
 
   it('toggling ON multiple attachment switch should call handleUpdate with expected values', async () => {
     const user = userEvent.setup();
-    const handleUpdate = jest.fn();
+    const handleUpdate = vi.fn();
     render({
       props: {
         formItem: componentMocks[ComponentType.FileUpload],
@@ -240,7 +239,7 @@ describe('DataModelBindings', () => {
 
   it('toggling OFF multiple attachment switch should call handleUpdate with expected values', async () => {
     const user = userEvent.setup();
-    const handleUpdate = jest.fn();
+    const handleUpdate = vi.fn();
     render({
       props: {
         formItem: {

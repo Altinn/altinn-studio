@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { SummaryMainConfig } from './SummaryMainConfig';
@@ -18,10 +19,6 @@ const summary2Component: FormItem = {
 
 describe('ComponentMainConfig', () => {
   describe('Summary2', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
     it('should render summary2 config', async () => {
       render(summary2Component);
       expect(
@@ -41,7 +38,7 @@ describe('ComponentMainConfig', () => {
 const summary2TargetLayoutSet = () =>
   screen.getByRole('combobox', { name: /ux_editor.component_properties.target_layoutSet_id/ });
 
-const handleComponentChange = jest.fn();
+const handleComponentChange = vi.fn();
 const render = (component: FormItem<ComponentType.Summary2>) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);

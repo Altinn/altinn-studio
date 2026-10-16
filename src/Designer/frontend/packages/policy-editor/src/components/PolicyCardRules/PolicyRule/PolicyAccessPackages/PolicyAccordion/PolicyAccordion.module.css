@@ -7,6 +7,10 @@
   align-items: center;
 }
 
+.accordionButtonWrapper {
+  flex: 1;
+}
+
 .accordionButton {
   width: 100%;
   display: flex;

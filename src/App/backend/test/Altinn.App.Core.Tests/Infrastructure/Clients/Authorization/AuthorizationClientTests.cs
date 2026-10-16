@@ -35,7 +35,9 @@ public class AuthorizationClientTests
         Mock<HttpClient> httpClientMock = new();
         Mock<IOptionsMonitor<AppSettings>> appSettingsMock = new();
         var pdpResponse = GetXacmlJsonRespons("one-action-denied");
-        pdpMock.Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>())).ReturnsAsync(pdpResponse);
+        pdpMock
+            .Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pdpResponse);
         AuthorizationClient client = CreateClient(
             pdpMock.Object,
             httpContextAccessorMock.Object,
@@ -80,7 +82,7 @@ public class AuthorizationClientTests
         Mock<HttpContextAccessor> httpContextAccessorMock = new();
         Mock<HttpClient> httpClientMock = new();
         pdpMock
-            .Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new XacmlJsonResponse());
         AuthorizationClient client = CreateClient(
             pdpMock.Object,
@@ -298,8 +300,8 @@ public class AuthorizationClientTests
         """;
 
     [Fact]
-    public Task AuthorizeAction_does_not_call_pdp_when_already_cancelled() =>
-        AssertPdpNotCalledWhenCancelled(
+    public Task AuthorizeAction_forwards_cancellation_token_to_pdp() =>
+        AssertCancellationTokenForwardedToPdp(
             (client, cancellationToken) =>
                 client.AuthorizeAction(
                     new AppIdentifier("tdd", "test-app"),
@@ -312,8 +314,8 @@ public class AuthorizationClientTests
         );
 
     [Fact]
-    public Task AuthorizeActions_does_not_call_pdp_when_already_cancelled() =>
-        AssertPdpNotCalledWhenCancelled(
+    public Task AuthorizeActions_forwards_cancellation_token_to_pdp() =>
+        AssertCancellationTokenForwardedToPdp(
             (client, cancellationToken) =>
                 client.AuthorizeActions(
                     new Instance
@@ -331,25 +333,26 @@ public class AuthorizationClientTests
         );
 
     [Fact]
-    public Task GetKeyRoleOrganizationParties_does_not_call_pdp_when_already_cancelled() =>
-        AssertPdpNotCalledWhenCancelled(
+    public Task GetKeyRoleOrganizationParties_forwards_cancellation_token_to_pdp() =>
+        AssertCancellationTokenForwardedToPdp(
             (client, cancellationToken) => client.GetKeyRoleOrganizationParties(1337, ["123456789"], cancellationToken)
         );
 
-    /// <summary>
-    /// IPDP has no cancellation token parameter, so the client is expected to honour cancellation by not
-    /// starting the PDP call at all when the token is already cancelled.
-    /// </summary>
-    private static async Task AssertPdpNotCalledWhenCancelled(Func<AuthorizationClient, CancellationToken, Task> act)
+    private static async Task AssertCancellationTokenForwardedToPdp(
+        Func<AuthorizationClient, CancellationToken, Task> act
+    )
     {
+        using var cts = new CancellationTokenSource();
         Mock<IPDP> pdpMock = new(MockBehavior.Strict);
+        pdpMock
+            .Setup(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), cts.Token))
+            .ReturnsAsync(new XacmlJsonResponse());
         using var httpClient = new HttpClient(new DelegatingHandlerStub());
         AuthorizationClient client = CreateClient(pdpMock.Object, new HttpContextAccessor(), httpClient);
-        var cancelled = new CancellationToken(canceled: true);
 
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => act(client, cancelled));
+        await act(client, cts.Token);
 
-        pdpMock.Verify(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()), Times.Never);
+        pdpMock.Verify(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), cts.Token), Times.Once);
     }
 
     private static AuthorizationClient CreateClient(

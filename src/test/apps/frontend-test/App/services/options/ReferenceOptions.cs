@@ -21,7 +21,7 @@ namespace Altinn.App.services.options
         public string Id { get; internal set; } = "references";
 
         /// <inheritdoc/>
-        public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
+        public async Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
         {
 
             string? source = keyValuePairs.GetValueOrDefault("source");

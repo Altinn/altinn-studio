@@ -51,6 +51,10 @@ internal static class V8Tov9Upgrade
     // Namespace the v9 app template imports globally; it holds the interfaces app code implements.
     private const string FeaturesNamespace = "Altinn.App.Core.Features";
 
+    // Keep the release floor aligned with the app template. This release carries the .NET 11
+    // arithmetic fixes and compatible OpenAPI dependencies; earlier v9 packages cannot be retargeted alone.
+    private const string MinimumPackageVersion = "9.0.0-preview.8";
+
     /// <summary>
     /// The eFormidling client moved out of the Altinn.Common.EFormidlingClient package and into
     /// Altinn.App.Core in v9. Matching is on the exact namespace, so the entries below are the whole
@@ -83,6 +87,7 @@ internal static class V8Tov9Upgrade
 
         var projectChecks = new ProjectChecks.ProjectChecks(projectFile);
         var alreadyTargetsV9 = projectChecks.IsTargetVersion();
+        var usesProjectReferences = projectChecks.HasAltinnProjectReferences();
         if (!projectChecks.SupportedSourceVersion() && !alreadyTargetsV9)
             return WriteError(
                 $"Version(s) in project file {projectFile} are not supported for the 'v8Tov9' upgrade. "
@@ -100,40 +105,26 @@ internal static class V8Tov9Upgrade
             ? CSharpSourceScanner.ForProject(projectFile)
             : await CreateSourceScanner(projectFolder, projectFile, options);
 
-        var returnCode = 0;
-        string? appPackageVersion = null;
         options.CancellationToken.ThrowIfCancellationRequested();
-        if (!options.SkipCsprojUpgrade)
-        {
-            if (!alreadyTargetsV9)
-            {
-                if (options.ConvertPackageReferences)
-                {
-                    returnCode = await ConvertToProjectReferences(
-                        projectFolder,
-                        projectFile,
-                        options.TargetFramework,
-                        options.StudioRoot
-                    );
-                }
-                else
-                {
-                    var targetVersion = await V9PackageVersionResolver.ResolveLatestTargetVersion(
-                        projectFolder,
-                        options.TargetMajorVersion,
-                        options.CancellationToken
-                    );
-                    returnCode = await UpgradeProjectFile(projectFile, targetVersion, options.TargetFramework);
-                    appPackageVersion = targetVersion;
-                }
-            }
+        var projectResult = options.SkipCsprojUpgrade
+            ? ExitSuccess
+            : await UpgradeProject(options, projectFile, projectChecks);
+        var returnCode = projectResult;
+        string? appPackageVersion = null;
 
-            // Runs on resumed upgrades too, so an app already moved to v9 gets its test project fixed.
-            if (returnCode == 0)
-            {
-                returnCode = await MigrateDockerfile(projectFolder, options.TargetFramework);
-                returnCode = CombineExitCodes(returnCode, await MigrateDependentProjects(projectFolder, projectFile));
-            }
+        // Runs on resumed upgrades too. A companion failure does not suppress package downgrade repair.
+        if (!options.SkipCsprojUpgrade && projectResult == ExitSuccess)
+        {
+            options.CancellationToken.ThrowIfCancellationRequested();
+            returnCode = CombineExitCodes(
+                returnCode,
+                await MigrateDockerfile(
+                    projectFolder,
+                    AppTargetFrameworkMigration.BaseFramework(options.TargetFramework)
+                )
+            );
+            options.CancellationToken.ThrowIfCancellationRequested();
+            returnCode = CombineExitCodes(returnCode, await MigrateDependentProjects(projectFolder, projectFile));
         }
 
         // Run every remaining migration and report the worst result. Their order is deliberate:
@@ -148,31 +139,45 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await EnableImplicitUsings(projectFile));
 
+        // Runs before the other C# rewrites, while the code still matches the v8 compilation it relies on.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveUnusedPdfFormatters(scanner));
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(scanner));
 
         // The v9 Altinn.App packages raise some transitive dependency floors; an app pinning them lower
-        // fails to restore (NU1605). Only relevant when we actually bumped the csproj to v9 packages.
-        if (!options.SkipCsprojUpgrade && !options.ConvertPackageReferences)
+        // fails to restore (NU1605). Run after a successful project upgrade, including resumed v9 apps.
+        if (
+            !options.SkipCsprojUpgrade
+            && projectResult == ExitSuccess
+            && !options.ConvertPackageReferences
+            && !usesProjectReferences
+        )
         {
             options.CancellationToken.ThrowIfCancellationRequested();
-            returnCode = CombineExitCodes(
-                returnCode,
-                await MigrateNuGetDowngrades(projectFolder, projectFile, options.CancellationToken)
-            );
+            var downgradeResult = await MigrateNuGetDowngrades(projectFolder, projectFile, options.CancellationToken);
+            returnCode = CombineExitCodes(returnCode, downgradeResult);
+            if (downgradeResult == ExitSuccess)
+                appPackageVersion = new ProjectChecks.ProjectChecks(projectFile).AppPackageVersion();
         }
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskNamespace(scanner));
+
+        // Before the eFormidling namespace rewrite, which leaves the receivers' Receiver type unbindable in the
+        // v8 compilation that finds the implementations.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(
+            returnCode,
+            MigrateEFormidlingHookSignatures(scanner, projectFile, options.CancellationToken)
+        );
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingClientNamespaces(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingRegistration(scanner));
-
-        options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingReceiversSignature(scanner, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(
@@ -185,6 +190,12 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigratePlatformHttpExceptionApis(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, MigrateExclusiveGatewaySignature(scanner, options.CancellationToken));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateAsyncSuffixApis(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateMisspelledApis(scanner));
@@ -219,13 +230,20 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveGeneralSettingsHostName(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveJsonObjectInDataResponseFlag(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckAppFileNameCase(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTextResourceKeys(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await MigrateTextResourceKeys(projectFolder));
+
+        // After the text key renames, so a description set to a renamed key moves to the new key.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateValidationDescriptionTextKeys(scanner, projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         var layoutOutcome = await MigrateLayouts(projectFolder);
@@ -409,17 +427,136 @@ internal static class V8Tov9Upgrade
     private static int Fail(string description, Exception exception) =>
         Fail($"{description}: {FileAccessDiagnostics.Describe(exception)}");
 
-    static async Task<int> UpgradeProjectFile(string projectFile, string targetVersion, string targetFramework)
+    private static async Task<int> UpgradeProject(
+        V8Tov9UpgradeOptions options,
+        string projectFile,
+        ProjectChecks.ProjectChecks projectChecks
+    )
     {
         UpgradeConsole.BeginStep("Project file");
+
+        AppTargetFrameworkMigration.Plan? frameworkPlan;
         try
         {
-            var rewriter = new ProjectFileRewriter(projectFile, targetVersion, targetFramework);
-            await rewriter.Upgrade();
-            UpgradeConsole.Ok($"Altinn.App packages set to {targetVersion}, target framework {targetFramework}");
+            var inspection = AppTargetFrameworkMigration.Inspect(projectFile, options.TargetFramework);
+            foreach (var message in inspection.Result.Messages)
+                UpgradeConsole.Message(message.Status, message.Text);
+            frameworkPlan = inspection.Plan;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            UpgradeConsole.Todo(
+                $"Could not read the app's target framework: {FileAccessDiagnostics.Describe(ex)}. Set one explicit, unconditional TargetFramework to {options.TargetFramework} manually before updating its packages, Dockerfile, and dependent projects."
+            );
+            return ExitManualActionRequired;
+        }
+        if (frameworkPlan is null)
+            return ExitManualActionRequired;
+
+        if (!options.ConvertPackageReferences && projectChecks.HasMixedAltinnReferences())
+        {
+            UpgradeConsole.Todo(
+                "The app declares both Altinn.App package and project references. Select one dependency source and check its framework compatibility manually before updating the target framework, Dockerfile, and dependent projects."
+            );
+            return ExitManualActionRequired;
+        }
+
+        if (!options.ConvertPackageReferences && projectChecks.HasConditionalAltinnProjectReferences())
+        {
+            UpgradeConsole.Todo(
+                "The app selects Altinn.App source references conditionally. Check the active dependency source and its framework compatibility manually before updating the target framework, Dockerfile, and dependent projects."
+            );
+            return ExitManualActionRequired;
+        }
+
+        if (
+            !options.ConvertPackageReferences
+            && projectChecks.IsTargetVersion()
+            && projectChecks.HasAmbiguousPackageVersions()
+        )
+        {
+            UpgradeConsole.Todo(
+                $"The app uses floating or ranged Altinn.App v9 versions. Select compatible exact versions at least {MinimumPackageVersion} manually before updating its target framework, Dockerfile, and dependent projects."
+            );
+            return ExitManualActionRequired;
+        }
+
+        if (
+            !options.ConvertPackageReferences
+            && projectChecks.HasUnsupportedInheritedPackageVersions(MinimumPackageVersion)
+        )
+        {
+            UpgradeConsole.Todo(
+                $"Altinn.App references in Directory.Build.props have incompatible or unknown versions. Set compatible exact v9 versions at least {MinimumPackageVersion} there manually before updating the app's target framework, Dockerfile, and dependent projects."
+            );
+            return ExitManualActionRequired;
+        }
+
+        if (options.ConvertPackageReferences && projectChecks.HasInheritedAltinnPackageReferences())
+        {
+            return Fail(
+                "Altinn.App package references remain in imported properties. Convert those references manually before targeting the source libraries' framework."
+            );
+        }
+
+        // Finish preparation before mutating the in-memory project. Each operation then changes
+        // both framework and dependencies together and writes the project once.
+        try
+        {
+            options.CancellationToken.ThrowIfCancellationRequested();
+            string? sourceRoot = null;
+            string? targetVersion = null;
+            if (options.ConvertPackageReferences)
+                sourceRoot = ValidateConversionRoot(options.ProjectFolder, options.StudioRoot);
+            else if (
+                !projectChecks.HasAltinnProjectReferences()
+                && !projectChecks.HasPackageVersionsAtLeast(MinimumPackageVersion)
+            )
+            {
+                targetVersion = await V9PackageVersionResolver.ResolveLatestTargetVersion(
+                    options.ProjectFolder,
+                    options.TargetMajorVersion,
+                    MinimumPackageVersion,
+                    options.CancellationToken
+                );
+            }
+
+            var rewriter = new ProjectFileRewriter(
+                projectFile,
+                targetVersion: targetVersion ?? MinimumPackageVersion,
+                targetFramework: frameworkPlan.TargetFramework
+            );
+            if (sourceRoot is not null)
+            {
+                await rewriter.ConvertToProjectReferences(sourceRoot, options.CancellationToken);
+                UpgradeConsole.Ok($"Altinn.App package references replaced with project references into {sourceRoot}");
+            }
+            else if (targetVersion is not null)
+            {
+                await rewriter.Upgrade(preserveNewerPackageVersions: true, options.CancellationToken);
+                UpgradeConsole.Ok(
+                    $"Altinn.App packages are at least {targetVersion}, target framework {frameworkPlan.TargetFramework}"
+                );
+            }
+            else
+                await rewriter.SetTargetFramework(options.CancellationToken);
+
+            if (
+                string.Equals(
+                    frameworkPlan.CurrentFramework,
+                    frameworkPlan.TargetFramework,
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+                UpgradeConsole.Skip($"Already targets {frameworkPlan.CurrentFramework}");
+            else
+                UpgradeConsole.Ok(
+                    $"Target framework moved from {frameworkPlan.CurrentFramework} to {frameworkPlan.TargetFramework}"
+                );
+
             return ExitSuccess;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             return Fail("Error upgrading project file", ex);
         }
@@ -683,28 +820,37 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Adds the new <c>receiverFromConfig</c> parameter to app implementations of
-    /// <c>IEFormidlingReceivers.GetEFormidlingReceivers</c> so they satisfy the v9 interface.
+    /// Moves app implementations of <c>IEFormidlingMetadata.GenerateEFormidlingMetadata</c> and
+    /// <c>IEFormidlingReceivers.GetEFormidlingReceivers</c> to the v9 signatures, which take the instance's data
+    /// accessor instead of the instance.
     /// </summary>
-    static async Task<int> MigrateEFormidlingReceiversSignature(CSharpSourceScanner scanner, string projectFile)
+    static int MigrateEFormidlingHookSignatures(
+        CSharpSourceScanner scanner,
+        string projectFile,
+        CancellationToken cancellationToken
+    )
     {
-        UpgradeConsole.BeginStep("IEFormidlingReceivers signature");
+        UpgradeConsole.BeginStep("eFormidling metadata and receivers");
         try
         {
-            var migration = new EFormidlingReceiversSignatureMigration(
+            var migration = new EFormidlingHookSignatureMigration(
                 scanner,
-                EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile)
+                EFormidlingHookSignatureMigration.ProjectEnablesNullableAnnotations(projectFile)
             );
-            var result = migration.Migrate();
+            var result = migration.Migrate(cancellationToken);
             return ReportMigrationResult(
                 result,
-                cleanText: "No IEFormidlingReceivers implementations to update",
+                cleanText: $"No {string.Join(" or ", EFormidlingHookSignatureMigration.InterfaceNames)} implementations to update",
                 cleanStatus: UpgradeMessageStatus.Skip
             );
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            return Fail("Error migrating IEFormidlingReceivers signature", ex);
+            return Fail("Error migrating the eFormidling metadata and receivers signatures", ex);
         }
     }
 
@@ -783,6 +929,57 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating PlatformHttpException APIs", ex);
+        }
+    }
+
+    /// <summary>
+    /// Moves app implementations of <c>IProcessExclusiveGateway</c> off the three-parameter <c>FilterAsync</c> that v9
+    /// removed: adds the <c>IInstanceDataAccessor</c> parameter where it was the app's only implementation, and deletes
+    /// it where the app already implements the four-parameter one. Runs before <see cref="MigrateAsyncSuffixApis"/>,
+    /// which then renames the method.
+    /// </summary>
+    static int MigrateExclusiveGatewaySignature(CSharpSourceScanner scanner, CancellationToken cancellationToken)
+    {
+        UpgradeConsole.BeginStep("IProcessExclusiveGateway signature");
+        try
+        {
+            var result = new ExclusiveGatewaySignatureMigration(scanner).Migrate(cancellationToken);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IProcessExclusiveGateway implementations to update",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating the IProcessExclusiveGateway signature", ex);
+        }
+    }
+
+    /// <summary>
+    /// Drops the Async suffix from app code using the SDK methods v9 renamed (the options and data list
+    /// providers, IProcessExclusiveGateway.Filter, ISecretsClient, ...). Only SDK methods are renamed:
+    /// .NET and third-party methods keep their names, and no string literal is touched.
+    /// </summary>
+    static async Task<int> MigrateAsyncSuffixApis(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("Async suffix");
+        try
+        {
+            var result = new AsyncSuffixApiMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No renamed Async SDK methods in use",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing the Async suffix from SDK method calls", ex);
         }
     }
 
@@ -880,6 +1077,28 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Removes the IPdfFormatter implementations that cannot change the PDF, with their registrations, so
+    /// the removed-API check reports only the ones with logic to port.
+    /// </summary>
+    static async Task<int> RemoveUnusedPdfFormatters(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("Unused IPdfFormatter");
+        try
+        {
+            var result = new UnusedPdfFormatterMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IPdfFormatter implementations that can be removed safely",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing unused IPdfFormatter implementations", ex);
+        }
+    }
+
+    /// <summary>
     /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgment:
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
     /// code, removed internal engine handler types, the deprecated Correspondence surfaces, and the
@@ -926,6 +1145,8 @@ internal static class V8Tov9Upgrade
 
             var result = WarnOnlyDetector.Combine(
                 new RemovedTaskEventInterfaceDetector(scanner).Detect(),
+                new RemovedProcessEndInterfaceDetector(scanner).Detect(),
+                new RemovedPdfFormatterDetector(scanner).Detect(),
                 new RemovedEventsReceiveStackDetector(scanner).Detect(),
                 new ServiceTaskResultApiDetector(pristineView).Detect(),
                 new LegacyEFormidlingCodeDetector(pristineView).Detect(),
@@ -937,7 +1158,11 @@ internal static class V8Tov9Upgrade
                 new ExternalMaskinportenPackageDetector(scanner, projectFile).Detect(),
                 new MaskinportenClientOverrideDetector(scanner).Detect(),
                 new RemovedAppResourcesApiDetector(pristineView).Detect(),
-                new InternalizedServiceTypeDetector(pristineView, ProjectGlobalUsings.Read(projectFile)).Detect(),
+                new InternalizedServiceTypeDetector(
+                    pristineView,
+                    ProjectGlobalUsings.Read(projectFile),
+                    liveView: scanner
+                ).Detect(),
                 new RemovedFeatureManagementDetector(scanner).Detect(),
                 new RemovedAppSettingsMemberDetector(pristineView).Detect(),
                 new InternalizedAppTypeDetector(pristineView).Detect()
@@ -1062,6 +1287,29 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Removes the FeatureManagement:JsonObjectInDataResponse flag from the appsettings files: v9 always returns
+    /// validation issues from the data API as JSON.
+    /// </summary>
+    static async Task<int> RemoveJsonObjectInDataResponseFlag(string projectFile)
+    {
+        UpgradeConsole.BeginStep("JsonObjectInDataResponse feature flag");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = await JsonObjectInDataResponseMigration.Migrate(appFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No JsonObjectInDataResponse feature flag in the appsettings files",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing the JsonObjectInDataResponse feature flag from the appsettings files", ex);
+        }
+    }
+
+    /// <summary>
     /// Reports app files and folders whose names differ only in case from the names v9 reads, since v9 matches
     /// names case-sensitively on every operating system.
     /// </summary>
@@ -1085,19 +1333,49 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Rewrites the renamed datepicker text-resource keys in app-owned resource.*.json overrides,
-    /// so a customized validation message keeps applying after the v9 key rename.
+    /// Rewrites the built-in text-resource keys v9 renamed in app-owned resource.*.json overrides,
+    /// so a customized message keeps applying after the upgrade.
     /// </summary>
-    static async Task<int> MigrateDatepickerTextResourceKeys(string projectFolder)
+    static async Task<int> MigrateTextResourceKeys(string projectFolder)
     {
-        UpgradeConsole.BeginStep("Datepicker text keys");
+        UpgradeConsole.BeginStep("Renamed text keys");
         try
         {
-            return await DatepickerTextResourceKeyMigration.Migrate(projectFolder);
+            return await TextResourceKeyMigration.Migrate(projectFolder);
         }
         catch (Exception ex)
         {
-            return Fail("Error migrating Datepicker text-resource keys", ex);
+            return Fail("Error migrating renamed text-resource keys", ex);
+        }
+    }
+
+    /// <summary>
+    /// Moves text keys that app code sets as a validation issue's Description to CustomTextKey, since the v9 form
+    /// shows the description as text, and removes a Description that repeats CustomTextKey, in ValidationIssue
+    /// initializers and GenericFormDataValidator.CreateValidationIssue calls.
+    /// </summary>
+    static async Task<int> MigrateValidationDescriptionTextKeys(CSharpSourceScanner scanner, string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Validation issue text keys");
+        try
+        {
+            var textIds = await AppTextResources.ReadIds(projectFolder);
+            var renamedTextIds = TextResourceKeyMigration.KeyRenames.ToDictionary(
+                rename => rename.Old,
+                rename => rename.New,
+                StringComparer.Ordinal
+            );
+            var initializers = new ValidationDescriptionTextKeyMigration(scanner, textIds, renamedTextIds).Migrate();
+            var calls = new CreateValidationIssueDescriptionMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                new MigrationResult([.. initializers.Messages, .. calls.Messages]),
+                cleanText: "No validation issue sets Description to a text key or next to CustomTextKey",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error moving validation issue text keys to CustomTextKey", ex);
         }
     }
 
@@ -1179,37 +1457,18 @@ internal static class V8Tov9Upgrade
         }
     }
 
-    static async Task<int> ConvertToProjectReferences(
-        string projectFolder,
-        string projectFile,
-        string targetFramework,
-        string? studioRoot
-    )
+    private static string ValidateConversionRoot(string projectFolder, string? studioRoot)
     {
-        UpgradeConsole.BeginStep("Project references");
-        try
-        {
-            if (string.IsNullOrWhiteSpace(studioRoot))
-                return Fail("studioRoot is required when convertPackageReferences is enabled");
-
-            studioRoot = Path.GetFullPath(studioRoot);
-            if (!Directory.Exists(Path.Combine(studioRoot, "src", "App")))
-                return Fail($"studioRoot does not contain src/App: {studioRoot}");
-
-            if (IsSubPathOf(studioRoot, projectFolder))
-            {
-                var rewriter = new ProjectFileRewriter(projectFile, targetFramework: targetFramework);
-                await rewriter.ConvertToProjectReferences(studioRoot);
-                UpgradeConsole.Ok($"Altinn.App package references replaced with project references into {studioRoot}");
-                return ExitSuccess;
-            }
-
-            return Fail("convertPackageReferences is only valid for apps inside the Altinn Studio repo root");
-        }
-        catch (Exception ex)
-        {
-            return Fail("Error converting to project references", ex);
-        }
+        if (string.IsNullOrWhiteSpace(studioRoot))
+            throw new InvalidOperationException("studioRoot is required when convertPackageReferences is enabled");
+        var root = Path.GetFullPath(studioRoot);
+        if (!Directory.Exists(Path.Combine(root, "src", "App")))
+            throw new InvalidOperationException($"studioRoot does not contain src/App: {root}");
+        if (!IsSubPathOf(root, projectFolder))
+            throw new InvalidOperationException(
+                "convertPackageReferences is only valid for apps inside the Altinn Studio repo root"
+            );
+        return root;
     }
 
     static bool IsSubPathOf(string parentPath, string childPath)
@@ -1241,6 +1500,7 @@ internal static class V8Tov9Upgrade
             DatepickerTimeStampMigrator.Apply(workspace);
             HeadingLayoutMigration.Apply(workspace);
             FileUploadWithTagLayoutMigration.Apply(workspace);
+            var formPropertiesResult = ComponentFormPropertiesMigration.Apply(workspace);
             DatepickerFormatMigration.Apply(workspace);
             GridXlMigration.Apply(workspace);
             var saveWhileTypingWarning = SaveWhileTypingMigration.Apply(workspace);
@@ -1248,6 +1508,7 @@ internal static class V8Tov9Upgrade
             InvalidValidationMaskMigration.Apply(workspace);
 
             var messages = new List<UpgradeMessage>();
+            messages.AddRange(formPropertiesResult.Messages.Messages);
             if (saveWhileTypingWarning is not null)
                 messages.Warn(saveWhileTypingWarning);
             foreach (var issue in workspace.Conflicts)

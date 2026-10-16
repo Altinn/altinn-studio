@@ -1,3 +1,5 @@
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -17,9 +19,9 @@ const subformComponentMock = componentMocks[ComponentType.Subform];
 const defaultProps: EditColumnElementProps = {
   tableColumn: subformComponentMock.tableColumns[0],
   columnNumber: 1,
-  onDeleteColumn: jest.fn(),
-  onChange: jest.fn(),
-  onClose: jest.fn(),
+  onDeleteColumn: vi.fn(),
+  onChange: vi.fn(),
+  onClose: vi.fn(),
   subformLayout: subformLayoutMock.layoutSetName,
 };
 const textKeyMock = 'textkeymock1';
@@ -30,14 +32,10 @@ const { field: addressDataField } = convertDataBindingToInternalFormat(
 );
 
 describe('EditColumnElementComponentSelect', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  let confirmSpy: jest.SpyInstance;
+  let confirmSpy: MockInstance;
   beforeAll(() => {
-    confirmSpy = jest.spyOn(window, 'confirm');
-    confirmSpy.mockImplementation(jest.fn(() => true));
+    confirmSpy = vi.spyOn(window, 'confirm');
+    confirmSpy.mockImplementation(vi.fn(() => true));
   });
 
   afterAll(() => {
@@ -204,7 +202,7 @@ describe('EditColumnElementComponentSelect', () => {
   });
 
   it('should call onChange with updated header content on changing text key', async () => {
-    const onChangeMock = jest.fn();
+    const onChangeMock = vi.fn();
 
     const user = userEvent.setup();
     renderEditColumnElement({
@@ -245,7 +243,7 @@ describe('EditColumnElementComponentSelect', () => {
   it('should call onChange with updated query when selecting a simple data model binding and clicking on save button', async () => {
     const user = userEvent.setup();
 
-    const onChangeMock = jest.fn();
+    const onChangeMock = vi.fn();
     renderEditColumnElement({
       onChange: onChangeMock,
     });
@@ -274,7 +272,7 @@ describe('EditColumnElementComponentSelect', () => {
 
   it('should render DataModelBindingsCombobox when component has multiple data model bindings', async () => {
     const user = userEvent.setup();
-    const onChangeMock = jest.fn();
+    const onChangeMock = vi.fn();
     renderEditColumnElement({
       tableColumn: {
         headerContent: '',

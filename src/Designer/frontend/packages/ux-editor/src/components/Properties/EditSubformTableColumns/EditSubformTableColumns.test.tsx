@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
@@ -17,8 +19,8 @@ import { getTextResourceId } from '@altinn/ux-editor/utils/textResourceUtils';
 
 const subformComponentMock = componentMocks[ComponentType.Subform];
 
-const mockSubformLayoutValidation = jest.fn();
-jest.mock('./hooks/useSubformLayoutValidation', () => ({
+const mockSubformLayoutValidation = vi.fn();
+vi.mock('./hooks/useSubformLayoutValidation', () => ({
   useSubformLayoutValidation: () => mockSubformLayoutValidation(),
 }));
 
@@ -27,16 +29,12 @@ const defaultProps: EditSubformTableColumnsProps = {
     ...subformComponentMock,
     layoutSet: subformLayoutMock.layoutSetName,
   },
-  handleComponentChange: jest.fn(),
+  handleComponentChange: vi.fn(),
 };
 
 describe('EditSubformTableColumns', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should call handleComponentChange when a new column is added when tableColumns initially are empty ', async () => {
-    const handleComponentChangeMock = jest.fn();
+    const handleComponentChangeMock = vi.fn();
     const user = userEvent.setup();
 
     renderEditSubformTableColumns({
@@ -54,7 +52,7 @@ describe('EditSubformTableColumns', () => {
   });
 
   it('should call handleComponentChange when a new column is added when tableColumns has a value', async () => {
-    const handleComponentChangeMock = jest.fn();
+    const handleComponentChangeMock = vi.fn();
     const user = userEvent.setup();
 
     renderEditSubformTableColumns({
@@ -69,7 +67,7 @@ describe('EditSubformTableColumns', () => {
   });
 
   it('should call handleComponentChange when a column is edited', async () => {
-    const handleComponentChangeMock = jest.fn();
+    const handleComponentChangeMock = vi.fn();
     const user = userEvent.setup();
 
     renderEditSubformTableColumns({
@@ -99,7 +97,7 @@ describe('EditSubformTableColumns', () => {
   });
 
   it('should call handleComponentChange when a column is deleted', async () => {
-    const handleComponentChangeMock = jest.fn();
+    const handleComponentChangeMock = vi.fn();
     const user = userEvent.setup();
 
     renderEditSubformTableColumns({
@@ -142,7 +140,7 @@ describe('EditSubformTableColumns', () => {
 
   it('should render new column in edit mode when add column button is clicked', async () => {
     const user = userEvent.setup();
-    const handleComponentChangeMock = jest.fn();
+    const handleComponentChangeMock = vi.fn();
     const { rerender } = renderEditSubformTableColumns({
       props: { handleComponentChange: handleComponentChangeMock },
     });
@@ -177,7 +175,7 @@ const getComponentSelector = () =>
     textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
   );
 
-const getUpdatedTableColumns = (mockFn: jest.Mock) => mockFn.mock.calls[0][0].tableColumns;
+const getUpdatedTableColumns = (mockFn: Mock) => mockFn.mock.calls[0][0].tableColumns;
 
 const renderEditSubformTableColumns = (
   { props, isSubformLayoutConfigured }: renderEditSubformTableColumnsParameters = {

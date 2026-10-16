@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -6,8 +6,6 @@ import { StudioSelect } from './';
 import type { StudioSelectProps } from './';
 
 describe('StudioSelect', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('renders the label correctly', () => {
     renderStudioSelect();
     expect(getLabel(mockLabel)).toBeInTheDocument();
