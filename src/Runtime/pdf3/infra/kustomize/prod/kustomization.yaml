@@ -22,7 +22,7 @@ patches:
                   # DIS Edge, which forwards to the environment's DIS Core
                   - name: PDF3_UPSTREAM_URL
                     value: https://studio.platform.prod.altinn.cloud/pdf/v3/generate
-  # 20% of prod's PDF requests through the relay to DIS Core.
+  # Half of prod's PDF requests through the relay to DIS Core.
   - target:
       group: gateway.networking.k8s.io
       kind: HTTPRoute
@@ -31,7 +31,7 @@ patches:
     patch: |-
       - op: replace
         path: /spec/rules/0/backendRefs/0/weight
-        value: 80
+        value: 50
       - op: replace
         path: /spec/rules/0/backendRefs/1/weight
-        value: 20
+        value: 50
