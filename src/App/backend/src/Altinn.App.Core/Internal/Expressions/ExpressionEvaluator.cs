@@ -17,44 +17,6 @@ namespace Altinn.App.Core.Internal.Expressions;
 public static partial class ExpressionEvaluator
 {
     /// <summary>
-    /// Shortcut for evaluating a boolean expression on a given property on a <see cref="Models.Layout.Components.Base.BaseComponent" />
-    /// </summary>
-    [Obsolete("Use ComponentContext.IsHidden or ComponentContext.EvaluateExpression instead")]
-    public static async Task<bool> EvaluateBooleanExpression(
-        LayoutEvaluatorState state,
-        ComponentContext context,
-        string property,
-        bool defaultReturn
-    )
-    {
-        try
-        {
-            ArgumentNullException.ThrowIfNull(context.Component);
-            if (property is "hidden")
-            {
-                return await context.IsHidden(evaluateRemoveWhenHidden: false);
-            }
-            var expr = property switch
-            {
-                "required" => context.Component.Required,
-                "removeWhenHidden" => context.Component.RemoveWhenHidden,
-                _ => throw new ExpressionEvaluatorTypeErrorException($"unknown boolean expression property {property}"),
-            };
-
-            var result = await EvaluateExpression_internal(state, expr, context);
-
-            return result.ToBoolLoose() ?? defaultReturn;
-        }
-        catch (Exception e)
-        {
-            throw new ExpressionEvaluatorTypeErrorException(
-                $"Error while evaluating \"{property}\" on \"{context.Component?.PageId}.{context.Component?.Id}\"",
-                e
-            );
-        }
-    }
-
-    /// <summary>
     /// Evaluate a <see cref="Expression" /> from a given <see cref="IInstanceDataAccessor" /> in a <see cref="ComponentContext" />
     /// </summary>
     public static async Task<ExpressionValue> EvaluateExpressionToExpressionValue(

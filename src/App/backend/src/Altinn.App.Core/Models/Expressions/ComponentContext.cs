@@ -16,19 +16,6 @@ public sealed class ComponentContext
     /// <summary>
     /// Constructor for ComponentContext
     /// </summary>
-    [Obsolete("Use the overload with dataAccessor instead")]
-    public ComponentContext(
-        LayoutEvaluatorState state,
-        BaseComponent? component,
-        int[]? rowIndices,
-        DataElementIdentifier? dataElementIdentifier,
-        List<ComponentContext>? childContexts = null
-    )
-        : this(state.DataAccessor, component, rowIndices, dataElementIdentifier, childContexts) { }
-
-    /// <summary>
-    /// Constructor for ComponentContext
-    /// </summary>
     public ComponentContext(
         IInstanceDataAccessor dataAccessor,
         BaseComponent? component,

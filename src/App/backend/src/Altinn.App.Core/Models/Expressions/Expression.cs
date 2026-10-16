@@ -48,14 +48,6 @@ public readonly struct Expression : IEquatable<Expression>
     }
 
     /// <summary>
-    ///     Construct a value expression with the given value
-    /// </summary>
-    /// <param name="value"></param>
-    [Obsolete("Use the constructor with ExpressionValue instead")]
-    public Expression(object? value)
-        : this(ExpressionValue.FromObject(value)) { }
-
-    /// <summary>
     /// Construct a function expression with the given function and arguments
     /// </summary>
     public Expression(ExpressionFunction function, Expression arg1)
@@ -66,12 +58,6 @@ public readonly struct Expression : IEquatable<Expression>
     /// </summary>
     public Expression(ExpressionFunction function, Expression arg1, Expression arg2)
         : this(function, [arg1, arg2]) { }
-
-    /// <summary>
-    /// Test function to see if this is representing a function with args.
-    /// </summary>
-    [Obsolete("Use !IsLiteralValue instead")]
-    public bool IsFunctionExpression => !IsLiteralValue;
 
     /// <summary>
     /// Test to see if this expression must be evaluated or is just a literal value.
@@ -93,21 +79,6 @@ public readonly struct Expression : IEquatable<Expression>
                 "A literal value expression has no arguments. Check IsLiteralValue before reading Args."
             )
             : _args;
-
-    /// <summary>
-    /// Get the object value for backwards compatibility
-    /// </summary>
-    [Obsolete("Use ValueUnion instead")]
-    public object? Value =>
-        ValueUnion.ValueKind switch
-        {
-            JsonValueKind.Null => null,
-            JsonValueKind.True => true,
-            JsonValueKind.False => false,
-            JsonValueKind.String => ValueUnion.String,
-            JsonValueKind.Number => ValueUnion.Number,
-            _ => throw new InvalidOperationException("Invalid value kind"),
-        };
 
     /// <summary>
     /// Some expressions are just literal values that evaluate to the same value.

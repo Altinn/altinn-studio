@@ -2888,27 +2888,9 @@ namespace Altinn.App.Core.Internal.App
         string GetClassRefForLogicDataType(string dataType);
         System.Threading.Tasks.Task<string?> GetFooter();
         Altinn.App.Core.Models.GlobalPageSettings? GetGlobalUiSettings();
-        [System.Obsolete("Use GetLayoutModelForFolder instead", true)]
-        Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModel(string? layoutSetId = null);
         Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForFolder(string folder);
-        [System.Obsolete("Use GetLayoutModelForFolder instead", true)]
-        Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForTask(string taskId);
-        [System.Obsolete("Use GetLayoutsInFolder or GetLayoutSettingsForFolder instead", true)]
-        Altinn.App.Core.Models.LayoutSet? GetLayoutSetForTask(string taskId);
-        [System.Obsolete("There is no mapping between task and layout folder anymore, all folders are named" +
-            " the same as the task ID.", true)]
-        object? GetLayoutSets();
-        [System.Obsolete("There is no mapping between task and layout folder anymore, all folders are named" +
-            " the same as the task ID.", true)]
-        string? GetLayoutSetsString();
         Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForFolder(string? folder);
-        [System.Obsolete("Use GetLayoutSettingsForFolder instead", true)]
-        Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);
         string? GetLayoutSettingsStringForFolder(string folder);
-        [System.Obsolete("Use GetLayoutSettingsForFolder instead", true)]
-        string? GetLayoutSettingsStringForSet(string layoutSetId);
-        [System.Obsolete("Use GetLayoutsInFolder instead", true)]
-        string GetLayoutsForSet(string layoutSetId);
         string GetLayoutsInFolder(string folderId);
         string GetModelJsonSchema(string dataTypeId);
         string? GetPrefillJson(string dataTypeId = "ServiceModel");
@@ -3099,8 +3081,6 @@ namespace Altinn.App.Core.Internal.Expressions
 {
     public static class ExpressionEvaluator
     {
-        [System.Obsolete("Use ComponentContext.IsHidden or ComponentContext.EvaluateExpression instead")]
-        public static System.Threading.Tasks.Task<bool> EvaluateBooleanExpression(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Models.Expressions.ComponentContext context, string property, bool defaultReturn) { }
         public static System.Threading.Tasks.Task<object?> EvaluateExpression(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Models.Expressions.Expression expr, Altinn.App.Core.Models.Expressions.ComponentContext context, object?[]? positionalArguments = null) { }
         public static System.Threading.Tasks.Task<Altinn.App.Core.Internal.Expressions.ExpressionValue> EvaluateExpressionToExpressionValue(Altinn.App.Core.Features.IInstanceDataAccessor state, Altinn.App.Core.Models.Expressions.Expression expr, Altinn.App.Core.Models.Expressions.ComponentContext context, Altinn.App.Core.Internal.Expressions.ExpressionValue[]? positionalArguments = null) { }
     }
@@ -3166,17 +3146,8 @@ namespace Altinn.App.Core.Internal.Expressions
         public Altinn.App.Core.Features.IInstanceDataAccessor DataAccessor { get; }
         public Altinn.Platform.Storage.Interface.Models.Instance Instance { get; }
         public System.Threading.Tasks.Task<Altinn.App.Core.Models.Layout.DataReference> AddInidicies(Altinn.App.Core.Models.Layout.ModelBinding binding, Altinn.App.Core.Models.Expressions.ComponentContext context) { }
-        [System.Obsolete("This method is deprecated and will be removed in a future version in favor of Add" +
-            "Inidicies(ModelBinding, ComponentContext).")]
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.Layout.DataReference> AddInidicies(Altinn.App.Core.Models.Layout.ModelBinding binding, Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, int[]? indexes) { }
         public int CountDataElements(string dataTypeId) { }
-        [System.Obsolete("You need to get a context, not a component", true)]
-        public void GetComponent(string pageName, string componentId) { }
         public System.Threading.Tasks.Task<Altinn.App.Core.Models.Expressions.ComponentContext?> GetComponentContext(string componentId, Altinn.App.Core.Models.Expressions.ComponentContext relativeContext) { }
-        [System.Obsolete("A context is not uniquely identified by componentId and rowIndexes, use GetCompon" +
-            "entContext(string, ComponentContext) instead so that we get subform data element" +
-            " as well.")]
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.Expressions.ComponentContext?> GetComponentContext(string? pageName, string componentId, int[]? rowIndexes = null) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.ComponentContext>> GetComponentContexts() { }
         public string? GetDefaultDataTypeId() { }
         public string? GetFrontendSetting(string key) { }
@@ -4488,8 +4459,6 @@ namespace Altinn.App.Core.Models.Expressions
     public sealed class ComponentContext
     {
         public ComponentContext(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.Layout.Components.Base.BaseComponent? component, int[]? rowIndices, Altinn.App.Core.Models.DataElementIdentifier? dataElementIdentifier, System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.ComponentContext>? childContexts = null) { }
-        [System.Obsolete("Use the overload with dataAccessor instead")]
-        public ComponentContext(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Models.Layout.Components.Base.BaseComponent? component, int[]? rowIndices, Altinn.App.Core.Models.DataElementIdentifier? dataElementIdentifier, System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.ComponentContext>? childContexts = null) { }
         public System.Collections.Generic.List<Altinn.App.Core.Models.Expressions.ComponentContext> ChildContexts { get; }
         public Altinn.App.Core.Models.Layout.Components.Base.BaseComponent? Component { get; }
         public Altinn.App.Core.Features.IInstanceDataAccessor DataAccessor { get; }
@@ -4507,19 +4476,13 @@ namespace Altinn.App.Core.Models.Expressions
     public readonly struct Expression : System.IEquatable<Altinn.App.Core.Models.Expressions.Expression>
     {
         public Expression(Altinn.App.Core.Internal.Expressions.ExpressionValue value) { }
-        [System.Obsolete("Use the constructor with ExpressionValue instead")]
-        public Expression(object? value) { }
         public Expression(Altinn.App.Core.Models.Expressions.ExpressionFunction function, Altinn.App.Core.Models.Expressions.Expression arg1) { }
         public Expression(Altinn.App.Core.Models.Expressions.ExpressionFunction function, System.Collections.Immutable.ImmutableArray<Altinn.App.Core.Models.Expressions.Expression> args) { }
         public Expression(Altinn.App.Core.Models.Expressions.ExpressionFunction function, Altinn.App.Core.Models.Expressions.Expression arg1, Altinn.App.Core.Models.Expressions.Expression arg2) { }
         public System.Collections.Immutable.ImmutableArray<Altinn.App.Core.Models.Expressions.Expression> Args { get; }
         public Altinn.App.Core.Models.Expressions.ExpressionFunction Function { get; }
-        [System.Obsolete("Use !IsLiteralValue instead")]
-        public bool IsFunctionExpression { get; }
         public bool IsLiteralString { get; }
         public bool IsLiteralValue { get; }
-        [System.Obsolete("Use ValueUnion instead")]
-        public object? Value { get; }
         public Altinn.App.Core.Internal.Expressions.ExpressionValue ValueUnion { get; }
         public static Altinn.App.Core.Models.Expressions.Expression False { get; }
         public static Altinn.App.Core.Models.Expressions.Expression Null { get; }
@@ -4625,9 +4588,6 @@ namespace Altinn.App.Core.Models.Layout.Components.Base
     public abstract class BaseLayoutComponent : Altinn.App.Core.Models.Layout.Components.Base.BaseComponent
     {
         public abstract System.Threading.Tasks.Task<Altinn.App.Core.Models.Expressions.ComponentContext> GetContext(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.DataElementIdentifier defaultDataElementIdentifier, int[]? rowIndexes, System.Collections.Generic.IReadOnlyDictionary<string, Altinn.App.Core.Models.Layout.UiFolderComponent> layoutsLookup);
-        [System.Obsolete("Use the overload that takes an IInstanceDataAccessor instead as LayoutEvaluatorSt" +
-            "ate is being phased out", true)]
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.Expressions.ComponentContext> GetContext(Altinn.App.Core.Internal.Expressions.LayoutEvaluatorState state, Altinn.App.Core.Models.DataElementIdentifier defaultDataElementIdentifier, int[]? rowIndexes, System.Collections.Generic.IReadOnlyDictionary<string, Altinn.App.Core.Models.Layout.UiFolderComponent> layoutsLookup) { }
     }
     public abstract class NoReferenceComponent : Altinn.App.Core.Models.Layout.Components.Base.BaseLayoutComponent
     {

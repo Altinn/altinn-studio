@@ -105,15 +105,6 @@ public class LayoutEvaluatorState
     public TimeZoneInfo? GetTimeZone() => _timeZone;
 
     /// <summary>
-    /// Get component from componentModel
-    /// </summary>
-    [Obsolete("You need to get a context, not a component", true)]
-    public void GetComponent(string pageName, string componentId)
-    {
-        throw new NotSupportedException("GetComponent is not supported, use GetComponentContext instead.");
-    }
-
-    /// <summary>
     /// Get a specific component context from the state relative to another contexts subform data element and row indexes.
     /// </summary>
     public async Task<ComponentContext?> GetComponentContext(string componentId, ComponentContext relativeContext)
@@ -148,50 +139,6 @@ public class LayoutEvaluatorState
 
         throw new InvalidOperationException(
             $"Multiple contexts found for {componentId} with [{(relativeContext.RowIndices is null ? "" : string.Join(", ", relativeContext.RowIndices))}]"
-        );
-    }
-
-    /// <summary>
-    /// Get a specific component context from the state
-    /// </summary>
-    [Obsolete(
-        "A context is not uniquely identified by componentId and rowIndexes, use GetComponentContext(string, ComponentContext) instead so that we get subform data element as well."
-    )]
-    public async Task<ComponentContext?> GetComponentContext(
-        string? pageName,
-        string componentId,
-        int[]? rowIndexes = null
-    )
-    {
-        if (_componentModel is null)
-        {
-            throw new InvalidOperationException("Component model not loaded");
-        }
-
-        var contexts = (await GetComponentContexts()).SelectMany(c => c.Descendants);
-
-        // Filter out all contexts that have the wrong Id
-        contexts = contexts.Where(c => c.Component?.Id == componentId);
-        // Filter out contexts that does not have a prefix matching
-        var filteredContexts = contexts.Where(c => RowIndexMatch(rowIndexes, c.RowIndices)).ToArray();
-        if (filteredContexts.Length == 0)
-        {
-            return null; // No context found
-        }
-
-        if (filteredContexts.Length == 1)
-        {
-            return filteredContexts[0];
-        }
-
-        if (pageName is not null && filteredContexts.Count(c => c.Component?.PageId == pageName) == 1)
-        {
-            // look first at the current page in case of duplicate ids (for backwards compatibility).
-            return filteredContexts.First(c => c.Component?.PageId == pageName);
-        }
-
-        throw new InvalidOperationException(
-            $"Multiple contexts found for {componentId} with [{(rowIndexes is null ? "" : string.Join(", ", rowIndexes))}]"
         );
     }
 
@@ -325,40 +272,6 @@ public class LayoutEvaluatorState
             );
 
         return new DataReference() { Field = field, DataElementIdentifier = formDataWrapper.DataElement };
-    }
-
-    /// <summary>
-    /// Return a full dataModelBinding from a context aware binding by adding indexes
-    /// </summary>
-    [Obsolete(
-        "This method is deprecated and will be removed in a future version in favor of AddInidicies(ModelBinding, ComponentContext)."
-    )]
-    public async Task<DataReference> AddInidicies(
-        ModelBinding binding,
-        DataElementIdentifier dataElementIdentifier,
-        int[]? indexes
-    )
-    {
-        var formDataWrapper =
-            await DataAccessor.GetFormDataWrapper(binding, dataElementIdentifier)
-            ?? throw new NullReferenceException($"No data element found for {binding.DataType} {binding.Field}");
-
-        if (formDataWrapper.DataElement == null)
-        {
-            throw new InvalidOperationException(
-                $"The form data wrapper for {binding.DataType} {binding.Field} was resolved with a null data element, this should not happen"
-            );
-        }
-
-        return new DataReference()
-        {
-            DataElementIdentifier = formDataWrapper.DataElement,
-            Field =
-                formDataWrapper.AddIndexToPath(binding.Field, indexes)
-                ?? throw new InvalidOperationException(
-                    $"Failed to add indexes to path {binding.Field} with indexes {(indexes == null ? "null" : string.Join(", ", indexes))} on {formDataWrapper.DataElement?.Id}"
-                ),
-        };
     }
 
     /// <summary>
