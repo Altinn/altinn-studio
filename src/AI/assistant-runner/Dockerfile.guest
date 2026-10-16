@@ -15,6 +15,11 @@ COPY --from=sdk10 /usr/share/dotnet/shared /usr/share/dotnet/shared
 ARG STUDIOCTL_VERSION=v0.1.0-preview.29
 ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=9a723f023a4e9625c0a5d8be262f54b25c52f563b2e8ca06fe9c5c1e1e575959
 
+# The assistant reaches a job VM with ssh and rsync, through the coordinator.
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends openssh-server rsync \
+    && rm -rf /var/lib/apt/lists/*
+
 # The jobs run as app-build, which is not root in the VM. That makes an escape from the VM harder.
 RUN useradd --create-home --user-group --shell /bin/bash app-build \
     && install --directory --owner app-build --group app-build /job
@@ -51,3 +56,7 @@ ENV STUDIOCTL_HOME=/opt/studioctl \
 
 USER app-build
 WORKDIR /job
+
+# An SSH session does not get the environment of the image, so sshd reads it from this file.
+RUN install --directory --mode 700 /home/app-build/.ssh \
+    && env | grep -E '^(STUDIOCTL_|DOTNET_|NUGET_|MSBUILD|GIT_|NO_COLOR=)' > /home/app-build/.ssh/environment

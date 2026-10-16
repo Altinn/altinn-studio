@@ -27,6 +27,46 @@ It cannot get:
 The Sandbox network layer intercepts TLS. The guest agent adds its CA to the trust store of the guest when the VM
 starts.
 
+## API
+
+| Route                      | What it does                                                                         |
+| -------------------------- | ------------------------------------------------------------------------------------ |
+| `POST /api/v1/vms`         | Starts a VM with sshd, and answers `201` with the address and keys of the VM.        |
+| `GET /api/v1/vms/{id}/ssh` | With `Upgrade: ssh`, answers `101` and then relays the connection to sshd in the VM. |
+| `DELETE /api/v1/vms/{id}`  | Deletes the VM.                                                                      |
+| `GET /health`              |                                                                                      |
+
+The answer to `POST /api/v1/vms`:
+
+```json
+{
+  "url": "http://<pod IP>:8080/api/v1/vms/<id>",
+  "lifetimeSeconds": 780,
+  "id": "<id>",
+  "hostKey": "ssh-ed25519 ...",
+  "clientKey": "-----BEGIN OPENSSH PRIVATE KEY-----...",
+  "user": "app-build"
+}
+```
+
+- `url` has the IP address of the pod, so that all calls for the VM go to the pod that has it.
+- The VM makes its host key and a client key when it starts, before app code runs. The client key opens only this
+  VM.
+- sshd runs as `app-build` on the guest loopback, and accepts only that key. It does not forward ports.
+- The runner deletes the VM after `lifetimeSeconds`, also when the client does not.
+- `503` means that the pod has a VM or stops. Try again with a new connection. It does not queue.
+
+## How the assistant runs a job
+
+1. `POST /api/v1/vms`.
+2. rsync copies the files that git tracks and the new files that git does not ignore to `/job/app`. ssh and rsync
+   reach the VM through the relay, with `agents/core/ssh_proxy.py` as `ProxyCommand`.
+3. ssh runs the upgrade (`studioctl app upgrade v9 -p . --json`, after a base commit) or the build
+   (`dotnet build App/App.csproj -nologo -v:q --disable-build-servers`). The assistant stops it after 11 or 5 minutes.
+4. For an upgrade, rsync copies the VM's app into a copy of the app files in the assistant pod, and stops above
+   20 MiB. git makes a patch from that copy. The upgrade tool checks the patch before it changes the session repo.
+5. `DELETE /api/v1/vms/{id}`, also after an error.
+
 ## Guest image
 
 [`Dockerfile.guest`](Dockerfile.guest) has:
@@ -34,6 +74,8 @@ starts.
 - the .NET 11 SDK, for v9 apps, and the .NET 10 SDK, because studioctl-server reads projects with its MSBuild;
 - git, and studioctl at a pinned version;
 - the user `app-build` and the folder `/job`;
+- sshd and rsync, and the environment of the jobs in `~/.ssh/environment`, because an SSH session does not get the
+  environment of the image;
 - the environment of the jobs. `NUGET_CERT_REVOCATION_MODE=offline` is necessary, because the allowlist blocks the
   certificate revocation servers.
 

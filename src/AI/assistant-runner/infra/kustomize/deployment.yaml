@@ -101,6 +101,11 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.uid
+            # The client sends all calls for a VM to the pod that has it.
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
             - name: SANDBOX_PROVIDER_HOME
               value: /var/lib/altinn/sandbox-provider
             - name: SANDBOX_CACHE_HOME

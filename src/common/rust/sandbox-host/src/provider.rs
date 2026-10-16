@@ -49,6 +49,19 @@ impl ProviderArguments {
         &self,
         registry_authentication: Option<RegistryAuthentication>,
     ) -> Result<SandboxService, AnyError> {
+        Ok(SandboxService::new(self.open_provider(registry_authentication).await?))
+    }
+
+    /// Opens the Microsandbox Provider itself, for operations that only Microsandbox has, such as TCP connections
+    /// into a guest.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the runtime bundle cannot be validated or the Provider cannot open.
+    pub async fn open_provider(
+        &self,
+        registry_authentication: Option<RegistryAuthentication>,
+    ) -> Result<Rc<MicrosandboxProvider>, AnyError> {
         let runtime_bundle_sha256 = read_runtime_bundle_sha256(&self.runtime_bundle, &self.runtime_bundle_checksums)?;
         let builder = self
             .provider_builder(registry_authentication)
@@ -65,7 +78,10 @@ impl ProviderArguments {
         &self,
         registry_authentication: Option<RegistryAuthentication>,
     ) -> Result<SandboxService, AnyError> {
-        self.open_builder(self.provider_builder(registry_authentication)).await
+        Ok(SandboxService::new(
+            self.open_builder(self.provider_builder(registry_authentication))
+                .await?,
+        ))
     }
 
     /// Removes all state inside the per-process Provider home while preserving its mount point.
@@ -103,11 +119,11 @@ impl ProviderArguments {
     async fn open_builder(
         &self,
         builder: sandbox_microsandbox::MicrosandboxProviderBuilder,
-    ) -> Result<SandboxService, AnyError> {
+    ) -> Result<Rc<MicrosandboxProvider>, AnyError> {
         let provider = Rc::new(builder.open().await?);
         println!("Sandbox Provider home: {}", self.provider_home.display());
         println!("Sandbox image cache: {}", self.cache_directory.display());
-        Ok(SandboxService::new(provider))
+        Ok(provider)
     }
 }
 

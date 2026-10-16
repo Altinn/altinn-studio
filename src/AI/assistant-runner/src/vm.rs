@@ -3,8 +3,8 @@ use std::{cell::Cell, io, time::Duration};
 use bytes::Bytes;
 use clap::Args;
 use sandbox::{
-    ByteQuantity, CpuQuantity, EnsureSandboxRequest, RetentionPolicy, RootFilesystem, SandboxHandle, SandboxName,
-    SandboxPath, SandboxResources, SandboxService, SandboxSpec,
+    ByteQuantity, CpuQuantity, EnsureSandboxRequest, RetentionPolicy, RootFilesystem, SandboxHandle, SandboxId,
+    SandboxName, SandboxPath, SandboxResources, SandboxService, SandboxSpec,
     execution::{ExecutionSpec, StartExecutionRequest},
     image::ImageSource,
     init::InitSystem,
@@ -102,6 +102,11 @@ impl Vms {
 }
 
 impl Vm {
+    #[must_use]
+    pub const fn id(&self) -> &SandboxId {
+        self.handle.id()
+    }
+
     /// Writes a file in the guest.
     ///
     /// # Errors
