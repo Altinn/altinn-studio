@@ -1,0 +1,8 @@
+# Cargo reads every workspace member, so add each member of the root Cargo.toml here.
+**
+!Cargo.lock
+!Cargo.toml
+!src/AI/assistant-runner
+!src/ci/github-runner/coordinator
+!src/common/rust/sandbox-host
+**/target/
