@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router';
+import { useLocation, useParams } from 'react-router';
 
 import { screen } from '@testing-library/dom';
 import { render } from '@testing-library/react';
@@ -47,6 +47,7 @@ describe('SigneeListSummary', () => {
     mockedUseLayoutLookups.mockImplementation(
       () =>
         ({
+          componentToParent: {},
           getComponent(id: string, type?: string) {
             if (id !== mockedItem.id || (type && type !== mockedItem.type)) {
               throw new Error('Component id in useLayoutLookups() is not the mocked one');
@@ -78,6 +79,13 @@ describe('SigneeListSummary', () => {
   beforeEach(() => {
     vi.resetAllMocks();
 
+    vi.mocked(useLocation).mockReturnValue({
+      pathname: '/',
+      search: '',
+      hash: '',
+      state: null,
+      key: 'default',
+    });
     vi.mocked(useParams).mockReturnValue({
       instanceOwnerPartyId: 'instanceOwnerPartyId',
       instanceGuid: 'instanceGuid',
