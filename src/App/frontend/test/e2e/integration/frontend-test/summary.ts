@@ -306,18 +306,14 @@ describe('Summary', () => {
       .children()
       .last()
       .should('contain.text', texts.emptySummary);
-    cy.get('[data-testid=summary-group-component]')
-      .children()
-      .eq(5)
+    cy.get('#summary-mainGroup-4 [data-testid=summary-repeating-row]')
       .first()
       .should('contain.text', `Kommentarer : ${texts.emptySummary}`)
       .and('contain.text', `Nested uploader with tags : ${texts.emptySummary}`)
       .and('contain.text', `Vis tillegg : ${texts.emptySummary}`)
       .and('contain.text', `Referanse : ${texts.emptySummary}`)
       .and('contain.text', `Skjul kommentar felt : ${texts.emptySummary}`);
-    cy.get('[data-testid=summary-group-component]')
-      .children()
-      .eq(5)
+    cy.get('#summary-mainGroup-4 [data-testid=summary-repeating-row]')
       .first()
       .should(
         'contain.text',
@@ -370,30 +366,21 @@ describe('Summary', () => {
 
     cy.gotoNavPage('summary');
     //Skjul kommentar felt
-    cy.get('[data-testid=summary-group-component]')
-      .children()
-      .last()
-      .children()
+    cy.get('#summary-mainGroup-0 [data-testid=summary-repeating-row]')
       .eq(0)
       .should('contain.text', 'Kommentarer : first comment')
       .and('contain.text', `Nested uploader with tags : ${texts.emptySummary}`)
       .and('contain.text', `Vis tillegg : ${texts.emptySummary}`)
       .and('contain.text', `Referanse : ${texts.emptySummary}`)
       .and('not.contain.text', 'Skjul kommentar felt');
-    cy.get('[data-testid=summary-group-component]')
-      .children()
-      .last()
-      .children()
+    cy.get('#summary-mainGroup-0 [data-testid=summary-repeating-row]')
       .eq(1)
       .should('not.contain.text', 'Kommentarer')
       .and('contain.text', `Nested uploader with tags : ${texts.emptySummary}`)
       .and('contain.text', `Vis tillegg : ${texts.emptySummary}`)
       .and('contain.text', `Referanse : ${texts.emptySummary}`)
       .and('not.contain.text', 'Skjul kommentar felt');
-    cy.get('[data-testid=summary-group-component]')
-      .children()
-      .last()
-      .children()
+    cy.get('#summary-mainGroup-0 [data-testid=summary-repeating-row]')
       .eq(2)
       .should('contain.text', 'Kommentarer : third comment')
       .and('contain.text', `Nested uploader with tags : ${texts.emptySummary}`)

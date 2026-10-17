@@ -52,6 +52,11 @@ describe('Likert', () => {
       expect(text).to.contain(`${likertPage.optionalQuestions[0]} : ${likertPage.options[2]}`);
       expect(text).to.contain(`${likertPage.optionalQuestions[1]} : ${likertPage.options[1]}`);
       expect(text).to.contain(`${likertPage.optionalQuestions[2]} : ${likertPage.options[1]}`);
+      const value = $summary.find('[data-testid="summary-item-compact"]').last()[0];
+      const edit = $summary.find('button')[0];
+      expect(value.compareDocumentPosition(edit) & Node.DOCUMENT_POSITION_FOLLOWING).to.equal(
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      );
     });
   });
 });
