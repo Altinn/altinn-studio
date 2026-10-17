@@ -12,8 +12,10 @@ import (
 	"mime"
 	"net"
 	"net/http"
+	"net/http/httptrace"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -42,7 +44,7 @@ const (
 	// whose default timeout is 100 seconds, so the relay must not give up before that. An app that
 	// gives up cancels the upstream request anyway.
 	upstreamTimeout = 2 * time.Minute
-	// maxAttempts bounds retries of requests that never reached the upstream.
+	// maxAttempts bounds retries of requests that failed to establish a connection.
 	maxAttempts = 3
 	retryDelay  = 250 * time.Millisecond
 	// idempotencyKeyHeader marks a POST as safe to send again, which lets Go's HTTP/1.1 transport
@@ -369,7 +371,7 @@ func (rl *relay) classify(ctx context.Context, r *http.Request, when string, ups
 	}
 }
 
-// send posts the request upstream. Only requests that failed to connect are retried:
+// send posts the request upstream. Only connection-establishment failures are retried:
 // the shared pdf3 already retries busy workers, and anything else may have been processed.
 func (rl *relay) send(ctx context.Context, body []byte, contentType string) (*http.Response, error) {
 	// One key for the app's request, so every attempt at it is the same request.
@@ -379,6 +381,12 @@ func (rl *relay) send(ctx context.Context, body []byte, contentType string) (*ht
 		if err != nil {
 			return nil, fmt.Errorf("create upstream request: %w", err)
 		}
+		var gotConn atomic.Bool
+		req = req.WithContext(httptrace.WithClientTrace(req.Context(), &httptrace.ClientTrace{
+			// GotConn runs after TLS succeeds. Timeouts before it are safe to retry because
+			// the HTTP request has not been sent. Trace callbacks may run concurrently.
+			GotConn: func(httptrace.GotConnInfo) { gotConn.Store(true) },
+		}))
 		req.Header.Set("Content-Type", contentType)
 		req.Header.Set("Authorization", "Bearer "+rl.keys.First())
 		req.Header.Set(serviceowner.Header, rl.serviceOwner)
@@ -388,7 +396,7 @@ func (rl *relay) send(ctx context.Context, body []byte, contentType string) (*ht
 		if err == nil {
 			return resp, nil
 		}
-		if attempt == maxAttempts || !isConnectError(err) || ctx.Err() != nil {
+		if attempt == maxAttempts || !canRetryConnect(err, gotConn.Load()) || ctx.Err() != nil {
 			return nil, fmt.Errorf("upstream request: %w", err)
 		}
 		// Retries are logged at INFO, so they are not exported; running out of them is an error.
@@ -406,7 +414,15 @@ func (rl *relay) send(ctx context.Context, body []byte, contentType string) (*ht
 	}
 }
 
-func isConnectError(err error) bool {
+func canRetryConnect(err error, gotConn bool) bool {
+	if gotConn {
+		return false
+	}
 	var opErr *net.OpError
-	return errors.As(err, &opErr) && opErr.Op == "dial"
+	if errors.As(err, &opErr) && opErr.Op == "dial" {
+		return true
+	}
+	// TLS handshake timeouts implement net.Error but are not net.OpError dial failures.
+	var netErr net.Error
+	return errors.As(err, &netErr) && netErr.Timeout()
 }

@@ -689,6 +689,114 @@ func TestRelayRetriesConnectFailures(t *testing.T) {
 	}
 }
 
+func TestRelayRetriesTLSHandshakeTimeouts(t *testing.T) {
+	const pdfBody = "%PDF-1.7 handshake test"
+	for _, failures := range []int32{1, maxAttempts} {
+		t.Run(fmt.Sprintf("%d stalled handshakes", failures), func(t *testing.T) {
+			var calls atomic.Int32
+			upstream := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				calls.Add(1)
+				body, err := io.ReadAll(r.Body)
+				if err != nil || string(body) != requestBody {
+					t.Errorf("upstream body = %q, error = %v", body, err)
+				}
+				w.Header().Set("Content-Type", "application/pdf")
+				if _, err := io.WriteString(w, pdfBody); err != nil {
+					t.Errorf("WriteString() error = %v", err)
+				}
+			}))
+			defer upstream.Close()
+
+			rl := newTestRelay(t, upstream.URL)
+			transport, ok := upstream.Client().Transport.(*http.Transport)
+			if !ok {
+				t.Fatal("upstream client must use http.Transport")
+			}
+			transport = transport.Clone()
+			transport.TLSHandshakeTimeout = 100 * time.Millisecond
+			defer transport.CloseIdleConnections()
+			var dials atomic.Int32
+			var dialer net.Dialer
+			transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+				if dials.Add(1) <= failures {
+					// A connection that never answers the ClientHello exercises net/http's real
+					// TLS handshake timeout, whose error type is not exported.
+					client, server := net.Pipe()
+					t.Cleanup(func() {
+						if err := server.Close(); err != nil {
+							t.Errorf("Close() error = %v", err)
+						}
+					})
+					return client, nil
+				}
+				return dialer.DialContext(ctx, network, addr)
+			}
+			rl.client.Transport = transport
+			rec := post(t, rl.handler(), nil)
+
+			wantDials, wantCalls, wantStatus := failures+1, int32(1), http.StatusOK
+			if failures == maxAttempts {
+				wantDials, wantCalls, wantStatus = maxAttempts, 0, http.StatusBadGateway
+			}
+			if rec.Code != wantStatus || dials.Load() != wantDials || calls.Load() != wantCalls {
+				t.Fatalf("status = %d, dials = %d, calls = %d; want %d, %d, %d",
+					rec.Code, dials.Load(), calls.Load(), wantStatus, wantDials, wantCalls)
+			}
+			if wantStatus == http.StatusOK && rec.Body.String() != pdfBody {
+				t.Fatalf("body = %q, want the upstream PDF", rec.Body.String())
+			}
+		})
+	}
+}
+
+func TestRelayDoesNotRetryResponseHeaderTimeout(t *testing.T) {
+	var calls atomic.Int32
+	upstream := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		calls.Add(1)
+		if _, err := io.Copy(io.Discard, r.Body); err != nil {
+			t.Errorf("Copy() error = %v", err)
+		}
+		<-r.Context().Done()
+	}))
+	defer upstream.Close()
+
+	rl := newTestRelay(t, upstream.URL)
+	transport := &http.Transport{ResponseHeaderTimeout: 100 * time.Millisecond}
+	defer transport.CloseIdleConnections()
+	rl.client.Transport = transport
+	rec := post(t, rl.handler(), nil)
+
+	if rec.Code != http.StatusBadGateway || calls.Load() != 1 {
+		t.Fatalf("status = %d, upstream calls = %d; want 502, 1", rec.Code, calls.Load())
+	}
+}
+
+func TestRelayDoesNotRetryTLSHandshakeAfterDeadline(t *testing.T) {
+	rl := newTestRelay(t, "https://upstream/pdf")
+	rl.timeout = 100 * time.Millisecond
+	var dials atomic.Int32
+	transport := &http.Transport{
+		TLSHandshakeTimeout: time.Second,
+		DialContext: func(context.Context, string, string) (net.Conn, error) {
+			dials.Add(1)
+			client, server := net.Pipe()
+			t.Cleanup(func() {
+				if err := server.Close(); err != nil {
+					t.Errorf("Close() error = %v", err)
+				}
+			})
+			return client, nil
+		},
+	}
+	defer transport.CloseIdleConnections()
+	rl.client.Transport = transport
+	rec := post(t, rl.handler(), nil)
+
+	if rec.Code != http.StatusGatewayTimeout || dials.Load() != 1 {
+		t.Fatalf("status = %d, dials = %d; want 504, 1", rec.Code, dials.Load())
+	}
+}
+
 func TestRelayLetsTheTransportRetryOnAStaleConnection(t *testing.T) {
 	var keys []string
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
