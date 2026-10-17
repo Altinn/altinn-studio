@@ -18,7 +18,8 @@ type ResourcesArchiveOptions struct {
 	OutputDir    string
 	ServerDir    string
 	LocaltestDir string
-	ResourcesDir string
+	// AgentSkillDirs are the skill directories to ship, each staged under its own directory name.
+	AgentSkillDirs []string
 }
 
 // CreateResourcesArchive creates a studioctl resources archive for a target platform.
@@ -43,12 +44,13 @@ func CreateResourcesArchive(opts ResourcesArchiveOptions) (path string, err erro
 	}
 
 	archivePath := filepath.Join(opts.OutputDir, archiveName)
-	if copyErr := copyDir(opts.ResourcesDir, stagingDir); copyErr != nil {
-		return "", fmt.Errorf("stage resources: %w", copyErr)
+	skillsDir := filepath.Join(stagingDir, filepath.FromSlash(resourcesAgentSkillsDir))
+	for _, skillDir := range opts.AgentSkillDirs {
+		if copyErr := copyDir(skillDir, filepath.Join(skillsDir, filepath.Base(skillDir))); copyErr != nil {
+			return "", fmt.Errorf("stage Agent Skill %s: %w", skillDir, copyErr)
+		}
 	}
-	if canonicalizeErr := agentskills.CanonicalizeResourceDirs(
-		filepath.Join(stagingDir, filepath.FromSlash(resourcesAgentSkillsDir)),
-	); canonicalizeErr != nil {
+	if canonicalizeErr := agentskills.CanonicalizeResourceDirs(skillsDir); canonicalizeErr != nil {
 		return "", fmt.Errorf("stage Agent Skills: %w", canonicalizeErr)
 	}
 	if copyErr := copyDir(opts.ServerDir, filepath.Join(stagingDir, resourcesServerDir)); copyErr != nil {

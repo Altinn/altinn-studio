@@ -164,6 +164,11 @@ Each request goes through two gates first. Then a small LangGraph graph runs the
 
 For the architecture and the security model, refer to [docs/README.md](docs/README.md).
 
+## Skills
+
+The agent loads the skills listed in `SKILLS` in [`base_config.py`](shared/config/base_config.py) from
+[`agents/_skills/`](../../../agents/_skills). To add or change a skill, refer to [docs/skills.md](docs/skills.md).
+
 ## Prompts and Langfuse
 
 The files in `agents/prompts/` are a **fallback**. When Langfuse is configured, the agent serves the Langfuse version with the label `production`, not the local file. CI publishes each changed prompt file to Langfuse after the merge to main. For the publication, the drift report and the retired prompts, refer to [agents/prompts/README.md](agents/prompts/README.md).
@@ -183,7 +188,6 @@ src/AI/assistant/
 │   ├── core/             # Engine of the agentic loop (loop, tool registry, skills, tools/)
 │   ├── altinn/           # Altinn domain library (app_version, datamodel, layout, resources)
 │   ├── schemas/          # Plan schema for intake
-│   ├── skills/           # Skills with domain knowledge, loaded when necessary
 │   ├── prompts/          # Gate and pipeline prompts, and the loader. Langfuse overrides these.
 │   ├── services/         # git, llm, events, preview, repo
 │   └── workflows/        # Pipeline steps before the loop (intake, spec)

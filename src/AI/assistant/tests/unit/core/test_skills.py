@@ -15,6 +15,7 @@ from agents.core.skills import (
 )
 from agents.core.tool import LoopContext
 from agents.core.tools.skill_tool import SkillArgs, SkillTool
+from shared.config.base_config import get_config
 
 
 def _write_skill(root: Path, name: str, description: str, body: str = "# Content") -> Path:
@@ -110,6 +111,15 @@ class TestDiscoverSkills:
         assert skills, "expected bundled skills to be discoverable"
         untitled = [s.name for s in skills if not s.title]
         assert untitled == [], f"bundled skills missing frontmatter title: {untitled}"
+
+    def test_bundled_skills_are_the_configured_ones(self):
+        assert [s.name for s in discover_skills()] == sorted(get_config().SKILLS)
+
+    def test_names_select_skills(self, tmp_path):
+        _write_skill(tmp_path, "wanted", "Wanted.")
+        _write_skill(tmp_path, "other", "Other.")
+
+        assert [s.name for s in discover_skills(tmp_path, names=["wanted", "missing"])] == ["wanted"]
 
     def test_missing_root_returns_empty(self, tmp_path):
         assert discover_skills(tmp_path / "nonexistent") == []
