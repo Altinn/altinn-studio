@@ -45,6 +45,7 @@ type kubernetesOperations interface {
 	ApplyManifest(ctx context.Context, yamlContent string) (string, error)
 	KustomizeRender(path string) (string, error)
 	RolloutStatus(ctx context.Context, deployment, namespace string, timeout time.Duration) error
+	StatefulSetRolloutStatus(ctx context.Context, statefulSet, namespace string, timeout time.Duration) error
 }
 
 type fluxOperations interface {
@@ -202,6 +203,11 @@ func (b *Backend) applyReadiness(
 	case resource.KubernetesReadinessDeploymentAvailable:
 		if err := clients.kube.RolloutStatus(ctx, readiness.Name, readiness.Namespace, timeout); err != nil {
 			return clients, fmt.Errorf("wait for deployment rollout: %w", err)
+		}
+		return clients, nil
+	case resource.KubernetesReadinessStatefulSetReady:
+		if err := clients.kube.StatefulSetRolloutStatus(ctx, readiness.Name, readiness.Namespace, timeout); err != nil {
+			return clients, fmt.Errorf("wait for statefulset rollout: %w", err)
 		}
 		return clients, nil
 	case resource.KubernetesReadinessFluxKustomization:

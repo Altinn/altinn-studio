@@ -5,3 +5,12 @@ metadata:
   namespace: grafana
 spec:
   title: Altinn Studio
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: external-grafana-studio-observability
+  namespace: grafana
+spec:
+  title: Observability
+  parentFolderRef: external-grafana-studio

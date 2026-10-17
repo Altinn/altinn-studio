@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observability-proxy
+spec:
+  template:
+    spec:
+      containers:
+        - name: observability-proxy
+          # Built from src/observability-proxy and pushed to the fixture's registry
+          # under the same tag each time, so a restarted pod pulls the latest build.
+          image: localhost:5001/observability-proxy:local
+          imagePullPolicy: Always
+---
+# In production the runtime collectors and Grafana reach the proxy through the
+# load balancer; here they are in other namespaces of the same cluster.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: observability-proxy-ingress
+spec:
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: runtime-obs
+          podSelector:
+            matchLabels:
+              altinn.studio/otel-collector: otel-gateway
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: grafana
+      ports:
+        - protocol: TCP
+          port: 8080
+    # As in production: vmagent-self scrapes the metrics port. The list above replaces
+    # production's, so this rule is restated; without vmagent-self (the light profile)
+    # it selects nothing.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+              app.kubernetes.io/instance: self
+      ports:
+        - protocol: TCP
+          port: 9090
