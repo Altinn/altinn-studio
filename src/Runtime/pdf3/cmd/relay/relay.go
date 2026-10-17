@@ -196,6 +196,7 @@ func (rl *relay) handlePdf(w http.ResponseWriter, r *http.Request) bool {
 	if err != nil {
 		f := rl.classify(ctx, r, "before the PDF service responded", "Failed to reach the PDF service")
 		rl.logger.Log(ctx, f.level, f.message, attr.ElapsedMs, time.Since(start).Milliseconds(), attr.Error, err)
+		recordError(ctx, f.errorType, err)
 		ihttp.WriteProblemDetails(rl.logger, w, r, f.status, ihttp.ProblemDetails{
 			Type:   "https://tools.ietf.org/html/rfc7231#section-6.6",
 			Title:  http.StatusText(f.status),
@@ -229,9 +230,7 @@ func (rl *relay) handlePdf(w http.ResponseWriter, r *http.Request) bool {
 		)
 		rl.logger.Log(ctx, f.level, f.message, attr.ElapsedMs, time.Since(start).Milliseconds(), attr.Error, err)
 		// The status is sent, so the middleware records a success unless told otherwise.
-		labeler, _ := otelhttp.LabelerFromContext(ctx)
-		labeler.Add(semconv.ErrorTypeKey.String(f.errorType))
-		telemetry.SetError(trace.SpanFromContext(ctx), f.errorType, err)
+		recordError(ctx, f.errorType, err)
 		return true
 	}
 	return false
@@ -274,6 +273,10 @@ func (rl *relay) answerError(
 
 	status := http.StatusBadGateway
 	problemType := "https://tools.ietf.org/html/rfc7231#section-6.6.3"
+	errorType := "upstream_unexpected_response"
+	if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+		errorType = "upstream_rejected_auth"
+	}
 	switch {
 	case resp.StatusCode == http.StatusTooManyRequests:
 		status = resp.StatusCode
@@ -289,6 +292,7 @@ func (rl *relay) answerError(
 		attr.HTTPResponseContentType, resp.Header.Get("Content-Type"),
 		attr.ElapsedMs, time.Since(start).Milliseconds(),
 	)
+	recordError(ctx, errorType, nil)
 	ihttp.WriteProblemDetails(rl.logger, w, r, status, ihttp.ProblemDetails{
 		Type:   problemType,
 		Title:  http.StatusText(status),
@@ -321,6 +325,14 @@ func mediaType(resp *http.Response) string {
 		return ""
 	}
 	return mediaType
+}
+
+// recordError records on the request's span and metrics why it failed, as error.type. The metrics
+// take it from the labeler, since otelhttp records them when the handler returns.
+func recordError(ctx context.Context, errorType string, err error) {
+	labeler, _ := otelhttp.LabelerFromContext(ctx)
+	labeler.Add(semconv.ErrorTypeKey.String(errorType))
+	telemetry.SetError(trace.SpanFromContext(ctx), errorType, err)
 }
 
 // failure is why the relay failed to pass on the PDF service's response, and how that is reported.
@@ -399,7 +411,9 @@ func (rl *relay) send(ctx context.Context, body []byte, contentType string) (*ht
 		if attempt == maxAttempts || !canRetryConnect(err, gotConn.Load()) || ctx.Err() != nil {
 			return nil, fmt.Errorf("upstream request: %w", err)
 		}
-		// Retries are logged at INFO, so they are not exported; running out of them is an error.
+		// Retries are logged at INFO, so they are not exported; they are counted, and running out of
+		// them is an error.
+		telemetry.CountRetry(ctx, telemetry.RelayConnectRetriesMetric, "")
 		rl.logger.InfoContext(
 			ctx,
 			"Failed to connect to the PDF service, retrying",

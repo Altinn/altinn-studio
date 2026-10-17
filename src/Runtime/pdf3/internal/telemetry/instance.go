@@ -9,7 +9,7 @@ import (
 )
 
 // registerInstanceMetric reports the same Unix start time every collection, even without requests.
-// This cross-service identity metric deliberately uses altinn.workload rather than altinn.pdf3.
+// This cross-service identity metric deliberately uses altinn.workload rather than altinn.pdf.
 func registerInstanceMetric(meter metric.Meter, started time.Time) error {
 	startSeconds := float64(started.UnixNano()) / float64(time.Second)
 	_, err := meter.Float64ObservableGauge(
