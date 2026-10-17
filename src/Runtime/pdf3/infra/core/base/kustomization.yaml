@@ -22,7 +22,7 @@ configMapGenerator:
       - config.yaml=collector-config.yaml
 
 # The images come from the annotations, which deploy-runtime-pdf3.yaml sets to the build it
-# publishes this artifact with, as in the tenant manifests (infra/kustomize/base).
+# publishes this artifact with, as in the tenant relay manifests (infra/relay/base).
 replacements:
 - source:
     kind: Deployment

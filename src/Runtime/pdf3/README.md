@@ -14,15 +14,15 @@ studioctl supplies its settings and selects the image.
 
 The proxy and workers run as a shared service in every [DIS Core](../../../docs/infrastructure/environments.md#dis-core)
 environment. Runtime clusters call it through the [relay](cmd/relay) with an [API key](docs/api-keys.md), and the
-[HTTPRoute `pdf/pdf3`](infra/kustomize/relay/httproute.yaml) routes all apps' PDF requests to the relay.
-The [environment overlays](infra/kustomize) set its upstream URL. at24's relay calls tt02's DIS Core.
+[HTTPRoute `pdf/pdf3`](infra/relay/base/httproute.yaml) routes all apps' PDF requests to the relay.
+The [environment overlays](infra/relay) set its upstream URL. at24's relay calls tt02's DIS Core.
 
-The DIS Core manifests live in [`infra/syncroot`](infra/syncroot). The tenant relay and local-test manifests live in
-[`infra/kustomize`](infra/kustomize); only the local-test overlays use its proxy/worker base.
+The DIS Core manifests live in [`infra/core`](infra/core). Tenant relay manifests live in
+[`infra/relay`](infra/relay), and local-test manifests in [`infra/local`](infra/local).
 [`deploy-runtime-pdf3.yaml`](../../../.github/workflows/deploy-runtime-pdf3.yaml) publishes both artifacts and builds
 the proxy, relay and worker images.
 
-The workers' [network policy](infra/syncroot/base/network-policies.yaml) allows DNS only through CoreDNS. It is not
+The workers' [network policy](infra/core/base/network-policies.yaml) allows DNS only through CoreDNS. It is not
 confirmed that DIS Core's pods use CoreDNS rather than AKS LocalDNS. If they do not, the workers cannot resolve names.
 
 ## Development

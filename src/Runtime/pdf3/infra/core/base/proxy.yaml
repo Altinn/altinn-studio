@@ -1,7 +1,5 @@
-# The pdf3 proxy, which DIS Edge reaches through Traefik (httproute.yaml). Adapted from the tenant
-# manifests in infra/kustomize/base rather than reusing them: Flux only gets this folder, so a
-# kustomization here can't refer to ../kustomize, and the tenant manifests are released with the
-# rings and go away once every tenant cluster relays to DIS Core.
+# The pdf3 proxy, which DIS Edge reaches through Traefik (httproute.yaml). Core and local tests
+# have separate manifests: the Core artifact is self-contained and has its own security policies.
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
