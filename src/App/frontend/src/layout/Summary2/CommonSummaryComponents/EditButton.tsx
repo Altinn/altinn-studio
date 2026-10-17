@@ -11,6 +11,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useCurrentView, useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import { useIsEditableInRepGroup } from 'src/layout/RepeatingGroup/Summary2/RepGroupSummaryEditableContext';
+import { scrollSummaryIntoView } from 'src/layout/Summary/scrollSummaryIntoView';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
@@ -160,6 +161,7 @@ export function EditButton({
     <Button
       aria-label={isMobile ? langAsString('general.edit') : undefined}
       onClick={onChangeClick}
+      onFocus={scrollSummaryIntoView}
       variant='tertiary'
       className={className}
       data-target-id={indexedId}
