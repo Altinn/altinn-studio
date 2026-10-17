@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -52,6 +53,7 @@ public static class DeploymentMapper
             CreatedBy = deploymentEntity.CreatedBy,
             DeploymentType = (Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentType)
                 (int)deploymentEntity.DeploymentType,
+            AppStatus = deploymentEntity.AppStatus?.ToString(),
             Entity = JsonSerializer.Serialize(deploymentEntity, s_jsonOptions),
         };
 
@@ -106,6 +108,7 @@ public static class DeploymentMapper
             Created = dbObject.Created.ToUniversalTime(),
             CreatedBy = dbObject.CreatedBy,
             DeploymentType = (Altinn.Studio.Designer.Repository.Models.DeploymentType)(int)dbObject.DeploymentType,
+            AppStatus = ToAppStatus(dbObject.AppStatus),
             Events =
                 dbObject
                     .Events?.OrderBy(e => e.Created)
@@ -126,4 +129,8 @@ public static class DeploymentMapper
     {
         return deployments.Select(MapToModel);
     }
+
+    // A status this version does not know, for example one written by a newer version, is treated as unknown
+    private static AppStatus? ToAppStatus(string appStatus) =>
+        Enum.TryParse(appStatus, ignoreCase: false, out AppStatus status) && Enum.IsDefined(status) ? status : null;
 }

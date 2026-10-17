@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
@@ -38,6 +39,7 @@ public class ReleaseServiceTest
     private readonly Mock<IReleaseRepository> _releaseRepository;
     private readonly Mock<IAppScopesService> _appScopesService;
     private readonly Mock<IGiteaClient> _giteaClient;
+    private readonly Mock<IApplicationMetadataService> _applicationMetadataService;
     private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
     private readonly Mock<IApiKeyService> _apiKeyService;
     private readonly Mock<ILogger<ReleaseService>> _logger;
@@ -59,6 +61,7 @@ public class ReleaseServiceTest
         _releaseRepository = new Mock<IReleaseRepository>();
         _appScopesService = new Mock<IAppScopesService>();
         _giteaClient = new Mock<IGiteaClient>();
+        _applicationMetadataService = new Mock<IApplicationMetadataService>(MockBehavior.Strict);
         _azureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
         _apiKeyService = new Mock<IApiKeyService>();
         _logger = new Mock<ILogger<ReleaseService>>();
@@ -270,6 +273,7 @@ public class ReleaseServiceTest
             _releaseRepository.Object,
             _appScopesService.Object,
             _giteaClient.Object,
+            _applicationMetadataService.Object,
             GetAzureDevOpsSettings(),
             _generalSettings,
             _apiKeyService.Object,
@@ -311,6 +315,148 @@ public class ReleaseServiceTest
                 ),
             Times.Once
         );
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithAppStatus_BuildsTheCommitWithTheStatus()
+    {
+        // Arrange
+        const string BaseCommitId = "eec136ac2d31cf984d2053df79f181b99c3b4db5";
+        const string StatusCommitId = "5b0e8d6f1c2a3b4c5d6e7f8091a2b3c4d5e6f708";
+        ReleaseEntity releaseEntity = new()
+        {
+            TagName = "1",
+            Name = "1",
+            Body = "test-app",
+            TargetCommitish = BaseCommitId,
+            Org = _org,
+            App = _app,
+        };
+        SetupSuccessfulBuild();
+        _applicationMetadataService
+            .Setup(s =>
+                s.CommitAppStatusAsync(_org, _app, BaseCommitId, AppStatus.Completed, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(StatusCommitId);
+
+        ReleaseService releaseService = CreateReleaseService();
+
+        // Act
+        await releaseService.CreateAsync(releaseEntity, AppStatus.Completed);
+
+        // Assert
+        _applicationMetadataService.Verify(
+            s => s.CommitAppStatusAsync(_org, _app, BaseCommitId, AppStatus.Completed, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        _azureDevOpsBuildClient.Verify(
+            b =>
+                b.QueueAsync(
+                    It.Is<QueueBuildParameters>(p => p.AppCommitId == StatusCommitId),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        _releaseRepository.Verify(
+            r => r.Create(It.Is<ReleaseEntity>(release => release.TargetCommitish == StatusCommitId)),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithoutAppStatus_BuildsTheRequestedCommit()
+    {
+        // Arrange
+        const string BaseCommitId = "eec136ac2d31cf984d2053df79f181b99c3b4db5";
+        ReleaseEntity releaseEntity = new()
+        {
+            TagName = "1",
+            Name = "1",
+            Body = "test-app",
+            TargetCommitish = BaseCommitId,
+            Org = _org,
+            App = _app,
+        };
+        SetupSuccessfulBuild();
+
+        ReleaseService releaseService = CreateReleaseService();
+
+        // Act
+        await releaseService.CreateAsync(releaseEntity);
+
+        // Assert
+        _applicationMetadataService.VerifyNoOtherCalls();
+        _azureDevOpsBuildClient.Verify(
+            b =>
+                b.QueueAsync(
+                    It.Is<QueueBuildParameters>(p => p.AppCommitId == BaseCommitId),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithAppStatus_WhenReleaseAlreadyExists_DoesNotCommitTheStatus()
+    {
+        // Arrange
+        ReleaseEntity releaseEntity = new()
+        {
+            TagName = "1",
+            Name = "1",
+            Body = "test-app",
+            TargetCommitish = "eec136ac2d31cf984d2053df79f181b99c3b4db5",
+            Org = _org,
+            App = _app,
+        };
+        _releaseRepository
+            .Setup(r =>
+                r.Get(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<List<string>>(),
+                    It.IsAny<List<string>>()
+                )
+            )
+            .ReturnsAsync(new List<ReleaseEntity> { new() });
+
+        ReleaseService releaseService = CreateReleaseService();
+
+        // Act
+        HttpRequestWithStatusException exception = await Assert.ThrowsAsync<HttpRequestWithStatusException>(() =>
+            releaseService.CreateAsync(releaseEntity, AppStatus.Completed)
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
+        _applicationMetadataService.VerifyNoOtherCalls();
+    }
+
+    private void SetupSuccessfulBuild()
+    {
+        _releaseRepository
+            .Setup(r =>
+                r.Get(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<List<string>>(),
+                    It.IsAny<List<string>>()
+                )
+            )
+            .ReturnsAsync(new List<ReleaseEntity>());
+        _releaseRepository
+            .Setup(r => r.Create(It.IsAny<ReleaseEntity>()))
+            .ReturnsAsync((ReleaseEntity release) => release);
+        _azureDevOpsBuildClient
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GetBuild());
+        _appScopesService
+            .Setup(r => r.GetAppScopesAsync(It.IsAny<AltinnRepoContext>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((AppScopesEntity)null);
     }
 
     [Fact]

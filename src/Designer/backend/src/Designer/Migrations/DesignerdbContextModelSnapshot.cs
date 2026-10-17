@@ -18,7 +18,7 @@ namespace Altinn.Studio.Designer.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseSerialColumns(modelBuilder);
@@ -623,6 +623,10 @@ namespace Altinn.Studio.Designer.Migrations
                     b.Property<string>("App")
                         .HasColumnType("character varying")
                         .HasColumnName("app");
+
+                    b.Property<string>("AppStatus")
+                        .HasColumnType("character varying")
+                        .HasColumnName("app_status");
 
                     b.Property<string>("Buildid")
                         .HasColumnType("character varying")

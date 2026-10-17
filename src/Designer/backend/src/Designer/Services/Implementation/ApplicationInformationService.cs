@@ -7,7 +7,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.ResourceRegistry.Core.Models;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Implementation.Validation;
@@ -65,6 +67,7 @@ public class ApplicationInformationService : IApplicationInformationService
         string app,
         string shortCommitId,
         string envName,
+        AppStatus appStatus,
         CancellationToken cancellationToken = default
     )
     {
@@ -74,6 +77,7 @@ public class ApplicationInformationService : IApplicationInformationService
             app,
             shortCommitId,
             envName,
+            appStatus,
             cancellationToken
         );
 
@@ -101,7 +105,8 @@ public class ApplicationInformationService : IApplicationInformationService
         string org,
         string app,
         string shortCommitId,
-        string envName
+        string envName,
+        AppStatus appStatus
     )
     {
         using var activity = ServiceTelemetry.Source.StartActivity(
@@ -133,6 +138,7 @@ public class ApplicationInformationService : IApplicationInformationService
                 .ToServiceResource()
                 .WithOrgInformation(org, orgListOrg)
                 .WithDefaultTranslations();
+            serviceResource.Status = appStatus.ToString();
 
             string policyString = await _authorizationPolicyService.GetAuthorizationPolicyFileFromGitea(
                 org,
@@ -142,39 +148,13 @@ public class ApplicationInformationService : IApplicationInformationService
             policyString = _authorizationPolicyService.ReplacePolicyPlaceholderTokens(policyString, org, app);
             byte[] policyBytes = Encoding.UTF8.GetBytes(policyString);
 
-            // Ensure correct environment name is sent to Resource Registry (e.g., "production" should be sent as "prod")
-            string resourceRegistryEnvName = envName.Equals("production", StringComparison.OrdinalIgnoreCase)
-                ? "prod"
-                : envName;
             ActionResult publishResponse = await _resourceRegistryService.PublishServiceResource(
                 serviceResource,
-                resourceRegistryEnvName,
+                ToResourceRegistryEnvName(envName),
                 policyBytes
             );
 
-            if (publishResponse is ObjectResult { Value: ValidationProblemDetails validationProblemDetails })
-            {
-                string errors = string.Join(
-                    "; ",
-                    validationProblemDetails.Errors.SelectMany(e => e.Value.Select(v => $"{e.Key}: {v}"))
-                );
-                activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishResult, "validation_error");
-                activity?.SetStatus(ActivityStatusCode.Error, "Validation errors from Resource Registry");
-                activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishValidationErrors, errors);
-                return new ResourceRegistryPublishResult(false, $"Validation errors: {errors}");
-            }
-
-            if (publishResponse is StatusCodeResult { StatusCode: 200 or 201 })
-            {
-                activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishResult, "success");
-                return new ResourceRegistryPublishResult(true);
-            }
-
-            int? statusCode = (publishResponse as IStatusCodeActionResult)?.StatusCode;
-            activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishResult, "unexpected_response");
-            activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishStatusCode, statusCode);
-            activity?.SetStatus(ActivityStatusCode.Error, $"Unexpected response status: {statusCode}");
-            return new ResourceRegistryPublishResult(false, $"Unexpected response status: {statusCode}");
+            return ToPublishResult(publishResponse, activity);
         }
         catch (Exception ex)
         {
@@ -183,5 +163,91 @@ public class ApplicationInformationService : IApplicationInformationService
             activity?.AddException(ex);
             return new ResourceRegistryPublishResult(false, ex.Message);
         }
+    }
+
+    /// <inheritdoc />
+    public async Task<AppStatus?> GetAppStatusAsync(string org, string app, string commitId)
+    {
+        string appMetadataJson = await _applicationMetadataService.GetApplicationMetadataJsonFromSpecificReference(
+            org,
+            app,
+            commitId
+        );
+        return ApplicationMetadataJsonHelper.GetStatus(appMetadataJson);
+    }
+
+    /// <inheritdoc />
+    public async Task<ResourceRegistryPublishResult> UpdateResourceRegistryStatusAsync(
+        string org,
+        string app,
+        string envName,
+        AppStatus appStatus
+    )
+    {
+        using var activity = ServiceTelemetry.Source.StartActivity(
+            "UpdateAltinnAppServiceResourceStatus",
+            ActivityKind.Internal
+        );
+
+        try
+        {
+            string resourceRegistryEnvName = ToResourceRegistryEnvName(envName);
+            string resourceId = ApplicationMetadataMapper.ToServiceResourceIdentifier($"{org}/{app}");
+            ServiceResource? serviceResource = await _resourceRegistryService.GetResource(
+                resourceId,
+                resourceRegistryEnvName
+            );
+            if (serviceResource is null)
+            {
+                activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishResult, "resource_not_found");
+                return new ResourceRegistryPublishResult(false, $"Resource {resourceId} not found");
+            }
+
+            serviceResource.Status = appStatus.ToString();
+            ActionResult publishResponse = await _resourceRegistryService.PublishServiceResource(
+                serviceResource,
+                resourceRegistryEnvName
+            );
+
+            return ToPublishResult(publishResponse, activity);
+        }
+        catch (Exception ex)
+        {
+            activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishResult, "exception");
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.AddException(ex);
+            return new ResourceRegistryPublishResult(false, ex.Message);
+        }
+    }
+
+    // Ensure correct environment name is sent to Resource Registry (e.g., "production" should be sent as "prod")
+    private static string ToResourceRegistryEnvName(string envName) =>
+        envName.Equals("production", StringComparison.OrdinalIgnoreCase) ? "prod" : envName;
+
+    private static ResourceRegistryPublishResult ToPublishResult(ActionResult publishResponse, Activity? activity)
+    {
+        if (publishResponse is ObjectResult { Value: ValidationProblemDetails validationProblemDetails })
+        {
+            string errors = string.Join(
+                "; ",
+                validationProblemDetails.Errors.SelectMany(e => e.Value.Select(v => $"{e.Key}: {v}"))
+            );
+            activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishResult, "validation_error");
+            activity?.SetStatus(ActivityStatusCode.Error, "Validation errors from Resource Registry");
+            activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishValidationErrors, errors);
+            return new ResourceRegistryPublishResult(false, $"Validation errors: {errors}");
+        }
+
+        if (publishResponse is StatusCodeResult { StatusCode: 200 or 201 })
+        {
+            activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishResult, "success");
+            return new ResourceRegistryPublishResult(true);
+        }
+
+        int? statusCode = (publishResponse as IStatusCodeActionResult)?.StatusCode;
+        activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishResult, "unexpected_response");
+        activity?.SetTag(ServiceTelemetry.Attributes.ResourceRegistry.PublishStatusCode, statusCode);
+        activity?.SetStatus(ActivityStatusCode.Error, $"Unexpected response status: {statusCode}");
+        return new ResourceRegistryPublishResult(false, $"Unexpected response status: {statusCode}");
     }
 }

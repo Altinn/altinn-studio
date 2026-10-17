@@ -122,6 +122,29 @@ public interface IGiteaClient
     );
 
     /// <summary>
+    /// Replaces the content of an existing file by committing to the given branch.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">The name of repository</param>
+    /// <param name="filePath">Path to the file</param>
+    /// <param name="content">The new content of the file</param>
+    /// <param name="sha">The blob sha of the file being replaced, which Gitea uses to reject concurrent changes</param>
+    /// <param name="branch">The branch to commit to</param>
+    /// <param name="message">The commit message</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>The sha of the created commit</returns>
+    Task<string> UpdateFileAsync(
+        string org,
+        string app,
+        string filePath,
+        string content,
+        string sha,
+        string branch,
+        string message,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Takes in a ServiceResource-object and uses it to create a ListviewServiceResource-object that contains some additional fields not stored in the resourceregistry
     /// </summary>
     /// <param name="org">The org</param>
