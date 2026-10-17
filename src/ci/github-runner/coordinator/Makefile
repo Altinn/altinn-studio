@@ -9,7 +9,7 @@ help: ## Show this help message
 
 build: ## Build the coordinator
 	@echo "Building GitHub runner coordinator..."
-	@cargo build -p github-runner-coordinator --all-targets --locked
+	@cargo build -p github-runner-coordinator -p sandbox-host --all-targets --locked
 	@echo "✓ Build successful"
 
 clean: ## Clean coordinator build artifacts
@@ -19,22 +19,22 @@ clean: ## Clean coordinator build artifacts
 
 fmt: ## Format Rust code
 	@echo "Formatting GitHub runner coordinator..."
-	@cargo fmt -p github-runner-coordinator
+	@cargo fmt -p github-runner-coordinator -p sandbox-host
 	@echo "✓ Code formatted"
 
 lint: ## Run strict Clippy analysis
 	@echo "Linting GitHub runner coordinator..."
-	@cargo clippy -p github-runner-coordinator --all-targets --all-features --locked
+	@cargo clippy -p github-runner-coordinator -p sandbox-host --all-targets --all-features --locked
 	@echo "✓ Lint passed"
 
 lint-fix: ## Apply safe Clippy fixes
 	@echo "Applying Clippy fixes to GitHub runner coordinator..."
-	@cargo clippy -p github-runner-coordinator --all-targets --all-features --fix --allow-dirty --locked
+	@cargo clippy -p github-runner-coordinator -p sandbox-host --all-targets --all-features --fix --allow-dirty --locked
 	@echo "✓ Lint fixes applied"
 
 test: ## Run all tests
 	@echo "Testing GitHub runner coordinator..."
-	@cargo test -p github-runner-coordinator --all-targets --locked
+	@cargo test -p github-runner-coordinator -p sandbox-host --all-targets --locked
 	@echo "✓ Tests passed"
 
 deps: ## Print the coordinator dependency graph

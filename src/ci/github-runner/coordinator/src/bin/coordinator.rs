@@ -1,7 +1,8 @@
-use std::{fs::OpenOptions, io, process::ExitCode};
+use std::{io, process::ExitCode};
 
 use clap::Parser;
-use github_runner_coordinator::{AnyError, CoordinatorArguments, provider::ProviderArguments};
+use github_runner_coordinator::{AnyError, CoordinatorArguments};
+use sandbox_host::{ProviderArguments, require_kvm};
 
 #[derive(Parser)]
 #[command(about = "Run one ephemeral GitHub Actions runner inside a Sandbox")]
@@ -28,13 +29,4 @@ async fn main() -> Result<ExitCode, AnyError> {
         ))
         .into()),
     }
-}
-
-fn require_kvm() -> Result<(), io::Error> {
-    OpenOptions::new()
-        .read(true)
-        .write(true)
-        .open("/dev/kvm")
-        .map(|_| ())
-        .map_err(|error| io::Error::new(error.kind(), format!("cannot open /dev/kvm: {error}")))
 }

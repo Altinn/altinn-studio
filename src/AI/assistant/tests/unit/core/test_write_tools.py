@@ -177,18 +177,28 @@ class TestVerifyChanges:
         assert any("JSON parses" in note for note in body["notes"])
 
     async def test_non_json_file_is_noted_but_passes(self, tmp_path: Path):
-        cs_path = tmp_path / "App" / "logic" / "InstantiationHandler.cs"
-        cs_path.parent.mkdir(parents=True)
-        cs_path.write_text("public class Foo {}", encoding="utf-8")
+        xml_path = tmp_path / "App" / "models" / "model.xsd"
+        xml_path.parent.mkdir(parents=True)
+        xml_path.write_text("<xs:schema />", encoding="utf-8")
 
         ctx = _write_ctx(
             repo_path=str(tmp_path),
-            changed={"App/logic/InstantiationHandler.cs"},
+            changed={"App/models/model.xsd"},
         )
         result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
         assert not result.is_error
         body = json.loads(result.content)
         assert any("no automated validator" in note for note in body["notes"])
+
+    async def test_deleted_file_is_noted_but_passes(self, tmp_path: Path):
+        ctx = _write_ctx(
+            repo_path=str(tmp_path),
+            changed={"App/ui/layout-sets.json"},
+        )
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+        assert not result.is_error
+        body = json.loads(result.content)
+        assert any("deleted" in note for note in body["notes"])
 
     async def test_multipage_layout_without_navigation_fails(self, tmp_path: Path, permissive_schema):
         layouts_dir = tmp_path / "App" / "ui" / "form" / "layouts"
