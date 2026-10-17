@@ -7,7 +7,7 @@ namespace Altinn.Studio.Designer.Telemetry;
 internal sealed class InstanceTelemetry : IDisposable
 {
     public const string MeterName = "studio-designer";
-    public const string StartTimeMetricName = "altinn.instance.start_time";
+    public const string StartTimeMetricName = "altinn.workload.start_time";
 
     public static readonly string ServiceInstanceId = Guid.NewGuid().ToString();
 

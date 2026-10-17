@@ -152,10 +152,10 @@ public class OpenTelemetryTests
             _metrics.Clear();
             provider.ForceFlush();
 
-            Metric metric = Assert.Single(_metrics, metric => metric.Name == "altinn.instance.start_time");
+            Metric metric = Assert.Single(_metrics, metric => metric.Name == "altinn.workload.start_time");
             Assert.Equal("s", metric.Unit);
             Assert.Equal(MetricType.DoubleGauge, metric.MetricType);
-            MetricPoint point = Assert.Single(MetricPoints("altinn.instance.start_time"));
+            MetricPoint point = Assert.Single(MetricPoints("altinn.workload.start_time"));
             Assert.Equal(expectedStartTime, point.GetGaugeLastValueDouble());
             Assert.Equal(0, point.Tags.Count);
         }
@@ -184,7 +184,7 @@ public class OpenTelemetryTests
             .Single(collector.LogEntries, entry => entry.RequestMessage?.Path == "/v1/metrics")
             .RequestMessage!;
         Assert.Equal("application/x-protobuf", Assert.Single(request.Headers!["Content-Type"]));
-        Assert.Contains("altinn.instance.start_time", Encoding.UTF8.GetString(request.BodyData!.BodyAsBytes!));
+        Assert.Contains("altinn.workload.start_time", Encoding.UTF8.GetString(request.BodyData!.BodyAsBytes!));
     }
 
     [Fact]

@@ -30,7 +30,7 @@ func TestInstanceMetricReportsStartTimeOnEveryCollection(t *testing.T) {
 			t.Fatalf("unexpected metrics: %+v", data)
 		}
 		got := data.ScopeMetrics[0].Metrics[0]
-		if got.Name != "altinn.instance.start_time" || got.Unit != "s" {
+		if got.Name != "altinn.workload.start_time" || got.Unit != "s" {
 			t.Fatalf("metric = %s (%s)", got.Name, got.Unit)
 		}
 		gauge, ok := got.Data.(metricdata.Gauge[float64])
