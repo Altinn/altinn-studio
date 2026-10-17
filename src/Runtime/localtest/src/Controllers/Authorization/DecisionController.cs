@@ -231,7 +231,7 @@ namespace Altinn.Platform.Authorization.Controllers
             {
                 try 
                 {
-                    delegationResponse = await AuthorizeUsingDelegations(appPolicyResponse, decisionRequest, pdp);
+                    delegationResponse = await AuthorizeUsingDelegations(appPolicyResponse, decisionRequest, policy, pdp);
                 }
                 catch (Exception ex)
                 {
@@ -254,12 +254,12 @@ namespace Altinn.Platform.Authorization.Controllers
         private async Task<XacmlContextResponse> AuthorizeUsingSystemUser(
             XacmlContextResponse appPolicyResponse, 
             XacmlContextRequest decisionRequest,
+            XacmlPolicy appPolicy,
             PolicyDecisionPoint pdp,
             XacmlAttribute systemUserAttr,
             XacmlContextAttributes resourceAttributes
         )
         {
-            var systemUserUUidUrn = new Uri(AltinnXacmlUrns.SystemUserUuid);
             var systemUserAttrValue = systemUserAttr.AttributeValues.Single();
             var testData = await _testDataService.GetTestData();
             // Generate XACML policy in memory where the system user has access to the party associated 
@@ -267,9 +267,23 @@ namespace Altinn.Platform.Authorization.Controllers
             if (!testData.Authorization.SystemUsers.TryGetValue(systemUserAttrValue.Value, out var systemUser))
                 return appPolicyResponse;
 
-            var orgNo = systemUser.OrgNumber;
-            var org = testData.Register.Party.Single(p => p.Value.OrgNumber == orgNo).Value;
-            var partyId = org.PartyId;
+            var suPolicy = CreateSystemUserPolicy(systemUserAttrValue, resourceAttributes, systemUser.Actions, appPolicy);
+            return pdp.Authorize(decisionRequest, suPolicy);
+        }
+
+        /// <summary>
+        /// Builds the in-memory policy that gives a system user the given actions on the requested resource.
+        /// It carries the app policy's obligations, so the app's authentication level requirement
+        /// (and the system user relaxation of it) applies to the system user, as it does in the real PDP.
+        /// </summary>
+        internal static XacmlPolicy CreateSystemUserPolicy(
+            XacmlAttributeValue systemUserAttrValue,
+            XacmlContextAttributes resourceAttributes,
+            IEnumerable<string> actions,
+            XacmlPolicy appPolicy
+        )
+        {
+            var systemUserUUidUrn = new Uri(AltinnXacmlUrns.SystemUserUuid);
             var suPolicy = new XacmlPolicy(
                 new Uri("urn:altinn:policyid:systemuser"), 
                 new Uri("urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-overrides"), 
@@ -317,7 +331,7 @@ namespace Altinn.Platform.Authorization.Controllers
                         ])
                     ]),
                     // Actions
-                    ..systemUser.Actions.Select(a => new XacmlAnyOf([
+                    ..actions.Select(a => new XacmlAnyOf([
                         new XacmlAllOf([
                             new XacmlMatch(
                                 matchId: new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
@@ -334,12 +348,28 @@ namespace Altinn.Platform.Authorization.Controllers
                 ])
             });
 
-            return pdp.Authorize(decisionRequest, suPolicy);
+            CopyObligations(appPolicy, suPolicy);
+            return suPolicy;
+        }
+
+        /// <summary>
+        /// The real PDP adds the resource policy's obligations to a delegation policy that has none of its own,
+        /// so delegated access still meets the app's minimum authentication level. Do the same for the
+        /// policies localtest builds in memory.
+        /// </summary>
+        internal static void CopyObligations(XacmlPolicy appPolicy, XacmlPolicy delegationPolicy)
+        {
+            if (delegationPolicy.ObligationExpressions.Count > 0)
+                return;
+
+            foreach (var obligationExpression in appPolicy.ObligationExpressions)
+                delegationPolicy.ObligationExpressions.Add(obligationExpression);
         }
 
         private async Task<XacmlContextResponse> AuthorizeUsingInstanceDelegations(
             XacmlContextResponse appPolicyResponse,
             XacmlContextRequest decisionRequest,
+            XacmlPolicy appPolicy,
             PolicyDecisionPoint pdp,
             XacmlAttribute instanceIdAttr,
             XacmlAttribute userIdAttr,
@@ -500,6 +530,7 @@ namespace Altinn.Platform.Authorization.Controllers
                         }
                     }
 
+                    CopyObligations(appPolicy, idPolicy);
                     return pdp.Authorize(decisionRequest, idPolicy);
                 }
             }
@@ -510,6 +541,7 @@ namespace Altinn.Platform.Authorization.Controllers
         private async Task<XacmlContextResponse> AuthorizeUsingDelegations(
             XacmlContextResponse appPolicyResponse, 
             XacmlContextRequest decisionRequest,
+            XacmlPolicy appPolicy,
             PolicyDecisionPoint pdp
         )
         {
@@ -527,6 +559,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 return await AuthorizeUsingSystemUser(
                     appPolicyResponse, 
                     decisionRequest, 
+                    appPolicy,
                     pdp, 
                     systemUserAttr, 
                     resourceAttributes
@@ -543,6 +576,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 var instanceDelegationResponse = await AuthorizeUsingInstanceDelegations(
                     appPolicyResponse,
                     decisionRequest,
+                    appPolicy,
                     pdp,
                     instanceIdAttr,
                     userIdAttr,
