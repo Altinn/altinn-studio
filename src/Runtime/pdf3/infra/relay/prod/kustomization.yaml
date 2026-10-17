@@ -18,3 +18,13 @@ patches:
                   # DIS Edge, which forwards to the environment's DIS Core
                   - name: PDF3_UPSTREAM_URL
                     value: https://studio.platform.prod.altinn.cloud/pdf/v3/generate
+  # The inactivity scaler is disabled in prod; keep its existing disruption budget.
+  - patch: |-
+      apiVersion: policy/v1
+      kind: PodDisruptionBudget
+      metadata:
+        name: pdf3-relay-pdb
+        namespace: runtime-pdf3
+      spec:
+        minAvailable: null
+        maxUnavailable: 1

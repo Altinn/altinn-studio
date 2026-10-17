@@ -5,7 +5,8 @@ metadata:
   namespace: runtime-pdf3
 spec:
   unhealthyPodEvictionPolicy: AlwaysAllow
-  maxUnavailable: 1
+  # The inactivity scaler can lower the non-production relay minimum to one.
+  minAvailable: 1
   selector:
     matchLabels:
       app: pdf3-relay
