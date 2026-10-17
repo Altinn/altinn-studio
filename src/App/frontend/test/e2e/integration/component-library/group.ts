@@ -57,9 +57,11 @@ describe('Group summary test', () => {
 
   it('Clicks radiobutton, selected option appears in summary', () => {
     cy.get('input[type="radio"][value="bil"]').click();
+    cy.get('section[data-testid="summary-group-component"]').find('h3').should('have.length', 1);
     cy.get('section[data-testid="summary-group-component-2"]')
       .first()
       .within(() => {
+        cy.contains('h2', 'Nested group title inside nested group').should('have.attr', 'data-size', 'sm');
         cy.contains('span', 'Bil').should('exist');
         cy.contains('span', 'Moped').should('not.exist');
         cy.contains('span', 'Traktor').should('not.exist');
