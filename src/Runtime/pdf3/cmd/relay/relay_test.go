@@ -38,6 +38,7 @@ import (
 	ihttp "altinn.studio/pdf3/internal/http"
 	iruntime "altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/serviceowner"
+	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/telemetry/attr"
 	itesting "altinn.studio/pdf3/internal/testing"
 )
@@ -179,6 +180,12 @@ func recordMetrics(t *testing.T) *sdkmetric.ManualReader {
 // status that was sent and errorType.
 func requireRequestDuration(t *testing.T, reader *sdkmetric.ManualReader, errorType string) {
 	t.Helper()
+	requireRequestDurationWithStatus(t, reader, http.StatusOK, errorType)
+}
+
+// requireRequestDurationWithStatus is requireRequestDuration for a request answered with status.
+func requireRequestDurationWithStatus(t *testing.T, reader *sdkmetric.ManualReader, status int, errorType string) {
+	t.Helper()
 	var data metricdata.ResourceMetrics
 	if err := reader.Collect(t.Context(), &data); err != nil {
 		t.Fatalf("Collect() error = %v", err)
@@ -197,9 +204,32 @@ func requireRequestDuration(t *testing.T, reader *sdkmetric.ManualReader, errorT
 			}
 		}
 	}
-	if want := "200/" + errorType; len(got) != 1 || got[want] != 1 {
+	if want := fmt.Sprintf("%d/%s", status, errorType); len(got) != 1 || got[want] != 1 {
 		t.Fatalf("http.server.request.duration by status/error.type = %v, want {%s: 1}", got, want)
 	}
+}
+
+// retryCounts returns the counter name's value by error.type.
+func retryCounts(t *testing.T, reader *sdkmetric.ManualReader, name string) map[string]int64 {
+	t.Helper()
+	var data metricdata.ResourceMetrics
+	if err := reader.Collect(t.Context(), &data); err != nil {
+		t.Fatalf("Collect() error = %v", err)
+	}
+	got := map[string]int64{}
+	for _, scope := range data.ScopeMetrics {
+		for _, m := range scope.Metrics {
+			sum, ok := m.Data.(metricdata.Sum[int64])
+			if m.Name != name || !ok {
+				continue
+			}
+			for _, point := range sum.DataPoints {
+				errType, _ := point.Attributes.Value(attribute.Key(attr.ErrorType))
+				got[errType.AsString()] += point.Value
+			}
+		}
+	}
+	return got
 }
 
 // requireErrorSpan checks that the request's server span ended with an error of errorType and the
@@ -676,6 +706,7 @@ func TestRelayRetriesConnectFailures(t *testing.T) {
 			return dialer.DialContext(ctx, network, addr)
 		},
 	}
+	metrics := recordMetrics(t)
 	rec := post(t, rl.handler(), nil)
 
 	if rec.Code != http.StatusOK || rec.Body.String() != "%PDF-1.7 test" {
@@ -683,6 +714,9 @@ func TestRelayRetriesConnectFailures(t *testing.T) {
 	}
 	if dials.Load() != 2 {
 		t.Fatalf("dialed %d times, want 2", dials.Load())
+	}
+	if got := retryCounts(t, metrics, telemetry.RelayConnectRetriesMetric); got[""] != 1 || len(got) != 1 {
+		t.Fatalf("%s = %v, want one retry", telemetry.RelayConnectRetriesMetric, got)
 	}
 	if gotBody != requestBody {
 		t.Fatalf("upstream got body %q, want %q", gotBody, requestBody)
@@ -1259,6 +1293,93 @@ func TestReadUpstream(t *testing.T) {
 			if exited != tt.wantExit || (!tt.wantExit && err != nil) {
 				t.Fatalf("exited = %v (%v), want %v; output: %s", exited, err, tt.wantExit, output)
 			}
+		})
+	}
+}
+
+func TestRelayRecordsWhyItFailedBeforeTheUpstreamResponded(t *testing.T) {
+	rl := newTestRelay(t, "http://pdf3.invalid/generate")
+	rl.client.Transport = &http.Transport{
+		DialContext: func(_ context.Context, network, _ string) (net.Conn, error) {
+			return nil, &net.OpError{Op: "dial", Net: network, Err: errConnectionRefused}
+		},
+	}
+	metrics := recordMetrics(t)
+	spans := recordSpans(t)
+
+	rec := post(t, rl.handler(), nil)
+
+	if rec.Code != http.StatusBadGateway {
+		t.Fatalf("status = %d, want 502", rec.Code)
+	}
+	requireRequestDurationWithStatus(t, metrics, http.StatusBadGateway, "upstream_response_failed")
+	if got := retryCounts(t, metrics, telemetry.RelayConnectRetriesMetric); got[""] != maxAttempts-1 || len(got) != 1 {
+		t.Fatalf("%s = %v, want %d retries", telemetry.RelayConnectRetriesMetric, got, maxAttempts-1)
+	}
+	var servers []sdktrace.ReadOnlySpan
+	for _, span := range spans.Ended() {
+		if span.SpanKind() == trace.SpanKindServer {
+			servers = append(servers, span)
+		}
+	}
+	if len(servers) != 1 {
+		t.Fatalf("ended %d server spans, want 1", len(servers))
+	}
+	spanAttrs := attribute.NewSet(servers[0].Attributes()...)
+	if got, _ := spanAttrs.Value(attr.ErrorType); got.AsString() != "upstream_response_failed" {
+		t.Fatalf("span %s = %q, want upstream_response_failed", attr.ErrorType, got.AsString())
+	}
+}
+
+func TestRelayRecordsWhyAnUpstreamResponseWasNotPassedOn(t *testing.T) {
+	tests := []struct {
+		name        string
+		contentType string
+		body        string
+		wantType    string
+		status      int
+		wantStatus  int
+	}{
+		{
+			"rejected API key", "text/plain", "no", "upstream_rejected_auth",
+			http.StatusUnauthorized, http.StatusBadGateway,
+		},
+		{
+			"forbidden", "text/plain", "no", "upstream_rejected_auth",
+			http.StatusForbidden, http.StatusBadGateway,
+		},
+		{
+			"unexpected status", "text/html", "<html/>", "upstream_unexpected_response",
+			http.StatusNotFound, http.StatusBadGateway,
+		},
+		{
+			"busy edge", "text/plain", "slow down", "upstream_unexpected_response",
+			http.StatusTooManyRequests, http.StatusTooManyRequests,
+		},
+		{
+			"broken edge", "text/plain", "down", "upstream_unexpected_response",
+			http.StatusServiceUnavailable, http.StatusServiceUnavailable,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", tt.contentType)
+				w.WriteHeader(tt.status)
+				if _, err := w.Write([]byte(tt.body)); err != nil {
+					t.Errorf("Write() error = %v", err)
+				}
+			}))
+			defer upstream.Close()
+			rl := newTestRelay(t, upstream.URL)
+			metrics := recordMetrics(t)
+
+			rec := post(t, rl.handler(), nil)
+
+			if rec.Code != tt.wantStatus {
+				t.Fatalf("status = %d, want %d", rec.Code, tt.wantStatus)
+			}
+			requireRequestDurationWithStatus(t, metrics, tt.wantStatus, tt.wantType)
 		})
 	}
 }

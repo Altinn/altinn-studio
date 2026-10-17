@@ -17,13 +17,17 @@ import (
 	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
 	"altinn.studio/pdf3/internal/config"
 	ihttp "altinn.studio/pdf3/internal/http"
 	"altinn.studio/pdf3/internal/serviceowner"
+	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/telemetry/attr"
 )
 
@@ -83,6 +87,63 @@ func TestCallWorker_LogsRetriesAtInfoAndExhaustionAtError(t *testing.T) {
 	}
 	if w.Code != http.StatusInternalServerError {
 		t.Errorf("status = %d, want 500", w.Code)
+	}
+}
+
+// queueFullTransport answers every worker request as a worker with a full queue does.
+type queueFullTransport struct{}
+
+func (queueFullTransport) RoundTrip(*http.Request) (*http.Response, error) {
+	return &http.Response{
+		StatusCode: http.StatusTooManyRequests,
+		Header:     http.Header{},
+		Body:       io.NopCloser(strings.NewReader("")),
+	}, nil
+}
+
+func TestCallWorker_CountsRetriesByReason(t *testing.T) {
+	reader := sdkmetric.NewManualReader()
+	previous := otel.GetMeterProvider()
+	otel.SetMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader)))
+	t.Cleanup(func() { otel.SetMeterProvider(previous) })
+	logger := slog.New(slog.DiscardHandler)
+	r := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/pdf", nil)
+	const maxRetries = 2
+
+	call := func(transport http.RoundTripper, attempt int) {
+		t.Helper()
+		callWorker(
+			logger, t.Context(), &http.Client{Transport: transport}, "http://worker/generate",
+			r, httptest.NewRecorder(), time.Now(), attempt, maxRetries, nil, "",
+		)
+	}
+	call(failingTransport{}, 1)
+	call(failingTransport{}, 1)
+	call(queueFullTransport{}, 1)
+	// The last attempt gives up instead of retrying.
+	call(failingTransport{}, maxRetries)
+	call(queueFullTransport{}, maxRetries)
+
+	var data metricdata.ResourceMetrics
+	if err := reader.Collect(t.Context(), &data); err != nil {
+		t.Fatalf("Collect() error = %v", err)
+	}
+	got := map[string]int64{}
+	for _, scope := range data.ScopeMetrics {
+		for _, m := range scope.Metrics {
+			sum, ok := m.Data.(metricdata.Sum[int64])
+			if m.Name != telemetry.ProxyWorkerRetriesMetric || !ok {
+				continue
+			}
+			for _, point := range sum.DataPoints {
+				reason, _ := point.Attributes.Value(attribute.Key(attr.ErrorType))
+				got[reason.AsString()] += point.Value
+			}
+		}
+	}
+	want := map[string]int64{telemetry.RetryTransportError: 2, telemetry.RetryQueueFull: 1}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("%s = %v, want %v", telemetry.ProxyWorkerRetriesMetric, got, want)
 	}
 }
 
