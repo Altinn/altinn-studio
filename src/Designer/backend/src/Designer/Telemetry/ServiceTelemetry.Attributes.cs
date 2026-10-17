@@ -124,16 +124,33 @@ internal static partial class ServiceTelemetry
         {
             private const string Prefix = "altinn.designer.inactivity_undeploy.";
 
+            public const string ActiveAppCount = Prefix + "active_app_count";
+
+            /// <summary>
+            /// The candidates as {environment}/{app}, at most the first 100.
+            /// </summary>
+            public const string CandidateApps = Prefix + "candidate_apps";
             public const string CandidateCount = Prefix + "candidate_count";
+            public const string CapReached = Prefix + "cap_reached";
+            public const string CapSkippedCount = Prefix + "cap_skipped_count";
+            public const string DeployedAppCount = Prefix + "deployed_app_count";
+            public const string DisabledAppCount = Prefix + "disabled_app_count";
+            public const string DryRun = Prefix + "dry_run";
             public const string EnvironmentFilter = Prefix + "environment_filter";
             public const string EvaluationSkipReason = Prefix + "evaluation_skip_reason";
             public const string Index = Prefix + "index";
+            public const string MaxUndeploysPerDay = Prefix + "max_undeploys_per_day";
+            public const string NotFreshAppCount = Prefix + "not_fresh_app_count";
+            public const string NotFullyObservedAppCount = Prefix + "not_fully_observed_app_count";
             public const string OrgCount = Prefix + "org_count";
+            public const string PendingUndeployJobCount = Prefix + "pending_undeploy_job_count";
             public const string QueueReason = Prefix + "queue_reason";
             public const string Queued = Prefix + "queued";
+            public const string QueuedCount = Prefix + "queued_count";
+            public const string RecentUndeployCount = Prefix + "recent_undeploy_count";
+            public const string RecentlyDeployedAppCount = Prefix + "recently_deployed_app_count";
             public const string TimedOut = Prefix + "timed_out";
             public const string TimeoutSeconds = Prefix + "timeout_seconds";
-            public const string WindowDays = Prefix + "window_days";
         }
 
         public static class Notification

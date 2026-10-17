@@ -138,6 +138,7 @@ public static class SchedulingDependencyInjectionExtensions
     internal static void ValidateSchedulingSettings(SchedulingSettings schedulingSettings)
     {
         ValidateInactivityUndeployJobTimeouts(schedulingSettings.InactivityUndeployJobTimeouts);
+        ValidateInactivityUndeploy(schedulingSettings.InactivityUndeploy);
         ValidateChatInactivityCleanup(schedulingSettings.ChatInactivityCleanup);
         ValidateRepositoryCleanup(schedulingSettings.RepositoryCleanup);
     }
@@ -161,6 +162,17 @@ public static class SchedulingDependencyInjectionExtensions
             MaximumTimerDelayMinutes,
             $"{SectionPath}:{nameof(settings.PerAppJobMinutes)}"
         );
+    }
+
+    private static void ValidateInactivityUndeploy(InactivityUndeployEnforcementSettings settings)
+    {
+        // Zero is allowed and stops all undeploys.
+        if (settings.MaxUndeploysPerDay < 0)
+        {
+            throw new InvalidOperationException(
+                $"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.InactivityUndeploy)}:{nameof(settings.MaxUndeploysPerDay)} must be zero or greater."
+            );
+        }
     }
 
     private static void ValidateChatInactivityCleanup(ChatInactivityCleanupSettings settings)
