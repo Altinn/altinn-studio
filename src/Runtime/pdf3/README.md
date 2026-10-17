@@ -25,16 +25,6 @@ the proxy, relay and worker images.
 The workers' [network policy](infra/core/base/network-policies.yaml) allows DNS only through CoreDNS. It is not
 confirmed that DIS Core's pods use CoreDNS rather than AKS LocalDNS. If they do not, the workers cannot resolve names.
 
-## Manifest layout
-
-- `infra/relay`: the tenant relay base and six environment overlays.
-- `infra/core`: the shared proxy, workers and collector, with Flux roots and app overlays for five environments.
-- `infra/local`: the proxy/worker test base, minimal and standard overlays, and their local Flux roots.
-
-The published relay artifact keeps `./<environment>` at its root. The Core artifact keeps both
-`./<environment>` and `./<environment>/app`. These paths are used by the clusters' existing Flux
-Kustomizations; changing the source layout does not change those paths or resource ownership.
-
 ## Development
 
 The [Makefile](Makefile) defines the build and test commands. Tests require Docker or Podman.
