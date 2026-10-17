@@ -16,6 +16,29 @@
           }
         },
         {
+          "id": "ListPage-InformationalList",
+          "type": "List",
+          "pagination": { "alternatives": [5, 10], "default": 5 },
+          "textResourceBindings": {
+            "title": "Personoversikt"
+          },
+          "dataListId": "people",
+          "tableHeaders": {
+            "name": "Navn",
+            "age": "Alder",
+            "profession": "Yrke"
+          }
+        },
+        {
+          "id": "ListPage-InformationalSummary",
+          "type": "Summary2",
+          "hideEmptyFields": true,
+          "target": {
+            "type": "component",
+            "id": "ListPage-InformationalList"
+          }
+        },
+        {
           "id": "ListPage-Header-Component1",
           "type": "Heading",
           "size": "h3",

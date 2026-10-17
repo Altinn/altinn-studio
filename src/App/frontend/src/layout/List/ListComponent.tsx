@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { AriaAttributes } from 'react';
+import type { AriaAttributes, PropsWithChildren } from 'react';
 
 import {
   Description,
@@ -42,17 +42,18 @@ import type { PropsFromGenericComponent } from 'src/layout';
 type Row = Record<string, string | number | boolean>;
 type SelectionMode = 'readonly' | 'single' | 'multiple';
 
-function getSelectionMode(bindings: IDataModelBindingsForList): SelectionMode {
-  const hasValidBindings = Object.keys(bindings).length > 0 && Object.values(bindings).some((b) => b !== undefined);
-
-  if (!hasValidBindings) {
+export function getSelectionMode(bindings: IDataModelBindingsForList | undefined): SelectionMode {
+  if (!bindings || !Object.values(bindings).some((binding) => binding !== undefined)) {
     return 'readonly';
   }
 
   return bindings.group ? 'multiple' : 'single';
 }
 
-export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'List'>) => {
+type ListComponentProps = Pick<PropsFromGenericComponent<'List'>, 'baseComponentId'> & { isSummary?: boolean };
+
+export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps) => {
+  const summaryId = React.useId();
   const isMobile = useIsMobile();
   const { langAsString } = useLanguage();
   const config = useComponentConfig(baseComponentId, 'List');
@@ -89,8 +90,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
     config.secure,
     useResolvedQueryParameters(config.queryParameters),
   );
-  const bindings = dataModelBindings ?? ({} as IDataModelBindingsForList);
-  // Determine selection mode based on bindings
+  const bindings = dataModelBindings ?? {};
   const selectionMode = getSelectionMode(bindings);
   const readOnly = selectionMode === 'readonly';
   const isMultipleSelection = selectionMode === 'multiple';
@@ -150,6 +150,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
       </div>
     ));
   const indexedId = useIndexedId(baseComponentId);
+  const componentId = isSummary ? summaryId : indexedId;
   const getRowLabel = (row: Row): string =>
     Object.entries(row)
       .map(([key]) => {
@@ -175,7 +176,10 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
   });
   if (isMobile && !readOnly) {
     return (
-      <ComponentStructureWrapper baseComponentId={baseComponentId}>
+      <ListStructure
+        baseComponentId={baseComponentId}
+        isSummary={isSummary}
+      >
         {isMultipleSelection ? (
           <Fieldset>
             <Fieldset.Legend>
@@ -246,7 +250,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
           </Fieldset>
         )}
         <Pagination
-          id={baseComponentId}
+          id={componentId}
           pageSize={pageSize}
           setPageSize={setPageSize}
           currentPage={currentPage}
@@ -254,14 +258,17 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
           numberOfRows={data?._metaData.totaltItemsCount}
           rowsPerPageOptions={config.pagination?.alternatives}
         />
-      </ComponentStructureWrapper>
+      </ListStructure>
     );
   }
   return (
-    <ComponentStructureWrapper baseComponentId={baseComponentId}>
+    <ListStructure
+      baseComponentId={baseComponentId}
+      isSummary={isSummary}
+    >
       <Table className={classes.listTable}>
         {title && (
-          <caption id={getLabelId(indexedId)}>
+          <caption id={getLabelId(componentId)}>
             <Heading
               level={2}
               data-size='sm'
@@ -277,7 +284,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
             {description && (
               <Description
                 description={<Lang id={description} />}
-                componentId={indexedId}
+                componentId={componentId}
               />
             )}
           </caption>
@@ -361,7 +368,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
       </Table>
       {config.pagination && (
         <Pagination
-          id={baseComponentId}
+          id={componentId}
           pageSize={pageSize}
           setPageSize={setPageSize}
           currentPage={currentPage}
@@ -370,9 +377,17 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
           rowsPerPageOptions={config.pagination?.alternatives}
         />
       )}
-    </ComponentStructureWrapper>
+    </ListStructure>
   );
 };
+
+function ListStructure({ baseComponentId, isSummary, children }: PropsWithChildren<ListComponentProps>) {
+  return isSummary ? (
+    children
+  ) : (
+    <ComponentStructureWrapper baseComponentId={baseComponentId}>{children}</ComponentStructureWrapper>
+  );
+}
 
 type PaginationProps = {
   id: string;
