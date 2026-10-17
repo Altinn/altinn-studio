@@ -4,7 +4,8 @@ metadata:
   name: pdf
 ---
 # Apps call http://pdf-generator.pdf.svc.cluster.local/pdf. The Service has no
-# endpoints; Linkerd routes the traffic client-side to pdf3 using the HTTPRoute below.
+# endpoints; Linkerd routes the traffic client-side through pdf/pdf3, owned by pdf3-app
+# in the pdf3 artifact (src/Runtime/pdf3/infra/kustomize/relay/httproute.yaml).
 apiVersion: v1
 kind: Service
 metadata:
@@ -21,23 +22,3 @@ spec:
   selector:
     app: pdf-generator
     release: pdf-generator
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: pdf3-migration
-  namespace: pdf
-spec:
-  parentRefs:
-  - group: ""
-    kind: Service
-    name: pdf-generator
-    namespace: pdf
-    port: 80
-  rules:
-  - backendRefs:
-    - name: pdf3-proxy
-      namespace: runtime-pdf3
-      kind: Service
-      port: 80
-      weight: 100
