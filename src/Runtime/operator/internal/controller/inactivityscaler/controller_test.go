@@ -188,6 +188,29 @@ func TestResolveClusterState(t *testing.T) {
 	snaps.MatchJSON(t, payload)
 }
 
+func TestSyncAll_DoesNotAccessPdf3Resources(t *testing.T) {
+	for _, state := range []clusterState{stateNormal, stateTTDOffhours, stateNoApps, stateTTDOffhoursNoApps} {
+		t.Run(string(state), func(t *testing.T) {
+			k8sClient := newFakeClientWithInterceptors(
+				interceptor.Funcs{
+					Get: func(ctx context.Context, c client.WithWatch, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
+						if key.Namespace == "runtime-pdf3" {
+							t.Errorf("inactivity scaler accessed PDF3 resource %s", key)
+						}
+						return c.Get(ctx, key, obj, opts...)
+					},
+				},
+				newOverrideConfigMap(string(state)),
+				newAppDeployment("app-a", 2),
+				newAppHpa("ttd", "app-a", 2),
+				newGatewayDeployment(),
+			)
+			h := newHarnessWithClient(t, "ttd", "at22", time.Date(2026, 2, 23, 12, 0, 0, 0, osloLocation), k8sClient)
+			NewWithT(t).Expect(h.reconciler.SyncAll(h.ctx())).To(Succeed())
+		})
+	}
+}
+
 func TestSyncAll_ForcedStateOverride(t *testing.T) {
 	g := NewWithT(t)
 
@@ -196,15 +219,13 @@ func TestSyncAll_ForcedStateOverride(t *testing.T) {
 		newAppDeployment("app-a", 2),
 		newAppHpa("ttd", "app-a", 2),
 		newGatewayDeployment(),
-		newPdf3Hpa(pdf3ProxyHpaName),
-		newPdf3Hpa(pdf3WorkerHpaName),
 	)
 
 	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	objects := collectSnapshots(t, h.k8sClient, "ttd")
-	g.Expect(objects).To(HaveLen(5))
+	g.Expect(objects).To(HaveLen(3))
 	for i := range objects {
 		obj := objects[i]
 		g.Expect(obj.Managed).To(Equal("true"))
@@ -226,8 +247,6 @@ func TestSyncAll_InvalidForcedStateOverrideFallsBackToComputedState(t *testing.T
 	h := newHarness(t, "nav", "tt02", time.Date(2026, 2, 23, 12, 0, 0, 0, osloLocation),
 		newOverrideConfigMap("not-a-state"),
 		newGatewayDeployment(),
-		newPdf3Hpa(pdf3ProxyHpaName),
-		newPdf3Hpa(pdf3WorkerHpaName),
 	)
 	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
@@ -247,8 +266,6 @@ func TestSyncAll_ForcedStateReadFailureFallsBackToComputedState(t *testing.T) {
 			},
 		},
 		newGatewayDeployment(),
-		newPdf3Hpa(pdf3ProxyHpaName),
-		newPdf3Hpa(pdf3WorkerHpaName),
 	)
 	h := newHarnessWithClient(t, "nav", "tt02", time.Date(2026, 2, 23, 12, 0, 0, 0, osloLocation), k8sClient)
 
@@ -270,20 +287,9 @@ func assertNoAppsComputedStateApplied(g *WithT, h *testHarness) {
 	g.Expect(annotation(gateway, reconcileAnnotationKey)).To(BeEmpty())
 	g.Expect(annotation(gateway, scalerManagedAnnotationKey)).To(Equal("true"))
 	g.Expect(annotation(gateway, scalerBaselineAnnotationKey)).NotTo(BeEmpty())
-
-	for _, name := range []string{pdf3ProxyHpaName, pdf3WorkerHpaName} {
-		hpa := &autoscalingv2.HorizontalPodAutoscaler{}
-		err = h.k8sClient.Get(h.ctx(), client.ObjectKey{Name: name, Namespace: runtimePdf3Namespace}, hpa)
-		g.Expect(err).NotTo(HaveOccurred())
-		g.Expect(hpa.Spec.MinReplicas).NotTo(BeNil())
-		g.Expect(*hpa.Spec.MinReplicas).To(Equal(scaleDownReplicaOne))
-		g.Expect(annotation(hpa, reconcileAnnotationKey)).To(Equal(reconcileDisabledValue))
-		g.Expect(annotation(hpa, scalerManagedAnnotationKey)).To(Equal("true"))
-		g.Expect(annotation(hpa, scalerBaselineAnnotationKey)).NotTo(BeEmpty())
-	}
 }
 
-func assertGatewayAndPdf3RestoredToBaseline(g *WithT, h *testHarness) {
+func assertGatewayRestoredToBaseline(g *WithT, h *testHarness) {
 	gateway := &appsv1.Deployment{}
 	err := h.k8sClient.Get(
 		h.ctx(),
@@ -296,17 +302,6 @@ func assertGatewayAndPdf3RestoredToBaseline(g *WithT, h *testHarness) {
 	g.Expect(annotation(gateway, reconcileAnnotationKey)).To(BeEmpty())
 	g.Expect(annotation(gateway, scalerManagedAnnotationKey)).To(BeEmpty())
 	g.Expect(annotation(gateway, scalerBaselineAnnotationKey)).To(BeEmpty())
-
-	for _, name := range []string{pdf3ProxyHpaName, pdf3WorkerHpaName} {
-		hpa := &autoscalingv2.HorizontalPodAutoscaler{}
-		err = h.k8sClient.Get(h.ctx(), client.ObjectKey{Name: name, Namespace: runtimePdf3Namespace}, hpa)
-		g.Expect(err).NotTo(HaveOccurred())
-		g.Expect(hpa.Spec.MinReplicas).NotTo(BeNil())
-		g.Expect(*hpa.Spec.MinReplicas).To(Equal(int32(3)))
-		g.Expect(annotation(hpa, reconcileAnnotationKey)).To(BeEmpty())
-		g.Expect(annotation(hpa, scalerManagedAnnotationKey)).To(BeEmpty())
-		g.Expect(annotation(hpa, scalerBaselineAnnotationKey)).To(BeEmpty())
-	}
 }
 
 type resourceSnapshot struct {
@@ -330,8 +325,6 @@ func TestSyncAll_TtdOffhoursAndRestore(t *testing.T) {
 		newNonAppDeployment("ttd-ignored-deployment-v2", 5),
 		newAppHpa("ttd", "app-a", 2),
 		newGatewayDeployment(),
-		newPdf3Hpa(pdf3ProxyHpaName),
-		newPdf3Hpa(pdf3WorkerHpaName),
 	)
 
 	err := h.reconciler.SyncAll(h.ctx())
@@ -357,8 +350,6 @@ func TestSyncAll_NonTtdNoApps(t *testing.T) {
 	h := newHarness(t, "nav", "tt02", time.Date(2026, 2, 23, 12, 0, 0, 0, osloLocation),
 		newAppDeployment("other-owner-app", 3),
 		newGatewayDeployment(),
-		newPdf3Hpa(pdf3ProxyHpaName),
-		newPdf3Hpa(pdf3WorkerHpaName),
 	)
 
 	err := h.reconciler.SyncAll(h.ctx())
@@ -369,13 +360,11 @@ func TestSyncAll_NonTtdNoApps(t *testing.T) {
 	snaps.MatchJSON(t, payload)
 }
 
-func TestSyncAll_NonTtdNoAppsToAppsTransitionRestoresGatewayAndPdf3(t *testing.T) {
+func TestSyncAll_NonTtdNoAppsToAppsTransitionRestoresGateway(t *testing.T) {
 	g := NewWithT(t)
 
 	h := newHarness(t, "nav", "tt02", time.Date(2026, 2, 23, 12, 0, 0, 0, osloLocation),
 		newGatewayDeployment(),
-		newPdf3Hpa(pdf3ProxyHpaName),
-		newPdf3Hpa(pdf3WorkerHpaName),
 	)
 
 	err := h.reconciler.SyncAll(h.ctx())
@@ -391,10 +380,10 @@ func TestSyncAll_NonTtdNoAppsToAppsTransitionRestoresGatewayAndPdf3(t *testing.T
 
 	err = h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
-	assertGatewayAndPdf3RestoredToBaseline(g, h)
+	assertGatewayRestoredToBaseline(g, h)
 }
 
-func TestSyncAll_NonTtdAppsToNoAppsTransitionScalesGatewayAndPdf3(t *testing.T) {
+func TestSyncAll_NonTtdAppsToNoAppsTransitionScalesGateway(t *testing.T) {
 	g := NewWithT(t)
 
 	navApp := newAppDeploymentForOwner("nav", "app-b", 2)
@@ -403,13 +392,11 @@ func TestSyncAll_NonTtdAppsToNoAppsTransitionScalesGatewayAndPdf3(t *testing.T) 
 		navApp,
 		navHpa,
 		newGatewayDeployment(),
-		newPdf3Hpa(pdf3ProxyHpaName),
-		newPdf3Hpa(pdf3WorkerHpaName),
 	)
 
 	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
-	assertGatewayAndPdf3RestoredToBaseline(g, h)
+	assertGatewayRestoredToBaseline(g, h)
 
 	err = h.k8sClient.Delete(h.ctx(), navApp)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -426,8 +413,6 @@ func TestSyncAll_TtdOffhoursNoApps(t *testing.T) {
 
 	h := newHarness(t, "ttd", "at22", time.Date(2026, 2, 23, 3, 0, 0, 0, osloLocation),
 		newGatewayDeployment(),
-		newPdf3Hpa(pdf3ProxyHpaName),
-		newPdf3Hpa(pdf3WorkerHpaName),
 	)
 
 	err := h.reconciler.SyncAll(h.ctx())
@@ -459,8 +444,6 @@ func TestSyncAll_RetriesOnConflict(t *testing.T) {
 		},
 		app,
 		newGatewayDeployment(),
-		newPdf3Hpa(pdf3ProxyHpaName),
-		newPdf3Hpa(pdf3WorkerHpaName),
 	)
 	h := newHarnessWithClient(t, "ttd", "at22", time.Date(2026, 2, 23, 3, 0, 0, 0, osloLocation), k8sClient)
 
@@ -538,25 +521,6 @@ func collectSnapshots(t *testing.T, k8sClient client.Client, serviceOwner string
 			Managed:   annotation(gateway, scalerManagedAnnotationKey),
 			Baseline:  decodeBaseline(t, gateway),
 		})
-	}
-
-	for _, hpaName := range []string{pdf3ProxyHpaName, pdf3WorkerHpaName} {
-		hpa := &autoscalingv2.HorizontalPodAutoscaler{}
-		if err := k8sClient.Get(
-			ctx,
-			client.ObjectKey{Name: hpaName, Namespace: runtimePdf3Namespace},
-			hpa,
-		); err == nil {
-			result = append(result, resourceSnapshot{
-				Kind:        testKindHPA,
-				Namespace:   hpa.Namespace,
-				Name:        hpa.Name,
-				MinReplicas: hpa.Spec.MinReplicas,
-				Reconcile:   annotation(hpa, reconcileAnnotationKey),
-				Managed:     annotation(hpa, scalerManagedAnnotationKey),
-				Baseline:    decodeBaseline(t, hpa),
-			})
-		}
 	}
 
 	sort.SliceStable(result, func(i, j int) bool {
@@ -643,16 +607,6 @@ func newGatewayDeployment() *appsv1.Deployment {
 			Namespace: runtimeGatewayNamespace,
 		},
 		Spec: appsv1.DeploymentSpec{Replicas: new(int32(2))},
-	}
-}
-
-func newPdf3Hpa(name string) *autoscalingv2.HorizontalPodAutoscaler {
-	return &autoscalingv2.HorizontalPodAutoscaler{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: runtimePdf3Namespace,
-		},
-		Spec: autoscalingv2.HorizontalPodAutoscalerSpec{MinReplicas: new(int32(3))},
 	}
 }
 

@@ -127,40 +127,6 @@
    "name": "ttd-app-a-deployment",
    "namespace": "default",
    "reconcile": "disabled"
-  },
-  {
-   "baseline": {
-    "minReplicas": {
-     "set": true,
-     "value": 3
-    },
-    "replicas": {
-     "set": false
-    }
-   },
-   "kind": "HorizontalPodAutoscaler",
-   "managed": "true",
-   "minReplicas": 1,
-   "name": "pdf3-proxy-hpa",
-   "namespace": "runtime-pdf3",
-   "reconcile": "disabled"
-  },
-  {
-   "baseline": {
-    "minReplicas": {
-     "set": true,
-     "value": 3
-    },
-    "replicas": {
-     "set": false
-    }
-   },
-   "kind": "HorizontalPodAutoscaler",
-   "managed": "true",
-   "minReplicas": 1,
-   "name": "pdf3-worker-hpa",
-   "namespace": "runtime-pdf3",
-   "reconcile": "disabled"
   }
  ],
  "workhours": [
@@ -187,18 +153,6 @@
    "minReplicas": 2,
    "name": "ttd-app-a-deployment",
    "namespace": "default"
-  },
-  {
-   "kind": "HorizontalPodAutoscaler",
-   "minReplicas": 3,
-   "name": "pdf3-proxy-hpa",
-   "namespace": "runtime-pdf3"
-  },
-  {
-   "kind": "HorizontalPodAutoscaler",
-   "minReplicas": 3,
-   "name": "pdf3-worker-hpa",
-   "namespace": "runtime-pdf3"
   }
  ]
 }
@@ -221,40 +175,6 @@
   "name": "gateway",
   "namespace": "runtime-gateway",
   "replicas": 1
- },
- {
-  "baseline": {
-   "minReplicas": {
-    "set": true,
-    "value": 3
-   },
-   "replicas": {
-    "set": false
-   }
-  },
-  "kind": "HorizontalPodAutoscaler",
-  "managed": "true",
-  "minReplicas": 1,
-  "name": "pdf3-proxy-hpa",
-  "namespace": "runtime-pdf3",
-  "reconcile": "disabled"
- },
- {
-  "baseline": {
-   "minReplicas": {
-    "set": true,
-    "value": 3
-   },
-   "replicas": {
-    "set": false
-   }
-  },
-  "kind": "HorizontalPodAutoscaler",
-  "managed": "true",
-  "minReplicas": 1,
-  "name": "pdf3-worker-hpa",
-  "namespace": "runtime-pdf3",
-  "reconcile": "disabled"
  }
 ]
 ---
@@ -276,40 +196,6 @@
   "name": "gateway",
   "namespace": "runtime-gateway",
   "replicas": 1
- },
- {
-  "baseline": {
-   "minReplicas": {
-    "set": true,
-    "value": 3
-   },
-   "replicas": {
-    "set": false
-   }
-  },
-  "kind": "HorizontalPodAutoscaler",
-  "managed": "true",
-  "minReplicas": 1,
-  "name": "pdf3-proxy-hpa",
-  "namespace": "runtime-pdf3",
-  "reconcile": "disabled"
- },
- {
-  "baseline": {
-   "minReplicas": {
-    "set": true,
-    "value": 3
-   },
-   "replicas": {
-    "set": false
-   }
-  },
-  "kind": "HorizontalPodAutoscaler",
-  "managed": "true",
-  "minReplicas": 1,
-  "name": "pdf3-worker-hpa",
-  "namespace": "runtime-pdf3",
-  "reconcile": "disabled"
  }
 ]
 ---
@@ -347,63 +233,6 @@
   "name": "gateway",
   "namespace": "runtime-gateway",
   "replicas": 1
- },
- {
-  "baseline": {
-   "minReplicas": {
-    "set": true,
-    "value": 3
-   },
-   "replicas": {
-    "set": false
-   }
-  },
-  "kind": "HorizontalPodAutoscaler",
-  "managed": "true",
-  "minReplicas": 1,
-  "name": "pdf3-proxy-hpa",
-  "namespace": "runtime-pdf3",
-  "reconcile": "disabled"
- },
- {
-  "baseline": {
-   "minReplicas": {
-    "set": true,
-    "value": 3
-   },
-   "replicas": {
-    "set": false
-   }
-  },
-  "kind": "HorizontalPodAutoscaler",
-  "managed": "true",
-  "minReplicas": 1,
-  "name": "pdf3-worker-hpa",
-  "namespace": "runtime-pdf3",
-  "reconcile": "disabled"
- }
-]
----
-
-[TestSyncAll_ProdNoop - 1]
-[
- {
-  "kind": "Deployment",
-  "name": "gateway",
-  "namespace": "runtime-gateway",
-  "replicas": 2
- },
- {
-  "kind": "HorizontalPodAutoscaler",
-  "minReplicas": 3,
-  "name": "pdf3-proxy-hpa",
-  "namespace": "runtime-pdf3"
- },
- {
-  "kind": "HorizontalPodAutoscaler",
-  "minReplicas": 3,
-  "name": "pdf3-worker-hpa",
-  "namespace": "runtime-pdf3"
  }
 ]
 ---

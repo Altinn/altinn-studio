@@ -27,7 +27,6 @@ import (
 const (
 	defaultNamespace        = "default"
 	runtimeGatewayNamespace = "runtime-gateway"
-	runtimePdf3Namespace    = "runtime-pdf3"
 
 	appReleaseLabelKey = "release"
 
@@ -37,8 +36,6 @@ const (
 	scalerBaselineAnnotationKey = "altinn.studio/inactivity-scaler-baseline"
 
 	gatewayDeploymentName = "gateway"
-	pdf3ProxyHpaName      = "pdf3-proxy-hpa"
-	pdf3WorkerHpaName     = "pdf3-worker-hpa"
 
 	scaleDownReplicaOne     = int32(1)
 	desiredWorkdayStartHour = 6
@@ -65,8 +62,8 @@ var (
 // local time (Europe/Oslo), and whether any apps are deployed.
 //
 // Scaling paths:
-// - normal: restore app deployments/HPAs, gateway, and pdf3 to baseline.
-// - ttd_offhours: scale apps/gateway/pdf3 to 1 outside workhours for targeted ttd environments.
+// - normal: restore app deployments/HPAs and gateway to baseline.
+// - ttd_offhours: scale apps/gateway to 1 outside workhours for targeted ttd environments.
 // - no_apps: same as above for now.
 // - ttd_offhours_no_apps: same as above for now.
 // NOTE: we cant scale to 0 atm with HPA.
@@ -84,10 +81,6 @@ func (s clusterState) scaleApps() bool {
 }
 
 func (s clusterState) scaleGateway() bool {
-	return s == stateTTDOffhours || s == stateNoApps || s == stateTTDOffhoursNoApps
-}
-
-func (s clusterState) scalePdf3() bool {
 	return s == stateTTDOffhours || s == stateNoApps || s == stateTTDOffhoursNoApps
 }
 
@@ -253,26 +246,6 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 	); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, "reconcile gateway")
-		return err
-	}
-	if err := r.reconcileHpa(
-		ctx,
-		client.ObjectKey{Name: pdf3ProxyHpaName, Namespace: runtimePdf3Namespace},
-		state.scalePdf3(),
-		scaleDownReplicaOne,
-	); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "reconcile pdf3-proxy")
-		return err
-	}
-	if err := r.reconcileHpa(
-		ctx,
-		client.ObjectKey{Name: pdf3WorkerHpaName, Namespace: runtimePdf3Namespace},
-		state.scalePdf3(),
-		scaleDownReplicaOne,
-	); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "reconcile pdf3-worker")
 		return err
 	}
 
