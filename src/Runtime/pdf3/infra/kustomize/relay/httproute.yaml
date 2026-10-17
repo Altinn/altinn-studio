@@ -1,10 +1,5 @@
-# Splits apps' PDF requests between the local proxy and the relay to DIS Core. pdf3-app applies it
-# with the relay, and an environment overlay changes the weights with a patch. The weights are
-# literal integers and must never both be 0, since Linkerd panics on that.
-#
-# pdf/pdf3-migration (infra/runtime/syncroot/base/pdf.yaml) also routes the Service, to the proxy
-# only. This route's longer path match takes precedence over it, so it decides for /pdf, the only
-# path apps call. Where this route doesn't exist, pdf3-migration routes everything.
+# Routes apps' PDF requests to the relay to DIS Core. The runtime syncroot owns the
+# parent Service pdf/pdf-generator; pdf3-app owns this route and the relay.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -23,13 +18,7 @@ spec:
         type: PathPrefix
         value: /pdf
     backendRefs:
-    - name: pdf3-proxy
-      namespace: runtime-pdf3
-      kind: Service
-      port: 80
-      weight: 100
     - name: pdf3-relay
       namespace: runtime-pdf3
       kind: Service
       port: 80
-      weight: 0
