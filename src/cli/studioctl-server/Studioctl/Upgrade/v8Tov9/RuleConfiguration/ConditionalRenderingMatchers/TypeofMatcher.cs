@@ -3,96 +3,47 @@ using Acornima.Ast;
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.ConditionalRenderingMatchers;
 
 /// <summary>
-/// Matches typeof expressions used for checking if a value is defined
-/// Converts typeof x !== "undefined" to a null check
+/// Converts type checks after the legacy binding has normalized configured inputs to scalar values or null.
 /// </summary>
 public class TypeofMatcher : IExpressionMatcher
 {
-    public bool CanMatch(Expression expression)
-    {
-        // Check if this is a binary expression with typeof on one side
-        if (expression is BinaryExpression binaryExpr)
-        {
-            // typeof x === "undefined" or typeof x !== "undefined"
-            return (binaryExpr.Left is UnaryExpression leftUnary && IsTypeofOperator(leftUnary))
-                || (binaryExpr.Right is UnaryExpression rightUnary && IsTypeofOperator(rightUnary));
-        }
-
-        return false;
-    }
+    public bool CanMatch(Expression expression) =>
+        expression is BinaryExpression binary && (IsTypeof(binary.Left) || IsTypeof(binary.Right));
 
     public object? Match(Expression expression, ConversionContext context, List<string> debugInfo)
     {
-        if (expression is not BinaryExpression binaryExpr)
+        if (expression is not BinaryExpression binary)
             return null;
-
-        // Determine which side has typeof
-        UnaryExpression? typeofExpr = null;
-        Expression? comparisonValue = null;
-
-        if (binaryExpr.Left is UnaryExpression leftUnary && IsTypeofOperator(leftUnary))
-        {
-            typeofExpr = leftUnary;
-            comparisonValue = binaryExpr.Right;
-        }
-        else if (binaryExpr.Right is UnaryExpression rightUnary && IsTypeofOperator(rightUnary))
-        {
-            typeofExpr = rightUnary;
-            comparisonValue = binaryExpr.Left;
-        }
-
-        if (typeofExpr == null || comparisonValue == null)
-        {
-            debugInfo.Add("❌ Could not extract typeof expression");
-            return null;
-        }
-
-        // Check if we're comparing to "undefined"
-        if (comparisonValue is not Literal literal || literal.Value as string != "undefined")
-        {
-            debugInfo.Add("❌ typeof is not being compared to 'undefined'");
-            return null;
-        }
-
-        // Get the operator
-        var op = binaryExpr.Operator.ToString();
-
-        // typeof x !== "undefined" means x is NOT null (value exists)
-        // typeof x === "undefined" means x IS null (value doesn't exist)
-        bool isCheckingForDefined = op == "!==" || op == "StrictInequality" || op == "!=" || op == "Inequality";
-
-        debugInfo.Add(
-            $"Converting typeof check to null check (checking for {(isCheckingForDefined ? "defined" : "undefined")})"
-        );
-
-        // Convert the argument of typeof to a data model reference
-        var target = context.ConvertExpression(typeofExpr.Argument, debugInfo);
-        if (target == null)
-        {
-            debugInfo.Add("❌ Failed to convert typeof argument");
-            return null;
-        }
-
-        // Create the appropriate null check
-        if (isCheckingForDefined)
-        {
-            // typeof x !== "undefined" → not null check
-            debugInfo.Add("✅ Converted to 'not null' check");
-            // ! null literal is intentionally used as the comparison value in the expression
-            return new object[] { "notEquals", target, null! };
-        }
+        var op = binary.Operator.ToString();
+        if (op is not ("Equality" or "StrictEquality" or "Inequality" or "StrictInequality"))
+            return context.Reject("Only equality comparisons of typeof results are supported", debugInfo);
+        var unary = (IsTypeof(binary.Left) ? binary.Left : binary.Right) as UnaryExpression;
+        var other = IsTypeof(binary.Left) ? binary.Right : binary.Left;
+        if (unary == null || other is not Literal { Value: string expected })
+            return context.Reject("Expected a literal type name in a typeof comparison", debugInfo);
+        var type = context.GetValueType(unary.Argument);
+        if (type == null)
+            return context.Reject("The typeof operand could not be resolved", debugInfo);
+        object? equal;
+        if (type is "undefined" or "null" or "object")
+            equal = expected == (type == "null" ? "object" : type);
+        else if (expected != type && expected != "object")
+            equal = false;
+        else if (context.IsDefinitelyNonNull(unary.Argument))
+            equal = expected == type;
+        else if (type == "string" && !context.HasSafeStringDomain(unary.Argument))
+            return context.Reject("An unrestricted string can contain the reserved expression value 'null'", debugInfo);
         else
         {
-            // typeof x === "undefined" → null check
-            debugInfo.Add("✅ Converted to 'equals null' check");
-            // ! null literal is intentionally used as the comparison value in the expression
-            return new object[] { "equals", target, null! };
+            var value = context.ConvertExpression(unary.Argument, debugInfo);
+            var function = expected == "object" ? "equals" : "notEquals";
+            equal = value == null ? null : new object?[] { function, value, null };
         }
+        if (equal == null)
+            return null;
+        return op is "Inequality" or "StrictInequality" ? new object[] { "not", equal } : equal;
     }
 
-    private static bool IsTypeofOperator(UnaryExpression unary)
-    {
-        var op = unary.Operator.ToString();
-        return op == "typeof" || op == "TypeOf";
-    }
+    private static bool IsTypeof(Expression expression) =>
+        expression is UnaryExpression unary && unary.Operator.ToString() is "TypeOf" or "typeof";
 }
