@@ -5,7 +5,7 @@ metadata:
 ---
 # Apps call http://pdf-generator.pdf.svc.cluster.local/pdf. The Service has no
 # endpoints; Linkerd routes the traffic client-side through pdf/pdf3, owned by pdf3-app
-# in the pdf3 artifact (src/Runtime/pdf3/infra/kustomize/relay/httproute.yaml).
+# in the pdf3 artifact (src/Runtime/pdf3/infra/relay/base/httproute.yaml).
 apiVersion: v1
 kind: Service
 metadata:

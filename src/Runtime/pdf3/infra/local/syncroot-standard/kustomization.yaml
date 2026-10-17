@@ -30,7 +30,7 @@ patches:
         name: pdf3-app
         namespace: runtime-pdf3
       spec:
-        path: ./local-minimal
+        path: ./standard
         prune: true
   - patch: |-
       apiVersion: v1

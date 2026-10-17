@@ -1,7 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-components:
-  - ../relay
+resources:
+  - ../base
 patches:
   - patch: |-
       apiVersion: apps/v1
@@ -15,6 +15,6 @@ patches:
             containers:
               - name: pdf3-relay
                 env:
-                  # tt02's DIS Edge, since at24 has no DIS Core of its own
+                  # DIS Edge, which forwards to the environment's DIS Core
                   - name: PDF3_UPSTREAM_URL
-                    value: https://studio.platform.tt02.altinn.cloud/pdf/v3/generate
+                    value: https://studio.platform.at23.altinn.cloud/pdf/v3/generate
