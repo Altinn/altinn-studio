@@ -21,7 +21,13 @@ public static class FormDataWrapperFactory
         _dataWrappers[typeof(T)] = factory;
     }
 
-    internal static IFormDataWrapper Create(object dataModel, DataType dataType, DataElement? dataElement)
+    /// <summary>
+    /// Wraps an existing data model using its registered wrapper, or reflection if none is registered.
+    /// </summary>
+    /// <param name="dataModel">The data model to read or update, for example in an <c>IDataProcessor</c>.</param>
+    /// <param name="dataType">The data type described in application metadata.</param>
+    /// <param name="dataElement">The associated data element, if available.</param>
+    public static IFormDataWrapper Create(object dataModel, DataType dataType, DataElement? dataElement)
     {
         if (_dataWrappers.TryGetValue(dataModel.GetType(), out var accessorType))
         {
