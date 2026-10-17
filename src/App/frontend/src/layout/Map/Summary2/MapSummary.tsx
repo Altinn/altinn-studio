@@ -14,6 +14,7 @@ import classes from 'src/layout/Map/Summary2/MapSummary.module.css';
 import { isLocationValid, parseLocation } from 'src/layout/Map/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { useSummaryLabelText } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -25,6 +26,7 @@ export function MapSummary({ targetBaseComponentId }: Summary2Props) {
   const emptyFieldText = useSummaryOverrides(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
   const config = useComponentConfig(targetBaseComponentId, 'Map');
+  const labelText = useSummaryLabelText(targetBaseComponentId);
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'Map');
   const readOnly = useEvalExpression(config.readOnly, Expressions.Map.readOnly);
   const required = useEvalExpression(config.required, Expressions.Map.required);
@@ -80,7 +82,7 @@ export function MapSummary({ targetBaseComponentId }: Summary2Props) {
             baseComponentId={targetBaseComponentId}
             renderLabelAs='span'
             hideIndicators
-            textResourceBindings={{ title }}
+            textResourceBindings={{ ...labelText, title }}
           />
           {!readOnly && (
             <EditButton

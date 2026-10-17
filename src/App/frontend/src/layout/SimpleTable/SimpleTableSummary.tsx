@@ -3,12 +3,12 @@ import React from 'react';
 import { AppTable, useIsMobile } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
-import { Caption } from 'src/components/form/caption/Caption';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { isJSONSchema7Definition } from 'src/layout/AddToList/AddToList';
+import { SummaryCaption } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
@@ -63,7 +63,14 @@ export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
       }
     >
       <AppTable
-        caption={title && <Caption title={<Lang id={title} />} />}
+        caption={
+          title && (
+            <SummaryCaption
+              baseComponentId={targetBaseComponentId}
+              title={<Lang id={title} />}
+            />
+          )
+        }
         data={Array.isArray(data) ? data : emptyArray}
         columns={config.columns.map((column) => ({ ...column, header: langAsString(column.header) }))}
         mobile={isMobile}

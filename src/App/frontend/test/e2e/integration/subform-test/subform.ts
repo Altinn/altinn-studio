@@ -16,6 +16,15 @@ describe('Subform test', () => {
     const name = 'Jonas';
     cy.get('#Input-Name').should('be.visible').type(name);
     cy.get('#Input-Age').type('30');
+    cy.changeLayout((component) => {
+      if (component.id === 'subform-mopeder' && component.type === 'Subform') {
+        component.textResourceBindings = {
+          ...component.textResourceBindings,
+          description: ['concat', 'Mopeder registrert av ', ['dataModel', 'Navn']],
+          help: 'Hjelp til mopedregistrering',
+        };
+      }
+    });
 
     // Test process next when required subform is missing
     cy.findByRole('button', { name: /Neste/i }).click();
@@ -117,6 +126,19 @@ describe('Subform test', () => {
       .parent()
       .should('contain.text', 'Du har ikke lagt inn informasjon her');
 
+    cy.get('#form-content-subform-mopeder')
+      .findByRole('table', { name: /Registrerte mopeder/ })
+      .should('be.visible');
+    cy.get('#form-content-subform-mopeder').within(() => {
+      cy.findByText(`Mopeder registrert av ${name}`).should('be.visible');
+      cy.findByRole('button', { name: 'Hjelpetekst for Registrerte mopeder' }).click();
+      cy.findAllByTestId('helptext')
+        .filter(':visible')
+        .should('have.length', 1)
+        .and('contain.text', 'Hjelp til mopedregistrering')
+        .and('be.visible');
+      cy.findByRole('button', { name: 'Hjelpetekst for Registrerte mopeder' }).click();
+    });
     cy.get('#form-content-subform-mopeder table tbody tr').should('have.length', 1);
     cy.get('#form-content-subform-mopeder table tbody tr').within(() => {
       cy.get('td').eq(0).should('have.text', regno);
@@ -124,7 +146,8 @@ describe('Subform test', () => {
       cy.get('td').eq(2).should('have.text', extrainfo);
     });
 
-    cy.get('#label-subform-boker').next().should('contain.text', 'Du har ikke lagt inn informasjon her');
+    cy.get('[data-summary-target="subform-boker"]').should('contain.text', 'Du har ikke lagt inn informasjon her');
+    cy.get('#label-subform-boker', { timeout: 0 }).should('not.exist');
 
     cy.findByRole('button', { name: 'Vis Summary2 for hele steget' }).clickAndGone();
 
@@ -141,7 +164,17 @@ describe('Subform test', () => {
       .parent()
       .should('contain.text', 'Du har ikke lagt inn informasjon her');
 
-    cy.get('#label-subform-mopeder').should('contain.text', 'Dine mopeder');
+    cy.get('#label-subform-mopeder')
+      .should('contain.text', 'Registrerte mopeder')
+      .and('contain.text', `Mopeder registrert av ${name}`);
+    cy.findByRole('button', { name: 'Hjelpetekst for Registrerte mopeder' }).click();
+    cy.findAllByTestId('helptext')
+      .filter(':visible')
+      .should('have.length', 1)
+      .and('contain.text', 'Hjelp til mopedregistrering')
+      .and('be.visible');
+    cy.findByRole('button', { name: 'Hjelpetekst for Registrerte mopeder' }).click();
+    cy.findByRole('heading', { name: 'Mopedregistrering' }).should('be.visible');
 
     cy.get('[data-testid=summary-single-value-component]').eq(2).should('contain.text', regno);
     cy.get('[data-testid=summary-single-value-component]').eq(3).should('contain.text', merke);
@@ -151,7 +184,25 @@ describe('Subform test', () => {
     cy.get('[data-testid=summary-single-value-component]').eq(6).should('contain.text', extrainfo);
     cy.get('[data-testid=summary-single-value-component]').eq(7).should('contain.text', year);
 
-    cy.get('#label-subform-boker').next().should('contain.text', 'Du har ikke lagt inn informasjon her');
+    cy.get('[data-summary-target="subform-boker"]').should('contain.text', 'Du har ikke lagt inn informasjon her');
+    cy.get('#label-subform-boker', { timeout: 0 }).should('not.exist');
+
+    // An empty summaryTitle suppresses the outer title while keeping the subform's own heading.
+    cy.interceptLayout('Task_1', (component) => {
+      if (component.id === 'subform-mopeder' && component.type === 'Subform') {
+        component.textResourceBindings!.summaryTitle = '';
+      }
+    });
+    cy.reloadAndWait();
+    cy.findByRole('heading', { name: 'Mopedregistrering' }).should('be.visible');
+    cy.get('#label-subform-mopeder', { timeout: 0 }).should('not.exist');
+    cy.findByRole('button', { name: 'Tilbake' }).clickAndGone();
+    cy.get('#form-content-subform-mopeder')
+      .findByRole('table')
+      .within(() => {
+        cy.findByRole('cell', { name: regno }).should('be.visible');
+        cy.get('caption', { timeout: 0 }).should('not.exist');
+      });
   });
 
   it('subform validation', () => {

@@ -5,11 +5,11 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 import { pick } from 'dot-object';
 import type { FormDataObject } from '@app/form-component';
 
-import { Caption } from 'src/components/form/caption/Caption';
 import { useExternalApis } from 'src/core/queries/externalApi';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { isFormDataObject, isFormDataObjectArray } from 'src/layout/SimpleTable/typeguards';
+import { SummaryCaption } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
@@ -58,7 +58,14 @@ export function ApiTableSummary({ targetBaseComponentId }: Summary2Props) {
       }
     >
       <AppTable
-        caption={title && <Caption title={<Lang id={title} />} />}
+        caption={
+          title && (
+            <SummaryCaption
+              baseComponentId={targetBaseComponentId}
+              title={<Lang id={title} />}
+            />
+          )
+        }
         data={dataToDisplay}
         columns={config.columns.map((column) => ({ ...column, header: langAsString(column.header) }))}
         mobile={isMobile}

@@ -8,6 +8,7 @@ import type { HeadingProps } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
+import { SummaryLabel } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig } from 'src/utils/layout/hooks';
@@ -89,12 +90,17 @@ export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: Grou
         data-testid={dataTestId}
       >
         {(summaryTitle || title) && (
-          <Heading
-            data-size={isNestedGroup ? 'xs' : 'sm'}
-            level={headingLevel}
+          <SummaryLabel
+            baseComponentId={targetBaseComponentId}
+            title={<Lang id={title} />}
           >
-            <Lang id={summaryTitle ?? title} />
-          </Heading>
+            <Heading
+              data-size={isNestedGroup ? 'xs' : 'sm'}
+              level={headingLevel}
+            >
+              <Lang id={summaryTitle ?? title} />
+            </Heading>
+          </SummaryLabel>
         )}
         <Flex
           container

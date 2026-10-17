@@ -13,6 +13,7 @@ import classes from 'src/layout/FileUpload/FileUploadTable/FileTableComponent.mo
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
 import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
+import { useSummaryLabelText } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
@@ -22,6 +23,7 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2Props) {
   const attachments = useUploaderSummaryData(targetBaseComponentId);
   const config = useComponentConfig<'FileUpload'>(targetBaseComponentId, (t) => t === 'FileUpload');
+  const labelText = useSummaryLabelText(targetBaseComponentId);
   const summaryTitle = useEvalOptionalTrb(config, 'summaryTitle', CommonExpressions.TRBSummarizable);
   const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
 
@@ -55,6 +57,7 @@ export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2P
       <div className={classes.summaryHeader}>
         <Label
           textResourceBindings={{
+            ...labelText,
             title: summaryTitle || title,
           }}
           baseComponentId={targetBaseComponentId}

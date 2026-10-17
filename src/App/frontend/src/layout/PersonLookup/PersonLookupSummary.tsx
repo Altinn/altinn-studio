@@ -9,6 +9,7 @@ import { ComponentValidations } from 'src/features/validation/ComponentValidatio
 import { useBindingValidationsFor } from 'src/features/validation/selectors/bindingValidationsForNode';
 import classes from 'src/layout/PersonLookup/PersonLookupSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { SummaryLabel } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -43,15 +44,21 @@ export function PersonLookupSummary({ targetBaseComponentId }: Summary2Props) {
       }
     >
       <div className={classes.personSummaryWrapper}>
-        <Heading
-          data-size='sm'
-          level={2}
+        <SummaryLabel
+          baseComponentId={targetBaseComponentId}
+          title={<Lang id={title} />}
         >
-          <Lang id={title} />
-        </Heading>
+          <Heading
+            data-size='sm'
+            level={2}
+          >
+            <Lang id={title} />
+          </Heading>
+        </SummaryLabel>
         <div className={classes.personLookupComponent}>
           <div className={classes.personLookupComponentSsn}>
             <SingleValueSummary
+              showLabelMetadata={false}
               title={<Lang id='person_lookup.ssn_label' />}
               displayData={ssn ? obfuscateSsn(ssn) : ''}
               targetBaseComponentId={targetBaseComponentId}
@@ -67,6 +74,7 @@ export function PersonLookupSummary({ targetBaseComponentId }: Summary2Props) {
 
           <div className={classes.personLookupComponentName}>
             <SingleValueSummary
+              showLabelMetadata={false}
               title={<Lang id='person_lookup.name_label' />}
               displayData={fullName}
               targetBaseComponentId={targetBaseComponentId}
