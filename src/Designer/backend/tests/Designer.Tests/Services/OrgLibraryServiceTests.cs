@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
@@ -209,12 +210,14 @@ public class OrgLibraryServiceTests
         Mock<ISourceControl> sourceControl = new();
         Mock<IAltinnGitRepositoryFactory> altinnGitRepositoryFactory = overrideFactory ?? new();
         Mock<ISharedContentClient> sharedContentClient = new();
+        Mock<ILockService> synchronizationLockService = new();
 
         return new(
             giteaClient.Object,
             sourceControl.Object,
             altinnGitRepositoryFactory.Object,
-            sharedContentClient.Object
+            sharedContentClient.Object,
+            synchronizationLockService.Object
         );
     }
 }
