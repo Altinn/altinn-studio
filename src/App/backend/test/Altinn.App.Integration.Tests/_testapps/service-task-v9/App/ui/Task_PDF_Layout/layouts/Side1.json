@@ -1,0 +1,31 @@
+{
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "size": "L",
+        "id": "Header-IIkZPf",
+        "type": "Heading",
+        "textResourceBindings": {
+          "title": "Uff da! Her tryna PDF service-tasken, det var sikkert ikke med vilje!"
+        }
+      },
+      {
+        "id": "Button-BddG51",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Prøv igjen"
+        }
+      },
+      {
+        "id": "reject-button",
+        "type": "ActionButton",
+        "textResourceBindings": {
+          "title": "Gå tilbake"
+        },
+        "action": "reject",
+        "buttonStyle": "secondary"
+      }
+    ]
+  }
+}

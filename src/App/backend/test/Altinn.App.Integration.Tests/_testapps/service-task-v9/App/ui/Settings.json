@@ -1,0 +1,15 @@
+{
+  "taskNavigation": [
+    {
+      "taskId": "Task_Utfylling1",
+      "name": "Utfylling 1"
+    },
+    {
+      "taskId": "Task_Utfylling2",
+      "name": "Utfylling 2"
+    },
+    {
+      "type": "receipt"
+    }
+  ]
+}
