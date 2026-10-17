@@ -33,7 +33,6 @@ export function NavigationButtonsComponent({ baseComponentId }: Props) {
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const origin = summaryBaseComponentId ? layoutLookups.getComponent(summaryBaseComponentId) : undefined;
 
-  // TODO: Support returning to Summary2
   if (origin && origin.type === 'Summary') {
     return (
       <WithSummary
@@ -112,7 +111,8 @@ function NavigationButtonsComponentInner({
   const isAnyProcessing = useIsAnyProcessing();
 
   const showBackToSummaryButton = returnToView !== undefined;
-  const showNextButton = showBackToSummaryButton ? showNextButtonSummary : hasNext;
+  const showNextButton =
+    hasNext && (!showBackToSummaryButton || (returnToView.showNextButton ?? showNextButtonSummary));
 
   const onPageNavigationValidation = useOnPageNavigationValidation();
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
@@ -158,14 +158,13 @@ function NavigationButtonsComponentInner({
 
       const prevScrollPosition = getScrollPosition();
 
-      if (validateOnForward && !returnToView) {
+      if (validateOnForward) {
         const pageKey = layoutLookups.componentToPage[baseComponentId];
         if (!pageKey) {
           throw new Error(`Could not find page key for component ${baseComponentId}`);
         }
         const hasErrors = await onPageNavigationValidation(pageKey, validateOnForward);
         if (hasErrors) {
-          // Block navigation if validation fails, unless returnToView is set (Back to summary)
           resetScrollPosition(prevScrollPosition);
           return;
         }
@@ -177,7 +176,7 @@ function NavigationButtonsComponentInner({
   const onClickBackToSummary = () =>
     performProcess('backToSummary', async () => {
       await maybeSaveOnPageChange();
-      await navigateToPage(returnToView, { skipAutoSave: true });
+      await navigateToPage(returnToView?.pageId, { skipAutoSave: true });
     });
 
   const onClickBackToPage = () =>
