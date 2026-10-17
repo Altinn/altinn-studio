@@ -134,7 +134,8 @@ public static class FormDataWrapperUtils
             "",
             propertyTypeInfo.PropertyTypeString,
             propertyTypeInfo.IsNullable,
-            GetNodeProperties(rootSymbol, diagnostics, collectionTypeSymbols)
+            GetNodeProperties(rootSymbol, diagnostics, collectionTypeSymbols),
+            fixedValues: GetNodeFixedValues(rootSymbol)
         );
     }
 
@@ -160,7 +161,9 @@ public static class FormDataWrapperUtils
         {
             if (PropertyShouldBeSkipped(property))
             {
-                // Skip static, readonly, writeonly, implicitly declared, private and indexer properties
+                // Skip static, readonly, writeonly, implicitly declared, private and indexer properties.
+                // Properties with [BindNever] are also skipped here, but the ones with a fixed value
+                // are collected separately in GetNodeFixedValues.
                 continue;
             }
             var propertyTypeInfo = SourceReaderUtils.GetTypeFromProperty(property.Type, collectionTypeSymbols);
@@ -179,11 +182,28 @@ public static class FormDataWrapperUtils
                     subProperties,
                     propertyTypeInfo.PropertyCollectionTypeString,
                     propertyTypeInfo.IsNullableCollection,
-                    propertyTypeInfo.IsIndexableCollection
+                    propertyTypeInfo.IsIndexableCollection,
+                    GetNodeFixedValues(propertyTypeInfo.PropertyType)
                 )
             );
         }
         return nodeProperties.ToArray();
+    }
+
+    private static FixedValueNode[]? GetNodeFixedValues(ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol is not INamedTypeSymbol namedTypeSymbol)
+        {
+            return null;
+        }
+
+        var fixedValues = namedTypeSymbol
+            .GetMembers()
+            .OfType<IPropertySymbol>()
+            .Select(SourceReaderUtils.GetFixedValue)
+            .OfType<FixedValueNode>()
+            .ToArray();
+        return fixedValues.Length == 0 ? null : fixedValues;
     }
 
     /// <summary>
