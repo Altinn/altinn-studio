@@ -1273,9 +1273,9 @@ func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs in
 		  const loadWait = %s;
 		  const elementWait = new Promise((resolve) => {
 		    const e = document.getElementById(id);
-		    if (e) return requestAnimationFrame(() => resolve(true));
+		    if (e) return requestAnimationFrame(() => resolve(document.getElementById(id) !== null));
 		    let obs, timeoutId;
-		    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} if (timeoutId !== undefined) clearTimeout(timeoutId); requestAnimationFrame(() => resolve(v)); };
+		    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} if (timeoutId !== undefined) clearTimeout(timeoutId); requestAnimationFrame(() => resolve(v && document.getElementById(id) !== null)); };
 		    obs = new MutationObserver(recs => {
 		      for (const m of recs) {
 		        if (m.type === 'attributes' && m.attributeName === 'id' && m.target.id === id) { return done(true); }
@@ -1300,9 +1300,9 @@ func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs in
 	  const selector = %q; const timeoutMs = %d;
 	  const loadWait = %s;
 	  const elementWait = new Promise((resolve) => {
-	    if (document.querySelector(selector)) return requestAnimationFrame(() => resolve(true));
+	    if (document.querySelector(selector)) return requestAnimationFrame(() => resolve(document.querySelector(selector) !== null));
 	    let obs, timeoutId;
-	    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} if (timeoutId !== undefined) clearTimeout(timeoutId); requestAnimationFrame(() => resolve(v)); };
+	    const done = (v) => { try { obs && obs.disconnect(); } catch(e){} if (timeoutId !== undefined) clearTimeout(timeoutId); requestAnimationFrame(() => resolve(v && document.querySelector(selector) !== null)); };
 	    obs = new MutationObserver(() => {
 	      if (document.querySelector(selector)) done(true);
 	    });

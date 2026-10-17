@@ -126,6 +126,21 @@
 
         // Start simulation when page fully loads
         window.onload = async function() {
+            // Invalidate readiness inside the waiter's animation frame, after it has
+            // found the marker but before it can finish its wait.
+            if (urlParams.has('transientready')) {
+                const nextFrame = window.requestAnimationFrame.bind(window);
+                window.requestAnimationFrame = (callback) => nextFrame((time) => {
+                    readyDiv.remove();
+                    callback(time);
+                });
+                if (urlParams.get('transientready') === 'initial') {
+                    document.body.appendChild(readyDiv);
+                } else {
+                    setTimeout(() => document.body.appendChild(readyDiv), 250);
+                }
+                return;
+            }
             // Set cookies if requested (before any other work)
             if (setCookie) {
                 console.log('Setting test cookies...');

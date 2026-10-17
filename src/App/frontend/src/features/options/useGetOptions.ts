@@ -170,6 +170,7 @@ export function useFetchOptions({ config }: FetchOptionsProps) {
     useLogFetchError(error, config);
 
     return {
+      error,
       isFetching,
       unsorted: data?.data ?? defaultOptions,
       downstreamParameters: data?.headers['altinn-downstreamparameters'],
@@ -282,7 +283,6 @@ export function useFilteredAndSortedOptions({ unsorted, valueType, config }: Fil
   ]);
 }
 
-// TODO(Error handling): If fetching options fails, we just log and PDF generation will still succeed?
 export function useGetOptions(
   baseComponentId: string,
   valueType: OptionsValueType,
