@@ -377,6 +377,7 @@ describe('PDF', () => {
 
     interceptAltinnAppGlobalData((data) => {
       data.ui.folders.Task_5.pages.pdfLayoutName = pdfLayoutName;
+      data.ui.folders.Task_5.components = { excludeFromPdf: ['title'] };
     });
 
     cy.intercept('GET', '**/bootstrap-form/**', (req) => {
@@ -411,8 +412,8 @@ describe('PDF', () => {
 
     cy.testPdf({
       callback: () => {
-        cy.findByRole('heading', { name: /this is a custom pdf/i }).should('be.visible');
         cy.getSummary('Hvem gjelder saken?').should('contain.text', 'Caroline');
+        cy.findByRole('heading', { name: /this is a custom pdf/i, timeout: 0 }).should('not.exist');
       },
     });
   });
