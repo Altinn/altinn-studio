@@ -1,0 +1,62 @@
+# The guest image of the job VMs. The jobs run app code, so the image has no secrets.
+
+# studioctl-server runs on .NET 10, and it reads the projects of an app with the MSBuild of a .NET 10 SDK.
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble@sha256:548d93f8a18a1acbe6cc127bc4f47281430d34a9e35c18afa80a8d6741c2adc3 AS sdk10
+
+# v9 apps target .NET 11. v8 apps target .NET 8, and the SDK downloads their targeting packs from NuGet.
+FROM mcr.microsoft.com/dotnet/sdk:11.0-resolute@sha256:bfabf51e74c5a7cf2fc4eac852145db86f4867d475257d809518d6a2b0fe71e1
+
+COPY --from=sdk10 /usr/share/dotnet/sdk /usr/share/dotnet/sdk
+COPY --from=sdk10 /usr/share/dotnet/sdk-manifests /usr/share/dotnet/sdk-manifests
+COPY --from=sdk10 /usr/share/dotnet/shared /usr/share/dotnet/shared
+
+# A new studioctl version goes to production only through a reviewed change of these two values.
+# AGENTS.md tells how to update them.
+ARG STUDIOCTL_VERSION=v0.1.0-preview.29
+ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=9a723f023a4e9625c0a5d8be262f54b25c52f563b2e8ca06fe9c5c1e1e575959
+
+# The assistant reaches a job VM with ssh and rsync, through the coordinator.
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends openssh-server rsync \
+    && rm -rf /var/lib/apt/lists/*
+
+# The jobs run as app-build, which is not root in the VM. That makes an escape from the VM harder.
+RUN useradd --create-home --user-group --shell /bin/bash app-build \
+    && install --directory --owner app-build --group app-build /job
+
+# The installer checks the binaries against the checksums of the release. studioctl writes to its home, so
+# app-build owns it.
+RUN curl -fsSL \
+        "https://github.com/Altinn/altinn-studio/releases/download/studioctl/${STUDIOCTL_VERSION}/install.sh" \
+        -o /tmp/studioctl-install.sh \
+    && echo "${STUDIOCTL_INSTALL_SCRIPT_SHA256}  /tmp/studioctl-install.sh" | sha256sum -c - \
+    && STUDIOCTL_HOME=/opt/studioctl sh /tmp/studioctl-install.sh \
+        --version "${STUDIOCTL_VERSION}" \
+        --install-dir /usr/local/bin \
+    && rm /tmp/studioctl-install.sh \
+    && test "$(STUDIOCTL_HOME=/opt/studioctl studioctl version)" = "studioctl ${STUDIOCTL_VERSION}" \
+    && chown -R app-build:app-build /opt/studioctl
+
+# The network allowlist blocks the certificate revocation servers, so NuGet does not check revocation online.
+ENV STUDIOCTL_HOME=/opt/studioctl \
+    STUDIOCTL_NO_UPDATE_CHECK=1 \
+    NO_COLOR=1 \
+    DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+    DOTNET_NOLOGO=1 \
+    DOTNET_GENERATE_ASPNET_CERTIFICATE=false \
+    DOTNET_SKIP_WORKLOAD_INTEGRITY_CHECK=1 \
+    NUGET_XMLDOC_MODE=skip \
+    NUGET_CERT_REVOCATION_MODE=offline \
+    MSBUILDDISABLENODEREUSE=1 \
+    GIT_CONFIG_NOSYSTEM=1 \
+    GIT_AUTHOR_NAME="Assistant runner" \
+    GIT_AUTHOR_EMAIL=assistant-runner@altinn.studio \
+    GIT_COMMITTER_NAME="Assistant runner" \
+    GIT_COMMITTER_EMAIL=assistant-runner@altinn.studio
+
+USER app-build
+WORKDIR /job
+
+# An SSH session does not get the environment of the image, so sshd reads it from this file.
+RUN install --directory --mode 700 /home/app-build/.ssh \
+    && env | grep -E '^(STUDIOCTL_|DOTNET_|NUGET_|MSBUILD|GIT_|NO_COLOR=)' > /home/app-build/.ssh/environment

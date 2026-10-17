@@ -39,6 +39,8 @@ spec:
                   key: AZURE_API_KEY
             - name: GITEA_BASE_URL
               value: "http://altinn-repositories-public"
+            - name: ASSISTANT_RUNNER_URL
+              value: "http://altinn-assistant-runner.assistant-runner.svc.cluster.local"
             - name: LANGFUSE_SECRET_KEY
               valueFrom:
                 secretKeyRef:

@@ -1,0 +1,39 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - serviceaccount.yaml
+  - service.yaml
+  - deployment.yaml
+  - networkpolicy.yaml
+replacements:
+  - source:
+      kind: Deployment
+      name: altinn-assistant-runner
+      fieldPath: metadata.annotations.[altinn.studio/image]
+    targets:
+      - select:
+          kind: Deployment
+          name: altinn-assistant-runner
+        fieldPaths:
+          - spec.template.spec.containers.[name=altinn-assistant-runner].image
+  - source:
+      kind: Deployment
+      name: altinn-assistant-runner
+      fieldPath: metadata.annotations.[altinn.studio/prepared-image]
+    targets:
+      - select:
+          kind: Deployment
+          name: altinn-assistant-runner
+        fieldPaths:
+          - spec.template.spec.initContainers.[name=prepare-image].image
+  - source:
+      kind: Deployment
+      name: altinn-assistant-runner
+      fieldPath: metadata.annotations.[altinn.studio/guest-image]
+    targets:
+      - select:
+          kind: Deployment
+          name: altinn-assistant-runner
+        fieldPaths:
+          - spec.template.spec.initContainers.[name=prepare-image].env.[name=SANDBOX_IMAGE].value
+          - spec.template.spec.containers.[name=altinn-assistant-runner].env.[name=SANDBOX_IMAGE].value

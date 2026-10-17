@@ -6,15 +6,18 @@ Dispatches each changed file to the appropriate in-process validator
   * `App/ui/**/layouts/*.json` → layout schema validation
   * `App/config/texts/resource.*.json` → text-resource validation
   * any other `.json` → JSON parseability only
-  * anything else (`.cs`, `.xml`, …) → noted, no automated check
+  * `.cs`, `.csproj`, `.props`, `.targets`, `nuget.config`, `global.json` →
+    `dotnet build` of the app in the assistant runner
+  * anything else (`.xml`, `.razor`, …) → noted, no automated check
 
 Successful verification records the file in `ctx.extras["verified_files"]`
 so `commit_session_branch` can refuse to commit any changed file that
 hasn't been verified since its last edit (the set is reset whenever a
 file is edited or written — see `utils.repo_files.mark_changed`).
 
-Validation runs in-process — no network round-trip except the (cached)
-v8 schema fetch from altinncdn.no.  v9 schemas are read from disk.
+The JSON checks run in-process — no network round-trip except the (cached)
+v8 schema fetch from altinncdn.no.  v9 schemas are read from disk.  The
+build runs app code, so it runs in the assistant runner, not here.
 """
 
 from __future__ import annotations
@@ -29,6 +32,8 @@ from pydantic import BaseModel, ConfigDict
 from agents.altinn.layout import get_layout_schema, get_referenced_schemas
 from agents.altinn.layout.schema_validator import validate_layout_json
 from agents.altinn.resources.validator import resource_validator_tool
+from agents.core import runner
+from agents.core.runner import RunnerUnavailable, RunResult, to_app_paths
 from agents.core.tool import LoopContext, ToolResult, WriteTool
 from shared.utils.langfuse_utils import trace_span
 
@@ -38,6 +43,15 @@ _MAX_LISTED_ERRORS = 10
 _MAX_LISTED_WARNINGS = 5
 _MAX_LISTED_TEXT_KEYS = 8
 _MAX_LISTED_COMPONENT_TYPES = 3
+_MAX_LISTED_BUILD_ERRORS = 20
+_MAX_BUILD_OUTPUT_CHARS = 2000
+
+# Only these files change what `dotnet build` compiles.
+_BUILD_INPUT_SUFFIXES = (".cs", ".csproj", ".props", ".targets")
+_BUILD_INPUT_NAMES = {"nuget.config", "global.json"}
+# The runner stops the build after 5 minutes.
+_BUILD_TIMEOUT_MINUTES = 5
+_RUNNER_QUEUE_STATUS = "Står i kø for bygg"
 _SCHEMA_VIOLATION_KEYWORDS = (
     "additionalproperties",
     "unknown property",
@@ -59,7 +73,9 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
         "Validate the files you've modified this session against the "
         "official Altinn schemas.  Routes each file to the right "
         "validator based on its path: layout JSON, text resource JSON, "
-        "or basic JSON parse for everything else.  Returns "
+        "or basic JSON parse for everything else.  When you changed a C# "
+        "or project file, it also builds the app, and the notes list the "
+        "compiler errors.  Returns "
         "`{passed, checked_files, notes}` where notes list per-file "
         "outcomes and any validation errors.\n\n"
         "WHEN to call: between your last edit and `commit_session_branch`.  "
@@ -86,8 +102,9 @@ class VerifyChangesTool(WriteTool[VerifyChangesArgs]):
 
         file_notes, verified_now = _verify_files(ctx, changed)
         cross_file_passed, cross_file_notes = _run_cross_file_checks(ctx, changed)
-        notes = file_notes + cross_file_notes
-        passed = verified_now == set(changed) and cross_file_passed
+        build_passed, build_notes = await _check_build(ctx, changed)
+        notes = file_notes + cross_file_notes + build_notes
+        passed = verified_now == set(changed) and cross_file_passed and build_passed
 
         # Only mark files verified-passed on the assertion that *this whole
         # run* passed.  A partial-pass would let the model commit some
@@ -143,10 +160,9 @@ def _verify_one(ctx: LoopContext, file_path: str) -> tuple[bool, list[str]]:
     """Return `(passed, notes)` for a single changed file."""
     full_path = Path(ctx.repo_path) / file_path
     if not full_path.exists():
-        # `discard_file_changes` removes the entry from `changed_files`,
-        # so reaching this branch means the file was deleted some other
-        # way — flag it rather than crash.
-        return False, [f"{file_path}: file does not exist on disk"]
+        # Only the v9 upgrade deletes files: the model has no delete tool, and
+        # `discard_file_changes` removes the entry from `changed_files`.
+        return True, [f"{file_path}: deleted, nothing to validate"]
 
     if _is_layout_file(file_path):
         return _validate_layout(file_path, full_path, ctx.app_version_profile.layout_schema_location)
@@ -156,9 +172,50 @@ def _verify_one(ctx: LoopContext, file_path: str) -> tuple[bool, list[str]]:
         return _validate_layout_settings(file_path, full_path)
     if file_path.endswith(".json"):
         return _basic_json_check(file_path, full_path)
-    # Non-JSON file (.cs, .xml, .razor, …): no automated validator wired
-    # in.  Don't fail commit on these — flag for the model's awareness.
+    return _note_file_without_validator(file_path)
+
+
+def _note_file_without_validator(file_path: str) -> tuple[bool, list[str]]:
+    """Don't fail commit on these — flag for the model's awareness.  The build checks C# and project files."""
+    if _is_build_input(file_path):
+        return True, [f"{file_path}: checked by the build"]
     return True, [f"{file_path}: no automated validator for this file type"]
+
+
+def _is_build_input(file_path: str) -> bool:
+    path = PurePosixPath(file_path.lower())
+    return path.suffix in _BUILD_INPUT_SUFFIXES or path.name in _BUILD_INPUT_NAMES
+
+
+async def _check_build(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[str]]:
+    """Build the app in the assistant runner when a build input changed.  Without a runner, the build is not
+    checked, and the other checks decide."""
+    if not any(_is_build_input(path) for path in changed):
+        return True, []
+    app_runner = runner.create_runner()
+    if app_runner is None:
+        return True, ["build: not checked, because this deployment has no assistant runner"]
+    try:
+        run = await app_runner.build(ctx.repo_path, lambda: ctx.report_status(_RUNNER_QUEUE_STATUS))
+    except RunnerUnavailable as reason:
+        return True, [f"build: not checked, because {reason}"]
+    return _build_result(run)
+
+
+def _build_result(run: RunResult) -> tuple[bool, list[str]]:
+    if run.timed_out:
+        return False, [f"build: did not finish in {_BUILD_TIMEOUT_MINUTES} minutes"]
+    if run.exit_code == 0:
+        return True, ["build: passed"]
+    return False, ["build: failed", *_build_errors(run)]
+
+
+def _build_errors(run: RunResult) -> list[str]:
+    """Each error once.  `dotnet build` writes each error when it happens and again in its summary.  Without error
+    lines, for example when the build cannot start, the end of the output."""
+    output = to_app_paths(f"{run.stdout}\n{run.stderr}").strip()
+    errors = list(dict.fromkeys(line.strip() for line in output.splitlines() if ": error " in line))
+    return errors[:_MAX_LISTED_BUILD_ERRORS] or [output[-_MAX_BUILD_OUTPUT_CHARS:]]
 
 
 def _is_layout_file(file_path: str) -> bool:

@@ -1,0 +1,39 @@
+# The runner starts microVMs, so its pod needs hostPath folders on the sandbox node and /dev/kvm. The Pod Security
+# level baseline forbids hostPath, so this namespace has no Pod Security label. The app code runs in the VMs.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: assistant-runner
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: altinn-assistant-runner-repo
+  namespace: default
+spec:
+  interval: 5m
+  provider: azure
+  ref:
+    tag: ${ENVIRONMENT}
+  timeout: 5m
+  url: oci://altinntjenestercontainerregistry.azurecr.io/configs/altinn-assistant-runner-repo
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: altinn-assistant-runner
+  namespace: default
+spec:
+  targetNamespace: assistant-runner
+  interval: 5m
+  retryInterval: 5m
+  # The old pod can finish a job of up to 14 minutes before it stops.
+  timeout: 15m
+  prune: true
+  force: false
+  wait: true
+  path: ./
+  sourceRef:
+    kind: OCIRepository
+    name: altinn-assistant-runner-repo
+    namespace: default

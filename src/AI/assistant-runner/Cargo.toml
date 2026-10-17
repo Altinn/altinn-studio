@@ -1,0 +1,31 @@
+[package]
+name = "assistant-runner"
+description = "Runs app code for the Studio Assistant in a new microVM for each job"
+edition.workspace = true
+license.workspace = true
+publish = false
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+bytes.workspace = true
+clap = { workspace = true, features = ["env"] }
+futures-util.workspace = true
+http-body-util.workspace = true
+hyper.workspace = true
+hyper-util.workspace = true
+sandbox.workspace = true
+sandbox-authorization.workspace = true
+sandbox-host.workspace = true
+sandbox-microsandbox.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+
+[lints]
+workspace = true

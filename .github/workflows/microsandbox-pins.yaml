@@ -1,0 +1,59 @@
+name: Microsandbox - version pins
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'Cargo.lock'
+      - '**/Dockerfile*'
+      - '.github/workflows/microsandbox-pins.yaml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Runtime bundles match Cargo.lock
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # A coordinator image downloads the Microsandbox runtime that its Sandbox crates expect.
+      - name: Check Microsandbox version pins
+        run: |
+          lock_version="$(awk '
+            $0 == "name = \"microsandbox\"" { found = 1; next }
+            found && /^version = / { gsub(/"/, "", $3); print $3; exit }
+          ' Cargo.lock)"
+          if [ -z "${lock_version}" ]; then
+            echo "::error title=Microsandbox pin skew::Cargo.lock has no microsandbox version."
+            exit 1
+          fi
+
+          status=0
+          checked=0
+          while IFS= read -r dockerfile; do
+            checked=$((checked + 1))
+            runtime_version="$(sed -n 's/^ARG MICROSANDBOX_RUNTIME_VERSION=//p' "${dockerfile}")"
+            if [ "${runtime_version}" != "${lock_version}" ]; then
+              echo "::error file=${dockerfile},title=Microsandbox pin skew::MICROSANDBOX_RUNTIME_VERSION (${runtime_version:-<missing>}) does not match the Cargo.lock microsandbox version (${lock_version})."
+              status=1
+            fi
+          done < <(git grep -l '^ARG MICROSANDBOX_RUNTIME_VERSION=' -- '*Dockerfile*')
+
+          if [ "${checked}" -eq 0 ]; then
+            echo "::error title=Microsandbox pin skew::No Dockerfile sets MICROSANDBOX_RUNTIME_VERSION."
+            exit 1
+          fi
+          echo "Checked ${checked} Dockerfiles against microsandbox ${lock_version}."
+          exit "${status}"
