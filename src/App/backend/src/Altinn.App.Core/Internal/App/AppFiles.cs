@@ -151,8 +151,8 @@ internal sealed class AppFiles
 
     /// <summary>
     /// Whether the files on disk in <paramref name="scan"/> are the ones this snapshot was loaded from, by path,
-    /// size and modification time, so that <see cref="AppFilesPoller"/> can tell whether anything changed without
-    /// reading the contents.
+    /// size and modification time, so that <see cref="AppFilesHostedService"/> can tell whether anything changed
+    /// without reading the contents.
     /// </summary>
     public bool IsLoadedFrom(AppFilesScan scan) => scan.Stamps.AsSpan().SequenceEqual(_stamps.AsSpan());
 
@@ -335,30 +335,40 @@ internal sealed class UiFolderFiles
 internal readonly record struct AppFileStamp(string RelativePath, long Length, long LastWriteTimeUtcTicks);
 
 /// <summary>
-/// Holds the current <see cref="AppFiles"/> snapshot. Registered as a singleton, so services that live for the whole
-/// app must read <see cref="Current"/> when they need the files rather than keep a snapshot, which in Development
+/// Holds the current <see cref="AppFiles"/> snapshot and its parsed form. Every snapshot that is set is parsed first,
+/// so the two are always replaced together and a reader never sees a snapshot that has not been parsed. Registered as
+/// a singleton, so services that live for the whole app must read <see cref="Current"/> or <see cref="Parsed"/> once
+/// per operation and keep that object for the operation, rather than keep it for longer: in Development the snapshot
 /// is replaced when the files change on disk.
 /// </summary>
 internal sealed class AppFilesAccessor
 {
-    private volatile AppFiles _current;
+    private volatile ParsedAppFiles _parsed;
 
+    /// <exception cref="ApplicationConfigException">When the snapshot cannot be parsed.</exception>
     public AppFilesAccessor(AppFiles initial)
     {
-        _current = initial;
+        _parsed = ParsedAppFiles.Parse(initial);
     }
 
     /// <summary>
     /// The current snapshot of the app files.
     /// </summary>
-    public AppFiles Current => _current;
+    public AppFiles Current => _parsed.Files;
 
     /// <summary>
-    /// Replaces the current snapshot.
+    /// The models parsed from <see cref="Current"/>.
     /// </summary>
+    public ParsedAppFiles Parsed => _parsed;
+
+    /// <summary>
+    /// Parses the snapshot and makes it the current one.
+    /// </summary>
+    /// <exception cref="ApplicationConfigException">
+    /// When the snapshot cannot be parsed. The current snapshot is then kept.
+    /// </exception>
     public void Update(AppFiles files)
     {
-        ArgumentNullException.ThrowIfNull(files);
-        _current = files;
+        _parsed = ParsedAppFiles.Parse(files);
     }
 }
