@@ -66,8 +66,11 @@ public partial class AppFixture : IAsyncDisposable
 
             var queryString = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
             using var response = await client.GetAsync($"/Home/auth/user{queryString}");
-            Assert.True(response.IsSuccessStatusCode, $"Failed to get user token");
             var token = await response.Content.ReadAsStringAsync();
+            Assert.True(
+                response.IsSuccessStatusCode,
+                $"Failed to get user token: {(int)response.StatusCode} {response.StatusCode}: {token}"
+            );
             Assert.NotNull(token);
             Assert.NotEmpty(token);
             return token;
