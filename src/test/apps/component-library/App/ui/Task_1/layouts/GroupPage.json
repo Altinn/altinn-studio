@@ -113,6 +113,7 @@
             {
                 "id": "GroupPage-Summary2",
                 "type": "Summary2",
+                "hideEmptyFields": true,
                 "hidden": false,
                 "target": {
                     "type": "component",
@@ -157,7 +158,7 @@
                 "id": "GroupPage-Group-Nested",
                 "type": "Group",
                 "groupingIndicator": "indented",
-                "hidden": false,
+                "hidden": ["equals", ["component", "GroupPage-Input"], "Hide nested groups"],
                 "textResourceBindings": {
                     "description": "Nested group description"
                 },
