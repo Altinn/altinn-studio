@@ -11,6 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- A system user can use an app that requires authentication level 4 when `config/authorization/policy.xml` relaxes the level to 3 for system users, as the policy editor's system user switch does. ([Altinn/app-lib-dotnet#1855](https://github.com/Altinn/app-lib-dotnet/issues/1855))
 - Validators can set `ComponentId` and `RowIndexes` on a `ValidationIssue` to show it beside one component in a specific repeating group row, even when the issue has no `Field`. Required-field issues now use it, so they no longer appear on every component bound to the same field.
 
 - Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
