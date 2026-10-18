@@ -19,6 +19,7 @@ import { createAppQueryClient } from 'src/appQueryClient';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { backendValidationApi, instanceApi, partyApi, textResourcesApi } from 'src/core/api-client';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
+import { applyFontFromUrl } from 'src/features/devtools/utils/devFont';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import * as queries from 'src/queries/queries';
 import { createRouter } from 'src/router';
@@ -29,6 +30,10 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
 import 'src/styles/shared.css';
+
+// Temporary, while testing the switch to Inter: ?font=inter loads the app in another font, so it can be
+// checked with ?pdf=1 and in screenshots. Remove when the transition is done.
+applyFontFromUrl();
 
 const queryClient = createAppQueryClient();
 const apiClients: ApiClients = {

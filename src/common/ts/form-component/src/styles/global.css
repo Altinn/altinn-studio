@@ -1,4 +1,9 @@
 @import url('https://altinncdn.no/fonts/altinn-din/altinn-din.css');
+/*
+ * Adds support for Inter in addition to Altinn-DIN. We might support both in v9 to enable a smooth transition.
+ * Inter is used when <html> has data-font="inter", and its font files are only downloaded when Inter is actually used.
+ */
+@import url('https://altinncdn.no/fonts/inter/inter.css');
 
 :root {
   --font-family: 'Altinn-DIN', sans-serif;
@@ -48,6 +53,10 @@
 
   --button-margin-top: 2rem;
   --button-gap: 0.75rem;
+}
+
+:root[data-font='inter'] {
+  --font-family: 'Inter', sans-serif;
 }
 
 /* Workaround to avoid (PDF) postfix from Altinn designsystem */
