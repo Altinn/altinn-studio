@@ -117,7 +117,7 @@ public interface IRuntimeGatewayClient
         string? collectionKey,
         IReadOnlyList<string>? statuses,
         IReadOnlyList<string>? labels,
-        bool? isHead,
+        string? role,
         string? cursor,
         int? pageSize,
         CancellationToken cancellationToken
