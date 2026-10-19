@@ -49,7 +49,7 @@ describe('ReleaseContainer', () => {
   });
 
   it('renders the branch the next version is built from', async () => {
-    const mockGetBranchStatus = jest.fn().mockImplementation(() =>
+    const mockGetBranchStatus = vi.fn().mockImplementation(() =>
       Promise.resolve({
         name: featureBranchName,
         commit: {
@@ -60,7 +60,7 @@ describe('ReleaseContainer', () => {
       }),
     );
     renderReleaseContainer({
-      getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve(repoStatus)),
+      getRepoStatus: vi.fn().mockImplementation(() => Promise.resolve(repoStatus)),
       getCurrentBranch: getCurrentBranchMock(featureBranchName),
       getBranchStatus: mockGetBranchStatus,
     });
@@ -104,16 +104,11 @@ describe('ReleaseContainer', () => {
     expect(mockGetBranchStatus).toHaveBeenCalledTimes(1);
   });
 
-  it('calls getBranchRepoStatus again to refetch if clicking "latest commit fetched from master"', async () => {
-    vi.spyOn(window, 'open').mockImplementation(vi.fn());
-    const mockGetRepoStatus = vi.fn().mockImplementation(() => Promise.resolve(repoStatus));
-    const mockGetBranchStatus = vi
-      .fn()
-      .mockImplementation(() => Promise.resolve({ commit: { id: '123' } }));
+  it('informs the user that the branch must be shared when it does not exist in the remote repository', async () => {
     renderReleaseContainer({
-      getRepoStatus: mockGetRepoStatus,
+      getRepoStatus: vi.fn().mockImplementation(() => Promise.resolve(repoStatus)),
       getCurrentBranch: getCurrentBranchMock(featureBranchName),
-      getBranchStatus: mockGetBranchStatus,
+      getBranchStatus: vi.fn().mockImplementation(() => Promise.resolve('')),
     });
 
     await waitForElementToBeRemoved(() =>
@@ -127,10 +122,10 @@ describe('ReleaseContainer', () => {
   });
 
   it('renders an error instead of a spinner when the current branch cannot be fetched', async () => {
-    const getBranchStatus = jest.fn();
+    const getBranchStatus = vi.fn();
     renderReleaseContainer({
-      getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve(repoStatus)),
-      getCurrentBranch: jest.fn().mockImplementation(() => Promise.reject(new Error())),
+      getRepoStatus: vi.fn().mockImplementation(() => Promise.resolve(repoStatus)),
+      getCurrentBranch: vi.fn().mockImplementation(() => Promise.reject(new Error())),
       getBranchStatus,
     });
 
@@ -143,8 +138,8 @@ describe('ReleaseContainer', () => {
 
   it('renders an error instead of asking the user to share the branch when the branch status cannot be fetched', async () => {
     renderReleaseContainer({
-      getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve(repoStatus)),
-      getBranchStatus: jest.fn().mockImplementation(() => Promise.reject(new Error())),
+      getRepoStatus: vi.fn().mockImplementation(() => Promise.resolve(repoStatus)),
+      getBranchStatus: vi.fn().mockImplementation(() => Promise.reject(new Error())),
     });
 
     expect(
@@ -157,8 +152,8 @@ describe('ReleaseContainer', () => {
 
   it('renders an option to build release when the local repository status cannot be fetched', async () => {
     renderReleaseContainer({
-      getRepoStatus: jest.fn().mockImplementation(() => Promise.reject(new Error())),
-      getBranchStatus: jest
+      getRepoStatus: vi.fn().mockImplementation(() => Promise.reject(new Error())),
+      getBranchStatus: vi
         .fn()
         .mockImplementation(() => Promise.resolve(createBranchStatus(featureCommitId))),
     });
@@ -169,7 +164,7 @@ describe('ReleaseContainer', () => {
   });
 
   it('renders that there are no changes when an earlier release was built from the latest commit on the branch', async () => {
-    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+    const mockGetAppReleases = vi.fn().mockImplementation(() =>
       Promise.resolve({
         results: [
           {
@@ -188,9 +183,9 @@ describe('ReleaseContainer', () => {
       }),
     );
     renderReleaseContainer({
-      getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve(repoStatus)),
+      getRepoStatus: vi.fn().mockImplementation(() => Promise.resolve(repoStatus)),
       getCurrentBranch: getCurrentBranchMock(featureBranchName),
-      getBranchStatus: jest
+      getBranchStatus: vi
         .fn()
         .mockImplementation(() => Promise.resolve(createBranchStatus(featureCommitId))),
       getAppReleases: mockGetAppReleases,
@@ -206,7 +201,7 @@ describe('ReleaseContainer', () => {
   });
 
   it('renders that the release is still building when a build of the latest commit on the branch is in progress', async () => {
-    const mockGetAppReleases = jest.fn().mockImplementation(() =>
+    const mockGetAppReleases = vi.fn().mockImplementation(() =>
       Promise.resolve({
         results: [
           {
@@ -219,9 +214,9 @@ describe('ReleaseContainer', () => {
       }),
     );
     renderReleaseContainer({
-      getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve(repoStatus)),
+      getRepoStatus: vi.fn().mockImplementation(() => Promise.resolve(repoStatus)),
       getCurrentBranch: getCurrentBranchMock(featureBranchName),
-      getBranchStatus: jest
+      getBranchStatus: vi
         .fn()
         .mockImplementation(() => Promise.resolve(createBranchStatus(featureCommitId))),
       getAppReleases: mockGetAppReleases,
@@ -472,7 +467,7 @@ const createBranchStatus = (commitId: string): BranchStatus => ({
 });
 
 const getCurrentBranchMock = (branchName: string) =>
-  jest.fn().mockImplementation(() =>
+  vi.fn().mockImplementation(() =>
     Promise.resolve<CurrentBranchInfo>({
       branchName,
       commitSha: featureCommitId,

@@ -195,9 +195,9 @@ describe('CreateRelease', () => {
 
   it('does not create a release when the latest commit on the branch cannot be fetched', async () => {
     const user = userEvent.setup();
-    const mockCreateRelease = jest.fn();
+    const mockCreateRelease = vi.fn();
     renderCreateRelease({
-      getBranchStatus: jest.fn().mockImplementation(() => Promise.reject(new Error())),
+      getBranchStatus: vi.fn().mockImplementation(() => Promise.reject(new Error())),
       createRelease: mockCreateRelease,
     });
 
