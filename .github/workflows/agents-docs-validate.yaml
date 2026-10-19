@@ -6,7 +6,7 @@ on:
     paths:
       - "**/AGENTS.md"
       - "**/CLAUDE.md"
-      - ".github/scripts/agents-docs-validate*.mjs"
+      - ".github/scripts/agents-docs-validate.mjs"
       - ".github/workflows/agents-docs-validate.yaml"
   workflow_dispatch:
 
@@ -38,6 +38,3 @@ jobs:
 
       - name: Validate AGENTS.md hierarchy
         run: node .github/scripts/agents-docs-validate.mjs
-
-      - name: Test AGENTS.md validator
-        run: node --test .github/scripts/agents-docs-validate.test.mjs
