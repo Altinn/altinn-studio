@@ -140,7 +140,7 @@ public class RuntimeGatewayClientWorkflowsTests
             App,
             s_environment,
             keys: ["0f8fad5b-d9cb-469f-a165-70867728950e", "key/with slash"],
-            failures: "any",
+            failures: "Any",
             cursor: "cursor value",
             pageSize: 25,
             CancellationToken.None
@@ -150,7 +150,7 @@ public class RuntimeGatewayClientWorkflowsTests
             HttpMethod.Get,
             $"{WorkflowsBasePath}/collections"
                 + "?key=0f8fad5b-d9cb-469f-a165-70867728950e&key=key%2Fwith%20slash"
-                + "&failures=any&cursor=cursor%20value&pageSize=25"
+                + "&failures=Any&cursor=cursor%20value&pageSize=25"
         );
     }
 
@@ -195,7 +195,7 @@ public class RuntimeGatewayClientWorkflowsTests
             collectionKey: "0f8fad5b-d9cb-469f-a165-70867728950e",
             statuses: ["Failed", "AwaitingRetry"],
             labels: ["step:pdf", "kind:head"],
-            role: "primary",
+            role: "Primary",
             cursor: "c1",
             pageSize: 10,
             CancellationToken.None
@@ -206,7 +206,7 @@ public class RuntimeGatewayClientWorkflowsTests
             $"{WorkflowsBasePath}/workflows"
                 + "?collectionKey=0f8fad5b-d9cb-469f-a165-70867728950e"
                 + "&status=Failed&status=AwaitingRetry&label=step%3Apdf&label=kind%3Ahead"
-                + "&role=primary&cursor=c1&pageSize=10&includeState=false"
+                + "&role=Primary&cursor=c1&pageSize=10&includeState=false"
         );
     }
 
