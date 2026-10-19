@@ -1,3 +1,6 @@
+import type { CollectionFailureFilter } from 'admin/features/apps/types/workflows/WorkflowCollection';
+import type { WorkflowRole } from 'admin/features/apps/types/workflows/WorkflowStatus';
+
 const adminApiBasePath = `/designer/api/v1/admin`;
 
 export const errorMetricsPath = (org: string, env: string, range: number) =>
@@ -68,7 +71,7 @@ export const workflowCollectionsPath = (
 
 type WorkflowCollectionsQuery = {
   keys?: string[];
-  failures?: string;
+  failures?: CollectionFailureFilter;
   cursor?: string;
   pageSize?: number;
 };
@@ -77,12 +80,12 @@ export const workflowsListPath = (
   org: string,
   env: string,
   app: string,
-  { collectionKey, statuses, isHead, cursor, pageSize }: WorkflowsQuery = {},
+  { collectionKey, statuses, role, cursor, pageSize }: WorkflowsQuery = {},
 ) => {
   const queryParams = new URLSearchParams();
   appendIfSet(queryParams, 'collectionKey', collectionKey);
   statuses?.forEach((status) => queryParams.append('status', status));
-  appendIfSet(queryParams, 'isHead', isHead);
+  appendIfSet(queryParams, 'role', role);
   appendIfSet(queryParams, 'cursor', cursor);
   appendIfSet(queryParams, 'pageSize', pageSize);
   return `${workflowsBasePath(org, env, app)}/workflows${toQueryString(queryParams)}`; // Get
@@ -91,7 +94,7 @@ export const workflowsListPath = (
 type WorkflowsQuery = {
   collectionKey?: string;
   statuses?: string[];
-  isHead?: boolean;
+  role?: WorkflowRole;
   cursor?: string;
   pageSize?: number;
 };

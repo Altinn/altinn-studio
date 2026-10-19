@@ -8,7 +8,7 @@ import { orderedSteps } from './workflowTriage';
  * The part of a process transition a step belongs to: ending the task the process leaves, starting
  * the task it enters, or ending the process. The step names mirror the app runtime's command set,
  * the same mapping the engine's own dashboard brackets its pipelines with. Every other step — the
- * state change itself, a service task's work, enqueueing side effects — belongs to no phase.
+ * state change itself, a service task's work, enqueueing auxiliary workflows — belongs to no phase.
  */
 export type StepPhase = 'end' | 'start' | 'processEnd';
 
@@ -36,8 +36,8 @@ export type Transition = { from: string; to: string };
 
 /**
  * The tasks a process transition moves between, read from the name the app runtime gives it:
- * `Process next: Form -> Verify`, with the side effects' `· Command` suffix dropped. A workflow
- * named any other way is not a transition.
+ * `Process next: Form -> Verify`, with an auxiliary workflow's `· Command` suffix dropped. A
+ * workflow named any other way is not a transition.
  */
 export function parseTransition(workflow: WorkflowStatus): Transition | undefined {
   const match = /^Process next(?: side-effects)?:\s*(.*?)\s*(?:->|→)\s*(.*?)(?:\s+·\s+.*)?$/.exec(
@@ -49,8 +49,8 @@ export function parseTransition(workflow: WorkflowStatus): Transition | undefine
 /**
  * The step label the app runtime puts on every step of a task's lifecycle: the id of the BPMN
  * element the step runs for — the task being left, the task being entered, or the end event the
- * process ends at. The steps of the transition itself, a service task's work and the side effects
- * carry none: they belong to no element.
+ * process ends at. The steps of the transition itself, a service task's work and the auxiliary
+ * workflows carry none: they belong to no element.
  */
 export const PROCESS_ELEMENT_LABEL = 'processNextElement';
 

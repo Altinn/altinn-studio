@@ -8,6 +8,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 import { OrgContext } from 'admin/contexts/OrgContext';
+import { workflowCounts } from 'admin/testing/workflowCounts';
 import { WorkflowProblems } from './WorkflowProblems';
 
 jest.mock('axios', () => ({
@@ -28,7 +29,11 @@ const collection = (key: string) => ({
   namespace: `${org}/${app}`,
   createdAt: '2026-08-01T10:00:00Z',
   updatedAt: '2026-08-02T11:00:00Z',
-  workflowCounts: { active: 1, failedVisible: 2, failedInvisible: 3, total: 6 },
+  workflowCounts: workflowCounts({
+    total: 6,
+    primary: { failed: 2 },
+    auxiliary: { active: 1, failed: 3 },
+  }),
 });
 
 const page = (key: string, nextCursor: string | null) => ({
@@ -112,14 +117,14 @@ describe('WorkflowProblems', () => {
     renderWorkflowProblems();
 
     await screen.findByRole('link', { name: firstPageKey });
-    await user.selectOptions(screen.getByRole('combobox'), JSON.stringify('invisible'));
+    await user.selectOptions(screen.getByRole('combobox'), JSON.stringify('auxiliary'));
 
     await waitFor(() =>
       expect(
         jest
           .mocked(axios.get)
           .mock.calls.map(([url]) => url as string)
-          .some((url) => url.includes('failures=invisible')),
+          .some((url) => url.includes('failures=auxiliary')),
       ).toBe(true),
     );
   });

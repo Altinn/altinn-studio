@@ -1,5 +1,6 @@
 import type { InfiniteData } from '@tanstack/react-query';
 import type { WorkflowCollectionListResponse } from 'admin/features/apps/types/workflows/WorkflowCollection';
+import { activeWorkflowCount } from './workflowHealth';
 import type {
   PersistentItemStatus,
   WorkflowListResponse,
@@ -59,7 +60,10 @@ export function hasActiveWorkflows(data: Pages<WorkflowListResponse>): boolean {
 export function hasActiveCollections(
   response: WorkflowCollectionListResponse | null | undefined,
 ): boolean {
-  return (response?.data ?? []).some((collection) => (collection.workflowCounts?.active ?? 0) > 0);
+  return (response?.data ?? []).some(
+    (collection) =>
+      collection.workflowCounts !== undefined && activeWorkflowCount(collection.workflowCounts) > 0,
+  );
 }
 
 export function hasActiveCollectionPages(data: Pages<WorkflowCollectionListResponse>): boolean {

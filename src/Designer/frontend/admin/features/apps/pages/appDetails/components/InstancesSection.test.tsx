@@ -9,6 +9,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 import { OrgContext } from 'admin/contexts/OrgContext';
+import { workflowCounts } from 'admin/testing/workflowCounts';
 import { InstancesSection } from './InstancesSection';
 
 jest.mock('axios', () => ({
@@ -48,7 +49,7 @@ const mockRequests = ({ appLibVersion = '9.0.0.175' }: MockOptions = {}) => {
               key: failingGuid,
               namespace: `${org}/${app}`,
               createdAt: '2026-08-01T10:00:00Z',
-              workflowCounts: { active: 0, failedVisible: 1, failedInvisible: 0, total: 1 },
+              workflowCounts: workflowCounts({ primary: { failed: 1 } }),
             },
           ],
           pageSize: 25,

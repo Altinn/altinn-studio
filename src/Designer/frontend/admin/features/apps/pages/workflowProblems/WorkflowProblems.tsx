@@ -15,15 +15,15 @@ import { useWorkflowProblemsQuery } from 'admin/features/apps/hooks/queries/useW
 import type { CollectionFailureFilter } from 'admin/features/apps/types/workflows/WorkflowCollection';
 import { WorkflowEngineError } from 'admin/features/apps/components/WorkflowEngineError/WorkflowEngineError';
 import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
-import { extractInstanceGuid } from 'admin/features/apps/utils/workflowHealth';
+import { activeWorkflowCount, extractInstanceGuid } from 'admin/features/apps/utils/workflowHealth';
 import { StatusFilter } from 'admin/features/apps/pages/instances/components/StatusFilter';
 
 import classes from './WorkflowProblems.module.css';
 
 const FAILURE_FILTER_OPTIONS: { label: string; value: CollectionFailureFilter }[] = [
   { label: 'admin.workflows.problems.filter.any', value: 'any' },
-  { label: 'admin.workflows.problems.filter.visible', value: 'visible' },
-  { label: 'admin.workflows.problems.filter.invisible', value: 'invisible' },
+  { label: 'admin.workflows.problems.filter.primary', value: 'primary' },
+  { label: 'admin.workflows.problems.filter.auxiliary', value: 'auxiliary' },
 ];
 
 const DEFAULT_FAILURE_FILTER: CollectionFailureFilter = 'any';
@@ -146,28 +146,29 @@ const WorkflowProblemsTable = ({
         <StudioTable.Head>
           <StudioTable.Row>
             <StudioTable.Cell>{t('admin.instances.id')}</StudioTable.Cell>
-            <StudioTable.Cell>{t('admin.workflows.problems.failed_visible')}</StudioTable.Cell>
-            <StudioTable.Cell>{t('admin.workflows.problems.failed_invisible')}</StudioTable.Cell>
+            <StudioTable.Cell>{t('admin.workflows.problems.failed_primary')}</StudioTable.Cell>
+            <StudioTable.Cell>{t('admin.workflows.problems.failed_auxiliary')}</StudioTable.Cell>
             <StudioTable.Cell>{t('admin.workflows.health.active')}</StudioTable.Cell>
             <StudioTable.Cell>{t('admin.instances.last_changed')}</StudioTable.Cell>
           </StudioTable.Row>
         </StudioTable.Head>
         <StudioTable.Body>
-          {collections.map((collection) => (
-            <StudioTable.Row key={collection.key}>
-              <StudioTable.Cell>
-                <InstanceLink collectionKey={collection.key} />
-              </StudioTable.Cell>
-              <StudioTable.Cell>{collection.workflowCounts?.failedVisible ?? '-'}</StudioTable.Cell>
-              <StudioTable.Cell>
-                {collection.workflowCounts?.failedInvisible ?? '-'}
-              </StudioTable.Cell>
-              <StudioTable.Cell>{collection.workflowCounts?.active ?? '-'}</StudioTable.Cell>
-              <StudioTable.Cell>
-                {formatDateAndTime(collection.updatedAt ?? collection.createdAt)}
-              </StudioTable.Cell>
-            </StudioTable.Row>
-          ))}
+          {collections.map((collection) => {
+            const counts = collection.workflowCounts;
+            return (
+              <StudioTable.Row key={collection.key}>
+                <StudioTable.Cell>
+                  <InstanceLink collectionKey={collection.key} />
+                </StudioTable.Cell>
+                <StudioTable.Cell>{counts?.primary.failed ?? '-'}</StudioTable.Cell>
+                <StudioTable.Cell>{counts?.auxiliary.failed ?? '-'}</StudioTable.Cell>
+                <StudioTable.Cell>{counts ? activeWorkflowCount(counts) : '-'}</StudioTable.Cell>
+                <StudioTable.Cell>
+                  {formatDateAndTime(collection.updatedAt ?? collection.createdAt)}
+                </StudioTable.Cell>
+              </StudioTable.Row>
+            );
+          })}
         </StudioTable.Body>
         {hasMoreResults && (
           <StudioTable.Foot>

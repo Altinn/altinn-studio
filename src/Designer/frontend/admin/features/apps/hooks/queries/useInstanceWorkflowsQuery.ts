@@ -13,10 +13,9 @@ import { INSTANCE_VIEW_REFETCH_INTERVAL_MS } from 'admin/features/apps/utils/wor
 export const INSTANCE_WORKFLOWS_PAGE_SIZE = 25;
 
 /**
- * Every workflow the engine holds for one instance — head workflows and the deliberately invisible
- * side chains alike — in the order the process ran them. The engine lists newest first and pages
- * backwards in time, so the view sorts what it has by creation time, and a further page adds older
- * workflows at the top.
+ * Every workflow the engine holds for one instance — primary and auxiliary workflows alike — in the
+ * order the process ran them. The engine lists newest first and pages backwards in time, so the
+ * view sorts what it has by creation time, and a further page adds older workflows at the top.
  */
 export const useInstanceWorkflowsQuery = (
   org: string,

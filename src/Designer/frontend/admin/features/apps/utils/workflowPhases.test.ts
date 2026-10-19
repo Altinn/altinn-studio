@@ -38,6 +38,7 @@ const named = (operationId: string): WorkflowStatus => ({
   idempotencyKey: 'key',
   namespace: 'ttd/app',
   createdAt: '2026-09-21T13:29:56Z',
+  role: 'primary',
   overallStatus: 'Completed',
   steps: [],
 });
@@ -53,7 +54,7 @@ describe('stepPhase', () => {
 });
 
 describe('parseTransition', () => {
-  it('reads the tasks from a transition and from its side effects', () => {
+  it('reads the tasks from a transition and from its auxiliary workflows', () => {
     expect(parseTransition(named('Process next: Form -> Verify'))).toEqual({
       from: 'Form',
       to: 'Verify',

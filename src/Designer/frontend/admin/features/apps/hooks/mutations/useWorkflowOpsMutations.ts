@@ -12,7 +12,7 @@ import {
 /**
  * Resume always cascades. The engine's cascade drains the dependents this workflow left in
  * `DependencyFailed`, which is the same semantics the app runtime's own retry uses — a retry that
- * revived the head but stranded its side chains would leave the instance half-fixed.
+ * revived the workflow but stranded its auxiliary workflows would leave the instance half-fixed.
  */
 const RESUME_CASCADE = true;
 

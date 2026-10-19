@@ -4,6 +4,7 @@ import type {
   PersistentItemStatus,
   WorkflowListResponse,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
+import { workflowCounts } from 'admin/testing/workflowCounts';
 import {
   ACTIVE_WORK_REFETCH_INTERVAL_MS,
   INSTANCE_LIST_REFETCH_INTERVAL_MS,
@@ -25,6 +26,7 @@ const workflowPages = (
       idempotencyKey: `idem-${index}`,
       namespace: 'org/app',
       createdAt: '2026-08-02T10:00:00Z',
+      role: 'primary',
       overallStatus,
       steps: [],
     })),
@@ -39,7 +41,7 @@ const collections = (...active: number[]): WorkflowCollectionListResponse => ({
     key: `key-${index}`,
     namespace: 'org/app',
     createdAt: '2026-08-01T10:00:00Z',
-    workflowCounts: { active: count, failedVisible: 0, failedInvisible: 0, total: count },
+    workflowCounts: workflowCounts({ total: count, primary: { active: count } }),
   })),
   pageSize: 25,
   totalCount: active.length,

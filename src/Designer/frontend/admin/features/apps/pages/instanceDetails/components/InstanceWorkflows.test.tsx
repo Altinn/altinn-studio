@@ -23,7 +23,7 @@ const orgMock = { username: org, full_name: 'Test Org', avatar_url: '', id: 1 };
 
 const instanceId = '3a0e0f6e-4b1d-4a2a-9d31-6f8e2b7c1d55';
 const headWorkflowId = 'aaaa1111-2222-4333-8444-555566667777';
-const sideChainWorkflowId = 'bbbb1111-2222-4333-8444-555566667777';
+const auxiliaryWorkflowId = 'bbbb1111-2222-4333-8444-555566667777';
 
 const problemMessage =
   'AppCommand execution failed with status code InternalServerError: {"title":"PdfGenerationException","status":500,"detail":"Could not generate the PDF"}';
@@ -31,7 +31,7 @@ const problemMessage =
 const shownProblemMessage =
   'AppCommand execution failed with status code InternalServerError: { "title": "PdfGenerationException", "status": 500, "detail": "Could not generate the PDF" }';
 
-const failedHeadWorkflow = {
+const failedPrimaryWorkflow = {
   databaseId: headWorkflowId,
   collectionKey: instanceId,
   operationId: 'Process next: Pdf -> Sign',
@@ -39,6 +39,7 @@ const failedHeadWorkflow = {
   namespace: `${org}/${app}`,
   createdAt: '2026-08-02T10:00:00Z',
   updatedAt: '2026-08-02T10:05:00Z',
+  role: 'primary',
   overallStatus: 'Failed',
   steps: [
     {
@@ -80,20 +81,20 @@ const failedHeadWorkflow = {
   ],
 };
 
-const settledSideChainWorkflow = {
-  databaseId: sideChainWorkflowId,
+const settledAuxiliaryWorkflow = {
+  databaseId: auxiliaryWorkflowId,
   collectionKey: instanceId,
   operationId: 'side-effects',
   idempotencyKey: 'key-2',
   namespace: `${org}/${app}`,
   createdAt: '2026-08-01T10:00:00Z',
   overallStatus: 'Completed',
-  isHead: false,
+  role: 'auxiliary',
   steps: [],
 };
 
 const workflowsResponse = {
-  data: [settledSideChainWorkflow, failedHeadWorkflow],
+  data: [settledAuxiliaryWorkflow, failedPrimaryWorkflow],
   pageSize: 25,
   totalCount: 2,
   nextCursor: null,
@@ -102,7 +103,7 @@ const workflowsResponse = {
 describe('InstanceWorkflows', () => {
   afterEach(jest.clearAllMocks);
 
-  it('lists the instance workflows in the order the process ran them, marking the invisible side chain', async () => {
+  it('lists the instance workflows in the order the process ran them, marking the auxiliary workflow', async () => {
     jest
       .mocked(axios.get)
       .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
@@ -111,7 +112,7 @@ describe('InstanceWorkflows', () => {
     const summaries = await screen.findAllByTestId('workflow-row');
     expect(summaries).toHaveLength(2);
     expect(summaries[0]).toHaveTextContent('side-effects');
-    expect(summaries[0]).toHaveTextContent(textMock('admin.workflows.side_effect'));
+    expect(summaries[0]).toHaveTextContent(textMock('admin.workflows.auxiliary_workflow'));
     expect(within(summaries[1]).getByTitle('Process next: Pdf -> Sign')).toBeInTheDocument();
 
     const requestedUrl = jest.mocked(axios.get).mock.calls[0][0] as string;
@@ -140,6 +141,7 @@ describe('InstanceWorkflows', () => {
       idempotencyKey: databaseId,
       namespace: `${org}/${app}`,
       createdAt: '2026-08-02T10:00:00Z',
+      role: 'primary',
       overallStatus,
       labels,
       steps,
@@ -191,37 +193,38 @@ describe('InstanceWorkflows', () => {
     ).toBeGreaterThan(0);
   });
 
-  it("opens the transition that spawned a failed side chain, with the side chain's error and retry in view", async () => {
+  it('opens the transition that spawned a failed auxiliary workflow, with its error and retry in view', async () => {
     const transition = {
-      ...failedHeadWorkflow,
+      ...failedPrimaryWorkflow,
       databaseId: 'wf-transition',
       operationId: 'Process next: Form -> Verify',
       overallStatus: 'Completed',
       createdAt: '2026-08-02T09:00:00Z',
       labels: { processNextTargetId: 'Verify:3' },
-      steps: [{ ...failedHeadWorkflow.steps[0], status: 'Completed', errorHistory: [] }],
+      steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Completed', errorHistory: [] }],
     };
-    const failedSideChain = {
-      ...settledSideChainWorkflow,
-      databaseId: 'wf-side-failed',
+    const failedAuxiliaryWorkflow = {
+      ...settledAuxiliaryWorkflow,
+      databaseId: 'wf-auxiliary-failed',
       operationId: 'Process next side-effects: Form -> Verify \u00b7 MovedToAltinnEvent',
       overallStatus: 'Failed',
       createdAt: '2026-08-02T09:00:05Z',
       labels: { processNextTargetId: 'Verify:3' },
-      steps: [{ ...failedHeadWorkflow.steps[0], databaseId: 'side-step' }],
+      steps: [{ ...failedPrimaryWorkflow.steps[0], databaseId: 'auxiliary-step' }],
     };
     jest.mocked(axios.get).mockResolvedValue({
       status: 200,
-      data: { ...workflowsResponse, data: [transition, failedSideChain] },
+      data: { ...workflowsResponse, data: [transition, failedAuxiliaryWorkflow] },
     } as AxiosResponse);
     renderInstanceWorkflows();
 
-    // One row: the side chain lives behind the transition that spawned it, and the row says so.
+    // One row: the auxiliary workflow lives behind the transition that spawned it, and the row
+    // says so.
     const rows = await screen.findAllByTestId('workflow-row');
     expect(rows).toHaveLength(1);
     expect(rows[0]).toHaveAttribute('open');
     expect(rows[0]).toHaveTextContent(
-      textMock('admin.workflows.row.side_chains_failed', { count: 1 }),
+      textMock('admin.workflows.row.auxiliary_workflows_failed', { count: 1 }),
     );
 
     // Opened, so the failure and the way out of it are in view without a click.
@@ -231,9 +234,9 @@ describe('InstanceWorkflows', () => {
     ).toBeVisible();
   });
 
-  it('draws a side chain right under its transition, even when it came in after the next one', async () => {
+  it('draws an auxiliary workflow right under its transition, even when it came in after the next one', async () => {
     const transition = (databaseId: string, target: string, createdAt: string) => ({
-      ...failedHeadWorkflow,
+      ...failedPrimaryWorkflow,
       databaseId,
       operationId: `Process next: ${target}`,
       overallStatus: 'Completed',
@@ -241,9 +244,9 @@ describe('InstanceWorkflows', () => {
       labels: { processNextTargetId: target },
       steps: [],
     });
-    const lateSideChain = {
-      ...settledSideChainWorkflow,
-      databaseId: 'wf-side-late',
+    const lateAuxiliaryWorkflow = {
+      ...settledAuxiliaryWorkflow,
+      databaseId: 'wf-auxiliary-late',
       operationId: 'Process next side-effects: Form:2 · MovedToAltinnEvent',
       createdAt: '2026-08-01T10:03:00Z',
       labels: { processNextTargetId: 'Form:2' },
@@ -253,7 +256,7 @@ describe('InstanceWorkflows', () => {
       data: {
         ...workflowsResponse,
         data: [
-          lateSideChain,
+          lateAuxiliaryWorkflow,
           transition('wf-verify', 'Verify:3', '2026-08-01T10:02:00Z'),
           transition('wf-form', 'Form:2', '2026-08-01T10:01:00Z'),
         ],
@@ -266,9 +269,12 @@ describe('InstanceWorkflows', () => {
       'Process next: Form:2',
       'Process next: Verify:3',
     ]);
-    // The late side chain is filed behind its own transition, not the one that came after it.
-    expect(within(rows[0]).getByTestId('side-chain-row')).toHaveTextContent('MovedToAltinnEvent');
-    expect(within(rows[1]).queryByTestId('side-chain-row')).not.toBeInTheDocument();
+    // The late auxiliary workflow is filed behind its own transition, not the one that came after
+    // it.
+    expect(within(rows[0]).getByTestId('auxiliary-workflow-row')).toHaveTextContent(
+      'MovedToAltinnEvent',
+    );
+    expect(within(rows[1]).queryByTestId('auxiliary-workflow-row')).not.toBeInTheDocument();
   });
 
   it('shows per-step status, retries and the error history', async () => {
@@ -290,14 +296,14 @@ describe('InstanceWorkflows', () => {
   });
 
   it('marks the step being executed', async () => {
-    const runningHeadWorkflow = {
-      ...failedHeadWorkflow,
+    const runningPrimaryWorkflow = {
+      ...failedPrimaryWorkflow,
       overallStatus: 'Processing',
-      steps: [{ ...failedHeadWorkflow.steps[0], status: 'Processing', errorHistory: [] }],
+      steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Processing', errorHistory: [] }],
     };
     jest.mocked(axios.get).mockResolvedValue({
       status: 200,
-      data: { ...workflowsResponse, data: [runningHeadWorkflow] },
+      data: { ...workflowsResponse, data: [runningPrimaryWorkflow] },
     } as AxiosResponse);
     renderInstanceWorkflows();
 
@@ -306,14 +312,14 @@ describe('InstanceWorkflows', () => {
 
   it("puts a step's errors in the background once it has succeeded, but keeps them", async () => {
     const user = userEvent.setup();
-    const recoveredHeadWorkflow = {
-      ...failedHeadWorkflow,
+    const recoveredPrimaryWorkflow = {
+      ...failedPrimaryWorkflow,
       overallStatus: 'Completed',
-      steps: [{ ...failedHeadWorkflow.steps[0], status: 'Completed' }],
+      steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Completed' }],
     };
     jest.mocked(axios.get).mockResolvedValue({
       status: 200,
-      data: { ...workflowsResponse, data: [recoveredHeadWorkflow] },
+      data: { ...workflowsResponse, data: [recoveredPrimaryWorkflow] },
     } as AxiosResponse);
     renderInstanceWorkflows();
 
@@ -334,7 +340,7 @@ describe('InstanceWorkflows', () => {
 
   describe('the story of the instance', () => {
     const stepOf = (operationId: string, processingOrder: number) => ({
-      ...failedHeadWorkflow.steps[0],
+      ...failedPrimaryWorkflow.steps[0],
       databaseId: `step-${operationId}`,
       operationId,
       processingOrder,
@@ -351,7 +357,7 @@ describe('InstanceWorkflows', () => {
       updatedAt: string,
       steps = [stepOf('StartTask', 0)],
     ) => ({
-      ...failedHeadWorkflow,
+      ...failedPrimaryWorkflow,
       databaseId,
       operationId,
       overallStatus: 'Completed',
@@ -502,10 +508,14 @@ describe('InstanceWorkflows', () => {
   });
 
   it('opens nothing and says nothing while nothing needs attention', async () => {
-    const completedHeadWorkflow = { ...failedHeadWorkflow, overallStatus: 'Completed', steps: [] };
+    const completedPrimaryWorkflow = {
+      ...failedPrimaryWorkflow,
+      overallStatus: 'Completed',
+      steps: [],
+    };
     jest.mocked(axios.get).mockResolvedValue({
       status: 200,
-      data: { ...workflowsResponse, data: [settledSideChainWorkflow, completedHeadWorkflow] },
+      data: { ...workflowsResponse, data: [settledAuxiliaryWorkflow, completedPrimaryWorkflow] },
     } as AxiosResponse);
     renderInstanceWorkflows();
 
@@ -513,15 +523,15 @@ describe('InstanceWorkflows', () => {
     expect(rows.every((row) => !row.hasAttribute('open'))).toBe(true);
   });
   it('opens a workflow that keeps retrying, with its attempts and the countdown in the row', async () => {
-    const retryingHeadWorkflow = {
-      ...failedHeadWorkflow,
+    const retryingPrimaryWorkflow = {
+      ...failedPrimaryWorkflow,
       overallStatus: 'Requeued',
       backoffUntil: new Date(Date.now() + 40_000).toISOString(),
-      steps: [{ ...failedHeadWorkflow.steps[0], status: 'Requeued', retryCount: 5 }],
+      steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Requeued', retryCount: 5 }],
     };
     jest.mocked(axios.get).mockResolvedValue({
       status: 200,
-      data: { ...workflowsResponse, data: [retryingHeadWorkflow] },
+      data: { ...workflowsResponse, data: [retryingPrimaryWorkflow] },
     } as AxiosResponse);
     renderInstanceWorkflows();
 
@@ -537,9 +547,9 @@ describe('InstanceWorkflows', () => {
 
   it('keeps counting the failed attempts after a manual resume zeroed the retry counter', async () => {
     const resumedWorkflow = {
-      ...failedHeadWorkflow,
+      ...failedPrimaryWorkflow,
       overallStatus: 'Completed',
-      steps: [{ ...failedHeadWorkflow.steps[0], status: 'Completed', retryCount: 0 }],
+      steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Completed', retryCount: 0 }],
     };
     jest.mocked(axios.get).mockResolvedValue({
       status: 200,
@@ -554,10 +564,10 @@ describe('InstanceWorkflows', () => {
   });
   it('says nothing about a next attempt that is only seconds away', async () => {
     const retryingSoon = {
-      ...failedHeadWorkflow,
+      ...failedPrimaryWorkflow,
       overallStatus: 'Requeued',
       backoffUntil: new Date(Date.now() + 2_000).toISOString(),
-      steps: [{ ...failedHeadWorkflow.steps[0], status: 'Requeued', retryCount: 1 }],
+      steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Requeued', retryCount: 1 }],
     };
     jest.mocked(axios.get).mockResolvedValue({
       status: 200,
@@ -574,16 +584,16 @@ describe('InstanceWorkflows', () => {
 
   it('says how long a workflow has been running, once it has run a while', async () => {
     const tenMinutesAgo = new Date(Date.now() - 10 * 60_000).toISOString();
-    const runningHeadWorkflow = {
-      ...failedHeadWorkflow,
+    const runningPrimaryWorkflow = {
+      ...failedPrimaryWorkflow,
       overallStatus: 'Processing',
       executionStartedAt: tenMinutesAgo,
       updatedAt: tenMinutesAgo,
-      steps: [{ ...failedHeadWorkflow.steps[0], status: 'Processing', errorHistory: [] }],
+      steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Processing', errorHistory: [] }],
     };
     jest.mocked(axios.get).mockResolvedValue({
       status: 200,
-      data: { ...workflowsResponse, data: [runningHeadWorkflow] },
+      data: { ...workflowsResponse, data: [runningPrimaryWorkflow] },
     } as AxiosResponse);
     renderInstanceWorkflows();
 

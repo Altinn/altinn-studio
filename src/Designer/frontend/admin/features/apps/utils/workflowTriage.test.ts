@@ -12,7 +12,7 @@ import {
   groupElapsed,
   groupFocusWorkflow,
   groupTransitions,
-  sideChainName,
+  auxiliaryWorkflowName,
   isWorkflowRetrying,
   latestErrorOf,
   newestFirst,
@@ -37,11 +37,12 @@ const workflow = (
   overallStatus: PersistentItemStatus,
   extra: Partial<WorkflowStatus> = {},
 ): WorkflowStatus => ({
-  databaseId: `wf-${overallStatus}-${extra.isHead === false ? 'side' : 'head'}`,
+  databaseId: `wf-${overallStatus}-${extra.role ?? 'primary'}`,
   operationId: 'Process next: Pdf -> Sign',
   idempotencyKey: 'key',
   namespace: 'org/app',
   createdAt: '2026-08-02T09:00:00Z',
+  role: 'primary',
   overallStatus,
   steps: [],
   ...extra,
@@ -79,16 +80,16 @@ describe('isWorkflowRetrying', () => {
   });
 });
 
-describe('sideChainName', () => {
-  it('names a side chain by what comes after the separator, or by its whole id', () => {
+describe('auxiliaryWorkflowName', () => {
+  it('names an auxiliary workflow by what comes after the separator, or by its whole id', () => {
     expect(
-      sideChainName(
+      auxiliaryWorkflowName(
         workflow('Completed', {
           operationId: 'Process next side-effects: Form -> Verify · MovedToAltinnEvent',
         }),
       ),
     ).toBe('MovedToAltinnEvent');
-    expect(sideChainName(workflow('Completed', { operationId: 'send-eformidling' }))).toBe(
+    expect(auxiliaryWorkflowName(workflow('Completed', { operationId: 'send-eformidling' }))).toBe(
       'send-eformidling',
     );
   });
@@ -127,12 +128,12 @@ describe('groupTransitions', () => {
       steps: [step(0, 'Completed', { operationId: 'ExecuteServiceTask: 1' })],
       ...extra,
     });
-  const sideChain = (id: string, source?: string, target?: string) =>
+  const auxiliaryWorkflow = (id: string, source?: string, target?: string) =>
     workflow('Completed', {
       databaseId: id,
       operationId: 'Process next side-effects: · MovedToAltinnEvent',
       labels: labelsOf(source, target),
-      isHead: false,
+      role: 'auxiliary',
     });
   const ids = (workflows: WorkflowStatus[]) => workflows.map((item) => item.databaseId);
 
@@ -150,11 +151,11 @@ describe('groupTransitions', () => {
     const groups = groupTransitions([
       transition('t1', 'Verify:3', 'Approval:4'),
       receiver('r1', 'Approval:4'),
-      sideChain('s1', 'Verify:3', 'Approval:4'),
+      auxiliaryWorkflow('s1', 'Verify:3', 'Approval:4'),
     ]);
     expect(groups).toHaveLength(1);
     expect(ids(groups[0].members)).toEqual(['t1', 'r1']);
-    expect(ids(groups[0].sideChains)).toEqual(['s1']);
+    expect(ids(groups[0].auxiliaryWorkflows)).toEqual(['s1']);
   });
 
   it('keeps the transitions the process makes on its own as rows of their own', () => {
@@ -167,24 +168,24 @@ describe('groupTransitions', () => {
     expect(groups.map((group) => ids(group.members))).toEqual([['a1', 't1'], ['t2'], ['t3']]);
   });
 
-  it('files the side chains of ending the process by the task the transition left', () => {
+  it('files the auxiliary workflows of ending the process by the task the transition left', () => {
     const groups = groupTransitions([
       acquire('a1', 'Sign:6'),
       transition('t1', 'Sign:6', undefined),
-      sideChain('s1', 'Sign:6'),
+      auxiliaryWorkflow('s1', 'Sign:6'),
     ]);
     expect(groups).toHaveLength(1);
     expect(ids(groups[0].members)).toEqual(['a1', 't1']);
-    expect(ids(groups[0].sideChains)).toEqual(['s1']);
+    expect(ids(groups[0].auxiliaryWorkflows)).toEqual(['s1']);
   });
 
   it('starts a row with the transition that starts the process, which has no source', () => {
     const groups = groupTransitions([
       transition('t0', undefined, 'Form:2'),
-      sideChain('s0', undefined, 'Form:2'),
+      auxiliaryWorkflow('s0', undefined, 'Form:2'),
     ]);
     expect(groups.map((group) => ids(group.members))).toEqual([['t0']]);
-    expect(ids(groups[0].sideChains)).toEqual(['s0']);
+    expect(ids(groups[0].auxiliaryWorkflows)).toEqual(['s0']);
   });
 
   it('keeps a workflow that takes the instance as a row of its own until its transition comes', () => {
@@ -193,14 +194,14 @@ describe('groupTransitions', () => {
     expect(groups[0].workflow.databaseId).toBe('a1');
   });
 
-  it('keeps a side chain in place when its transition is not in the list or it has no label', () => {
+  it('keeps an auxiliary workflow in place when its transition is not in the list or it has no label', () => {
     const groups = groupTransitions([
-      sideChain('s0', 'Form:2', 'Verify:3'),
+      auxiliaryWorkflow('s0', 'Form:2', 'Verify:3'),
       transition('t1', 'Verify:3', 'Approval:4'),
-      sideChain('s1'),
+      auxiliaryWorkflow('s1'),
     ]);
     expect(ids(groups.map((group) => group.workflow))).toEqual(['s0', 't1', 's1']);
-    expect(groups.every((group) => group.sideChains.length === 0)).toBe(true);
+    expect(groups.every((group) => group.auxiliaryWorkflows.length === 0)).toBe(true);
   });
 
   it('speaks for the workflow the row stopped at, and covers them all in its duration', () => {
@@ -223,51 +224,51 @@ describe('groupTransitions', () => {
 
 describe('deriveInstanceHealth', () => {
   const retrying = workflow('Requeued', { steps: [step(0, 'Requeued', { retryCount: 1 })] });
-  const sideChainFailed = workflow('Failed', { isHead: false });
+  const failedAuxiliaryWorkflow = workflow('Failed', { role: 'auxiliary' });
 
   it('reads no workflows as no data, never as healthy', () => {
     expect(deriveInstanceHealth([])).toBe(WorkflowHealth.NoData);
   });
 
   it('ranks a blocked process above everything else', () => {
-    expect(deriveInstanceHealth([sideChainFailed, retrying, workflow('Failed')])).toBe(
+    expect(deriveInstanceHealth([failedAuxiliaryWorkflow, retrying, workflow('Failed')])).toBe(
       WorkflowHealth.Failed,
     );
   });
 
-  it('ranks a visible workflow retrying above lost side effects', () => {
-    expect(deriveInstanceHealth([sideChainFailed, retrying])).toBe(WorkflowHealth.Retrying);
+  it('ranks a primary workflow retrying above a failed auxiliary workflow', () => {
+    expect(deriveInstanceHealth([failedAuxiliaryWorkflow, retrying])).toBe(WorkflowHealth.Retrying);
   });
 
-  it('reads a retrying side chain as work in flight, not as a stuck process', () => {
-    const retryingSideChain = workflow('Requeued', {
-      isHead: false,
+  it('reads a retrying auxiliary workflow as work in flight, not as a stuck process', () => {
+    const retryingAuxiliaryWorkflow = workflow('Requeued', {
+      role: 'auxiliary',
       steps: [step(0, 'Requeued', { retryCount: 5 })],
     });
-    expect(deriveInstanceHealth([retryingSideChain])).toBe(WorkflowHealth.Active);
+    expect(deriveInstanceHealth([retryingAuxiliaryWorkflow])).toBe(WorkflowHealth.Active);
   });
 
-  it('ranks lost side effects above a workflow waiting on an outcome or a message', () => {
-    expect(deriveInstanceHealth([workflow('Waiting'), sideChainFailed])).toBe(
-      WorkflowHealth.SideEffectsFailed,
+  it('ranks a failed auxiliary workflow above a workflow waiting on an outcome or a message', () => {
+    expect(deriveInstanceHealth([workflow('Waiting'), failedAuxiliaryWorkflow])).toBe(
+      WorkflowHealth.AuxiliaryWorkflowFailed,
     );
   });
 
-  it('names what a visible workflow waits for, an outcome before a message', () => {
+  it('names what a primary workflow waits for, an outcome before a message', () => {
     expect(deriveInstanceHealth([workflow('Held'), workflow('Waiting')])).toBe(
       WorkflowHealth.Waiting,
     );
     expect(deriveInstanceHealth([workflow('Processing'), workflow('Held')])).toBe(
       WorkflowHealth.Held,
     );
-    expect(deriveInstanceHealth([workflow('Waiting', { isHead: false })])).toBe(
+    expect(deriveInstanceHealth([workflow('Waiting', { role: 'auxiliary' })])).toBe(
       WorkflowHealth.Active,
     );
   });
 
-  it('ranks lost side effects above work in flight, and that above settled work', () => {
-    expect(deriveInstanceHealth([workflow('Processing'), sideChainFailed])).toBe(
-      WorkflowHealth.SideEffectsFailed,
+  it('ranks a failed auxiliary workflow above work in flight, and that above settled work', () => {
+    expect(deriveInstanceHealth([workflow('Processing'), failedAuxiliaryWorkflow])).toBe(
+      WorkflowHealth.AuxiliaryWorkflowFailed,
     );
     expect(deriveInstanceHealth([workflow('Completed'), workflow('Processing')])).toBe(
       WorkflowHealth.Active,
@@ -288,32 +289,39 @@ describe('pickFocusWorkflow', () => {
       databaseId: 'newer',
       createdAt: '2026-08-02T09:30:00Z',
     });
-    const sideChainFailed = workflow('Failed', { isHead: false });
-    const workflows = [olderFailed, sideChainFailed, newerFailed];
+    const failedAuxiliaryWorkflow = workflow('Failed', { role: 'auxiliary' });
+    const workflows = [olderFailed, failedAuxiliaryWorkflow, newerFailed];
 
     expect(pickFocusWorkflow(workflows, WorkflowHealth.Failed)).toBe(newerFailed);
-    expect(pickFocusWorkflow([sideChainFailed], WorkflowHealth.SideEffectsFailed)).toBe(
-      sideChainFailed,
+    expect(
+      pickFocusWorkflow([failedAuxiliaryWorkflow], WorkflowHealth.AuxiliaryWorkflowFailed),
+    ).toBe(failedAuxiliaryWorkflow);
+  });
+
+  it('prefers a primary workflow over an auxiliary workflow when both are in flight', () => {
+    const auxiliaryWorkflow = workflow('Processing', { role: 'auxiliary' });
+    const primaryWorkflow = workflow('Enqueued');
+    expect(pickFocusWorkflow([auxiliaryWorkflow, primaryWorkflow], WorkflowHealth.Active)).toBe(
+      primaryWorkflow,
     );
   });
 
-  it('prefers a visible workflow over a side chain when both are in flight', () => {
-    const sideChain = workflow('Processing', { isHead: false });
-    const head = workflow('Enqueued');
-    expect(pickFocusWorkflow([sideChain, head], WorkflowHealth.Active)).toBe(head);
-  });
-
-  it('falls back to the latest visible workflow for a settled instance', () => {
+  it('falls back to the latest primary workflow for a settled instance', () => {
     const earlier = workflow('Completed', {
       databaseId: 'earlier',
       createdAt: '2026-08-02T08:00:00Z',
     });
-    const sideChain = workflow('Completed', { isHead: false, createdAt: '2026-08-02T09:45:00Z' });
+    const auxiliaryWorkflow = workflow('Completed', {
+      role: 'auxiliary',
+      createdAt: '2026-08-02T09:45:00Z',
+    });
     const latest = workflow('Completed', {
       databaseId: 'latest',
       createdAt: '2026-08-02T09:30:00Z',
     });
-    expect(pickFocusWorkflow([earlier, latest, sideChain], WorkflowHealth.Healthy)).toBe(latest);
+    expect(pickFocusWorkflow([earlier, latest, auxiliaryWorkflow], WorkflowHealth.Healthy)).toBe(
+      latest,
+    );
   });
 });
 

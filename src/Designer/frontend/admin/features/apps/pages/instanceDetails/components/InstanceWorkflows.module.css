@@ -53,8 +53,8 @@
   padding-inline-start: calc(var(--ds-size-3) + var(--ds-size-5));
 }
 
-/* A failed side chain is the one thing on the transition's own row worth a color. */
-.sideChainsFailedNote {
+/* A failed auxiliary workflow is the one thing on the transition's own row worth a color. */
+.auxiliaryWorkflowsFailedNote {
   color: var(--ds-color-warning-text-subtle);
   font-weight: 500;
 }

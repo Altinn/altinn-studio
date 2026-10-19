@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 import type { AxiosResponse } from 'axios';
-import type { CollectionWorkflowCounts } from 'admin/features/apps/types/workflows/WorkflowCollection';
+import { workflowCounts } from 'admin/testing/workflowCounts';
 import {
   deriveWorkflowHealth,
   extractInstanceGuid,
@@ -13,31 +13,30 @@ import {
 const guid = '3a0e0f6e-4b1d-4a2a-9d31-6f8e2b7c1d55';
 const otherGuid = '8b1d4f2c-9e77-4a55-b0aa-1c2d3e4f5061';
 
-const counts = (overrides: Partial<CollectionWorkflowCounts> = {}): CollectionWorkflowCounts => ({
-  active: 0,
-  failedVisible: 0,
-  failedInvisible: 0,
-  total: 1,
-  ...overrides,
-});
-
 describe('deriveWorkflowHealth', () => {
-  it('reports a visible failure as failed', () => {
-    expect(deriveWorkflowHealth(counts({ failedVisible: 1 }))).toBe(WorkflowHealth.Failed);
-  });
-
-  it('reports an invisible failure as failed side effects', () => {
-    expect(deriveWorkflowHealth(counts({ failedInvisible: 1 }))).toBe(
-      WorkflowHealth.SideEffectsFailed,
+  it('reports a failed primary workflow as failed', () => {
+    expect(deriveWorkflowHealth(workflowCounts({ primary: { failed: 1 } }))).toBe(
+      WorkflowHealth.Failed,
     );
   });
 
-  it('reports work in flight as active', () => {
-    expect(deriveWorkflowHealth(counts({ active: 2 }))).toBe(WorkflowHealth.Active);
+  it('reports a failed auxiliary workflow as such', () => {
+    expect(deriveWorkflowHealth(workflowCounts({ auxiliary: { failed: 1 } }))).toBe(
+      WorkflowHealth.AuxiliaryWorkflowFailed,
+    );
+  });
+
+  it('reports work in flight in either role as active', () => {
+    expect(deriveWorkflowHealth(workflowCounts({ primary: { active: 2 } }))).toBe(
+      WorkflowHealth.Active,
+    );
+    expect(deriveWorkflowHealth(workflowCounts({ auxiliary: { active: 1 } }))).toBe(
+      WorkflowHealth.Active,
+    );
   });
 
   it('reports everything settled as healthy', () => {
-    expect(deriveWorkflowHealth(counts({ total: 5 }))).toBe(WorkflowHealth.Healthy);
+    expect(deriveWorkflowHealth(workflowCounts({ total: 5 }))).toBe(WorkflowHealth.Healthy);
   });
 
   it('reports absent counts as no data rather than healthy', () => {
@@ -45,48 +44,56 @@ describe('deriveWorkflowHealth', () => {
     expect(deriveWorkflowHealth(null)).toBe(WorkflowHealth.NoData);
   });
 
-  it('gives a visible failure precedence over an invisible one', () => {
-    expect(deriveWorkflowHealth(counts({ failedVisible: 1, failedInvisible: 3 }))).toBe(
-      WorkflowHealth.Failed,
-    );
+  it('gives a failed primary workflow precedence over a failed auxiliary one', () => {
+    expect(
+      deriveWorkflowHealth(workflowCounts({ primary: { failed: 1 }, auxiliary: { failed: 3 } })),
+    ).toBe(WorkflowHealth.Failed);
   });
 
-  it('gives a visible failure precedence over work in flight', () => {
-    expect(deriveWorkflowHealth(counts({ failedVisible: 1, active: 4 }))).toBe(
-      WorkflowHealth.Failed,
-    );
+  it('gives a failed primary workflow precedence over work in flight', () => {
+    expect(
+      deriveWorkflowHealth(workflowCounts({ primary: { failed: 1 }, auxiliary: { active: 4 } })),
+    ).toBe(WorkflowHealth.Failed);
   });
 
-  it('gives an invisible failure precedence over work in flight', () => {
-    expect(deriveWorkflowHealth(counts({ failedInvisible: 1, active: 4 }))).toBe(
-      WorkflowHealth.SideEffectsFailed,
-    );
+  it('gives a failed auxiliary workflow precedence over work in flight', () => {
+    expect(
+      deriveWorkflowHealth(workflowCounts({ primary: { active: 4 }, auxiliary: { failed: 1 } })),
+    ).toBe(WorkflowHealth.AuxiliaryWorkflowFailed);
   });
 
-  it('names a visible workflow retrying, between a blocked process and lost side effects', () => {
-    expect(deriveWorkflowHealth(counts({ active: 1, requeuedVisible: 1 }))).toBe(
+  it('names a primary workflow retrying, between a blocked process and a failed auxiliary workflow', () => {
+    expect(deriveWorkflowHealth(workflowCounts({ primary: { active: 1, requeued: 1 } }))).toBe(
       WorkflowHealth.Retrying,
     );
     expect(
-      deriveWorkflowHealth(counts({ active: 1, requeuedVisible: 1, failedInvisible: 1 })),
+      deriveWorkflowHealth(
+        workflowCounts({ primary: { active: 1, requeued: 1 }, auxiliary: { failed: 1 } }),
+      ),
     ).toBe(WorkflowHealth.Retrying);
-    expect(deriveWorkflowHealth(counts({ active: 1, requeuedVisible: 1, failedVisible: 1 }))).toBe(
-      WorkflowHealth.Failed,
+    expect(
+      deriveWorkflowHealth(workflowCounts({ primary: { active: 1, requeued: 1, failed: 1 } })),
+    ).toBe(WorkflowHealth.Failed);
+  });
+
+  it('reads an auxiliary workflow retrying as work in flight', () => {
+    expect(deriveWorkflowHealth(workflowCounts({ auxiliary: { active: 1, requeued: 1 } }))).toBe(
+      WorkflowHealth.Active,
     );
   });
 
-  it('names what a visible workflow waits for, below lost side effects', () => {
-    expect(deriveWorkflowHealth(counts({ active: 2, waitingVisible: 1, heldVisible: 1 }))).toBe(
-      WorkflowHealth.Waiting,
+  it('names what a primary workflow waits for, below a failed auxiliary workflow', () => {
+    expect(
+      deriveWorkflowHealth(workflowCounts({ primary: { active: 2, waiting: 1, held: 1 } })),
+    ).toBe(WorkflowHealth.Waiting);
+    expect(deriveWorkflowHealth(workflowCounts({ primary: { active: 1, held: 1 } }))).toBe(
+      WorkflowHealth.Held,
     );
-    expect(deriveWorkflowHealth(counts({ active: 1, heldVisible: 1 }))).toBe(WorkflowHealth.Held);
-    expect(deriveWorkflowHealth(counts({ active: 1, waitingVisible: 1, failedInvisible: 1 }))).toBe(
-      WorkflowHealth.SideEffectsFailed,
-    );
-  });
-
-  it('reads parked work as in flight from an engine that does not count it yet', () => {
-    expect(deriveWorkflowHealth(counts({ active: 3 }))).toBe(WorkflowHealth.Active);
+    expect(
+      deriveWorkflowHealth(
+        workflowCounts({ primary: { active: 1, waiting: 1 }, auxiliary: { failed: 1 } }),
+      ),
+    ).toBe(WorkflowHealth.AuxiliaryWorkflowFailed);
   });
 });
 
@@ -177,9 +184,14 @@ describe('mergeWorkflowHealth', () => {
               key: guid,
               namespace: 'ttd/app',
               createdAt: '',
-              workflowCounts: counts({ failedVisible: 1 }),
+              workflowCounts: workflowCounts({ primary: { failed: 1 } }),
             },
-            { key: otherGuid, namespace: 'ttd/app', createdAt: '', workflowCounts: counts() },
+            {
+              key: otherGuid,
+              namespace: 'ttd/app',
+              createdAt: '',
+              workflowCounts: workflowCounts(),
+            },
           ],
           pageSize: 2,
           totalCount: 2,
@@ -199,7 +211,9 @@ describe('mergeWorkflowHealth', () => {
       {
         keys: [guid, otherGuid],
         data: {
-          data: [{ key: guid, namespace: 'ttd/app', createdAt: '', workflowCounts: counts() }],
+          data: [
+            { key: guid, namespace: 'ttd/app', createdAt: '', workflowCounts: workflowCounts() },
+          ],
           pageSize: 2,
           totalCount: 1,
           unmatchedKeys: [otherGuid],
@@ -227,7 +241,9 @@ describe('mergeWorkflowHealth', () => {
       {
         keys: [guid],
         data: {
-          data: [{ key: guid, namespace: 'ttd/app', createdAt: '', workflowCounts: counts() }],
+          data: [
+            { key: guid, namespace: 'ttd/app', createdAt: '', workflowCounts: workflowCounts() },
+          ],
           pageSize: 1,
           totalCount: 1,
         },
@@ -262,7 +278,7 @@ describe('mergeWorkflowHealth', () => {
               key: guid,
               namespace: 'ttd/app',
               createdAt: '',
-              workflowCounts: counts({ failedVisible: 1 }),
+              workflowCounts: workflowCounts({ primary: { failed: 1 } }),
             },
           ],
           pageSize: 1,

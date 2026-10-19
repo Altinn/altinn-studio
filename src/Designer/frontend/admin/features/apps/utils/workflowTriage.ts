@@ -11,7 +11,7 @@ import { ACTIVE_WORKFLOW_STATUSES } from './workflowRefetch';
 export const ATTENTION_HEALTHS: ReadonlySet<WorkflowHealth> = new Set([
   WorkflowHealth.Failed,
   WorkflowHealth.Retrying,
-  WorkflowHealth.SideEffectsFailed,
+  WorkflowHealth.AuxiliaryWorkflowFailed,
 ]);
 
 /** A timestamp as a number, or nothing for an absent or unparsable one. */
@@ -23,8 +23,8 @@ export function toTime(value: string | null | undefined): number | undefined {
   return Number.isNaN(time) ? undefined : time;
 }
 
-/** Visible to the collection head frontier: part of the process, as opposed to a side chain. */
-export const isVisibleWorkflow = (workflow: WorkflowStatus): boolean => workflow.isHead !== false;
+/** A workflow the process waits on, as opposed to an auxiliary workflow running beside it. */
+export const isPrimaryWorkflow = (workflow: WorkflowStatus): boolean => workflow.role === 'primary';
 
 export const isFailedWorkflow = (workflow: WorkflowStatus): boolean =>
   FAILED_WORKFLOW_STATUSES.includes(workflow.overallStatus);
@@ -34,15 +34,15 @@ export const isActiveWorkflow = (workflow: WorkflowStatus): boolean =>
 
 /**
  * The label the app runtime puts on every workflow of one process transition: the transition's
- * own workflow, the side chains it spawned, and a receive workflow parked on its service task.
- * The value names the target task and the flow number, so two visits to the same task differ.
+ * own workflow, the auxiliary workflows it spawned, and a receive workflow parked on its service
+ * task. The value names the target task and the flow number, so two visits to the same task differ.
  */
 export const TRANSITION_LABEL = 'processNextTargetId';
 
 /**
  * The label naming the task a process transition leaves, with its flow number. The app runtime puts
  * it on the workflow that takes the instance for the transition and on the transition itself, and
- * on the side chains of a transition that ends the process, which has no target.
+ * on the auxiliary workflows of a transition that ends the process, which has no target.
  */
 export const SOURCE_LABEL = 'processNextSourceId';
 
@@ -57,8 +57,8 @@ export type WorkflowGroup = {
    * itself, then the stages of the task it enters that ran as workflows of their own.
    */
   members: WorkflowStatus[];
-  /** The side chains of this transition, in the order they came. */
-  sideChains: WorkflowStatus[];
+  /** The auxiliary workflows of this transition, in the order they came. */
+  auxiliaryWorkflows: WorkflowStatus[];
 };
 
 /** A workflow that only takes the instance, ahead of the transition the user asked for. */
@@ -69,14 +69,15 @@ export const isAcquireWorkflow = (workflow: WorkflowStatus): boolean =>
  * The workflows of an instance as a service owner thinks of them: one group per process
  * transition. The app runtime runs a transition the user asked for as several workflows — one that
  * takes the instance, the transition itself, a workflow per stage of the task it enters that waits
- * on its own, and a side chain per side effect — and the panel shows them as one row:
+ * on its own, and an auxiliary workflow per piece of work beside the process — and the panel
+ * shows them as one row:
  *
  * - The workflow that takes the instance opens the group, and the transition with the same source
  *   label joins it.
- * - A head workflow with the target label of a transition already in the list and no source label
- *   of its own is a stage of the task that transition entered, and joins its group.
- * - A side chain joins the transition with its target label, or with its source label when it has
- *   no target: the side effects of ending the process.
+ * - A primary workflow with the target label of a transition already in the list and no source
+ *   label of its own is a stage of the task that transition entered, and joins its group.
+ * - An auxiliary workflow joins the transition with its target label, or with its source label
+ *   when it has no target: the auxiliary workflows of ending the process.
  *
  * Everything else is a group of its own, including the transitions the process makes on its own
  * after a service task, since each is a transition of its own. Groups keep the order their first
@@ -88,7 +89,7 @@ export function groupTransitions(workflows: WorkflowStatus[]): WorkflowGroup[] {
   const byTarget = new Map<string, WorkflowGroup>();
 
   const startGroup = (workflow: WorkflowStatus): WorkflowGroup => {
-    const group = { workflow, members: [workflow], sideChains: [] };
+    const group = { workflow, members: [workflow], auxiliaryWorkflows: [] };
     groups.push(group);
     return group;
   };
@@ -97,12 +98,12 @@ export function groupTransitions(workflows: WorkflowStatus[]): WorkflowGroup[] {
     const source = workflow.labels?.[SOURCE_LABEL];
     const target = workflow.labels?.[TRANSITION_LABEL];
 
-    if (workflow.isHead === false) {
+    if (!isPrimaryWorkflow(workflow)) {
       const parent =
         (target !== undefined ? byTarget.get(target) : undefined) ??
         (target === undefined && source !== undefined ? bySource.get(source) : undefined);
       if (parent) {
-        parent.sideChains.push(workflow);
+        parent.auxiliaryWorkflows.push(workflow);
       } else {
         startGroup(workflow);
       }
@@ -165,20 +166,20 @@ export function groupElapsed(group: WorkflowGroup): number | undefined {
 }
 
 /**
- * The separator the app runtime puts between the transition and the side effect in a side chain's
- * operation id: `Process next side-effects: Form -> Verify · MovedToAltinnEvent`.
+ * The separator the app runtime puts between the transition and the command in an auxiliary
+ * workflow's operation id: `Process next side-effects: Form -> Verify · MovedToAltinnEvent`.
  */
-const SIDE_CHAIN_SEPARATOR = ' · ';
+const AUXILIARY_WORKFLOW_SEPARATOR = ' · ';
 
 /**
- * What a side chain is called on its own row: the part after the separator, since the part before
- * repeats the transition it is filed under. A side chain named some other way keeps its whole id.
+ * What an auxiliary workflow is called on its own row: the part after the separator, since the part
+ * before repeats the transition it is filed under. One named some other way keeps its whole id.
  */
-export function sideChainName(sideChain: WorkflowStatus): string {
-  const separatorAt = sideChain.operationId.lastIndexOf(SIDE_CHAIN_SEPARATOR);
+export function auxiliaryWorkflowName(auxiliaryWorkflow: WorkflowStatus): string {
+  const separatorAt = auxiliaryWorkflow.operationId.lastIndexOf(AUXILIARY_WORKFLOW_SEPARATOR);
   return separatorAt === -1
-    ? sideChain.operationId
-    : sideChain.operationId.slice(separatorAt + SIDE_CHAIN_SEPARATOR.length);
+    ? auxiliaryWorkflow.operationId
+    : auxiliaryWorkflow.operationId.slice(separatorAt + AUXILIARY_WORKFLOW_SEPARATOR.length);
 }
 
 /** How long a finished workflow took, from its creation to its last update. */
@@ -222,27 +223,27 @@ export const isWorkflowHeld = (workflow: WorkflowStatus): boolean =>
 /**
  * The traffic light for an instance, from the workflows the engine holds for it, with the same
  * precedence as the collection rollup (see `deriveWorkflowHealth`): a blocked process, then a
- * visible workflow retrying, then lost side effects, then a visible workflow waiting on an outcome
- * or a message, then any work in flight.
+ * primary workflow retrying, then a failed auxiliary workflow, then a primary workflow waiting on
+ * an outcome or a message, then any work in flight.
  */
 export function deriveInstanceHealth(workflows: WorkflowStatus[]): WorkflowHealth {
   if (!workflows.length) {
     return WorkflowHealth.NoData;
   }
-  const visible = workflows.filter(isVisibleWorkflow);
-  if (visible.some(isFailedWorkflow)) {
+  const primary = workflows.filter(isPrimaryWorkflow);
+  if (primary.some(isFailedWorkflow)) {
     return WorkflowHealth.Failed;
   }
-  if (visible.some(isWorkflowRetrying)) {
+  if (primary.some(isWorkflowRetrying)) {
     return WorkflowHealth.Retrying;
   }
-  if (workflows.some((workflow) => !isVisibleWorkflow(workflow) && isFailedWorkflow(workflow))) {
-    return WorkflowHealth.SideEffectsFailed;
+  if (workflows.some((workflow) => !isPrimaryWorkflow(workflow) && isFailedWorkflow(workflow))) {
+    return WorkflowHealth.AuxiliaryWorkflowFailed;
   }
-  if (visible.some(isWorkflowWaiting)) {
+  if (primary.some(isWorkflowWaiting)) {
     return WorkflowHealth.Waiting;
   }
-  if (visible.some(isWorkflowHeld)) {
+  if (primary.some(isWorkflowHeld)) {
     return WorkflowHealth.Held;
   }
   if (workflows.some(isActiveWorkflow)) {
@@ -253,7 +254,7 @@ export function deriveInstanceHealth(workflows: WorkflowStatus[]): WorkflowHealt
 
 /**
  * The workflow the instance's verdict rests on: the newest one that produces the health, whatever
- * order the list came in. For a settled instance it is the latest visible workflow.
+ * order the list came in. For a settled instance it is the latest primary workflow.
  */
 export function pickFocusWorkflow(
   workflows: WorkflowStatus[],
@@ -262,24 +263,24 @@ export function pickFocusWorkflow(
   const newestFirst = workflows.toSorted(
     (first, second) => (toTime(second.createdAt) ?? 0) - (toTime(first.createdAt) ?? 0),
   );
-  const visible = newestFirst.filter(isVisibleWorkflow);
+  const primary = newestFirst.filter(isPrimaryWorkflow);
   switch (health) {
     case WorkflowHealth.Failed:
-      return visible.find(isFailedWorkflow);
+      return primary.find(isFailedWorkflow);
     case WorkflowHealth.Retrying:
-      return visible.find(isWorkflowRetrying);
-    case WorkflowHealth.SideEffectsFailed:
+      return primary.find(isWorkflowRetrying);
+    case WorkflowHealth.AuxiliaryWorkflowFailed:
       return newestFirst.find(
-        (workflow) => !isVisibleWorkflow(workflow) && isFailedWorkflow(workflow),
+        (workflow) => !isPrimaryWorkflow(workflow) && isFailedWorkflow(workflow),
       );
     case WorkflowHealth.Waiting:
-      return visible.find(isWorkflowWaiting);
+      return primary.find(isWorkflowWaiting);
     case WorkflowHealth.Held:
-      return visible.find(isWorkflowHeld);
+      return primary.find(isWorkflowHeld);
     case WorkflowHealth.Active:
-      return visible.find(isActiveWorkflow) ?? newestFirst.find(isActiveWorkflow);
+      return primary.find(isActiveWorkflow) ?? newestFirst.find(isActiveWorkflow);
     default:
-      return visible[0] ?? newestFirst[0];
+      return primary[0] ?? newestFirst[0];
   }
 }
 

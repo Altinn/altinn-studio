@@ -1,3 +1,5 @@
+import type { WorkflowRole } from './WorkflowStatus';
+
 /**
  * Wire types for the workflow-engine collection reads exposed by Designer's admin API
  * (`designer/api/v1/admin/workflows/{org}/{env}/{app}/collections`). Designer passes the engine
@@ -9,25 +11,32 @@
  */
 
 /**
- * Per-collection status rollup. There is deliberately no "settled" bucket — settled workflows are
- * the remainder `total - active - failedVisible - failedInvisible`.
+ * Status counts for the workflows of one role. There is deliberately no "settled" bucket — settled
+ * workflows are what the counts leave out.
  */
-export type CollectionWorkflowCounts = {
+export type WorkflowRoleCounts = {
   /** Workflows in a non-terminal status (Enqueued, Processing, Requeued, Waiting, Held). */
   active: number;
-  /** Failed workflows visible to the head frontier: the process itself is stuck. */
-  failedVisible: number;
-  /** Failed workflows enqueued with `isHead = false`: side effects lost, process unaffected. */
-  failedInvisible: number;
-  /**
-   * The visible ones among `active` in Requeued, Waiting and Held. Absent from an engine that
-   * predates them.
-   */
-  requeuedVisible?: number;
-  waitingVisible?: number;
-  heldVisible?: number;
-  /** Every workflow in the collection, regardless of status or visibility. */
+  /** Workflows in an unsuccessfully terminal status (Failed, Canceled, DependencyFailed). */
+  failed: number;
+  /** The ones among `active` waiting to try again after a failed attempt. */
+  requeued: number;
+  /** The ones among `active` parked until an outcome they wait for is ready. */
+  waiting: number;
+  /** The ones among `active` parked on a mailbox. */
+  held: number;
+};
+
+/**
+ * Per-collection status rollup, split by workflow role. A failed primary workflow means the process
+ * is stuck; a failed auxiliary workflow means work was lost and must be redriven, while the process
+ * went on.
+ */
+export type CollectionWorkflowCounts = {
+  /** Every workflow in the collection, regardless of status or role. */
   total: number;
+  primary: WorkflowRoleCounts;
+  auxiliary: WorkflowRoleCounts;
 };
 
 export type WorkflowCollection = {
@@ -59,4 +68,4 @@ export type WorkflowCollectionListResponse = {
 };
 
 /** Values accepted by the collections discovery filter (`?failures=`). */
-export type CollectionFailureFilter = 'any' | 'visible' | 'invisible';
+export type CollectionFailureFilter = 'any' | WorkflowRole;

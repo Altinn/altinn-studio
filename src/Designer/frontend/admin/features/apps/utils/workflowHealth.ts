@@ -12,18 +12,20 @@ import type {
  * instance" must never render as "nothing is wrong".
  */
 export enum WorkflowHealth {
-  /** A failure visible to the head frontier: the process is stuck and the user is blocked. */
+  /** A primary workflow failed: the process is stuck and the user is blocked. */
   Failed = 'failed',
   /**
-   * A visible workflow failed an attempt and waits to try again. The engine has not given up, but
+   * A primary workflow failed an attempt and waits to try again. The engine has not given up, but
    * the user is blocked meanwhile, and a failure that repeats needs a fix in the app.
    */
   Retrying = 'retrying',
-  /** A failure hidden from the head frontier: side effects were lost, ops must intervene. */
-  SideEffectsFailed = 'sideEffectsFailed',
-  /** A visible workflow waits for an outcome that is not ready yet, such as a signature. */
+  /**
+   * An auxiliary workflow failed: the process went on, but work was lost and must be redriven.
+   */
+  AuxiliaryWorkflowFailed = 'auxiliaryWorkflowFailed',
+  /** A primary workflow waits for an outcome that is not ready yet, such as a signature. */
   Waiting = 'waiting',
-  /** A visible workflow waits for a message from outside, or for its deadline to pass. */
+  /** A primary workflow waits for a message from outside, or for its deadline to pass. */
   Held = 'held',
   /** Work still in flight. Expected to resolve itself. */
   Active = 'active',
@@ -64,10 +66,9 @@ const ENGINE_UNAVAILABLE_STATUS_CODES: readonly number[] = [502, 503, 504];
 
 /**
  * Derives the traffic light from the engine's per-collection rollup, with the same precedence as
- * the instance page (see `deriveInstanceHealth`): a blocked process, then a visible workflow
- * retrying, then lost side effects, then a visible workflow waiting on an outcome or a message,
- * then any work in flight. Absent counts mean no data — never green. An engine from before the
- * parked counts leaves them out, and its parked workflows read as in flight.
+ * the instance page (see `deriveInstanceHealth`): a blocked process, then a primary workflow
+ * retrying, then a failed auxiliary workflow, then a primary workflow waiting on an outcome or a
+ * message, then any work in flight. Absent counts mean no data — never green.
  */
 export function deriveWorkflowHealth(
   counts: CollectionWorkflowCounts | undefined | null,
@@ -75,25 +76,30 @@ export function deriveWorkflowHealth(
   if (!counts) {
     return WorkflowHealth.NoData;
   }
-  if (counts.failedVisible > 0) {
+  if (counts.primary.failed > 0) {
     return WorkflowHealth.Failed;
   }
-  if ((counts.requeuedVisible ?? 0) > 0) {
+  if (counts.primary.requeued > 0) {
     return WorkflowHealth.Retrying;
   }
-  if (counts.failedInvisible > 0) {
-    return WorkflowHealth.SideEffectsFailed;
+  if (counts.auxiliary.failed > 0) {
+    return WorkflowHealth.AuxiliaryWorkflowFailed;
   }
-  if ((counts.waitingVisible ?? 0) > 0) {
+  if (counts.primary.waiting > 0) {
     return WorkflowHealth.Waiting;
   }
-  if ((counts.heldVisible ?? 0) > 0) {
+  if (counts.primary.held > 0) {
     return WorkflowHealth.Held;
   }
-  if (counts.active > 0) {
+  if (activeWorkflowCount(counts) > 0) {
     return WorkflowHealth.Active;
   }
   return WorkflowHealth.Healthy;
+}
+
+/** Workflows of either role still in flight. */
+export function activeWorkflowCount(counts: CollectionWorkflowCounts): number {
+  return counts.primary.active + counts.auxiliary.active;
 }
 
 /**

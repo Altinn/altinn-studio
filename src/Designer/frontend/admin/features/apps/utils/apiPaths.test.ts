@@ -21,8 +21,8 @@ describe('workflowCollectionsPath', () => {
   });
 
   it('omits parameters that are not set', () => {
-    expect(workflowCollectionsPath(org, env, app, { failures: 'visible' })).toBe(
-      `${basePath}/collections?failures=visible`,
+    expect(workflowCollectionsPath(org, env, app, { failures: 'primary' })).toBe(
+      `${basePath}/collections?failures=primary`,
     );
     expect(workflowCollectionsPath(org, env, app)).toBe(`${basePath}/collections`);
   });
@@ -35,10 +35,10 @@ describe('workflowsListPath', () => {
     );
   });
 
-  it('repeats the status parameter and keeps the false isHead value', () => {
+  it('repeats the status parameter and passes the role', () => {
     expect(
-      workflowsListPath(org, env, app, { statuses: ['Failed', 'Canceled'], isHead: false }),
-    ).toBe(`${basePath}/workflows?status=Failed&status=Canceled&isHead=false`);
+      workflowsListPath(org, env, app, { statuses: ['Failed', 'Canceled'], role: 'auxiliary' }),
+    ).toBe(`${basePath}/workflows?status=Failed&status=Canceled&role=auxiliary`);
   });
 });
 

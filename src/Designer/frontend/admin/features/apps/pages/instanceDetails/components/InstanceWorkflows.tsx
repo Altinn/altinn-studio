@@ -49,8 +49,9 @@ import {
   groupTransitions,
   isActiveWorkflow,
   isFailedWorkflow,
+  isPrimaryWorkflow,
   failedAttemptCount,
-  sideChainName,
+  auxiliaryWorkflowName,
   newestFirst,
   toTime,
 } from 'admin/features/apps/utils/workflowTriage';
@@ -183,7 +184,7 @@ const InstanceWorkflowsContent = ({
                 group={group}
                 defaultOpen={
                   group.members.some((member) => member.databaseId === attentionWorkflowId) ||
-                  group.sideChains.some(isFailedWorkflow)
+                  group.auxiliaryWorkflows.some(isFailedWorkflow)
                 }
               />
             </Fragment>
@@ -196,7 +197,7 @@ const InstanceWorkflowsContent = ({
 
 type WorkflowItemProps = {
   context: WorkflowOpsContext;
-  /** The workflows of one transition, shown as one row, with the side chains it spawned. */
+  /** The workflows of one transition, shown as one row, with the auxiliary workflows it spawned. */
   group: WorkflowGroup;
   /** Open when the row first appears. The operator owns the state from then on. */
   defaultOpen: boolean;
@@ -205,8 +206,8 @@ type WorkflowItemProps = {
 /**
  * One transition as a row, and behind it everything it has to say: the steps of all its workflows
  * with their errors — and, on the step a workflow stopped at, the actions that apply — then the
- * side chains it spawned. A side chain is rarely what anyone came to look at, so the row only
- * counts them; one that failed says so on the row and opens it.
+ * auxiliary workflows it spawned. An auxiliary workflow is rarely what anyone came to look at, so
+ * the row only counts them; one that failed says so on the row and opens it.
  */
 const WorkflowItem = ({ context, group, defaultOpen }: WorkflowItemProps) => (
   <StudioDetails defaultOpen={defaultOpen} data-testid='workflow-row'>
@@ -219,13 +220,15 @@ const WorkflowItem = ({ context, group, defaultOpen }: WorkflowItemProps) => (
   </StudioDetails>
 );
 
-type SideChainItemProps = {
+type AuxiliaryWorkflowRowProps = {
   context: WorkflowOpsContext;
   workflow: WorkflowStatus;
 };
 
-/** One side chain: a row like a step's, and its error and verbs under it when it has any. */
-const SideChainRow = ({ context, workflow }: SideChainItemProps) => {
+/**
+ * One auxiliary workflow: a row like a step's, and its error and verbs under it when it has any.
+ */
+const AuxiliaryWorkflowRow = ({ context, workflow }: AuxiliaryWorkflowRowProps) => {
   const step = focusStepOf(workflow);
   const hasVerbs = hasWorkflowVerbs(workflow);
   const failures = failedAttemptCount(workflow);
@@ -238,10 +241,10 @@ const SideChainRow = ({ context, workflow }: SideChainItemProps) => {
     <Fragment>
       <StudioTable.Row
         className={showDetails ? classes.stepRowWithDetails : undefined}
-        data-testid='side-chain-row'
+        data-testid='auxiliary-workflow-row'
       >
         <StudioTable.Cell className={classes.groupedCell}>
-          {sideChainName(workflow)}
+          {auxiliaryWorkflowName(workflow)}
         </StudioTable.Cell>
         <StudioTable.Cell>
           <WorkflowStatusMark status={workflow.overallStatus} />
@@ -313,7 +316,7 @@ const OperationName = ({ operationId }: { operationId: string }) => {
 const WorkflowSummary = ({ group }: { group: WorkflowGroup }) => {
   const { t } = useTranslation();
   const taskNameOf = useTaskNameOf();
-  const { workflow, members, sideChains } = group;
+  const { workflow, members, auxiliaryWorkflows } = group;
   const focus = groupFocusWorkflow(group);
   const status = focus.overallStatus;
   const isActive = members.some(isActiveWorkflow);
@@ -323,15 +326,16 @@ const WorkflowSummary = ({ group }: { group: WorkflowGroup }) => {
   // How long it took, once it is done; while it runs, the live note speaks for it.
   const elapsed = isActive ? undefined : groupElapsed(group);
   const elapsedText = elapsed === undefined ? undefined : formatElapsed(elapsed, t);
-  // Where the step's name would be once the chain is done: how many side chains it spawned, and
-  // whether any of them failed — the one thing about them worth a word before anyone opens the row.
-  const failedSideChains = sideChains.filter(isFailedWorkflow).length;
-  const sideChainNote =
-    sideChains.length === 0
+  // Where the step's name would be once the chain is done: how many auxiliary workflows it
+  // spawned, and whether any of them failed — the one thing about them worth a word before anyone
+  // opens the row.
+  const failedAuxiliaryWorkflows = auxiliaryWorkflows.filter(isFailedWorkflow).length;
+  const auxiliaryWorkflowNote =
+    auxiliaryWorkflows.length === 0
       ? undefined
-      : failedSideChains > 0
-        ? t('admin.workflows.row.side_chains_failed', { count: failedSideChains })
-        : t('admin.workflows.row.side_chains', { count: sideChains.length });
+      : failedAuxiliaryWorkflows > 0
+        ? t('admin.workflows.row.auxiliary_workflows_failed', { count: failedAuxiliaryWorkflows })
+        : t('admin.workflows.row.auxiliary_workflows', { count: auxiliaryWorkflows.length });
 
   // Named while the chain is unfinished; a finished one needs no word beside its dots.
   const currentStep = focusStepOf(focus);
@@ -365,9 +369,9 @@ const WorkflowSummary = ({ group }: { group: WorkflowGroup }) => {
       </span>
       <span className={classes.summaryName}>
         <OperationName operationId={workflow.operationId} />
-        {workflow.isHead === false && (
+        {!isPrimaryWorkflow(workflow) && (
           <StudioTag data-size='sm' data-color='neutral'>
-            {t('admin.workflows.side_effect')}
+            {t('admin.workflows.auxiliary_workflow')}
           </StudioTag>
         )}
       </span>
@@ -384,9 +388,13 @@ const WorkflowSummary = ({ group }: { group: WorkflowGroup }) => {
           {currentStepName}
           {currentStepName && liveNote && ' · '}
           {liveNote}
-          {!currentStepName && !liveNote && sideChainNote && (
-            <span className={failedSideChains > 0 ? classes.sideChainsFailedNote : undefined}>
-              {sideChainNote}
+          {!currentStepName && !liveNote && auxiliaryWorkflowNote && (
+            <span
+              className={
+                failedAuxiliaryWorkflows > 0 ? classes.auxiliaryWorkflowsFailedNote : undefined
+              }
+            >
+              {auxiliaryWorkflowNote}
             </span>
           )}
         </span>
@@ -466,11 +474,11 @@ const WorkflowSteps = ({
 }) => {
   const { t } = useTranslation();
   const taskNameOf = useTaskNameOf();
-  const { members, sideChains } = group;
+  const { members, auxiliaryWorkflows } = group;
   const stepGroups = groupStepsOfWorkflows(members);
   const focusSteps = new Set(members.map(focusStepOf));
 
-  if (!stepGroups.length && sideChains.length === 0) {
+  if (!stepGroups.length && auxiliaryWorkflows.length === 0) {
     return <WorkflowActions context={context} workflow={groupFocusWorkflow(group)} />;
   }
 
@@ -546,13 +554,17 @@ const WorkflowSteps = ({
               </Fragment>
             );
           })}
-          {/* The side chains this transition spawned: the same four columns, in the same table, so
-              they line up with the steps instead of measuring their own. */}
-          {sideChains.length > 0 && (
+          {/* The auxiliary workflows this transition spawned: the same four columns, in the same
+              table, so they line up with the steps instead of measuring their own. */}
+          {auxiliaryWorkflows.length > 0 && (
             <>
-              <GroupHeading>{t('admin.workflows.side_chains')}</GroupHeading>
-              {sideChains.map((sideChain) => (
-                <SideChainRow key={sideChain.databaseId} context={context} workflow={sideChain} />
+              <GroupHeading>{t('admin.workflows.auxiliary_workflows')}</GroupHeading>
+              {auxiliaryWorkflows.map((auxiliaryWorkflow) => (
+                <AuxiliaryWorkflowRow
+                  key={auxiliaryWorkflow.databaseId}
+                  context={context}
+                  workflow={auxiliaryWorkflow}
+                />
               ))}
             </>
           )}

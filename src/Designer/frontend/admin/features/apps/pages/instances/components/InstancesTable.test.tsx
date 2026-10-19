@@ -4,10 +4,12 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 import axios, { AxiosError, type AxiosResponse } from 'axios';
+import type { CollectionWorkflowCounts } from 'admin/features/apps/types/workflows/WorkflowCollection';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 import { OrgContext } from 'admin/contexts/OrgContext';
+import { workflowCounts } from 'admin/testing/workflowCounts';
 import { InstancesTable } from './InstancesTable';
 
 jest.mock('axios', () => ({
@@ -19,13 +21,13 @@ const environment = 'at23';
 const orgMock = { username: org, full_name: 'Test Org', avatar_url: '', id: 1 };
 
 const failedGuid = '3a0e0f6e-4b1d-4a2a-9d31-6f8e2b7c1d55';
-const sideEffectGuid = '8b1d4f2c-9e77-4a55-b0aa-1c2d3e4f5061';
+const auxiliaryFailedGuid = '8b1d4f2c-9e77-4a55-b0aa-1c2d3e4f5061';
 const activeGuid = 'c4d5e6f7-1122-4334-8556-778899aabbcc';
 const healthyGuid = 'd5e6f708-2233-4445-9667-88990011ddee';
 const unmatchedGuid = 'e6f70819-3344-4556-a778-99001122eeff';
 const secondPageGuid = 'f708192a-4455-4667-b889-00112233aabb';
 
-const allGuids = [failedGuid, sideEffectGuid, activeGuid, healthyGuid, unmatchedGuid];
+const allGuids = [failedGuid, auxiliaryFailedGuid, activeGuid, healthyGuid, unmatchedGuid];
 
 const instances = (ids: string[]) =>
   ids.map((id) => ({ id, org, app, isRead: true, createdAt: '2026-08-01T10:00:00Z' }));
@@ -36,10 +38,7 @@ const continuationToken = 'next-page';
 const firstInstancesPage = { instances: instances(allGuids), continuationToken };
 const secondInstancesPage = { instances: instances([secondPageGuid]) };
 
-const collection = (
-  key: string,
-  counts: { active: number; failedVisible: number; failedInvisible: number; total: number },
-) => ({
+const collection = (key: string, counts: CollectionWorkflowCounts) => ({
   key,
   namespace: `${org}/${app}`,
   createdAt: '2026-08-01T10:00:00Z',
@@ -48,10 +47,10 @@ const collection = (
 
 const healthResponse = {
   data: [
-    collection(failedGuid, { active: 0, failedVisible: 1, failedInvisible: 0, total: 2 }),
-    collection(sideEffectGuid, { active: 0, failedVisible: 0, failedInvisible: 2, total: 3 }),
-    collection(activeGuid, { active: 1, failedVisible: 0, failedInvisible: 0, total: 1 }),
-    collection(healthyGuid, { active: 0, failedVisible: 0, failedInvisible: 0, total: 4 }),
+    collection(failedGuid, workflowCounts({ total: 2, primary: { failed: 1 } })),
+    collection(auxiliaryFailedGuid, workflowCounts({ total: 3, auxiliary: { failed: 2 } })),
+    collection(activeGuid, workflowCounts({ primary: { active: 1 } })),
+    collection(healthyGuid, workflowCounts({ total: 4 })),
   ],
   pageSize: 5,
   totalCount: 4,
@@ -170,7 +169,7 @@ describe('InstancesTable workflow health column', () => {
     renderInstancesTable();
 
     await expectHealth(failedGuid, 'admin.workflows.health.failed');
-    await expectHealth(sideEffectGuid, 'admin.workflows.health.side_effects_failed');
+    await expectHealth(auxiliaryFailedGuid, 'admin.workflows.health.auxiliary_workflow_failed');
     await expectHealth(activeGuid, 'admin.workflows.health.active');
     await expectHealth(healthyGuid, 'admin.workflows.health.healthy');
   });
@@ -199,7 +198,7 @@ describe('InstancesTable workflow health column', () => {
 
     [
       'admin.workflows.health.failed_description',
-      'admin.workflows.health.side_effects_failed_description',
+      'admin.workflows.health.auxiliary_workflow_failed_description',
       'admin.workflows.health.active_description',
       'admin.workflows.health.healthy_description',
       'admin.workflows.health.no_data_description',

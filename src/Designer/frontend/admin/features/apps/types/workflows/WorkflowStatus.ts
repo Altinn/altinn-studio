@@ -42,6 +42,13 @@ export const RESUMABLE_WORKFLOW_STATUSES: readonly PersistentItemStatus[] = [
  */
 export const PARKED_WORKFLOW_STATUSES: readonly PersistentItemStatus[] = ['Requeued', 'Waiting'];
 
+/**
+ * A primary workflow is one the process waits on. An auxiliary workflow runs beside the process: it
+ * never blocks or moves it, and its failure means work was lost and must be redriven, not that the
+ * instance is stuck.
+ */
+export type WorkflowRole = 'primary' | 'auxiliary';
+
 export type WorkflowErrorEntry = {
   timestamp: string;
   message: string;
@@ -91,12 +98,7 @@ export type WorkflowStatus = {
    */
   backoffUntil?: string | null;
   overallStatus: PersistentItemStatus;
-  /**
-   * The head-visibility directive the workflow was enqueued with. `false` marks a workflow
-   * deliberately invisible to collection head tracking (a non-blocking side chain); absent means
-   * natural leaf detection applied.
-   */
-  isHead?: boolean;
+  role: WorkflowRole;
   labels?: Record<string, string>;
   steps: WorkflowStepStatus[];
 };

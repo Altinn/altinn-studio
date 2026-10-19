@@ -27,6 +27,7 @@ const workflowOf = (operationId: string, steps: WorkflowStepStatus[]): WorkflowS
   idempotencyKey: 'key',
   namespace: 'ttd/app',
   createdAt: '2026-10-02T10:00:00Z',
+  role: 'primary',
   overallStatus: 'Completed',
   steps,
 });

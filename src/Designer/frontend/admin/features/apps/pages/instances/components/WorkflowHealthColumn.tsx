@@ -17,7 +17,7 @@ import classes from './WorkflowHealthColumn.module.css';
 const LEGEND_ORDER: WorkflowHealth[] = [
   WorkflowHealth.Failed,
   WorkflowHealth.Retrying,
-  WorkflowHealth.SideEffectsFailed,
+  WorkflowHealth.AuxiliaryWorkflowFailed,
   WorkflowHealth.Waiting,
   WorkflowHealth.Held,
   WorkflowHealth.Active,

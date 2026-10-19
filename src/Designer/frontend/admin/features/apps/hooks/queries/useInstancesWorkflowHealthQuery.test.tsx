@@ -6,6 +6,7 @@ import type { AxiosResponse } from 'axios';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
 import { WorkflowHealth } from 'admin/features/apps/utils/workflowHealth';
+import { workflowCounts } from 'admin/testing/workflowCounts';
 import {
   useInstancesWorkflowHealthQuery,
   WORKFLOW_HEALTH_MAX_KEYS_PER_REQUEST,
@@ -45,7 +46,7 @@ const respondHealthy = () => {
             key,
             namespace: `${org}/${app}`,
             createdAt: '2026-08-01T10:00:00Z',
-            workflowCounts: { active: 0, failedVisible: 0, failedInvisible: 0, total: 1 },
+            workflowCounts: workflowCounts(),
           })),
           pageSize: WORKFLOW_HEALTH_MAX_KEYS_PER_REQUEST,
           totalCount: keysFrom(url).length,
