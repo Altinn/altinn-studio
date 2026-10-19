@@ -18,6 +18,7 @@ import testingLibrary from 'eslint-plugin-testing-library';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 
+import { noQueryMocks } from './eslint-rules/no-query-mocks.mjs';
 import { noTanStackReexports } from './eslint-rules/no-tanstack-reexports.mjs';
 import { langKey } from './src/language/eslint.js';
 
@@ -46,6 +47,7 @@ export default defineConfig([
         rules: {
           'language-key': langKey,
           'no-tanstack-reexports': noTanStackReexports,
+          'no-query-mocks': noQueryMocks,
         },
       },
     },
@@ -250,5 +252,9 @@ export default defineConfig([
         },
       ],
     },
+  },
+  {
+    files: ['src/**/*test*.{ts,tsx}', 'src/**/*TestUtils.{ts,tsx}', 'src/test/**/*.{ts,tsx}', 'src/setupTests.ts'],
+    rules: { 'local/no-query-mocks': 'error' },
   },
 ]);

@@ -38,6 +38,21 @@ Preserve cache keys, retry behavior, polling, cancellation, mutation ordering, a
 callback identity unless the task calls for a behavior change. These affect form
 saving and process transitions even when a refactor appears to be only a move.
 
-Keep tests that inspect TanStack behavior here. Feature tests should mock domain
-hooks or HTTP APIs. ESLint rejects TanStack imports outside this folder, internal
-module imports from callers, and re-exports of imported TanStack bindings.
+## Testing
+
+Keep the real domain hooks, providers, and TanStack Query running in tests. Inject
+API method fakes through `apis` in [renderWithProviders](../../test/renderWithProviders.tsx),
+or use [createQueryTestWrapper](../../test/queryTestUtils.tsx) for focused hook tests.
+Both create a separate cache and typed clients for each render. API method argument
+and response types supply completion and catch invalid fixtures without casts.
+Use the returned `apis` mocks to inspect calls or resolve pending requests.
+
+Mocking hooks hides query keys, enabled conditions, invalidation, cancellation, and
+loading/error behavior. Module mocks of query hooks, API clients, or their provider
+also bypass dependency injection. ESLint rejects these mocks and HTTP mocks in
+feature tests. API client implementation tests may mock HTTP to verify request
+construction and response parsing.
+
+Keep tests that inspect TanStack behavior here. ESLint rejects TanStack imports
+outside this folder, internal module imports from callers, and re-exports of
+imported TanStack bindings.
