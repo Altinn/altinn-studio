@@ -36,8 +36,8 @@
 
 /**
  * Relation arrays are tri-state: `undefined` = not loaded by the source query (fetch on demand
- * via /dashboard/relations), `[]` = loaded and none exist. `isHead === false` marks workflows
- * deliberately invisible to collection head tracking (side chains).
+ * via /dashboard/relations), `[]` = loaded and none exist. `isHead === false` marks an auxiliary
+ * workflow (one that runs beside the process); `true` or absent marks a primary one.
  * @typedef {{
  *   databaseId:     string,
  *   idempotencyKey: string,
@@ -157,25 +157,25 @@ export const queryStatusIds = [
 ];
 
 /**
- * Element ids of the query tab's head-visibility checkboxes. Both query.js (the `isHead` fetch
- * parameter) and url.js (the `qh` URL parameter) read them, and url.js cannot import query.js
- * without a cycle — so the ids and the reader live here, for the same reason queryStatusIds does.
+ * Element ids of the query tab's role checkboxes. Both query.js (the `role` fetch parameter) and
+ * url.js (the `qrole` URL parameter) read them, and url.js cannot import query.js without a
+ * cycle — so the ids and the reader live here, for the same reason queryStatusIds does.
  * @type {readonly string[]}
  */
-export const headVisibilityCheckIds = ['head-check', 'nonhead-check'];
+export const roleCheckIds = ['primary-check', 'auxiliary-check'];
 
 /**
- * The head-visibility facet as one value: `true` for heads only, `false` for side chains only,
- * `null` when both or neither box is checked — no filter, the same "nothing selected means
- * everything" idiom the status chips use.
- * @returns {boolean | null}
+ * The role facet as one value: `'primary'` or `'auxiliary'` when exactly one box is checked,
+ * `null` when both or neither is — no filter, the same "nothing selected means everything" idiom
+ * the status chips use.
+ * @returns {'primary' | 'auxiliary' | null}
  */
-export const headVisibilityParam = () => {
-    const [head, nonHead] = headVisibilityCheckIds.map(
+export const roleParam = () => {
+    const [primary, auxiliary] = roleCheckIds.map(
         (id) => /** @type {HTMLInputElement | null} */ (document.getElementById(id))
     );
-    if (!head || !nonHead || head.checked === nonHead.checked) return null;
-    return head.checked;
+    if (!primary || !auxiliary || primary.checked === auxiliary.checked) return null;
+    return primary.checked ? 'primary' : 'auxiliary';
 };
 
 /* ── DOM references ──────────────────────────────────────── */

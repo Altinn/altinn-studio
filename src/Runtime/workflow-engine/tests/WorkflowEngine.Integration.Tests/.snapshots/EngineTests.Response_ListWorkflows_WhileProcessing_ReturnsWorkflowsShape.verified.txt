@@ -13,6 +13,7 @@
         org: ttd
       },
       overallStatus: Processing,
+      role: primary,
       steps: [
         {
           databaseId: {Scrubbed},

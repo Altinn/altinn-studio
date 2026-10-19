@@ -379,7 +379,7 @@ public class EngineEndpointTests
                     It.IsAny<Dictionary<string, string>?>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
-                    It.IsAny<bool?>(),
+                    It.IsAny<WorkflowRole?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -428,7 +428,7 @@ public class EngineEndpointTests
                     It.IsAny<Dictionary<string, string>?>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
-                    It.IsAny<bool?>(),
+                    It.IsAny<WorkflowRole?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -472,7 +472,7 @@ public class EngineEndpointTests
                     It.IsAny<Dictionary<string, string>?>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
-                    It.IsAny<bool?>(),
+                    It.IsAny<WorkflowRole?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -487,7 +487,7 @@ public class EngineEndpointTests
                 Dictionary<string, string>?,
                 string?,
                 string?,
-                bool?,
+                WorkflowRole?,
                 CancellationToken
             >((_, _, _, _, _, _, _, _, ns, _, _, _) => capturedNamespace = ns)
             .ReturnsAsync(new CursorPaginatedResult([], null, 0));
@@ -530,7 +530,7 @@ public class EngineEndpointTests
                     It.IsAny<Dictionary<string, string>?>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
-                    It.IsAny<bool?>(),
+                    It.IsAny<WorkflowRole?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -545,7 +545,7 @@ public class EngineEndpointTests
                 Dictionary<string, string>?,
                 string?,
                 string?,
-                bool?,
+                WorkflowRole?,
                 CancellationToken
             >((_, statuses, _, _, _, _, _, _, _, _, _, _) => capturedStatuses = statuses)
             .ReturnsAsync(new CursorPaginatedResult([], null, 0));
@@ -592,7 +592,7 @@ public class EngineEndpointTests
                     It.IsAny<Dictionary<string, string>?>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
-                    It.IsAny<bool?>(),
+                    It.IsAny<WorkflowRole?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -607,7 +607,7 @@ public class EngineEndpointTests
                 Dictionary<string, string>?,
                 string?,
                 string?,
-                bool?,
+                WorkflowRole?,
                 CancellationToken
             >(
                 (pageSize, statuses, cursor, _, _, _, _, _, _, _, _, _) =>
@@ -639,6 +639,97 @@ public class EngineEndpointTests
         Assert.Equal(testCursor, capturedCursor);
         Assert.Equal(100, capturedPageSize);
         Assert.Equal([PersistentItemStatus.Enqueued, PersistentItemStatus.Failed], capturedStatuses);
+    }
+
+    [Theory]
+    [InlineData("primary", WorkflowRole.Primary)]
+    [InlineData("AUXILIARY", WorkflowRole.Auxiliary)]
+    [InlineData("Auxiliary", WorkflowRole.Auxiliary)]
+    public async Task ListWorkflows_RoleValue_ParsedCaseInsensitively(string role, WorkflowRole expected)
+    {
+        // Arrange
+        WorkflowRole? capturedRole = null;
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r =>
+                r.QueryWorkflows(
+                    It.IsAny<int>(),
+                    It.IsAny<IReadOnlyCollection<PersistentItemStatus>>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<WorkflowRole?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<
+                int,
+                IReadOnlyCollection<PersistentItemStatus>,
+                Guid?,
+                bool,
+                string?,
+                DateTimeOffset?,
+                bool,
+                Dictionary<string, string>?,
+                string?,
+                string?,
+                WorkflowRole?,
+                CancellationToken
+            >((_, _, _, _, _, _, _, _, _, _, parsed, _) => capturedRole = parsed)
+            .ReturnsAsync(new CursorPaginatedResult([], null, 0));
+
+        // Act
+        await EngineRequestHandlers.ListWorkflows(
+            DefaultNamespace,
+            null,
+            null,
+            null,
+            role,
+            null,
+            null,
+            null,
+            repositoryMock.Object,
+            _defaultSettings,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.Equal(expected, capturedRole);
+    }
+
+    [Theory]
+    [InlineData("bogus")]
+    [InlineData("")]
+    [InlineData("true")]
+    // Numeric strings are the enum's underlying values, not part of the contract.
+    [InlineData("0")]
+    [InlineData("1")]
+    public async Task ListWorkflows_UnknownRoleValue_ReturnsBadRequest(string role)
+    {
+        // Strict mock: an unrecognized role must be rejected before the repository is reached.
+        var repositoryMock = new Mock<IEngineRepository>(MockBehavior.Strict);
+
+        var result = await EngineRequestHandlers.ListWorkflows(
+            DefaultNamespace,
+            null,
+            null,
+            null,
+            role,
+            null,
+            null,
+            null,
+            repositoryMock.Object,
+            _defaultSettings,
+            CancellationToken.None
+        );
+
+        var problem = Assert.IsType<ProblemHttpResult>(result.Result);
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.StatusCode);
     }
 
     // === GetWorkflow Handler Tests ===
@@ -1421,9 +1512,9 @@ public class EngineEndpointTests
 
     [Theory]
     [InlineData("any", CollectionFailureFilter.Any)]
-    [InlineData("Visible", CollectionFailureFilter.Visible)]
-    [InlineData("INVISIBLE", CollectionFailureFilter.Invisible)]
-    [InlineData("InViSiBlE", CollectionFailureFilter.Invisible)]
+    [InlineData("Primary", CollectionFailureFilter.Primary)]
+    [InlineData("AUXILIARY", CollectionFailureFilter.Auxiliary)]
+    [InlineData("AuXiLiArY", CollectionFailureFilter.Auxiliary)]
     public async Task ListCollections_FailuresValue_ParsedCaseInsensitively(
         string failures,
         CollectionFailureFilter expected

@@ -133,7 +133,7 @@ internal static class EngineRepositoryQueryExtensions
             string? collectionKeyFilter = null,
             string? namespaceFilter = null,
             IReadOnlyDictionary<string, string>? labelFilter = null,
-            bool? isHeadFilter = null
+            WorkflowRole? roleFilter = null
         )
         {
             var query = dbContext
@@ -141,7 +141,7 @@ internal static class EngineRepositoryQueryExtensions
                 .MaybeFilterByNamespace(namespaceFilter)
                 .MaybeFilterByLabels(labelFilter)
                 .MaybeFilterByCollectionKey(collectionKeyFilter)
-                .MaybeFilterByHeadVisibility(isHeadFilter)
+                .MaybeFilterByRole(roleFilter)
                 .Where(x => statuses.Contains(x.Status));
 
             if (since.HasValue)
@@ -242,19 +242,16 @@ internal static class EngineRepositoryQueryExtensions
         }
 
         /// <summary>
-        /// Filters by head <em>visibility</em>, not directive equality: <see langword="true"/>
-        /// matches every workflow the head frontier can see (<c>is_head IS DISTINCT FROM false</c>,
-        /// i.e. a directive of <c>true</c> or unset), <see langword="false"/> matches exactly the
-        /// invisible ones (<c>is_head = false</c>). Exact matching would be a footgun: <c>null</c>
-        /// is the default directive, so it would silently exclude nearly every ordinary workflow.
-        /// The predicates are the shared <see cref="HeadVisibility"/> pair.
+        /// Filters by <see cref="WorkflowRole"/>, using the shared <see cref="WorkflowRolePredicates"/>.
+        /// Primary is not directive equality: it matches a directive of <c>true</c> or unset, since
+        /// <c>null</c> is the default directive of nearly every ordinary workflow.
         /// </summary>
-        private IQueryable<WorkflowEntity> MaybeFilterByHeadVisibility(bool? isHead)
+        private IQueryable<WorkflowEntity> MaybeFilterByRole(WorkflowRole? role)
         {
-            if (isHead == true)
-                entityQuery = entityQuery.Where(HeadVisibility.Visible);
-            else if (isHead == false)
-                entityQuery = entityQuery.Where(HeadVisibility.Invisible);
+            if (role == WorkflowRole.Primary)
+                entityQuery = entityQuery.Where(WorkflowRolePredicates.Primary);
+            else if (role == WorkflowRole.Auxiliary)
+                entityQuery = entityQuery.Where(WorkflowRolePredicates.Auxiliary);
 
             return entityQuery;
         }
