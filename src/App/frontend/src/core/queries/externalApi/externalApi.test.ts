@@ -1,10 +1,11 @@
 import { QueryClient } from '@tanstack/react-query';
 
 import { createExternalApiQueries } from 'src/core/queries/externalApi/externalApi.queries';
+import { createApiMocks } from 'src/test/apiMocks';
 
 it('keeps snapshot identity stable until external API data or fetch state changes', () => {
   const client = new QueryClient({ defaultOptions: { queries: { gcTime: Infinity } } });
-  const queries = createExternalApiQueries(client);
+  const queries = createExternalApiQueries(client, createApiMocks().externalApi);
   const key = ['fetchExternalApi', '123/instance', 'example'];
   const snapshot = () => queries.getSnapshot('123/instance', 'example');
   expect(snapshot()).toBeUndefined();

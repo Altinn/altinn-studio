@@ -2,6 +2,7 @@ import React from 'react';
 
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { Mock } from 'vitest';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
@@ -390,18 +391,19 @@ describe('RepeatingGroupTableSummary', () => {
         </RepeatingGroupProvider>
       ),
       initialPage: 'FormPage2',
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.layouts = layout;
-            obj.dataModels[defaultDataTypeMock].initialData = {
-              group: [
-                { field1: 'field1-row0', field2: 'field2-row0', field3: 'field3-row0', [ALTINN_ROW_ID]: 'abc123' },
-              ],
-            };
-          }),
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.layouts = layout;
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                group: [
+                  { field1: 'field1-row0', field2: 'field2-row0', field3: 'field3-row0', [ALTINN_ROW_ID]: 'abc123' },
+                ],
+              };
+            }),
+        },
       },
     });
   };
 });
-import type { Mock } from 'vitest';

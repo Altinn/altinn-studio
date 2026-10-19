@@ -128,13 +128,15 @@ describe('Expression validation shared tests', () => {
         </>
       ),
       initialPage: Object.keys(layouts)[0],
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.layouts = layouts;
-            obj.dataModels[defaultDataTypeMock].expressionValidationConfig = validationConfig;
-            obj.dataModels[defaultDataTypeMock].initialData = formData;
-          }),
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.layouts = layouts;
+              obj.dataModels[defaultDataTypeMock].expressionValidationConfig = validationConfig;
+              obj.dataModels[defaultDataTypeMock].initialData = formData;
+            }),
+        },
       },
     });
 

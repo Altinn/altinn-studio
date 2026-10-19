@@ -42,72 +42,74 @@ describe('SummaryRepeatingGroup', () => {
           targetBaseComponentId='groupComponent'
         />
       ),
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].initialData = {
-              mockGroup: [
-                {
-                  [ALTINN_ROW_ID]: 'abc123',
-                  mockDataBinding1: '1',
-                  mockDataBinding2: '2',
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                mockGroup: [
+                  {
+                    [ALTINN_ROW_ID]: 'abc123',
+                    mockDataBinding1: '1',
+                    mockDataBinding2: '2',
+                  },
+                ],
+              };
+              obj.layouts = {
+                FormLayout: {
+                  data: {
+                    layout: [
+                      {
+                        type: 'RepeatingGroup',
+                        id: 'groupComponent',
+                        dataModelBindings: {
+                          group: { dataType: defaultDataTypeMock, field: 'mockGroup' },
+                        },
+                        textResourceBindings: {
+                          title: 'mockGroupTitle',
+                        },
+                        children: ['0:mockId1', '1:mockId2'],
+                        edit: {
+                          multiPage: true,
+                        },
+                        maxCount: 3,
+                      },
+                      {
+                        type: 'Input',
+                        id: 'mockId1',
+                        dataModelBindings: {
+                          simpleBinding: { dataType: defaultDataTypeMock, field: 'mockGroup.mockDataBinding1' },
+                        },
+                        readOnly: false,
+                        required: false,
+                        textResourceBindings: {
+                          title: 'mockField1',
+                        },
+                      },
+                      {
+                        type: 'Input',
+                        id: 'mockId2',
+                        dataModelBindings: {
+                          simpleBinding: { dataType: defaultDataTypeMock, field: 'mockGroup.mockDataBinding2' },
+                        },
+                        readOnly: false,
+                        required: false,
+                        textResourceBindings: {
+                          title: 'mockField2',
+                        },
+                      },
+                      {
+                        type: 'Summary',
+                        id: 'mySummary',
+                        componentRef: 'groupComponent',
+                        largeGroup: false,
+                      },
+                    ],
+                  },
                 },
-              ],
-            };
-            obj.layouts = {
-              FormLayout: {
-                data: {
-                  layout: [
-                    {
-                      type: 'RepeatingGroup',
-                      id: 'groupComponent',
-                      dataModelBindings: {
-                        group: { dataType: defaultDataTypeMock, field: 'mockGroup' },
-                      },
-                      textResourceBindings: {
-                        title: 'mockGroupTitle',
-                      },
-                      children: ['0:mockId1', '1:mockId2'],
-                      edit: {
-                        multiPage: true,
-                      },
-                      maxCount: 3,
-                    },
-                    {
-                      type: 'Input',
-                      id: 'mockId1',
-                      dataModelBindings: {
-                        simpleBinding: { dataType: defaultDataTypeMock, field: 'mockGroup.mockDataBinding1' },
-                      },
-                      readOnly: false,
-                      required: false,
-                      textResourceBindings: {
-                        title: 'mockField1',
-                      },
-                    },
-                    {
-                      type: 'Input',
-                      id: 'mockId2',
-                      dataModelBindings: {
-                        simpleBinding: { dataType: defaultDataTypeMock, field: 'mockGroup.mockDataBinding2' },
-                      },
-                      readOnly: false,
-                      required: false,
-                      textResourceBindings: {
-                        title: 'mockField2',
-                      },
-                    },
-                    {
-                      type: 'Summary',
-                      id: 'mySummary',
-                      componentRef: 'groupComponent',
-                      largeGroup: false,
-                    },
-                  ],
-                },
-              },
-            };
-          }),
+              };
+            }),
+        },
       },
     });
   }

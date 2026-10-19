@@ -68,89 +68,91 @@ describe('derived validation state', () => {
           </>
         ),
         initialPage: 'Form',
-        queries: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.dataModels[defaultDataTypeMock].initialData = {
-                TextField: text,
-              };
-              obj.dataModels[defaultDataTypeMock].initialValidationIssues = backendValidations.map(
-                (text) =>
-                  ({
-                    customTextKey: text,
-                    field: 'TextField',
-                    dataElementId: defaultMockDataElementId,
-                    severity: BackendValidationSeverity.Error,
-                    source: 'Custom',
-                  }) as BackendValidationIssue,
-              );
-              obj.dataModels[defaultDataTypeMock].schema = {
-                $id: 'test-schema',
-                $schema: 'https://json-schema.org/draft/2020-12/schema',
-                type: 'object',
-                properties: {
-                  TextField: {
-                    type: 'string',
-                    maxLength: 10,
+        apis: {
+          formBootstrapApi: {
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.dataModels[defaultDataTypeMock].initialData = {
+                  TextField: text,
+                };
+                obj.dataModels[defaultDataTypeMock].initialValidationIssues = backendValidations.map(
+                  (text) =>
+                    ({
+                      customTextKey: text,
+                      field: 'TextField',
+                      dataElementId: defaultMockDataElementId,
+                      severity: BackendValidationSeverity.Error,
+                      source: 'Custom',
+                    }) as BackendValidationIssue,
+                );
+                obj.dataModels[defaultDataTypeMock].schema = {
+                  $id: 'test-schema',
+                  $schema: 'https://json-schema.org/draft/2020-12/schema',
+                  type: 'object',
+                  properties: {
+                    TextField: {
+                      type: 'string',
+                      maxLength: 10,
+                    },
                   },
-                },
-                required: ['TextField'],
-              };
-              obj.layouts = {
-                Form: {
-                  data: {
-                    layout: [
-                      {
-                        id: 'text-field',
-                        type: 'Input',
-                        textResourceBindings: {
-                          title: 'Text',
+                  required: ['TextField'],
+                };
+                obj.layouts = {
+                  Form: {
+                    data: {
+                      layout: [
+                        {
+                          id: 'text-field',
+                          type: 'Input',
+                          textResourceBindings: {
+                            title: 'Text',
+                          },
+                          dataModelBindings: {
+                            simpleBinding: { dataType: defaultDataTypeMock, field: 'TextField' },
+                          },
+                          showValidations,
+                          required: true,
                         },
-                        dataModelBindings: {
-                          simpleBinding: { dataType: defaultDataTypeMock, field: 'TextField' },
+                        {
+                          id: 'navbuttons1',
+                          type: 'NavigationButtons',
+                          textResourceBindings: {
+                            next: 'Next',
+                            back: 'Back',
+                          },
+                          validateOnNext: {
+                            page: 'current',
+                            show: validateOnNext,
+                          },
                         },
-                        showValidations,
-                        required: true,
-                      },
-                      {
-                        id: 'navbuttons1',
-                        type: 'NavigationButtons',
-                        textResourceBindings: {
-                          next: 'Next',
-                          back: 'Back',
-                        },
-                        validateOnNext: {
-                          page: 'current',
-                          show: validateOnNext,
-                        },
-                      },
-                    ],
+                      ],
+                    },
                   },
-                },
-                NextPage: {
-                  data: {
-                    layout: [
-                      {
-                        id: 'message',
-                        type: 'Paragraph',
-                        textResourceBindings: {
-                          title: 'This is the second page!',
+                  NextPage: {
+                    data: {
+                      layout: [
+                        {
+                          id: 'message',
+                          type: 'Paragraph',
+                          textResourceBindings: {
+                            title: 'This is the second page!',
+                          },
                         },
-                      },
-                      {
-                        id: 'navbuttons2',
-                        type: 'NavigationButtons',
-                        textResourceBindings: {
-                          next: 'Next',
-                          back: 'Back',
+                        {
+                          id: 'navbuttons2',
+                          type: 'NavigationButtons',
+                          textResourceBindings: {
+                            next: 'Next',
+                            back: 'Back',
+                          },
+                          showBackButton: true,
                         },
-                        showBackButton: true,
-                      },
-                    ],
+                      ],
+                    },
                   },
-                },
-              };
-            }),
+                };
+              }),
+          },
         },
       });
     }
@@ -269,32 +271,34 @@ describe('derived validation state', () => {
       await renderWithInstanceAndLayout({
         renderer: () => <FreshBackendValidationProbe />,
         initialPage: 'Form',
-        queries: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.dataModels[defaultDataTypeMock].initialData = {
-                TextField: 'valid value',
-              };
-              obj.layouts = {
-                Form: {
-                  data: {
-                    layout: [
-                      {
-                        id: 'text-field',
-                        type: 'Input',
-                        textResourceBindings: {
-                          title: 'Text',
+        apis: {
+          formBootstrapApi: {
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.dataModels[defaultDataTypeMock].initialData = {
+                  TextField: 'valid value',
+                };
+                obj.layouts = {
+                  Form: {
+                    data: {
+                      layout: [
+                        {
+                          id: 'text-field',
+                          type: 'Input',
+                          textResourceBindings: {
+                            title: 'Text',
+                          },
+                          dataModelBindings: {
+                            simpleBinding: { dataType: defaultDataTypeMock, field: 'TextField' },
+                          },
+                          showValidations: ['CustomBackend'],
                         },
-                        dataModelBindings: {
-                          simpleBinding: { dataType: defaultDataTypeMock, field: 'TextField' },
-                        },
-                        showValidations: ['CustomBackend'],
-                      },
-                    ],
+                      ],
+                    },
                   },
-                },
-              };
-            }),
+                };
+              }),
+          },
         },
       });
 
@@ -328,82 +332,84 @@ describe('backend validations linked to components', () => {
     await renderWithInstanceAndLayout({
       renderer: () => <ValidationsProbe />,
       initialPage: 'Form',
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].initialData = {
-              TextField: 'value',
-              MyGroup: [
-                { [ALTINN_ROW_ID]: 'row-0', Name: 'first', Inner: [{ [ALTINN_ROW_ID]: 'row-0-0', Value: 'a' }] },
-                {
-                  [ALTINN_ROW_ID]: 'row-1',
-                  Name: 'second',
-                  Inner: [
-                    { [ALTINN_ROW_ID]: 'row-1-0', Value: 'b' },
-                    { [ALTINN_ROW_ID]: 'row-1-1', Value: 'c' },
-                  ],
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                TextField: 'value',
+                MyGroup: [
+                  { [ALTINN_ROW_ID]: 'row-0', Name: 'first', Inner: [{ [ALTINN_ROW_ID]: 'row-0-0', Value: 'a' }] },
+                  {
+                    [ALTINN_ROW_ID]: 'row-1',
+                    Name: 'second',
+                    Inner: [
+                      { [ALTINN_ROW_ID]: 'row-1-0', Value: 'b' },
+                      { [ALTINN_ROW_ID]: 'row-1-1', Value: 'c' },
+                    ],
+                  },
+                ],
+              };
+              obj.dataModels[defaultDataTypeMock].initialValidationIssues = issues.map((issue) => ({
+                dataElementId: defaultMockDataElementId,
+                severity: BackendValidationSeverity.Error,
+                source: 'Custom',
+                ...issue,
+              }));
+              obj.layouts = {
+                Form: {
+                  data: {
+                    layout: [
+                      {
+                        id: 'first',
+                        type: 'Input',
+                        dataModelBindings: {
+                          simpleBinding: { dataType: defaultDataTypeMock, field: 'TextField' },
+                        },
+                      },
+                      {
+                        id: 'second',
+                        type: 'Input',
+                        dataModelBindings: {
+                          simpleBinding: { dataType: defaultDataTypeMock, field: 'TextField' },
+                        },
+                      },
+                      {
+                        id: 'myGroup',
+                        type: 'RepeatingGroup',
+                        dataModelBindings: {
+                          group: { dataType: defaultDataTypeMock, field: 'MyGroup' },
+                        },
+                        children: ['name', 'innerGroup'],
+                      },
+                      {
+                        id: 'name',
+                        type: 'Input',
+                        dataModelBindings: {
+                          simpleBinding: { dataType: defaultDataTypeMock, field: 'MyGroup.Name' },
+                        },
+                      },
+                      {
+                        id: 'innerGroup',
+                        type: 'RepeatingGroup',
+                        dataModelBindings: {
+                          group: { dataType: defaultDataTypeMock, field: 'MyGroup.Inner' },
+                        },
+                        children: ['value'],
+                      },
+                      {
+                        id: 'value',
+                        type: 'Input',
+                        dataModelBindings: {
+                          simpleBinding: { dataType: defaultDataTypeMock, field: 'MyGroup.Inner.Value' },
+                        },
+                      },
+                    ],
+                  },
                 },
-              ],
-            };
-            obj.dataModels[defaultDataTypeMock].initialValidationIssues = issues.map((issue) => ({
-              dataElementId: defaultMockDataElementId,
-              severity: BackendValidationSeverity.Error,
-              source: 'Custom',
-              ...issue,
-            }));
-            obj.layouts = {
-              Form: {
-                data: {
-                  layout: [
-                    {
-                      id: 'first',
-                      type: 'Input',
-                      dataModelBindings: {
-                        simpleBinding: { dataType: defaultDataTypeMock, field: 'TextField' },
-                      },
-                    },
-                    {
-                      id: 'second',
-                      type: 'Input',
-                      dataModelBindings: {
-                        simpleBinding: { dataType: defaultDataTypeMock, field: 'TextField' },
-                      },
-                    },
-                    {
-                      id: 'myGroup',
-                      type: 'RepeatingGroup',
-                      dataModelBindings: {
-                        group: { dataType: defaultDataTypeMock, field: 'MyGroup' },
-                      },
-                      children: ['name', 'innerGroup'],
-                    },
-                    {
-                      id: 'name',
-                      type: 'Input',
-                      dataModelBindings: {
-                        simpleBinding: { dataType: defaultDataTypeMock, field: 'MyGroup.Name' },
-                      },
-                    },
-                    {
-                      id: 'innerGroup',
-                      type: 'RepeatingGroup',
-                      dataModelBindings: {
-                        group: { dataType: defaultDataTypeMock, field: 'MyGroup.Inner' },
-                      },
-                      children: ['value'],
-                    },
-                    {
-                      id: 'value',
-                      type: 'Input',
-                      dataModelBindings: {
-                        simpleBinding: { dataType: defaultDataTypeMock, field: 'MyGroup.Inner.Value' },
-                      },
-                    },
-                  ],
-                },
-              },
-            };
-          }),
+              };
+            }),
+        },
       },
     });
 

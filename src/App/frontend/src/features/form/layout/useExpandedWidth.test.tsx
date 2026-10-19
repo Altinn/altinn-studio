@@ -47,18 +47,20 @@ async function render({ expandedWidth, showExpandWidthButton = true, expandedWid
 
   await renderWithInstanceAndLayout({
     renderer: () => <Harness />,
-    queries: {
-      fetchFormBootstrapForInstance: async () =>
-        getFormBootstrapMock((obj) => {
-          obj.layouts = {
-            FormLayout: {
-              data: {
-                layout: [],
-                expandedWidth: expandedWidthOnPage,
+    apis: {
+      formBootstrapApi: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {
+              FormLayout: {
+                data: {
+                  layout: [],
+                  expandedWidth: expandedWidthOnPage,
+                },
               },
-            },
-          };
-        }),
+            };
+          }),
+      },
     },
   });
 }

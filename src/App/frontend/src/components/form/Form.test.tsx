@@ -286,27 +286,29 @@ describe('Form', () => {
     await renderWithInstanceAndLayout({
       renderer: () => <Form />,
       initialPage: mockLayoutId,
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].initialData = {
-              Group: [
-                {
-                  prop1: 'value1',
-                  prop2: 'value2',
-                  prop3: 'value3',
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                Group: [
+                  {
+                    prop1: 'value1',
+                    prop2: 'value2',
+                    prop3: 'value3',
+                  },
+                ],
+              };
+              obj.layouts = {
+                FormLayout: {
+                  data: {
+                    layout,
+                  },
                 },
-              ],
-            };
-            obj.layouts = {
-              FormLayout: {
-                data: {
-                  layout,
-                },
-              },
-            };
-            obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
-          }),
+              };
+              obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
+            }),
+        },
       },
     });
   }

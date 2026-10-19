@@ -1,11 +1,13 @@
-import { useSyncExternalStore } from 'react';
+import React, { useSyncExternalStore } from 'react';
 
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook as rtlRenderHook } from '@testing-library/react';
 import { createStore } from 'zustand';
+import type { RenderHookOptions } from '@testing-library/react';
 
 import { processLayouts } from 'src/features/form/layout/LayoutsContext';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { useIsValidPageId } from 'src/hooks/useNavigatePage';
+import { createQueryTestWrapper } from 'src/test/queryTestUtils';
 import { useHiddenPages, useIsHiddenPage } from 'src/utils/layout/hidden';
 import type { FormStoreApi } from 'src/features/form/FormContext';
 import type { ILayoutCollection } from 'src/layout/layout';
@@ -15,7 +17,6 @@ let displayValues: Record<string, string>;
 let store: FormStoreApi;
 const displayListeners = new Set<() => void>();
 const pageOrder = ['First', 'Second', 'Controls'];
-const queryCacheObserver = { subscribe: vi.fn(() => vi.fn()) };
 const useDisplayDataFor = vi.fn((componentIds: string[]) => {
   const values = useSyncExternalStore(
     (listener) => {
@@ -53,37 +54,16 @@ vi.mock('src/features/language/LanguageProvider', () => ({
 }));
 vi.mock('src/hooks/navigation', () => ({
   useAllNavigationParams: () => ({ pageKey: 'First' }),
+  useNavigationParam: () => undefined,
   useAllNavigationParamsAsRef: () => ({ current: { taskId: 'Task_1', pageKey: 'First' } }),
 }));
-vi.mock('src/features/instance/useProcessQuery', () => ({
-  useGetTaskTypeById: () => () => 'data',
-}));
+
 vi.mock('src/utils/layout/DataModelLocation', () => ({
   useCurrentDataModelLocation: () => undefined,
 }));
-vi.mock('src/core/contexts/ApiProvider', () => ({
-  useTextResourcesApi: () => vi.fn(),
-}));
+
 vi.mock('src/features/formData/FormDataReaders', () => ({
   useDataModelReaders: () => ({}),
-}));
-vi.mock('src/core/queries/expressionQueryReaders', () => ({
-  useExpressionQueryReaders: () => ({
-    instanceQueries: {
-      countDataElements: () => 0,
-      getCachedInstance: () => undefined,
-    },
-    queryCacheObserver,
-    externalApiQueries: {
-      ensureLoaded: vi.fn(),
-      getCached: () => ({}),
-      getState: () => undefined,
-    },
-    textResourceQueries: {
-      ensureLoaded: vi.fn(),
-      getCached: () => undefined,
-    },
-  }),
 }));
 
 beforeEach(() => {
@@ -206,3 +186,14 @@ describe('page visibility during navigation', () => {
     expect(result.current('First')).toBe(true);
   });
 });
+
+function renderHook<Result, Props>(hook: (props: Props) => Result, options?: RenderHookOptions<Props>) {
+  const { wrapper: QueryWrapper } = createQueryTestWrapper();
+  const ExistingWrapper = options?.wrapper;
+  return rtlRenderHook(hook, {
+    ...options,
+    wrapper: ({ children }) => (
+      <QueryWrapper>{ExistingWrapper ? <ExistingWrapper>{children}</ExistingWrapper> : children}</QueryWrapper>
+    ),
+  });
+}

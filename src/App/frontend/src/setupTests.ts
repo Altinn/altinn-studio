@@ -7,20 +7,15 @@ import { configure as testingLibraryConfigure } from '@testing-library/dom';
 import dotenv from 'dotenv';
 import ResizeObserver from 'resize-observer-polyfill';
 import { vi } from 'vitest';
-import type { AxiosResponse } from 'axios';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
 import { getFooterLayoutMock } from 'src/__mocks__/getFooterLayoutMock';
-import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { GlobalData } from 'src/GlobalData';
-import type { doProcessNext, doUpdateAttachmentTags } from 'src/core/api-client/app.api';
-import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
-import type { AppQueries } from 'src/core/queries/appQueries.types';
 
 import 'src/index.css';
 import 'src/styles/shared.css';
@@ -132,31 +127,6 @@ window.logInfoOnce = window.logError;
 window.scrollTo = () => {};
 document.getAnimations = () => [];
 
-vi.mock('axios', async (importOriginal) => {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- importOriginal needs the module namespace shape
-  const actual = await importOriginal<typeof import('axios')>();
-  const pendingRequest = vi.fn(() => new Promise(() => undefined));
-  const mockAxios = Object.assign(vi.fn(), {
-    create: vi.fn(),
-    delete: pendingRequest,
-    get: pendingRequest,
-    head: pendingRequest,
-    interceptors: {
-      request: { eject: vi.fn(), use: vi.fn() },
-      response: { eject: vi.fn(), use: vi.fn() },
-    },
-    isAxiosError: actual.default.isAxiosError,
-    options: pendingRequest,
-    patch: pendingRequest,
-    post: pendingRequest,
-    put: pendingRequest,
-    request: pendingRequest,
-  });
-  mockAxios.create.mockReturnValue(mockAxios);
-
-  return { ...actual, default: mockAxios };
-});
-
 // Add Request polyfill for tests that use fetch/Request
 if (!globalThis.Request) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -179,13 +149,3 @@ global.ResizeObserver = ResizeObserver;
 testingLibraryConfigure({
   asyncUtilTimeout: env.parsed?.WAITFOR_TIMEOUT ? parseInt(env.parsed.WAITFOR_TIMEOUT, 10) : 15000,
 });
-
-vi.mock('src/core/api-client/app.api', async () => ({
-  ...(await vi.importActual<AppQueries>('src/core/api-client/app.api')),
-  doProcessNext: vi.fn<typeof doProcessNext>(
-    async () => ({ data: getInstanceWithProcessMock() }) as AxiosResponse<IInstanceWithProcess>,
-  ),
-  doUpdateAttachmentTags: vi.fn<typeof doUpdateAttachmentTags>(async ({ setTagsRequest }) => ({
-    tags: setTagsRequest.tags,
-  })),
-}));

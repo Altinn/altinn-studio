@@ -8,22 +8,19 @@ import { AxiosHeaders } from 'axios';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
-import { doProcessNext } from 'src/core/api-client/app.api';
 import { useProcessNextOutsideFormProvider } from 'src/core/queries/process/useProcessNext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { InstanceRouter, renderWithDefaultProviders, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import type { ProcessApi } from 'src/core/api-client/app.api';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { IProcessWorkflow } from 'src/types/shared';
+
+const doProcessNext = vi.fn<ProcessApi['doProcessNext']>();
 
 vi.mock('react-toastify', async () => {
   const actual = await vi.importActual<typeof import('react-toastify')>('react-toastify');
   return { ...actual, toast: Object.assign(vi.fn(), actual.toast) };
 });
-
-vi.mock('src/core/api-client/app.api', async () => ({
-  ...(await vi.importActual<typeof import('src/core/api-client/app.api')>('src/core/api-client/app.api')),
-  doProcessNext: vi.fn(),
-}));
 
 function getInstanceWithWorkflow(workflow?: IProcessWorkflow): IInstanceWithProcess {
   const instance = getInstanceWithProcessMock();
@@ -76,9 +73,8 @@ async function renderFailingProcessNext(
     ),
     query,
     apis: {
-      instanceApi: {
-        getInstance: async () => getInstanceWithWorkflow(transitionAttempted ? after : undefined),
-      },
+      instanceApi: { getInstance: async () => getInstanceWithWorkflow(transitionAttempted ? after : undefined) },
+      processApi: { doProcessNext },
     },
   });
 }
@@ -236,6 +232,7 @@ async function renderPendingProcessNext() {
         getInstance: async () =>
           getInstanceWithWorkflow(requestStarted ? { status: 'processing', targetTask: 'Task_2' } : undefined),
       },
+      processApi: { doProcessNext },
     },
   });
 

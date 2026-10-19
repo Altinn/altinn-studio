@@ -48,22 +48,24 @@ async function renderCalculations(config: CalculationConfig, initialData: object
   window.altinnAppGlobalData.ui.settings!.autoSaveBehavior = 'onChangePage';
   const rendered = await renderWithInstanceAndLayout({
     renderer: () => <Snapshot />,
-    queries: {
-      fetchFormBootstrapForInstance: async () =>
-        getFormBootstrapMock((bootstrap) => {
-          bootstrap.dataModels[defaultDataTypeMock] = getDataModelBootstrapMock({
-            schema,
-            initialData,
-            calculationConfig: config,
-          });
-          if (otherModel) {
-            bootstrap.dataModels.other = getDataModelBootstrapMock({
+    apis: {
+      formBootstrapApi: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((bootstrap) => {
+            bootstrap.dataModels[defaultDataTypeMock] = getDataModelBootstrapMock({
               schema,
-              initialData: { quantity: 3 },
-              dataElementId: null,
+              initialData,
+              calculationConfig: config,
             });
-          }
-        }),
+            if (otherModel) {
+              bootstrap.dataModels.other = getDataModelBootstrapMock({
+                schema,
+                initialData: { quantity: 3 },
+                dataElementId: null,
+              });
+            }
+          }),
+      },
     },
   });
   await waitFor(() => expect(store).toBeDefined());

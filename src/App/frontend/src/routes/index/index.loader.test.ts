@@ -2,29 +2,29 @@ import { type LoaderFunctionArgs, redirect, RouterContextProvider } from 'react-
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
-import { backendValidationApi } from 'src/core/api-client/backendValidation.api';
-import { instanceApi } from 'src/core/api-client/instance.api';
-import { partyApi } from 'src/core/api-client/party.api';
-import { textResourcesApi } from 'src/core/api-client/textResources.api';
 import { createTestQueryClient } from 'src/core/queries/queryClient';
 import { GlobalData } from 'src/GlobalData';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { clientLoader } from 'src/routes/index/index.loader';
+import { createApiMocks } from 'src/test/apiMocks';
 import { createLoaderFunctionArgs } from 'src/test/routerUtils';
+
+let apis: ReturnType<typeof createApiMocks>;
+beforeEach(() => {
+  apis = createApiMocks();
+});
 
 vi.mock('react-router', async () => ({
   ...(await vi.importActual('react-router')),
   redirect: vi.fn((url: string) => ({ status: 302, headers: new Map([['Location', url]]) })),
 }));
 
-vi.mock('src/core/api-client/instance.api');
-
 function createLoaderArgs(): LoaderFunctionArgs {
   const queryClient = createTestQueryClient();
   const context = new RouterContextProvider();
   context.set(queryClientContext, queryClient);
-  context.set(apiClientsContext, { backendValidationApi, instanceApi, partyApi, textResourcesApi });
+  context.set(apiClientsContext, apis);
   return createLoaderFunctionArgs({ context });
 }
 
@@ -44,11 +44,11 @@ describe('index clientLoader', () => {
         lastChangedBy: 'Sophie Salt',
       },
     ];
-    vi.mocked(instanceApi.getActiveInstances).mockResolvedValue(activeInstances);
+    vi.mocked(apis.instanceApi.getActiveInstances).mockResolvedValue(activeInstances);
 
     await clientLoader(createLoaderArgs());
 
-    expect(instanceApi.create).not.toHaveBeenCalled();
+    expect(apis.instanceApi.create).not.toHaveBeenCalled();
     expect(redirect).toHaveBeenCalledWith('/instance-selection');
   });
 });

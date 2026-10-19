@@ -102,9 +102,7 @@ describe('AddressComponent', () => {
         required: true,
         simplified: true,
       },
-      queries: {
-        fetchFormData: async () => ({ address: 'initial address', zipCode: '0001' }),
-      },
+      apis: { formDataApi: { fetchFormData: async () => ({ address: 'initial address', zipCode: '0001' }) } },
     });
 
     expect(screen.queryByText(/postnummer er ugyldig/i)).not.toBeInTheDocument();
@@ -121,11 +119,13 @@ describe('AddressComponent', () => {
         required: true,
         simplified: false,
       },
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].initialData = { address: 'initial address', zipCode: '0001' };
-          }),
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].initialData = { address: 'initial address', zipCode: '0001' };
+            }),
+        },
       },
     });
 
@@ -158,11 +158,13 @@ describe('AddressComponent', () => {
 
   it('should call dispatch for post place when zip code is cleared', async () => {
     const { formDataMethods } = await render({
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].initialData = { address: 'a', zipCode: '0001', postPlace: 'Oslo' };
-          }),
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].initialData = { address: 'a', zipCode: '0001', postPlace: 'Oslo' };
+            }),
+        },
       },
     });
 
@@ -184,9 +186,7 @@ describe('AddressComponent', () => {
 
   it('should update post place after typing zip code with debouncing', async () => {
     await render({
-      queries: {
-        fetchFormData: async () => ({ address: 'a', zipCode: '', postPlace: '' }),
-      },
+      apis: { formDataApi: { fetchFormData: async () => ({ address: 'a', zipCode: '', postPlace: '' }) } },
     });
 
     await userEvent.type(screen.getByRole('textbox', { name: 'Postnr Valgfritt' }), '0001{backspace}2');

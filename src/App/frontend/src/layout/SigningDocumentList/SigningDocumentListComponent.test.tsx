@@ -1,16 +1,21 @@
 import React from 'react';
 
 import { screen } from '@testing-library/dom';
-import { render as renderRtl } from '@testing-library/react';
-const randomUUID = () => '00000000-0000-4000-8000-000000000000';
+import { act, render as renderRtl } from '@testing-library/react';
 
-import { type SigningDocument, useDocumentList } from 'src/core/queries/signingDocuments';
+import { apiClients } from 'src/core/api-client';
+import { type SigningDocument } from 'src/core/queries/signingDocuments';
 import { ITextResourceBindings } from 'src/layout/layout';
 import { SigningDocumentListComponent } from 'src/layout/SigningDocumentList/SigningDocumentListComponent';
-import { ProcessTaskType } from 'src/types';
+import { apiMock } from 'src/test/apiMocks';
+import { createQueryTestWrapper } from 'src/test/queryTestUtils';
+
+let queryTest: ReturnType<typeof createQueryTestWrapper>;
+
+const randomUUID = () => '00000000-0000-4000-8000-000000000000';
 
 function render(ui: React.ReactNode) {
-  return renderRtl(ui);
+  return act(async () => renderRtl(ui, { wrapper: queryTest.wrapper }));
 }
 
 const mockDocumentList: SigningDocument[] = [
@@ -38,7 +43,7 @@ vi.mock('src/utils/layout/DataModelLocation', () => ({
 
 vi.mock('react-router', () => ({
   useParams: vi.fn(() => ({
-    partyId: 'partyId',
+    instanceOwnerPartyId: 'partyId',
     instanceGuid: randomUUID(),
   })),
 }));
@@ -53,18 +58,11 @@ vi.mock('src/features/language/Lang', () => ({
   Lang: ({ id }: { id: string }) => id,
 }));
 
-vi.mock('src/features/instance/useProcessQuery', () => ({
-  useTaskTypeFromBackend: vi.fn(() => ProcessTaskType.Signing),
-}));
-
-vi.mock('src/core/queries/signingDocuments');
-
 vi.mock('src/layout/SigningDocumentList/SigningDocumentListError', () => ({
   SigningDocumentListError: vi.fn(({ error }: { error: Error }) => error.message),
 }));
 
 describe('SigningDocumentList', () => {
-  const mockedUseDocumentList = vi.mocked(useDocumentList);
   const baseComponentId = 'signing-document-list';
 
   const textResourceBindings: ITextResourceBindings<'SigningDocumentList'> = {
@@ -76,16 +74,13 @@ describe('SigningDocumentList', () => {
   beforeEach(() => {
     // resets all mocked functions to vi.fn()
     vi.clearAllMocks();
+    queryTest = createQueryTestWrapper();
 
-    mockedUseDocumentList.mockReturnValue({
-      data: mockDocumentList,
-      isLoading: false,
-      error: null,
-    } as unknown as ReturnType<typeof useDocumentList>);
+    queryTest.apis.signingApi.fetchSigningDocuments.mockResolvedValue(mockDocumentList);
   });
 
-  it('should render correctly', () => {
-    render(
+  it('should render correctly', async () => {
+    await render(
       <SigningDocumentListComponent
         baseComponentId={baseComponentId}
         textResourceBindings={textResourceBindings}
@@ -105,37 +100,32 @@ describe('SigningDocumentList', () => {
 
     expect(screen.getAllByRole('columnheader')).toHaveLength(4);
 
+    await screen.findByRole('row', { name: /filename1 attachmentType1 977 KB signing_document_list.download/i });
     expect(screen.getAllByRole('row')).toHaveLength(3);
 
     screen.getByRole('row', { name: /filename1 attachmentType1 977 KB signing_document_list.download/i });
     screen.getByRole('row', { name: /filename2 attachmenttype2 2 mb signing_document_list.download/i });
   });
 
-  it('should render error message when API call fails', () => {
-    mockedUseDocumentList.mockReturnValue({
-      data: undefined,
-      isLoading: false,
-      error: new Error('API error'),
-    } as unknown as ReturnType<typeof useDocumentList>);
+  it('should render error message when API call fails', async () => {
+    queryTest.apis.signingApi.fetchSigningDocuments.mockRejectedValue(new Error('API error'));
 
-    render(
+    await render(
       <SigningDocumentListComponent
         baseComponentId={baseComponentId}
         textResourceBindings={textResourceBindings}
       />,
     );
 
-    screen.getByText('API error');
+    await screen.findByText('API error');
   });
 
-  it('should render spinner when loading', () => {
-    mockedUseDocumentList.mockReturnValue({
-      data: undefined,
-      isLoading: true,
-      error: null,
-    } as unknown as ReturnType<typeof useDocumentList>);
+  it('should render spinner when loading', async () => {
+    queryTest.apis.signingApi.fetchSigningDocuments.mockImplementation(
+      apiMock(apiClients.signingApi.fetchSigningDocuments),
+    );
 
-    render(
+    await render(
       <SigningDocumentListComponent
         baseComponentId={baseComponentId}
         textResourceBindings={textResourceBindings}

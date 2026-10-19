@@ -130,9 +130,7 @@ describe('DatepickerComponent', () => {
 
   it('should call setLeafValue if date is cleared', async () => {
     const { formDataMethods } = await render({
-      queries: {
-        fetchFormData: async () => ({ myDate: '2022-12-31' }),
-      },
+      apis: { formDataApi: { fetchFormData: async () => ({ myDate: '2022-12-31' }) } },
     });
     await userEvent.clear(screen.getByRole('textbox'));
     await userEvent.tab();

@@ -3,6 +3,7 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { CompRepeatingGroupExternal } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
+import type { Mock } from 'vitest';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -15,6 +16,7 @@ import {
   useRepeatingGroupRowState,
   useRepeatingGroupSelector,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
+import { httpResponse } from 'src/test/apiMocks';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
 import type { ILayout } from 'src/layout/layout';
@@ -103,18 +105,20 @@ describe('openByDefault', () => {
           <RenderTest />
         </RepeatingGroupProvider>
       ),
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].initialData = {
-              MyGroup: existingRows ?? [],
-            };
-            obj.layouts = {
-              FormLayout: {
-                data: { layout },
-              },
-            };
-          }),
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                MyGroup: existingRows ?? [],
+              };
+              obj.layouts = {
+                FormLayout: {
+                  data: { layout },
+                },
+              };
+            }),
+        },
       },
     });
   }
@@ -127,7 +131,7 @@ describe('openByDefault', () => {
   interface WaitForStateProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     state: any;
-    mutations: Awaited<ReturnType<typeof render>>['mutations'];
+    apis: Awaited<ReturnType<typeof render>>['apis'];
     expectedPatch?: JsonPatch;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     newModelAfterSave?: any;
@@ -135,20 +139,20 @@ describe('openByDefault', () => {
     expectedWarning?: any;
   }
 
-  async function waitUntil({ state, mutations, expectedPatch, newModelAfterSave, expectedWarning }: WaitForStateProps) {
-    if (newModelAfterSave && mutations) {
+  async function waitUntil({ state, apis, expectedPatch, newModelAfterSave, expectedWarning }: WaitForStateProps) {
+    if (newModelAfterSave && apis) {
       await waitFor(() => {
-        expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1);
+        expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(1);
       });
 
-      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledWith(
+      expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledWith(
         expect.stringContaining('local.altinn.cloud'),
         expectedPatch
           ? expect.objectContaining({ patches: [expect.objectContaining({ patch: expectedPatch })] })
           : expect.anything(),
       );
-      mutations.doPatchMultipleFormData.resolve({
-        data: {
+      apis.formDataApi.doPatchMultipleFormData.resolve(
+        httpResponse({
           validationIssues: [],
           newDataModels: [
             {
@@ -157,9 +161,9 @@ describe('openByDefault', () => {
             },
           ],
           instance: getInstanceDataMock(),
-        } satisfies IDataModelMultiPatchResponse,
-      });
-      (mutations.doPatchMultipleFormData.mock as Mock).mockClear();
+        } satisfies IDataModelMultiPatchResponse),
+      );
+      (apis.formDataApi.doPatchMultipleFormData as Mock).mockClear();
     }
 
     // Ensure state is as expected
@@ -169,7 +173,7 @@ describe('openByDefault', () => {
     // the state doesn't change again.
     await new Promise((resolve) => setTimeout(resolve, 300));
     expect(getState()).toEqual(state);
-    expect(mutations?.doPatchMultipleFormData.mock).not.toHaveBeenCalled();
+    expect(apis.formDataApi.doPatchMultipleFormData).not.toHaveBeenCalled();
 
     if (expectedWarning) {
       await waitFor(() => expect(window.logWarn).toHaveBeenCalled());
@@ -195,7 +199,7 @@ describe('openByDefault', () => {
   });
 
   it('should not add a new row by default when off', async () => {
-    const { mutations } = await render({
+    const { apis } = await render({
       existingRows: [],
       edit: { openByDefault: false },
     });
@@ -208,13 +212,13 @@ describe('openByDefault', () => {
         hiddenRows: [],
         data: [],
       },
-      mutations,
+      apis,
     });
   });
 
   it('should add one new row by default when on', async () => {
     nextUuids.push('abc123');
-    const { mutations } = await render({
+    const { apis } = await render({
       existingRows: [],
       edit: { openByDefault: true },
     });
@@ -233,12 +237,12 @@ describe('openByDefault', () => {
       newModelAfterSave: {
         MyGroup: [{ [ALTINN_ROW_ID]: 'abc123', id: 1, name: 'test' }],
       },
-      mutations,
+      apis,
     });
   });
 
   it('should not add a new row if one already exists', async () => {
-    const { mutations } = await render({
+    const { apis } = await render({
       existingRows: [{ [ALTINN_ROW_ID]: 'abc123', id: 1, name: 'test' }],
       edit: { openByDefault: true },
     });
@@ -257,14 +261,14 @@ describe('openByDefault', () => {
           },
         ],
       },
-      mutations,
+      apis,
     });
   });
 
   it.each(['first', 'last'] as const)(
     'should open the row if one exist and openByDefault is %s',
     async (openByDefault) => {
-      const { mutations } = await render({
+      const { apis } = await render({
         existingRows: [{ [ALTINN_ROW_ID]: 'def456', id: 1, name: 'test' }],
         edit: { openByDefault },
       });
@@ -283,7 +287,7 @@ describe('openByDefault', () => {
             },
           ],
         },
-        mutations,
+        apis,
       });
     },
   );
@@ -292,7 +296,7 @@ describe('openByDefault', () => {
     'should add the first row if none exists and openByDefault is %s',
     async (openByDefault) => {
       nextUuids.push('abc123-def456');
-      const { mutations } = await render({
+      const { apis } = await render({
         existingRows: [],
         edit: { openByDefault },
       });
@@ -318,7 +322,7 @@ describe('openByDefault', () => {
         newModelAfterSave: {
           MyGroup: [{ [ALTINN_ROW_ID]: 'abc123-def456', id: 5, name: 'foo bar' }],
         },
-        mutations,
+        apis,
       });
     },
   );
@@ -326,7 +330,7 @@ describe('openByDefault', () => {
   it.each(['first', 'last'] as const)(
     'should not add a new row if one already exists and openByDefault is %s',
     async (openByDefault) => {
-      const { mutations } = await render({
+      const { apis } = await render({
         existingRows: [{ [ALTINN_ROW_ID]: 'cba321', id: 1, name: 'test' }],
         edit: { openByDefault },
       });
@@ -339,7 +343,7 @@ describe('openByDefault', () => {
           hiddenRows: [],
           data: [{ [ALTINN_ROW_ID]: 'cba321', id: 1, name: 'test' }],
         },
-        mutations,
+        apis,
       });
     },
   );
@@ -347,7 +351,7 @@ describe('openByDefault', () => {
   it.each(['first', 'last'] as const)(
     'should open the correct row if multiple exist and openByDefault is %s',
     async (openByDefault) => {
-      const { mutations } = await render({
+      const { apis } = await render({
         existingRows: [
           { [ALTINN_ROW_ID]: 'a1', id: 1, name: 'test' },
           { [ALTINN_ROW_ID]: 'a2', id: 2, name: 'test' },
@@ -366,7 +370,7 @@ describe('openByDefault', () => {
             { [ALTINN_ROW_ID]: 'a2', id: 2, name: 'test' },
           ],
         },
-        mutations,
+        apis,
       });
     },
   );
@@ -375,7 +379,7 @@ describe('openByDefault', () => {
     'should add a new row if one already exists but is hidden, and openByDefault is %s',
     async (openByDefault) => {
       nextUuids.push('c3-2');
-      const { mutations } = await render({
+      const { apis } = await render({
         existingRows: [{ [ALTINN_ROW_ID]: 'c3', id: 1, name: 'test' }],
         edit: { openByDefault },
         hiddenRow: ['equals', ['dataModel', 'MyGroup.name'], 'test'],
@@ -402,7 +406,7 @@ describe('openByDefault', () => {
             { [ALTINN_ROW_ID]: 'c3-2', id: 2, name: 'bar baz' },
           ],
         },
-        mutations,
+        apis,
       });
     },
   );
@@ -411,7 +415,7 @@ describe('openByDefault', () => {
     'should only attempt to add one new row if new rows keep getting hidden, and openByDefault is %s',
     async (openByDefault) => {
       nextUuids.push('d5-2');
-      const { mutations } = await render({
+      const { apis } = await render({
         existingRows: [{ [ALTINN_ROW_ID]: 'd5', id: 1, name: 'test' }],
         edit: { openByDefault },
         hiddenRow: ['equals', true, true],
@@ -443,7 +447,7 @@ describe('openByDefault', () => {
         expectedWarning: expect.stringContaining(
           "openByDefault for repeating group 'myGroup' returned 'addedAndHidden'",
         ),
-        mutations,
+        apis,
       });
 
       expect(window.logWarn).toHaveBeenCalledTimes(1);
@@ -455,7 +459,7 @@ describe('openByDefault', () => {
       'responds with prefill that makes the new row hidden again, and openByDefault is %s',
     async (openByDefault) => {
       nextUuids.push('e6-2');
-      const { mutations } = await render({
+      const { apis } = await render({
         existingRows: [{ [ALTINN_ROW_ID]: 'e6', id: 1, name: 'test' }],
         edit: { openByDefault },
         hiddenRow: ['equals', ['dataModel', 'MyGroup.name'], 'test'],
@@ -482,7 +486,7 @@ describe('openByDefault', () => {
             { [ALTINN_ROW_ID]: 'e6-2', id: 2, name: 'test' },
           ],
         },
-        mutations,
+        apis,
         expectedWarning: expect.stringContaining(
           "openByDefault for repeating group 'myGroup' returned 'addedAndHidden'",
         ),
@@ -491,7 +495,7 @@ describe('openByDefault', () => {
   );
 
   it('should not add rows if not allowed to', async () => {
-    const { mutations } = await render({
+    const { apis } = await render({
       existingRows: [],
       edit: { openByDefault: true, addButton: false },
     });
@@ -504,7 +508,7 @@ describe('openByDefault', () => {
         hiddenRows: [],
         data: [],
       },
-      mutations,
+      apis,
     });
   });
 
@@ -512,7 +516,7 @@ describe('openByDefault', () => {
     'should not add a new row if the last one is deleted and openByDefault is %s',
     async (openByDefault) => {
       const user = userEvent.setup({ delay: null });
-      const { mutations } = await render({
+      const { apis } = await render({
         existingRows: [{ [ALTINN_ROW_ID]: 'f7', id: 1, name: 'test' }],
         edit: { openByDefault },
       });
@@ -525,7 +529,7 @@ describe('openByDefault', () => {
           hiddenRows: [],
           data: [{ [ALTINN_ROW_ID]: 'f7', id: 1, name: 'test' }],
         },
-        mutations,
+        apis,
       });
 
       await user.click(screen.getByText('Delete last visible row'));
@@ -543,9 +547,8 @@ describe('openByDefault', () => {
           { op: 'remove', path: '/MyGroup/0' },
         ],
         newModelAfterSave: { MyGroup: [] },
-        mutations,
+        apis,
       });
     },
   );
 });
-import type { Mock } from 'vitest';

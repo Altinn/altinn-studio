@@ -64,11 +64,13 @@ describe('MultipleSelect', () => {
           checked: { dataType: defaultDataTypeMock, field: 'choices.checked' },
         },
       },
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].initialData = initialData;
-          }),
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].initialData = initialData;
+            }),
+        },
       },
     });
 
@@ -86,9 +88,7 @@ describe('MultipleSelect', () => {
           metadata: { dataType: defaultDataTypeMock, field: 'metadata' },
         },
       },
-      queries: {
-        fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }),
-      },
+      apis: { formDataApi: { fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }) } },
     });
 
     expect(screen.getAllByRole('listitem')).toHaveLength(1);

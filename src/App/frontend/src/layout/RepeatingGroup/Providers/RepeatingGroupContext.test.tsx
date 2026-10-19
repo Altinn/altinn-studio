@@ -58,12 +58,14 @@ async function render(rows: { altinnRowId: string; name: string }[]) {
         <Navigation />
       </RepeatingGroupProvider>
     ),
-    queries: {
-      fetchFormBootstrapForInstance: async () =>
-        getFormBootstrapMock((obj) => {
-          obj.layouts = { FormLayout: { data: { layout } } };
-          obj.dataModels[defaultDataTypeMock].initialData = { rows };
-        }),
+    apis: {
+      formBootstrapApi: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = { FormLayout: { data: { layout } } };
+            obj.dataModels[defaultDataTypeMock].initialData = { rows };
+          }),
+      },
     },
   });
 }

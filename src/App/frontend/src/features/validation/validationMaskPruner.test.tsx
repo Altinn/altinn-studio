@@ -2,8 +2,9 @@ import React from 'react';
 import { MemoryRouter } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook as rtlRenderHook } from '@testing-library/react';
 import { createStore } from 'zustand';
+import type { RenderHookOptions } from '@testing-library/react';
 
 import { FormStoreProvider } from 'src/features/form/FormContext';
 import { processLayouts } from 'src/features/form/layout/LayoutsContext';
@@ -12,11 +13,11 @@ import { CurrentLanguageProvider } from 'src/features/language/LanguageProvider'
 import { ValidationMask } from 'src/features/validation';
 import * as derivedValidation from 'src/features/validation/deriveValidationState';
 import { usePruneValidationMasks } from 'src/features/validation/validationHooks';
+import { createQueryTestWrapper } from 'src/test/queryTestUtils';
 import type { FormStoreApi, FormStoreState } from 'src/features/form/FormContext';
 import type { ILayoutCollection } from 'src/layout/layout';
 
 const pageOrder = ['First'];
-const instanceData: never[] = [];
 const expressionDataSources = {};
 let store: FormStoreApi;
 
@@ -27,9 +28,7 @@ vi.mock('src/features/form/layoutSettings/processLayoutSettings', () => ({
 vi.mock('src/features/expressions/runtime/useExpressionDataSources', () => ({
   useExpressionDataSourcesBaseForStoreSelector: () => expressionDataSources,
 }));
-vi.mock('src/core/queries/instance', () => ({
-  useInstanceDataQuery: () => ({ data: instanceData }),
-}));
+
 vi.mock('src/features/instance/useProcessTaskId', () => ({
   useProcessTaskId: () => 'Task_1',
 }));
@@ -180,3 +179,14 @@ it('activates pruning for stale row masks and removes them', () => {
   act(() => result.current());
   expect(store.getState().validation.rowMasks).toEqual({});
 });
+
+function renderHook<Result, Props>(hook: (props: Props) => Result, options?: RenderHookOptions<Props>) {
+  const { wrapper: QueryWrapper } = createQueryTestWrapper();
+  const ExistingWrapper = options?.wrapper;
+  return rtlRenderHook(hook, {
+    ...options,
+    wrapper: ({ children }) => (
+      <QueryWrapper>{ExistingWrapper ? <ExistingWrapper>{children}</ExistingWrapper> : children}</QueryWrapper>
+    ),
+  });
+}

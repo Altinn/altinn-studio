@@ -64,15 +64,13 @@ const render = async (renderAs: RenderAs) => {
         {children}
       </InstanceRouter>
     ),
-    queries: {
-      fetchFormBootstrapForInstance: async () =>
-        getFormBootstrapMock((obj) => {
-          obj.layouts = {};
-        }),
-    },
     apis: {
-      instanceApi: {
-        getInstance: getInstanceMock,
+      instanceApi: { getInstance: getInstanceMock },
+      formBootstrapApi: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {};
+          }),
       },
     },
   });

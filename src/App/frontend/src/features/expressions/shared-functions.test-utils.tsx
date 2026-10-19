@@ -1,13 +1,13 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
+import type { Mock } from 'vitest';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import { fetchExternalApi } from 'src/core/api-client/app.api';
 import { getSharedTests } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
@@ -21,22 +21,16 @@ import {
 } from 'src/test/renderWithProviders';
 import { NestedDataModelLocationProviders } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
-import type * as QueriesModule from 'src/core/api-client/app.api';
-import type { AppQueries } from 'src/core/queries/appQueries.types';
+import type { ExternalApiClient } from 'src/core/api-client/app.api';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { FunctionTest, FunctionTestBase, SharedTestFunctionContext } from 'src/features/expressions/shared';
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { RepeatingComponents } from 'src/features/form/layout/utils/repeating';
 import type { IDataModelBindings, ILayoutCollection } from 'src/layout/layout';
+import type { ApiOverrides } from 'src/test/apiMocks';
 import type { IData, IDataType, IInstance, IProcess, IProfile } from 'src/types/shared';
 
-vi.mock('src/core/api-client/app.api', async () => {
-  const actual = await vi.importActual<typeof QueriesModule>('src/core/api-client/app.api');
-  return {
-    ...actual,
-    fetchExternalApi: vi.fn(),
-  };
-});
+const fetchExternalApi = vi.fn<ExternalApiClient['fetchExternalApi']>();
 
 interface Props {
   context: SharedTestFunctionContext | undefined;
@@ -301,7 +295,7 @@ async function renderExpression(test: FunctionTest, expression: ExprValToActualO
       valueArguments={valueArguments}
     />
   );
-  const queries = createQueries(test, expression);
+  const apis = createQueries(test, expression);
   if (stateless) {
     await renderWithoutInstanceAndLayout({
       withFormProvider: true,
@@ -309,27 +303,28 @@ async function renderExpression(test: FunctionTest, expression: ExprValToActualO
         <StatelessRouter initialPage={context?.currentLayout ?? 'FormLayout'}>{children}</StatelessRouter>
       ),
       renderer,
-      queries,
+      apis: { ...apis, externalApi: { fetchExternalApi } },
     });
   } else {
     await renderWithInstanceAndLayout({
       initialPage: context?.currentLayout ?? 'FormLayout',
       renderer,
-      queries,
       apis: {
+        ...apis,
         instanceApi: {
           getInstance: async () => ({
             ...createInstanceData(test),
             process: createProcess(test) ?? getProcessDataMock(),
           }),
         },
+        externalApi: { fetchExternalApi },
       },
     });
   }
 }
 
-function createQueries(test: FunctionTest, expression: ExprValToActualOrExpr<ExprVal.Any>): Partial<AppQueries> {
-  const { frontendSettings, codeLists } = test;
+function createQueries(test: FunctionTest, expression: ExprValToActualOrExpr<ExprVal.Any>): ApiOverrides {
+  const { codeLists } = test;
   const bootstrapFn = async () =>
     getFormBootstrapMock((obj) => {
       obj.layouts = createLayouts(test, expression);
@@ -350,9 +345,7 @@ function createQueries(test: FunctionTest, expression: ExprValToActualOrExpr<Exp
       }
     });
   return {
-    fetchFormBootstrapForInstance: bootstrapFn,
-    fetchFormBootstrapForStateless: bootstrapFn,
-    ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
+    formBootstrapApi: { fetchFormBootstrapForInstance: bootstrapFn, fetchFormBootstrapForStateless: bootstrapFn },
   };
 }
 
@@ -425,4 +418,3 @@ async function assertExpr({ expression, expects, expectsFailure, name: _, ...res
 
   vi.clearAllMocks();
 }
-import type { Mock } from 'vitest';

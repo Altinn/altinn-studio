@@ -28,11 +28,13 @@ describe('EditButton', () => {
   test('should return null when component is readOnly', async () => {
     await renderWithInstanceAndLayout({
       renderer: <EditButton targetBaseComponentId='TestInput' />,
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.layouts = layoutMock(true);
-          }),
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.layouts = layoutMock(true);
+            }),
+        },
       },
     });
 
@@ -42,11 +44,13 @@ describe('EditButton', () => {
   test('should render edit button when component is not readOnly', async () => {
     await renderWithInstanceAndLayout({
       renderer: <EditButton targetBaseComponentId='TestInput' />,
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.layouts = layoutMock(false);
-          }),
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.layouts = layoutMock(false);
+            }),
+        },
       },
     });
 
@@ -69,24 +73,26 @@ it('remounts the fallback when its component id changes', async () => {
   }
   await renderWithInstanceAndLayout({
     renderer: <ChangingFallback />,
-    queries: {
-      fetchFormBootstrapForInstance: async () =>
-        getFormBootstrapMock((obj) => {
-          obj.layouts = {
-            FormLayout: {
-              data: {
-                layout: [
-                  {
-                    id: 'TestInput',
-                    type: 'Input',
-                    dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'field' } },
-                    textResourceBindings: {},
-                  },
-                ],
+    apis: {
+      formBootstrapApi: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {
+              FormLayout: {
+                data: {
+                  layout: [
+                    {
+                      id: 'TestInput',
+                      type: 'Input',
+                      dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'field' } },
+                      textResourceBindings: {},
+                    },
+                  ],
+                },
               },
-            },
-          };
-        }),
+            };
+          }),
+      },
     },
   });
   fireEvent.click(screen.getByRole('button', { name: 'Toggle fallback' }));

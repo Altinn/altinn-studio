@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
+import type { MockedFunction } from 'vitest';
 
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
@@ -10,7 +11,7 @@ import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { ProcessTaskType } from 'src/types';
 import { getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 import type { IPresentationProvidedProps } from 'src/components/presentation/Presentation';
-import type { AppQueries } from 'src/core/queries/appQueries.types';
+import type { ApiOverrides } from 'src/test/apiMocks';
 
 vi.mock('src/core/routing/useIsReceiptPage', () => ({
   useIsReceiptPage: vi.fn(),
@@ -108,7 +109,7 @@ describe('Presentation', () => {
   });
 });
 
-const render = async (props: Partial<IPresentationProvidedProps> = {}, queries: Partial<AppQueries> = {}) => {
+const render = async (props: Partial<IPresentationProvidedProps> = {}, apis: ApiOverrides = {}) => {
   const allProps = {
     header: 'Header text',
     type: ProcessTaskType.Unknown,
@@ -118,9 +119,6 @@ const render = async (props: Partial<IPresentationProvidedProps> = {}, queries: 
   await renderWithInstanceAndLayout({
     renderer: () => <PresentationComponent {...allProps} />,
     taskId: 'Task_1',
-    queries: {
-      ...queries,
-    },
+    apis: { ...apis },
   });
 };
-import type { MockedFunction } from 'vitest';

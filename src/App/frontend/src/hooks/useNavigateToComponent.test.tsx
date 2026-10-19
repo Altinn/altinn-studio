@@ -67,23 +67,25 @@ async function setup({ available = true, query = 'other=keep' }: { available?: b
       </>
     ),
     query,
-    queries: {
-      fetchFormBootstrapForInstance: async () =>
-        getFormBootstrapMock((obj) => {
-          obj.layouts = {
-            FormLayout: {
-              data: {
-                layout: [
-                  {
-                    id: 'target',
-                    type: 'Input',
-                    dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'name' } },
-                  },
-                ],
+    apis: {
+      formBootstrapApi: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {
+              FormLayout: {
+                data: {
+                  layout: [
+                    {
+                      id: 'target',
+                      type: 'Input',
+                      dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'name' } },
+                    },
+                  ],
+                },
               },
-            },
-          };
-        }),
+            };
+          }),
+      },
     },
   });
   return { ...result, renders };

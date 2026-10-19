@@ -41,62 +41,64 @@ describe('SummaryGroupComponent', () => {
           targetBaseComponentId='groupComponent'
         />
       ),
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].initialData = {
-              mockGroup: {
-                mockDataBinding1: '1',
-                mockDataBinding2: '2',
-              },
-            };
-            obj.layouts = {
-              FormLayout: {
-                data: {
-                  layout: [
-                    {
-                      type: 'Group',
-                      id: 'groupComponent',
-                      textResourceBindings: {
-                        title: 'mockGroupTitle',
-                      },
-                      children: ['mockId1', 'mockId2'],
-                    },
-                    {
-                      type: 'Input',
-                      id: 'mockId1',
-                      dataModelBindings: {
-                        simpleBinding: { dataType: defaultDataTypeMock, field: 'mockGroup.mockDataBinding1' },
-                      },
-                      readOnly: false,
-                      required: false,
-                      textResourceBindings: {
-                        title: 'mockField1',
-                      },
-                    },
-                    {
-                      type: 'Input',
-                      id: 'mockId2',
-                      dataModelBindings: {
-                        simpleBinding: { dataType: defaultDataTypeMock, field: 'mockGroup.mockDataBinding2' },
-                      },
-                      readOnly: false,
-                      required: false,
-                      textResourceBindings: {
-                        title: 'mockField2',
-                      },
-                    },
-                    {
-                      type: 'Summary',
-                      id: 'mySummary',
-                      componentRef: 'groupComponent',
-                      largeGroup: false,
-                    },
-                  ],
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                mockGroup: {
+                  mockDataBinding1: '1',
+                  mockDataBinding2: '2',
                 },
-              },
-            };
-          }),
+              };
+              obj.layouts = {
+                FormLayout: {
+                  data: {
+                    layout: [
+                      {
+                        type: 'Group',
+                        id: 'groupComponent',
+                        textResourceBindings: {
+                          title: 'mockGroupTitle',
+                        },
+                        children: ['mockId1', 'mockId2'],
+                      },
+                      {
+                        type: 'Input',
+                        id: 'mockId1',
+                        dataModelBindings: {
+                          simpleBinding: { dataType: defaultDataTypeMock, field: 'mockGroup.mockDataBinding1' },
+                        },
+                        readOnly: false,
+                        required: false,
+                        textResourceBindings: {
+                          title: 'mockField1',
+                        },
+                      },
+                      {
+                        type: 'Input',
+                        id: 'mockId2',
+                        dataModelBindings: {
+                          simpleBinding: { dataType: defaultDataTypeMock, field: 'mockGroup.mockDataBinding2' },
+                        },
+                        readOnly: false,
+                        required: false,
+                        textResourceBindings: {
+                          title: 'mockField2',
+                        },
+                      },
+                      {
+                        type: 'Summary',
+                        id: 'mySummary',
+                        componentRef: 'groupComponent',
+                        largeGroup: false,
+                      },
+                    ],
+                  },
+                },
+              };
+            }),
+        },
       },
     });
   }

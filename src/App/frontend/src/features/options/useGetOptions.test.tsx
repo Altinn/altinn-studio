@@ -8,7 +8,7 @@ import type {
   IRawOption,
   ISelectionComponentFull,
 } from '@app/layout-contract/generated/common.generated';
-import type { AxiosResponse } from 'axios';
+import type { Mock } from 'vitest';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
@@ -17,7 +17,7 @@ import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import type { fetchOptions } from 'src/core/api-client/app.api';
+import type { OptionsApi } from 'src/core/api-client/app.api';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { ILayout } from 'src/layout/layout';
@@ -30,7 +30,7 @@ interface RenderProps {
   queryParameters?: IQueryParameters;
   selected?: string;
   preselectedOptionIndex?: number;
-  fetchOptions?: Mock<typeof fetchOptions>;
+  fetchOptions?: Mock<OptionsApi['fetchOptions']>;
   extraLayout?: ILayout;
   staticOptions?: Record<string, StaticOptionSet>;
 }
@@ -88,51 +88,54 @@ async function render(props: RenderProps) {
 
   return renderWithInstanceAndLayout({
     renderer: <TestOptions baseComponentId='myComponent' />,
-    queries: {
-      fetchFormBootstrapForInstance: async () =>
-        getFormBootstrapMock((obj) => {
-          obj.dataModels[defaultDataTypeMock]!.initialData = {
-            Group: structuredClone(props.options ?? []).map((option, index) => ({
-              [ALTINN_ROW_ID]: `row-${index}`,
-              ...option,
-            })),
-            result: props.selected ?? '',
-            someOther: 'value',
-          };
-          obj.layouts = {
-            FormLayout: {
-              data: {
-                layout: [
-                  ...(props.extraLayout ?? []),
-                  {
-                    type: props.type === 'single' ? 'Dropdown' : 'MultipleSelect',
-                    id: 'myComponent',
-                    dataModelBindings: {
-                      simpleBinding: { dataType: defaultDataTypeMock, field: 'result' },
+    apis: {
+      formBootstrapApi: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock]!.initialData = {
+              Group: structuredClone(props.options ?? []).map((option, index) => ({
+                [ALTINN_ROW_ID]: `row-${index}`,
+                ...option,
+              })),
+              result: props.selected ?? '',
+              someOther: 'value',
+            };
+            obj.layouts = {
+              FormLayout: {
+                data: {
+                  layout: [
+                    ...(props.extraLayout ?? []),
+                    {
+                      type: props.type === 'single' ? 'Dropdown' : 'MultipleSelect',
+                      id: 'myComponent',
+                      dataModelBindings: {
+                        simpleBinding: { dataType: defaultDataTypeMock, field: 'result' },
+                      },
+                      textResourceBindings: {
+                        title: 'mockTitle',
+                      },
+                      ...layoutConfig,
                     },
-                    textResourceBindings: {
-                      title: 'mockTitle',
-                    },
-                    ...layoutConfig,
-                  },
-                ],
+                  ],
+                },
               },
-            },
-          };
-          obj.staticOptions = props.staticOptions ?? {};
-        }),
-      fetchOptions:
-        props.fetchOptions ??
-        (async () =>
-          ({
-            data: props.options?.map((option) => ({
+            };
+            obj.staticOptions = props.staticOptions ?? {};
+          }),
+      },
+      optionsApi: {
+        fetchOptions:
+          props.fetchOptions ??
+          (async () => ({
+            data: (props.options ?? []).map((option) => ({
               value: option.value,
               label: option.label,
               description: option.description,
               helpText: option.helpText,
             })),
             headers: {},
-          }) as AxiosResponse<IRawOption[]>),
+          })),
+      },
     },
   });
 }
@@ -202,13 +205,10 @@ describe('useGetOptions', () => {
   });
 
   it('should include the query parameters in the api request', async () => {
-    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockImplementation(
-      async (_url: string) =>
-        ({
-          data: [] as IRawOption[],
-          headers: {},
-        }) as AxiosResponse<IRawOption[]>,
-    );
+    const fetchOptionsMock = vi.fn<OptionsApi['fetchOptions']>().mockImplementation(async (_url: string) => ({
+      data: [] as IRawOption[],
+      headers: {},
+    }));
 
     await render({
       via: 'api',
@@ -223,10 +223,10 @@ describe('useGetOptions', () => {
   });
 
   it('uses bootstrap static options and does not fetch options', async () => {
-    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<OptionsApi['fetchOptions']>().mockResolvedValue({
       data: [] as IRawOption[],
       headers: {},
-    } as AxiosResponse<IRawOption[]>);
+    });
 
     await render({
       via: 'api',
@@ -244,10 +244,10 @@ describe('useGetOptions', () => {
   });
 
   it('fetches options from the API when query parameters are dynamic', async () => {
-    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<OptionsApi['fetchOptions']>().mockResolvedValue({
       data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
       headers: {},
-    } as AxiosResponse<IRawOption[]>);
+    });
 
     await render({
       via: 'api',
@@ -266,10 +266,10 @@ describe('useGetOptions', () => {
   });
 
   it('fetches options from the API when query parameters are static but non-empty', async () => {
-    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<OptionsApi['fetchOptions']>().mockResolvedValue({
       data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
       headers: {},
-    } as AxiosResponse<IRawOption[]>);
+    });
 
     await render({
       via: 'api',
@@ -288,10 +288,10 @@ describe('useGetOptions', () => {
   });
 
   it('uses bootstrap static options when query parameters are empty', async () => {
-    const fetchOptionsMock = vi.fn<typeof fetchOptions>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<OptionsApi['fetchOptions']>().mockResolvedValue({
       data: [] as IRawOption[],
       headers: {},
-    } as AxiosResponse<IRawOption[]>);
+    });
 
     await render({
       via: 'api',
@@ -420,4 +420,3 @@ describe('useGetOptions', () => {
     );
   });
 });
-import type { Mock } from 'vitest';

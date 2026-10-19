@@ -5,23 +5,14 @@ import type { PropsWithChildren } from 'react';
 import { act, render as rtlRender, waitFor } from '@testing-library/react';
 import dotenv from 'dotenv';
 import { vi } from 'vitest';
-import type { IRawOption } from '@app/layout-contract/generated/common.generated';
 import type { RenderOptions, waitForOptions } from '@testing-library/react';
-import type { AxiosResponse } from 'axios';
-import type { JSONSchema7 } from 'json-schema';
+import type { Mock } from 'vitest';
 
-import { getDataListMock } from 'src/__mocks__/getDataListMock';
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
-import { getLogoMock } from 'src/__mocks__/getLogoMock';
-import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
-import { getPartyMock } from 'src/__mocks__/getPartyMock';
-import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
-import { fetchFormBootstrapForInstance } from 'src/core/api-client/app.api';
 import { ApiProvider } from 'src/core/contexts/ApiProvider';
 import { createTestQueryClient } from 'src/core/queries/queryClient';
-import { AppQueriesProvider } from 'src/core/queries/QueryProvider';
+import { AppQueryProvider } from 'src/core/queries/QueryProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { UiPreferencesProvider } from 'src/features/form/layout/UiPreferencesContext';
@@ -33,28 +24,22 @@ import { CurrentLanguageProvider } from 'src/features/language/LanguageProvider'
 import { NavigationFocusStateProvider } from 'src/features/navigation/NavigationFocusStateContext';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
+import { createApiMocks } from 'src/test/apiMocks';
 import { PageNavigationRouter } from 'src/test/routerUtils';
 import type { ApiClients } from 'src/core/api-client/ApiClients';
-import type { BackendValidationApi } from 'src/core/api-client/backendValidation.api';
-import type { InstanceApi } from 'src/core/api-client/instance.api';
-import type { PartyApi } from 'src/core/api-client/party.api';
-import type { AppMutations, AppQueries, AppQueriesContext } from 'src/core/queries/appQueries.types';
+import type { FormBootstrapApi } from 'src/core/api-client/app.api';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
 import type { CompExternal, CompExternalExact, CompTypes } from 'src/layout/layout';
+import type { ApiOverrides } from 'src/test/apiMocks';
 
-type ApiOverrides = Partial<{
-  backendValidationApi: Partial<BackendValidationApi>;
-  partyApi: Partial<PartyApi>;
-  instanceApi: Partial<InstanceApi>;
-}>;
+export type { ApiOverrides };
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   renderer: (() => React.ReactElement) | React.ReactElement;
   router?: (props: PropsWithChildren) => React.ReactNode;
   waitUntilLoaded?: boolean;
-  queries?: Partial<AppQueries>;
   apis?: ApiOverrides;
   initialRenderRef?: InitialRenderRef;
 }
@@ -85,85 +70,6 @@ const env = dotenv.config({ quiet: true });
 
 const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
 const exampleInstanceId = `512345/${exampleGuid}`;
-
-export function queryPromiseMock<T extends keyof AppQueriesContext>(_name: T) {
-  const mock = vi.fn().mockName(_name);
-  const resolve = vi.fn().mockName(`${_name}.resolve`);
-  const reject = vi.fn().mockName(`${_name}.reject`);
-  mock.mockImplementation(
-    () =>
-      new Promise<T>((res, rej) => {
-        resolve.mockImplementation(res);
-        reject.mockImplementation(rej);
-      }),
-  );
-
-  return { mock, resolve, reject } as unknown as {
-    mock: AppQueriesContext[T];
-    resolve: (retVal?: Awaited<ReturnType<AppQueriesContext[T]>>) => void;
-    reject: (error: Error) => void;
-  };
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const makeMutationMocks = <T extends (name: keyof AppMutations) => any>(
-  makeMock: T,
-): {
-  [fn in keyof AppMutations]: ReturnType<T>;
-} => ({
-  doAttachmentRemove: makeMock('doAttachmentRemove'),
-  doAttachmentUpload: makeMock('doAttachmentUpload'),
-  doPatchMultipleFormData: makeMock('doPatchMultipleFormData'),
-  doPostStatelessFormData: makeMock('doPostStatelessFormData'),
-  doPerformAction: makeMock('doPerformAction'),
-  doSubformEntryAdd: makeMock('doSubformEntryAdd'),
-  doSubformEntryDelete: makeMock('doSubformEntryDelete'),
-});
-
-// Mock postal codes data for testing. Uses the indexed format where:
-// - places array contains unique place names (index 0 is null for "not found")
-// - mapping array maps zip code (as index) to places array index
-const defaultPostalCodesMock = (() => {
-  const places: (string | null)[] = [null, 'OSLO', 'BERGEN', 'FREDRIKSTAD', 'KARDEMOMME BY'];
-  const mapping = new Array(4610).fill(0);
-  mapping[1] = 1; // 0001 -> OSLO
-  mapping[2] = 2; // 0002 -> BERGEN
-  mapping[1613] = 3; // 1613 -> FREDRIKSTAD
-  mapping[4609] = 4; // 4609 -> KARDEMOMME BY
-  return { places, mapping };
-})();
-
-const defaultQueryMocks: AppQueries = {
-  fetchLogo: async () => getLogoMock(),
-  fetchRefreshJwtToken: async () => ({}),
-  fetchFormData: async () => {
-    throw new Error('Not implemented/overridden in test');
-  },
-  fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IRawOption[], unknown>,
-  fetchDataList: async () => getDataListMock(),
-  fetchLayoutSchema: async () => ({}) as JSONSchema7,
-  fetchPaymentInformationForTask: async () => paymentResponsePayload,
-  fetchOrderDetails: async () => orderDetailsResponsePayload,
-  fetchPostalCodes: async () => defaultPostalCodesMock,
-  fetchFormBootstrapForInstance: async () => getFormBootstrapMock(),
-  fetchFormBootstrapForStateless: async () => getFormBootstrapMock(),
-};
-
-const defaultApiMocks: Omit<ApiClients, 'textResourcesApi'> = {
-  backendValidationApi: {
-    fetchBackendValidations: async () => [],
-  },
-  partyApi: {
-    getPartiesAllowedToInstantiateHierarchical: async () => [getPartyMock()],
-    setSelectedParty: async () => 'Party successfully updated',
-  },
-  instanceApi: {
-    getInstance: async () => getInstanceWithProcessMock(),
-    getActiveInstances: async () => [],
-    create: async () => getInstanceWithProcessMock(),
-    createWithPrefill: async () => getInstanceWithProcessMock(),
-  },
-};
 
 function makeProxy<Name extends keyof FormDataMethods>(name: Name, ref: InitialRenderRef) {
   const mock = vi.fn().mockName(name);
@@ -313,19 +219,15 @@ export function StatelessRouter({
 }
 
 interface ProvidersProps extends PropsWithChildren {
-  queries: AppQueriesContext;
-  apis: Omit<ApiClients, 'textResourcesApi'>;
+  apis: ApiClients;
   queryClient: ReturnType<typeof createTestQueryClient>;
   Router?: (props: PropsWithChildren) => React.ReactNode;
 }
 
-function DefaultProviders({ children, queries, apis, queryClient, Router = DefaultRouter }: ProvidersProps) {
+function DefaultProviders({ children, apis, queryClient, Router = DefaultRouter }: ProvidersProps) {
   return (
     <ApiProvider apis={apis}>
-      <AppQueriesProvider
-        {...queries}
-        queryClient={queryClient}
-      >
+      <AppQueryProvider queryClient={queryClient}>
         <UiPreferencesProvider>
           <Router>
             <CurrentLanguageProvider>
@@ -337,7 +239,7 @@ function DefaultProviders({ children, queries, apis, queryClient, Router = Defau
             </CurrentLanguageProvider>
           </Router>
         </UiPreferencesProvider>
-      </AppQueriesProvider>
+      </AppQueryProvider>
     </ApiProvider>
   );
 }
@@ -358,102 +260,35 @@ function InstanceFormAndLayoutProviders({ children, formDataProxies }: InstanceP
   );
 }
 
-function MinimalProviders({ children, queries, apis, queryClient, Router = DefaultRouter }: ProvidersProps) {
+function MinimalProviders({ children, apis, queryClient, Router = DefaultRouter }: ProvidersProps) {
   return (
     <ApiProvider apis={apis}>
-      <AppQueriesProvider
-        {...queries}
-        queryClient={queryClient}
-      >
+      <AppQueryProvider queryClient={queryClient}>
         <Router>
           <CurrentLanguageProvider>
             <NavigationFocusStateProvider>{children}</NavigationFocusStateProvider>
           </CurrentLanguageProvider>
         </Router>
-      </AppQueriesProvider>
+      </AppQueryProvider>
     </ApiProvider>
   );
 }
 
-interface SetupFakeAppProps {
-  queries?: Partial<AppQueries>;
-  mutations?: Partial<AppMutations>;
-  apis?: ApiOverrides;
-}
-
-/**
- * This function bootstraps everything that is necessary to render a component with the same setup as the real app,
- * but with some default mocks for the queries and mutations, and a sensible state. This is exported so you can
- * use it when testing difficult problems that are unsuitable for unit tests.
- *
- * As an example, if you want to reproduce a bug in a browser (with all the nice React developer tools available there,
- * which may not be available in a unit test context) you can use this function to render all the basic providers
- * needed to render a component in something that looks like an app.
- */
-export function setupFakeApp({ queries, mutations, apis }: SetupFakeAppProps = {}) {
-  const queryClient = createTestQueryClient();
-
-  const finalQueries: AppQueries = {
-    ...defaultQueryMocks,
-    ...queries,
-  };
-
-  const finalMutations: AppMutations = {
-    ...makeMutationMocks((name) => async () => {
-      alert(`Mutation called: ${name}`);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return undefined as any;
-    }),
-    ...mutations,
-  };
-
-  const finalApis: Omit<ApiClients, 'textResourcesApi'> = {
-    backendValidationApi: {
-      ...defaultApiMocks.backendValidationApi,
-      ...apis?.backendValidationApi,
-    },
-    partyApi: {
-      ...defaultApiMocks.partyApi,
-      ...apis?.partyApi,
-    },
-    instanceApi: {
-      ...defaultApiMocks.instanceApi,
-      ...apis?.instanceApi,
-    },
-  };
-
-  return {
-    queryClient,
-    queries: {
-      ...finalQueries,
-      ...finalMutations,
-    },
-    apis: finalApis,
-    queriesOnly: finalQueries,
-    mutationsOnly: finalMutations,
-  };
+/** Create an isolated app cache and typed API clients for a test render. */
+export function setupFakeApp({ apis }: { apis?: ApiOverrides } = {}) {
+  return { queryClient: createTestQueryClient(), apis: createApiMocks(apis) };
 }
 
 const renderBase = async ({
   renderer,
   router,
-  queries = {},
   apis = {},
   waitUntilLoaded = true,
   Providers = DefaultProviders,
   initialRenderRef = { current: true },
   ...renderOptions
 }: BaseRenderOptions) => {
-  const { queryClient, queriesOnly: finalQueries, apis: finalApis } = setupFakeApp({ queries, apis });
-  const mutations = makeMutationMocks(queryPromiseMock);
-
-  const queryMocks = Object.fromEntries(
-    Object.entries(finalQueries).map(([key, value]) => [key, vi.fn().mockImplementation(value).mockName(key)]),
-  ) as unknown as AppQueries;
-
-  const mutationMocks = Object.fromEntries(
-    Object.entries(mutations).map(([key, value]) => [key, value.mock]),
-  ) as AppMutations;
+  const { queryClient, apis: finalApis } = setupFakeApp({ apis });
 
   if (!router) {
     throw new Error('No router provided');
@@ -464,10 +299,6 @@ const renderBase = async ({
       Router={router}
       queryClient={queryClient}
       apis={finalApis}
-      queries={{
-        ...queryMocks,
-        ...mutationMocks,
-      }}
     >
       <RenderStart
         devTools={false}
@@ -492,13 +323,10 @@ const renderBase = async ({
       timeout,
       onTimeout: () => {
         const queryCalls: string[] = [];
-        for (const [name, fn] of Object.entries(queryMocks)) {
-          const mock = (fn as Mock).mock;
-          if (mock.calls.length > 0) {
-            for (const args of mock.calls) {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const argsAsStr = args.map((arg: any) => JSON.stringify(arg)).join(', ');
-              queryCalls.push(`- ${name}(${argsAsStr})`);
+        for (const [clientName, client] of Object.entries(finalApis)) {
+          for (const [methodName, fn] of Object.entries(client)) {
+            for (const args of fn.mock.calls) {
+              queryCalls.push(`- ${clientName}.${methodName}(${JSON.stringify(args)})`);
             }
           }
         }
@@ -543,14 +371,7 @@ const renderBase = async ({
   initialRenderRef.current = false;
 
   return {
-    // Mutations are returned, which allows you to assert on the mocked functions, and resolve/reject them.
-    // None of our mutations do anything in any of the unit tests, so you'll have to provide your own responses
-    // if you want to test the effects.
-    mutations,
-
-    // All queries are also returned, allowing you to assert on the mocked functions. All implementations
-    // will have defaults, and you can provide your own mocks for any query by passing one in the `queries` prop.
-    queries: queryMocks,
+    apis: finalApis,
 
     // All the other utils from @testing-library/react
     ...utils,
@@ -639,29 +460,32 @@ export const renderWithInstanceAndLayout = async ({
           {children}
         </InstanceRouter>
       ),
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.layouts = {
-              [initialPage]: {
-                data: {
-                  layout: [
-                    {
-                      id: 'noOtherComponentsHere',
-                      type: 'Heading',
-                      textResourceBindings: {
-                        title:
-                          "You haven't added any components yet. Supply your own components " +
-                          'by overriding the "fetchLayouts" query in your test.',
+      apis: {
+        ...renderOptions.apis,
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.layouts = {
+                [initialPage]: {
+                  data: {
+                    layout: [
+                      {
+                        id: 'noOtherComponentsHere',
+                        type: 'Heading',
+                        textResourceBindings: {
+                          title:
+                            "You haven't added any components yet. Supply your own components " +
+                            'by overriding the "fetchLayouts" query in your test.',
+                        },
+                        size: 'L',
                       },
-                      size: 'L',
-                    },
-                  ],
+                    ],
+                  },
                 },
-              },
-            };
-          }),
-        ...renderOptions.queries,
+              };
+            }),
+          ...renderOptions.apis?.formBootstrapApi,
+        },
       },
     })),
   };
@@ -709,11 +533,11 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
   };
 
   async function formBootstrap(
-    ...args: Parameters<typeof fetchFormBootstrapForInstance>
+    ...args: Parameters<FormBootstrapApi['fetchFormBootstrapForInstance']>
   ): Promise<FormBootstrapResponse> {
     const mock =
-      (inInstance ? await rest.queries?.fetchFormBootstrapForInstance?.(...args) : undefined) ??
-      (!inInstance ? await rest.queries?.fetchFormBootstrapForStateless?.(...args) : undefined) ??
+      (inInstance ? await rest.apis?.formBootstrapApi?.fetchFormBootstrapForInstance?.(...args) : undefined) ??
+      (!inInstance ? await rest.apis?.formBootstrapApi?.fetchFormBootstrapForStateless?.(...args) : undefined) ??
       getFormBootstrapMock();
 
     if (
@@ -738,10 +562,13 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     ...rest,
     renderer: Wrapper,
     initialPage,
-    queries: {
-      ...rest.queries,
-      fetchFormBootstrapForInstance: formBootstrap,
-      fetchFormBootstrapForStateless: formBootstrap,
+    apis: {
+      ...rest.apis,
+      formBootstrapApi: {
+        ...rest.apis?.formBootstrapApi,
+        fetchFormBootstrapForInstance: formBootstrap,
+        fetchFormBootstrapForStateless: formBootstrap,
+      },
     },
   }) as RenderGenericComponentReturnType<InInstance>;
 }
@@ -749,4 +576,3 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
 const mockGenericComponentProps: IComponentProps = {
   containerDivRef: { current: null },
 };
-import type { Mock } from 'vitest';

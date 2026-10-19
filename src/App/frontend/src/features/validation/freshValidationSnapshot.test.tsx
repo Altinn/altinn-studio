@@ -1,4 +1,7 @@
-import { renderHook } from '@testing-library/react';
+import React from 'react';
+
+import { renderHook as rtlRenderHook } from '@testing-library/react';
+import type { RenderHookOptions } from '@testing-library/react';
 
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { processLayouts } from 'src/features/form/layout/LayoutsContext';
@@ -6,6 +9,7 @@ import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { ValidationMask } from 'src/features/validation';
 import { getValidationsForNode } from 'src/features/validation/deriveValidationState';
 import { useGetDerivedValidationState } from 'src/features/validation/validationHooks';
+import { createQueryTestWrapper } from 'src/test/queryTestUtils';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { ILayoutCollection } from 'src/layout/layout';
@@ -23,7 +27,7 @@ const runtime = {
 } as unknown as ExpressionDataSources;
 
 vi.mock('src/features/form/FormContext', () => ({ FormStore: { raw: { useStore: () => store } } }));
-vi.mock('src/core/queries/instance', () => ({ useGetCachedInstanceData: () => () => undefined }));
+
 vi.mock('src/core/contexts/TaskOverrides', () => ({ useTaskOverrides: () => undefined }));
 vi.mock('src/hooks/navigation', () => ({ useAllNavigationParams: () => ({ taskId: 'Task_1' }) }));
 vi.mock('src/features/form/layoutSettings/processLayoutSettings', () => ({
@@ -77,3 +81,14 @@ it('reads current query-backed validations in an event callback before an observ
   mutable.required = 'no';
   expect(getValidationsForNode(callback(), 'input', 'visible')).toEqual([]);
 });
+
+function renderHook<Result, Props>(hook: (props: Props) => Result, options?: RenderHookOptions<Props>) {
+  const { wrapper: QueryWrapper } = createQueryTestWrapper();
+  const ExistingWrapper = options?.wrapper;
+  return rtlRenderHook(hook, {
+    ...options,
+    wrapper: ({ children }) => (
+      <QueryWrapper>{ExistingWrapper ? <ExistingWrapper>{children}</ExistingWrapper> : children}</QueryWrapper>
+    ),
+  });
+}

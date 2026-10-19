@@ -65,50 +65,52 @@ describe('NavigationButtons', () => {
       component,
       genericProps,
       initialPage: currentPageId,
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            if (formDataOverride) {
-              obj.dataModels[defaultDataTypeMock].initialData = formDataOverride;
-            }
-            obj.layouts = {
-              layout1: {
-                data: {
-                  layout: [
-                    {
-                      type: 'Input',
-                      id: 'mockId1',
-                      dataModelBindings: {
-                        simpleBinding: { dataType: defaultDataTypeMock, field: 'mockDataBinding1' },
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              if (formDataOverride) {
+                obj.dataModels[defaultDataTypeMock].initialData = formDataOverride;
+              }
+              obj.layouts = {
+                layout1: {
+                  data: {
+                    layout: [
+                      {
+                        type: 'Input',
+                        id: 'mockId1',
+                        dataModelBindings: {
+                          simpleBinding: { dataType: defaultDataTypeMock, field: 'mockDataBinding1' },
+                        },
+                        readOnly: false,
+                        required: inputRequired,
+                        textResourceBindings: {},
                       },
-                      readOnly: false,
-                      required: inputRequired,
-                      textResourceBindings: {},
-                    },
-                    ...(currentPageId === 'layout1' ? [component] : []),
-                  ],
-                  ...(pageValidation && { validationOnNavigation: pageValidation }),
+                      ...(currentPageId === 'layout1' ? [component] : []),
+                    ],
+                    ...(pageValidation && { validationOnNavigation: pageValidation }),
+                  },
                 },
-              },
-              layout2: {
-                data: {
-                  layout: [
-                    {
-                      type: 'Input',
-                      id: 'mockId2',
-                      dataModelBindings: {
-                        simpleBinding: { dataType: defaultDataTypeMock, field: 'mockDataBinding2' },
+                layout2: {
+                  data: {
+                    layout: [
+                      {
+                        type: 'Input',
+                        id: 'mockId2',
+                        dataModelBindings: {
+                          simpleBinding: { dataType: defaultDataTypeMock, field: 'mockDataBinding2' },
+                        },
+                        readOnly: false,
+                        required: inputRequired,
+                        textResourceBindings: {},
                       },
-                      readOnly: false,
-                      required: inputRequired,
-                      textResourceBindings: {},
-                    },
-                    ...(currentPageId === 'layout2' ? [component] : []),
-                  ],
+                      ...(currentPageId === 'layout2' ? [component] : []),
+                    ],
+                  },
                 },
-              },
-            };
-          }),
+              };
+            }),
+        },
       },
     });
   };

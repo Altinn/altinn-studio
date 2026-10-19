@@ -118,25 +118,27 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
         </RepeatingGroupsFocusProvider>
       </RepeatingGroupProvider>
     ),
-    queries: {
-      fetchFormBootstrapForInstance: async () =>
-        getFormBootstrapMock((obj) => {
-          obj.layouts = {
-            FormLayout: {
-              data: {
-                layout: [group, ...mockComponents],
+    apis: {
+      formBootstrapApi: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {
+              FormLayout: {
+                data: {
+                  layout: [group, ...mockComponents],
+                },
               },
-            },
-          };
-          obj.dataModels[defaultDataTypeMock].initialData = {
-            Group: Array.from({ length: numRows }).map((_, index) => ({
-              [ALTINN_ROW_ID]: uuidv4(),
-              prop1: `value${index + 1}`,
-              checkboxBinding: ['option.value'],
-            })),
-          };
-          obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
-        }),
+            };
+            obj.dataModels[defaultDataTypeMock].initialData = {
+              Group: Array.from({ length: numRows }).map((_, index) => ({
+                [ALTINN_ROW_ID]: uuidv4(),
+                prop1: `value${index + 1}`,
+                checkboxBinding: ['option.value'],
+              })),
+            };
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
+          }),
+      },
     },
   });
 }

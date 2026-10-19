@@ -674,12 +674,14 @@ describe('SummaryComponent', () => {
     return await renderWithInstanceAndLayout({
       renderer: <SummaryComponent2 baseComponentId='mySummary2' />,
       initialPage: currentPageId,
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.layouts = layout;
-            obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
-          }),
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.layouts = layout;
+              obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
+            }),
+        },
       },
     });
   };

@@ -112,43 +112,43 @@ async function render(props: TestProps) {
       </>
     ),
     instanceId: instanceData.id,
-    queries: {
-      fetchFormBootstrapForInstance: async () =>
-        getFormBootstrapMock((obj) => {
-          for (const dm of Object.keys(props.dataModels)) {
-            if (props.dataModels[dm] instanceof Promise || props.dataModels[dm] instanceof Error) {
-              continue;
-            }
-
-            obj.dataModels[dm] = getDataModelBootstrapMock();
-            obj.dataModels[dm].initialData = props.dataModels[dm];
-            obj.dataModels[dm].schema = {
-              type: 'object',
-              properties: {
-                name: { type: 'string' },
-              },
-            };
-          }
-        }),
-      fetchFormData: async (url) => {
-        const path = new URL(url).pathname;
-        const id = path.split('/').pop();
-        const modelName = idToNameMap[id!];
-        const formData = props.dataModels[modelName];
-        if (formData instanceof Error) {
-          return Promise.reject(formData);
-        }
-        if (formData instanceof Promise) {
-          return formData;
-        }
-        throw new Error(
-          `No form data mocked for testing (modelName = ${modelName}), or statically fetchable data model fetched via API.`,
-        );
-      },
-    },
     apis: {
-      instanceApi: {
-        getInstance: async () => ({ ...instanceData, process: getProcessDataMock() }),
+      instanceApi: { getInstance: async () => ({ ...instanceData, process: getProcessDataMock() }) },
+      formBootstrapApi: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            for (const dm of Object.keys(props.dataModels)) {
+              if (props.dataModels[dm] instanceof Promise || props.dataModels[dm] instanceof Error) {
+                continue;
+              }
+
+              obj.dataModels[dm] = getDataModelBootstrapMock();
+              obj.dataModels[dm].initialData = props.dataModels[dm];
+              obj.dataModels[dm].schema = {
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                },
+              };
+            }
+          }),
+      },
+      formDataApi: {
+        fetchFormData: async (url) => {
+          const path = new URL(url).pathname;
+          const id = path.split('/').pop();
+          const modelName = idToNameMap[id!];
+          const formData = props.dataModels[modelName];
+          if (formData instanceof Error) {
+            return Promise.reject(formData);
+          }
+          if (formData instanceof Promise) {
+            return formData;
+          }
+          throw new Error(
+            `No form data mocked for testing (modelName = ${modelName}), or statically fetchable data model fetched via API.`,
+          );
+        },
       },
     },
   });
@@ -172,7 +172,7 @@ describe('FormDataReaders', () => {
   it.each<string>(['someModel', 'someModel1.0'])(
     'simple, should render a resource with a variable lookup - %s',
     async (modelName: string) => {
-      const { queries } = await render({
+      const { apis } = await render({
         ids: ['test'],
         textResources: [
           {
@@ -196,7 +196,7 @@ describe('FormDataReaders', () => {
 
       await waitFor(() => expect(screen.getByTestId('test')).toHaveTextContent('Hello World'));
 
-      expect(queries.fetchFormData).not.toHaveBeenCalled();
+      expect(apis.formDataApi.fetchFormData).not.toHaveBeenCalled();
 
       expect(window.logError).not.toHaveBeenCalled();
       expect(window.logErrorOnce).not.toHaveBeenCalled();
@@ -212,7 +212,7 @@ describe('FormDataReaders', () => {
     const model2Promise = new Promise((resolve) => {
       setTimeout(() => resolve({ name: 'Universe' }), 100);
     });
-    const { queries, urlFor } = await render({
+    const { apis, urlFor } = await render({
       ids: ['test1', 'test2', 'test3', 'testDefault', 'testMissing', 'testMissingWithDefault'],
       textResources: [
         {
@@ -319,10 +319,10 @@ describe('FormDataReaders', () => {
     await waitFor(() => expect(screen.getByTestId('test2')).toHaveTextContent('Hello Universe'));
     expect(screen.getByTestId('test3')).toHaveTextContent('You are [missing] year(s) old');
 
-    expect(queries.fetchFormData).toHaveBeenCalledTimes(2);
-    expect(queries.fetchFormData).not.toHaveBeenCalledWith(urlFor('model1'), {});
-    expect(queries.fetchFormData).toHaveBeenCalledWith(urlFor('model2'), {});
-    expect(queries.fetchFormData).toHaveBeenCalledWith(urlFor('modelMissing'), {});
+    expect(apis.formDataApi.fetchFormData).toHaveBeenCalledTimes(2);
+    expect(apis.formDataApi.fetchFormData).not.toHaveBeenCalledWith(urlFor('model1'), {});
+    expect(apis.formDataApi.fetchFormData).toHaveBeenCalledWith(urlFor('model2'), {});
+    expect(apis.formDataApi.fetchFormData).toHaveBeenCalledWith(urlFor('modelMissing'), {});
 
     expect(window.logError).toHaveBeenCalledTimes(1);
     expect(window.logError).toHaveBeenCalledWith('Fetching form data failed:\n', missingError);

@@ -95,33 +95,35 @@ describe('RepeatingGroupsEditContainer', () => {
           <TestRenderer />
         </RepeatingGroupProvider>
       ),
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.layouts = {
-              FormLayout: {
-                data: {
-                  layout: [multiPageGroup, ...components],
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.layouts = {
+                FormLayout: {
+                  data: {
+                    layout: [multiPageGroup, ...components],
+                  },
                 },
-              },
-            };
-            obj.dataModels[defaultDataTypeMock].initialData = {
-              multipageGroup: [
-                {
-                  [ALTINN_ROW_ID]: 'abc123',
-                  prop1: 'prop1',
-                  prop2: 'prop2',
-                  prop3: 'prop3',
-                },
-                {
-                  [ALTINN_ROW_ID]: 'def456',
-                  prop1: 'prop4',
-                  prop2: 'prop5',
-                  prop3: 'prop6',
-                },
-              ],
-            };
-          }),
+              };
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                multipageGroup: [
+                  {
+                    [ALTINN_ROW_ID]: 'abc123',
+                    prop1: 'prop1',
+                    prop2: 'prop2',
+                    prop3: 'prop3',
+                  },
+                  {
+                    [ALTINN_ROW_ID]: 'def456',
+                    prop1: 'prop4',
+                    prop2: 'prop5',
+                    prop3: 'prop6',
+                  },
+                ],
+              };
+            }),
+        },
       },
     });
   };

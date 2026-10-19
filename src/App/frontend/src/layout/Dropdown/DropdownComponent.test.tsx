@@ -3,14 +3,15 @@ import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { IRawOption } from '@app/layout-contract/generated/common.generated';
-import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { optionsApi } from 'src/core/api-client/app.api';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
-import { queryPromiseMock, renderGenericComponentTest } from 'src/test/renderWithProviders';
+import { apiMock } from 'src/test/apiMocks';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const countries: IRawOption[] = [
@@ -47,7 +48,7 @@ function MySuperSimpleInput() {
 }
 
 const render = async ({ component, options, ...rest }: Props = {}) => {
-  const fetchOptions = queryPromiseMock('fetchOptions');
+  const fetchOptions = apiMock(optionsApi.fetchOptions);
   const utils = await renderGenericComponentTest({
     type: 'Dropdown',
     renderer: (props) => (
@@ -68,19 +69,25 @@ const render = async ({ component, options, ...rest }: Props = {}) => {
       ...component,
     },
     ...rest,
-    queries: {
-      fetchFormBootstrapForInstance: async () =>
-        getFormBootstrapMock((obj) => {
-          obj.dataModels[defaultDataTypeMock].initialData = getFormDataMockForRepGroup();
-        }),
-      fetchOptions: (...args) =>
-        options === undefined
-          ? fetchOptions.mock(...args)
-          : Promise.resolve({
-              data: options,
-              headers: {},
-            } as AxiosResponse<IRawOption[]>),
-      ...rest.queries,
+    apis: {
+      ...rest.apis,
+      formBootstrapApi: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = getFormDataMockForRepGroup();
+          }),
+        ...rest.apis?.formBootstrapApi,
+      },
+      optionsApi: {
+        fetchOptions: (...args) =>
+          options === undefined
+            ? fetchOptions(...args)
+            : Promise.resolve({
+                data: options,
+                headers: {},
+              }),
+        ...rest.apis?.optionsApi,
+      },
     },
   });
 
@@ -132,12 +139,12 @@ describe('DropdownComponent', () => {
       waitUntilLoaded: false,
     });
 
-    await waitFor(() => expect(fetchOptions.mock).toHaveBeenCalledTimes(1), { timeout: 15000 });
+    await waitFor(() => expect(fetchOptions).toHaveBeenCalledTimes(1), { timeout: 15000 });
 
     fetchOptions.resolve({
       data: countries,
       headers: {},
-    } as AxiosResponse<IRawOption[]>);
+    });
 
     await userEvent.click(await screen.findByRole('combobox'));
     await screen.findByRole('option', { name: /denmark/i });
@@ -146,7 +153,7 @@ describe('DropdownComponent', () => {
     // the component renders a spinner for a while when fetching the options again.
     await userEvent.type(screen.getByTestId('my-input'), 'test');
 
-    await waitFor(() => expect(fetchOptions.mock).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(fetchOptions).toHaveBeenCalledTimes(2));
     await screen.findByTestId('altinn-spinner');
 
     fetchOptions.resolve({
@@ -158,7 +165,7 @@ describe('DropdownComponent', () => {
         },
       ],
       headers: {},
-    } as AxiosResponse<IRawOption[]>);
+    });
 
     await waitFor(() => expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument());
     await userEvent.click(await screen.findByRole('combobox'));
@@ -247,21 +254,23 @@ describe('DropdownComponent', () => {
   ])('should be possible to use a %s option value', async (label, value) => {
     const options: IRawOption[] = [{ label, value }];
     const user = userEvent.setup({ delay: null });
-    const { mutations } = await render({
+    const { apis } = await render({
       component: {
         optionsId: 'countries',
       },
       options,
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].schema = {
-              type: 'object',
-              properties: {
-                myDropdown: { anyOf: [{ type: 'boolean' }, { type: 'number' }, { type: 'null' }] },
-              },
-            };
-          }),
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].schema = {
+                type: 'object',
+                properties: {
+                  myDropdown: { anyOf: [{ type: 'boolean' }, { type: 'number' }, { type: 'null' }] },
+                },
+              };
+            }),
+        },
       },
     });
 
@@ -272,8 +281,8 @@ describe('DropdownComponent', () => {
     expect((await screen.findAllByText(label)).at(0)).toBeInTheDocument();
     act(() => vi.advanceTimersByTime(1000));
 
-    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
-    expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledWith(
+    await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(1));
+    expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledWith(
       expect.stringContaining('local.altinn.cloud'),
       expect.objectContaining({
         patches: [expect.objectContaining({ patch: [{ op: 'add', path: '/myDropdown', value }] })],
@@ -295,9 +304,7 @@ describe('DropdownComponent', () => {
         },
       },
       options: countries,
-      queries: {
-        fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }),
-      },
+      apis: { formDataApi: { fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }) } },
     });
 
     expect(screen.getAllByRole('listitem')).toHaveLength(1);

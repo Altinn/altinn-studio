@@ -1,14 +1,14 @@
 import React, { ReactElement } from 'react';
-import { useParams } from 'react-router';
 
 import { screen } from '@testing-library/dom';
-import { render as renderRtl, RenderOptions } from '@testing-library/react';
-const randomUUID = () => '00000000-0000-4000-8000-000000000000';
+import { act, render as renderRtl, RenderOptions } from '@testing-library/react';
 
-import { NotificationStatus, SigneeState, useSigneeList } from 'src/core/queries/signeeList';
-import { useSignaturesValidation, useUserSigneeParties } from 'src/core/queries/signing';
-import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
+import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
+import { getProfileMock } from 'src/__mocks__/getProfileMock';
+import { apiClients } from 'src/core/api-client';
+import { NotificationStatus, SigneeState } from 'src/core/queries/signeeList';
 import { Lang } from 'src/features/language/Lang';
+import { CurrentLanguageProvider } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useProfile } from 'src/features/profile/ProfileProvider';
 import { AwaitingCurrentUserSignaturePanel } from 'src/layout/SigningActions/PanelAwaitingCurrentUserSignature';
@@ -18,17 +18,19 @@ import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
 import { SubmitPanel } from 'src/layout/SigningActions/PanelSubmit';
 import { SigningActionsComponent } from 'src/layout/SigningActions/SigningActionsComponent';
 import { CurrentUserStatus, getCurrentUserStatus } from 'src/layout/SigningActions/utils';
+import { apiMock } from 'src/test/apiMocks';
+import { createQueryTestWrapper } from 'src/test/queryTestUtils';
+
+let queryTest: ReturnType<typeof createQueryTestWrapper>;
+
+const randomUUID = () => '00000000-0000-4000-8000-000000000000';
 
 vi.mock('src/utils/layout/useFormData');
-vi.mock('react-router');
-vi.mock('src/core/queries/process');
-vi.mock('src/core/queries/QueryProvider');
+
 vi.mock('src/features/profile/ProfileProvider');
 vi.mock('src/features/language/useLanguage');
 vi.mock('src/features/language/Lang');
-vi.mock('src/features/instance/useProcessQuery');
-vi.mock('src/core/queries/signeeList');
-vi.mock('src/core/queries/signing');
+
 vi.mock('src/layout/SigningActions/utils');
 
 vi.mock('src/layout/SigningActions/PanelNoActionRequired');
@@ -37,10 +39,6 @@ vi.mock('src/layout/SigningActions/PanelAwaitingCurrentUserSignature');
 vi.mock('src/layout/SigningActions/PanelSubmit');
 vi.mock('src/layout/SigningActions/PanelSigning');
 
-const mockedUseisAuthorized = vi.mocked(useIsAuthorized);
-const mockedUseSigneeList = vi.mocked(useSigneeList);
-const mockedUserSigneeParties = vi.mocked(useUserSigneeParties);
-const mockedUseSignaturesValidation = vi.mocked(useSignaturesValidation);
 const mockedGetCurrentUserStatus = vi.mocked(getCurrentUserStatus);
 
 const failedDelegationSignee: SigneeState = {
@@ -71,33 +69,20 @@ describe('SigningActionsComponent', () => {
   beforeEach(() => {
     // resets all mocked functions to vi.fn()
     vi.resetAllMocks();
+    queryTest = createQueryTestWrapper({}, `/instance/${partyId}/${instanceGuid}/${taskId}`);
 
-    vi.mocked(useParams).mockReturnValue({
-      partyId,
-      instanceGuid,
-      taskId,
-    });
-    vi.mocked(useIsAuthorized).mockReturnValue(() => true);
+    queryTest.apis.instanceApi.getInstance.mockResolvedValue(authorizedInstance(true));
 
     vi.mocked(useLanguage).mockReturnValue({
       langAsString: (inputString: string) => inputString,
     } as unknown as ReturnType<typeof useLanguage>);
     vi.mocked(Lang).mockImplementation(({ id }: { id: string }) => id);
 
-    vi.mocked(useProfile).mockReturnValue({ partyId: 123 } as unknown as ReturnType<typeof useProfile>);
+    vi.mocked(useProfile).mockReturnValue(getProfileMock());
 
-    mockedUseSigneeList.mockReturnValue({
-      data: [],
-      isLoading: false,
-      error: null,
-    } as unknown as ReturnType<typeof useSigneeList>);
+    queryTest.apis.signingApi.fetchSigneeList.mockResolvedValue([]);
 
-    mockedUseSignaturesValidation.mockReturnValue({
-      refetchValidations: vi.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
-      hasMissingSignatures: false,
-    });
-
-    mockedUserSigneeParties.mockReturnValue([]);
+    queryTest.apis.backendValidationApi.fetchBackendValidations.mockResolvedValue([]);
 
     vi.mocked(AwaitingCurrentUserSignaturePanel).mockImplementation(({ hasMissingSignatures }) => (
       <div data-testid='awaiting-current-user-signature-panel'>
@@ -135,14 +120,10 @@ describe('SigningActionsComponent', () => {
     );
   });
 
-  it('should render loading spinner when loading is true', () => {
-    mockedUseSigneeList.mockReturnValue({
-      data: undefined,
-      isLoading: true,
-      error: null,
-    } as unknown as ReturnType<typeof useSigneeList>);
+  it('should render loading spinner when loading is true', async () => {
+    queryTest.apis.signingApi.fetchSigneeList.mockImplementation(apiMock(apiClients.signingApi.fetchSigneeList));
 
-    render(
+    await render(
       <SigningActionsComponent
         baseComponentId='whatever'
         containerDivRef={React.createRef()}
@@ -152,166 +133,161 @@ describe('SigningActionsComponent', () => {
     expect(screen.getByLabelText('signing.loading')).toBeInTheDocument();
   });
 
-  it('should render ErrorPanel on API error', () => {
-    mockedUseSigneeList.mockReturnValue({
-      data: undefined,
-      isLoading: false,
-      error: new Error('API error'),
-    } as unknown as ReturnType<typeof useSigneeList>);
+  it('should render ErrorPanel on API error', async () => {
+    queryTest.apis.signingApi.fetchSigneeList.mockRejectedValue(new Error('API error'));
 
-    render(
+    await render(
       <SigningActionsComponent
         baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
 
-    expect(screen.getByText('signing.api_error_panel_title')).toBeInTheDocument();
-    expect(screen.getByText('signing.api_error_panel_description')).toBeInTheDocument();
+    expect(await screen.findByText('signing.api_error_panel_title')).toBeInTheDocument();
+    expect(await screen.findByText('signing.api_error_panel_description')).toBeInTheDocument();
   });
 
-  it('should render ErrorPanel when any signee has delegation failed', () => {
-    mockedUseSigneeList.mockReturnValue({
-      data: [failedDelegationSignee, failedNotificationSignee],
-      isLoading: false,
-      error: undefined,
-    } as unknown as ReturnType<typeof useSigneeList>);
+  it('should render ErrorPanel when any signee has delegation failed', async () => {
+    queryTest.apis.signingApi.fetchSigneeList.mockResolvedValue([failedDelegationSignee, failedNotificationSignee]);
 
-    render(
+    await render(
       <SigningActionsComponent
         baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
 
-    expect(screen.getByText('signing.delegation_error_panel_title')).toBeInTheDocument();
-    expect(screen.getByText('signing.delegation_error_panel_description')).toBeInTheDocument();
+    expect(await screen.findByText('signing.delegation_error_panel_title')).toBeInTheDocument();
+    expect(await screen.findByText('signing.delegation_error_panel_description')).toBeInTheDocument();
   });
 
-  it('should render AwaitingCurrentUserSignaturePanel with correct text when user is awaiting signature and there are missing signatures', () => {
+  it('should render AwaitingCurrentUserSignaturePanel with correct text when user is awaiting signature and there are missing signatures', async () => {
     mockedGetCurrentUserStatus.mockReturnValue('awaitingSignature');
-    mockedUseSignaturesValidation.mockReturnValue({
-      refetchValidations: vi.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
-      hasMissingSignatures: true,
-    });
+    queryTest.apis.backendValidationApi.fetchBackendValidations.mockResolvedValue([
+      { code: 'MissingSignatures', source: 'test', severity: 1, dataElementId: 'data' },
+    ]);
 
-    render(
+    await render(
       <SigningActionsComponent
         baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
 
-    expect(screen.getByTestId('awaiting-current-user-signature-panel')).toBeInTheDocument();
-    expect(screen.getByTestId('missing-signatures')).toBeInTheDocument();
+    expect(await screen.findByTestId('awaiting-current-user-signature-panel')).toBeInTheDocument();
+    expect(await screen.findByTestId('missing-signatures')).toBeInTheDocument();
   });
 
-  it('should render AwaitingCurrentUserSignaturePanel with correct text when user is awaiting signature and there are no missing signatures', () => {
+  it('should render AwaitingCurrentUserSignaturePanel with correct text when user is awaiting signature and there are no missing signatures', async () => {
     mockedGetCurrentUserStatus.mockReturnValue('awaitingSignature');
-    mockedUseSignaturesValidation.mockReturnValue({
-      refetchValidations: vi.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
-      hasMissingSignatures: false,
-    });
+    queryTest.apis.backendValidationApi.fetchBackendValidations.mockResolvedValue([]);
 
-    render(
+    await render(
       <SigningActionsComponent
         baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
 
-    expect(screen.getByTestId('awaiting-current-user-signature-panel')).toBeInTheDocument();
-    expect(screen.getByTestId('no-missing-signatures')).toBeInTheDocument();
+    expect(await screen.findByTestId('awaiting-current-user-signature-panel')).toBeInTheDocument();
+    expect(await screen.findByTestId('no-missing-signatures')).toBeInTheDocument();
   });
 
-  it('should render NoActionRequiredPanel with correct text when user does not have write access and has signed', () => {
+  it('should render NoActionRequiredPanel with correct text when user does not have write access and has signed', async () => {
     mockedGetCurrentUserStatus.mockReturnValue('signed');
-    mockedUseisAuthorized.mockReturnValue(() => false);
+    queryTest.apis.instanceApi.getInstance.mockResolvedValue(authorizedInstance(false));
 
-    render(
+    await render(
       <SigningActionsComponent
         baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
 
-    expect(screen.getByTestId('no-action-required-panel')).toBeInTheDocument();
-    expect(screen.getByTestId('has-signed')).toBeInTheDocument();
+    expect(await screen.findByTestId('no-action-required-panel')).toBeInTheDocument();
+    expect(await screen.findByTestId('has-signed')).toBeInTheDocument();
   });
 
-  it('should render NoActionRequiredPanel with correct text when user does not have write access and is not signing', () => {
-    mockedUseisAuthorized.mockReturnValue(() => false);
+  it('should render NoActionRequiredPanel with correct text when user does not have write access and is not signing', async () => {
+    queryTest.apis.instanceApi.getInstance.mockResolvedValue(authorizedInstance(false));
     mockedGetCurrentUserStatus.mockReturnValue('notSigning');
 
-    render(
+    await render(
       <SigningActionsComponent
         baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
 
-    expect(screen.getByTestId('no-action-required-panel')).toBeInTheDocument();
-    expect(screen.getByTestId('has-not-signed')).toBeInTheDocument();
+    expect(await screen.findByTestId('no-action-required-panel')).toBeInTheDocument();
+    expect(await screen.findByTestId('has-not-signed')).toBeInTheDocument();
   });
 
-  it('should render AwaitingOtherSignaturesPanel with correct text when user has write access, has signed, and there are missing signatures', () => {
-    mockedUseisAuthorized.mockReturnValue(() => true);
+  it('should render AwaitingOtherSignaturesPanel with correct text when user has write access, has signed, and there are missing signatures', async () => {
+    queryTest.apis.instanceApi.getInstance.mockResolvedValue(authorizedInstance(true));
     mockedGetCurrentUserStatus.mockReturnValue('signed');
-    mockedUseSignaturesValidation.mockReturnValue({
-      refetchValidations: vi.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
-      hasMissingSignatures: true,
-    });
+    queryTest.apis.backendValidationApi.fetchBackendValidations.mockResolvedValue([
+      { code: 'MissingSignatures', source: 'test', severity: 1, dataElementId: 'data' },
+    ]);
 
-    render(
+    await render(
       <SigningActionsComponent
         baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
 
-    expect(screen.getByTestId('awaiting-other-signatures-panel')).toBeInTheDocument();
-    expect(screen.getByTestId('has-signed')).toBeInTheDocument();
+    expect(await screen.findByTestId('awaiting-other-signatures-panel')).toBeInTheDocument();
+    expect(await screen.findByTestId('has-signed')).toBeInTheDocument();
   });
 
-  it('should render AwaitingOtherSignaturesPanel with correct text when user has write access, is not signing, and there are missing signatures', () => {
-    mockedUseisAuthorized.mockReturnValue(() => true);
+  it('should render AwaitingOtherSignaturesPanel with correct text when user has write access, is not signing, and there are missing signatures', async () => {
+    queryTest.apis.instanceApi.getInstance.mockResolvedValue(authorizedInstance(true));
     mockedGetCurrentUserStatus.mockReturnValue('notSigning');
-    mockedUseSignaturesValidation.mockReturnValue({
-      refetchValidations: vi.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
-      hasMissingSignatures: true,
-    });
+    queryTest.apis.backendValidationApi.fetchBackendValidations.mockResolvedValue([
+      { code: 'MissingSignatures', source: 'test', severity: 1, dataElementId: 'data' },
+    ]);
 
-    render(
+    await render(
       <SigningActionsComponent
         baseComponentId='whatever'
         containerDivRef={React.createRef()}
       />,
     );
 
-    expect(screen.getByTestId('awaiting-other-signatures-panel')).toBeInTheDocument();
-    expect(screen.getByTestId('has-not-signed')).toBeInTheDocument();
+    expect(await screen.findByTestId('awaiting-other-signatures-panel')).toBeInTheDocument();
+    expect(await screen.findByTestId('has-not-signed')).toBeInTheDocument();
   });
 
   it.each<Extract<CurrentUserStatus, 'notSigning' | 'signed'>>(['notSigning', 'signed'])(
     'should render SubmitPanel when user has write access and there are no missing signatures',
-    (currentUserStatus) => {
-      mockedUseisAuthorized.mockReturnValue(() => true);
+    async (currentUserStatus) => {
+      queryTest.apis.instanceApi.getInstance.mockResolvedValue(authorizedInstance(true));
       mockedGetCurrentUserStatus.mockReturnValue(currentUserStatus);
-      mockedUseSignaturesValidation.mockReturnValue({
-        refetchValidations: vi.fn() as unknown as ReturnType<typeof useSignaturesValidation>['refetchValidations'],
-        hasMissingSignatures: false,
-      });
+      queryTest.apis.backendValidationApi.fetchBackendValidations.mockResolvedValue([]);
 
-      render(
+      await render(
         <SigningActionsComponent
           baseComponentId='whatever'
           containerDivRef={React.createRef()}
         />,
       );
 
-      expect(screen.getByTestId('submit-panel')).toBeInTheDocument();
+      expect(await screen.findByTestId('submit-panel')).toBeInTheDocument();
     },
   );
 });
 
-const render = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) => renderRtl(ui, options);
+const render = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
+  act(async () =>
+    renderRtl(<CurrentLanguageProvider>{ui}</CurrentLanguageProvider>, { ...options, wrapper: queryTest.wrapper }),
+  );
+
+function authorizedInstance(authorized: boolean) {
+  const instance = getInstanceWithProcessMock();
+  instance.process.currentTask!.userActions = [
+    { id: 'sign', authorized, type: 'ProcessAction' },
+    { id: 'write', authorized, type: 'ProcessAction' },
+  ];
+  return instance;
+}

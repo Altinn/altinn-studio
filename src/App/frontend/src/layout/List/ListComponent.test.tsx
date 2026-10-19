@@ -3,14 +3,15 @@ import React from 'react';
 import * as useDeviceWidths from '@app/form-component';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { Mock } from 'vitest';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
-import { doPatchMultipleFormData } from 'src/core/api-client/app.api';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import type { FormDataApi } from 'src/core/api-client/app.api';
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
@@ -94,37 +95,43 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
       dataListId: 'countries',
       ...component,
     },
-    queries: {
-      fetchFormBootstrapForInstance: async () =>
-        getFormBootstrapMock((obj) => {
-          obj.dataModels[defaultDataTypeMock].schema = {
-            type: 'object',
-            properties: {
-              CountryName: {
-                type: 'string',
-              },
-              CountryPopulation: {
-                type: 'number',
-              },
-              CountryHighestMountain: {
-                type: 'number',
-              },
-            },
-          };
-        }),
-      fetchDataList: async () => ({
-        listItems: countries,
-        _metaData: {
-          page: 0,
-          pageCount: 1,
-          pageSize: 5,
-          totaltItemsCount: 6,
-          links: [],
-        },
-      }),
-      ...rest.queries,
-    },
     ...rest,
+    apis: {
+      ...rest.apis,
+      formBootstrapApi: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].schema = {
+              type: 'object',
+              properties: {
+                CountryName: {
+                  type: 'string',
+                },
+                CountryPopulation: {
+                  type: 'number',
+                },
+                CountryHighestMountain: {
+                  type: 'number',
+                },
+              },
+            };
+          }),
+        ...rest.apis?.formBootstrapApi,
+      },
+      dataListsApi: {
+        fetchDataList: async () => ({
+          listItems: countries,
+          _metaData: {
+            page: 0,
+            pageCount: 1,
+            pageSize: 5,
+            totaltItemsCount: 6,
+            links: [],
+          },
+        }),
+        ...rest.apis?.dataListsApi,
+      },
+    },
   });
 
 describe('ListComponent', () => {
@@ -149,7 +156,7 @@ describe('ListComponent', () => {
   it('should save all field values in dataModelBindings atomically', async () => {
     vi.useFakeTimers();
     const user = userEvent.setup({ delay: null });
-    const { formDataMethods, mutations } = await render();
+    const { formDataMethods, apis } = await render();
 
     // There should be one radio for each country, but none of them should be checked
     await waitFor(() => expect(screen.getAllByRole('radio')).toHaveLength(6));
@@ -187,10 +194,10 @@ describe('ListComponent', () => {
     // Wait until the debounce timeout has definitely passed, then expect the form data to be saved. It should only
     // be saved once (even though we changed the value twice) because the debouncing happens globally.
     act(() => vi.advanceTimersByTime(2000));
-    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(1));
 
-    const mockedArgs = (mutations.doPatchMultipleFormData.mock as Mock).mock.calls[0] as unknown as Parameters<
-      typeof doPatchMultipleFormData
+    const mockedArgs = (apis.formDataApi.doPatchMultipleFormData as Mock).mock.calls[0] as unknown as Parameters<
+      FormDataApi['doPatchMultipleFormData']
     >;
     const patch: JsonPatch = mockedArgs[1].patches[0].patch;
     expect(patch).toEqual([
@@ -294,4 +301,3 @@ describe('ListComponent', () => {
     });
   });
 });
-import type { Mock } from 'vitest';

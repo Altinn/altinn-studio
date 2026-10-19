@@ -5,20 +5,15 @@ import userEvent from '@testing-library/user-event';
 import { AxiosResponse } from 'axios';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
-import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getInstanceDataMock, getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock, getPartyWithSubunitMock } from 'src/__mocks__/getPartyMock';
-import { doProcessNext } from 'src/core/api-client/app.api';
 import { ConfirmPage, type IConfirmPageProps } from 'src/features/process/confirm/containers/ConfirmPage';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { maskSsn } from 'src/utils/maskSsn';
+import type { ProcessApi } from 'src/core/api-client/app.api';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 
-vi.mock('src/features/instance/useProcessQuery', async () => ({
-  ...(await vi.importActual<typeof import('src/features/instance/useProcessQuery')>(
-    'src/features/instance/useProcessQuery',
-  )),
-  useIsAuthorized: vi.fn().mockReturnValue(() => true),
-}));
+const doProcessNext = vi.fn<ProcessApi['doProcessNext']>();
 
 describe('ConfirmPage', () => {
   const personParty = getPartyMock();
@@ -29,9 +24,7 @@ describe('ConfirmPage', () => {
     applicationMetadata: getApplicationMetadataMock(),
   };
   it('should present confirm information when necessary data is present', async () => {
-    await renderWithInstanceAndLayout({
-      renderer: () => <ConfirmPage {...props} />,
-    });
+    await render(props);
     const title = screen.getByText('Se over svarene dine før du sender inn');
     expect(title).toBeInTheDocument();
 
@@ -40,9 +33,7 @@ describe('ConfirmPage', () => {
   });
 
   it('should have person sender name present', async () => {
-    await renderWithInstanceAndLayout({
-      renderer: () => <ConfirmPage {...props} />,
-    });
+    await render(props);
 
     const ssn = screen.getByText(maskSsn(personParty.ssn), { exact: false });
     expect(ssn).toBeInTheDocument();
@@ -60,9 +51,7 @@ describe('ConfirmPage', () => {
       subunitParty.orgNumber,
       subunitParty,
     );
-    await renderWithInstanceAndLayout({
-      renderer: () => <ConfirmPage {...props} />,
-    });
+    await render(props);
 
     const orgNumber = screen.getByText(subunitParty.orgNumber ?? '', { exact: false });
     expect(orgNumber).toBeInTheDocument();
@@ -71,9 +60,7 @@ describe('ConfirmPage', () => {
   });
 
   it('should present pdf as part of previously submitted data', async () => {
-    await renderWithInstanceAndLayout({
-      renderer: () => <ConfirmPage {...props} />,
-    });
+    await render(props);
     const pdf = screen.getByText('mockApp');
     expect(pdf).toBeInTheDocument();
 
@@ -91,9 +78,7 @@ describe('ConfirmPage', () => {
 
     vi.mocked(doProcessNext).mockImplementation(async () => processNextPromise);
 
-    await renderWithInstanceAndLayout({
-      renderer: () => <ConfirmPage {...props} />,
-    });
+    await render(props);
     const submitBtnText = /send inn/i;
     const loadingText = /laster innhold/i;
 
@@ -112,3 +97,19 @@ describe('ConfirmPage', () => {
     });
   });
 });
+
+function render(props: IConfirmPageProps) {
+  return renderWithInstanceAndLayout({
+    renderer: () => <ConfirmPage {...props} />,
+    apis: {
+      processApi: { doProcessNext },
+      instanceApi: {
+        getInstance: async () => {
+          const instance = getInstanceWithProcessMock();
+          instance.process.currentTask!.userActions = [{ id: 'confirm', authorized: true, type: 'ProcessAction' }];
+          return instance;
+        },
+      },
+    },
+  });
+}

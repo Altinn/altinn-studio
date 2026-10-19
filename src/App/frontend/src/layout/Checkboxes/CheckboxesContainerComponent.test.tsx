@@ -3,14 +3,13 @@ import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { IRawOption } from '@app/layout-contract/generated/common.generated';
-import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { AppQueries } from 'src/core/queries/appQueries.types';
+import type { ApiOverrides } from 'src/test/apiMocks';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const threeOptions: IRawOption[] = [
@@ -32,16 +31,10 @@ interface Props extends Partial<RenderGenericComponentTestProps<'Checkboxes'>> {
   options?: IRawOption[];
   formData?: string;
   groupData?: object;
-  queries?: Partial<AppQueries>;
+  apis?: ApiOverrides;
 }
 
-const render = async ({
-  component,
-  options,
-  formData,
-  groupData = getFormDataMockForRepGroup(),
-  queries,
-}: Props = {}) =>
+const render = async ({ component, options, formData, groupData = getFormDataMockForRepGroup(), apis }: Props = {}) =>
   await renderGenericComponentTest({
     type: 'Checkboxes',
     renderer: (props) => <CheckboxContainerComponent {...props} />,
@@ -55,19 +48,24 @@ const render = async ({
       },
       ...component,
     },
-    queries: {
-      fetchFormBootstrapForInstance: async () =>
-        getFormBootstrapMock((obj) => {
-          obj.dataModels[defaultDataTypeMock].initialData = formData
-            ? { selectedValues: formData, ...groupData }
-            : { ...groupData };
-        }),
-      fetchOptions: () =>
-        options
-          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            Promise.resolve({ data: options, headers: {} } as AxiosResponse<IRawOption[], any>)
-          : Promise.reject(new Error('No options provided to render()')),
-      ...queries,
+    apis: {
+      ...apis,
+      formBootstrapApi: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = formData
+              ? { selectedValues: formData, ...groupData }
+              : { ...groupData };
+          }),
+        ...apis?.formBootstrapApi,
+      },
+      optionsApi: {
+        fetchOptions: () =>
+          options
+            ? Promise.resolve({ data: options, headers: {} })
+            : Promise.reject(new Error('No options provided to render()')),
+        ...apis?.optionsApi,
+      },
     },
   });
 
@@ -310,9 +308,7 @@ describe('CheckboxesContainerComponent', () => {
         },
       },
       options: [],
-      queries: {
-        fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }),
-      },
+      apis: { formDataApi: { fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }) } },
     });
 
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
@@ -331,9 +327,7 @@ describe('CheckboxesContainerComponent', () => {
         deletionStrategy: 'hard',
       },
       options: [],
-      queries: {
-        fetchFormData: () => Promise.resolve({ simpleBinding: '', group: [] }),
-      },
+      apis: { formDataApi: { fetchFormData: () => Promise.resolve({ simpleBinding: '', group: [] }) } },
     });
 
     expect(screen.getAllByRole('listitem')).toHaveLength(1);

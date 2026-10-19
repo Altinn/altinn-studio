@@ -61,13 +61,15 @@ describe('MapComponent', () => {
 
   it('should show correct footer text when location is set', async () => {
     await render({
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].initialData = {
-              myCoords: '59.2641592,10.4036248',
-            };
-          }),
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                myCoords: '59.2641592,10.4036248',
+              };
+            }),
+        },
       },
     });
 
@@ -77,13 +79,15 @@ describe('MapComponent', () => {
 
   it('should show marker when marker is set', async () => {
     await render({
-      queries: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].initialData = {
-              myCoords: '59.2641592,10.4036248',
-            };
-          }),
+      apis: {
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                myCoords: '59.2641592,10.4036248',
+              };
+            }),
+        },
       },
     });
     expect(screen.queryByRole('button', { name: 'Marker' })).toBeInTheDocument();

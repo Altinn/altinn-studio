@@ -29,8 +29,8 @@ describe('KeepAliveProvider', () => {
   const renderWithExpiredToken = async () =>
     await renderWithMinimalProviders({
       renderer: () => <KeepAliveProvider>content</KeepAliveProvider>,
-      queries: { fetchRefreshJwtToken: () => Promise.reject(new Error('token expired')) },
       waitUntilLoaded: false,
+      apis: { authApi: { fetchRefreshJwtToken: () => Promise.reject(new Error('token expired')) } },
     });
 
   it('sends the user to the configured login url when the token can no longer be refreshed', async () => {

@@ -6,6 +6,7 @@ import { screen } from '@testing-library/react';
 import dotenv from 'dotenv';
 import path from 'node:path';
 import type { JSONSchema7 } from 'json-schema';
+import type { Mock } from 'vitest';
 
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
@@ -17,7 +18,6 @@ import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ExternalAppUiFolder } from 'src/test/allApps';
 
-vi.mock('src/core/api-client/app.api');
 vi.mock('src/features/options/useSourceOptions', () => ({
   useSourceOptions: () => [{ label: 'Test option', value: 'test' }],
 }));
@@ -170,33 +170,33 @@ describe('All known UI folders should render successfully', () => {
       initialPage,
       renderer: () =>
         subformComponent ? <SubformTestWrapper baseId={subformComponent.id}>{children}</SubformTestWrapper> : children,
-      queries: {
-        fetchFormData: async (url) => uiFolder.getModel({ url }).simulateDataModel(),
-        fetchFormBootstrapForInstance: async (options) =>
-          getFormBootstrapMock((obj) => {
-            obj.layouts = uiFolder.app.getUiFolder(options.uiFolder).getLayouts();
-            obj.staticOptions = uiFolder.app.getStaticOptions();
-            const models = uiFolder.app.getDataModelsFromMetaData();
-            obj.dataModels = Object.fromEntries(
-              models.map((model) => [
-                model.getName(),
-                getDataModelBootstrapMock((obj) => {
-                  obj.schema = model.getSchema();
-                  obj.initialData = uiFolder.getModel({ name: model.getName() }).simulateDataModel();
-                  obj.dataElementId = `fakeUuid:${model.getName()}:end`;
-                  obj.expressionValidationConfig = null;
-                }),
-              ]),
-            );
-          }),
-        fetchLayoutSchema: async () => layoutSchema as unknown as JSONSchema7,
-      },
+      alwaysRouteToChildren: true,
       apis: {
         instanceApi: {
           getInstance: async () => ({ ...uiFolder.simulateInstance(), process: mainFolder.simulateProcessData() }),
         },
+        formDataApi: { fetchFormData: async (url) => uiFolder.getModel({ url }).simulateDataModel() },
+        formBootstrapApi: {
+          fetchFormBootstrapForInstance: async (options) =>
+            getFormBootstrapMock((obj) => {
+              obj.layouts = uiFolder.app.getUiFolder(options.uiFolder).getLayouts();
+              obj.staticOptions = uiFolder.app.getStaticOptions();
+              const models = uiFolder.app.getDataModelsFromMetaData();
+              obj.dataModels = Object.fromEntries(
+                models.map((model) => [
+                  model.getName(),
+                  getDataModelBootstrapMock((obj) => {
+                    obj.schema = model.getSchema();
+                    obj.initialData = uiFolder.getModel({ name: model.getName() }).simulateDataModel();
+                    obj.dataElementId = `fakeUuid:${model.getName()}:end`;
+                    obj.expressionValidationConfig = null;
+                  }),
+                ]),
+              );
+            }),
+        },
+        resourcesApi: { fetchLayoutSchema: async () => layoutSchema as unknown as JSONSchema7 },
       },
-      alwaysRouteToChildren: true,
     });
 
     // If errors are not found in the DOM, but there are errors in the loggers, output those instead
@@ -272,4 +272,3 @@ function filterAndCleanMockCalls(mock: Mock): string[] {
     .filter((x) => x)
     .map((x) => (x ?? []).join('\n'));
 }
-import type { Mock } from 'vitest';

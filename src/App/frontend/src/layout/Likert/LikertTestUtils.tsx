@@ -5,7 +5,6 @@ import { vi } from 'vitest';
 import type { IRawOption } from '@app/layout-contract/generated/common.generated';
 import type { CompLikertExternal } from '@app/layout-contract/generated/components/Likert/config.generated';
 import type { CompLikertItemExternal } from '@app/layout-contract/generated/components/LikertItem/config.generated';
-import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
@@ -150,21 +149,24 @@ export const render = async ({
         containerDivRef={{ current: null }}
       />
     ),
-    queries: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      fetchOptions: async () => ({ data: mockOptions, headers: {} }) as AxiosResponse<IRawOption[], any>,
-      fetchFormBootstrapForInstance: async () =>
-        getFormBootstrapMock((obj) => {
-          obj.dataModels[defaultDataTypeMock].initialData = generateMockFormData(mockQuestions);
-          obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
-          obj.layouts = {
-            FormLayout: {
-              data: {
-                layout: [mockLikertLayout],
+    apis: {
+      optionsApi: {
+        fetchOptions: async () => ({ data: mockOptions, headers: {} }),
+      },
+      formBootstrapApi: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = generateMockFormData(mockQuestions);
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
+            obj.layouts = {
+              FormLayout: {
+                data: {
+                  layout: [mockLikertLayout],
+                },
               },
-            },
-          };
-        }),
+            };
+          }),
+      },
     },
   });
 };
