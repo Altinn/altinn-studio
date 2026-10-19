@@ -6,7 +6,7 @@
 
 ## Result
 
-A3: Tools that run code from the app repository run in a separate pod, the assistant runner. The pod runs in a Microsandbox and has no secrets.
+A3: Tools that run code from the app repository run in a separate pod, the assistant runner. The pod has no secrets. It starts a new microVM for each job, and the job can reach only the NuGet hosts.
 
 ## Problem context
 
@@ -61,8 +61,9 @@ The assistant pod is not a safe place for this code. The pod runs as root, and i
 ### A3: Separate pod
 
 - Good, because the pod has no secrets, no service account token, and no network access to Designer or Gitea. The assistant sends a copy of the app and gets back a result and a patch (B1).
-- Good, because the pod runs in a VM with its own kernel.
-- Good, because each pod runs one job at a time, as a separate user, and removes all processes and files of the job before the next job (B2).
+- Good, because each job runs in a new microVM with its own kernel, as the user `app-build`. The runner deletes the VM after the job, so no process or file stays for the next job (B1, B2).
+- Good, because the VM can reach only the NuGet hosts. A build step that calls any other host fails, and the runner logs the denial (B1).
+- Good, because the assistant checks the patch before it uses it. It runs `git apply --check`, and it refuses links, CI workflow folders and git files (B1).
 - Good, because the jobs use their own CPU and memory on the runner node pool (B4).
 - Good, because more pods give more jobs at a time (B5).
 - Bad, because there is a new service, image, namespace, NetworkPolicy and deploy workflow to maintain (B6).
@@ -82,9 +83,13 @@ flowchart LR
         assistant["Agent loop and tools<br/>Model and Langfuse keys<br/>Designer API key per session<br/>App clones of all sessions"]
     end
 
-    subgraph runnerPool["Runner node pool"]
-        subgraph runnerPod["Assistant runner pod (Microsandbox VM)"]
-            runner["One job at a time<br/>No secrets<br/>No service account token"]
+    nuget["NuGet hosts"]
+    other["All other hosts,<br/>the cluster and Azure"]
+
+    subgraph runnerPod["Assistant runner pod, no secrets"]
+        runner["Coordinator<br/>on a sandbox node"]
+        subgraph vm["New microVM for each job"]
+            job["studioctl or dotnet build<br/>runs app code as app-build"]
         end
     end
 
@@ -93,8 +98,10 @@ flowchart LR
     assistant <-->|"API"| designer
     assistant -->|"copy of the app and job"| runner
     runner -->|"result and patch"| assistant
+    runner -->|"starts, runs, deletes"| vm
+    job -->|"HTTPS to the allowlist"| nuget
+    job -.-x|"denied"| other
     runner -.-x|"blocked by NetworkPolicy"| gitea
-    runner -.-x|"blocked by NetworkPolicy"| designer
 ```
 
 If the model later gets a shell tool, for example through a coding harness, all its tools must run in the runner, and the runner must keep a copy of the app for each session. A3 is the only alternative that supports this, because it runs code from the app away from the keys of all sessions.
