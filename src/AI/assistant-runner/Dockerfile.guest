@@ -38,6 +38,8 @@ RUN curl -fsSL \
     && chown -R app-build:app-build /opt/studioctl
 
 # The network allowlist blocks the certificate revocation servers, so NuGet does not check revocation online.
+# It also blocks builds.dotnet.microsoft.com, so the SDK does not read the release metadata for its vulnerability
+# check. That setting accepts only `true`, not `1`.
 ENV STUDIOCTL_HOME=/opt/studioctl \
     STUDIOCTL_NO_UPDATE_CHECK=1 \
     NO_COLOR=1 \
@@ -45,6 +47,7 @@ ENV STUDIOCTL_HOME=/opt/studioctl \
     DOTNET_NOLOGO=1 \
     DOTNET_GENERATE_ASPNET_CERTIFICATE=false \
     DOTNET_SKIP_WORKLOAD_INTEGRITY_CHECK=1 \
+    DOTNET_SDK_VULNERABILITY_CHECK_DISABLE=true \
     NUGET_XMLDOC_MODE=skip \
     NUGET_CERT_REVOCATION_MODE=offline \
     MSBUILDDISABLENODEREUSE=1 \
