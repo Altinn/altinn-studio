@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Hubs.AlertsUpdate;
@@ -7,6 +8,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
@@ -35,6 +37,7 @@ public class AlertsServiceTests
                 s.NotifyInternalAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<NotificationKind>(),
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -45,6 +48,7 @@ public class AlertsServiceTests
                 s.NotifyServiceOwnersAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<NotificationKind>(),
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -70,6 +74,7 @@ public class AlertsServiceTests
                 s.NotifyInternalAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<NotificationKind>(),
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -80,6 +85,7 @@ public class AlertsServiceTests
                 s.NotifyServiceOwnersAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<NotificationKind>(),
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -117,6 +123,7 @@ public class AlertsServiceTests
                 s.NotifyInternalAsync(
                     "ttd",
                     environment,
+                    NotificationKind.Alert,
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -138,6 +145,7 @@ public class AlertsServiceTests
                 s.NotifyServiceOwnersAsync(
                     "ttd",
                     environment,
+                    NotificationKind.Alert,
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -159,6 +167,38 @@ public class AlertsServiceTests
         );
 
         _hubClient.Verify(c => c.AlertsUpdated(It.Is<AlertsUpdated>(a => a.Environment == "prod")), Times.Once);
+    }
+
+    [Fact]
+    public async Task NotifyAlertsUpdatedAsync_WhenFiringAlerts_ShouldKeepTheTrace()
+    {
+        using var request = new Activity("request").Start();
+
+        await CreateService()
+            .NotifyAlertsUpdatedAsync(
+                "ttd",
+                AltinnEnvironment.FromName("tt02"),
+                BuildAlert([BuildApp("app1", "firing")]),
+                CancellationToken.None
+            );
+
+        Assert.Equal("always", request.GetTagItem(ServiceTelemetry.Attributes.Sampling));
+    }
+
+    [Fact]
+    public async Task NotifyAlertsUpdatedAsync_WhenNoFiringAlerts_ShouldLeaveSamplingToTheCollector()
+    {
+        using var request = new Activity("request").Start();
+
+        await CreateService()
+            .NotifyAlertsUpdatedAsync(
+                "ttd",
+                AltinnEnvironment.FromName("tt02"),
+                BuildAlert([BuildApp("app1", "resolved")]),
+                CancellationToken.None
+            );
+
+        Assert.Null(request.GetTagItem(ServiceTelemetry.Attributes.Sampling));
     }
 
     private AlertsService CreateService(bool isProd = false)
@@ -187,6 +227,7 @@ public class AlertsServiceTests
                 s.NotifyInternalAsync(
                     "ttd",
                     environment,
+                    NotificationKind.Alert,
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 ),
