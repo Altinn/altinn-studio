@@ -28,8 +28,8 @@ spec:
           # the pod keeps serving until new connections have moved to the replacement pod's node.
           lifecycle:
             preStop:
-              exec:
-                command: ["sleep", "15"]
+              sleep:
+                seconds: 15
           env:
             {{- if not (hasKey $.Values.hosts $.Values.environment) }}
             {{- fail "the chosen environment has no host" }}
@@ -58,6 +58,13 @@ spec:
         {{- if .Values.sidecar.enabled }}
         - name: {{ .Values.sidecar.name }}
           image: "{{ .Values.sidecar.image}}"
+          # nginx sends its access log here, and keeps serving for its own pre-stop delay after
+          # the pod starts terminating, so the sidecar outlasts that delay and the few seconds
+          # nginx takes to finish its requests. Otherwise those requests' log lines are lost.
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 20
           {{- if .Values.sidecar.args }}
           args:
           {{- range $arg := .Values.sidecar.args }}
