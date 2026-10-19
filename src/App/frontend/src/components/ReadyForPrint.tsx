@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useTransition } from 'react';
 
-import { useIsFetching } from '@tanstack/react-query';
-
+import { useQueryClient } from 'src/core/queries/reactQuery';
 import { waitForAnimationFrames } from 'src/utils/waitForAnimationFrames';
 
 export const loadingAttribute = 'data-loading';
@@ -23,10 +22,60 @@ export function ReadyForPrint({ type }: { type: ReadyType }) {
   const [isPending] = useTransition();
   const [assetsLoaded, setAssetsLoaded] = React.useState(false);
 
-  const isFetching = useIsFetching() > 0;
+  const queryClient = useQueryClient();
 
-  const hasLoaders = useHasElementsByAttribute(loadingAttribute);
-  const hasErrors = useHasElementsByAttribute(errorAttribute);
+  const marker = useRef<HTMLDivElement>(null);
+
+  React.useLayoutEffect(() => {
+    const element = marker.current;
+    if (!element) {
+      return;
+    }
+    let frame: number | undefined;
+    const isBlocked = () =>
+      !assetsLoaded ||
+      isPending ||
+      queryClient.isFetching() > 0 ||
+      document.querySelector(
+        type === 'print' ? `[${loadingAttribute}], [${errorAttribute}]` : `[${loadingAttribute}]`,
+      ) != null;
+    const updateReadiness = () => {
+      if (frame !== undefined) {
+        cancelAnimationFrame(frame);
+      }
+      element.removeAttribute('id');
+      if (isBlocked()) {
+        return;
+      }
+
+      // Query notifications can precede the React commit that renders their result.
+      // Let that render settle, then check the live DOM before exposing readiness.
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(() => {
+          if (!isBlocked()) {
+            element.id = readyId[type];
+          }
+        });
+      });
+    };
+    const observer = new MutationObserver(updateReadiness);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: [loadingAttribute, errorAttribute],
+    });
+    const unsubscribe = queryClient.getQueryCache().subscribe(updateReadiness);
+    updateReadiness();
+    return () => {
+      if (frame !== undefined) {
+        cancelAnimationFrame(frame);
+      }
+      unsubscribe();
+      observer.disconnect();
+      element.removeAttribute('id');
+    };
+  }, [assetsLoaded, isPending, queryClient, type]);
 
   React.useLayoutEffect(() => {
     if (assetsLoaded) {
@@ -41,14 +90,10 @@ export function ReadyForPrint({ type }: { type: ReadyType }) {
     });
   }, [assetsLoaded]);
 
-  if (!assetsLoaded || hasLoaders || isFetching || isPending || (type === 'print' && hasErrors)) {
-    return null;
-  }
-
   return (
     <div
       style={{ display: 'none' }}
-      id={readyId[type]}
+      ref={marker}
     />
   );
 }
