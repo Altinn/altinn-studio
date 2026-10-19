@@ -54,10 +54,6 @@
 }
 
 /* Each auxiliary workflow heads its own expandable group without changing the table columns. */
-.auxiliaryWorkflowRow {
-  background-color: var(--ds-color-neutral-background-tinted);
-}
-
 .steps .auxiliaryWorkflowRow > td {
   vertical-align: middle;
 }
