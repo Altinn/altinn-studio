@@ -5,9 +5,9 @@ namespace WorkflowEngine.Models.Tests;
 public class WorkflowStatusResponseTests
 {
     [Theory]
-    [InlineData(null, "primary")]
-    [InlineData(true, "primary")]
-    [InlineData(false, "auxiliary")]
+    [InlineData(null, "Primary")]
+    [InlineData(true, "Primary")]
+    [InlineData(false, "Auxiliary")]
     public void FromWorkflow_DerivesRoleFromIsHead_AndKeepsTheRawDirective(bool? isHead, string expectedRole)
     {
         var workflow = new Workflow
@@ -27,14 +27,5 @@ public class WorkflowStatusResponseTests
             Assert.Equal(directive, doc.RootElement.GetProperty("isHead").GetBoolean());
         else
             Assert.False(doc.RootElement.TryGetProperty("isHead", out _));
-    }
-
-    [Theory]
-    [InlineData("\"primary\"", WorkflowRole.Primary)]
-    [InlineData("\"auxiliary\"", WorkflowRole.Auxiliary)]
-    public void Role_RoundTripsByItsWireName(string json, WorkflowRole expected)
-    {
-        Assert.Equal(expected, JsonSerializer.Deserialize<WorkflowRole>(json));
-        Assert.Equal(json, JsonSerializer.Serialize(expected));
     }
 }

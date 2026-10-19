@@ -58,8 +58,8 @@ public class OpenApiDocTests(EngineAppFixture<Program> fixture)
 
         var description = roleParam.GetProperty("description").GetString();
         Assert.False(string.IsNullOrWhiteSpace(description));
-        Assert.Contains("primary", description, StringComparison.Ordinal);
-        Assert.Contains("auxiliary", description, StringComparison.Ordinal);
+        Assert.Contains("Primary", description, StringComparison.Ordinal);
+        Assert.Contains("Auxiliary", description, StringComparison.Ordinal);
 
         var values = roleParam
             .GetProperty("schema")
@@ -87,7 +87,7 @@ public class OpenApiDocTests(EngineAppFixture<Program> fixture)
             .Select(e => e.GetString())
             .ToList();
 
-        Assert.Equal(["primary", "auxiliary"], values);
+        Assert.Equal(["Primary", "Auxiliary"], values);
     }
 
     [Fact]

@@ -306,7 +306,7 @@ public sealed class EngineApiClient : IDisposable
                 qs.Add($"status={status}");
         }
         if (role.HasValue)
-            qs.Add($"role={(role.Value == WorkflowRole.Auxiliary ? "auxiliary" : "primary")}");
+            qs.Add($"role={role.Value}");
 
         var path = qs.Count > 0 ? $"{GetBasePath(ns)}?{string.Join("&", qs)}" : GetBasePath(ns);
         using var response = await _client.GetAsync(path);

@@ -165,17 +165,17 @@ export const queryStatusIds = [
 export const roleCheckIds = ['primary-check', 'auxiliary-check'];
 
 /**
- * The role facet as one value: `'primary'` or `'auxiliary'` when exactly one box is checked,
+ * The role facet as one value: `'Primary'` or `'Auxiliary'` when exactly one box is checked,
  * `null` when both or neither is — no filter, the same "nothing selected means everything" idiom
  * the status chips use.
- * @returns {'primary' | 'auxiliary' | null}
+ * @returns {'Primary' | 'Auxiliary' | null}
  */
 export const roleParam = () => {
     const [primary, auxiliary] = roleCheckIds.map(
         (id) => /** @type {HTMLInputElement | null} */ (document.getElementById(id))
     );
     if (!primary || !auxiliary || primary.checked === auxiliary.checked) return null;
-    return primary.checked ? 'primary' : 'auxiliary';
+    return primary.checked ? 'Primary' : 'Auxiliary';
 };
 
 /* ── DOM references ──────────────────────────────────────── */

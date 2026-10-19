@@ -1114,7 +1114,7 @@
       },
       {
         "Name": "role",
-        "Kind": "enum<string>{primary=0,auxiliary=1}",
+        "Kind": "enum<string>{Primary=0,Auxiliary=1}",
         "Nullable": true
       },
       {
