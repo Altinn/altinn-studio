@@ -207,6 +207,9 @@ processors:
         match_type: regexp
         metric_names:
           - '^(altinn|http|signalr\.server)([._].*)?$'
+          # The Collector's own metrics (service.telemetry), as the runtime gateway keeps them,
+          # less the router's ring, as there is no router here.
+          - '^otelcol_exporter_(queue_size|queue_capacity|(sent|send_failed|enqueue_failed)_(spans|metric_points|log_records))$'
   # The runtime gateway's policies. Its separate rate for kubernetes-wrapper is left out, as no
   # kubernetes-wrapper sends here.
   tail_sampling:
@@ -243,6 +246,13 @@ exporters:
     endpoint: https://altinn.studio/internal/observability/otlp
     auth:
       authenticator: bearertokenauth/victoria
+    # The endpoint speaks HTTP/2, so every export shares one connection. A connection that
+    # stops getting answers, such as one through a node removed from behind the Studio load balancer,
+    # is otherwise reused until the kernel gives up on it, about 15 minutes, and every export
+    # meanwhile times out and is queued. A ping after 10s without a frame from the server,
+    # unanswered for 10s, closes it instead, and the next export opens a new one.
+    http2_read_idle_timeout: 10s
+    http2_ping_timeout: 10s
     # Retry without a time limit, so an outage of the Studio prod endpoint is buffered up to
     # the queue size rather than dropped after a fixed time.
     retry_on_failure:
@@ -257,6 +267,43 @@ exporters:
 
 service:
   extensions: [health_check, bearertokenauth/victoria, file_storage/victoria]
+  # The Collector's own metrics, such as its exporter's queue size and failed sends. Listing
+  # readers replaces the Collector's default one, so the first repeats it: kubectl port-forward
+  # to :8888 still reads them all. The second sends them every 30s into this Collector's own
+  # receiver over loopback, so the metrics pipeline gives them the environment and cluster and
+  # filter/metrics_allowlist keeps a few. Each round is one point per series, whatever the
+  # points count, so the Collector counting its own metrics doesn't make them grow. They leave
+  # through the otlp_http/victoria exporter they describe, so while it is stuck they wait in its
+  # queue with everything else and arrive late, with their original timestamps.
+  telemetry:
+    # The pod describes itself, as the workers do (worker.yaml).
+    resource:
+      attributes:
+        - name: service.name
+          value: pdf3-collector
+        - name: k8s.pod.uid
+          value: ${env:POD_UID}
+        - name: k8s.pod.name
+          value: ${env:POD_NAME}
+        - name: k8s.namespace.name
+          value: ${env:POD_NAMESPACE}
+        - name: k8s.node.name
+          value: ${env:NODE_NAME}
+        - name: k8s.deployment.name
+          value: pdf3-collector
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: localhost
+                port: 8888
+        - periodic:
+            interval: 30000
+            exporter:
+              otlp:
+                protocol: grpc
+                endpoint: http://localhost:4317
   pipelines:
     traces:
       receivers: [otlp]
