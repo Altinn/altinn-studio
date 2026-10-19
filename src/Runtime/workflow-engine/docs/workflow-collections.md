@@ -308,32 +308,16 @@ Note: If B joining the heads is not desired, it can be marked `IsHead = false` t
 
 ---
 
-## One Concept, Three Vocabularies
+## Primary and Auxiliary Workflows
 
-The wire carries three vocabularies for a single concept — whether the head frontier can see a
-workflow. They are defined here, once:
-
-1. **The `isHead` directive** — the tri-state enqueue instruction on `WorkflowRequest` (see above),
-   persisted verbatim as `is_head` and echoed raw on `WorkflowStatusResponse.isHead`. It is only ever
-   *interpreted* at enqueue time, by head tracking; post-enqueue, nothing in the engine distinguishes
-   `true` from `null`.
-2. **Visibility semantics** — what the `?isHead=` query parameter on `GET /workflows` filters on:
-   - `isHead=true` → **visible**: directive `true` **or** unset (`is_head IS DISTINCT FROM false`)
-   - `isHead=false` → **invisible**: directive exactly `false` (`is_head = false`)
-
-   The parameter is deliberately asymmetric with the response field of the same name (field = raw
-   directive, parameter = effective visibility): exact matching would be a footgun, because `null`
-   is the default directive and `?isHead=true` would then silently omit nearly every ordinary
-   workflow. `?isHead=true` therefore returns rows whose `isHead` field reads `null`.
-3. **The visible/invisible count labels** — the `failedVisible` / `failedInvisible` buckets in the
-   `workflowCounts` rollup on `GET /collections`, and the matching `failures=visible|invisible`
-   discovery filter. These apply the same visibility split to the unsuccessfully terminal statuses
-   (`Failed`, `Canceled`, `DependencyFailed`). `Abandoned` is excluded from both failed buckets —
-   it is the engine's adjudication marker for a written-off failure — but still counts in `total`.
-
-A `failedInvisible > 0` collection is the silent-loss case this vocabulary exists for: an invisible
-workflow's terminal failure gates nothing, so no head status, frontier read, or app-side annotation
-will ever report it.
+A workflow enqueued with `isHead = false` is an auxiliary workflow; every other workflow is primary.
+The vocabulary and its mapping onto the `isHead` directive are defined in
+[technical-guide.md](technical-guide.md#primary-and-auxiliary-workflows). The collections API applies
+it in three places: the `role` field on workflow status reads, the `?role=primary|auxiliary` filter
+on `GET /workflows`, and the per-role `workflowCounts` rollup and `failures=primary|auxiliary`
+discovery filter on `GET /collections`. A collection with `auxiliary.failed > 0` has lost work that
+nothing else reports: an auxiliary workflow's failure gates nothing, so no head status or frontier
+read will show it.
 
 ---
 
@@ -342,22 +326,29 @@ will ever report it.
 **`GET /api/v1/{namespace}/collections`** — the *health* view.
 Cursor-paginated list — a stable, collation-defined key order; treat the cursor as opaque — where
 every entry carries a `workflowCounts` rollup across
-**all** of the collection's workflows, visible and invisible alike:
+**all** of the collection's workflows, split by role:
 
 ```json
-"workflowCounts": { "active": 3, "failedVisible": 0, "failedInvisible": 1, "requeuedVisible": 1, "waitingVisible": 0, "heldVisible": 0, "total": 12 }
+"workflowCounts": {
+    "total": 12,
+    "primary": { "active": 2, "failed": 0, "requeued": 1, "waiting": 0, "held": 0 },
+    "auxiliary": { "active": 1, "failed": 1, "requeued": 0, "waiting": 0, "held": 0 }
+}
 ```
+
+`primary` and `auxiliary` carry the same counts, each over the workflows of that role:
 
 - `active` = the engine's non-terminal (`Incomplete`) status set: `Enqueued | Processing | Requeued | Waiting | Held`.
   A `Held` mailbox receiver is active — parked, but consuming admission budget and gating its dependents
-- `failedVisible` = `Failed | Canceled | DependencyFailed` and visible (`is_head IS DISTINCT FROM false`)
-- `failedInvisible` = same statuses and invisible (`is_head = false`)
-- `requeuedVisible`, `waitingVisible`, `heldVisible` = the visible workflows in `Requeued`, `Waiting` and
-  `Held`. Subsets of `active`, not buckets of their own: they let a reader say why an instance is not
-  moving — retrying, waiting on an outcome, or waiting on a message — instead of only that work is in flight
-- `total` = every workflow in the collection. There is deliberately no named "settled" bucket —
-  successful, abandoned, and any future status appear as the remainder, so a new status can never be
-  silently misfiled.
+- `failed` = `Failed | Canceled | DependencyFailed`. `Abandoned` is excluded — it is the engine's
+  adjudication marker for a written-off failure
+- `requeued`, `waiting`, `held` = the workflows in `Requeued`, `Waiting` and `Held`. Subsets of `active`,
+  not buckets of their own: they let a reader say why an instance is not moving — retrying, waiting on
+  an outcome, or waiting on a message — instead of only that work is in flight
+
+`total` counts every workflow in the collection. There is deliberately no named "settled" bucket —
+successful, abandoned, and any future status appear as the remainder of `total` after both roles'
+`active` and `failed`, so a new status can never be silently misfiled.
 
 Three mutually exclusive modes:
 
@@ -365,7 +356,7 @@ Three mutually exclusive modes:
 | -------- | --------------------------------------- | ---------------------------------------------------------- |
 | list     | `cursor`, `pageSize`                    | enumerate the namespace's collections                      |
 | annotate | `key` (repeatable)                      | health for a set of keys the caller already holds          |
-| discover | `failures=any\|visible\|invisible`, `cursor` | the errors view                                       |
+| discover | `failures=any\|primary\|auxiliary`, `cursor` | the errors view                                       |
 
 `key` × `cursor` → 400. `key` × `failures` → 400. More distinct keys than `pagination.maxAnnotateKeys` → 400 — the
 request is **rejected, never truncated**, because silently dropping keys from a health read is the
@@ -378,11 +369,11 @@ stays explicit.
 **`GET /api/v1/{namespace}/collections/{key}`** — the *frontier* view.
 Detail for one collection: key, heads (with workflow ID + current status), and timestamps. Returns
 404 if not found. This endpoint is a frontier view **by contract**: it reports only the current head
-workflows, so invisible (`isHead = false`) workflows never appear in it, and it carries no
+workflows, so auxiliary workflows never appear in it, and it carries no
 `workflowCounts` rollup — it sits on the app's page-view-scale hot path and stays cheap. For health,
 use the list endpoint's rollup; to enumerate a collection's failures, use
-`GET /workflows?collectionKey={key}&isHead=false&status=Failed&status=Canceled&status=DependencyFailed`
-(drop the `isHead` filter for all of them).
+`GET /workflows?collectionKey={key}&role=auxiliary&status=Failed&status=Canceled&status=DependencyFailed`
+(drop the `role` filter for all of them).
 
 ---
 

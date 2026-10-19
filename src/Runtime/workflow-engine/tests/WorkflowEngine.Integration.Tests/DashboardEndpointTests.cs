@@ -218,40 +218,46 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
     }
 
     [Fact]
-    public async Task Query_IsHeadFacet_FiltersByVisibility()
+    public async Task Query_RoleFacet_FiltersByRole()
     {
-        // Arrange — a visible (null directive) and an invisible workflow, both completing.
+        // Arrange — a primary (null directive) and an auxiliary workflow, both completing.
         var request = _testHelpers.CreateEnqueueRequest([
-            _testHelpers.CreateWorkflow("wf-visible", [_testHelpers.CreateWebhookStep("/hook")]),
-            _testHelpers.CreateWorkflow("wf-invisible", [_testHelpers.CreateWebhookStep("/hook")], isHead: false),
+            _testHelpers.CreateWorkflow("wf-primary", [_testHelpers.CreateWebhookStep("/hook")]),
+            _testHelpers.CreateWorkflow("wf-auxiliary", [_testHelpers.CreateWebhookStep("/hook")], isHead: false),
         ]);
         var enqueueResponse = await _client.Enqueue(request);
-        var visibleId = enqueueResponse.Workflows[0].DatabaseId;
-        var invisibleId = enqueueResponse.Workflows[1].DatabaseId;
-        await _client.WaitForWorkflowStatus([visibleId, invisibleId], PersistentItemStatus.Completed);
+        var primaryId = enqueueResponse.Workflows[0].DatabaseId;
+        var auxiliaryId = enqueueResponse.Workflows[1].DatabaseId;
+        await _client.WaitForWorkflowStatus([primaryId, auxiliaryId], PersistentItemStatus.Completed);
 
         using var client = fixture.CreateEngineClient();
 
         // Act
-        using var visibleResponse = await client.GetAsync(
-            "/dashboard/query?status=COMPLETED&isHead=true",
+        using var primaryResponse = await client.GetAsync(
+            "/dashboard/query?status=COMPLETED&role=primary",
             TestContext.Current.CancellationToken
         );
-        using var invisibleResponse = await client.GetAsync(
-            "/dashboard/query?status=COMPLETED&isHead=false",
+        using var auxiliaryResponse = await client.GetAsync(
+            "/dashboard/query?status=COMPLETED&role=auxiliary",
+            TestContext.Current.CancellationToken
+        );
+        using var invalidResponse = await client.GetAsync(
+            "/dashboard/query?status=COMPLETED&role=bogus",
             TestContext.Current.CancellationToken
         );
 
-        // Assert — the facet carries the same visibility semantics as the public list endpoint.
-        var visibleJson = await visibleResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        using var visibleDoc = JsonDocument.Parse(visibleJson);
-        var visibleWorkflow = Assert.Single(visibleDoc.RootElement.GetProperty("workflows").EnumerateArray());
-        Assert.Equal(visibleId, visibleWorkflow.GetProperty("databaseId").GetGuid());
+        // Assert — the facet carries the same role semantics as the public list endpoint.
+        var primaryJson = await primaryResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var primaryDoc = JsonDocument.Parse(primaryJson);
+        var primaryWorkflow = Assert.Single(primaryDoc.RootElement.GetProperty("workflows").EnumerateArray());
+        Assert.Equal(primaryId, primaryWorkflow.GetProperty("databaseId").GetGuid());
 
-        var invisibleJson = await invisibleResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        using var invisibleDoc = JsonDocument.Parse(invisibleJson);
-        var invisibleWorkflow = Assert.Single(invisibleDoc.RootElement.GetProperty("workflows").EnumerateArray());
-        Assert.Equal(invisibleId, invisibleWorkflow.GetProperty("databaseId").GetGuid());
+        var auxiliaryJson = await auxiliaryResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var auxiliaryDoc = JsonDocument.Parse(auxiliaryJson);
+        var auxiliaryWorkflow = Assert.Single(auxiliaryDoc.RootElement.GetProperty("workflows").EnumerateArray());
+        Assert.Equal(auxiliaryId, auxiliaryWorkflow.GetProperty("databaseId").GetGuid());
+
+        Assert.Equal(HttpStatusCode.BadRequest, invalidResponse.StatusCode);
     }
 
     // ── /dashboard/scheduled ───────────────────────────────────────────

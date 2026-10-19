@@ -46,10 +46,10 @@ public partial class EngineTests
     }
 
     [Fact]
-    public async Task ListWorkflows_IsHeadFilter_UsesVisibilitySemantics()
+    public async Task ListWorkflows_RoleFilter_MatchesDerivedRole()
     {
         // Arrange — one workflow per isHead directive value: unset (the ordinary default),
-        // explicit true, and explicit false (invisible).
+        // explicit true, and explicit false (auxiliary).
         var request = _testHelpers.CreateEnqueueRequest([
             _testHelpers.CreateWorkflow("wf-null", [_testHelpers.CreateWebhookStep("/hook")]),
             _testHelpers.CreateWorkflow("wf-true", [_testHelpers.CreateWebhookStep("/hook")], isHead: true),
@@ -60,31 +60,37 @@ public partial class EngineTests
         await _client.WaitForWorkflowStatus(byRef.Values, PersistentItemStatus.Completed);
 
         // Act
-        var visible = await _client.ListWorkflowsPaginated(isHead: true);
-        var invisible = await _client.ListWorkflowsPaginated(isHead: false);
+        var primary = await _client.ListWorkflowsPaginated(role: WorkflowRole.Primary);
+        var auxiliary = await _client.ListWorkflowsPaginated(role: WorkflowRole.Auxiliary);
         var unfiltered = await _client.ListWorkflowsPaginated();
 
-        // Assert — isHead=true is visibility, not directive equality: it must include the
-        // null-directive workflow (the default for nearly every ordinary workflow), while
-        // isHead=false matches exactly the invisible one.
-        Assert.Equal(2, visible.TotalCount);
-        Assert.Contains(visible.Data, w => w.DatabaseId == byRef["wf-null"]);
-        Assert.Contains(visible.Data, w => w.DatabaseId == byRef["wf-true"]);
+        // Assert — role=primary is not directive equality: it must include the null-directive
+        // workflow (the default for nearly every ordinary workflow), while role=auxiliary matches
+        // exactly the isHead=false one.
+        Assert.Equal(2, primary.TotalCount);
+        Assert.Contains(primary.Data, w => w.DatabaseId == byRef["wf-null"]);
+        Assert.Contains(primary.Data, w => w.DatabaseId == byRef["wf-true"]);
+        Assert.All(primary.Data, w => Assert.Equal(WorkflowRole.Primary, w.Role));
 
-        var invisibleWorkflow = Assert.Single(invisible.Data);
-        Assert.Equal(byRef["wf-false"], invisibleWorkflow.DatabaseId);
+        var auxiliaryWorkflow = Assert.Single(auxiliary.Data);
+        Assert.Equal(byRef["wf-false"], auxiliaryWorkflow.DatabaseId);
+        Assert.Equal(WorkflowRole.Auxiliary, auxiliaryWorkflow.Role);
 
         Assert.Equal(3, unfiltered.TotalCount);
 
-        // The response field stays the raw directive: a visible row can still read isHead = null.
-        Assert.Null(visible.Data.Single(w => w.DatabaseId == byRef["wf-null"]).IsHead);
-        Assert.Equal(true, visible.Data.Single(w => w.DatabaseId == byRef["wf-true"]).IsHead);
+        // isHead stays the raw directive next to the derived role.
+        Assert.Null(primary.Data.Single(w => w.DatabaseId == byRef["wf-null"]).IsHead);
+        Assert.Equal(true, primary.Data.Single(w => w.DatabaseId == byRef["wf-true"]).IsHead);
+        Assert.Equal(false, auxiliaryWorkflow.IsHead);
     }
 
-    [Fact]
-    public async Task ListWorkflows_InvalidIsHeadValue_ReturnsBadRequest()
+    [Theory]
+    [InlineData("bogus")]
+    [InlineData("false")]
+    [InlineData("1")]
+    public async Task ListWorkflows_InvalidRoleValue_ReturnsBadRequest(string role)
     {
-        using var response = await _client.ListWorkflowsRaw("?isHead=bogus");
+        using var response = await _client.ListWorkflowsRaw($"?role={role}");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

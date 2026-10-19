@@ -281,11 +281,23 @@ internal static class WireContract
             var members = Enum.GetValues(type)
                 .Cast<object>()
                 .Select(value =>
-                    (Name: Enum.GetName(type, value), Value: Convert.ToInt64(value, CultureInfo.InvariantCulture))
+                    (Name: EnumMemberWireName(type, value), Value: Convert.ToInt64(value, CultureInfo.InvariantCulture))
                 )
                 .OrderBy(member => member.Value)
                 .Select(member => $"{member.Name}={member.Value.ToString(CultureInfo.InvariantCulture)}");
             return $"enum<{(asString ? "string" : "int")}>{{{string.Join(",", members)}}}";
+        }
+
+        /// <summary>
+        /// The name a string enum member is written as: its <see cref="JsonStringEnumMemberNameAttribute"/>
+        /// when it declares one, otherwise its CLR name.
+        /// </summary>
+        private static string? EnumMemberWireName(Type type, object value)
+        {
+            var name = Enum.GetName(type, value);
+            return name is null
+                ? null
+                : type.GetField(name)?.GetCustomAttribute<JsonStringEnumMemberNameAttribute>()?.Name ?? name;
         }
 
         private bool IsNullable(PropertyInfo property)

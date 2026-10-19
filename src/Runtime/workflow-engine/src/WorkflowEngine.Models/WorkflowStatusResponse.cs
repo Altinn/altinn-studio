@@ -127,13 +127,23 @@ public sealed record WorkflowStatusResponse
     public string? InitialState { get; init; }
 
     /// <summary>
-    /// The head-visibility directive this workflow was enqueued with (<see cref="WorkflowRequest.IsHead"/>).
-    /// <c>false</c> identifies workflows deliberately invisible to collection head tracking (e.g.
-    /// non-blocking side chains); <c>null</c>/omitted means natural leaf detection applied.
+    /// The raw <c>isHead</c> directive this workflow was enqueued with (<see cref="WorkflowRequest.IsHead"/>);
+    /// <c>null</c>/omitted when none was given. Read <see cref="Role"/> instead to tell primary from
+    /// auxiliary workflows.
     /// </summary>
     [JsonPropertyName("isHead")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? IsHead { get; init; }
+
+    /// <summary>
+    /// Whether the process waits on this workflow, derived from <see cref="IsHead"/>:
+    /// <see cref="WorkflowRole.Auxiliary"/> when the directive is <c>false</c>, otherwise
+    /// <see cref="WorkflowRole.Primary"/>. This is the field clients should read. Nullable so the wire
+    /// contract stays additive for consumers that do not model it yet; the engine always populates it.
+    /// </summary>
+    [JsonPropertyName("role")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public WorkflowRole? Role { get; init; }
 
     /// <summary>
     /// Details about each step in the workflow.
@@ -165,6 +175,7 @@ public sealed record WorkflowStatusResponse
             OverallStatus = workflow.Status,
             InitialState = includeState ? workflow.InitialState : null,
             IsHead = workflow.IsHead,
+            Role = workflow.IsHead == false ? WorkflowRole.Auxiliary : WorkflowRole.Primary,
             Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Dependents = workflow.Dependents?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Links = workflow.Links?.ToDictionary(x => x.DatabaseId, x => x.Status),

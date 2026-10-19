@@ -43,25 +43,51 @@ public class OpenApiDocTests(EngineAppFixture<Program> fixture)
     }
 
     [Fact]
-    public async Task IsHeadFilter_DocumentsVisibilityAsymmetry()
+    public async Task RoleFilter_DocumentsItsValues()
     {
         using var client = fixture.CreateEngineClient();
         using var doc = await GetOpenApiDoc(client);
 
-        var isHeadParam = doc
+        var roleParam = doc
             .RootElement.GetProperty("paths")
             .GetProperty("/api/v1/{namespace}/workflows")
             .GetProperty("get")
             .GetProperty("parameters")
             .EnumerateArray()
-            .Single(p => p.GetProperty("name").GetString() == "isHead");
+            .Single(p => p.GetProperty("name").GetString() == "role");
 
-        // The param is deliberately asymmetric with the response field of the same name
-        // (field = raw directive, param = effective visibility) — the description must say so.
-        var description = isHeadParam.GetProperty("description").GetString();
+        var description = roleParam.GetProperty("description").GetString();
         Assert.False(string.IsNullOrWhiteSpace(description));
-        Assert.Contains("asymmetric", description, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("visibility", description, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("primary", description, StringComparison.Ordinal);
+        Assert.Contains("auxiliary", description, StringComparison.Ordinal);
+
+        var values = roleParam
+            .GetProperty("schema")
+            .GetProperty("enum")
+            .EnumerateArray()
+            .Select(e => e.GetString())
+            .ToList();
+        foreach (var name in Enum.GetNames<WorkflowRole>())
+            Assert.Contains(name, values);
+    }
+
+    [Fact]
+    public async Task WorkflowRoleSchema_ListsTheWireNames()
+    {
+        using var client = fixture.CreateEngineClient();
+        using var doc = await GetOpenApiDoc(client);
+
+        var values = doc
+            .RootElement.GetProperty("components")
+            .GetProperty("schemas")
+            .GetProperty(nameof(WorkflowRole))
+            .GetProperty("enum")
+            .EnumerateArray()
+            .Where(e => e.ValueKind == JsonValueKind.String)
+            .Select(e => e.GetString())
+            .ToList();
+
+        Assert.Equal(["primary", "auxiliary"], values);
     }
 
     [Fact]

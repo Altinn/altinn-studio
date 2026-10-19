@@ -59,12 +59,11 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
             "Filter by workflow status (repeatable, case-insensitive). Omit to return all statuses; an unrecognized value returns 400.",
         ["label"] = "Filter by label, formatted as key:value (repeatable). Entries without a colon are ignored.",
         ["collectionKey"] = "Filter to a single workflow collection.",
-        ["isHead"] =
-            "Filter by head visibility. Deliberately asymmetric with the response field of the same name: "
-            + "the field is the raw enqueue directive (true, false, or absent), while this parameter is effective "
-            + "visibility — isHead=true matches every workflow the head frontier can see (directive true OR unset, "
-            + "so it returns rows whose isHead field reads null), and isHead=false matches exactly the invisible "
-            + "ones (directive false). Omit to return both.",
+        ["role"] =
+            "Filter by workflow role: 'primary' matches workflows the process waits on (isHead directive true "
+            + "or unset, so it returns rows whose isHead field reads null), 'auxiliary' matches workflows that "
+            + "run beside the process (isHead directive false). Case-insensitive; omit to return both, and an "
+            + "unrecognized value returns 400.",
         ["cursor"] = "Pagination cursor — pass the nextCursor from the previous response to fetch the next page.",
         ["pageSize"] = "Items per page (default 25, clamped to 1–100).",
         ["includeState"] =
@@ -81,9 +80,9 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
             + "collection row are reported in unmatchedKeys.",
         ["failures"] =
             "Discover mode: only collections containing at least one failed workflow (Failed, Canceled, "
-            + "DependencyFailed; Abandoned never matches). 'visible' restricts to failures the head frontier can "
-            + "see (isHead directive not false), 'invisible' to failures of workflows enqueued with isHead=false, "
-            + "'any' ignores visibility. An unrecognized value returns 400.",
+            + "DependencyFailed; Abandoned never matches). 'primary' restricts to failed primary workflows, "
+            + "'auxiliary' to failed auxiliary workflows, 'any' takes both roles. Case-insensitive; an "
+            + "unrecognized value returns 400.",
         ["cursor"] =
             "Pagination cursor — pass the nextCursor from the previous response to fetch the next page. "
             + "Not valid together with key.",
@@ -113,31 +112,36 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
             ApplyParameterDocs(
                 operation,
                 _listWorkflowParamDescriptions,
-                enumParameterName: "status",
-                new OpenApiSchema { Type = JsonSchemaType.Array, Items = EnumSchema<PersistentItemStatus>() }
+                new()
+                {
+                    ["status"] = new OpenApiSchema
+                    {
+                        Type = JsonSchemaType.Array,
+                        Items = EnumSchema<PersistentItemStatus>(),
+                    },
+                    ["role"] = EnumSchema<WorkflowRole>(),
+                }
             );
 
         if (operationId == "ListCollections")
             ApplyParameterDocs(
                 operation,
                 _listCollectionParamDescriptions,
-                enumParameterName: "failures",
-                EnumSchema<CollectionFailureFilter>()
+                new() { ["failures"] = EnumSchema<CollectionFailureFilter>() }
             );
 
         return Task.CompletedTask;
     }
 
     /// <summary>
-    /// Describes an operation's query parameters and replaces one of them with an enum schema.
-    /// Minimal APIs infer a bare string for a name-parsed enum parameter, so the schema is set
-    /// here to list exactly the names the endpoint accepts.
+    /// Describes an operation's query parameters and replaces the schema of its name-parsed enum
+    /// parameters. Minimal APIs infer a bare string for those, so the schema is set here to list
+    /// exactly the names the endpoint accepts.
     /// </summary>
     private static void ApplyParameterDocs(
         OpenApiOperation operation,
         Dictionary<string, string> descriptions,
-        string enumParameterName,
-        OpenApiSchema enumSchema
+        Dictionary<string, OpenApiSchema> enumSchemas
     )
     {
         if (operation.Parameters is null)
@@ -148,7 +152,7 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
             if (parameter.Name is { } name && descriptions.TryGetValue(name, out var description))
                 parameter.Description = description;
 
-            if (parameter.Name == enumParameterName)
+            if (parameter.Name is { } enumName && enumSchemas.TryGetValue(enumName, out var enumSchema))
                 parameter.Schema = enumSchema;
         }
     }

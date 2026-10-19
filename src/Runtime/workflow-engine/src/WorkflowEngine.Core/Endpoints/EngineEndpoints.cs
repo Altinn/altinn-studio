@@ -43,10 +43,10 @@ internal static class EngineEndpoints
                 Lists workflows in the namespace, newest first.
 
                 Optionally filtered by status (repeatable, case-insensitive), label (key:value, repeatable),
-                collectionKey, and isHead (head visibility — see the parameter description).
+                collectionKey, and role (primary or auxiliary).
                 Cursor-paginated: pass the nextCursor from a response back as the cursor parameter.
 
-                Returns 204 No Content when nothing matches, and 400 Bad Request for an unrecognized status value.
+                Returns 204 No Content when nothing matches, and 400 Bad Request for an unrecognized status or role value.
                 """
             );
 
@@ -249,8 +249,8 @@ internal static class EngineEndpoints
             .WithDescription(
                 """
                 Lists workflow collections in the namespace as a health view: every entry carries a
-                workflowCounts rollup covering all of the collection's workflows, including the
-                invisible (isHead = false) ones the head frontier hides. Cursor-paginated over a stable,
+                workflowCounts rollup covering all of the collection's workflows, split into primary and
+                auxiliary workflows. Cursor-paginated over a stable,
                 collation-defined key order; treat the cursor as opaque and pass the nextCursor from a
                 response back as the cursor parameter.
 
@@ -259,9 +259,9 @@ internal static class EngineEndpoints
                 - annotate (key, repeatable): health for a set of collection keys the caller already
                   holds. The response also reports unmatchedKeys — requested keys with no collection row,
                   which must not be read as healthy (the collection may have been purged by retention).
-                - discover (failures=any|visible|invisible): only collections containing at least one
+                - discover (failures=any|primary|auxiliary): only collections containing at least one
                   failed workflow (Failed, Canceled, DependencyFailed — Abandoned is a written-off
-                  failure and never matches), optionally restricted by head visibility.
+                  failure and never matches), optionally restricted to one role.
 
                 Returns 400 Bad Request when key is combined with cursor or failures, when more keys are
                 supplied than the maximum page size (the request is rejected rather than truncated), or
@@ -279,11 +279,10 @@ internal static class EngineEndpoints
                 Gets a single workflow collection by key, including head workflow statuses.
 
                 This is a frontier view by contract: it reports only the current head workflows, so
-                workflows enqueued with isHead = false (invisible side effects) never appear and no
-                health rollup is included — it sits on a hot path and stays cheap. For per-collection
-                health use the collection list endpoint's workflowCounts rollup; to enumerate a
-                collection's failures use the workflow list endpoint with collectionKey, status and
-                isHead filters.
+                auxiliary workflows never appear and no health rollup is included — it sits on a hot
+                path and stays cheap. For per-collection health use the collection list endpoint's
+                workflowCounts rollup; to enumerate a collection's failures use the workflow list
+                endpoint with collectionKey, status and role filters.
                 """
             );
 
@@ -464,7 +463,7 @@ internal static class EngineRequestHandlers
         [FromQuery] string? collectionKey,
         [FromQuery(Name = "label")] string[]? labels,
         [FromQuery(Name = "status")] string[]? statuses,
-        [FromQuery] bool? isHead,
+        [FromQuery] string? role,
         [FromQuery] Guid? cursor,
         [FromQuery] int? pageSize,
         [FromQuery] bool? includeState,
@@ -481,6 +480,18 @@ internal static class EngineRequestHandlers
                 statusCode: StatusCodes.Status400BadRequest
             );
 
+        WorkflowRole? roleFilter = null;
+        if (role is not null)
+        {
+            if (!EnumNames.TryParse(role, out WorkflowRole parsedRole))
+                return TypedResults.Problem(
+                    detail: $"'{role}' is not a valid workflow role. Valid values (case-insensitive): {string.Join(", ", EnumNames.Of<WorkflowRole>())}.",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
+
+            roleFilter = parsedRole;
+        }
+
         var pagination = settings.Value.Pagination;
         var effectivePageSize = Math.Clamp(pageSize ?? pagination.DefaultPageSize, 1, pagination.MaxPageSize);
 
@@ -494,7 +505,7 @@ internal static class EngineRequestHandlers
             labelFilters: labelFilters,
             namespaceFilter: ns,
             collectionKey: collectionKey,
-            isHead: isHead,
+            role: roleFilter,
             cancellationToken: cancellationToken
         );
 
