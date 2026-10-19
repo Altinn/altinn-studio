@@ -53,6 +53,37 @@
   padding-inline-start: calc(var(--ds-size-3) + var(--ds-size-5));
 }
 
+/* Each auxiliary workflow heads its own expandable group without changing the table columns. */
+.auxiliaryWorkflowRow {
+  background-color: var(--ds-color-neutral-background-tinted);
+}
+
+.steps .auxiliaryWorkflowRow > td {
+  vertical-align: middle;
+}
+
+.auxiliaryWorkflowName {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-size-1) var(--ds-size-3);
+}
+
+.auxiliaryWorkflowToggle {
+  min-height: var(--ds-size-8);
+  padding: var(--ds-size-1);
+  text-align: start;
+}
+
+.auxiliaryWorkflowProgress {
+  color: var(--ds-color-neutral-text-subtle);
+  font-size: var(--ds-font-size-2);
+}
+
+.auxiliaryWorkflowStep {
+  padding-inline-start: calc(var(--ds-size-3) + var(--ds-size-5) + var(--ds-size-6));
+}
+
 /* A failed auxiliary workflow is the one thing on the transition's own row worth a color. */
 .auxiliaryWorkflowsFailedNote {
   color: var(--ds-color-warning-text-subtle);

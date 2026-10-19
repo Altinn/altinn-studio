@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -293,6 +293,144 @@ describe('InstanceWorkflows', () => {
     expect(
       screen.getByText(textMock('admin.workflows.step.defer_count', { times: 2 })),
     ).toBeInTheDocument();
+  });
+
+  describe('auxiliary workflows with multiple steps', () => {
+    const transition = {
+      ...failedPrimaryWorkflow,
+      databaseId: 'wf-transition',
+      operationId: 'Process next: Form -> Verify',
+      overallStatus: 'Completed',
+      createdAt: '2026-08-02T09:00:00Z',
+      labels: { processNextTargetId: 'Verify:3' },
+      steps: [],
+    };
+    const stepOf = (operationId: string, processingOrder: number, status = 'Completed') => ({
+      databaseId: `step-${operationId}`,
+      operationId,
+      processingOrder,
+      status,
+      command: { type: 'AppCommand' },
+      retryCount: 0,
+      errorHistory: [],
+    });
+    const archive = {
+      ...settledAuxiliaryWorkflow,
+      databaseId: 'wf-archive',
+      operationId: 'Process next side-effects: Form -> Verify · Archive',
+      createdAt: '2026-08-02T09:00:01Z',
+      labels: transition.labels,
+      // The API's array order must not decide the order shown to the operator.
+      steps: [
+        stepOf('Confirm delivery', 2),
+        stepOf('Prepare archive', 0),
+        stepOf('Send archive', 1),
+      ],
+    };
+    const respondWith = (...sideFlows: object[]) =>
+      jest.mocked(axios.get).mockResolvedValue({
+        status: 200,
+        data: { ...workflowsResponse, data: [transition, ...sideFlows] },
+      } as AxiosResponse);
+
+    it('expands each flow independently and lists all its steps in execution order', async () => {
+      const user = userEvent.setup();
+      respondWith(archive, {
+        ...archive,
+        databaseId: 'wf-notify',
+        operationId: 'Process next side-effects: Form -> Verify · Notify',
+        steps: [stepOf('Send notification', 0)],
+      });
+      renderInstanceWorkflows();
+
+      const [row] = await screen.findAllByTestId('workflow-row');
+      await user.click(within(row).getByTitle(transition.operationId));
+      const archiveToggle = within(row).getByRole('button', { name: 'Archive' });
+      const notifyToggle = within(row).getByRole('button', { name: 'Notify' });
+      expect(archiveToggle).toHaveAttribute('aria-expanded', 'false');
+      expect(notifyToggle).toHaveAttribute('aria-expanded', 'false');
+      expect(within(row).queryByRole('cell', { name: 'Prepare archive' })).not.toBeInTheDocument();
+      expect(within(row).getAllByTestId('auxiliary-workflow-row')[0]).toHaveTextContent(
+        textMock('admin.workflows.row.steps', { completed: 3, total: 3 }),
+      );
+
+      await user.click(archiveToggle);
+      expect(archiveToggle).toHaveAttribute('aria-expanded', 'true');
+      const stepNames = within(row)
+        .getAllByRole('cell')
+        .filter((cell) => cell.classList.contains('auxiliaryWorkflowStep'))
+        .map((cell) => cell.textContent);
+      expect(stepNames).toEqual(['Prepare archive', 'Send archive', 'Confirm delivery']);
+      expect(
+        within(row).queryByRole('cell', { name: 'Send notification' }),
+      ).not.toBeInTheDocument();
+
+      await user.click(notifyToggle);
+      await user.click(archiveToggle);
+      expect(within(row).getByRole('cell', { name: 'Send notification' })).toBeVisible();
+      expect(within(row).queryByRole('cell', { name: 'Prepare archive' })).not.toBeInTheDocument();
+    });
+
+    it('opens a failed flow with every step, retains earlier history, and retries that flow', async () => {
+      const user = userEvent.setup();
+      const recoveredError = 'Archive preparation failed before recovering';
+      respondWith({
+        ...archive,
+        overallStatus: 'Failed',
+        steps: [
+          {
+            ...stepOf('Prepare archive', 0),
+            errorHistory: [{ timestamp: '2026-08-02T09:00:02Z', message: recoveredError }],
+          },
+          { ...failedPrimaryWorkflow.steps[0], operationId: 'Send archive', processingOrder: 1 },
+          stepOf('Confirm delivery', 2, 'Enqueued'),
+        ],
+      });
+      jest.mocked(axios.post).mockResolvedValue({ status: 202, data: {} } as AxiosResponse);
+      renderInstanceWorkflows();
+
+      const [row] = await screen.findAllByTestId('workflow-row');
+      expect(row).toHaveAttribute('open');
+      expect(within(row).getByRole('button', { name: 'Archive' })).toHaveAttribute(
+        'aria-expanded',
+        'true',
+      );
+      expect(within(row).getByRole('cell', { name: 'Prepare archive' })).toBeVisible();
+      expect(within(row).getByRole('cell', { name: 'Send archive' })).toBeVisible();
+      expect(within(row).getByRole('cell', { name: 'Confirm delivery' })).toBeVisible();
+      expect(within(row).getByTestId('auxiliary-workflow-row')).toHaveTextContent(
+        textMock('admin.workflows.row.steps', { completed: 1, total: 3 }),
+      );
+      expect(within(row).getByText(shownProblemMessage)).toBeVisible();
+      expect(within(row).getByText(recoveredError)).not.toBeVisible();
+      await user.click(
+        within(row).getByText(textMock('admin.workflows.step.resolved_errors', { count: 1 })),
+      );
+      expect(within(row).getByText(recoveredError)).toBeVisible();
+
+      await user.click(
+        within(row).getByRole('button', { name: textMock('admin.workflows.actions.retry') }),
+      );
+      await user.click(
+        screen.getByRole('button', { name: textMock('admin.workflows.actions.retry.confirm') }),
+      );
+      await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
+      expect(jest.mocked(axios.post).mock.calls[0][0]).toContain('/workflows/wf-archive/resume');
+    });
+
+    it('still offers retry when a failed flow has no steps', async () => {
+      respondWith({ ...archive, overallStatus: 'DependencyFailed', steps: [] });
+      renderInstanceWorkflows();
+
+      const [row] = await screen.findAllByTestId('workflow-row');
+      expect(within(row).getByRole('button', { name: 'Archive' })).toHaveAttribute(
+        'aria-expanded',
+        'true',
+      );
+      expect(
+        within(row).getByRole('button', { name: textMock('admin.workflows.actions.retry') }),
+      ).toBeVisible();
+    });
   });
 
   it('marks the step being executed', async () => {

@@ -11,7 +11,7 @@ import {
 } from '@studio/components';
 import { Fragment, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ArrowsCirclepathIcon } from '@studio/icons';
+import { ArrowsCirclepathIcon, ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useFetchMoreResults } from 'admin/features/apps/hooks/useFetchMoreResults';
 import { useInstanceWorkflowsQuery } from 'admin/features/apps/hooks/queries/useInstanceWorkflowsQuery';
@@ -53,6 +53,7 @@ import {
   failedAttemptCount,
   auxiliaryWorkflowName,
   newestFirst,
+  orderedSteps,
   toTime,
 } from 'admin/features/apps/utils/workflowTriage';
 import { groupStepsOfWorkflows } from 'admin/features/apps/utils/workflowPhases';
@@ -225,26 +226,50 @@ type AuxiliaryWorkflowRowProps = {
   workflow: WorkflowStatus;
 };
 
-/**
- * One auxiliary workflow: a row like a step's, and its error and verbs under it when it has any.
- */
+/** An auxiliary workflow has its own status and progress, with its steps grouped underneath. */
 const AuxiliaryWorkflowRow = ({ context, workflow }: AuxiliaryWorkflowRowProps) => {
-  const step = focusStepOf(workflow);
+  const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(
+    () => isFailedWorkflow(workflow) || workflow.overallStatus === 'Requeued',
+  );
+  const steps = orderedSteps(workflow);
+  const focusStep = focusStepOf(workflow);
   const hasVerbs = hasWorkflowVerbs(workflow);
   const failures = failedAttemptCount(workflow);
-  const showDetails =
-    step !== undefined &&
-    workflow.overallStatus !== 'Completed' &&
-    (hasStepDetails(step) || hasVerbs);
+  const canExpand = steps.length > 0 || hasVerbs;
 
   return (
     <Fragment>
       <StudioTable.Row
-        className={showDetails ? classes.stepRowWithDetails : undefined}
+        className={classes.auxiliaryWorkflowRow}
         data-testid='auxiliary-workflow-row'
       >
         <StudioTable.Cell className={classes.groupedCell}>
-          {auxiliaryWorkflowName(workflow)}
+          <div className={classes.auxiliaryWorkflowName}>
+            {canExpand ? (
+              <StudioButton
+                variant='tertiary'
+                data-size='sm'
+                className={classes.auxiliaryWorkflowToggle}
+                aria-expanded={expanded}
+                onClick={() => setExpanded((open) => !open)}
+                title={workflow.operationId}
+                icon={expanded ? <ChevronDownIcon aria-hidden /> : <ChevronRightIcon aria-hidden />}
+              >
+                {auxiliaryWorkflowName(workflow)}
+              </StudioButton>
+            ) : (
+              <span title={workflow.operationId}>{auxiliaryWorkflowName(workflow)}</span>
+            )}
+            {steps.length > 0 && (
+              <span className={classes.auxiliaryWorkflowProgress}>
+                {t('admin.workflows.row.steps', {
+                  completed: steps.filter((step) => step.status === 'Completed').length,
+                  total: steps.length,
+                })}
+              </span>
+            )}
+          </div>
         </StudioTable.Cell>
         <StudioTable.Cell>
           <WorkflowStatusMark status={workflow.overallStatus} />
@@ -259,16 +284,21 @@ const AuxiliaryWorkflowRow = ({ context, workflow }: AuxiliaryWorkflowRowProps) 
           {formatTimeOfDay(workflow.updatedAt ?? workflow.createdAt, 'milliseconds')}
         </StudioTable.Cell>
       </StudioTable.Row>
-      {showDetails && (
+      {expanded &&
+        steps.map((step) => (
+          <WorkflowStepRow
+            key={step.databaseId}
+            context={context}
+            workflow={workflow}
+            step={step}
+            isFocusStep={step === focusStep}
+            indent={classes.auxiliaryWorkflowStep}
+          />
+        ))}
+      {expanded && steps.length === 0 && hasVerbs && (
         <StudioTable.Row>
-          <StudioTable.Cell
-            colSpan={STEP_COLUMN_COUNT}
-            className={`${classes.stepDetailsCell} ${classes.groupedCell}`}
-          >
-            <StepDetails
-              step={step}
-              verbs={hasVerbs && <WorkflowActions context={context} workflow={workflow} />}
-            />
+          <StudioTable.Cell colSpan={STEP_COLUMN_COUNT} className={classes.auxiliaryWorkflowStep}>
+            <WorkflowActions context={context} workflow={workflow} />
           </StudioTable.Cell>
         </StudioTable.Row>
       )}
@@ -503,54 +533,16 @@ const WorkflowSteps = ({
             return (
               <Fragment key={stepGroup.steps[0].step.databaseId}>
                 {heading && <GroupHeading>{taskNameOf(heading)}</GroupHeading>}
-                {stepGroup.steps.map(({ step, workflow }) => {
-                  const hasVerbs = focusSteps.has(step) && hasWorkflowVerbs(workflow);
-                  const hasDetails = hasStepDetails(step) || hasVerbs;
-                  const failures = step.errorHistory?.length ?? 0;
-                  return (
-                    <Fragment key={step.databaseId}>
-                      <StudioTable.Row
-                        className={hasDetails ? classes.stepRowWithDetails : undefined}
-                      >
-                        <StudioTable.Cell className={indent} title={step.operationId}>
-                          {stepDisplayName(step, workflow, t, taskNameOf)}
-                        </StudioTable.Cell>
-                        <StudioTable.Cell>
-                          <WorkflowStatusMark status={step.status} />
-                        </StudioTable.Cell>
-                        <StudioTable.Cell className={classes.numberCell}>
-                          {failures > 0 && failures}
-                        </StudioTable.Cell>
-                        <StudioTable.Cell
-                          className={classes.timeCell}
-                          title={formatTimestamp(step.updatedAt, 'milliseconds')}
-                        >
-                          {formatTimeOfDay(step.updatedAt, 'milliseconds')}
-                        </StudioTable.Cell>
-                      </StudioTable.Row>
-                      {/* What the step has to say — and, on the step the workflow stopped at, the
-                          verbs right under its latest error — gets the whole width, on a row of its
-                          own, set in with the step. */}
-                      {hasDetails && (
-                        <StudioTable.Row>
-                          <StudioTable.Cell
-                            colSpan={STEP_COLUMN_COUNT}
-                            className={[classes.stepDetailsCell, indent].filter(Boolean).join(' ')}
-                          >
-                            <StepDetails
-                              step={step}
-                              verbs={
-                                hasVerbs && (
-                                  <WorkflowActions context={context} workflow={workflow} />
-                                )
-                              }
-                            />
-                          </StudioTable.Cell>
-                        </StudioTable.Row>
-                      )}
-                    </Fragment>
-                  );
-                })}
+                {stepGroup.steps.map(({ step, workflow }) => (
+                  <WorkflowStepRow
+                    key={step.databaseId}
+                    context={context}
+                    workflow={workflow}
+                    step={step}
+                    isFocusStep={focusSteps.has(step)}
+                    indent={indent}
+                  />
+                ))}
               </Fragment>
             );
           })}
@@ -571,6 +563,64 @@ const WorkflowSteps = ({
         </StudioTable.Body>
       </StudioTable>
     </div>
+  );
+};
+
+type WorkflowStepRowProps = {
+  context: WorkflowOpsContext;
+  workflow: WorkflowStatus;
+  step: WorkflowStepStatus;
+  isFocusStep: boolean;
+  indent?: string;
+};
+
+/** The same step details and actions apply to primary and auxiliary workflows. */
+const WorkflowStepRow = ({
+  context,
+  workflow,
+  step,
+  isFocusStep,
+  indent,
+}: WorkflowStepRowProps) => {
+  const { t } = useTranslation();
+  const taskNameOf = useTaskNameOf();
+  const hasVerbs = isFocusStep && hasWorkflowVerbs(workflow);
+  const hasDetails = hasStepDetails(step) || hasVerbs;
+  const failures = step.errorHistory?.length ?? 0;
+
+  return (
+    <Fragment>
+      <StudioTable.Row className={hasDetails ? classes.stepRowWithDetails : undefined}>
+        <StudioTable.Cell className={indent} title={step.operationId}>
+          {stepDisplayName(step, workflow, t, taskNameOf)}
+        </StudioTable.Cell>
+        <StudioTable.Cell>
+          <WorkflowStatusMark status={step.status} />
+        </StudioTable.Cell>
+        <StudioTable.Cell className={classes.numberCell}>
+          {failures > 0 && failures}
+        </StudioTable.Cell>
+        <StudioTable.Cell
+          className={classes.timeCell}
+          title={formatTimestamp(step.updatedAt, 'milliseconds')}
+        >
+          {formatTimeOfDay(step.updatedAt, 'milliseconds')}
+        </StudioTable.Cell>
+      </StudioTable.Row>
+      {hasDetails && (
+        <StudioTable.Row>
+          <StudioTable.Cell
+            colSpan={STEP_COLUMN_COUNT}
+            className={[classes.stepDetailsCell, indent].filter(Boolean).join(' ')}
+          >
+            <StepDetails
+              step={step}
+              verbs={hasVerbs && <WorkflowActions context={context} workflow={workflow} />}
+            />
+          </StudioTable.Cell>
+        </StudioTable.Row>
+      )}
+    </Fragment>
   );
 };
 
