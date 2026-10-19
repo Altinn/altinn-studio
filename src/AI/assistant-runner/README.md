@@ -63,8 +63,9 @@ The answer to `POST /api/v1/vms`:
    reach the VM through the relay, with `agents/core/ssh_proxy.py` as `ProxyCommand`.
 3. ssh runs the upgrade (`studioctl app upgrade v9 -p . --json`, after a base commit) or the build
    (`dotnet build App/App.csproj -nologo -v:q --disable-build-servers`). The assistant stops it after 11 or 5 minutes.
-4. For an upgrade, rsync copies the VM's app into a copy of the app files in the assistant pod, and stops above
-   20 MiB. git makes a patch from that copy. The upgrade tool checks the patch before it changes the session repo.
+4. For an upgrade, ssh runs `git add -A` and `git diff --cached --binary` in the VM. The assistant reads the patch
+   from stdout and stops above 20 MiB. After app code runs, the assistant takes only this patch from the VM, not
+   files. The upgrade tool checks the patch before it changes the session repo.
 5. `DELETE /api/v1/vms/{id}`, also after an error.
 
 ## Guest image

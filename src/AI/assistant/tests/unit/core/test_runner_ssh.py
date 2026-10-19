@@ -1,5 +1,5 @@
 """Tests for `SshRunner`.  These tests run without a VM: `httpx.MockTransport` answers in place of the runner, and a
-fake VM stands in for ssh and rsync.  The ProxyCommand script runs against a local socket server."""
+fake VM or a shell script stands in for ssh and rsync.  The ProxyCommand script runs against a local socket server."""
 
 from __future__ import annotations
 
@@ -17,10 +17,8 @@ import pytest
 
 from agents.core import runner, runner_ssh
 from agents.core.runner import RunnerUnavailable, RunResult
-from agents.core.runner_ssh import SshRunner, _count_copied_bytes, _make_patch, _read_limited, _Vm
+from agents.core.runner_ssh import SshRunner, _read_limited, _Vm
 from shared.config.base_config import BaseConfig
-
-from .git_repo import create_committed_repo, write_files
 
 _RUNNER_URL = "http://assistant-runner"
 _VM_URL = "http://10.0.0.7:8080/api/v1/vms/abc"
@@ -50,8 +48,8 @@ class _FakeVm:
         self.calls.append("run studioctl" if "studioctl" in script else "run dotnet build")
         return self.result
 
-    async def copy_changes_back(self, repo_path: str) -> bytes:
-        self.calls.append("copy back")
+    async def read_patch(self) -> bytes:
+        self.calls.append("read patch")
         return self.patch
 
 
@@ -93,10 +91,10 @@ class TestSshRunner:
         result = await SshRunner(_RUNNER_URL).upgrade(str(tmp_path), lambda: None)
 
         assert result == RunResult(exit_code=0, stdout="{}", stderr="", patch=b"diff\n")
-        assert vm.calls == ["copy in", "run studioctl", "copy back"]
+        assert vm.calls == ["copy in", "run studioctl", "read patch"]
         assert _requests(server) == [f"POST {_RUNNER_URL}/api/v1/vms", f"DELETE {_VM_URL}"]
 
-    async def test_builds_without_copying_back(self, monkeypatch, vm: _FakeVm, tmp_path: Path):
+    async def test_builds_without_reading_a_patch(self, monkeypatch, vm: _FakeVm, tmp_path: Path):
         _serve(monkeypatch, [httpx.Response(201, json=_CREATED), httpx.Response(204)])
 
         await SshRunner(_RUNNER_URL).build(str(tmp_path), lambda: None)
@@ -110,7 +108,7 @@ class TestSshRunner:
         result = await SshRunner(_RUNNER_URL).upgrade(str(tmp_path), lambda: None)
 
         assert result.timed_out
-        assert "copy back" not in vm.calls
+        assert "read patch" not in vm.calls
 
     async def test_deletes_the_vm_when_the_job_fails(self, monkeypatch, vm: _FakeVm, tmp_path: Path):
         server = _serve(monkeypatch, [httpx.Response(201, json=_CREATED), httpx.Response(204)])
@@ -157,17 +155,31 @@ class TestVm:
         )
 
 
-class TestMakePatch:
-    def test_makes_the_patch_of_a_changed_copy_without_changing_the_repo(self, tmp_path: Path):
-        repo = create_committed_repo(tmp_path / "repo", {"App/App.csproj": "v8", "App/Old.cs": "old"})
-        copy = tmp_path / "copy"
-        write_files(copy, {"App/App.csproj": "v9", "App/New.cs": "new"})
+def _create_vm_with_fake_ssh(script: str) -> _Vm:
+    """The runner calls `ssh <destination> <script>`, so the fake gets the destination as $1 and the script as $2."""
+    return _Vm(["sh", "-c", script, "ssh"], "app-build@runner-vm")
 
-        patch = _make_patch(str(repo), str(copy))
 
-        assert b"+v9" in patch and b"App/New.cs" in patch and b"deleted file mode" in patch
-        subprocess.run(["git", "apply", "--check", "-"], cwd=repo, input=patch, check=True)
-        assert subprocess.run(["git", "status", "--porcelain"], cwd=repo, capture_output=True).stdout == b""
+class TestReadPatch:
+    async def test_makes_the_patch_with_git_in_the_vm(self):
+        patch = await _create_vm_with_fake_ssh('printf %s "$2"').read_patch()
+
+        assert patch == b"set -eu; cd /job/app/; git add -A; exec git diff --cached --binary"
+
+    async def test_keeps_binary_bytes(self):
+        assert await _create_vm_with_fake_ssh(r"printf '\000\377'").read_patch() == b"\x00\xff"
+
+    async def test_stops_when_the_patch_is_larger_than_the_limit(self, monkeypatch):
+        monkeypatch.setattr(runner_ssh, "_MAX_PATCH_BYTES", 10)
+
+        with pytest.raises(RunnerUnavailable, match="larger than 10 bytes"):
+            await _create_vm_with_fake_ssh("head -c 100 /dev/zero").read_patch()
+
+    async def test_is_unavailable_when_git_fails(self):
+        vm = _create_vm_with_fake_ssh("echo 'fatal: not a git repository' >&2; exit 128")
+
+        with pytest.raises(RunnerUnavailable, match="git diff in the runner VM failed: fatal: not a git repository"):
+            await vm.read_patch()
 
 
 async def _stream(data: bytes) -> asyncio.StreamReader:
@@ -182,11 +194,6 @@ async def test_keeps_the_start_of_long_output_and_marks_the_cut():
     assert (
         await _read_limited(await _stream(b"0123456789abc"), 10) == "0123456789\n[The assistant cut the output here.]"
     )
-
-
-async def test_stops_when_rsync_copies_too_many_bytes():
-    assert await _count_copied_bytes(await _stream(b"4096\n10\n"), 5000)
-    assert not await _count_copied_bytes(await _stream(b"4096\n4096\n"), 5000)
 
 
 class TestSshProxy:

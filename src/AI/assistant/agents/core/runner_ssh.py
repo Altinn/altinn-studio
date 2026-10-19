@@ -1,17 +1,16 @@
 """The assistant runner over SSH.
 
-The runner starts a VM with sshd for each job.  The assistant copies the app into the VM with rsync, runs the command
-with ssh, and for an upgrade copies the changes back with rsync.  Then it deletes the VM.  The runner also deletes a
-VM at the end of its lifetime, so a VM that the assistant does not delete does not stay.
+The runner starts a VM with sshd for each job.  The assistant copies the app into the VM with rsync and runs the
+command with ssh.  For an upgrade, git makes the patch in the VM, and the assistant reads it with ssh.  Then the
+assistant deletes the VM.  The runner also deletes a VM at the end of its lifetime, so a VM that the assistant does not
+delete does not stay.
 """
 
 from __future__ import annotations
 
 import asyncio
 import logging
-import os
 import shlex
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -36,8 +35,9 @@ _UPGRADE_TIMEOUT_SECONDS = 11 * 60
 _BUILD_TIMEOUT_SECONDS = 5 * 60
 _MAX_UPGRADE_STDOUT_BYTES = 8 * 1024 * 1024
 _MAX_OUTPUT_BYTES = 1024 * 1024
-# App code in the VM controls what rsync copies back, so the assistant stops at this size.
-_MAX_CHANGED_BYTES = 20 * 1024 * 1024
+# App code in the VM controls the patch, so the assistant stops at this size.
+_MAX_PATCH_BYTES = 20 * 1024 * 1024
+_PATCH_TIMEOUT_SECONDS = 60
 _COPY_TIMEOUT_SECONDS = 2 * 60
 _SSH_ERROR_EXIT_CODE = 255
 _HOST_ALIAS = "runner-vm"
@@ -51,6 +51,8 @@ _UPGRADE_SCRIPT = (
     "exec studioctl app upgrade v9 -p . --json"
 )
 _BUILD_SCRIPT = f"cd {JOB_APP_FOLDER} && exec dotnet build App/App.csproj -nologo -v:q --disable-build-servers"
+# The patch also has the changes that studioctl did not stage.
+_PATCH_SCRIPT = f"set -eu; cd {JOB_APP_FOLDER}; git add -A; exec git diff --cached --binary"
 
 
 class SshRunner:
@@ -63,7 +65,7 @@ class SshRunner:
             run = await vm.run(_UPGRADE_SCRIPT, _UPGRADE_TIMEOUT_SECONDS, _MAX_UPGRADE_STDOUT_BYTES)
             if run.timed_out:
                 return run
-            return replace(run, patch=await vm.copy_changes_back(repo_path))
+            return replace(run, patch=await vm.read_patch())
 
     async def build(self, repo_path: str, report_wait: Callable[[], None]) -> RunResult:
         async with self._vm(report_wait) as vm:
@@ -145,29 +147,37 @@ class _Vm:
     async def copy_app_in(self, repo_path: str) -> None:
         """The files that git tracks and the new files that git does not ignore, as they are on disk."""
         app_files = await asyncio.to_thread(list_app_files, repo_path)
-        await self._rsync(
-            [
-                "--links",
-                "--times",
-                "--perms",
-                "--from0",
-                "--files-from=-",
-                "./",
-                f"{self.destination}:{JOB_APP_FOLDER}",
-            ],
-            cwd=repo_path,
-            stdin="\0".join(app_files).encode(),
-        )
-
-    async def run(self, script: str, timeout_seconds: int, max_stdout_bytes: int) -> RunResult:
         process = await asyncio.create_subprocess_exec(
-            *self.ssh_command,
-            self.destination,
-            script,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
+            "rsync",
+            "-e",
+            shlex.join(self.ssh_command),
+            "--links",
+            "--times",
+            "--perms",
+            "--from0",
+            "--files-from=-",
+            "./",
+            f"{self.destination}:{JOB_APP_FOLDER}",
+            cwd=repo_path,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
         )
+        try:
+            _, stderr = await asyncio.wait_for(
+                process.communicate("\0".join(app_files).encode()), _COPY_TIMEOUT_SECONDS
+            )
+        except TimeoutError:
+            process.kill()
+            await process.wait()
+            raise RunnerUnavailable(
+                f"rsync to the runner VM did not finish in {_COPY_TIMEOUT_SECONDS} seconds"
+            ) from None
+        if process.returncode != 0:
+            raise RunnerUnavailable(f"rsync to the runner VM failed: {stderr.decode(errors='replace').strip()}")
+
+    async def run(self, script: str, timeout_seconds: int, max_stdout_bytes: int) -> RunResult:
+        process = await self._start_ssh(script)
         assert process.stdout is not None and process.stderr is not None
         try:
             stdout, stderr = await asyncio.wait_for(
@@ -186,86 +196,52 @@ class _Vm:
             raise RunnerUnavailable(f"ssh to the runner VM failed: {stderr.strip()}")
         return RunResult(exit_code=exit_code, stdout=stdout, stderr=stderr)
 
-    async def copy_changes_back(self, repo_path: str) -> bytes:
-        """rsync writes into a copy of the app, so that it copies only the changed files, and git makes the patch
-        from that copy.  The tool checks the patch before it changes the session repo."""
-        with tempfile.TemporaryDirectory() as copy_folder:
-            await asyncio.to_thread(_copy_app_files, repo_path, copy_folder)
-            await self._rsync(
-                [
-                    "--recursive",
-                    "--links",
-                    "--times",
-                    "--perms",
-                    "--delete",
-                    "--exclude=/.git",
-                    "--out-format=%l",
-                    f"{self.destination}:{JOB_APP_FOLDER}",
-                    f"{copy_folder}/",
-                ],
-                max_copied_bytes=_MAX_CHANGED_BYTES,
-            )
-            return await asyncio.to_thread(_make_patch, repo_path, copy_folder)
-
-    async def _rsync(
-        self, arguments: list[str], cwd: str | None = None, stdin: bytes = b"", max_copied_bytes: int | None = None
-    ) -> None:
-        process = await asyncio.create_subprocess_exec(
-            "rsync",
-            "-e",
-            shlex.join(self.ssh_command),
-            *arguments,
-            cwd=cwd,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
+    async def read_patch(self) -> bytes:
+        """git makes the patch in the VM, so the assistant takes only bytes from the VM, not files.  The tool checks the
+        patch before it changes the session repo."""
+        process = await self._start_ssh(_PATCH_SCRIPT)
+        assert process.stdout is not None and process.stderr is not None
         try:
-            copied_all, stderr = await asyncio.wait_for(
-                _watch_rsync(process, stdin, max_copied_bytes), _COPY_TIMEOUT_SECONDS
+            patch, stderr = await asyncio.wait_for(
+                asyncio.gather(
+                    _read_or_stop(process, _MAX_PATCH_BYTES), _read_limited(process.stderr, _MAX_OUTPUT_BYTES)
+                ),
+                _PATCH_TIMEOUT_SECONDS,
             )
+            exit_code = await process.wait()
         except TimeoutError:
             process.kill()
             await process.wait()
             raise RunnerUnavailable(
-                f"rsync to the runner VM did not finish in {_COPY_TIMEOUT_SECONDS} seconds"
+                f"git diff in the runner VM did not finish in {_PATCH_TIMEOUT_SECONDS} seconds"
             ) from None
-        exit_code = await process.wait()
-        if not copied_all:
-            raise RunnerUnavailable(f"the changes from the runner VM are larger than {max_copied_bytes} bytes")
+        if patch is None:
+            raise RunnerUnavailable(f"the changes from the runner VM are larger than {_MAX_PATCH_BYTES} bytes")
         if exit_code != 0:
-            raise RunnerUnavailable(f"rsync to the runner VM failed: {stderr}")
+            raise RunnerUnavailable(f"git diff in the runner VM failed: {stderr.strip()}")
+        return patch
+
+    async def _start_ssh(self, script: str) -> asyncio.subprocess.Process:
+        return await asyncio.create_subprocess_exec(
+            *self.ssh_command,
+            self.destination,
+            script,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
 
 
-async def _watch_rsync(
-    process: asyncio.subprocess.Process, stdin: bytes, max_copied_bytes: int | None
-) -> tuple[bool, str]:
-    """Reads stdout and stderr at the same time, so that a full pipe does not stop rsync.  Stops rsync at the size
-    limit."""
-    assert process.stdin is not None and process.stdout is not None and process.stderr is not None
-    process.stdin.write(stdin)
-    await process.stdin.drain()
-    process.stdin.close()
-
-    async def count_or_stop(stdout: asyncio.StreamReader) -> bool:
-        copied_all = await _count_copied_bytes(stdout, max_copied_bytes)
-        if not copied_all:
+async def _read_or_stop(process: asyncio.subprocess.Process, max_bytes: int) -> bytes | None:
+    """Reads stdout to the end.  Stops the process and returns None when stdout is larger than `max_bytes`."""
+    assert process.stdout is not None
+    data = bytearray()
+    while chunk := await process.stdout.read(64 * 1024):
+        data += chunk
+        if len(data) > max_bytes:
             process.kill()
-        return copied_all
-
-    copied_all, stderr = await asyncio.gather(count_or_stop(process.stdout), process.stderr.read())
-    return copied_all, stderr.decode(errors="replace").strip()
-
-
-async def _count_copied_bytes(stdout: asyncio.StreamReader, max_copied_bytes: int | None) -> bool:
-    """With `--out-format=%l`, rsync writes the size of each file that it copies.  Returns False when the sizes
-    reach the limit."""
-    copied_bytes = 0
-    async for line in stdout:
-        copied_bytes += int(line) if line.strip().isdigit() else 0
-        if max_copied_bytes is not None and copied_bytes > max_copied_bytes:
-            return False
-    return True
+            return None
+    return bytes(data)
 
 
 async def _read_limited(stream: asyncio.StreamReader, max_bytes: int) -> str:
@@ -277,22 +253,3 @@ async def _read_limited(stream: asyncio.StreamReader, max_bytes: int) -> str:
         is_cut = is_cut or len(kept) >= max_bytes
     text = kept.decode(errors="replace")
     return text + _CUT_NOTE if is_cut else text
-
-
-def _copy_app_files(repo_path: str, copy_folder: str) -> None:
-    for path in list_app_files(repo_path):
-        target = os.path.join(copy_folder, path)
-        os.makedirs(os.path.dirname(target), exist_ok=True)
-        shutil.copy2(os.path.join(repo_path, path), target, follow_symlinks=False)
-
-
-def _make_patch(repo_path: str, folder: str) -> bytes:
-    """The changes in `folder` against HEAD, as `git diff --binary` output.  git uses `folder` as the working tree and
-    a temporary index, so the session repo does not change."""
-    with tempfile.TemporaryDirectory() as index_folder:
-        environment = {**os.environ, "GIT_INDEX_FILE": os.path.join(index_folder, "index")}
-        git = ["git", "-C", repo_path, f"--work-tree={folder}"]
-        subprocess.run([*git, "read-tree", "HEAD"], env=environment, check=True, capture_output=True)
-        subprocess.run([*git, "add", "-A"], env=environment, check=True, capture_output=True)
-        diff = subprocess.run([*git, "diff", "--cached", "--binary"], env=environment, check=True, capture_output=True)
-    return diff.stdout
