@@ -243,6 +243,13 @@ exporters:
     endpoint: https://altinn.studio/internal/observability/otlp
     auth:
       authenticator: bearertokenauth/victoria
+    # The endpoint speaks HTTP/2, so every export shares one connection. A connection that
+    # stops getting answers, such as one through a node removed from behind the Studio load balancer,
+    # is otherwise reused until the kernel gives up on it, about 15 minutes, and every export
+    # meanwhile times out and is queued. A ping after 10s without a frame from the server,
+    # unanswered for 10s, closes it instead, and the next export opens a new one.
+    http2_read_idle_timeout: 10s
+    http2_ping_timeout: 10s
     # Retry without a time limit, so an outage of the Studio prod endpoint is buffered up to
     # the queue size rather than dropped after a fixed time.
     retry_on_failure:
