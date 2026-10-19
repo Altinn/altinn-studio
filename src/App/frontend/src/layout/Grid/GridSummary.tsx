@@ -21,7 +21,6 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { PdfOptionsError } from 'src/features/pdf/PdfOptionsError';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
@@ -411,7 +410,18 @@ function SummaryCellWithComponentNodeCheck(props: CellWithComponentProps) {
   );
 }
 
-function SummaryCellWithComponent({
+function SummaryCellWithComponent(props: CellWithComponentProps & { baseComponentId: string }) {
+  const hidden = useIsHidden(props.baseComponentId);
+  return hidden ? <HiddenSummaryCell isHeader={props.isHeader} /> : <VisibleSummaryCellWithComponent {...props} />;
+}
+
+function HiddenSummaryCell({ isHeader }: { isHeader?: boolean }) {
+  useReportSummaryRender(SummaryContains.EmptyValueNotRequired);
+  const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
+  return <CellComponent />;
+}
+
+function VisibleSummaryCellWithComponent({
   baseComponentId,
   columnStyleOptions,
   isHeader = false,
@@ -423,7 +433,6 @@ function SummaryCellWithComponent({
   const displayData = useDisplayData(baseComponentId);
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const isHidden = useIsHidden(baseComponentId);
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const config = useComponentConfig(baseComponentId);
 
@@ -441,10 +450,6 @@ function SummaryCellWithComponent({
       : SummaryContains.SomeUserContent,
   );
 
-  if (isHidden) {
-    return <CellComponent />;
-  }
-
   return (
     <CellComponent
       className={classes.tableCellFormatting}
@@ -453,7 +458,6 @@ function SummaryCellWithComponent({
       data-is-empty={isEmpty ? 'yes' : 'no'}
       data-cell-node={indexedId}
     >
-      <PdfOptionsError baseComponentId={baseComponentId} />
       <div className={cn(classes.contentWrapper, { [classes.validationError]: errors.length > 0 })}>
         {content}
         {isSmall && !rowReadOnly && (

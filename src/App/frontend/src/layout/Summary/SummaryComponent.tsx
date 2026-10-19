@@ -9,7 +9,6 @@ import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang, LangReference } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { PdfOptionsError } from 'src/features/pdf/PdfOptionsError';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { useNavigationParam } from 'src/hooks/navigation';
@@ -182,7 +181,6 @@ const SummaryComponentInner = React.forwardRef(function (
       data-componentbaseid={componentBaseId}
       className={cn(pageBreakStyles(pageBreak))}
     >
-      <PdfOptionsError baseComponentId={targetBaseComponentId} />
       <Flex
         container
         className={cn({
