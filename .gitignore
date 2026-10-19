@@ -28,7 +28,6 @@ Session.vim
 
 ## AI settings
 **/.claude/settings.local.json
-**/CLAUDE.md
 
 # Local scratch space for notes, TODOs, plans etc..
 .notes/*
