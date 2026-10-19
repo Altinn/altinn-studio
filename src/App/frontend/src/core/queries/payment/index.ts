@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
+import { useActionsApi } from 'src/core/contexts/ApiProvider';
 import { mutationResult } from 'src/core/queries/mutationResult';
 import {
   OrderDetailsProvider,
@@ -8,12 +9,11 @@ import {
   useRefetchOrderDetails,
 } from 'src/core/queries/payment/OrderDetailsProvider';
 import { PaymentInformationProvider, usePaymentInformation } from 'src/core/queries/payment/PaymentInformationProvider';
-import { useAppMutations } from 'src/core/queries/QueryProvider';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 
 export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: string) => {
   const queryClient = useQueryClient();
-  const { doPerformAction } = useAppMutations();
+  const { doPerformAction } = useActionsApi();
   const selectedLanguage = useCurrentLanguage();
   const mutation = useMutation({
     mutationKey: ['performPayAction', partyId, instanceGuid],

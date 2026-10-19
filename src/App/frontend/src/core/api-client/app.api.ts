@@ -35,12 +35,12 @@ import type { BackendValidationIssuesWithSource } from 'src/features/validation'
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
 
-export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
+const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
   httpPut<IInstanceWithProcess>(getProcessNextUrl(instanceId, language, true), action ? { action } : null);
 
-export const doProcessResume = async (instanceId: string) => httpPost<IProcess>(getProcessResumeUrl(instanceId));
+const doProcessResume = async (instanceId: string) => httpPost<IProcess>(getProcessResumeUrl(instanceId));
 
-export const doAttachmentUpload = async (
+const doAttachmentUpload = async (
   instanceId: string,
   dataTypeId: string,
   language: string,
@@ -68,7 +68,7 @@ type UpdateTagsResponse = {
   validationIssues?: BackendValidationIssuesWithSource[];
 };
 
-export const doUpdateAttachmentTags = async ({
+const doUpdateAttachmentTags = async ({
   instanceId,
   dataElementId,
   setTagsRequest,
@@ -99,7 +99,7 @@ type UserActionRequest = {
   onBehalfOf?: string;
 };
 
-export const doPerformAction = async (
+const doPerformAction = async (
   partyId: string,
   instanceGuid: string,
   actionRequest: UserActionRequest,
@@ -117,18 +117,14 @@ export const doPerformAction = async (
   return response.data;
 };
 
-export const doAttachmentRemove = async (
-  instanceId: string,
-  dataElementId: string,
-  language: string,
-): Promise<void> => {
+const doAttachmentRemove = async (instanceId: string, dataElementId: string, language: string): Promise<void> => {
   const response = await httpDelete(getDataElementUrl(instanceId, dataElementId, language));
   if (response.status < 200 || response.status >= 300) {
     throw new Error('Failed to remove attachment');
   }
 };
 
-export const doSubformEntryAdd = async (instanceId: string, dataType: string, data: unknown): Promise<IData> => {
+const doSubformEntryAdd = async (instanceId: string, dataType: string, data: unknown): Promise<IData> => {
   const response = await httpPost<DataPostResponse>(getDataModelTypeUrl(instanceId, dataType), undefined, data);
   if (response.status < 200 || response.status >= 300) {
     throw new Error('Failed to add sub form');
@@ -140,7 +136,7 @@ export const doSubformEntryAdd = async (instanceId: string, dataType: string, da
   return newDataElement;
 };
 
-export const doSubformEntryDelete = async (instanceId: string, dataElementId: string): Promise<void> => {
+const doSubformEntryDelete = async (instanceId: string, dataElementId: string): Promise<void> => {
   const response = await httpDelete(getDataElementIdUrl(instanceId, dataElementId));
   if (response.status < 200 || response.status >= 300) {
     throw new Error('Failed to delete sub form');
@@ -148,42 +144,37 @@ export const doSubformEntryDelete = async (instanceId: string, dataElementId: st
 };
 
 // New multi-patch endpoint for stateful apps
-export const doPatchMultipleFormData = (url: string, data: IDataModelMultiPatchRequest) =>
+const doPatchMultipleFormData = (url: string, data: IDataModelMultiPatchRequest) =>
   httpPatch<IDataModelMultiPatchResponse>(url, data);
 
 // When saving data for stateless apps
-export const doPostStatelessFormData = async (
-  url: string,
-  data: object,
-  options?: AxiosRequestConfig,
-): Promise<object> => (await httpPost<object>(url, options, data)).data;
+const doPostStatelessFormData = async (url: string, data: object, options?: AxiosRequestConfig): Promise<object> =>
+  (await httpPost<object>(url, options, data)).data;
 
-/**
- * Query functions (these should use httpGet and start with 'fetch')
- */
-
-export const fetchLogo = async (): Promise<string> =>
+const fetchLogo = async (): Promise<string> =>
   (await axios.get(GlobalData.platformFrontendSettings.altinnLogoUrl)).data;
 
-export const fetchOptions = (url: string): Promise<AxiosResponse<IRawOption[]> | null> => httpGetRaw<IRawOption[]>(url);
+export type OptionsResponse = Pick<AxiosResponse<IRawOption[]>, 'data' | 'headers'>;
 
-export const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
+const fetchOptions = (url: string): Promise<OptionsResponse | null> => httpGetRaw<IRawOption[]>(url);
 
-export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTokenUrl);
+const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
+
+const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTokenUrl);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promise<any> => httpGet(url, options);
+const fetchFormData = (url: string, options?: AxiosRequestConfig): Promise<any> => httpGet(url, options);
 
-export const fetchPaymentInformationForTask = (
+const fetchPaymentInformationForTask = (
   instanceId: string,
   language?: string,
   taskId?: string,
 ): Promise<PaymentResponsePayload> => httpGet(getPaymentInformationForTaskUrl(instanceId, language, taskId));
 
-export const fetchOrderDetails = (instanceId: string, language?: string): Promise<OrderDetails> =>
+const fetchOrderDetails = (instanceId: string, language?: string): Promise<OrderDetails> =>
   httpGet(getOrderDetailsUrl(instanceId, language));
 
-export const fetchLayoutSchema = async (): Promise<JSONSchema7 | null> => {
+const fetchLayoutSchema = async (): Promise<JSONSchema7 | null> => {
   // Hacky (and only) way to get the correct CDN url
   const schemaBaseUrl = document
     .querySelector('script[src$="altinn-app-frontend.js"]')
@@ -197,7 +188,7 @@ export const fetchLayoutSchema = async (): Promise<JSONSchema7 | null> => {
   return (await axios.get(`${schemaBaseUrl}${LAYOUT_SCHEMA_NAME}`)).data ?? null;
 };
 
-export function fetchExternalApi({
+function fetchExternalApi({
   instanceId,
   externalApiId,
 }: {
@@ -208,12 +199,12 @@ export function fetchExternalApi({
   return httpGet(externalApiUrl);
 }
 
-export const fetchPostalCodes = async (): Promise<PostalCodesRegistry> => {
+const fetchPostalCodes = async (): Promise<PostalCodesRegistry> => {
   const postalCodesUrl: string = GlobalData.platformFrontendSettings.postalCodesUrl;
   return (await axios.get(postalCodesUrl)).data;
 };
 
-export const fetchFormBootstrapForInstance = (options: {
+const fetchFormBootstrapForInstance = (options: {
   instanceId: string;
   uiFolder: string;
   dataElementId?: string;
@@ -224,7 +215,7 @@ export const fetchFormBootstrapForInstance = (options: {
   return httpGet<FormBootstrapResponse>(url);
 };
 
-export const fetchFormBootstrapForStateless = (options: {
+const fetchFormBootstrapForStateless = (options: {
   uiFolder: string;
   language?: string;
   prefill?: string;
@@ -232,3 +223,39 @@ export const fetchFormBootstrapForStateless = (options: {
   const url = getFormBootstrapUrlForStateless(options);
   return httpGet<FormBootstrapResponse>(url);
 };
+
+export const processApi = { doProcessNext, doProcessResume };
+export type ProcessApi = typeof processApi;
+
+export const attachmentsApi = { doAttachmentUpload, doUpdateAttachmentTags, doAttachmentRemove };
+export type AttachmentsApi = typeof attachmentsApi;
+
+export const actionsApi = { doPerformAction };
+export type ActionsApi = typeof actionsApi;
+
+export const subformApi = { doSubformEntryAdd, doSubformEntryDelete };
+export type SubformApi = typeof subformApi;
+
+export const formDataApi = { doPatchMultipleFormData, doPostStatelessFormData, fetchFormData };
+export type FormDataApi = typeof formDataApi;
+
+export const resourcesApi = { fetchLogo, fetchLayoutSchema, fetchPostalCodes };
+export type ResourcesApi = typeof resourcesApi;
+
+export const authApi = { fetchRefreshJwtToken };
+export type AuthApi = typeof authApi;
+
+export const optionsApi = { fetchOptions };
+export type OptionsApi = typeof optionsApi;
+
+export const dataListsApi = { fetchDataList };
+export type DataListsApi = typeof dataListsApi;
+
+export const paymentApi = { fetchPaymentInformationForTask, fetchOrderDetails };
+export type PaymentApi = typeof paymentApi;
+
+export const formBootstrapApi = { fetchFormBootstrapForInstance, fetchFormBootstrapForStateless };
+export type FormBootstrapApi = typeof formBootstrapApi;
+
+export const externalApi = { fetchExternalApi };
+export type ExternalApiClient = typeof externalApi;

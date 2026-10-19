@@ -1,12 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { useLookupApi } from 'src/core/contexts/ApiProvider';
 import { organizationLookupQuery, personLookupQuery } from 'src/core/queries/lookup/lookup.queries';
-import type { Organization, OrganizationLookupResult, Person, PersonLookupResult } from 'src/core/queries/lookup/types';
+import type {
+  Organization,
+  OrganizationLookupResult,
+  Person,
+  PersonLookupResult,
+} from 'src/core/api-client/lookup.types';
 
 export type { Organization, Person };
 
 export function usePersonLookup(ssn: string, name: string) {
-  const query = useQuery(personLookupQuery(ssn, name));
+  const api = useLookupApi();
+  const query = useQuery(personLookupQuery(ssn, name, api));
   return {
     error: query.data?.error,
     isFetching: query.isFetching,
@@ -16,7 +23,8 @@ export function usePersonLookup(ssn: string, name: string) {
 }
 
 export function useOrganizationLookup(orgNr: string) {
-  const query = useQuery(organizationLookupQuery(orgNr));
+  const api = useLookupApi();
+  const query = useQuery(organizationLookupQuery(orgNr, api));
   return {
     error: query.data?.error,
     isFetching: query.isFetching,

@@ -3,7 +3,7 @@ import { useParams } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type * as CBTypes from '@app/layout-contract/generated/components/CustomButton/config.generated';
 
-import { useAppMutations } from 'src/core/queries/QueryProvider';
+import { useActionsApi } from 'src/core/contexts/ApiProvider';
 import { signingQueryKeys } from 'src/core/queries/signeeList/signing.queries';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import type { FormStore } from 'src/features/form/FormContext';
@@ -23,7 +23,7 @@ export function useServerActionMutation(
   const { instanceOwnerPartyId, instanceGuid } = useParams();
   const selectedLanguage = useCurrentLanguage();
   const queryClient = useQueryClient();
-  const { doPerformAction } = useAppMutations();
+  const { doPerformAction } = useActionsApi();
 
   const mutation = useMutation({
     mutationFn: async ({ action, buttonId }: PerformActionMutationProps) => {

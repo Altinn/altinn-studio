@@ -3,8 +3,8 @@ import type { PropsWithChildren } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
+import { useAuthApi } from 'src/core/contexts/ApiProvider';
 import { createContext } from 'src/core/contexts/context';
-import { useAppQueries } from 'src/core/queries/QueryProvider';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { useIsPdf } from 'src/hooks/useIsPdf';
@@ -23,7 +23,7 @@ const redirectToLogin = (appOidcProvider: string | null): boolean => {
 };
 
 const useRefreshJwtTokenQuery = (appOidcProvider: string | null | undefined, enabled: boolean) => {
-  const { fetchRefreshJwtToken } = useAppQueries();
+  const { fetchRefreshJwtToken } = useAuthApi();
   const utils = useQuery({
     enabled,
     refetchOnWindowFocus: true,

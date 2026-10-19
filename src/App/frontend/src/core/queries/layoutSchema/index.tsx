@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import type Ajv from 'ajv';
 import type { ErrorObject } from 'ajv';
 
-import { useAppQueries } from 'src/core/queries/QueryProvider';
+import { useResourcesApi } from 'src/core/contexts/ApiProvider';
 import {
   createLayoutValidator,
   EMPTY_SCHEMA_NAME,
@@ -14,7 +14,7 @@ export type LayoutValidationResult = Record<string, string[]>;
 export type ValidateFunc = ReturnType<typeof makeValidateFunc>;
 
 export function useLayoutSchemaValidator(enabled = shouldValidateLayoutConfiguration()) {
-  const { fetchLayoutSchema } = useAppQueries();
+  const { fetchLayoutSchema } = useResourcesApi();
   const { data, error, isPending } = useQuery({
     enabled,
     queryKey: ['fetchLayoutSchema'],

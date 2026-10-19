@@ -1,23 +1,25 @@
 import { skipToken } from '@tanstack/react-query';
 import type { QueryClient, UseQueryOptions } from '@tanstack/react-query';
 
-import { fetchExternalApi } from 'src/core/api-client/app.api';
+import type { ExternalApiClient } from 'src/core/api-client/app.api';
 import type { ExternalApiQueries } from 'src/core/queries/externalApi';
 export function getExternalApiQueryDef({
   externalApiId,
   instanceId,
+  api,
 }: {
+  api: ExternalApiClient;
   externalApiId: string;
   instanceId: string | undefined;
 }): UseQueryOptions<unknown, Error> {
   return {
     queryKey: ['fetchExternalApi', instanceId, externalApiId],
-    queryFn: instanceId ? async () => fetchExternalApi({ instanceId, externalApiId }) : skipToken,
+    queryFn: instanceId ? async () => api.fetchExternalApi({ instanceId, externalApiId }) : skipToken,
     staleTime: 1000 * 60 * 10,
   };
 }
 
-export function createExternalApiQueries(queryClient: QueryClient): ExternalApiQueries {
+export function createExternalApiQueries(queryClient: QueryClient, api: ExternalApiClient): ExternalApiQueries {
   const snapshots = new WeakMap<object, object>();
   return {
     ensureLoaded: (instanceId, externalApiIds) => {
@@ -26,7 +28,7 @@ export function createExternalApiQueries(queryClient: QueryClient): ExternalApiQ
       }
 
       for (const externalApiId of externalApiIds) {
-        const queryDef = getExternalApiQueryDef({ externalApiId, instanceId });
+        const queryDef = getExternalApiQueryDef({ externalApiId, instanceId, api });
         if (queryClient.getQueryState(queryDef.queryKey)?.fetchStatus === 'fetching') {
           continue;
         }
@@ -41,7 +43,7 @@ export function createExternalApiQueries(queryClient: QueryClient): ExternalApiQ
       const errors: Record<string, Error> = {};
 
       for (const externalApiId of externalApiIds) {
-        const queryDef = getExternalApiQueryDef({ externalApiId, instanceId });
+        const queryDef = getExternalApiQueryDef({ externalApiId, instanceId, api });
         const queryState = queryClient.getQueryState(queryDef.queryKey);
         data[externalApiId] = queryClient.getQueryData(queryDef.queryKey);
         if (queryState?.error instanceof Error) {
@@ -52,7 +54,7 @@ export function createExternalApiQueries(queryClient: QueryClient): ExternalApiQ
       return { data, errors };
     },
     getSnapshot: (instanceId, externalApiId) => {
-      const state = queryClient.getQueryState(getExternalApiQueryDef({ externalApiId, instanceId }).queryKey);
+      const state = queryClient.getQueryState(getExternalApiQueryDef({ externalApiId, instanceId, api }).queryKey);
       if (!state) {
         return undefined;
       }

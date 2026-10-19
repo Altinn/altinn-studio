@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { doProcessNext, doProcessResume } from 'src/core/api-client/app.api';
+import { useProcessApi } from 'src/core/contexts/ApiProvider';
 import { useUpdateInitialValidations } from 'src/core/queries/backendValidation';
 import { invalidateFormDataQueries } from 'src/core/queries/formData/formData.queries';
 import { useCurrentInstance, useInstanceDataQuery, useInstanceDataQueryArgs } from 'src/core/queries/instance';
@@ -38,6 +38,7 @@ interface ProcessNextInternalProps extends ProcessNextProps {
 }
 
 function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues }: ProcessNextInternalProps = {}) {
+  const { doProcessNext } = useProcessApi();
   const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
   const language = useCurrentLanguage();
   const process = useCurrentInstance()?.process;
@@ -192,6 +193,7 @@ export function useProcessNextOutsideFormProvider({ action }: ProcessNextProps =
  * takes over.
  */
 export function useProcessResume() {
+  const { doProcessResume } = useProcessApi();
   const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
   const process = useCurrentInstance()?.process;
   const navigateToTask = useNavigateToTask();

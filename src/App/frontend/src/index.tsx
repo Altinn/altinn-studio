@@ -1,8 +1,4 @@
-// Bundles the core-js polyfills into the app, so it works in older browsers
 import 'core-js';
-
-import { executeHashRouterRedirect } from 'src/utils/urls/hashRouterRedirect';
-const isRedirectingFromHashRoute = executeHashRouterRedirect();
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
@@ -16,13 +12,13 @@ import 'src/features/styleInjection';
 import 'src/features/toggles';
 
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
-import { backendValidationApi, instanceApi, partyApi, textResourcesApi } from 'src/core/api-client';
-import * as queries from 'src/core/api-client/app.api';
+import { apiClients } from 'src/core/api-client';
+import { ApiProvider } from 'src/core/contexts/ApiProvider';
 import { createAppQueryClient } from 'src/core/queries/queryClient';
-import { AppQueriesProvider } from 'src/core/queries/QueryProvider';
+import { AppQueryProvider } from 'src/core/queries/QueryProvider';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { createRouter } from 'src/router';
-import type { ApiClients } from 'src/core/api-client/ApiClients';
+import { executeHashRouterRedirect } from 'src/utils/urls/hashRouterRedirect';
 
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
@@ -30,13 +26,11 @@ import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
 import 'src/styles/shared.css';
 
+// Bundles the core-js polyfills into the app, so it works in older browsers
+
+const isRedirectingFromHashRoute = executeHashRouterRedirect();
+
 const queryClient = createAppQueryClient();
-const apiClients: ApiClients = {
-  backendValidationApi,
-  partyApi,
-  instanceApi,
-  textResourcesApi,
-};
 
 function renderApp() {
   if (isRedirectingFromHashRoute) {
@@ -47,14 +41,13 @@ function renderApp() {
   const container = document.getElementById('root');
   const root = container && createRoot(container);
   root?.render(
-    <AppQueriesProvider
-      queryClient={queryClient}
-      {...queries}
-    >
-      <ErrorBoundary>
-        <RouterProvider router={createRouter({ queryClient, apiClients })} />
-      </ErrorBoundary>
-    </AppQueriesProvider>,
+    <AppQueryProvider queryClient={queryClient}>
+      <ApiProvider apis={apiClients}>
+        <ErrorBoundary>
+          <RouterProvider router={createRouter({ queryClient, apiClients })} />
+        </ErrorBoundary>
+      </ApiProvider>
+    </AppQueryProvider>,
   );
 }
 

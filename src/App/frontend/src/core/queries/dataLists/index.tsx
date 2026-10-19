@@ -2,7 +2,7 @@ import type { AriaAttributes } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
-import { useAppQueries } from 'src/core/queries/QueryProvider';
+import { useDataListsApi } from 'src/core/contexts/ApiProvider';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getDataListsUrl } from 'src/utils/urls/appUrlHelper';
@@ -22,7 +22,7 @@ export const useDataListQuery = (
   secure?: boolean,
   queryParameters?: Record<string, string>,
 ) => {
-  const { fetchDataList } = useAppQueries();
+  const { fetchDataList } = useDataListsApi();
   const selectedLanguage = useCurrentLanguage();
   const instanceId = useLaxInstanceId();
   const { pageSize, pageNumber, sortColumn, sortDirection } = filter || {};

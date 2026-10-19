@@ -2,42 +2,28 @@ import { useCallback } from 'react';
 import { useParams } from 'react-router';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { z } from 'zod';
 
-import { doPerformAction } from 'src/core/api-client/app.api';
+import { useActionsApi, useSigningApi } from 'src/core/contexts/ApiProvider';
 import { useBackendValidationQuery } from 'src/core/queries/backendValidation';
 import { mutationResult } from 'src/core/queries/mutationResult';
 import { useSigneeList } from 'src/core/queries/signeeList';
 import { signingQueryKeys } from 'src/core/queries/signeeList/signing.queries';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useProfile } from 'src/features/profile/ProfileProvider';
-import { httpGet } from 'src/utils/network/sharedNetworking';
-import { capitalizeName } from 'src/utils/stringHelper';
-import { appPath } from 'src/utils/urls/appUrlHelper';
+import type { AuthorizedOrganizationDetails, SigningApi } from 'src/core/api-client/signing.api';
 
-const authorizedOrganizationDetailsSchema = z.object({
-  organizations: z.array(
-    z.object({
-      orgNumber: z.string(),
-      orgName: z.string().transform((name) => capitalizeName(name)),
-      partyId: z.number(),
-    }),
-  ),
-});
+export type { AuthorizedOrganizationDetails };
 
-export type AuthorizedOrganizationDetails = z.infer<typeof authorizedOrganizationDetailsSchema>;
-
-const authorizedOrganizationDetailsQuery = (partyId: string, instanceGuid: string) => ({
+const authorizedOrganizationDetailsQuery = (partyId: string, instanceGuid: string, api: SigningApi) => ({
   queryKey: ['authorizedOrganizationDetails', partyId, instanceGuid],
-  queryFn: async () => {
-    const url = `${appPath}/instances/${partyId}/${instanceGuid}/signing/organizations`;
-    const response = await httpGet(url);
-    return authorizedOrganizationDetailsSchema.parse(response);
-  },
+  queryFn: () => api.fetchAuthorizedOrganizationDetails(partyId, instanceGuid),
 });
 
 export function useAuthorizedOrganizationDetails(partyId: string | undefined, instanceGuid: string | undefined) {
-  const { data, error, isLoading, isFetching } = useQuery(authorizedOrganizationDetailsQuery(partyId!, instanceGuid!));
+  const api = useSigningApi();
+  const { data, error, isLoading, isFetching } = useQuery(
+    authorizedOrganizationDetailsQuery(partyId!, instanceGuid!, api),
+  );
   return { data, error, isLoading, isFetching };
 }
 
@@ -84,6 +70,7 @@ export function useUserSigneeParties() {
 }
 
 export function useSigningMutation() {
+  const { doPerformAction } = useActionsApi();
   const { instanceOwnerPartyId, instanceGuid } = useParams();
   const selectedLanguage = useCurrentLanguage();
   const queryClient = useQueryClient();

@@ -4,7 +4,7 @@ import { useIsMutating, useMutation, useMutationState, useQueryClient } from '@t
 import type { AxiosError } from 'axios';
 import type { StoreApi } from 'zustand';
 
-import { doUpdateAttachmentTags } from 'src/core/api-client/app.api';
+import { useAttachmentsApi } from 'src/core/contexts/ApiProvider';
 import { attachmentMutationKeys } from 'src/core/queries/attachments/attachment.queries';
 import {
   hasPendingAttachments,
@@ -13,7 +13,6 @@ import {
   waitForAttachments,
 } from 'src/core/queries/attachments/attachmentState';
 import { mutationResult } from 'src/core/queries/mutationResult';
-import { useAppMutations } from 'src/core/queries/QueryProvider';
 import { isDataPostError } from 'src/features/attachments/isDataPostError';
 import { type PendingAttachmentMutation } from 'src/features/attachments/tools';
 import { useLaxInstanceId, useOptimisticallyRemoveDataElement } from 'src/features/instance/InstanceContext';
@@ -62,7 +61,7 @@ export const AttachmentMutations = {
   },
 
   useAttachmentsUploadMutation() {
-    const { doAttachmentUpload } = useAppMutations();
+    const { doAttachmentUpload } = useAttachmentsApi();
     const instanceId = useLaxInstanceId();
     const language = useCurrentLanguage();
 
@@ -84,7 +83,7 @@ export const AttachmentMutations = {
   },
 
   useAttachmentsRemoveMutation() {
-    const { doAttachmentRemove } = useAppMutations();
+    const { doAttachmentRemove } = useAttachmentsApi();
     const instanceId = useLaxInstanceId();
     const language = useCurrentLanguage();
     const optimisticallyRemoveDataElement = useOptimisticallyRemoveDataElement();
@@ -104,6 +103,7 @@ export const AttachmentMutations = {
   },
 
   useAttachmentUpdateTagsMutation() {
+    const { doUpdateAttachmentTags } = useAttachmentsApi();
     const instanceId = useLaxInstanceId();
     const updateIncrementalValidations = useUpdateIncrementalValidations();
 

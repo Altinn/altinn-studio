@@ -1,69 +1,39 @@
 import { useCallback } from 'react';
 
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import { z } from 'zod';
 
+import { NotificationStatus } from 'src/core/api-client/signing.api';
+import { useSigningApi } from 'src/core/contexts/ApiProvider';
 import { signingQueryKeys } from 'src/core/queries/signeeList/signing.queries';
-import { httpGet } from 'src/utils/network/sharedNetworking';
-import { capitalizeName } from 'src/utils/stringHelper';
-import { appPath } from 'src/utils/urls/appUrlHelper';
-
-export enum NotificationStatus {
-  NotSent = 'NotSent',
-  Sent = 'Sent',
-  Failed = 'Failed',
-}
-
-const signeeStateSchema = z
-  .object({
-    name: z
-      .string()
-      .nullish()
-      .transform((name) => (name ? capitalizeName(name) : null)),
-    organization: z
-      .string()
-      .nullish()
-      .transform((organization) => (organization ? capitalizeName(organization) : null)),
-    signedTime: z.string().datetime().nullable(),
-    delegationSuccessful: z.boolean(),
-    notificationStatus: z.nativeEnum(NotificationStatus),
-    partyId: z.number(),
-  })
-  .refine(({ name, organization }) => name || organization, 'Either name or organization must be present.')
-  .transform((it) => ({ ...it, hasSigned: !!it.signedTime }));
-
-export type SigneeState = z.infer<typeof signeeStateSchema>;
+import type { SigneeState, SigningApi } from 'src/core/api-client/signing.api';
+export { NotificationStatus };
+export type { SigneeState };
 
 const signingQueries = {
   all: signingQueryKeys.all,
-  signeeList: (partyId: string | undefined, instanceGuid: string | undefined, taskId: string | undefined) =>
+  signeeList: (
+    partyId: string | undefined,
+    instanceGuid: string | undefined,
+    taskId: string | undefined,
+    api: SigningApi,
+  ) =>
     queryOptions({
       queryKey: [...signingQueries.all, 'signeeList', partyId, instanceGuid, taskId],
-      queryFn: partyId && instanceGuid ? () => fetchSigneeList(partyId, instanceGuid, taskId) : skipToken,
-      refetchInterval: 1000 * 60, // 1 minute
+      queryFn: partyId && instanceGuid ? () => api.fetchSigneeList(partyId, instanceGuid, taskId) : skipToken,
+      refetchInterval: 1000 * 60,
       refetchOnMount: 'always',
     }),
 };
-
-export async function fetchSigneeList(partyId: string, instanceGuid: string, taskId?: string): Promise<SigneeState[]> {
-  let url = `${appPath}/instances/${partyId}/${instanceGuid}/signing`;
-
-  if (taskId) {
-    url = url.concat(`?taskId=${taskId}`);
-  }
-
-  const response = await httpGet(url);
-  const parsed = z.object({ signeeStates: z.array(signeeStateSchema) }).parse(response);
-
-  return parsed.signeeStates.toSorted((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
-}
 
 export function useSigneeList(
   partyId: string | undefined,
   instanceGuid: string | undefined,
   taskId: string | undefined,
 ) {
-  const { data, error, isLoading, isFetching } = useQuery(signingQueries.signeeList(partyId, instanceGuid, taskId));
+  const api = useSigningApi();
+  const { data, error, isLoading, isFetching } = useQuery(
+    signingQueries.signeeList(partyId, instanceGuid, taskId, api),
+  );
   return { data, error, isLoading, isFetching };
 }
 
