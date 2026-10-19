@@ -249,6 +249,7 @@ const AuxiliaryWorkflowRow = ({ context, workflow }: AuxiliaryWorkflowRowProps) 
             {canExpand ? (
               <StudioButton
                 variant='tertiary'
+                data-color='neutral'
                 data-size='sm'
                 className={classes.auxiliaryWorkflowToggle}
                 aria-expanded={expanded}

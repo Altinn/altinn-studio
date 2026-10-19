@@ -69,7 +69,9 @@
   gap: var(--ds-size-1) var(--ds-size-3);
 }
 
-.auxiliaryWorkflowToggle {
+.steps .auxiliaryWorkflowToggle {
+  --dsc-button-background--hover: transparent;
+
   min-height: var(--ds-size-8);
   padding: var(--ds-size-1);
   text-align: start;
