@@ -91,13 +91,13 @@ public sealed class WorkflowPassthroughTests
         using var client = CreateAuthorizedClient();
 
         var response = await client.GetAsync(
-            new Uri($"{GatewayPrefix}/collections?failures=any&cursor=abc&pageSize=10", UriKind.Relative),
+            new Uri($"{GatewayPrefix}/collections?failures=Any&cursor=abc&pageSize=10", UriKind.Relative),
             ct
         );
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var upstream = Assert.Single(_factory.EngineHandler.Requests);
-        Assert.Equal($"{UpstreamPrefix}/collections?failures=any&cursor=abc&pageSize=10", upstream.Uri.AbsoluteUri);
+        Assert.Equal($"{UpstreamPrefix}/collections?failures=Any&cursor=abc&pageSize=10", upstream.Uri.AbsoluteUri);
     }
 
     [Theory]
@@ -135,7 +135,7 @@ public sealed class WorkflowPassthroughTests
 
         var response = await client.GetAsync(
             new Uri(
-                $"{GatewayPrefix}/workflows?collectionKey=col-1&status=Failed&status=Canceled&label=step:pdf&role=auxiliary&cursor={cursor}&pageSize=5&includeState=false",
+                $"{GatewayPrefix}/workflows?collectionKey=col-1&status=Failed&status=Canceled&label=step:pdf&role=Auxiliary&cursor={cursor}&pageSize=5&includeState=false",
                 UriKind.Relative
             ),
             ct
@@ -144,7 +144,7 @@ public sealed class WorkflowPassthroughTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var upstream = Assert.Single(_factory.EngineHandler.Requests);
         Assert.Equal(
-            $"{UpstreamPrefix}/workflows?collectionKey=col-1&status=Failed&status=Canceled&label=step%3Apdf&role=auxiliary&cursor={cursor}&pageSize=5&includeState=false",
+            $"{UpstreamPrefix}/workflows?collectionKey=col-1&status=Failed&status=Canceled&label=step%3Apdf&role=Auxiliary&cursor={cursor}&pageSize=5&includeState=false",
             upstream.Uri.AbsoluteUri
         );
     }
@@ -176,10 +176,10 @@ public sealed class WorkflowPassthroughTests
         var ct = TestContext.Current.CancellationToken;
         using var client = CreateAuthorizedClient();
 
-        await client.GetAsync(new Uri($"{GatewayPrefix}/workflows?role=primary", UriKind.Relative), ct);
+        await client.GetAsync(new Uri($"{GatewayPrefix}/workflows?role=Primary", UriKind.Relative), ct);
 
         var upstream = Assert.Single(_factory.EngineHandler.Requests);
-        Assert.Equal($"{UpstreamPrefix}/workflows?role=primary&includeState=false", upstream.Uri.AbsoluteUri);
+        Assert.Equal($"{UpstreamPrefix}/workflows?role=Primary&includeState=false", upstream.Uri.AbsoluteUri);
     }
 
     [Theory]
@@ -480,7 +480,7 @@ public sealed class WorkflowPassthroughTests
     // skew between centrally deployed Designer and per-cluster gateways cannot yield
     // 200 with unfiltered data.
     [InlineData("/collections?key=a&evil=1")]
-    [InlineData("/workflows?role=primary&keys=a")] // near-miss of the real "key"/"collectionKey" names
+    [InlineData("/workflows?role=Primary&keys=a")] // near-miss of the real "key"/"collectionKey" names
     [InlineData("/workflows?isHead=false")] // the workflow role filter is "role"
     [InlineData("/workflows/00000000-0000-0000-0000-000000000001?verbose=true")] // route allows no params
     public async Task UnknownQueryParameters_ReturnBadRequest_WithoutContactingEngine(string pathAndQuery)

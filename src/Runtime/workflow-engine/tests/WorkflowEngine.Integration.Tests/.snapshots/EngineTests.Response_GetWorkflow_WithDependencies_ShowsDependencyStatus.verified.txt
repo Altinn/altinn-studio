@@ -14,7 +14,7 @@
   dependencies: {
     {Scrubbed}: Completed
   },
-  role: primary,
+  role: Primary,
   steps: [
     {
       databaseId: {Scrubbed},

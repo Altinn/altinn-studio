@@ -143,6 +143,7 @@ public sealed record WorkflowStatusResponse
     /// </summary>
     [JsonPropertyName("role")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public WorkflowRole? Role { get; init; }
 
     /// <summary>

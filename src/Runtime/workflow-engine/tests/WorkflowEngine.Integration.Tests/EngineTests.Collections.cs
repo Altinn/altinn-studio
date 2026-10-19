@@ -137,7 +137,7 @@ public partial class EngineTests
     [Fact]
     public async Task ListCollections_KeyCombinedWithFailures_ReturnsBadRequest()
     {
-        using var response = await _client.ListCollectionsRaw("?key=some-key&failures=any");
+        using var response = await _client.ListCollectionsRaw("?key=some-key&failures=Any");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -433,9 +433,9 @@ public partial class EngineTests
         await _client.WaitForWorkflowStatus(auxiliaryIds["wf-auxiliary"], PersistentItemStatus.Failed);
 
         // Act
-        var any = await _client.ListCollectionsPaginated(failures: "any");
-        var primaryOnly = await _client.ListCollectionsPaginated(failures: "primary");
-        var auxiliaryOnly = await _client.ListCollectionsPaginated(failures: "auxiliary");
+        var any = await _client.ListCollectionsPaginated(failures: "Any");
+        var primaryOnly = await _client.ListCollectionsPaginated(failures: "Primary");
+        var auxiliaryOnly = await _client.ListCollectionsPaginated(failures: "Auxiliary");
 
         // Assert — discovery never reports the healthy collection, and splits on role.
         Assert.Equal(["disc-auxiliary", "disc-primary"], any.Data.Select(c => c.Key).ToArray());
@@ -456,7 +456,7 @@ public partial class EngineTests
         await _client.WaitForWorkflowStatus(response.Workflows.Single().DatabaseId, PersistentItemStatus.Completed);
 
         // Act
-        using var raw = await _client.ListCollectionsRaw("?failures=any");
+        using var raw = await _client.ListCollectionsRaw("?failures=Any");
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, raw.StatusCode);
