@@ -1206,10 +1206,10 @@ const ITableColumnsTextOverflow = {
       type: 'number',
       title: { en: 'Max Height', nb: 'Maksimal høyde' },
       description: {
-        en: 'Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.',
+        en: 'Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.',
         nb: 'Angir hvor mange linjer som vises i en tabellcelle før resten skjules med ellipse.',
       },
-      default: 2,
+      default: 3,
       required: false,
     },
   },
@@ -1258,7 +1258,7 @@ const ITableColumnProperties = {
   additionalProperties: false,
   title: { en: 'Column options', nb: 'Kolonneinnstillinger' },
   description: { en: 'Options for the row/column', nb: 'Innstillinger for raden eller kolonnen.' },
-  examples: [{ width: 'auto', alignText: 'left', textOverflow: { lineWrap: true, maxHeight: 2 } }],
+  examples: [{ width: 'auto', alignText: 'left', textOverflow: { lineWrap: true, maxHeight: 3 } }],
 } as const;
 
 const IGridColumnProperties = {

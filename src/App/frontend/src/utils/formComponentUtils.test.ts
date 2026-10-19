@@ -37,16 +37,21 @@ describe('formComponentUtils', () => {
     it('should return CSS properties object with correct values based on columnSettings', () => {
       const columnSettings: ITableColumnProperties = {
         width: '100px',
-        textOverflow: { lineWrap: true, maxHeight: 3 },
+        textOverflow: { lineWrap: true, maxHeight: 4 },
         alignText: 'center',
       };
       const columnStyles = getColumnStyles(columnSettings);
       expect(columnStyles).toEqual({
-        '--cell-max-number-of-lines': 3,
+        '--cell-max-number-of-lines': 4,
         '--cell-text-alignment': 'center',
         '--cell-width': '100px',
         '--cell-word-break': 'break-word',
       });
+    });
+
+    it('should show three lines by default when textOverflow is not set', () => {
+      const columnStyles = getColumnStyles({});
+      expect(columnStyles['--cell-max-number-of-lines']).toEqual(3);
     });
 
     it('should return CSS properties object with default value for "--cell-max-number-of-lines" if lineWrap is false', () => {

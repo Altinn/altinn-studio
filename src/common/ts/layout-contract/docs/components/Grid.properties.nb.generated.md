@@ -239,7 +239,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="rows[].columnOptions.textOverflow.maxHeight">rows[].columnOptions.textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
-            <span class="component-property-default">Standardverdi: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Standardverdi: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
@@ -325,7 +325,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="rows[].cells[].textOverflow.maxHeight">rows[].cells[].textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
-            <span class="component-property-default">Standardverdi: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Standardverdi: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
@@ -423,7 +423,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="rows[].cells[].columnOptions.textOverflow.maxHeight">rows[].cells[].columnOptions.textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
-            <span class="component-property-default">Standardverdi: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Standardverdi: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
@@ -522,7 +522,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="rows[].cells[].textOverflow.maxHeight">rows[].cells[].textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
-            <span class="component-property-default">Standardverdi: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Standardverdi: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
@@ -632,7 +632,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="rows[].cells[].columnOptions.textOverflow.maxHeight">rows[].cells[].columnOptions.textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
-            <span class="component-property-default">Standardverdi: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Standardverdi: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
@@ -731,7 +731,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="rows[].cells[].textOverflow.maxHeight">rows[].cells[].textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
-            <span class="component-property-default">Standardverdi: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Standardverdi: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
@@ -829,7 +829,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="rows[].cells[].columnOptions.textOverflow.maxHeight">rows[].cells[].columnOptions.textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
-            <span class="component-property-default">Standardverdi: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Standardverdi: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
