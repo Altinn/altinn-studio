@@ -34,6 +34,17 @@ The following endpoints return deterministic scope data for local development:
 `studio_designer` points `MaskinPortenHttpClientSettings:BaseUrl` to this service in
 `compose.yaml`.
 
+## Admin metrics
+
+The four `/apps/:org/:env/runtime/gateway/api/v1/metrics` routes (`errors`, `app`,
+`app/errors`, and `app/health`) return empty JSON arrays. This local mock has no connection to
+the cluster's monitoring. Empty arrays mean no measurements are available; they do not report
+zero errors or 100% uptime. Metric cards are omitted when no measurements are returned.
+
+This behavior only applies to the development mock. Workflow requests still reach the local
+workflow engine, including its real statuses and errors. Use an environment with monitoring to
+test metric charts and monitoring failures.
+
 ## Workflow engine and instances from the studioctl environment
 
 The admin app's workflow views (health column, drill-down, "instances with problems", retry,

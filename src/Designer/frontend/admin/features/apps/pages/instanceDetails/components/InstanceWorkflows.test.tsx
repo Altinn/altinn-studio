@@ -592,7 +592,7 @@ describe('InstanceWorkflows', () => {
       );
     });
 
-    it('names the transition first, the kind of workflow after it, and the whole id as a tooltip', async () => {
+    it('names a transition by its tasks alone, with the whole id as a tooltip', async () => {
       respondWith([
         transition(
           'wf-one',
@@ -605,7 +605,7 @@ describe('InstanceWorkflows', () => {
 
       const [row] = await screen.findAllByTestId('workflow-row');
       const name = within(row).getByTitle('Process next: Form -> Verify');
-      expect(name).toHaveTextContent('Form → Verify Process next');
+      expect(name).toHaveTextContent(/^Form → Verify$/);
     });
 
     it('gives the date once over the rows, and again where a new day starts', async () => {

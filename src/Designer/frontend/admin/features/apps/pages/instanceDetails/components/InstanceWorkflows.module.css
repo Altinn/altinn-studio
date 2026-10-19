@@ -198,14 +198,40 @@
   gap: var(--ds-size-1);
 }
 
-/* A card too narrow for all seven columns gets two lines: status, name and time on the first, and
-   under the name the progress, read left to right and wrapping if it must. */
+/* A card too narrow for the step column keeps the rest on one line and gives the step, when there
+   is one, the line under it. A finished row has no step to name, so most rows stay one line. */
 @container (max-width: 76rem) {
+  .summary {
+    grid-template-columns: var(--status-column) minmax(0, 1fr) 14rem 3rem 5rem auto;
+    grid-template-areas:
+      'status name dots attempts duration time'
+      '. step step step step step';
+    row-gap: 0;
+  }
+
+  .summaryStep:not(:empty) {
+    margin-top: var(--ds-size-1);
+  }
+
+  /* The chevron on the first line, not floating between the two. */
+  .rows .summaryBar {
+    align-items: start;
+  }
+}
+
+/* A card too narrow for even that gets two lines: status, name and time on the first, and under
+   the name the progress, read left to right and wrapping if it must. */
+@container (max-width: 48rem) {
   .summary {
     grid-template-columns: var(--status-column) minmax(0, 1fr) auto;
     grid-template-areas:
       'status name time'
       '. progress progress';
+    row-gap: var(--ds-size-2);
+  }
+
+  .summaryStep:not(:empty) {
+    margin-top: 0;
   }
 
   .summaryProgress {
@@ -216,11 +242,6 @@
     column-gap: var(--ds-size-3);
     row-gap: var(--ds-size-1);
     min-width: 0;
-  }
-
-  /* The chevron on the first line, not floating between the two. */
-  .rows .summaryBar {
-    align-items: start;
   }
 }
 
@@ -257,6 +278,7 @@
 
 .operationKind {
   margin-left: var(--ds-size-1);
+  white-space: nowrap;
   font-size: var(--ds-font-size-2);
   color: var(--ds-color-neutral-text-subtle);
 }

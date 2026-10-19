@@ -103,11 +103,20 @@ export const WorkflowStatusIcon = ({ status }: WorkflowStatusTagProps): ReactEle
 
 /**
  * The status where a list has many rows and most of them went fine: a completed workflow or step
- * is a quiet check mark, so the rows that did not complete are the ones with a colored tag.
+ * is a quiet check mark, so the rows that did not complete are the ones with a colored tag. The one
+ * the engine is working on gets a spinner beside its tag, so it reads as moving.
  */
-export const WorkflowStatusMark = ({ status }: WorkflowStatusTagProps): ReactElement =>
-  status === 'Completed' ? (
-    <WorkflowStatusIcon status={status} />
-  ) : (
-    <WorkflowStatusTag status={status} />
-  );
+export const WorkflowStatusMark = ({ status }: WorkflowStatusTagProps): ReactElement => {
+  if (status === 'Completed') {
+    return <WorkflowStatusIcon status={status} />;
+  }
+  if (status === 'Processing') {
+    return (
+      <span className={classes.markWithSpinner}>
+        <StudioSpinner data-size='xs' aria-hidden className={classes.statusIcon} />
+        <WorkflowStatusTag status={status} />
+      </span>
+    );
+  }
+  return <WorkflowStatusTag status={status} />;
+};

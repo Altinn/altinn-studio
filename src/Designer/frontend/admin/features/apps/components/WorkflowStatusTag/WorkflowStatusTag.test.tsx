@@ -42,6 +42,13 @@ describe('WorkflowStatusMark', () => {
     renderWorkflowStatusMark('Failed');
     expect(screen.getByText(textMock('admin.workflows.status.failed'))).toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('studio-spinner-test-id')).not.toBeInTheDocument();
+  });
+
+  it('spins beside the spelled-out status while the engine is working on it', () => {
+    renderWorkflowStatusMark('Processing');
+    expect(screen.getByText(textMock('admin.workflows.status.processing'))).toBeInTheDocument();
+    expect(screen.getByTestId('studio-spinner-test-id')).toBeInTheDocument();
   });
 });
 

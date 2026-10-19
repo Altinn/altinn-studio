@@ -307,12 +307,15 @@ const AuxiliaryWorkflowRow = ({ context, workflow }: AuxiliaryWorkflowRowProps) 
   );
 };
 
+/** The kind of workflow nearly every row is, now that a transition's workflows share one row. */
+const PROCESS_NEXT_KIND = 'Process next';
+
 /**
- * A workflow's operation id, all of it, in two weights: what sets this workflow apart — the part
- * after the colon, a transition's arrow drawn as an arrow — first and in full, and the kind of
- * workflow the rows share — `Process next`, `Mailbox receive` — after it, quiet. Down a list the
- * eye then reads the transitions, not the same two words on every row. A transition's tasks go by
- * their names in the app's process. The id as it came is in the tooltip.
+ * A workflow's operation id in two weights: what sets this workflow apart — the part after the
+ * colon, a transition's arrow drawn as an arrow — first and in full, and any kind of workflow other
+ * than a plain transition after it, quiet. Down a list the eye then reads the transitions, not the
+ * same two words on every row. A transition's tasks go by their names in the app's process. The id
+ * as it came is in the tooltip.
  */
 const OperationName = ({ operationId }: { operationId: string }) => {
   const taskNameOf = useTaskNameOf();
@@ -328,8 +331,13 @@ const OperationName = ({ operationId }: { operationId: string }) => {
     .join(' → ');
   return (
     <span className={classes.summaryOperation} title={operationId}>
-      <span className={classes.operationSubject}>{subject}</span>{' '}
-      <span className={classes.operationKind}>{kind}</span>
+      <span className={classes.operationSubject}>{subject}</span>
+      {kind !== PROCESS_NEXT_KIND && (
+        <>
+          {' '}
+          <span className={classes.operationKind}>{kind}</span>
+        </>
+      )}
     </span>
   );
 };
@@ -357,16 +365,12 @@ const WorkflowSummary = ({ group }: { group: WorkflowGroup }) => {
   // How long it took, once it is done; while it runs, the live note speaks for it.
   const elapsed = isActive ? undefined : groupElapsed(group);
   const elapsedText = elapsed === undefined ? undefined : formatElapsed(elapsed, t);
-  // Where the step's name would be once the chain is done: how many auxiliary workflows it
-  // spawned, and whether any of them failed — the one thing about them worth a word before anyone
-  // opens the row.
+  // Once the main workflow is done, only failed auxiliary workflows need a note on its row.
   const failedAuxiliaryWorkflows = auxiliaryWorkflows.filter(isFailedWorkflow).length;
   const auxiliaryWorkflowNote =
-    auxiliaryWorkflows.length === 0
-      ? undefined
-      : failedAuxiliaryWorkflows > 0
-        ? t('admin.workflows.row.auxiliary_workflows_failed', { count: failedAuxiliaryWorkflows })
-        : t('admin.workflows.row.auxiliary_workflows', { count: auxiliaryWorkflows.length });
+    failedAuxiliaryWorkflows > 0
+      ? t('admin.workflows.row.auxiliary_workflows_failed', { count: failedAuxiliaryWorkflows })
+      : undefined;
 
   // Named while the chain is unfinished; a finished one needs no word beside its dots.
   const currentStep = focusStepOf(focus);
@@ -420,13 +424,7 @@ const WorkflowSummary = ({ group }: { group: WorkflowGroup }) => {
           {currentStepName && liveNote && ' · '}
           {liveNote}
           {!currentStepName && !liveNote && auxiliaryWorkflowNote && (
-            <span
-              className={
-                failedAuxiliaryWorkflows > 0 ? classes.auxiliaryWorkflowsFailedNote : undefined
-              }
-            >
-              {auxiliaryWorkflowNote}
-            </span>
+            <span className={classes.auxiliaryWorkflowsFailedNote}>{auxiliaryWorkflowNote}</span>
           )}
         </span>
         <span className={classes.summaryAttempts}>
