@@ -39,7 +39,7 @@ const failedPrimaryWorkflow = {
   namespace: `${org}/${app}`,
   createdAt: '2026-08-02T10:00:00Z',
   updatedAt: '2026-08-02T10:05:00Z',
-  role: 'primary',
+  role: 'Primary',
   overallStatus: 'Failed',
   steps: [
     {
@@ -89,7 +89,7 @@ const settledAuxiliaryWorkflow = {
   namespace: `${org}/${app}`,
   createdAt: '2026-08-01T10:00:00Z',
   overallStatus: 'Completed',
-  role: 'auxiliary',
+  role: 'Auxiliary',
   steps: [],
 };
 
@@ -141,7 +141,7 @@ describe('InstanceWorkflows', () => {
       idempotencyKey: databaseId,
       namespace: `${org}/${app}`,
       createdAt: '2026-08-02T10:00:00Z',
-      role: 'primary',
+      role: 'Primary',
       overallStatus,
       labels,
       steps,

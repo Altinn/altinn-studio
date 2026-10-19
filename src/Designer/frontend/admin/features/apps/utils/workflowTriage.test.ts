@@ -37,12 +37,12 @@ const workflow = (
   overallStatus: PersistentItemStatus,
   extra: Partial<WorkflowStatus> = {},
 ): WorkflowStatus => ({
-  databaseId: `wf-${overallStatus}-${extra.role ?? 'primary'}`,
+  databaseId: `wf-${overallStatus}-${extra.role ?? 'Primary'}`,
   operationId: 'Process next: Pdf -> Sign',
   idempotencyKey: 'key',
   namespace: 'org/app',
   createdAt: '2026-08-02T09:00:00Z',
-  role: 'primary',
+  role: 'Primary',
   overallStatus,
   steps: [],
   ...extra,
@@ -133,7 +133,7 @@ describe('groupTransitions', () => {
       databaseId: id,
       operationId: 'Process next side-effects: · MovedToAltinnEvent',
       labels: labelsOf(source, target),
-      role: 'auxiliary',
+      role: 'Auxiliary',
     });
   const ids = (workflows: WorkflowStatus[]) => workflows.map((item) => item.databaseId);
 
@@ -224,7 +224,7 @@ describe('groupTransitions', () => {
 
 describe('deriveInstanceHealth', () => {
   const retrying = workflow('Requeued', { steps: [step(0, 'Requeued', { retryCount: 1 })] });
-  const failedAuxiliaryWorkflow = workflow('Failed', { role: 'auxiliary' });
+  const failedAuxiliaryWorkflow = workflow('Failed', { role: 'Auxiliary' });
 
   it('reads no workflows as no data, never as healthy', () => {
     expect(deriveInstanceHealth([])).toBe(WorkflowHealth.NoData);
@@ -242,7 +242,7 @@ describe('deriveInstanceHealth', () => {
 
   it('reads a retrying auxiliary workflow as work in flight, not as a stuck process', () => {
     const retryingAuxiliaryWorkflow = workflow('Requeued', {
-      role: 'auxiliary',
+      role: 'Auxiliary',
       steps: [step(0, 'Requeued', { retryCount: 5 })],
     });
     expect(deriveInstanceHealth([retryingAuxiliaryWorkflow])).toBe(WorkflowHealth.Active);
@@ -261,7 +261,7 @@ describe('deriveInstanceHealth', () => {
     expect(deriveInstanceHealth([workflow('Processing'), workflow('Held')])).toBe(
       WorkflowHealth.Held,
     );
-    expect(deriveInstanceHealth([workflow('Waiting', { role: 'auxiliary' })])).toBe(
+    expect(deriveInstanceHealth([workflow('Waiting', { role: 'Auxiliary' })])).toBe(
       WorkflowHealth.Active,
     );
   });
@@ -289,7 +289,7 @@ describe('pickFocusWorkflow', () => {
       databaseId: 'newer',
       createdAt: '2026-08-02T09:30:00Z',
     });
-    const failedAuxiliaryWorkflow = workflow('Failed', { role: 'auxiliary' });
+    const failedAuxiliaryWorkflow = workflow('Failed', { role: 'Auxiliary' });
     const workflows = [olderFailed, failedAuxiliaryWorkflow, newerFailed];
 
     expect(pickFocusWorkflow(workflows, WorkflowHealth.Failed)).toBe(newerFailed);
@@ -299,7 +299,7 @@ describe('pickFocusWorkflow', () => {
   });
 
   it('prefers a primary workflow over an auxiliary workflow when both are in flight', () => {
-    const auxiliaryWorkflow = workflow('Processing', { role: 'auxiliary' });
+    const auxiliaryWorkflow = workflow('Processing', { role: 'Auxiliary' });
     const primaryWorkflow = workflow('Enqueued');
     expect(pickFocusWorkflow([auxiliaryWorkflow, primaryWorkflow], WorkflowHealth.Active)).toBe(
       primaryWorkflow,
@@ -312,7 +312,7 @@ describe('pickFocusWorkflow', () => {
       createdAt: '2026-08-02T08:00:00Z',
     });
     const auxiliaryWorkflow = workflow('Completed', {
-      role: 'auxiliary',
+      role: 'Auxiliary',
       createdAt: '2026-08-02T09:45:00Z',
     });
     const latest = workflow('Completed', {

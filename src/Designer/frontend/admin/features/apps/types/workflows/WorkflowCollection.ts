@@ -68,4 +68,4 @@ export type WorkflowCollectionListResponse = {
 };
 
 /** Values accepted by the collections discovery filter (`?failures=`). */
-export type CollectionFailureFilter = 'any' | WorkflowRole;
+export type CollectionFailureFilter = 'Any' | WorkflowRole;

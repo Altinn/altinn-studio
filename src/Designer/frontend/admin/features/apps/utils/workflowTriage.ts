@@ -24,7 +24,7 @@ export function toTime(value: string | null | undefined): number | undefined {
 }
 
 /** A workflow the process waits on, as opposed to an auxiliary workflow running beside it. */
-export const isPrimaryWorkflow = (workflow: WorkflowStatus): boolean => workflow.role === 'primary';
+export const isPrimaryWorkflow = (workflow: WorkflowStatus): boolean => workflow.role === 'Primary';
 
 export const isFailedWorkflow = (workflow: WorkflowStatus): boolean =>
   FAILED_WORKFLOW_STATUSES.includes(workflow.overallStatus);

@@ -21,12 +21,12 @@ import { StatusFilter } from 'admin/features/apps/pages/instances/components/Sta
 import classes from './WorkflowProblems.module.css';
 
 const FAILURE_FILTER_OPTIONS: { label: string; value: CollectionFailureFilter }[] = [
-  { label: 'admin.workflows.problems.filter.any', value: 'any' },
-  { label: 'admin.workflows.problems.filter.primary', value: 'primary' },
-  { label: 'admin.workflows.problems.filter.auxiliary', value: 'auxiliary' },
+  { label: 'admin.workflows.problems.filter.any', value: 'Any' },
+  { label: 'admin.workflows.problems.filter.primary', value: 'Primary' },
+  { label: 'admin.workflows.problems.filter.auxiliary', value: 'Auxiliary' },
 ];
 
-const DEFAULT_FAILURE_FILTER: CollectionFailureFilter = 'any';
+const DEFAULT_FAILURE_FILTER: CollectionFailureFilter = 'Any';
 
 export type WorkflowProblemsProps = {
   org: string;

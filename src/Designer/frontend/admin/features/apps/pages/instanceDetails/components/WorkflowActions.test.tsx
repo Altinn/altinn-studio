@@ -35,7 +35,7 @@ const workflow = (
   idempotencyKey: 'key-1',
   namespace: `${org}/${app}`,
   createdAt: '2026-08-02T10:00:00Z',
-  role: 'primary',
+  role: 'Primary',
   overallStatus,
   steps: [],
   ...extra,

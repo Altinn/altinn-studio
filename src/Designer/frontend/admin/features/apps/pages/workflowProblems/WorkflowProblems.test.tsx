@@ -65,7 +65,7 @@ describe('WorkflowProblems', () => {
     ).toBeInTheDocument();
 
     const requestedUrl = jest.mocked(axios.get).mock.calls[0][0] as string;
-    expect(requestedUrl).toContain('failures=any');
+    expect(requestedUrl).toContain('failures=Any');
     expect(requestedUrl).toContain('/collections');
   });
 
@@ -117,14 +117,14 @@ describe('WorkflowProblems', () => {
     renderWorkflowProblems();
 
     await screen.findByRole('link', { name: firstPageKey });
-    await user.selectOptions(screen.getByRole('combobox'), JSON.stringify('auxiliary'));
+    await user.selectOptions(screen.getByRole('combobox'), JSON.stringify('Auxiliary'));
 
     await waitFor(() =>
       expect(
         jest
           .mocked(axios.get)
           .mock.calls.map(([url]) => url as string)
-          .some((url) => url.includes('failures=auxiliary')),
+          .some((url) => url.includes('failures=Auxiliary')),
       ).toBe(true),
     );
   });

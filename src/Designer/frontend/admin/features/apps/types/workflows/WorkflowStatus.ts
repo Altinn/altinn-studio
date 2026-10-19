@@ -47,7 +47,7 @@ export const PARKED_WORKFLOW_STATUSES: readonly PersistentItemStatus[] = ['Reque
  * never blocks or moves it, and its failure means work was lost and must be redriven, not that the
  * instance is stuck.
  */
-export type WorkflowRole = 'primary' | 'auxiliary';
+export type WorkflowRole = 'Primary' | 'Auxiliary';
 
 export type WorkflowErrorEntry = {
   timestamp: string;
