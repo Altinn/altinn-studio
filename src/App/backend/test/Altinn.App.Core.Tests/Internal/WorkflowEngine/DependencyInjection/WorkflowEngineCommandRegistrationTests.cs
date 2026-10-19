@@ -111,7 +111,7 @@ public class WorkflowEngineCommandRegistrationTests
         keys.Add(MutateProcessState.Key);
         keys.Add(CommitProcessState.Key);
         keys.Add(ReleaseProcessingStatus.Key);
-        keys.Add(EnqueueSideEffectsWorkflow.Key);
+        keys.Add(EnqueueAuxiliaryWorkflows.Key);
 
         return keys;
     }
@@ -135,8 +135,8 @@ public class WorkflowEngineCommandRegistrationTests
     private static void CollectCommandKeys(WorkflowCommandSet commandSet, HashSet<string> keys)
     {
         IEnumerable<StepRequest> steps = commandSet
-            .Commands.Concat(commandSet.CriticalPostCommitCommands)
-            .Concat(commandSet.SideEffectCommands);
+            .Commands.Concat(commandSet.PrimaryPostCommitCommands)
+            .Concat(commandSet.AuxiliaryCommands);
         foreach (StepRequest step in steps)
         {
             if (step.Command.Type == "app" && step.Command.Data is { } data)

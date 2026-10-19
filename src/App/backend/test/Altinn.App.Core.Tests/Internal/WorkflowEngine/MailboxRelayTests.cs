@@ -295,8 +295,8 @@ public class MailboxRelayTests
     }
 
     /// <summary>
-    /// Both sends up front, so exchange B's clock starts in Main and the segment after A holds no step of its
-    /// own — decision 3, seen from the planner's side.
+    /// Both sends up front, so exchange B's clock starts in the primary workflow and the segment after A holds no step
+    /// of its own — decision 3, seen from the planner's side.
     /// </summary>
     private sealed class UpFrontSendsTask : IPipelineServiceTask
     {
@@ -1426,9 +1426,9 @@ public class MailboxRelayTests
     }
 
     /// <summary>
-    /// Frontier-never-empty on this hop: the continuation's last step is the segment's last stage, and
-    /// completing that step is what enqueues the receiver — worked out there, exactly as it is on Main — so
-    /// the continuation cannot settle before the receiver that follows it exists.
+    /// Frontier-never-empty on this hop: the continuation's last step is the segment's last stage, and completing that
+    /// step is what enqueues the receiver — worked out there, exactly as it is on the primary workflow — so the
+    /// continuation cannot settle before the receiver that follows it exists.
     /// </summary>
     [Fact]
     public async Task Continuation_RunsTheItemsAfterTheHandler_EndingOnTheNextSend()
@@ -1633,8 +1633,8 @@ public class MailboxRelayTests
     }
 
     /// <summary>
-    /// The continuation's steps resolve their options the way the factory resolves Main's: each step's own,
-    /// found by the identity it carries, over the task's.
+    /// The continuation's steps resolve their options the way the factory resolves the primary workflow's: each step's
+    /// own, found by the identity it carries, over the task's.
     /// </summary>
     [Fact]
     public async Task Continuation_ResolvesEachStepsOwnOptions()
