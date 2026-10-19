@@ -34,26 +34,16 @@ internal sealed class DefaultTaskValidator : ITaskValidator //TODO: Implement IV
 
             if (dataType.MaxCount > 0 && dataType.MaxCount < elements.Count)
             {
-                var message = new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,
-                    Severity = ValidationIssueSeverity.Error,
-                    Description = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,
-                    Field = dataType.Id,
-                };
-                messages.Add(message);
+                messages.Add(
+                    BuiltInValidationIssues.TooManyDataElements(maxCount: dataType.MaxCount, dataType: dataType.Id)
+                );
             }
 
             if (dataType.MinCount > 0 && dataType.MinCount > elements.Count)
             {
-                var message = new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
-                    Severity = ValidationIssueSeverity.Error,
-                    Description = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
-                    Field = dataType.Id,
-                };
-                messages.Add(message);
+                messages.Add(
+                    BuiltInValidationIssues.TooFewDataElements(minCount: dataType.MinCount, dataType: dataType.Id)
+                );
             }
         }
 

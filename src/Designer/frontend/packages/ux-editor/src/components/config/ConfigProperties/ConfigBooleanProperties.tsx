@@ -5,10 +5,11 @@ import { StudioProperty } from '@studio/components';
 import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
 import classes from './ConfigBooleanProperties.module.css';
 import { ConfigCustomFileEnding } from './ConfigCustomFileEnding';
-import type { SchemaConfigProps } from './types';
+import type { CatalogConfigProps } from './types';
 import cn from 'classnames';
+import { getBooleanDefault } from '../../../data/componentCatalog';
 
-export interface ConfigBooleanPropertiesProps extends SchemaConfigProps {
+export interface ConfigBooleanPropertiesProps extends CatalogConfigProps {
   booleanPropertyKeys: string[];
   defaultDisplayCount?: number;
   className?: string;
@@ -16,7 +17,7 @@ export interface ConfigBooleanPropertiesProps extends SchemaConfigProps {
 
 export const ConfigBooleanProperties = ({
   booleanPropertyKeys,
-  schema,
+  properties,
   component,
   handleComponentUpdate,
   defaultDisplayCount = 3,
@@ -24,8 +25,13 @@ export const ConfigBooleanProperties = ({
 }: ConfigBooleanPropertiesProps) => {
   const t = useText();
   const [showAll, setShowAll] = useState(false);
-  const defaultDisplayedKeys = booleanPropertyKeys.slice(0, defaultDisplayCount);
-  const additionalKeys = booleanPropertyKeys.slice(defaultDisplayCount);
+  const primaryPropertyKeys = ['readOnly', 'required', 'hidden'];
+  const orderedPropertyKeys = [
+    ...primaryPropertyKeys.filter((key) => booleanPropertyKeys.includes(key)),
+    ...booleanPropertyKeys.filter((key) => !primaryPropertyKeys.includes(key)),
+  ];
+  const defaultDisplayedKeys = orderedPropertyKeys.slice(0, defaultDisplayCount);
+  const additionalKeys = orderedPropertyKeys.slice(defaultDisplayCount);
 
   const renderIcon = showAll ? (
     <ChevronUpIcon className={classes.upIcon} />
@@ -45,13 +51,14 @@ export const ConfigBooleanProperties = ({
           component={component}
           handleComponentChange={handleComponentUpdate}
           propertyKey={propertyKey}
-          defaultValue={schema.properties[propertyKey]?.default}
+          defaultValue={getBooleanDefault(properties[propertyKey])}
+          definition={properties[propertyKey]}
           className={className}
         />
       ))}
 
       {/** Custom logic for custom file endings */}
-      {schema.properties?.hasCustomFileEndings && (
+      {properties.hasCustomFileEndings && (
         <ConfigCustomFileEnding
           component={component}
           handleComponentUpdate={handleComponentUpdate}
@@ -67,7 +74,8 @@ export const ConfigBooleanProperties = ({
             component={component}
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
-            defaultValue={schema.properties[propertyKey]?.default}
+            defaultValue={getBooleanDefault(properties[propertyKey])}
+            definition={properties[propertyKey]}
             className={className}
           />
         ))}

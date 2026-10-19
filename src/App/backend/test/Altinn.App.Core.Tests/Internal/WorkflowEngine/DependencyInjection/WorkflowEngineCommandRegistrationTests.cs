@@ -108,7 +108,6 @@ public class WorkflowEngineCommandRegistrationTests
         );
 
         // ProcessNextRequestFactory adds these around the command sets.
-        keys.Add(AcquireProcessingStatus.Key);
         keys.Add(MutateProcessState.Key);
         keys.Add(CommitProcessState.Key);
         keys.Add(ReleaseProcessingStatus.Key);

@@ -15,6 +15,7 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
@@ -582,60 +583,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         root.GetProperty("recommendedAction").GetString().Should().Be("inspectInstance");
         root.GetProperty("workflowSubmissionFailureKind").GetString().Should().Be("notAccepted");
         root.GetProperty("workflowSubmissionStatusCode").GetInt32().Should().Be(StatusCodes.Status409Conflict);
-        root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
-
-        string instanceId = root.GetProperty("instanceId").GetString()!;
-        Guid instanceGuid = Guid.Parse(instanceId.Split('/')[1]);
-        Instance storedInstance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
-        storedInstance.Status?.IsHardDeleted.Should().NotBe(true);
-
-        TestData.DeleteInstanceAndData(org, app, instanceId);
-    }
-
-    [Fact]
-    public async Task PostNewInstance_Simplified_AcquireConflictRetainsInstanceWithoutResumeAction()
-    {
-        string org = "tdd";
-        string app = "permissive-app";
-        int instanceOwnerPartyId = 501337;
-        using HttpClient client = GetRootedClient(
-            org,
-            app,
-            configureServices: services =>
-            {
-                services.RemoveAll<IWorkflowEngineClient>();
-                services.AddSingleton<IWorkflowEngineClient>(
-                    new AcceptedFailingWorkflowEngineClient(acquireConflict: true)
-                );
-            }
-        );
-        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
-
-        using var content = new StringContent(
-            $$"""
-            {
-              "instanceOwner": {
-                "partyId": "{{instanceOwnerPartyId}}"
-              }
-            }
-            """,
-            Encoding.UTF8,
-            "application/json"
-        );
-
-        using HttpResponseMessage createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
-        string createResponseContent = await createResponse.Content.ReadAsStringAsync();
-        OutputHelper.WriteLine(createResponseContent);
-
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
-        using JsonDocument document = JsonDocument.Parse(createResponseContent);
-        JsonElement root = document.RootElement;
-        root.GetProperty("status").GetInt32().Should().Be(StatusCodes.Status409Conflict);
-        root.GetProperty("initializationState").GetString().Should().Be("workflowFailed");
-        root.GetProperty("workflowAccepted").GetBoolean().Should().BeTrue();
-        root.GetProperty("recommendedAction").GetString().Should().Be("inspectInstance");
-        root.GetProperty("workflowFailure").GetProperty("kind").GetString().Should().Be("acquireConflict");
         root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
 
         string instanceId = root.GetProperty("instanceId").GetString()!;
@@ -1238,6 +1185,484 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         TestData.DeleteInstanceAndData(org, app, sourceInstance.Id);
     }
 
+    [Fact]
+    public async Task CopyInstance_LegacyEndpoint_CopyInstanceValidator_Returns_Html_When_Browser_Prefers_Html()
+    {
+        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
+        using var pdfReturnStream = new MemoryStream();
+        pdfMock
+            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pdfReturnStream);
+
+        var copyInstanceValidatorMock = new Mock<ICopyInstanceValidator>();
+        copyInstanceValidatorMock
+            .Setup(v => v.Validate(It.IsAny<IInstanceDataAccessor>()))
+            .ReturnsAsync(
+                new InstantiationValidationResult
+                {
+                    Valid = false,
+                    Message = "Copy validation failed for <test> purposes",
+                }
+            );
+
+        // The test app policy does not grant users "read" on archived instances, so permit everything here.
+        var pdpMock = new Mock<IPDP>();
+        pdpMock
+            .Setup(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .ReturnsAsync(() => new XacmlJsonResponse { Response = [new XacmlJsonResult { Decision = "Permit" }] });
+        pdpMock
+            .Setup(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => new XacmlJsonResponse { Response = [new XacmlJsonResult { Decision = "Permit" }] });
+
+        // Setup test data
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddSingleton(pdfMock.Object);
+            services.AddSingleton(copyInstanceValidatorMock.Object);
+            services.AddSingleton(pdpMock.Object);
+        };
+        HttpClient client = GetRootedClient(org, app);
+
+        string orgToken = TestAuthentication.GetServiceOwnerToken("405003309", org: "tdd");
+        string userToken = TestAuthentication.GetUserToken(1337, 501337);
+
+        // Create source instance
+        var (sourceInstance, _) = await InstancesControllerFixture.CreateInstanceSimplified(
+            org,
+            app,
+            instanceOwnerPartyId,
+            client,
+            orgToken
+        );
+        Assert.Single(sourceInstance.Data);
+        var dataGuid = sourceInstance.Data.First().Id;
+        var patch = new JsonPatch(
+            PatchOperation.Replace(JsonPointer.Create("melding"), JsonNode.Parse("{\"name\": \"Ola Olsen\"}"))
+        );
+        await UpdateInstanceData(org, app, client, userToken, sourceInstance.Id, dataGuid, patch);
+        await CompleteInstance(org, app, client, userToken, sourceInstance.Id);
+
+        // Attempt to copy the instance like a browser navigating from the message box would
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            AuthorizationSchemes.Bearer,
+            userToken
+        );
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{org}/{app}/legacy/instances/{sourceInstance.Id}/copy"
+        );
+        request.Headers.Accept.ParseAdd(
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+        );
+
+        using var response = await client.SendAsync(request);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(responseContent);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal("text/html", response.Content.Headers.ContentType?.MediaType);
+        Assert.StartsWith("<!DOCTYPE html>", responseContent);
+        Assert.Contains("Copy validation failed for &lt;test&gt; purposes", responseContent);
+
+        copyInstanceValidatorMock.Verify(v => v.Validate(It.IsAny<IInstanceDataAccessor>()), Times.Once);
+
+        TestData.DeleteInstanceAndData(org, app, sourceInstance.Id);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CopyInstance_SimplifiedEndpoint_CopiesConfiguredValuesFromSource(bool dueBeforeInRequest)
+    {
+        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
+        using var pdfReturnStream = new MemoryStream();
+        pdfMock
+            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pdfReturnStream);
+
+        // Setup test data
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        DateTime dueBefore = new(2026, 12, 24, 12, 0, 0, DateTimeKind.Utc);
+        DateTime requestDueBefore = new(2027, 1, 15, 12, 0, 0, DateTimeKind.Utc);
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddSingleton(pdfMock.Object);
+            services.AddSingleton(
+                AppFilesMutationHook.ApplicationMetadata(app =>
+                {
+                    app.CopyInstanceSettings!.IncludeDueBefore = true;
+                    app.CopyInstanceSettings.IncludedDataValues = ["appVersion", "customerId"];
+                    app.CopyInstanceSettings.IncludedPresentationTexts = ["name", "Navn"];
+                })
+            );
+        };
+        HttpClient client = GetRootedClient(org, app);
+
+        string orgToken = TestAuthentication.GetServiceOwnerToken("405003309", org: "tdd");
+        string userToken = TestAuthentication.GetUserToken(1337, 501337);
+
+        // Create source instance with a due date
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            AuthorizationSchemes.Bearer,
+            orgToken
+        );
+        var sourceBody = $$"""
+                {
+                    "prefill": {},
+                    "instanceOwner": {
+                        "partyId": "{{instanceOwnerPartyId}}"
+                    },
+                    "dueBefore": "{{dueBefore:O}}"
+                }
+            """;
+        using var sourceContent = new StringContent(sourceBody, Encoding.UTF8, "application/json");
+        using var sourceResponse = await client.PostAsync($"{org}/{app}/instances/create", sourceContent);
+        var sourceResponseContent = await sourceResponse.Content.ReadAsStringAsync();
+        Assert.Equal(HttpStatusCode.Created, sourceResponse.StatusCode);
+        var sourceInstance = JsonSerializer.Deserialize<InstanceResponse>(sourceResponseContent, JsonSerializerOptions);
+        Assert.NotNull(sourceInstance);
+        Assert.Equal(dueBefore, sourceInstance.DueBefore);
+
+        // Set values on the source instance that are not derived from the form data
+        var instanceClient = Services.GetRequiredService<IInstanceClient>();
+        Guid sourceInstanceGuid = Guid.Parse(sourceInstance.Id.Split("/")[1]);
+        await instanceClient.UpdateDataValues(
+            instanceOwnerPartyId,
+            sourceInstanceGuid,
+            new DataValues
+            {
+                Values = new Dictionary<string, string>
+                {
+                    ["appVersion"] = "1.2.3",
+                    ["customerId"] = "42",
+                    ["notCopied"] = "secret",
+                },
+            }
+        );
+        await instanceClient.UpdatePresentationTexts(
+            instanceOwnerPartyId,
+            sourceInstanceGuid,
+            new PresentationTexts
+            {
+                Texts = new Dictionary<string, string> { ["name"] = "Ola Olsen", ["notCopied"] = "secret" },
+            }
+        );
+
+        Assert.Single(sourceInstance.Data);
+        var dataGuid = sourceInstance.Data.First().Id;
+        var patch = new JsonPatch(
+            PatchOperation.Replace(JsonPointer.Create("melding"), JsonNode.Parse("{\"name\": \"Ola Olsen\"}"))
+        );
+        await UpdateInstanceData(org, app, client, userToken, sourceInstance.Id, dataGuid, patch);
+
+        // "Navn" is derived from melding.name through presentationFields, so the copy must recalculate it from the
+        // copied form data instead of keeping the stale value on the source
+        await instanceClient.UpdatePresentationTexts(
+            instanceOwnerPartyId,
+            sourceInstanceGuid,
+            new PresentationTexts { Texts = new Dictionary<string, string> { ["Navn"] = "Stale name" } }
+        );
+        await CompleteInstance(org, app, client, userToken, sourceInstance.Id);
+
+        // Copy instance
+        string dueBeforeProperty = dueBeforeInRequest ? $",\"dueBefore\": \"{requestDueBefore:O}\"" : "";
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            AuthorizationSchemes.Bearer,
+            userToken
+        );
+        var body = $$"""
+                {
+                    "prefill": {},
+                    "instanceOwner": {
+                        "partyId": "{{instanceOwnerPartyId}}"
+                    },
+                    "sourceInstanceId": "{{sourceInstance.Id}}"{{dueBeforeProperty}}
+                }
+            """;
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+        using var createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
+        var createResponseContent = await createResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(createResponseContent);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var copiedInstance = JsonSerializer.Deserialize<InstanceResponse>(createResponseContent, JsonSerializerOptions);
+        Assert.NotNull(copiedInstance);
+        Assert.NotEqual(sourceInstance.Id, copiedInstance.Id);
+        Assert.Equal(dueBeforeInRequest ? requestDueBefore : dueBefore, copiedInstance.DueBefore);
+        Assert.Equal("1.2.3", copiedInstance.DataValues["appVersion"]);
+        Assert.Equal("42", copiedInstance.DataValues["customerId"]);
+        Assert.False(copiedInstance.DataValues.ContainsKey("notCopied"));
+        Assert.Equal(sourceInstance.Id, copiedInstance.DataValues[DataValueKeys.CopySourceInstanceId]);
+        Assert.Equal("Ola Olsen", copiedInstance.PresentationTexts["name"]);
+        Assert.Equal("Ola Olsen", copiedInstance.PresentationTexts["Navn"]);
+        Assert.False(copiedInstance.PresentationTexts.ContainsKey("notCopied"));
+
+        TestData.DeleteInstanceAndData(org, app, sourceInstance.Id);
+        TestData.DeleteInstanceAndData(org, app, copiedInstance.Id);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CopyInstance_SimplifiedEndpoint_CopyOfCopy_SourceInstanceIdFollowsIncludedDataValues(
+        bool includeSourceInstanceId
+    )
+    {
+        // Two instances are completed, and the pdf stream is disposed after each use
+        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
+        pdfMock
+            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => new MemoryStream());
+
+        // Setup test data
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddSingleton(pdfMock.Object);
+            services.AddSingleton(
+                AppFilesMutationHook.ApplicationMetadata(app =>
+                    app.CopyInstanceSettings!.IncludedDataValues = includeSourceInstanceId
+                        ? [DataValueKeys.CopySourceInstanceId]
+                        : []
+                )
+            );
+        };
+        HttpClient client = GetRootedClient(org, app);
+
+        string orgToken = TestAuthentication.GetServiceOwnerToken("405003309", org: "tdd");
+        string userToken = TestAuthentication.GetUserToken(1337, 501337);
+
+        var (originalInstance, _) = await InstancesControllerFixture.CreateInstanceSimplified(
+            org,
+            app,
+            instanceOwnerPartyId,
+            client,
+            orgToken
+        );
+        var patch = new JsonPatch(
+            PatchOperation.Replace(JsonPointer.Create("melding"), JsonNode.Parse("{\"name\": \"Ola Olsen\"}"))
+        );
+        await UpdateInstanceData(
+            org,
+            app,
+            client,
+            userToken,
+            originalInstance.Id,
+            originalInstance.Data.Single().Id,
+            patch
+        );
+        await CompleteInstance(org, app, client, userToken, originalInstance.Id);
+
+        // original -> first copy -> second copy
+        InstanceResponse firstCopy = await CopyInstanceSimplified(org, app, client, userToken, originalInstance.Id);
+        Assert.Equal(originalInstance.Id, firstCopy.DataValues[DataValueKeys.CopySourceInstanceId]);
+        await CompleteInstance(org, app, client, userToken, firstCopy.Id);
+
+        InstanceResponse secondCopy = await CopyInstanceSimplified(org, app, client, userToken, firstCopy.Id);
+        Assert.Equal(
+            includeSourceInstanceId ? originalInstance.Id : firstCopy.Id,
+            secondCopy.DataValues[DataValueKeys.CopySourceInstanceId]
+        );
+
+        TestData.DeleteInstanceAndData(org, app, originalInstance.Id);
+        TestData.DeleteInstanceAndData(org, app, firstCopy.Id);
+        TestData.DeleteInstanceAndData(org, app, secondCopy.Id);
+    }
+
+    [Fact]
+    public async Task CopyInstance_SimplifiedEndpoint_CopiesTagsOnAttachments()
+    {
+        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
+        using var pdfReturnStream = new MemoryStream();
+        pdfMock
+            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pdfReturnStream);
+
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddSingleton(pdfMock.Object);
+            services.AddSingleton(
+                AppFilesMutationHook.ApplicationMetadata(app => app.CopyInstanceSettings.IncludeAttachments = true)
+            );
+        };
+        HttpClient client = GetRootedClient(org, app);
+        string orgToken = TestAuthentication.GetServiceOwnerToken("405003309", org: "tdd");
+        string userToken = TestAuthentication.GetUserToken(1337, instanceOwnerPartyId);
+
+        // Create source instance
+        var (sourceInstance, _) = await InstancesControllerFixture.CreateInstanceSimplified(
+            org,
+            app,
+            instanceOwnerPartyId,
+            client,
+            userToken,
+            prefill: new() { ["melding.name"] = "Ola Olsen" }
+        );
+
+        // Add a tagged attachment (customElement only allows the service owner as contributor)
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            AuthorizationSchemes.Bearer,
+            orgToken
+        );
+        using var attachmentContent = new ByteArrayContent(Encoding.UTF8.GetBytes("attachment"));
+        attachmentContent.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+        attachmentContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+        {
+            FileName = "attachment.pdf",
+        };
+        using var attachmentResponse = await client.PostAsync(
+            $"{org}/{app}/instances/{sourceInstance.Id}/data?dataType=customElement",
+            attachmentContent
+        );
+        Assert.Equal(HttpStatusCode.Created, attachmentResponse.StatusCode);
+        var sourceAttachment = await attachmentResponse.Content.ReadFromJsonAsync<DataElement>(JsonSerializerOptions);
+        Assert.NotNull(sourceAttachment);
+        using var tagsResponse = await client.PutAsJsonAsync(
+            $"{org}/{app}/instances/{sourceInstance.Id}/data/{sourceAttachment.Id}/tags",
+            new SetTagsRequest { Tags = ["innhold"] }
+        );
+        Assert.Equal(HttpStatusCode.OK, tagsResponse.StatusCode);
+
+        await CompleteInstance(org, app, client, userToken, sourceInstance.Id);
+
+        // Copy instance
+        InstanceResponse copiedInstance = await CopyInstanceSimplified(org, app, client, userToken, sourceInstance.Id);
+        DataElement copiedAttachment = Assert.Single(copiedInstance.Data, d => d.DataType == "customElement");
+        Assert.NotEqual(sourceAttachment.Id, copiedAttachment.Id);
+
+        using var copiedTagsResponse = await client.GetAsync(
+            $"{org}/{app}/instances/{copiedInstance.Id}/data/{copiedAttachment.Id}/tags"
+        );
+        Assert.Equal(HttpStatusCode.OK, copiedTagsResponse.StatusCode);
+        var copiedTags = await copiedTagsResponse.Content.ReadFromJsonAsync<TagsList>(JsonSerializerOptions);
+        Assert.NotNull(copiedTags);
+        Assert.Equal(["innhold"], copiedTags.Tags);
+
+        TestData.DeleteInstanceAndData(org, app, sourceInstance.Id);
+        TestData.DeleteInstanceAndData(org, app, copiedInstance.Id);
+    }
+
+    [Fact]
+    public async Task CopyInstance_SimplifiedEndpoint_UpdatesAttachmentIdsInFormData()
+    {
+        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
+        using var pdfReturnStream = new MemoryStream();
+        pdfMock
+            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pdfReturnStream);
+
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddSingleton(pdfMock.Object);
+            services.AddSingleton(
+                AppFilesMutationHook.ApplicationMetadata(app => app.CopyInstanceSettings.IncludeAttachments = true)
+            );
+        };
+        HttpClient client = GetRootedClient(org, app);
+        string orgToken = TestAuthentication.GetServiceOwnerToken("405003309", org: "tdd");
+        string userToken = TestAuthentication.GetUserToken(1337, instanceOwnerPartyId);
+
+        // Create source instance
+        var (sourceInstance, _) = await InstancesControllerFixture.CreateInstanceSimplified(
+            org,
+            app,
+            instanceOwnerPartyId,
+            client,
+            userToken,
+            prefill: new() { ["melding.name"] = "Ola Olsen" }
+        );
+
+        // Add an attachment (customElement only allows the service owner as contributor)
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            AuthorizationSchemes.Bearer,
+            orgToken
+        );
+        using var attachmentContent = new ByteArrayContent(Encoding.UTF8.GetBytes("attachment"));
+        attachmentContent.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+        attachmentContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+        {
+            FileName = "attachment.pdf",
+        };
+        using var attachmentResponse = await client.PostAsync(
+            $"{org}/{app}/instances/{sourceInstance.Id}/data?dataType=customElement",
+            attachmentContent
+        );
+        Assert.Equal(HttpStatusCode.Created, attachmentResponse.StatusCode);
+        var sourceAttachment = await attachmentResponse.Content.ReadFromJsonAsync<DataElement>(JsonSerializerOptions);
+        Assert.NotNull(sourceAttachment);
+
+        // Reference the attachment from a list row, like a FileUpload in a repeating group
+        string formDataGuid = sourceInstance.Data.Single(d => d.DataType == "default").Id;
+        var patch = new JsonPatch(
+            PatchOperation.Add(
+                JsonPointer.Create("melding", "nested_list"),
+                JsonNode.Parse($$"""[{"key": "{{sourceAttachment.Id}}"}]""")
+            )
+        );
+        await UpdateInstanceData(org, app, client, userToken, sourceInstance.Id, formDataGuid, patch);
+
+        await CompleteInstance(org, app, client, userToken, sourceInstance.Id);
+
+        // Copy instance
+        InstanceResponse copiedInstance = await CopyInstanceSimplified(org, app, client, userToken, sourceInstance.Id);
+        DataElement copiedAttachment = Assert.Single(copiedInstance.Data, d => d.DataType == "customElement");
+        DataElement copiedFormData = Assert.Single(copiedInstance.Data, d => d.DataType == "default");
+
+        using var copiedFormDataResponse = await client.GetAsync(
+            $"{org}/{app}/instances/{copiedInstance.Id}/data/{copiedFormData.Id}"
+        );
+        Assert.Equal(HttpStatusCode.OK, copiedFormDataResponse.StatusCode);
+        var copiedSkjema = await copiedFormDataResponse.Content.ReadFromJsonAsync<Skjema>(JsonSerializerOptions);
+        Assert.NotNull(copiedSkjema?.Melding?.NestedList);
+        Nested copiedRow = Assert.Single(copiedSkjema.Melding.NestedList);
+        Assert.Equal(copiedAttachment.Id, copiedRow.Key);
+
+        TestData.DeleteInstanceAndData(org, app, sourceInstance.Id);
+        TestData.DeleteInstanceAndData(org, app, copiedInstance.Id);
+    }
+
+    private async Task<InstanceResponse> CopyInstanceSimplified(
+        string org,
+        string app,
+        HttpClient client,
+        string token,
+        string sourceInstanceId
+    )
+    {
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+        var body = $$"""
+                {
+                    "prefill": {},
+                    "instanceOwner": {
+                        "partyId": "{{sourceInstanceId.Split("/")[0]}}"
+                    },
+                    "sourceInstanceId": "{{sourceInstanceId}}"
+                }
+            """;
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+        using var response = await client.PostAsync($"{org}/{app}/instances/create", content);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(responseContent);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        var copiedInstance = JsonSerializer.Deserialize<InstanceResponse>(responseContent, JsonSerializerOptions);
+        Assert.NotNull(copiedInstance);
+        return copiedInstance;
+    }
+
     private async Task UpdateInstanceData(
         string org,
         string app,
@@ -1560,9 +1985,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
-            throw new NotSupportedException();
-
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
@@ -1583,7 +2005,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         ) => throw new NotSupportedException();
     }
 
-    private sealed class AcceptedFailingWorkflowEngineClient(bool acquireConflict = false) : IWorkflowEngineClient
+    private sealed class AcceptedFailingWorkflowEngineClient : IWorkflowEngineClient
     {
         private readonly Guid _workflowId = Guid.NewGuid();
         private string? _collectionKey;
@@ -1659,7 +2081,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                         new StepStatusResponse
                         {
                             DatabaseId = Guid.NewGuid(),
-                            OperationId = acquireConflict ? AcquireProcessingStatus.Key : "StartTask",
+                            OperationId = "StartTask",
                             ProcessingOrder = 0,
                             Command = new StepStatusResponse.CommandDetails { Type = "app" },
                             Status = PersistentItemStatus.Failed,
@@ -1668,15 +2090,9 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                             [
                                 new ErrorEntry(
                                     DateTimeOffset.UtcNow,
-                                    acquireConflict
-                                        ? "AppCommand failed with client error Conflict: "
-                                            + "{\"workflowFailureCode\":\"acquireConcurrencyConflict\","
-                                            + "\"detail\":\"Refresh and retry.\"}"
-                                        : "Simulated workflow callback failure.",
-                                    acquireConflict
-                                        ? StatusCodes.Status409Conflict
-                                        : StatusCodes.Status500InternalServerError,
-                                    WasRetryable: !acquireConflict
+                                    "Simulated workflow callback failure.",
+                                    StatusCodes.Status500InternalServerError,
+                                    WasRetryable: true
                                 ),
                             ],
                         },
@@ -1696,9 +2112,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             bool cascade = false,
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
-
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
-            acquireConflict ? Task.FromResult(true) : throw new NotSupportedException();
 
         public Task<MailboxMintResult> MintMailbox(
             string ns,

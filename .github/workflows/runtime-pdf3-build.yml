@@ -14,7 +14,7 @@ on:
       - '!**/CONTRIBUTING.md'
       - '!**/CHANGELOG.md'
       - '!**/docs/**'
-      - '!src/Runtime/pdf3/infra/syncroot/**'
+      - '!src/Runtime/pdf3/infra/core/**'
   workflow_dispatch:
 
 concurrency:

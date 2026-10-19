@@ -19,7 +19,7 @@ public class EnqueueSideEffectsWorkflowTests
     private static WorkflowEnqueueRequest CreateEmbeddedRequest() =>
         new()
         {
-            Labels = new Dictionary<string, string>(StringComparer.Ordinal) { ["processNextTargetId"] = "Task_2:1" },
+            Labels = new Dictionary<string, string>(StringComparer.Ordinal) { ["processNextTargetTask"] = "Task_2" },
             // One single-step sibling per side effect - the factory pre-assembles the whole batch.
             Workflows =
             [
@@ -201,7 +201,7 @@ public class EnqueueSideEffectsWorkflowTests
         Assert.Equal("Process next side-effects: Task_1 -> Task_2 · MovedToAltinnEvent", workflow.OperationId);
         Assert.False(workflow.IsHead);
         Assert.False(workflow.DependsOnHeads);
-        Assert.Equal("Task_2:1", roundTripped.EnqueueRequest.Labels?["processNextTargetId"]);
+        Assert.Equal("Task_2", roundTripped.EnqueueRequest.Labels?["processNextTargetTask"]);
         Assert.Null(roundTripped.EnqueueRequest.Context);
     }
 }

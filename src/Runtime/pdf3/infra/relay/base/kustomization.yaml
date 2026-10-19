@@ -1,0 +1,18 @@
+# The relay and its route, for the environment overlays. Each overlay sets PDF3_UPSTREAM_URL.
+# The route is in pdf, with its parent Service, and the relay is in runtime-pdf3.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - relay.yaml
+  - httproute.yaml
+replacements:
+- source:
+    kind: Deployment
+    name: pdf3-relay
+    fieldPath: metadata.annotations.[altinn.studio/image]
+  targets:
+  - select:
+      kind: Deployment
+      name: pdf3-relay
+    fieldPaths:
+      - spec.template.spec.containers.[name=pdf3-relay].image

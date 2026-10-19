@@ -2,8 +2,6 @@ export function en() {
   return {
     'dateTime.am': 'AM',
     'dateTime.pm': 'PM',
-    'altinn.standard_validation.file_content_type_not_allowed':
-      'It looks like you are trying to upload a file type that is not allowed. Please make sure that the file is actually the type it claims to be.',
     'actions.sign': 'Sign',
     'actions.confirm': 'Confirm',
     'actions.reject': 'Reject',
@@ -487,6 +485,10 @@ export function en() {
     'likert.left_column_default_header_text': 'Question',
     'process_error.submit_error_please_retry':
       'Something went wrong when submitting, please try again in a few minutes.',
+    'process_error.instance_changed':
+      'The form was changed while you were submitting it, so it was not submitted. Check the form and try again.',
+    'process_error.concurrent_transition':
+      'The form was submitted from somewhere else at the same time, so your submission was not sent. Check the form and try again.',
     'process_workflow.failed_heading': 'Something went wrong',
     'process_workflow.failed_description':
       'We couldn’t finish processing your form, and the problem won’t resolve on its own. You’ll need to get in touch so we can help you.',
