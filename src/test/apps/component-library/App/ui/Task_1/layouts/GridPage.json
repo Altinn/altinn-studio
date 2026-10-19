@@ -257,7 +257,7 @@
                 "text": "heading2"
               },
               {
-                "text": "Beløpet du oppgir her skal omfatte alle inntekter fra næringsvirksomhet i inntektsåret, inkludert eventuelle tilskudd og refusjoner"
+                "text": "heading3"
               }
             ]
           },
@@ -529,6 +529,43 @@
           "simpleBinding": "GridExample.ExampleCheckbox"
         },
         "readOnly": true
+      },
+      {
+        "id": "grid-example-long-header",
+        "type": "Grid",
+        "textResourceBindings": {
+          "title": "Grid with long header text",
+          "description": "Shows how text in Grid cells is cut with an ellipsis after the default maximum number of lines"
+        },
+        "rows": [
+          {
+            "header": true,
+            "readOnly": false,
+            "cells": [
+              {
+                "text": "Short header"
+              },
+              {
+                "columnOptions": {
+                  "width": "40%"
+                },
+                "text": "Long header text to check that Grid cells show at most three lines before the text is cut with an ellipsis, even with long words such as næringsvirksomhetsinntekter"
+              }
+            ]
+          },
+          {
+            "header": false,
+            "readOnly": false,
+            "cells": [
+              {
+                "text": "Row 1"
+              },
+              {
+                "text": "Value"
+              }
+            ]
+          }
+        ]
       },
       {
         "size": "h3",
