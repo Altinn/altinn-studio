@@ -158,7 +158,7 @@ public class WorkflowsControllerTests
     public async Task GetCollection_DelegatesWithKey_AndPassesResponseThrough()
     {
         const string upstreamBody = /*lang=json,strict*/
-            """{"key":"0f8fad5b-d9cb-469f-a165-70867728950e","workflowCounts":{"failedVisible":1}}""";
+            """{"key":"0f8fad5b-d9cb-469f-a165-70867728950e","workflowCounts":{"primary":{"failed":1}}}""";
         _runtimeGatewayClientMock
             .Setup(client =>
                 client.GetWorkflowCollectionAsync(
@@ -187,7 +187,7 @@ public class WorkflowsControllerTests
             """{"workflows":[],"cursor":null}""";
         IReadOnlyList<string> capturedStatuses = null;
         IReadOnlyList<string> capturedLabels = null;
-        (string CollectionKey, bool? IsHead, string Cursor, int? PageSize) capturedQuery = default;
+        (string CollectionKey, string Role, string Cursor, int? PageSize) capturedQuery = default;
         _runtimeGatewayClientMock
             .Setup(client =>
                 client.GetWorkflowsAsync(
@@ -197,7 +197,7 @@ public class WorkflowsControllerTests
                     It.IsAny<string>(),
                     It.IsAny<IReadOnlyList<string>>(),
                     It.IsAny<IReadOnlyList<string>>(),
-                    It.IsAny<bool?>(),
+                    It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<int?>(),
                     It.IsAny<CancellationToken>()
@@ -211,7 +211,7 @@ public class WorkflowsControllerTests
                     string collectionKey,
                     IReadOnlyList<string> statuses,
                     IReadOnlyList<string> labels,
-                    bool? isHead,
+                    string role,
                     string cursor,
                     int? pageSize,
                     CancellationToken _
@@ -219,20 +219,20 @@ public class WorkflowsControllerTests
                 {
                     capturedStatuses = statuses;
                     capturedLabels = labels;
-                    capturedQuery = (collectionKey, isHead, cursor, pageSize);
+                    capturedQuery = (collectionKey, role, cursor, pageSize);
                 }
             )
             .ReturnsAsync(JsonResponse(HttpStatusCode.OK, upstreamBody));
 
         using var response = await HttpClient.GetAsync(
-            $"{BasePath()}/workflows?collectionKey=col1&status=Failed&status=AwaitingRetry&label=step%3Apdf&isHead=false&cursor=c1&pageSize=3"
+            $"{BasePath()}/workflows?collectionKey=col1&status=Failed&status=AwaitingRetry&label=step%3Apdf&role=auxiliary&cursor=c1&pageSize=3"
         );
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(upstreamBody, await response.Content.ReadAsStringAsync());
         Assert.Equal(["Failed", "AwaitingRetry"], capturedStatuses);
         Assert.Equal(["step:pdf"], capturedLabels);
-        Assert.Equal(("col1", false, "c1", 3), capturedQuery);
+        Assert.Equal(("col1", "auxiliary", "c1", 3), capturedQuery);
     }
 
     [Fact]

@@ -18,6 +18,7 @@
       dependents: {
         Guid_3: Completed
       },
+      role: primary,
       steps: [
         {
           databaseId: {Scrubbed},
@@ -51,6 +52,7 @@
       dependencies: {
         Guid_1: Completed
       },
+      role: primary,
       steps: [
         {
           databaseId: {Scrubbed},

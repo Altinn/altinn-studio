@@ -61,7 +61,7 @@ internal sealed class EngineDbContext : DbContext
             // Backs the collections discovery scan (?failures=), which is driven
             // workflows → collections: only failed rows are indexed, so the scan is proportional
             // to the failures rather than to the namespace. is_head rides along for the
-            // visible/invisible facet. Same constancy contract as the other partial indexes —
+            // primary/auxiliary facet. Same constancy contract as the other partial indexes —
             // the filter interpolates the status set the query itself uses.
             entity
                 .HasIndex(e => new { e.Namespace, e.CollectionKey }, "ix_workflows_namespace_collection_key_failed")

@@ -195,7 +195,7 @@ public class RuntimeGatewayClientWorkflowsTests
             collectionKey: "0f8fad5b-d9cb-469f-a165-70867728950e",
             statuses: ["Failed", "AwaitingRetry"],
             labels: ["step:pdf", "kind:head"],
-            isHead: true,
+            role: "primary",
             cursor: "c1",
             pageSize: 10,
             CancellationToken.None
@@ -206,7 +206,7 @@ public class RuntimeGatewayClientWorkflowsTests
             $"{WorkflowsBasePath}/workflows"
                 + "?collectionKey=0f8fad5b-d9cb-469f-a165-70867728950e"
                 + "&status=Failed&status=AwaitingRetry&label=step%3Apdf&label=kind%3Ahead"
-                + "&isHead=true&cursor=c1&pageSize=10&includeState=false"
+                + "&role=primary&cursor=c1&pageSize=10&includeState=false"
         );
     }
 

@@ -142,7 +142,7 @@ public class WorkflowsController : ControllerBase
         [FromQuery] string? collectionKey,
         [FromQuery(Name = "status")] string[]? statuses,
         [FromQuery(Name = "label")] string[]? labels,
-        [FromQuery] bool? isHead,
+        [FromQuery] string? role,
         [FromQuery] string? cursor,
         [FromQuery] int? pageSize,
         CancellationToken cancellationToken
@@ -160,7 +160,7 @@ public class WorkflowsController : ControllerBase
                     collectionKey,
                     statuses,
                     labels,
-                    isHead,
+                    role,
                     cursor,
                     pageSize,
                     ct

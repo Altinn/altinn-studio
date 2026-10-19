@@ -1,6 +1,6 @@
 /* Query tab — on-demand DB fetch with pagination */
 
-import { dom, state, queryStatusIds, headVisibilityParam } from '../core/state.js';
+import { dom, state, queryStatusIds, roleParam } from '../core/state.js';
 import { buildCardHTML, buildCompactCardHTML, setCardFilterData } from '../shared/cards.js';
 import { buildGroupEl, onChainGroupsChanged } from '../shared/chain-groups.js';
 import {
@@ -155,7 +155,7 @@ const fetchQuery = async (opts) => {
     const effectiveCustom = isGuid ? null : customTimeRange;
     const effectiveTimeRange = isGuid ? 0 : queryTimeRange;
     const effectiveRetried = isGuid ? false : retried;
-    const effectiveIsHead = isGuid ? null : headVisibilityParam();
+    const effectiveRole = isGuid ? null : roleParam();
 
     const btn = /** @type {HTMLButtonElement} */ (document.getElementById('query-load'));
     btn.disabled = true;
@@ -189,7 +189,7 @@ const fetchQuery = async (opts) => {
             params.set('since', new Date(Date.now() - effectiveTimeRange * 60000).toISOString());
         }
         if (effectiveRetried) params.set('retried', 'true');
-        if (effectiveIsHead !== null) params.set('isHead', effectiveIsHead ? 'true' : 'false');
+        if (effectiveRole !== null) params.set('role', effectiveRole);
         const res = await fetch(`/dashboard/query?${params}`);
         const body = await res.json();
         /** @type {import('../core/state.js').Workflow[]} */
@@ -350,8 +350,8 @@ window.toggleRetried = () => {
 };
 
 
-// Head-visibility checkboxes (query only)
-window.toggleHeadVisibility = () => {
+// Role checkboxes (query only)
+window.toggleRole = () => {
     syncUrl();
     if (state.queryLoaded) loadQuery();
 };

@@ -276,7 +276,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         string? collectionKey,
         IReadOnlyList<string>? statuses,
         IReadOnlyList<string>? labels,
-        bool? isHead,
+        string? role,
         string? cursor,
         int? pageSize,
         CancellationToken cancellationToken
@@ -286,10 +286,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         AddIfPresent(query, "collectionKey", collectionKey);
         AddAll(query, "status", statuses);
         AddAll(query, "label", labels);
-        if (isHead is not null)
-        {
-            query.Add("isHead", isHead.Value ? "true" : "false");
-        }
+        AddIfPresent(query, "role", role);
         AddIfPresent(query, "cursor", cursor);
         AddIfPresent(query, "pageSize", pageSize);
         // Never the app's state payload: it is instance data, and nothing in Studio may receive it.

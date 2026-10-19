@@ -65,8 +65,8 @@ internal sealed partial class EngineRepository
 
                 failedWorkflows = failures switch
                 {
-                    CollectionFailureFilter.Visible => failedWorkflows.Where(HeadVisibility.Visible),
-                    CollectionFailureFilter.Invisible => failedWorkflows.Where(HeadVisibility.Invisible),
+                    CollectionFailureFilter.Primary => failedWorkflows.Where(WorkflowRolePredicates.Primary),
+                    CollectionFailureFilter.Auxiliary => failedWorkflows.Where(WorkflowRolePredicates.Auxiliary),
                     _ => failedWorkflows,
                 };
 
@@ -147,11 +147,10 @@ internal sealed partial class EngineRepository
 
     /// <summary>
     /// Computes the per-collection workflow status rollup for a page of collection keys in a single
-    /// grouped query (translated to <c>COUNT(*) FILTER (WHERE …)</c>). The failed buckets split on
-    /// head visibility (<c>is_head IS DISTINCT FROM false</c> vs <c>is_head = false</c>) and exclude
-    /// <see cref="PersistentItemStatus.Abandoned"/> — a written-off failure is not an open one —
-    /// while the total counts every workflow in the collection. The parked counts take the visible
-    /// side of the same split, one status each.
+    /// grouped query (translated to <c>COUNT(*) FILTER (WHERE …)</c>). Every bucket is split by
+    /// <see cref="WorkflowRole"/> (<c>is_head IS DISTINCT FROM false</c> vs <c>is_head = false</c>);
+    /// the failed buckets exclude <see cref="PersistentItemStatus.Abandoned"/> — a written-off failure
+    /// is not an open one — while the total counts every workflow in the collection.
     /// </summary>
     private static async Task<Dictionary<string, CollectionWorkflowCounts>> GetCollectionWorkflowCounts(
         Context.EngineDbContext context,
@@ -166,6 +165,10 @@ internal sealed partial class EngineRepository
         var activeStatuses = PersistentItemStatusMap.Incomplete;
         var failedStatuses = PersistentItemStatusMap.Failed;
 
+        // The role conditions restate the canonical WorkflowRolePredicates inline (grouped-aggregate
+        // lambdas cannot compose an Expression): Primary is IsHead != false, Auxiliary is
+        // IsHead == false. Keep them in lockstep with that class; the rollup integration test pins a
+        // null directive to the primary bucket.
         var counts = await context
             .Workflows.Where(w =>
                 w.Namespace == normalizedNs && w.CollectionKey != null && collectionKeys.Contains(w.CollectionKey)
@@ -174,17 +177,17 @@ internal sealed partial class EngineRepository
             .Select(g => new
             {
                 g.Key,
-                Active = g.Count(w => activeStatuses.Contains(w.Status)),
-                // The visibility conditions restate the canonical HeadVisibility predicates inline
-                // (grouped-aggregate lambdas cannot compose an Expression): Visible is
-                // IsHead != false, Invisible is IsHead == false. Keep them in lockstep with that
-                // class; the rollup integration test pins a null directive to the visible bucket.
-                FailedVisible = g.Count(w => failedStatuses.Contains(w.Status) && w.IsHead != false),
-                FailedInvisible = g.Count(w => failedStatuses.Contains(w.Status) && w.IsHead == false),
-                RequeuedVisible = g.Count(w => w.Status == PersistentItemStatus.Requeued && w.IsHead != false),
-                WaitingVisible = g.Count(w => w.Status == PersistentItemStatus.Waiting && w.IsHead != false),
-                HeldVisible = g.Count(w => w.Status == PersistentItemStatus.Held && w.IsHead != false),
                 Total = g.Count(),
+                PrimaryActive = g.Count(w => activeStatuses.Contains(w.Status) && w.IsHead != false),
+                PrimaryFailed = g.Count(w => failedStatuses.Contains(w.Status) && w.IsHead != false),
+                PrimaryRequeued = g.Count(w => w.Status == PersistentItemStatus.Requeued && w.IsHead != false),
+                PrimaryWaiting = g.Count(w => w.Status == PersistentItemStatus.Waiting && w.IsHead != false),
+                PrimaryHeld = g.Count(w => w.Status == PersistentItemStatus.Held && w.IsHead != false),
+                AuxiliaryActive = g.Count(w => activeStatuses.Contains(w.Status) && w.IsHead == false),
+                AuxiliaryFailed = g.Count(w => failedStatuses.Contains(w.Status) && w.IsHead == false),
+                AuxiliaryRequeued = g.Count(w => w.Status == PersistentItemStatus.Requeued && w.IsHead == false),
+                AuxiliaryWaiting = g.Count(w => w.Status == PersistentItemStatus.Waiting && w.IsHead == false),
+                AuxiliaryHeld = g.Count(w => w.Status == PersistentItemStatus.Held && w.IsHead == false),
             })
             .ToListAsync(cancellationToken);
 
@@ -197,13 +200,23 @@ internal sealed partial class EngineRepository
 
             result[key] = new CollectionWorkflowCounts
             {
-                Active = c.Active,
-                FailedVisible = c.FailedVisible,
-                FailedInvisible = c.FailedInvisible,
-                RequeuedVisible = c.RequeuedVisible,
-                WaitingVisible = c.WaitingVisible,
-                HeldVisible = c.HeldVisible,
                 Total = c.Total,
+                Primary = new WorkflowRoleCounts
+                {
+                    Active = c.PrimaryActive,
+                    Failed = c.PrimaryFailed,
+                    Requeued = c.PrimaryRequeued,
+                    Waiting = c.PrimaryWaiting,
+                    Held = c.PrimaryHeld,
+                },
+                Auxiliary = new WorkflowRoleCounts
+                {
+                    Active = c.AuxiliaryActive,
+                    Failed = c.AuxiliaryFailed,
+                    Requeued = c.AuxiliaryRequeued,
+                    Waiting = c.AuxiliaryWaiting,
+                    Held = c.AuxiliaryHeld,
+                },
             };
         }
 
@@ -509,7 +522,7 @@ internal sealed partial class EngineRepository
         Dictionary<string, string>? labelFilters = null,
         string? namespaceFilter = null,
         string? collectionKey = null,
-        bool? isHead = null,
+        WorkflowRole? role = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -529,7 +542,7 @@ internal sealed partial class EngineRepository
                 collectionKeyFilter: collectionKey,
                 namespaceFilter: namespaceFilter,
                 labelFilter: labelFilters,
-                isHeadFilter: isHead
+                roleFilter: role
             );
 
             int? totalCount = includeTotalCount ? await baseQuery.CountAsync(cancellationToken) : null;

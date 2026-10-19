@@ -20,6 +20,7 @@
       links: {
         Guid_3: Completed
       },
+      role: primary,
       steps: [
         {
           databaseId: {Scrubbed},
@@ -52,6 +53,7 @@
       dependencies: {
         Guid_4: Completed
       },
+      role: primary,
       steps: [
         {
           databaseId: {Scrubbed},
@@ -81,6 +83,7 @@
         org: ttd
       },
       overallStatus: Completed,
+      role: primary,
       steps: [
         {
           databaseId: {Scrubbed},

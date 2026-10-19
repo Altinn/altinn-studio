@@ -13,6 +13,7 @@
         org: ttd
       },
       overallStatus: Completed,
+      role: primary,
       steps: [
         {
           databaseId: {Scrubbed},

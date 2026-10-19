@@ -338,37 +338,17 @@
     "Name": "CollectionWorkflowCounts",
     "Fields": [
       {
-        "Name": "active",
-        "Kind": "int",
+        "Name": "auxiliary",
+        "Kind": "object<WorkflowRoleCounts>",
         "Nullable": false
       },
       {
-        "Name": "failedInvisible",
-        "Kind": "int",
-        "Nullable": false
-      },
-      {
-        "Name": "failedVisible",
-        "Kind": "int",
-        "Nullable": false
-      },
-      {
-        "Name": "heldVisible",
-        "Kind": "int",
-        "Nullable": false
-      },
-      {
-        "Name": "requeuedVisible",
-        "Kind": "int",
+        "Name": "primary",
+        "Kind": "object<WorkflowRoleCounts>",
         "Nullable": false
       },
       {
         "Name": "total",
-        "Kind": "int",
-        "Nullable": false
-      },
-      {
-        "Name": "waitingVisible",
         "Kind": "int",
         "Nullable": false
       }
@@ -1019,6 +999,36 @@
       }
     ]
   },
+  "WorkflowRoleCounts": {
+    "Name": "WorkflowRoleCounts",
+    "Fields": [
+      {
+        "Name": "active",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "failed",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "held",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "requeued",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "waiting",
+        "Kind": "int",
+        "Nullable": false
+      }
+    ]
+  },
   "WorkflowStatusResponse": {
     "Name": "WorkflowStatusResponse",
     "Fields": [
@@ -1101,6 +1111,11 @@
         "Name": "overallStatus",
         "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}",
         "Nullable": false
+      },
+      {
+        "Name": "role",
+        "Kind": "enum<string>{primary=0,auxiliary=1}",
+        "Nullable": true
       },
       {
         "Name": "startAt",

@@ -228,17 +228,17 @@ public partial class EngineTests
     }
 
     [Fact]
-    public async Task ListCollections_Rollup_CountsBucketsWithVisibilitySplitAndAbandonedExclusion()
+    public async Task ListCollections_Rollup_CountsBucketsByRoleWithAbandonedExclusion()
     {
         // Arrange — one collection exercising every rollup bucket:
         //   ok             → Completed                       (remainder)
-        //   fail-visible   → Failed, default directive       (failedVisible)
-        //   dep-failed     → DependencyFailed via fail-visible (failedVisible)
-        //   fail-invisible → Failed, IsHead=false            (failedInvisible)
+        //   fail-primary   → Failed, default directive       (primary.failed)
+        //   dep-failed     → DependencyFailed via fail-primary (primary.failed)
+        //   fail-auxiliary → Failed, IsHead=false            (auxiliary.failed)
         //   fail-abandon   → Failed then abandoned           (excluded from failed buckets, in total)
-        //   scheduled      → Enqueued with future StartAt    (active)
-        //   held-receiver  → Held on an open mailbox         (active — parked is not settled)
-        fixture.FailPaths("/fail-visible", "/fail-invisible", "/fail-abandon");
+        //   scheduled      → Enqueued with future StartAt    (primary.active)
+        //   held-receiver  → Held on an open mailbox         (primary.active — parked is not settled)
+        fixture.FailPaths("/fail-primary", "/fail-auxiliary", "/fail-abandon");
 
         // A receiver on an open mailbox is born Held, which the rollup must read as active: the
         // status is non-terminal (PersistentItemStatusMap.Incomplete), so it consumes admission
@@ -247,15 +247,15 @@ public partial class EngineTests
 
         var request = _testHelpers.CreateEnqueueRequest([
             _testHelpers.CreateWorkflow("ok", [_testHelpers.CreateWebhookStep("/hook")]),
-            _testHelpers.CreateWorkflow("fail-visible", [_testHelpers.CreateWebhookStep("/fail-visible")]),
+            _testHelpers.CreateWorkflow("fail-primary", [_testHelpers.CreateWebhookStep("/fail-primary")]),
             _testHelpers.CreateWorkflow(
                 "dep-failed",
                 [_testHelpers.CreateWebhookStep("/hook")],
-                dependsOn: [(WorkflowRef)"fail-visible"]
+                dependsOn: [(WorkflowRef)"fail-primary"]
             ),
             _testHelpers.CreateWorkflow(
-                "fail-invisible",
-                [_testHelpers.CreateWebhookStep("/fail-invisible")],
+                "fail-auxiliary",
+                [_testHelpers.CreateWebhookStep("/fail-auxiliary")],
                 isHead: false
             ),
             _testHelpers.CreateWorkflow("fail-abandon", [_testHelpers.CreateWebhookStep("/fail-abandon")]),
@@ -273,9 +273,9 @@ public partial class EngineTests
         var byRef = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
 
         await _client.WaitForWorkflowStatus(byRef["ok"], PersistentItemStatus.Completed);
-        await _client.WaitForWorkflowStatus(byRef["fail-visible"], PersistentItemStatus.Failed);
+        await _client.WaitForWorkflowStatus(byRef["fail-primary"], PersistentItemStatus.Failed);
         await _client.WaitForWorkflowStatus(byRef["dep-failed"], PersistentItemStatus.DependencyFailed);
-        await _client.WaitForWorkflowStatus(byRef["fail-invisible"], PersistentItemStatus.Failed);
+        await _client.WaitForWorkflowStatus(byRef["fail-auxiliary"], PersistentItemStatus.Failed);
         await _client.WaitForWorkflowStatus(byRef["fail-abandon"], PersistentItemStatus.Failed);
         await _client.AbandonWorkflow(byRef["fail-abandon"]);
         await _client.WaitForWorkflowStatus(byRef["held-receiver"], PersistentItemStatus.Held);
@@ -289,9 +289,11 @@ public partial class EngineTests
         var counts = collection.WorkflowCounts;
         Assert.NotNull(counts);
         Assert.Equal(7, counts.Total);
-        Assert.Equal(2, counts.Active); // scheduled + held-receiver
-        Assert.Equal(2, counts.FailedVisible); // fail-visible + dep-failed; fail-abandon written off
-        Assert.Equal(1, counts.FailedInvisible); // fail-invisible
+        Assert.Equal(2, counts.Primary.Active); // scheduled + held-receiver
+        Assert.Equal(2, counts.Primary.Failed); // fail-primary + dep-failed; fail-abandon written off
+        Assert.Equal(1, counts.Primary.Held); // held-receiver
+        Assert.Equal(0, counts.Auxiliary.Active);
+        Assert.Equal(1, counts.Auxiliary.Failed); // fail-auxiliary
 
         // Explicit non-goal: the detail endpoint stays a frontier view and carries no rollup.
         using var detailResponse = await _client.GetCollectionRaw("rollup-col");
@@ -301,15 +303,15 @@ public partial class EngineTests
     }
 
     [Fact]
-    public async Task ListCollections_Rollup_CountsVisibleParkedWorkflowsByStatus()
+    public async Task ListCollections_Rollup_CountsParkedWorkflowsByRoleAndStatus()
     {
-        // Arrange — one collection with a workflow in every parked status, and the invisible twin of
-        // one of them to pin that the parked counts take the visible side only:
-        //   requeued           → Requeued, a 500 held still by a ten-minute backoff  (requeuedVisible)
-        //   requeued-invisible → the same, IsHead=false                           (active only)
-        //   waiting            → Waiting, a deferral ten minutes out                (waitingVisible)
-        //   held-receiver      → Held on an open mailbox                            (heldVisible)
-        //   scheduled          → Enqueued with a future StartAt                     (active only)
+        // Arrange — one collection with a workflow in every parked status, and two auxiliary twins of
+        // one of them to pin that the parked counts split by role (two, so no bucket ties its twin):
+        //   requeued             → Requeued, a 500 held still by a ten-minute backoff  (primary.requeued)
+        //   requeued-auxiliary-* → the same, IsHead=false, twice                     (auxiliary.requeued)
+        //   waiting            → Waiting, a deferral ten minutes out                (primary.waiting)
+        //   held-receiver      → Held on an open mailbox                            (primary.held)
+        //   scheduled          → Enqueued with a future StartAt                     (primary.active only)
         fixture.FailPaths("/retrying");
         var mailbox = await _client.MintMailbox("parked-mailbox", TimeSpan.FromHours(1));
         var retryLater = RetryStrategy.Constant(TimeSpan.FromMinutes(10), maxRetries: 5);
@@ -333,7 +335,12 @@ public partial class EngineTests
                 [_testHelpers.CreateWebhookStep("/retrying", retryStrategy: retryLater)]
             ),
             _testHelpers.CreateWorkflow(
-                "requeued-invisible",
+                "requeued-auxiliary-1",
+                [_testHelpers.CreateWebhookStep("/retrying", retryStrategy: retryLater)],
+                isHead: false
+            ),
+            _testHelpers.CreateWorkflow(
+                "requeued-auxiliary-2",
                 [_testHelpers.CreateWebhookStep("/retrying", retryStrategy: retryLater)],
                 isHead: false
             ),
@@ -352,7 +359,8 @@ public partial class EngineTests
         var byRef = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
 
         await _client.WaitForWorkflowStatus(byRef["requeued"], PersistentItemStatus.Requeued);
-        await _client.WaitForWorkflowStatus(byRef["requeued-invisible"], PersistentItemStatus.Requeued);
+        await _client.WaitForWorkflowStatus(byRef["requeued-auxiliary-1"], PersistentItemStatus.Requeued);
+        await _client.WaitForWorkflowStatus(byRef["requeued-auxiliary-2"], PersistentItemStatus.Requeued);
         await _client.WaitForWorkflowStatus(byRef["waiting"], PersistentItemStatus.Waiting, TimeSpan.FromSeconds(30));
         await _client.WaitForWorkflowStatus(byRef["held-receiver"], PersistentItemStatus.Held);
 
@@ -363,18 +371,35 @@ public partial class EngineTests
         var collection = Assert.Single(result.Data);
         var counts = collection.WorkflowCounts;
         Assert.NotNull(counts);
-        Assert.Equal(5, counts.Active);
-        Assert.Equal(1, counts.RequeuedVisible);
-        Assert.Equal(1, counts.WaitingVisible);
-        Assert.Equal(1, counts.HeldVisible);
-        Assert.Equal(0, counts.FailedVisible);
-        Assert.Equal(0, counts.FailedInvisible);
+        Assert.Equal(6, counts.Total);
+        Assert.Equal(
+            new WorkflowRoleCounts
+            {
+                Active = 4,
+                Failed = 0,
+                Requeued = 1,
+                Waiting = 1,
+                Held = 1,
+            },
+            counts.Primary
+        );
+        Assert.Equal(
+            new WorkflowRoleCounts
+            {
+                Active = 2,
+                Failed = 0,
+                Requeued = 2,
+                Waiting = 0,
+                Held = 0,
+            },
+            counts.Auxiliary
+        );
     }
 
     [Fact]
-    public async Task ListCollections_Discover_FiltersByFailureVisibility()
+    public async Task ListCollections_Discover_FiltersByFailureRole()
     {
-        // Arrange — three collections: healthy, one visible failure, one invisible failure.
+        // Arrange — three collections: healthy, one primary failure, one auxiliary failure.
         fixture.FailPaths("/discover-fail");
 
         var healthy = await _client.Enqueue(
@@ -383,39 +408,39 @@ public partial class EngineTests
             ),
             collectionKey: "disc-healthy"
         );
-        var visible = await _client.Enqueue(
+        var primary = await _client.Enqueue(
             _testHelpers.CreateEnqueueRequest(
-                _testHelpers.CreateWorkflow("wf-vis", [_testHelpers.CreateWebhookStep("/discover-fail")])
+                _testHelpers.CreateWorkflow("wf-primary", [_testHelpers.CreateWebhookStep("/discover-fail")])
             ),
-            collectionKey: "disc-visible"
+            collectionKey: "disc-primary"
         );
-        var invisible = await _client.Enqueue(
+        var auxiliary = await _client.Enqueue(
             _testHelpers.CreateEnqueueRequest([
                 _testHelpers.CreateWorkflow("wf-ok-2", [_testHelpers.CreateWebhookStep("/hook")]),
                 _testHelpers.CreateWorkflow(
-                    "wf-invis",
+                    "wf-auxiliary",
                     [_testHelpers.CreateWebhookStep("/discover-fail")],
                     isHead: false
                 ),
             ]),
-            collectionKey: "disc-invisible"
+            collectionKey: "disc-auxiliary"
         );
 
         await _client.WaitForWorkflowStatus(healthy.Workflows.Single().DatabaseId, PersistentItemStatus.Completed);
-        await _client.WaitForWorkflowStatus(visible.Workflows.Single().DatabaseId, PersistentItemStatus.Failed);
-        var invisibleIds = invisible.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
-        await _client.WaitForWorkflowStatus(invisibleIds["wf-ok-2"], PersistentItemStatus.Completed);
-        await _client.WaitForWorkflowStatus(invisibleIds["wf-invis"], PersistentItemStatus.Failed);
+        await _client.WaitForWorkflowStatus(primary.Workflows.Single().DatabaseId, PersistentItemStatus.Failed);
+        var auxiliaryIds = auxiliary.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+        await _client.WaitForWorkflowStatus(auxiliaryIds["wf-ok-2"], PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(auxiliaryIds["wf-auxiliary"], PersistentItemStatus.Failed);
 
         // Act
         var any = await _client.ListCollectionsPaginated(failures: "any");
-        var visibleOnly = await _client.ListCollectionsPaginated(failures: "visible");
-        var invisibleOnly = await _client.ListCollectionsPaginated(failures: "invisible");
+        var primaryOnly = await _client.ListCollectionsPaginated(failures: "primary");
+        var auxiliaryOnly = await _client.ListCollectionsPaginated(failures: "auxiliary");
 
-        // Assert — discovery never reports the healthy collection, and splits on visibility.
-        Assert.Equal(["disc-invisible", "disc-visible"], any.Data.Select(c => c.Key).ToArray());
-        Assert.Equal(["disc-visible"], visibleOnly.Data.Select(c => c.Key).ToArray());
-        Assert.Equal(["disc-invisible"], invisibleOnly.Data.Select(c => c.Key).ToArray());
+        // Assert — discovery never reports the healthy collection, and splits on role.
+        Assert.Equal(["disc-auxiliary", "disc-primary"], any.Data.Select(c => c.Key).ToArray());
+        Assert.Equal(["disc-primary"], primaryOnly.Data.Select(c => c.Key).ToArray());
+        Assert.Equal(["disc-auxiliary"], auxiliaryOnly.Data.Select(c => c.Key).ToArray());
     }
 
     [Fact]

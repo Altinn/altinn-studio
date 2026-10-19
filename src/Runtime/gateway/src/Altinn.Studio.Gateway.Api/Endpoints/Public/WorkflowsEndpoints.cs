@@ -25,7 +25,7 @@ internal static class WorkflowsEndpoints
             .WithDescription(
                 "Per-collection health view from the workflow engine. Three mutually exclusive modes: "
                     + "list (cursor, pageSize), annotate (key, repeatable — reports unmatchedKeys), and "
-                    + "discover (failures=any|visible|invisible). Engine response is passed through unmodified."
+                    + "discover (failures=any|primary|auxiliary). Engine response is passed through unmodified."
             );
 
         workflowsApi
@@ -42,7 +42,7 @@ internal static class WorkflowsEndpoints
             .WithSummary("List workflows for an app.")
             .WithDescription(
                 "Cursor-paginated workflow list. Optional filters: collectionKey, status (repeatable), "
-                    + "label (repeatable, key:value), isHead. Never includes the app's state: includeState=false "
+                    + "label (repeatable, key:value), role (primary|auxiliary). Never includes the app's state: includeState=false "
                     + "is accepted, includeState=true is rejected. Engine response is passed through unmodified."
             );
 
