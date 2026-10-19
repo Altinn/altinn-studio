@@ -3242,10 +3242,6 @@ namespace Altinn.App.Core.Internal.Language
 }
 namespace Altinn.App.Core.Internal.Pdf
 {
-    public interface IPdfFileNameResolver
-    {
-        System.Threading.Tasks.Task<string> GetFileName(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string? customFileNameTextResourceKey = null, Altinn.App.Core.Internal.Pdf.SubformPdfContext? subformPdfContext = null);
-    }
     public interface IPdfGeneratorClient
     {
         System.Threading.Tasks.Task<byte[]> GeneratePdf(System.Uri uri, System.Threading.CancellationToken cancellationToken);

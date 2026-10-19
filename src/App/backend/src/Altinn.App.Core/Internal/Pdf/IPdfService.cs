@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Internal.Pdf;
 /// <summary>
 /// Generates PDFs of an instance with the PDF generator and returns them. The PDF generator opens the app and renders
 /// the instance as it is stored, so changes that are not saved yet are not in the PDF. The caller decides what to do
-/// with a PDF, such as adding it to the instance with a file name from <see cref="IPdfFileNameResolver"/>.
+/// with a PDF, such as adding it to the instance with a file name of its choice.
 /// </summary>
 public interface IPdfService
 {

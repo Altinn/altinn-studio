@@ -5,6 +5,8 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Tests.Features.Process;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -17,11 +19,14 @@ namespace Altinn.App.Core.Tests.Internal.Process.ServiceTasks;
 public class SubformPdfServiceTaskTests
 {
     private readonly Mock<IPdfService> _pdfServiceMock = new();
-    private readonly Mock<IPdfFileNameResolver> _pdfFileNameResolverMock = new();
+    private readonly Mock<ITranslationService> _translationServiceMock = new();
     private readonly Mock<ILogger<SubformPdfServiceTask>> _loggerMock = new();
     private readonly Mock<IProcessReader> _processReaderMock = new();
     private readonly SubformPdfServiceTask _serviceTask;
 
+    private const string DataElementId1 = "bb09a8ef-ec2e-484e-acd7-f821b73908cb";
+    private const string DataElementId2 = "369b633c-405d-4f3e-8e64-7c2d67d785a9";
+    private const string DataElementId3 = "174245e1-fd83-418a-9f2e-0941eb5271c8";
     private const string SubformComponentId = "subform-mopeder";
     private const string SubformDataTypeId = "subform-data-type";
     private const string FileName = "customFilenameTextResourceKey";
@@ -41,16 +46,21 @@ public class SubformPdfServiceTaskTests
                 )
             )
             .ReturnsAsync(Array.Empty<byte>());
-        _pdfFileNameResolverMock
+        _translationServiceMock
             .Setup(x =>
-                x.GetFileName(It.IsAny<IInstanceDataAccessor>(), It.IsAny<string?>(), It.IsAny<SubformPdfContext?>())
+                x.TranslateTextKey(
+                    It.IsAny<string>(),
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<ComponentContext?>(),
+                    null
+                )
             )
             .ReturnsAsync("subform.pdf");
 
         _serviceTask = new SubformPdfServiceTask(
             _processReaderMock.Object,
             _pdfServiceMock.Object,
-            _pdfFileNameResolverMock.Object,
+            _translationServiceMock.Object,
             _loggerMock.Object
         );
     }
@@ -83,8 +93,8 @@ public class SubformPdfServiceTaskTests
                 ),
             Times.Exactly(2) // Should be called twice for the two data elements
         );
-        _pdfFileNameResolverMock.Verify(
-            x => x.GetFileName(It.IsAny<IInstanceDataAccessor>(), FileName, It.IsAny<SubformPdfContext?>()),
+        _translationServiceMock.Verify(
+            x => x.TranslateTextKey(FileName, It.IsAny<IInstanceDataAccessor>(), It.IsAny<ComponentContext?>(), null),
             Times.Exactly(2)
         );
     }
@@ -137,7 +147,7 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.Is<SubformPdfContext>(ctx =>
-                        ctx.DataElementId == "data-element-1" || ctx.DataElementId == "data-element-2"
+                        ctx.DataElementId == DataElementId1 || ctx.DataElementId == DataElementId2
                     ),
                     It.IsAny<string>(),
                     It.IsAny<bool>(),
@@ -184,7 +194,7 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<string>(),
                     It.Is<SubformPdfContext>(subform =>
                         subform.ComponentId == SubformComponentId
-                        && (subform.DataElementId == "data-element-1" || subform.DataElementId == "data-element-2")
+                        && (subform.DataElementId == DataElementId1 || subform.DataElementId == DataElementId2)
                     ),
                     It.IsAny<string>(),
                     It.IsAny<bool>(),
@@ -208,14 +218,17 @@ public class SubformPdfServiceTaskTests
 
         // Assert - each PDF is named from its subform's data and says which subform it was made from
         var mutatorMock = Mock.Get(context.InstanceDataMutator);
-        foreach (string dataElementId in new[] { "data-element-1", "data-element-2" })
+        foreach (string dataElementId in new[] { DataElementId1, DataElementId2 })
         {
-            _pdfFileNameResolverMock.Verify(
+            _translationServiceMock.Verify(
                 x =>
-                    x.GetFileName(
-                        context.InstanceDataMutator,
+                    x.TranslateTextKey(
                         FileName,
-                        It.Is<SubformPdfContext?>(subform => subform != null && subform.DataElementId == dataElementId)
+                        context.InstanceDataMutator,
+                        It.Is<ComponentContext>(c =>
+                            c.DataElementIdentifier != null && c.DataElementIdentifier.Value.Id == dataElementId
+                        ),
+                        null
                     ),
                 Times.Once
             );
@@ -326,13 +339,14 @@ public class SubformPdfServiceTaskTests
         // Act
         await _serviceTask.Execute(context);
 
-        // Assert - should be called with null filename
-        _pdfFileNameResolverMock.Verify(
+        // Assert - a blank configured key uses the default file name
+        _translationServiceMock.Verify(
             x =>
-                x.GetFileName(
+                x.TranslateTextKey(
+                    BuiltInTextResources.PdfDefaultFileName.Key,
                     It.IsAny<IInstanceDataAccessor>(),
-                    It.Is<string?>(filename => filename == null),
-                    It.IsAny<SubformPdfContext?>()
+                    It.IsAny<ComponentContext?>(),
+                    null
                 ),
             Times.AtLeastOnce
         );
@@ -456,7 +470,7 @@ public class SubformPdfServiceTaskTests
                 x.GenerateSubformPdf(
                     It.IsAny<Instance>(),
                     It.IsAny<string>(),
-                    It.Is<SubformPdfContext>(subform => subform.DataElementId == "data-element-1"),
+                    It.Is<SubformPdfContext>(subform => subform.DataElementId == DataElementId1),
                     It.IsAny<string>(),
                     It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
@@ -470,7 +484,7 @@ public class SubformPdfServiceTaskTests
                 x.GenerateSubformPdf(
                     It.IsAny<Instance>(),
                     It.IsAny<string>(),
-                    It.Is<SubformPdfContext>(subform => subform.DataElementId == "data-element-2"),
+                    It.Is<SubformPdfContext>(subform => subform.DataElementId == DataElementId2),
                     It.IsAny<string>(),
                     It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
@@ -484,7 +498,7 @@ public class SubformPdfServiceTaskTests
                 x.GenerateSubformPdf(
                     It.IsAny<Instance>(),
                     It.IsAny<string>(),
-                    It.Is<SubformPdfContext>(subform => subform.DataElementId == "data-element-3"),
+                    It.Is<SubformPdfContext>(subform => subform.DataElementId == DataElementId3),
                     It.IsAny<string>(),
                     It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
@@ -514,7 +528,7 @@ public class SubformPdfServiceTaskTests
                 x.GenerateSubformPdf(
                     It.IsAny<Instance>(),
                     It.IsAny<string>(),
-                    It.Is<SubformPdfContext>(ctx => ctx.DataElementId == "single-data-element"),
+                    It.Is<SubformPdfContext>(ctx => ctx.DataElementId == DataElementId1),
                     It.IsAny<string>(),
                     It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
@@ -605,8 +619,8 @@ public class SubformPdfServiceTaskTests
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "taskId" } },
             Data = new List<DataElement>
             {
-                new() { Id = "data-element-1", DataType = SubformDataTypeId },
-                new() { Id = "data-element-2", DataType = SubformDataTypeId },
+                new() { Id = DataElementId1, DataType = SubformDataTypeId },
+                new() { Id = DataElementId2, DataType = SubformDataTypeId },
                 new() { Id = "other-data-element", DataType = "other-type" }, // Should be filtered out
             },
         };
@@ -648,9 +662,9 @@ public class SubformPdfServiceTaskTests
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "taskId" } },
             Data = new List<DataElement>
             {
-                new() { Id = "data-element-1", DataType = SubformDataTypeId },
-                new() { Id = "data-element-2", DataType = SubformDataTypeId },
-                new() { Id = "data-element-3", DataType = SubformDataTypeId },
+                new() { Id = DataElementId1, DataType = SubformDataTypeId },
+                new() { Id = DataElementId2, DataType = SubformDataTypeId },
+                new() { Id = DataElementId3, DataType = SubformDataTypeId },
             },
         };
     }
@@ -662,7 +676,7 @@ public class SubformPdfServiceTaskTests
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "taskId" } },
             Data = new List<DataElement>
             {
-                new() { Id = "single-data-element", DataType = SubformDataTypeId },
+                new() { Id = DataElementId1, DataType = SubformDataTypeId },
             },
         };
     }
@@ -672,7 +686,7 @@ public class SubformPdfServiceTaskTests
         var dataElements = new List<DataElement>();
         for (int i = 0; i < count; i++)
         {
-            dataElements.Add(new DataElement { Id = $"data-element-{i}", DataType = SubformDataTypeId });
+            dataElements.Add(new DataElement { Id = Guid.NewGuid().ToString(), DataType = SubformDataTypeId });
         }
 
         return new Instance

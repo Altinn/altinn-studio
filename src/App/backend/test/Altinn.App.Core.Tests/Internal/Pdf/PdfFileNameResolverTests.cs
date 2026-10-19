@@ -20,9 +20,12 @@ public class PdfFileNameResolverTests(ITestOutputHelper outputHelper)
     public async Task GetFileName_DefaultFileName_WithoutTexts_ShouldUseAppId()
     {
         var appResources = CreateAppResources([]);
-        var target = CreateResolver(appResources);
+        var translationService = CreateTranslationService(appResources);
 
-        string fileName = await target.GetFileName(CreateDataAccessorMock(appResources).Object);
+        string fileName = await PdfFileNameResolver.GetFileName(
+            translationService,
+            CreateDataAccessorMock(appResources).Object
+        );
 
         Assert.Equal("not-really-an-app.pdf", fileName);
     }
@@ -31,9 +34,12 @@ public class PdfFileNameResolverTests(ITestOutputHelper outputHelper)
     public async Task GetFileName_DefaultFileName_KeepsSpaces()
     {
         var appResources = CreateAppResources([new() { Id = "appName", Value = "Not Really An App" }]);
-        var target = CreateResolver(appResources);
+        var translationService = CreateTranslationService(appResources);
 
-        string fileName = await target.GetFileName(CreateDataAccessorMock(appResources).Object);
+        string fileName = await PdfFileNameResolver.GetFileName(
+            translationService,
+            CreateDataAccessorMock(appResources).Object
+        );
 
         Assert.Equal("Not Really An App.pdf", fileName);
     }
@@ -43,9 +49,13 @@ public class PdfFileNameResolverTests(ITestOutputHelper outputHelper)
     {
         const string customTextResourceKey = "custom.pdf.filename";
         var appResources = CreateAppResources([new() { Id = customTextResourceKey, Value = "My Custom Receipt" }]);
-        var target = CreateResolver(appResources);
+        var translationService = CreateTranslationService(appResources);
 
-        string fileName = await target.GetFileName(CreateDataAccessorMock(appResources).Object, customTextResourceKey);
+        string fileName = await PdfFileNameResolver.GetFileName(
+            translationService,
+            CreateDataAccessorMock(appResources).Object,
+            customTextResourceKey
+        );
 
         Assert.Equal("My Custom Receipt.pdf", fileName);
     }
@@ -55,9 +65,13 @@ public class PdfFileNameResolverTests(ITestOutputHelper outputHelper)
     {
         const string customTextResourceKey = "custom.pdf.filename.with.extension";
         var appResources = CreateAppResources([new() { Id = customTextResourceKey, Value = "My Custom Receipt.pdf" }]);
-        var target = CreateResolver(appResources);
+        var translationService = CreateTranslationService(appResources);
 
-        string fileName = await target.GetFileName(CreateDataAccessorMock(appResources).Object, customTextResourceKey);
+        string fileName = await PdfFileNameResolver.GetFileName(
+            translationService,
+            CreateDataAccessorMock(appResources).Object,
+            customTextResourceKey
+        );
 
         Assert.Equal("My Custom Receipt.pdf", fileName);
     }
@@ -66,9 +80,13 @@ public class PdfFileNameResolverTests(ITestOutputHelper outputHelper)
     public async Task GetFileName_WithCustomFileNameTextResourceKeyThatNoTextHas_ShouldUseDefaultFileName()
     {
         var appResources = CreateAppResources([new() { Id = "appName", Value = "Not Really An App" }]);
-        var target = CreateResolver(appResources);
+        var translationService = CreateTranslationService(appResources);
 
-        string fileName = await target.GetFileName(CreateDataAccessorMock(appResources).Object, "missing.key");
+        string fileName = await PdfFileNameResolver.GetFileName(
+            translationService,
+            CreateDataAccessorMock(appResources).Object,
+            "missing.key"
+        );
 
         Assert.Equal("Not Really An App.pdf", fileName);
     }
@@ -77,10 +95,10 @@ public class PdfFileNameResolverTests(ITestOutputHelper outputHelper)
     public async Task GetFileName_Throws_When_Even_The_Default_File_Name_Is_Empty()
     {
         var appResources = CreateAppResources([]);
-        var target = new PdfFileNameResolver(Mock.Of<ITranslationService>());
+        var translationService = Mock.Of<ITranslationService>();
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            target.GetFileName(CreateDataAccessorMock(appResources).Object)
+            PdfFileNameResolver.GetFileName(translationService, CreateDataAccessorMock(appResources).Object)
         );
     }
 
@@ -101,14 +119,12 @@ public class PdfFileNameResolverTests(ITestOutputHelper outputHelper)
         return appResources;
     }
 
-    private PdfFileNameResolver CreateResolver(Mock<IAppResources> appResources)
+    private TranslationService CreateTranslationService(Mock<IAppResources> appResources)
     {
-        return new PdfFileNameResolver(
-            new TranslationService(
-                new AppIdentifier("digdir", "not-really-an-app"),
-                appResources.Object,
-                FakeLoggerXunit.Get<TranslationService>(outputHelper)
-            )
+        return new TranslationService(
+            new AppIdentifier("digdir", "not-really-an-app"),
+            appResources.Object,
+            FakeLoggerXunit.Get<TranslationService>(outputHelper)
         );
     }
 

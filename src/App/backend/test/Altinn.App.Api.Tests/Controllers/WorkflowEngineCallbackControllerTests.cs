@@ -502,7 +502,6 @@ public class WorkflowEngineCallbackControllerTests
                 Authenticated serviceOwner = TestAuthentication.GetServiceOwnerAuthentication();
                 services.Services.AddSingleton(Mock.Of<IAuthenticationContext>(a => a.Current == serviceOwner));
                 services.Services.AddSingleton<IPdfService, PdfService>();
-                services.Services.AddSingleton<IPdfFileNameResolver, PdfFileNameResolver>();
                 services.Services.AddSingleton<IServiceTask, PdfServiceTask>();
                 services.Services.AddSingleton(processEngine.Object);
                 services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(

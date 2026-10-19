@@ -9,10 +9,14 @@ namespace Altinn.App.Core.Internal.Pdf;
 /// <summary>
 /// Gets the file name for a PDF from the app's text resources.
 /// </summary>
-internal sealed class PdfFileNameResolver(ITranslationService translationService) : IPdfFileNameResolver
+internal static class PdfFileNameResolver
 {
-    /// <inheritdoc/>
-    public async Task<string> GetFileName(
+    /// <summary>
+    /// Gets a sanitized PDF file name from the configured text resource, falling back to the default name.
+    /// Uses the data accessor's language and, for subforms, the specified data element for variables.
+    /// </summary>
+    public static async Task<string> GetFileName(
+        ITranslationService translationService,
         IInstanceDataAccessor dataAccessor,
         string? customFileNameTextResourceKey = null,
         SubformPdfContext? subformPdfContext = null

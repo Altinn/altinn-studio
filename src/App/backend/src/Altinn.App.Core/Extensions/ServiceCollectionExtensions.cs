@@ -286,7 +286,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddHttpClient<IPdfGeneratorClient, PdfGeneratorClient>();
         services.TryAddTransient<IPdfService, PdfService>();
-        services.TryAddTransient<IPdfFileNameResolver, PdfFileNameResolver>();
     }
 
     private static void AddPaymentServices(

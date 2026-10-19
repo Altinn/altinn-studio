@@ -5,6 +5,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.Logging;
 
@@ -18,7 +19,7 @@ internal interface IPdfServiceTask : IServiceTask { }
 internal sealed class PdfServiceTask : IPdfServiceTask
 {
     private readonly IPdfService _pdfService;
-    private readonly IPdfFileNameResolver _pdfFileNameResolver;
+    private readonly ITranslationService _translationService;
     private readonly IProcessReader _processReader;
     private readonly IAppResources _appResources;
     private readonly ILogger<PdfServiceTask> _logger;
@@ -28,14 +29,14 @@ internal sealed class PdfServiceTask : IPdfServiceTask
     /// </summary>
     public PdfServiceTask(
         IPdfService pdfService,
-        IPdfFileNameResolver pdfFileNameResolver,
+        ITranslationService translationService,
         IProcessReader processReader,
         IAppResources appResources,
         ILogger<PdfServiceTask> logger
     )
     {
         _pdfService = pdfService;
-        _pdfFileNameResolver = pdfFileNameResolver;
+        _translationService = translationService;
         _processReader = processReader;
         _appResources = appResources;
         _logger = logger;
@@ -71,7 +72,11 @@ internal sealed class PdfServiceTask : IPdfServiceTask
             authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
             cancellationToken: context.CancellationToken
         );
-        string fileName = await _pdfFileNameResolver.GetFileName(dataMutator, config.FilenameTextResourceKey);
+        string fileName = await PdfFileNameResolver.GetFileName(
+            _translationService,
+            dataMutator,
+            config.FilenameTextResourceKey
+        );
 
         // Generated from the task, so the PDF is removed if the task starts again
         dataMutator.AddBinaryDataElement(

@@ -5,7 +5,9 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Tests.Features.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -16,7 +18,7 @@ namespace Altinn.App.Core.Tests.Internal.Process.ServiceTasks;
 public class PdfServiceTaskTests
 {
     private readonly Mock<IPdfService> _pdfServiceMock = new();
-    private readonly Mock<IPdfFileNameResolver> _pdfFileNameResolverMock = new();
+    private readonly Mock<ITranslationService> _translationServiceMock = new();
     private readonly Mock<ILogger<PdfServiceTask>> _loggerMock = new();
     private readonly Mock<IProcessReader> _processReaderMock = new();
     private readonly Mock<IAppResources> _appResourcesMock = new();
@@ -48,15 +50,20 @@ public class PdfServiceTaskTests
                 )
             )
             .ReturnsAsync(new byte[] { 1, 2, 3 });
-        _pdfFileNameResolverMock
+        _translationServiceMock
             .Setup(x =>
-                x.GetFileName(It.IsAny<IInstanceDataAccessor>(), It.IsAny<string?>(), It.IsAny<SubformPdfContext?>())
+                x.TranslateTextKey(
+                    It.IsAny<string>(),
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<ComponentContext?>(),
+                    null
+                )
             )
             .ReturnsAsync("receipt.pdf");
 
         _serviceTask = new PdfServiceTask(
             _pdfServiceMock.Object,
-            _pdfFileNameResolverMock.Object,
+            _translationServiceMock.Object,
             _processReaderMock.Object,
             _appResourcesMock.Object,
             _loggerMock.Object
@@ -108,7 +115,16 @@ public class PdfServiceTaskTests
         await _serviceTask.Execute(parameters);
 
         // Assert
-        _pdfFileNameResolverMock.Verify(x => x.GetFileName(instanceMutatorMock.Object, FileName, null), Times.Once);
+        _translationServiceMock.Verify(
+            x =>
+                x.TranslateTextKey(
+                    FileName,
+                    instanceMutatorMock.Object,
+                    It.Is<ComponentContext>(c => c.DataElementIdentifier == null),
+                    null
+                ),
+            Times.Once
+        );
         instanceMutatorMock.Verify(
             x =>
                 x.AddBinaryDataElement(

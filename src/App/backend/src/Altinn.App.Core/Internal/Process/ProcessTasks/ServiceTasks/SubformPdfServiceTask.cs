@@ -4,6 +4,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 
@@ -16,7 +17,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 internal sealed class SubformPdfServiceTask(
     IProcessReader processReader,
     IPdfService pdfService,
-    IPdfFileNameResolver pdfFileNameResolver,
+    ITranslationService translationService,
     ILogger<SubformPdfServiceTask> logger
 ) : IServiceTask
 {
@@ -57,7 +58,8 @@ internal sealed class SubformPdfServiceTask(
                 authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
                 cancellationToken: context.CancellationToken
             );
-            string fileName = await pdfFileNameResolver.GetFileName(
+            string fileName = await PdfFileNameResolver.GetFileName(
+                translationService,
                 dataMutator,
                 filenameTextResourceKey,
                 subformPdfContext
