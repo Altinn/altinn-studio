@@ -26,6 +26,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` moves app implementations of `IEFormidlingMetadata` and `IEFormidlingReceivers` to the v9 signatures, which take `IInstanceDataAccessor` instead of `Instance`. Before, the app did not build until they were changed by hand. The method reads the instance from the accessor, so the rest of its body is unchanged. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
 - `studioctl app upgrade v9` also reports implementations of and calls to `SendEFormidlingShipment(Instance, ValidAltinnEFormidlingConfiguration)`, which v9 removed as well. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
+- After `studioctl app upgrade v9`, users could not open an instance, or retry a failed service task, while it was in a PDF or eFormidling service task the upgrade added, if `policy.xml` gave them read or write only in specific tasks. The upgrade now extends those rules. ([#21207](https://github.com/Altinn/altinn-studio/pull/21207))
 
 ## [0.1.0-preview.29] - 2026-10-14
 
@@ -60,9 +61,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - _Errors Rate_ counts each request once, so fast errors are no longer overstated
     - _Feil_ shows 0 when the app has no server errors
 - `studioctl app upgrade v9` renames every call to an app's own `Analyse` method on an `IFileAnalyser` implementation, even when the call is in a different file from the class. Some were left unchanged, and the app then failed to build. ([#21047](https://github.com/Altinn/altinn-studio/pull/21047))
-- After `studioctl app upgrade v9`, users could not open an instance, or retry a failed service task, while it was in a PDF or eFormidling service task the upgrade added, if `policy.xml` gave them read or write only in specific tasks. The upgrade now extends those rules. (PRLINK)
-- After `studioctl app upgrade v9`, users could not open an instance, or retry a failed service task, while it was in a PDF or eFormidling service task the upgrade added, if `policy.xml` gave them read or write only in specific tasks. The upgrade now extends those rules. ([#21207](https://github.com/Altinn/altinn-studio/pull/21207))
-- `studioctl app upgrade v9` renames every call to an app's own `Analyse` method on an `IFileAnalyser` implementation, even when the call is in a different file from the class. Some were left unchanged, and the app then failed to build.
 
 ## [0.1.0-preview.28] - 2026-10-07
 
