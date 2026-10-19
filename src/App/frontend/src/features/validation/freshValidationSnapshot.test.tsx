@@ -66,7 +66,7 @@ it('reads current query-backed validations in an event callback before an observ
         },
       },
     },
-    validation: { formMask: ValidationMask.Required, pageMasks: {}, rowMasks: {} },
+    validation: { state: { task: [], component: [] }, formMask: ValidationMask.Required, pageMasks: {}, rowMasks: {} },
   } as unknown as FormStoreState;
   mutable.required = 'yes';
   const { result } = renderHook(useGetDerivedValidationState);

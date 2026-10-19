@@ -47,7 +47,6 @@ public class DataController : ControllerBase
     private readonly IAppModel _appModel;
     private readonly IAppMetadata _appMetadata;
     private readonly IPrefill _prefillService;
-    private readonly IFrontendFeatures _frontendFeatures;
     private readonly InternalPatchService _patchService;
     private readonly ModelSerializationService _modelDeserializer;
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
@@ -69,7 +68,6 @@ public class DataController : ControllerBase
         IAppModel appModel,
         IPrefill prefillService,
         IAppMetadata appMetadata,
-        IFrontendFeatures frontendFeatures,
         InternalPatchService patchService,
         ModelSerializationService modelDeserializer,
         IAuthenticationContext authenticationContext,
@@ -84,7 +82,6 @@ public class DataController : ControllerBase
         _appModel = appModel;
         _appMetadata = appMetadata;
         _prefillService = prefillService;
-        _frontendFeatures = frontendFeatures;
         _patchService = patchService;
         _modelDeserializer = modelDeserializer;
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
@@ -109,6 +106,8 @@ public class DataController : ControllerBase
     [DisableFormValueModelBinding]
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataElement), 201)]
+    [ProducesResponseType(typeof(List<ValidationIssueWithSource>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(
         typeof(ProblemDetails),
         StatusCodes.Status409Conflict,
@@ -145,23 +144,22 @@ public class DataController : ControllerBase
         // Special case for compatibility with old clients
         if (response.Error is DataPostErrorResponse fileValidationError)
         {
-            return BadRequest(GetErrorDetails(fileValidationError.UploadValidationIssues));
+            return BadRequest(fileValidationError.UploadValidationIssues);
         }
         if (response.Error.Status == StatusCodes.Status400BadRequest)
         {
-            // Old clients will expect BadRequest to have a list of issues or a string
-            // not problem details.
-            return BadRequest(
-                GetErrorDetails([
-                    new ValidationIssueWithSource
-                    {
-                        Description = response.Error.Detail,
-                        Code = response.Error.Title,
-                        Severity = ValidationIssueSeverity.Error,
-                        Source = response.Error.Type ?? "DataController",
-                    },
-                ])
-            );
+            // Old clients expect BadRequest to have a list of issues, not problem details.
+            List<ValidationIssueWithSource> issues =
+            [
+                new ValidationIssueWithSource
+                {
+                    Description = response.Error.Detail,
+                    Code = response.Error.Title,
+                    Severity = ValidationIssueSeverity.Error,
+                    Source = response.Error.Type ?? "DataController",
+                },
+            ];
+            return BadRequest(issues);
         }
 
         return Problem(response.Error);
@@ -183,7 +181,7 @@ public class DataController : ControllerBase
     [HttpPost("{dataType}")] // Api for backwards compatibility
     [DisableFormValueModelBinding]
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
-    [ProducesResponseType(typeof(DataPostResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(DataPostResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(
         typeof(ProblemDetails),
         StatusCodes.Status409Conflict,
@@ -349,7 +347,12 @@ public class DataController : ControllerBase
                 bool parseSuccess = Request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues);
                 string? filename = parseSuccess ? DataRestrictionValidation.GetFileNameFromHeader(headerValues) : null;
 
-                var fileValidationIssues = await _fileService.RunFileAnalysisAndValidation(dataType, bytes, filename);
+                var fileValidationIssues = await _fileService.RunFileAnalysisAndValidation(
+                    dataType,
+                    bytes,
+                    filename,
+                    language
+                );
                 if (fileValidationIssues != null)
                 {
                     return new DataPostErrorResponse("File validation failed", fileValidationIssues);
@@ -426,21 +429,6 @@ public class DataController : ControllerBase
     }
 
     /// <summary>
-    /// File validation requires json object in response and is introduced in the
-    /// methods above validating files. In order to be consistent for the return types
-    /// of this controller, old methods are updated to return json object in response.
-    /// Since this is a breaking change, a feature flag is introduced to control the behavior,
-    /// and the developer need to opt in to the new behavior. Json object are by default
-    /// returned as part of file validation which is a new feature.
-    /// </summary>
-    private object GetErrorDetails(List<ValidationIssueWithSource> errors)
-    {
-        return _frontendFeatures.IsEnabled(FeatureFlags.JsonObjectInDataResponse)
-            ? errors
-            : string.Join(";", errors.Select(x => x.Description));
-    }
-
-    /// <summary>
     /// Gets a data element from storage and applies business logic if necessary.
     /// </summary>
     /// <param name="org">unique identifier of the organization responsible for the app</param>
@@ -455,6 +443,9 @@ public class DataController : ControllerBase
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
     [HttpGet("{dataGuid:guid}")]
     [HttpGet("{dataGuid:guid}/type/{dataType}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Get(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -483,9 +474,7 @@ public class DataController : ControllerBase
 
             if (dataType is not null && dataTypeObject.Id != dataType)
             {
-                return BadRequest(
-                    $"Data type {dataType} does not match data element {dataGuid}, which is of type {dataTypeObject.Id}"
-                );
+                return Problem(DataTypeMismatch(dataType, dataGuid, dataTypeObject));
             }
 
             if (await _dataElementAccessChecker.GetReaderProblem(instance, dataTypeObject) is { } accessProblem)
@@ -540,6 +529,9 @@ public class DataController : ControllerBase
     [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
     [ProducesResponseType(typeof(DataElement), 201)]
     [ProducesResponseType(typeof(CalculationResult), 200)]
+    [ProducesResponseType(typeof(DataPostErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status413RequestEntityTooLarge)]
     [ProducesResponseType(
         typeof(ProblemDetails),
         StatusCodes.Status409Conflict,
@@ -566,9 +558,7 @@ public class DataController : ControllerBase
 
             if (dataType is not null && dataTypeObject.Id != dataType)
             {
-                return BadRequest(
-                    $"Data type {dataType} does not match data element {dataGuid}, which is of type {dataTypeObject.Id}"
-                );
+                return Problem(DataTypeMismatch(dataType, dataGuid, dataTypeObject));
             }
 
             if (
@@ -588,7 +578,7 @@ public class DataController : ControllerBase
                 return await PutFormData(instance, versions, dataElement, dataTypeObject, language);
             }
 
-            return await PutBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid, dataTypeObject);
+            return await PutBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid, dataTypeObject, language);
         }
         catch (PlatformHttpException e)
         {
@@ -760,6 +750,8 @@ public class DataController : ControllerBase
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [HttpDelete("{dataGuid:guid}")]
     [ProducesResponseType(typeof(DataPostResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(
         typeof(ProblemDetails),
         StatusCodes.Status409Conflict,
@@ -787,9 +779,7 @@ public class DataController : ControllerBase
 
             if (dataType is not null && dataTypeObject.Id != dataType)
             {
-                return BadRequest(
-                    $"Data type {dataType} does not match data element {dataGuid}, which is of type {dataTypeObject.Id}"
-                );
+                return Problem(DataTypeMismatch(dataType, dataGuid, dataTypeObject));
             }
 
             if (
@@ -1033,7 +1023,8 @@ public class DataController : ControllerBase
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataGuid,
-        DataType dataType
+        DataType dataType,
+        string? language
     )
     {
         //TODO: Consider having a rule that disables PUT for binary data elements.
@@ -1043,18 +1034,22 @@ public class DataController : ControllerBase
 
         if (!validationRestrictionSuccess)
         {
-            return BadRequest(
-                GetErrorDetails(
-                    errors
-                        .Select(e => ValidationIssueWithSource.FromIssue(e, "DataRestrictionValidation", false))
-                        .ToList()
-                )
-            );
+            var issuesWithSource = errors
+                .Select(e => ValidationIssueWithSource.FromIssue(e, "DataRestrictionValidation", false))
+                .ToList();
+            return Problem(new DataPostErrorResponse("Common checks failed", issuesWithSource));
         }
 
         if (!Request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues))
         {
-            return BadRequest("Invalid data provided. Error:  The request must include a Content-Disposition header");
+            return Problem(
+                new ProblemDetails()
+                {
+                    Title = "Missing Content-Disposition",
+                    Detail = "The request must include a Content-Disposition header.",
+                    Status = StatusCodes.Status400BadRequest,
+                }
+            );
         }
 
         var contentDispositionHeader = ContentDispositionHeaderValue.Parse(headerValues.ToString());
@@ -1065,15 +1060,22 @@ public class DataController : ControllerBase
         );
         if (bytes is null)
         {
-            return BadRequest(
-                $"The request body is too large. The content length is {actualLength} bytes, which exceeds the limit of {dataType.MaxSize} MB"
+            return Problem(
+                new ProblemDetails()
+                {
+                    Title = "Request too large",
+                    Detail =
+                        $"The request body is too large. The content length is {actualLength} bytes, which exceeds the limit of {dataType.MaxSize} MB",
+                    Status = StatusCodes.Status413RequestEntityTooLarge,
+                }
             );
         }
 
         var fileValidationIssues = await _fileService.RunFileAnalysisAndValidation(
             dataType,
             bytes,
-            contentDispositionHeader.FileName.ToString()
+            contentDispositionHeader.FileName.ToString(),
+            language
         );
         if (fileValidationIssues != null)
         {
@@ -1185,8 +1187,22 @@ public class DataController : ControllerBase
         return e.Response.StatusCode switch
         {
             HttpStatusCode.Forbidden => Forbid(),
-            HttpStatusCode.NotFound => NotFound(),
-            HttpStatusCode.Conflict => Conflict(),
+            HttpStatusCode.NotFound => Problem(
+                new ProblemDetails()
+                {
+                    Title = "Not found",
+                    Detail = defaultMessage,
+                    Status = StatusCodes.Status404NotFound,
+                }
+            ),
+            HttpStatusCode.Conflict => Problem(
+                new ProblemDetails()
+                {
+                    Title = "Conflict",
+                    Detail = defaultMessage,
+                    Status = StatusCodes.Status409Conflict,
+                }
+            ),
             _ => ExceptionResponse(e, defaultMessage),
         };
     }
@@ -1195,6 +1211,15 @@ public class DataController : ControllerBase
     {
         return StatusCode(error.Status ?? StatusCodes.Status500InternalServerError, error);
     }
+
+    private static ProblemDetails DataTypeMismatch(string dataType, Guid dataGuid, DataType dataTypeObject) =>
+        new()
+        {
+            Title = "Data type mismatch",
+            Detail =
+                $"Data type {dataType} does not match data element {dataGuid}, which is of type {dataTypeObject.Id}",
+            Status = StatusCodes.Status400BadRequest,
+        };
 
     private async Task<
         ServiceResult<

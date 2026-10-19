@@ -133,19 +133,17 @@ jobs:
           wait $PROXY_PID
           wait $WORKER_PID
 
-      - name: patch base with image tag
-        working-directory: src/Runtime/pdf3/infra/kustomize/base
+      - name: patch relay with image tag
+        working-directory: src/Runtime/pdf3/infra/relay/base
         run: |
           export PROXY_IMAGE="${{ steps.vars.outputs.image-proxy-repo }}"
-          export WORKER_IMAGE="${{ steps.vars.outputs.image-worker-repo }}"
           export IMAGE_TAG="${{ steps.vars.outputs.short-sha }}"
-          yq -i '.metadata.annotations["altinn.studio/image"] = env(PROXY_IMAGE)' proxy.yaml
-          yq -i '.metadata.annotations["altinn.studio/image"] = env(WORKER_IMAGE)' worker.yaml
-          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' proxy.yaml
-          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' worker.yaml
+          # The relay runs the proxy image
+          yq -i '.metadata.annotations["altinn.studio/image"] = env(PROXY_IMAGE)' relay.yaml
+          yq -i '.metadata.annotations["altinn.studio/image-tag"] = env(IMAGE_TAG)' relay.yaml
 
       - name: push artifact
-        working-directory: src/Runtime/pdf3/infra/kustomize
+        working-directory: src/Runtime/pdf3/infra/relay
         run: |
           flux push artifact oci://${{ steps.vars.outputs.config-repo }} \
             --provider=generic \
@@ -204,7 +202,7 @@ jobs:
             -t ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:tt02 \
             "$WORKER_IMAGE"
 
-  # DIS Core's syncroot (infra/syncroot), with the images of this run's build. Its own job, outside
+  # DIS Core's syncroot (infra/core), with the images of this run's build. Its own job, outside
   # a GitHub environment: the DIS publishing identity trusts main and the dis_core_* environments
   # only, and may only push under studio-pdf3/.
   push-dis-core-syncroot:
@@ -219,14 +217,14 @@ jobs:
       short-sha: ${{ needs.push-pdf3-artifact.outputs.short-sha }}
     defaults:
       run:
-        working-directory: src/Runtime/pdf3/infra/syncroot
+        working-directory: src/Runtime/pdf3/infra/core
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: patch base with image tag
-        working-directory: src/Runtime/pdf3/infra/syncroot/base
+        working-directory: src/Runtime/pdf3/infra/core/base
         run: |
           export PROXY_IMAGE="${{ needs.push-pdf3-artifact.outputs.image-proxy-repo }}"
           export WORKER_IMAGE="${{ needs.push-pdf3-artifact.outputs.image-worker-repo }}"

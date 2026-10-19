@@ -118,12 +118,14 @@ internal class ProcessEngine : IProcessEngine
         // start process
         ProcessStateChange? startChange = await ProcessStart(request.Instance, validStartElement);
         InstanceEvent? startEvent = startChange?.Events?[0].CopyValues();
-        // A gateway after the start event sees the language the first task's workflow callbacks get.
+        // A gateway after the start event sees the language the first task's workflow callbacks get, and reads data
+        // as the app, like the gateways of every transition after it.
         InstanceDataUnitOfWork dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
             request.Instance,
             StorageVersionMetadata.Empty,
             taskId: null,
-            language: await _authenticationContext.Current.GetLanguage(request.Language)
+            language: await _authenticationContext.Current.GetLanguage(request.Language),
+            StorageAuthenticationMethod.ServiceOwner()
         );
         ProcessStateChange? nextChange = await MoveProcessStateToNextAndGenerateEvents(dataAccessor);
         InstanceEvent? goToNextEvent = nextChange?.Events?[0].CopyValues();
@@ -209,7 +211,7 @@ internal class ProcessEngine : IProcessEngine
         throw new WorkflowExecutionFailedException(
             result.Instance,
             result.WorkflowFailure,
-            result.ProcessStateChanged,
+            result.ProcessStateCommitted,
             CreateWorkflowFailureMessage(result.WorkflowFailure)
         );
     }
@@ -279,19 +281,25 @@ internal class ProcessEngine : IProcessEngine
             return result;
         }
 
-        CurrentTaskWorkflowState currentTaskWorkflowState = await _workflowEngineService.GetCurrentTaskWorkflowState(
+        // The same status the instance read shows the client, so a task shown as failed is the task that can be
+        // resumed here.
+        WorkflowTaskStatus workflowStatus = await _workflowEngineService.ResolveWorkflowTaskStatus(
             instance,
             cancellationToken
         );
 
-        if (currentTaskWorkflowState is CurrentTaskWorkflowState.Retrying)
+        if (workflowStatus.Status == WorkflowActivityStatus.Processing)
         {
             ProcessChangeResult retryingResult = CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.Retrying);
             activity?.SetProcessChangeResult(retryingResult);
             return retryingResult;
         }
 
-        if (currentTaskWorkflowState is not CurrentTaskWorkflowState.ResumeRequired failedWorkflow)
+        if (
+            workflowStatus.Status != WorkflowActivityStatus.Failed
+            || (workflowStatus.Failure?.RetryTargetWorkflowId ?? workflowStatus.Failure?.WorkflowId)
+                is not Guid failedWorkflowId
+        )
         {
             var result = new ProcessChangeResult
             {
@@ -306,8 +314,7 @@ internal class ProcessEngine : IProcessEngine
 
         ProcessNextWorkflowResult workflowResult = await _workflowEngineService.ResumeAndWaitForWorkflow(
             instance,
-            failedWorkflow.WorkflowId,
-            failedWorkflow.CollectionKey,
+            failedWorkflowId,
             cancellationToken
         );
 
@@ -320,7 +327,7 @@ internal class ProcessEngine : IProcessEngine
                 ErrorTitle = "Something went wrong while resuming the current task.",
                 ErrorMessage = CreateWorkflowFailureMessage(workflowResult.WorkflowFailure),
                 WorkflowFailure = workflowResult.WorkflowFailure,
-                ProcessStateOnFailure = workflowResult.ProcessStateChanged ? workflowResult.Instance.Process : null,
+                ProcessStateOnFailure = workflowResult.ProcessStateCommitted ? workflowResult.Instance.Process : null,
             };
             activity?.SetProcessChangeResult(failureResult);
             return failureResult;
@@ -341,9 +348,6 @@ internal class ProcessEngine : IProcessEngine
         return changeResult;
     }
 
-    /// <summary>
-    /// Internal method that performs a single process next operation without automatic service task handling.
-    /// </summary>
     private async Task<ProcessChangeResult> ProcessNext(
         ProcessNextRequest request,
         CancellationToken cancellationToken = default
@@ -413,44 +417,16 @@ internal class ProcessEngine : IProcessEngine
         bool rejectAllowedForTask =
             checkedAction == "reject" && _processReader.IsActionAllowedForTask(currentTaskId, checkedAction);
 
-        CurrentTaskWorkflowState currentTaskWorkflowState = await _workflowEngineService.GetCurrentTaskWorkflowState(
-            instance,
-            cancellationToken
-        );
-        switch (currentTaskWorkflowState)
-        {
-            case CurrentTaskWorkflowState.Unblocked:
-                break;
-
-            case CurrentTaskWorkflowState.Retrying:
-            {
-                ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.Retrying);
-                activity?.SetProcessChangeResult(blockedResult);
-                return blockedResult;
-            }
-
-            // A terminally failed workflow owns the task until it is explicitly resumed through
-            // process/resume. No process/next action can supersede it, reject included: the failed
-            // task may already have performed work that a reject cannot undo.
-            case CurrentTaskWorkflowState.ResumeRequired:
-            {
-                ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(
-                    ProcessNextState.ResumeRequired
-                );
-                activity?.SetProcessChangeResult(blockedResult);
-                return blockedResult;
-            }
-
-            default:
-                throw new UnreachableException(
-                    $"Unknown current-task workflow state: {currentTaskWorkflowState.GetType().Name}"
-                );
-        }
-
+        // Collection dependencies fence earlier workflows; checking them here would race the enqueue.
+        // Only the process status refuses up front, and the task's workflow says whether to wait or resume.
         ProcessStatus? blockingProcessStatus = ProcessStatusHelper.GetBlockingStatus(instance);
         if (blockingProcessStatus is not null)
         {
-            ProcessChangeResult blockedResult = CreateProcessStatusBlockedResult(blockingProcessStatus.Value);
+            ProcessChangeResult blockedResult = await CreateProcessStatusBlockedResult(
+                instance,
+                blockingProcessStatus.Value,
+                cancellationToken
+            );
             activity?.SetProcessChangeResult(blockedResult);
             return blockedResult;
         }
@@ -481,7 +457,6 @@ internal class ProcessEngine : IProcessEngine
             }
         }
 
-        // If the action is 'reject', we should not run any service task and there is no need to check for a user action handler, since 'reject' doesn't have one.
         if (request.Action is not "reject")
         {
             if (request.Action is not null)
@@ -523,7 +498,6 @@ internal class ProcessEngine : IProcessEngine
             }
         }
 
-        // If the action is 'reject' the task is being abandoned, and we should skip validation, but only if reject has been allowed for the task in bpmn.
         if (rejectAllowedForTask)
         {
             _logger.LogInformation(
@@ -543,43 +517,112 @@ internal class ProcessEngine : IProcessEngine
             }
         }
 
-        MoveToNextResult moveToNextResult = await HandleMoveToNext(
+        // The authorized action is complete; gateways now read data as ServiceOwner.
+        InstanceDataUnitOfWork transitionData = await _instanceDataUnitOfWorkInitializer.Init(
             instance,
             versions,
+            currentTaskId,
+            await _authenticationContext.Current.GetLanguage(request.Language),
+            StorageAuthenticationMethod.ServiceOwner()
+        );
+        ProcessStateChange processStateChange;
+        try
+        {
+            processStateChange = await ComputeNextTransition(transitionData, processNextAction);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            _logger.LogError(
+                exception,
+                "Could not prepare the process transition from task {CurrentTaskId}. Action: {ProcessNextAction}.",
+                LogSanitizer.Sanitize(currentTaskId),
+                LogSanitizer.Sanitize(processNextAction ?? "none")
+            );
+            var transitionFailedResult = new ProcessChangeResult
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Internal,
+                ErrorTitle = "The process could not move on from the current task.",
+                ErrorMessage = "Could not prepare the next process transition.",
+            };
+            activity?.SetProcessChangeResult(transitionFailedResult);
+            return transitionFailedResult;
+        }
+
+        ProcessNextWorkflowResult workflowResult = await HandleMoveToNext(
+            transitionData,
             processNextAction,
+            processStateChange,
             request.Language,
             cancellationToken
         );
 
-        if (moveToNextResult.WorkflowFailure is not null)
+        if (workflowResult.WorkflowFailure?.Kind == WorkflowFailureKind.DependencyFailed)
         {
-            var failureResult = new ProcessChangeResult(moveToNextResult.Instance, moveToNextResult.Versions)
+            ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.ResumeRequired);
+            activity?.SetProcessChangeResult(blockedResult);
+            return blockedResult;
+        }
+
+        if (workflowResult.WorkflowFailure is not null)
+        {
+            var failureResult = new ProcessChangeResult(workflowResult.Instance, workflowResult.InstanceVersions)
             {
                 Success = false,
-                ErrorType =
-                    moveToNextResult.WorkflowFailure.Kind == WorkflowFailureKind.AcquireConflict
-                        ? ProcessErrorType.Conflict
-                        : ProcessErrorType.Internal,
-                ErrorTitle =
-                    moveToNextResult.WorkflowFailure.Kind == WorkflowFailureKind.AcquireConflict
-                        ? "The instance changed before the transition started."
-                        : "Something went wrong while moving to the next task.",
-                ErrorMessage = CreateWorkflowFailureMessage(moveToNextResult.WorkflowFailure),
-                WorkflowFailure = moveToNextResult.WorkflowFailure,
-                ProcessStateOnFailure = moveToNextResult.ProcessStateChanged ? moveToNextResult.Instance.Process : null,
+                ErrorType = ProcessErrorType.Internal,
+                ErrorTitle = "Something went wrong while moving to the next task.",
+                ErrorMessage = CreateWorkflowFailureMessage(workflowResult.WorkflowFailure),
+                WorkflowFailure = workflowResult.WorkflowFailure,
+                ProcessStateOnFailure = workflowResult.ProcessStateCommitted ? workflowResult.Instance.Process : null,
             };
             activity?.SetProcessChangeResult(failureResult);
             return failureResult;
         }
 
-        var changeResult = new ProcessChangeResult(moveToNextResult.Instance, moveToNextResult.Versions)
+        // A superseded acquire succeeds without moving the process; check task identity as well.
+        ProcessState? newProcessState = workflowResult.Instance.Process;
+        if (!HasAdvanced(instance.Process, newProcessState))
+        {
+            var instanceChangedResult = new ProcessChangeResult(
+                workflowResult.Instance,
+                workflowResult.InstanceVersions
+            )
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Conflict,
+                ErrorTitle = "The instance changed before the transition started.",
+                ErrorMessage =
+                    "The instance changed after this request read it, so the process did not move on. Refresh the instance and try again.",
+                ProcessNextState = ProcessNextState.InstanceChanged,
+            };
+            activity?.SetProcessChangeResult(instanceChangedResult);
+            return instanceChangedResult;
+        }
+
+        var changeResult = new ProcessChangeResult(workflowResult.Instance, workflowResult.InstanceVersions)
         {
             Success = true,
-            ProcessStateChange = moveToNextResult.ProcessStateChange,
+            ProcessStateChange = new ProcessStateChange
+            {
+                OldProcessState = instance.Process,
+                NewProcessState = newProcessState,
+            },
         };
 
         activity?.SetProcessChangeResult(changeResult);
         return changeResult;
+    }
+
+    // Flow distinguishes a new visit when a gateway returns to the same task.
+    private static bool HasAdvanced(ProcessState? oldProcessState, ProcessState? newProcessState)
+    {
+        ProcessElementInfo? oldTask = oldProcessState?.CurrentTask is { ElementId.Length: > 0 } oldCurrentTask
+            ? oldCurrentTask
+            : null;
+        ProcessElementInfo? newTask = newProcessState?.CurrentTask is { ElementId.Length: > 0 } newCurrentTask
+            ? newCurrentTask
+            : null;
+        return oldTask?.ElementId != newTask?.ElementId || (oldTask?.Flow ?? 0) != (newTask?.Flow ?? 0);
     }
 
     private async Task<ProcessChangeResult?> GetValidationError(
@@ -716,9 +759,6 @@ internal class ProcessEngine : IProcessEngine
         };
     }
 
-    /// <summary>
-    /// Computes the next transition and updates instance.Process to reflect the new state.
-    /// </summary>
     private async Task<ProcessStateChange?> MoveProcessStateToNextAndGenerateEvents(
         IInstanceDataAccessor dataAccessor,
         string? action = null
@@ -730,103 +770,67 @@ internal class ProcessEngine : IProcessEngine
             return null;
         }
 
-        string changeEventType = action is "reject"
-            ? InstanceEventType.process_AbandonTask.ToString()
-            : InstanceEventType.process_EndTask.ToString();
-        using var activity = _telemetry?.StartProcessGenerateChangeEventActivity(instance, changeEventType);
-
         PlatformUser user = await ExtractPlatformUser();
-        ProcessStateChange result = await ComputeNextTransition(dataAccessor, action, user, DateTime.UtcNow);
+        ProcessStateChange result = await ComputeNextTransition(dataAccessor, action);
+        ApplyExecutionContext(result, user, DateTime.UtcNow);
 
-        // Apply the mutation so callers see the updated process state on the instance
         instance.Process = result.NewProcessState;
 
         return result;
     }
 
-    /// <summary>
-    /// Core BPMN transition logic. Computes the ProcessStateChange for moving from the current task
-    /// to the next element. Does NOT mutate instance.Process.
-    /// Used for transitions requested by a user and transitions following a successful service task.
-    /// </summary>
-    private async Task<ProcessStateChange> ComputeNextTransition(
-        IInstanceDataAccessor dataAccessor,
-        string? action,
-        PlatformUser user,
-        DateTime now
-    )
+    private async Task<ProcessStateChange> ComputeNextTransition(IInstanceDataAccessor dataAccessor, string? action)
     {
         Instance instance = dataAccessor.Instance;
         ProcessState process = instance.Process ?? throw new ProcessException("Process is null");
         string currentTaskId =
             process.CurrentTask?.ElementId ?? throw new ProcessException("Current task element ID is null");
-
-        ProcessElement? nextElement = await _processNavigator.GetNextTask(dataAccessor, currentTaskId, action);
-        if (nextElement is null)
-            throw new ProcessException("Next process element was unexpectedly null");
+        ProcessElement nextElement =
+            await _processNavigator.GetNextTask(dataAccessor, currentTaskId, action)
+            ?? throw new ProcessException("Next process element was unexpectedly null");
+        using var activity = _telemetry?.StartProcessGenerateChangeEventActivity(instance, GetLeaveEventType(action));
 
         var events = new List<InstanceEvent>();
-
         ProcessState oldProcessState = new()
         {
             Started = process.Started,
             CurrentTask = process.CurrentTask,
             StartEvent = process.StartEvent,
         };
-
-        // End current task event
         if (_processReader.IsProcessTask(currentTaskId))
         {
-            string eventType = action is "reject"
-                ? InstanceEventType.process_AbandonTask.ToString()
-                : InstanceEventType.process_EndTask.ToString();
-            events.Add(CreateInstanceEvent(eventType, instance, oldProcessState, user, now));
+            events.Add(CreateInstanceEvent(GetLeaveEventType(action), instance, oldProcessState));
         }
 
-        // Build new process state based on next element
         ProcessState newProcessState = new() { Started = process.Started, StartEvent = process.StartEvent };
         string nextElementId = nextElement.Id;
-
         if (_processReader.IsEndEvent(nextElementId))
         {
-            using var activity = _telemetry?.StartProcessEndActivity(instance);
-
-            newProcessState.CurrentTask = null;
-            newProcessState.Ended = now;
+            using var endActivity = _telemetry?.StartProcessEndActivity(instance);
             newProcessState.EndEvent = nextElementId;
-
-            events.Add(
-                CreateInstanceEvent(InstanceEventType.process_EndEvent.ToString(), instance, newProcessState, user, now)
-            );
+            events.Add(CreateInstanceEvent(InstanceEventType.process_EndEvent.ToString(), instance, newProcessState));
             // Submit event (to support Altinn2 SBL)
-            events.Add(
-                CreateInstanceEvent(InstanceEventType.Submited.ToString(), instance, newProcessState, user, now)
-            );
+            events.Add(CreateInstanceEvent(InstanceEventType.Submited.ToString(), instance, newProcessState));
         }
         else if (_processReader.IsProcessTask(nextElementId))
         {
             var task = nextElement as ProcessTask;
             newProcessState.CurrentTask = new ProcessElementInfo
             {
+                // A gateway loop back to the same task still creates a new task visit.
                 Flow = (process.CurrentTask?.Flow ?? 0) + 1,
                 ElementId = nextElementId,
                 Name = nextElement.Name,
-                Started = now,
                 AltinnTaskType = task?.ExtensionElements?.TaskExtension?.TaskType,
                 FlowType = action is "reject"
                     ? ProcessSequenceFlowType.AbandonCurrentMoveToNext.ToString()
                     : ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
             };
-
-            events.Add(
-                CreateInstanceEvent(
-                    InstanceEventType.process_StartTask.ToString(),
-                    instance,
-                    newProcessState,
-                    user,
-                    now
-                )
-            );
+            events.Add(CreateInstanceEvent(InstanceEventType.process_StartTask.ToString(), instance, newProcessState));
+        }
+        else
+        {
+            throw new ProcessException($"The next process element {nextElementId} is neither a task nor an end event.");
         }
 
         return new ProcessStateChange
@@ -837,141 +841,19 @@ internal class ProcessEngine : IProcessEngine
         };
     }
 
-    private async Task<PlatformUser> ExtractPlatformUser()
-    {
-        var currentAuth = _authenticationContext.Current;
-        switch (currentAuth)
-        {
-            case Authenticated.User auth:
-            {
-                Authenticated.User.Details details;
-                using (_telemetry?.StartProcessLoadAuthDetailsActivity(nameof(Authenticated.User)))
-                {
-                    details = await auth.LoadDetails(validateSelectedParty: true);
-                }
-                return new PlatformUser
-                {
-                    UserId = auth.UserId,
-                    AuthenticationLevel = auth.AuthenticationLevel,
-                    NationalIdentityNumber = details.Profile.Party.SSN,
-                };
-            }
-            case Authenticated.Org:
-                return new PlatformUser { }; // TODO: what do we do here?
-            case Authenticated.ServiceOwner auth:
-                return new PlatformUser { OrgId = auth.Name, AuthenticationLevel = auth.AuthenticationLevel };
-            case Authenticated.SystemUser auth:
-                return new PlatformUser
-                {
-                    SystemUserId = auth.SystemUserId[0],
-                    SystemUserOwnerOrgNo = auth.SystemUserOrgNr.Get(Models.OrganizationNumberFormat.Local),
-                    SystemUserName = null, // TODO: will get this name later when a lookup API is implemented or the name is passed in token
-                    AuthenticationLevel = auth.AuthenticationLevel,
-                };
-            default:
-                throw new InvalidOperationException($"Unknown authentication context: {currentAuth.GetType().Name}");
-        }
-    }
-
-    private async Task<MoveToNextResult> HandleMoveToNext(
-        Instance instance,
-        StorageVersionMetadata versions,
-        string? action,
-        string? language,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var activity = _telemetry?.StartProcessMoveToNextActivity(instance, action);
-
-        // The acquire callback computes the transition after claiming this authoritative snapshot.
-        ProcessState? oldProcessState = instance.Process?.Copy();
-        string state;
-        string? currentTaskId = instance.Process?.CurrentTask?.ElementId;
-        {
-            InstanceDataUnitOfWork unitOfWork = await _instanceDataUnitOfWorkInitializer.Init(
-                instance,
-                versions,
-                currentTaskId,
-                language: null,
-                StorageAuthenticationMethod.ServiceOwner()
-            );
-            state = await _workflowCallbackStateService.CaptureState(unitOfWork);
-        }
-
-        ProcessNextWorkflowResult result = await _workflowEngineService.EnqueueAndWaitForProcessNext(
-            instance,
-            versions,
-            state,
-            action,
-            language,
-            cancellationToken: cancellationToken
-        );
-
-        ProcessStateChange finalProcessStateChange = new()
-        {
-            OldProcessState = oldProcessState,
-            NewProcessState = result.Instance.Process,
-        };
-
-        return new MoveToNextResult(
-            result.Instance,
-            result.InstanceVersions,
-            finalProcessStateChange,
-            result.WorkflowFailure,
-            result.ProcessStateChanged
-        );
-    }
-
-    /// <inheritdoc/>
-    public async Task EnqueueProcessNext(
-        IInstanceDataAccessor dataAccessor,
-        Actor actor,
-        Guid dependsOnWorkflowId,
-        string collectionKey,
-        string state,
-        DateTimeOffset executionReferenceTime,
-        string? action = null,
-        string? idempotencyKey = null,
-        CancellationToken cancellationToken = default
-    )
-    {
-        Instance instance = dataAccessor.Instance;
-        PlatformUser user = CreatePlatformUser(actor);
-        string changeEventType = action is "reject"
+    private static string GetLeaveEventType(string? action) =>
+        action is "reject"
             ? InstanceEventType.process_AbandonTask.ToString()
             : InstanceEventType.process_EndTask.ToString();
-        ProcessStateChange processStateChange;
-        using (_telemetry?.StartProcessGenerateChangeEventActivity(instance, changeEventType))
-        {
-            processStateChange = await ComputeNextTransition(
-                dataAccessor,
-                action,
-                user,
-                executionReferenceTime.UtcDateTime
-            );
-        }
-
-        await _workflowEngineService.EnqueueDependentProcessNext(
-            instance,
-            processStateChange,
-            dependsOnWorkflowId,
-            collectionKey,
-            state,
-            actor,
-            idempotencyKey,
-            cancellationToken: cancellationToken
-        );
-    }
 
     private static InstanceEvent CreateInstanceEvent(
         string eventType,
         Instance instance,
         ProcessState processInfo,
-        PlatformUser user,
-        DateTime now
-    )
-    {
-        return new InstanceEvent
+        PlatformUser? user = null,
+        DateTime? now = null
+    ) =>
+        new()
         {
             InstanceId = instance.Id,
             InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
@@ -980,6 +862,49 @@ internal class ProcessEngine : IProcessEngine
             User = user,
             ProcessInfo = processInfo,
         };
+
+    /// <summary>
+    /// Applies the durable callback actor and time to a prepared transition without changing its historical state.
+    /// </summary>
+    internal static void ApplyExecutionContext(
+        ProcessStateChange transition,
+        Actor actor,
+        DateTimeOffset executionReferenceTime
+    ) => ApplyExecutionContext(transition, CreatePlatformUser(actor), executionReferenceTime.UtcDateTime);
+
+    private static void ApplyExecutionContext(ProcessStateChange transition, PlatformUser user, DateTime now)
+    {
+        ProcessState newProcessState =
+            transition.NewProcessState ?? throw new ProcessException("New process state is null");
+        if (newProcessState.CurrentTask is { } newTask)
+        {
+            newTask.Started = now;
+        }
+        else if (newProcessState.EndEvent is not null)
+        {
+            newProcessState.Ended = now;
+        }
+
+        foreach (InstanceEvent instanceEvent in transition.Events ?? [])
+        {
+            instanceEvent.Created = now;
+            instanceEvent.User = user;
+            // Event snapshots are separate objects after serialization. Stamp the destination snapshots by event
+            // type, so a loop to the same task never changes the source visit's timestamp.
+            switch (instanceEvent.EventType)
+            {
+                case nameof(InstanceEventType.process_StartTask):
+                    if (instanceEvent.ProcessInfo.CurrentTask is { } task)
+                    {
+                        task.Started = now;
+                    }
+                    break;
+                case nameof(InstanceEventType.process_EndEvent):
+                case nameof(InstanceEventType.Submited):
+                    instanceEvent.ProcessInfo.Ended = now;
+                    break;
+            }
+        }
     }
 
     private static PlatformUser CreatePlatformUser(Actor actor)
@@ -1021,28 +946,100 @@ internal class ProcessEngine : IProcessEngine
         return orgPlatformUser;
     }
 
-    private sealed record MoveToNextResult(
-        Instance Instance,
-        StorageVersionMetadata Versions,
-        ProcessStateChange? ProcessStateChange,
-        WorkflowFailure? WorkflowFailure = null,
-        bool ProcessStateChanged = false
+    private async Task<PlatformUser> ExtractPlatformUser()
+    {
+        var currentAuth = _authenticationContext.Current;
+        switch (currentAuth)
+        {
+            case Authenticated.User auth:
+            {
+                Authenticated.User.Details details;
+                using (_telemetry?.StartProcessLoadAuthDetailsActivity(nameof(Authenticated.User)))
+                {
+                    details = await auth.LoadDetails(validateSelectedParty: true);
+                }
+                return new PlatformUser
+                {
+                    UserId = auth.UserId,
+                    AuthenticationLevel = auth.AuthenticationLevel,
+                    NationalIdentityNumber = details.Profile.Party.SSN,
+                };
+            }
+            case Authenticated.Org:
+                return new PlatformUser { }; // TODO: what do we do here?
+            case Authenticated.ServiceOwner auth:
+                return new PlatformUser { OrgId = auth.Name, AuthenticationLevel = auth.AuthenticationLevel };
+            case Authenticated.SystemUser auth:
+                return new PlatformUser
+                {
+                    SystemUserId = auth.SystemUserId[0],
+                    SystemUserOwnerOrgNo = auth.SystemUserOrgNr.Get(Models.OrganizationNumberFormat.Local),
+                    SystemUserName = null, // TODO: will get this name later when a lookup API is implemented or the name is passed in token
+                    AuthenticationLevel = auth.AuthenticationLevel,
+                };
+            default:
+                throw new InvalidOperationException($"Unknown authentication context: {currentAuth.GetType().Name}");
+        }
+    }
+
+    private async Task<ProcessNextWorkflowResult> HandleMoveToNext(
+        InstanceDataUnitOfWork transitionData,
+        string? action,
+        ProcessStateChange processStateChange,
+        string? language,
+        CancellationToken cancellationToken = default
     )
     {
-        [MemberNotNullWhen(true, nameof(ProcessStateChange))]
-        public bool IsEndEvent => ProcessStateChange?.NewProcessState?.Ended is not null;
-    };
+        using var activity = _telemetry?.StartProcessMoveToNextActivity(transitionData.Instance, action);
+
+        // Capture the same snapshot and form data used by the gateways for the acquire fence.
+        string state = await _workflowCallbackStateService.CaptureState(transitionData);
+
+        return await _workflowEngineService.EnqueueAndWaitForProcessNext(
+            transitionData.Instance,
+            transitionData.StorageVersions,
+            state,
+            processStateChange,
+            language,
+            cancellationToken: cancellationToken
+        );
+    }
+
+    /// <inheritdoc/>
+    public async Task EnqueueProcessNext(
+        IInstanceDataAccessor dataAccessor,
+        Actor actor,
+        Guid dependsOnWorkflowId,
+        string collectionKey,
+        string state,
+        DateTimeOffset executionReferenceTime,
+        string? action = null,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        Instance instance = dataAccessor.Instance;
+        ProcessStateChange processStateChange = await ComputeNextTransition(dataAccessor, action);
+        ApplyExecutionContext(processStateChange, actor, executionReferenceTime);
+
+        await _workflowEngineService.EnqueueDependentProcessNext(
+            instance,
+            processStateChange,
+            dependsOnWorkflowId,
+            collectionKey,
+            state,
+            actor,
+            idempotencyKey,
+            cancellationToken: cancellationToken
+        );
+    }
 
     /// <summary>
-    /// Returns the action that process/completeProcess performs on a task of the given type. A process next without
-    /// an action also uses it, but only to check whether the result is <c>reject</c>.
+    /// Selects the action performed by process/completeProcess, or the implicit reject for process/next.
     /// </summary>
     /// <remarks>
-    /// This is deliberately not the table in <c>ProcessEngineAuthorizer.GetActionsThatAllowProcessNext</c>.
-    /// That table lists the actions that authorize a transition; this one picks the action that is performed, which
-    /// reaches user action handlers, gateway filters, the workflow engine and telemetry. A type without an entry,
-    /// including <c>payment</c> and <c>subformPdf</c>, is performed as its own name: mapping <c>payment</c> to
-    /// <c>pay</c> would run the payment action handler.
+    /// This differs from the authorization table: unmapped task types keep their name, so <c>payment</c> does not
+    /// invoke the <c>pay</c> action handler.
     /// </remarks>
     internal static string ConvertTaskTypeToAction(string actionOrTaskType)
     {
@@ -1145,8 +1142,6 @@ internal class ProcessEngine : IProcessEngine
             WorkflowFailureKind.EngineFault => workflowFailure.LastError?.Message
                 ?? "The workflow engine failed while moving to the next task.",
             WorkflowFailureKind.Timeout => "Timeout while waiting for workflows to complete.",
-            WorkflowFailureKind.AcquireConflict =>
-                "The instance changed before the process transition could start. Refresh the instance and try again.",
             _ => "Workflow execution failed.",
         };
 
@@ -1173,8 +1168,27 @@ internal class ProcessEngine : IProcessEngine
             _ => throw new ArgumentOutOfRangeException(nameof(blockedState), blockedState, null),
         };
 
-    private static ProcessChangeResult CreateProcessStatusBlockedResult(ProcessStatus currentStatus)
+    private async Task<ProcessChangeResult> CreateProcessStatusBlockedResult(
+        Instance instance,
+        ProcessStatus currentStatus,
+        CancellationToken cancellationToken
+    )
     {
+        WorkflowTaskStatus workflowStatus = await _workflowEngineService.ResolveWorkflowTaskStatus(
+            instance,
+            cancellationToken
+        );
+        if (workflowStatus.Status == WorkflowActivityStatus.Processing)
+        {
+            return CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.Retrying);
+        }
+
+        if (workflowStatus.Status == WorkflowActivityStatus.Failed)
+        {
+            return CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.ResumeRequired);
+        }
+
+        // Idle: the transition finished after the read, or nothing owns the instance; only the status is certain.
         var problem = ProcessStatusHelper.CreateMutationProblem(currentStatus);
         return new ProcessChangeResult
         {

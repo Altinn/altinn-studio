@@ -2,25 +2,27 @@
 
 pdf3 generates PDFs for Altinn apps. A proxy distributes requests to workers, which render app pages in headless Chrome.
 
-pdf3 runs in each service owner's [runtime cluster](../../../docs/infrastructure/environments.md#runtime-clusters).
-Apps use the address in [apps-config](../../../infra/runtime/apps-config/base/apps-runtime-common-env.yaml),
-which the [runtime routing configuration](../../../infra/runtime/syncroot/base/pdf.yaml) directs to pdf3.
+Each service owner's [runtime cluster](../../../docs/infrastructure/environments.md#runtime-clusters) runs a relay
+that forwards PDF requests to DIS Core. Apps keep using the address in
+[apps-config](../../../infra/runtime/apps-config/base/apps-runtime-common-env.yaml). The
+[runtime routing configuration](../../../infra/runtime/syncroot/base/pdf.yaml) preserves that Service address.
 
 [Local environments](../../cli/README.md#which-images-the-environment-runs) run the worker directly, without the proxy.
 studioctl supplies its settings and selects the image.
 
 ## DIS Core
 
-pdf3 also runs as a shared service in every [DIS Core](../../../docs/infrastructure/environments.md#dis-core)
-environment, without traffic so far. Runtime clusters are to call it through the [relay](cmd/relay) with an
-[API key](docs/api-keys.md), and the relay is not deployed yet.
+The proxy and workers run as a shared service in every [DIS Core](../../../docs/infrastructure/environments.md#dis-core)
+environment. Runtime clusters call it through the [relay](cmd/relay) with an [API key](docs/api-keys.md), and the
+[HTTPRoute `pdf/pdf3`](infra/relay/base/httproute.yaml) routes all apps' PDF requests to the relay.
+The [environment overlays](infra/relay) set its upstream URL. at24's relay calls tt02's DIS Core.
 
-The DIS Core manifests in [`infra/syncroot`](infra/syncroot) are adapted from the runtime clusters' manifests in
-[`infra/kustomize`](infra/kustomize), not an overlay of them. Keep the two in step.
-[`deploy-runtime-pdf3.yaml`](../../../.github/workflows/deploy-runtime-pdf3.yaml) publishes them with the images it builds
-for the runtime clusters.
+The DIS Core manifests live in [`infra/core`](infra/core). Tenant relay manifests live in
+[`infra/relay`](infra/relay), and local-test manifests in [`infra/local`](infra/local).
+[`deploy-runtime-pdf3.yaml`](../../../.github/workflows/deploy-runtime-pdf3.yaml) publishes both artifacts and builds
+the proxy, relay and worker images.
 
-The workers' [network policy](infra/syncroot/base/network-policies.yaml) allows DNS only through CoreDNS. It is not
+The workers' [network policy](infra/core/base/network-policies.yaml) allows DNS only through CoreDNS. It is not
 confirmed that DIS Core's pods use CoreDNS rather than AKS LocalDNS. If they do not, the workers cannot resolve names.
 
 ## Development
