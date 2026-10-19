@@ -24,7 +24,7 @@ spec:
             - containerPort: {{ .Values.image.containerPorts.lhci }}
           # With the Service's Local traffic policy, a node stops passing the load balancer's
           # health probe once its pod is terminating, but the load balancer only notices after a
-          # few failed probes. nginx stops accepting connections as soon as it is signalled, so
+          # few failed probes. nginx stops accepting connections as soon as it is signaled, so
           # the pod keeps serving until new connections have moved to the replacement pod's node.
           lifecycle:
             preStop:
