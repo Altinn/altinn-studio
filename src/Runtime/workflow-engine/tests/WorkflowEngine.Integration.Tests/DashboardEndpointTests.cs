@@ -234,11 +234,11 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
 
         // Act
         using var primaryResponse = await client.GetAsync(
-            "/dashboard/query?status=COMPLETED&role=primary",
+            "/dashboard/query?status=COMPLETED&role=Primary",
             TestContext.Current.CancellationToken
         );
         using var auxiliaryResponse = await client.GetAsync(
-            "/dashboard/query?status=COMPLETED&role=auxiliary",
+            "/dashboard/query?status=COMPLETED&role=Auxiliary",
             TestContext.Current.CancellationToken
         );
         using var invalidResponse = await client.GetAsync(

@@ -259,7 +259,7 @@ internal static class EngineEndpoints
                 - annotate (key, repeatable): health for a set of collection keys the caller already
                   holds. The response also reports unmatchedKeys — requested keys with no collection row,
                   which must not be read as healthy (the collection may have been purged by retention).
-                - discover (failures=any|primary|auxiliary): only collections containing at least one
+                - discover (failures=Any|Primary|Auxiliary): only collections containing at least one
                   failed workflow (Failed, Canceled, DependencyFailed — Abandoned is a written-off
                   failure and never matches), optionally restricted to one role.
 

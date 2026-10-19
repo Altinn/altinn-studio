@@ -313,8 +313,8 @@ Note: If B joining the heads is not desired, it can be marked `IsHead = false` t
 A workflow enqueued with `isHead = false` is an auxiliary workflow; every other workflow is primary.
 The vocabulary and its mapping onto the `isHead` directive are defined in
 [technical-guide.md](technical-guide.md#primary-and-auxiliary-workflows). The collections API applies
-it in three places: the `role` field on workflow status reads, the `?role=primary|auxiliary` filter
-on `GET /workflows`, and the per-role `workflowCounts` rollup and `failures=primary|auxiliary`
+it in three places: the `role` field on workflow status reads, the `?role=Primary|Auxiliary` filter
+on `GET /workflows`, and the per-role `workflowCounts` rollup and `failures=Primary|Auxiliary`
 discovery filter on `GET /collections`. A collection with `auxiliary.failed > 0` has lost work that
 nothing else reports: an auxiliary workflow's failure gates nothing, so no head status or frontier
 read will show it.
@@ -356,7 +356,7 @@ Three mutually exclusive modes:
 | -------- | --------------------------------------- | ---------------------------------------------------------- |
 | list     | `cursor`, `pageSize`                    | enumerate the namespace's collections                      |
 | annotate | `key` (repeatable)                      | health for a set of keys the caller already holds          |
-| discover | `failures=any\|primary\|auxiliary`, `cursor` | the errors view                                       |
+| discover | `failures=Any\|Primary\|Auxiliary`, `cursor` | the errors view                                       |
 
 `key` × `cursor` → 400. `key` × `failures` → 400. More distinct keys than `pagination.maxAnnotateKeys` → 400 — the
 request is **rejected, never truncated**, because silently dropping keys from a health read is the
@@ -372,7 +372,7 @@ Detail for one collection: key, heads (with workflow ID + current status), and t
 workflows, so auxiliary workflows never appear in it, and it carries no
 `workflowCounts` rollup — it sits on the app's page-view-scale hot path and stays cheap. For health,
 use the list endpoint's rollup; to enumerate a collection's failures, use
-`GET /workflows?collectionKey={key}&role=auxiliary&status=Failed&status=Canceled&status=DependencyFailed`
+`GET /workflows?collectionKey={key}&role=Auxiliary&status=Failed&status=Canceled&status=DependencyFailed`
 (drop the `role` filter for all of them).
 
 ---

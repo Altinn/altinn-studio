@@ -1434,7 +1434,7 @@ public class EngineEndpointTests
     {
         var repositoryMock = new Mock<IEngineRepository>(MockBehavior.Strict);
 
-        var result = await InvokeListCollections(repositoryMock.Object, keys: ["a"], failures: "any");
+        var result = await InvokeListCollections(repositoryMock.Object, keys: ["a"], failures: "Any");
 
         AssertBadRequest(result);
     }

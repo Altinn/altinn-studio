@@ -60,8 +60,8 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
         ["label"] = "Filter by label, formatted as key:value (repeatable). Entries without a colon are ignored.",
         ["collectionKey"] = "Filter to a single workflow collection.",
         ["role"] =
-            "Filter by workflow role: 'primary' matches workflows the process waits on (isHead directive true "
-            + "or unset, so it returns rows whose isHead field reads null), 'auxiliary' matches workflows that "
+            "Filter by workflow role: 'Primary' matches workflows the process waits on (isHead directive true "
+            + "or unset, so it returns rows whose isHead field reads null), 'Auxiliary' matches workflows that "
             + "run beside the process (isHead directive false). Case-insensitive; omit to return both, and an "
             + "unrecognized value returns 400.",
         ["cursor"] = "Pagination cursor — pass the nextCursor from the previous response to fetch the next page.",
@@ -80,8 +80,8 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
             + "collection row are reported in unmatchedKeys.",
         ["failures"] =
             "Discover mode: only collections containing at least one failed workflow (Failed, Canceled, "
-            + "DependencyFailed; Abandoned never matches). 'primary' restricts to failed primary workflows, "
-            + "'auxiliary' to failed auxiliary workflows, 'any' takes both roles. Case-insensitive; an "
+            + "DependencyFailed; Abandoned never matches). 'Primary' restricts to failed primary workflows, "
+            + "'Auxiliary' to failed auxiliary workflows, 'Any' takes both roles. Case-insensitive; an "
             + "unrecognized value returns 400.",
         ["cursor"] =
             "Pagination cursor — pass the nextCursor from the previous response to fetch the next page. "

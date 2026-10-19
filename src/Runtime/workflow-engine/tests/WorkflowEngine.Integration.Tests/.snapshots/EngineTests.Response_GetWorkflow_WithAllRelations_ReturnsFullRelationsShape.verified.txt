@@ -20,7 +20,7 @@
   links: {
     Guid_4: Completed
   },
-  role: primary,
+  role: Primary,
   steps: [
     {
       databaseId: {Scrubbed},
