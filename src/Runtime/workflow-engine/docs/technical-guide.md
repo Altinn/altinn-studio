@@ -1128,13 +1128,14 @@ The collection's head frontier (`heads` on collection responses) is a different 
 the next enqueue will depend on right now. A primary workflow leaves the frontier once a later
 workflow depends on it; it stays primary.
 
-| Layer                     | Primary workflow    | Auxiliary workflow |
-| ------------------------- | ------------------- | ------------------ |
-| English (docs, UI, prose) | primary workflow    | auxiliary workflow |
-| Norwegian (UI text)       | hovedflyt           | sideflyt           |
-| Code identifiers          | `Primary…`          | `Auxiliary…`       |
-| JSON and query values     | `"primary"`         | `"auxiliary"`      |
-| Encoding                  | `isHead` true/unset | `isHead` false     |
+| Layer                      | Primary workflow    | Auxiliary workflow |
+| -------------------------- | ------------------- | ------------------ |
+| English (docs, UI, prose)  | primary workflow    | auxiliary workflow |
+| Norwegian (UI text)        | hovedflyt           | sideflyt           |
+| Code identifiers           | `Primary…`          | `Auxiliary…`       |
+| JSON and query enum values | `Primary`           | `Auxiliary`        |
+| JSON property keys         | `primary`           | `auxiliary`        |
+| Encoding                   | `isHead` true/unset | `isHead` false     |
 
 Words such as visible/invisible, side effect, side chain, non-critical and fire-and-forget are not
 used for this concept, and "head" is kept for the frontier and the `isHead` directive.
