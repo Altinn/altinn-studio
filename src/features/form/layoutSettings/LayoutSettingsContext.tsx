@@ -7,18 +7,28 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLaxGlobalUISettings } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLayoutSet';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { GlobalPageSettings, ILayoutSettings, NavigationPageGroup } from 'src/layout/common.generated';
 
 // Also used for prefetching @see formPrefetcher.ts
 export function useLayoutSettingsQueryDef(layoutSetId?: string): QueryDefinition<ProcessedLayoutSettings> {
-  const { fetchLayoutSettings } = useAppQueries();
+  const { fetchLayoutSettings, fetchLayoutSettingsForInstance } = useAppQueries();
+  const laxInstanceId = useLaxInstanceId();
+  const features = useApplicationMetadata().features ?? {};
+  // Settings may differ per instance when fetched from the instance endpoint, so the instance must be part of the key
+  const instanceId = features.addInstanceIdentifierToLayoutRequests ? laxInstanceId : undefined;
+
+  const fetchSettings = (setId: string) =>
+    instanceId ? fetchLayoutSettingsForInstance(setId, instanceId) : fetchLayoutSettings(setId);
+
   return {
-    queryKey: ['layoutSettings', layoutSetId],
-    queryFn: async () => processData(layoutSetId ? await fetchLayoutSettings(layoutSetId) : null),
+    queryKey: ['layoutSettings', layoutSetId, instanceId],
+    queryFn: async () => processData(layoutSetId ? await fetchSettings(layoutSetId) : null),
   };
 }
 

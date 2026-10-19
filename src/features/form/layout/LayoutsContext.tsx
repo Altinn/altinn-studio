@@ -16,7 +16,6 @@ import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLa
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
-import { fetchLayoutsForInstance } from 'src/queries/queries';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { IExpandedWidthLayouts, IHiddenLayoutsExternal, IPreventNavigationLayouts } from 'src/types';
@@ -35,16 +34,17 @@ export function useLayoutQueryDef(
   defaultDataModelType: string,
   layoutSetId?: string,
 ): QueryDefinition<LayoutContextValue> {
-  const { fetchLayouts } = useAppQueries();
-  const instanceId = useLaxInstanceId();
+  const { fetchLayouts, fetchLayoutsForInstance } = useAppQueries();
+  const laxInstanceId = useLaxInstanceId();
   const features = useApplicationMetadata().features ?? {};
+  // Layouts may differ per instance when fetched from the instance endpoint, so the instance must be part of the key
+  const instanceId = features.addInstanceIdentifierToLayoutRequests ? laxInstanceId : undefined;
 
   return {
-    queryKey: ['formLayouts', layoutSetId, enabled],
+    queryKey: ['formLayouts', layoutSetId, enabled, instanceId],
     queryFn: layoutSetId
       ? async () => {
-          const shouldUseInstanceEndpoint = features.addInstanceIdentifierToLayoutRequests && instanceId;
-          const layouts = shouldUseInstanceEndpoint
+          const layouts = instanceId
             ? await fetchLayoutsForInstance(layoutSetId, instanceId)
             : await fetchLayouts(layoutSetId);
 

@@ -27,6 +27,7 @@ import {
   getFileUploadUrl,
   getFileUploadUrlOld,
   getFooterLayoutUrl,
+  getInstanceLayoutSettingsUrl,
   getInstanceLayoutsUrl,
   getInstantiateUrl,
   getJsonSchemaUrl,
@@ -301,6 +302,9 @@ export const fetchLayoutsForInstance = (layoutSetId: string, instanceId: string)
 
 export const fetchLayoutSettings = (layoutSetId: string): Promise<ILayoutSettings> =>
   httpGet(getLayoutSettingsUrl(layoutSetId));
+
+export const fetchLayoutSettingsForInstance = (layoutSetId: string, instanceId: string): Promise<ILayoutSettings> =>
+  httpGet(getInstanceLayoutSettingsUrl(layoutSetId, instanceId));
 
 export const fetchOptions = (url: string): Promise<AxiosResponse<IRawOption[]> | null> => httpGetRaw<IRawOption[]>(url);
 
