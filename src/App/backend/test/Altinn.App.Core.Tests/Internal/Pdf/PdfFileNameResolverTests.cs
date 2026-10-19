@@ -76,29 +76,47 @@ public class PdfFileNameResolverTests(ITestOutputHelper outputHelper)
         Assert.Equal("My Custom Receipt.pdf", fileName);
     }
 
-    [Fact]
-    public async Task GetFileName_WithCustomFileNameTextResourceKeyThatNoTextHas_ShouldUseDefaultFileName()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task GetFileName_WithMissingOrEmptyCustomText_ShouldThrow(string? customText)
     {
-        var appResources = CreateAppResources([new() { Id = "appName", Value = "Not Really An App" }]);
+        const string customTextResourceKey = "custom.pdf.filename";
+        List<TextResourceElement> texts = [new() { Id = "appName", Value = "Not Really An App" }];
+        if (customText is not null)
+        {
+            texts.Add(new() { Id = customTextResourceKey, Value = customText });
+        }
+        var appResources = CreateAppResources(texts);
         var translationService = CreateTranslationService(appResources);
 
-        string fileName = await PdfFileNameResolver.GetFileName(
-            translationService,
-            CreateDataAccessorMock(appResources).Object,
-            "missing.key"
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            PdfFileNameResolver.GetFileName(
+                translationService,
+                CreateDataAccessorMock(appResources).Object,
+                customTextResourceKey
+            )
         );
 
-        Assert.Equal("Not Really An App.pdf", fileName);
+        Assert.Equal(
+            $"The PDF file name text resource '{customTextResourceKey}' is missing or empty.",
+            exception.Message
+        );
     }
 
     [Fact]
-    public async Task GetFileName_Throws_When_Even_The_Default_File_Name_Is_Empty()
+    public async Task GetFileName_WithEmptyDefaultText_ShouldThrow()
     {
-        var appResources = CreateAppResources([]);
-        var translationService = Mock.Of<ITranslationService>();
+        var appResources = CreateAppResources([new() { Id = BuiltInTextResources.PdfDefaultFileName.Key, Value = "" }]);
+        var translationService = CreateTranslationService(appResources);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             PdfFileNameResolver.GetFileName(translationService, CreateDataAccessorMock(appResources).Object)
+        );
+
+        Assert.Equal(
+            $"The PDF file name text resource '{BuiltInTextResources.PdfDefaultFileName.Key}' is missing or empty.",
+            exception.Message
         );
     }
 

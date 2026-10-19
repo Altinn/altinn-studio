@@ -12,7 +12,7 @@ namespace Altinn.App.Core.Internal.Pdf;
 internal static class PdfFileNameResolver
 {
     /// <summary>
-    /// Gets a sanitized PDF file name from the configured text resource, falling back to the default name.
+    /// Gets a sanitized PDF file name from the configured text resource, or the default resource when none is configured.
     /// Uses the data accessor's language and, for subforms, the specified data element for variables.
     /// </summary>
     public static async Task<string> GetFileName(
@@ -32,24 +32,17 @@ internal static class PdfFileNameResolver
                 : new DataElementIdentifier(subformPdfContext.DataElementId)
         );
 
-        string? fileName = customFileNameTextResourceKey is null
-            ? null
-            : await translationService.TranslateTextKey(customFileNameTextResourceKey, dataAccessor, componentContext);
-
-        // A custom key that no text resource has gets the default file name too
-        if (string.IsNullOrEmpty(fileName))
-        {
-            fileName = await translationService.TranslateTextKey(
-                BuiltInTextResources.PdfDefaultFileName.Key,
-                dataAccessor,
-                componentContext
-            );
-        }
+        string fileNameTextResourceKey = customFileNameTextResourceKey ?? BuiltInTextResources.PdfDefaultFileName.Key;
+        string? fileName = await translationService.TranslateTextKey(
+            fileNameTextResourceKey,
+            dataAccessor,
+            componentContext
+        );
 
         if (string.IsNullOrEmpty(fileName))
         {
             throw new InvalidOperationException(
-                "The default PDF file name is empty, though the translation service has a fallback for it"
+                $"The PDF file name text resource '{fileNameTextResourceKey}' is missing or empty."
             );
         }
 
