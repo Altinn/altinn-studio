@@ -1326,7 +1326,7 @@ response. The default is `true`.
     "updatedAt": "2026-03-19T10:00:05+00:00",
     "executionStartedAt": "2026-03-19T10:00:01+00:00",
     "overallStatus": "Completed",
-    "role": "primary",
+    "role": "Primary",
     "labels": {
         "org": "ttd",
         "app": "my-app",
@@ -1374,7 +1374,7 @@ response. The default is `true`.
 }
 ```
 
-`role` is `primary` or `auxiliary` (see [Primary and auxiliary workflows](#primary-and-auxiliary-workflows)),
+`role` is `Primary` or `Auxiliary` (see [Primary and auxiliary workflows](#primary-and-auxiliary-workflows)),
 derived from the workflow's `isHead` directive and always present. `isHead` is the raw directive, returned
 only when the enqueue request set one; read `role` instead.
 
@@ -1405,7 +1405,7 @@ Supports the following optional query parameters (all repeatable params can be s
 | `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`, `Abandoned`, `Waiting`, `Held`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
 | `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                                                                                                  |
 | `collectionKey` | No         | Filter to a single collection.                                                                                                                                                                                                 |
-| `role`          | No         | Filter by workflow role: `primary` or `auxiliary` (case-insensitive; see [Primary and auxiliary workflows](#primary-and-auxiliary-workflows)). Omit to return both; an unrecognized value returns `400 Bad Request`. |
+| `role`          | No         | Filter by workflow role: `Primary` or `Auxiliary` (case-insensitive; see [Primary and auxiliary workflows](#primary-and-auxiliary-workflows)). Omit to return both; an unrecognized value returns `400 Bad Request`. |
 | `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                   |
 | `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                                                                                                    |
 | `includeState`  | No         | Include the app's own state payloads (`initialState` and every step's `stateOut`). Defaults to `true`; a status reader with no use for them, such as Studio's admin panel, passes `false`.                                     |
@@ -1439,7 +1439,7 @@ The ops worklist for a collection's failed auxiliary workflows is one call, drai
 engine's adjudication marker for a written-off failure):
 
 ```http
-GET /api/v1/ttd:my-app/workflows?collectionKey={key}&role=auxiliary&status=Failed&status=Canceled&status=DependencyFailed
+GET /api/v1/ttd:my-app/workflows?collectionKey={key}&role=Auxiliary&status=Failed&status=Canceled&status=DependencyFailed
 ```
 
 **Response (200 OK):** a cursor-paginated `PaginatedResponse` wrapping `WorkflowStatusResponse` items (each the same shape as the single workflow GET above). Returns `204 No Content` when no workflows match.
@@ -1604,7 +1604,7 @@ GET /api/v1/{namespace}/collections
 | Parameter  | Repeatable | Description                                                                                                                                                                             |
 | ---------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `key`      | Yes        | Annotate mode: report health for these collection keys. Mutually exclusive with `cursor` and `failures` (400). More distinct keys than `pagination.maxAnnotateKeys` (default 100) → 400 (rejected, never truncated — a dropped key would read as healthy). That cap is deliberately separate from `maxPageSize`: a page size is clamped, a key list is refused. |
-| `failures` | No         | Discover mode: only collections with at least one failed workflow (`Failed`, `Canceled`, `DependencyFailed`; `Abandoned` never matches). `any`, `primary`, or `auxiliary` (case-insensitive). |
+| `failures` | No         | Discover mode: only collections with at least one failed workflow (`Failed`, `Canceled`, `DependencyFailed`; `Abandoned` never matches). `Any`, `Primary`, or `Auxiliary` (case-insensitive). |
 | `cursor`   | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                            |
 | `pageSize` | No         | Items per page. Defaults to 25, clamped to the range 1–100. Ignored in annotate (`key`) mode.                                                                                           |
 

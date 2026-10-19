@@ -250,12 +250,12 @@ export const restoreUrl = () => {
         if (check) check.checked = true;
     }
     const qrole = p.get('qrole');
-    if (qrole === 'primary' || qrole === 'auxiliary') {
+    if (qrole === 'Primary' || qrole === 'Auxiliary') {
         const [primary, auxiliary] = roleCheckIds.map(
             (id) => /** @type {HTMLInputElement | null} */ (document.getElementById(id))
         );
-        if (primary) primary.checked = qrole === 'primary';
-        if (auxiliary) auxiliary.checked = qrole === 'auxiliary';
+        if (primary) primary.checked = qrole === 'Primary';
+        if (auxiliary) auxiliary.checked = qrole === 'Auxiliary';
     }
     const lf = p.get('lf');
     if (lf) {

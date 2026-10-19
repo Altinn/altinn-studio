@@ -64,8 +64,8 @@ public partial class EngineTests
         var auxiliary = await _client.ListWorkflowsPaginated(role: WorkflowRole.Auxiliary);
         var unfiltered = await _client.ListWorkflowsPaginated();
 
-        // Assert — role=primary is not directive equality: it must include the null-directive
-        // workflow (the default for nearly every ordinary workflow), while role=auxiliary matches
+        // Assert — role=Primary is not directive equality: it must include the null-directive
+        // workflow (the default for nearly every ordinary workflow), while role=Auxiliary matches
         // exactly the isHead=false one.
         Assert.Equal(2, primary.TotalCount);
         Assert.Contains(primary.Data, w => w.DatabaseId == byRef["wf-null"]);
