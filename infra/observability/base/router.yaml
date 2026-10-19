@@ -35,6 +35,12 @@ spec:
   terminationGracePeriodSeconds: 120 # 60s above, 30s to shut down, a sidecar's drain, margin
   livenessProbe:
     terminationGracePeriodSeconds: 10 # a failed liveness probe restarts without the 60s drain
+  # The pod's UID, which the Collector's own metrics carry (service.telemetry below).
+  env:
+    - name: POD_UID
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.uid
   config:
     extensions:
       # The operator derives the readiness and liveness probes from this extension, so a pod counts
@@ -244,3 +250,33 @@ spec:
       batch: {}
     service:
       extensions: [health_check]
+      # The Collector's own metrics, such as its exporters' queue sizes and failed sends. Listing
+      # readers replaces the Collector's default one, so the first repeats it: kubectl
+      # port-forward to :8888 still reads them all. The second sends them every 30s into this
+      # router's own receiver over loopback, so they take the path app telemetry takes and get
+      # the same cluster, environment and pod attributes; the gateway's filter/metrics_allowlist
+      # keeps a few of them for Victoria. Each round is one point per series, whatever the points
+      # count, so the router counting its own metrics doesn't make them grow.
+      telemetry:
+        # The inline map, which the Collector logs a warning about, rather than the attributes
+        # list it prefers: the operator (0.151.0) parses only this form, and wherever it applies
+        # its defaults it replaces a telemetry section it cannot parse with them. service.name
+        # tells the router's metrics from the gateway's. k8s_attributes finds this pod by its
+        # UID, as the connection, over loopback here and through Linkerd's proxy for the
+        # gateway, doesn't come from the pod's address.
+        resource:
+          service.name: otel-router
+          k8s.pod.uid: $${env:POD_UID}
+        metrics:
+          readers:
+            - pull:
+                exporter:
+                  prometheus:
+                    host: localhost
+                    port: 8888
+            - periodic:
+                interval: 30000
+                exporter:
+                  otlp:
+                    protocol: http/protobuf
+                    endpoint: http://localhost:4318
