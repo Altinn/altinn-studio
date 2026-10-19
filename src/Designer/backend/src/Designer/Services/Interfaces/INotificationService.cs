@@ -10,6 +10,7 @@ public interface INotificationService
     Task NotifyInternalAsync(
         string org,
         AltinnEnvironment environment,
+        NotificationKind kind,
         NotificationPayload payload,
         CancellationToken cancellationToken
     );
@@ -17,6 +18,7 @@ public interface INotificationService
     Task NotifyServiceOwnersAsync(
         string org,
         AltinnEnvironment environment,
+        NotificationKind kind,
         NotificationPayload payload,
         CancellationToken cancellationToken
     );

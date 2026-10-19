@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace Altinn.Studio.Designer.Telemetry;
 
@@ -51,6 +52,22 @@ internal static partial class ServiceTelemetry
         activity?.SetTag(Attributes.EndUserId, userName);
 
     /// <summary>
+    /// The value of an attribute that holds an enum member: its name in snake_case, the form the semantic
+    /// conventions use for enum values, so that spans and metrics carry the same value.
+    /// </summary>
+    public static string EnumValue<TEnum>(TEnum value)
+        where TEnum : struct, Enum => JsonNamingPolicy.SnakeCaseLower.ConvertName(value.ToString());
+
+    /// <summary>
+    /// The runtime's name for an environment: Designer calls the production environment production, and the
+    /// runtime calls it prod.
+    /// </summary>
+    public static string RuntimeEnvironmentName(string environment) =>
+        environment.Equals(ProductionEnvironment, StringComparison.OrdinalIgnoreCase)
+            ? RuntimeProductionEnvironment
+            : environment.ToLowerInvariant();
+
+    /// <summary>
     /// The type of a Studio repository. Each service owner's shared repositories are {org}-datamodels, {org}-content
     /// and {org}-resources, and every other repository is an app. An app's name may end in the same suffixes, so only
     /// the full name decides.
@@ -66,13 +83,4 @@ internal static partial class ServiceTelemetry
         }
         return AppRepoType;
     }
-
-    /// <summary>
-    /// The runtime's name for an environment: Designer calls the production environment production, and the
-    /// runtime calls it prod.
-    /// </summary>
-    private static string RuntimeEnvironmentName(string environment) =>
-        environment.Equals(ProductionEnvironment, StringComparison.OrdinalIgnoreCase)
-            ? RuntimeProductionEnvironment
-            : environment.ToLowerInvariant();
 }
