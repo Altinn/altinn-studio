@@ -3,7 +3,7 @@
  * Adds support for Inter in addition to Altinn-DIN. We might support both in v9 to enable a smooth transition.
  * Inter is used when <html> has data-font="inter", and its font files are only downloaded when Inter is actually used.
  */
-@import url('https://altinncdn.no/fonts/inter/inter.css');
+@import url('https://altinncdn.no/fonts/inter/v4.1/inter.css');
 
 :root {
   --font-family: 'Altinn-DIN', sans-serif;
