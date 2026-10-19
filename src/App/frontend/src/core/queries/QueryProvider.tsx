@@ -4,7 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 
 import { createContext } from 'src/core/contexts/context';
 import { getQueryClient } from 'src/core/queries/queryClient.queries';
-import type { AppMutations, AppQueries, AppQueriesContext } from 'src/core/queries/legacyTypes';
+import type { AppMutations, AppQueries, AppQueriesContext } from 'src/core/queries/appQueries.types';
 import type { AppQueryClient } from 'src/core/queries/queryClient';
 
 export interface AppQueriesProps extends AppQueriesContext {

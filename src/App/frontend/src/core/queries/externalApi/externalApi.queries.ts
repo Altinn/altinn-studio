@@ -1,7 +1,7 @@
 import { skipToken } from '@tanstack/react-query';
 import type { QueryClient, UseQueryOptions } from '@tanstack/react-query';
 
-import { fetchExternalApi } from 'src/core/api-client/legacy.api';
+import { fetchExternalApi } from 'src/core/api-client/app.api';
 import type { ExternalApiQueries } from 'src/core/queries/externalApi';
 export function getExternalApiQueryDef({
   externalApiId,

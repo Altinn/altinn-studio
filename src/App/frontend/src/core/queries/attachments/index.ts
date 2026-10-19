@@ -4,7 +4,7 @@ import { useIsMutating, useMutation, useMutationState, useQueryClient } from '@t
 import type { AxiosError } from 'axios';
 import type { StoreApi } from 'zustand';
 
-import { doUpdateAttachmentTags } from 'src/core/api-client/legacy.api';
+import { doUpdateAttachmentTags } from 'src/core/api-client/app.api';
 import { attachmentMutationKeys } from 'src/core/queries/attachments/attachment.queries';
 import {
   hasPendingAttachments,
@@ -20,7 +20,7 @@ import { useLaxInstanceId, useOptimisticallyRemoveDataElement } from 'src/featur
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { backendValidationIssueGroupListToObject } from 'src/features/validation';
 import { useUpdateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
-import type { SetTagsRequest } from 'src/core/api-client/legacy.api';
+import type { SetTagsRequest } from 'src/core/api-client/app.api';
 import type { DataPostResponse } from 'src/features/attachments';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { IData } from 'src/types/shared';

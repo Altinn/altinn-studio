@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { doProcessNext, doProcessResume } from 'src/core/api-client/legacy.api';
+import { doProcessNext, doProcessResume } from 'src/core/api-client/app.api';
 import { useUpdateInitialValidations } from 'src/core/queries/backendValidation';
 import { invalidateFormDataQueries } from 'src/core/queries/formData/formData.queries';
 import { useCurrentInstance, useInstanceDataQuery, useInstanceDataQueryArgs } from 'src/core/queries/instance';

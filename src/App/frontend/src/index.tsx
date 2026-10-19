@@ -17,7 +17,7 @@ import 'src/features/toggles';
 
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { backendValidationApi, instanceApi, partyApi, textResourcesApi } from 'src/core/api-client';
-import * as queries from 'src/core/api-client/legacy.api';
+import * as queries from 'src/core/api-client/app.api';
 import { createAppQueryClient } from 'src/core/queries/queryClient';
 import { AppQueriesProvider } from 'src/core/queries/QueryProvider';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';

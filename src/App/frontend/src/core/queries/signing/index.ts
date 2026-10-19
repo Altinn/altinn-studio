@@ -4,7 +4,7 @@ import { useParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
-import { doPerformAction } from 'src/core/api-client/legacy.api';
+import { doPerformAction } from 'src/core/api-client/app.api';
 import { useBackendValidationQuery } from 'src/core/queries/backendValidation';
 import { mutationResult } from 'src/core/queries/mutationResult';
 import { useSigneeList } from 'src/core/queries/signeeList';
