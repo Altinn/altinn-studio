@@ -137,6 +137,7 @@ spec:
     dedup.minScrapeInterval: 1ms
     search.maxConcurrentRequests: "8"
     search.maxMemoryPerQuery: 1GiB
+    search.cacheTimestampOffset: 30m
     deleteAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
     snapshotAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
     forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
