@@ -6,7 +6,7 @@ import { userEvent } from '@testing-library/user-event';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
-import { doPatchMultipleFormData } from 'src/core/api-client/legacy.api';
+import { doPatchMultipleFormData } from 'src/core/api-client/app.api';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';

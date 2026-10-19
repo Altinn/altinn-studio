@@ -7,7 +7,7 @@ import { AxiosResponse } from 'axios';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock, getPartyWithSubunitMock } from 'src/__mocks__/getPartyMock';
-import { doProcessNext } from 'src/core/api-client/legacy.api';
+import { doProcessNext } from 'src/core/api-client/app.api';
 import { ConfirmPage, type IConfirmPageProps } from 'src/features/process/confirm/containers/ConfirmPage';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { maskSsn } from 'src/utils/maskSsn';

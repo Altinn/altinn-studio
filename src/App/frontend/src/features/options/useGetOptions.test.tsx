@@ -17,7 +17,7 @@ import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import type { fetchOptions } from 'src/core/api-client/legacy.api';
+import type { fetchOptions } from 'src/core/api-client/app.api';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { ILayout } from 'src/layout/layout';

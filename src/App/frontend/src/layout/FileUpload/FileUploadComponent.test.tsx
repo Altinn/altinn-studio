@@ -12,7 +12,7 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
-import { doUpdateAttachmentTags } from 'src/core/api-client/legacy.api';
+import { doUpdateAttachmentTags } from 'src/core/api-client/app.api';
 import { DataPostResponse } from 'src/features/attachments';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';

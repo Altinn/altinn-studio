@@ -10,7 +10,7 @@ import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { ProcessTaskType } from 'src/types';
 import { getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 import type { IPresentationProvidedProps } from 'src/components/presentation/Presentation';
-import type { AppQueries } from 'src/core/queries/legacyTypes';
+import type { AppQueries } from 'src/core/queries/appQueries.types';
 
 vi.mock('src/core/routing/useIsReceiptPage', () => ({
   useIsReceiptPage: vi.fn(),

@@ -8,7 +8,7 @@ import { AxiosHeaders } from 'axios';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
-import { doProcessNext } from 'src/core/api-client/legacy.api';
+import { doProcessNext } from 'src/core/api-client/app.api';
 import { useProcessNextOutsideFormProvider } from 'src/core/queries/process/useProcessNext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { InstanceRouter, renderWithDefaultProviders, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -20,8 +20,8 @@ vi.mock('react-toastify', async () => {
   return { ...actual, toast: Object.assign(vi.fn(), actual.toast) };
 });
 
-vi.mock('src/core/api-client/legacy.api', async () => ({
-  ...(await vi.importActual<typeof import('src/core/api-client/legacy.api')>('src/core/api-client/legacy.api')),
+vi.mock('src/core/api-client/app.api', async () => ({
+  ...(await vi.importActual<typeof import('src/core/api-client/app.api')>('src/core/api-client/app.api')),
   doProcessNext: vi.fn(),
 }));
 

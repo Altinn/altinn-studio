@@ -17,7 +17,7 @@ import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ExternalAppUiFolder } from 'src/test/allApps';
 
-vi.mock('src/core/api-client/legacy.api');
+vi.mock('src/core/api-client/app.api');
 vi.mock('src/features/options/useSourceOptions', () => ({
   useSourceOptions: () => [{ label: 'Test option', value: 'test' }],
 }));

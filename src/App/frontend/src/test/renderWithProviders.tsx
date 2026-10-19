@@ -18,7 +18,7 @@ import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloa
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
-import { fetchFormBootstrapForInstance } from 'src/core/api-client/legacy.api';
+import { fetchFormBootstrapForInstance } from 'src/core/api-client/app.api';
 import { ApiProvider } from 'src/core/contexts/ApiProvider';
 import { createTestQueryClient } from 'src/core/queries/queryClient';
 import { AppQueriesProvider } from 'src/core/queries/QueryProvider';
@@ -38,7 +38,7 @@ import type { ApiClients } from 'src/core/api-client/ApiClients';
 import type { BackendValidationApi } from 'src/core/api-client/backendValidation.api';
 import type { InstanceApi } from 'src/core/api-client/instance.api';
 import type { PartyApi } from 'src/core/api-client/party.api';
-import type { AppMutations, AppQueries, AppQueriesContext } from 'src/core/queries/legacyTypes';
+import type { AppMutations, AppQueries, AppQueriesContext } from 'src/core/queries/appQueries.types';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';

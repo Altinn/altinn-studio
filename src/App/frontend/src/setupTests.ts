@@ -18,9 +18,9 @@ import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { GlobalData } from 'src/GlobalData';
+import type { doProcessNext, doUpdateAttachmentTags } from 'src/core/api-client/app.api';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
-import type { doProcessNext, doUpdateAttachmentTags } from 'src/core/api-client/legacy.api';
-import type { AppQueries } from 'src/core/queries/legacyTypes';
+import type { AppQueries } from 'src/core/queries/appQueries.types';
 
 import 'src/index.css';
 import 'src/styles/shared.css';
@@ -180,8 +180,8 @@ testingLibraryConfigure({
   asyncUtilTimeout: env.parsed?.WAITFOR_TIMEOUT ? parseInt(env.parsed.WAITFOR_TIMEOUT, 10) : 15000,
 });
 
-vi.mock('src/core/api-client/legacy.api', async () => ({
-  ...(await vi.importActual<AppQueries>('src/core/api-client/legacy.api')),
+vi.mock('src/core/api-client/app.api', async () => ({
+  ...(await vi.importActual<AppQueries>('src/core/api-client/app.api')),
   doProcessNext: vi.fn<typeof doProcessNext>(
     async () => ({ data: getInstanceWithProcessMock() }) as AxiosResponse<IInstanceWithProcess>,
   ),
