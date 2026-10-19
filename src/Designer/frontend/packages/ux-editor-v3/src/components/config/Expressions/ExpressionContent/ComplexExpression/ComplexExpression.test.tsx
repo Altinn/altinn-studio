@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import {
   internalParsableComplexExpression,
@@ -12,9 +12,6 @@ import { stringifyData } from '../../../../../utils/jsonUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('ComplexExpression', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
   it('displays textArea with complex expression as value', () => {
     render({});
     const complexExpression = screen.getByRole('textbox');

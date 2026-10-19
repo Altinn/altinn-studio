@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { StudioCodeListEditorWithTextResourcesProps } from './StudioCodeListEditorWithTextResources';
@@ -65,8 +65,6 @@ const codeListWithDuplicatedValues: CodeListWithTextResources = [
 const numberOfHeadingRows = 1;
 
 describe('StudioCodeListEditorWithTextResources', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders a group element with the given title', () => {
     renderCodeListEditor();
     expect(screen.getByRole('group', { name: texts.codeList })).toBeInTheDocument();

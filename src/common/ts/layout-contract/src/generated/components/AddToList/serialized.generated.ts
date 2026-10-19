@@ -2,20 +2,17 @@ import {
   ComponentBase,
   FormComponentProps,
   IRawDataModelBinding,
-  SummarizableComponentProps,
   TRBFormComp,
-  TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export type CompAddToListSerialized = {
   type: 'AddToList';
-  textResourceBindings?: TRBFormComp & TRBSummarizable;
+  textResourceBindings?: TRBFormComp;
   title: string;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: { data: IRawDataModelBinding };
 } & ComponentBase &
-  FormComponentProps &
-  SummarizableComponentProps;
+  FormComponentProps;
 
-// Source hash: d6599fb4063544b75ee0e5e4eb6c2a7cc3390cfb4f32cf3d60f18d5ae4d06c96
+// Source hash: 05db9acdac5c440c07c710a00be9228993884b93058c48d688dc0d9c1a1c9fd1

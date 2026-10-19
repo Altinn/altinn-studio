@@ -195,7 +195,7 @@ public sealed class SemanticDetectionTests : IDisposable
     // --- LegacyEFormidlingCodeDetector -----------------------------------------------------------
 
     [Fact]
-    public void EFormidling_OverloadResolution_SeparatesRemovedFromSurviving()
+    public void EFormidling_CallsToEitherInstanceOverload_AreReported()
     {
         _app.Write(
             "logic/Shipments.cs",
@@ -216,11 +216,11 @@ public sealed class SemanticDetectionTests : IDisposable
 
         var semantic = new LegacyEFormidlingCodeDetector(SemanticScanner()).Detect();
 
-        // Only the one-argument call on line 8 is the removed overload; the two-argument call on
-        // line 9 survives in v9 and must not be reported.
+        // v9 removed both overloads that take an instance: its method takes the data accessor first.
         var callLines = semantic.Warnings.Where(static w => w.Contains("Shipments.cs:")).ToList();
-        Assert.Single(callLines);
-        Assert.Contains("Shipments.cs:8: SendEFormidlingShipment", callLines[0]);
+        Assert.Equal(2, callLines.Count);
+        Assert.Contains(callLines, static w => w.Contains("Shipments.cs:8: SendEFormidlingShipment"));
+        Assert.Contains(callLines, static w => w.Contains("Shipments.cs:9: SendEFormidlingShipment"));
     }
 
     [Fact]

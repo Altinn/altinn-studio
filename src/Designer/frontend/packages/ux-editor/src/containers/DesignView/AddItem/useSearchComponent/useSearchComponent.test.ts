@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useSearchComponent } from './useSearchComponent';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { IToolbarElement } from '../../../../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { renderHookWithProviders } from '../../../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import type { TestCase } from './types';
@@ -69,7 +69,6 @@ vi.useFakeTimers();
 describe('useSearchComponent', () => {
   afterEach(() => {
     vi.clearAllTimers();
-    vi.clearAllMocks();
   });
 
   describe('Initial state', () => {

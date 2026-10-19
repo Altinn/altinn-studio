@@ -46,6 +46,10 @@ export class GenerateUnion<U extends CodeGenerator<any>[]> extends DescribableCo
     return this.types;
   }
 
+  protected getChildren(): readonly CodeGenerator<unknown>[] {
+    return this.types;
+  }
+
   expressionDescriptors(): ExpressionDescriptorEntry[] {
     const expressions = this.types.filter((type) => type instanceof GenerateExpressionOr);
     const others = this.types.filter((type) => !(type instanceof GenerateExpressionOr));

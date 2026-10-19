@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { Elements } from './Elements';
 import { renderWithProviders } from '../../testing/mocks';
@@ -30,10 +30,6 @@ const seedLayoutSets = (layoutSets: UiFolderLayoutSetModel[]): QueryClient => {
 };
 
 describe('Elements', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render', () => {
     expect(renderElements()).toBeTruthy();
   });

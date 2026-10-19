@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import type { ReactNode } from 'react';
 import { act, render } from '@testing-library/react';
@@ -27,10 +27,6 @@ describe('WebSocketSyncWrapper', () => {
 
   afterAll(() => {
     vi.useRealTimers();
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
   });
 
   it('should invalidate queries by environment when a message with environment is received', async () => {

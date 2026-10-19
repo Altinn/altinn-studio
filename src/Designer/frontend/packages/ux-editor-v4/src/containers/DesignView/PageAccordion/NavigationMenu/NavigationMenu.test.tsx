@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   groupsPagesModelMock,
   layout1NameMock,
@@ -37,13 +37,14 @@ vi.mock('react-router-dom', async () => ({
   },
 }));
 
+const menuTitle = 'Alternativer for Side 1';
+
 const defaultProps: NavigationMenuProps = {
   pageName: mockPageName1,
+  title: menuTitle,
 };
 
 describe('NavigationMenu', () => {
-  afterEach(vi.clearAllMocks);
-
   describe('when the pages are in page order configuration', () => {
     it('should toggle the page order using up and down buttons', async () => {
       const user = userEvent.setup();
@@ -131,7 +132,7 @@ describe('NavigationMenu', () => {
   });
 });
 
-const contextMenuTriggerButton = () => screen.getByRole('button', { name: '' });
+const contextMenuTriggerButton = () => screen.getByRole('button', { name: menuTitle });
 const movePageDownButton = () =>
   screen.getByRole('button', { name: textMock('ux_editor.page_menu_down') });
 const movePageUpButton = () =>

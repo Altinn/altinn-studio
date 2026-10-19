@@ -3,13 +3,13 @@
 from collections import defaultdict
 from collections.abc import Mapping
 from typing import Any
-from urllib.parse import urlparse
 
-import requests
 from jsonschema import Draft7Validator, ValidationError
 from referencing import Registry, Resource
 from referencing.exceptions import NoSuchResource
 from referencing.jsonschema import DRAFT7
+
+from ..cdn import fetch_cdn_schema
 
 _EXPRESSION_SCHEMA_FILE_NAME = "expression.schema.v1.json"
 # Stands in for an expression schema that cannot be fetched. The layout schemas
@@ -213,29 +213,6 @@ def load_layout_schema(schema_url: str) -> dict[str, Any]:
         The parsed schema dictionary
     """
     try:
-        # Validate that the URL is from altinncdn.no domain for security
-        parsed_url = urlparse(schema_url)
-        if parsed_url.netloc != "altinncdn.no":
-            raise Exception(
-                f"INVALID_DOMAIN: Schema URL must be from altinncdn.no domain, got: '{parsed_url.netloc}'. "
-                f"Valid example: https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json. "
-                f"This is a security restriction - only official Altinn schemas are supported. "
-                f"DO NOT RETRY with the same URL."
-            )
-
-        # Ensure HTTPS for security
-        if parsed_url.scheme != "https":
-            raise Exception(
-                f"INVALID_PROTOCOL: Schema URL must use HTTPS, got: '{parsed_url.scheme}'. "
-                f"Change the URL to use https:// instead of {parsed_url.scheme}://. "
-                f"DO NOT RETRY with the same URL."
-            )
-
-        response = requests.get(schema_url)
-        response.raise_for_status()
-
-        schema_path = response.json()
-        return schema_path
-
+        return fetch_cdn_schema(schema_url)
     except Exception as e:
         raise Exception(f"Failed to load layout schema: {e!s}") from e

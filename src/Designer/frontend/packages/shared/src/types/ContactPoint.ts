@@ -6,12 +6,17 @@ export type ContactMethod = {
   value: string;
 };
 
+export const reportFrequencies = ['none', 'daily', 'weekly', 'monthly'] as const;
+export type ReportFrequency = (typeof reportFrequencies)[number];
+export const noReportFrequency: ReportFrequency = 'none';
+
 export type ContactPoint = {
   id: string;
   name: string;
   isActive: boolean;
   environments: string[];
   methods: ContactMethod[];
+  reportFrequency: ReportFrequency;
 };
 
 export type ContactPointPayload = Omit<ContactPoint, 'id' | 'methods'> & {

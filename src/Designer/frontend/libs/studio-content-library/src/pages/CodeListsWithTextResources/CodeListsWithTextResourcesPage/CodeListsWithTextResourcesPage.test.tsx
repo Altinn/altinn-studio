@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render } from '@testing-library/react';
 import type { CodeListsWithTextResourcesPageProps } from './CodeListsWithTextResourcesPage';
@@ -39,8 +39,6 @@ const defaultCodeListPageProps: CodeListsWithTextResourcesPageProps = {
 };
 
 describe('CodeListsWithTextResourcesPage', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders the codeList page heading', () => {
     renderCodeListsWithTextResourcesPage();
     const codeListHeading = screen.getByRole('heading', {

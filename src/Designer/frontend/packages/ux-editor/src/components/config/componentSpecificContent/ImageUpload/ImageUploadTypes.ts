@@ -1,6 +1,6 @@
 import type { FormComponentBase } from '@altinn/ux-editor/types/FormComponent';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 export type ExternalCrop = FormItem<ComponentType.ImageUpload>['crop'];
 type CircleCrop = Extract<ExternalCrop, { shape: 'circle' }>;

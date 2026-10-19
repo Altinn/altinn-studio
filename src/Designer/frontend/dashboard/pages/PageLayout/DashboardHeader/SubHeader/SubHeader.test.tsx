@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
@@ -26,10 +26,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('SubHeader', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('initially shows the spinner', () => {
     renderSubHeader();
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();

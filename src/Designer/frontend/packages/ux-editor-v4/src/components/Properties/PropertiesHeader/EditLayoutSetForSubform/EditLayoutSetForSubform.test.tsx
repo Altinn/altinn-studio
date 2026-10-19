@@ -27,7 +27,6 @@ const layoutSetsDefault = [{ id: subformLayoutSetId, type: 'subform' }] as Layou
 
 describe('EditLayoutSetForSubform', () => {
   afterEach(() => {
-    vi.clearAllMocks();
     vi.restoreAllMocks();
   });
 

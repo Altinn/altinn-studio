@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
@@ -80,10 +80,6 @@ const getTriggerButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name: name ?? textMock('top_menu.menu') });
 
 describe('ProfileMenu', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('renders nothing when user data is not loaded', () => {
     renderProfileMenu({ user: null });
     expect(screen.queryByRole('button')).not.toBeInTheDocument();

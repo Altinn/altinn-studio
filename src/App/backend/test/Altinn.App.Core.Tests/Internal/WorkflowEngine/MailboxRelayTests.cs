@@ -155,9 +155,6 @@ public class MailboxRelayTests
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
-            throw new NotSupportedException();
-
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
@@ -672,9 +669,9 @@ public class MailboxRelayTests
             _instanceGuid.ToString("N", CultureInfo.InvariantCulture),
             request.Labels[ProcessNextRequestFactory.ProcessNextInstanceGuidLabel]
         );
-        Assert.Equal("Task_2:0", request.Labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
         Assert.Equal("Task_2", request.Labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
-        Assert.False(request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceIdLabel));
+        Assert.False(request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceTaskLabel));
+        Assert.False(request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceFlowLabel));
 
         StepRequest step = Assert.Single(successor.Steps);
         Assert.Equal($"{ExecuteServiceTask.Key}: {ArchivingReplyIndex}", step.OperationId);
@@ -775,7 +772,6 @@ public class MailboxRelayTests
             _instanceGuid.ToString("N", CultureInfo.InvariantCulture),
             request.Labels[ProcessNextRequestFactory.ProcessNextInstanceGuidLabel]
         );
-        Assert.Equal("Task_2:0", request.Labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
         Assert.Equal("Task_2", request.Labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
 
         ExecuteServiceTaskPayload payload = StepPayload(Assert.Single(receiver.Steps));
@@ -1422,7 +1418,6 @@ public class MailboxRelayTests
             _instanceGuid.ToString("N", CultureInfo.InvariantCulture),
             request.Labels[ProcessNextRequestFactory.ProcessNextInstanceGuidLabel]
         );
-        Assert.Equal("Task_2:0", request.Labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
         Assert.Equal("Task_2", request.Labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
 
         AppWorkflowContext context = request.Context!.Value.Deserialize<AppWorkflowContext>()!;

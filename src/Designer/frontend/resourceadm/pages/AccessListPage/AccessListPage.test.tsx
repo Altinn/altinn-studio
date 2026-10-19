@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AccessListPage } from './AccessListPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -18,8 +18,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('AccessListPage', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should show spinner on load', () => {
     renderAccessListPage();
     expect(screen.getByLabelText(textMock('resourceadm.loading_access_list'))).toBeInTheDocument();

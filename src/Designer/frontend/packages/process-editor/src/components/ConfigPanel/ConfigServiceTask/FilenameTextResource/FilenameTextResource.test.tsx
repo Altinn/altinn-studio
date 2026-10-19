@@ -44,7 +44,6 @@ const filenameButtonName = textMock('process_editor.configuration_panel_pdf_file
 
 describe('FilenameTextResource', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     capturedProps = null;
   });
 

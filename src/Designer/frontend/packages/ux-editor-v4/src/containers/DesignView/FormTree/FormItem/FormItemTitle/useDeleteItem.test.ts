@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../../../../testing/mocks';
 import { useDeleteItem } from './useDeleteItem';
 import type { FormComponent } from '../../../../../types/FormComponent';
@@ -18,8 +18,6 @@ vi.mock('../../../../../hooks/mutations/useDeleteFormComponentMutation', () => (
 }));
 
 describe('useDeleteItem', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Calls component mutation when formItem is a component', () => {
     const view = render(componentMocks[ComponentType.Input]);
     view.current();

@@ -51,7 +51,6 @@ describe('EditOptions', () => {
         textMock('ux_editor.modal_properties_fetch_option_list_ids_error_message'),
       ),
     ).toBeInTheDocument();
-    vi.clearAllMocks();
   });
 });
 

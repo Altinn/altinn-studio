@@ -16,7 +16,6 @@ describe('ConsentBanner', () => {
   const mockDenyAllConsent = vi.fn();
 
   beforeEach(() => {
-    vi.clearAllMocks();
     (consentHooks.useConsentMutation as Mock).mockReturnValue({
       setConsentPreferences: mockSetConsentPreferences,
       denyAllConsent: mockDenyAllConsent,

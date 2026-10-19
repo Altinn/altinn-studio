@@ -7,9 +7,9 @@ from dataclasses import replace
 
 from agents.altinn.app_version import V8_PROFILE, V9_PROFILE, AppVersionProfile
 from agents.core import LoopContext
-from agents.core.tools.altinn_tools import LayoutPropsArgs, LayoutPropsTool
+from agents.core.tools.layout_props_tool import LayoutPropsArgs, LayoutPropsTool
 
-LAYOUT_TOOLS_MODULE = "agents.core.tools.altinn_tools"
+LAYOUT_PROPS_TOOL_MODULE = "agents.core.tools.layout_props_tool"
 
 HEADER_ONLY_SCHEMA = {
     "definitions": {
@@ -38,7 +38,7 @@ def _ctx(profile: AppVersionProfile = V8_PROFILE) -> LoopContext:
 
 
 def _serve_schema(monkeypatch, load_schema) -> None:
-    monkeypatch.setattr(f"{LAYOUT_TOOLS_MODULE}.get_layout_schema", load_schema)
+    monkeypatch.setattr(f"{LAYOUT_PROPS_TOOL_MODULE}.get_layout_schema", load_schema)
 
 
 async def _run_tool(component_type: str, profile: AppVersionProfile = V8_PROFILE):

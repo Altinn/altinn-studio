@@ -1,13 +1,13 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useDeleteFormComponentMutation } from './useDeleteFormComponentMutation';
 import { component2IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '../../testing/componentMocks';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
 
 // Test data:
@@ -25,8 +25,6 @@ vi.mock('bpmn-moddle', () => ({
 }));
 
 describe('useDeleteFormComponentMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Should save layout without deleted component', async () => {
     const { result } = await renderDeleteFormComponentsMutation();
     await result.current.mutateAsync(component2IdMock);
@@ -93,7 +91,7 @@ describe('useDeleteFormComponentMutation', () => {
 const renderDeleteFormComponentsMutation = async () => {
   const getFormLayouts = vi
     .fn()
-    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+    .mockImplementation(() => Promise.resolve<SerializedFormLayoutsResponse>(externalLayoutsMock));
 
   return renderHookWithProviders(
     () => useDeleteFormComponentMutation(org, app, selectedLayoutSet),

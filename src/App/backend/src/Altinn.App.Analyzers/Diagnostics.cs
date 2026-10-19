@@ -120,6 +120,15 @@ public static class Diagnostics
                 + "computes it, so its value never reaches the instance. Point it at one of the app's data types, "
                 + "or remove the entry."
         );
+
+        public static readonly DiagnosticDescriptor AutoDeleteWithDeletionPrevention = Error(
+            "ALTINNAPP0902",
+            Category.Metadata,
+            "autoDeleteOnProcessEnd combined with preventInstanceDeletionForDays",
+            "'autoDeleteOnProcessEnd' deletes the instance when its process ends, but "
+                + "'preventInstanceDeletionForDays' forbids deleting it for {0} days after it is archived, which "
+                + "also happens when the process ends. The app cannot do both. Remove one of the two settings."
+        );
     }
 
     internal static class Process

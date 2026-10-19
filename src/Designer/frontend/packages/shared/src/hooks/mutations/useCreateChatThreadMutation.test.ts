@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-development/test/mocks';
 import { app, org } from '@studio/testing/testids';
@@ -11,8 +11,6 @@ import type { CreateChatThreadPayload } from 'app-shared/types/api';
 const payload: CreateChatThreadPayload = { title: 'My new thread' };
 
 describe('useCreateChatThreadMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Calls createChatThread with correct arguments and payload', async () => {
     const result = renderHookWithProviders()(() => useCreateChatThreadMutation()).renderHookResult
       .result;

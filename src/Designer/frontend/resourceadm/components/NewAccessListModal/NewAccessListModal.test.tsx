@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { useRef } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -30,8 +30,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('NewAccessListModal', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should disable create button when name or id is empty', async () => {
     const user = userEvent.setup();
     await renderAndOpenModal(user);

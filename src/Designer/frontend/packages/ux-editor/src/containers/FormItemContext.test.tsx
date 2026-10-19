@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { FormItemContext, FormItemContextProvider } from './FormItemContext';
@@ -49,8 +49,6 @@ const render = (ChildComponent: React.ElementType) => {
 };
 
 describe('FormItemContext', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should update the form item when calling handleUpdate', async () => {
     render(() => {
       const { formItem, handleUpdate } = React.useContext(FormItemContext);
@@ -58,7 +56,7 @@ describe('FormItemContext', () => {
         <>
           <Button onClick={() => handleUpdate(component1Mock)} />
           <div data-testid='formItem.id'>{formItem?.id}</div>
-          <div data-testid='formItem.itemType'>{formItem?.itemType}</div>
+          <div data-testid='formItem.type'>{formItem?.type}</div>
         </>
       );
     });
@@ -69,7 +67,7 @@ describe('FormItemContext', () => {
       expect(screen.getByTestId('formItem.id')).toHaveTextContent(component1Mock.id),
     );
     await waitFor(() =>
-      expect(screen.getByTestId('formItem.itemType')).toHaveTextContent(component1Mock.itemType),
+      expect(screen.getByTestId('formItem.type')).toHaveTextContent(component1Mock.type),
     );
   });
 
@@ -81,7 +79,7 @@ describe('FormItemContext', () => {
           <Button onClick={() => handleEdit(component1Mock)} />
           <div data-testid='formItemId'>{formItemId}</div>
           <div data-testid='formItem.id'>{formItem?.id}</div>
-          <div data-testid='formItem.itemType'>{formItem?.itemType}</div>
+          <div data-testid='formItem.type'>{formItem?.type}</div>
         </>
       );
     });
@@ -95,7 +93,7 @@ describe('FormItemContext', () => {
       expect(screen.getByTestId('formItem.id').textContent).toEqual(component1Mock.id),
     );
     await waitFor(() =>
-      expect(screen.getByTestId('formItem.itemType').textContent).toEqual(component1Mock.itemType),
+      expect(screen.getByTestId('formItem.type').textContent).toEqual(component1Mock.type),
     );
   });
 
@@ -107,7 +105,7 @@ describe('FormItemContext', () => {
           <Button onClick={() => handleDiscard()} />
           <div data-testid='formItemId'>{formItemId}</div>
           <div data-testid='formItem.id'>{formItem?.id}</div>
-          <div data-testid='formItem.itemType'>{formItem?.itemType}</div>
+          <div data-testid='formItem.type'>{formItem?.type}</div>
         </>
       );
     });
@@ -116,7 +114,7 @@ describe('FormItemContext', () => {
 
     await waitFor(() => expect(screen.getByTestId('formItemId').textContent).toBe(''));
     await waitFor(() => expect(screen.getByTestId('formItem.id').textContent).toBe(''));
-    await waitFor(() => expect(screen.getByTestId('formItem.itemType').textContent).toBe(''));
+    await waitFor(() => expect(screen.getByTestId('formItem.type').textContent).toBe(''));
   });
 
   it('should save the container when calling handleSave', async () => {

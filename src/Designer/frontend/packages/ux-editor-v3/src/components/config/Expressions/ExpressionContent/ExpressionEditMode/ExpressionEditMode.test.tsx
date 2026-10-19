@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -33,9 +33,6 @@ const layouts: IFormLayouts = {
 };
 
 describe('ExpressionEditMode', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
   it('renders the expression in edit mode with saveButton when complex expression is not set', () => {
     render({});
 

@@ -69,7 +69,6 @@ vi.useFakeTimers();
 describe('useSearchComponent', () => {
   afterEach(() => {
     vi.clearAllTimers();
-    vi.clearAllMocks();
   });
 
   describe('Initial state', () => {

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
@@ -13,8 +13,6 @@ import { app, org } from '@studio/testing/testids';
 const selectedLayoutSet = layoutSet1NameMock;
 
 describe('useUpdateLayoutOrderMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Moves layout down when direction is set to "down"', async () => {
     await renderAndWaitForData();
 

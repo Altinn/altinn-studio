@@ -41,7 +41,7 @@ public class ExpressionsExclusiveGatewayTests
     }
 
     [Fact]
-    public async Task FilterAsync_NoExpressions_ReturnsAllFlows()
+    public async Task Filter_NoExpressions_ReturnsAllFlows()
     {
         // Arrange
         List<DataType> dataTypes = new List<DataType>()
@@ -81,7 +81,7 @@ public class ExpressionsExclusiveGatewayTests
         var (gateway, dataAccessor) = SetupExpressionsGateway(instance, dataTypes: dataTypes, formData: data);
 
         // Act
-        var result = await gateway.FilterAsync(outgoingFlows, instance, dataAccessor, processGatewayInformation);
+        var result = await gateway.Filter(outgoingFlows, instance, dataAccessor, processGatewayInformation);
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -90,7 +90,7 @@ public class ExpressionsExclusiveGatewayTests
     }
 
     [Fact]
-    public async Task FilterAsync_Expression_filters_based_on_action()
+    public async Task Filter_Expression_filters_based_on_action()
     {
         // Arrange
         List<DataType> dataTypes = new List<DataType>()
@@ -129,7 +129,7 @@ public class ExpressionsExclusiveGatewayTests
         var (gateway, dataAccessor) = SetupExpressionsGateway(instance, dataTypes, formData: data);
 
         // Act
-        var result = await gateway.FilterAsync(outgoingFlows, instance, dataAccessor, processGatewayInformation);
+        var result = await gateway.Filter(outgoingFlows, instance, dataAccessor, processGatewayInformation);
 
         // Assert
         Assert.Single(result);
@@ -137,7 +137,7 @@ public class ExpressionsExclusiveGatewayTests
     }
 
     [Fact]
-    public async Task FilterAsync_InstanceWithoutDataList_EvaluatesTheConditions()
+    public async Task Filter_InstanceWithoutDataList_EvaluatesTheConditions()
     {
         // While an instance is created, the gateway after the start event is evaluated on the instance template.
         var outgoingFlows = new List<SequenceFlow>
@@ -157,13 +157,13 @@ public class ExpressionsExclusiveGatewayTests
 
         var (gateway, dataAccessor) = SetupExpressionsGateway(instance, dataTypes: []);
 
-        var result = await gateway.FilterAsync(outgoingFlows, instance, dataAccessor, processGatewayInformation);
+        var result = await gateway.Filter(outgoingFlows, instance, dataAccessor, processGatewayInformation);
 
         Assert.Equal("1", Assert.Single(result).Id);
     }
 
     [Fact]
-    public async Task FilterAsync_Expression_filters_based_on_datamodel_set_by_layoutset()
+    public async Task Filter_Expression_filters_based_on_datamodel_set_by_layoutset()
     {
         // Arrange
         List<DataType> dataTypes = new List<DataType>()
@@ -213,7 +213,7 @@ public class ExpressionsExclusiveGatewayTests
         );
 
         // Act
-        var result = await gateway.FilterAsync(outgoingFlows, instance, dataAccessor, processGatewayInformation);
+        var result = await gateway.Filter(outgoingFlows, instance, dataAccessor, processGatewayInformation);
 
         // Assert
         Assert.Single(result);
@@ -221,7 +221,7 @@ public class ExpressionsExclusiveGatewayTests
     }
 
     [Fact]
-    public async Task FilterAsync_Expression_filters_based_on_datamodel_set_by_gateway()
+    public async Task Filter_Expression_filters_based_on_datamodel_set_by_gateway()
     {
         // Arrange
         List<DataType> dataTypes = new List<DataType>()
@@ -270,7 +270,7 @@ public class ExpressionsExclusiveGatewayTests
         );
 
         // Act
-        var result = await gateway.FilterAsync(outgoingFlows, instance, dataAccessor, processGatewayInformation);
+        var result = await gateway.Filter(outgoingFlows, instance, dataAccessor, processGatewayInformation);
 
         // Assert
         Assert.Single(result);

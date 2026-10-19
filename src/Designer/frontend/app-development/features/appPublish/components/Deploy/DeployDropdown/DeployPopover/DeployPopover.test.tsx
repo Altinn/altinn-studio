@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { DEPLOY_EVENT_NAME, DeployPopover, type DeployPopoverProps } from './DeployPopover';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -46,10 +46,6 @@ const defaultProps: DeployPopoverProps = {
 };
 
 describe('DeployPopover', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render the deploy button with the correct text', () => {
     renderDeployPopover();
     expect(

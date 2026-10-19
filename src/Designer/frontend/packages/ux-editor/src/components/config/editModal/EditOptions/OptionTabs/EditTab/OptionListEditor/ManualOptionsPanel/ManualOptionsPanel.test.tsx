@@ -1,10 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { componentMocks } from '../../../../../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../../../../../../../testing/mocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ITextResources } from 'app-shared/types/global';
 import userEvent from '@testing-library/user-event';
 import { ManualOptionsPanel, type ManualOptionsPanelProps } from './ManualOptionsPanel';
@@ -22,8 +22,6 @@ const textResources: ITextResources = {
 };
 
 describe('ManualOptionsPanel', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render the open Dialog button', () => {
     renderManualOptionsEditor();
     expect(getEditButton()).toBeInTheDocument();

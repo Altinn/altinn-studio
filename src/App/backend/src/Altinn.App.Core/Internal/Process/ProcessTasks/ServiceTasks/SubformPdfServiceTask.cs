@@ -26,6 +26,41 @@ internal sealed class SubformPdfServiceTask(
 {
     public string Type => "subformPdf";
 
+    /// <inheritdoc />
+    public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context)
+    {
+        AltinnSubformPdfConfiguration? config = processReader
+            .GetAltinnTaskExtension(context.TaskId)
+            ?.SubformPdfConfiguration;
+        if (config is null)
+        {
+            return ["A subformPdf task has no <altinn:subformPdfConfig> element."];
+        }
+
+        ValidAltinnSubformPdfConfiguration validConfig;
+        try
+        {
+            validConfig = config.Validate();
+        }
+        catch (ApplicationConfigException e)
+        {
+            return [e.Message];
+        }
+
+        // Execute generates a PDF for each data element of this type, and Storage only holds data elements
+        // whose type is declared in applicationmetadata.json, so an undeclared type silently generates nothing.
+        if (!context.ApplicationMetadata.DataTypes.Exists(dataType => dataType.Id == validConfig.SubformDataTypeId))
+        {
+            return
+            [
+                $"Task generates PDFs for subform data type '{validConfig.SubformDataTypeId}', "
+                    + "which does not exist in applicationmetadata.json.",
+            ];
+        }
+
+        return [];
+    }
+
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
         string taskId = context.InstanceDataMutator.Instance.Process.CurrentTask.ElementId;

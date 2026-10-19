@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { ColumnElement, type ColumnElementProps } from './ColumnElement';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -12,6 +12,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { subformLayoutMock } from '../../../../testing/subformLayoutMock';
 import { convertDataBindingToInternalFormat } from '@altinn/ux-editor/utils/dataModelUtils';
+import { getTextResourceId } from '@altinn/ux-editor/utils/textResourceUtils';
 
 const headerContentMock: string = 'Header';
 const cellContentQueryMock: string = 'Query';
@@ -40,10 +41,6 @@ const defaultProps: ColumnElementProps = {
 };
 
 describe('ColumnElement', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should call onChange with component values when selecting component', async () => {
     const onChangeMock = vi.fn();
 
@@ -51,7 +48,7 @@ describe('ColumnElement', () => {
     renderColumnElement({
       onChange: onChangeMock,
       tableColumn: {
-        headerContent: subformLayoutMock.component4.textResourceBindings.title,
+        headerContent: getTextResourceId(subformLayoutMock.component4.textResourceBindings.title),
         cellContent: { query: addressDataField },
       },
     });

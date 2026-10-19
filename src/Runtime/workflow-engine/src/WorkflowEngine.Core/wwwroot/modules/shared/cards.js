@@ -118,8 +118,8 @@ const buildTimestampsHTML = (wf, isStatic) => {
  * not dumped again as raw value segments.
  */
 const HANDLED_LABEL_KEYS = new Set([
-    'processNextSourceId',
-    'processNextTargetId',
+    'processNextSourceTask',
+    'processNextSourceFlow',
     'processNextTargetTask',
     'processNextInstanceGuid',
 ]);

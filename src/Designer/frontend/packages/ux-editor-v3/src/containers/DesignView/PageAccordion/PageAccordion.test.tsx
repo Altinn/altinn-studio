@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import type { PageAccordionProps } from './PageAccordion';
@@ -53,8 +53,6 @@ const defaultProps: PageAccordionProps = {
 };
 
 describe('PageAccordion', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Calls "onClick" when the accordion is clicked', async () => {
     const user = userEvent.setup();
     await render();

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -15,6 +15,7 @@ const defaultChannel: SlackChannel = {
   webhookUrl: '',
   isActive: true,
   environments: [],
+  reportFrequency: 'none',
 };
 
 const validChannel: SlackChannel = {
@@ -22,6 +23,7 @@ const validChannel: SlackChannel = {
   webhookUrl: 'https://hooks.slack.com/services/T00/B00/abc123',
   isActive: true,
   environments: [],
+  reportFrequency: 'none',
 };
 
 type RenderProps = {
@@ -62,10 +64,12 @@ const getWebhookUrlInput = () =>
   screen.getByRole('textbox', {
     name: `${textMock('settings.orgs.contact_points.field_webhook_url')}${textMock('general.required')}`,
   });
+const getReportFrequencySelect = () =>
+  screen.getByRole('combobox', {
+    name: textMock('settings.orgs.contact_points.field_report_frequency'),
+  });
 
 describe('SlackChannelDialog', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('renders the add title when not editing', () => {
     renderSlackChannelDialog();
     expect(
@@ -107,6 +111,17 @@ describe('SlackChannelDialog', () => {
     expect(queriesMock.addContactPoint).toHaveBeenCalledWith(
       org,
       expect.objectContaining({ name: '#general' }),
+    );
+  });
+
+  it('saves the selected report frequency', async () => {
+    const user = userEvent.setup();
+    renderSlackChannelDialog({ initialValue: validChannel });
+    await user.selectOptions(getReportFrequencySelect(), 'daily');
+    await user.click(getAddButton());
+    expect(queriesMock.addContactPoint).toHaveBeenCalledWith(
+      org,
+      expect.objectContaining({ reportFrequency: 'daily' }),
     );
   });
 

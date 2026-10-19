@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -78,10 +78,6 @@ const renderMakeCopyModal = (
 };
 
 describe('MakeCopyModal', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   test('successfully adds the values and submits the copy of a new application', async () => {
     const user = userEvent.setup();
     renderMakeCopyModal();

@@ -18,6 +18,7 @@ public sealed class ApplicationMetadataAnalyzer : DiagnosticAnalyzer
             Diagnostics.Deprecations.LegacyEFormidling,
             Diagnostics.Metadata.DuplicateFieldId,
             Diagnostics.Metadata.UnknownFieldDataType,
+            Diagnostics.Metadata.AutoDeleteWithDeletionPrevention,
         ];
 
     public override void Initialize(AnalysisContext context)
@@ -49,6 +50,11 @@ public sealed class ApplicationMetadataAnalyzer : DiagnosticAnalyzer
             diagnostics
         );
         MetadataFieldUtils.CollectFieldDiagnostics(
+            appMetadataFiles[0],
+            compilationContext.CancellationToken,
+            diagnostics
+        );
+        ProcessEndDeletionUtils.CollectDiagnostics(
             appMetadataFiles[0],
             compilationContext.CancellationToken,
             diagnostics

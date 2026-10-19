@@ -5,7 +5,8 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import regex
-import requests
+
+from ..cdn import fetch_cdn_schema
 
 with warnings.catch_warnings():
     # RefResolver is deprecated in jsonschema, but we still rely on it here.
@@ -41,9 +42,7 @@ class BaseValidator(ABC):
     def _load_schema(self) -> dict[str, Any]:
         """Load schema from URL"""
         try:
-            response = requests.get(self.schema_url, timeout=10)
-            response.raise_for_status()
-            return response.json()
+            return fetch_cdn_schema(self.schema_url)
         except Exception as e:
             raise Exception(f"Failed to load schema from {self.schema_url}: {e}") from e
 

@@ -1,8 +1,8 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { EditImage } from './EditImage';
 import type { FormItem } from '../../../../types/FormItem';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../testing/mocks';
@@ -19,9 +19,6 @@ const handleComponentChangeMock = vi.fn();
 const imageComponentMock = componentMocks[ComponentType.Image];
 
 describe('EditImage', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
   it('renders tabs for adding image and for pasting url', () => {
     renderEditImage();
     const { addImageTab, pasteUrlTab } = getTabs();

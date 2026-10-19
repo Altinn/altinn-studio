@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { useOnUnmount } from './useOnUnmount';
 
@@ -10,8 +10,6 @@ const TestComponent = () => {
 };
 
 describe('useOnUnmount', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Calls the function when the component unmounts', () => {
     const { unmount } = render(<TestComponent />);
     expect(unmountFunction).not.toHaveBeenCalled();

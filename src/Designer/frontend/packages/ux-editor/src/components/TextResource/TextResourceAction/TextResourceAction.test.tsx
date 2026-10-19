@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -23,8 +23,6 @@ describe('TextResourceAction', () => {
   const getCancelButton = () => screen.getByRole('button', { name: textMock('general.cancel') });
   const getDeleteButton = () => screen.getByRole('button', { name: textMock('general.delete') });
   const getTextbox = () => screen.getByRole('textbox');
-
-  afterEach(() => vi.clearAllMocks());
 
   it('disables save button when text is unchanged or is empty', async () => {
     const user = userEvent.setup();

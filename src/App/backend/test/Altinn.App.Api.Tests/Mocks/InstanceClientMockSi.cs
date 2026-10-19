@@ -241,20 +241,38 @@ internal sealed class InstanceClientMockSi : IInstanceClient, IInstanceClientWit
     }
 
     // Finds the path for the instance based on instanceId. Only works if guid is unique.
+    // Probes the fixed [org/app/partyId/instance.json] layout instead of enumerating the whole
+    // instances tree: a recursive enumeration descends into the data folders of other instances,
+    // which tests running in parallel may be deleting at the same time (fails on Windows).
     private static string GetInstancePath(int instanceOwnerPartyId, Guid instanceGuid)
     {
-        string[] paths = Directory.GetFiles(
-            TestData.GetInstancesDirectory(),
-            instanceGuid + ".json",
-            SearchOption.AllDirectories
-        );
-        paths = paths.Where(p => p.Contains($"{instanceOwnerPartyId}")).ToArray();
-        if (paths.Length == 1)
+        string fileName = $"{instanceGuid}.json";
+        string partyId = instanceOwnerPartyId.ToString();
+        foreach (string org in Directory.GetDirectories(TestData.GetInstancesDirectory()))
         {
-            return paths.First();
+            foreach (string app in Directory.GetDirectories(org))
+            {
+                string path = Path.Join(app, partyId, fileName);
+                if (File.Exists(path))
+                {
+                    return path;
+                }
+            }
         }
 
         return string.Empty;
+    }
+
+    // Lists the instance files [org/app/partyId/instance.json] the given number of levels below a
+    // directory without descending into the instance data folders (see GetInstancePath).
+    private static IEnumerable<string> GetInstanceFiles(string directory, int depth)
+    {
+        if (depth == 1)
+        {
+            return Directory.EnumerateFiles(directory, "*.json", SearchOption.TopDirectoryOnly);
+        }
+
+        return Directory.EnumerateDirectories(directory).SelectMany(d => GetInstanceFiles(d, depth - 1));
     }
 
     private static string GetInstancePath(string app, string org, int instanceOwnerId, Guid instanceId)
@@ -651,13 +669,8 @@ internal sealed class InstanceClientMockSi : IInstanceClient, IInstanceClientWit
 
         if (Directory.Exists(instancesPath))
         {
-            string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
-            int instancePathLenght = instancesPath.Split(Path.DirectorySeparatorChar).Length;
-
             // only parse files at the correct level. Instances are places four levels [org/app/partyId/instance] below instance path.
-            List<string> instanceFiles = files
-                .Where(f => f.Split(Path.DirectorySeparatorChar).Length == (instancePathLenght + fileDepth))
-                .ToList();
+            List<string> instanceFiles = GetInstanceFiles(instancesPath, fileDepth).ToList();
 
             foreach (var file in instanceFiles)
             {

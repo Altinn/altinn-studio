@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -28,8 +28,6 @@ const subformComponents: SubformComponent[] = [
 const saveSubformPdfComponent = vi.fn().mockResolvedValue(subformComponents);
 
 describe('useSaveSubformPdfComponentMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('sends the source component and target layout set', async () => {
     const { result } = renderHookWithProviders(() => useSaveSubformPdfComponentMutation(org, app), {
       queries: { saveSubformPdfComponent },

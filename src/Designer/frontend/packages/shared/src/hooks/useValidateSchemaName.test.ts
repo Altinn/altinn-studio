@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { DATA_MODEL_NAME_MAX_LENGTH, useValidateSchemaName } from './useValidateSchemaName';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { act, renderHook } from '@testing-library/react';
@@ -10,10 +10,6 @@ const dataModelNames = [existingModelName];
 const dataTypeNames = [existingDataTypeName, existingModelName];
 
 describe('useValidateSchemaName', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should set nameError to empty string when name is valid', () => {
     const { result } = renderUseValidateSchemaName();
 

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { TopToolbarProps } from './TopToolbar';
 import { TopToolbar } from './TopToolbar';
 import { screen } from '@testing-library/react';
@@ -59,8 +59,6 @@ const renderToolbar = (
 };
 
 describe('TopToolbar', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders the top toolbar', () => {
     renderToolbar();
     const topToolbar = screen.getByRole('toolbar');

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IEditFormContainerProps } from './EditFormContainer';
@@ -54,8 +54,6 @@ const nonEditableContainers = [accordionContainer, accordionGroupContainer, butt
 const handleContainerUpdateMock = vi.fn();
 
 describe('EditFormContainer', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render the component', async () => {
     await render();
 

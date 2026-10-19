@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from 'dashboard/testing/mocks';
 import { useTaskNavigationGroupName } from './useTaskNavigationGroupName';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
@@ -19,10 +19,6 @@ const mockTask = {
 };
 
 describe('useTaskNames', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should return task name and id', () => {
     const { result } = renderUseTaskNames(mockTask);
     expect(result.current.taskNavigationName).toBe('Test Task');

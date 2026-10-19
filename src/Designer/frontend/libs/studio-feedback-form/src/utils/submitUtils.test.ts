@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mocked } from 'vitest';
 import axios from 'axios';
 import { submitFeedback } from './submitUtils';
@@ -7,8 +7,6 @@ vi.mock('axios');
 var mockedAxios = axios as Mocked<typeof axios>;
 
 describe('submitFeedback', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should submit feedback', async () => {
     const answers = { question1: 'answer1' };
     const path = 'path';

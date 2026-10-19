@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { Elements } from './Elements';
 import { renderWithProviders } from '../../testing/mocks';
@@ -22,10 +22,6 @@ vi.mock('../../hooks/useGetLayoutSetByName', () => ({
 const mockUseCustomReceiptLayoutSetName = vi.mocked(useCustomReceiptLayoutSetName);
 
 describe('Elements', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render', () => {
     expect(renderElements()).toBeTruthy();
   });

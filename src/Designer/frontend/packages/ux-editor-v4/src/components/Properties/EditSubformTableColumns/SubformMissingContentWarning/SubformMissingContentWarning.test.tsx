@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
 import { SubformMissingContentWarning } from './SubformMissingContentWarning';
 import { screen } from '@testing-library/react';
@@ -13,10 +13,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('SubformMissingContentWarning', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('renders without crashing', () => {
     renderWithProviders(<SubformMissingContentWarning subformLayoutSetName='' />);
     expect(

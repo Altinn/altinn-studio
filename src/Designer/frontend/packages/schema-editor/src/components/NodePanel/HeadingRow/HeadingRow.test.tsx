@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { HeadingRow } from './HeadingRow';
 import type { HeadingRowProps } from './HeadingRow';
 import type { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
@@ -59,8 +59,6 @@ vi.mock('./HeadingRow.module.css', () => ({
 }));
 
 describe('HeadingRow', () => {
-  afterEach(vi.clearAllMocks);
-
   describe('When no type is selected', () => {
     it('Renders a level one heading with the name of the data model', () => {
       renderHeadingRow();

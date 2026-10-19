@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SubExpressionContentProps } from './SubExpressionContent';
@@ -28,9 +28,6 @@ const layouts: IFormLayouts = {
 };
 
 describe('SubExpressionContent', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
   it('renders function select when subExpression does not have function set', () => {
     render({
       props: {

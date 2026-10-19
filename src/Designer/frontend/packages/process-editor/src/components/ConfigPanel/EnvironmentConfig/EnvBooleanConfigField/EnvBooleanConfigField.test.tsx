@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { render, screen, within } from '@testing-library/react';
@@ -19,8 +19,6 @@ const yesLabel = textMock('general.yes');
 const noLabel = textMock('general.no');
 
 describe('EnvBooleanConfigField', () => {
-  afterEach(vi.clearAllMocks);
-
   it('reads boolean values regardless of case or surrounding spaces', async () => {
     const user = userEvent.setup();
     renderEnvBooleanConfigField({ entries: [{ value: ' True ' }] });

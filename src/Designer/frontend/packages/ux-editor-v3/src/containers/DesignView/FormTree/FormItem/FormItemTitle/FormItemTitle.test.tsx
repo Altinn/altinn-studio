@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';
 import type { FormComponent } from '../../../../../types/FormComponent';
@@ -16,8 +16,6 @@ vi.mock('./useDeleteItem', () => ({
 }));
 
 describe('FormItemTitle', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders children', () => {
     const component = componentMocks[ComponentType.Input];
     const label = 'Test label';

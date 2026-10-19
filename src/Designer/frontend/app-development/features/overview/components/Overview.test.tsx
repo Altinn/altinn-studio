@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import Overview from './Overview';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
@@ -33,9 +33,6 @@ const appNameTextResourceQueries = () => ({
 });
 
 describe('Overview', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
   it('renders the app title from the application metadata', async () => {
     renderOverview({
       getOrgList: orgListQuery(),

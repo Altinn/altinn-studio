@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mocked } from 'vitest';
 import { PostHogAnalyticsProvider } from './analyticsProvider';
 import type { PostHog } from 'posthog-js';
@@ -17,10 +17,6 @@ describe('PostHogAnalyticsProvider', () => {
     } as unknown as Mocked<PostHog>;
 
     provider = new PostHogAnalyticsProvider(mockPostHog);
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
   });
 
   describe('syncConsent', () => {

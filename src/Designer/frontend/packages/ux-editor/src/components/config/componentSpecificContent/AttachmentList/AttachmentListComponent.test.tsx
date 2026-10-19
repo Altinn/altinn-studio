@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { describe, expect, it, vi } from 'vitest';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormAttachmentListComponent } from '../../../../types/FormComponent';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { renderWithProviders } from '../../../../testing/mocks';
@@ -51,7 +51,6 @@ const defaultDataTypes: DataTypeElement[] = [
 const defaultComponent: FormAttachmentListComponent = {
   id: '1',
   type: ComponentType.AttachmentList,
-  itemType: 'COMPONENT',
 };
 
 const handleComponentChange = vi.fn();
@@ -82,10 +81,6 @@ const render = async (
 };
 
 describe('AttachmentListComponent', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render spinner when appMetadata is pending', () => {
     render({}, undefined, defaultLayoutSets, defaultDataTypes, false);
 

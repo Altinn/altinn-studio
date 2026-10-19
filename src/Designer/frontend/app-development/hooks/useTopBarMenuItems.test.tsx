@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { useTopBarMenuItems } from './useTopBarMenuItems';
 import { renderHookWithProviders } from 'app-development/test/mocks';
@@ -14,8 +14,6 @@ vi.mock('app-development/hooks/useIsRepoOwnerOrg', () => ({
 }));
 
 describe('useTopBarMenuItems', () => {
-  afterEach(vi.clearAllMocks);
-
   it('includes the items every app repository has', () => {
     const { result } = renderUseTopBarMenuItems();
 

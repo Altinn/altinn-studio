@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { waitFor, screen } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../../../../../../testing/mocks';
@@ -41,8 +41,6 @@ const defaultProps: ManualOptionsDialogProps = {
 vi.mock('react-router-dom', async () => await vi.importActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 describe('ManualOptionsDialog', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('Renders a dialog', async () => {
     renderCodeListDialog();
     expect(screen.getByRole('dialog', { hidden: true })).toBeInTheDocument();

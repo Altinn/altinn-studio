@@ -31,11 +31,11 @@ public class DefaultAppOptionsProvider : IAppOptionsProvider
     public string Id { get; private set; }
 
     /// <inheritdoc/>
-    public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
+    public async Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
     {
         // This will get static options if it exists
         var appOptionsFileHandler = _appImplementationFactory.GetRequired<IAppOptionsFileHandler>();
-        var appOptions = new AppOptions { Options = await appOptionsFileHandler.ReadOptionsFromFileAsync(Id) };
+        var appOptions = new AppOptions { Options = await appOptionsFileHandler.ReadOptionsFromFile(Id) };
 
         return appOptions;
     }

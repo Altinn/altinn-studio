@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
@@ -64,10 +64,6 @@ const renderProfileMenu = (options: RenderOptions = {}) => {
 };
 
 describe('LargeProfileMenu', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('renders nothing when user data is not loaded', () => {
     renderProfileMenu({ user: null });
     expect(

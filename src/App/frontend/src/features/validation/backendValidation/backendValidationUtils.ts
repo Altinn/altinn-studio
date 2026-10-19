@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { BackendValidationSeverity, BuiltInValidationIssueSources, ValidationMask } from 'src/features/validation';
-import { validationTexts } from 'src/features/validation/backendValidation/validationTexts';
 import type { TextReference } from 'src/features/language/useLanguage';
 import type {
+  BackendComponentValidation,
   BackendFieldValidatorGroups,
   BackendValidationIssue,
   BaseValidation,
@@ -11,6 +11,9 @@ import type {
   FieldValidation,
   ValidationSeverity,
 } from 'src/features/validation';
+
+const emptyObject = {};
+const emptyArray = [];
 
 /**
  * We need to map the severity we get from backend into the format used when storing in redux.
@@ -36,6 +39,35 @@ function isStandardBackend(rawSource: string): boolean {
 }
 
 /**
+ * Builds the indexed id (as used by nodes) of the component the issue is linked to, if any
+ */
+export function getIndexedComponentId(issue: BackendValidationIssue): string | undefined {
+  const { componentId, rowIndexes } = issue;
+  if (!componentId) {
+    return undefined;
+  }
+  return rowIndexes?.length ? `${componentId}-${rowIndexes.join('-')}` : componentId;
+}
+
+/**
+ * Identify category (visibility mask)
+ * Standard validation sources should use the Backend mask
+ * Custom backend validations should use the CustomBackend mask
+ */
+function getBackendValidationCategory(issue: BackendValidationIssue): number {
+  if (isStandardBackend(issue.source) || issue.noIncrementalUpdates) {
+    return ValidationMask.Backend;
+  }
+  if (issue.showImmediately) {
+    return 0;
+  }
+  if (issue.actLikeRequired) {
+    return ValidationMask.Required;
+  }
+  return ValidationMask.CustomBackend;
+}
+
+/**
  * Extracts field validations from a list of validation issues and assigns the correct data type based on the dataElementId
  * Will skip over any validations that are missing a field and/or dataElementId
  */
@@ -52,42 +84,53 @@ export function mapBackendIssuesToFieldValidations(issues: BackendValidationIssu
       continue;
     }
 
-    const severity = getValidationIssueSeverity(issue);
-    const message = getValidationIssueMessage(issue);
-
-    /**
-     * Identify category (visibility mask)
-     * Standard validation sources should use the Backend mask
-     * Custom backend validations should use the CustomBackend mask
-     */
-    let category: number = ValidationMask.Backend;
-    if (!isStandardBackend(issue.source) && !noIncrementalUpdates) {
-      if (issue.showImmediately) {
-        category = 0;
-      } else if (issue.actLikeRequired) {
-        category = ValidationMask.Required;
-      } else {
-        category = ValidationMask.CustomBackend;
-      }
-    }
-
+    const componentId = getIndexedComponentId(issue);
     fieldValidations.push({
       field,
       dataElementId,
-      severity,
-      message,
-      category,
+      severity: getValidationIssueSeverity(issue),
+      message: getValidationIssueMessage(issue),
+      category: getBackendValidationCategory(issue),
       source,
       noIncrementalUpdates,
       backendValidationId: uuidv4(),
+      ...(componentId ? { componentId } : {}),
     });
   }
 
   return fieldValidations;
 }
 
-const emptyObject = {};
-const emptyArray = [];
+/**
+ * Extracts validations linked to a component, but not to a field validation (missing field and/or dataElementId)
+ */
+export function mapBackendIssuesToComponentValidations(
+  issues: BackendValidationIssue[] | undefined,
+): BackendComponentValidation[] {
+  if (!issues) {
+    return emptyArray;
+  }
+  const componentValidations: BackendComponentValidation[] = [];
+  for (const issue of issues) {
+    const { field, source, noIncrementalUpdates, dataElementId } = issue;
+    const componentId = getIndexedComponentId(issue);
+    if (!componentId || (field && dataElementId)) {
+      continue;
+    }
+
+    componentValidations.push({
+      componentId,
+      ...(dataElementId ? { dataElementId } : {}),
+      severity: getValidationIssueSeverity(issue),
+      message: getValidationIssueMessage(issue),
+      category: getBackendValidationCategory(issue),
+      source,
+      noIncrementalUpdates,
+      backendValidationId: uuidv4(),
+    });
+  }
+  return componentValidations.length ? componentValidations : emptyArray;
+}
 
 export function mapBackendIssuesToTaskValidations(issues: BackendValidationIssue[] | undefined): BaseValidation[] {
   if (!issues) {
@@ -96,7 +139,7 @@ export function mapBackendIssuesToTaskValidations(issues: BackendValidationIssue
   const taskValidations: BaseValidation[] = [];
   for (const issue of issues) {
     const { field, source, noIncrementalUpdates } = issue;
-    if (field) {
+    if (field || issue.componentId) {
       continue;
     }
 
@@ -128,31 +171,18 @@ export function mapBackendValidationsToValidatorGroups(
 }
 
 /**
- * Gets standard validation messages for backend validation issues.
+ * Gets the message to show for a backend validation issue. The text key is translated here when the app or the
+ * language package has it. Otherwise the description, which the backend translates, is shown as it is.
  */
 export function getValidationIssueMessage(issue: BackendValidationIssue): TextReference {
-  if (issue.customTextKey) {
-    return { key: issue.customTextKey, customTextParameters: issue.customTextParameters };
+  const { customTextKey, customTextParameters, description, code } = issue;
+  const fallback = description || code || customTextKey;
+
+  if (customTextKey) {
+    return { key: customTextKey, customTextParameters, fallback };
   }
 
-  if (issue.source && issue.code) {
-    const resource = validationTexts[issue.source]?.[issue.code];
-    if (resource) {
-      return { key: resource };
-    }
-  }
-
-  // Fallback to old behavior if source not set.
-  const legacyText = issue.code;
-  if (legacyText !== issue.code) {
-    return { key: legacyText };
-  }
-
-  if (issue.description) {
-    return { key: issue.description };
-  }
-
-  return { key: issue.source ? `${issue.source}.${issue.code}` : issue.code };
+  return { key: undefined, fallback };
 }
 
 export function mapValidatorGroupsToDataModelValidations(

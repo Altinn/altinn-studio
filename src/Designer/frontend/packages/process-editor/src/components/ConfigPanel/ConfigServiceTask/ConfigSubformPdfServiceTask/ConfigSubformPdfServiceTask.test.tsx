@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -28,8 +28,6 @@ const componentIdLabel = textMock(
 const requiredError = textMock('validation_errors.required');
 
 describe('ConfigSubformPdfServiceTask', () => {
-  afterEach(vi.clearAllMocks);
-
   describe('the component picker', () => {
     it('lists each valid source component once', async () => {
       const user = userEvent.setup();

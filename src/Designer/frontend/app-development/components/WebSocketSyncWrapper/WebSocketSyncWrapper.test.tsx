@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import type { ReactNode } from 'react';
 import { screen, waitFor } from '@testing-library/react';
@@ -21,10 +21,6 @@ vi.mock('app-shared/hooks/useWebSocket', () => ({
 }));
 
 describe('WebSocketSyncWrapper', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should call useWebSocket with the correct parameters', () => {
     (useWebSocket as Mock).mockReturnValue({ onWSMessageReceived: vi.fn() });
     renderWebSocketSyncWrapper();

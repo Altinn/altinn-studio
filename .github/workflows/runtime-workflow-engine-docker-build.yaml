@@ -26,6 +26,7 @@ on:
       - 'src/Runtime/workflow-engine/global.json'
       - 'src/Runtime/workflow-engine-app/Dockerfile'
       - 'src/Runtime/workflow-engine-app/Dockerfile.dockerignore'
+      - 'src/Runtime/workflow-engine-app/global.json'
       - '.github/workflows/runtime-workflow-engine-docker-build.yaml'
   workflow_dispatch:
 

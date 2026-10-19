@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useRequiredParams } from './useRequiredParams';
@@ -15,10 +15,6 @@ type TestParams = {
 };
 
 describe('useRequiredParams', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('returns required single param when present', () => {
     (useParams as Mock).mockReturnValue({ owner: 'ttd' });
 

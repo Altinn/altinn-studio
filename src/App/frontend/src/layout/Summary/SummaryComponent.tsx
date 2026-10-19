@@ -7,7 +7,7 @@ import type { SummaryDisplayProperties } from '@app/layout-contract/generated/co
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { FormStore } from 'src/features/form/FormContext';
-import { Lang } from 'src/features/language/Lang';
+import { Lang, LangReference } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
@@ -162,7 +162,7 @@ const SummaryComponentInner = React.forwardRef(function (
   }
 
   const component = getComponentDef(targetItem.type);
-  const RenderSummary = 'renderSummary' in component ? component.renderSummary.bind(component) : null;
+  const RenderSummary = component.renderSummary?.bind(component) ?? null;
   const shouldShowBorder =
     RenderSummary && 'renderSummaryBoilerplate' in component && component?.renderSummaryBoilerplate();
 
@@ -214,12 +214,7 @@ const SummaryComponentInner = React.forwardRef(function (
               return (
                 <ErrorPaper
                   key={key}
-                  message={
-                    <Lang
-                      id={message.key}
-                      params={message.params}
-                    />
-                  }
+                  message={<LangReference reference={message} />}
                 />
               );
             })}

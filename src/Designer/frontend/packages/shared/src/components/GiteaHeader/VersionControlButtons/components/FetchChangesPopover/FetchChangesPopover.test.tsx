@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { FetchChangesPopover } from './FetchChangesPopover';
 import { screen, waitFor } from '@testing-library/react';
@@ -20,8 +20,6 @@ vi.mock('@studio/hooks/src/hooks/useMediaQuery');
 const mockGetRepoPull = vi.fn();
 
 describe('fetchChanges', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should call invalidateQueries with correct predicate when fetching changes successfully', async () => {
     const user = userEvent.setup();
     const mockInvalidateQueries = vi.fn();
