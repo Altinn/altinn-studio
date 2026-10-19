@@ -12,7 +12,6 @@ export type AssistantTexts = {
   textarea: TextAreaTexts;
   addAttachment: string;
   allowAppChangesSwitch: string;
-  costOrgSelect: string;
   send: string;
   cancel: string;
   assistantFirstMessage: string;

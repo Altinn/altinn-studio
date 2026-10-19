@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { Assistant } from '@studio/assistant';
-import { useAssistant, useAssistantTexts, useCostOrgSelection } from '../hooks';
+import { useAssistant, useAssistantTexts } from '../hooks';
 import { Preview } from './Preview';
 import { FileBrowser } from './FileBrowser';
 import classes from '../AiAssistant.module.css';
@@ -15,7 +15,6 @@ export function AssistantWorkspace(): ReactElement {
   const { mutate: sendChatFeedback } = useChatFeedbackMutation(org, app);
   const { mutate: clearChatFeedback } = useClearChatFeedbackMutation(org, app);
   const texts = useAssistantTexts();
-  const { costOrg, costOrgSelection } = useCostOrgSelection();
 
   const {
     connectionStatus,
@@ -30,7 +29,7 @@ export function AssistantWorkspace(): ReactElement {
     clearCancelledMessageContent,
     selectThread,
     deleteThread,
-  } = useAssistant(costOrg);
+  } = useAssistant();
 
   return (
     <div className={classes.container}>
@@ -55,7 +54,6 @@ export function AssistantWorkspace(): ReactElement {
         previewContent={<Preview />}
         fileBrowserContent={<FileBrowser />}
         currentUser={currentUser}
-        costOrgSelection={costOrgSelection}
       />
     </div>
   );

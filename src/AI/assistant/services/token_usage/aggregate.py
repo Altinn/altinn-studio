@@ -134,10 +134,10 @@ def _get_service_owner_code(trace: Trace) -> str:
 
 
 def _get_repo_owner(trace: Trace, service_owner_code: str) -> str:
-    """The owner of the repository the assistant worked in.
+    """Get the owner of the repository that the assistant worked in.
 
-    It differs from the service owner when a developer works in their own repository
-    and charges the usage to an organization.
+    The owner is different from the service owner when the developer owns the repository.
+    A trace from before Designer sent `repo_owner` does not have this value. Then the owner is the service owner.
     """
     metadata = trace["metadata"] or {}
     return metadata.get("repo_owner") or service_owner_code
@@ -160,7 +160,7 @@ def _get_app_name(trace: Trace) -> str:
 
 
 def _get_service_resource_id(service_owner_code: str, repo_owner: str, app_name: str) -> str | None:
-    # A developer's own repository has no service resource under the service owner.
+    # A repository that a developer owns does not have a service resource for the service owner.
     if service_owner_code == INTERNAL_OWNER_CODE or repo_owner != service_owner_code:
         return None
     rr_app_prefix = "app"

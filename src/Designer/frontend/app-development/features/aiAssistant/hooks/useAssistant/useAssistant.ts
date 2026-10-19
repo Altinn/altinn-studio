@@ -27,7 +27,7 @@ export interface UseAssistantResult {
  * Cohabitates all the callers that the main AiAssistant component needs. Do not add logic to this hook beyond this.
  * TODO: consider exposing useAssistantWorkflow to the caller directly, and deleting this hook.
  */
-export const useAssistant = (costOrg?: string): UseAssistantResult => {
+export const useAssistant = (): UseAssistantResult => {
   const threads = useAssistantThreads();
   const {
     connectionStatus,
@@ -38,7 +38,7 @@ export const useAssistant = (costOrg?: string): UseAssistantResult => {
     cancelledMessageContent,
     clearCancelledMessageContent,
     messages,
-  } = useAssistantWorkflow(threads, costOrg);
+  } = useAssistantWorkflow(threads);
 
   return {
     connectionStatus,

@@ -30,7 +30,6 @@ export const useAssistantTexts = (): AssistantTexts => {
     },
     addAttachment: t('ai_assistant.add_attachment'),
     allowAppChangesSwitch: t('ai_assistant.allow_app_changes'),
-    costOrgSelect: t('ai_assistant.cost_org'),
     send: t('ai_assistant.send'),
     cancel: t('general.cancel'),
     assistantFirstMessage: t('ai_assistant.assistant_first_message'),

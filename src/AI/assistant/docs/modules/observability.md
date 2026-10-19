@@ -16,4 +16,4 @@ flowchart LR
 
 _The shape of one trace._
 
-A thumbs up or down from the user becomes the score `user_feedback` on the trace. Only the developer who owns the trace can set it. A nightly Designer job calls `POST /api/traces/delete-expired`, which deletes traces older than the retention period (`LANGFUSE_TRACE_RETENTION_DAYS`). `GET /api/token-usage/daily` returns the tokens of the day before, for each service owner, in a billing format. The service owner is the trace `user_id`, which is the `cost_org` of the run. The root span metadata `repo_owner` gives the owner of the repository. When the repository owner is not the service owner, the row has no `serviceresourceid` and the title is `repo_owner/app_name`.
+A thumbs up or down from the user becomes the score `user_feedback` on the trace. Only the developer who owns the trace can set it. A nightly Designer job calls `POST /api/traces/delete-expired`, which deletes traces older than the retention period (`LANGFUSE_TRACE_RETENTION_DAYS`). `GET /api/token-usage/daily` returns the tokens of the day before, for each service owner, in a billing format.

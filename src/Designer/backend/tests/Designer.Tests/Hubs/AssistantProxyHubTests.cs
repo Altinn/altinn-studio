@@ -247,14 +247,14 @@ public class AssistantProxyHubTests
             .Setup(e => e.CanUseFeatureAsync(org, It.IsAny<string>()))
             .ReturnsAsync(hasAccess);
         _canUseAiAssistantEvaluatorMock
-            .Setup(e => e.ResolveCostOrgAsync(org, It.IsAny<string>(), null))
+            .Setup(e => e.ResolveCostOrg(org, It.IsAny<string>()))
             .ReturnsAsync(hasAccess ? org : null);
     }
 
-    private void SetupCostOrg(string org, string requestedCostOrg, string resolvedCostOrg)
+    private void SetupCostOrg(string org, string resolvedCostOrg)
     {
         _canUseAiAssistantEvaluatorMock
-            .Setup(e => e.ResolveCostOrgAsync(org, It.IsAny<string>(), requestedCostOrg))
+            .Setup(e => e.ResolveCostOrg(org, It.IsAny<string>()))
             .ReturnsAsync(resolvedCostOrg);
     }
 
@@ -300,12 +300,12 @@ public class AssistantProxyHubTests
     }
 
     [Fact]
-    public async Task StartWorkflow_ForwardsSelectedCostOrg_ForDevelopersOwnRepository()
+    public async Task StartWorkflow_ForwardsResolvedCostOrg_IgnoringCostOrgFromClient()
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestDeveloper, TestApp);
         SetupAssistantAccess(TestDeveloper, hasAccess: true);
-        SetupCostOrg(TestDeveloper, requestedCostOrg: "nfk", resolvedCostOrg: "nfk");
+        SetupCostOrg(TestDeveloper, resolvedCostOrg: "nfk");
         SetupApiKey();
         var hub = CreateHub();
         await hub.RegisterSession(TestDeveloper, TestApp, threadId.ToString());
@@ -316,7 +316,7 @@ public class AssistantProxyHubTests
                 session_id = threadId.ToString(),
                 org = TestDeveloper,
                 app = TestApp,
-                cost_org = "nfk",
+                cost_org = "other-org",
             }
         );
 
@@ -328,12 +328,12 @@ public class AssistantProxyHubTests
     }
 
     [Fact]
-    public async Task StartWorkflow_ThrowsHubException_WhenCostOrgIsNotAllowed()
+    public async Task StartWorkflow_ThrowsHubException_WhenNoCostOrgCanBeResolved()
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestDeveloper, TestApp);
         SetupAssistantAccess(TestDeveloper, hasAccess: true);
-        SetupCostOrg(TestDeveloper, requestedCostOrg: "other-org", resolvedCostOrg: null);
+        SetupCostOrg(TestDeveloper, resolvedCostOrg: null);
         var hub = CreateHub();
         await hub.RegisterSession(TestDeveloper, TestApp, threadId.ToString());
 
@@ -343,7 +343,6 @@ public class AssistantProxyHubTests
                 session_id = threadId.ToString(),
                 org = TestDeveloper,
                 app = TestApp,
-                cost_org = "other-org",
             }
         );
 

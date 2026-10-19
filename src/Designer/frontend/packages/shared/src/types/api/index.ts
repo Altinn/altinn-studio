@@ -1,5 +1,4 @@
 export type * from './AddLanguagePayload';
-export type * from './AssistantCostOrg';
 export type * from './ChatFeedbackPayload';
 export * from './ChatMessage';
 export type * from './ChatThread';

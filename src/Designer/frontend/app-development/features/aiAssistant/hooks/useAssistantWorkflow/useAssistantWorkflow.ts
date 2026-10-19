@@ -49,10 +49,7 @@ export interface UseAssistantWorkflowResult {
   messages: Message[];
 }
 
-export const useAssistantWorkflow = (
-  threads: AssistantThreadState,
-  costOrg?: string,
-): UseAssistantWorkflowResult => {
+export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistantWorkflowResult => {
   const { t } = useTranslation();
   const rejectionTexts: RejectionTexts = useMemo(
     () => ({
@@ -459,7 +456,6 @@ export const useAssistantWorkflow = (
           branch: currentBranch,
           allow_app_changes: allowAppChanges,
           attachments,
-          cost_org: costOrg,
         });
         if (!result.accepted) setWorkflowStatus(threadId, { isActive: false });
         return result;
@@ -468,7 +464,7 @@ export const useAssistantWorkflow = (
         throw error;
       }
     },
-    [app, costOrg, currentBranch, org, startWorkflow, setWorkflowStatus],
+    [app, currentBranch, org, startWorkflow, setWorkflowStatus],
   );
 
   const runWorkflowForSession = useCallback(

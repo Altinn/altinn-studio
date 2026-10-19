@@ -47,8 +47,8 @@ class StartReq(BaseModel):
     # Fail closed: write access is opt-in. A caller that omits the flag
     # gets a read-only (chat mode) session, never silent write access.
     allow_app_changes: bool = False
-    org: str  # Repository owner: an organization, or the developer for their own repository
-    # Organization that pays for the LLM usage. Designer resolves and validates it.
+    org: str  # The owner of the repository. This is an organization or the developer.
+    # The organization that the LLM usage is recorded on. Designer sets this value and makes sure that it is correct.
     cost_org: str
     attachments: list[AttachmentUpload] = Field(default_factory=list)
     experiment: ExperimentContext | None = None

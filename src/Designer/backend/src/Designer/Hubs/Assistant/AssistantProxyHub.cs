@@ -179,10 +179,8 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         string app = ExtractRequiredString(request, "app");
         org.ValidPathSegment(nameof(org));
         app.ValidPathSegment(nameof(app));
-        string? requestedCostOrg = ExtractOptionalString(request, "cost_org");
-        requestedCostOrg?.ValidPathSegment("cost_org");
 
-        string costOrg = await ResolveCostOrgAsync(org, app, requestedCostOrg, developer);
+        string costOrg = await ResolveCostOrg(org, app, developer);
 
         _logger.LogInformation(
             "Starting Assistant workflow for user: {Developer}, session: {SessionId}",
@@ -305,22 +303,6 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         return value;
     }
 
-    private static string? ExtractOptionalString(JsonElement request, string propertyName)
-    {
-        if (!request.TryGetProperty(propertyName, out var element) || element.ValueKind == JsonValueKind.Null)
-        {
-            return null;
-        }
-
-        if (element.ValueKind != JsonValueKind.String)
-        {
-            throw new HubException($"{propertyName} must be a string");
-        }
-
-        string? value = element.GetString();
-        return string.IsNullOrWhiteSpace(value) ? null : value;
-    }
-
     private async Task ValidateAssistantAccessAsync(string org, string app, string developer)
     {
         if (!await _canUseAiAssistantEvaluator.CanUseFeatureAsync(org, app))
@@ -330,17 +312,12 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         }
     }
 
-    private async Task<string> ResolveCostOrgAsync(string org, string app, string? requestedCostOrg, string developer)
+    private async Task<string> ResolveCostOrg(string org, string app, string developer)
     {
-        string? costOrg = await _canUseAiAssistantEvaluator.ResolveCostOrgAsync(org, app, requestedCostOrg);
+        string? costOrg = await _canUseAiAssistantEvaluator.ResolveCostOrg(org, app);
         if (costOrg == null)
         {
-            _logger.LogWarning(
-                "User {Developer} was denied assistant access for org {Org} with cost org {CostOrg}",
-                developer,
-                org,
-                requestedCostOrg
-            );
+            _logger.LogWarning("User {Developer} was denied assistant access for org {Org}", developer, org);
             throw new HubException("Access denied");
         }
 
@@ -386,12 +363,12 @@ public class AssistantProxyHub : Hub<IAssistantClient>
     }
 
     /// <summary>
-    /// Enriches the workflow request with the repository URL built from org and app identifiers,
-    /// and with the validated organization that pays for the workflow's LLM usage
+    /// Adds the repository URL and the cost organization to the workflow request.
+    /// The repository URL comes from the org and app identifiers.
     /// </summary>
     /// <param name="request">The original workflow request</param>
-    /// <param name="costOrg">The resolved cost organization</param>
-    /// <returns>Enriched request with repo_url and cost_org fields</returns>
+    /// <param name="costOrg">The organization that the LLM usage of the workflow is recorded on</param>
+    /// <returns>The request with the repo_url and cost_org fields</returns>
     private JsonElement EnrichRequestWithRepoUrlAndCostOrg(JsonElement request, string costOrg)
     {
         if (!request.TryGetProperty("org", out var orgElement) || !request.TryGetProperty("app", out var appElement))

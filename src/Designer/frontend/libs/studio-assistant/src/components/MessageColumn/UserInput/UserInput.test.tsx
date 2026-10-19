@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { UserInput } from './UserInput';
 import { render, screen } from '@testing-library/react';
 import type { UserInputProps } from './UserInput';
-import type { CostOrgSelection } from '../../../types/CostOrgSelection';
 import { mockTexts } from '../../../mocks/mockTexts';
 import userEvent from '@testing-library/user-event';
 
@@ -53,41 +52,6 @@ describe('UserInput', () => {
     const allowAppChangesSwitch = screen.queryByLabelText(mockTexts.allowAppChangesSwitch);
 
     expect(allowAppChangesSwitch).not.toBeInTheDocument();
-  });
-
-  it('should not render the cost org select without a cost org selection', () => {
-    renderUserInput();
-
-    expect(
-      screen.queryByRole('combobox', { name: mockTexts.costOrgSelect }),
-    ).not.toBeInTheDocument();
-  });
-
-  it('should render the cost org select with the selected organization', () => {
-    renderUserInput({ costOrgSelection: createCostOrgSelection() });
-
-    expect(screen.getByRole('combobox', { name: mockTexts.costOrgSelect })).toHaveValue('ttd');
-    expect(screen.getByRole('option', { name: 'Testdepartementet' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'nfk' })).toBeInTheDocument();
-  });
-
-  it('should call onChange when the user selects another cost org', async () => {
-    const user = userEvent.setup();
-    const costOrgSelection = createCostOrgSelection();
-    renderUserInput({ costOrgSelection });
-
-    await user.selectOptions(
-      screen.getByRole('combobox', { name: mockTexts.costOrgSelect }),
-      'nfk',
-    );
-
-    expect(costOrgSelection.onChange).toHaveBeenCalledWith('nfk');
-  });
-
-  it('should disable the cost org select while a workflow is active', () => {
-    renderUserInput({ costOrgSelection: createCostOrgSelection(), workflowIsActive: true });
-
-    expect(screen.getByRole('combobox', { name: mockTexts.costOrgSelect })).toBeDisabled();
   });
 
   it('should disable send button when textarea is empty', () => {
@@ -201,15 +165,6 @@ describe('UserInput', () => {
 
     expect(onSubmitMessage).not.toHaveBeenCalled();
   });
-});
-
-const createCostOrgSelection = (): CostOrgSelection => ({
-  options: [
-    { value: 'ttd', label: 'Testdepartementet' },
-    { value: 'nfk', label: 'nfk' },
-  ],
-  selected: 'ttd',
-  onChange: vi.fn(),
 });
 
 const defaultProps: UserInputProps = {

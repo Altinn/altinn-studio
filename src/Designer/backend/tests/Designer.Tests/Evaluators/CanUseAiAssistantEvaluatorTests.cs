@@ -76,76 +76,62 @@ public class CanUseAiAssistantEvaluatorTests
     }
 
     [Fact]
-    public async Task GetEligibleCostOrgsAsync_ReturnsOnlyAllowedServiceOwnersTheDeveloperBelongsTo()
-    {
-        SetupMemberships(AllowedOrg, "org-without-access", OtherAllowedOrg);
-
-        IReadOnlyList<Organization> costOrgs = await CreateEvaluator().GetEligibleCostOrgsAsync();
-
-        Assert.Equal([AllowedOrg, OtherAllowedOrg], [.. costOrgs.Select(o => o.Username)]);
-    }
-
-    [Fact]
-    public async Task GetEligibleCostOrgsAsync_ReturnsEmpty_WhenGiteaReturnsNoOrganizations()
+    public async Task CanUseFeatureAsync_ReturnsFalse_ForOwnRepository_WhenGiteaReturnsNoOrganizations()
     {
         _giteaClient.Setup(c => c.GetUserOrganizations()).ReturnsAsync((List<Organization>)null);
 
-        Assert.Empty(await CreateEvaluator().GetEligibleCostOrgsAsync());
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData(AllowedOrg)]
-    public async Task ResolveCostOrgAsync_ReturnsRepositoryOwner_ForOrgRepository(string requestedCostOrg)
-    {
-        SetupMemberships(AllowedOrg, OtherAllowedOrg);
-
-        Assert.Equal(AllowedOrg, await CreateEvaluator().ResolveCostOrgAsync(AllowedOrg, App, requestedCostOrg));
+        Assert.False(await CreateEvaluator().CanUseFeatureAsync(Developer, App));
     }
 
     [Fact]
-    public async Task ResolveCostOrgAsync_ReturnsNull_ForOrgRepository_WhenAnotherCostOrgIsRequested()
+    public async Task ResolveCostOrg_ReturnsRepositoryOwner_ForOrgRepository()
     {
         SetupMemberships(AllowedOrg, OtherAllowedOrg);
 
-        Assert.Null(await CreateEvaluator().ResolveCostOrgAsync(AllowedOrg, App, OtherAllowedOrg));
+        Assert.Equal(AllowedOrg, await CreateEvaluator().ResolveCostOrg(AllowedOrg, App));
     }
 
     [Fact]
-    public async Task ResolveCostOrgAsync_ReturnsNull_ForOrgRepository_WithoutAccess()
+    public async Task ResolveCostOrg_ReturnsNull_ForOrgRepository_WithoutAccess()
     {
         SetupMemberships(OtherAllowedOrg);
 
-        Assert.Null(await CreateEvaluator().ResolveCostOrgAsync(AllowedOrg, App, null));
+        Assert.Null(await CreateEvaluator().ResolveCostOrg(AllowedOrg, App));
     }
 
     [Fact]
-    public async Task ResolveCostOrgAsync_ReturnsRequestedCostOrg_ForOwnRepository_WhenEligible()
+    public async Task ResolveCostOrg_ReturnsTheOnlyEligibleOrg_ForOwnRepository()
+    {
+        SetupMemberships(OtherAllowedOrg, "org-without-access");
+
+        Assert.Equal(OtherAllowedOrg, await CreateEvaluator().ResolveCostOrg(Developer, App));
+    }
+
+    [Fact]
+    public async Task ResolveCostOrg_ReturnsUnattributed_ForOwnRepository_WithSeveralEligibleOrgs()
     {
         SetupMemberships(AllowedOrg, OtherAllowedOrg);
 
-        Assert.Equal(OtherAllowedOrg, await CreateEvaluator().ResolveCostOrgAsync(Developer, App, OtherAllowedOrg));
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("org-without-access")]
-    [InlineData("ssb")]
-    public async Task ResolveCostOrgAsync_ReturnsNull_ForOwnRepository_WhenCostOrgIsMissingOrNotEligible(
-        string requestedCostOrg
-    )
-    {
-        SetupMemberships(AllowedOrg, "org-without-access");
-
-        Assert.Null(await CreateEvaluator().ResolveCostOrgAsync(Developer, App, requestedCostOrg));
+        Assert.Equal(
+            CanUseAiAssistantEvaluator.UnattributedCostOrg,
+            await CreateEvaluator().ResolveCostOrg(Developer, App)
+        );
     }
 
     [Fact]
-    public async Task ResolveCostOrgAsync_ReturnsNull_ForAnotherUsersRepository()
+    public async Task ResolveCostOrg_ReturnsNull_ForOwnRepository_WithoutEligibleOrgs()
+    {
+        SetupMemberships("org-without-access");
+
+        Assert.Null(await CreateEvaluator().ResolveCostOrg(Developer, App));
+    }
+
+    [Fact]
+    public async Task ResolveCostOrg_ReturnsNull_ForAnotherUsersRepository()
     {
         SetupMemberships(AllowedOrg);
 
-        Assert.Null(await CreateEvaluator().ResolveCostOrgAsync("anotherUser", App, AllowedOrg));
+        Assert.Null(await CreateEvaluator().ResolveCostOrg("anotherUser", App));
     }
 
     private void SetupMemberships(params string[] orgs)

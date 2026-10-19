@@ -1,6 +1,5 @@
 import { get } from 'app-shared/utils/networking';
 import {
-  assistantCostOrgsPath,
   chatThreadsPath,
   chatMessagesPath,
   appMetadataPath,
@@ -97,7 +96,7 @@ import {
   taskNavigationGroupPath,
 } from './paths';
 
-import type { AppReleasesResponse, AssistantCostOrg, ChatMessage, ChatThread, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
+import type { AppReleasesResponse, ChatMessage, ChatThread, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import type { Branch, CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
@@ -263,7 +262,6 @@ export const getOrgTextResources = (org: string, language: string): Promise<ITex
 export const getPublishedResources = (org: string, path?: string): Promise<string[]> => get<string[]>(publishedResourcesPath(org, path));
 
 // Assistant chat
-export const getAssistantCostOrgs = () => get<AssistantCostOrg[]>(assistantCostOrgsPath());
 export const getChatThreads = (org: string, app: string) => get<ChatThread[]>(chatThreadsPath(org, app));
 export const getChatMessages = (org: string, app: string, threadId: string) => get<ChatMessage[]>(chatMessagesPath(org, app, threadId));
 

@@ -134,7 +134,7 @@ class TestBucketing:
 
 
 class TestDevelopersOwnRepository:
-    def test_charges_the_cost_org_without_a_service_resource(self):
+    def test_records_usage_on_the_cost_org_without_a_service_resource(self):
         observations = [make_observation()]
         traces = {DEFAULT_TRACE_ID: make_trace(app_name="my-app", repo_owner="kari")}
 

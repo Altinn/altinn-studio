@@ -17,6 +17,13 @@ public class CanUseAiAssistantEvaluator : ICanUseAiAssistantEvaluator
     /// </summary>
     private static readonly string[] s_allowedServiceOwners = ["ttd", "nfk", "ssb", "dat", "brg", "staf", "ikta"];
 
+    /// <summary>
+    /// The cost organization for the developer's own repository when the developer is a member of more than one
+    /// organization that can use the assistant. Service owners do not pay for the assistant at this time.
+    /// Thus, Designer does not ask the developer to select an organization.
+    /// </summary>
+    public const string UnattributedCostOrg = "unattributed";
+
     private readonly IGiteaClient _giteaClient;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -30,7 +37,7 @@ public class CanUseAiAssistantEvaluator : ICanUseAiAssistantEvaluator
 
     public async Task<bool> CanUseFeatureAsync(string org, string app)
     {
-        IReadOnlyList<Organization> eligibleCostOrgs = await GetEligibleCostOrgsAsync();
+        IReadOnlyList<Organization> eligibleCostOrgs = await GetEligibleCostOrgs();
         if (IsDevelopersOwnRepository(org))
         {
             return eligibleCostOrgs.Count > 0;
@@ -39,7 +46,7 @@ public class CanUseAiAssistantEvaluator : ICanUseAiAssistantEvaluator
         return eligibleCostOrgs.Any(costOrg => costOrg.Username == org);
     }
 
-    public async Task<IReadOnlyList<Organization>> GetEligibleCostOrgsAsync()
+    private async Task<IReadOnlyList<Organization>> GetEligibleCostOrgs()
     {
         List<Organization>? organizations = await _giteaClient.GetUserOrganizations();
         if (organizations == null)
@@ -50,21 +57,20 @@ public class CanUseAiAssistantEvaluator : ICanUseAiAssistantEvaluator
         return organizations.Where(organization => s_allowedServiceOwners.Contains(organization.Username)).ToList();
     }
 
-    public async Task<string?> ResolveCostOrgAsync(string org, string app, string? requestedCostOrg)
+    public async Task<string?> ResolveCostOrg(string org, string app)
     {
         if (!IsDevelopersOwnRepository(org))
         {
-            bool requestsOtherCostOrg = requestedCostOrg != null && requestedCostOrg != org;
-            return !requestsOtherCostOrg && await CanUseFeatureAsync(org, app) ? org : null;
+            return await CanUseFeatureAsync(org, app) ? org : null;
         }
 
-        if (requestedCostOrg == null)
+        IReadOnlyList<Organization> eligibleCostOrgs = await GetEligibleCostOrgs();
+        return eligibleCostOrgs.Count switch
         {
-            return null;
-        }
-
-        IReadOnlyList<Organization> eligibleCostOrgs = await GetEligibleCostOrgsAsync();
-        return eligibleCostOrgs.Any(costOrg => costOrg.Username == requestedCostOrg) ? requestedCostOrg : null;
+            0 => null,
+            1 => eligibleCostOrgs[0].Username,
+            _ => UnattributedCostOrg,
+        };
     }
 
     private bool IsDevelopersOwnRepository(string org)
