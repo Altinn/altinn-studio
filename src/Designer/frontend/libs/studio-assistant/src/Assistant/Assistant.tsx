@@ -8,6 +8,7 @@ import type { AssistantTexts } from '../types/AssistantTexts';
 import type { ConnectionStatus } from '../types/ConnectionStatus';
 import type { WorkflowStatus } from '../types/WorkflowStatus';
 import type { User } from '../types/User';
+import type { CostOrgSelection } from '../types/CostOrgSelection';
 
 export type AssistantProps = {
   texts: AssistantTexts;
@@ -30,6 +31,7 @@ export type AssistantProps = {
   previewContent: ReactElement;
   fileBrowserContent?: ReactElement;
   currentUser?: User;
+  costOrgSelection?: CostOrgSelection;
 };
 
 export function Assistant({
@@ -53,6 +55,7 @@ export function Assistant({
   previewContent,
   fileBrowserContent,
   currentUser,
+  costOrgSelection,
 }: AssistantProps): React.ReactElement {
   return enableCompactInterface ? (
     <CompactInterface texts={texts} onSubmitMessage={onSubmitMessage} currentUser={currentUser} />
@@ -77,6 +80,7 @@ export function Assistant({
       previewContent={previewContent}
       fileBrowserContent={fileBrowserContent}
       currentUser={currentUser}
+      costOrgSelection={costOrgSelection}
     />
   );
 }

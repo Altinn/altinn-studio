@@ -54,6 +54,8 @@ _Connection setup. The assistant service sends events by developer, not by tab._
 
 Designer makes a short-lived API key for each run. The key expires after 20 minutes. The assistant service uses this key to clone and push through the Gitea proxy. The service has no Gitea token of its own.
 
+An organization pays for the model usage of each run. In a repository of an organization, that organization pays. In the developer's own repository, the developer selects the organization in the chat. Designer makes sure that the developer is a member of this organization and that the organization has access to the assistant. Then Designer sends it as `cost_org` in the start request. The assistant service does not check `cost_org` again.
+
 Attachments go to Designer first. Designer accepts eight file types up to 20 MB each and keeps them in memory for a maximum of 30 minutes. Then it sends them as base64 in the start request.
 
 ```mermaid
@@ -62,7 +64,7 @@ sequenceDiagram
   participant D as Designer backend
   participant A as Assistant service
   participant G as Gitea proxy
-  B->>D: StartWorkflow(goal, branch, allow_app_changes)
+  B->>D: StartWorkflow(goal, branch, allow_app_changes, cost_org)
   D->>D: Make an API key that expires after 20 min
   D->>A: POST /api/agent/start with X-Api-Key and X-Developer
   A->>G: git clone with the X-Api-Key header

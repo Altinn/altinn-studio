@@ -846,6 +846,37 @@ describe('useAssistantWorkflow', () => {
     );
   });
 
+  it('sends the selected cost org with the workflow request', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    const startWorkflow = vi.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' });
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      startWorkflow,
+      cancelWorkflow: vi.fn(),
+      respondToPermission: vi.fn(),
+      registerSession: vi.fn(),
+      onAgentMessage: vi.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAssistantWorkflow(threads, {}, 'ttd');
+
+    await act(async () => {
+      await result.current.onSubmitMessage({
+        role: MessageAuthor.User,
+        content: 'Hello',
+        createdAt: new Date().toISOString(),
+        allowAppChanges: false,
+      });
+    });
+
+    expect(startWorkflow).toHaveBeenCalledWith(
+      expect.objectContaining<Partial<WorkflowRequest>>({ org: 'testOrg', cost_org: 'ttd' }),
+    );
+  });
+
   it('stores a permission request on the active thread status and clears it when the user responds', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
     const respondToPermission = vi.fn().mockResolvedValue(undefined);
@@ -1659,9 +1690,10 @@ const createThreadState = (overrides: Partial<AssistantThreadState> = {}): Assis
 const renderUseAssistantWorkflow = (
   threads: AssistantThreadState,
   queries: Partial<ServicesContextProps> = {},
+  costOrg?: string,
 ) => {
   const queryClient = new QueryClient();
-  return renderHookWithProviders(queries, queryClient)(() => useAssistantWorkflow(threads))
+  return renderHookWithProviders(queries, queryClient)(() => useAssistantWorkflow(threads, costOrg))
     .renderHookResult;
 };
 

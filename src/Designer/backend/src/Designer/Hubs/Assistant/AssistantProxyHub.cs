@@ -179,8 +179,10 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         string app = ExtractRequiredString(request, "app");
         org.ValidPathSegment(nameof(org));
         app.ValidPathSegment(nameof(app));
+        string? requestedCostOrg = ExtractOptionalString(request, "cost_org");
+        requestedCostOrg?.ValidPathSegment("cost_org");
 
-        await ValidateAssistantAccessAsync(org, app, developer);
+        string costOrg = await ResolveCostOrgAsync(org, app, requestedCostOrg, developer);
 
         _logger.LogInformation(
             "Starting Assistant workflow for user: {Developer}, session: {SessionId}",
@@ -206,7 +208,13 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         string apiKey = await CreateAssistantApiKeyAsync(developer, sessionId);
 
         var (enrichedWithAttachments, attachmentIds) = ResolveAttachments(request);
-        var agentResponse = await ForwardRequestToAssistantAsync(enrichedWithAttachments, developer, apiKey, sessionId);
+        var agentResponse = await ForwardRequestToAssistantAsync(
+            enrichedWithAttachments,
+            costOrg,
+            developer,
+            apiKey,
+            sessionId
+        );
 
         // Remove attachments from buffer only after successful forwarding
         _attachmentStore.RemoveAll(attachmentIds);
@@ -297,6 +305,22 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         return value;
     }
 
+    private static string? ExtractOptionalString(JsonElement request, string propertyName)
+    {
+        if (!request.TryGetProperty(propertyName, out var element) || element.ValueKind == JsonValueKind.Null)
+        {
+            return null;
+        }
+
+        if (element.ValueKind != JsonValueKind.String)
+        {
+            throw new HubException($"{propertyName} must be a string");
+        }
+
+        string? value = element.GetString();
+        return string.IsNullOrWhiteSpace(value) ? null : value;
+    }
+
     private async Task ValidateAssistantAccessAsync(string org, string app, string developer)
     {
         if (!await _canUseAiAssistantEvaluator.CanUseFeatureAsync(org, app))
@@ -304,6 +328,23 @@ public class AssistantProxyHub : Hub<IAssistantClient>
             _logger.LogWarning("User {Developer} was denied assistant access for org {Org}", developer, org);
             throw new HubException("Access denied");
         }
+    }
+
+    private async Task<string> ResolveCostOrgAsync(string org, string app, string? requestedCostOrg, string developer)
+    {
+        string? costOrg = await _canUseAiAssistantEvaluator.ResolveCostOrgAsync(org, app, requestedCostOrg);
+        if (costOrg == null)
+        {
+            _logger.LogWarning(
+                "User {Developer} was denied assistant access for org {Org} with cost org {CostOrg}",
+                developer,
+                org,
+                requestedCostOrg
+            );
+            throw new HubException("Access denied");
+        }
+
+        return costOrg;
     }
 
     private void ValidateConnectionOwnsSession(string sessionId)
@@ -331,12 +372,13 @@ public class AssistantProxyHub : Hub<IAssistantClient>
 
     private async Task<JsonElement> ForwardRequestToAssistantAsync(
         JsonElement request,
+        string costOrg,
         string developer,
         string apiKey,
         string sessionId
     )
     {
-        var enrichedRequest = EnrichRequestWithRepoUrl(request);
+        var enrichedRequest = EnrichRequestWithRepoUrlAndCostOrg(request, costOrg);
         using var httpRequest = CreateAssistantHttpRequest(enrichedRequest, developer, apiKey, sessionId);
         var response = await SendRequestToAssistantAsync(httpRequest);
 
@@ -344,11 +386,13 @@ public class AssistantProxyHub : Hub<IAssistantClient>
     }
 
     /// <summary>
-    /// Enriches the workflow request with the repository URL built from org and app identifiers
+    /// Enriches the workflow request with the repository URL built from org and app identifiers,
+    /// and with the validated organization that pays for the workflow's LLM usage
     /// </summary>
     /// <param name="request">The original workflow request</param>
-    /// <returns>Enriched request with repo_url field</returns>
-    private JsonElement EnrichRequestWithRepoUrl(JsonElement request)
+    /// <param name="costOrg">The resolved cost organization</param>
+    /// <returns>Enriched request with repo_url and cost_org fields</returns>
+    private JsonElement EnrichRequestWithRepoUrlAndCostOrg(JsonElement request, string costOrg)
     {
         if (!request.TryGetProperty("org", out var orgElement) || !request.TryGetProperty("app", out var appElement))
         {
@@ -370,6 +414,7 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         }
 
         requestDict["repo_url"] = JsonSerializer.SerializeToElement(repoUrl);
+        requestDict["cost_org"] = JsonSerializer.SerializeToElement(costOrg);
 
         return JsonSerializer.SerializeToElement(requestDict);
     }

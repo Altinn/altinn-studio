@@ -213,18 +213,7 @@ public class AssistantProxyHubTests
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestOrg, TestApp);
-        _apiKeyServiceMock
-            .Setup(a =>
-                a.CreateAsync(
-                    TestDeveloper,
-                    It.IsAny<string>(),
-                    It.IsAny<ApiKeyType>(),
-                    It.IsAny<DateTimeOffset>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(("test-api-key", new ApiKey()));
+        SetupApiKey();
         var hub = CreateHub();
         await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
 
@@ -257,6 +246,111 @@ public class AssistantProxyHubTests
         _canUseAiAssistantEvaluatorMock
             .Setup(e => e.CanUseFeatureAsync(org, It.IsAny<string>()))
             .ReturnsAsync(hasAccess);
+        _canUseAiAssistantEvaluatorMock
+            .Setup(e => e.ResolveCostOrgAsync(org, It.IsAny<string>(), null))
+            .ReturnsAsync(hasAccess ? org : null);
+    }
+
+    private void SetupCostOrg(string org, string requestedCostOrg, string resolvedCostOrg)
+    {
+        _canUseAiAssistantEvaluatorMock
+            .Setup(e => e.ResolveCostOrgAsync(org, It.IsAny<string>(), requestedCostOrg))
+            .ReturnsAsync(resolvedCostOrg);
+    }
+
+    private void SetupApiKey()
+    {
+        _apiKeyServiceMock
+            .Setup(a =>
+                a.CreateAsync(
+                    TestDeveloper,
+                    It.IsAny<string>(),
+                    It.IsAny<ApiKeyType>(),
+                    It.IsAny<DateTimeOffset>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(("test-api-key", new ApiKey()));
+    }
+
+    [Fact]
+    public async Task StartWorkflow_ForwardsRepositoryOwnerAsCostOrg_ForOrgRepository()
+    {
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, TestOrg, TestApp);
+        SetupApiKey();
+        var hub = CreateHub();
+        await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
+
+        var request = JsonSerializer.SerializeToElement(
+            new
+            {
+                session_id = threadId.ToString(),
+                org = TestOrg,
+                app = TestApp,
+            }
+        );
+
+        await hub.StartWorkflow(request);
+
+        JsonElement forwarded = Assert.Single(_agentHttpHandler.RequestBodies);
+        Assert.Equal(TestOrg, forwarded.GetProperty("cost_org").GetString());
+        Assert.Equal($"http://test-repos/{TestOrg}/{TestApp}.git", forwarded.GetProperty("repo_url").GetString());
+    }
+
+    [Fact]
+    public async Task StartWorkflow_ForwardsSelectedCostOrg_ForDevelopersOwnRepository()
+    {
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, TestDeveloper, TestApp);
+        SetupAssistantAccess(TestDeveloper, hasAccess: true);
+        SetupCostOrg(TestDeveloper, requestedCostOrg: "nfk", resolvedCostOrg: "nfk");
+        SetupApiKey();
+        var hub = CreateHub();
+        await hub.RegisterSession(TestDeveloper, TestApp, threadId.ToString());
+
+        var request = JsonSerializer.SerializeToElement(
+            new
+            {
+                session_id = threadId.ToString(),
+                org = TestDeveloper,
+                app = TestApp,
+                cost_org = "nfk",
+            }
+        );
+
+        await hub.StartWorkflow(request);
+
+        JsonElement forwarded = Assert.Single(_agentHttpHandler.RequestBodies);
+        Assert.Equal("nfk", forwarded.GetProperty("cost_org").GetString());
+        Assert.Equal(TestDeveloper, forwarded.GetProperty("org").GetString());
+    }
+
+    [Fact]
+    public async Task StartWorkflow_ThrowsHubException_WhenCostOrgIsNotAllowed()
+    {
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, TestDeveloper, TestApp);
+        SetupAssistantAccess(TestDeveloper, hasAccess: true);
+        SetupCostOrg(TestDeveloper, requestedCostOrg: "other-org", resolvedCostOrg: null);
+        var hub = CreateHub();
+        await hub.RegisterSession(TestDeveloper, TestApp, threadId.ToString());
+
+        var request = JsonSerializer.SerializeToElement(
+            new
+            {
+                session_id = threadId.ToString(),
+                org = TestDeveloper,
+                app = TestApp,
+                cost_org = "other-org",
+            }
+        );
+
+        var exception = await Assert.ThrowsAsync<HubException>(() => hub.StartWorkflow(request));
+
+        Assert.Contains("Access denied", exception.Message);
+        Assert.Empty(_agentHttpHandler.Requests);
     }
 
     private void SetupThreadOwnership(Guid threadId, string org, string app)
@@ -322,15 +416,22 @@ public class AssistantProxyHubTests
     {
         public List<HttpRequestMessage> Requests { get; } = new();
 
-        protected override Task<HttpResponseMessage> SendAsync(
+        public List<JsonElement> RequestBodies { get; } = new();
+
+        protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken
         )
         {
             Requests.Add(request);
-            return Task.FromResult(
-                new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"accepted": true}""") }
-            );
+            if (request.Content != null)
+            {
+                RequestBodies.Add(
+                    JsonSerializer.Deserialize<JsonElement>(await request.Content.ReadAsStringAsync(cancellationToken))
+                );
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"accepted": true}""") };
         }
     }
 

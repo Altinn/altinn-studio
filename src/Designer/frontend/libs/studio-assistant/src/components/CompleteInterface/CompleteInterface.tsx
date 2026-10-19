@@ -35,6 +35,7 @@ export function CompleteInterface({
   previewContent,
   fileBrowserContent,
   currentUser,
+  costOrgSelection,
 }: CompleteInterfaceProps): ReactElement {
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
   const [toolColumnMode, setToolColumnMode] = useState<ToolColumnMode>(ToolColumnMode.Preview);
@@ -101,6 +102,7 @@ export function CompleteInterface({
             workflowStatus={currentThreadWorkflowStatus}
             enableCompactInterface={false}
             currentUser={currentUser}
+            costOrgSelection={costOrgSelection}
           />
         </StudioResizableLayout.Element>
         <StudioResizableLayout.Element minimumSize={200}>

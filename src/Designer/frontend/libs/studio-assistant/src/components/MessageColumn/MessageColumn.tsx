@@ -10,6 +10,7 @@ import type { Message } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 import type { User } from '../../types/User';
 import type { WorkflowStatus } from '../../types/WorkflowStatus';
+import type { CostOrgSelection } from '../../types/CostOrgSelection';
 
 export type MessageColumnProps = {
   texts: AssistantTexts;
@@ -24,6 +25,7 @@ export type MessageColumnProps = {
   workflowStatus?: WorkflowStatus;
   enableCompactInterface: boolean;
   currentUser?: User;
+  costOrgSelection?: CostOrgSelection;
 };
 
 export function MessageColumn({
@@ -39,6 +41,7 @@ export function MessageColumn({
   workflowStatus,
   enableCompactInterface,
   currentUser,
+  costOrgSelection,
 }: MessageColumnProps): ReactElement {
   const workflowIsActive = workflowStatus?.isActive === true;
   const hasMessages = messages.length > 0;
@@ -72,6 +75,7 @@ export function MessageColumn({
           onCancelledMessageConsumed={onCancelledMessageConsumed}
           workflowIsActive={workflowIsActive}
           enableCompactInterface={enableCompactInterface}
+          costOrgSelection={costOrgSelection}
         />
       </StudioResizableLayout.Element>
     </StudioResizableLayout.Container>

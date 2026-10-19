@@ -114,6 +114,7 @@ export enum QueryKey {
   StudioctlAuthRequest = 'StudioctlAuthRequest',
 
   // Assistant chat
+  AssistantCostOrgs = 'AssistantCostOrgs',
   ChatThreads = 'ChatThreads',
   ChatMessages = 'ChatMessages',
 

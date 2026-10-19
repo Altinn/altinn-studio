@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
-import { StudioButton, StudioSwitch, StudioTextarea } from '@studio/components';
+import { StudioButton, StudioSelect, StudioSwitch, StudioTextarea } from '@studio/components';
 import { PaperclipIcon, PaperplaneFillIcon, XMarkIcon } from '@studio/icons';
 import type { UserAttachment, UserMessage } from '../../../types/ChatThread';
 import classes from './UserInput.module.css';
 import { createUserMessage } from '../../../utils/messageUtils';
 import type { AssistantTexts } from '../../../types/AssistantTexts';
+import type { CostOrgSelection } from '../../../types/CostOrgSelection';
 
 const allowedAttachmentFileExtensions = '.pdf,.md,.txt,.png,.jpg,.jpeg,.gif,.webp';
 
@@ -17,6 +18,7 @@ export type UserInputProps = {
   onCancelledMessageConsumed?: () => void;
   workflowIsActive?: boolean;
   enableCompactInterface: boolean;
+  costOrgSelection?: CostOrgSelection;
 };
 
 export function UserInput({
@@ -27,6 +29,7 @@ export function UserInput({
   onCancelledMessageConsumed,
   workflowIsActive = false,
   enableCompactInterface,
+  costOrgSelection,
 }: UserInputProps): ReactElement {
   const [messageContent, setMessageContent] = useState<string>('');
   const [allowAppChanges, setAllowAppChanges] = useState<boolean>(false);
@@ -142,6 +145,20 @@ export function UserInput({
               onChange={(e) => setAllowAppChanges(e.target.checked)}
               label={texts.allowAppChangesSwitch}
             />
+          )}
+          {costOrgSelection && (
+            <StudioSelect
+              label={texts.costOrgSelect}
+              value={costOrgSelection.selected}
+              disabled={workflowIsActive}
+              onChange={(event) => costOrgSelection.onChange(event.target.value)}
+            >
+              {costOrgSelection.options.map(({ value, label }) => (
+                <StudioSelect.Option key={value} value={value}>
+                  {label}
+                </StudioSelect.Option>
+              ))}
+            </StudioSelect>
           )}
         </div>
         {workflowIsActive && onCancelWorkflow ? (

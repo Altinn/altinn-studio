@@ -68,6 +68,7 @@ export const mockTexts: AssistantTexts = {
   textarea: textAreaTexts,
   addAttachment: 'addAttachment',
   allowAppChangesSwitch: 'allowAppChangesSwitch',
+  costOrgSelect: 'costOrgSelect',
   send: 'send',
   cancel: 'cancel',
   assistantFirstMessage: 'Hva kan jeg hjelpe med?',

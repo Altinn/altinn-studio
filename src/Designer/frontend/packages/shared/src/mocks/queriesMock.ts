@@ -179,6 +179,7 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<OptionListReferences>([])),
   getOrganizations: vi.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
+  getAssistantCostOrgs: vi.fn().mockImplementation(() => Promise.resolve([])),
   getOrgCodeLists: vi.fn().mockImplementation(() => Promise.resolve<CodeListsResponse>([])),
   getOrgList: vi.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrgTextLanguages: vi.fn().mockImplementation(() => Promise.resolve<string[] | null>([])),

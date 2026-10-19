@@ -115,6 +115,7 @@ export interface WorkflowRequest {
   allow_app_changes: boolean;
   attachments?: UserAttachment[];
   repo_url?: string; // Optional - will be built by backend if org/app provided
+  cost_org?: string; // Required in the user's own repository; the repository owner pays otherwise
 }
 
 export interface ParsedIntent {

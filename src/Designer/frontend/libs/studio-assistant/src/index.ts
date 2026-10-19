@@ -13,3 +13,4 @@ export type { AssistantMessage } from './types/ChatThread';
 export type { User } from './types/User';
 export type { WorkflowStatus, TrailStep, PermissionRequest } from './types/WorkflowStatus';
 export type { ConnectionStatus } from './types/ConnectionStatus';
+export type { CostOrgSelection, CostOrgOption } from './types/CostOrgSelection';

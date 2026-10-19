@@ -38,6 +38,7 @@ def _state(**overrides) -> AgentState:
         "app_name": "test-app",
         "developer": "dev",
         "org": "ttd",
+        "cost_org": "ttd",
     }
     base.update(overrides)
     return AgentState(**base)

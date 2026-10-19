@@ -231,6 +231,7 @@ export const syncAlertsUpdateWebSocketHub = () => '/hubs/alerts-updated';
 export const previewWebSocketHub = () => `/hubs/preview`;
 export const assistantWebSocketHub = () => '/hubs/assistant';
 export const assistantAttachmentsUploadPath = () => `/designer/api/assistant/attachments`;
+export const assistantCostOrgsPath = () => `/designer/api/assistant/cost-orgs`; // Get
 
 // Assistant Chat
 export const chatThreadsPath = (org, app) => `${apiBasePath}/${org}/${app}/chat/threads`; // Get, Post

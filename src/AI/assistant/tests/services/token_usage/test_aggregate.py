@@ -46,8 +46,11 @@ def make_trace(
     app_name: str | None = "ttd-my-app",
     user_id=SERVICE_OWNER,
     environment="default",
+    repo_owner: str | None = None,
 ) -> Trace:
     metadata = {"app_name": app_name} if app_name is not None else {}
+    if repo_owner is not None:
+        metadata["repo_owner"] = repo_owner
     return {
         "id": trace_id,
         "user_id": user_id,
@@ -128,6 +131,42 @@ class TestBucketing:
             "langfuse-llm-as-a-judge",
         ]
         assert {row["serviceownercode"] for row in rows} == {"internal"}
+
+
+class TestDevelopersOwnRepository:
+    def test_charges_the_cost_org_without_a_service_resource(self):
+        observations = [make_observation()]
+        traces = {DEFAULT_TRACE_ID: make_trace(app_name="my-app", repo_owner="kari")}
+
+        rows = aggregate_token_usage(observations, traces, LOADED_AT)
+
+        assert len(rows) == 1
+        assert rows[0]["serviceownercode"] == SERVICE_OWNER
+        assert rows[0]["serviceresourceid"] is None
+        assert rows[0]["serviceresourcetitle"] == "kari/my-app"
+
+    def test_keeps_the_service_resource_when_repo_owner_is_the_service_owner(self):
+        observations = [make_observation()]
+        traces = {DEFAULT_TRACE_ID: make_trace(app_name="my-app", repo_owner=SERVICE_OWNER)}
+
+        rows = aggregate_token_usage(observations, traces, LOADED_AT)
+
+        assert rows[0]["serviceresourceid"] == "app_ttd_my-app"
+        assert rows[0]["serviceresourcetitle"] == "my-app"
+
+    def test_does_not_merge_apps_with_the_same_name_in_different_repositories(self):
+        observations = [
+            make_observation(trace_id="trace-1"),
+            make_observation(trace_id="trace-2"),
+        ]
+        traces = {
+            "trace-1": make_trace(trace_id="trace-1", app_name="my-app"),
+            "trace-2": make_trace(trace_id="trace-2", app_name="my-app", repo_owner="kari"),
+        }
+
+        rows = aggregate_token_usage(observations, traces, LOADED_AT)
+
+        assert sorted(row["serviceresourcetitle"] for row in rows) == ["kari/my-app", "my-app"]
 
 
 class TestTokenSums:
