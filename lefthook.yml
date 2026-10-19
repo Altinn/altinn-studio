@@ -51,11 +51,11 @@ pre-commit:
       # files staged by a merge commit.
       glob:
         - 'src/Designer/frontend/**.{js,jsx,ts,tsx,css,md}'
-        - 'src/App/frontend/**.{js,jsx,ts,tsx,css,md}'
+        # JS/TS here is formatted by app-frontend-eslint.
+        - 'src/App/frontend/**.{css,md}'
         - 'src/common/ts/**.{js,jsx,ts,tsx,css,md}'
-      # JS/TS formatted by the eslint commands above.
       exclude:
-        - 'src/App/frontend/**.{js,jsx,ts,tsx}'
+        # JS/TS here is formatted by form-component-eslint.
         - 'src/common/ts/form-component/**.{js,jsx,ts,tsx}'
       run: yarn prettier -w {staged_files}
       stage_fixed: true
