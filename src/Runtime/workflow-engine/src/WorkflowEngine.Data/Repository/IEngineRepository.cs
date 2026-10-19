@@ -41,10 +41,9 @@ internal interface IEngineRepository
     /// Set <paramref name="includeTotalCount"/> to true to include the total count (adds a COUNT query).
     /// </summary>
     /// <remarks>
-    /// <paramref name="isHead"/> filters on head <em>visibility</em>, not directive equality:
-    /// <see langword="true"/> matches workflows whose persisted <c>isHead</c> directive is anything
-    /// but <c>false</c> (i.e. <c>true</c> or unset), <see langword="false"/> matches exactly
-    /// <c>isHead = false</c>, and <see langword="null"/> applies no filter.
+    /// <paramref name="role"/> filters on <see cref="WorkflowRole"/>: primary matches workflows whose
+    /// persisted <c>isHead</c> directive is anything but <c>false</c> (i.e. <c>true</c> or unset),
+    /// auxiliary matches exactly <c>isHead = false</c>, and <see langword="null"/> applies no filter.
     /// </remarks>
     Task<CursorPaginatedResult> QueryWorkflows(
         int pageSize,
@@ -57,7 +56,7 @@ internal interface IEngineRepository
         Dictionary<string, string>? labelFilters = null,
         string? namespaceFilter = null,
         string? collectionKey = null,
-        bool? isHead = null,
+        WorkflowRole? role = null,
         CancellationToken cancellationToken = default
     );
 
@@ -332,8 +331,8 @@ internal interface IEngineRepository
 
     /// <summary>
     /// Gets a single workflow collection by key and namespace, including head workflow statuses.
-    /// This is a frontier view by contract: workflows enqueued with <c>isHead = false</c> never
-    /// appear in it and carry no rollup here — use <see cref="GetCollections"/> for health reads.
+    /// This is a frontier view by contract: auxiliary workflows never appear in it and there is no
+    /// rollup here — use <see cref="GetCollections"/> for health reads.
     /// </summary>
     Task<WorkflowCollectionDetailResponse?> GetCollection(
         string key,

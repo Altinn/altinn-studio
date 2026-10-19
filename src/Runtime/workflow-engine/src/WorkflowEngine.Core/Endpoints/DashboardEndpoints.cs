@@ -375,7 +375,7 @@ internal static class DashboardEndpoints
                     string? labels,
                     string? collectionKey,
                     string? @namespace,
-                    bool? isHead,
+                    string? role,
                     CancellationToken ct
                 ) =>
                 {
@@ -398,6 +398,18 @@ internal static class DashboardEndpoints
                             .OfType<PersistentItemStatus>()
                             .ToArray();
 
+                    WorkflowRole? roleFilter = null;
+                    if (!string.IsNullOrWhiteSpace(role))
+                    {
+                        if (!EnumNames.TryParse(role, out WorkflowRole parsedRole))
+                            return Results.Problem(
+                                detail: $"'{role}' is not a valid workflow role.",
+                                statusCode: StatusCodes.Status400BadRequest
+                            );
+
+                        roleFilter = parsedRole;
+                    }
+
                     bool retriedOnly = retried == true;
 
                     // Parse label filters from comma-separated "key:value" pairs
@@ -414,7 +426,7 @@ internal static class DashboardEndpoints
                         labelFilters: labelFilters,
                         namespaceFilter: nsFilter,
                         collectionKey: collectionKey,
-                        isHead: isHead,
+                        role: roleFilter,
                         cancellationToken: ct
                     );
 

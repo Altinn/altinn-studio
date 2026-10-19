@@ -166,8 +166,8 @@ No active workflows
       <div class="chip-sep"></div>
       <label class="retried-toggle" title="Only show workflows where steps were retried"><input type="checkbox" id="retried-check" onchange="toggleRetried()"><span>Has retries</span></label>
       <div class="chip-sep"></div>
-      <label class="retried-toggle" title="Show workflows visible to the collection head frontier (isHead directive true or unset)"><input type="checkbox" id="head-check" checked onchange="toggleHeadVisibility()"><span>Head</span></label>
-      <label class="retried-toggle" title="Show invisible workflows (enqueued with isHead=false)"><input type="checkbox" id="nonhead-check" checked onchange="toggleHeadVisibility()"><span>Non-head</span></label>
+      <label class="retried-toggle" title="Show primary workflows: the ones the process waits on (isHead true or unset)"><input type="checkbox" id="primary-check" checked onchange="toggleRole()"><span>Primary</span></label>
+      <label class="retried-toggle" title="Show auxiliary workflows: the ones that run beside the process (isHead=false)"><input type="checkbox" id="auxiliary-check" checked onchange="toggleRole()"><span>Auxiliary</span></label>
       <div class="chip-sep"></div>
       <div class="query-search">
         <input type="text" id="query-search-input" placeholder="Search..." autocomplete="off" spellcheck="false">

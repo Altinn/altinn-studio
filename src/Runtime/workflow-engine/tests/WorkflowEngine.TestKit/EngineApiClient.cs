@@ -292,7 +292,7 @@ public sealed class EngineApiClient : IDisposable
         int? pageSize = null,
         IReadOnlyList<PersistentItemStatus>? statuses = null,
         string? ns = null,
-        bool? isHead = null
+        WorkflowRole? role = null
     )
     {
         var qs = new List<string>();
@@ -305,8 +305,8 @@ public sealed class EngineApiClient : IDisposable
             foreach (var status in statuses)
                 qs.Add($"status={status}");
         }
-        if (isHead.HasValue)
-            qs.Add($"isHead={(isHead.Value ? "true" : "false")}");
+        if (role.HasValue)
+            qs.Add($"role={(role.Value == WorkflowRole.Auxiliary ? "auxiliary" : "primary")}");
 
         var path = qs.Count > 0 ? $"{GetBasePath(ns)}?{string.Join("&", qs)}" : GetBasePath(ns);
         using var response = await _client.GetAsync(path);

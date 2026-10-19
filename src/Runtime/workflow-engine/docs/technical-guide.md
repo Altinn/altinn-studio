@@ -1326,6 +1326,7 @@ response. The default is `true`.
     "updatedAt": "2026-03-19T10:00:05+00:00",
     "executionStartedAt": "2026-03-19T10:00:01+00:00",
     "overallStatus": "Completed",
+    "role": "primary",
     "labels": {
         "org": "ttd",
         "app": "my-app",
@@ -1373,6 +1374,10 @@ response. The default is `true`.
 }
 ```
 
+`role` is `primary` or `auxiliary` (see [Primary and auxiliary workflows](#primary-and-auxiliary-workflows)),
+derived from the workflow's `isHead` directive and always present. `isHead` is the raw directive, returned
+only when the enqueue request set one; read `role` instead.
+
 `executionStartedAt` — on the workflow and on each step — is the start of the **most recent attempt**,
 stamped by the worker as the attempt begins and persisted by that attempt's write-backs. It is absent
 while the workflow is `Enqueued` — before the first attempt, and again after `resume`, a stale reclaim or
@@ -1400,7 +1405,7 @@ Supports the following optional query parameters (all repeatable params can be s
 | `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`, `Abandoned`, `Waiting`, `Held`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
 | `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                                                                                                  |
 | `collectionKey` | No         | Filter to a single collection.                                                                                                                                                                                                 |
-| `isHead`        | No         | Filter by head **visibility** — deliberately asymmetric with the response field of the same name (field = raw enqueue directive, param = effective visibility): `isHead=true` matches directive `true` **or** unset (so it returns rows whose `isHead` field reads `null`), `isHead=false` matches exactly directive `false`. Omit to return both. See [workflow-collections.md](workflow-collections.md#one-concept-three-vocabularies). |
+| `role`          | No         | Filter by workflow role: `primary` or `auxiliary` (case-insensitive; see [Primary and auxiliary workflows](#primary-and-auxiliary-workflows)). Omit to return both; an unrecognized value returns `400 Bad Request`. |
 | `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                   |
 | `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                                                                                                    |
 | `includeState`  | No         | Include the app's own state payloads (`initialState` and every step's `stateOut`). Defaults to `true`; a status reader with no use for them, such as Studio's admin panel, passes `false`.                                     |
@@ -1429,12 +1434,12 @@ Or combine filters — e.g. all failed workflows for a specific instance owner:
 GET /api/v1/ttd:my-app/workflows?status=Failed&label=instanceOwnerPartyId:50001234
 ```
 
-The ops worklist for a collection's invisible failures is one call, drained to zero by the existing
+The ops worklist for a collection's failed auxiliary workflows is one call, drained to zero by the existing
 `resume` / `abandon` verbs (`Abandoned` is deliberately absent from the status set — it is the
 engine's adjudication marker for a written-off failure):
 
 ```http
-GET /api/v1/ttd:my-app/workflows?collectionKey={key}&isHead=false&status=Failed&status=Canceled&status=DependencyFailed
+GET /api/v1/ttd:my-app/workflows?collectionKey={key}&role=auxiliary&status=Failed&status=Canceled&status=DependencyFailed
 ```
 
 **Response (200 OK):** a cursor-paginated `PaginatedResponse` wrapping `WorkflowStatusResponse` items (each the same shape as the single workflow GET above). Returns `204 No Content` when no workflows match.
@@ -1587,8 +1592,8 @@ POST /api/v1/{namespace}/throttle/clear
 The per-collection **health** view: a cursor-paginated list (stable, collation-defined key order;
 the cursor is opaque) where every entry
 carries its head workflow IDs as bare GUIDs (not status-enriched — use **Get Collection** below for
-head statuses) plus a `workflowCounts` rollup across **all** of the collection's workflows,
-including the invisible (`isHead = false`) ones the head frontier hides. See
+head statuses) plus a `workflowCounts` rollup across **all** of the collection's workflows, split
+into primary and auxiliary workflows. See
 [workflow-collections.md](workflow-collections.md#query-endpoints) for the mode matrix and bucket
 definitions.
 
@@ -1599,7 +1604,7 @@ GET /api/v1/{namespace}/collections
 | Parameter  | Repeatable | Description                                                                                                                                                                             |
 | ---------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `key`      | Yes        | Annotate mode: report health for these collection keys. Mutually exclusive with `cursor` and `failures` (400). More distinct keys than `pagination.maxAnnotateKeys` (default 100) → 400 (rejected, never truncated — a dropped key would read as healthy). That cap is deliberately separate from `maxPageSize`: a page size is clamped, a key list is refused. |
-| `failures` | No         | Discover mode: only collections with at least one failed workflow (`Failed`, `Canceled`, `DependencyFailed`; `Abandoned` never matches). `any`, `visible`, or `invisible` (case-insensitive). |
+| `failures` | No         | Discover mode: only collections with at least one failed workflow (`Failed`, `Canceled`, `DependencyFailed`; `Abandoned` never matches). `any`, `primary`, or `auxiliary` (case-insensitive). |
 | `cursor`   | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                            |
 | `pageSize` | No         | Items per page. Defaults to 25, clamped to the range 1–100. Ignored in annotate (`key`) mode.                                                                                           |
 
@@ -1618,13 +1623,9 @@ stays explicit.
             "createdAt": "2026-03-19T10:00:00+00:00",
             "updatedAt": "2026-03-19T10:00:05+00:00",
             "workflowCounts": {
-                "active": 3,
-                "failedVisible": 0,
-                "failedInvisible": 1,
-                "requeuedVisible": 1,
-                "waitingVisible": 0,
-                "heldVisible": 0,
-                "total": 12
+                "total": 12,
+                "primary": { "active": 2, "failed": 0, "requeued": 1, "waiting": 0, "held": 0 },
+                "auxiliary": { "active": 1, "failed": 1, "requeued": 0, "waiting": 0, "held": 0 }
             }
         }
     ],
@@ -1642,11 +1643,10 @@ GET /api/v1/{namespace}/collections/{key}
 
 **Response (200 OK):** a single collection with its head workflow statuses, or `404 Not Found` when the key is unknown in the namespace.
 
-This is a **frontier view by contract**: it reports only the current head workflows, so invisible
-(`isHead = false`) workflows never appear in it, and it deliberately carries no `workflowCounts`
-rollup — it sits on the app's page-view-scale hot path. For health reads use **List Collections**
-above; to enumerate a collection's failures use **List Workflows** with `collectionKey`, `status`,
-and `isHead` filters.
+This is a **frontier view by contract**: it reports only the current head workflows, so auxiliary
+workflows never appear in it, and it deliberately carries no `workflowCounts` rollup — it sits on
+the app's page-view-scale hot path. For health reads use **List Collections** above; to enumerate a
+collection's failures use **List Workflows** with `collectionKey`, `status`, and `role` filters.
 
 ```json
 {

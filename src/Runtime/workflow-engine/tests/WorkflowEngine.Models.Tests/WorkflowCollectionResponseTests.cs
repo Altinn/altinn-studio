@@ -27,30 +27,48 @@ public class WorkflowCollectionResponseTests
     }
 
     [Fact]
-    public void WorkflowCounts_WhenPopulated_CarriesAllBucketsAndParkedCounts()
+    public void WorkflowCounts_WhenPopulated_CarriesTotalAndBothRoles()
     {
         var counts = new CollectionWorkflowCounts
         {
-            Active = 3,
-            FailedVisible = 0,
-            FailedInvisible = 1,
-            RequeuedVisible = 1,
-            WaitingVisible = 2,
-            HeldVisible = 0,
             Total = 12,
+            Primary = new WorkflowRoleCounts
+            {
+                Active = 3,
+                Failed = 0,
+                Requeued = 1,
+                Waiting = 2,
+                Held = 0,
+            },
+            Auxiliary = new WorkflowRoleCounts
+            {
+                Active = 4,
+                Failed = 1,
+                Requeued = 0,
+                Waiting = 0,
+                Held = 3,
+            },
         };
 
         var json = JsonSerializer.Serialize(CreateResponse(counts), _options);
 
         using var doc = JsonDocument.Parse(json);
         var element = doc.RootElement.GetProperty("workflowCounts");
-        Assert.Equal(3, element.GetProperty("active").GetInt32());
-        Assert.Equal(0, element.GetProperty("failedVisible").GetInt32());
-        Assert.Equal(1, element.GetProperty("failedInvisible").GetInt32());
-        Assert.Equal(1, element.GetProperty("requeuedVisible").GetInt32());
-        Assert.Equal(2, element.GetProperty("waitingVisible").GetInt32());
-        Assert.Equal(0, element.GetProperty("heldVisible").GetInt32());
         Assert.Equal(12, element.GetProperty("total").GetInt32());
+
+        var primary = element.GetProperty("primary");
+        Assert.Equal(3, primary.GetProperty("active").GetInt32());
+        Assert.Equal(0, primary.GetProperty("failed").GetInt32());
+        Assert.Equal(1, primary.GetProperty("requeued").GetInt32());
+        Assert.Equal(2, primary.GetProperty("waiting").GetInt32());
+        Assert.Equal(0, primary.GetProperty("held").GetInt32());
+
+        var auxiliary = element.GetProperty("auxiliary");
+        Assert.Equal(4, auxiliary.GetProperty("active").GetInt32());
+        Assert.Equal(1, auxiliary.GetProperty("failed").GetInt32());
+        Assert.Equal(0, auxiliary.GetProperty("requeued").GetInt32());
+        Assert.Equal(0, auxiliary.GetProperty("waiting").GetInt32());
+        Assert.Equal(3, auxiliary.GetProperty("held").GetInt32());
     }
 
     [Fact]

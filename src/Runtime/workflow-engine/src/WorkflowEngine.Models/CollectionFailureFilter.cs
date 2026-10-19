@@ -11,19 +11,17 @@ namespace WorkflowEngine.Models;
 public enum CollectionFailureFilter
 {
     /// <summary>
-    /// Collections with at least one failed workflow, regardless of head visibility.
+    /// Collections with at least one failed workflow of either role.
     /// </summary>
     Any = 0,
 
     /// <summary>
-    /// Collections with at least one failed workflow visible to the head frontier
-    /// (<c>isHead</c> directive not <c>false</c>).
+    /// Collections with at least one failed <see cref="WorkflowRole.Primary"/> workflow.
     /// </summary>
-    Visible = 1,
+    Primary = 1,
 
     /// <summary>
-    /// Collections with at least one failed workflow enqueued with <c>isHead = false</c> —
-    /// failures the head frontier deliberately hides.
+    /// Collections with at least one failed <see cref="WorkflowRole.Auxiliary"/> workflow.
     /// </summary>
-    Invisible = 2,
+    Auxiliary = 2,
 }
