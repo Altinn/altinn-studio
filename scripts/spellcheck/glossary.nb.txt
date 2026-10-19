@@ -97,6 +97,7 @@ gjenopprettingsprosessen
 handlingsknapp
 handlingstype
 headerne
+hovedflyten
 infoside
 innboks
 innboksen
