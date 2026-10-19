@@ -305,10 +305,10 @@ public partial class EngineTests
     [Fact]
     public async Task ListCollections_Rollup_CountsParkedWorkflowsByRoleAndStatus()
     {
-        // Arrange — one collection with a workflow in every parked status, and the auxiliary twin of
-        // one of them to pin that the parked counts split by role:
-        //   requeued           → Requeued, a 500 held still by a ten-minute backoff  (primary.requeued)
-        //   requeued-auxiliary → the same, IsHead=false                           (auxiliary.requeued)
+        // Arrange — one collection with a workflow in every parked status, and two auxiliary twins of
+        // one of them to pin that the parked counts split by role (two, so no bucket ties its twin):
+        //   requeued             → Requeued, a 500 held still by a ten-minute backoff  (primary.requeued)
+        //   requeued-auxiliary-* → the same, IsHead=false, twice                     (auxiliary.requeued)
         //   waiting            → Waiting, a deferral ten minutes out                (primary.waiting)
         //   held-receiver      → Held on an open mailbox                            (primary.held)
         //   scheduled          → Enqueued with a future StartAt                     (primary.active only)
@@ -335,7 +335,12 @@ public partial class EngineTests
                 [_testHelpers.CreateWebhookStep("/retrying", retryStrategy: retryLater)]
             ),
             _testHelpers.CreateWorkflow(
-                "requeued-auxiliary",
+                "requeued-auxiliary-1",
+                [_testHelpers.CreateWebhookStep("/retrying", retryStrategy: retryLater)],
+                isHead: false
+            ),
+            _testHelpers.CreateWorkflow(
+                "requeued-auxiliary-2",
                 [_testHelpers.CreateWebhookStep("/retrying", retryStrategy: retryLater)],
                 isHead: false
             ),
@@ -354,7 +359,8 @@ public partial class EngineTests
         var byRef = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
 
         await _client.WaitForWorkflowStatus(byRef["requeued"], PersistentItemStatus.Requeued);
-        await _client.WaitForWorkflowStatus(byRef["requeued-auxiliary"], PersistentItemStatus.Requeued);
+        await _client.WaitForWorkflowStatus(byRef["requeued-auxiliary-1"], PersistentItemStatus.Requeued);
+        await _client.WaitForWorkflowStatus(byRef["requeued-auxiliary-2"], PersistentItemStatus.Requeued);
         await _client.WaitForWorkflowStatus(byRef["waiting"], PersistentItemStatus.Waiting, TimeSpan.FromSeconds(30));
         await _client.WaitForWorkflowStatus(byRef["held-receiver"], PersistentItemStatus.Held);
 
@@ -365,7 +371,7 @@ public partial class EngineTests
         var collection = Assert.Single(result.Data);
         var counts = collection.WorkflowCounts;
         Assert.NotNull(counts);
-        Assert.Equal(5, counts.Total);
+        Assert.Equal(6, counts.Total);
         Assert.Equal(
             new WorkflowRoleCounts
             {
@@ -380,9 +386,9 @@ public partial class EngineTests
         Assert.Equal(
             new WorkflowRoleCounts
             {
-                Active = 1,
+                Active = 2,
                 Failed = 0,
-                Requeued = 1,
+                Requeued = 2,
                 Waiting = 0,
                 Held = 0,
             },
