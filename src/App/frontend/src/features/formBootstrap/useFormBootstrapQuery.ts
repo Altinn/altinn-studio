@@ -1,15 +1,16 @@
-import { skipToken, useQuery } from '@tanstack/react-query';
-
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { skipToken, useQuery } from 'src/core/queries/reactQuery';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { resolveExpressionValidationConfig } from 'src/features/customValidation/customValidationUtils';
 import { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
+import { resolveCalculationConfig } from 'src/features/formData/calculations';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { createValidator } from 'src/features/validation/schemaValidation/schemaValidationUtils';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { getRootElementPath } from 'src/utils/schemaUtils';
+import type { QueryClient } from 'src/core/queries/reactQuery';
 import type {
   FormBootstrapResponse,
   ProcessedDataModelInfo,
@@ -31,6 +32,31 @@ export interface FormBootstrapQueryResponse extends Omit<FormBootstrapResponse, 
   allInitialValidations: BackendValidationIssue[];
 }
 
+interface FormBootstrapQueryKeyArgs {
+  options: FormBootstrapQueryOptions;
+  isStateless: boolean;
+  instanceId: string | undefined;
+  isPdf: boolean;
+  language: string;
+}
+
+const formBootstrapQueryKeys = {
+  all: () => ['formBootstrap'] as const,
+  withParams: ({ options, isStateless, instanceId, isPdf, language }: FormBootstrapQueryKeyArgs) =>
+    [
+      ...formBootstrapQueryKeys.all(),
+      options,
+      isStateless ? 'stateless' : 'instance',
+      instanceId,
+      isPdf,
+      language,
+    ] as const,
+};
+
+export async function invalidateFormBootstrapQueries(queryClient: QueryClient) {
+  await queryClient.invalidateQueries({ queryKey: formBootstrapQueryKeys.all() });
+}
+
 export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
   const { fetchFormBootstrapForStateless, fetchFormBootstrapForInstance } = useAppQueries();
   const isStateless = useIsStateless();
@@ -41,7 +67,7 @@ export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
   const enabled = options.enabled && options.uiFolder && (isStateless || !!instanceId);
 
   return useQuery<FormBootstrapQueryResponse>({
-    queryKey: ['formBootstrap', options, isStateless ? 'stateless' : 'instance', instanceId, isPdf, language],
+    queryKey: formBootstrapQueryKeys.withParams({ options, isStateless, instanceId, isPdf, language }),
     queryFn: enabled
       ? async () => {
           const raw = isStateless
@@ -89,6 +115,7 @@ function processDataModels(
         dataType,
         {
           ...value,
+          calculationConfig: resolveCalculationConfig(value.calculationConfig),
           expressionValidationConfig: value.expressionValidationConfig
             ? resolveExpressionValidationConfig(value.expressionValidationConfig)
             : null,

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -23,8 +23,6 @@ vi.mock('@studio/hooks/src/hooks/useMediaQuery');
 const mockGetRepoStatus = vi.fn();
 
 describe('shareChanges', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('should call "getRepoStatus" when clicking the share changes button', async () => {
     const user = userEvent.setup();
 

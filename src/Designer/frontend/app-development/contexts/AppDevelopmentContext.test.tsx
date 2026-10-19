@@ -1,11 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { AppDevelopmentContextProvider } from './AppDevelopmentContext';
 
 describe('AppDevelopmentContext', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
   it('should render children', () => {
     render(
       <AppDevelopmentContextProvider>

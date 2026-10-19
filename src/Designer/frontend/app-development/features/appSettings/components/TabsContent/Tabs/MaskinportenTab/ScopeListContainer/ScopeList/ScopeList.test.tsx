@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import { ScopeList } from './ScopeList';
 import type { ScopeListProps } from './ScopeList';
@@ -47,8 +47,6 @@ const selectedScopesMock: MaskinportenScope[] = [scopeMock3, scopeMock4];
 const selectedDefaultScopesMock: MaskinportenScope[] = [scopeMock5, scopeMock4, scopeMock2];
 
 describe('ScopeList', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render description and help text', async () => {
     renderScopeList();
 

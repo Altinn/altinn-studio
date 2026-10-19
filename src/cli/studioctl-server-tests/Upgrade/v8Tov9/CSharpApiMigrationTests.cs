@@ -98,6 +98,60 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Empty(result.Warnings);
     }
 
+    // --- RemovedProcessEndInterfaceDetector ------------------------------------------------------
+
+    [Fact]
+    public void ProcessEndDetector_FlagsImplementationsAndDiRegistrations()
+    {
+        _app.Write(
+            "logic/MyProcessEnd.cs",
+            """
+            using Altinn.App.Core.Features;
+            public class MyProcessEnd : IProcessEnd
+            {
+                public Task End(Instance instance, List<InstanceEvent>? events) => Task.CompletedTask;
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddTransient<IProcessEnd, MyProcessEnd>();
+            """
+        );
+
+        var result = new RemovedProcessEndInterfaceDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Summaries(result), s => s.Contains("IOnProcessEndedHandler"));
+        Assert.Contains(
+            Locations(result),
+            w => w.Contains("MyProcessEnd.cs") && w.Contains("MyProcessEnd : IProcessEnd")
+        );
+        Assert.Contains(Locations(result), w => w.Contains("Program.cs") && w.Contains("IProcessEnd"));
+    }
+
+    [Fact]
+    public void ProcessEndDetector_IgnoresTheV9Handlers()
+    {
+        _app.Write(
+            "logic/MyProcessEnded.cs",
+            """
+            using Altinn.App.Core.Features.Process;
+            public class MyProcessEnded : IOnProcessEndedHandler
+            {
+                public Task<HookResult> Execute(OnProcessEndedContext context) => Task.FromResult<HookResult>(HookResult.Success());
+            }
+            """
+        );
+
+        var result = new RemovedProcessEndInterfaceDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
     // --- RemovedPdfFormatterDetector ------------------------------------------------------------
 
     [Fact]
@@ -368,6 +422,39 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void EFormidlingCodeDetector_FlagsTheTwoParameterInstanceOverload_NotTheV9Method()
+    {
+        _app.Write(
+            "logic/V8Sender.cs",
+            """
+            public class V8Sender : IEFormidlingService
+            {
+                public Task SendEFormidlingShipment(Instance instance, ValidAltinnEFormidlingConfiguration configuration) =>
+                    Task.CompletedTask;
+            }
+            """
+        );
+        _app.Write(
+            "logic/V9Sender.cs",
+            """
+            public class V9Sender : IEFormidlingService
+            {
+                public Task SendEFormidlingShipment(
+                    IInstanceDataAccessor dataAccessor,
+                    ValidAltinnEFormidlingConfiguration configuration,
+                    CancellationToken cancellationToken = default
+                ) => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
+
+        Assert.Contains(Locations(result), static w => w.Contains("V8Sender.cs:3: SendEFormidlingShipment(2 param)"));
+        Assert.DoesNotContain(Locations(result), static w => w.Contains("V9Sender.cs"));
+    }
+
+    [Fact]
     public void EFormidlingCodeDetector_FlagsLegacySingleArgInvocation()
     {
         _app.Write(
@@ -428,209 +515,6 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("EndTaskEventHandler"));
-    }
-
-    // --- EFormidlingReceiversSignatureMigration --------------------------------------------------
-
-    [Fact]
-    public void ReceiversMigration_AddsParameterToImplementation()
-    {
-        var path = _app.Write(
-            "logic/Receivers.cs",
-            """
-            public class Receivers : IEFormidlingReceivers
-            {
-                public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance) => throw new NotImplementedException();
-            }
-            """
-        );
-
-        var result = new EFormidlingReceiversSignatureMigration(
-            Scanner(),
-            projectNullableAnnotationsEnabled: true
-        ).Migrate();
-
-        Assert.Empty(result.Todos);
-        Assert.NotEmpty(result.Warnings);
-        var migrated = File.ReadAllText(path);
-        Assert.Contains("GetEFormidlingReceivers(Instance instance, string? receiverFromConfig)", migrated);
-    }
-
-    [Fact]
-    public void ReceiversMigration_IsIdempotent()
-    {
-        var path = _app.Write(
-            "logic/Receivers.cs",
-            """
-            public class Receivers : IEFormidlingReceivers
-            {
-                public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance, string? receiverFromConfig) => throw new NotImplementedException();
-            }
-            """
-        );
-        var before = File.ReadAllText(path);
-
-        var result = new EFormidlingReceiversSignatureMigration(
-            Scanner(),
-            projectNullableAnnotationsEnabled: true
-        ).Migrate();
-
-        Assert.Empty(result.Warnings);
-        Assert.Equal(before, File.ReadAllText(path));
-    }
-
-    [Fact]
-    public void ReceiversMigration_IgnoresUnrelatedMethod()
-    {
-        var path = _app.Write(
-            "logic/NotAReceiver.cs",
-            """
-            public class NotAReceiver
-            {
-                public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance) => throw new NotImplementedException();
-            }
-            """
-        );
-        var before = File.ReadAllText(path);
-
-        var result = new EFormidlingReceiversSignatureMigration(
-            Scanner(),
-            projectNullableAnnotationsEnabled: true
-        ).Migrate();
-
-        Assert.Empty(result.Warnings);
-        Assert.Equal(before, File.ReadAllText(path));
-    }
-
-    [Fact]
-    public void ReceiversMigration_WithoutNullableContext_AddsUnannotatedParameter()
-    {
-        var path = _app.Write(
-            "logic/Receivers.cs",
-            """
-            public class Receivers : IEFormidlingReceivers
-            {
-                public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance) => throw new NotImplementedException();
-            }
-            """
-        );
-
-        var result = new EFormidlingReceiversSignatureMigration(
-            Scanner(),
-            projectNullableAnnotationsEnabled: false
-        ).Migrate();
-
-        Assert.NotEmpty(result.Warnings);
-        var migrated = File.ReadAllText(path);
-        Assert.Contains("GetEFormidlingReceivers(Instance instance, string receiverFromConfig)", migrated);
-    }
-
-    [Fact]
-    public void ReceiversMigration_FileLevelNullableDirective_OverridesProjectDefault()
-    {
-        var enabledByDirective = _app.Write(
-            "logic/EnabledByDirective.cs",
-            """
-            #nullable enable
-            public class EnabledByDirective : IEFormidlingReceivers
-            {
-                public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance) => throw new NotImplementedException();
-            }
-            """
-        );
-        var disabledByDirective = _app.Write(
-            "logic/DisabledByDirective.cs",
-            """
-            #nullable disable
-            public class DisabledByDirective : IEFormidlingReceivers
-            {
-                public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance) => throw new NotImplementedException();
-            }
-            """
-        );
-
-        new EFormidlingReceiversSignatureMigration(Scanner(), projectNullableAnnotationsEnabled: false).Migrate();
-
-        Assert.Contains("string? receiverFromConfig", File.ReadAllText(enabledByDirective));
-        Assert.Contains("string receiverFromConfig", File.ReadAllText(disabledByDirective));
-        Assert.DoesNotContain("string? receiverFromConfig", File.ReadAllText(disabledByDirective));
-    }
-
-    [Theory]
-    [InlineData("<Nullable>enable</Nullable>", true)]
-    [InlineData("<Nullable>annotations</Nullable>", true)]
-    [InlineData("<Nullable>warnings</Nullable>", false)]
-    [InlineData("<Nullable>disable</Nullable>", false)]
-    [InlineData("", false)]
-    public void ProjectEnablesNullableAnnotations_ReadsCsprojNullableProperty(string property, bool expected)
-    {
-        var projectFile = _app.Write(
-            "App.csproj",
-            $"""
-            <Project Sdk="Microsoft.NET.Sdk.Web">
-              <PropertyGroup>
-                <TargetFramework>net8.0</TargetFramework>
-                {property}
-              </PropertyGroup>
-            </Project>
-            """
-        );
-
-        Assert.Equal(expected, EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile));
-    }
-
-    [Fact]
-    public void ProjectEnablesNullableAnnotations_FallsBackToNearestDirectoryBuildProps()
-    {
-        var projectFile = _app.Write(
-            "App.csproj",
-            """
-            <Project Sdk="Microsoft.NET.Sdk.Web">
-              <PropertyGroup>
-                <TargetFramework>net8.0</TargetFramework>
-              </PropertyGroup>
-            </Project>
-            """
-        );
-        _app.Write(
-            "Directory.Build.props",
-            """
-            <Project>
-              <PropertyGroup>
-                <Nullable>enable</Nullable>
-              </PropertyGroup>
-            </Project>
-            """
-        );
-
-        Assert.True(EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile));
-    }
-
-    [Fact]
-    public void ProjectEnablesNullableAnnotations_ProjectFileWinsOverDirectoryBuildProps()
-    {
-        var projectFile = _app.Write(
-            "App.csproj",
-            """
-            <Project Sdk="Microsoft.NET.Sdk.Web">
-              <PropertyGroup>
-                <Nullable>disable</Nullable>
-              </PropertyGroup>
-            </Project>
-            """
-        );
-        _app.Write(
-            "Directory.Build.props",
-            """
-            <Project>
-              <PropertyGroup>
-                <Nullable>enable</Nullable>
-              </PropertyGroup>
-            </Project>
-            """
-        );
-
-        Assert.False(EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile));
     }
 
     // --- LegacyCorrespondenceCodeDetector --------------------------------------------------------

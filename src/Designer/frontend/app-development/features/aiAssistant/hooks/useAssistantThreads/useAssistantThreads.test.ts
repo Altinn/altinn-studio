@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MockedFunction } from 'vitest';
 import { createElement } from 'react';
 import { act, renderHook } from '@testing-library/react';
@@ -57,10 +57,6 @@ describe('useAssistantThreads', () => {
       mutateAsync: vi.fn().mockResolvedValue({ id: 'persisted-id' }),
     } as any);
     mockUseDeleteChatMessageMutation.mockReturnValue({ mutateAsync: vi.fn() } as any);
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
   });
 
   it('invalidates the thread messages query on refreshMessages', () => {

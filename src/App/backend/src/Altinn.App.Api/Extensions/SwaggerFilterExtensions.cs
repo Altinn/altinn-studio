@@ -18,6 +18,7 @@ internal static class SwaggerFilterExtensions
     {
         services.Configure<SwaggerGenOptions>(c =>
         {
+            c.SupportNonNullableReferenceTypes();
             c.DocumentFilter<DocumentFilter>();
             c.OperationFilter<ExplicitProblemDetailsResponseOperationFilter>();
             c.OperationFilter<ActionsPerformConflictResponseOperationFilter>();

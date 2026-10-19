@@ -100,6 +100,16 @@ describe('Validation', () => {
         }
       }
     }
+
+    // This error is about the middle name field, but is linked to the first name component. It should only show up
+    // there, not on the middle name component that binds the field.
+    cy.findByRole('textbox', { name: newMiddleName }).clear();
+    cy.findByRole('textbox', { name: newMiddleName }).type('lenket');
+    cy.get(appFrontend.fieldValidation('newFirstName')).should('contain.text', texts.linkedToFirstName);
+    cy.get(appFrontend.fieldValidation('newMiddleName'), { timeout: 0 }).should('not.exist');
+
+    cy.findByRole('textbox', { name: newMiddleName }).clear();
+    cy.get(appFrontend.fieldValidation('newFirstName')).should('not.contain.text', texts.linkedToFirstName);
   });
 
   it('Page validation on clicking next', () => {
@@ -286,6 +296,14 @@ describe('Validation', () => {
 
     // Create validation error
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
+
+    // This error has no field, but is linked to a component in the nested row
+    cy.get(appFrontend.group.comments).type('lenket');
+    cy.get(appFrontend.fieldValidation('hideComment-0-0')).should('have.text', texts.linkedToRow);
+    cy.get(appFrontend.fieldValidation('comments-0-0'), { timeout: 0 }).should('not.exist');
+    cy.get(appFrontend.group.comments).clear();
+    cy.get(appFrontend.fieldValidation('hideComment-0-0')).should('not.exist');
+
     cy.get(appFrontend.group.comments).type('test');
     cy.get(appFrontend.fieldValidation('comments-0-0')).should('have.text', texts.testIsNotValidValue);
     cy.get(appFrontend.errorReport).should('not.exist');
@@ -949,13 +967,12 @@ describe('Validation', () => {
       },
     };
 
+    let dataElementId = '';
     cy.intercept('GET', '**/bootstrap-form/Task_2**', (req) => {
       req.on('response', (res) => {
         const body = res.body as FormBootstrapResponse;
-        body.dataModels['ServiceModel-test'].initialValidationIssues!.push({
-          ...validationIssue,
-          dataElementId: body.dataModels['ServiceModel-test'].dataElementId!,
-        });
+        dataElementId = body.dataModels['ServiceModel-test'].dataElementId!;
+        body.dataModels['ServiceModel-test'].initialValidationIssues!.push({ ...validationIssue, dataElementId });
         res.send(body);
       });
     });
@@ -963,10 +980,7 @@ describe('Validation', () => {
     cy.intercept('PATCH', '**/data**', (req) => {
       req.on('response', (res) => {
         const body = res.body as IDataModelMultiPatchResponse;
-        body.validationIssues[0].issues.push({
-          ...validationIssue,
-          dataElementId: body.validationIssues[0].issues[0].dataElementId,
-        });
+        body.validationIssues[0].issues.push({ ...validationIssue, dataElementId });
         res.send(body);
       });
     });

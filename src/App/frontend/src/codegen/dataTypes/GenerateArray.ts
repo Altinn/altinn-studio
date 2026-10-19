@@ -30,6 +30,10 @@ export class GenerateArray<Inner extends CodeGenerator<any>> extends Describable
     return this;
   }
 
+  protected getChildren(): readonly CodeGenerator<unknown>[] {
+    return [this.innerType];
+  }
+
   expressionDescriptors(): ExpressionDescriptorEntry[] {
     return prefixExpressionDescriptors('items', this.innerType.expressionDescriptors());
   }

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import ProcessEditor from './ProcessEditor';
 import { renderWithProviders } from '../../test/testUtils';
@@ -21,10 +21,6 @@ vi.mock('@altinn/process-editor-v8', () => ({
 }));
 
 describe('ProcessEditor', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('shows a spinner while loading the app version', () => {
     renderProcessEditor();
 

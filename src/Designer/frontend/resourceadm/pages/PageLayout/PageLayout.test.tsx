@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { MemoryRouter, useParams } from 'react-router-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
@@ -22,8 +22,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('PageLayout', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should show merge conflict modal when merge conflict message is received', async () => {
     (useParams as Mock).mockReturnValue({
       org: 'ttd',

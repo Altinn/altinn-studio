@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
@@ -6,7 +7,7 @@ import { formItemContextProviderMock } from '../../../testing/formItemContextMoc
 import { ComponentConfigPanel } from './ComponentConfigPanel';
 import { FormItemContext } from '../../../containers/FormItemContext';
 import { componentMocks } from '../../../testing/componentMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
 import type { IFormLayouts } from '../../../types/global';
 import {
@@ -16,7 +17,6 @@ import {
 } from '../../../testing/layoutSetsMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { componentSchemaMocks } from '@altinn/ux-editor/testing/componentSchemaMocks';
 import { org, app } from '@studio/testing/testids';
 import { renderWithProviders } from '../../../testing/mocks';
 import type { AppContextProps } from '../../../AppContext';
@@ -28,11 +28,11 @@ const textTestId = 'text';
 const DataModelBindingsTestId = 'dataModelBindings';
 
 // Mocks:
-jest.mock('../../config/EditFormComponent', () => ({
+vi.mock('../../config/EditFormComponent', async () => ({
   __esModule: true,
-  ...jest.requireActual('../../config/EditFormComponent'),
+  ...(await vi.importActual('../../config/EditFormComponent')),
 }));
-jest.mock('../../config/Expressions', () => ({
+vi.mock('../../config/Expressions', () => ({
   Expressions: () => <div data-testid={expressionsTestId} />,
 }));
 
@@ -41,14 +41,14 @@ const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
 
-jest.mock('../Text', () => ({
+vi.mock('../Text', () => ({
   Text: () => <div data-testid={textTestId} />,
 }));
-jest.mock('../DataModelBindings', () => ({
+vi.mock('../DataModelBindings', () => ({
   DataModelBindings: () => <div data-testid={DataModelBindingsTestId} />,
 }));
 
-const editFormComponentSpy = jest.spyOn(editFormComponentModule, 'EditFormComponent');
+const editFormComponentSpy = vi.spyOn(editFormComponentModule, 'EditFormComponent');
 
 const expressionsTestId = 'expressions';
 
@@ -67,10 +67,6 @@ const expectToggleAccordion = async (name: string, user: UserEvent) => {
 };
 
 describe('ComponentConfigPanel', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should render an unknown component alert when the component is unknown', () => {
     const unknownComponentType = 'UnknownComponent';
     renderComponentConfig({ formItem: unknownComponentType } as any);
@@ -153,7 +149,7 @@ describe('ComponentConfigPanel', () => {
     });
 
     it('should call setSelectedItem(undefined) when formItem becomes undefined', () => {
-      const mockSetSelectedItem = jest.fn();
+      const mockSetSelectedItem = vi.fn();
       renderComponentConfig(
         {
           formItem: undefined,
@@ -165,7 +161,7 @@ describe('ComponentConfigPanel', () => {
     });
 
     it('should not call setSelectedItem when formItem changes but stays defined', () => {
-      const mockSetSelectedItem = jest.fn();
+      const mockSetSelectedItem = vi.fn();
       renderComponentConfig(
         {
           formItem: componentMocks[ComponentType.Input],
@@ -335,10 +331,6 @@ const renderComponentConfig = (
 
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
-  queryClientMock.setQueryData(
-    [QueryKey.FormComponent, formItemContextProps.formItem?.type],
-    componentSchemaMocks[formItemContextProps.formItem?.type],
-  );
   queryClientMock.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
   queryClientMock.setQueryData([QueryKey.ImageFileNames, org, app], []);
 

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { Action, LocalChangesActionButtonProps } from './LocalChangesActionButton';
@@ -25,7 +25,6 @@ const mockActionButton: Action = {
 
 describe('LocalChangesActionButton', () => {
   const user = userEvent.setup();
-  afterEach(vi.clearAllMocks);
 
   const defaultProps: LocalChangesActionButtonProps = {
     label: mockLabel,

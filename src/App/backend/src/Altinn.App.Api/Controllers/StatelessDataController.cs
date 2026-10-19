@@ -153,7 +153,8 @@ public class StatelessDataController : ControllerBase
             org,
             app,
             Convert.ToInt32(owner.PartyId, CultureInfo.InvariantCulture),
-            "read"
+            "read",
+            cancellationToken
         );
 
         if (!enforcementResult.Authorized)
@@ -282,7 +283,8 @@ public class StatelessDataController : ControllerBase
             org,
             app,
             Convert.ToInt32(owner.PartyId, CultureInfo.InvariantCulture),
-            "read"
+            "read",
+            cancellationToken
         );
 
         if (!enforcementResult.Authorized)
@@ -291,7 +293,7 @@ public class StatelessDataController : ControllerBase
         }
 
         ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
-        object? appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+        object? appModel = await deserializer.Deserialize(Request.Body, Request.ContentType);
 
         if (!string.IsNullOrEmpty(deserializer.Error) || appModel is null)
         {
@@ -343,7 +345,7 @@ public class StatelessDataController : ControllerBase
         }
 
         ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
-        object? appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+        object? appModel = await deserializer.Deserialize(Request.Body, Request.ContentType);
 
         if (!string.IsNullOrEmpty(deserializer.Error) || appModel is null)
         {
@@ -418,7 +420,13 @@ public class StatelessDataController : ControllerBase
         }
     }
 
-    private async Task<EnforcementResult> AuthorizeAction(string org, string app, int partyId, string action)
+    private async Task<EnforcementResult> AuthorizeAction(
+        string org,
+        string app,
+        int partyId,
+        string action,
+        CancellationToken cancellationToken
+    )
     {
         EnforcementResult enforcementResult = new EnforcementResult();
         XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(
@@ -429,7 +437,7 @@ public class StatelessDataController : ControllerBase
             partyId,
             null
         );
-        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request, cancellationToken);
 
         if (response?.Response == null)
         {

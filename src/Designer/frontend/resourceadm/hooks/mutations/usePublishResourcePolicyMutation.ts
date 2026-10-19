@@ -17,10 +17,13 @@ export const usePublishResourcePolicyMutation = (org: string, repo: string, id: 
   return useMutation({
     mutationFn: ({ env, payload }: { env: string; payload: Policy }) =>
       publishResourcePolicy(org, repo, id, env, payload),
-    onSuccess: (_data, { env }) =>
-      queryClient.invalidateQueries({
-        queryKey: [QueryKey.Altinn2ResourcePolicies, org, env],
-        exact: true,
-      }),
+    onSuccess: (_data, { env }) => {
+      const queryKey = [QueryKey.Altinn2ResourcePolicies, org, env];
+      const isEnvShown = queryClient.getQueryCache().find({ queryKey, exact: true })?.isActive();
+      // Reset the env that is not shown, so switching to it shows a spinner instead of the outdated list while it reloads
+      return isEnvShown
+        ? queryClient.invalidateQueries({ queryKey, exact: true })
+        : queryClient.resetQueries({ queryKey, exact: true });
+    },
   });
 };

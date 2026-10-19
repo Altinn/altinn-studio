@@ -12,6 +12,7 @@ import (
 
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/log"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 )
 
 var IsTestInternalsMode bool = os.Getenv("TEST_INTERNALS_MODE") == "true" || testing.Testing()
@@ -91,7 +92,7 @@ func NewHost(
 func (h *Host) run() {
 	defer func() {
 		r := recover()
-		assert.That(r == nil, "Runtime host shutdown coordinator panicked", "error", r)
+		assert.That(r == nil, "Runtime host shutdown coordinator panicked", attr.Panic, r)
 	}()
 
 	// We received SIGINT/SIGTERM

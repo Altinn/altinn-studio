@@ -36,7 +36,7 @@ internal sealed class PdfFileNameResolver(ITranslationService translationService
         if (string.IsNullOrEmpty(fileName))
         {
             fileName = await translationService.TranslateTextKey(
-                "backend.pdf_default_file_name",
+                BuiltInTextResources.PdfDefaultFileName.Key,
                 dataAccessor,
                 componentContext
             );

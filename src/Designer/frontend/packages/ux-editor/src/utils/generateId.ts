@@ -1,8 +1,7 @@
 import type { IFormLayouts } from '../types/global';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
-import type { ComponentType } from 'app-shared/types/ComponentType';
-import type { ContainerComponentType } from '../types/ContainerComponent';
-import { containerComponentTypes } from '../data/containerComponentTypes';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import { isContainerComponentType } from '../data/containerComponentTypes';
 
 type GenerateTextResourceIdProps = {
   layoutId: string;
@@ -33,7 +32,7 @@ export const generateComponentId = (componentType: ComponentType, layouts: IForm
     componentId = `${componentType}-${generateRandomId(6)}`;
     layoutNames.forEach((layoutName) => {
       const layout = layouts[layoutName];
-      if (containerComponentTypes.includes(componentType as ContainerComponentType)) {
+      if (isContainerComponentType(componentType)) {
         existsInLayout = !!layout.containers[componentId];
       } else if (layout.components) {
         existsInLayout = !!layout.components[componentId];

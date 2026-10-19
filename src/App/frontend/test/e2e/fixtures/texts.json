@@ -35,6 +35,8 @@
   "uploadWithTag": "Last opp vedlegg og knytte den mot en tag",
   "uplodDocs": "Last opp eventuell dokumentasjon for ditt nye navn",
   "zeroIsNotValid": "0 er ikke en gyldig verdi",
+  "linkedToFirstName": "Mellomnavnet er lenket til fornavnet",
+  "linkedToRow": "Kommentaren er lenket til raden",
   "finishedUploading": "Ferdig lastet",
   "nestedOptionsToggle": "Vis tillegg",
   "nestedOptions": "Tilleggsopsjoner",

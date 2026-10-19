@@ -21,13 +21,11 @@ import {
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsPayment } from 'src/features/payment/utils';
 import classes from 'src/features/pdf/PDFView.module.css';
-import { getFeature } from 'src/features/toggles';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { getComponentDef } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { InstanceInformation } from 'src/layout/InstanceInformation/InstanceInformationComponent';
 import { AllSubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformSummaryComponent2';
-import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
 import { TaskSummaryWrapper } from 'src/layout/Summary2/SummaryComponent2/TaskSummaryWrapper';
@@ -61,8 +59,6 @@ function AutoGeneratePdfFromLayout() {
     );
   }
 
-  const pdfExclusions = usePdfExclusions();
-
   return (
     <DummyPresentation>
       <PdfWrapping>
@@ -76,7 +72,7 @@ function AutoGeneratePdfFromLayout() {
             }}
           />
         </div>
-        <AllPages pdfExclusions={pdfExclusions} />
+        <AllPages />
         <AllSubformSummaryComponent2 />
       </PdfWrapping>
     </DummyPresentation>
@@ -115,7 +111,7 @@ function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
             taskId={taskId}
           >
             {idx > 0 && <div className={classes.pageBreak} />}
-            <AllPages pdfExclusions={noPdfExclusions} />
+            <AllPages />
             <AllSubformSummaryComponent2 />
           </TaskSummaryWrapper>
         ))}
@@ -190,10 +186,9 @@ function PlainPage({ pageKey }: { pageKey: string }) {
   );
 }
 
-const noPdfExclusions: PdfExclusions = { pages: [], components: [] };
-
-function AllPages({ pdfExclusions }: { pdfExclusions: PdfExclusions }) {
+function AllPages() {
   const order = usePageOrder();
+  const pdfExclusions = usePdfExclusions();
   const visiblePages = order.filter((pageKey) => !pdfExclusions.pages.includes(pageKey));
 
   return (
@@ -261,21 +256,5 @@ function PdfForNode({ baseComponentId }: { baseComponentId: string }) {
     return <SummaryComponent2 baseComponentId={baseComponentId} />;
   }
 
-  const betaEnabled = getFeature('betaPDFenabled');
-  if (betaEnabled.value) {
-    return <ComponentSummary targetBaseComponentId={baseComponentId} />;
-  }
-
-  return (
-    <SummaryComponentFor
-      targetBaseComponentId={baseComponentId}
-      overrides={{
-        largeGroup: component.type === 'Group',
-        display: {
-          hideChangeButton: true,
-          hideValidationMessages: true,
-        },
-      }}
-    />
-  );
+  return <ComponentSummary targetBaseComponentId={baseComponentId} />;
 }

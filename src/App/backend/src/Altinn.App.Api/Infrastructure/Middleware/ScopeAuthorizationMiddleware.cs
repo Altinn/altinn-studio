@@ -425,14 +425,14 @@ internal sealed class ScopeAuthorizationService(
         // Check for HTTP method metadata
         var httpMethodMetadata = endpoint.Metadata.GetMetadata<IHttpMethodMetadata>();
         IReadOnlyList<string> httpMethods = ["GET", "POST"];
-        if (httpMethodMetadata?.HttpMethods != null && httpMethodMetadata.HttpMethods.Any())
+        if (httpMethodMetadata?.HttpMethods != null && httpMethodMetadata.HttpMethods.Count > 0)
             httpMethods = httpMethodMetadata.HttpMethods;
 
         // For MVC controllers, check the action descriptor
         if (endpoint.Metadata.GetMetadata<ControllerActionDescriptor>() is { } actionDescriptor)
         {
             var httpMethodAttr = actionDescriptor.EndpointMetadata.OfType<IHttpMethodMetadata>().FirstOrDefault();
-            if (httpMethodAttr?.HttpMethods != null && httpMethodAttr.HttpMethods.Any())
+            if (httpMethodAttr?.HttpMethods != null && httpMethodAttr.HttpMethods.Count > 0)
                 httpMethods = httpMethodAttr.HttpMethods;
         }
 

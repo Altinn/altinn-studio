@@ -4,6 +4,18 @@ import { FormStore } from 'src/features/form/FormContext';
 import { createOptionsEffectNodeSelector } from 'src/features/options/createOptionsEffectNodeSelector';
 import { RunOptionsEffectsForNode } from 'src/features/options/RunOptionsEffectsForNode';
 import { DataModelLocationProviderFromRowContexts } from 'src/utils/layout/DataModelLocation';
+import type { OptionsEffectNode } from 'src/features/options/createOptionsEffectNodeSelector';
+
+function OptionsEffectsForNode({ node, valueType }: OptionsEffectNode) {
+  return (
+    <DataModelLocationProviderFromRowContexts rowContexts={node.rowContexts}>
+      <RunOptionsEffectsForNode
+        node={node}
+        valueType={valueType}
+      />
+    </DataModelLocationProviderFromRowContexts>
+  );
+}
 
 export function RunOptionsEffects() {
   const selector = useRef<ReturnType<typeof createOptionsEffectNodeSelector>>(undefined);
@@ -13,15 +25,11 @@ export function RunOptionsEffects() {
   return (
     <>
       {nodes.map(({ node, valueType }) => (
-        <DataModelLocationProviderFromRowContexts
+        <OptionsEffectsForNode
           key={node.id}
-          rowContexts={node.rowContexts}
-        >
-          <RunOptionsEffectsForNode
-            node={node}
-            valueType={valueType}
-          />
-        </DataModelLocationProviderFromRowContexts>
+          node={node}
+          valueType={valueType}
+        />
       ))}
     </>
   );

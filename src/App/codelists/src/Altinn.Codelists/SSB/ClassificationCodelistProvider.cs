@@ -65,8 +65,16 @@ internal sealed class ClassificationCodelistProvider : IAppOptionsProvider
     /// <inheritdoc/>
     public string Id { get; private set; }
 
+    /// <summary>
+    /// Calls <see cref="GetAppOptions(string?, Dictionary{string, string})"/>. A release pack builds against an
+    /// Altinn.App.Core version from before <c>IAppOptionsProvider.GetAppOptionsAsync</c> was renamed, where this
+    /// implements the interface. Remove it when the pin in Directory.Packages.props has the rename.
+    /// </summary>
+    public Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs) =>
+        GetAppOptions(language, keyValuePairs);
+
     /// Gets the <see cref="AppOptions"/> based on the provided classification, options id and key value pairs.
-    public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
+    public async Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
     {
         Dictionary<string, string> mergedKeyValuePairs = MergeDictionaries(_defaultKeyValuePairs, keyValuePairs);
 

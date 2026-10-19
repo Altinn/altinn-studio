@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import AppContentLibrary from './AppContentLibrary';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -38,8 +38,6 @@ const org = 'test-org';
 const app = 'test-app';
 
 describe('AppContentLibrary', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders the content library', async () => {
     renderAppContentLibraryWithData();
     expect(screen.getByTestId(resourceLibraryTestId)).toBeInTheDocument();

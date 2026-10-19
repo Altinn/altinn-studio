@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   FeatureFlag,
   FeatureFlagsContextProvider,
@@ -16,8 +16,6 @@ const addFlag = vi.fn();
 const removeFlag = vi.fn();
 
 describe('FlagsPage', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('Renders a switch for each flag', () => {
     renderFlagsPage();
     allFlags.forEach((flag) => {

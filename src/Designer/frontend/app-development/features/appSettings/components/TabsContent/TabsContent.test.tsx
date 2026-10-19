@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { TabsContent } from './TabsContent';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -20,10 +20,6 @@ const tabs: SettingsPageTabId[] = [
 ];
 
 describe('TabsContent', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it.each(tabs)('should render %s tab content when tabToDisplay is "%s"', async (tab) => {
     renderTabsContent(tab);
     expect(await findHeading(tab)).toBeInTheDocument();

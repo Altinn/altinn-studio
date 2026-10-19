@@ -13,6 +13,7 @@ import { useIsStateless } from 'src/features/applicationMetadata';
 import { AttachmentEffects } from 'src/features/attachments/AttachmentEffects';
 import { createAttachmentsSlice } from 'src/features/attachments/AttachmentsStore';
 import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
+import { useExpressionDataSourcesBaseForStoreSelector } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { UpdateDataElementIdsForCypress } from 'src/features/form/DataElementIdsForCypress';
 import {
   createFormBootstrapSlice,
@@ -48,6 +49,7 @@ import { PaymentInformationProvider } from 'src/features/payment/PaymentInformat
 import { PaymentProvider } from 'src/features/payment/PaymentProvider';
 import { createValidationSlice, ValidationEffects } from 'src/features/validation/validationContext';
 import { useNavigationParam } from 'src/hooks/navigation';
+import { useAsRef } from 'src/hooks/useAsRef';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { createLayoutDiagnosticsSlice } from 'src/utils/layout/LayoutDiagnostics';
@@ -268,7 +270,7 @@ function createFormStore({
   readOnly: boolean;
   bootstrap: FormBootstrapBase;
 }): FormStoreApi {
-  return createStore<FormStoreState>()(
+  const store = createStore<FormStoreState>()(
     immer((set: FormStoreSet) => ({
       parent,
       nestedFormStatus: { unsaved: 0, unloadWarnings: 0 },
@@ -281,6 +283,8 @@ function createFormStore({
       bootstrap: createFormBootstrapSlice(bootstrap, set),
     })),
   );
+  store.getState().data.debounce('forced');
+  return store;
 }
 
 export function useFormDataSliceProps(
@@ -292,6 +296,7 @@ export function useFormDataSliceProps(
   const autoSaveBehavior = usePageSettings().autoSaveBehavior;
   const changeInstance = useOptimisticallyUpdateCachedInstance();
   const getCachedInitialValidations = useGetCachedInitialValidations();
+  const calculationDataSources = useAsRef(useExpressionDataSourcesBaseForStoreSelector());
 
   if (!bootstrap) {
     return undefined;
@@ -305,5 +310,6 @@ export function useFormDataSliceProps(
     changeInstance,
     selectFromInstance,
     getCachedInitialValidations,
+    getCalculationDataSources: () => calculationDataSources.current,
   };
 }

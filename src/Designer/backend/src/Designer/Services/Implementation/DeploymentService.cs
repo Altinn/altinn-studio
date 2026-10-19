@@ -411,40 +411,30 @@ public class DeploymentService : IDeploymentService
 
             if (shouldSkip)
             {
-                Activity.Current?.AddEvent(
-                    new ActivityEvent(
-                        "undeploy_skipped",
-                        tags: new ActivityTagsCollection
-                        {
-                            ["skip.reason"] = "pending_decommission_recent",
-                            ["org"] = editingContext.Org,
-                            ["app"] = editingContext.Repo,
-                            ["environment"] = env,
-                            ["build.id"] = pendingDecommission.Build?.Id ?? string.Empty,
-                            ["pending.age_seconds"] = pendingAge.TotalSeconds,
-                        }
-                    )
+                SetPendingDecommissionTags(pendingDecommission, pendingAge);
+                Activity.Current?.SetTag(
+                    ServiceTelemetry.Attributes.Undeploy.SkipReason,
+                    "pending_decommission_recent"
                 );
                 return true;
             }
 
-            Activity.Current?.AddEvent(
-                new ActivityEvent(
-                    "undeploy_stale_pending_decommission_ignored",
-                    tags: new ActivityTagsCollection
-                    {
-                        ["org"] = editingContext.Org,
-                        ["app"] = editingContext.Repo,
-                        ["environment"] = env,
-                        ["build.id"] = pendingDecommission.Build?.Id ?? string.Empty,
-                        ["pending.age_seconds"] = pendingAge.TotalSeconds,
-                        ["pending.skip_threshold_seconds"] = s_pendingDecommissionSkipThreshold.TotalSeconds,
-                    }
-                )
-            );
+            SetPendingDecommissionTags(pendingDecommission, pendingAge);
+            Activity.Current?.SetTag(ServiceTelemetry.Attributes.Undeploy.StalePendingDecommissionIgnored, true);
         }
 
         return false;
+    }
+
+    private static void SetPendingDecommissionTags(DeploymentEntity pendingDecommission, TimeSpan pendingAge)
+    {
+        Activity activity = Activity.Current;
+        activity?.SetTag(ServiceTelemetry.Attributes.Undeploy.BuildId, pendingDecommission.Build?.Id);
+        activity?.SetTag(ServiceTelemetry.Attributes.Undeploy.PendingAgeSeconds, pendingAge.TotalSeconds);
+        activity?.SetTag(
+            ServiceTelemetry.Attributes.Undeploy.PendingSkipThresholdSeconds,
+            s_pendingDecommissionSkipThreshold.TotalSeconds
+        );
     }
 
     private static DateTime NormalizeToUtc(DateTime value) =>
@@ -680,7 +670,7 @@ public class DeploymentService : IDeploymentService
             links.Add((buildLogUrl, "Bygglogg"));
         }
 
-        var payload = new NotificationPayload(buildId, status, fields, links);
+        var payload = new NotificationPayload(buildId, status, fields, links, Emoji: "❌");
 
         await Task.WhenAll(
             _notificationService.NotifyInternalAsync(org, environment, payload, cancellationToken),

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
@@ -21,10 +21,6 @@ vi.mock('../EnvironmentConfigContext', () => ({
 const TestChild = () => <div data-testid='child'>Child</div>;
 
 describe('PostHogContextProvider', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render children', () => {
     (EnvironmentConfigContext.useEnvironmentConfig as Mock).mockReturnValue({
       environment: null,

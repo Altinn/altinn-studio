@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { Content } from './Content';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -22,13 +23,11 @@ const user = userEvent.setup();
 const textResourceEditTestId = 'text-resource-edit';
 
 // Mocks:
-jest.mock('../TextResourceEdit', () => ({
+vi.mock('../TextResourceEdit', () => ({
   TextResourceEdit: () => <div data-testid={textResourceEditTestId} />,
 }));
 
 describe('ContentTab', () => {
-  afterEach(jest.clearAllMocks);
-
   describe('when editing a text resource', () => {
     it('should render the component', async () => {
       await render({ props: {}, editId: 'test' });
@@ -67,7 +66,7 @@ describe('ContentTab', () => {
     };
 
     it('should render the component', async () => {
-      jest.spyOn(console, 'error').mockImplementation(() => undefined); // Silence error from Select component
+      vi.spyOn(console, 'error').mockImplementation(() => undefined); // Silence error from Select component
       await render({ props });
       expect(
         screen.getByText(textMock('ux_editor.modal_properties_component_change_id')),

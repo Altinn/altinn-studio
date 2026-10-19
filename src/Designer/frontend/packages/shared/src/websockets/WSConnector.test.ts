@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { WSConnectorMissingWebSocketUrlsException } from 'app-shared/websockets/WSConnectorMissingWebSocketUrlsException';
 
@@ -24,10 +24,6 @@ const clientOne = 'MessageClientOne';
 const clientTwo = 'MessageClientTwo';
 
 describe('WSConnector', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should create an instance of WSConnector using singleton pattern', () => {
     const webSocketUrls: Array<string> = [
       'ws://jest-test-mocked-url.com',

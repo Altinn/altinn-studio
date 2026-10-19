@@ -38,7 +38,6 @@ describe('SettingsPageButton', () => {
   const user = userEvent.setup();
   afterEach(() => {
     typedLocalStorage.removeItem('featureFlags');
-    vi.clearAllMocks();
   });
 
   it('should render the button with text on a large screen', () => {

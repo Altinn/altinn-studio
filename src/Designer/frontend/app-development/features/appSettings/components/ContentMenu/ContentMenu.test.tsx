@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ContentMenu } from './ContentMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -14,10 +14,6 @@ const allTabNames = ['about', 'setup', 'policy', 'access_control', 'run', 'maski
 );
 
 describe('ContentMenu', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render all menu tabs for service owner apps', async () => {
     renderContentMenu();
 

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { CreateNewWrapperProps } from './CreateNewWrapper';
@@ -20,8 +20,6 @@ const defaultProps: CreateNewWrapperProps = {
 };
 
 describe('CreateNewWrapper', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should open the popup when clicking "new" button', async () => {
     const user = userEvent.setup();
     renderCreateNewWrapper();

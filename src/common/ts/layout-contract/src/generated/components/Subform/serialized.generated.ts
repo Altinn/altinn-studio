@@ -2,7 +2,6 @@ import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
   FormComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
@@ -21,6 +20,8 @@ export type CompSubformSerialized = {
     tableEditButton?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   layoutSet: string;
   showAddButton?: boolean;
   showDeleteButton?: boolean;
@@ -29,7 +30,6 @@ export type CompSubformSerialized = {
   summaryDelimiter?: string;
   dataModelBindings?: undefined;
 } & ComponentBase &
-  FormComponentProps &
-  SummarizableComponentProps;
+  FormComponentProps;
 
-// Source hash: d28719d5c428fea8937e81377cd7497f6afc0e837c0733e3d3133572ad4f0238
+// Source hash: 18d2458914b18e6ff5995104ac6106a0062cdfecc9ca6512770c68850413e708

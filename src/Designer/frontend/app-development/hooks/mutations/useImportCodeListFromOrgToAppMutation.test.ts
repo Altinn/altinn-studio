@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   useImportCodeListFromOrgToAppMutation,
   convertTextResourceResponseToCacheFormat,
@@ -9,7 +9,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
 
 describe('useImportCodeListFromOrgToAppMutation', () => {
-  beforeEach(vi.clearAllMocks);
   const codeListId: string = 'testCodeListId';
 
   it('should call importCodeListFromOrgToApp with correct parameters', async () => {

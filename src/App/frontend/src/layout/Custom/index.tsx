@@ -52,7 +52,6 @@ export class Custom extends CustomDef {
         <CustomWebComponent
           summaryMode={true}
           baseComponentId={props.targetBaseComponentId}
-          containerDivRef={React.createRef()}
         />
       </SummaryFlex>
     );

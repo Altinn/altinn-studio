@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../testing/mocks';
 import { CreateSubformMode, type CreateSubformModeProps } from './CreateSubformMode';
 import { screen } from '@testing-library/react';
@@ -20,7 +21,7 @@ describe('CreateSubformMode', () => {
   });
 
   it('should set isSubformInEditMode to false when cancel button is clicked', async () => {
-    const setIsCreateSubformMode = jest.fn();
+    const setIsCreateSubformMode = vi.fn();
     const user = userEvent.setup();
     renderCreateSubformMode({ setIsCreateSubformMode });
 
@@ -56,7 +57,7 @@ describe('CreateSubformMode', () => {
 
   it('should be possible to create a new subform with a new datamodel', async () => {
     const user = userEvent.setup();
-    const setIsCreateSubformMode = jest.fn();
+    const setIsCreateSubformMode = vi.fn();
 
     renderCreateSubformMode({
       setIsCreateSubformMode,
@@ -78,7 +79,7 @@ describe('CreateSubformMode', () => {
 
   it('should be possible to create a new subform with existing data model', async () => {
     const user = userEvent.setup();
-    const setIsCreateSubformMode = jest.fn();
+    const setIsCreateSubformMode = vi.fn();
     renderCreateSubformMode({
       setIsCreateSubformMode,
     });

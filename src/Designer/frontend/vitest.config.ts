@@ -1,20 +1,21 @@
 import { defineConfig, mergeConfig } from 'vitest/config';
 import common from './vite.config';
-import vitestMigratedDirectories from './vitest.migrated';
 
 export default mergeConfig(
   common,
   defineConfig({
     test: {
-      include: vitestMigratedDirectories.map((directory) => `${directory}/**/*.test.{ts,tsx}`),
-      // Shared test helpers call the global expect. They cannot import it from vitest while Jest also loads them.
+      include: ['**/*.test.{ts,tsx}'],
+      // React Testing Library only cleans up after each test when afterEach is global.
       globals: true,
-      // Tests assert on the plain class names of CSS modules, which identity-obj-proxy gave them in Jest.
+      // Clears the calls of every mock before each test. This is Vitest's default, set here for clarity.
+      clearMocks: true,
+      // Tests assert on the plain class names of CSS modules.
       css: { modules: { classNameStrategy: 'non-scoped' } },
       environment: 'jsdom',
-      // Tests expect URLs on http://localhost/, the Jest default. Vitest defaults to http://localhost:3000.
+      // Tests expect URLs on http://localhost/. Vitest defaults to http://localhost:3000.
       environmentOptions: { jsdom: { url: 'http://localhost/' } },
-      setupFiles: ['./testing/setupTests.vitest.ts'],
+      setupFiles: ['./testing/setupTests.ts'],
       // html-react-parser loads a CommonJS build that requires domhandler, which is an ES module only. Node 22, which CI
       // uses, cannot do that in VM threads. Bundling html-react-parser first avoids it, as in the App frontend.
       deps: { optimizer: { client: { enabled: true, include: ['html-react-parser'] } } },
@@ -31,11 +32,8 @@ export default mergeConfig(
       coverage: {
         // Codecov and Sonar read lcov.info, see sonar-project.properties.
         reporter: ['lcov'],
-        // While both runners run, keep this report apart from Jest's in coverage/, and limit it to the migrated
-        // directories so the two reports cover separate files. Remove both settings together with Jest.
-        reportsDirectory: 'coverage/vitest',
-        include: vitestMigratedDirectories.map((directory) => `${directory}/**/*.{ts,tsx}`),
-        exclude: ['**/vite.config.ts'],
+        // Test helpers are not product code, so they do not count towards coverage.
+        exclude: ['testing/**', '**/src/testing/**'],
       },
     },
   }),

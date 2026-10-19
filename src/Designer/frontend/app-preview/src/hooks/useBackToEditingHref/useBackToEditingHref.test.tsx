@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { useBackToEditingHref } from './useBackToEditingHref';
 import { typedLocalStorage } from '@studio/pure-functions';
 import { renderHookWithProviders } from '../../../test/mocks';
@@ -19,10 +19,6 @@ vi.mock('react-router-dom', async () => ({
 const renderUseBackToEditingHrefHook = () => renderHookWithProviders(useBackToEditingHref);
 
 describe('useBackToEditingHref', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should return the correct URL with instanceId in the query parameters', () => {
     vi.spyOn(typedLocalStorage, 'getItem').mockReturnValue(mockLayoutId);
     const { result } = renderUseBackToEditingHrefHook();

@@ -4,9 +4,17 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - 'src/AI/agents/**'
+      - 'src/AI/assistant/**'
       - '.github/workflows/assistant-evals.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
+      # Workbench usage guide; eval behavior is defined in code and datasets.
+      - '!src/AI/assistant/benchmarks/EVALS.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
@@ -29,19 +37,22 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+      # uv installs the Python version in .python-version and puts the venv on PATH.
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          python-version: '3.12'
+          version: '0.13.0'
+          working-directory: src/AI/assistant
+          activate-environment: true
 
       # The actor_prompt and tools digests import the agent code.
       # If a digest fails, the gate fails. It does not pass.
       - name: Install dependencies
-        working-directory: src/AI/agents
-        run: pip install -r requirements.txt
+        working-directory: src/AI/assistant
+        run: uv sync --locked --no-dev
 
       - name: What this change means for the baseline
-        working-directory: src/AI/agents
+        working-directory: src/AI/assistant
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha }}
         shell: bash

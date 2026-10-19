@@ -4,7 +4,6 @@ import {
   FormComponentProps,
   ISelectionComponent,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -17,8 +16,8 @@ import {
 export type CompFileUploadSerialized = {
   type: 'FileUpload';
   textResourceBindings?: { tagTitle?: ExprValToActualOrExpr<ExprVal.String> } & TRBFormComp &
-    TRBSummarizable &
-    TRBLabel;
+    TRBLabel &
+    TRBSummarizable;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsSimple | IDataModelBindingsList;
   maxFileSizeInMB: number;
@@ -29,10 +28,11 @@ export type CompFileUploadSerialized = {
   validFileEndings?: string | string[];
   alertOnDelete?: ExprValToActualOrExpr<ExprVal.Boolean>;
   readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
 } & ComponentBase &
   FormComponentProps &
-  SummarizableComponentProps &
   LabeledComponentProps &
   ISelectionComponent;
 
-// Source hash: 01890963fe5e05c63574617c5e79b4af687dd6aae5572f58071c2c179a0d49fe
+// Source hash: 17d558b1690e510cf20b88cd7ce50373fb24adc7a90ed792195a5bbe7d40ef3b

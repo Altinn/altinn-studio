@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { AddItem, type AddItemProps, InlineItemAdder, type InlineItemAdderProps } from './AddItem';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -72,7 +73,6 @@ const createDefaultLayout = (): IInternalLayout => ({
   containers: {
     [BASE_CONTAINER_ID]: {
       type: null,
-      itemType: 'CONTAINER',
       id: BASE_CONTAINER_ID,
     } as const,
   },
@@ -89,7 +89,7 @@ const createDefaultAddItemProps = (): AddItemProps => ({
 const createDefaultInlineItemAdderProps = (): InlineItemAdderProps => ({
   containerId: BASE_CONTAINER_ID,
   layout: createDefaultLayout(),
-  toggleIsOpen: jest.fn(),
+  toggleIsOpen: vi.fn(),
   saveAtIndexPosition: 0,
 });
 

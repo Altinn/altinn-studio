@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -51,8 +51,6 @@ const getAddButton = () => screen.getByRole('button', { name: textMock('general.
 const getCancelButton = () => screen.getByRole('button', { name: textMock('general.cancel') });
 
 describe('ApiKeyDialog', () => {
-  afterEach(() => vi.clearAllMocks());
-
   describe('form state (no newApiKey)', () => {
     it('renders the dialog title', () => {
       renderApiKeyDialog();

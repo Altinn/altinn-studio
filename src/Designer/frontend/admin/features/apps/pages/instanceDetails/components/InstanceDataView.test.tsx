@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -39,8 +39,6 @@ const appMetadataMock: ApplicationMetadata = {
 };
 
 describe('InstanceDataView', () => {
-  afterEach(vi.clearAllMocks);
-
   it('shows a spinner while loading', () => {
     (axios.get as Mock).mockReturnValue(new Promise(() => {}));
 

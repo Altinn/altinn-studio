@@ -49,13 +49,7 @@ function createAxiosLikeError(status: number, data: Record<string, unknown>) {
   });
 }
 
-/**
- * Renders a task (with a submit probe) whose process/next call fails with the given error body;
- * after the failure the instance refetch reports the given live workflow annotation. Because
- * setupTests makes window.logError throw, these tests also prove the mutation's error path is NOT
- * taken — the error body is consumed by the state machine instead of being logged and toasted
- * (which used to surface the backend's raw failure detail to the citizen).
- */
+// setupTests makes window.logError throw, so unhandled workflow failures also fail these tests.
 async function renderFailingProcessNext(
   errorBody: Record<string, unknown>,
   status: number,
@@ -108,9 +102,6 @@ describe('useProcessNext workflow error convergence', () => {
 
     await user.click(screen.getByRole('button', { name: 'submit-probe' }));
 
-    // The refetched workflow.status takes over: the citizen sees the localized failed error page
-    // (with the safe details expander) — not an error toast echoing the backend's detail, and no
-    // Retry affordance (the engine already exhausted its retry budget; recovery is ops-driven).
     expect(await screen.findByRole('heading', { name: /noe gikk galt/i })).toBeInTheDocument();
     expect(screen.getByText('Vis detaljer om feilen').closest('summary')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
@@ -131,19 +122,17 @@ describe('useProcessNext workflow error convergence', () => {
 
     await user.click(screen.getByRole('button', { name: 'submit-probe' }));
 
-    // The engine keeps working after the synchronous wait timed out: the polled processing state
-    // replaces the task instead of a scary error.
     await waitFor(() => expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'workflow-processing'));
     expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
   });
 
-  it('a blocked 409 with processNextState=retrying is swallowed and converges on the advancing screen', async () => {
+  it('a 409 while the task is still processing converges on the processing screen without an error', async () => {
     const user = userEvent.setup();
     await renderFailingProcessNext(
       {
         title: 'Task is still being processed.',
+        detail: 'The current task is still being processed by the workflow engine.',
         processNextState: 'retrying',
-        validationIssues: null,
       },
       409,
       { status: 'processing', targetTask: 'Task_2' },
@@ -152,29 +141,74 @@ describe('useProcessNext workflow error convergence', () => {
     await user.click(screen.getByRole('button', { name: 'submit-probe' }));
 
     await waitFor(() => expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'workflow-processing'));
+    expect(toast).not.toHaveBeenCalled();
+  });
+
+  it('a server error shows the localized retry message instead of its detail', async () => {
+    vi.spyOn(window, 'logError').mockImplementation(() => {});
+    const user = userEvent.setup();
+    await renderFailingProcessNext(
+      {
+        title: 'The process could not move on from the current task.',
+        detail: 'Could not decide where the process goes next.',
+      },
+      500,
+      { status: 'idle' },
+    );
+
+    await user.click(screen.getByRole('button', { name: 'submit-probe' }));
+
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({ props: { id: 'process_error.submit_error_please_retry' } }),
+        expect.objectContaining({ type: 'error' }),
+      ),
+    );
+    expect(screen.getByRole('button', { name: 'submit-probe' })).toBeInTheDocument();
+  });
+
+  it('a 409 for a concurrent transition shows its localized message instead of its detail', async () => {
+    vi.spyOn(window, 'logError').mockImplementation(() => {});
+    const user = userEvent.setup();
+    await renderFailingProcessNext(
+      {
+        title: 'Concurrent process transition attempt.',
+        detail: 'Another process transition was submitted from the same instance version.',
+        processNextState: 'concurrentTransition',
+      },
+      409,
+      { status: 'idle' },
+    );
+
+    await user.click(screen.getByRole('button', { name: 'submit-probe' }));
+
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({ props: { id: 'process_error.concurrent_transition' } }),
+        expect.objectContaining({ type: 'error' }),
+      ),
+    );
   });
 
   it('a bodiless timeout uses the refetched processing state instead of showing a toast', async () => {
-    const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
+    vi.spyOn(window, 'logError').mockImplementation(() => {});
     const user = userEvent.setup();
     await renderFailingProcessNext({}, 504, { status: 'processing', targetTask: 'Task_2' });
 
     await user.click(screen.getByRole('button', { name: 'submit-probe' }));
 
     await waitFor(() => expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'workflow-processing'));
-    expect(logError).toHaveBeenCalledTimes(1);
     expect(toast).not.toHaveBeenCalled();
   });
 
   it('keeps the timeout toast in PDF mode where processing does not replace the form', async () => {
-    const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
+    vi.spyOn(window, 'logError').mockImplementation(() => {});
     const user = userEvent.setup();
     await renderFailingProcessNext({}, 504, { status: 'processing', targetTask: 'Task_2' }, 'pdf=1');
 
     await user.click(screen.getByRole('button', { name: 'submit-probe' }));
 
     await waitFor(() => expect(toast).toHaveBeenCalledTimes(1));
-    expect(logError).toHaveBeenCalledTimes(1);
     expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
   });
 });

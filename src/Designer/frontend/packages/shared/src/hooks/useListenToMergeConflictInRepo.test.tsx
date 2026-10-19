@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useListenToMergeConflictInRepo } from './useListenToMergeConflictInRepo';
@@ -13,10 +13,6 @@ vi.mock('app-shared/hooks/queries', () => ({
 }));
 
 describe('useListenToMergeConflictInRepo', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should add and remove event listener on mount and unmount', () => {
     const refetchMock = vi.fn();
     (useRepoStatusQuery as Mock).mockReturnValue({ refetch: refetchMock });

@@ -4,6 +4,7 @@ import { applyPatch } from 'fast-json-patch';
 import { v4 as uuidv4 } from 'uuid';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
+import { runCalculations } from 'src/features/formData/calculations';
 import { convertData } from 'src/features/formData/convertData';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
@@ -210,9 +211,17 @@ export interface FormDataMethods {
 
 function makeActions(
   set: FormStoreSet,
-  { selectFromInstance, dataModels, changeInstance, getCachedInitialValidations, locked }: FormDataSliceProps,
+  {
+    selectFromInstance,
+    dataModels,
+    changeInstance,
+    getCachedInitialValidations,
+    getCalculationDataSources,
+    locked,
+  }: FormDataSliceProps,
 ): FormDataMethods {
   const debounceOnBlur = getFeature('saveOnBlur').value;
+  let calculationsInitialized = false;
 
   function isWritable(dataElementId: string | null) {
     return !locked && isDataElementWritable(dataElementId, selectFromInstance);
@@ -280,6 +289,7 @@ function makeActions(
 
   function processChanges(state: FormStoreState, toProcess: FDSaveFinished) {
     const { validationIssues, savedData, newDataModels, instance } = toProcess;
+    let hasBackendChanges = false;
     state.data.manualSaveRequested = false;
 
     if (validationIssues) {
@@ -306,18 +316,19 @@ function makeActions(
         });
         applyPatch(state.data.models[dataType].currentData, backendChangesPatch);
         state.data.models[dataType].lastSavedData = next;
-
-        // When we've copied over changes into the current model from the backend, we should also debounce this
-        // immediately. Some selectors, such as expressions, run on the debounced model
-        // to avoid refetching on every keystroke, but will save effects to the current model (such
-        // as which stale options to remove). So if the backend only saves this to the current model but not the
-        // debounced model, we'd run into unwanted states.
-        if (backendChangesPatch.length > 0) {
-          debounce(state, `backendChanges`);
-        }
+        hasBackendChanges ||= backendChangesPatch.length > 0;
       } else {
         state.data.models[dataType].lastSavedData = savedData[dataType];
       }
+    }
+    if (hasBackendChanges) {
+      // When we've copied over changes into the current model from the backend, we should also debounce this
+      // immediately. Some selectors, such as expressions, run on the debounced model
+      // to avoid refetching on every keystroke, but will save effects to the current model (such
+      // as which stale options to remove). So if the backend only saves this to the current model but not the
+      // debounced model, we'd run into unwanted states.
+      // Publish all backend changes together so calculations see the updated models.
+      debounce(state, 'backendChanges');
     }
     deduplicateModels(state);
   }
@@ -325,6 +336,14 @@ function makeActions(
   function debounce(state: FormStoreState, reason: DebounceReason) {
     if (reason === 'blur' && !debounceOnBlur) {
       return;
+    }
+
+    const hasChanges = Object.values(state.data.models).some(
+      (model) => !deepEqual(model.currentData, model.debouncedCurrentData),
+    );
+    if (!calculationsInitialized || hasChanges) {
+      runCalculations(state, getCalculationDataSources(), isWritable);
+      calculationsInitialized = true;
     }
 
     for (const dataType of Object.keys(state.data.models)) {
@@ -448,20 +467,14 @@ function makeActions(
           return;
         }
 
-        const models = [
-          state.data.models[reference.dataType].currentData,
-          state.data.models[reference.dataType].debouncedCurrentData,
-        ];
-
-        for (const model of models) {
-          const existingValue = dot.pick(reference.field, model);
-          if (Array.isArray(existingValue)) {
-            existingValue.push(newValue);
-          } else {
-            dot.str(reference.field, [newValue], model);
-          }
+        const model = state.data.models[reference.dataType].currentData;
+        const existingValue = dot.pick(reference.field, model);
+        if (Array.isArray(existingValue)) {
+          existingValue.push(newValue);
+        } else {
+          dot.str(reference.field, [newValue], model);
         }
-        updateSchemaValidations(state, reference.dataType);
+        debounce(state, 'listChanges');
       }),
     removeIndexFromList: ({ reference, index }) =>
       set((state) => {
@@ -475,6 +488,7 @@ function makeActions(
         }
 
         existingValue.splice(index, 1);
+        debounce(state, 'listChanges');
       }),
 
     removeValueFromList: ({ reference, value }) =>
@@ -489,6 +503,7 @@ function makeActions(
         }
 
         existingValue.splice(existingValue.indexOf(value), 1);
+        debounce(state, 'listChanges');
       }),
     removeFromListCallback: ({ reference, startAtIndex, callback }) =>
       set((state) => {
@@ -496,41 +511,30 @@ function makeActions(
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
-        const models = [
-          // This is used when deleting a row in repeating groups. If we didn't delete from both the current
-          // and debounced data models, the row would linger for a while in the UI, and we'd have intricate problems
-          // to solve, like fetching options (which use the debounced data model when mapping form data into the URL),
-          // which then would stall updating options and might cause deletion of stale option values before debounce.
-          state.data.models[reference.dataType].currentData,
-          state.data.models[reference.dataType].debouncedCurrentData,
-        ];
-        for (const model of models) {
-          const existingValue = dot.pick(reference.field, model);
-          if (!Array.isArray(existingValue)) {
-            continue;
-          }
-
-          if (
-            startAtIndex !== undefined &&
-            startAtIndex >= 0 &&
-            startAtIndex < existingValue.length &&
-            callback(existingValue[startAtIndex])
-          ) {
-            existingValue.splice(startAtIndex, 1);
-            continue;
-          }
-
-          // Continue looking for the item to remove from the start of the list if we didn't find it at the start index
+        // Debounce immediately after removal so the row disappears from expressions and the UI together.
+        const model = state.data.models[reference.dataType].currentData;
+        const existingValue = dot.pick(reference.field, model);
+        if (!Array.isArray(existingValue)) {
+          return;
+        }
+        if (
+          startAtIndex !== undefined &&
+          startAtIndex >= 0 &&
+          startAtIndex < existingValue.length &&
+          callback(existingValue[startAtIndex])
+        ) {
+          existingValue.splice(startAtIndex, 1);
+        } else {
           let index = 0;
           while (index < existingValue.length) {
             if (callback(existingValue[index])) {
               existingValue.splice(index, 1);
-              continue;
+            } else {
+              index++;
             }
-            index++;
           }
         }
-        updateSchemaValidations(state, reference.dataType);
+        debounce(state, 'listChanges');
       }),
 
     setMultiLeafValues: ({ changes, ...rest }) =>

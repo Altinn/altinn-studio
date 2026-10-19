@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -7,8 +7,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders } from '../../mocks/renderWithProviders';
 
 describe('cloneModal', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should show copy link if copy feature is supported', () => {
     Object.defineProperty(navigator, 'clipboard', {
       value: {

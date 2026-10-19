@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrayRestrictions } from './ArrayRestrictions';
@@ -23,10 +23,6 @@ const render = (props: Partial<RestrictionItemProps> = {}) => {
 };
 
 describe('ArrayRestrictions', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   test('ArrayRestrictions should render correctly', async () => {
     render();
     Object.values(ArrRestrictionKey).forEach((key) => {
