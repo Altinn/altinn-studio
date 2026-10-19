@@ -40,7 +40,7 @@ internal static class HandleWorkflows
         "collectionKey",
         "status",
         "label",
-        "isHead",
+        "role",
         "cursor",
         "pageSize",
         "includeState",
@@ -113,7 +113,7 @@ internal static class HandleWorkflows
         [FromQuery] string? collectionKey,
         [FromQuery(Name = "status")] string[]? statuses,
         [FromQuery(Name = "label")] string[]? labels,
-        [FromQuery] bool? isHead,
+        [FromQuery] string? role,
         [FromQuery] string? cursor,
         [FromQuery] int? pageSize,
         [FromQuery] bool? includeState,
@@ -131,7 +131,7 @@ internal static class HandleWorkflows
         AddIfPresent(query, "collectionKey", collectionKey);
         AddAll(query, "status", statuses);
         AddAll(query, "label", labels);
-        AddIfPresent(query, "isHead", isHead);
+        AddIfPresent(query, "role", role);
         AddIfPresent(query, "cursor", cursor);
         AddIfPresent(query, "pageSize", pageSize);
         query.Add("includeState", "false");
@@ -436,12 +436,6 @@ internal static class HandleWorkflows
     {
         if (value is not null)
             query.Add(name, value.Value.ToString(CultureInfo.InvariantCulture));
-    }
-
-    private static void AddIfPresent(QueryBuilder query, string name, bool? value)
-    {
-        if (value is not null)
-            query.Add(name, value.Value ? "true" : "false");
     }
 
     /// <summary>
