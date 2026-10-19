@@ -6,7 +6,7 @@
 
 ## Result
 
-A3: Tools that run code from the app repository run in a separate pod, the assistant runner. The pod runs in a Kata VM and has no secrets.
+A3: Tools that run code from the app repository run in a separate pod, the assistant runner. The pod runs in a Microsandbox and has no secrets.
 
 ## Problem context
 
@@ -61,7 +61,7 @@ The assistant pod is not a safe place for this code. The pod runs as root, and i
 ### A3: Separate pod
 
 - Good, because the pod has no secrets, no service account token, and no network access to Designer or Gitea. The assistant sends a copy of the app and gets back a result and a patch (B1).
-- Good, because the pod runs in a Kata VM with its own kernel. The Gitea CI runners already use Kata VMs for code from service owners (B1).
+- Good, because the pod runs in a VM with its own kernel.
 - Good, because each pod runs one job at a time, as a separate user, and removes all processes and files of the job before the next job (B2).
 - Good, because the jobs use their own CPU and memory on the runner node pool (B4).
 - Good, because more pods give more jobs at a time (B5).
@@ -71,5 +71,30 @@ The assistant pod is not a safe place for this code. The pod runs as root, and i
 ## Consequences
 
 The assistant service runs the agent loop, which calls the model and runs the tools that the model asks for. It holds all keys and is the only part that pushes to Gitea. The runner holds no keys. It gets a copy of the app and gives back a result and a patch. Thus each new tool that runs code from the app, for example a tool that starts the app or runs its tests, goes to the runner.
+
+```mermaid
+flowchart LR
+    model["Azure model"]
+    gitea["Gitea"]
+    designer["Designer"]
+
+    subgraph assistantPod["Assistant pod"]
+        assistant["Agent loop and tools<br/>Model and Langfuse keys<br/>Designer API key per session<br/>App clones of all sessions"]
+    end
+
+    subgraph runnerPool["Runner node pool"]
+        subgraph runnerPod["Assistant runner pod (Microsandbox VM)"]
+            runner["One job at a time<br/>No secrets<br/>No service account token"]
+        end
+    end
+
+    assistant <-->|"prompts and tool calls"| model
+    assistant -->|"push"| gitea
+    assistant <-->|"API"| designer
+    assistant -->|"copy of the app and job"| runner
+    runner -->|"result and patch"| assistant
+    runner -.-x|"blocked by NetworkPolicy"| gitea
+    runner -.-x|"blocked by NetworkPolicy"| designer
+```
 
 If the model later gets a shell tool, for example through a coding harness, all its tools must run in the runner, and the runner must keep a copy of the app for each session. A3 is the only alternative that supports this, because it runs code from the app away from the keys of all sessions.
