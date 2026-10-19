@@ -194,7 +194,7 @@ Content-Type: application/json; charset=utf-8
         "Guid_5": "Completed"
       },
       "links": {},
-      "role": "primary",
+      "role": "Primary",
       "steps": [
         {
           "databaseId": "Guid_8",
@@ -229,7 +229,7 @@ Content-Type: application/json; charset=utf-8
       },
       "dependents": {},
       "links": {},
-      "role": "primary",
+      "role": "Primary",
       "steps": [
         {
           "databaseId": "Guid_9",
@@ -270,7 +270,7 @@ Content-Type: application/json; charset=utf-8
         "Guid_2": "Completed",
         "Guid_4": "Completed"
       },
-      "role": "primary",
+      "role": "Primary",
       "steps": [
         {
           "databaseId": "Guid_10",
@@ -303,7 +303,7 @@ Content-Type: application/json; charset=utf-8
       "dependencies": {},
       "dependents": {},
       "links": {},
-      "role": "primary",
+      "role": "Primary",
       "steps": [
         {
           "databaseId": "Guid_11",
@@ -338,7 +338,7 @@ Content-Type: application/json; charset=utf-8
         "Guid_5": "Completed"
       },
       "links": {},
-      "role": "primary",
+      "role": "Primary",
       "steps": [
         {
           "databaseId": "Guid_12",
