@@ -1,7 +1,11 @@
 import { ESLint } from 'eslint';
 
 const eslint = new ESLint();
-const boundaryRules = new Set(['@typescript-eslint/no-restricted-imports', 'local/no-tanstack-reexports']);
+const boundaryRules = new Set([
+  '@typescript-eslint/no-restricted-imports',
+  'local/no-tanstack-reexports',
+  'local/no-query-mocks',
+]);
 
 async function boundaryErrors(code: string, filePath: string) {
   const [result] = await eslint.lintText(code, { filePath });
@@ -84,4 +88,40 @@ it('allows public domain imports and rejects internal query definitions', async 
       'src/routes/example.ts',
     ),
   ).not.toHaveLength(0);
+});
+
+it.each([
+  "vi.mock('src/core/queries/options');",
+  "vi.doMock('src/core/queries/payment');",
+  "vi.mock(import('src/core/queries/signeeList'));",
+  "vi.mock('src/core/contexts/ApiProvider');",
+  "vi.mock('src/features/instance/useProcessQuery');",
+  "vi.mock('src/features/instance/InstanceContext');",
+  "vi.mock('src/core/api-client/app.api');",
+  "vi.mock('../../core/queries/options');",
+  "import * as queries from 'src/core/queries/options'; vi.spyOn(queries, 'useOptionsQuery');",
+  "vi.mock('axios');",
+  "vi.mock('src/utils/network/networking');",
+])('rejects bypassing API injection in a feature test: %s', async (code) => {
+  expect(await boundaryErrors(code, 'src/layout/Dropdown/example.test.tsx')).toContainEqual(
+    expect.objectContaining({ ruleId: 'local/no-query-mocks', severity: 2 }),
+  );
+});
+
+it('rejects replacing TanStack itself in query tests', async () => {
+  expect(await boundaryErrors("vi.mock('@tanstack/react-query');", 'src/core/queries/example.test.ts')).toContainEqual(
+    expect.objectContaining({ ruleId: 'local/no-query-mocks', severity: 2 }),
+  );
+});
+
+it('allows typed API injection in feature tests and transport mocks in API client tests', async () => {
+  expect(
+    await boundaryErrors(
+      'renderWithProviders({ apis: { optionsApi: { fetchOptions: async () => ({ data: [], headers: {} }) } } });',
+      'src/layout/Dropdown/example.test.tsx',
+    ),
+  ).toEqual([]);
+  expect(
+    await boundaryErrors("vi.mock('src/utils/network/sharedNetworking');", 'src/core/api-client/example.test.ts'),
+  ).toEqual([]);
 });
