@@ -6,10 +6,10 @@ import FrontendBrukerneMerker from './04-frontend-brukerne-merker';
 import FrontendFolgerAppen from './05-frontend-folger-appen';
 import InfraNyttIV9 from './07-infra-nytt-i-v9';
 import Prosessmotor from './08-prosessmotor';
+import FraProsessTilSteg from './09-fra-prosess-til-steg';
 import ForUtviklere from './09-for-utviklere';
 import Bakgrunn from './10-bakgrunn';
 import Dashbord from './11-dashbord';
-import EttKlikk from './12-ett-klikk';
 import ScenarioFeil from './13-scenario-feil';
 import ScenarioLukker from './14-scenario-lukker';
 import Oppgradering from './16-oppgradering';
@@ -67,7 +67,8 @@ export const slides: SlideDef[] = [
   {
     id: 'seksjon-bak-kulissene',
     component: SeksjonBakKulissene,
-    notes: 'Del 2: det som skjer bak kulissene, altså plattformen, prosessene, stegene og logikken.',
+    notes:
+      'Del 2: det som skjer bak kulissene, altså plattformen, prosessene, stegene og logikken.',
   },
   {
     id: 'infra-nytt-i-v9',
@@ -80,6 +81,13 @@ export const slides: SlideDef[] = [
     component: Prosessmotor,
     notes:
       'Dette er hele ideen. Appen sier hva som skal skje, og prosessmotoren sørger for at det blir gjort. Hvert steg lagres før det gjøres, så en feil eller en omstart underveis ikke betyr at noe går tapt. Det gjelder alle overganger i prosessen, ikke bare «Send inn».',
+  },
+  {
+    id: 'fra-prosess-til-steg',
+    component: FraProsessTilSteg,
+    steps: 4,
+    notes:
+      'Én prosess, ett lag dypere for hvert klikk. Slik tegner dere den i Studio: utfylling, så slutt. I v8 lages PDF-en skjult når utfyllingen avsluttes, og alt skjer mens brukeren venter. Første klikk: i v9 er PDF-en en egen tjenesteoppgave i prosessen. Oppgraderingsverktøyet gjør den om for dere. Andre klikk: mellom to steg i prosessen gjør prosessmotoren jobben. Den avslutter steget, kjører appens egen kode, låser svarene, starter neste steg og lagrer prosessen. Hvert av dem lagres når det er ferdig, og det som er fullført, kjøres ikke på nytt. Tredje klikk: selve PDF-en lages også av motoren. Feiler den, prøves den igjen, og prosessen går ikke videre før PDF-en finnes. Fjerde klikk: det som ikke trenger å vente, som hendelsene til andre systemer, sendes som egne jobber i bakgrunnen. De holder ikke prosessen igjen, og de prøves igjen hver for seg. Samme mønster gjelder i hver overgang, også fra PDF til slutt.',
   },
   {
     id: 'for-utviklere',
@@ -99,14 +107,7 @@ export const slides: SlideDef[] = [
     component: Dashbord,
     steps: 3,
     notes:
-      'Dashbordet viser prosesser som pågår, tid brukt per steg, nedtelling til neste forsøk og hele feilhistorikken. Derfra kan drift kjøre et steg på nytt, be det sjekke nå, eller gi opp.',
-  },
-  {
-    id: 'ett-klikk',
-    component: EttKlikk,
-    steps: 2,
-    notes:
-      'Tilbake til Kari. Ett klikk på «Send inn» setter i gang ti ting, og i v8 må alle lykkes mens brukeren venter på svar. Andre klikk: i v9 lagres hvert av dem og gjøres ferdig. Feiler noe, prøves det igjen, og det som er fullført, kjøres ikke på nytt. Si aldri «nøyaktig én gang». Så tilbake til Kari.',
+      'Dashbordet viser prosesser som pågår, tid brukt per steg, nedtelling til neste forsøk og hele feilhistorikken. Derfra kan drift kjøre et steg på nytt, be det sjekke nå, eller gi opp. Så tilbake til Kari.',
   },
   {
     id: 'scenario-feil',

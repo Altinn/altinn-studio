@@ -230,8 +230,8 @@ to close.
 
 A cover that maps the talk, a short hook, then three parts — det brukerne merker, bak kulissene,
 kom i gang — in norsk bokmål. Speaker notes live in the `notes` field of each entry in
-`src/slides/index.ts` and are surfaced in the overview (`O`). 17 slides + 28 build steps =
-**44 presses of `→`**.
+`src/slides/index.ts` and are surfaced in the overview (`O`). 17 slides + 30 build steps =
+**46 presses of `→`**.
 
 | #  | `id`                       | Slide                                                        | Steps |
 | -- | -------------------------- | ------------------------------------------------------------ | ----- |
@@ -243,10 +243,10 @@ kom i gang — in norsk bokmål. Speaker notes live in the `notes` field of each
 | 6  | `seksjon-bak-kulissene`    | Del 2 — Bak kulissene                                        | 0     |
 | 7  | `infra-nytt-i-v9`          | Nytt med v9, and a banner for what v8 apps already have      | 0     |
 | 8  | `prosessmotor`             | En motor for prosessene — app, engine, saved steps           | 0     |
-| 9  | `for-utviklere`            | Nye muligheter for utviklere — what service tasks can do now | 0     |
-| 10 | `bakgrunn`                 | Arbeid i bakgrunnen — submit waits for a Dialogporten job     | 3     |
-| 11 | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard               | 3     |
-| 12 | `ett-klikk`                | Ett klikk, ti ting — then every one of them saved            | 2     |
+| 9  | `fra-prosess-til-steg`     | Fra prosess til steg — layer by layer, BPMN to side effects  | 4     |
+| 10 | `for-utviklere`            | Nye muligheter for utviklere — what service tasks can do now | 0     |
+| 11 | `bakgrunn`                 | Arbeid i bakgrunnen — submit waits for a Dialogporten job     | 3     |
+| 12 | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard               | 3     |
 | 13 | `scenario-feil`            | Tilbake til Kari — the first example, v9 side catches up     | 7     |
 | 14 | `scenario-lukker`          | Et eksempel til — Kari closes the tab before it is sent      | 7     |
 | 15 | `seksjon-kom-i-gang`       | Del 3 — Kom i gang                                           | 0     |

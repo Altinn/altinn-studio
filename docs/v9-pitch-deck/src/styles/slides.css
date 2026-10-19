@@ -156,56 +156,6 @@
   text-wrap: pretty;
 }
 
-.s-fan {
-  position: relative;
-  width: 820px;
-  height: 700px;
-  flex: 0 0 auto;
-}
-
-.s-fan__svg {
-  position: absolute;
-  inset: 0;
-}
-
-/* The button sits on the navy field, so it is the one solid blue block. */
-.s-fan__btn {
-  position: absolute;
-  left: 0;
-  top: 284px;
-  display: grid;
-  place-items: center;
-  width: 300px;
-  height: 132px;
-  border-radius: var(--r-md);
-  background: var(--blue-500);
-  color: #fff;
-  font-size: 36px;
-  font-weight: var(--fw-bold);
-  letter-spacing: var(--tracking-snug);
-}
-
-.s-fan__chip {
-  position: absolute;
-  left: 440px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 420px;
-  height: 54px;
-  padding: 0 14px 0 20px;
-  border-radius: var(--r-sm);
-  background: #fff;
-  color: var(--text-100);
-  font-size: 24px;
-  font-weight: var(--fw-medium);
-  white-space: nowrap;
-}
-
-.s-fan__chip .icon {
-  color: var(--blue-500);
-}
-
 /* =========================================================
    Feature cards
    ========================================================= */
@@ -530,6 +480,115 @@
   font-size: 21px;
   font-style: italic;
   color: var(--text-500);
+}
+
+/* =========================================================
+   From process to steps: one diagram, one layer per press
+   ========================================================= */
+
+.s-flow {
+  height: 660px;
+}
+
+.s-dag__lane.s-flow__lane {
+  left: 1000px;
+}
+
+.s-flow__lane .s-dag__lane-sub {
+  width: auto;
+  white-space: nowrap;
+}
+
+/* BPMN start and end events; the end event has the thick ring. */
+.s-flow__event {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 3px solid var(--line-strong);
+  background: #fff;
+  color: var(--text-200);
+  font-size: 22px;
+  font-weight: var(--fw-semibold);
+  transition:
+    border-color 0.3s,
+    background-color 0.3s;
+}
+
+.s-flow__event--end {
+  border-width: 7px;
+  border-color: var(--text-100);
+}
+
+.s-flow__event--end.is-ok-box {
+  border-color: var(--success);
+  background: var(--ok-soft);
+}
+
+.s-flow__note {
+  position: absolute;
+  translate: -50% 0;
+  padding: 7px 16px;
+  border-radius: var(--r-sm);
+  border: 1px solid;
+  font-size: 23px;
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+.s-flow__note.is-v8 {
+  border-color: var(--v8-line);
+  background: var(--v8-soft);
+  color: var(--v8);
+}
+
+.s-flow__note.is-v9 {
+  border-color: var(--v9-line);
+  background: var(--v9-soft);
+  color: var(--v9);
+}
+
+/* The arrow under the lens, and the two lines that open it into the panel. */
+.s-flow__window,
+.s-flow__funnel {
+  fill: none;
+  stroke: var(--v9);
+  stroke-width: 2;
+  stroke-dasharray: 7 6;
+}
+
+.s-flow__funnel {
+  opacity: 0.6;
+}
+
+.s-flow__panel {
+  border-color: var(--v9-line);
+  background: var(--v9-soft);
+}
+
+.s-flow__head {
+  margin: 0;
+  color: var(--v9);
+}
+
+.s-flow__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.s-flow__panel .s-steprow {
+  height: 46px;
+  padding: 0 14px;
+  background: #fff;
+  font-size: 22px;
+}
+
+.s-flow__panel .s-steprow__state {
+  font-size: 20px;
+}
+
+.s-flow__job .s-dag__title {
+  font-size: 28px;
 }
 
 /* =========================================================
@@ -951,21 +1010,6 @@
 
 .s-fcard--feature .s-fcard__body {
   margin-left: -0.04em;
-}
-
-/* The fan's second click: every one of the ten things is saved. */
-.s-fan__saved {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  margin-left: auto;
-  border-radius: 50%;
-  background: var(--ok-soft);
-}
-
-.s-fan__saved .icon {
-  color: var(--success);
 }
 
 /* The cover's map of the talk, on the navy field. */
