@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { findSubexpressionErrors } from './findSubexpressionErrors';
 import { NumberRelationOperator } from '../../../../enums/NumberRelationOperator';
 import { SimpleSubexpressionValueType } from '../../../../enums/SimpleSubexpressionValueType';

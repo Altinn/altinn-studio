@@ -1,10 +1,11 @@
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import type { AddFormItemMutationArgs } from './useAddItemToLayoutMutation';
 import { useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import { externalLayoutsMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock, layoutSetsMock } from '@altinn/ux-editor/testing/layoutSetsMock';
@@ -33,8 +34,6 @@ const applicationAttachmentMetadataMock: ApplicationAttachmentMetadata = {
 };
 
 describe('useAddItemToLayoutMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Returns ID of new item', async () => {
     const { result } = renderAddItemToLayoutMutation(selectedLayoutSet);
     result.current.mutate(defaultArgs);

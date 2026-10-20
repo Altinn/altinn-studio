@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Process;
@@ -9,6 +10,7 @@ using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -25,6 +27,7 @@ public class ProcessEngineAuthorizerTests
     private const string ConfirmAction = "confirm";
     private const string SignAction = "sign";
     private const string PayAction = "pay";
+    private const string CustomServiceTaskType = "customServiceTask";
 
     public ProcessEngineAuthorizerTests()
     {
@@ -43,9 +46,21 @@ public class ProcessEngineAuthorizerTests
 
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
 
+        var services = new ServiceCollection();
+        services.AddSingleton<AppImplementationFactory>();
+        foreach (IPipelineServiceTask serviceTask in BuiltInServiceTasks())
+        {
+            services.AddSingleton(serviceTask);
+        }
+        services.AddSingleton<IServiceTask>(new FakeServiceTask(CustomServiceTaskType));
+        AppImplementationFactory appImplementationFactory = services
+            .BuildServiceProvider()
+            .GetRequiredService<AppImplementationFactory>();
+
         _authorizer = new ProcessEngineAuthorizer(
             _authServiceMock.Object,
             _httpContextAccessorMock.Object,
+            appImplementationFactory,
             loggerMock.Object
         );
     }
@@ -263,69 +278,101 @@ public class ProcessEngineAuthorizerTests
     [Theory]
     [InlineData(AltinnTaskTypes.Data, new[] { "write" })]
     [InlineData(AltinnTaskTypes.Feedback, new[] { "write" })]
-    [InlineData("pdf", new[] { "write" })]
-    [InlineData("eFormidling", new[] { "write" })]
-    [InlineData("subformPdf", new[] { "write" })]
     [InlineData(AltinnTaskTypes.Payment, new[] { "pay", "write" })]
     [InlineData(AltinnTaskTypes.Confirmation, new[] { "confirm" })]
     [InlineData(AltinnTaskTypes.Signing, new[] { "sign", "write" })]
-    [InlineData("customTask", new[] { "customTask" })]
-    public void GetActionsThatAllowProcessNextForTaskType_ReturnsExpectedActions(
+    [InlineData("customUserTask", new[] { "customUserTask" })]
+    public async Task AuthorizeProcessNext_WithNoAction_UserTask_ChecksTheTaskTypeActions(
         string taskType,
         string[] expectedActions
     )
     {
-        // Act
-        string[] result = ProcessEngineAuthorizer.GetActionsThatAllowProcessNextForTaskType(taskType);
+        Assert.Equal(expectedActions, await ActionsCheckedWithoutAnAction(taskType));
+    }
 
-        // Assert
-        Assert.Equal(expectedActions, result);
+    [Theory]
+    [MemberData(nameof(ServiceTaskTypes))]
+    public async Task AuthorizeProcessNext_WithNoAction_ServiceTask_ChecksOnlyWrite(string taskType)
+    {
+        // The workflow engine runs a service task without user interaction, so the user only ever
+        // retries or resumes it - built-in or registered by the app, the task's type is never the action.
+        Assert.Equal([WriteAction], await ActionsCheckedWithoutAnAction(taskType));
+    }
+
+    public static TheoryData<string> ServiceTaskTypes
+    {
+        get
+        {
+            var data = new TheoryData<string>();
+            foreach (IPipelineServiceTask serviceTask in BuiltInServiceTasks())
+            {
+                data.Add(serviceTask.Type);
+            }
+
+            data.Add(CustomServiceTaskType);
+            return data;
+        }
     }
 
     [Fact]
-    public void GetActionsThatAllowProcessNextForTaskType_AllServiceTasksReturnWriteAction()
+    public void BuiltInServiceTasks_Are_Discovered()
     {
-        // This test ensures that all built-in IServiceTask implementations return "write" as one of
-        // the allowed actions in ProcessEngineAuthorizer.GetActionsThatAllowProcessNextForTaskType.
-        // This helps prevent forgetting to add new service tasks to the authorization logic.
+        // Guards the reflection below: an empty list would make the service-task theory test only
+        // the custom task.
+        List<string> types = BuiltInServiceTasks().Select(t => t.Type).ToList();
+        Assert.Contains(AltinnTaskTypes.Pdf, types);
+        Assert.Contains(AltinnTaskTypes.EFormidling, types);
+    }
 
-        // Arrange - Find all concrete IServiceTask implementations in Altinn.App.Core
-        Assembly coreAssembly = typeof(IServiceTask).Assembly;
-        List<Type> serviceTaskTypes = coreAssembly
-            .GetTypes()
-            .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IServiceTask).IsAssignableFrom(t))
-            .ToList();
+    /// <summary>
+    /// Every concrete service task in Altinn.App.Core, created without running its constructor: only
+    /// <c>Type</c> is read.
+    /// </summary>
+    private static IEnumerable<IPipelineServiceTask> BuiltInServiceTasks() =>
+        typeof(IPipelineServiceTask)
+            .Assembly.GetTypes()
+            .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IPipelineServiceTask).IsAssignableFrom(t))
+            .Select(t => (IPipelineServiceTask)RuntimeHelpers.GetUninitializedObject(t));
 
-        List<string> failedTaskTypes = [];
+    /// <summary>
+    /// The actions a process next without an action asks about, in order, when none of them is granted.
+    /// </summary>
+    private async Task<List<string>> ActionsCheckedWithoutAnAction(string taskType)
+    {
+        Instance instance = CreateInstance("task1", taskType);
+        List<string> checkedActions = [];
+        _authServiceMock
+            .Setup(x =>
+                x.AuthorizeAction(
+                    It.IsAny<AppIdentifier>(),
+                    It.IsAny<InstanceIdentifier>(),
+                    It.IsAny<ClaimsPrincipal>(),
+                    It.IsAny<string>(),
+                    instance.Process.CurrentTask.ElementId
+                )
+            )
+            .Callback(
+                (
+                    AppIdentifier _,
+                    InstanceIdentifier _,
+                    ClaimsPrincipal _,
+                    string action,
+                    string? _,
+                    CancellationToken _
+                ) => checkedActions.Add(action)
+            )
+            .ReturnsAsync(false);
 
-        // Act & Assert - Verify each service task type returns "write" as an allowed action
-        foreach (Type serviceTaskType in serviceTaskTypes)
-        {
-            // Get the Type property
-            PropertyInfo? typeProperty = serviceTaskType.GetProperty("Type");
-            Assert.NotNull(typeProperty);
+        Assert.False(await _authorizer.AuthorizeProcessNext(instance));
+        return checkedActions;
+    }
 
-            // Create an uninitialized instance (skips constructor) to read the Type property
-            object instance = RuntimeHelpers.GetUninitializedObject(serviceTaskType);
-            string? taskTypeValue = typeProperty.GetValue(instance) as string;
-            Assert.NotNull(taskTypeValue);
+    private sealed class FakeServiceTask(string type) : IServiceTask
+    {
+        public string Type => type;
 
-            // Verify this task type returns "write" as an allowed action
-            string[] allowedActions = ProcessEngineAuthorizer.GetActionsThatAllowProcessNextForTaskType(taskTypeValue);
-
-            if (!allowedActions.Contains("write"))
-            {
-                failedTaskTypes.Add(
-                    $"{serviceTaskType.Name} (Type: '{taskTypeValue}') - returned actions: [{string.Join(", ", allowedActions)}]"
-                );
-            }
-        }
-
-        // Assert - All service tasks should allow "write" action
-        Assert.True(
-            failedTaskTypes.Count == 0,
-            $"The following service tasks do not return 'write' as an allowed action:\n{string.Join("\n", failedTaskTypes)}"
-        );
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
     }
 
     private static Instance CreateInstance(string? taskId, string? taskType = null)

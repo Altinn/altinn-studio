@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useWidgetsQuery } from './useWidgetsQuery';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import type { IWidget } from '../../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:
@@ -17,8 +18,8 @@ const widget2: IWidget = { displayName: widget2Name, components: [], texts: [] }
 
 // Mocks:
 const widgetSettingsResponse: WidgetSettingsResponse = { widgetUrls };
-const getWidgetSettings = jest.fn(() => Promise.resolve(widgetSettingsResponse));
-jest.mock('app-shared/utils/networking', () => ({
+const getWidgetSettings = vi.fn(() => Promise.resolve(widgetSettingsResponse));
+vi.mock('app-shared/utils/networking', () => ({
   get: async (url: string) => {
     switch (url) {
       case widgetUrl1:

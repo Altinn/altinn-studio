@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { BpmnGuard, GuardErrorMessage } from './BpmnGuard';
 import type { Element } from 'bpmn-js/lib/model/Types';
 

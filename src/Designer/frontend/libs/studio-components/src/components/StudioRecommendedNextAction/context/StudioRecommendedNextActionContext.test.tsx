@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import {
   StudioRecommendedNextActionContextProvider,
@@ -32,7 +33,7 @@ describe('StudioRecommendedNextActionContext', () => {
   });
 
   it('should throw an error if the context is not wrapped in a provider', () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       expect(() => {
         renderHook(useStudioRecommendedNextActionContext);

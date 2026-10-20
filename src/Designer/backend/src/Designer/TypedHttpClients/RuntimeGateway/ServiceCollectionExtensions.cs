@@ -53,6 +53,9 @@ public static class ServiceCollectionExtensions
             // Plain HttpClients for a local / mock runtime gateway
             services.AddHttpClient(HttpClientName).AddStandardResilienceHandler();
             services.AddHttpClient(WorkflowsHttpClientName).AddStandardResilienceHandler(ConfigureWorkflowsResilience);
+            services
+                .AddHttpClient(RuntimeGatewayClient.ActivitySignalsHttpClientName)
+                .ConfigureHttpClient(client => client.Timeout = RuntimeGatewayClient.ActivitySignalsTimeout);
         }
         else
         {
@@ -69,6 +72,12 @@ public static class ServiceCollectionExtensions
                 services
                     .AddMaskinportenHttpClient<SettingsJwkClientDefinition>(WorkflowsHttpClientName, settings)
                     .AddStandardResilienceHandler(ConfigureWorkflowsResilience);
+                services
+                    .AddMaskinportenHttpClient<SettingsJwkClientDefinition>(
+                        RuntimeGatewayClient.ActivitySignalsHttpClientName,
+                        settings
+                    )
+                    .ConfigureHttpClient(client => client.Timeout = RuntimeGatewayClient.ActivitySignalsTimeout);
             }
         }
 

@@ -32,6 +32,12 @@ agg --version
 nvim --version | head -1
 typos --version
 hunspell -v | head -1
+btop --version | head -1
+ilspycmd --version | head -1
+sudo ilspycmd --version >/dev/null || fail "ilspycmd does not find the .NET runtime under sudo"
+for tool in dotnet-counters dotnet-dump dotnet-trace; do
+    echo "$tool $("$tool" --version)"
+done
 studioctl version
 test "$(id -un)" = agent || fail "expected to run as agent, got $(id -un)"
 foreign="$(find /home/agent ! -user agent)"
@@ -174,6 +180,23 @@ echo "terminal.gif: $(stat -c %s terminal.gif) bytes"
 echo "## rust"
 cargo --version
 cargo machete --version
+cargo deny --version
+
+echo "## developer tools"
+actionlint --version | head -1
+yq --version
+shellcheck --version | sed -n 2p
+psql --version
+hyperfine --version
+socat -V | sed -n 2p
+tcpdump --version | head -1
+dig -v
+for tool in file less lsof nc rsync unzip zip; do
+    command -v "$tool" >/dev/null || fail "$tool is missing"
+done
+python3 -m venv venv
+venv/bin/pip --version
+printf 'a: 1\n' | yq '.a' | grep -qx 1 || fail "yq did not read YAML"
 
 echo "## local development hosts"
 systemctl is-enabled agent-full-hosts-init.service >/dev/null \
@@ -186,6 +209,11 @@ echo "## container tooling"
 # `podman run --init` looks this up by name; without it the flag fails instead of running.
 command -v catatonit >/dev/null || fail "catatonit is missing, so podman run --init cannot work"
 echo "catatonit: $(command -v catatonit)"
+# A login shell runs podman-docker's profile script, which must keep the image's DOCKER_HOST.
+login_docker_host="$(bash -lc 'echo "$DOCKER_HOST"')"
+test "$login_docker_host" = unix:///run/podman/podman.sock \
+    || fail "a login shell points DOCKER_HOST at $login_docker_host"
+echo "DOCKER_HOST: $login_docker_host"
 
 echo "## playwright"
 browsers=(/opt/ms-playwright/chromium-*)

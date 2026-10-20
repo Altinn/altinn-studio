@@ -76,6 +76,7 @@ spec:
   ports:
     - port: 8080
       protocol: TCP
+      appProtocol: http
       targetPort: 8080
   selector:
     app: kuberneteswrapper

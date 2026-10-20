@@ -1,0 +1,41 @@
+# Linkerd inbound authorization for the meshed pods, the proxy. DIS Core denies inbound traffic
+# to meshed pods by default, so Traefik's identity is allowed explicitly. The workers are not
+# meshed (worker.yaml), so network-policies.yaml alone decides who reaches them.
+#
+# Traefik's HTTPRoute (httproute.yaml) only routes POST /pdf here, so there are no per-path
+# routes. The kubelet's probes need nothing: Linkerd 2.12 and later authorize a pod's probe
+# paths on a Server without HTTPRoutes, even when the default policy is deny (DIS Core's
+# version is not confirmed). Adding an HTTPRoute to the Server turns that off. See
+# https://linkerd.io/2-edge/features/server-policy/#default-authorizations
+apiVersion: policy.linkerd.io/v1beta3
+kind: Server
+metadata:
+  name: pdf3-proxy-http
+spec:
+  podSelector:
+    matchLabels:
+      app: pdf3-proxy
+  port: 5030
+  proxyProtocol: HTTP/1
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: MeshTLSAuthentication
+metadata:
+  name: pdf3-traefik
+spec:
+  identities:
+    - "altinn-traefik.traefik.serviceaccount.identity.linkerd.cluster.local"
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: AuthorizationPolicy
+metadata:
+  name: pdf3-proxy-allow-traefik
+spec:
+  targetRef:
+    group: policy.linkerd.io
+    kind: Server
+    name: pdf3-proxy-http
+  requiredAuthenticationRefs:
+    - group: policy.linkerd.io
+      kind: MeshTLSAuthentication
+      name: pdf3-traefik

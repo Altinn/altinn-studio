@@ -2006,15 +2006,17 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Liste over komponent-ID-er som skal vises som tabelloverskrifter.</div></div>
 </details>
 
-<div class="card adocs-expand adocs-expand-small component-property component-property--static" id="tablecolumns">
-  <div class="component-property-summary">
+<details class="card adocs-expand adocs-expand-small component-property" id="tablecolumns">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
     <span class="component-property-name" title="tableColumns">tableColumns</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Valgfri</span>
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
-  </div>
-</div>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Andre egenskapsnavn er tillatt. Verditype: object.</div></div>
+</details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="hiddenrow">
   <summary class="component-property-summary">
@@ -2060,10 +2062,11 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
     <span class="component-property-name" title="labelSettings.optionalIndicator">labelSettings.optionalIndicator</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Valgfri</span>
+      <span class="component-property-default">Standardverdi: <span class="component-property-value">true</span></span>
       <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Viser en markering for valgfrie felt ved ledeteksten.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.</div></div>
 </details>
 
 <details class="component-property-group" id="addbutton">

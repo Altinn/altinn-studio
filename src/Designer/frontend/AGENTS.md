@@ -13,7 +13,7 @@ Studio Designer's frontend relies on the following tools:
 - React
 - React Router
 - Tanstack Query
-- Jest with React Testing Library for unit tests
+- Vitest with React Testing Library for unit tests
 - Playwright for E2E tests
 - React components and CSS tokens from Designsystemet
 
@@ -58,7 +58,7 @@ The frontend consists of several React packages in the following directories:
 
 ### Test
 
-- `yarn test` - Run Jest unit tests. To filter which tests to run, use: `yarn test partlyMatchingPathOrFilename`
+- `yarn test` - Run all unit tests with Vitest. To filter which tests to run, use: `yarn test partlyMatchingPathOrFilename`
 
 ### Development servers
 
@@ -100,12 +100,24 @@ Components MUST use custom hooks, never call `useQuery`/`useMutation` directly.
 
 ## Unit tests
 
+The unit tests run with Vitest.
+
+- Import the test API from `vitest` (`import { describe, expect, it, vi } from 'vitest'`).
+- Global mocks and the browser APIs that jsdom lacks are set up in `testing/setupTests.ts`.
 - Unit tests should be placed in the same folder as the component it is testing.
 - Tanstack Query tests: Prefer `queryClient.setQueryData` to seed data for hooks/components.
 - The `render` function from `@testing-library/react` should not be used directly in test cases. Instead, create a helper function `render{componentName}`, which takes `props` as an argument, at the bottom of the test file.
 - For components with required props, create a `defaultProps` object with minimal valid values.
 - Create helper functions like `getFirstEditButton` to make test cases easy to read.
 - Prefer semantic role queries like `screen.getByRole('button', { name: text })` over `screen.getByText(text)` or `screen.getByTitle(text)`.
+
+## Process editor
+
+Importing XML into the live bpmn-js modeler clears and redraws the canvas, which fires the shape
+add and remove handlers and with them the task add/remove side effects (UI folder, policy and
+metadata mutations). Re-import only through `useReloadSavedProcess`, which suppresses them with
+`isReloadingRef`. Unit tests with a mocked modeler cannot catch this; check in a browser that a
+re-import sends no mutation.
 
 ## Imports
 

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { FilesChangedList, type FilesChangedListProps } from './FilesChangedList';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
@@ -18,7 +19,7 @@ describe('FilesChangedList', () => {
   it('renders a button with the file name and directory', () => {
     renderFilesChangedList();
 
-    const fileButton = screen.getByRole('button', { name: `${fileName} ${directory}` });
+    const fileButton = screen.getByRole('button', { name: `${fileName}${directory}` });
     expect(fileButton).toBeInTheDocument();
   });
 

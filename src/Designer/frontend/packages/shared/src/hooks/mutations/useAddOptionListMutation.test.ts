@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { useAddOptionListMutation } from './useAddOptionListMutation';
@@ -9,8 +10,6 @@ const file = new File(['hello'], 'hello.json', { type: 'text/json' });
 const formData = FileUtils.convertToFormData(file);
 
 describe('useAddOptionsMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Calls useAddOptionsMutation with correct arguments and payload', async () => {
     const optionsResult = renderHookWithProviders(() => useAddOptionListMutation(org, app)).result;
 

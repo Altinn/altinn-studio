@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { usePrefillQuery } from './usePrefillQuery';
@@ -8,8 +9,6 @@ import { app, org } from '@studio/testing/testids';
 const modelPath = 'App/models/model.schema.json';
 
 describe('usePrefillQuery', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Calls getDataModelPrefill with correct arguments', async () => {
     const {
       renderHookResult: { result },

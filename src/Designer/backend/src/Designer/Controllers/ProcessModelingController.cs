@@ -115,7 +115,12 @@ public class ProcessModelingController : ControllerBase
                     cancellationToken
                 );
             }
-            catch (Exception exception) when (exception is InvalidLayoutSetIdException or NonUniqueLayoutSetIdException)
+            catch (Exception exception)
+                when (exception
+                        is InvalidLayoutSetIdException
+                            or NonUniqueLayoutSetIdException
+                            or UiFolderNameCaseConflictException
+                )
             {
                 return BadRequest(exception.Message);
             }

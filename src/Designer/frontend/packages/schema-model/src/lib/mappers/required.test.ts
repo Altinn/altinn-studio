@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import { buildUiSchema } from '../build-ui-schema';
 import { Keyword } from '../../types';
 import { findRequiredProps } from './required';

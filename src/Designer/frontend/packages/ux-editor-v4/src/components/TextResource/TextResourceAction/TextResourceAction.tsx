@@ -56,7 +56,7 @@ export const TextResourceAction = ({
     pickerLabel: t('ux_editor.search_text_resources_label'),
     valueEditorAriaLabel: t('ux_editor.text_resource_binding_text'),
     valueEditorIdLabel: t('ux_editor.text_resource_binding_id'),
-    noTextResourceOptionLabel: t('ux_editor.search_text_resources_none'),
+    noSearchResultsText: t('general.search_no_results'),
     disabledSearchAlertText: t(
       'ux_editor.modal_properties_textResourceBindings_page_name_search_disabled',
     ),

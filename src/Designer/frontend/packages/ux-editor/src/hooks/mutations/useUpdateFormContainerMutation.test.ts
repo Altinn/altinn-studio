@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
@@ -14,20 +15,17 @@ import {
 } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const selectedLayoutName = layout1NameMock;
 const selectedLayoutSet = layoutSet1NameMock;
-const maxCount = 2;
 const updatedContainer: FormContainer = {
   id: 'newId',
-  itemType: 'CONTAINER',
   type: ComponentType.Group,
-  maxCount,
 };
 const id = container1IdMock;
 const mutationArgs: UpdateFormContainerMutationArgs = { id, updatedContainer };
@@ -56,7 +54,6 @@ describe('useUpdateFormContainerMutation', () => {
               {
                 ...layout1Mock.data.layout[0],
                 id: updatedContainer.id,
-                maxCount,
               },
             ]),
           }),
@@ -67,10 +64,10 @@ describe('useUpdateFormContainerMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const getFormLayouts = jest
+  const getFormLayouts = vi
     .fn()
-    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
-  const getRuleConfig = jest
+    .mockImplementation(() => Promise.resolve<SerializedFormLayoutsResponse>(externalLayoutsMock));
+  const getRuleConfig = vi
     .fn()
     .mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfigMock));
   const formLayoutsResult = renderHookWithProviders(

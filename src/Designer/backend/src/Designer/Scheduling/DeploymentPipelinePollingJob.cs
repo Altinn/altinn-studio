@@ -127,6 +127,8 @@ public class DeploymentPipelinePollingJob : IJob
         }
     }
 
+    // Each poll continues the deploy request's trace on purpose: a deploy is one trace through Designer, Azure DevOps,
+    // the gateway and Flux, so it can be followed end to end (https://github.com/Altinn/altinn-studio/issues/21073).
     private Activity TryStartTraceActivity(IJobExecutionContext context)
     {
         var jobDataMap = context.JobDetail.JobDataMap;

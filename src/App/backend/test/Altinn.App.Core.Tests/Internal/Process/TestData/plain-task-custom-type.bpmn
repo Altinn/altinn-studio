@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Service tasks can use a bpmn:task element. Task type lookup must support both element types. -->
+<!-- A custom task type on a bpmn:task element. Valid when the type is an IProcessTask, rejected when it is a service task. -->
 <bpmn:definitions id="Altinn_PlainTaskCustomType_Process_Definition" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" targetNamespace="http://bpmn.io/schema/bpmn">
   <bpmn:process id="PlainTaskCustomTypeProcess" isExecutable="false">
     <bpmn:startEvent id="StartEvent_1">

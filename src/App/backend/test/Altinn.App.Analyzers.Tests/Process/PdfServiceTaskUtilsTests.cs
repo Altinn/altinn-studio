@@ -219,6 +219,24 @@ public class PdfServiceTaskUtilsTests
     }
 
     [Fact]
+    public void A_Pdf_Task_On_A_Task_Element_Is_Checked_Too()
+    {
+        // ALTINNAPP1003 reports the element; checking the configuration as well means changing the element does not
+        // uncover a second error.
+        var process = Process(PdfTask("PdfTask").Replace("bpmn:serviceTask", "bpmn:task"));
+
+        var diagnostic = Assert.Single(Collect(process, UiFolder("Task_1")));
+
+        Assert.Equal(NothingToRender, diagnostic.Id);
+        Assert.Contains("'PdfTask'", diagnostic.GetMessage());
+        Assert.Equal(
+            "<bpmn:task",
+            process.Substring(diagnostic.Location.SourceSpan.Start, diagnostic.Location.SourceSpan.Length)
+        );
+        Assert.Equal(11, diagnostic.Location.GetLineSpan().StartLinePosition.Line);
+    }
+
+    [Fact]
     public void Windows_Paths_Are_Recognized()
     {
         // The warning for Task_2 needs both the process file and the Task_1 folder to be found; missing either

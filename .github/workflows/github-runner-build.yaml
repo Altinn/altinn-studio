@@ -6,15 +6,19 @@ on:
     paths:
       - 'Cargo.toml'
       - 'Cargo.lock'
+      - 'clippy.toml'
       - 'rust-toolchain.toml'
       - 'rustfmt.toml'
-      - 'src/experimental/sandbox/**'
-      - 'src/experimental/sandbox-authorization/**'
-      - 'src/experimental/sandbox-microsandbox/**'
       - 'src/ci/github-runner/Dockerfile.coordinator'
       - 'src/ci/github-runner/coordinator/**'
       - '.github/workflows/github-runner-build.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   workflow_dispatch:
 
 concurrency:
@@ -38,13 +42,6 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
-      - name: Install native build dependencies
-        run: |
-          if ! pkg-config --exists libcap-ng; then
-            sudo apt-get update
-            sudo apt-get install --yes --no-install-recommends libcap-ng-dev
-          fi
 
       # The runner image bakes the toolchain pinned by rust-toolchain.toml; only
       # install through rustup when the two have drifted (e.g. a PR bumping

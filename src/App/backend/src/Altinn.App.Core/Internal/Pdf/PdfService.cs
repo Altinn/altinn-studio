@@ -155,11 +155,7 @@ internal sealed class PdfService : IPdfService
     {
         using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
 
-        HttpContext? httpContext = _httpContextAccessor.HttpContext;
-        var queries = httpContext?.Request.Query;
-        var auth = _authenticationContext.Current;
-
-        var language = GetOverriddenLanguage(queries) ?? await auth.GetLanguage();
+        string language = await GetLanguage(dataAccessor: null);
 
         return await GeneratePdfContent(
             instance,
@@ -191,11 +187,7 @@ internal sealed class PdfService : IPdfService
         Instance instance = dataAccessor.Instance;
         using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
 
-        HttpContext? httpContext = _httpContextAccessor.HttpContext;
-        var queries = httpContext?.Request.Query;
-        var auth = _authenticationContext.Current;
-
-        var language = GetOverriddenLanguage(queries) ?? await auth.GetLanguage();
+        string language = await GetLanguage(dataAccessor);
 
         return await GeneratePdfContent(
             instance,
@@ -223,11 +215,7 @@ internal sealed class PdfService : IPdfService
     {
         Instance instance = instanceDataMutator.Instance;
 
-        HttpContext? httpContext = _httpContextAccessor.HttpContext;
-        var queries = httpContext?.Request.Query;
-        var auth = _authenticationContext.Current;
-
-        var language = GetOverriddenLanguage(queries) ?? await auth.GetLanguage();
+        string language = await GetLanguage(instanceDataMutator);
 
         await using Stream pdfContent = await GeneratePdfContent(
             instance,
@@ -363,6 +351,15 @@ internal sealed class PdfService : IPdfService
         return new Uri(url);
     }
 
+    /// <summary>
+    /// The language a PDF is rendered in: a <c>language</c> or <c>lang</c> override on the current request, else the
+    /// language of <paramref name="dataAccessor"/>, else the caller's. A workflow callback has no such query and is
+    /// authenticated as the app, so there the accessor's language, the one the user chose for the transition, decides.
+    /// </summary>
+    private async Task<string> GetLanguage(IInstanceDataAccessor? dataAccessor) =>
+        GetOverriddenLanguage(_httpContextAccessor.HttpContext?.Request.Query)
+        ?? await _authenticationContext.Current.GetLanguage(dataAccessor?.Language);
+
     internal static string? GetOverriddenLanguage(IQueryCollection? queries)
     {
         if (queries is null)
@@ -403,12 +400,15 @@ internal sealed class PdfService : IPdfService
         else
         {
             // Fall back to simple translation without variable substitution
-            fileName = await _translationService.TranslateTextKey("backend.pdf_default_file_name", language);
+            fileName = await _translationService.TranslateTextKey(
+                BuiltInTextResources.PdfDefaultFileName.Key,
+                language
+            );
         }
 
         if (string.IsNullOrEmpty(fileName))
         {
-            // translation for backend.pdf_default_file_name should always be present (it has a fallback in the translation service),
+            // BuiltInTextResources.PdfDefaultFileName gives this text a default in the translation service,
             // but just in case, we default to a hardcoded string.
             fileName = "Altinn PDF.pdf";
         }
@@ -419,7 +419,7 @@ internal sealed class PdfService : IPdfService
 
     private async Task<string> GetPreviewFooter(string language)
     {
-        var previewText = await _translationService.TranslateTextKey("pdfPreviewText", language);
+        var previewText = await _translationService.TranslateTextKey(BuiltInTextResources.PdfPreviewText.Key, language);
         return $@"<div style='font-family: Inter; font-size: 12px; width: 100%; display: flex; flex-direction: row; align-items: center; gap: 12px; padding: 0 70px 0 70px;'>
                 <div style='display: flex; flex-direction: row; width: 100%; align-items: center; font-style: italic; color: #e02e49;'>
                     <span>{previewText}</span>

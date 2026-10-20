@@ -100,6 +100,16 @@ describe('Validation', () => {
         }
       }
     }
+
+    // This error is about the middle name field, but is linked to the first name component. It should only show up
+    // there, not on the middle name component that binds the field.
+    cy.findByRole('textbox', { name: newMiddleName }).clear();
+    cy.findByRole('textbox', { name: newMiddleName }).type('lenket');
+    cy.get(appFrontend.fieldValidation('newFirstName')).should('contain.text', texts.linkedToFirstName);
+    cy.get(appFrontend.fieldValidation('newMiddleName'), { timeout: 0 }).should('not.exist');
+
+    cy.findByRole('textbox', { name: newMiddleName }).clear();
+    cy.get(appFrontend.fieldValidation('newFirstName')).should('not.contain.text', texts.linkedToFirstName);
   });
 
   it('Page validation on clicking next', () => {
@@ -286,6 +296,14 @@ describe('Validation', () => {
 
     // Create validation error
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
+
+    // This error has no field, but is linked to a component in the nested row
+    cy.get(appFrontend.group.comments).type('lenket');
+    cy.get(appFrontend.fieldValidation('hideComment-0-0')).should('have.text', texts.linkedToRow);
+    cy.get(appFrontend.fieldValidation('comments-0-0'), { timeout: 0 }).should('not.exist');
+    cy.get(appFrontend.group.comments).clear();
+    cy.get(appFrontend.fieldValidation('hideComment-0-0')).should('not.exist');
+
     cy.get(appFrontend.group.comments).type('test');
     cy.get(appFrontend.fieldValidation('comments-0-0')).should('have.text', texts.testIsNotValidValue);
     cy.get(appFrontend.errorReport).should('not.exist');
@@ -623,8 +641,8 @@ describe('Validation', () => {
 
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).type('748');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatReplace('748');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 748');
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
@@ -656,8 +674,8 @@ describe('Validation', () => {
 
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).type('749');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatReplace('749');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 749');
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
@@ -699,7 +717,7 @@ describe('Validation', () => {
     cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 6);
     cy.findByText('Du må fylle ut dato for navneendring').click();
-    cy.findByRole('textbox', { name: /når vil du at navnendringen skal skje\?\s*obligatorisk/i }).should('be.visible');
+    cy.findByRole('textbox', { name: /når vil du at navnendringen skal skje\?\s*må fylles ut/i }).should('be.visible');
   });
 
   it('should validate boolean fields as set in the data model even when they are set to false', () => {
@@ -737,7 +755,7 @@ describe('Validation', () => {
     cy.findByRole('button', { name: /Send inn/ }).click();
 
     cy.findByRole('row', {
-      name: /Hører skolen på elevenes forslag\?\s*obligatorisk/i,
+      name: /Hører skolen på elevenes forslag\?\s*må fylles ut/i,
     }).within(() => {
       cy.findByRole('radio', { name: /Alltid/ }).should('not.be.focused');
     });
@@ -745,7 +763,7 @@ describe('Validation', () => {
     cy.findByRole('button', { name: /Du må fylle ut hører skolen på elevenes forslag/ }).click();
 
     cy.findByRole('row', {
-      name: /Hører skolen på elevenes forslag\?\s*obligatorisk/i,
+      name: /Hører skolen på elevenes forslag\?\s*må fylles ut/i,
     }).within(() => {
       cy.findByRole('radio', { name: /Alltid/ }).should('be.focused');
     });
@@ -949,13 +967,12 @@ describe('Validation', () => {
       },
     };
 
+    let dataElementId = '';
     cy.intercept('GET', '**/bootstrap-form/Task_2**', (req) => {
       req.on('response', (res) => {
         const body = res.body as FormBootstrapResponse;
-        body.dataModels['ServiceModel-test'].initialValidationIssues!.push({
-          ...validationIssue,
-          dataElementId: body.dataModels['ServiceModel-test'].dataElementId!,
-        });
+        dataElementId = body.dataModels['ServiceModel-test'].dataElementId!;
+        body.dataModels['ServiceModel-test'].initialValidationIssues!.push({ ...validationIssue, dataElementId });
         res.send(body);
       });
     });
@@ -963,10 +980,7 @@ describe('Validation', () => {
     cy.intercept('PATCH', '**/data**', (req) => {
       req.on('response', (res) => {
         const body = res.body as IDataModelMultiPatchResponse;
-        body.validationIssues[0].issues.push({
-          ...validationIssue,
-          dataElementId: body.validationIssues[0].issues[0].dataElementId,
-        });
+        body.validationIssues[0].issues.push({ ...validationIssue, dataElementId });
         res.send(body);
       });
     });

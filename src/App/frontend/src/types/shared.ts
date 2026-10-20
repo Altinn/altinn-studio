@@ -382,6 +382,7 @@ export interface IPlatformFrontendSettings {
   loginUrl?: string;
   /** Takes a {goTo} placeholder. */
   upgradeAuthenticationLevelUrl?: string;
+  allFormsUrl?: string;
   /** URL templates; undefined in environments where the arbeidsflate is not deployed. */
   arbeidsflateInboxUrl?: string;
   /** Supports the {dialogId} placeholder. */
@@ -389,6 +390,9 @@ export interface IPlatformFrontendSettings {
   arbeidsflateProfileUrl?: string;
   /** Supports the {partyId} and {goTo} placeholders. */
   accessManagementChangeAndRedirectUrl?: string;
+  accessManagementUrl?: string;
+  rolesAndRightsHelpUrl?: string;
+  arbeidsflatePartiesUrl?: string;
 }
 
 export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';

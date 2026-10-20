@@ -73,8 +73,8 @@ public sealed record WorkflowRequest
     ///   <item><c>true</c> — Force-include: always a head, even if other batch workflows depend on it.</item>
     ///   <item><c>null</c> (default) — Neutral: natural leaf detection applies (head if nothing in the batch depends on it).</item>
     ///   <item><c>false</c> — Force-exclude: never a head, and this workflow's dependency edges do not consume
-    ///         existing heads. This makes the workflow auxiliary: it runs beside the process and never blocks
-    ///         or moves it, while still participating in execution ordering.</item>
+    ///         existing heads. This makes it an auxiliary workflow: it runs beside the process and leaves the
+    ///         collection's heads unchanged, while still participating in execution ordering.</item>
     /// </list>
     /// <c>true</c> or <c>null</c> makes the workflow primary. Status reads report the result as
     /// <see cref="WorkflowStatusResponse.Role"/>.

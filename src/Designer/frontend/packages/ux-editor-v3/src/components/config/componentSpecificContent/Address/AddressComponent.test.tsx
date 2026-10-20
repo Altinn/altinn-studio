@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
@@ -17,7 +18,7 @@ const component: FormAddressComponent = {
   simplified: false,
   itemType: 'COMPONENT',
 };
-const handleComponentChange = jest.fn();
+const handleComponentChange = vi.fn();
 const defaultProps: IGenericEditComponent = {
   component,
   handleComponentChange,

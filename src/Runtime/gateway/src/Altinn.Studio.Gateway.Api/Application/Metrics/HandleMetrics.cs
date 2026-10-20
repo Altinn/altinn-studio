@@ -9,6 +9,7 @@ namespace Altinn.Studio.Gateway.Api.Application;
 internal static class HandleMetrics
 {
     private const int DefaultActivityWindowDays = 7;
+    private const int DefaultActivitySignalsWindowDays = 2;
     private const int MaxActivityWindowDays = 30;
 
     internal static async Task<IResult> GetErrorMetrics(
@@ -45,6 +46,148 @@ internal static class HandleMetrics
         });
 
         return Results.Ok(metrics);
+    }
+
+    internal static async Task<IResult> GetReportMetrics(
+        IOptionsMonitor<GatewayContext> gatewayContext,
+        IServiceProvider serviceProvider,
+        IOptionsMonitor<MetricsClientSettings> metricsClientSettings,
+        HelmReleaseClient helmReleaseClient,
+        ILogger<Program> logger,
+        string originEnvironment,
+        int range,
+        CancellationToken cancellationToken
+    )
+    {
+        if (range < 1 || range > AzureMonitorClient.MaxReportRange)
+        {
+            return TypedResults.BadRequest($"range must be between 1 and {AzureMonitorClient.MaxReportRange}.");
+        }
+
+        IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
+            metricsClientSettings.CurrentValue.Provider
+        );
+        var currentGatewayContext = gatewayContext.CurrentValue;
+
+        var now = DateTimeOffset.UtcNow;
+        var from = now.AddMinutes(-range);
+        var bucketSize = AzureMonitorClient.GetBucketSize(range);
+
+        var labelSelector = HelmReleaseLabelSelector.ForOrgAndSourceEnvironment(
+            currentGatewayContext.ServiceOwner,
+            originEnvironment
+        );
+        var appsTask = helmReleaseClient.List(
+            "default",
+            labelSelector: labelSelector,
+            cancellationToken: cancellationToken
+        );
+        var metricsTask = metricsClient.GetMetrics(range, cancellationToken);
+        var failedRequestsTask = metricsClient.GetAllAppsFailedRequests(range, cancellationToken);
+
+        var helmReleases = await appsTask;
+        var amMetrics = await metricsTask;
+        var amFailedRequests = await failedRequestsTask;
+
+        var apps = new List<ReportApp>();
+        foreach (var helmRelease in helmReleases)
+        {
+            if (
+                !HelmReleaseMapping.TryCreateAppDeployment(
+                    helmRelease,
+                    currentGatewayContext.Environment,
+                    out var deployment,
+                    out var error
+                )
+            )
+            {
+                logger.LogError(
+                    "Invalid HelmRelease state for {HelmReleaseName}: {Error}",
+                    helmRelease.GetName(),
+                    error
+                );
+                continue;
+            }
+            apps.Add(new ReportApp { Name = deployment.App, Version = deployment.ImageTag });
+        }
+
+        var metricsLookup = amMetrics.ToDictionary(m => (m.AppName.ToLowerInvariant(), m.Name.ToLowerInvariant()));
+
+        var metrics = apps.SelectMany(reportApp =>
+        {
+            var app = reportApp.Name;
+            return AzureMonitorClient.MetricNames.Select(name =>
+                metricsLookup.TryGetValue((app.ToLowerInvariant(), name.ToLowerInvariant()), out var existing)
+                    ? new Metric
+                    {
+                        AppName = existing.AppName,
+                        Name = existing.Name,
+                        Timestamps = existing.Timestamps,
+                        Counts = existing.Counts,
+                        BucketSize = bucketSize,
+                    }
+                    : new Metric
+                    {
+                        AppName = app,
+                        Name = name,
+                        Timestamps = [],
+                        Counts = [],
+                        BucketSize = bucketSize,
+                    }
+            );
+        });
+
+        var errorMetricsLookup = amFailedRequests.ToDictionary(r =>
+            (r.AppName.ToLowerInvariant(), r.Name.ToLowerInvariant())
+        );
+
+        var errorMetrics = apps.SelectMany(reportApp =>
+        {
+            var app = reportApp.Name;
+            return AzureMonitorClient.OperationNameKeys.Select(name =>
+            {
+                var logsUrl = metricsClient.GetLogsUrl(
+                    currentGatewayContext.AzureSubscriptionId,
+                    currentGatewayContext.ServiceOwner,
+                    currentGatewayContext.Environment,
+                    [app],
+                    name,
+                    from,
+                    now
+                );
+                return errorMetricsLookup.TryGetValue(
+                    (app.ToLowerInvariant(), name.ToLowerInvariant()),
+                    out var existing
+                )
+                    ? new AllAppsErrorMetric
+                    {
+                        AppName = existing.AppName,
+                        Name = existing.Name,
+                        Timestamps = existing.Timestamps,
+                        Counts = existing.Counts,
+                        BucketSize = bucketSize,
+                        LogsUrl = logsUrl,
+                    }
+                    : new AllAppsErrorMetric
+                    {
+                        AppName = app,
+                        Name = name,
+                        Timestamps = [],
+                        Counts = [],
+                        BucketSize = bucketSize,
+                        LogsUrl = logsUrl,
+                    };
+            });
+        });
+
+        return Results.Ok(
+            new ReportMetrics
+            {
+                Apps = apps,
+                Metrics = metrics,
+                ErrorMetrics = errorMetrics,
+            }
+        );
     }
 
     internal static async Task<IResult> GetAppMetrics(
@@ -141,6 +284,56 @@ internal static class HandleMetrics
                     : new Dictionary<string, double>(),
             WindowDays = effectiveWindowDays,
             GeneratedAt = timeProvider.GetUtcNow(),
+        };
+
+        return TypedResults.Ok(response);
+    }
+
+    internal static async Task<IResult> GetAppActivitySignals(
+        IServiceProvider serviceProvider,
+        IOptionsMonitor<MetricsClientSettings> metricsClientSettings,
+        TimeProvider timeProvider,
+        int? windowDays,
+        CancellationToken cancellationToken
+    )
+    {
+        var effectiveWindowDays = windowDays ?? DefaultActivitySignalsWindowDays;
+        if (effectiveWindowDays < 1 || effectiveWindowDays > MaxActivityWindowDays)
+        {
+            return TypedResults.BadRequest($"windowDays must be between 1 and {MaxActivityWindowDays}.");
+        }
+
+        IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
+            metricsClientSettings.CurrentValue.Provider
+        );
+
+        var signalsResult = await metricsClient.GetAppActivitySignals(effectiveWindowDays, cancellationToken);
+        var apps =
+            signalsResult.Status == ActivityStatus.Ok
+                ? signalsResult
+                    .Signals.GroupBy(signal => signal.App, StringComparer.Ordinal)
+                    .OrderBy(group => group.Key, StringComparer.Ordinal)
+                    .Select(group => new AppActivitySignalsApp
+                    {
+                        App = group.Key,
+                        Signals = group
+                            .Select(signal => new AppActivitySignal
+                            {
+                                Category = signal.Category,
+                                Count = signal.Count,
+                                LastSeenAt = signal.LastSeenAt,
+                            })
+                            .ToList(),
+                    })
+                    .ToList()
+                : [];
+
+        var response = new AppActivitySignalsResponse
+        {
+            Status = MapActivityStatus(signalsResult.Status),
+            WindowDays = effectiveWindowDays,
+            GeneratedAt = timeProvider.GetUtcNow(),
+            Apps = apps,
         };
 
         return TypedResults.Ok(response);

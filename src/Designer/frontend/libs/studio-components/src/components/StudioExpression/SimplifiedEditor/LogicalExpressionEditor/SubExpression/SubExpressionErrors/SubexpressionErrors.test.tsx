@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { StudioExpressionContextProvider } from '../../../../StudioExpressionContext';
 import { texts } from '../../../../test-data/texts';
 import { SubexpressionErrors } from './SubexpressionErrors';

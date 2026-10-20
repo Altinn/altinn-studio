@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { NumberRestrictions } from './NumberRestrictions';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -9,8 +10,8 @@ describe('NumberRestrictions component', () => {
     const props = {
       restrictions: {},
       path: '',
-      onChangeRestrictions: jest.fn(),
-      onChangeRestrictionValue: jest.fn(),
+      onChangeRestrictions: vi.fn(),
+      onChangeRestrictionValue: vi.fn(),
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
@@ -22,8 +23,8 @@ describe('NumberRestrictions component', () => {
     const props = {
       restrictions: {},
       path: '',
-      onChangeRestrictions: jest.fn(),
-      onChangeRestrictionValue: jest.fn(),
+      onChangeRestrictions: vi.fn(),
+      onChangeRestrictionValue: vi.fn(),
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
@@ -35,8 +36,8 @@ describe('NumberRestrictions component', () => {
     const props = {
       restrictions: {},
       path: '',
-      onChangeRestrictions: jest.fn(),
-      onChangeRestrictionValue: jest.fn(),
+      onChangeRestrictions: vi.fn(),
+      onChangeRestrictionValue: vi.fn(),
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
@@ -48,8 +49,8 @@ describe('NumberRestrictions component', () => {
     const props = {
       restrictions: {},
       path: '',
-      onChangeRestrictions: jest.fn(),
-      onChangeRestrictionValue: jest.fn(),
+      onChangeRestrictions: vi.fn(),
+      onChangeRestrictionValue: vi.fn(),
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
@@ -61,8 +62,8 @@ describe('NumberRestrictions component', () => {
     const props = {
       restrictions: {},
       path: '',
-      onChangeRestrictions: jest.fn(),
-      onChangeRestrictionValue: jest.fn(),
+      onChangeRestrictions: vi.fn(),
+      onChangeRestrictionValue: vi.fn(),
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
@@ -72,12 +73,12 @@ describe('NumberRestrictions component', () => {
 
   it('Should call onChangeRestrictions when checkbox is clicked', async () => {
     const user = userEvent.setup();
-    const onChangeRestrictions = jest.fn();
+    const onChangeRestrictions = vi.fn();
     const props = {
       restrictions: {},
       path: '',
       onChangeRestrictions,
-      onChangeRestrictionValue: jest.fn(),
+      onChangeRestrictionValue: vi.fn(),
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
@@ -88,12 +89,12 @@ describe('NumberRestrictions component', () => {
 
   it('Should call onChangeRestrictions with correct values when value is changed', async () => {
     const user = userEvent.setup();
-    const onChangeRestrictions = jest.fn();
+    const onChangeRestrictions = vi.fn();
     const props = {
       restrictions: {},
       path: '',
       onChangeRestrictions,
-      onChangeRestrictionValue: jest.fn(),
+      onChangeRestrictionValue: vi.fn(),
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
@@ -117,12 +118,12 @@ describe('NumberRestrictions component', () => {
 
   it('Should call onChangeRestrictions with correct values when value is changed to 0', async () => {
     const user = userEvent.setup();
-    const onChangeRestrictions = jest.fn();
+    const onChangeRestrictions = vi.fn();
     const props = {
       restrictions: {},
       path: '',
       onChangeRestrictions,
-      onChangeRestrictionValue: jest.fn(),
+      onChangeRestrictionValue: vi.fn(),
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
@@ -146,12 +147,12 @@ describe('NumberRestrictions component', () => {
 
   it('Should call onChangeRestrictions with correct values when value is cleared', async () => {
     const user = userEvent.setup();
-    const onChangeRestrictions = jest.fn();
+    const onChangeRestrictions = vi.fn();
     const props = {
       restrictions: {},
       path: '',
       onChangeRestrictions,
-      onChangeRestrictionValue: jest.fn(),
+      onChangeRestrictionValue: vi.fn(),
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);

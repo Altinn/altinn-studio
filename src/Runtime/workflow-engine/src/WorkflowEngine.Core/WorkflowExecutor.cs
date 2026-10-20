@@ -122,6 +122,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 StateIn = stateIn,
                 ExecutionDeadline = executionDeadline,
                 WaitDeadline = step.ResolveWaitDeadline(_engineSettings),
+                IsFinalWaitCheck = step.IsFinalWaitCheck(_engineSettings),
                 MailboxReceipt = rendezvous.Receipt,
                 ParentTraceContext = activity?.Context ?? step.EngineActivity?.Context,
             };

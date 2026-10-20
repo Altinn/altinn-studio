@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { ImageUploadCard, type ImageUploadCardProps } from './ImageUploadCard';
 import { renderWithProviders } from '../../../../../testing/mocks';
@@ -20,7 +21,7 @@ describe('ImageUploadCard', () => {
 
   it('should close the card when clicking cancel button', async () => {
     const user = userEvent.setup();
-    const setOpenCardMock = jest.fn();
+    const setOpenCardMock = vi.fn();
     renderImageUploadCard({ setOpenCard: setOpenCardMock });
     const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
     await user.click(cancelButton);
@@ -29,7 +30,7 @@ describe('ImageUploadCard', () => {
 
   it('should call handleSaveChanges with correct values when clicking save button after making changes', async () => {
     const user = userEvent.setup();
-    const handleSaveChangesMock = jest.fn();
+    const handleSaveChangesMock = vi.fn();
     renderImageUploadCard({ handleSaveChanges: handleSaveChangesMock });
     const shapeSelect = screen.getByLabelText(
       textMock('ux_editor.component_properties.crop_shape'),
@@ -47,8 +48,8 @@ describe('ImageUploadCard', () => {
 
   it('should call handleSaveChanges with null when clicking delete button', async () => {
     const user = userEvent.setup();
-    const handleSaveChangesMock = jest.fn();
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const handleSaveChangesMock = vi.fn();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     renderImageUploadCard({ handleSaveChanges: handleSaveChangesMock });
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
     await user.click(deleteButton);
@@ -59,8 +60,8 @@ describe('ImageUploadCard', () => {
 const renderImageUploadCard = (props: Partial<ImageUploadCardProps> = {}) => {
   const defaultProps: ImageUploadCardProps = {
     externalCrop: { shape: ShapeOptions.Circle, diameter: 100 },
-    handleSaveChanges: jest.fn(),
-    setOpenCard: jest.fn(),
+    handleSaveChanges: vi.fn(),
+    setOpenCard: vi.fn(),
   };
   const combinedProps = { ...defaultProps, ...props };
   return renderWithProviders(<ImageUploadCard {...combinedProps} />);

@@ -23,19 +23,19 @@ Tri-state control over head membership and head consumption:
 
 - **`true`** — Force-include: always a head, even if other batch workflows depend on it. Dependency edges consume heads normally.
 - **`null`** (default) — Neutral: natural leaf detection — becomes a head if nothing in the batch depends on it. Dependency edges consume heads normally.
-- **`false`** — Force-exclude: never a head. **Invisible** — dependency edges do NOT consume existing heads.
+- **`false`** — Force-exclude: never a head, and dependency edges do NOT consume existing heads.
 
-`IsHead = false` makes a workflow **invisible to collection head tracking**. It can still depend on heads for execution ordering (via `DependsOnHeads`), but from the collection's perspective the heads set is unchanged — as if this workflow was never part of the collection.
+A workflow with `IsHead` `true` or unset is a **primary workflow**; one with `IsHead = false` is an **auxiliary workflow** (see [primary and auxiliary workflows](technical-guide.md#primary-and-auxiliary-workflows) for the vocabulary). An auxiliary workflow can still depend on heads for execution ordering (via `DependsOnHeads`), but the collection's heads are unchanged by it, so no later enqueue waits on it through the heads.
 
 The directive is persisted verbatim (`is_head`) and exposed on `WorkflowStatusResponse.isHead`, so
-status consumers can identify invisible workflows without relying on naming conventions, and the
-`engine.workflows.execution.failed` metric is tagged `is_head` on all of its `reason` paths
-(`execution`, `poisoned`, `dependency_failed`). Alert on `reason` in (`execution`, `poisoned`)
-regardless of `is_head`, and use `is_head` as a routing/severity dimension: `false` marks
-deliberately invisible workflows, whose terminal failures gate nothing and are otherwise silent.
-Exclude `reason="dependency_failed"` — such an increment for an invisible workflow just mirrors
-the failure of a visible dependency, which fires the alert in its own right, and a cascade resume
-of that dependency revives the invisible dependent.
+status consumers can identify auxiliary workflows without relying on naming conventions, and the
+`engine.workflows.execution.failed` metric is tagged `is_head` (`true`, `false` or `unset`) on every
+`reason` (`execution`, `dependency_failed`, `poisoned`, `wait_expired`, `manual`). Alert on `reason`
+in (`execution`, `poisoned`) regardless of `is_head`, and use `is_head` as a routing/severity
+dimension: `false` marks auxiliary workflows, whose terminal failures gate nothing and are otherwise
+silent. Exclude `reason="dependency_failed"` — such an increment for an auxiliary workflow just
+mirrors the failure of a dependency, which fires the alert in its own right, and a cascade
+resume of that dependency revives the auxiliary dependent.
 
 ---
 
@@ -154,24 +154,24 @@ But if R had `DependsOnHeads = false` and only explicitly depended on P:
               ●  ← head
 ```
 
-### Example 4: Fire-and-Forget Side Effects with `IsHead`
+### Example 4: Auxiliary Workflows After a Checkpoint with `IsHead`
 
-Use `IsHead = true` on a non-leaf combined with `IsHead = false` on its dependents to keep the collection frontier at a checkpoint while spawning auxiliary work.
+Use `IsHead = true` on a non-leaf combined with `IsHead = false` on its dependents to keep the collection frontier at a checkpoint while enqueuing auxiliary workflows after it.
 
 ```text
 Batch:    POST /api/v1/{namespace}/workflows?collectionKey=build
           Workflows: [M, N]  where N depends on M
           M: IsHead=true
-          N: IsHead=false (invisible)
+          N: IsHead=false (auxiliary)
 
           M is forced into heads despite N depending on it.
-          N is invisible — excluded from heads, edges don't consume heads.
+          N is auxiliary — excluded from heads, edges don't consume heads.
 
           Heads = [M]
 
               M  ← head (forced)
               |
-              N  (invisible — fire-and-forget side effect)
+              N  (auxiliary — nothing later waits on it)
 ```
 
 The next batch depends on M. N runs after M but doesn't block the pipeline:
@@ -189,11 +189,11 @@ Next batch:  Workflows: [P]
             (N and P both run after M, independently)
 ```
 
-This is useful when N is auxiliary work (e.g., notifications, cleanup) that should execute after M but shouldn't be part of the collection's frontier.
+This is useful when N is an auxiliary workflow (e.g., notifications, cleanup) that should execute after M but shouldn't be part of the collection's frontier.
 
-### Example 5: Invisible Side Chain with `IsHead = false`
+### Example 5: Auxiliary Workflow on the Current Heads with `IsHead = false`
 
-You want to spawn work that depends on the current heads for execution ordering, but without disturbing the collection's frontier.
+You want to enqueue an auxiliary workflow that depends on the current heads for execution ordering, but without disturbing the collection's frontier.
 
 ```text
 Starting state: Collection "pipeline" has Heads = [X]
@@ -201,7 +201,7 @@ Starting state: Collection "pipeline" has Heads = [X]
 Batch:    Workflows: [S]  (DependsOnHeads=true, IsHead=false)
 
           S is a root → engine injects: S depends on [X]
-          S is invisible (IsHead=false):
+          S is auxiliary (IsHead=false):
             - S is excluded from the heads set
             - S's dependency edges do NOT consume X
 
@@ -212,7 +212,7 @@ Batch:    Workflows: [S]  (DependsOnHeads=true, IsHead=false)
               ●  ← head (preserved)
               |
               S
-              (invisible — runs after X, but collection doesn't track it)
+              (auxiliary — runs after X, but collection doesn't track it)
 ```
 
 The next batch still depends on X, not S:
@@ -229,10 +229,10 @@ Next batch:  Workflows: [Y]  (default: DependsOnHeads=true, IsHead=null)
              / \
             S   Y
                 ●  ← head
-            (S and Y both depend on X, but S is invisible to the collection)
+            (S and Y both depend on X, but only Y joins the heads)
 ```
 
-### Example 6: Mixed Visible and Invisible in One Batch
+### Example 6: Mixed Primary and Auxiliary in One Batch
 
 ```text
 Starting state: Collection "mixed" has Heads = [H]
@@ -241,18 +241,18 @@ Batch:    Workflows: [V (IsHead=null), I (IsHead=false)]
           Both have DependsOnHeads=true (default).
 
           Both are roots → both get dependency edges to H.
-          V is visible: its edge on H consumes H.
-          I is invisible: its edge on H does NOT consume H.
+          V is primary: its edge on H consumes H.
+          I is auxiliary: its edge on H does NOT consume H.
 
           H is consumed (by V's edge).
-          V is a new leaf (visible). I is excluded (invisible).
+          V is a new leaf (primary). I is excluded (auxiliary).
 
           Heads = [V]
 
               H
              / \
             V   I
-            ●   (invisible)
+            ●   (auxiliary)
             ↑ head
 ```
 
@@ -304,7 +304,7 @@ Next batch:  Workflows: [C]  (default: DependsOnHeads=true, IsHead=null)
                           ●  ← head
 ```
 
-Note: If B joining the heads is not desired, it can be marked `IsHead = false` to keep the batch entirely invisible to the collection.
+Note: If B joining the heads is not desired, it can be marked `IsHead = false`, making the whole batch auxiliary and leaving the collection's heads unchanged.
 
 ---
 
@@ -383,6 +383,6 @@ use the list endpoint's rollup; to enumerate a collection's failures, use
 2. **Root detection**: A workflow is a "root" if it has no `DependsOn` refs to other workflows _within the same batch_.
 3. **Head dep injection**: Roots with `DependsOnHeads = true` (the default) get dependency edges to all current heads.
 4. **Leaf detection**: A workflow becomes a head if `IsHead = true`, or if `IsHead` is `null` and no other workflow in the batch depends on it. `IsHead = false` unconditionally excludes.
-5. **Head consumption**: A head is removed from the heads set only if a **visible** workflow (`IsHead != false`) depends on it (via injected or explicit edge). Invisible workflows' edges are ignored for consumption.
-6. **Invisibility**: `IsHead = false` means the workflow is invisible to collection head tracking — it participates in execution ordering but the collection state is unchanged by its presence.
+5. **Head consumption**: A head is removed from the heads set only if a **primary** workflow (`IsHead != false`) depends on it (via injected or explicit edge). Auxiliary workflows' edges are ignored for consumption.
+6. **Auxiliary workflows**: `IsHead = false` makes the workflow auxiliary — it participates in execution ordering but the collection state is unchanged by its presence. See [primary and auxiliary workflows](technical-guide.md#primary-and-auxiliary-workflows).
 7. **Same-batch merge**: If two requests in one write-buffer flush target the same collection, they're folded sequentially in arrival order.

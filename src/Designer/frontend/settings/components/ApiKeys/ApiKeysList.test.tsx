@@ -1,3 +1,4 @@
+import { afterAll, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -29,7 +30,7 @@ const olderKey: ApiKey = {
   createdByUsername: 'user2',
 };
 
-const onDelete = jest.fn();
+const onDelete = vi.fn();
 
 type RenderProps = {
   apiKeys?: ApiKey[];
@@ -61,12 +62,8 @@ const renderApiKeysList = ({
   );
 
 describe('ApiKeysList', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   afterAll(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('renders a spinner while pending', () => {
@@ -151,7 +148,7 @@ describe('ApiKeysList', () => {
   });
 
   it('calls onDelete when delete is confirmed', async () => {
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     const user = userEvent.setup();
     renderApiKeysList({ apiKeys: [activeKey] });
     await user.click(

@@ -270,4 +270,28 @@ public class ObjectUtilsTests
         childArray.ContainSingle(d => d != null).Which.AltinnRowId.Should().Be(Guid.Empty);
         childArray.ContainSingle(d => d == null);
     }
+
+    public class ReplaceTestClass
+    {
+        public string? Value { get; set; }
+
+        public List<string>? Values { get; set; }
+
+        public List<ReplaceTestClass>? Children { get; set; }
+    }
+
+    [Fact]
+    public void TestReplaceStringValues()
+    {
+        var test = new ReplaceTestClass
+        {
+            Values = ["old", "other"],
+            Children = [new ReplaceTestClass { Value = "old" }],
+        };
+
+        ObjectUtils.ReplaceStringValues(test, new Dictionary<string, string> { ["old"] = "new" });
+
+        Assert.Equal(["new", "other"], test.Values);
+        Assert.Equal("new", test.Children[0].Value);
+    }
 }

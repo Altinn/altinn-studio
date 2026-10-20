@@ -1,4 +1,3 @@
-using System.Xml;
 using System.Xml.Linq;
 using Altinn.App.Analyzers.Utils;
 using NanoJsonReader;
@@ -15,16 +14,9 @@ namespace Altinn.App.Analyzers.Process;
 /// </summary>
 internal static class PdfServiceTaskUtils
 {
-    private const string ProcessPath = "config/process/process.bpmn";
     private const string UiFolder = "ui/";
     private const string UiFolderSettingsSuffix = "/Settings.json";
     private const string PdfTaskType = "pdf";
-
-    /// <summary>The namespaces the app runtime binds to when it reads the process.</summary>
-    private static readonly XNamespace _bpmn = "http://www.omg.org/spec/BPMN/20100524/MODEL";
-
-    /// <inheritdoc cref="_bpmn"/>
-    private static readonly XNamespace _altinn = "http://altinn.no/process";
 
     /// <summary>
     /// Appends a diagnostic for every <c>pdf</c> service task that does not say what to render as its PDF, and for
@@ -36,23 +28,13 @@ internal static class PdfServiceTaskUtils
         List<Diagnostic> diagnostics
     )
     {
-        var processFile = SingleProcessFile(additionalFiles);
-        var content = processFile?.GetText(token)?.ToString();
-        if (processFile is null || content is null)
+        var processFile = ProcessFile.FindSingle(additionalFiles);
+        if (processFile is null || ProcessFile.TryParse(processFile, token) is not { } parsed)
         {
             return;
         }
 
-        XDocument document;
-        try
-        {
-            document = XDocument.Parse(content, LoadOptions.SetLineInfo);
-        }
-        catch (XmlException)
-        {
-            // Nothing to reason about; the app itself fails to load the process at startup.
-            return;
-        }
+        var (content, document) = parsed;
 
         // The package props that expose config/** to the analysis expose ui/**/*.json as well, so no UI folders
         // here means the app has none.
@@ -104,36 +86,11 @@ internal static class PdfServiceTaskUtils
         }
     }
 
-    /// <summary>
-    /// The app's process file. More than one means a project layout this analysis cannot reason about, so it
-    /// stays quiet rather than guessing.
-    /// </summary>
-    private static AdditionalText? SingleProcessFile(ImmutableArray<AdditionalText> additionalFiles)
-    {
-        AdditionalText? found = null;
-        foreach (var file in additionalFiles)
-        {
-            if (!NormalizedPath(file).EndsWith(ProcessPath, StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            if (found is not null)
-            {
-                return null;
-            }
-
-            found = file;
-        }
-
-        return found;
-    }
-
     /// <summary>The app folder (with a trailing slash) that the process file sits in.</summary>
     private static string AppRoot(AdditionalText processFile)
     {
-        var path = NormalizedPath(processFile);
-        return path.Substring(0, path.Length - ProcessPath.Length);
+        var path = ProcessFile.NormalizedPath(processFile);
+        return path.Substring(0, path.Length - ProcessFile.RelativePath.Length);
     }
 
     /// <summary>
@@ -150,7 +107,7 @@ internal static class PdfServiceTaskUtils
         var folders = new Dictionary<string, AdditionalText>(StringComparer.Ordinal);
         foreach (var file in additionalFiles)
         {
-            var path = NormalizedPath(file);
+            var path = ProcessFile.NormalizedPath(file);
             if (!path.StartsWith(uiRoot, StringComparison.Ordinal))
             {
                 continue;
@@ -174,15 +131,17 @@ internal static class PdfServiceTaskUtils
 
     private static IEnumerable<PdfServiceTask> FindPdfServiceTasks(XDocument document)
     {
-        foreach (var taskType in document.Descendants(_altinn + "taskType"))
+        foreach (var taskType in document.Descendants(ProcessFile.Altinn + "taskType"))
         {
             if (!string.Equals(taskType.Value.Trim(), PdfTaskType, StringComparison.Ordinal))
             {
                 continue;
             }
 
-            var serviceTask = taskType.Ancestors().FirstOrDefault(a => a.Name == _bpmn + "serviceTask");
-            if (serviceTask?.Attribute("id")?.Value is not { Length: > 0 } id)
+            // A pdf task on a bpmn:task element is reported by ProcessTaskElementAnalyzer, and is checked here as well,
+            // so changing its element does not uncover more errors.
+            var task = ProcessFile.FindHostingTask(taskType);
+            if (task?.Attribute("id")?.Value is not { Length: > 0 } id)
             {
                 continue;
             }
@@ -191,15 +150,15 @@ internal static class PdfServiceTaskUtils
             // entries render nothing, so they do not count as listing a task.
             var autoPdfTaskIds =
                 taskType
-                    .Parent?.Element(_altinn + "pdfConfig")
-                    ?.Element(_altinn + "autoPdfTaskIds")
-                    ?.Elements(_altinn + "taskId")
+                    .Parent?.Element(ProcessFile.Altinn + "pdfConfig")
+                    ?.Element(ProcessFile.Altinn + "autoPdfTaskIds")
+                    ?.Elements(ProcessFile.Altinn + "taskId")
                     .Select(e => e.Value)
                     .Where(v => !string.IsNullOrWhiteSpace(v))
                     .ToList()
                 ?? [];
 
-            yield return new PdfServiceTask(id, serviceTask, autoPdfTaskIds);
+            yield return new PdfServiceTask(id, task, autoPdfTaskIds);
         }
     }
 
@@ -234,10 +193,10 @@ internal static class PdfServiceTaskUtils
         }
     }
 
-    private static string NormalizedPath(AdditionalText file) => file.Path.Replace('\\', '/');
-
     /// <param name="Id">The service task's BPMN element id, which is also the name of its UI folder.</param>
-    /// <param name="Element">The <c>bpmn:serviceTask</c> element, which anchors the diagnostics.</param>
+    /// <param name="Element">
+    /// The <c>bpmn:serviceTask</c> or <c>bpmn:task</c> element, which anchors the diagnostics.
+    /// </param>
     /// <param name="AutoPdfTaskIds">The non-blank <c>autoPdfTaskIds</c> entries.</param>
     private sealed record PdfServiceTask(string Id, XElement Element, List<string> AutoPdfTaskIds);
 }

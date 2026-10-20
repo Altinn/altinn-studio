@@ -73,5 +73,5 @@ The component also supports the [common component properties](../common-properti
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Expression values that trigger a refetch after changed form data is saved. These values are not sent to the server.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Expression values that trigger a refetch after changed form data is saved. These values are not sent to the server. Additional property names are allowed. Value type: string | expression&lt;string&gt;.</div></div>
 </details>

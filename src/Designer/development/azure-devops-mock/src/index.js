@@ -35,6 +35,7 @@ import {
   workflowRoute,
   workflowsRoute,
 } from './routes/localtest.js';
+import { reportMetricsRoute } from './routes/reports.js';
 
 const app = express();
 
@@ -63,6 +64,7 @@ app.get('/apps/:org/:env/runtime/gateway/api/v1/metrics/errors', emptyMetricsRou
 app.get('/apps/:org/:env/runtime/gateway/api/v1/metrics/app', emptyMetricsRoute);
 app.get('/apps/:org/:env/runtime/gateway/api/v1/metrics/app/errors', emptyMetricsRoute);
 app.get('/apps/:org/:env/runtime/gateway/api/v1/metrics/app/health', emptyMetricsRoute);
+app.get('/apps/:org/:env/runtime/gateway/api/v1/metrics/report', reportMetricsRoute);
 app.get('/storage/api/v1/applications/:org/:app', storageApplicationMetadataRoute);
 app.get('/storage/api/v1/applications/:org/:app/texts/:lang', storageTextsRoute);
 // The admin app's app and instance views: canned and random data by default, or what the studioctl

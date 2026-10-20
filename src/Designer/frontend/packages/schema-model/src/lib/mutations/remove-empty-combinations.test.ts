@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { removeEmptyCombinations } from './remove-empty-combinations';
 import { buildUiSchema } from '../build-ui-schema';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';

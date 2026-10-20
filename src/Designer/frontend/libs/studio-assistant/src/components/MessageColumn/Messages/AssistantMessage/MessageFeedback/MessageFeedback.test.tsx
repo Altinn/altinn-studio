@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MessageFeedback } from './MessageFeedback';
@@ -23,7 +24,7 @@ describe('MessageFeedback', () => {
 
   it('calls onSubmit without comment when there is no comment', async () => {
     const user = userEvent.setup();
-    const onSubmit = jest.fn();
+    const onSubmit = vi.fn();
     renderMessageFeedback({ onSubmit });
 
     await user.click(getThumbsUpButton());
@@ -38,7 +39,7 @@ describe('MessageFeedback', () => {
 
   it('calls onSubmit with comment when there is a comment', async () => {
     const user = userEvent.setup();
-    const onSubmit = jest.fn();
+    const onSubmit = vi.fn();
     renderMessageFeedback({ onSubmit });
 
     await user.click(getThumbsDownButton());
@@ -54,7 +55,7 @@ describe('MessageFeedback', () => {
 
   it('closes the dialog without calling onSubmit when pressing cancel', async () => {
     const user = userEvent.setup();
-    const onSubmit = jest.fn();
+    const onSubmit = vi.fn();
     renderMessageFeedback({ onSubmit });
 
     await user.click(getThumbsUpButton());
@@ -84,7 +85,7 @@ describe('MessageFeedback', () => {
 
     it('clears the vote without a dialog when the chosen thumb is pressed again', async () => {
       const user = userEvent.setup();
-      const onClear = jest.fn();
+      const onClear = vi.fn();
       renderMessageFeedback({ currentVote: true, onClear });
 
       await user.click(getThumbsUpButton());
@@ -95,8 +96,8 @@ describe('MessageFeedback', () => {
 
     it('opens the dialog when the opposite thumb is pressed', async () => {
       const user = userEvent.setup();
-      const onClear = jest.fn();
-      const onSubmit = jest.fn();
+      const onClear = vi.fn();
+      const onSubmit = vi.fn();
       renderMessageFeedback({ currentVote: true, onClear, onSubmit });
 
       await user.click(getThumbsDownButton());
@@ -108,7 +109,7 @@ describe('MessageFeedback', () => {
     });
 
     it('labels the chosen thumb with what pressing it does', () => {
-      renderMessageFeedback({ currentVote: false, onClear: jest.fn() });
+      renderMessageFeedback({ currentVote: false, onClear: vi.fn() });
 
       expect(getThumbsDownButton()).toHaveAttribute('title', feedbackTexts.clear);
       expect(getThumbsUpButton()).toHaveAttribute('title', feedbackTexts.thumbsUp);
@@ -127,7 +128,7 @@ describe('MessageFeedback', () => {
 
 const defaultProps: MessageFeedbackProps = {
   texts: feedbackTexts,
-  onSubmit: jest.fn(),
+  onSubmit: vi.fn(),
 };
 
 const renderMessageFeedback = (props: Partial<MessageFeedbackProps> = {}): void => {

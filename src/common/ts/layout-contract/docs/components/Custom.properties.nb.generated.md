@@ -1,5 +1,7 @@
 Komponenten støtter også de [felles komponentegenskapene](../common-properties/).
 
+Andre egenskapsnavn er tillatt. Verditype: alle JSON-verdier, inkludert tekst, tall, boolske verdier, objekter, lister og null.
+
 <details class="card adocs-expand adocs-expand-small component-property" id="type">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
@@ -50,32 +52,6 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Liste over valideringstypene som skal vises.</div></div>
 </details>
 
-<details class="card adocs-expand adocs-expand-small component-property" id="renderassummary">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="renderAsSummary">renderAsSummary</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Valgfri</span>
-      <span class="component-property-default">Standardverdi: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir om komponenten skal vises som en oppsummering.</div></div>
-</details>
-
-<details class="card adocs-expand adocs-expand-small component-property" id="forceshowinsummary">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="forceShowInSummary">forceShowInSummary</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Valgfri</span>
-      <span class="component-property-default">Standardverdi: <span class="component-property-value">false</span></span>
-      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.</div></div>
-</details>
-
 <details class="component-property-group" id="textresourcebindings">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
@@ -86,7 +62,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
     </span>
   </summary>
   <div class="component-property-group-content">
-    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler tekstene i komponenten til tekstressurser eller uttrykk.</div></div>
+    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler tekstene i komponenten til tekstressurser eller uttrykk. Andre egenskapsnavn er tillatt. Verditype: string | expression&lt;string&gt;.</div></div>
     <div class="component-property-list">
       <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.tabletitle">
         <summary class="component-property-summary">
@@ -164,6 +140,32 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
   </div>
 </details>
 
+<details class="card adocs-expand adocs-expand-small component-property" id="renderassummary">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="renderAsSummary">renderAsSummary</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Valgfri</span>
+      <span class="component-property-default">Standardverdi: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir om komponenten skal vises som en oppsummering.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="forceshowinsummary">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="forceShowInSummary">forceShowInSummary</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Valgfri</span>
+      <span class="component-property-default">Standardverdi: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.</div></div>
+</details>
+
 <details class="card adocs-expand adocs-expand-small component-property" id="removewhenhidden">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
@@ -186,7 +188,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler verdiene i komponenten til felter i datamodellen.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler verdiene i komponenten til felter i datamodellen. Andre egenskapsnavn er tillatt. Verditype: datamodellbinding.</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="tagname">

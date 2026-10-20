@@ -77,11 +77,12 @@ internal sealed class XsdValidator : IValidator
             {
                 continue;
             }
-            var modelId = classRef.Split('.').Last(); // ModelId is the last part of the class ref, which is the part that is used in the XSD schema file name
-            var schema = _appResourceService.GetXsdSchema(modelId);
+
+            var schema = _appResourceService.GetXsdSchema(dataType.Id);
+
             if (schema is null)
             {
-                _logger.LogInformation(
+                _logger.LogWarning(
                     "No XSD schema found for data type {DataTypeId}, skipping XSD validation",
                     dataType.Id
                 );
@@ -103,53 +104,48 @@ internal sealed class XsdValidator : IValidator
             {
                 parsedSchema.Add(null, xsdReader);
             }
-            var settings = new XmlReaderSettings
+            var readerSettings = new XmlReaderSettings
             {
-                ValidationType = ValidationType.Schema,
-                Schemas = parsedSchema,
                 DtdProcessing = DtdProcessing.Prohibit,
                 XmlResolver = null,
                 CloseInput = true,
             };
-            settings.ValidationEventHandler += (sender, e) =>
-            {
-                validationIssues.Add(
-                    new ValidationIssue()
-                    {
-                        Code = "Xsd",
-                        CustomTextKey = "backend.xsd_validation",
-                        DataElementId = dataElement.Id,
-                        Severity = ValidationIssueSeverity.Error,
-                        CustomTextParameters = new Dictionary<string, string>()
-                        {
-                            { "schema", dataType.Id },
-                            { "message", e.Message },
-                        },
-                    }
-                );
-            };
 
             try
             {
-                var xmlStream = new MemoryAsStream(serializedFormData);
-                using var reader = XmlReader.Create(xmlStream, settings);
-                while (reader.Read()) { }
+                // Validate a DOM instead of a streaming reader so that the validation events carry the
+                // offending node (SourceObject), which lets us report the full path of the invalid field.
+                // Whitespace-only text must be kept, otherwise values like "   " would validate as empty strings.
+                var document = new XmlDocument { XmlResolver = null, PreserveWhitespace = true };
+                using (var reader = XmlReader.Create(new MemoryAsStream(serializedFormData), readerSettings))
+                {
+                    document.Load(reader);
+                }
+                document.Schemas = parsedSchema;
+                document.Validate(
+                    (sender, e) =>
+                    {
+                        var node = (e.Exception as XmlSchemaValidationException)?.SourceObject as XmlNode;
+                        validationIssues.Add(
+                            BuiltInValidationIssues.XsdValidation(
+                                dataElementId: dataElement.Id,
+                                schema: dataType.Id,
+                                message: e.Message,
+                                path: XmlNodePath.Get(node)
+                            )
+                        );
+                    }
+                );
             }
             catch (XmlException ex)
             {
                 validationIssues.Add(
-                    new ValidationIssue()
-                    {
-                        Code = "Xsd",
-                        CustomTextKey = "backend.xsd_validation",
-                        DataElementId = dataElement.Id,
-                        Severity = ValidationIssueSeverity.Error,
-                        CustomTextParameters = new Dictionary<string, string>()
-                        {
-                            { "schema", dataType.Id },
-                            { "message", ex.Message },
-                        },
-                    }
+                    BuiltInValidationIssues.XsdValidation(
+                        dataElementId: dataElement.Id,
+                        schema: dataType.Id,
+                        message: ex.Message,
+                        path: null
+                    )
                 );
             }
         }

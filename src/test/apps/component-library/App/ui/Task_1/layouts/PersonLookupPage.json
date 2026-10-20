@@ -1,5 +1,5 @@
 {
-  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "hidden": false,
     "layout": [
@@ -8,18 +8,59 @@
         "type": "NavigationBar"
       },
       {
+        "id": "personLookup-required",
+        "type": "RadioButtons",
+        "dataModelBindings": {
+          "simpleBinding": "LookupRequired"
+        },
+        "textResourceBindings": {
+          "title": "lookup.required"
+        },
+        "options": [
+          {
+            "label": "lookup.required.yes",
+            "value": "yes"
+          },
+          {
+            "label": "lookup.required.no",
+            "value": "no"
+          }
+        ],
+        "preselectedOptionIndex": 1
+      },
+      {
+        "id": "personLookup-backend-validation",
+        "type": "Checkboxes",
+        "dataModelBindings": {
+          "simpleBinding": "LookupBackendValidation"
+        },
+        "textResourceBindings": {
+          "title": "lookup.validation.title",
+          "description": "lookup.validation.description"
+        },
+        "options": [
+          {
+            "label": "lookup.validation.enable",
+            "value": "yes"
+          }
+        ]
+      },
+      {
         "id": "personLookup",
         "type": "PersonLookup",
         "dataModelBindings": {
-          "ssn": "GridExample.ExampleInputTwo",
-          "fullName": "street"
+          "ssn": "PersonLookup.Ssn",
+          "fullName": "PersonLookup.FullName",
+          "firstName": "PersonLookup.FirstName",
+          "middleName": "PersonLookup.MiddleName",
+          "lastName": "PersonLookup.LastName"
         },
         "textResourceBindings": {
           "title": "Legg til person",
-          "description": "Her legger du inn etternavn og fødselsnummer",
+          "description": "lookup.person.description",
           "help": "For å kunne søke i registeret må du ha fødselsnummeret til personen"
         },
-        "required": true
+        "required": ["equals", ["dataModel", "LookupRequired"], "yes"]
       },
       {
         "id": "PersonLookup-Header-Summary2",
@@ -38,11 +79,44 @@
         }
       },
       {
+        "id": "personLookup-group",
+        "type": "RepeatingGroup",
+        "children": ["personLookup-repeated"],
+        "dataModelBindings": {
+          "group": "PersonLookups"
+        },
+        "textResourceBindings": {
+          "title": "lookup.person.group"
+        },
+        "validateOnSaveRow": ["All"]
+      },
+      {
+        "id": "personLookup-repeated",
+        "type": "PersonLookup",
+        "dataModelBindings": {
+          "ssn": "PersonLookups.Ssn",
+          "fullName": "PersonLookups.FullName",
+          "firstName": "PersonLookups.FirstName",
+          "middleName": "PersonLookups.MiddleName",
+          "lastName": "PersonLookups.LastName"
+        },
+        "textResourceBindings": {
+          "title": "Legg til person",
+          "description": "lookup.person.description",
+          "help": "For å kunne søke i registeret må du ha fødselsnummeret til personen"
+        },
+        "required": ["equals", ["dataModel", "LookupRequired"], "yes"]
+      },
+      {
         "id": "PersonLookupPage-NavigationButtons",
         "type": "NavigationButtons",
         "textResourceBindings": {
           "next": "Neste",
           "back": "Forrige"
+        },
+        "validateOnNext": {
+          "page": "current",
+          "show": ["All"]
         }
       }
     ]

@@ -52,7 +52,6 @@ function textResourceTexts(
     modeToggle: 'Mode',
     search: createTextResourceSearchButtonTitle(rowNumber, property),
     textResourcePickerLabel: createTextResourcePickerLabel(rowNumber, property),
-    noTextResourceOptionLabel: 'None',
     valueLabel: createTextResourceValueLabel(rowNumber, property),
   };
 }

@@ -62,6 +62,7 @@ function addLikertItemToLayout(layouts: ILayouts) {
           secure: comp.secure,
           queryParameters: comp.queryParameters,
           readOnly: comp.readOnly,
+          labelSettings: comp.labelSettings,
           sortOrder: comp.sortOrder,
           showValidations: comp.showValidations,
           grid: comp.grid,
