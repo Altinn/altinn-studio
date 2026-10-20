@@ -6,7 +6,7 @@ import FrontendBrukerneMerker from './04-frontend-brukerne-merker';
 import FrontendFolgerAppen from './05-frontend-folger-appen';
 import InfraNyttIV9 from './07-infra-nytt-i-v9';
 import Prosessmotor from './08-prosessmotor';
-import LagPaLag from './09b-lag-pa-lag';
+import LagPaLag from './09-lag-pa-lag';
 import ForUtviklere from './10-for-utviklere';
 import Bakgrunn from './11-bakgrunn';
 import Dashbord from './12-dashbord';
