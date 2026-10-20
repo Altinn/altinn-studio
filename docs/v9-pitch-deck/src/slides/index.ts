@@ -93,9 +93,9 @@ export const slides: SlideDef[] = [
   {
     id: 'lag-pa-lag',
     component: LagPaLag,
-    steps: 5,
+    steps: 7,
     notes:
-      'Samme prosess, og for hvert klikk et nytt lag under den. Slik tegner dere prosessen i Studio. I v8 lages PDF-en skjult i overgangen fra utfylling til slutt. Første klikk: i v9 er PDF-en en egen tjenesteoppgave. Andre klikk: under hver overgang gjør prosessmotoren jobben, steg for steg, og lagrer underveis. Også PDF-en lages av motoren. Tredje klikk: hendelsene til andre systemer går som egne jobber i bakgrunnen så snart overgangen er lagret. De holder ikke prosessen igjen. Fjerde klikk: PDF-tjenesten svarer ikke. Bare det steget prøves igjen. Det som er fullført, kjøres ikke på nytt, og bakgrunnsjobbene er allerede sendt. Femte klikk: PDF-en er laget, og prosessen går videre til slutt uten at noen gjør noe.',
+      'Samme prosess, og for hvert klikk et nytt lag under den. Slik tegner dere prosessen i Studio. I v8 lages PDF-en skjult i overgangen fra utfylling til slutt. Første klikk: i v9 er PDF-en en egen tjenesteoppgave. Andre klikk: Kari starter skjemaet. Før hun ser det, har prosessmotoren startet steget, fylt ut det som kan fylles ut på forhånd, kjørt appens egen kode og lagret. Tredje klikk: mens Kari fyller ut, er det appen som svarer henne, akkurat som i dag. Validering, beregninger og lagring underveis skjer der. Fjerde klikk: Kari sender inn. Motoren avslutter steget, låser svarene og lagrer, og så lager den PDF-en. Femte klikk: hendelsene til andre systemer går som egne jobber i bakgrunnen så snart en overgang er lagret. De holder ikke prosessen igjen. Sjette klikk: PDF-tjenesten svarer ikke. Bare det steget prøves igjen. Det som er fullført, kjøres ikke på nytt, og bakgrunnsjobbene er allerede sendt. Sjuende klikk: PDF-en er laget, og prosessen går videre til slutt uten at noen gjør noe.',
   },
   {
     id: 'for-utviklere',

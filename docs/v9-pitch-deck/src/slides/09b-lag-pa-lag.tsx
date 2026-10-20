@@ -4,17 +4,19 @@ import { Slide } from '../components';
 import { ArrowDefs, Dot, Wire } from './_kit';
 
 /**
- * The BPMN process is the backbone, and every press adds a lane under it,
- * column for column: v8's picture, the PDF as a service task, the engine's
- * steps under every transition, the side effects that leave as their own jobs,
- * then one failure that retries only the step that failed. The engine rows
+ * The BPMN process is the backbone, and every press adds to the lanes under
+ * it: v8's picture, the PDF as a service task, then Kari's way through, column
+ * by column (the engine starting Utfylling, the app answering while she fills
+ * it in, the engine ending it and running the PDF task), the side effects that
+ * leave as their own jobs, and one failure that retries only the step that
+ * failed. The engine rows
  * follow `WorkflowCommandSet`: task end, task start, the commit, then the
  * post-commit work; side effects are enqueued at the commit.
  */
 
 type Tone = 'ok' | 'run' | 'wait' | 'idle';
 
-const LAST = 5;
+const LAST = 7;
 
 /* The process row. Arrows are long so that each transition gets a column. */
 const ROW_H = 120;
@@ -41,6 +43,7 @@ interface Column {
 
 const COLS = {
   start: { key: 'start', centre: (START_CX + EVENT_R + FILL_X) / 2, width: 240 },
+  app: { key: 'app', centre: FILL_X + BOX_W / 2, width: 220 },
   fill: { key: 'fill', centre: (FILL_X + BOX_W + PDF_X) / 2, width: 240 },
   pdf: { key: 'pdf', centre: PDF_X + BOX_W / 2, width: 220 },
   end: { key: 'end', centre: (PDF_X + BOX_W + END_CX - EVENT_R) / 2, width: 240 },
@@ -50,37 +53,54 @@ interface Chip {
   col: Column;
   row: number;
   label: string;
-  /** Tone at steps 2…5. */
-  tones: [Tone, Tone, Tone, Tone];
+  /** First build step the chip is on stage. */
+  from: number;
+  /** Tone at steps 2…7. */
+  tones: [Tone, Tone, Tone, Tone, Tone, Tone];
 }
 
-const DONE: Chip['tones'] = ['ok', 'ok', 'ok', 'ok'];
-const LATER: Chip['tones'] = ['idle', 'idle', 'idle', 'ok'];
+const DONE: Chip['tones'] = ['ok', 'ok', 'ok', 'ok', 'ok', 'ok'];
+const LATER: Chip['tones'] = ['idle', 'idle', 'idle', 'idle', 'idle', 'ok'];
+/** Kari is filling in the form at step 3, and has sent it from step 4. */
+const FILLING: Chip['tones'] = ['run', 'run', 'ok', 'ok', 'ok', 'ok'];
 /** The PDF step runs, fails and is retried, then succeeds; the task box follows it. */
-const PDF_TONES: Chip['tones'] = ['run', 'run', 'wait', 'ok'];
+const PDF_TONES: Chip['tones'] = ['idle', 'idle', 'run', 'run', 'wait', 'ok'];
+
+/** Steps 2, 3 and 4 follow Kari: into Utfylling, filling it in, and sending it. */
+const ARRIVE = 2;
+const FILL = 3;
+const SEND = 4;
+const EFFECTS = 5;
 
 const ENGINE: Chip[] = [
-  { col: COLS.start, row: 0, label: 'Start Utfylling', tones: DONE },
-  { col: COLS.start, row: 1, label: 'Forhåndsutfyll', tones: DONE },
-  { col: COLS.start, row: 2, label: 'Appens egen kode', tones: DONE },
-  { col: COLS.start, row: 3, label: 'Lagre', tones: DONE },
-  { col: COLS.fill, row: 0, label: 'Avslutt Utfylling', tones: DONE },
-  { col: COLS.fill, row: 1, label: 'Appens egen kode', tones: DONE },
-  { col: COLS.fill, row: 2, label: 'Lås svarene', tones: DONE },
-  { col: COLS.fill, row: 3, label: 'Lagre', tones: DONE },
-  { col: COLS.pdf, row: 0, label: 'Sjekk oppsettet', tones: DONE },
-  { col: COLS.pdf, row: 1, label: 'Lag PDF', tones: PDF_TONES },
-  { col: COLS.pdf, row: 2, label: 'Legg ved PDF-en', tones: LATER },
-  { col: COLS.end, row: 0, label: 'Avslutt Lag PDF', tones: LATER },
-  { col: COLS.end, row: 1, label: 'Lagre', tones: LATER },
-  { col: COLS.end, row: 2, label: 'Appens egen kode', tones: LATER },
+  { col: COLS.start, row: 0, from: ARRIVE, label: 'Start Utfylling', tones: DONE },
+  { col: COLS.start, row: 1, from: ARRIVE, label: 'Forhåndsutfyll', tones: DONE },
+  { col: COLS.start, row: 2, from: ARRIVE, label: 'Appens egen kode', tones: DONE },
+  { col: COLS.start, row: 3, from: ARRIVE, label: 'Lagre', tones: DONE },
+  { col: COLS.fill, row: 0, from: SEND, label: 'Avslutt Utfylling', tones: DONE },
+  { col: COLS.fill, row: 1, from: SEND, label: 'Appens egen kode', tones: DONE },
+  { col: COLS.fill, row: 2, from: SEND, label: 'Lås svarene', tones: DONE },
+  { col: COLS.fill, row: 3, from: SEND, label: 'Lagre', tones: DONE },
+  { col: COLS.pdf, row: 0, from: SEND, label: 'Sjekk oppsettet', tones: DONE },
+  { col: COLS.pdf, row: 1, from: SEND, label: 'Lag PDF', tones: PDF_TONES },
+  { col: COLS.end, row: 0, from: SEND, label: 'Avslutt Lag PDF', tones: LATER },
+  { col: COLS.end, row: 1, from: SEND, label: 'Lagre', tones: LATER },
+  { col: COLS.end, row: 2, from: SEND, label: 'Appens egen kode', tones: LATER },
+];
+
+/** Not the engine: while Kari fills in the form, the app answers her requests itself. */
+const APP: Chip[] = [
+  { col: COLS.app, row: 1, from: FILL, label: 'Kari fyller ut', tones: FILLING },
+  { col: COLS.app, row: 2, from: FILL, label: 'Validering', tones: FILLING },
+  { col: COLS.app, row: 3, from: FILL, label: 'Beregninger', tones: FILLING },
+  { col: COLS.app, row: 4, from: FILL, label: 'Lagres underveis', tones: FILLING },
 ];
 
 const BACKGROUND: Chip[] = [
-  { col: COLS.start, row: 0, label: 'Hendelse: opprettet', tones: DONE },
-  { col: COLS.start, row: 1, label: 'Hendelse: nytt steg', tones: DONE },
-  { col: COLS.fill, row: 0, label: 'Hendelse: nytt steg', tones: DONE },
-  { col: COLS.end, row: 0, label: 'Hendelse: ferdig', tones: LATER },
+  { col: COLS.start, row: 0, from: EFFECTS, label: 'Hendelse: opprettet', tones: DONE },
+  { col: COLS.start, row: 1, from: EFFECTS, label: 'Hendelse: nytt steg', tones: DONE },
+  { col: COLS.fill, row: 0, from: EFFECTS, label: 'Hendelse: nytt steg', tones: DONE },
+  { col: COLS.end, row: 0, from: EFFECTS, label: 'Hendelse: ferdig', tones: LATER },
 ];
 
 /** The chips are narrow, so a state is a mark; the subtitle says what it means. */
@@ -95,6 +115,8 @@ const SUBTITLES = [
   'Slik tegner dere prosessen i Studio: utfylling, så slutt.',
   'I v9 blir PDF-en et eget steg i prosessen.',
   'Mellom hvert steg i prosessen gjør prosessmotoren jobben.',
+  'Mens Kari fyller ut, svarer appen selv, akkurat som i dag.',
+  'Kari sender inn. Motoren avslutter steget og lager PDF-en.',
   'Det som ikke trenger å vente, går som egne jobber i bakgrunnen.',
   'Feiler PDF-en, prøves bare den igjen. Det som er fullført, står.',
   'PDF-en er laget, og prosessen går videre til slutt av seg selv.',
@@ -116,28 +138,26 @@ function ChipView({
   chip,
   laneY,
   at,
-  shown,
   delay,
-  background,
+  kind,
 }: {
   chip: Chip;
   laneY: number;
   at: number;
-  shown: boolean;
   delay: number;
-  background?: boolean;
+  kind?: 'app' | 'bg';
 }) {
   const tone = chip.tones[Math.max(at - 2, 0)];
   return (
     <motion.div
-      className={`s-layer__chip is-${tone}-chip${background ? ' s-layer__chip--bg' : ''}`}
+      className={`s-layer__chip is-${tone}-chip${kind ? ` s-layer__chip--${kind}` : ''}`}
       style={{
         left: chip.col.centre - chip.col.width / 2,
         top: chipTop(laneY, chip.row),
         width: chip.col.width,
         height: CHIP_H,
       }}
-      {...fade(shown, delay)}
+      {...fade(at >= chip.from, delay)}
     >
       <Dot tone={tone} />
       <span className='s-layer__label'>{chip.label}</span>
@@ -149,10 +169,11 @@ function ChipView({
 export default function LagPaLagSlide({ step }: SlideProps) {
   const at = Math.min(Math.max(step, 0), LAST);
   const v9 = at >= 1;
-  const engine = at >= 2;
-  const background = at >= 3;
-  const pdfTone: Tone | 'plain' = at < 2 ? 'plain' : PDF_TONES[at - 2];
-  const fillDone = engine;
+  const engine = at >= ARRIVE;
+  const background = at >= EFFECTS;
+  const sent = at >= SEND;
+  const fillTone = !engine ? 'plain' : sent ? 'ok' : 'run';
+  const pdfTone = !v9 ? 'plain' : at === 1 ? 'run' : !sent ? 'plain' : PDF_TONES[at - 2];
   const ended = at === LAST;
 
   const columnBottom = (chips: Chip[], col: Column, laneY: number) =>
@@ -215,30 +236,28 @@ export default function LagPaLagSlide({ step }: SlideProps) {
               show={v9}
             />
 
-            {/* Each transition, and the service task, drops into its own column. */}
-            {[COLS.start, COLS.fill, COLS.end].map((col, i) => (
+            {/* Each transition, Utfylling and the service task drop into their own column. */}
+            {(
+              [
+                [COLS.start, MID_Y + 8, ARRIVE],
+                [COLS.app, ROW_H + 4, FILL],
+                [COLS.fill, MID_Y + 8, SEND],
+                [COLS.pdf, ROW_H + 4, SEND],
+                [COLS.end, MID_Y + 8, SEND],
+              ] as const
+            ).map(([col, top, from], i) => (
               <motion.line
                 key={col.key}
-                className='s-layer__drop'
+                className={`s-layer__drop${col === COLS.app ? ' s-layer__drop--app' : ''}`}
                 x1={col.centre}
-                y1={MID_Y + 8}
+                y1={top}
                 x2={col.centre}
                 y2={ENGINE_Y - 10}
                 initial={false}
-                animate={{ opacity: engine ? 1 : 0 }}
-                transition={{ duration: 0.3, delay: engine ? 0.1 + i * 0.1 : 0 }}
+                animate={{ opacity: at >= from ? 1 : 0 }}
+                transition={{ duration: 0.3, delay: at >= from ? 0.1 + (i % 3) * 0.1 : 0 }}
               />
             ))}
-            <motion.line
-              className='s-layer__drop'
-              x1={COLS.pdf.centre}
-              y1={ROW_H + 4}
-              x2={COLS.pdf.centre}
-              y2={ENGINE_Y - 10}
-              initial={false}
-              animate={{ opacity: engine ? 1 : 0 }}
-              transition={{ duration: 0.3, delay: engine ? 0.2 : 0 }}
-            />
 
             {/* Side effects leave once a transition is saved. */}
             {[COLS.start, COLS.fill, COLS.end].map((col, i) => (
@@ -264,13 +283,13 @@ export default function LagPaLagSlide({ step }: SlideProps) {
             Start
           </div>
           <div
-            className={`s-dag__box is-${fillDone ? 'ok' : 'plain'}-box`}
+            className={`s-dag__box is-${fillTone}-box`}
             style={{ left: FILL_X, top: 0, width: BOX_W, height: ROW_H }}
           >
             <span className='s-dag__title'>Utfylling</span>
           </div>
           <motion.div
-            className={`s-dag__box is-${pdfTone === 'plain' ? (v9 ? 'run' : 'plain') : `${pdfTone}`}-box`}
+            className={`s-dag__box is-${pdfTone}-box`}
             style={{ left: PDF_X, top: 0, width: BOX_W, height: ROW_H }}
             {...fade(v9)}
           >
@@ -308,14 +327,36 @@ export default function LagPaLagSlide({ step }: SlideProps) {
             v9: et eget steg i prosessen
           </motion.span>
 
+          <motion.span
+            className='s-layer__colhead'
+            style={{
+              left: COLS.app.centre - COLS.app.width / 2,
+              top: chipTop(ENGINE_Y, 0),
+              width: COLS.app.width,
+              height: CHIP_H,
+            }}
+            {...fade(at >= FILL, 0.15)}
+          >
+            I appen
+          </motion.span>
+
           {ENGINE.map((chip, i) => (
             <ChipView
               key={`${chip.col.key}-${chip.row}`}
               chip={chip}
               laneY={ENGINE_Y}
               at={at}
-              shown={engine}
-              delay={0.25 + i * 0.04}
+              delay={0.25 + (i % 5) * 0.05}
+            />
+          ))}
+          {APP.map((chip, i) => (
+            <ChipView
+              key={`app-${chip.row}`}
+              chip={chip}
+              laneY={ENGINE_Y}
+              at={at}
+              delay={0.25 + i * 0.06}
+              kind='app'
             />
           ))}
           {BACKGROUND.map((chip, i) => (
@@ -324,9 +365,8 @@ export default function LagPaLagSlide({ step }: SlideProps) {
               chip={chip}
               laneY={BG_Y}
               at={at}
-              shown={background}
               delay={0.3 + i * 0.08}
-              background
+              kind='bg'
             />
           ))}
         </motion.div>

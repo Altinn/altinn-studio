@@ -230,8 +230,8 @@ to close.
 
 A cover that maps the talk, a short hook, then three parts — det brukerne merker, bak kulissene,
 kom i gang — in norsk bokmål. Speaker notes live in the `notes` field of each entry in
-`src/slides/index.ts` and are surfaced in the overview (`O`). 18 slides + 35 build steps =
-**52 presses of `→`**.
+`src/slides/index.ts` and are surfaced in the overview (`O`). 18 slides + 37 build steps =
+**54 presses of `→`**.
 
 | #  | `id`                       | Slide                                                        | Steps |
 | -- | -------------------------- | ------------------------------------------------------------ | ----- |
@@ -244,7 +244,7 @@ kom i gang — in norsk bokmål. Speaker notes live in the `notes` field of each
 | 7  | `infra-nytt-i-v9`          | Nytt med v9, and a banner for what v8 apps already have      | 0     |
 | 8  | `prosessmotor`             | En motor for prosessene — app, engine, saved steps           | 0     |
 | 9  | `fra-prosess-til-steg`     | Fra prosess til steg — layer by layer, BPMN to side effects  | 4     |
-| 10 | `lag-pa-lag`               | Lag på lag — the process row with a lane added per press     | 5     |
+| 10 | `lag-pa-lag`               | Lag på lag — the process row with a lane added per press     | 7     |
 | 11 | `for-utviklere`            | Nye muligheter for utviklere — what service tasks can do now | 0     |
 | 12 | `bakgrunn`                 | Arbeid i bakgrunnen — submit waits for a Dialogporten job     | 3     |
 | 13 | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard               | 3     |
