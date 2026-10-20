@@ -2,9 +2,9 @@ import React from 'react';
 
 import { Button } from '@app/form-component';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
-import { useIsMutating } from '@tanstack/react-query';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { useIsMutating } from 'src/core/queries/reactQuery';
 import { useAppOwner } from 'src/core/texts/appTexts';
 import { PROCESS_RESUME_MUTATION_KEY } from 'src/features/instance/processNextMutationKey';
 import { useProcessResume } from 'src/features/instance/useProcessNext';

@@ -9,6 +9,7 @@ import {
     fmtTime,
     fmtNamespace,
     abbrevGuids,
+    isAuxiliaryWorkflow,
 } from '../core/helpers.js';
 import {
     buildPipelineHTML,
@@ -264,14 +265,14 @@ const buildRelationsHTML = (wf, showUnknown) => {
 };
 
 /**
- * Badge for workflows deliberately invisible to collection head tracking (IsHead=false), e.g.
- * the fire-and-forget process-next side-effects workflows.
+ * Badge for an auxiliary workflow (`isHead: false`), e.g. the post-commit work a process-next
+ * transition enqueues beside the process.
  * @param {import('../core/state.js').Workflow} wf
  * @returns {string}
  */
-const sideChainBadgeHTML = (wf) =>
-    wf.isHead === false
-        ? `<span class="side-chain-badge" title="Invisible to collection head tracking (IsHead=false): never gates dependents or the collection frontier">side chain</span>`
+export const auxiliaryBadgeHTML = (wf) =>
+    isAuxiliaryWorkflow(wf)
+        ? `<span class="auxiliary-badge" title="Auxiliary workflow (isHead=false): runs beside the process and is not part of the collection's head frontier">auxiliary</span>`
         : '';
 
 const FLASH_MS = 1600;
@@ -378,7 +379,7 @@ export const buildCardHTML = (wf, isStatic) => {
     html += nameSpanHTML(wf, 'wf-name');
     html += `<span class="header-spacer"></span>`;
     if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
-    html += sideChainBadgeHTML(wf);
+    html += auxiliaryBadgeHTML(wf);
     html += `<span class="status-pill ${wf.status}"${isStatic ? ' style="animation:none"' : ''}>${wf.status}</span>`;
     html += buildTimestampsHTML(wf, isStatic);
     html += primaryCopyHTML(wf);
@@ -416,7 +417,7 @@ export const buildCompactCardHTML = (wf, isStatic) => {
     html += `</div>`;
 
     if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
-    html += sideChainBadgeHTML(wf);
+    html += auxiliaryBadgeHTML(wf);
     html += `<span class="status-pill ${wf.status} compact-pill">${wf.status}</span>`;
     html += buildTimestampsHTML(wf, isStatic);
     html += primaryCopyHTML(wf);
@@ -523,7 +524,7 @@ export const buildStatusTags = (wf) => {
 
 /** @param {HTMLElement} card @param {import('../core/state.js').Workflow} wf */
 export const setCardFilterData = (card, wf) => {
-    card.classList.toggle('side-chain', wf.isHead === false);
+    card.classList.toggle('auxiliary', isAuxiliaryWorkflow(wf));
     card.dataset.wfkey = wf.databaseId;
     workflowData[wf.databaseId] = wf;
     card.dataset.filter = buildFilterText(wf);
