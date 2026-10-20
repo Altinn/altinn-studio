@@ -148,6 +148,50 @@ const CAMERA = {
   wide: { scale: 1, y: 60 },
 };
 
+/** Where the app box sits in the intro, in the body's coordinates. */
+const APP_BOX = { left: 0, top: 160, width: 360, height: 240 };
+/** The band the app box becomes, around the process row, in the camera's coordinates. */
+const BAND = { x0: START_CX - EVENT_R - 50, x1: END_CX + EVENT_R + 50, y0: -22, y1: ROW_H + 10 };
+
+/** The band's rectangle in the body's coordinates, under a camera position. */
+function bandRect(camera: { scale: number; y: number }) {
+  const originX = (START_CX + END_CX) / 2;
+  const x = (v: number) => originX + (v - originX) * camera.scale;
+  const y = (v: number) => MID_Y + (v - MID_Y) * camera.scale + camera.y;
+  return {
+    left: x(BAND.x0),
+    top: y(BAND.y0),
+    width: x(BAND.x1) - x(BAND.x0),
+    height: y(BAND.y1) - y(BAND.y0),
+  };
+}
+
+/**
+ * The intro's app box, which carries the picture into the process: on the first
+ * press it grows into the band the process row sits in, since the process is
+ * what the app says should happen, and the band follows the camera from there.
+ */
+function AppBand({ view, wide }: { view: number; wide: boolean }) {
+  const band = view > 0;
+  const rect = !band ? APP_BOX : bandRect(wide ? CAMERA.wide : CAMERA.close);
+  return (
+    <motion.div
+      className={`s-unit s-unit--app s-engine__app${band ? ' is-band' : ''}`}
+      style={rect}
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <span className='s-engine__app-body'>
+        <Icon name='user' size={44} />
+        <span className='s-unit__title'>Altinn-app</span>
+        <span className='s-unit__sub'>Skjema, oppgaver og logikk</span>
+      </span>
+      <span className='s-engine__app-label'>Altinn-app</span>
+    </motion.div>
+  );
+}
+
 const fade = (show: boolean, delay = 0) => ({
   initial: false as const,
   animate: { opacity: show ? 1 : 0, y: show ? 0 : 8 },
@@ -185,7 +229,10 @@ function ChipView({
   );
 }
 
-/** Step 0: the app says what should happen, the engine sees that it is done, step by step. */
+/**
+ * Step 0: the app says what should happen, the engine sees that it is done, step by step.
+ * The app box itself is `AppBand`, which outlives the intro.
+ */
 function EngineIntro() {
   return (
     <div className='s-arch'>
@@ -208,14 +255,6 @@ function EngineIntro() {
         >
           Gjør steget
         </span>
-      </Enter>
-
-      <Enter index={0}>
-        <div className='s-unit s-unit--app' style={{ left: 0, top: 160, width: 360, height: 240 }}>
-          <Icon name='user' size={44} />
-          <span className='s-unit__title'>Altinn-app</span>
-          <span className='s-unit__sub'>Skjema, oppgaver og logikk</span>
-        </div>
       </Enter>
 
       <Enter index={1}>
@@ -283,12 +322,17 @@ export default function ProsessmotorSlide({ step }: SlideProps) {
         </span>
       }
     >
-      {/* The intro and the layered diagram share the body; one fades out as the other fades in. */}
+      {/*
+        The intro and the layered diagram share the body. On the first press the
+        app box grows into the process row's band, while the rest of the intro
+        sinks away towards where the engine lane appears later.
+      */}
       <div className='s-engine'>
+        <AppBand view={view} wide={engine} />
         <motion.div
           className='s-layer__intro'
           initial={false}
-          animate={{ opacity: intro ? 1 : 0 }}
+          animate={{ opacity: intro ? 1 : 0, y: intro ? 0 : 60 }}
           transition={{ duration: 0.35, delay: intro ? 0.15 : 0 }}
           aria-hidden={!intro}
         >
