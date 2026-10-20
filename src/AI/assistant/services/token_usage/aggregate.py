@@ -59,7 +59,6 @@ def aggregate_token_usage(
     loaded_at: str,
 ) -> list[DailyTokenUsageRow]:
     """Aggregate lists of traces and observations into token usage rows."""
-    # A tuple keeps the parts apart. Owner and app names can contain the separator of a joined string.
     buckets: dict[tuple[str, str, str, str], dict] = {}
 
     for observation in observations:

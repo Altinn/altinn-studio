@@ -2,10 +2,6 @@ using System.Threading.Tasks;
 
 namespace Altinn.Studio.Designer.Evaluators;
 
-/// <summary>
-/// Decides whether the developer can use the assistant on a repository, and which organization the usage is
-/// recorded on. The developer can use the assistant when there is an organization to record the usage on.
-/// </summary>
 public interface ICanUseAiAssistantEvaluator : ICanUseFeatureEvaluator
 {
     /// <summary>

@@ -137,7 +137,6 @@ def start_agent(
         "goal": goal,
         "repo_url": repo_url,
         "org": org,
-        # As Designer does for the repository of an organization.
         "cost_org": org,
         "allow_app_changes": True,
         "attachments": attachments,

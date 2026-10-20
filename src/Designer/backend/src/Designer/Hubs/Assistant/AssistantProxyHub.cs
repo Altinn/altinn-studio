@@ -304,9 +304,6 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         return value;
     }
 
-    /// <summary>
-    /// Gets the organization that the assistant usage is recorded on, and denies access when there is none.
-    /// </summary>
     private async Task<string> ResolveCostOrgOrDenyAccessAsync(AltinnRepoEditingContext editingContext)
     {
         string? costOrg = await _canUseAiAssistantEvaluator.ResolveCostOrg(editingContext.Org, editingContext.Repo);
