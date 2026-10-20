@@ -55,7 +55,6 @@ export const SecurityLevelSelect = ({
   };
 
   const handleSystemUserAllowedChange = (allowSystemUser: boolean): void => {
-    // The system user checkbox is only shown when the security level is 4.
     onSave(AUTH_LEVEL_4, allowSystemUser ? AUTH_LEVEL_3 : undefined);
   };
 
@@ -76,42 +75,46 @@ export const SecurityLevelSelect = ({
           {t('policy_editor.security_level_read_more')}
         </StudioLink>
       </StudioParagraph>
-      <StudioSelect
-        className={cn(classes.select, classes.bottomSpacing)}
-        label={t('policy_editor.select_auth_level_label')}
-        error={hasRemovedAuthLevel && t('policy_editor.auth_level_removed_error')}
-        onChange={(event) => handleEndUserAuthLevelChange(event.target.value as RequiredAuthLevel)}
-        value={requiredAuthenticationLevelEndUser}
-      >
-        {hasRemovedAuthLevel && (
-          <StudioSelect.Option value={requiredAuthenticationLevelEndUser} disabled>
-            {t('policy_editor.auth_level_option_removed', {
-              level: requiredAuthenticationLevelEndUser,
-            })}
-          </StudioSelect.Option>
+      <div>
+        <StudioSelect
+          label={t('policy_editor.select_auth_level_label')}
+          className={cn(classes.select, classes.bottomSpacing)}
+          error={hasRemovedAuthLevel && t('policy_editor.auth_level_removed_error')}
+          onChange={(event) =>
+            handleEndUserAuthLevelChange(event.target.value as RequiredAuthLevel)
+          }
+          value={requiredAuthenticationLevelEndUser}
+        >
+          {hasRemovedAuthLevel && (
+            <StudioSelect.Option value={requiredAuthenticationLevelEndUser} disabled>
+              {t('policy_editor.auth_level_option_removed', {
+                level: requiredAuthenticationLevelEndUser,
+              })}
+            </StudioSelect.Option>
+          )}
+          {authlevelOptions.map((option) => (
+            <StudioSelect.Option key={option.value} value={option.value}>
+              {t(option.label)}
+            </StudioSelect.Option>
+          ))}
+        </StudioSelect>
+        {requiredAuthenticationLevelEndUser === AUTH_LEVEL_4 && (
+          <StudioAlert data-color='info'>
+            <StudioHeading level={5} data-size='xs'>
+              {t('policy_editor.system_user_auth_level_heading')}
+            </StudioHeading>
+            <StudioParagraph className={classes.description}>
+              {t('policy_editor.system_user_auth_level_description')}
+            </StudioParagraph>
+            <StudioCheckbox
+              label={t('policy_editor.system_user_auth_level_checkbox_label')}
+              value={SYSTEM_USER_AUTH_LEVEL_VALUE}
+              checked={isSystemUserAllowed}
+              onChange={(event) => handleSystemUserAllowedChange(event.target.checked)}
+            />
+          </StudioAlert>
         )}
-        {authlevelOptions.map((option) => (
-          <StudioSelect.Option key={option.value} value={option.value}>
-            {t(option.label)}
-          </StudioSelect.Option>
-        ))}
-      </StudioSelect>
-      {requiredAuthenticationLevelEndUser === AUTH_LEVEL_4 && (
-        <StudioAlert data-color='info'>
-          <StudioHeading level={5} data-size='xs'>
-            {t('policy_editor.system_user_auth_level_heading')}
-          </StudioHeading>
-          <StudioParagraph className={classes.description}>
-            {t('policy_editor.system_user_auth_level_description')}
-          </StudioParagraph>
-          <StudioCheckbox
-            label={t('policy_editor.system_user_auth_level_checkbox_label')}
-            value={SYSTEM_USER_AUTH_LEVEL_VALUE}
-            checked={isSystemUserAllowed}
-            onChange={(event) => handleSystemUserAllowedChange(event.target.checked)}
-          />
-        </StudioAlert>
-      )}
+      </div>
     </div>
   );
 };
