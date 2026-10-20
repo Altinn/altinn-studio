@@ -305,9 +305,10 @@ public static class Diagnostics
             "ALTINNAPP1016",
             Category.Process,
             "Data type must be app-owned",
-            "Task '{0}' keeps {1} in the data type '{2}', whose allowedContributors is not exactly [\"app:owned\"]. "
+            "Task '{0}' keeps {1} in the data type '{2}', whose effective contributor list is not exactly [\"app:owned\"]. "
                 + "The app does not start in the Development environment, and parties other than the app may be "
-                + "able to change that data through the app's API. Set allowedContributors to [\"app:owned\"]."
+                + "able to change that data through the app's API. Set allowedContributors to [\"app:owned\"]. "
+                + "Remove any non-empty legacy allowedContributers field, or set it to [\"app:owned\"] too."
         );
 
         // A warning, since keeping a data type for a task that was removed is legitimate: old instances still hold

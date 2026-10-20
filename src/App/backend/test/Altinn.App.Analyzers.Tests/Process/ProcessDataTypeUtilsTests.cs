@@ -833,6 +833,10 @@ public class ProcessDataTypeUtilsTests
         );
         Assert.All(diagnostics, d => Assert.Equal(NotAppOwned, d.Id));
         Assert.All(diagnostics, d => Assert.Equal(DiagnosticSeverity.Warning, d.Severity));
+        Assert.All(
+            diagnostics,
+            d => Assert.Contains("Remove any non-empty legacy allowedContributers field", d.GetMessage())
+        );
         // Who else may write depends on the list, so the message does not claim that users can.
         Assert.All(
             diagnostics,
