@@ -516,17 +516,6 @@
   gap: 14px;
 }
 
-.s-engine__app-label {
-  position: absolute;
-  top: 8px;
-  left: 16px;
-  color: var(--text-400);
-  font-size: 16px;
-  font-weight: var(--fw-bold);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-}
-
 .s-layer__intro {
   position: absolute;
   inset: 0 0 auto;

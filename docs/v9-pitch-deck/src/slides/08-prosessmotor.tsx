@@ -153,7 +153,7 @@ const CAMERA_MOVE = { duration: 0.6, ease: EASE };
 /** Where the app box sits in the intro, in the body's coordinates. */
 const APP_BOX = { left: 0, top: 160, width: 360, height: 240 };
 /** The band the app box becomes, around the process row, in the camera's coordinates. */
-const BAND = { x0: START_CX - EVENT_R - 50, x1: END_CX + EVENT_R + 50, y0: -22, y1: ROW_H + 10 };
+const BAND = { x0: START_CX - EVENT_R - 50, x1: END_CX + EVENT_R + 50, y0: -14, y1: ROW_H + 14 };
 
 /** The band's rectangle in the body's coordinates, under a camera position. */
 function bandRect(camera: { scale: number; y: number }) {
@@ -207,14 +207,6 @@ function AppBand({ view, wide }: { view: number; wide: boolean }) {
         <Icon name='user' size={44} />
         <span className='s-unit__title'>Altinn-app</span>
         <span className='s-unit__sub'>Skjema, oppgaver og logikk</span>
-      </motion.span>
-      <motion.span
-        className='s-engine__app-label'
-        initial={false}
-        animate={{ opacity: band ? 1 : 0 }}
-        transition={{ duration: band ? 0.3 : 0.2, delay: band ? 0.4 : 0 }}
-      >
-        Altinn-app
       </motion.span>
     </motion.div>
   );
