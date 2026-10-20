@@ -90,10 +90,9 @@ const ENGINE: Chip[] = [
 
 /** Not the engine: while Kari fills in the form, the app answers her requests itself. */
 const APP: Chip[] = [
-  { col: COLS.app, row: 0, from: FILL, label: 'Kari fyller ut', tones: FILLING },
-  { col: COLS.app, row: 1, from: FILL, label: 'Validering', tones: FILLING },
-  { col: COLS.app, row: 2, from: FILL, label: 'Beregninger', tones: FILLING },
-  { col: COLS.app, row: 3, from: FILL, label: 'Lagres underveis', tones: FILLING },
+  { col: COLS.app, row: 0, from: FILL, label: 'Validering', tones: FILLING },
+  { col: COLS.app, row: 1, from: FILL, label: 'Beregninger', tones: FILLING },
+  { col: COLS.app, row: 2, from: FILL, label: 'Lagres underveis', tones: FILLING },
 ];
 
 const BACKGROUND: Chip[] = [
@@ -122,10 +121,27 @@ const SUBTITLES = [
   'PDF-en er laget, og prosessen går videre til slutt av seg selv.',
 ];
 
-/** Steps 0 and 1 show the process row alone, larger and in the middle. */
+/**
+ * Where the instance is at steps 2…7, shown above the process row: the place
+ * it is at, what is happening there, and how it is going.
+ */
+const STATUS: { x: number; text: string; tone: Tone }[] = [
+  { x: COLS.start.centre, text: 'Kari åpner skjemaet', tone: 'run' },
+  { x: COLS.app.centre, text: 'Kari fyller ut', tone: 'run' },
+  { x: COLS.fill.centre, text: 'Kari sender inn', tone: 'run' },
+  { x: COLS.pdf.centre, text: 'PDF-en lages', tone: 'run' },
+  { x: COLS.pdf.centre, text: 'PDF-tjenesten svarer ikke', tone: 'wait' },
+  { x: END_CX, text: 'Ferdig', tone: 'ok' },
+];
+const STATUS_Y = -56;
+
+/**
+ * Steps 0 and 1 show the process row alone, larger; from step 2 the row sits
+ * low enough to leave room for the status above it.
+ */
 const CAMERA = {
   close: { scale: 1.1, y: 40 },
-  wide: { scale: 1, y: 0 },
+  wide: { scale: 1, y: 60 },
 };
 
 const fade = (show: boolean, delay = 0) => ({
@@ -174,6 +190,7 @@ export default function LagPaLagSlide({ step }: SlideProps) {
   const fillTone = !engine ? 'plain' : sent ? 'ok' : 'run';
   const pdfTone = !v9 ? 'plain' : at === 1 ? 'run' : !sent ? 'plain' : PDF_TONES[at - 2];
   const ended = at === LAST;
+  const status = STATUS[Math.max(at - ARRIVE, 0)];
 
   const columnBottom = (chips: Chip[], col: Column, laneY: number) =>
     chipTop(laneY, Math.max(...chips.filter((c) => c.col === col).map((c) => c.row))) + CHIP_H;
@@ -219,7 +236,19 @@ export default function LagPaLagSlide({ step }: SlideProps) {
             <span className='s-dag__lane-sub'>Egne jobber som ikke holder prosessen igjen</span>
           </motion.span>
 
-          <svg className='s-dag__svg' viewBox='0 0 1656 660' width={1656} height={660} aria-hidden>
+          {/* The status rides above the process row to wherever the instance is. */}
+          <motion.div
+            className={`s-layer__status is-${status.tone}-chip`}
+            style={{ left: 0, top: STATUS_Y }}
+            initial={false}
+            animate={{ x: status.x, opacity: engine ? 1 : 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <span className={`s-layer__state is-${status.tone}`}>{STATE_MARK[status.tone]}</span>
+            {status.text}
+          </motion.div>
+
+          <svg className='s-dag__svg' viewBox='0 0 1656 600' width={1656} height={600} aria-hidden>
             <ArrowDefs />
             <Wire d={`M${START_CX + EVENT_R + 4} ${MID_Y} H ${FILL_X - 8}`} tone='grey' />
             {/* v8: straight from Utfylling to the end; the PDF is made inside the arrow. */}

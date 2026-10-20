@@ -601,7 +601,59 @@
 
 .s-layer__camera {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 1656px;
+  height: 600px;
+}
+
+/* Where the instance is right now: a pill pointing down at the process row. */
+.s-layer__status {
+  position: absolute;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--v9-line);
+  background: var(--v9-soft);
+  color: var(--text-100);
+  font-size: 21px;
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+  transition:
+    border-color 0.3s,
+    background-color 0.3s;
+}
+
+.s-layer__status::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  translate: -50% 0;
+  rotate: 45deg;
+  border-right: 1.5px solid;
+  border-bottom: 1.5px solid;
+  border-color: inherit;
+  background: inherit;
+}
+
+.s-layer__status .s-layer__state {
+  margin-left: 0;
+}
+
+.s-layer__status.is-wait-chip {
+  border-color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.s-layer__status.is-ok-chip {
+  border-color: var(--ok-line);
+  background: var(--ok-soft);
 }
 
 .s-layer__drop {
