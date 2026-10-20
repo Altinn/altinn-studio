@@ -14,6 +14,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
@@ -190,6 +191,89 @@ public class ReleaseServiceTest
     }
 
     [Fact]
+    public async Task CreateAsync_WithBranch_StoresBranchAndBuildsItsLatestCommit()
+    {
+        // Arrange
+        ReleaseEntity releaseEntity = CreateBranchRelease();
+        SetupBranchHead(releaseEntity.TargetCommitish);
+        SetupSuccessfulCreate();
+        ReleaseService releaseService = CreateReleaseService();
+
+        // Act
+        await releaseService.CreateAsync(releaseEntity);
+
+        // Assert
+        _releaseRepository.Verify(
+            r => r.Create(It.Is<ReleaseEntity>(release => release.Branch == UpgradeBranch)),
+            Times.Once
+        );
+        _azureDevOpsBuildClient.Verify(
+            b =>
+                b.QueueAsync(
+                    It.Is<QueueBuildParameters>(p => p.AppCommitId == releaseEntity.TargetCommitish),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithBranch_CommitIsNotLatestOnBranch_ReturnsConflictWithoutBuilding()
+    {
+        // Arrange
+        ReleaseEntity releaseEntity = CreateBranchRelease();
+        SetupBranchHead("0000000000000000000000000000000000000000");
+        SetupSuccessfulCreate();
+        ReleaseService releaseService = CreateReleaseService();
+
+        // Act
+        HttpRequestWithStatusException exception = await Assert.ThrowsAsync<HttpRequestWithStatusException>(() =>
+            releaseService.CreateAsync(releaseEntity)
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
+        VerifyNoBuildQueued();
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithUnknownBranch_ReturnsBadRequestWithoutBuilding()
+    {
+        // Arrange
+        ReleaseEntity releaseEntity = CreateBranchRelease();
+        _giteaClient.Setup(c => c.GetBranch(_org, _app, UpgradeBranch)).ReturnsAsync((Branch)null);
+        SetupSuccessfulCreate();
+        ReleaseService releaseService = CreateReleaseService();
+
+        // Act
+        HttpRequestWithStatusException exception = await Assert.ThrowsAsync<HttpRequestWithStatusException>(() =>
+            releaseService.CreateAsync(releaseEntity)
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+        VerifyNoBuildQueued();
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithoutBranch_DoesNotLookUpBranch()
+    {
+        // Arrange
+        ReleaseEntity releaseEntity = CreateBranchRelease();
+        releaseEntity.Branch = null;
+        SetupSuccessfulCreate();
+        ReleaseService releaseService = CreateReleaseService();
+
+        // Act
+        await releaseService.CreateAsync(releaseEntity);
+
+        // Assert
+        _giteaClient.Verify(c => c.GetBranch(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _releaseRepository.Verify(r => r.Create(It.Is<ReleaseEntity>(release => release.Branch == null)), Times.Once);
+    }
+
+    [Fact]
     public async Task GetAsync_OK()
     {
         // Arrange
@@ -228,6 +312,61 @@ public class ReleaseServiceTest
         // Assert
         _releaseRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         _releaseRepository.Verify(r => r.Update(It.IsAny<ReleaseEntity>()), Times.Once);
+    }
+
+    private const string UpgradeBranch = "v9-upgrade";
+
+    private ReleaseEntity CreateBranchRelease() =>
+        new()
+        {
+            TagName = "1",
+            Name = "1",
+            Body = "test-app",
+            TargetCommitish = "eec136ac2d31cf984d2053df79f181b99c3b4db5",
+            Branch = UpgradeBranch,
+            Org = _org,
+            App = _app,
+        };
+
+    private void SetupBranchHead(string commitId) =>
+        _giteaClient
+            .Setup(c => c.GetBranch(_org, _app, UpgradeBranch))
+            .ReturnsAsync(
+                new Branch
+                {
+                    Name = UpgradeBranch,
+                    Commit = new PayloadCommit { Id = commitId },
+                }
+            );
+
+    private void SetupSuccessfulCreate()
+    {
+        _releaseRepository
+            .Setup(r =>
+                r.Get(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<List<string>>(),
+                    It.IsAny<List<string>>()
+                )
+            )
+            .ReturnsAsync(new List<ReleaseEntity>());
+        _releaseRepository
+            .Setup(r => r.Create(It.IsAny<ReleaseEntity>()))
+            .ReturnsAsync(GetReleases("createdRelease.json").First());
+        _azureDevOpsBuildClient
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GetBuild());
+    }
+
+    private void VerifyNoBuildQueued()
+    {
+        _azureDevOpsBuildClient.Verify(
+            b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+        _releaseRepository.Verify(r => r.Create(It.IsAny<ReleaseEntity>()), Times.Never);
     }
 
     private static List<ReleaseEntity> GetReleases(string filename)

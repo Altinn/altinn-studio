@@ -16,6 +16,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
@@ -83,6 +84,7 @@ public class ReleaseService : IReleaseService
         release.PopulateBaseProperties(release.Org, release.App, httpContext);
 
         await ValidateUniquenessOfRelease(release, cancellationToken);
+        await ValidateTargetIsBranchHead(release);
 
         var (deployToken, authHeaderName) = await GetDeployTokenAsync(httpContext);
         string developer = AuthenticationHelper.GetDeveloperUserName(httpContext);
@@ -172,6 +174,33 @@ public class ReleaseService : IReleaseService
         if (existingReleaseEntity.Any())
         {
             throw new HttpRequestWithStatusException("A release with the same properties already exist.")
+            {
+                StatusCode = HttpStatusCode.Conflict,
+            };
+        }
+    }
+
+    private async Task ValidateTargetIsBranchHead(ReleaseEntity release)
+    {
+        if (release.Branch is null)
+        {
+            return;
+        }
+
+        Branch branch = await _giteaClient.GetBranch(release.Org, release.App, release.Branch);
+        if (branch is null)
+        {
+            throw new HttpRequestWithStatusException($"The branch {release.Branch} does not exist.")
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+            };
+        }
+
+        if (!string.Equals(branch.Commit?.Id, release.TargetCommitish, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new HttpRequestWithStatusException(
+                $"The commit {release.TargetCommitish} is not the latest commit on the branch {release.Branch}."
+            )
             {
                 StatusCode = HttpStatusCode.Conflict,
             };

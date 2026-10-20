@@ -34,6 +34,12 @@ public class ReleaseEntity : BaseEntity
     public string TargetCommitish { get; set; }
 
     /// <summary>
+    /// Branch the release was built from. Null for releases created without a branch.
+    /// </summary>
+    [JsonProperty("branch")]
+    public string Branch { get; set; }
+
+    /// <summary>
     /// Inputs that were used to build the app release.
     /// </summary>
     [JsonProperty("buildInputs")]
