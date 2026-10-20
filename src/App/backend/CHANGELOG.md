@@ -11,6 +11,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- Build checks compare the data types `process.bpmn` uses with `applicationmetadata.json` ([#21024](https://github.com/Altinn/altinn-studio/pull/21024)):
+    - `ALTINNAPP1013`–`ALTINNAPP1015` (errors): missing, such as `ref-data-as-pdf`, or unable to hold what the task stores
+    - `ALTINNAPP1016`–`ALTINNAPP1019` (warnings): signing and payment data types that are not app-owned, a `taskId` that names no task, and unknown ids the app skips
+
 - Build checks `ALTINNAPP1004`–`ALTINNAPP1012` report sequence flows in `process.bpmn` that an instance cannot follow, such as a flow to a missing element or a task with two outgoing flows. Gateway loops and an unlisted gateway default are warnings; the rest are errors. ([#21023](https://github.com/Altinn/altinn-studio/pull/21023))
 
 - Validators can set `ComponentId` and `RowIndexes` on a `ValidationIssue` to show it beside one component in a specific repeating group row, even when the issue has no `Field`. Required-field issues now use it, so they no longer appear on every component bound to the same field.
