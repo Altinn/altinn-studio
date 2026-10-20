@@ -496,14 +496,10 @@
   margin: 0 auto;
 }
 
-/* The intro's app box, which grows into the band behind the process row. */
+/* The intro's app box, which grows into the band behind the process row (moved by framer). */
 .s-engine__app {
   z-index: 0;
   transition:
-    left 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-    top 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-    width 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.6s cubic-bezier(0.22, 1, 0.36, 1),
     background-color 0.4s,
     border-color 0.4s;
 }
@@ -518,17 +514,6 @@
   flex-direction: column;
   align-items: center;
   gap: 14px;
-  transition:
-    opacity 0.3s 0.3s,
-    visibility 0s;
-}
-
-.is-band .s-engine__app-body {
-  opacity: 0;
-  visibility: hidden;
-  transition:
-    opacity 0.12s,
-    visibility 0s 0.12s;
 }
 
 .s-engine__app-label {
@@ -540,13 +525,6 @@
   font-weight: var(--fw-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.is-band .s-engine__app-label {
-  opacity: 1;
-  transition: opacity 0.3s 0.4s;
 }
 
 .s-layer__intro {
@@ -558,7 +536,9 @@
   height: 660px;
 }
 
+/* Its own layer: scaled without one, Chromium leaves a stray line at the canvas edge. */
 .s-layer__camera {
+  will-change: transform;
   position: absolute;
   top: 0;
   left: 0;

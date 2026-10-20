@@ -147,6 +147,8 @@ const CAMERA = {
   close: { scale: 1.1, y: 40 },
   wide: { scale: 1, y: 60 },
 };
+const EASE = [0.22, 1, 0.36, 1] as const;
+const CAMERA_MOVE = { duration: 0.6, ease: EASE };
 
 /** Where the app box sits in the intro, in the body's coordinates. */
 const APP_BOX = { left: 0, top: 160, width: 360, height: 240 };
@@ -177,17 +179,38 @@ function AppBand({ view, wide }: { view: number; wide: boolean }) {
   return (
     <motion.div
       className={`s-unit s-unit--app s-engine__app${band ? ' is-band' : ''}`}
-      style={rect}
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0, y: 16, ...rect }}
+      animate={{ opacity: 1, y: 0, ...rect }}
+      transition={{
+        // The rectangle moves exactly like the camera, so the band stays locked to the process row.
+        // Shrinking back into the intro waits for the process to fade out of it first.
+        default: band ? CAMERA_MOVE : { ...CAMERA_MOVE, delay: 0.3 },
+        opacity: { duration: 0.4, delay: 0.12 },
+        y: { duration: 0.4, delay: 0.12, ease: EASE },
+      }}
     >
-      <span className='s-engine__app-body'>
+      <motion.span
+        className='s-engine__app-body'
+        initial={false}
+        animate={
+          band
+            ? { opacity: 0, transitionEnd: { visibility: 'hidden' } }
+            : { opacity: 1, visibility: 'visible' }
+        }
+        transition={{ duration: band ? 0.12 : 0.3, delay: band ? 0 : 0.75 }}
+      >
         <Icon name='user' size={44} />
         <span className='s-unit__title'>Altinn-app</span>
         <span className='s-unit__sub'>Skjema, oppgaver og logikk</span>
-      </span>
-      <span className='s-engine__app-label'>Altinn-app</span>
+      </motion.span>
+      <motion.span
+        className='s-engine__app-label'
+        initial={false}
+        animate={{ opacity: band ? 1 : 0 }}
+        transition={{ duration: band ? 0.3 : 0.2, delay: band ? 0.4 : 0 }}
+      >
+        Altinn-app
+      </motion.span>
     </motion.div>
   );
 }
@@ -325,7 +348,8 @@ export default function ProsessmotorSlide({ step }: SlideProps) {
       {/*
         The intro and the layered diagram share the body. On the first press the
         app box grows into the process row's band, while the rest of the intro
-        sinks away towards where the engine lane appears later.
+        sinks away towards where the engine lane appears later; the process
+        appears once the band has grown, and leaves before it shrinks back.
       */}
       <div className='s-engine'>
         <AppBand view={view} wide={engine} />
@@ -333,7 +357,7 @@ export default function ProsessmotorSlide({ step }: SlideProps) {
           className='s-layer__intro'
           initial={false}
           animate={{ opacity: intro ? 1 : 0, y: intro ? 0 : 60 }}
-          transition={{ duration: 0.35, delay: intro ? 0.15 : 0 }}
+          transition={{ duration: intro ? 0.35 : 0.25, delay: intro ? 0.6 : 0 }}
           aria-hidden={!intro}
         >
           <EngineIntro />
@@ -342,7 +366,7 @@ export default function ProsessmotorSlide({ step }: SlideProps) {
           className='s-dag s-layer'
           initial={false}
           animate={{ opacity: intro ? 0 : 1 }}
-          transition={{ duration: 0.35, delay: intro ? 0 : 0.15 }}
+          transition={{ duration: 0.35, delay: intro ? 0 : 0.45 }}
           aria-hidden={intro}
         >
           <motion.div
@@ -350,7 +374,7 @@ export default function ProsessmotorSlide({ step }: SlideProps) {
             style={{ transformOrigin: `${(START_CX + END_CX) / 2}px ${MID_Y}px` }}
             initial={false}
             animate={engine ? CAMERA.wide : CAMERA.close}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            transition={CAMERA_MOVE}
           >
             <motion.span className='s-dag__lane' style={{ top: MID_Y - 14 }} {...fade(engine)}>
               Prosessen
