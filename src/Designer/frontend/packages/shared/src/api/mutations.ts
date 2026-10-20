@@ -96,13 +96,6 @@ import {
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AppUpgradeDiscardRequest, AppUpgradeDiscardResult, AppUpgradeMergeRequest, AppUpgradeMergeResult, AppUpgradeStart } from 'app-shared/types/AppUpgrade';
-import type { AppUpgradeMergeRequest, AppUpgradeMergeResult, AppUpgradeStart } from 'app-shared/types/AppUpgrade';
-import type {
-  AppUpgradeMergeRequest,
-  AppUpgradeMergeResult,
-  AppUpgradeStart,
-} from 'app-shared/types/AppUpgrade';
-import type { AppUpgradePreparation, AppUpgradeResult } from 'app-shared/types/AppUpgrade';
 import type { AddDataTypeToAppMetadataPayload } from 'app-shared/types/api/AddDataTypeToAppMetadataPayload';
 import type { AddRepoParams } from 'app-shared/types/api';
 import type { ChatFeedbackPayload } from 'app-shared/types/api/ChatFeedbackPayload';

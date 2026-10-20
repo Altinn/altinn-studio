@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Route, Routes } from 'react-router-dom';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -25,13 +26,12 @@ describe('AppUpgradePage', () => {
   beforeEach(() => {
     Object.defineProperty(window, 'location', {
       configurable: true,
-      value: { ...originalLocation, assign: jest.fn() },
+      value: { ...originalLocation, assign: vi.fn() },
     });
   });
 
   afterEach(() => {
     Object.defineProperty(window, 'location', { configurable: true, value: originalLocation });
-    jest.clearAllMocks();
   });
 
   it('shows breadcrumbs back to the dashboard and the upgrade intro', async () => {
@@ -72,9 +72,9 @@ describe('AppUpgradePage', () => {
 
   it('starts the workflow, polls the run and offers to merge and publish when it completes', async () => {
     const user = userEvent.setup();
-    const startAppUpgrade = jest.fn().mockImplementation(() => Promise.resolve(started));
-    const getAppUpgradeRun = jest.fn().mockImplementation(() => Promise.resolve(completedRun));
-    const mergeAppUpgrade = jest.fn().mockImplementation(() => Promise.resolve(mergedResult));
+    const startAppUpgrade = vi.fn().mockImplementation(() => Promise.resolve(started));
+    const getAppUpgradeRun = vi.fn().mockImplementation(() => Promise.resolve(completedRun));
+    const mergeAppUpgrade = vi.fn().mockImplementation(() => Promise.resolve(mergedResult));
     renderPage({ startAppUpgrade, getAppUpgradeRun, mergeAppUpgrade });
 
     await user.click(screen.getByRole('button', { name: textMock('app_upgrade.intro.start') }));
@@ -101,8 +101,8 @@ describe('AppUpgradePage', () => {
 
   it('explains when the pull request could not be merged', async () => {
     const user = userEvent.setup();
-    const getAppUpgradeRun = jest.fn().mockImplementation(() => Promise.resolve(completedRun));
-    const mergeAppUpgrade = jest
+    const getAppUpgradeRun = vi.fn().mockImplementation(() => Promise.resolve(completedRun));
+    const mergeAppUpgrade = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ ...mergedResult, isMerged: false }));
     renderPage({ getAppUpgradeRun, mergeAppUpgrade });
@@ -118,7 +118,7 @@ describe('AppUpgradePage', () => {
 
   it('shows the changed files in a collapsed diff view after a completed upgrade', async () => {
     const user = userEvent.setup();
-    const getAppUpgradeRun = jest.fn().mockImplementation(() => Promise.resolve(completedRun));
+    const getAppUpgradeRun = vi.fn().mockImplementation(() => Promise.resolve(completedRun));
     renderPage({ getAppUpgradeRun });
 
     await user.click(screen.getByRole('button', { name: textMock('app_upgrade.intro.start') }));
@@ -135,12 +135,12 @@ describe('AppUpgradePage', () => {
 
   it('stops in the starting step when the upgrade branch could not be created', async () => {
     const user = userEvent.setup();
-    const startAppUpgrade = jest
+    const startAppUpgrade = vi
       .fn()
       .mockImplementation(() =>
         Promise.resolve({ ...started, status: 'Failed', branchName: null }),
       );
-    const getAppUpgradeRun = jest.fn();
+    const getAppUpgradeRun = vi.fn();
     renderPage({ startAppUpgrade, getAppUpgradeRun });
 
     await user.click(screen.getByRole('button', { name: textMock('app_upgrade.intro.start') }));
@@ -150,7 +150,7 @@ describe('AppUpgradePage', () => {
   });
 
   it('resumes a started upgrade from the branch in the URL without starting a new one', async () => {
-    const startAppUpgrade = jest.fn();
+    const startAppUpgrade = vi.fn();
     renderPage(
       { startAppUpgrade },
       appUpgradeStatus,
@@ -166,7 +166,7 @@ describe('AppUpgradePage', () => {
   });
 
   it('resumes the active upgrade reported by the status when the URL has no branch', async () => {
-    const startAppUpgrade = jest.fn();
+    const startAppUpgrade = vi.fn();
     renderPage(
       { startAppUpgrade },
       { ...appUpgradeStatus, activeUpgradeBranch: started.branchName },
@@ -204,8 +204,8 @@ describe('AppUpgradePage', () => {
 
   it('discards a finished upgrade after confirmation and returns to the dashboard', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
-    const discardAppUpgrade = jest
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const discardAppUpgrade = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ isDiscarded: true, message: '' }));
     renderPage(
@@ -230,7 +230,7 @@ describe('AppUpgradePage', () => {
 
   it('shows the queued state while waiting for a runner', async () => {
     const user = userEvent.setup();
-    const getAppUpgradeRun = jest.fn().mockImplementation(() => Promise.resolve(queuedRun));
+    const getAppUpgradeRun = vi.fn().mockImplementation(() => Promise.resolve(queuedRun));
     renderPage({ getAppUpgradeRun });
 
     await user.click(screen.getByRole('button', { name: textMock('app_upgrade.intro.start') }));
@@ -243,7 +243,7 @@ describe('AppUpgradePage', () => {
 
   it('shows the active step and a link to the run while the workflow runs', async () => {
     const user = userEvent.setup();
-    const getAppUpgradeRun = jest.fn().mockImplementation(() => Promise.resolve(runningRun));
+    const getAppUpgradeRun = vi.fn().mockImplementation(() => Promise.resolve(runningRun));
     renderPage({ getAppUpgradeRun });
 
     await user.click(screen.getByRole('button', { name: textMock('app_upgrade.intro.start') }));
@@ -260,7 +260,7 @@ describe('AppUpgradePage', () => {
 
   it('collapses the manual tasks and offers the assistant when the upgrade is partial', async () => {
     const user = userEvent.setup();
-    const getAppUpgradeRun = jest
+    const getAppUpgradeRun = vi
       .fn()
       .mockImplementation(() => Promise.resolve(runWith(partialResult)));
     renderPage({ getAppUpgradeRun });
@@ -283,7 +283,7 @@ describe('AppUpgradePage', () => {
 
   it('shows the diff of the attempted changes when the upgrade fails', async () => {
     const user = userEvent.setup();
-    const getAppUpgradeRun = jest
+    const getAppUpgradeRun = vi
       .fn()
       .mockImplementation(() => Promise.resolve(runWith(failedResult)));
     renderPage({ getAppUpgradeRun });
