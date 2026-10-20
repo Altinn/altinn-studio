@@ -12,11 +12,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using TestApp.Shared;
 
-namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEngineSideEffects;
+namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEngineAuxiliaryWorkflows;
 
 /// <summary>
 /// Service task that succeeds and advances to the end. Used to prove that ExecuteServiceTask
-/// and its dependent transition finish while the Altinn event registrations run non-blocking.
+/// and its dependent transition finish while the Altinn event registrations run in auxiliary workflows.
 /// </summary>
 public sealed class SuccessfulServiceTask : IServiceTask
 {
@@ -24,14 +24,14 @@ public sealed class SuccessfulServiceTask : IServiceTask
 
     public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
-        SnapshotLogger.LogInfo("IServiceTask.Execute.SideEffectsScenario");
+        SnapshotLogger.LogInfo("IServiceTask.Execute.AuxiliaryWorkflowsScenario");
         return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
     }
 }
 
 /// <summary>
 /// Holds event registrations until the test releases them, so the test can verify that process
-/// transitions finish independently of their side effects.
+/// transitions finish independently of their auxiliary workflows.
 /// </summary>
 public sealed class ControlledEventsClient : IEventsClient
 {
@@ -43,13 +43,13 @@ public sealed class ControlledEventsClient : IEventsClient
         CancellationToken cancellationToken = default
     )
     {
-        await SideEffectsState.WaitForRelease(cancellationToken);
-        SideEffectsState.RecordEvent(eventType, idempotencyKey);
+        await AuxiliaryWorkflowsState.WaitForRelease(cancellationToken);
+        AuxiliaryWorkflowsState.RecordEvent(eventType, idempotencyKey);
         return Guid.NewGuid().ToString();
     }
 }
 
-internal static class SideEffectsState
+internal static class AuxiliaryWorkflowsState
 {
     private static readonly object _lock = new();
     private static readonly List<RegisteredEvent> _registeredEvents = new();
@@ -83,16 +83,19 @@ internal static class SideEffectsState
 /// </summary>
 internal sealed record RegisteredEvent(string EventType, string IdempotencyKey);
 
-public sealed class SideEffectsEndpoints : IEndpointConfigurator
+public sealed class AuxiliaryWorkflowsEndpoints : IEndpointConfigurator
 {
     public void ConfigureEndpoints(WebApplication app)
     {
-        app.MapGet("/test/side-effects/events", () => Results.Json(SideEffectsState.GetRegisteredEvents()));
+        app.MapGet(
+            "/test/auxiliary-workflows/events",
+            () => Results.Json(AuxiliaryWorkflowsState.GetRegisteredEvents())
+        );
         app.MapPost(
-            "/test/side-effects/release",
+            "/test/auxiliary-workflows/release",
             () =>
             {
-                SideEffectsState.Release();
+                AuxiliaryWorkflowsState.Release();
                 return Results.NoContent();
             }
         );
@@ -107,9 +110,9 @@ public static class ServiceRegistration
         // Last registration wins: replaces the real EventsClient (scenario services register
         // after AddAltinnAppServices).
         services.AddTransient<IEventsClient, ControlledEventsClient>();
-        services.AddSingleton<IEndpointConfigurator, SideEffectsEndpoints>();
+        services.AddSingleton<IEndpointConfigurator, AuxiliaryWorkflowsEndpoints>();
         // The basic app has events registration disabled - this scenario is specifically about
-        // the Altinn event side effects, so enable it.
+        // the Altinn event registrations that run in auxiliary workflows, so enable it.
         services.PostConfigure<AppSettings>(settings => settings.RegisterEventsWithEventsComponent = true);
     }
 }

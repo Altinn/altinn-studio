@@ -7,34 +7,35 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The pre-assembled enqueue request for the transition's side-effects workflows (one single-step
-/// workflow per side effect), built by <c>ProcessNextRequestFactory</c> at Main-enqueue time. The
-/// command fills in runtime authentication, the commit-time state blob and a link back to the Main
-/// workflow on execution. Authentication stays out of the parent's hashed command payload.
+/// The pre-assembled enqueue request for the transition's auxiliary workflows (one single-step
+/// workflow per auxiliary command), built by <c>ProcessNextRequestFactory</c> when it enqueues the
+/// transition's primary workflow. The command fills in runtime authentication, the commit-time state
+/// blob and a link back to the primary workflow on execution. Authentication stays out of the parent's
+/// hashed command payload.
 /// </summary>
-internal sealed record EnqueueSideEffectsWorkflowPayload(WorkflowEnqueueRequest EnqueueRequest) : CommandRequestPayload;
+internal sealed record EnqueueAuxiliaryWorkflowsPayload(WorkflowEnqueueRequest EnqueueRequest) : CommandRequestPayload;
 
 /// <summary>
-/// Critical post-commit command that enqueues the transition's side-effects workflows — one
-/// independent single-step workflow per side effect, submitted as a single atomic batch. Runs
-/// immediately after <see cref="CommitProcessState"/>, so the side effects exist if and
+/// Primary post-commit command that enqueues the transition's auxiliary workflows — one
+/// independent single-step workflow per auxiliary command, submitted as a single atomic batch. Runs
+/// immediately after <see cref="CommitProcessState"/>, so the auxiliary workflows exist if and
 /// only if the transition committed — and, as independent roots each carrying their own
-/// commit-time state, they survive whatever happens to Main afterwards and fail independently of
-/// each other. Idempotent per Main workflow: the derived idempotency key covers the whole batch,
-/// so step retries dedup.
+/// commit-time state, they survive whatever happens to the primary workflow afterwards and fail
+/// independently of each other. Idempotent per primary workflow: the derived idempotency key covers
+/// the whole batch, so step retries dedup.
 /// </summary>
-internal sealed class EnqueueSideEffectsWorkflow(
+internal sealed class EnqueueAuxiliaryWorkflows(
     IWorkflowEngineClient workflowEngineClient,
     IWorkflowCallbackTokenGenerator callbackTokenGenerator
-) : WorkflowEngineCommandBase<EnqueueSideEffectsWorkflowPayload>
+) : WorkflowEngineCommandBase<EnqueueAuxiliaryWorkflowsPayload>
 {
-    public static string Key => "EnqueueSideEffectsWorkflow";
+    public static string Key => "EnqueueAuxiliaryWorkflows";
 
     public override string GetKey() => Key;
 
     public override async Task<ProcessEngineCommandResult> Execute(
         ProcessEngineCommandContext context,
-        EnqueueSideEffectsWorkflowPayload payload
+        EnqueueAuxiliaryWorkflowsPayload payload
     )
     {
         if (payload.EnqueueRequest.Workflows.Count == 0)
@@ -47,7 +48,7 @@ internal sealed class EnqueueSideEffectsWorkflow(
 
         try
         {
-            List<WorkflowRequest> sideEffectWorkflows = payload
+            List<WorkflowRequest> auxiliaryWorkflows = payload
                 .EnqueueRequest.Workflows.Select(workflow =>
                     workflow with
                     {
@@ -62,9 +63,9 @@ internal sealed class EnqueueSideEffectsWorkflow(
 
             await workflowEngineClient.EnqueueWorkflows(
                 ns: $"{context.AppId.Org}/{context.AppId.App}",
-                // Deterministic per Main workflow and covering the whole sibling batch (the
+                // Deterministic per primary workflow and covering the whole sibling batch (the
                 // engine's batch enqueue is atomic): step retries dedup, and a superseding
-                // transition (new Main workflow) gets its own key.
+                // transition (new primary workflow) gets its own key.
                 idempotencyKey: CreateIdempotencyKey(context.Payload.WorkflowId),
                 collectionKey: ProcessNextRequestFactory.CreateCollectionKey(context.InstanceId),
                 request: payload.EnqueueRequest with
@@ -80,11 +81,11 @@ internal sealed class EnqueueSideEffectsWorkflow(
                             CallbackToken = callbackTokenGenerator.GenerateToken(
                                 context.InstanceId.InstanceGuid,
                                 context.Payload.Actor,
-                                sideEffectWorkflows
+                                auxiliaryWorkflows
                             ),
                         }
                     ),
-                    Workflows = sideEffectWorkflows,
+                    Workflows = auxiliaryWorkflows,
                 },
                 cancellationToken: context.CancellationToken
             );
@@ -97,5 +98,5 @@ internal sealed class EnqueueSideEffectsWorkflow(
         }
     }
 
-    internal static string CreateIdempotencyKey(Guid mainWorkflowId) => $"{mainWorkflowId}:side-effects";
+    internal static string CreateIdempotencyKey(Guid primaryWorkflowId) => $"{primaryWorkflowId}:auxiliary";
 }
