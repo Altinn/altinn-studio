@@ -7,6 +7,7 @@ import FrontendFolgerAppen from './05-frontend-folger-appen';
 import InfraNyttIV9 from './07-infra-nytt-i-v9';
 import Prosessmotor from './08-prosessmotor';
 import FraProsessTilSteg from './09-fra-prosess-til-steg';
+import LagPaLag from './09b-lag-pa-lag';
 import ForUtviklere from './10-for-utviklere';
 import Bakgrunn from './11-bakgrunn';
 import Dashbord from './12-dashbord';
@@ -88,6 +89,13 @@ export const slides: SlideDef[] = [
     steps: 4,
     notes:
       'Én prosess, ett lag dypere for hvert klikk. Slik tegner dere den i Studio: utfylling, så slutt. I v8 lages PDF-en skjult når utfyllingen avsluttes, og alt skjer mens brukeren venter. Første klikk: i v9 er PDF-en en egen tjenesteoppgave i prosessen. Oppgraderingsverktøyet gjør den om for dere. Andre klikk: mellom to steg i prosessen gjør prosessmotoren jobben. Den avslutter steget, kjører appens egen kode, låser svarene, starter neste steg og lagrer prosessen. Hvert av dem lagres når det er ferdig, og det som er fullført, kjøres ikke på nytt. Tredje klikk: selve PDF-en lages også av motoren. Feiler den, prøves den igjen, og prosessen går ikke videre før PDF-en finnes. Fjerde klikk: det som ikke trenger å vente, som hendelsene til andre systemer, sendes som egne jobber i bakgrunnen. De holder ikke prosessen igjen, og de prøves igjen hver for seg. Samme mønster gjelder i hver overgang, også fra PDF til slutt.',
+  },
+  {
+    id: 'lag-pa-lag',
+    component: LagPaLag,
+    steps: 5,
+    notes:
+      'Samme prosess, og for hvert klikk et nytt lag under den. Slik tegner dere prosessen i Studio. I v8 lages PDF-en skjult i overgangen fra utfylling til slutt. Første klikk: i v9 er PDF-en en egen tjenesteoppgave. Andre klikk: under hver overgang gjør prosessmotoren jobben, steg for steg, og lagrer underveis. Også PDF-en lages av motoren. Tredje klikk: hendelsene til andre systemer går som egne jobber i bakgrunnen så snart overgangen er lagret. De holder ikke prosessen igjen. Fjerde klikk: PDF-tjenesten svarer ikke. Bare det steget prøves igjen. Det som er fullført, kjøres ikke på nytt, og bakgrunnsjobbene er allerede sendt. Femte klikk: PDF-en er laget, og prosessen går videre til slutt uten at noen gjør noe.',
   },
   {
     id: 'for-utviklere',

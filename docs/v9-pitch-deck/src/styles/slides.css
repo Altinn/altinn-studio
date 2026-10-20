@@ -592,6 +592,76 @@
 }
 
 /* =========================================================
+   Layer on layer: the process row with a lane added per press
+   ========================================================= */
+
+.s-layer {
+  height: 660px;
+}
+
+.s-layer__camera {
+  position: absolute;
+  inset: 0;
+}
+
+.s-layer__drop {
+  stroke: var(--v9);
+  stroke-width: 2;
+  stroke-dasharray: 5 5;
+}
+
+.s-layer__chip {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border-radius: var(--r-sm);
+  border: 1.5px solid var(--v9-line);
+  background: var(--v9-soft);
+  color: var(--text-100);
+  font-size: 19px;
+  font-weight: var(--fw-medium);
+  transition:
+    border-color 0.3s,
+    background-color 0.3s,
+    color 0.3s;
+}
+
+.s-layer__chip .s-dot {
+  width: 10px;
+  height: 10px;
+}
+
+.s-layer__chip--bg {
+  border-color: var(--line-strong);
+  background: #fff;
+}
+
+.s-layer__chip.is-wait-chip {
+  border-color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.s-layer__chip.is-idle-chip {
+  border-style: dashed;
+  border-color: var(--line);
+  background: #fff;
+  color: var(--text-400);
+}
+
+.s-layer__label {
+  white-space: nowrap;
+}
+
+.s-layer__state {
+  margin-left: auto;
+  font-size: 17px;
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
+
+/* =========================================================
    Dashboard mock
    ========================================================= */
 

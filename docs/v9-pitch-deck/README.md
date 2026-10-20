@@ -230,8 +230,8 @@ to close.
 
 A cover that maps the talk, a short hook, then three parts — det brukerne merker, bak kulissene,
 kom i gang — in norsk bokmål. Speaker notes live in the `notes` field of each entry in
-`src/slides/index.ts` and are surfaced in the overview (`O`). 17 slides + 30 build steps =
-**46 presses of `→`**.
+`src/slides/index.ts` and are surfaced in the overview (`O`). 18 slides + 35 build steps =
+**52 presses of `→`**.
 
 | #  | `id`                       | Slide                                                        | Steps |
 | -- | -------------------------- | ------------------------------------------------------------ | ----- |
@@ -244,24 +244,25 @@ kom i gang — in norsk bokmål. Speaker notes live in the `notes` field of each
 | 7  | `infra-nytt-i-v9`          | Nytt med v9, and a banner for what v8 apps already have      | 0     |
 | 8  | `prosessmotor`             | En motor for prosessene — app, engine, saved steps           | 0     |
 | 9  | `fra-prosess-til-steg`     | Fra prosess til steg — layer by layer, BPMN to side effects  | 4     |
-| 10 | `for-utviklere`            | Nye muligheter for utviklere — what service tasks can do now | 0     |
-| 11 | `bakgrunn`                 | Arbeid i bakgrunnen — submit waits for a Dialogporten job     | 3     |
-| 12 | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard               | 3     |
-| 13 | `scenario-feil`            | Tilbake til Kari — the first example, v9 side catches up     | 7     |
-| 14 | `scenario-lukker`          | Et eksempel til — Kari closes the tab before it is sent      | 7     |
-| 15 | `seksjon-kom-i-gang`       | Del 3 — Kom i gang                                           | 0     |
-| 16 | `oppgradering`             | Slik oppgraderer du til v9 — from Studio or studioctl        | 1     |
-| 17 | `bli-med`                  | Kom i gang med v9 — open beta, self-serve                    | 0     |
+| 10 | `lag-pa-lag`               | Lag på lag — the process row with a lane added per press     | 5     |
+| 11 | `for-utviklere`            | Nye muligheter for utviklere — what service tasks can do now | 0     |
+| 12 | `bakgrunn`                 | Arbeid i bakgrunnen — submit waits for a Dialogporten job     | 3     |
+| 13 | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard               | 3     |
+| 14 | `scenario-feil`            | Tilbake til Kari — the first example, v9 side catches up     | 7     |
+| 15 | `scenario-lukker`          | Et eksempel til — Kari closes the tab before it is sent      | 7     |
+| 16 | `seksjon-kom-i-gang`       | Del 3 — Kom i gang                                           | 0     |
+| 17 | `oppgradering`             | Slik oppgraderer du til v9 — from Studio or studioctl        | 1     |
+| 18 | `bli-med`                  | Kom i gang med v9 — open beta, self-serve                    | 0     |
 
-Slides 13 and 14 render the scenarios from `src/sims` under the standard slide header. Each one is
+Slides 14 and 15 render the scenarios from `src/sims` under the standard slide header. Each one is
 clicked through: every press lands the next line on both sides — v8 left, v9 right — and a last
 press shows both outcomes; see [`src/sims/README.md`](src/sims/README.md). Slide 2 plays the
-first four lines of the first example, v8 side only, with the same frame; slide 13 opens on that
+first four lines of the first example, v8 side only, with the same frame; slide 14 opens on that
 picture and lets the v9 side catch up before the last lines land in pairs. Slide-specific styling
 lives in `src/styles/slides.css`; shared slide primitives (backdrop, feature cards, section
 dividers, wires) live in `src/slides/_kit.tsx`.
 
-### Kari's two examples (slides 2, 13 and 14)
+### Kari's two examples (slides 2, 14 and 15)
 
 **Med v8** is on the left and **Med v9** on the right, and row 3 on the left always sits next to
 row 3 on the right. Read the left line, then the right one.
@@ -269,12 +270,12 @@ row 3 on the right. Read the left line, then the right one.
 | Slide | Presses | On stage                                                                           |
 | ----- | ------- | ---------------------------------------------------------------------------------- |
 | 2     | 1–4     | One more v8 line each; the v9 side stays empty, then «Vi kommer tilbake til Kari.» |
-| 13    | —       | Opens where slide 2 left off: four v8 lines, an empty v9 side                      |
-| 13    | 1–4     | The v9 side catches up, one line per press                                         |
-| 13    | 5–6     | One more line on each side                                                         |
-| 13    | 7       | Both outcomes side by side, and the closing sentence                               |
-| 14    | 1–6     | One more line on each side, and Kari's two phones change with them                 |
+| 14    | —       | Opens where slide 2 left off: four v8 lines, an empty v9 side                      |
+| 14    | 1–4     | The v9 side catches up, one line per press                                         |
+| 14    | 5–6     | One more line on each side                                                         |
 | 14    | 7       | Both outcomes side by side, and the closing sentence                               |
+| 15    | 1–6     | One more line on each side, and Kari's two phones change with them                 |
+| 15    | 7       | Both outcomes side by side, and the closing sentence                               |
 
 ### Do not overclaim
 
