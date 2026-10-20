@@ -1,8 +1,12 @@
-name: Construct DIS Core environments array
+name: Construct DIS Core or DIS Edge environments array
 
 on:
   workflow_call:
     inputs:
+      # dis-core or dis-edge, which name the GitHub environments dis_core_<tag> and dis_edge_<tag>.
+      mode:
+        required: true
+        type: string
       inputs:
         required: false
         default: "null"
@@ -38,12 +42,13 @@ jobs:
       - name: Construct environments
         id: construct-environments
         env:
+          MODE: ${{ inputs.mode }}
           INPUTS: ${{ inputs.inputs }}
           INPUTS_KEY: ${{ inputs['inputs-key'] }}
           ALLOW_EMPTY: ${{ inputs['allow-empty'] }}
         run: |
           result="$(node .github/scripts/construct-environments.mjs \
-            --mode dis-core \
+            --mode "$MODE" \
             --inputs "$INPUTS" \
             --inputs-key "$INPUTS_KEY" \
             --allow-empty "$ALLOW_EMPTY")"

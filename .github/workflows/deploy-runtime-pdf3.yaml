@@ -8,6 +8,8 @@ on:
       - src/Runtime/pdf3/**
       - .github/workflows/deploy-runtime-pdf3.yaml
       - "!**/AGENTS.md"
+      # DIS Edge's routing, published by deploy-runtime-pdf3-edge.yaml.
+      - "!src/Runtime/pdf3/infra/edge/**"
   workflow_dispatch:
     inputs:
       environments:
@@ -32,8 +34,9 @@ jobs:
       allow-empty: true
 
   construct-dis-core-environments:
-    uses: ./.github/workflows/template-dis-core-construct-environments.yaml
+    uses: ./.github/workflows/template-dis-construct-environments.yaml
     with:
+      mode: dis-core
       inputs: ${{ toJSON(github.event.inputs) }}
       inputs-key: dis-core-environments
       allow-empty: true

@@ -13,6 +13,15 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - PDF preview in the app developer tools can now show a PDF or subform PDF service task before the instance reaches it, including individual subforms. `GET .../pdf/preview` accepts optional `taskId` and `language`; subform PDF service tasks require `dataElementId`. ([Altinn/app-lib-dotnet#1659](https://github.com/Altinn/app-lib-dotnet/issues/1659))
 - `GET .../pdf/preview` now appears in the app's OpenAPI documentation for integrations that use the API directly. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
+- Build checks compare the data types `process.bpmn` uses with `applicationmetadata.json` ([#21024](https://github.com/Altinn/altinn-studio/pull/21024)):
+    - `ALTINNAPP1013`–`ALTINNAPP1015` (errors): missing, such as `ref-data-as-pdf`, or unable to hold what the task stores
+    - `ALTINNAPP1016`–`ALTINNAPP1019` (warnings): signing and payment data types that are not app-owned, a `taskId` that names no task, and unknown ids the app skips
+- Build checks report task configuration in `process.bpmn` that the app rejects or ignores ([#21025](https://github.com/Altinn/altinn-studio/pull/21025)):
+    - `ALTINNAPP1020` (error): a required setting that is missing, empty or invalid, such as an eFormidling setting missing for production
+    - `ALTINNAPP1021`–`ALTINNAPP1022` (warnings): misspelled elements and `env` attributes the app cannot use
+
+- Build checks `ALTINNAPP1004`–`ALTINNAPP1012` report sequence flows in `process.bpmn` that an instance cannot follow, such as a flow to a missing element or a task with two outgoing flows. Gateway loops and an unlisted gateway default are warnings; the rest are errors. ([#21023](https://github.com/Altinn/altinn-studio/pull/21023))
+
 - Validators can set `ComponentId` and `RowIndexes` on a `ValidationIssue` to show it beside one component in a specific repeating group row, even when the issue has no `Field`. Required-field issues now use it, so they no longer appear on every component bound to the same field.
 
 - Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))

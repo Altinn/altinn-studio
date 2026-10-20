@@ -5,6 +5,7 @@ Altinn Studio hosts services and applications on Kubernetes clusters:
 - Studio clusters, for control plane.
 - Runtime clusters, for service owner apps and our runtime-services.
 - DIS Core and platform clusters for shared platform-services.
+- DIS Edge, the platform's ingress in front of DIS Core.
 - Admin services clusters for non-dataplane shared services.
 
 ## Studio clusters
@@ -50,6 +51,16 @@ The platform team runs DIS Core clusters for services shared by Altinn's product
 - Deployments use a separate artifact tag for each environment.
 - Publishing permissions are configured in
   [altinn-platform's syncroot configuration](https://github.com/Altinn/altinn-platform/tree/main/infrastructure/syncroots).
+
+## DIS Edge
+
+The platform team runs DIS Edge, the public ingress for services in DIS Core.
+
+- Products configure their own routes from Edge to DIS Core, such as
+  [pdf3's](../../src/Runtime/pdf3/README.md#dis-edge).
+- Edge environments match the DIS Core environments, and deployments use a separate artifact tag for each.
+- Publishing permissions are configured in the same
+  [syncroot configuration](https://github.com/Altinn/altinn-platform/tree/main/infrastructure/syncroots) as DIS Core.
 
 ## Platform cluster
 
