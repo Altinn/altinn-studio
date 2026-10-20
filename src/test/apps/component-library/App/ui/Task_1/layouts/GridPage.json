@@ -531,6 +531,52 @@
         "readOnly": true
       },
       {
+        "id": "grid-example-long-header",
+        "type": "Grid",
+        "textResourceBindings": {
+          "title": "Grid with long header text",
+          "description": "Shows how text in Grid cells is cut with an ellipsis after the default maximum number of lines"
+        },
+        "rows": [
+          {
+            "header": true,
+            "readOnly": false,
+            "cells": [
+              {
+                "text": "Short header"
+              },
+              {
+                "columnOptions": {
+                  "width": "25%"
+                },
+                "text": "Header that wraps to two lines"
+              },
+              {
+                "columnOptions": {
+                  "width": "40%"
+                },
+                "text": "Long header text to check that Grid cells show at most three lines before the text is cut with an ellipsis, even with long words such as næringsvirksomhetsinntekter"
+              }
+            ]
+          },
+          {
+            "header": false,
+            "readOnly": false,
+            "cells": [
+              {
+                "text": "Row 1"
+              },
+              {
+                "text": "Value"
+              },
+              {
+                "text": "Value"
+              }
+            ]
+          }
+        ]
+      },
+      {
         "size": "h3",
         "id": "GridPage-Header-Summary",
         "type": "Heading",

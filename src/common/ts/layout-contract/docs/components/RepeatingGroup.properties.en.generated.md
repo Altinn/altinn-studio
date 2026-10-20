@@ -346,11 +346,11 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsBefore[].columnOptions.textOverflow.maxHeight">rowsBefore[].columnOptions.textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
-            <span class="component-property-default">Default: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Default: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.</div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="rowsbefore[].columnoptions.hidden">
@@ -432,11 +432,11 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsBefore[].cells[].textOverflow.maxHeight">rowsBefore[].cells[].textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
-            <span class="component-property-default">Default: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Default: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.</div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="rowsbefore[].cells[].hidden">
@@ -530,11 +530,11 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsBefore[].cells[].columnOptions.textOverflow.maxHeight">rowsBefore[].cells[].columnOptions.textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
-            <span class="component-property-default">Default: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Default: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.</div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="rowsbefore[].cells[].columnoptions.hidden">
@@ -629,11 +629,11 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsBefore[].cells[].textOverflow.maxHeight">rowsBefore[].cells[].textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
-            <span class="component-property-default">Default: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Default: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.</div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="rowsbefore[].cells[].hidden">
@@ -739,11 +739,11 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsBefore[].cells[].columnOptions.textOverflow.maxHeight">rowsBefore[].cells[].columnOptions.textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
-            <span class="component-property-default">Default: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Default: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.</div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="rowsbefore[].cells[].columnoptions.hidden">
@@ -838,11 +838,11 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsBefore[].cells[].textOverflow.maxHeight">rowsBefore[].cells[].textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
-            <span class="component-property-default">Default: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Default: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.</div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="rowsbefore[].cells[].hidden">
@@ -936,11 +936,11 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsBefore[].cells[].columnOptions.textOverflow.maxHeight">rowsBefore[].cells[].columnOptions.textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
-            <span class="component-property-default">Default: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Default: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.</div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="rowsbefore[].cells[].columnoptions.hidden">
@@ -1085,11 +1085,11 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsAfter[].columnOptions.textOverflow.maxHeight">rowsAfter[].columnOptions.textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
-            <span class="component-property-default">Default: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Default: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.</div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="rowsafter[].columnoptions.hidden">
@@ -1171,11 +1171,11 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsAfter[].cells[].textOverflow.maxHeight">rowsAfter[].cells[].textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
-            <span class="component-property-default">Default: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Default: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.</div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="rowsafter[].cells[].hidden">
@@ -1269,11 +1269,11 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsAfter[].cells[].columnOptions.textOverflow.maxHeight">rowsAfter[].cells[].columnOptions.textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
-            <span class="component-property-default">Default: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Default: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.</div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="rowsafter[].cells[].columnoptions.hidden">
@@ -1368,11 +1368,11 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsAfter[].cells[].textOverflow.maxHeight">rowsAfter[].cells[].textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
-            <span class="component-property-default">Default: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Default: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.</div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="rowsafter[].cells[].hidden">
@@ -1478,11 +1478,11 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsAfter[].cells[].columnOptions.textOverflow.maxHeight">rowsAfter[].cells[].columnOptions.textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
-            <span class="component-property-default">Default: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Default: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.</div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="rowsafter[].cells[].columnoptions.hidden">
@@ -1577,11 +1577,11 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsAfter[].cells[].textOverflow.maxHeight">rowsAfter[].cells[].textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
-            <span class="component-property-default">Default: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Default: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.</div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="rowsafter[].cells[].hidden">
@@ -1675,11 +1675,11 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rowsAfter[].cells[].columnOptions.textOverflow.maxHeight">rowsAfter[].cells[].columnOptions.textOverflow.maxHeight</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
-            <span class="component-property-default">Default: <span class="component-property-value">2</span></span>
+            <span class="component-property-default">Default: <span class="component-property-value">3</span></span>
             <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.</div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="rowsafter[].cells[].columnoptions.hidden">

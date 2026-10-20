@@ -10455,7 +10455,7 @@
           "alignText": "left",
           "textOverflow": {
             "lineWrap": true,
-            "maxHeight": 2
+            "maxHeight": 3
           }
         }
       ],
@@ -10503,8 +10503,8 @@
         },
         "maxHeight": {
           "title": "Max Height",
-          "description": "Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 2.",
-          "default": 2,
+          "description": "Determines the number of lines to display in table cell before hiding the rest of the text with an ellipsis (...). Defaults to 3.",
+          "default": 3,
           "type": "number"
         }
       },

@@ -169,7 +169,7 @@ export function getColumnStyles(columnSettings: ITableColumnProperties) {
   }
 
   const columnStyleVariables = {
-    '--cell-max-number-of-lines': (columnSettings.textOverflow?.maxHeight ?? 2) * lineClampToggle,
+    '--cell-max-number-of-lines': (columnSettings.textOverflow?.maxHeight ?? 3) * lineClampToggle,
     '--cell-text-alignment': columnSettings.alignText,
     '--cell-width': width,
     '--cell-word-break': lineWrap ? 'break-word' : 'normal',

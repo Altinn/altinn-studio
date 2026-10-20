@@ -607,11 +607,11 @@ const common = {
       new CG.prop(
         'maxHeight',
         new CG.num()
-          .optional({ default: 2 })
+          .optional({ default: 3 })
           .setTitle('Max Height', 'Maksimal høyde')
           .setDescription(
             'Determines the number of lines to display in table cell before hiding the rest of the ' +
-              'text with an ellipsis (...). Defaults to 2.',
+              'text with an ellipsis (...). Defaults to 3.',
             'Angir hvor mange linjer som vises i en tabellcelle før resten skjules med ellipse.',
           ),
       ),
@@ -651,7 +651,7 @@ const common = {
         alignText: 'left',
         textOverflow: {
           lineWrap: true,
-          maxHeight: 2,
+          maxHeight: 3,
         },
       }),
   ILikertColumnProperties: () =>
