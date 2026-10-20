@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
-import axios, { AxiosError, type AxiosResponse } from 'axios';
+import axios, { AxiosError, type AxiosResponse, type AxiosStatic } from 'axios';
 import type { CollectionWorkflowCounts } from 'admin/features/apps/types/workflows/WorkflowCollection';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -12,10 +13,10 @@ import { OrgContext } from 'admin/contexts/OrgContext';
 import { workflowCounts } from 'admin/testing/workflowCounts';
 import { InstancesTable } from './InstancesTable';
 
-jest.mock('axios', () => ({
-  ...jest.requireActual('axios'),
-  get: jest.fn(),
-}));
+vi.mock('axios', async () => {
+  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
+  return { ...actual, default: { ...actual.default, get: vi.fn() } };
+});
 
 const environment = 'at23';
 const orgMock = { username: org, full_name: 'Test Org', avatar_url: '', id: 1 };
@@ -88,7 +89,7 @@ const pagedInstances: RouteHandler = (url) =>
     : { status: 200, data: firstInstancesPage };
 
 const mockRequests = ({ instances: instancesHandler, health }: RouteHandlers = {}) => {
-  jest.mocked(axios.get).mockImplementation(async (url: string) => {
+  vi.mocked(axios.get).mockImplementation(async (url: string) => {
     if (url.includes('/workflows/')) {
       const result = health ? await health(url) : { status: 200, data: healthResponse };
       return result as AxiosResponse;
@@ -122,14 +123,12 @@ const expectHealth = (instanceId: string, healthTextKey: string) =>
   );
 
 const workflowEngineRequests = () =>
-  jest
+  vi
     .mocked(axios.get)
     .mock.calls.map(([url]) => url as string)
     .filter((url) => url.includes('/workflows/'));
 
 describe('InstancesTable workflow health column', () => {
-  afterEach(jest.clearAllMocks);
-
   it('leaves the column out, and the engine unasked, for an app that does not run on it', async () => {
     mockRequests();
     renderInstancesTable(createQueryClientMock(), false);
@@ -213,7 +212,7 @@ describe('InstancesTable workflow health column', () => {
 
     await healthCellOf(healthyGuid);
 
-    const healthCalls = jest
+    const healthCalls = vi
       .mocked(axios.get)
       .mock.calls.map(([url]) => url as string)
       .filter((url) => url.includes('/collections'));

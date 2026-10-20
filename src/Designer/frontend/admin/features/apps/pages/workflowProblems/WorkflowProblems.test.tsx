@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
-import axios, { AxiosError, type AxiosResponse } from 'axios';
+import axios, { AxiosError, type AxiosResponse, type AxiosStatic } from 'axios';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
@@ -11,10 +12,10 @@ import { OrgContext } from 'admin/contexts/OrgContext';
 import { workflowCounts } from 'admin/testing/workflowCounts';
 import { WorkflowProblems } from './WorkflowProblems';
 
-jest.mock('axios', () => ({
-  ...jest.requireActual('axios'),
-  get: jest.fn(),
-}));
+vi.mock('axios', async () => {
+  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
+  return { ...actual, default: { ...actual.default, get: vi.fn() } };
+});
 
 const environment = 'at23';
 const envTitle = `${textMock('general.test_environment_alt').toLowerCase()} ${environment.toUpperCase()}`;
@@ -46,12 +47,10 @@ const page = (key: string, nextCursor: string | null) => ({
 const respondWith = (
   handler: (url: string) => { status: number; data: unknown } | Promise<never>,
 ) => {
-  jest.mocked(axios.get).mockImplementation(async (url: string) => handler(url) as AxiosResponse);
+  vi.mocked(axios.get).mockImplementation(async (url: string) => handler(url) as AxiosResponse);
 };
 
 describe('WorkflowProblems', () => {
-  afterEach(jest.clearAllMocks);
-
   it('lists failing instances from the discovery read with the counts that matter', async () => {
     respondWith(() => ({ status: 200, data: page(firstPageKey, null) }));
     renderWorkflowProblems();
@@ -64,7 +63,7 @@ describe('WorkflowProblems', () => {
       screen.getByText(textMock('admin.workflows.problems.total', { total: 2 })),
     ).toBeInTheDocument();
 
-    const requestedUrl = jest.mocked(axios.get).mock.calls[0][0] as string;
+    const requestedUrl = vi.mocked(axios.get).mock.calls[0][0] as string;
     expect(requestedUrl).toContain('failures=Any');
     expect(requestedUrl).toContain('/collections');
   });
@@ -121,7 +120,7 @@ describe('WorkflowProblems', () => {
 
     await waitFor(() =>
       expect(
-        jest
+        vi
           .mocked(axios.get)
           .mock.calls.map(([url]) => url as string)
           .some((url) => url.includes('failures=Auxiliary')),

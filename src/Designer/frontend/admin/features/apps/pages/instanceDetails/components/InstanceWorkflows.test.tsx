@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
-import axios, { AxiosError, type AxiosResponse } from 'axios';
+import axios, { AxiosError, type AxiosResponse, type AxiosStatic } from 'axios';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
@@ -11,11 +12,10 @@ import { OrgContext } from 'admin/contexts/OrgContext';
 import { formatDay, formatTimeOfDay } from 'admin/features/apps/utils/formatTimestamp';
 import { InstanceWorkflows } from './InstanceWorkflows';
 
-jest.mock('axios', () => ({
-  ...jest.requireActual('axios'),
-  get: jest.fn(),
-  post: jest.fn(),
-}));
+vi.mock('axios', async () => {
+  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
+  return { ...actual, default: { ...actual.default, get: vi.fn(), post: vi.fn() } };
+});
 
 const environment = 'at23';
 const envTitle = `${textMock('general.test_environment_alt').toLowerCase()} ${environment.toUpperCase()}`;
@@ -101,12 +101,11 @@ const workflowsResponse = {
 };
 
 describe('InstanceWorkflows', () => {
-  afterEach(jest.clearAllMocks);
-
   it('lists the instance workflows in the order the process ran them, marking the auxiliary workflow', async () => {
-    jest
-      .mocked(axios.get)
-      .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
+    vi.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: workflowsResponse,
+    } as AxiosResponse);
     renderInstanceWorkflows();
 
     const summaries = await screen.findAllByTestId('workflow-row');
@@ -115,7 +114,7 @@ describe('InstanceWorkflows', () => {
     expect(summaries[0]).toHaveTextContent(textMock('admin.workflows.auxiliary_workflow'));
     expect(within(summaries[1]).getByTitle('Process next: Pdf -> Sign')).toBeInTheDocument();
 
-    const requestedUrl = jest.mocked(axios.get).mock.calls[0][0] as string;
+    const requestedUrl = vi.mocked(axios.get).mock.calls[0][0] as string;
     expect(requestedUrl).toContain(`collectionKey=${instanceId}`);
   });
 
@@ -146,7 +145,7 @@ describe('InstanceWorkflows', () => {
       labels,
       steps,
     });
-    jest.mocked(axios.get).mockResolvedValue({
+    vi.mocked(axios.get).mockResolvedValue({
       status: 200,
       data: {
         ...workflowsResponse,
@@ -212,7 +211,7 @@ describe('InstanceWorkflows', () => {
       labels: { processNextTargetId: 'Verify:3' },
       steps: [{ ...failedPrimaryWorkflow.steps[0], databaseId: 'auxiliary-step' }],
     };
-    jest.mocked(axios.get).mockResolvedValue({
+    vi.mocked(axios.get).mockResolvedValue({
       status: 200,
       data: { ...workflowsResponse, data: [transition, failedAuxiliaryWorkflow] },
     } as AxiosResponse);
@@ -251,7 +250,7 @@ describe('InstanceWorkflows', () => {
       createdAt: '2026-08-01T10:03:00Z',
       labels: { processNextTargetId: 'Form:2' },
     };
-    jest.mocked(axios.get).mockResolvedValue({
+    vi.mocked(axios.get).mockResolvedValue({
       status: 200,
       data: {
         ...workflowsResponse,
@@ -278,9 +277,10 @@ describe('InstanceWorkflows', () => {
   });
 
   it('shows per-step status, retries and the error history', async () => {
-    jest
-      .mocked(axios.get)
-      .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
+    vi.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: workflowsResponse,
+    } as AxiosResponse);
     renderInstanceWorkflows();
 
     expect(await screen.findByRole('cell', { name: 'app-command' })).toBeInTheDocument();
@@ -328,7 +328,7 @@ describe('InstanceWorkflows', () => {
       ],
     };
     const respondWith = (...sideFlows: object[]) =>
-      jest.mocked(axios.get).mockResolvedValue({
+      vi.mocked(axios.get).mockResolvedValue({
         status: 200,
         data: { ...workflowsResponse, data: [transition, ...sideFlows] },
       } as AxiosResponse);
@@ -386,7 +386,7 @@ describe('InstanceWorkflows', () => {
           stepOf('Confirm delivery', 2, 'Enqueued'),
         ],
       });
-      jest.mocked(axios.post).mockResolvedValue({ status: 202, data: {} } as AxiosResponse);
+      vi.mocked(axios.post).mockResolvedValue({ status: 202, data: {} } as AxiosResponse);
       renderInstanceWorkflows();
 
       const [row] = await screen.findAllByTestId('workflow-row');
@@ -415,7 +415,7 @@ describe('InstanceWorkflows', () => {
         screen.getByRole('button', { name: textMock('admin.workflows.actions.retry.confirm') }),
       );
       await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
-      expect(jest.mocked(axios.post).mock.calls[0][0]).toContain('/workflows/wf-archive/resume');
+      expect(vi.mocked(axios.post).mock.calls[0][0]).toContain('/workflows/wf-archive/resume');
     });
 
     it('still offers retry when a failed flow has no steps', async () => {
@@ -439,7 +439,7 @@ describe('InstanceWorkflows', () => {
       overallStatus: 'Processing',
       steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Processing', errorHistory: [] }],
     };
-    jest.mocked(axios.get).mockResolvedValue({
+    vi.mocked(axios.get).mockResolvedValue({
       status: 200,
       data: { ...workflowsResponse, data: [runningPrimaryWorkflow] },
     } as AxiosResponse);
@@ -455,7 +455,7 @@ describe('InstanceWorkflows', () => {
       overallStatus: 'Completed',
       steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Completed' }],
     };
-    jest.mocked(axios.get).mockResolvedValue({
+    vi.mocked(axios.get).mockResolvedValue({
       status: 200,
       data: { ...workflowsResponse, data: [recoveredPrimaryWorkflow] },
     } as AxiosResponse);
@@ -504,7 +504,7 @@ describe('InstanceWorkflows', () => {
       steps,
     });
     const respondWith = (data: object[]) =>
-      jest.mocked(axios.get).mockResolvedValue({
+      vi.mocked(axios.get).mockResolvedValue({
         status: 200,
         data: { ...workflowsResponse, data },
       } as AxiosResponse);
@@ -651,7 +651,7 @@ describe('InstanceWorkflows', () => {
       overallStatus: 'Completed',
       steps: [],
     };
-    jest.mocked(axios.get).mockResolvedValue({
+    vi.mocked(axios.get).mockResolvedValue({
       status: 200,
       data: { ...workflowsResponse, data: [settledAuxiliaryWorkflow, completedPrimaryWorkflow] },
     } as AxiosResponse);
@@ -667,7 +667,7 @@ describe('InstanceWorkflows', () => {
       backoffUntil: new Date(Date.now() + 40_000).toISOString(),
       steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Requeued', retryCount: 5 }],
     };
-    jest.mocked(axios.get).mockResolvedValue({
+    vi.mocked(axios.get).mockResolvedValue({
       status: 200,
       data: { ...workflowsResponse, data: [retryingPrimaryWorkflow] },
     } as AxiosResponse);
@@ -689,7 +689,7 @@ describe('InstanceWorkflows', () => {
       overallStatus: 'Completed',
       steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Completed', retryCount: 0 }],
     };
-    jest.mocked(axios.get).mockResolvedValue({
+    vi.mocked(axios.get).mockResolvedValue({
       status: 200,
       data: { ...workflowsResponse, data: [resumedWorkflow] },
     } as AxiosResponse);
@@ -707,7 +707,7 @@ describe('InstanceWorkflows', () => {
       backoffUntil: new Date(Date.now() + 2_000).toISOString(),
       steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Requeued', retryCount: 1 }],
     };
-    jest.mocked(axios.get).mockResolvedValue({
+    vi.mocked(axios.get).mockResolvedValue({
       status: 200,
       data: { ...workflowsResponse, data: [retryingSoon] },
     } as AxiosResponse);
@@ -729,7 +729,7 @@ describe('InstanceWorkflows', () => {
       updatedAt: tenMinutesAgo,
       steps: [{ ...failedPrimaryWorkflow.steps[0], status: 'Processing', errorHistory: [] }],
     };
-    jest.mocked(axios.get).mockResolvedValue({
+    vi.mocked(axios.get).mockResolvedValue({
       status: 200,
       data: { ...workflowsResponse, data: [runningPrimaryWorkflow] },
     } as AxiosResponse);
@@ -742,9 +742,10 @@ describe('InstanceWorkflows', () => {
   });
 
   it('reads each workflow as a row: its steps, where it stopped, and what went wrong', async () => {
-    jest
-      .mocked(axios.get)
-      .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
+    vi.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: workflowsResponse,
+    } as AxiosResponse);
     renderInstanceWorkflows();
 
     const [settledRow, failedRow] = await screen.findAllByTestId('workflow-row');
@@ -773,9 +774,10 @@ describe('InstanceWorkflows', () => {
   });
 
   it('opens the row that needs attention from the start, with its error and verbs in view', async () => {
-    jest
-      .mocked(axios.get)
-      .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
+    vi.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: workflowsResponse,
+    } as AxiosResponse);
     renderInstanceWorkflows();
 
     const [settledRow, failedRow] = await screen.findAllByTestId('workflow-row');
@@ -788,9 +790,10 @@ describe('InstanceWorkflows', () => {
     ).toBeInTheDocument();
   });
   it("lists a step's errors newest first, each with what the engine made of it", async () => {
-    jest
-      .mocked(axios.get)
-      .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
+    vi.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: workflowsResponse,
+    } as AxiosResponse);
     renderInstanceWorkflows();
 
     const user = userEvent.setup();
@@ -822,9 +825,10 @@ describe('InstanceWorkflows', () => {
   });
 
   it('reads the defer reason as live only on the step that is actually waiting', async () => {
-    jest
-      .mocked(axios.get)
-      .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
+    vi.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: workflowsResponse,
+    } as AxiosResponse);
     renderInstanceWorkflows();
 
     expect(
@@ -843,7 +847,7 @@ describe('InstanceWorkflows', () => {
   it('keeps the loaded workflows when loading more of them fails', async () => {
     const user = userEvent.setup();
     const cursor = 'opaque-cursor';
-    jest.mocked(axios.get).mockImplementation(async (url: string) => {
+    vi.mocked(axios.get).mockImplementation(async (url: string) => {
       if (url.includes(`cursor=${cursor}`)) {
         throw new AxiosError();
       }
@@ -863,9 +867,10 @@ describe('InstanceWorkflows', () => {
   });
 
   it('sets engine free text apart from the Norwegian copy around it', async () => {
-    jest
-      .mocked(axios.get)
-      .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
+    vi.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: workflowsResponse,
+    } as AxiosResponse);
     renderInstanceWorkflows();
 
     const message = await screen.findByText(shownProblemMessage);
@@ -876,7 +881,7 @@ describe('InstanceWorkflows', () => {
   });
 
   it('spells out all three no-data causes when the engine holds nothing', async () => {
-    jest.mocked(axios.get).mockResolvedValue({ status: 204, data: '' } as AxiosResponse);
+    vi.mocked(axios.get).mockResolvedValue({ status: 204, data: '' } as AxiosResponse);
     renderInstanceWorkflows();
 
     expect(await screen.findByText(textMock('admin.workflows.no_results'))).toBeInTheDocument();
@@ -888,7 +893,7 @@ describe('InstanceWorkflows', () => {
       status: 502,
       data: { type: 'urn:altinn:studio:designer:runtime-gateway-unavailable' },
     } as AxiosResponse;
-    jest.mocked(axios.get).mockRejectedValue(error);
+    vi.mocked(axios.get).mockRejectedValue(error);
     renderInstanceWorkflows();
 
     expect(
@@ -897,18 +902,19 @@ describe('InstanceWorkflows', () => {
   });
 
   it('does not query the engine when the instance id is not a usable collection key', async () => {
-    jest
-      .mocked(axios.get)
-      .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
+    vi.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: workflowsResponse,
+    } as AxiosResponse);
     renderInstanceWorkflows(createQueryClientMock(), 'not-a-guid');
 
     expect(await screen.findByText(textMock('admin.workflows.no_results'))).toBeInTheDocument();
-    const requestedUrls = jest.mocked(axios.get).mock.calls.map(([url]) => url as string);
+    const requestedUrls = vi.mocked(axios.get).mock.calls.map(([url]) => url as string);
     expect(requestedUrls.filter((url) => url.includes('/workflows/'))).toEqual([]);
   });
 
   it("names a transition's tasks by their names in the app's process", async () => {
-    jest.mocked(axios.get).mockImplementation(
+    vi.mocked(axios.get).mockImplementation(
       async (url: string) =>
         ({
           status: 200,

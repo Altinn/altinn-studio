@@ -1,7 +1,8 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
 import axios from 'axios';
-import type { AxiosResponse } from 'axios';
+import type { AxiosResponse, AxiosStatic } from 'axios';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -10,10 +11,10 @@ import type { SimpleInstanceDetails } from 'admin/features/apps/types/SimpleInst
 import type { RunningApplicationMetadata } from 'admin/features/apps/types/RunningApplicationMetadata';
 import { InstanceDetails } from './InstanceDetails';
 
-jest.mock('axios', () => ({
-  ...jest.requireActual('axios'),
-  get: jest.fn(),
-}));
+vi.mock('axios', async () => {
+  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
+  return { ...actual, default: { ...actual.default, get: vi.fn() } };
+});
 
 const org = 'ttd';
 const environment = 'tt02';
@@ -30,16 +31,15 @@ const instanceMock: SimpleInstanceDetails = {
 };
 
 const workflowEngineRequests = () =>
-  jest
+  vi
     .mocked(axios.get)
     .mock.calls.map(([url]) => url as string)
     .filter((url) => url.includes('/workflows/'));
 
 describe('InstanceDetails', () => {
   beforeEach(() => {
-    jest.mocked(axios.get).mockResolvedValue({ status: 204, data: '' } as AxiosResponse);
+    vi.mocked(axios.get).mockResolvedValue({ status: 204, data: '' } as AxiosResponse);
   });
-  afterEach(jest.clearAllMocks);
 
   it('shows an instance of an app on app libraries before v9 without the workflow engine', async () => {
     renderInstanceDetails('8.5.1.0');

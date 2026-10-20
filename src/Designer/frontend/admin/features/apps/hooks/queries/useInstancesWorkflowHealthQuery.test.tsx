@@ -1,8 +1,9 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import type { AxiosResponse } from 'axios';
+import type { AxiosResponse, AxiosStatic } from 'axios';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
 import { WorkflowHealth } from 'admin/features/apps/utils/workflowHealth';
@@ -12,10 +13,10 @@ import {
   WORKFLOW_HEALTH_MAX_KEYS_PER_REQUEST,
 } from './useInstancesWorkflowHealthQuery';
 
-jest.mock('axios', () => ({
-  ...jest.requireActual('axios'),
-  get: jest.fn(),
-}));
+vi.mock('axios', async () => {
+  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
+  return { ...actual, default: { ...actual.default, get: vi.fn() } };
+});
 
 const env = 'at23';
 
@@ -31,13 +32,13 @@ const keysFrom = (url: string) => [
 ];
 
 const requestedKeySets = () =>
-  jest
+  vi
     .mocked(axios.get)
     .mock.calls.map(([url]) => keysFrom(url as string))
     .map((keys) => keys.join(','));
 
 const respondHealthy = () => {
-  jest.mocked(axios.get).mockImplementation(
+  vi.mocked(axios.get).mockImplementation(
     async (url: string) =>
       ({
         status: 200,
@@ -58,8 +59,6 @@ const respondHealthy = () => {
 const hasSettled = (pendingKeys: Set<string>) => pendingKeys.size === 0;
 
 describe('useInstancesWorkflowHealthQuery', () => {
-  afterEach(jest.clearAllMocks);
-
   it('annotates one request per loaded instance page', async () => {
     respondHealthy();
     const pages = [pageOf(10, 0), pageOf(10, 10), pageOf(5, 20)];
@@ -78,7 +77,7 @@ describe('useInstancesWorkflowHealthQuery', () => {
     const { result } = renderHealthQuery([oversizedPage]);
 
     await waitFor(() => expect(hasSettled(result.current.pendingKeys)).toBe(true));
-    const requestedKeyCounts = jest
+    const requestedKeyCounts = vi
       .mocked(axios.get)
       .mock.calls.map(([url]) => keysFrom(url as string).length);
     expect(requestedKeyCounts).toEqual([WORKFLOW_HEALTH_MAX_KEYS_PER_REQUEST, 3]);
@@ -96,7 +95,7 @@ describe('useInstancesWorkflowHealthQuery', () => {
     rerender([firstPage, [guidAt(10)]]);
 
     await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-    expect(keysFrom(jest.mocked(axios.get).mock.calls[1][0] as string)).toEqual([guidAt(10)]);
+    expect(keysFrom(vi.mocked(axios.get).mock.calls[1][0] as string)).toEqual([guidAt(10)]);
     await waitFor(() =>
       expect(result.current.healthByKey[guidAt(10)]).toBe(WorkflowHealth.Healthy),
     );

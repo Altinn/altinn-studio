@@ -1,9 +1,10 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import type { AxiosResponse } from 'axios';
+import type { AxiosResponse, AxiosStatic } from 'axios';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -15,10 +16,10 @@ import type {
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { WorkflowActions } from './WorkflowActions';
 
-jest.mock('axios', () => ({
-  ...jest.requireActual('axios'),
-  post: jest.fn(),
-}));
+vi.mock('axios', async () => {
+  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
+  return { ...actual, default: { ...actual.default, post: vi.fn() } };
+});
 
 const env = 'at23';
 const collectionKey = '3a0e0f6e-4b1d-4a2a-9d31-6f8e2b7c1d55';
@@ -67,9 +68,8 @@ const confirmButton = (key: string) => screen.getByRole('button', { name: textMo
 
 describe('WorkflowActions', () => {
   beforeEach(() => {
-    jest.mocked(axios.post).mockResolvedValue({ status: 202, data: {} } as AxiosResponse);
+    vi.mocked(axios.post).mockResolvedValue({ status: 202, data: {} } as AxiosResponse);
   });
-  afterEach(jest.clearAllMocks);
 
   it.each<PersistentItemStatus>(['Failed', 'Canceled', 'DependencyFailed', 'Abandoned'])(
     'offers retry, and nothing else, on a %s workflow',
@@ -107,7 +107,7 @@ describe('WorkflowActions', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
-    expect(jest.mocked(axios.post).mock.calls[0][0]).toBe(
+    expect(vi.mocked(axios.post).mock.calls[0][0]).toBe(
       `/designer/api/v1/admin/workflows/${org}/${env}/${app}/workflows/${workflowId}/nudge`,
     );
     rerenderWith(workflow('Processing'));
@@ -118,7 +118,7 @@ describe('WorkflowActions', () => {
 
   it('keeps the other verb out of reach while one is running', async () => {
     const user = userEvent.setup();
-    jest.mocked(axios.post).mockReturnValue(new Promise(() => {}));
+    vi.mocked(axios.post).mockReturnValue(new Promise(() => {}));
     renderWorkflowActions(workflow('Requeued'));
 
     await user.click(nudgeButton());
@@ -144,7 +144,7 @@ describe('WorkflowActions', () => {
     await user.click(confirmButton('admin.workflows.actions.fail.confirm'));
 
     await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
-    expect(jest.mocked(axios.post).mock.calls[0]).toEqual([
+    expect(vi.mocked(axios.post).mock.calls[0]).toEqual([
       `/designer/api/v1/admin/workflows/${org}/${env}/${app}/workflows/${workflowId}/fail`,
     ]);
   });
@@ -183,7 +183,7 @@ describe('WorkflowActions', () => {
     await user.click(confirmButton('admin.workflows.actions.retry.confirm'));
 
     await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
-    expect(jest.mocked(axios.post).mock.calls[0][0]).toBe(
+    expect(vi.mocked(axios.post).mock.calls[0][0]).toBe(
       `/designer/api/v1/admin/workflows/${org}/${env}/${app}/workflows/${workflowId}/resume?cascade=true`,
     );
   });
@@ -203,7 +203,7 @@ describe('WorkflowActions', () => {
   it('invalidates the engine-backed views and the Storage-backed instance views after a verb', async () => {
     const user = userEvent.setup();
     const client = createQueryClientMock();
-    const invalidateQueries = jest.spyOn(client, 'invalidateQueries');
+    const invalidateQueries = vi.spyOn(client, 'invalidateQueries');
     renderWorkflowActions(workflow('Failed'), client);
 
     await user.click(retryButton());
@@ -222,7 +222,7 @@ describe('WorkflowActions', () => {
 
   it('surfaces a failed verb without a global toast', async () => {
     const user = userEvent.setup();
-    jest.mocked(axios.post).mockRejectedValue(new Error('boom'));
+    vi.mocked(axios.post).mockRejectedValue(new Error('boom'));
     renderWorkflowActions(workflow('Failed'));
 
     await user.click(retryButton());
@@ -259,7 +259,7 @@ describe('WorkflowActions', () => {
 
   it('says how many dependents the cascade resumed along with the workflow', async () => {
     const user = userEvent.setup();
-    jest.mocked(axios.post).mockResolvedValue({
+    vi.mocked(axios.post).mockResolvedValue({
       status: 202,
       data: { workflowId, resumedAt: '2026-08-02T10:10:00Z', cascadeResumed: ['dep-1', 'dep-2'] },
     } as AxiosResponse);

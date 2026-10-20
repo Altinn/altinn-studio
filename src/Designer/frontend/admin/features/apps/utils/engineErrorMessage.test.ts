@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { formatEngineErrorMessage, readEngineErrorMessage } from './engineErrorMessage';
 
 const message =

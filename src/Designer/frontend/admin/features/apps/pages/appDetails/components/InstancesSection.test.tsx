@@ -1,10 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import type { AxiosResponse } from 'axios';
+import type { AxiosResponse, AxiosStatic } from 'axios';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
@@ -12,10 +13,10 @@ import { OrgContext } from 'admin/contexts/OrgContext';
 import { workflowCounts } from 'admin/testing/workflowCounts';
 import { InstancesSection } from './InstancesSection';
 
-jest.mock('axios', () => ({
-  ...jest.requireActual('axios'),
-  get: jest.fn(),
-}));
+vi.mock('axios', async () => {
+  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
+  return { ...actual, default: { ...actual.default, get: vi.fn() } };
+});
 
 const environment = 'at23';
 const orgMock = { username: org, full_name: 'Test Org', avatar_url: '', id: 1 };
@@ -30,7 +31,7 @@ const workflowEngineUrl = (url: string) => url.includes('/workflows/');
 type MockOptions = { appLibVersion?: string | null };
 
 const mockRequests = ({ appLibVersion = '9.0.0.175' }: MockOptions = {}) => {
-  jest.mocked(axios.get).mockImplementation(async (url: string) => {
+  vi.mocked(axios.get).mockImplementation(async (url: string) => {
     if (url.includes('/application-metadata')) {
       if (appLibVersion === null) {
         throw new Error('The app did not answer');
@@ -73,11 +74,9 @@ const mockRequests = ({ appLibVersion = '9.0.0.175' }: MockOptions = {}) => {
 const problemsTab = () =>
   screen.getByRole('tab', { name: textMock('admin.workflows.problems.title') });
 
-const requestedUrls = () => jest.mocked(axios.get).mock.calls.map(([url]) => url as string);
+const requestedUrls = () => vi.mocked(axios.get).mock.calls.map(([url]) => url as string);
 
 describe('InstancesSection', () => {
-  afterEach(jest.clearAllMocks);
-
   it('shows an app on app libraries before v9 its instances alone, and asks the engine nothing', async () => {
     mockRequests({ appLibVersion: '8.5.1.0' });
     renderInstancesSection();
@@ -104,7 +103,7 @@ describe('InstancesSection', () => {
     expect(await screen.findByRole('link', { name: instanceGuid })).toBeInTheDocument();
     expect(problemsTab()).toBeInTheDocument();
     expect(
-      jest
+      vi
         .mocked(axios.get)
         .mock.calls.map(([url]) => url as string)
         .some(discoveryUrl),
@@ -122,7 +121,7 @@ describe('InstancesSection', () => {
     expect(await screen.findByRole('link', { name: failingGuid })).toBeInTheDocument();
     await waitFor(() =>
       expect(
-        jest
+        vi
           .mocked(axios.get)
           .mock.calls.map(([url]) => url as string)
           .filter(discoveryUrl),
